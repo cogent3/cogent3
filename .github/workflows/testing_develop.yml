@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  tests:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest]
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v1"
+        with:
+          python-version: "${{ matrix.python-version }}"
+
+      - name: Make conda environment
+        uses: goanpeca/setup-miniconda@v1
+        with:
+           activate-environment: c3dev
+           environment-file: c3dev-environment.yml
+           python-version: "${{ matrix.python-version }}"
+
+      - name: "Display conda env for ${{ matrix.python-version }}"
+        shell: bash -l {0}
+        run: |
+          conda activate 
+          conda info
+          conda list
+      - name: "Run tox targets for ${{ matrix.python-version }}"
+        shell: bash -l {0}
+        run: |
+          conda activate c3dev
+          python -m tox
+          ls
+          ls tests
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./tests/junit-*.xml
+          fail_ci_if_error: true
