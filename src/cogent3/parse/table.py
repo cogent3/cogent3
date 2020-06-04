@@ -54,10 +54,8 @@ class ConvertFields(object):
         """converts each column in a line"""
         return self.conversion(line)
 
-    def _call(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)
-
-    __call__ = _call
 
 
 def SeparatorFormatParser(
@@ -89,7 +87,6 @@ def SeparatorFormatParser(
         exits after this many lines
 
     """
-    sep = kw.get("delim", sep)
     if ignore is None:  # keep all lines
         ignore = lambda x: False
 
@@ -124,35 +121,6 @@ def SeparatorFormatParser(
                 break
 
     return callable
-
-
-def autogen_reader(infile, sep, with_title, limit=None):
-    """returns a SeparatorFormatParser with field convertor for numeric column
-    types."""
-    seen_title_line = False
-    for first_data_row in infile:
-        if seen_title_line:
-            break
-        if sep in first_data_row and not seen_title_line:
-            seen_title_line = True
-
-    infile.seek(0)  # reset to start of file
-
-    typed_fields = []
-    bool_map = {"True": True, "False": False}
-    for index, value in enumerate(first_data_row.strip().split(sep)):
-        try:
-            v = eval(value)
-            if type(v) in (float, int, complex):
-                typed_fields.append((index, v.__class__))
-            elif type(v) == bool:
-                typed_fields.append((index, lambda x: bool_map.get(x)))
-        except:
-            pass
-
-    return SeparatorFormatParser(
-        converter=ConvertFields(typed_fields), sep=sep, limit=limit
-    )
 
 
 def load_delimited(
