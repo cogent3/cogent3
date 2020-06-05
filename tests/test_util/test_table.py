@@ -28,6 +28,7 @@ try:
 except ImportError:
     DataFrame = None
 
+TEST_ROOT = pathlib.Path(__file__).parent.parent
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
@@ -1242,6 +1243,45 @@ class TableTests(TestCase):
         d = [".123|.345", "123", "()"]
         r = cast_str_to_array(d, static_type=False)
         self.assertEqual(r[-1], ())
+
+    def test_filtering_parser(self):
+        """filters rows"""
+        from cogent3.parse.table import FilteringParser
+
+        expect = []
+        for r in self.t1_rows:
+            row = [str(e) for e in r]
+            expect.append(row)
+
+        t = make_table(self.t1_header, data=self.t1_rows)
+        lines = t.to_csv().splitlines()
+        # no limit set
+        reader = FilteringParser(lambda x: x[0] == "A", with_header=True, sep=",")
+        got = [line for line in reader(lines)]
+        self.assertEqual(got[0], self.t1_header)
+        self.assertEqual(got[1:], [r for r in expect if r[0] == "A"])
+
+        # limit set
+        reader = FilteringParser(
+            lambda x: x[0] == "A", with_header=True, sep=",", limit=2
+        )
+        got = [line for line in reader(lines)]
+        self.assertEqual(got[0], self.t1_header)
+        self.assertEqual(got[1:], [r for r in expect if r[0] == "A"][:2])
+
+        # negate
+        reader = FilteringParser(
+            lambda x: x[0] == "A", negate=True, with_header=True, sep=","
+        )
+        got = [line for line in reader(lines)]
+        self.assertEqual(got[0], self.t1_header)
+        self.assertEqual(got[1:], [r for r in expect if r[0] == "X"])
+
+        # parser works with load_table
+        reader = FilteringParser(lambda x: x[0] == "A", with_header=True, sep="\t")
+        table = load_table(TEST_ROOT / "data" / "sample.tsv", reader=reader)
+        self.assertEqual(list(table.header), self.t1_header)
+        self.assertEqual(table.array.tolist(), [r for r in self.t1_rows if r[0] == "A"])
 
 
 if __name__ == "__main__":

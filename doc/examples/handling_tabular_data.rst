@@ -884,54 +884,22 @@ You can also read and write tables in gzip compressed format. This can be done s
     >>> t2_gz.shape == t2.shape
     True
 
+Filtering lines on reading
+--------------------------
 
-Defining a custom reader with type conversion for each column
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If you only want a subset of the contents of a file, use the ``FilteringParser``. This allows skipping certain lines by using a callback function. We illustrate this using the above data, skipping any rows with ``edge.name`` starting with ``edge``.
 
-We convert columns 2-5 to floats by specifying a field convertor. We then create a reader, specifying the data (below a list but can be a file) properties. Note that if no convertor is provided all data are returned as strings. We can also provide this reader to the ``Table`` constructor for a more direct way of opening such files. In this case, ``Table`` assumes there is a header row and nothing else.
+.. doctest::
+    :hide:
+
+    >>> _t = make_table(header=t3.header, data=t3.columns.to_dict())
+    >>> _t.write("t3.tab", sep="\t")
 
 .. doctest::
 
-    >>> from cogent3.parse.table import ConvertFields, SeparatorFormatParser
-    >>> t3.title = t3.legend = None
-    >>> comma_sep = t3.to_string(sep=",").splitlines()
-    >>> print(comma_sep)
-    ['edge.name,edge.parent,length,     x,     y,     z', '    Human,    ...
-    >>> converter = ConvertFields([(2,float), (3,float), (4,float), (5, float)])
-    >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
-    ...      sep=",")
-    >>> comma_sep = [line for line in reader(comma_sep)]
-    >>> print(comma_sep)
-    [['edge.name', 'edge.parent', 'length', 'x', 'y', 'z'], ['Human',...
-    >>> t3.write("t3.tab", sep="\t")
-    >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
-    ...      sep="\t")
-    >>> t3a = load_table("t3.tab", reader=reader, title="new title",
-    ...       space=2)
-    ...
-    >>> print(t3a)
-    new title
-    ======================================================
-    edge.name  edge.parent  length       x       y       z
-    ------------------------------------------------------
-        Human       edge.0  4.0000  1.0000  3.0000  6.0000
-    HowlerMon       edge.0  4.0000  1.0000  3.0000  6.0000
-        Mouse       edge.1  4.0000  1.0000  3.0000  6.0000
-    NineBande         root  4.0000  1.0000  3.0000  6.0000
-     DogFaced         root  4.0000  1.0000  3.0000  6.0000
-       edge.0       edge.1  4.0000  1.0000  3.0000  6.0000
-       edge.1         root  4.0000  1.0000  3.0000  6.0000
-    ------------------------------------------------------
-
-We can use the ``SeparatorFormatParser`` to ignore reading certain lines by using a callback function. We illustrate this using the above data, skipping any rows with ``edge.name`` starting with ``edge``.
-
-.. doctest::
-
-    >>> def ignore_internal_nodes(line):
-    ...     return line[0].startswith('edge')
-    ...
-    >>> reader = SeparatorFormatParser(with_header=True,converter=converter,
-    ...      sep="\t", ignore=ignore_internal_nodes)
+    >>> from cogent3.parse.table import FilteringParser
+    >>> reader = FilteringParser(lambda line: not line[0].startswith('edge'),
+    ...                          with_header=True, sep="\t")
     ...
     >>> tips = load_table("t3.tab", reader=reader, digits=1, space=2)
     >>> print(tips)
@@ -944,6 +912,14 @@ We can use the ``SeparatorFormatParser`` to ignore reading certain lines by usin
     NineBande         root     4.0  1.0  3.0  6.0
      DogFaced         root     4.0  1.0  3.0  6.0
     ---------------------------------------------
+
+You can also ``negate`` the condition, useful if the condition is complex (which is not really the case here).
+
+.. doctest::
+
+    >>> reader = FilteringParser(lambda line: line[0].startswith('edge'),
+    ...                          negate=True, with_header=True, sep="\t")
+    ...
 
 We can also limit the amount of data to be read in, very handy for checking large files.
 
@@ -959,15 +935,13 @@ We can also limit the amount of data to be read in, very handy for checking larg
         Mouse         edge.1    4.0000    1.0000    3.0000    6.0000
     ----------------------------------------------------------------
 
-Limiting should also work when ``static_column_types`` is invoked
+Limiting also works when ``static_column_types`` is invoked
 
 .. doctest::
 
     >>> t3a = load_table("t3.tab", sep='\t', limit=3, static_column_types=True)
     >>> t3a.shape[0] == 3
     True
-
-or when
 
 In the above example, the data type in a column is static, e.g. all values in ``x`` are floats. Rather than providing a custom reader, you can get the ``Table`` to construct such a reader based on the first data row using the ``static_column_types`` argument.
 
@@ -1004,96 +978,6 @@ If you invoke the ``static_column_types`` argument and the column data are not s
     >>> t3b = load_table('test3b.txt', sep='\t', static_column_types=True)
     >>> t3b.columns["A"]
     array(['1', 'a'], dtype='<U1')
-
-We also test the reader function for a tab delimited format with missing data at the end.
-
-.. doctest::
-
-    >>> data = ['ab\tcd\t', 'ab\tcd\tef']
-    >>> tab_reader = SeparatorFormatParser(sep='\t')
-    >>> for line in tab_reader(data):
-    ...     assert len(line) == 3, line
-
-Defining a custom reader that operates on entire lines
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-It can also be the case that data types differ between lines. The basic mechanism is the same as above, except in defining the converter you must set the argument ``by_column=True``.
-
-We illustrate this capability by writing a short function that tries to cast entire lines to ``int``, ``float`` or leaves as a string.
-
-.. doctest::
-
-    >>> def CastLine():
-    ...     floats = lambda x: list(map(float, x))
-    ...     ints = lambda x: list(map(int, x))
-    ...     def call(line):
-    ...         try:
-    ...             line = ints(line)
-    ...         except ValueError:
-    ...             try:
-    ...                 line = floats(line)
-    ...             except ValueError:
-    ...                 pass
-    ...         return line
-    ...     return call
-
-We then define a couple of lines, create an instance of ``ConvertFields`` and call it for each type.
-
-.. doctest::
-
-    >>> line_str_ints = '\t'.join(map(str, range(5)))
-    >>> line_str_floats = '\t'.join(map(str, map(float, range(5))))
-    >>> data = [line_str_ints, line_str_floats]
-    >>> cv = ConvertFields(CastLine(), by_column=False)
-    >>> tab_reader = SeparatorFormatParser(with_header=False, converter=cv,
-    ...                                    sep='\t')
-    >>> for line in tab_reader(data):
-    ...     print(line)
-    [0, 1, 2, 3, 4]
-    [0.0, 1.0, 2.0, 3.0, 4.0]
-
-Defining a custom writer
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-We can likewise specify a writer, using a custom field formatter and provide this to the ``Table`` directly for writing. We first illustrate how the writer works to generate output. We then use it to escape some text fields in quotes. In order to read that back in, we define a custom reader that strips these quotes off.
-
-.. doctest::
-
-    >>> from cogent3.format.table import format_fields, separator_formatter
-    >>> formatter = format_fields([(0,'"%s"'), (1,'"%s"')])
-    >>> writer = separator_formatter(formatter=formatter, sep=" | ")
-    >>> for formatted in writer(comma_sep, has_header=True):
-    ...      print(formatted)
-    edge.name | edge.parent | length | x | y | z
-    "Human" | "edge.0" | 4.0 | 1.0 | 3.0 | 6.0
-    "HowlerMon" | "edge.0" | 4.0 | 1.0 | 3.0 | 6.0
-    "Mouse" | "edge.1" | 4.0 | 1.0 | 3.0 | 6.0
-    "NineBande" | "root" | 4.0 | 1.0 | 3.0 | 6.0
-    "DogFaced" | "root" | 4.0 | 1.0 | 3.0 | 6.0
-    "edge.0" | "edge.1" | 4.0 | 1.0 | 3.0 | 6.0
-    "edge.1" | "root" | 4.0 | 1.0 | 3.0 | 6.0
-    >>> t3.write(filename="t3.tab", writer=writer)
-    >>> strip = lambda x: x.replace('"', '')
-    >>> converter = ConvertFields([(0,strip), (1, strip)])
-    >>> reader = SeparatorFormatParser(with_header=True, converter=converter,
-    ...       sep="|", strip_wspace=True)
-    >>> t3a = load_table("t3.tab", reader=reader, title="new title",
-    ...       space=2)
-    >>> print(t3a)
-    new title
-    =============================================
-    edge.name  edge.parent  length    x    y    z
-    ---------------------------------------------
-        Human       edge.0     4.0  1.0  3.0  6.0
-    HowlerMon       edge.0     4.0  1.0  3.0  6.0
-        Mouse       edge.1     4.0  1.0  3.0  6.0
-    NineBande         root     4.0  1.0  3.0  6.0
-     DogFaced         root     4.0  1.0  3.0  6.0
-       edge.0       edge.1     4.0  1.0  3.0  6.0
-       edge.1         root     4.0  1.0  3.0  6.0
-    ---------------------------------------------
-
-.. note:: There are performance issues for large files. Pickling has proven very slow for saving very large files and introduces significant file size bloat. A simple delimited format is much more efficient both storage wise and, if you use a custom reader (or specify ``static_column_types=True``), to generate and read. A custom reader was approximately 6 fold faster than the standard delimited file reader.
 
 Table slicing and iteration
 ---------------------------
