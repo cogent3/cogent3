@@ -5,6 +5,7 @@ import csv
 from collections.abc import Callable
 
 from cogent3.util.misc import open_
+from cogent3.util.warning import discontinued
 
 from .record_finder import is_empty
 
@@ -33,6 +34,8 @@ class ConvertFields(object):
 
         """
         super(ConvertFields, self).__init__()
+        discontinued("function", "ConvertFields", "2020.11.1")
+
         self.conversion = conversion
         self.by_column = by_column
 
@@ -80,7 +83,7 @@ def SeparatorFormatParser(
         lines for which ignore returns True are ignored. White
         lines are always skipped.
     sep
-        the delimiter deparating fields.
+        the delimiter separating fields.
     strip_wspace
         removes redundant white
     limit
@@ -91,6 +94,7 @@ def SeparatorFormatParser(
         ignore = lambda x: False
 
     by_column = getattr(converter, "by_column", True)
+    discontinued("function", "SeparatorFormatParser", "2020.11.1")
 
     def callable(lines):
         num_lines = 0
@@ -121,6 +125,65 @@ def SeparatorFormatParser(
                 break
 
     return callable
+
+
+class FilteringParser:
+    """A parser for a delimited tabular file that returns records matching a condition."""
+
+    def __init__(
+        self, condition, negate=False, with_header=True, sep=",", limit=None,
+    ):
+        """
+        Parameters
+        ----------
+        condition : callable
+            callback that takes an entire line (except header) and returns True/False.
+            A line is kept if condition(line) is True.
+        negate : bool
+            A line is kept if condition(line) is False.
+        with_header : bool
+            when True, first line is taken to be the header. Not
+            passed to converter.
+        sep : str
+            the delimiter separating fields.
+        strip_wspace : bool
+            removes redundant white
+        limit : int
+            exits after this many lines
+
+        Notes
+        -----
+        The line elements are strings.
+        """
+        self.with_header = with_header
+        self.condition = condition
+        self.negate = negate
+        self.sep = sep
+        self.limit = limit
+
+    def __call__(self, lines):
+        num_lines = 0
+        header = None
+        match = not self.negate
+        for line in lines:
+            if is_empty(line):
+                continue
+
+            line = line.split(self.sep)
+            line = [e.strip() for e in line]
+            if header is None and self.with_header:
+                header = True
+                yield line
+                continue
+
+            if self.condition(line) != match:
+                continue
+
+            yield line
+
+            num_lines += 1
+            if self.limit is not None and num_lines >= self.limit:
+                break
 
 
 def load_delimited(
@@ -158,5 +221,4 @@ def load_delimited(
         legend = "".join(rows.pop(-1))
     else:
         legend = ""
-    # now do type casting in the order int, float, default is string
     return header, rows, title, legend

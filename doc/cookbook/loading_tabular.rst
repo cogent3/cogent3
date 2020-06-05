@@ -40,6 +40,28 @@ Although unecessary in this case, it's possible to override the suffix by specif
     NP_055852    NonCon    10933217.7090
     ------------------------------------
 
+Selectively loading parts of a big file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you only want a subset of the contents of a file, use the ``FilteringParser``. This allows skipping certain lines by using a callback function. We illustrate this with ``stats.tsv``, skipping any rows with ``"Ratio"`` > 10.
+
+.. doctest::
+
+    >>> from cogent3.parse.table import FilteringParser
+    >>> reader = FilteringParser(lambda line: float(line[2]) <= 10,
+    ...                          with_header=True, sep="\t")
+    ...
+    >>> table = load_table("data/stats.tsv", reader=reader, digits=1)
+    >>> print(table)
+    ============================
+        Locus    Region    Ratio
+    ----------------------------
+    NP_003077       Con      2.5
+    NP_005500    NonCon      0.0
+    ----------------------------
+
+.. note:: You can also ``negate`` a condition, which is useful if the condition is complex.
+
 Make a table from header and rows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

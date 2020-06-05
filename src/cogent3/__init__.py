@@ -479,17 +479,18 @@ def load_table(
                 raise ValueError(msg)
 
         title = title or loaded_title
-        data = {}
-        for column in zip(header, *rows):
-            data[column[0]] = cast_str_to_array(
-                column[1:], static_type=static_column_types
-            )
-        rows = data
+        data = {column[0]: column[1:] for column in zip(header, *rows)}
     else:
         f = open_(filename, newline=None)
-        rows = [row for row in reader(f)]
+        data = [row for row in reader(f)]
+        header = data[0]
+        data = {column[0]: column[1:] for column in zip(*data)}
         f.close()
-        header = rows.pop(0)
+
+    for key, value in data.items():
+        data[key] = cast_str_to_array(value, static_type=static_column_types)
+
+    rows = data
 
     return make_table(
         header=header,
