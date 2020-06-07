@@ -14,9 +14,15 @@
 
 `cogent3` is unique in providing numerous [non-stationary Markov models](http://www.ncbi.nlm.nih.gov/pubmed/25503772) for modelling sequence evolution, [including codon models](https://www.ncbi.nlm.nih.gov/pubmed/28175284). `cogent3` also includes an extensive collection of time-reversible models (again including [novel codon models](https://www.ncbi.nlm.nih.gov/pubmed/19815689)). We have done more than just invent these new methods, we have [established the most robust algorithms](https://www.ncbi.nlm.nih.gov/pubmed/19099591) for their implementation and their [suitability for real data](https://www.ncbi.nlm.nih.gov/pubmed/23935949). Additionally, there are novel signal processing methods focussed on statistical estimation of [integer period signals](https://www.ncbi.nlm.nih.gov/pubmed/21527008).
 
+![nstat](https://cogent3.org/_static/svg/demo_fit_ns.svg)
+
 ### Anyone who wants to undertake exploratory genomic data analysis
 
-Beyond our novel methods, `cogent3` provides an extensive suite of capabilities for manipulating and analysing sequence data. For instance, the ability to read standard biological data formats, manipulate sequences by their annotations, to perform multiple sequence alignment using any of our substitution models, phylogenetic reconstruction and tree manipulation, manipulation of tabular data, visualisation of phylogenies and much more.
+Beyond our novel methods, `cogent3` provides an extensive suite of capabilities for manipulating and analysing sequence data. You can manipulate sequences by their annotations, e.g.
+
+![annot](https://cogent3.org/_static/svg/annotate_domain.svg)
+
+Plus, you can read standard tabular and biological data formats, perform multiple sequence alignment using any `cogent3` substitution models, phylogenetic reconstruction and tree manipulation, manipulation of tabular data, visualisation of phylogenies and much more.
 
 ### Anyone looking for a functional programming style approach to genomic data analysis
 
