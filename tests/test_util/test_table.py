@@ -1141,6 +1141,13 @@ class TableTests(TestCase):
             [".. csv-table::", '    :header: "a", "b"', "", "    1, 2",],
         )
 
+    def test_get_repr_(self):
+        """handles single column case"""
+        t = make_table(self.t2_header, data=self.t2_rows)
+        t = t[:, 0]
+        # the next line was previously failing
+        g = t._get_repr_()
+
     def test_repr_html_(self):
         """should produce html"""
         # without an index

@@ -745,22 +745,22 @@ class Table:
             self._repr_policy["tail"] = tail
 
         shape_info = ""
-        ellipsis = [["..."] * len(self.header)]
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
             indices = list(sorted(indices))
-            rows = self.array.take(indices, axis=0).tolist()
             shape_info = f"Random selection of {rn} rows"
         elif all([head, tail]):
-            top = self[:head].tolist()
-            bottom = self[-tail:].tolist()
-            rows = top + ellipsis + bottom
+            indices = list(range(head)) + list(
+                range(self.shape[0] - tail, self.shape[0])
+            )
         elif head:
-            rows = self[:head].tolist()
+            indices = list(range(head))
         elif tail:
-            rows = self[-tail:].tolist()
+            indices = list(range(self.shape[0] - tail, self.shape[0]))
         else:
-            rows = self.tolist()
+            indices = list(range(self.shape[0]))
+
+        rows = {c: self.columns[c].take(indices) for c in self.header}
 
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         kwargs = self._get_persistent_attrs()
