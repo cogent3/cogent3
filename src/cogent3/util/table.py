@@ -916,6 +916,17 @@ class Table:
         format_template
             string formatting template or a function that will handle the formatting.
         """
+        test_val = self.columns[column_head].tolist()[0]
+        try:
+            _ = (
+                format_template(test_val)
+                if callable(format_template)
+                else format_template % test_val
+            )
+        except Exception as err:
+            msg = f"{format_template} invalid for {column_head}: {err.args[0]}"
+            raise ValueError(msg)
+
         self._column_templates[column_head] = format_template
 
     def head(self, nrows=5):

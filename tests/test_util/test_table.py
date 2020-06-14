@@ -473,7 +473,7 @@ class TableTests(TestCase):
             ("NP_004893_hs_mm_rn_dna", "Con", 0.12135142635634111e06),
         )
         t = Table(["Gene", "Type", "LR"], rows)
-        t.format_column("LR", ".4e")
+        t.format_column("LR", "%.4e")
         s = str(t)
         r = repr(t)
         self.assertTrue(r.startswith(s))
@@ -1289,6 +1289,29 @@ class TableTests(TestCase):
         table = load_table(TEST_ROOT / "data" / "sample.tsv", reader=reader)
         self.assertEqual(list(table.header), self.t1_header)
         self.assertEqual(table.array.tolist(), [r for r in self.t1_rows if r[0] == "A"])
+
+    def test_set_column_format(self):
+        """fails if invalid format spec provided"""
+        data = {
+            "Gene": [
+                "NP_003077_hs_mm_rn_dna",
+                "NP_004893_hs_mm_rn_dna",
+                "NP_005079_hs_mm_rn_dna",
+                "NP_005500_hs_mm_rn_dna",
+                "NP_055852_hs_mm_rn_dna",
+            ],
+            "Type": ["Con", "Con", "Con", "Con", "Con"],
+            "LR": [
+                2.5386013224378985,
+                121351.42635634111,
+                9516594.978886133,
+                7.382703020266491e-08,
+                10933217.708952725,
+            ],
+        }
+        t = make_table(data=data)
+        with self.assertRaises(ValueError):
+            t.format_column("LR", ".4e")
 
 
 if __name__ == "__main__":
