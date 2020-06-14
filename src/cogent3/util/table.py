@@ -795,6 +795,9 @@ class Table:
         if not include_shape:
             shape_info = ""
 
+        if self.shape == (0, 0):
+            return shape_info
+
         title, legend = table.title, table.legend
         # current rich_html does not provide a good mechanism for custom
         # formatting of titles, legends
