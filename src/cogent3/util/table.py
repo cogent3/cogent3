@@ -14,7 +14,6 @@ import csv
 import json
 import pickle
 import re
-import warnings
 
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
@@ -897,13 +896,15 @@ class Table:
         return self._format
 
     @format.setter
-    def format(self, new):
+    def format(self, new="simple"):
         """the str display format"""
-        # setting the default format for str(self)
-        if new.lower() in table_format.known_formats:
-            new = new.lower()
-        else:
-            new = "simple"
+        new = new.lower()
+        if new not in table_format.known_formats:
+            msg = (
+                f"{new} not a supported format, see cogent3.format.table.known_formats"
+            )
+            raise ValueError(msg)
+
         self._format = new
 
     def format_column(self, column_head, format_template):

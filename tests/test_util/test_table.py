@@ -924,6 +924,12 @@ class TableTests(TestCase):
         self.assertEqual(tex[2], r"\caption{a title.}")
         self.assertEqual(tex[3], r"\label{table}")
 
+    def test_invalid_format(self):
+        """should raise value error"""
+        t = make_table(self.t2_header, data=self.t2_rows)
+        with self.assertRaises(ValueError):
+            t.format = "blah"
+
     def test_phylip(self):
         """generates phylip format"""
         rows = [
