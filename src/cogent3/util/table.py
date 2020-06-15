@@ -744,6 +744,7 @@ class Table:
             self._repr_policy["tail"] = tail
 
         shape_info = ""
+        ellipsis = None
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
             indices = list(sorted(indices))
@@ -752,6 +753,7 @@ class Table:
             indices = list(range(head)) + list(
                 range(self.shape[0] - tail, self.shape[0])
             )
+            ellipsis = "..."
         elif head:
             indices = list(range(head))
         elif tail:
@@ -759,7 +761,10 @@ class Table:
         else:
             indices = list(range(self.shape[0]))
 
-        rows = {c: self.columns[c].take(indices) for c in self.header}
+        rows = {c: self.columns[c].take(indices).tolist() for c in self.header}
+        if ellipsis:
+            for k, v in rows.items():
+                v.insert(head, ellipsis)
 
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         kwargs = self._get_persistent_attrs()
