@@ -34,5 +34,4 @@ Trees
     :maxdepth: 1
 
     simple_trees
-    phylonodes
 

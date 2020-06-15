@@ -1,153 +1,155 @@
 Translate DNA sequences
 -----------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import get_code
-    >>> standard_code = get_code(1)
-    >>> standard_code.translate('TTTGCAAAC')
-    'FAN'
+    from cogent3 import get_code
+
+    standard_code = get_code(1)
+    standard_code.translate("TTTGCAAAC")
 
 Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown in :ref:`translation`.
 
 Translate all six frames
 ------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_seq, get_code
-    >>> standard_code = get_code(1)
-    >>> seq = make_seq('ATGCTAACATAAA', moltype="dna")
-    >>> translations = standard_code.sixframes(seq)
-    >>> print(translations)
-    ['MLT*', 'C*HK', 'ANI', 'FMLA', 'LC*H', 'YVS']
+    from cogent3 import make_seq, get_code
+
+    standard_code = get_code(1)
+    seq = make_seq("ATGCTAACATAAA", moltype="dna")
+    translations = standard_code.sixframes(seq)
+    print(translations)
 
 Find out how many stops in a frame
 ----------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_seq, get_code
-    >>> standard_code = get_code(1)
-    >>> seq = make_seq('ATGCTAACATAAA', moltype="dna")
-    >>> stops_frame1 = standard_code.get_stop_indices(seq, start=0)
-    >>> stops_frame1
-    [9]
-    >>> stop_index = stops_frame1[0]
-    >>> seq[stop_index:stop_index+3]
-    DnaSequence(TAA)
+    from cogent3 import make_seq, get_code
+
+    standard_code = get_code(1)
+    seq = make_seq("ATGCTAACATAAA", moltype="dna")
+    stops_frame1 = standard_code.get_stop_indices(seq, start=0)
+    stops_frame1
+    stop_index = stops_frame1[0]
+    seq[stop_index : stop_index + 3]
 
 Translate a codon
 -----------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_seq, get_code
-    >>> standard_code = get_code(1)
-    >>> standard_code['TTT']
-    'F'
+    from cogent3 import make_seq, get_code
+
+    standard_code = get_code(1)
+    standard_code["TTT"]
 
 or get the codons for a single amino acid
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> standard_code['A']
-    ['GCT', 'GCC', 'GCA', 'GCG']
+    standard_code["A"]
 
 Look up the amino acid corresponding to a single codon
 ------------------------------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import get_code
-    >>> standard_code = get_code(1)
-    >>> standard_code['TTT']
-    'F'
+    from cogent3 import get_code
+
+    standard_code = get_code(1)
+    standard_code["TTT"]
 
 Get all the codons for one amino acid
 -------------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import get_code
-    >>> standard_code = get_code(1)
-    >>> standard_code['A']
-    ['GCT', 'GCC', 'GCA', 'GCG']
+    from cogent3 import get_code
+
+    standard_code = get_code(1)
+    standard_code["A"]
 
 Get all the codons for a group of amino acids
 ---------------------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> targets = ['A','C']
-    >>> codons = [standard_code[aa] for aa in targets]
-    >>> codons
-    [['GCT', 'GCC', 'GCA', 'GCG'], ['TGT', 'TGC']]
-    >>> flat_list = sum(codons,[])
-    >>> flat_list
-    ['GCT', 'GCC', 'GCA', 'GCG', 'TGT', 'TGC']
+    targets = ["A", "C"]
+    codons = [standard_code[aa] for aa in targets]
+    codons
+    flat_list = sum(codons, [])
+    flat_list
 
 Converting the ``CodonAlphabet`` to codon series
 ------------------------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_seq
-    >>> my_seq = make_seq("AGTACACTGGTT", moltype="dna")
-    >>> sorted(my_seq.codon_alphabet())
-    ['AAA', 'AAC', 'AAG', 'AAT'...
-    >>> len(my_seq.codon_alphabet())
-    61
+    from cogent3 import make_seq
+
+    my_seq = make_seq("AGTACACTGGTT", moltype="dna")
+    sorted(my_seq.codon_alphabet())
+    len(my_seq.codon_alphabet())
 
 Obtaining the codons from a ``DnaSequence`` object
 --------------------------------------------------
 
 Use the method ``get_in_motif_size``
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_seq
-    >>> my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
-    >>> codons = my_seq.get_in_motif_size(3)
-    >>> print(codons)
-    ['ATG', 'CAC', 'TGG', 'TAA']
+    from cogent3 import make_seq
+
+    my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
+    codons = my_seq.get_in_motif_size(3)
+    print(codons)
 
 Translating a DNA sequence with a terminating stop codon
 --------------------------------------------------------
 
 You can't translate a sequence that contains a stop codon.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
+    :raises: AlphabetError
 
-    >>> pep = my_seq.get_translation()
-    Traceback (most recent call last):
-    cogent3.core.alphabet.AlphabetError: TAA
+    pep = my_seq.get_translation()
 
 By removing the trailing stop codon first
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_seq
-    >>> my_seq = make_seq('ATGCACTGGTAA',name='my_gene', moltype="dna")
-    >>> seq = my_seq.trim_stop_codon()
-    >>> pep = seq.get_translation()
-    >>> print(pep.to_fasta())
-    >my_gene
-    MHW
-    <BLANKLINE>
-    >>> print(type(pep))
-    <class 'cogent3.core.sequence.ProteinSequence'>
+    from cogent3 import make_seq
+
+    my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
+    seq = my_seq.trim_stop_codon()
+    pep = seq.get_translation()
+    print(pep.to_fasta())
+    print(type(pep))
 
 By slicing the ``DnaSequence`` first
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_seq
-    >>> my_seq = make_seq('CAAATGTATTAA',name='my_gene', moltype="dna")
-    >>> pep = my_seq[:-3].get_translation()
-    >>> print(pep.to_fasta())
-    >my_gene
-    QMY
-    <BLANKLINE>
+    from cogent3 import make_seq
+
+    my_seq = make_seq("CAAATGTATTAA", name="my_gene", moltype="dna")
+    pep = my_seq[:-3].get_translation()
+    print(pep.to_fasta())

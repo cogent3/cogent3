@@ -22,34 +22,45 @@ A simple example
 
 We make a very simple function ``first4``, that returns the first 4 elements of an alignment.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> def first4(val):
-    ...     return val[:4]
+    def first4(val):
+        return val[:4]
 
 Now we define a ``user_function`` instance that takes and returns an ``ALIGNED_TYPE``.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.app.composable import user_function, ALIGNED_TYPE
-    >>> just4 = user_function(first4, input_types=ALIGNED_TYPE, output_types=ALIGNED_TYPE, data_types="Alignment")
+    from cogent3.app.composable import user_function, ALIGNED_TYPE
+
+    just4 = user_function(
+        first4,
+        input_types=ALIGNED_TYPE,
+        output_types=ALIGNED_TYPE,
+        data_types="Alignment",
+    )
 
 The ``repr()`` of your ``user_function`` instance indicates the wrapped function and the module it's in.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> just4
-    user_function(name='first4', module='__main__')
+    just4
 
 You use it like all composable apps which we demonstrate using a small sample alignment.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import make_aligned_seqs
-    >>> aln = make_aligned_seqs(data=dict(a="GCAAGCGTTTAT", b="GCTTTTGTCAAT"), array_align=False)
-    >>> result = just4(aln)
-    >>> result
-    2 x 4 text alignment: a[GCAA], b[GCTT]
+    from cogent3 import make_aligned_seqs
+
+    aln = make_aligned_seqs(
+        data=dict(a="GCAAGCGTTTAT", b="GCTTTTGTCAAT"), array_align=False
+    )
+    result = just4(aln)
+    result
 
 Renaming sequences
 ------------------
@@ -58,38 +69,51 @@ This time we wrap a method call on a ``SequenceCollection`` (and the alignment s
 
 .. note:: The ``SERIALISABLE_TYPE`` indicates the data has the ability to be converted to ``json``.
 
-.. doctest::
-    
-    >>> from cogent3.app.composable import user_function, ALIGNED_TYPE, SEQUENCE_TYPE, SERIALISABLE_TYPE
-    >>> def renamer(aln):
-    ...     """upper case names"""
-    ...     return aln.rename_seqs(lambda x: x.upper())
-    >>> rename_seqs = user_function(renamer, 
-    ...                             input_types=(ALIGNED_TYPE, SEQUENCE_TYPE),
-    ...                             output_types=SERIALISABLE_TYPE,
-    ...                             data_types=("SequenceCollection", "Alignment", "ArrayAlignment"))
-    >>> result = rename_seqs(aln)
-    >>> result.names
-    ['A', 'B']
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.app.composable import (
+        user_function,
+        ALIGNED_TYPE,
+        SEQUENCE_TYPE,
+        SERIALISABLE_TYPE,
+    )
+
+    def renamer(aln):
+        """upper case names"""
+        return aln.rename_seqs(lambda x: x.upper())
+
+    rename_seqs = user_function(
+        renamer,
+        input_types=(ALIGNED_TYPE, SEQUENCE_TYPE),
+        output_types=SERIALISABLE_TYPE,
+        data_types=("SequenceCollection", "Alignment", "ArrayAlignment"),
+    )
+    result = rename_seqs(aln)
+    result.names
 
 A user function for with a different output type
 ------------------------------------------------
 
 In this example, we make an function that returns ``DistanceMatrix`` of an alignment.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.app.composable import user_function, ALIGNED_TYPE, PAIRWISE_DISTANCE_TYPE
-    >>> def _get_dist(aln):
-    ...     return aln.distance_matrix(calc="hamming", show_progress=False)
-    >>> get_dist = user_function(_get_dist, input_types=ALIGNED_TYPE,
-    ...                          output_types=PAIRWISE_DISTANCE_TYPE,
-    ...                          data_types=("Alignment", "ArrayAlignment"))
-    >>> result = get_dist(aln)
-    >>> result
-    =====================
-              a         b
-    ---------------------
-    a    0.0000    6.0000
-    b    6.0000    0.0000
-    ---------------------
+    from cogent3.app.composable import (
+        user_function,
+        ALIGNED_TYPE,
+        PAIRWISE_DISTANCE_TYPE,
+    )
+
+    def _get_dist(aln):
+        return aln.distance_matrix(calc="hamming", show_progress=False)
+
+    get_dist = user_function(
+        _get_dist,
+        input_types=ALIGNED_TYPE,
+        output_types=PAIRWISE_DISTANCE_TYPE,
+        data_types=("Alignment", "ArrayAlignment"),
+    )
+    result = get_dist(aln)
+    result

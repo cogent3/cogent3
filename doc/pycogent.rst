@@ -13,7 +13,7 @@ The rewrite has been a massive amount of work and unfortunately the changes to t
 
 .. glossary::
     ``cogent.app``
-        The ``PyCogent`` module was concerned with wrapping external applications. There are multple 3rd party alternatives to this, for example ``click``, ``burrito``, etc.. The ``cogent3.app`` module is very different being focussed on providing a functional style interface to ``cogent3`` capabilities.
+        The ``PyCogent`` module was concerned with wrapping external applications. There are multiple 3rd party alternatives to this, for example ``click``, ``burrito``, etc.. The ``cogent3.app`` module is very different being focussed on providing a functional style interface to ``cogent3`` capabilities.
 
     ``cogent.db.ensembl``
         This has been turned into a standalone project, `EnsemblDb3 <https://github.com/cogent3/ensembldb3>`_.

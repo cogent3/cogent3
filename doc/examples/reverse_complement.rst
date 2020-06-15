@@ -5,47 +5,30 @@ Getting the reverse complement
 
 This is a property of DNA, and hence alignments need to be created with the appropriate ``MolType``. In the following example, the alignment is truncated to just 50 bases for the sake of simplifying the presentation.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import load_aligned_seqs
-    >>> aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")[:50]
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")[:50]
 
 The original alignment looks like this.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> print(aln)
-    >Human
-    TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT
-    >HowlerMon
-    TGTGGCACAAATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT
-    >Mouse
-    TGTGGCACAGATGCTCATGCCAGCTCATTACAGCCTGAGACCAGCAGTTT
-    >NineBande
-    TGTGGCACAAATACTCATGCCAACTTATTACAGCATGAGAACAGCAGTTT
-    >DogFaced
-    TGTGGCACAAATACTCATGCCAACTCATTACAGCATGAGAACAGCAGTTT
-    <BLANKLINE>
+    print(aln)
 
 We do reverse complement very simply.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> naln = aln.rc()
+    naln = aln.rc()
 
 The reverse complemented alignment looks like this.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> print(naln)
-    >Human
-    AAACTGCTGTTCTCATGCTGTAATGAGCTGGCATGAGTATTTGTGCCACA
-    >HowlerMon
-    AAACTGCTGTTCTCATGCTGTAATGAGCTGGCATGAGTATTTGTGCCACA
-    >Mouse
-    AAACTGCTGGTCTCAGGCTGTAATGAGCTGGCATGAGCATCTGTGCCACA
-    >NineBande
-    AAACTGCTGTTCTCATGCTGTAATAAGTTGGCATGAGTATTTGTGCCACA
-    >DogFaced
-    AAACTGCTGTTCTCATGCTGTAATGAGTTGGCATGAGTATTTGTGCCACA
-    <BLANKLINE>
+    print(naln)
