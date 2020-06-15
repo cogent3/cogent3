@@ -14,7 +14,6 @@ import csv
 import json
 import pickle
 import re
-import warnings
 
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
@@ -745,22 +744,27 @@ class Table:
             self._repr_policy["tail"] = tail
 
         shape_info = ""
-        ellipsis = [["..."] * len(self.header)]
+        ellipsis = None
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
             indices = list(sorted(indices))
-            rows = self.array.take(indices, axis=0).tolist()
             shape_info = f"Random selection of {rn} rows"
         elif all([head, tail]):
-            top = self[:head].tolist()
-            bottom = self[-tail:].tolist()
-            rows = top + ellipsis + bottom
+            indices = list(range(head)) + list(
+                range(self.shape[0] - tail, self.shape[0])
+            )
+            ellipsis = "..."
         elif head:
-            rows = self[:head].tolist()
+            indices = list(range(head))
         elif tail:
-            rows = self[-tail:].tolist()
+            indices = list(range(self.shape[0] - tail, self.shape[0]))
         else:
-            rows = self.tolist()
+            indices = list(range(self.shape[0]))
+
+        rows = {c: self.columns[c].take(indices).tolist() for c in self.header}
+        if ellipsis:
+            for k, v in rows.items():
+                v.insert(head, ellipsis)
 
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         kwargs = self._get_persistent_attrs()
@@ -794,6 +798,9 @@ class Table:
         shape_info = f"<p>{shape_info}</p>"
         if not include_shape:
             shape_info = ""
+
+        if self.shape == (0, 0):
+            return shape_info
 
         title, legend = table.title, table.legend
         # current rich_html does not provide a good mechanism for custom
@@ -894,13 +901,15 @@ class Table:
         return self._format
 
     @format.setter
-    def format(self, new):
+    def format(self, new="simple"):
         """the str display format"""
-        # setting the default format for str(self)
-        if new.lower() in table_format.known_formats:
-            new = new.lower()
-        else:
-            new = "simple"
+        new = new.lower()
+        if new not in table_format.known_formats:
+            msg = (
+                f"{new} not a supported format, see cogent3.format.table.known_formats"
+            )
+            raise ValueError(msg)
+
         self._format = new
 
     def format_column(self, column_head, format_template):
@@ -913,6 +922,17 @@ class Table:
         format_template
             string formatting template or a function that will handle the formatting.
         """
+        test_val = self.columns[column_head].tolist()[0]
+        try:
+            _ = (
+                format_template(test_val)
+                if callable(format_template)
+                else format_template % test_val
+            )
+        except Exception as err:
+            msg = f"{format_template} invalid for {column_head}: {err.args[0]}"
+            raise ValueError(msg)
+
         self._column_templates[column_head] = format_template
 
     def head(self, nrows=5):
