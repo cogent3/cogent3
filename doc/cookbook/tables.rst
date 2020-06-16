@@ -8,65 +8,43 @@ Tabular data
 
 .. note:: ``Table`` is immutable at the level of the individual ``ndarray`` not being writable.
 
-.. note:: ``Table`` can be interconverted from a ``pandas.DataFrame``.
-
 .. include:: ./loading_tabular.rst
-
-Create a table from header and rows
-===================================
-
-.. jupyter-execute::
-    :linenos:
-
-    from cogent3 import make_table
-
-    table = make_table(header=["a", "b"], data=[[0, "a"], [3, "c"]])
-    table
-
-Create a table from dict
-========================
-
-``make_table()`` is the utility function for creating ``Table`` objects from standard python objects.
-
-.. jupyter-execute::
-    :linenos:
-
-    from cogent3 import make_table
-
-    data = dict(a=[0, 3], b=["a", "c"])
-    table = make_table(data=data)
-    table
-
-Create a table from a ``pandas.DataFrame``
-==========================================
-
-.. jupyter-execute::
-    :linenos:
-
-    from pandas import DataFrame
-    from cogent3 import make_table
-
-    data = dict(a=[0, 3], b=["a", "c"])
-    df = DataFrame(data=data)
-    table = make_table(data_frame=df)
-    table
 
 Adding a new column
 ===================
 
 .. jupyter-execute::
     :linenos:
-
+    
     from cogent3 import make_table
 
     table = make_table()
+    table.columns["a"] = [1, 3, 5]
+    table.columns["b"] = [2, 4, 6]
     table
+
+Add a title and a legend to a table
+===================================
+
+This can be done when you create the table.
 
 .. jupyter-execute::
     :linenos:
 
-    table.columns["a"] = [1, 3, 5]
-    table.columns["b"] = [2, 4, 6]
+    from cogent3 import make_table
+
+    data = dict(a=[0, 3], b=["a", "c"])
+    table = make_table(data=data, title="Sample title", legend="a legend")
+    table
+
+It can be done by directly assigning to the corresponding attributes.
+
+.. jupyter-execute::
+    :linenos:
+
+    data = dict(a=[0, 3], b=["a", "c"])
+    table = make_table(data=data)
+    table.title = "My title"
     table
 
 Iterating over table rows
@@ -91,6 +69,30 @@ The resulting rows can be indexed using their column names.
 
     for row in table:
         print(row["Locus"])
+
+How many rows are there?
+========================
+
+The ``Table.shape`` attribute is like that of a ``numpy`` ``array``. The first element (``Table.shape[0]``) is the number of rows.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    data = dict(a=[0, 3, 5], b=["a", "c", "d"])
+    table = make_table(data=data)
+    table.shape[0] == 3
+
+How many columns are there?
+===========================
+
+``Table.shape[1]`` is the number of columns. Using the table from above.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.shape[1] == 2
 
 Iterating over table columns
 ============================
@@ -126,10 +128,17 @@ Table slicing using column names
     :linenos:
 
     table = load_table("data/stats.tsv")
-    table[:2, :"Region"]
+    table
 
-Table slicing using column indices
-==================================
+Slice using the column name.
+
+.. jupyter-execute::
+    :linenos:
+
+    table[:2, "Region":]
+
+Table slicing using indices
+===========================
 
 .. jupyter-execute::
     :linenos:
@@ -170,6 +179,79 @@ or, for spacing at least, by modifying the attributes
     table.space = "    "
     table
 
+Wrapping tables for display
+===========================
+
+Wrapping generates neat looking tables whether or not you index the table rows. We demonstrate here
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    h = ["name", "A/C", "A/G", "A/T", "C/A"]
+    rows = [["tardigrade", 0.0425, 0.1424, 0.0226, 0.0391]]
+    wrap_table = make_table(header=h, data=rows, max_width=30)
+    wrap_table
+
+.. jupyter-execute::
+    :linenos:
+
+    wrap_table = make_table(header=h, data=rows, max_width=30, index="name")
+    wrap_table
+
+Display the top of a table using ``head()``
+===========================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = make_table(data=dict(a=list(range(10)), b=list(range(10))))
+    table.head()
+
+You change how many rows are displayed.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.head(2)
+
+The table shape is that of the original table.
+
+Display the bottom of a table using ``tail()``
+==============================================
+
+.. jupyter-execute::
+
+    table.tail()
+
+You change how many rows are displayed.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.tail(1)
+
+Display random rows from a table
+================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table.set_repr_policy(random=3)
+    table
+
+Change the number of rows displayed by ``repr()``
+=================================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table.set_repr_policy(head=2, tail=3)
+    table
+
+.. note:: The ``...`` indicates the break between the top and bottom rows.
+
 Changing column headings
 ========================
 
@@ -193,6 +275,10 @@ Adding a new column
 
     table = make_table()
     table
+
+.. jupyter-execute::
+    :linenos:
+
     table.columns["a"] = [1, 3, 5]
     table.columns["b"] = [2, 4, 6]
     table
@@ -297,7 +383,9 @@ You can also specify column(s) are categories
 Appending tables
 ================
 
-Can be done without specifying a new column. Here we simply use the same table data.
+.. warning:: Only for tables with the same columns.
+
+Can be done without specifying a new column (set the first argument to ``appended`` to be ``None``). Here we simply use the same table data.
 
 .. jupyter-execute::
     :linenos:
@@ -307,7 +395,7 @@ Can be done without specifying a new column. Here we simply use the same table d
     table = table1.appended(None, table2)
     table
 
-or with a new column
+Specifying with a new column. In this case, the value of the ``table.title`` becomes the value for the new column.
 
 .. jupyter-execute::
     :linenos:
@@ -493,6 +581,39 @@ Counting occurrences of values
     table = load_table("data/stats.tsv")
     assert table.count("Region == 'NonCon' and Ratio > 1") == 1
 
+Counting unique values
+======================
+
+This returns a ``CategoryCounter``, a dict like class.
+
+.. jupyter-execute::
+    :linenos:
+    
+    from cogent3 import make_table
+    
+    table = make_table(data=dict(A=["a", "b", "b", "b", "a"], B=["c", "c", "c", "c", "d"]))
+    unique = table.count_unique("A")
+    type(unique)
+
+.. jupyter-execute::
+    :linenos:
+    
+    unique
+
+For multiple columns.
+
+.. jupyter-execute::
+    :linenos:
+    
+    unique = table.count_unique(["A", "B"])
+    unique
+
+.. jupyter-execute::
+    :linenos:
+
+    r = unique.to_table()
+    r
+
 Joining or merging tables
 =========================
 
@@ -515,6 +636,32 @@ We do a standard inner join here for a restricted subset. We must specify the co
 .. note:: If the tables have titles, column names are prefixed with those instead of ``right_``.
 
 .. note:: The ``joined()`` method is just a wrapper for the ``inner_join()`` and ``cross_join()`` (row cartesian product) methods, which you can use directly.
+
+Transpose a table
+=================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    header = ["#OTU ID", "14SK041", "14SK802"]
+    rows = [
+        [-2920, "332", 294],
+        [-1606, "302", 229],
+        [-393, 141, 125],
+        [-2109, 138, 120],
+    ]
+    table = make_table(header=header, rows=rows)
+    table
+
+We require a new column heading for the current header data. We also need to specify which existing column will become the header.
+
+.. jupyter-execute::
+    :linenos:
+
+    tp = table.transposed(new_column_name="sample", select_as_header="#OTU ID")
+    tp
 
 Specify markdown as the ``str()`` format
 ========================================
@@ -586,27 +733,8 @@ Get a table as a restructured text grid table
     )
     print(table.to_rst())
 
-What formats can be written?
-============================
-
-.. jupyter-execute::
-    :linenos:
-
-    from cogent3.format.table import known_formats
-
-    known_formats
-
-Writing delimited formats
-=========================
-
-.. jupyter-execute::
-    :linenos:
-
-    table = load_table("data/stats.tsv")
-    table.write("stats_tab.txt", sep="\t")
-
-Writing latex format
-====================
+Getting a latex format table with ``to_string()``
+=================================================
 
 It is also possible to specify column alignment, table caption and other arguments.
 
@@ -616,8 +744,8 @@ It is also possible to specify column alignment, table caption and other argumen
     table = load_table("data/stats.tsv")
     print(table.to_string(format="latex"))
 
-Writing bedGraph format
-=======================
+Getting a bedGraph format with ``to_string()``
+==============================================
 
 This format allows display of annotation tracks on genome browsers. A small sample of a bigger table.
 
@@ -680,11 +808,93 @@ Then converted.
         )
     )
 
+Getting a table as html
+=======================
+
+.. jupyter-execute::
+    :linenos:
+    
+    from cogent3 import load_table
+    
+    table = load_table("data/stats.tsv")
+    straight_html = table.to_rich_html(compact=True)
+
+We can provide customised formatting via a callback function.
+
+.. jupyter-execute::
+    :linenos:
+    
+    def format_cell(value, row_num, col_num):
+        style = 'style="background: rgba(176, 245, 102, 0.25);"' if value else ""
+        return f"<td {style}>{value}</td>"
+
+    rich_html = table.to_rich_html(row_cell_func=format_cell, compact=False)
+
+Which produces the following...
 
 .. jupyter-execute::
     :hide-code:
-    
+
+    from IPython.core.display import HTML
+    HTML(rich_html)
+
+We could also use control html element format.
+
+.. jupyter-execute::
+    :linenos:
+
+    element_format = dict(
+                thead=f'<thead style="background: rgba(0, 250, 0, 0.1);">'
+            )
+    rich_html = table.to_rich_html(element_formatters=element_format)
+
+Which produces the following...
+
+.. jupyter-execute::
+    :hide-code:
+
+    HTML(rich_html)
+
+What formats can be written?
+============================
+
+Appending any of the following to a filename will cause that format to be used for writing.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.format.table import known_formats
+
+    known_formats
+
+Writing a latex formmated file
+==============================
+
+.. jupyter-execute::
+    :linenos:
+
+    table.write("stats_tab.tex", justify="ccr", label="tab:table1")
+
+Writing delimited formats
+=========================
+
+The delimiter can be specified explicitly using the ``sep`` argument or implicitly via the file name suffix.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    table.write("stats_tab.txt", sep="\t")
+
+..  cleanup
+
+.. jupyter-execute::
+    :hide-code:
+
     import pathlib
     
-    p = pathlib.Path("stats_tab.txt")
-    p.unlink()
+    for name in ("stats_tab.txt", "stats_tab.tex"):
+        p = pathlib.Path(name)
+        if p.exists():
+            p.unlink()
+
