@@ -17,7 +17,7 @@ Import a substitution model (or create your own)
 .. jupyter-execute::
     :linenos:
 
-    from cogent3.evolve.models import HKY85
+    from cogent3.evolve.models import get_model
 
 Load the alignment.
 
@@ -31,7 +31,7 @@ Create a pairwise distances object calculator for the alignment, providing a sub
 .. jupyter-execute::
     :linenos:
 
-    d = distance.EstimateDistances(al, submodel=HKY85())
+    d = distance.EstimateDistances(al, submodel=get_model("HKY85"))
     d.run(show_progress=False)
 
 Now use this matrix to build a neighbour joining tree.
@@ -39,7 +39,7 @@ Now use this matrix to build a neighbour joining tree.
 .. jupyter-execute::
     :linenos:
 
-    mytree = nj.nj(d.get_pairwise_distances())
+    mytree = nj.nj(d.get_pairwise_distances(), show_progress=False)
     print(mytree.ascii_art())
 
 We can save this tree to file.

@@ -58,6 +58,8 @@ We'll write a phylip formatted distance matrix.
 
     d.write("dists_for_phylo.phylip", format="phylip")
 
+.. todo:: write out in json format
+
 We'll also save the distances to file in Python's pickle format.
 
 .. jupyter-execute::
@@ -65,9 +67,8 @@ We'll also save the distances to file in Python's pickle format.
 
     import pickle
 
-    f = open("dists_for_phylo.pickle", "wb")
-    pickle.dump(d.get_pairwise_distances(), f)
-    f.close()
+    with open("dists_for_phylo.pickle", "wb") as f:
+        pickle.dump(d.get_pairwise_distances(), f)
 
 .. clean up
 

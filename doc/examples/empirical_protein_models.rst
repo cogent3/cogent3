@@ -25,7 +25,7 @@ Import the alignment, explicitly setting the ``moltype`` to be protein
 .. jupyter-execute::
     :linenos:
 
-    al = load_aligned_seqs("data/abglobin_aa.phylip", moltype="protein",)
+    al = load_aligned_seqs("data/abglobin_aa.phylip", moltype="protein")
 
 Open the file that contains the empirical matrix and parse the matrix and frequencies.
 

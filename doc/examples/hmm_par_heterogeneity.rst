@@ -51,7 +51,7 @@ We specify a null model with no bins, and optimise it.
     lf_one.optimise(show_progress=False)
     lnL_one = lf_one.get_log_likelihood()
     df_one = lf_one.get_num_free_params()
-    print(lf_one)
+    lf_one
 
 Model Ha(1): two classes of gamma distributed but independent sites
 -------------------------------------------------------------------
@@ -73,7 +73,7 @@ Our next hypothesis is that there are two rate classes, or bins, with rates gamm
     lnL_bins = lf_bins.get_log_likelihood()
     df_bins = lf_bins.get_num_free_params()
     assert df_bins == 9
-    print(lf_bins)
+    lf_bins
 
 Model Ha(2): fast and slowly evolving sites are auto-correlated
 ---------------------------------------------------------------
@@ -91,7 +91,7 @@ We then specify a model with switches for changing between site-classes, the HMM
     lf_patches.optimise(local=True, show_progress=False)
     lnL_patches = lf_patches.get_log_likelihood()
     df_patches = lf_patches.get_num_free_params()
-    print(lf_patches)
+    lf_patches
 
 We use the following short function to compute the LR test statistic.
 
@@ -106,7 +106,11 @@ We conduct the test between the sequentially nested models.
     :linenos:
 
     lr = LR(lnL_bins, lnL_one)
-    print(lr)
+    lr
+
+.. jupyter-execute::
+    :linenos:
+
     print("%.4f" % chisqprob(lr, df_patches - df_bins))
 
 The stationary bin probabilities are labelled as ``bprobs`` and can be obtained as follows.
@@ -178,5 +182,4 @@ We then illustrate how to adjust the bin probabilities, here doing it so that on
     lf_kappa.set_param_rule("bprobs", init=array([1.0 - epsilon, 0.0 + epsilon]))
     lf_kappa.set_alignment(aln)
     lf_kappa.optimise(local=True, show_progress=False)
-    print(lf_kappa)
-    print(lf_kappa.get_log_likelihood())
+    lf_kappa

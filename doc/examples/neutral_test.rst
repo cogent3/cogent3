@@ -9,7 +9,7 @@ This file contains an example for performing a likelihood ratio test of neutrali
     :linenos:
 
     from cogent3 import load_aligned_seqs, load_tree
-    from cogent3.evolve.models import MG94GTR
+    from cogent3.evolve.models import get_model
     from cogent3.maths import stats
 
 Get your alignment and tree.
@@ -25,7 +25,7 @@ We use a Goldman Yang 1994 model.
 .. jupyter-execute::
     :linenos:
 
-    sm = MG94GTR()
+    sm = get_model("MG94GTR")
 
 Make the controller object
 
@@ -53,7 +53,7 @@ View the resulting maximum-likelihood parameter values
 .. jupyter-execute::
     :linenos:
 
-    print(lf)
+    lf
 
 We'll get the lnL and number of free parameters for later use.
 
@@ -82,7 +82,7 @@ View the resulting maximum-likelihood parameter values.
 .. jupyter-execute::
     :linenos:
 
-    print(lf)
+    lf
 
 Get out an annotated tree, it looks just like a tree, but has the maximum-likelihood parameter estimates attached to each tree edge. This object can be used for plotting, or to provide starting estimates to a related model.
 
@@ -105,6 +105,6 @@ Print this and look up a chi-sq with number of edges - 1 degrees of freedom.
 .. jupyter-execute::
     :linenos:
 
-    print("Likelihood ratio statistic = ", LR)
-    print("degrees-of-freedom = ", df)
-    print("probability = ", P)
+    print(f"Likelihood ratio statistic = {LR}")
+    print(f"degrees-of-freedom = {df}")
+    print(f"probability = {P}")

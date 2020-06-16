@@ -3,16 +3,14 @@ Simulate an alignment
 
 .. sectionauthor:: Gavin Huttley
 
-How to  simulate an alignment. For this example we just create a simple model using a four taxon tree with very different branch lengths, a Felsenstein model with very different nucleotide frequencies and a long alignment.
-
-See the other examples for how to define other substitution models.
+For this example we just create a simple model using a four taxon tree with different branch lengths and a Felsenstein model.
 
 .. jupyter-execute::
     :linenos:
 
     import sys
     from cogent3 import make_tree
-    from cogent3.evolve import substitution_model
+    from cogent3.evolve.models import get_model
 
 Specify the 4 taxon tree,
 
@@ -26,13 +24,11 @@ Define our Felsenstein 1981 substitution model.
 .. jupyter-execute::
     :linenos:
 
-    sm = substitution_model.TimeReversibleNucleotide(
-        motif_probs={"A": 0.5, "C": 0.2, "G": 0.2, "T": 0.1}, model_gaps=False
-    )
+    sm = get_model("F81")
     lf = sm.make_likelihood_function(t)
     lf.set_constant_lengths()
-    lf.set_name("F81 model")
-    print(lf)
+    lf.set_motif_probs(dict(A=0.1, C=0.2, G=0.3, T=0.4))
+    lf
 
 We'll now create a simulated alignment of length 1000 nucleotides.
 
@@ -40,3 +36,4 @@ We'll now create a simulated alignment of length 1000 nucleotides.
     :linenos:
 
     simulated = lf.simulate_alignment(sequence_length=1000)
+    simulated

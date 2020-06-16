@@ -77,7 +77,7 @@ We then provide an alignment and optimise the model. In the current case we just
     )
     lf.set_alignment(aln)
     lf.optimise(**optimiser_args)
-    print(lf)
+    lf
 
 In the above output, the first table shows the maximum likelihood estimates (MLEs) for the substitution model parameters that are 'global' in scope. For instance, the ``C/T=4.58`` MLE indicates that the relative rate of substitutions between C and T is nearly 5 times the background substitution rate.
 
@@ -96,9 +96,9 @@ We can then free up the omega parameter, but before we do that we'll store the l
     neutral_nfp = lf.get_num_free_params()
     lf.set_param_rule("omega", is_constant=False)
     lf.optimise(**optimiser_args)
-    print(lf)
     non_neutral_lnL = lf.get_log_likelihood()
     non_neutral_nfp = lf.get_num_free_params()
+    lf
 
 We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the ``cogent3`` stats module.
 
@@ -119,9 +119,13 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
         "omega", tip_names=["Chimpanzee", "Human"], outgroup_name="Galago", clade=True
     )
     lf.optimise(**optimiser_args)
-    print(lf)
+    lf
     chimp_human_clade_lnL = lf.get_log_likelihood()
     chimp_human_clade_nfp = lf.get_num_free_params()
+
+.. jupyter-execute::
+    :linenos:
+
     LR = 2 * (chimp_human_clade_lnL - non_neutral_lnL)
     df = chimp_human_clade_nfp - non_neutral_nfp
     print(chisqprob(LR, df))
@@ -196,7 +200,11 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
     rate_nfp = rate_lf.get_num_free_params()
     LR = 2 * (rate_lnL - non_neutral_lnL)
     df = rate_nfp - non_neutral_nfp
-    print(rate_lf)
+    rate_lf
+
+.. jupyter-execute::
+    :linenos:
+
     print(chisqprob(LR, df))
 
 We can get the posterior probabilities of site-classifications out of this model as
