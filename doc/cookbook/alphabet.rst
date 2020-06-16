@@ -8,58 +8,57 @@ Alphabets
 
 ``MolType`` instances have an ``Alphabet``.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import DNA, PROTEIN
-    >>> print(DNA.alphabet)
-    ('T', 'C', 'A', 'G')
-    >>> print(PROTEIN.alphabet)
-    ('A', 'C', 'D', 'E', ...
+    from cogent3 import DNA, PROTEIN
+
+    print(DNA.alphabet)
+    print(PROTEIN.alphabet)
 
 ``Alphabet`` instances have a ``MolType``.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> PROTEIN.alphabet.moltype == PROTEIN
-    True
+    PROTEIN.alphabet.moltype == PROTEIN
 
 Creating tuple alphabets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can create a tuple alphabet of, for example, dinucleotides or trinucleotides.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> dinuc_alphabet = DNA.alphabet.get_word_alphabet(2)
-    >>> print(dinuc_alphabet)
-    ('TT', 'CT', 'AT', 'GT', ...
-    >>> trinuc_alphabet = DNA.alphabet.get_word_alphabet(3)
-    >>> print(trinuc_alphabet)
-    ('TTT', 'CTT', 'ATT', ...
+    dinuc_alphabet = DNA.alphabet.get_word_alphabet(2)
+    print(dinuc_alphabet)
+    trinuc_alphabet = DNA.alphabet.get_word_alphabet(3)
+    print(trinuc_alphabet)
 
 Convert a sequence into integers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> seq = 'TAGT'
-    >>> indices = DNA.alphabet.to_indices(seq)
-    >>> indices
-    [0, 2, 3, 0]
+    seq = "TAGT"
+    indices = DNA.alphabet.to_indices(seq)
+    indices
 
 Convert integers to a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> seq = DNA.alphabet.from_indices([0,2,3,0])
-    >>> seq
-    ['T', 'A', 'G', 'T']
+    seq = DNA.alphabet.from_indices([0, 2, 3, 0])
+    seq
 
 or
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> seq = DNA.alphabet.from_ordinals_to_seq([0,2,3,0])
-    >>> seq
-    DnaSequence(TAGT)
+    seq = DNA.alphabet.from_ordinals_to_seq([0, 2, 3, 0])
+    seq

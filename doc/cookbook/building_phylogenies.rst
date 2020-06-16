@@ -10,114 +10,78 @@ Directly via ``alignment.quick_tree()``
 
 Both the ``ArrayAlignment`` and ``Alignment`` classes support this.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import load_aligned_seqs
-    >>> aln = load_aligned_seqs('data/primate_brca1.fasta', moltype="dna")
-    >>> tree = aln.quick_tree(calc="TN93")
-    >>> tree = tree.balanced()  # purely for display
-    >>> print(tree.ascii_art())  #doctest: +SKIP
-                        /-Rhesus
-              /edge.1--|
-             |         |          /-HowlerMon
-             |          \edge.0--|
-             |                    \-Galago
-    -root----|
-             |--Orangutan
-             |
-             |          /-Chimpanzee
-              \edge.2--|
-                       |          /-Human
-                        \edge.3--|
-                                  \-Gorilla
+    from cogent3 import load_aligned_seqs
 
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    tree = aln.quick_tree(calc="TN93")
+    tree = tree.balanced()  # purely for display
+    print(tree.ascii_art())
 
 The ``quick_tree()`` method also supports non-parametric bootstrapping. The number of resampled alignments is specified using the ``bootstrap`` argument. In the following, trees are estimated from 100 resampled alignments and merged into a single consensus topology using a weighted consensus tree algorithm.
 
-.. doctest::
-    
-    >>> tree = aln.quick_tree(calc="TN93", bootstrap=100)
+.. jupyter-execute::
+    :linenos:
 
+    tree = aln.quick_tree(calc="TN93", bootstrap=100)
 
 Using the ``DistanceMatrix`` object
 -----------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import load_aligned_seqs
-    >>> aln = load_aligned_seqs('data/primate_brca1.fasta', moltype="dna")
-    >>> dists = aln.distance_matrix(calc="TN93")
-    >>> tree = dists.quick_tree()
-    >>> tree = tree.balanced()  # purely for display
-    >>> print(tree.ascii_art())  #doctest: +SKIP
-                        /-Rhesus
-              /edge.1--|
-             |         |          /-HowlerMon
-             |          \edge.0--|
-             |                    \-Galago
-    -root----|
-             |--Orangutan
-             |
-             |          /-Chimpanzee
-              \edge.2--|
-                       |          /-Human
-                        \edge.3--|
-                                  \-Gorilla
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    dists = aln.distance_matrix(calc="TN93")
+    tree = dists.quick_tree()
+    tree = tree.balanced()  # purely for display
+    print(tree.ascii_art())
 
 Explicitly via ``DistanceMatrix`` and ``cogent3.phylo.nj.nj()```
 ----------------------------------------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.phylo import nj
-    >>> from cogent3 import load_aligned_seqs
-    >>> aln = load_aligned_seqs('data/primate_brca1.fasta', moltype="dna")
-    >>> dists = aln.distance_matrix(calc="TN93")
-    >>> tree = nj.nj(dists)
-    >>> tree = tree.balanced()  # purely for display
-    >>> print(tree.ascii_art())  #doctest: +SKIP
-                        /-Rhesus
-              /edge.1--|
-             |         |          /-HowlerMon
-             |          \edge.0--|
-             |                    \-Galago
-    -root----|
-             |--Orangutan
-             |
-             |          /-Chimpanzee
-              \edge.2--|
-                       |          /-Human
-                        \edge.3--|
-                                  \-Gorilla
+    from cogent3.phylo import nj
+    from cogent3 import load_aligned_seqs
 
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    dists = aln.distance_matrix(calc="TN93")
+    tree = nj.nj(dists)
+    tree = tree.balanced()  # purely for display
+    print(tree.ascii_art())
 
 Directly from a pairwise distance ``dict``
 ------------------------------------------
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.phylo import nj
-    >>> dists = {('a', 'b'): 2.7, ('c', 'b'): 2.33, ('c', 'a'): 0.73}
-    >>> tree = nj.nj(dists)
-    >>> print(tree.ascii_art())  #doctest: +SKIP
-              /-a
-             |
-    -root----|--b
-             |
-              \-c
+    from cogent3.phylo import nj
+
+    dists = {("a", "b"): 2.7, ("c", "b"): 2.33, ("c", "a"): 0.73}
+    tree = nj.nj(dists)
+    print(tree.ascii_art())
 
 By Least-squares
 ================
 
 We illustrate the phylogeny reconstruction by least-squares using the F81 substitution model. We use the advanced-stepwise addition algorithm to search tree space. Here ``a`` is the number of taxa to exhaustively evaluate all possible phylogenies for. Successive taxa are added to the top ``k`` trees (measured by the least-squares metric) and ``k`` trees are kept at each iteration.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.deserialise import deserialise_object
-    >>> from cogent3.phylo.least_squares import WLS
-    >>> dists = deserialise_object('data/dists_for_phylo.json')
-    >>> ls = WLS(dists)
-    >>> stat, tree = ls.trex(a=5, k=5, show_progress=False)
+    from cogent3.util.deserialise import deserialise_object
+    from cogent3.phylo.least_squares import WLS
+
+    dists = deserialise_object("data/dists_for_phylo.json")
+    ls = WLS(dists)
+    stat, tree = ls.trex(a=5, k=5, show_progress=False)
 
 Other optional arguments that can be passed to the ``trex`` method are: ``return_all``, whether the ``k`` best trees at the final step are returned as a ``ScoredTreeCollection`` object; ``order``, a series of tip names whose order defines the sequence in which tips will be added during tree building (this allows the user to randomise the input order).
 
@@ -126,12 +90,12 @@ By ML
 
 We illustrate the phylogeny reconstruction using maximum-likelihood using the F81 substitution model. We use the advanced-stepwise addition algorithm to search tree space.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import load_aligned_seqs
-    >>> from cogent3.phylo.maximum_likelihood import ML
-    >>> from cogent3.evolve.models import F81
-    >>> aln = load_aligned_seqs('data/primate_brca1.fasta')
-    >>> ml = ML(F81(), aln)
+    from cogent3 import load_aligned_seqs
+    from cogent3.phylo.maximum_likelihood import ML
+    from cogent3.evolve.models import F81
 
-The ``ML`` object also has the ``trex`` method and this can be used in the same way as for above, i.e. ``ml.trex()``. We don't do that here because this is a very slow method for phylogenetic reconstruction.
+    aln = load_aligned_seqs("data/primate_brca1.fasta")
+    ml = ML(F81(), aln)

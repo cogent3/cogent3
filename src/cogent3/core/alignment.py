@@ -2915,8 +2915,8 @@ class AlignmentI(object):
 
         text = [
             "<style>",
-            "tr { line-height: %dpt ; }" % int(font_size / 4),
-            ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
+            # "tr { line-height: %dpt ; }" % int(font_size / 4),
+            # ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
             "td { border: none !important; text-align: left !important; }",
             ".label { font-size: %dpt ; text-align: right !important; "
             "color: black !important; }" % font_size,

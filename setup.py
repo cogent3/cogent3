@@ -127,6 +127,7 @@ setup(
             "ipykernel",
             "ipywidgets",
             "isort",
+            "jupyter-sphinx",
             "jupyter_client",
             "jupyterlab",
             "jupytext",

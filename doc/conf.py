@@ -4,11 +4,10 @@ import sys
 
 from glob import glob
 
-from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
 import sphinx_bootstrap_theme
 
-# set the plotly renderer
-os.environ["PLOTLY_RENDERER"] = "sphinx_gallery"
+from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
+
 
 sys.path.append("../src")
 
@@ -29,6 +28,8 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinxcontrib.bibtex",
     "sphinx_gallery.gen_gallery",
+    "jupyter_sphinx",
+    # "sphinxcontrib.spelling",
 ]
 
 # todo_include_todos=True # to expose the TODOs, uncomment this line
@@ -46,13 +47,13 @@ exclude_patterns = [
     ".DS_Store",
     "**.ipynb_checkpoints",
     "cookbook/union_dict.rst",
+    "cookbook/loading_tabular",
     "draw_examples/README.rst",
     "draw_examples/aln/README.rst",
     "draw_examples/tree/README.rst",
 ]
 
 # The encoding of source files.
-# source_encoding = 'utf-8'
 
 # The master toctree document.
 master_doc = "index"
@@ -79,10 +80,7 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "navbar_title": "Docs",
     "navbar_site_name": "Sections",
-    "navbar_links": [
-        ("Install", "install"),
-        ("Gallery", "draw/index.html", True),
-    ],
+    "navbar_links": [("Install", "install"), ("Gallery", "draw/index.html", True),],
     "navbar_class": "navbar navbar-inverse",
     "navbar_fixed_top": "true",
     "source_link_position": "skipped",
@@ -97,6 +95,13 @@ htmlhelp_basename = "cogent3doc"
 # -- Options for Sphinx Gallery
 
 nbsphinx_requirejs_path = "require.js"
+
+# This is a veryt ugly hack!
+# We have to set the following environment variable
+# for Sphinx-Gallery to work, but we need the default Plotly setting for correct
+# display in normal notebooks. This works because of an order of execution,
+# over which we have no control, putting the gallery generation first.
+os.environ["PLOTLY_RENDERER"] = "sphinx_gallery"
 
 
 def plotly_sg_scraper(block, block_vars, gallery_conf, *args, **kwargs):
@@ -123,10 +128,14 @@ def plotly_sg_scraper(block, block_vars, gallery_conf, *args, **kwargs):
 
 
 def plotly_sg_scraper_nb(*args, **kwargs):
+    # set the plotly renderer
+    os.environ["PLOTLY_RENDERER"] = "sphinx_gallery"
     try:
         result = plotly_sg_scraper(*args, **kwargs)
     except Exception:
         result = ""
+
+    os.environ.pop("PLOTLY_RENDERER")
     return result
 
 
@@ -137,14 +146,11 @@ gallery_dirs = ["draw"]
 
 
 sphinx_gallery_conf = {
-    # "doc_module": ("plotly",),
     "examples_dirs": example_dirs,
     "subsection_order": ExplicitOrder(["draw_examples/aln", "draw_examples/tree"]),
     "abort_on_example_error": True,
     "within_subsection_order": FileNameSortKey,
     "gallery_dirs": gallery_dirs,
-    # "reference_url": {"plotly": None,
-    # },
     "image_scrapers": image_scrapers,
     "download_all_examples": False,
 }
@@ -153,3 +159,7 @@ sphinx_gallery_conf = {
 latex_documents = [
     ("index", "cogent3.tex", "cogent3 Documentation", "cogent3 Team", "manual")
 ]
+
+
+def setup(app):
+    app.add_js_file("plotly-latest.min.js")
