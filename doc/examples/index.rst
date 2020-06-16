@@ -54,5 +54,4 @@ Phylogenetic Reconstruction
     calculate_neigbourjoining_tree
     calculate_UPGMA_cluster
     phylo_by_ls
-    maketree_from_proteinseqs
 
