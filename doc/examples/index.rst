@@ -14,7 +14,6 @@ Data manipulation
     complete_seq_features
     reverse_complement
     align_codons_to_protein
-    handling_tabular_data
     manipulating_tree_nodes
 
 *********************
