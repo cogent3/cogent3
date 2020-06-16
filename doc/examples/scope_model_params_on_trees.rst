@@ -58,7 +58,7 @@ I'm going to cause ``omega`` to attain a different value for all branches aside 
         init=2.0,
         clade=True,
     )
-    print(lf)
+    lf
 
 As you can see ``omega`` for the primate edges I listed above have the default parameter value (1.0), while the others have what I've assigned. In fact, you could omit the ``clade`` argument as this is the default, but I think for readability of scripts it's best to be explicit.
 
@@ -81,7 +81,7 @@ This time I'll specify the stem leading to the primates as the edge of interest.
         stem=True,
         clade=False,
     )
-    print(lf)
+    lf
 
 Specifying clade and stem
 -------------------------
@@ -105,7 +105,7 @@ I'll specify that both the primates and their stem are to be considered.
         stem=True,
         clade=True,
     )
-    print(lf)
+    lf
 
 Alternate arguments for specifying edges
 ----------------------------------------
@@ -177,9 +177,7 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
         is_constant=True,
     )
     lf.optimise(local=True, show_progress=False)
-    print(lf)
-    print(lf.lnL)
-    print(lf.nfp)
+    lf
 
 I'll now free up ``omega`` on the primate clade, but making it a single value shared by all primate lineages.
 
@@ -194,9 +192,7 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
         is_constant=False,
     )
     lf.optimise(local=True, show_progress=False)
-    print(lf)
-    print(lf.lnL)
-    print(lf.nfp)
+    lf
 
 Finally I'll allow all primate edges to have different values of ``omega``.
 
@@ -211,9 +207,7 @@ Finally I'll allow all primate edges to have different values of ``omega``.
         is_independent=True,
     )
     lf.optimise(local=True, show_progress=False)
-    print(lf)
-    print(lf.lnL)
-    print(lf.nfp)
+    lf
 
 We now allow ``omega`` to be different on all edges.
 
@@ -222,6 +216,4 @@ We now allow ``omega`` to be different on all edges.
 
     lf.set_param_rule("omega", is_independent=True)
     lf.optimise(local=True, show_progress=False)
-    print(lf)
-    print(lf.lnL)
-    print(lf.nfp)
+    lf
