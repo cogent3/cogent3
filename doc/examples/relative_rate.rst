@@ -9,7 +9,7 @@ From ``cogent3`` import all the components we need
     :linenos:
 
     from cogent3 import load_aligned_seqs, load_tree
-    from cogent3.evolve.models import HKY85
+    from cogent3.evolve.models import get_model
     from cogent3.maths import stats
 
 Get your alignment and tree.
@@ -25,7 +25,7 @@ Create a HKY85 model.
 .. jupyter-execute::
     :linenos:
 
-    sm = HKY85()
+    sm = get_model("HKY85")
 
 Make the controller object and limit the display precision (to decrease the chance that small differences in estimates cause tests of the documentation to fail).
 
@@ -34,7 +34,7 @@ Make the controller object and limit the display precision (to decrease the chan
 
     lf = sm.make_likelihood_function(t, digits=2, space=3)
 
-Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``set_param_rules`` method.
+Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``set_param_rules()`` method.
 
 .. jupyter-execute::
     :linenos:
@@ -61,7 +61,7 @@ View the resulting maximum-likelihood parameter values.
     :linenos:
 
     lf.set_name("clock")
-    print(lf)
+    lf
 
 We extract the log-likelihood and number of free parameters for later use.
 
@@ -91,7 +91,7 @@ View the resulting maximum-likelihood parameter values.
     :linenos:
 
     lf.set_name("non clock")
-    print(lf)
+    lf
 
 These two lnL's are now used to calculate the likelihood ratio statistic it's degrees-of-freedom and the probability of observing the LR.
 
