@@ -1339,6 +1339,16 @@ class TableTests(TestCase):
         with self.assertRaises(ValueError):
             t.format_column("LR", ".4e")
 
+    def test_table_format(self):
+        """table formating function doesn't fail with different input values"""
+        from cogent3.format.table import formatted_cells
+
+        data = [[230, "acdef", None], [6, "cc", 1.9876]]
+        head = ["one", "two", "three"]
+        _ = formatted_cells(data, header=head)
+        data = [[230, "acdef", 1.3], [6, "cc", numpy.array([1.9876, 2.34])]]
+        _ = formatted_cells(data, header=head)
+
 
 if __name__ == "__main__":
     main()
