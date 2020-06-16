@@ -676,13 +676,12 @@ def formatted_cells(
 
     """
     if not header:
-        num_col = max([len(row) for row in rows])
+        num_col = max(len(row) for row in rows)
         header = [""] * num_col
     else:
         num_col = len(header)
 
     col_widths = [len(col) for col in header]
-    num_row = len(rows)
     column_templates = column_templates or {}
 
     float_template = "{0:.%df}" % digits
@@ -697,7 +696,8 @@ def formatted_cells(
             except IndexError:
                 entry = "%s" % missing_data
             else:
-                if not entry:
+                not_missing = True if isinstance(entry, numpy.ndarray) else entry
+                if not not_missing:
                     try:
                         float(entry)  # could numerically be 0, so not missing
                     except (ValueError, TypeError):
