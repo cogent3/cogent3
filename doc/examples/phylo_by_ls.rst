@@ -20,10 +20,8 @@ We will load some pre-computed pairwise distance data. To see how that data was 
     d = distance.EstimateDistances(al, submodel=HKY85())
     d.run(show_progress=False)
 
-    f = open("dists_for_phylo.pickle", "wb")
-    pickle.dump(d.get_pairwise_distances(), f)
-    f.close()
-
+    with open("dists_for_phylo.pickle", "wb") as f:
+        pickle.dump(d.get_pairwise_distances(), f)
 
 .. jupyter-execute::
     :linenos:
@@ -36,9 +34,8 @@ Now load the distance data.
 .. jupyter-execute::
     :linenos:
 
-    f = open("dists_for_phylo.pickle", "rb")
-    dists = pickle.load(f)
-    f.close()
+    with open("dists_for_phylo.pickle", "rb") as f:
+        dists = pickle.load(f)
 
 If there are extremely small distances, they can cause an error in the least squares calculation. Since such estimates are between extremely closely related sequences we could simply drop all distances for one of the sequences. We won't do that here, we'll leave that as exercise.
 
@@ -49,7 +46,7 @@ We make the ls calculator.
 
     ls = least_squares.WLS(dists)
 
-We also add tests that pass in a cogent3.evolve.fast_distance.DistanceMatrix and a pairwise distance dict.
+We also add tests that pass in a ``cogent3.evolve.fast_distance.DistanceMatrix`` and a pairwise distance dict.
 
 .. jupyter-execute::
     :linenos:
@@ -67,7 +64,7 @@ In this use case we are after just 1 tree. We specify up to what taxa size all p
 .. jupyter-execute::
     :linenos:
 
-    score, tree = ls.trex(a=5, k=1)
+    score, tree = ls.trex(a=5, k=1, show_progress=False)
     assert score < 1e-4
 
 We won't display this tree, because we are doing more below.
@@ -80,7 +77,7 @@ We change the settings, so we keep more trees and then look at the distribution 
 .. jupyter-execute::
     :linenos:
 
-    trees = ls.trex(a=5, k=5, return_all=True)
+    trees = ls.trex(a=5, k=5, return_all=True, show_progress=False)
 
 Remember the sum-of-squares statistic will be smaller for 'good' trees. The order of the trees returned is from good to bad. The number of returned ``trees`` is the same as the number requested to be retained at each step.
 

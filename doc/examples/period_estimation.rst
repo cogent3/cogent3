@@ -184,6 +184,10 @@ We use the symbols from the above example. For the ``ipdft``, ``auto_corr`` and 
     llim = 2
     period5 = 5 - llim
     periods[period5]
+
+.. jupyter-execute::
+    :linenos:
+
     powers[period5]
 
 For Fourier techniques, we can compute the power for a specific period more efficiently using Goertzel algorithm.
@@ -249,7 +253,6 @@ The very notion of permutation testing for periods, applied to a genome, require
 
     from cogent3.maths.period import Hybrid
 
-    len(s)
     hybrid_calculator = Hybrid(len(s), period=4)
 
 .. note:: We defined the period length of interest in defining this calculator because we're interested in dinucleotide motifs.
