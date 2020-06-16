@@ -499,8 +499,18 @@ class Columns(MutableMapping):
     @property
     def array(self):
         """object array of all columns"""
-        arr = [self[k] for k in self.order]
-        return numpy.array(arr, dtype="O").T
+        arr = numpy.empty((len(self), self._num_rows), dtype="O")
+        for i, c in enumerate(self.order):
+            try:
+                arr[i] = self[c]
+            except ValueError:
+                # this can happen of elements of array are tuples, for example
+                v = numpy.empty(self._num_rows, dtype="O")
+                for j, e in enumerate(self[c]):
+                    v[j] = e
+                arr[i] = v
+
+        return arr.T
 
     @property
     def order(self):
@@ -761,7 +771,10 @@ class Table:
         else:
             indices = list(range(self.shape[0]))
 
-        rows = {c: self.columns[c].take(indices).tolist() for c in self.header}
+        rows = {}
+        for c in self.header:
+            rows[c] = [self.columns[c][i] for i in indices]
+
         if ellipsis:
             for k, v in rows.items():
                 v.insert(head, ellipsis)

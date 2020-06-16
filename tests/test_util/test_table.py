@@ -1156,12 +1156,32 @@ class TableTests(TestCase):
 
     def test_repr_html_(self):
         """should produce html"""
-        # without an index
+        # no index
         t = Table(header=self.t8_header, data=self.t8_rows)
-        html = t._repr_html_()
-        # without an index
+        _ = t._repr_html_()
+        # with an index
         t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
-        html = t._repr_html_()
+        _ = t._repr_html_()
+
+        # data has tuples in an array
+        data = dict(
+            key=numpy.array([("a", "c"), ("b", "c"), ("a", "d")], dtype="O"),
+            count=[1, 3, 2],
+        )
+        t = Table(data=data)
+        _ = t._repr_html_()
+
+    def test_array(self):
+        """should produce array"""
+        # data has tuples in an array
+        data = dict(
+            key=numpy.array([("a", "c"), ("b", "c"), ("a", "d")], dtype="O"),
+            count=[1, 3, 2],
+        )
+        expect = [list(v) for v in zip(data["key"][:], data["count"])]
+        t = Table(data=data)
+        arr = t.array
+        assert_equal(arr.tolist(), expect)
 
     def test_separator_format(self):
         """testing separator_format with title and legend, and contents that match the separator"""
