@@ -43,10 +43,4 @@ The translated seqs can then be written to file, using the method ``write``. Tha
     }
     aligned_aa = make_aligned_seqs(aligned_aa_seqs, moltype="protein")
     aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA)
-
-Just to be sure, we'll check that the DNA sequence has gaps in the right place.
-
-.. jupyter-execute::
-    :linenos:
-
-    print(aligned_DNA)
+    aligned_DNA
