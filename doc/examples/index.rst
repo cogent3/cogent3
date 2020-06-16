@@ -9,7 +9,6 @@ Data manipulation
 .. toctree::
     :maxdepth: 1
 
-    translate_dna
     seq_features
     complete_seq_features
     reverse_complement
