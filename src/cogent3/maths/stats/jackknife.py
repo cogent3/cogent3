@@ -13,7 +13,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def IndexGen(length):
+def index_gen(length):
     data = tuple(range(length))
 
     def gen(i):
@@ -28,15 +28,18 @@ class JackknifeStats(object):
     """Computes the jackknife statistic for a particular statistical function
     as outlined by 'Tukey's Jackknife Method' Biometry by Sokal/Rohlf."""
 
-    def __init__(self, length, calc_stat, gen_index=IndexGen):
-        """Initialise the jackknife class:
+    def __init__(self, length, calc_stat, gen_index=index_gen):
+        """
 
-        length: The length of the data set (since data is not passed to this
-                class).
-        calc_stat: A callback function that computes the required statistic
-                       of a defined dataset.
-        gen_index: A callback function that generates a list of indices
-                           that are used to sub-sample the dataset."""
+        Parameters
+        ----------
+        length : int
+            The length of the data set (since data is not passed to this class).
+        calc_stat : callable
+            A callback function that computes the required statistic of a defined dataset.
+        gen_index
+            A callback function that generates a list of indices that are used to sub-sample the dataset.
+        """
 
         super(JackknifeStats, self).__init__()
         self.n = length
@@ -77,25 +80,25 @@ class JackknifeStats(object):
         self._standard_error = np.sqrt(variance_norm)
 
     @property
-    def SampleStat(self):
+    def sample_stat(self):
         if self._sample_statistic is None:
             self.jackknife()
         return self._sample_statistic
 
     @property
-    def JackknifedStat(self):
+    def jackknifed_stat(self):
         if self._jackknifed_stat is None:
             self.jackknife()
         return self._jackknifed_stat
 
     @property
-    def Exception(self):
+    def standard_error(self):
         if self._standard_error is None:
             self.jackknife()
         return self._standard_error
 
     @property
-    def SubSampleStats(self):
+    def sub_sample_stats(self):
         """Return a table of the sub-sample statistics"""
 
         # if the statistics haven't been run yet.
@@ -106,8 +109,7 @@ class JackknifeStats(object):
         title = "Subsample Stats"
         rows = []
         for index in range(self.n):
-            row = []
-            row.append(index)
+            row = [index]
             subset_statistics = self._subset_statistics[index]
             try:
                 for value in subset_statistics:
@@ -129,7 +131,7 @@ class JackknifeStats(object):
         return Table(rows=rows, header=header, title=title)
 
     @property
-    def Pseudovalues(self):
+    def pseudovalues(self):
         """Return a table of the Pseudovalues"""
 
         # if the statistics haven't been run yet.
@@ -162,7 +164,7 @@ class JackknifeStats(object):
         return Table(rows=rows, header=header, title=title)
 
     @property
-    def SummaryStats(self):
+    def summary_stats(self):
         """Return a summary table with the statistic value(s) calculated for the
         the full data-set, the jackknife statistics and standard errors."""
 
