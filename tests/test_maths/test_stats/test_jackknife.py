@@ -196,6 +196,7 @@ class JackknifeTests(TestCase):
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
         ss = test_knife.sub_sample_stats
         self.assertEqual(ss.shape, (12, 2))
+        ss = test_knife.sample_stat
         pvs = test_knife.pseudovalues
         self.assertEqual(pvs.shape, (12, 2))
         ss = test_knife.summary_stats
