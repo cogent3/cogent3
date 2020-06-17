@@ -128,7 +128,7 @@ class JackknifeStats(object):
         except TypeError:
             header.append("Stat-i")
 
-        return Table(rows=rows, header=header, title=title)
+        return Table(data=rows, header=header, title=title)
 
     @property
     def pseudovalues(self):
@@ -161,7 +161,7 @@ class JackknifeStats(object):
         except TypeError:
             header.append("Pseudovalue-i")
 
-        return Table(rows=rows, header=header, title=title)
+        return Table(data=rows, header=header, title=title)
 
     @property
     def summary_stats(self):
