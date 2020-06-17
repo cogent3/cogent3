@@ -190,6 +190,18 @@ class JackknifeTests(TestCase):
                     4,
                 )
 
+    def test_tabular_properties(self):
+        """constructs tabular properties"""
+        pmcc_stat = stat_maker(pmcc, data, 1)
+        test_knife = JackknifeStats(data.shape[1], pmcc_stat)
+        ss = test_knife.sub_sample_stats
+        self.assertEqual(ss.shape, (12, 2))
+        ss = test_knife.sample_stat
+        pvs = test_knife.pseudovalues
+        self.assertEqual(pvs.shape, (12, 2))
+        ss = test_knife.summary_stats
+        self.assertEqual(ss.shape, (1, 3))
+
 
 if __name__ == "__main__":
     main()
