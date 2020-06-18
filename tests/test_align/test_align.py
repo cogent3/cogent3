@@ -13,7 +13,7 @@ from cogent3.align.align import (
     make_dna_scoring_dict,
     make_generic_scoring_dict,
 )
-from cogent3.evolve.models import HKY85
+from cogent3.evolve.models import HKY85, get_model
 
 
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
@@ -162,6 +162,10 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         result = {n: s.lower() for (n, s) in list(aln.to_dict().items())}
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
+        # and the moltype matches the model
+        model = get_model(model)
+        self.assertIs(aln.moltype, model.moltype)
+
         # assert the returned alignment has the correct parameter values in the
         # align.info object.
         if param_vals:

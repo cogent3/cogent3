@@ -111,6 +111,7 @@ def TreeAlign(
     lnL = LF.get_log_likelihood()
     edge = lnL.edge
     align = edge.get_viterbi_path().get_alignment()
+    align = align.to_moltype(model.moltype)
     param_vals.update(
         dict(
             indel_length=indel_length,
