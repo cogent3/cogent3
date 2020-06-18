@@ -798,7 +798,7 @@ class Table:
             else:
                 is_numeric = True
 
-            if self.index_name and col == 0:
+            if self.index_name is not None and col == 0:
                 style = f' style="background: {colour}; font-weight: 600;"'
             elif is_numeric:
                 style = f' style="font-family: monospace !important;"'

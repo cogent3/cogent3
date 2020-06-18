@@ -352,21 +352,4 @@ The result of these steps is to create a rate/branch model with initial paramete
      HowlerMon    2b     1.00
         Rhesus     0     0.00
         Rhesus     1     1.00
-        Rhesus    2a     0.00
-        Rhesus    2b     1.00
-     Orangutan     0     0.00
-     Orangutan     1     1.00
-     Orangutan    2a     0.00
-     Orangutan    2b     1.00
-       Gorilla     0     0.00
-       Gorilla     1     1.00
-       Gorilla    2a     0.00
-       Gorilla    2b     1.00
-         Human     0     0.00
-         Human     1     1.00
-         Human    2a   100.00
-         Human    2b   100.00
-    Chimpanzee     0     0.00
-    Chimpanzee     1     1.00
-    Chimpanzee    2a   100.00
-    Chimpanzee    2b   100.00
+        ...

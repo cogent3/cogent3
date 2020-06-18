@@ -27,27 +27,14 @@ Load my alignment
 
     al = load_aligned_seqs("data/long_testseqs.fasta")
 
-Create a pairwise distances object with your alignment and substitution model
+Create a pairwise distances object with your alignment and substitution model and run it.
 
 .. jupyter-execute::
     :linenos:
 
     d = distance.EstimateDistances(al, submodel=HKY85())
-
-Printing ``d`` before execution shows its status.
-
-.. jupyter-execute::
-    :linenos:
-
-    print(d)
-
-Which in this case is to simply indicate nothing has been done.
-
-.. jupyter-execute::
-    :linenos:
-
     d.run(show_progress=False)
-    print(d)
+    d.get_pairwise_distances()
 
 Note that pairwise distances can be distributed for computation across multiple CPU's. In this case, when statistics (like distances) are requested only the master CPU returns data.
 
