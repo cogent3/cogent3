@@ -16,7 +16,7 @@ Both the ``ArrayAlignment`` and ``Alignment`` classes support this.
     from cogent3 import load_aligned_seqs
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
-    tree = aln.quick_tree(calc="TN93")
+    tree = aln.quick_tree(calc="TN93", show_progress=False)
     tree = tree.balanced()  # purely for display
     print(tree.ascii_art())
 
@@ -25,7 +25,7 @@ The ``quick_tree()`` method also supports non-parametric bootstrapping. The numb
 .. jupyter-execute::
     :linenos:
 
-    tree = aln.quick_tree(calc="TN93", bootstrap=100)
+    tree = aln.quick_tree(calc="TN93", bootstrap=100, show_progress=False)
 
 Using the ``DistanceMatrix`` object
 -----------------------------------
@@ -37,7 +37,7 @@ Using the ``DistanceMatrix`` object
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dists = aln.distance_matrix(calc="TN93")
-    tree = dists.quick_tree()
+    tree = dists.quick_tree(show_progress=False)
     tree = tree.balanced()  # purely for display
     print(tree.ascii_art())
 

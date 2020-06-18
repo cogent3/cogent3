@@ -5,6 +5,15 @@ Sequence Collections and Alignments
 
 For loading collections of unaligned or aligned sequences see :ref:`load-seqs`.
 
+What's the difference between ``Alignment`` and ``ArrayAlignment``?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``Alignment`` class can be annotated, meaning you can add annotations to an Alignment or it's member sequences and you can slice the alignment via those objects. This capability is achieved, under the hood, by having the individual sequences represent gaps as a "span", rather than explicitly as a "-" character in the sequence itself. This representation is also efficient for very long sequences.
+
+The ``ArrayAlignment`` class cannot be annotated. The class represents its sequences as a ``numpy.ndarray`` instance. Thus, the gaps are included as a state in the array. This class is better at handling a lot of sequences and should typically be faster. This is the default class returned by the ``load_aligned_seqs`` and ``make_aligned_seqs`` functions. (See :ref:`load-seqs` for details.)
+
+You can change alignment types using the ``to_type()`` method.
+
 Basic Collection objects
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
