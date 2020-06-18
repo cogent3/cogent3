@@ -52,7 +52,7 @@ Explicitly via ``DistanceMatrix`` and ``cogent3.phylo.nj.nj()```
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dists = aln.distance_matrix(calc="TN93")
-    tree = nj.nj(dists)
+    tree = nj.nj(dists, show_progress=False)
     tree = tree.balanced()  # purely for display
     print(tree.ascii_art())
 
@@ -65,7 +65,7 @@ Directly from a pairwise distance ``dict``
     from cogent3.phylo import nj
 
     dists = {("a", "b"): 2.7, ("c", "b"): 2.33, ("c", "a"): 0.73}
-    tree = nj.nj(dists)
+    tree = nj.nj(dists, show_progress=False)
     print(tree.ascii_art())
 
 By Least-squares

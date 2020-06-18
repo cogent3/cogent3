@@ -45,18 +45,7 @@ We want to know the bin probabilities and the posterior probabilities.
     :linenos:
 
     bprobs = [t for t in lf.get_statistics() if "bin" in t.title][0]
-
-Print the ``bprobs`` sorted by ``'rate'`` will generate a table like
-
-.. code-block:: python
-    
-    bin params
-    ====================
-     bin   bprobs   rate
-    --------------------
-    bin0     0.49   0.49
-    bin1     0.51   1.48
-    --------------------
+    bprobs
 
 We'll now use a gamma distribution on the sample alignment, specifying the number of bins as 4. We specify that the bins have equal density using the ``lf.set_param_rule('bprobs', is_constant=True)`` command.
 

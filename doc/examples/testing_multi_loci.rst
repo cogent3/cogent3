@@ -37,7 +37,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
     lf.set_param_rule("length", is_independent=False)
     lf.set_param_rule("kappa", loci=ALL)
     lf.set_alignment(loci)
-    lf.optimise(local=True)
+    lf.optimise(show_progress=False)
     lf
 
 .. jupyter-execute::
@@ -46,7 +46,7 @@ To make a likelihood function with multiple alignments we provide the list of lo
     all_lnL = lf.lnL
     all_nfp = lf.nfp
     lf.set_param_rule("kappa", loci=EACH)
-    lf.optimise(local=True, show_progress=False)
+    lf.optimise(show_progress=False)
     lf
 
 .. jupyter-execute::
@@ -62,11 +62,9 @@ Just to pretty up the result display, I'll print(a table consisting of the test 
 .. jupyter-execute::
     :linenos:
 
-    print(
-        make_table(
-            header=["LR", "df", "p"],
-            rows=[[LR, df, chisqprob(LR, df)]],
-            digits=2,
-            space=3,
-        )
+    make_table(
+        header=["LR", "df", "p"],
+        rows=[[LR, df, chisqprob(LR, df)]],
+        digits=2,
+        space=3,
     )
