@@ -59,6 +59,53 @@ If you only want a subset of the contents of a file, use the ``FilteringParser``
 
 .. note:: You can also ``negate`` a condition, which is useful if the condition is complex.
 
+Loading only some columns
+=========================
+
+Specify the columns by their names.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.parse.table import FilteringParser
+
+    reader = FilteringParser(
+        columns=["Locus", "Ratio"], with_header=True, sep="\t"
+    )
+    table = load_table("data/stats.tsv", reader=reader)
+    table
+
+Or, by their index.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.parse.table import FilteringParser
+
+    reader = FilteringParser(
+        columns=[0, -1], with_header=True, sep="\t"
+    )
+    table = load_table("data/stats.tsv", reader=reader)
+    table
+
+.. note:: The ``negate`` argument does not affect the columns evaluated.
+
+Load raw data as a list of lists of strings
+===========================================
+
+We just use ``FilteringParser``.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.parse.table import FilteringParser
+
+    reader = FilteringParser(with_header=True, sep="\t")
+    data = list(reader("data/stats.tsv"))
+    data[:2]  # just the first two lines
+
+.. note:: The individual elements are still ``str``.
+
 Make a table from header and rows
 =================================
 
