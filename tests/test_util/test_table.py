@@ -15,6 +15,7 @@ import numpy
 from numpy.testing import assert_equal
 
 from cogent3 import load_table, make_table
+from cogent3.parse.table import FilteringParser
 from cogent3.util.table import (
     Table,
     cast_str_to_array,
@@ -1279,8 +1280,6 @@ class TableTests(TestCase):
 
     def test_filtering_parser(self):
         """filters rows"""
-        from cogent3.parse.table import FilteringParser
-
         expect = []
         for r in self.t1_rows:
             row = [str(e) for e in r]
@@ -1289,7 +1288,9 @@ class TableTests(TestCase):
         t = make_table(self.t1_header, data=self.t1_rows)
         lines = t.to_csv().splitlines()
         # no limit set
-        reader = FilteringParser(lambda x: x[0] == "A", with_header=True, sep=",")
+        reader = FilteringParser(
+            row_condition=lambda x: x[0] == "A", with_header=True, sep=","
+        )
         got = [line for line in reader(lines)]
         self.assertEqual(got[0], self.t1_header)
         self.assertEqual(got[1:], [r for r in expect if r[0] == "A"])
@@ -1311,10 +1312,65 @@ class TableTests(TestCase):
         self.assertEqual(got[1:], [r for r in expect if r[0] == "X"])
 
         # parser works with load_table
+        path = TEST_ROOT / "data" / "sample.tsv"
         reader = FilteringParser(lambda x: x[0] == "A", with_header=True, sep="\t")
-        table = load_table(TEST_ROOT / "data" / "sample.tsv", reader=reader)
+        table = load_table(path, reader=reader)
         self.assertEqual(list(table.header), self.t1_header)
         self.assertEqual(table.array.tolist(), [r for r in self.t1_rows if r[0] == "A"])
+
+        # parser works if called on path as Path
+        reader = FilteringParser(lambda x: x[0] == "A", with_header=True, sep="\t")
+        got = [r for r in reader(path)]
+        self.assertEqual(len(got), 7)
+
+        # parser works if called on path as str
+        got = [r for r in reader(str(path))]
+        self.assertEqual(len(got), 7)
+
+        # parser works with no conditions
+        reader = FilteringParser(with_header=True, sep="\t")
+        t = load_table(path, reader=reader)
+        self.assertEqual(t.shape, (10, 3))
+
+    def test_filtering_parser_filter_columns(self):
+        """filters columns"""
+        path = TEST_ROOT / "data" / "sample.tsv"
+        # specified by int
+        reader = FilteringParser(columns=0, with_header=True, sep="\t")
+        got = load_table(path, reader=reader)
+        self.assertEqual(got.shape, (10, 1))
+
+        # specified by str
+        reader = FilteringParser(columns="length", with_header=True, sep="\t")
+        got = load_table(path, reader=reader)
+        self.assertEqual(got.shape, (10, 1))
+
+        # specified by index
+        reader = FilteringParser(columns=[0, 2], with_header=True, sep="\t")
+        got = load_table(path, reader=reader)
+        self.assertEqual(got.shape, (10, 2))
+
+        # specified by name
+        reader = FilteringParser(
+            columns=["chrom", "length"], with_header=True, sep="\t"
+        )
+        got2 = load_table(path, reader=reader)
+        self.assertEqual(got2.shape, (10, 2))
+        assert_equal(got.array, got2.array)
+
+        # raises value error if column name doesn't exist
+        reader = FilteringParser(columns=["blah", "length"], with_header=True, sep="\t")
+        with self.assertRaises(ValueError):
+            _ = load_table(path, reader=reader)
+
+        # raises IndexError if column index doesn't exist
+        reader = FilteringParser(columns=[0, 10], with_header=True, sep="\t")
+        with self.assertRaises(IndexError):
+            _ = load_table(path, reader=reader)
+
+        # raises ValueError if names given and with_header is False
+        with self.assertRaises(ValueError):
+            _ = FilteringParser(columns=["blah"], with_header=False)
 
     def test_set_column_format(self):
         """fails if invalid format spec provided"""
