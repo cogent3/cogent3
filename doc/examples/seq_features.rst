@@ -70,6 +70,3 @@ Features are themselves sliceable:
     :linenos:
 
     exon1[0:3].get_slice()
-
-
-The toolkit can perform standard sequence / alignment manipulations such as getting a subset of sequences or aligned columns, translating sequences, reading and writing standard formats.

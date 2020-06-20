@@ -32,7 +32,6 @@ The following demonstrates the two methods for initializing a phylogenetic tree 
 
 Now to displaying, creating, deleting, and inserting a node in simple_tree.  Note that simple_tree has three tips, one internal node 'E', and the root 'F.'  For this example, we will create a node named 'A', with a distance of 0.1, delete the node 'C' through its parent, the internal node 'E', and finally we will insert 'A' where 'C' once was.
 
-
 Display the original tree.
 
 .. jupyter-execute::

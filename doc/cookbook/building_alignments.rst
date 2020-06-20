@@ -33,7 +33,9 @@ We then align using a guide tree (pre-estimated) and specifying the ratio of tra
         "(((NineBande:0.013,Mouse:0.185):0.023,DogFaced:0.046):0.027,Human:0.034,HowlerMon:0.019)"
     )
     params = {"kappa": 4.0}
-    aln, tree = TreeAlign("HKY85", seqs, tree=tree, param_vals=params, show_progress=False)
+    aln, tree = TreeAlign(
+        "HKY85", seqs, tree=tree, param_vals=params, show_progress=False
+    )
     aln
 
 Using a ``cogent3`` progressive aligner for codons
@@ -52,7 +54,9 @@ We load a canned codon substitution model and use a pre-defined tree and paramet
         "((NineBande:0.058,Mouse:0.595):0.079,DogFaced:0.142,(HowlerMon:0.062,Human:0.103):0.079)"
     )
     params = {"kappa": 4.0, "omega": 1.3}
-    aln, tree = TreeAlign("MG94HKY", seqs, tree=tree, param_vals=params, show_progress=False)
+    aln, tree = TreeAlign(
+        "MG94HKY", seqs, tree=tree, param_vals=params, show_progress=False
+    )
     aln
 
 Converting gaps from aa-seq alignment to nuc seq alignment

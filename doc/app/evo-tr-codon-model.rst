@@ -6,7 +6,7 @@ We display the full set of codon models available.
 .. jupyter-execute::
 
     from cogent3 import available_models
-    
+
     available_models("codon")
 
 Using the conditional nucleotide form codon model
@@ -17,12 +17,14 @@ The CNFGTR model (`Yap et al <https://www.ncbi.nlm.nih.gov/pubmed/19815689>`__) 
 .. jupyter-execute::
 
     from cogent3.app import io, evo
-    
+
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
-    model = evo.model("CNFGTR", 
-                      tree="data/primate_brca1.tree", 
-                      sm_args=dict(optimise_motif_probs=True))
+    model = evo.model(
+        "CNFGTR",
+        tree="data/primate_brca1.tree",
+        sm_args=dict(optimise_motif_probs=True),
+    )
     result = model(aln)
     result
 

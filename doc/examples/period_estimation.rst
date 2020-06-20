@@ -30,7 +30,6 @@ We first make some sample data. A periodic signal and some noise.
 
     numpy.random.seed(11)
 
-
 .. jupyter-execute::
     :linenos:
 

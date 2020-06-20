@@ -15,7 +15,7 @@ Adding a new column
 
 .. jupyter-execute::
     :linenos:
-    
+
     from cogent3 import make_table
 
     table = make_table()
@@ -106,7 +106,6 @@ The ``Table.columns`` attribute is a ``Columns`` instance, an object with ``dict
 
     table = load_table("data/stats.tsv")
     table.columns
-
 
 .. jupyter-execute::
     :linenos:
@@ -588,23 +587,25 @@ This returns a ``CategoryCounter``, a dict like class.
 
 .. jupyter-execute::
     :linenos:
-    
+
     from cogent3 import make_table
-    
-    table = make_table(data=dict(A=["a", "b", "b", "b", "a"], B=["c", "c", "c", "c", "d"]))
+
+    table = make_table(
+        data=dict(A=["a", "b", "b", "b", "a"], B=["c", "c", "c", "c", "d"])
+    )
     unique = table.count_unique("A")
     type(unique)
 
 .. jupyter-execute::
     :linenos:
-    
+
     unique
 
 For multiple columns.
 
 .. jupyter-execute::
     :linenos:
-    
+
     unique = table.count_unique(["A", "B"])
     unique
 
@@ -813,9 +814,9 @@ Getting a table as html
 
 .. jupyter-execute::
     :linenos:
-    
+
     from cogent3 import load_table
-    
+
     table = load_table("data/stats.tsv")
     straight_html = table.to_rich_html(compact=True)
 
@@ -823,7 +824,7 @@ We can provide customised formatting via a callback function.
 
 .. jupyter-execute::
     :linenos:
-    
+
     def format_cell(value, row_num, col_num):
         style = 'style="background: rgba(176, 245, 102, 0.25);"' if value else ""
         return f"<td {style}>{value}</td>"
@@ -843,9 +844,7 @@ We could also use control html element format.
 .. jupyter-execute::
     :linenos:
 
-    element_format = dict(
-                thead=f'<thead style="background: rgba(0, 250, 0, 0.1);">'
-            )
+    element_format = dict(thead=f'<thead style="background: rgba(0, 250, 0, 0.1);">')
     rich_html = table.to_rich_html(element_formatters=element_format)
 
 Which produces the following...
@@ -897,4 +896,3 @@ The delimiter can be specified explicitly using the ``sep`` argument or implicit
         p = pathlib.Path(name)
         if p.exists():
             p.unlink()
-

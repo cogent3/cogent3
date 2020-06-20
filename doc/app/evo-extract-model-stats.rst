@@ -8,7 +8,7 @@ We first fit a model.
 .. jupyter-execute::
 
     from cogent3.app import io, evo
-    
+
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
     model = evo.model("GN", tree="data/primate_brca1.tree")

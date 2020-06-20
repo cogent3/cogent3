@@ -18,12 +18,10 @@ Keys in a ``UnionDict`` can be accessed like attributes
     data = UnionDict(a=2, b={"c": 24, "d": [25]})
     data.a
 
-
 .. jupyter-execute::
     :linenos:
 
     data["a"]
-
 
 .. jupyter-execute::
     :linenos:
@@ -49,13 +47,13 @@ This can also be done using the ``union`` method.
 .. jupyter-execute::
     :linenos:
 
-    data.b.union({'d': [25]})
+    data.b.union({"d": [25]})
 
 .. jupyter-execute::
     :linenos:
 
     data.b
-    {'c': 24, 'd': [25]}
+    {"c": 24, "d": [25]}
 
 Accessing a non-existent ``UnionDict`` key
 ------------------------------------------

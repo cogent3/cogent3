@@ -6,7 +6,7 @@ We fit a discrete-time Markov nucleotide model. This corresponds to a Barry and 
 .. jupyter-execute::
 
     from cogent3.app import io, evo
-    
+
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
     model = evo.model("BH", tree="data/primate_brca1.tree")
@@ -48,4 +48,4 @@ For a discrete-time model, aside from the root motif probabilities, everything i
 
 .. jupyter-execute::
 
-    stats['edge motif motif2 params']
+    stats["edge motif motif2 params"]

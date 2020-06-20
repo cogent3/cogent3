@@ -8,7 +8,7 @@ We first fit a model to the sample data.
 .. jupyter-execute::
 
     from cogent3.app import io, evo
-    
+
     reader = io.load_aligned(format="fasta")
     aln = reader("data/primate_brca1.fasta")
     gn = evo.model("GN", tree="data/primate_brca1.tree")
@@ -27,7 +27,7 @@ The ``tabular_result`` is keyed by the node name. Each value is a ``DictArray``,
 
 .. jupyter-execute::
 
-    states_result['edge.0']
+    states_result["edge.0"]
 
 If not included in the newick tree file, the internal node names are automatically generated open loading. You can establish what those are by interrogating the tree bound to the likelihood function object. (If you move your mouse cursor over the nodes, their names will appear as hover text.)
 

@@ -383,6 +383,3 @@ Annotations should be correctly masked, whether the sequence has been reverse co
 
     print(plus.with_masked_annotations("CDS"))
     print(minus.with_masked_annotations("CDS"))
-
-    
-.. todo:: Not documented, Source features.

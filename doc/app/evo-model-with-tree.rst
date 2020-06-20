@@ -6,7 +6,7 @@ We analyse an alignment with sequences from 6 primates.
 .. jupyter-execute::
 
     from cogent3.app import io
-    
+
     reader = io.load_aligned(format="fasta", moltype="dna")
     aln = reader("data/primate_brca1.fasta")
     aln.names
@@ -18,7 +18,7 @@ Specify the tree via a tree instance
 
     from cogent3 import load_tree
     from cogent3.app import evo
-    
+
     tree = load_tree("data/primate_brca1.tree")
     gn = evo.model("GN", tree=tree)
     gn

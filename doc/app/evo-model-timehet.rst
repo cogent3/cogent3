@@ -9,12 +9,12 @@ In this example, we load the and display our sample primate tree, highlighting t
 
     from cogent3 import load_tree
     from cogent3.app import io, evo
-    
+
     tree = load_tree("data/primate_brca1.tree")
     fig = tree.get_figure(contemporaneous=True)
-    fig.style_edges("Human", tip2="Orangutan",
-                    outgroup="Galago",
-                    line=dict(color="red"))
+    fig.style_edges(
+        "Human", tip2="Orangutan", outgroup="Galago", line=dict(color="red")
+    )
     fig.show(width=500, height=500)
 
 Specify a distinct rate matrix for the great apes
@@ -26,9 +26,11 @@ To construct a ``model`` with this information, we create a dictionary that we a
 
 .. jupyter-execute::
 
-    time_het = evo.model("GN", tree=tree,
-                         time_het=[dict(tip_names=["Human", "Orangutan"],
-                                         outgroup_name="Galago")])
+    time_het = evo.model(
+        "GN",
+        tree=tree,
+        time_het=[dict(tip_names=["Human", "Orangutan"], outgroup_name="Galago")],
+    )
 
 The outcome of this setting to ``model`` is that the black edges will share one rate matrix, the red edges another. We fit the model to the sample data set.
 

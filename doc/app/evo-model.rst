@@ -8,7 +8,7 @@ We load some sample data first and select just 3 sequences, all via
     :linenos:
 
     from cogent3.app import io, sample
-    
+
     reader = io.load_aligned(format="fasta", moltype="dna")
     select_seqs = sample.take_named_seqs("Human", "Rhesus", "Galago")
     process = reader + select_seqs
@@ -23,7 +23,7 @@ tree. It’s not required to specify the tree in this instance.
     :linenos:
 
     from cogent3.app import evo
-    
+
     gn = evo.model("GN")
     gn
 
@@ -89,7 +89,7 @@ Controlled by setting ``split_codons=True``.
     :linenos:
 
     gn = evo.model("GN", split_codons=True)
-    
+
     fitted = gn(aln)
     fitted
 

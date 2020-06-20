@@ -6,7 +6,7 @@ We display the available set of nucleotide substitution models.
 .. jupyter-execute::
 
     from cogent3 import available_models
-    
+
     available_models("nucleotide")
 
 Using the GTR model
@@ -17,12 +17,12 @@ We specify the general time-reversible model (`Lanave et al <https://www.ncbi.nl
 .. jupyter-execute::
 
     from cogent3.app import io, evo
-    
+
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
-    model = evo.model("GTR", 
-                      tree="data/primate_brca1.tree", 
-                      sm_args=dict(optimise_motif_probs=True))
+    model = evo.model(
+        "GTR", tree="data/primate_brca1.tree", sm_args=dict(optimise_motif_probs=True)
+    )
     result = model(aln)
     result
 
