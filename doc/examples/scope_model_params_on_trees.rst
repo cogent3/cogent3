@@ -93,7 +93,6 @@ I'll specify that both the primates and their stem are to be considered.
 
     lf.set_param_rule("omega", init=1.0)
 
-
 .. jupyter-execute::
     :linenos:
 
@@ -163,7 +162,6 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
     :hide-code:
 
     lf.set_param_rule("omega", init=1.0)
-
 
 .. jupyter-execute::
     :linenos:

@@ -5,9 +5,9 @@ Available genetic codes
 .. jupyter-execute::
     :linenos:
 
-      from cogent3 import available_codes
+    from cogent3 import available_codes
 
-      available_codes()
+    available_codes()
 
 In cases where a ``cogent3`` object method has a ``gc`` argument, you can just use the number under "Code ID" column.
 
@@ -33,7 +33,6 @@ Getting a genetic code with ``get_code()``
 ==========================================
 
 This function can be used directly to get a genetic code. We will get the code with ID 4.
-
 
 .. jupyter-execute::
     :linenos:

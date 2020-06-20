@@ -92,13 +92,15 @@ We demonstrate this by customising DNA so it allows ``.`` as gaps
 
     from cogent3.core import moltype as mt
 
-    DNAgapped = mt.MolType(seq_constructor=mt.DnaSequence,
-                         motifset=mt.IUPAC_DNA_chars,
-                         ambiguities=mt.IUPAC_DNA_ambiguities,
-                         complements=mt.IUPAC_DNA_ambiguities_complements,
-                         pairs=mt.DnaStandardPairs,
-                         gaps='.')
-    seq = DNAgapped.make_seq('ACG.')
+    DNAgapped = mt.MolType(
+        seq_constructor=mt.DnaSequence,
+        motifset=mt.IUPAC_DNA_chars,
+        ambiguities=mt.IUPAC_DNA_ambiguities,
+        complements=mt.IUPAC_DNA_ambiguities_complements,
+        pairs=mt.DnaStandardPairs,
+        gaps=".",
+    )
+    seq = DNAgapped.make_seq("ACG.")
     seq
 
 .. warning:: At present, constructing a custom ``MolType`` that overrides a builtin one affects the original (in this instance, the ``DnaSequence`` class). All subsequent calls to the original class in the running process that made the change are affected. The below code is resetting this attribute now to allow the rest of the documentation to be executed.
@@ -108,4 +110,5 @@ We demonstrate this by customising DNA so it allows ``.`` as gaps
 
     from cogent3 import DNA
     from cogent3.core.sequence import DnaSequence
+
     DnaSequence.moltype = DNA

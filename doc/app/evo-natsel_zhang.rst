@@ -19,16 +19,18 @@ Site Class Proportion Background Edges Foreground Edges
 .. jupyter-execute::
 
     from cogent3.app import io, evo
-    
+
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
-    
-    zhang_test = evo.natsel_zhang("GNC",
-                                  tree="data/primate_brca1.tree",
-                                  optimise_motif_probs=False,
-                                  tip1="Human",
-                                  tip2="Chimpanzee")
-    
+
+    zhang_test = evo.natsel_zhang(
+        "GNC",
+        tree="data/primate_brca1.tree",
+        optimise_motif_probs=False,
+        tip1="Human",
+        tip2="Chimpanzee",
+    )
+
     result = zhang_test(aln)
     result
 

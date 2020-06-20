@@ -6,7 +6,7 @@ We evaluate whether the GTR model is sufficient for a data set, compared with th
 .. jupyter-execute::
 
     from cogent3.app import io, evo, sample
-    
+
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
@@ -14,7 +14,7 @@ We evaluate whether the GTR model is sufficient for a data set, compared with th
 
     tree = "data/primate_brca1.tree"
     sm_args = dict(optimise_motif_probs=True)
-    
+
     null = evo.model("GTR", tree=tree, sm_args=sm_args)
     alt = evo.model("GN", tree=tree, sm_args=sm_args)
     hyp = evo.hypothesis(null, alt)
@@ -68,7 +68,7 @@ This following would write the result into a ``tinydb``.
 
 .. code-block:: python
 
-   from cogent3.app.io import write_db
+    from cogent3.app.io import write_db
 
-   writer = write_db("path/to/myresults.tinydb", create=True, if_exists="overwrite")
-   writer(result)
+    writer = write_db("path/to/myresults.tinydb", create=True, if_exists="overwrite")
+    writer(result)

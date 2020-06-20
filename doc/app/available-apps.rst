@@ -8,5 +8,5 @@ Apps that are identified as “composable” (with a value of ``True`` under tha
 .. jupyter-execute::
 
     from cogent3 import available_apps
-    
+
     available_apps()

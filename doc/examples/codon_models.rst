@@ -106,6 +106,7 @@ We then conduct a likelihood ratio test whether the MLE of omega significantly i
     :linenos:
 
     from cogent3.maths.stats import chisqprob
+
     LR = 2 * (non_neutral_lnL - neutral_lnL)
     df = non_neutral_nfp - neutral_nfp
     print(chisqprob(LR, df))
@@ -330,7 +331,6 @@ The result of these steps is to create a rate/branch model with initial paramete
     :linenos:
 
     rate_branch_lf.set_alignment(aln)
-
 
 .. code-block:: python
 

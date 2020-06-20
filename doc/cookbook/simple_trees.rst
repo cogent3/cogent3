@@ -36,9 +36,17 @@ Getting the individual nodes of a tree by name
     tr = load_tree("data/test.tree")
     names = tr.get_node_names()
     names[:4]
+
+.. jupyter-execute::
+    :linenos:
+
     names[4:]
     names_nodes = tr.get_nodes_dict()
     names_nodes["Human"]
+
+.. jupyter-execute::
+    :linenos:
+
     tr.get_node_matching_name("Mouse")
 
 Getting the name of a node (or a tree)
@@ -52,6 +60,10 @@ Getting the name of a node (or a tree)
     tr = load_tree("data/test.tree")
     hu = tr.get_node_matching_name("Human")
     tr.name
+
+.. jupyter-execute::
+    :linenos:
+
     hu.name
 
 The object type of a tree and its nodes is the same
@@ -66,6 +78,10 @@ The object type of a tree and its nodes is the same
     nodes = tr.get_nodes_dict()
     hu = nodes["Human"]
     type(hu)
+
+.. jupyter-execute::
+    :linenos:
+
     type(tr)
 
 Working with the nodes of a tree
@@ -144,6 +160,10 @@ Getting the last common ancestor (LCA) for two nodes
     mu = nodes["Mouse"]
     lca = hu.last_common_ancestor(mu)
     lca
+
+.. jupyter-execute::
+    :linenos:
+
     type(lca)
 
 Getting all the ancestors for a node
@@ -242,6 +262,10 @@ At the midpoint
 
     tr = load_tree("data/test.tree")
     print(tr.root_at_midpoint().ascii_art())
+
+.. jupyter-execute::
+    :linenos:
+
     print(tr.ascii_art())
 
 Near a given tip
@@ -254,6 +278,10 @@ Near a given tip
 
     tr = load_tree("data/test.tree")
     print(tr.ascii_art())
+
+.. jupyter-execute::
+    :linenos:
+
     print(tr.rooted_with_tip("Mouse").ascii_art())
 
 Tree representations
@@ -269,6 +297,10 @@ Newick format
 
     tr = load_tree("data/test.tree")
     tr.get_newick()
+
+.. jupyter-execute::
+    :linenos:
+
     tr.get_newick(with_distances=True)
 
 XML format
@@ -366,8 +398,16 @@ and branch lengths (if tree is a PhyloNode) to reflect the change.
     simple_tree_string = "(B:0.2,(D:0.4)E:0.5)F;"
     simple_tree = make_tree(simple_tree_string)
     print(simple_tree.ascii_art())
+
+.. jupyter-execute::
+    :linenos:
+
     simple_tree.prune()
     print(simple_tree.ascii_art())
+
+.. jupyter-execute::
+    :linenos:
+
     print(simple_tree)
 
 Create a full unrooted copy of the tree
@@ -380,6 +420,10 @@ Create a full unrooted copy of the tree
 
     tr1 = load_tree("data/test.tree")
     print(tr1.get_newick())
+
+.. jupyter-execute::
+    :linenos:
+
     tr2 = tr1.unrooted_deepcopy()
     print(tr2.get_newick())
 
@@ -396,6 +440,10 @@ Add internal nodes so that every node has 2 or fewer children.
     tree_string = "(B:0.2,H:0.2,(C:0.3,D:0.4,E:0.1)F:0.5)G;"
     tr = make_tree(tree_string)
     print(tr.ascii_art())
+
+.. jupyter-execute::
+    :linenos:
+
     print(tr.bifurcating().ascii_art())
 
 Transform tree into a balanced tree
@@ -414,6 +462,10 @@ stems for model parameterisation should be done using the
 
     tr = load_tree("data/test.tree")
     print(tr.ascii_art())
+
+.. jupyter-execute::
+    :linenos:
+
     print(tr.balanced().ascii_art())
 
 Test two trees for same topology
@@ -443,6 +495,10 @@ the distance from that node to its most distant tip.
 
     tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
     print(tr.ascii_art())
+
+.. jupyter-execute::
+    :linenos:
+
     tr.set_tip_distances()
     for t in tr.preorder():
         print(t.name, t.TipDistance)
@@ -457,6 +513,10 @@ Scale branch lengths in place to integers for ascii output
 
     tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
     print(tr)
+
+.. jupyter-execute::
+    :linenos:
+
     tr.scale_branch_lengths()
     print(tr)
 

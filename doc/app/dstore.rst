@@ -19,7 +19,7 @@ To create one of these, you provide a ``path`` AND a ``suffix`` of the files wit
 .. jupyter-execute::
 
     from cogent3.app.io import get_data_store
-    
+
     dstore = get_data_store("data/raw.zip", suffix="fa*", limit=5)
     dstore
 
@@ -84,7 +84,7 @@ To unlock, you execute the following:
 
 .. jupyter-execute::
 
-   dstore.unlock(force=True)
+    dstore.unlock(force=True)
 
 Interrogating run logs
 ~~~~~~~~~~~~~~~~~~~~~~

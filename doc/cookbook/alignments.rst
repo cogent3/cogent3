@@ -870,16 +870,19 @@ If instead, we just wanted to remove positions from the alignment which are gaps
     )
     print(aln.omit_gap_pos(0.40))
 
-
 If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omit_gap_seqs`` method. This is commonly applied to filter partial sequences from an alignment.
-
 
 .. jupyter-execute::
     :linenos:
 
-    aln = make_aligned_seqs(data=[('seq1', 'ATGAA------'),
-                         ('seq2', 'ATG-AGTGATG'),
-                         ('seq3', 'AT--AG-GATG')], moltype="dna")
+    aln = make_aligned_seqs(
+        data=[
+            ("seq1", "ATGAA------"),
+            ("seq2", "ATG-AGTGATG"),
+            ("seq3", "AT--AG-GATG"),
+        ],
+        moltype="dna",
+    )
     filtered_aln = aln.omit_gap_seqs(0.50)
     print(filtered_aln)
 

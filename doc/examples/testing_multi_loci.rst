@@ -63,8 +63,5 @@ Just to pretty up the result display, I'll print(a table consisting of the test 
     :linenos:
 
     make_table(
-        header=["LR", "df", "p"],
-        rows=[[LR, df, chisqprob(LR, df)]],
-        digits=2,
-        space=3,
+        header=["LR", "df", "p"], rows=[[LR, df, chisqprob(LR, df)]], digits=2, space=3,
     )

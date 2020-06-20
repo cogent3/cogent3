@@ -69,9 +69,7 @@ Specify the columns by their names.
 
     from cogent3.parse.table import FilteringParser
 
-    reader = FilteringParser(
-        columns=["Locus", "Ratio"], with_header=True, sep="\t"
-    )
+    reader = FilteringParser(columns=["Locus", "Ratio"], with_header=True, sep="\t")
     table = load_table("data/stats.tsv", reader=reader)
     table
 
@@ -82,9 +80,7 @@ Or, by their index.
 
     from cogent3.parse.table import FilteringParser
 
-    reader = FilteringParser(
-        columns=[0, -1], with_header=True, sep="\t"
-    )
+    reader = FilteringParser(columns=[0, -1], with_header=True, sep="\t")
     table = load_table("data/stats.tsv", reader=reader)
     table
 
@@ -227,11 +223,11 @@ Create a table that has complex python objects as elements
     from cogent3 import make_table
 
     table = make_table(
-                   header=["abcd", "data"],
-                   data=[[range(1, 6), "0"], ["x", 5.0], ["y", None]],
-                   missing_data="*",
-                   digits=1,
-               )
+        header=["abcd", "data"],
+        data=[[range(1, 6), "0"], ["x", 5.0], ["y", None]],
+        missing_data="*",
+        digits=1,
+    )
     table
 
 Create an empty table
