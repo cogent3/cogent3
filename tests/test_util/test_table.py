@@ -12,6 +12,7 @@ from unittest import TestCase, main, skipIf
 
 import numpy
 
+from numpy import arange
 from numpy.testing import assert_equal
 
 from cogent3 import load_table, make_table
@@ -19,6 +20,7 @@ from cogent3.parse.table import FilteringParser
 from cogent3.util.table import (
     Table,
     cast_str_to_array,
+    cast_str_to_numeric,
     cast_to_array,
     formatted_array,
 )
@@ -1266,6 +1268,27 @@ class TableTests(TestCase):
         path = os.path.join(path, "data/sample.tsv")
         table = load_table(path)
         self.assertEqual(table.shape, (10, 3))
+
+    def test_cast_str_to_numerical(self):
+        """correctly converts a series of strings to numeric values"""
+        d = arange(4, step=0.1)
+        r = cast_str_to_numeric(d)
+        assert_equal(d, r)
+
+        for d_type in [numpy.int, numpy.complex, numpy.float64]:
+            d = d.astype(d_type)
+            r = cast_str_to_numeric(d)
+            self.assertIsInstance(r[0], type(d[0]))
+
+        d = d.astype(str)
+        r = cast_str_to_numeric(d)
+        self.assertIsInstance(r[0], numpy.float64)
+        d = numpy.array(d, dtype="U")
+        r = cast_str_to_numeric(d)
+        self.assertIsInstance(r[0], numpy.float)
+        d = numpy.array(d, dtype="S")
+        r = cast_str_to_numeric(d)
+        self.assertIsInstance(r[0], numpy.float)
 
     def test_cast_str_to_array(self):
         """handle processing string series"""
