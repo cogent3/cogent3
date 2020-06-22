@@ -193,7 +193,7 @@ def cast_str_to_numeric(values):
         try:
             values = values.astype(typ)
             break
-        except ValueError:
+        except (ValueError, TypeError):
             pass
     return values
 
