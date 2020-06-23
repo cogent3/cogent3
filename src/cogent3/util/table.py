@@ -183,6 +183,9 @@ def formatted_array(
 
 def cast_str_to_numeric(values):
     """converts a series of strings to numeric values"""
+    if not (isinstance(values[0], str) or isinstance(values[0], bytes)):
+        return numpy.array(values)
+
     if not isinstance(values, numpy.ndarray):
         values = numpy.array(values, dtype="U")
 
@@ -190,7 +193,7 @@ def cast_str_to_numeric(values):
         try:
             values = values.astype(typ)
             break
-        except Exception:
+        except (ValueError, TypeError):
             pass
     return values
 
