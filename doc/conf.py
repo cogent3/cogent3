@@ -40,7 +40,7 @@ templates_path = ["templates"]
 # The suffix of source filenames.
 source_suffix = ".rst", ".ipynb"
 
-# ignore the cookbook/union_dict.rst file as it's specifically included
+# ignoring the cookbook/union_dict.rst file as it's specifically included
 exclude_patterns = [
     "_build",
     "Thumbs.db",
@@ -51,6 +51,7 @@ exclude_patterns = [
     "draw_examples/README.rst",
     "draw_examples/aln/README.rst",
     "draw_examples/tree/README.rst",
+    "COGENT3_LICENSE.rst"
 ]
 
 # The encoding of source files.
