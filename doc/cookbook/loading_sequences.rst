@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 .. _load-seqs:
 
 Loading an alignment from a file

@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 .. _scope-params-on-trees:
 
 Allowing substitution model parameters to differ between branches

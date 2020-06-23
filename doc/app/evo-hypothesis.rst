@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Testing a hypothesis – non-stationary or time-reversible
 ========================================================
 
