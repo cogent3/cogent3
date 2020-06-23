@@ -18,17 +18,18 @@ autosummary_generate = True
 numpydoc_class_members_toctree = False
 
 extensions = [
-    "numpydoc",
-    "sphinx.ext.todo",
-    "sphinx.ext.doctest",
-    "sphinx.ext.githubpages",
+    "jupyter_sphinx",
     "nbsphinx",
-    "sphinx.ext.mathjax",
+    "numpydoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    "sphinxcontrib.bibtex",
+    "sphinx.ext.doctest",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.todo",
     "sphinx_gallery.gen_gallery",
-    "jupyter_sphinx",
+    "sphinx_panels",
+    "sphinxcontrib.bibtex",
     # "sphinxcontrib.spelling",
 ]
 
@@ -51,7 +52,8 @@ exclude_patterns = [
     "draw_examples/README.rst",
     "draw_examples/aln/README.rst",
     "draw_examples/tree/README.rst",
-    "COGENT3_LICENSE.rst"
+    "COGENT3_LICENSE.rst",
+    "*tmp*",
 ]
 
 # The encoding of source files.
@@ -112,7 +114,7 @@ def plotly_sg_scraper(block, block_vars, gallery_conf, *args, **kwargs):
     pngs = sorted(glob(os.path.join(examples_dirs, "**", "*.png"), recursive=True))
     htmls = sorted(glob(os.path.join(examples_dirs, "**", "*.html"), recursive=True))
     image_path_iterator = block_vars["image_path_iterator"]
-    image_names = list()
+    image_names = []
     seen = set()
     for html, png in zip(htmls, pngs):
         if png not in seen:

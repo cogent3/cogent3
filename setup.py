@@ -145,6 +145,7 @@ setup(
             "sphinx",
             "sphinx-autobuild",
             "sphinxcontrib-bibtex",
+            "sphinx_panels",
             "tox",
         ],
         "extra": ["pandas", "plotly", "psutil"],
