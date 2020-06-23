@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Apply a non-stationary nucleotide model to an alignment with 3 sequences
 ========================================================================
 

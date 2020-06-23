@@ -2,6 +2,8 @@
 Cookbook
 ********
 
+.. note:: See :ref:`data_links` for data the files used.
+
 .. toctree::
     :maxdepth: 1
     

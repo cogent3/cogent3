@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 .. _rate-heterogeneity-hmm:
 
 Evaluate process heterogeneity using a Hidden Markov Model

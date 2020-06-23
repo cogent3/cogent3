@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Extracting maximum likelihood estimates from a ``model_result``
 ===============================================================
 

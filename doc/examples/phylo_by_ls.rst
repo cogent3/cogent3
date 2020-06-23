@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Phylogenetic reconstruction by least squares
 ============================================
 

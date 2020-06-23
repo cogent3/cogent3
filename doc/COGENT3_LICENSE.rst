@@ -1,11 +1,11 @@
 .. _cogent_license:
 
 Cogent3 License
-===============
+---------------
 
 ::
 
-    Copyright (c) 2019, Cogent3 Development Team
+    Copyright (c) 2019-date, Cogent3 Development Team
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without

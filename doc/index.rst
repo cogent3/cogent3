@@ -14,14 +14,65 @@ and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ model
 
     <object type="image/svg+xml" data="../_static/svg/annotate_domain.svg"></object>
 
-.. toctree::
-    :maxdepth: 2
 
-    app/index
-    draw/index
-    cookbook/index
-    examples/index
-    api/index
-    data_file_links
+.. panels::
+    :header: bg-primary
+    :footer: text-right
+    
+    ---
+
+    ``cogent3`` apps
+    ^^^^^^^^^^^^^^^^
+    
+    ``cogent3`` comes with pre-defined "apps" that simplify otherwise complex tasks. They provide capabilities that can be used by themselves, or added together to define a pipeline. They also simplify parallel execution of pipelines.
+
+    +++++++++++
+
+    .. link-button:: app/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
+
+    ---
+
+    Cookbook
+    ^^^^^^^^
+
+    The cookbook presents short code recipes targeted at specific problems.
+
+    +++++++++++
+
+    .. link-button:: cookbook/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
+
+    ---
+
+    Tutorials
+    ^^^^^^^^^
+
+    The tutorials present code for solving more extensive problems.
+    
+    +++++++++++
+
+    .. link-button:: examples/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
+
+    ---
+
+    API
+    ^^^
+
+    The API for major ``cogent3`` objects
+    
+    +++++++++++
+
+    .. link-button:: api/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
 
 .. _cogent3: https://cogent3.org

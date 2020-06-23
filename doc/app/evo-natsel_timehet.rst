@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 ``natsel_timehet`` – a test of branch heterogeneity
 ===================================================
 
