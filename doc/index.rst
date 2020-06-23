@@ -22,6 +22,5 @@ and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ model
     cookbook/index
     examples/index
     api/index
-    data_file_links
 
 .. _cogent3: https://cogent3.org

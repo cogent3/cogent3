@@ -1,3 +1,5 @@
+.. _data_links:
+
 Data Files Used in the Documentation
 ====================================
 
