@@ -62,6 +62,7 @@ class ProgressContext:
                 leave=True,
                 bar_format="{desc} {percentage:3.0f}%|{bar}|{elapsed}<{remaining}",
                 mininterval=self.mininterval,
+                dynamic_ncols=True,
             )
 
     def subcontext(self, *args, **kw):
