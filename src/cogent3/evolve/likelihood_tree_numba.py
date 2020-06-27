@@ -8,8 +8,8 @@ __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley", "Stephen Ma"]
 __license__ = "BSD-3"
 __version__ = "2020.2.7a"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
