@@ -1,11 +1,17 @@
 import numpy as np
 
-from numba import boolean, float64, int64, jitclass, njit, optional, uint8
+from numba import boolean, float64, int64, njit, optional, uint8
 from numba.core.types.containers import Tuple
 
 
-version_info = (3, 2)
-__version__ = "2019.12.6a"
+__author__ = "Peter Maxwell"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
+__license__ = "BSD-3"
+__version__ = "2020.2.7a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
+__status__ = "Production"
 
 
 @njit(

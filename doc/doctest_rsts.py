@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+This will doctest all files ending with .rst in this directory.
+"""
 import doctest
 import os
 import pathlib
@@ -10,10 +13,14 @@ from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 
 from cogent3.util.misc import atomic_write
 
-
-"""
-This will doctest all files ending with .rst in this directory.
-"""
+__author__ = "Gavin Huttley"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__credits__ = ["Gavin Huttley"]
+__license__ = "BSD-3"
+__version__ = "2020.2.7a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "gavin.huttley@anu.edu.au"
+__status__ = "Production"
 
 
 def execute_ipynb(file_paths, exit_on_first, verbose):
