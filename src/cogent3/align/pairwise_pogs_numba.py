@@ -16,7 +16,7 @@ from numba.core.types.containers import Tuple
 
 
 version_info = (3, 2)
-__version__ = "2019.12.6a"
+__version__ = "2020.2.7a"
 
 
 @njit(
