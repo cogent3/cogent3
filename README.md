@@ -20,7 +20,7 @@
 
 Beyond our novel methods, `cogent3` provides an extensive suite of capabilities for manipulating and analysing sequence data. You can manipulate sequences by their annotations, e.g.
 
-![annot](https://cogent3.org/_static/gif/annotate_domain.gif)
+![annot](https://cogent3.org/_static/gif/demo-annotate.gif)
 
 Plus, you can read standard tabular and biological data formats, perform multiple sequence alignment using any `cogent3` substitution models, phylogenetic reconstruction and tree manipulation, manipulation of tabular data, visualisation of phylogenies and much more.
 
