@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Classes for reading multiple sequence alignment files in different formats."""
 
+import json
 import re
 import xml.dom.minidom
 
@@ -44,6 +45,11 @@ def FromFilenameParser(filename, format=None, **kw):
             - format: the multiple sequence file format
     """
     format = format_from_filename(filename, format)
+    if format == "json":
+        with open(filename, newline=None) as infile:
+            data = json.loads(infile.read())
+            return data["seqs"]
+
     f = open_(filename, newline=None, mode="rt")
     return FromFileParser(f, format, **kw)
 

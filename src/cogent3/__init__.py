@@ -232,7 +232,9 @@ def load_unaligned_seqs(
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
-    data = list(FromFilenameParser(filename, format, **parser_kw))
+    data = FromFilenameParser(filename, format, **parser_kw)
+    if not isinstance(data, dict):
+        data = list(data)
     return make_unaligned_seqs(
         data,
         label_to_name=label_to_name,
@@ -279,7 +281,9 @@ def load_aligned_seqs(
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
-    data = list(FromFilenameParser(filename, format, **parser_kw))
+    data = FromFilenameParser(filename, format, **parser_kw)
+    if not isinstance(data, dict):
+        data = list(data)
     return make_aligned_seqs(
         data,
         array_align=array_align,
