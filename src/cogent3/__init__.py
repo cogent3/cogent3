@@ -144,18 +144,6 @@ def make_unaligned_seqs(
     if moltype is not None:
         moltype = get_moltype(moltype)
 
-    if isinstance(data, dict):
-        if "data" in data:
-            assert (
-                "SequenceCollection" == data["data"]["type"].split(".")[-1]
-            ), "Wrong input to func load_unaligned_seqs"
-            data = [(key, value["seq"]) for key, value in data["data"]["seqs"].items()]
-        else:
-            assert (
-                "SequenceCollection" == data["type"].split(".")[-1]
-            ), "Wrong input to func load_unaligned_seqs"
-            data = [(key, value["seq"]) for key, value in data["seqs"].items()]
-
     info = info or {}
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
@@ -198,24 +186,6 @@ def make_aligned_seqs(
     """
     if moltype is not None:
         moltype = get_moltype(moltype)
-
-    if isinstance(data, dict):
-        if "data" in data:
-            assert any(
-                [
-                    klass == data["data"]["type"].split(".")[-1]
-                    for klass in ["ArrayAlignment", "Alignment"]
-                ]
-            ), "Wrong input to func load_aligned_seqs"
-            data = [(key, value["seq"]) for key, value in data["data"]["seqs"].items()]
-        else:
-            assert any(
-                [
-                    klass == data["type"].split(".")[-1]
-                    for klass in ["ArrayAlignment", "Alignment"]
-                ]
-            ), "Wrong input to func load_aligned_seqs"
-            data = [(key, value["seq"]) for key, value in data["seqs"].items()]
 
     info = info or {}
     for other_kw in ("constructor_kw", "kw"):
@@ -263,8 +233,21 @@ def load_unaligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     data = FromFilenameParser(filename, format, **parser_kw)
-    if not isinstance(data, dict):
+
+    if isinstance(data, dict):
+        if "data" in data:
+            assert (
+                "SequenceCollection" == data["data"]["type"].split(".")[-1]
+            ), "Wrong input to func load_unaligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["data"]["seqs"].items()]
+        else:
+            assert (
+                "SequenceCollection" == data["type"].split(".")[-1]
+            ), "Wrong input to func load_unaligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["seqs"].items()]
+    else:
         data = list(data)
+
     return make_unaligned_seqs(
         data,
         label_to_name=label_to_name,
@@ -312,8 +295,27 @@ def load_aligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     data = FromFilenameParser(filename, format, **parser_kw)
-    if not isinstance(data, dict):
+
+    if isinstance(data, dict):
+        if "data" in data:
+            assert any(
+                [
+                    klass == data["data"]["type"].split(".")[-1]
+                    for klass in ["ArrayAlignment", "Alignment"]
+                ]
+            ), "Wrong input to func load_aligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["data"]["seqs"].items()]
+        else:
+            assert any(
+                [
+                    klass == data["type"].split(".")[-1]
+                    for klass in ["ArrayAlignment", "Alignment"]
+                ]
+            ), "Wrong input to func load_aligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["seqs"].items()]
+    else:
         data = list(data)
+
     return make_aligned_seqs(
         data,
         array_align=array_align,
@@ -540,8 +542,6 @@ def load_table(
         legend=legend,
         format=format,
     )
-
-    return table
 
 
 def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
