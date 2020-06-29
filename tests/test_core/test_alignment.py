@@ -1024,6 +1024,7 @@ class SequenceCollectionBaseTests(object):
 
     def test_write(self):
         """SequenceCollection.write should write in correct format"""
+        # test writing to fasta file.
         aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
         fn = mktemp(suffix=".fasta")
         aln.write(fn)
@@ -1031,6 +1032,11 @@ class SequenceCollectionBaseTests(object):
             result = infile.read()
         self.assertEqual(result, ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
         remove(fn)
+        # test writing to json file
+        fn = mktemp(suffix=".json")
+        aln.write(fn)
+        result = load_aligned_seqs(fn)
+        self.assertEqual(str(result), ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
 
     def test_len(self):
         """len(SequenceCollection) returns length of longest sequence"""
