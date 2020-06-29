@@ -114,6 +114,31 @@ class TestConstructorFunctions(unittest.TestCase):
         self.assertEqual(got.moltype.label, "dna")
         self.assertIsInstance(got, Alignment)
 
+    def test_load_unaligned_seqs_from_json(self):
+        """test loading unaligned from json file"""
+        path = os.path.join(data_path, "brca1_5_unaligned.json")
+        got = load_unaligned_seqs(path)
+        self.assertIsInstance(got, SequenceCollection)
+        self.assertTrue("Mouse" in got.to_dict())
+        self.assertEqual(got.info["source"], path)
+
+    def test_load_aligned_seqs_from_json(self):
+        """test loading aligned from json file"""
+        path = os.path.join(data_path, "brca1_5_aligned.json")
+        got = load_aligned_seqs(path, array_align=False, moltype="dna")
+        self.assertIsInstance(got, Alignment)
+        self.assertEqual(got.moltype.label, "dna")
+        self.assertTrue("Human" in got.to_dict())
+        self.assertEqual(got.info["source"], path)
+        got = load_aligned_seqs(path, moltype="dna")
+        self.assertIsInstance(got, ArrayAlignment)
+        self.assertEqual(got.moltype.label, "dna")
+        self.assertTrue("Mouse" in got.to_dict())
+        self.assertEqual(got.info["source"], path)
+        path = os.path.join(data_path, "brca1_5_unaligned.json")
+        with self.assertRaises(AssertionError):
+            load_aligned_seqs(path)
+
 
 class ReadingWritingFileFormats(unittest.TestCase):
     """Testing ability to read file formats."""

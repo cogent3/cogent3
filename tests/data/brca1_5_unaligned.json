@@ -1,0 +1,48 @@
+{
+  "seqs": {
+    "NineBande": {
+      "name": "NineBande",
+      "seq": "GCAAGGCGCCAACAGAGCAGATGGGCTGAAAGTAAGGAAACATGTAATGATAGGCAGACT",
+      "moltype": "dna",
+      "info": null,
+      "type": "cogent3.core.sequence.DnaSequence",
+      "version": "2020.2.7a"
+    },
+    "Mouse": {
+      "name": "Mouse",
+      "seq": "GCAGTGAGCCAGCAGAGCAGATGGGCTGCAAGTAAAGGAACATGTAACGACAGGCAGGTT",
+      "moltype": "dna",
+      "info": null,
+      "type": "cogent3.core.sequence.DnaSequence",
+      "version": "2020.2.7a"
+    },
+    "Human": {
+      "name": "Human",
+      "seq": "GCAAGGAGCCAACATAACAGATGGGCTGGAAGTAAGGAAACATGTAATGATAGGCGGACT",
+      "moltype": "dna",
+      "info": null,
+      "type": "cogent3.core.sequence.DnaSequence",
+      "version": "2020.2.7a"
+    },
+    "HowlerMon": {
+      "name": "HowlerMon",
+      "seq": "GCAAGGAGCCAACATAACAGATGGGCTGAAAGTGAGGAAACATGTAATGATAGGCAGACT",
+      "moltype": "dna",
+      "info": null,
+      "type": "cogent3.core.sequence.DnaSequence",
+      "version": "2020.2.7a"
+    },
+    "DogFaced": {
+      "name": "DogFaced",
+      "seq": "GCAAGGAGCCAGCAGAACAGATGGGTTGAAACTAAGGAAACATGTAATGATAGGCAGACT",
+      "moltype": "dna",
+      "info": null,
+      "type": "cogent3.core.sequence.DnaSequence",
+      "version": "2020.2.7a"
+    }
+  },
+  "moltype": "dna",
+  "info": null,
+  "type": "cogent3.core.alignment.SequenceCollection",
+  "version": "2020.2.7a"
+}
