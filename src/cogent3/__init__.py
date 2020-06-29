@@ -40,7 +40,7 @@ from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import FromFilenameParser
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.util.misc import get_format_suffixes, open_
+from cogent3.util.misc import get_format_suffixes, get_object_provenance, open_
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
 
@@ -144,6 +144,18 @@ def make_unaligned_seqs(
     if moltype is not None:
         moltype = get_moltype(moltype)
 
+    if isinstance(data, dict):
+        if "data" in data:
+            assert (
+                "SequenceCollection" == data["data"]["type"].split(".")[-1]
+            ), "Wrong input to func load_unaligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["data"]["seqs"].items()]
+        else:
+            assert (
+                "SequenceCollection" == data["type"].split(".")[-1]
+            ), "Wrong input to func load_unaligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["seqs"].items()]
+
     info = info or {}
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
@@ -186,6 +198,24 @@ def make_aligned_seqs(
     """
     if moltype is not None:
         moltype = get_moltype(moltype)
+
+    if isinstance(data, dict):
+        if "data" in data:
+            assert any(
+                [
+                    klass == data["data"]["type"].split(".")[-1]
+                    for klass in ["ArrayAlignment", "Alignment"]
+                ]
+            ), "Wrong input to func load_aligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["data"]["seqs"].items()]
+        else:
+            assert any(
+                [
+                    klass == data["type"].split(".")[-1]
+                    for klass in ["ArrayAlignment", "Alignment"]
+                ]
+            ), "Wrong input to func load_aligned_seqs"
+            data = [(key, value["seq"]) for key, value in data["seqs"].items()]
 
     info = info or {}
     for other_kw in ("constructor_kw", "kw"):

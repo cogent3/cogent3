@@ -48,7 +48,7 @@ def FromFilenameParser(filename, format=None, **kw):
     if format == "json":
         with open(filename, newline=None) as infile:
             data = json.loads(infile.read())
-            return data["seqs"]
+            return data
 
     f = open_(filename, newline=None, mode="rt")
     return FromFileParser(f, format, **kw)
