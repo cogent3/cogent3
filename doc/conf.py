@@ -65,7 +65,7 @@ master_doc = "index"
 project = "cogent3"
 copyright = "2020, cogent3 Team"
 
-release = "2020.2.7a"
+release = "2020.6.30a"
 
 version = release
 
