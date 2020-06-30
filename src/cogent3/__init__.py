@@ -490,11 +490,9 @@ def load_table(
     for key, value in data.items():
         data[key] = cast_str_to_array(value, static_type=static_column_types)
 
-    rows = data
-
     return make_table(
         header=header,
-        data=rows,
+        data=data,
         digits=digits,
         title=title,
         dtype=dtype,
@@ -506,8 +504,6 @@ def load_table(
         legend=legend,
         format=format,
     )
-
-    return table
 
 
 def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):
