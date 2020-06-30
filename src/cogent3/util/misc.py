@@ -1045,9 +1045,13 @@ def get_object_provenance(obj):
     # algorithm inspired by Greg Baacon's answer to
     # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
     # -name-of-an-object-in-python
-    mod = obj.__class__.__module__
-    name = obj.__class__.__name__
-    result = None
+    if isinstance(obj, type):
+        mod = obj.__module__
+        name = obj.__name__
+    else:
+        mod = obj.__class__.__module__
+        name = obj.__class__.__name__
+
     if mod is None or mod == "builtins":
         result = name
     else:
