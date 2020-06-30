@@ -3,6 +3,7 @@ The rest are in the subpackages: core, draw, evolve, format, maths, parse
 and phylo.
 """
 
+import json
 import os
 import pickle
 import re
@@ -236,6 +237,7 @@ def load_unaligned_seqs(
 
     if isinstance(data, dict):
         if "data" in data:
+            data["data"] = json.loads(data["data"])
             assert (
                 "SequenceCollection" == data["data"]["type"].split(".")[-1]
             ), "Wrong input to func load_unaligned_seqs"
@@ -298,6 +300,7 @@ def load_aligned_seqs(
 
     if isinstance(data, dict):
         if "data" in data:
+            data["data"] = json.loads(data["data"])
             assert any(
                 [
                     klass == data["data"]["type"].split(".")[-1]
