@@ -565,7 +565,7 @@ class Table:
 
         assert not (rows and data), "rows is deprecated, use data"
         if rows:
-            # todo deprecation warning
+            deprecated("argument", "rows", "data", "2020.11")
             data = rows
 
         attrs.update(kwargs)
