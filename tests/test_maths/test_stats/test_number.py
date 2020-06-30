@@ -12,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -66,6 +66,36 @@ class TestNumber(TestCase):
         got = nums.to_array(keys="TCAG")
         assert_allclose(got, numpy.array([1, 3, 4, 4], dtype=int))
         self.assertEqual(nums.to_dict(), dict(A=4, C=3, G=4, T=1))
+
+    def test_to_table(self):
+        """produces correct Table structure"""
+        data = [
+            ("Ovary-AdenoCA", "IGR"),
+            ("Liver-HCC", "Intron"),
+            ("Panc-AdenoCA", "Intron"),
+            ("Panc-AdenoCA", "Intron"),
+        ]
+        nums = number.CategoryCounter(data)
+        t = nums.to_table(column_names=None, title="blah")
+        self.assertEqual(t.header, ("key", "count"))
+        # if the key is a tuple, then the unexpanded column values are also
+        self.assertIsInstance(t[0, 0], tuple)
+        self.assertEqual(t.title, "blah")
+        # you can use any data type as a key, but Table column is a str
+        t = nums.to_table(column_names=2)
+        self.assertEqual(t.header, ("2", "count"))
+        t = nums.to_table(column_names="blah")
+        self.assertEqual(t.header, ("blah", "count"))
+        t = nums.to_table(column_names=["A", "B"])
+        self.assertEqual(t.header, ("A", "B", "count"))
+
+        with self.assertRaises(AssertionError):
+            # key does not have 3 dimensions
+            _ = nums.to_table(column_names=["A", "B", "C"])
+
+        with self.assertRaises(AssertionError):
+            # key does not have 1 dimension
+            _ = nums.to_table(column_names=[1])
 
     def test_valid(self):
         """correctly identify when numbers contains numbers"""
@@ -215,6 +245,63 @@ class TestNumber(TestCase):
         with self.assertRaises(TypeError):
             counts = number.CategoryCounter("AAAACCCGGGGT")
             nums.update_from_counts(counts)
+
+    def test_count(self):
+        """correctly counts across key dimensions"""
+        data = [
+            ("T", "C"),
+            ("T", "T"),
+            ("T", "A"),
+            ("G", "A"),
+            ("G", "A"),
+            ("A", "C"),
+            ("A", "G"),
+            ("T", "T"),
+            ("T", "A"),
+            ("T", "T"),
+            ("A", "T"),
+            ("A", "C"),
+            ("A", "C"),
+            ("T", "A"),
+            ("A", "A"),
+            ("A", "C"),
+        ]
+        nums = number.CategoryCounter(data)
+        i0 = nums.count(0)
+        self.assertEqual(i0["T"], 7)
+        self.assertEqual(i0["G"], 2)
+        self.assertEqual(i0["A"], 7)
+        self.assertEqual(i0["C"], 0)
+        # works same if keys are strings
+        nums = number.CategoryCounter(["".join(e) for e in data])
+        i0 = nums.count(0)
+        self.assertEqual(i0["T"], 7)
+        self.assertEqual(i0["G"], 2)
+        self.assertEqual(i0["A"], 7)
+        self.assertEqual(i0["C"], 0)
+        with self.assertRaises(IndexError):
+            _ = nums.count([0, 3])
+
+        i0 = nums.count([0])
+        self.assertEqual(i0["G"], 2)
+        with self.assertRaises(IndexError):
+            _ = nums.count([0, 3])
+        i1 = nums.count(1)
+        self.assertEqual(i1["A"], 6)
+        self.assertEqual(i1["C"], 5)
+        self.assertEqual(i1["T"], 4)
+
+        data = {
+            ("A", "C", "G"): 10,
+            ("A", "T", "G"): 4,
+            ("C", "C", "G"): 3,
+            ("G", "C", "G"): 6,
+        }
+        nums = number.CategoryCounter(data)
+        i02 = nums.count([0, 2])
+        self.assertEqual(i02[("A", "G")], 14)
+        self.assertEqual(i02[("C", "G")], 3)
+        self.assertEqual(i02[("G", "G")], 6)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 ********************************************
 Tracking records that could not be processed
 ********************************************
@@ -16,53 +21,51 @@ An app can return a ``NotCompleted`` result for one of 2 reasons. The object con
 
 The results when a condition was not met. For example, below I create an app that will return alignments that with 2 specific sequences but I'm including one that does not exist ("Mouse"). So this will fail.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.app import io, sample
-    >>> reader = io.load_aligned(format="fasta")
-    >>> select_seqs = sample.take_named_seqs("Mouse", "Human")
-    >>> aln = reader("data/primate_brca1.fasta")
-    >>> result = select_seqs(aln)
-    >>> result
-    NotCompleted(type=FALSE, origin=take_named_seqs, source="data/primate_brca1.fasta", message="named seq(s) {'Mouse'} not in ['Chimpanzee', 'Galago', 'Gorilla', 'HowlerMon', 'Human', 'Orangutan', 'Rhesus']")
+    from cogent3.app import io, sample
 
+    reader = io.load_aligned(format="fasta")
+    select_seqs = sample.take_named_seqs("Mouse", "Human")
+    aln = reader("data/primate_brca1.fasta")
+    result = select_seqs(aln)
+    result
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> result == False
-    True
-    >>> result.type
-    'FALSE'
-    >>> result.message
-    "named seq(s) {'Mouse'} not in ['Chimpanzee', 'Galago', 'Gorilla', 'HowlerMon', 'Human', 'Orangutan', 'Rhesus']"
+    result == False
+    result.type
+    result.message
 
 ``NotCompleted`` ERROR type
 ===========================
 
 An ``ERROR`` type is returned if an exception is raised during the calculation. We trigger it in this case by trying to open a non-existent file.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
+    :raises:
 
-    >>> result = reader("primate_brca1.fasta")
-    >>> result
-    NotCompleted(type=ERROR, origin=load_aligned, source="primate_brca1.fasta", message="Traceback (most...
+    result = reader("primate_brca1.fasta")
+    result
 
 Composed functions propagate ``NotCompleted`` results
 =====================================================
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> process = reader + select_seqs
-    >>> result = process("data/primate_brca1.fasta")
-    >>> result
-    NotCompleted(type=FALSE, origin=take_named_seqs, source="data/primate_brca1.fasta", message="named seq(s) {'Mouse'} not in ['Chimpanzee', 'Galago', 'Gorilla', 'HowlerMon', 'Human', 'Orangutan', 'Rhesus']")
+    process = reader + select_seqs
+    result = process("data/primate_brca1.fasta")
+    result
 
 and
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
+    :raises:
 
-    >>> result = process("primate_brca1.fasta")
-    >>> result
-    NotCompleted(type=ERROR, origin=load_aligned, source="primate_brca1.fasta", message="Traceback (most...
-
-If you write results into a ``tinydb`` data store, ``NotCompleted`` objects are saved. After an analysis, you can get a summary of those using methods on the ``WritableTinyDbDataStore`` instance.
+    result = process("primate_brca1.fasta")
+    result

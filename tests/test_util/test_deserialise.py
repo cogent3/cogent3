@@ -13,7 +13,7 @@ from cogent3 import (
     make_tree,
     make_unaligned_seqs,
 )
-from cogent3.app.result import model_result
+from cogent3.app.result import model_collection_result, model_result
 from cogent3.core import alignment, moltype
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
@@ -24,7 +24,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -246,6 +246,107 @@ class TestDeserialising(TestCase):
         # when we ask for the lf attribute, it's no longer a dict
         self.assertNotIsInstance(got_obj.lf, dict)
         self.assertEqual(got_obj.lf.nfp, got_obj.nfp)
+
+    def test_roundtrip_model_result2(self):
+        """model_result of split codon correct type after roundtrip"""
+        from cogent3.app import evo as evo_app
+        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        opt_args = dict(max_evaluations=10, limit_action="ignore")
+        m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
+        result = m1(aln)
+
+        data = result.to_json()
+        got_obj = deserialise_object(data)
+        for i in range(1, 4):
+            self.assertIsInstance(got_obj[i], dict)
+
+        # after accessing attribute, should be automatically inflated
+        _ = got_obj.lf
+        for i in range(1, 4):
+            self.assertIsInstance(got_obj[i], AlignmentLikelihoodFunction)
+
+        # or after using the deserialise method
+        data = result.to_json()
+        got_obj = deserialise_object(data)
+        got_obj.deserialised_values()
+        for i in range(1, 4):
+            self.assertIsInstance(got_obj[i], AlignmentLikelihoodFunction)
+
+    def test_model_collection_result(self):
+        """round trip of model collection works"""
+        from cogent3.app import evo as evo_app
+        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        opt_args = dict(max_evaluations=10, limit_action="ignore")
+        m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
+        m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
+        models = (m1, m2)
+        mc_result = model_collection_result(name="collection", source="blah")
+        for model in models:
+            mc_result[model.name] = model(aln)
+
+        for model in models:
+            for i in range(1, 4):
+                self.assertIsInstance(
+                    mc_result[model.name][i], AlignmentLikelihoodFunction
+                )
+
+        data = mc_result.to_json()
+        got_obj = deserialise_object(data)
+        for model in models:
+            for i in range(1, 4):
+                self.assertIsInstance(got_obj[model.name][i], dict)
+
+        # but after invoking deserialised_values
+        got_obj.deserialised_values()
+        for model in models:
+            for i in range(1, 4):
+                self.assertIsInstance(
+                    got_obj[model.name][i], AlignmentLikelihoodFunction
+                )
+
+    def test_roundtrip_hypothesis_result(self):
+        """nested items retain the correct type after roundtrip"""
+        from cogent3.app import evo as evo_app
+        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
+
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        opt_args = dict(max_evaluations=10, limit_action="ignore")
+        m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
+        m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
+        hyp = evo_app.hypothesis(m1, m2)
+        result = hyp(aln)
+        self.assertIsInstance(result["F81"][1], AlignmentLikelihoodFunction)
+
+        data = result.to_json()
+        got_obj = deserialise_object(data)
+        for i in range(1, 4):
+            for sm in ("F81", "GTR"):
+                self.assertIsInstance(got_obj[sm][i], dict)
+
+        # but after invoking  deserialised_values
+        got_obj.deserialised_values()
+        for i in range(1, 4):
+            for sm in ("F81", "GTR"):
+                self.assertIsInstance(got_obj[sm][i], AlignmentLikelihoodFunction)
 
     def test_roundtrip_tuple_key(self):
         """deserialise_result handles tuples as keys"""

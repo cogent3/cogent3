@@ -1,6 +1,8 @@
-##############
-Usage Examples
-##############
+#########
+Tutorials
+#########
+
+.. note:: See :ref:`data_links` for data the files used.
 
 *****************
 Data manipulation
@@ -9,12 +11,9 @@ Data manipulation
 .. toctree::
     :maxdepth: 1
 
-    translate_dna
     seq_features
     complete_seq_features
-    reverse_complement
     align_codons_to_protein
-    handling_tabular_data
     manipulating_tree_nodes
 
 *********************
@@ -57,5 +56,4 @@ Phylogenetic Reconstruction
     calculate_neigbourjoining_tree
     calculate_UPGMA_cluster
     phylo_by_ls
-    maketree_from_proteinseqs
 

@@ -7,22 +7,22 @@ from functools import total_ordering
 import numpy
 
 from cogent3.maths.stats import chisqprob
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
 class generic_result(MutableMapping):
-    """a dict style container for storing results. All keys are
-    converted to strings to ensure the object can be json serialised"""
+    """A dict style container for storing results."""
 
     _type = "generic_result"
 
@@ -51,7 +51,7 @@ class generic_result(MutableMapping):
         num = len(self)
         types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self.keys()[:4]]
         types = ", ".join(types)
-        result = f"{len(self)}x {name}({types})"
+        result = f"{num}x {name}({types})"
         return result
 
     def __str__(self):
@@ -91,10 +91,14 @@ class generic_result(MutableMapping):
                 if "cogent3" in type_:
                     object = deserialise_object(value)
                     self[key] = object
+            elif hasattr(value, "deserialised_values"):
+                value.deserialised_values()
 
 
 @total_ordering
 class model_result(generic_result):
+    """Storage of model results."""
+
     _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
 
@@ -129,16 +133,14 @@ class model_result(generic_result):
         self._elapsed_time = elapsed_time
         self._num_evaluations = num_evaluations
         self._evaluation_limit = evaluation_limit
-        self._lnL = None
-        self._nfp = None
-        self._DLC = None
-        self._unique_Q = None
+        self._lnL = lnL
+        self._nfp = nfp
+        self._DLC = DLC
+        self._unique_Q = unique_Q
 
     def _get_repr_data_(self):
-        from cogent3.util.table import Table
-
-        self.lf  # making sure we're fully reloaded
-        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
+        self.deserialised_values()  # making sure we're fully reloaded
+        attrs = list(self._stat_attrs)
         header = ["key"] + attrs[:]
         rows = [[""] + [getattr(self, attr) for attr in attrs]]
         if len(self) > 1:
@@ -147,7 +149,7 @@ class model_result(generic_result):
                 row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
 
-        table = Table(header=header, rows=rows, title=self.name)
+        table = Table(header=header, data=rows, title=self.name)
         return table
 
     def _repr_html_(self):
@@ -159,33 +161,23 @@ class model_result(generic_result):
         return repr(table)
 
     def __setitem__(self, key, lf):
-        super(self.__class__, self).__setitem__(key, lf)
-        if type(lf) != dict:
-            lf.set_name(key)
-            lnL = lf.lnL
-            nfp = lf.nfp
-            DLC = lf.all_psubs_DLC()
-            try:
-                unique_Q = lf.all_rate_matrices_unique()
-            except (NotImplementedError, KeyError):
-                # KeyError happens on discrete time model
-                unique_Q = None  # non-primary root issue
+        if isinstance(lf, dict):
+            type_name = lf.get("type", None)
+            type_name = type_name or ""
         else:
-            lnL = lf.get("lnL")
-            nfp = lf.get("nfp")
-            DLC = lf.get("DLC")
-            unique_Q = lf.get("unique_Q")
+            type_name = lf.__class__.__name__
 
-        if self._lnL is not None:
-            self._DLC = all([DLC, self.DLC])
-            self._unique_Q = all([unique_Q, self.unique_Q])
-            self._lnL = self._stat([lnL, self.lnL])
-            self._nfp = self._stat([nfp, self.nfp])
-        else:
-            self._lnL = lnL
-            self._nfp = nfp
-            self._DLC = DLC
-            self._unique_Q = unique_Q
+        if "AlignmentLikelihoodFunction" not in type_name:
+            msg = f"{type_name} not a supported type"
+            raise TypeError(msg)
+
+        super(self.__class__, self).__setitem__(key, lf)
+        self._init_stats()
+
+    def _init_stats(self):
+        """reset the values for stat attr to None, triggers recalc in properties"""
+        for attr in self._stat_attrs:
+            setattr(self, f"_{attr}", None)
 
     @property
     def num_evaluations(self):
@@ -211,6 +203,7 @@ class model_result(generic_result):
         return self._name
 
     def simulate_alignment(self):
+        self.deserialised_values()
         if len(self) == 1:
             aln = self.lf.simulate_alignment()
             return aln
@@ -240,18 +233,8 @@ class model_result(generic_result):
 
     @property
     def lf(self):
-        result = list(self.values())
-        if type(result[0]) == dict:
-            from cogent3.util import deserialise
-
-            # we reset the stat attributes to None
-            for attr in self._stat_attrs:
-                setattr(self, attr, None)
-
-            for k, v in self.items():
-                v = deserialise.deserialise_likelihood_function(v)
-                self[k] = v
-
+        self.deserialised_values()
+        self._init_stats()
         if len(self) == 1:
             result = list(self.values())[0]
         else:
@@ -266,35 +249,66 @@ class model_result(generic_result):
 
     @property
     def lnL(self):
-        return self._lnL
+        if self._lnL is None:
+            lnL = 0.0
+            for v in self.values():
+                if isinstance(v, dict):
+                    l = v.get("lnL")
+                else:
+                    l = v.lnL
+                lnL = self._stat([l, lnL])
 
-    @lnL.setter
-    def lnL(self, value):
-        self._lnL = value
+            self._lnL = lnL
+        return self._lnL
 
     @property
     def nfp(self):
-        return self._nfp
+        if self._nfp is None:
+            nfp = 0
+            for v in self.values():
+                if isinstance(v, dict):
+                    n = v.get("nfp")
+                else:
+                    n = v.nfp
+                nfp = self._stat([n, nfp])
 
-    @nfp.setter
-    def nfp(self, value):
-        self._nfp = value
+            self._nfp = nfp
+
+        return self._nfp
 
     @property
     def DLC(self):
-        return self._DLC
+        if self._DLC is None:
+            DLC = []
+            for v in self.values():
+                if isinstance(v, dict):
+                    d = v.get("DLC")
+                else:
+                    d = v.all_psubs_DLC()
+                DLC.append(d != False)
 
-    @DLC.setter
-    def DLC(self, value):
-        self._DLC = value
+            self._DLC = all(DLC)
+
+        return self._DLC
 
     @property
     def unique_Q(self):
-        return self._unique_Q
+        if self._unique_Q is None:
+            unique = []
+            for v in self.values():
+                if isinstance(v, dict):
+                    u = v.get("unique_Q")
+                else:
+                    try:
+                        u = v.all_rate_matrices_unique()
+                    except (NotImplementedError, KeyError):
+                        # KeyError happens on discrete time model
+                        u = None  # non-primary root issue
+                unique.append(u != False)
 
-    @unique_Q.setter
-    def unique_Q(self, value):
-        self._unique_Q = value
+            self._unique_Q = all(unique)
+
+        return self._unique_Q
 
     def total_length(self, length_as=None):
         """sum of all branch lengths on tree. If split codons, sums across trees
@@ -365,37 +379,141 @@ class model_result(generic_result):
         return result
 
 
-class hypothesis_result(generic_result):
+class model_collection_result(generic_result):
+    """Storage of a collection of model_result."""
+
+    _type = "model_collection_result"
+
+    def __init__(self, name=None, source=None):
+        """
+        name : str
+            name of this hypothesis
+        source : str
+            string describing source of the data, e.g. a path
+        """
+        super(model_collection_result, self).__init__(source)
+        self._construction_kwargs.update({"name": name})
+        self._name = name
+
+    def _get_repr_data_(self):
+        rows = []
+        attrs = ["lnL", "nfp", "DLC", "unique_Q"]
+        for key, member in self.items():
+            member.deserialised_values()  # making sure we're fully reloaded
+            row = [repr(key)] + [getattr(member, a) for a in attrs]
+            rows.append(row)
+
+        table = Table(header=["key"] + attrs, data=rows, title=self.name)
+        table = table.sorted(columns="nfp")
+        return table
+
+    def _repr_html_(self):
+        table = self._get_repr_data_()
+        return table._repr_html_(include_shape=False)
+
+    def __repr__(self):
+        table = self._get_repr_data_()
+        return str(table._get_repr_())
+
+    @property
+    def name(self):
+        return self._name
+
+    def select_models(self, stat="aicc", threshold=0.05):
+        """returns models satisfying stat threshold.
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to
+            AIC with correction or AIC.
+        threshold : float
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat. Such
+            models will be included in the returned result.
+
+        Returns
+        -------
+        list of models satisfying threshold condition
+        """
+        self.deserialised_values()
+        assert stat in ("aicc", "aic")
+        second_order = stat == "aicc"
+        results = []
+        for m in self.values():
+            if isinstance(m.lf, dict):
+                # multiple lf's, e.g. split codon position analyses have 3
+                val = sum(lf.get_aic(second_order=second_order) for lf in m.lf.values())
+            else:
+                val = m.lf.get_aic(second_order=second_order)
+
+            results.append((val, m))
+        results.sort()
+        min_model = results.pop(0)
+        min_stat = min_model[0]
+        selected = [min_model[1]]
+        for v, m in results:
+            rel_lik = numpy.exp((min_stat - v) / 2)
+            if rel_lik > threshold:
+                selected.append(m)
+
+        return selected
+
+    def get_best_model(self, stat="aicc", threshold=0.05):
+        """returns model with smallest value of stat
+        Parameters
+        ----------
+        stat : str
+            one of "aicc", "aic" which correspond to AIC with correction or AIC
+        threshold : float
+            models with exp((minimum stat - model stat) / 2) > threshold are
+            considered indistinguishable from the model with minimum stat.
+
+        Returns
+        -------
+        A single model. If multiple models satisfy threshold, the simplest model
+        (with the smallest number of free parameters) is returned.
+        """
+        selected = self.select_models(stat=stat, threshold=threshold)
+        if len(selected) != 1:
+            selected = list(sorted(self.values(), key=lambda x: x.nfp))
+            selected = selected[:1]
+
+        return selected[0]
+
+
+class hypothesis_result(model_collection_result):
+    """Storage of a collection of model_result instances that are hierarchically
+    related."""
+
     _type = "hypothesis_result"
 
-    def __init__(self, name_of_null, source=None):
+    @extend_docstring_from(model_collection_result.__init__, pre=True)
+    def __init__(self, name_of_null, name=None, source=None):
         """
-        alt
-            either a likelihood function instance
+        name_of_null
+            key for the null hypothesis
         """
-        super(hypothesis_result, self).__init__(source)
+        super(hypothesis_result, self).__init__(name=name, source=source)
         self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
 
         self._name_of_null = name_of_null
 
     def _get_repr_data_(self):
-        from cogent3.util.table import Table
-
         rows = []
         attrs = ["lnL", "nfp", "DLC", "unique_Q"]
         for key, member in self.items():
-            member.lf  # making sure we're fully reloaded
+            member.deserialised_values()  # making sure we're fully reloaded
             if key == self._name_of_null:
                 status_name = ["null", repr(key)]
             else:
-                status_name = ["alt", (repr(key))]
+                status_name = ["alt", repr(key)]
             row = status_name + [getattr(member, a) for a in attrs]
             rows.append(row)
 
-        table = Table(header=["hypothesis", "key"] + attrs, rows=rows)
+        table = Table(header=["hypothesis", "key"] + attrs, data=rows, title=self.name)
         table = table.sorted(columns="nfp")
         stats = [[self.LR, self.df, self.pvalue]]
-        stats = Table(header=["LR", "df", "pvalue"], rows=stats, title="Statistics")
+        stats = Table(header=["LR", "df", "pvalue"], data=stats, title="Statistics")
         return stats, table
 
     def _repr_html_(self):
@@ -447,66 +565,6 @@ class hypothesis_result(generic_result):
         else:
             pvalue = None
         return pvalue
-
-    def select_models(self, stat="aicc", threshold=0.05):
-        """returns models satisfying stat threshold.
-        Parameters
-        ----------
-        stat : str
-            one of "aicc", "aic" which correspond to
-            AIC with correction or AIC.
-        threshold : float
-            models with exp((minimum stat - model stat) / 2) > threshold are
-            considered indistinguishable from the model with minimum stat. Such
-            models will be included in the returned result.
-
-        Returns
-        -------
-        list of models satisfying threshold condition
-        """
-        assert stat in ("aicc", "aic")
-        second_order = stat == "aicc"
-        results = []
-        for m in self.values():
-            if isinstance(m.lf, dict):
-                # multiple lf's, e.g. split codon position analyses have 3
-                val = sum(lf.get_aic(second_order=second_order) for lf in m.lf.values())
-            else:
-                val = m.lf.get_aic(second_order=second_order)
-
-            results.append((val, m))
-        results.sort()
-        min_model = results.pop(0)
-        min_stat = min_model[0]
-        selected = [min_model[1]]
-        for v, m in results:
-            rel_lik = numpy.exp((min_stat - v) / 2)
-            if rel_lik > threshold:
-                selected.append(m)
-
-        return selected
-
-    def get_best_model(self, stat="aicc", threshold=0.05):
-        """returns model with smallest value of stat
-        Parameters
-        ----------
-        stat : str
-            one of "aicc", "aic" which correspond to AIC with correction or AIC
-        threshold : float
-            models with exp((minimum stat - model stat) / 2) > threshold are
-            considered indistinguishable from the model with minimum stat.
-
-        Returns
-        -------
-        A single model. If multiple models satisfy threshold, the simplest model
-        (with the smallest number of free parameters) is returned.
-        """
-        selected = self.select_models(stat=stat, threshold=threshold)
-        if len(selected) != 1:
-            selected = list(sorted(self.values(), key=lambda x: x.nfp))
-            selected = selected[:1]
-
-        return selected[0]
 
 
 class bootstrap_result(generic_result):

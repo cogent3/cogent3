@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import pathlib
 import re
 import tempfile
 import unittest
@@ -7,6 +8,7 @@ import unittest
 from cogent3 import DNA, PROTEIN, RNA
 from cogent3 import STANDARD_CODON as CODON
 from cogent3 import (
+    get_format_suffixes,
     load_aligned_seqs,
     load_unaligned_seqs,
     make_aligned_seqs,
@@ -26,12 +28,11 @@ __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-_compression = re.compile(r"\.(gz|bz2)$")
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
 
@@ -121,16 +122,19 @@ class ReadingWritingFileFormats(unittest.TestCase):
         filename = os.path.join(data_path, filename)
         aln = load_aligned_seqs(filename, **kw)
         if test_write:
-            r = _compression.search(filename)
-            if r:
-                cmpr = filename[r.start() :]
-                suffix = filename[: r.start()].split(".")[-1]
-            else:
-                suffix = filename.split(".")[-1]
+            suffix, cmpr = get_format_suffixes(filename)
+            if not cmpr:
                 cmpr = ""
+            else:
+                cmpr = f".{cmpr}"
+
             fn = tempfile.mktemp(suffix="." + suffix + cmpr)
             aln.write(filename=fn)
             os.remove(fn)
+            # now use pathlib
+            fn = pathlib.Path(fn)
+            aln.write(filename=fn)
+            fn.unlink()
 
     def test_write_unknown_raises(self):
         """writing unknown format raises FileFormatError"""

@@ -30,7 +30,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -241,16 +241,16 @@ class TestIo(TestCase):
 
     def test_load_tabular(self):
         """correctly loads tabular data"""
-        rows = [["1", "2"], ["3", "4"], ["5", "6.5"]]
-        table = Table(["A", "B"], rows=rows)
+        rows = [[1, 2], [3, 4], [5, 6.5]]
+        table = Table(["A", "B"], data=rows)
         load_table = io_app.load_tabular(sep="\t", with_header=True)
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme.tsv")
             table.write(outpath)
             new = load_table(outpath)
             self.assertEqual(new.title, "")
-            self.assertEqual(type(new[0, "B"]), float)
-            self.assertEqual(type(new[0, "A"]), int)
+            self.assertEqual(type(new[0, "B"]), type(table[0, "B"]))
+            self.assertEqual(type(new[0, "A"]), type(table[0, "A"]))
             outpath = join(dirname, "delme2.tsv")
             with open(outpath, "w") as out:
                 out.write("\t".join(table.header[:1]) + "\n")
@@ -265,8 +265,8 @@ class TestIo(TestCase):
             dstore = WritableZippedDataStore(outpath, suffix="tsv", create=True)
             dstore.write("sample1.tsv", table.to_string("tsv"))
             new = load_table(dstore[0])
-            self.assertEqual(type(new[0, "B"]), float)
-            self.assertEqual(type(new[0, "A"]), int)
+            self.assertEqual(type(new[0, "B"]), type(table[0, "B"]))
+            self.assertEqual(type(new[0, "A"]), type(table[0, "A"]))
 
     def test_write_tabular_motif_counts_array(self):
         """correctly writes tabular data for MotifCountsArray"""
@@ -365,7 +365,7 @@ class TestIo(TestCase):
     def test_write_tabular_table(self):
         """correctly writes tabular data"""
         rows = [[1, 2], [3, 4], [5, 6.5]]
-        table = Table(["A", "B"], rows=rows)
+        table = Table(["A", "B"], data=rows)
         loader = io_app.load_tabular(sep="\t")
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
@@ -435,7 +435,7 @@ class TestIo(TestCase):
     def test_load_tabular_table(self):
         """correctly loads tabular data"""
         rows = [[1, 2], [3, 4], [5, 6.5]]
-        table = Table(["A", "B"], rows=rows)
+        table = Table(["A", "B"], data=rows)
         loader = io_app.load_tabular(sep="\t", as_type="table")
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")

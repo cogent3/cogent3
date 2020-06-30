@@ -1,5 +1,6 @@
 from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
+from numpy.testing import assert_allclose
 
 from cogent3.format.table import formatted_cells, rich_html, simple_format
 from cogent3.maths.stats import chisqprob
@@ -11,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -149,11 +150,19 @@ class CategoryCounts:
         if not isinstance(observed, DictArray):
             observed = DictArray(observed)
 
+        if observed.array.sum() == 0:
+            raise ValueError("at least one value must be > 0")
+
         if expected:
             expected = observed.template.wrap(expected)
 
         if observed.array.min() < 0 or expected and expected.array.min() < 0:
             raise ValueError("negative values encountered")
+
+        if expected:
+            assert_allclose(
+                observed.array.sum(), expected.array.sum()
+            ), "unequal totals of observed and expected"
 
         self._observed = observed
         self._expected = expected

@@ -8,7 +8,7 @@ __author__ = "Anuj Pahwa, Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Anuj Pahwa", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -94,17 +94,17 @@ class JackknifeTests(TestCase):
         # Scalar
         pmcc_stat = stat_maker(pmcc, data, 1)
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
-        self.assertFloatEqual(test_knife.JackknifedStat, 1.2905845)
-        self.assertFloatEqual(test_knife.Exception, 0.2884490)
+        self.assertFloatEqual(test_knife.jackknifed_stat, 1.2905845)
+        self.assertFloatEqual(test_knife.standard_error, 0.2884490)
         self.assertTrue(test_knife._jackknifed_stat != None)
 
         # Vector
         mean_stat = stat_maker(mean, data, 1)
         test_knife = JackknifeStats(data.shape[1], mean_stat)
         expected_jk_stat = data.mean(axis=1)
-        got_jk_stat = test_knife.JackknifedStat
+        got_jk_stat = test_knife.jackknifed_stat
         expected_standard_err = [30.69509346, 1.87179671]
-        got_standard_err = test_knife.Exception
+        got_standard_err = test_knife.standard_error
 
         for index in [0, 1]:
             self.assertFloatEqual(got_jk_stat[index], expected_jk_stat[index])
@@ -189,6 +189,18 @@ class JackknifeTests(TestCase):
                     expected_pseudovalues[index1][index2],
                     4,
                 )
+
+    def test_tabular_properties(self):
+        """constructs tabular properties"""
+        pmcc_stat = stat_maker(pmcc, data, 1)
+        test_knife = JackknifeStats(data.shape[1], pmcc_stat)
+        ss = test_knife.sub_sample_stats
+        self.assertEqual(ss.shape, (12, 2))
+        ss = test_knife.sample_stat
+        pvs = test_knife.pseudovalues
+        self.assertEqual(pvs.shape, (12, 2))
+        ss = test_knife.summary_stats
+        self.assertEqual(ss.shape, (1, 3))
 
 
 if __name__ == "__main__":

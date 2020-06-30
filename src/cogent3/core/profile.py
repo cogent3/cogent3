@@ -2,9 +2,8 @@ import numpy
 
 from numpy import array, digitize
 from numpy.random import random
-from numpy.testing import assert_allclose
 
-from cogent3.maths.util import safe_log, safe_p_log_p
+from cogent3.maths.util import safe_log, safe_p_log_p, validate_freqs_array
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import extend_docstring_from
 
@@ -13,20 +12,10 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
-
-
-def validate_freqs_array(data, axis=None):
-    if (data < 0).any():
-        raise ValueError("negative frequency not allowed")
-
-    # we explicitly ignore nan
-    result = data.sum(axis=axis)
-    if not numpy.allclose(result[numpy.isnan(result) == False], 1):
-        raise ValueError("invalid frequencies, sum(axis=1) is not equal to 1")
 
 
 class _MotifNumberArray(DictArray):

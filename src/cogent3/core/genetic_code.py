@@ -16,7 +16,7 @@ __author__ = "Greg Caporaso and Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -205,7 +205,7 @@ class GeneticCode:
             codons = ",".join(self[code])
             row = [aa, code, codons]
             rows.append(row)
-        t = Table(header=headers, rows=rows, title=self.name)
+        t = Table(header=headers, data=rows, title=self.name)
         return t
 
     def __str__(self):
@@ -483,8 +483,8 @@ def available_codes():
     header = ["Code ID", "Name"]
     table = Table(
         header=header,
-        rows=rows,
-        row_ids=True,
+        data=rows,
+        index="Code ID",
         title="Specify a genetic code using either 'Name' or "
         "Code ID (as an integer or string)",
     )

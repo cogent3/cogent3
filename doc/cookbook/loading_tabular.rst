@@ -1,0 +1,247 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
+Loading a csv file
+==================
+
+We load a tab separated data file using the ``load_table()`` function. The format is inferred from the filename suffix and you will note, in this case, it's not actually a `csv` file.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv")
+    table
+
+.. note:: The known filename suffixes for reading are ``.csv``, ``.tsv`` and ``.pkl`` or ``.pickle`` (Python's pickle format).
+
+.. note:: If you invoke the static column types argument, i.e.``load_table(..., static_column_types=True)`` and the column data are not static, those columns will be left as a string type.
+
+Loading delimited specifying the format
+=======================================
+
+Although unnecessary in this case, it's possible to override the suffix by specifying the delimiter using the ``sep`` argument.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv", sep="\t")
+    table
+
+Loading a set number of lines from a file
+=========================================
+
+If you only want a subset of the contents of a file, use the ``FilteringParser``. This allows skipping certain lines by using a callback function. We illustrate this with ``stats.tsv``, skipping any rows with ``"Ratio"`` > 10.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv", limit=2)
+    table
+
+Selectively loading parts of a big file
+=======================================
+
+If you only want a subset of the contents of a file, use the ``FilteringParser``. This allows skipping certain lines by using a callback function. We illustrate this with ``stats.tsv``, skipping any rows with ``"Ratio"`` > 10.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.parse.table import FilteringParser
+
+    reader = FilteringParser(
+        lambda line: float(line[2]) <= 10, with_header=True, sep="\t"
+    )
+    table = load_table("data/stats.tsv", reader=reader, digits=1)
+    table
+
+.. note:: You can also ``negate`` a condition, which is useful if the condition is complex.
+
+Loading only some columns
+=========================
+
+Specify the columns by their names.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.parse.table import FilteringParser
+
+    reader = FilteringParser(columns=["Locus", "Ratio"], with_header=True, sep="\t")
+    table = load_table("data/stats.tsv", reader=reader)
+    table
+
+Or, by their index.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.parse.table import FilteringParser
+
+    reader = FilteringParser(columns=[0, -1], with_header=True, sep="\t")
+    table = load_table("data/stats.tsv", reader=reader)
+    table
+
+.. note:: The ``negate`` argument does not affect the columns evaluated.
+
+Load raw data as a list of lists of strings
+===========================================
+
+We just use ``FilteringParser``.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.parse.table import FilteringParser
+
+    reader = FilteringParser(with_header=True, sep="\t")
+    data = list(reader("data/stats.tsv"))
+    data[:2]  # just the first two lines
+
+.. note:: The individual elements are still ``str``.
+
+Make a table from header and rows
+=================================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    header = ["A", "B", "C"]
+    rows = [range(3), range(3, 6), range(6, 9), range(9, 12)]
+    table = make_table(header=["A", "B", "C"], data=rows)
+    table
+
+Make a table from a ``dict``
+============================
+
+For a ``dict`` with key's as column headers.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    data = dict(A=[0, 3, 6], B=[1, 4, 7], C=[2, 5, 8])
+    table = make_table(data=data)
+    table
+
+Specify the column order when creating from a ``dict``.
+=======================================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = make_table(header=["C", "A", "B"], data=data)
+    table
+
+Create the table with an index
+==============================
+
+A ``Table`` can be indexed like a dict if you designate a column as the index (and that column has a unique value for every row).
+
+.. jupyter-execute::
+
+    table = load_table("data/stats.tsv", index="Locus")
+    table["NP_055852"]
+
+.. jupyter-execute::
+
+    table["NP_055852", "Region"]
+
+.. note:: The ``index`` argument also applies when using ``make_table()``.
+
+Create a table from a ``pandas.DataFrame``
+==========================================
+
+.. jupyter-execute::
+    :linenos:
+
+    from pandas import DataFrame
+    from cogent3 import make_table
+
+    data = dict(a=[0, 3], b=["a", "c"])
+    df = DataFrame(data=data)
+    table = make_table(data_frame=df)
+    table
+
+Create a table from header and rows
+===================================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    table = make_table(header=["a", "b"], data=[[0, "a"], [3, "c"]])
+    table
+
+Create a table from dict
+========================
+
+``make_table()`` is the utility function for creating ``Table`` objects from standard python objects.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    data = dict(a=[0, 3], b=["a", "c"])
+    table = make_table(data=data)
+    table
+
+Create a table from a 2D dict
+=============================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    d2D = {
+        "edge.parent": {
+            "NineBande": "root",
+            "edge.1": "root",
+            "DogFaced": "root",
+            "Human": "edge.0",
+        },
+        "x": {"NineBande": 1.0, "edge.1": 1.0, "DogFaced": 1.0, "Human": 1.0,},
+        "length": {"NineBande": 4.0, "edge.1": 4.0, "DogFaced": 4.0, "Human": 4.0,},
+    }
+    table = make_table(data=d2D,)
+    table
+
+Create a table that has complex python objects as elements
+==========================================================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    table = make_table(
+        header=["abcd", "data"],
+        data=[[range(1, 6), "0"], ["x", 5.0], ["y", None]],
+        missing_data="*",
+        digits=1,
+    )
+    table
+
+Create an empty table
+=====================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    table = make_table()
+    table

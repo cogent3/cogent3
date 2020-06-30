@@ -1,16 +1,18 @@
 import os
+import pathlib
 
 import numpy
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
+from cogent3.util.warning import deprecated
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rahul Ghangas", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -52,6 +54,44 @@ def get_domain(total, element, is_y, space=0.01):
     return domains[element]
 
 
+def _customise_sphinx_gallery_renderer():
+    # this is an ugly hack to get around plotly's NOT robust handling of script path
+    # for automated file naming
+    import inspect
+    from plotly.io._renderers import renderers
+    from plotly.io import _base_renderers as base_render
+
+    class SphinxGalleryRenderer(base_render.ExternalRenderer):
+        def render(self, fig_dict):
+            # use the environment variable
+            # DOCUTILSCONFIG to get the location of the sphinx root doc dir
+            # and select the stack filename whose path is a sibling directory
+            # based on the maxinum number of matches to the root path
+            sphinx_root = pathlib.Path(os.environ.get("DOCUTILSCONFIG", "")).absolute()
+            sphinx_root = sphinx_root.resolve()
+            stack = inspect.stack()
+            max_match = 0
+            for level in stack:
+                # parent directory
+                path = pathlib.Path(level.filename).absolute().resolve()
+                for i, (a, b) in enumerate(zip(path.parts, sphinx_root.parts)):
+                    if a != b:
+                        break
+
+                if i > max_match:
+                    max_match = i
+                    filename = str(path)
+
+            filename_root, _ = os.path.splitext(filename)
+            filename_html = filename_root + ".html"
+            filename_png = filename_root + ".png"
+            figure = base_render.return_figure_from_figure_or_data(fig_dict, True)
+            _ = base_render.write_html(fig_dict, file=filename_html)
+            base_render.write_image(figure, filename_png)
+
+    renderers["sphinx_gallery"] = SphinxGalleryRenderer()
+
+
 def _show_(cls, renderer=None, **kwargs):
     """display figure
 
@@ -73,6 +113,10 @@ def _show_(cls, renderer=None, **kwargs):
         renderer = "notebook_connected+plotly_mimetype"
     elif renderer is None:
         renderer = PLOTLY_RENDERER
+
+    if renderer == "sphinx_gallery":
+        _customise_sphinx_gallery_renderer()
+
     kwargs["renderer"] = renderer
     drawable = getattr(cls, "drawable", None) or cls
     fig = getattr(drawable, "figure", None)
@@ -124,7 +168,13 @@ class Drawable:
         xtitle=None,
         ytitle=None,
     ):
-        self._traces = traces or []
+        if traces is None:
+            self._traces = []
+        else:
+            try:
+                self._traces = [UnionDict(trace) for trace in traces]
+            except ValueError as msg:
+                raise TypeError(f"expected a series of dicts, got {traces}")
         title = title if title is None else dict(text=title)
         self._default_layout = UnionDict(
             font=dict(family="Balto", size=14),
@@ -164,38 +214,8 @@ class Drawable:
     def traces(self):
         return self._traces
 
-    def get_trace_titles(self):
-        titles = [tr.name for tr in self.traces]
-        return titles
-
-    def pop_trace(self, title):
-        """removes the trace with a matching title attribute"""
-        try:
-            index = self.get_trace_titles().index(title)
-        except ValueError:
-            UserWarning(f"no trace with name {title}")
-            return
-
-        return self.traces.pop(index)
-
-    def remove_traces(self, names):
-        """removes traces by name
-
-        Parameters
-        ----------
-        names : str or iterable of str
-            trace names
-
-        """
-        if not self.traces:
-            self._build_fig()
-
-        names = names if type(names) != str else [names]
-        for name in names:
-            _ = self.pop_trace(name)
-
     def add_trace(self, trace):
-        self.traces.append(trace)
+        self.traces.append(UnionDict(trace))
 
     def bound_to(self, obj):
         """returns obj with self bound to it"""
@@ -221,11 +241,6 @@ class Drawable:
         self.layout.xaxis.title = xtitle
         self.layout.yaxis.title = ytitle
         return UnionDict(data=traces, layout=self.layout)
-
-    def iplot(self, *args, **kwargs):
-        from plotly.offline import iplot as _iplot
-
-        _iplot(self.figure, *args, **kwargs)
 
     @extend_docstring_from(_show_)
     def show(self, renderer=None, **kwargs):
@@ -309,10 +324,9 @@ class AnnotatedDrawable(Drawable):
             width=width,
             height=height,
             layout=layout,
+            xtitle=xtitle,
+            ytitle=ytitle,
         )
-
-        self.xtitle = xtitle
-        self.ytitle = ytitle
         self.yrange = yrange
         self.xrange = xrange
         self._overlaying = False
@@ -330,18 +344,15 @@ class AnnotatedDrawable(Drawable):
         except AttributeError:
             pass
 
-        try:
-            traces = f.traces
-            self.layout |= dict(f.layout)
-        except AttributeError:
-            traces = f["data"]
-            self.layout |= f["layout"]
+        traces = f.data
+        self.layout |= dict(f.layout)
         for trace in traces:
             trace.xaxis = xaxis
             if self._overlaying and "yaxis" in trace:
                 trace.yaxis = "y3"
             else:
                 trace.yaxis = yaxis
+
         self._traces = traces
         ticks_on = dict(_ticks_on)
         f.layout.xaxis.title = self.xtitle

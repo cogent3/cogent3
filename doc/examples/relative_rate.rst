@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Performing a relative rate test
 ===============================
 
@@ -5,145 +10,108 @@ Performing a relative rate test
 
 From ``cogent3`` import all the components we need
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import load_aligned_seqs, load_tree
-    >>> from cogent3.evolve.models import HKY85
-    >>> from cogent3.maths import stats
+    from cogent3 import load_aligned_seqs, load_tree
+    from cogent3.evolve.models import get_model
+    from cogent3.maths import stats
 
 Get your alignment and tree.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> aln = load_aligned_seqs("data/long_testseqs.fasta")
-    >>> t = load_tree(filename="data/test.tree")
+    aln = load_aligned_seqs("data/long_testseqs.fasta")
+    t = load_tree(filename="data/test.tree")
 
 Create a HKY85 model.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> sm = HKY85()
+    sm = get_model("HKY85")
 
 Make the controller object and limit the display precision (to decrease the chance that small differences in estimates cause tests of the documentation to fail).
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf = sm.make_likelihood_function(t, digits=2, space=3)
+    lf = sm.make_likelihood_function(t, digits=2, space=3)
 
-Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``set_param_rules`` method.
+Set the local clock for humans & Howler Monkey. This method is just a special interface to the more general ``set_param_rules()`` method.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf.set_local_clock("Human", "HowlerMon")
+    lf.set_local_clock("Human", "HowlerMon")
 
 Get the likelihood function object this object performs the actual likelihood calculation.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf.set_alignment(aln)
+    lf.set_alignment(aln)
 
 Optimise the function capturing the return optimised lnL, and parameter value vector.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf.optimise(show_progress=False)
+    lf.optimise(show_progress=False)
 
 View the resulting maximum-likelihood parameter values.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf.set_name("clock")
-    >>> print(lf)
-    clock
-    log-likelihood = -8751.9425
-    number of free parameters = 7
-    =====
-    kappa
-    -----
-     4.10
-    -----
-    ===========================
-         edge   parent   length
-    ---------------------------
-        Human   edge.0     0.04
-    HowlerMon   edge.0     0.04
-       edge.0   edge.1     0.04
-        Mouse   edge.1     0.28
-       edge.1     root     0.02
-    NineBande     root     0.09
-     DogFaced     root     0.11
-    ---------------------------
-    =========================
-       A      C      G      T
-    -------------------------
-    0.37   0.19   0.21   0.23
-    -------------------------
+    lf.set_name("clock")
+    lf
 
 We extract the log-likelihood and number of free parameters for later use.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> null_lnL = lf.get_log_likelihood()
-    >>> null_nfp = lf.get_num_free_params()
+    null_lnL = lf.get_log_likelihood()
+    null_nfp = lf.get_num_free_params()
 
 Clear the local clock constraint, freeing up the branch lengths.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf.set_param_rule('length', is_independent=True)
+    lf.set_param_rule("length", is_independent=True)
 
 Run the optimiser capturing the return optimised lnL, and parameter value vector.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf.optimise(show_progress=False)
+    lf.optimise(show_progress=False)
 
 View the resulting maximum-likelihood parameter values.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> lf.set_name("non clock")
-    >>> print(lf)
-    non clock
-    log-likelihood = -8750.5889
-    number of free parameters = 8
-    =====
-    kappa
-    -----
-     4.10
-    -----
-    ===========================
-         edge   parent   length
-    ---------------------------
-        Human   edge.0     0.03
-    HowlerMon   edge.0     0.04
-       edge.0   edge.1     0.04
-        Mouse   edge.1     0.28
-       edge.1     root     0.02
-    NineBande     root     0.09
-     DogFaced     root     0.11
-    ---------------------------
-    =========================
-       A      C      G      T
-    -------------------------
-    0.37   0.19   0.21   0.23
-    -------------------------
+    lf.set_name("non clock")
+    lf
 
 These two lnL's are now used to calculate the likelihood ratio statistic it's degrees-of-freedom and the probability of observing the LR.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> LR = 2 * (lf.get_log_likelihood() - null_lnL)
-    >>> df = lf.get_num_free_params() - null_nfp
-    >>> P = stats.chisqprob(LR, df)
+    LR = 2 * (lf.get_log_likelihood() - null_lnL)
+    df = lf.get_num_free_params() - null_nfp
+    P = stats.chisqprob(LR, df)
 
 Print this and look up a :math:`\chi^2` with number of edges - 1 degrees of freedom.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> print("Likelihood ratio statistic = ", LR)
-    Likelihood ratio statistic =  2.7...
-    >>> print("degrees-of-freedom = ", df)
-    degrees-of-freedom =  1
-    >>> print("probability = ", P)
-    probability =  0.09...
+    print("Likelihood ratio statistic = ", LR)
+    print("degrees-of-freedom = ", df)
+    print("probability = ", P)

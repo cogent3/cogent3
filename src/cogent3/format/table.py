@@ -11,6 +11,8 @@ import textwrap
 
 from xml.sax.saxutils import escape
 
+import numpy
+
 from cogent3.util.warning import discontinued
 
 
@@ -18,7 +20,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield", "Jeremy Widmann"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -155,22 +157,39 @@ def rich_html(
     return data
 
 
-def latex(rows, header=None, caption=None, justify=None, label=None, position=None):
+def latex(
+    rows,
+    header=None,
+    caption=None,
+    legend=None,
+    justify=None,
+    label=None,
+    position=None,
+):
     """Returns the text a LaTeX table.
 
     Parameters
     ----------
+    rows
+        table data in row orientation
     header
         table header
-    position
-        table page position, default is here, top separate page
+    caption
+        title text.
+    legend
+        If provided, the text is placed in a \\caption*{} command at the
+        bottom of the table and the caption is placed at the top.
     justify
         column justification, default is right aligned.
-    caption
-        Table legend
     label
         for cross referencing
+    position
+        table page position, default is here, top separate page
 
+    Notes
+    -----
+    The \\caption*{} command is provided with the caption package. See
+    https://ctan.org/pkg/caption for more details.
     """
 
     if not justify:
@@ -186,18 +205,30 @@ def latex(rows, header=None, caption=None, justify=None, label=None, position=No
         r"\begin{table}[%s]" % position,
         r"\centering",
         r"\begin{tabular}%s" % justify,
+        r"\hline",
+        header,
+        r"\hline",
+        r"\hline",
     ]
-    table_format.append(r"\hline")
-    table_format.append(header)
-    table_format.append(r"\hline")
-    table_format.append(r"\hline")
     table_format += rows
     table_format.append(r"\hline")
     table_format.append(r"\end{tabular}")
-    if caption:
-        table_format.append(r"\caption{%s}" % caption)
-    if label:
-        table_format.append(r"\label{%s}" % label)
+
+    caption = r"\caption{%s}" % caption if caption else ""
+    label = r"\label{%s}" % label if label else ""
+    legend = r"\caption*{%s}" % legend if isinstance(legend, str) else None
+    if caption and label:
+        caption = f"{caption}\n{label}"
+    elif caption or label:
+        caption = caption or label
+
+    if caption and legend:
+        table_format.insert(2, caption)
+    elif caption:
+        table_format.append(caption)
+
+    if legend is not None:
+        table_format.append(legend)
     table_format.append(r"\end{table}")
 
     return "\n".join(table_format)
@@ -218,33 +249,45 @@ def get_continuation_tables(
     if len(space.join(header)) < max_width:
         return [(header, formatted_table)]
 
-    if not identifiers:
-        identifiers = 0
     # having determined the maximum string lengths we now need to
     # produce subtables of width <= max_width
     col_widths = [len(head) for head in header]
     sep = len(space)
-    min_length = sep * (identifiers - 1) + sum(col_widths[:identifiers])
+    min_length = col_widths[0]
 
     if min_length > max_width:
         raise RuntimeError("Maximum width too small for identifiers")
 
-    begin, width = identifiers, min_length
+    # if we have an index column, every new table block includes that width
+    # in calculating the number of columns; otherwise it's simply the sum
+    if identifiers:
+        id_width = col_widths[0] + sep
+        begin = 1
+    else:
+        id_width = 0
+        begin = 0
 
+    width = id_width
     boundaries = []
     for i in range(begin, len(header)):
         width += col_widths[i] + sep
         if width > max_width:
-            boundaries.append((begin, i, width - col_widths[i] - sep))
-            width = min_length + col_widths[i] + sep
+            boundaries.append((begin, i))
             begin = i
+            width = id_width + col_widths[i]
 
-    # add the last sub-table
-    boundaries.append((begin, len(header), width))
-    # generate the table
-    for start, end, width in boundaries:
-        subhead = header[:identifiers] + header[start:end]
-        rows = [row[:identifiers] + row[start:end] for row in formatted_table]
+    boundaries.append((begin, len(header)))
+    data = {c[0].strip(): c[1:] for c in zip(header, *formatted_table)}
+    for start, end in boundaries:
+        if identifiers:
+            subhead = header[:1] + header[start:end]
+        else:
+            subhead = header[start:end]
+        rows = numpy.array([data[c.strip()] for c in subhead], dtype="<U15")
+        if rows.ndim == 1:
+            rows = [rows.tolist()]
+        else:
+            rows = rows.T.tolist()
         tables.append((subhead, rows))
 
     return tables
@@ -363,7 +406,8 @@ def markdown(header, formatted_table, space=1, justify=None):
         previously formatted to the same width within a column.
     space
         number of spaces surrounding the cell contents, must be >= 1
-
+    justify
+        characters indicating alignment of columns
     """
     assert space >= 1, "space must be >= 1"
     if justify is not None:
@@ -395,6 +439,42 @@ def markdown(header, formatted_table, space=1, justify=None):
         row_template % sep.join(r) for r in formatted_table
     ]
     return "\n".join(rows)
+
+
+def rst_csv_table(header, formatted_table, title=None, legend=None):
+    """Returns a table in restructured text csv-table format
+
+    Parameters
+    ----------
+    header
+        series of strings
+    formatted_table
+        formatted strings, row based
+    title, legend
+        combined in this format
+
+    Returns
+    -------
+    str
+
+    Notes
+    -----
+    We only support a subset of available attr, see
+    https://docutils.sourceforge.io/docs/ref/rst/directives.html#csv-table
+    """
+    header = ", ".join(f'"{c}"' for c in header)
+    header = f"    :header: {header}"
+    rows = "\n".join(f"    {', '.join(r)}" for r in formatted_table)
+
+    if title or legend:
+        title = f" {title}" if title else ""
+        title = f"{title} {legend}" if legend else title
+    else:
+        title = ""
+
+    table = [f".. csv-table::{title}", header, "", rows]
+
+    return "\n".join(table)
 
 
 def grid_table_format(header, formatted_table, title=None, legend=None):
@@ -596,13 +676,12 @@ def formatted_cells(
 
     """
     if not header:
-        num_col = max([len(row) for row in rows])
+        num_col = max(len(row) for row in rows)
         header = [""] * num_col
     else:
         num_col = len(header)
 
     col_widths = [len(col) for col in header]
-    num_row = len(rows)
     column_templates = column_templates or {}
 
     float_template = "{0:.%df}" % digits
@@ -617,7 +696,8 @@ def formatted_cells(
             except IndexError:
                 entry = "%s" % missing_data
             else:
-                if not entry:
+                not_missing = True if isinstance(entry, numpy.ndarray) else entry
+                if not not_missing:
                     try:
                         float(entry)  # could numerically be 0, so not missing
                     except (ValueError, TypeError):

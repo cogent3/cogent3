@@ -14,52 +14,26 @@ import numpy
 from cogent3.align.traceback import alignment_traceback, map_traceback
 from cogent3.core.alignment import Aligned
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
+from cogent3.util.misc import ascontiguousarray
 from cogent3.util.modules import ExpectedImportError, importVersionedModule
 
+from . import pairwise_pogs_numba as align_module
+from . import pairwise_seqs_numba as seq_align_module
 from .indel_positions import leaf2pog
 
 
-def _importedPyrexAligningModule(name):
-    try:
-        return importVersionedModule(
-            name, globals(), (3, 1), "slow Python alignment implementation"
-        )
-    except ExpectedImportError:
-        return None
-
-
-try:
-    from . import (
-        _pairwise_pogs as pyrex_align_module,
-        _pairwise_seqs as pyrex_seq_align_module,
-    )
-except ImportError:
-    pyrex_align_module = pyrex_seq_align_module = None
-
-# pyrex_align_module = _importedPyrexAligningModule('_pairwise_pogs')
-# pyrex_seq_align_module = _importedPyrexAligningModule('_pairwise_seqs')
-
-# Deal with minor API change between _pairwise_*.pyx versions 3.1 and 3.2
-# rather than forcing everyone to recompile immediately.
-# After 1.6 release this can be replaced by (3, 2) requirement above.
-versions = [
-    m.version_info
-    for m in [pyrex_seq_align_module, pyrex_align_module]
-    if m is not None
-]
-if len(versions) == 0 or min(versions) >= (3, 2):
-    TRACK_INT_TYPE = numpy.uint8
-elif max(versions) < (3, 2):
-    TRACK_INT_TYPE = numpy.int8
-else:
-    raise ImportError("Incompatible _pairwise_*.pyx module versions. Recompile them")
+def _as_combined_arrays(preds):
+    pog1, pog2 = preds
+    j_sources, j_sources_offsets = pog2.as_combined_array()
+    i_sources, i_sources_offsets = pog1.as_combined_array()
+    return i_sources, i_sources_offsets, j_sources, j_sources_offsets
 
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -70,7 +44,7 @@ class PointerEncoding(object):
     whatever bits are left over after the x and y pointers have claimed what
     they need, which is expected to be only 2 bits each at most"""
 
-    dtype = TRACK_INT_TYPE
+    dtype = numpy.uint8
     bytes = 1
 
     def __init__(self, x, y):
@@ -246,10 +220,10 @@ class Pair(object):
         else:
             some_pogs = False
 
-        if some_pogs and pyrex_align_module is not None:
-            aligner = pyrex_align_module.calc_rows
-        elif (not some_pogs) and pyrex_seq_align_module is not None:
-            aligner = pyrex_seq_align_module.calc_rows
+        if some_pogs and align_module is not None:
+            aligner = align_module.calc_rows
+        elif (not some_pogs) and seq_align_module is not None:
+            aligner = seq_align_module.calc_rows
         else:
             aligner = py_calc_rows
 
@@ -265,9 +239,11 @@ class Pair(object):
 
         self.size = [len(alignable1), len(alignable2)]
         self.uniq_size = [len(alignable1.plh), len(alignable2.plh)]
-        self.plan = numpy.array(alignable1.get_row_assignment_plan())
-        self.x_index = alignable1.index
-        self.y_index = alignable2.index
+        self.plan = ascontiguousarray(
+            alignable1.get_row_assignment_plan(), dtype="int64"
+        )
+        self.x_index = ascontiguousarray(alignable1.index, dtype="int64")
+        self.y_index = ascontiguousarray(alignable2.index, dtype="int64")
 
     def get_seq_name_pairs(self):
         return [(a.leaf.edge_name, a.leaf.sequence) for a in self.children]
@@ -361,7 +337,10 @@ class Pair(object):
             exponents = numpy.ones(shape, int) * -10000
         else:
             exponents = None
-        return (mantissas, exponents)
+        return (
+            ascontiguousarray(mantissas, dtype="float64"),
+            ascontiguousarray(exponents, dtype="int64"),
+        )
 
     def calc_rows(
         self,
@@ -379,8 +358,31 @@ class Pair(object):
         **kw,
     ):
         (match_scores, (xscores, yscores)) = scores
-        track_enc = track_encoding and track_encoding.positions
-        # print T
+        match_scores = ascontiguousarray(match_scores, dtype="float64")
+        xscores = ascontiguousarray(xscores, dtype="float64")
+        yscores = ascontiguousarray(yscores, dtype="float64")
+
+        track_enc = ascontiguousarray(
+            track_encoding and track_encoding.positions, dtype="int64"
+        )
+
+        (
+            i_sources,
+            i_sources_offsets,
+            j_sources,
+            j_sources_offsets,
+        ) = _as_combined_arrays(self.children)
+
+        state_directions = ascontiguousarray(state_directions, dtype="int64")
+        T = ascontiguousarray(T, dtype="float64")
+        track = ascontiguousarray(track, dtype="uint8")
+
+        (mantissas, exponents) = rows
+
+        mantissa = 0.0
+        if kw["use_scaling"]:
+            mantissa = numpy.log(0.0)
+
         return self.aligner(
             self.plan,
             self.x_index,
@@ -389,13 +391,18 @@ class Pair(object):
             i_high,
             j_low,
             j_high,
-            self.children,
+            i_sources,
+            i_sources_offsets,
+            j_sources,
+            j_sources_offsets,
             state_directions,
             T,
             xscores,
             yscores,
             match_scores,
-            rows,
+            mantissas,
+            mantissa,
+            exponents,
             track,
             track_enc,
             viterbi,
@@ -427,7 +434,10 @@ class _Alignable(object):
         offsets.append(len(pred))
         # provides the paths leading to a point (predecessors), and offsets
         # records index positions fdor each point (graph node)
-        return (numpy.array(pred), numpy.array(offsets))
+        return (
+            ascontiguousarray(pred, dtype="int64"),
+            ascontiguousarray(offsets, dtype="int64"),
+        )
 
     def as_combined_array(self):
         if not hasattr(self, "_combined"):

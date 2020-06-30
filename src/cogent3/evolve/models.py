@@ -25,7 +25,7 @@ __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "James Kondilios"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
@@ -2789,7 +2789,7 @@ def available_models(model_types=None):
 
     t = Table(
         header=column_headings,
-        rows=rows,
+        data=rows,
         title="Specify a model using 'Abbreviation' (case sensitive).",
     )
     return t

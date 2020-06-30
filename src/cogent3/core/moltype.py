@@ -16,7 +16,7 @@ __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -1507,6 +1507,6 @@ def available_moltypes():
     header = ["Abbreviation", "Number of states", "Moltype"]
     title = "Specify a moltype by the string 'Abbreviation' (case insensitive)."
 
-    result = Table(header=header, rows=rows, title=title, row_ids=True)
+    result = Table(header=header, data=rows, title=title, index="Abbreviation")
     result = result.sorted(columns=["Number of states", "Abbreviation"])
     return result

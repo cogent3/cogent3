@@ -16,7 +16,7 @@ __author__ = ["Gavin Huttley"]
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -37,7 +37,11 @@ def deserialise_tabular(data):
     type_ = data.pop("type")
     klass = _get_class(type_)
     if type_.endswith("Table"):
-        result = klass(**data)
+        if "init_table" in data:
+            result = klass()
+            result.__setstate__(data)
+        else:
+            result = klass(**data)
     elif "dictarray" in type_.lower():
         named_dims = data.pop("names")
         array = data.pop("array")

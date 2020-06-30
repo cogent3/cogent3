@@ -1,589 +1,903 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
+************
 Tabular data
-------------
+************
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
-.. doctest::
-    :hide:
+``Table`` handles tabular data, storing as columns in a, you guessed it, ``columns`` attribute. The latter acts like a dictionary, with the column names as the keys and the column values being  ``numpy.ndarray`` instances. The table itself is iterable over rows.
 
-    >>> # just saving some tabular data for subsequent data
-    >>> from cogent3 import make_table, load_table
-    >>> rows = (('NP_003077', 'Con', 2.5386013224378985),
-    ... ('NP_004893', 'Con', 0.12135142635634111e+06),
-    ... ('NP_005079', 'Con', 0.95165949788861326e+07),
-    ... ('NP_005500', 'NonCon', 0.73827030202664901e-07),
-    ... ('NP_055852', 'NonCon', 1.0933217708952725e+07))
-    >>> table = make_table(header=['Locus', 'Region', 'Ratio'], rows=rows)
-    >>> table.write('stats.txt', sep=',')
+.. note:: ``Table`` is immutable at the level of the individual ``ndarray`` not being writable.
 
-Loading delimited formats
-^^^^^^^^^^^^^^^^^^^^^^^^^
+.. include:: ./loading_tabular.rst
 
-We load a comma separated data file using the generic ``load_table`` function.
+Adding a new column
+===================
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import load_table
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table)
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_003077       Con           2.5386
-    NP_004893       Con      121351.4264
-    NP_005079       Con     9516594.9789
-    NP_005500    NonCon           0.0000
-    NP_055852    NonCon    10933217.7090
-    ------------------------------------
+    from cogent3 import make_table
 
-Reading large files
-^^^^^^^^^^^^^^^^^^^
+    table = make_table()
+    table.columns["a"] = [1, 3, 5]
+    table.columns["b"] = [2, 4, 6]
+    table
 
-For really large files the automated conversion used by the standard read mechanism can be quite slow. If the data within a column is consistently of one type, set the ``load_table`` argument ``static_column_types=True``. This causes the ``Table`` object to create a custom reader.
+Add a title and a legend to a table
+===================================
 
-.. doctest::
+This can be done when you create the table.
 
-    >>> table = load_table('stats.txt', static_column_types=True, sep=",")
-    >>> print(table)
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_003077       Con           2.5386
-    NP_004893       Con      121351.4264
-    NP_005079       Con     9516594.9789
-    NP_005500    NonCon           0.0000
-    NP_055852    NonCon    10933217.7090
-    ------------------------------------
+.. jupyter-execute::
+    :linenos:
 
-Formatting
-^^^^^^^^^^
+    from cogent3 import make_table
+
+    data = dict(a=[0, 3], b=["a", "c"])
+    table = make_table(data=data, title="Sample title", legend="a legend")
+    table
+
+It can be done by directly assigning to the corresponding attributes.
+
+.. jupyter-execute::
+    :linenos:
+
+    data = dict(a=[0, 3], b=["a", "c"])
+    table = make_table(data=data)
+    table.title = "My title"
+    table
+
+Iterating over table rows
+=========================
+
+``Table`` is a row oriented object. Iterating on the table returns each row as a new ``Table`` instance.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv")
+    for row in table:
+        print(row)
+        break
+
+The resulting rows can be indexed using their column names.
+
+.. jupyter-execute::
+    :linenos:
+
+    for row in table:
+        print(row["Locus"])
+
+How many rows are there?
+========================
+
+The ``Table.shape`` attribute is like that of a ``numpy`` ``array``. The first element (``Table.shape[0]``) is the number of rows.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    data = dict(a=[0, 3, 5], b=["a", "c", "d"])
+    table = make_table(data=data)
+    table.shape[0] == 3
+
+How many columns are there?
+===========================
+
+``Table.shape[1]`` is the number of columns. Using the table from above.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.shape[1] == 2
+
+Iterating over table columns
+============================
+
+The ``Table.columns`` attribute is a ``Columns`` instance, an object with ``dict`` attributes.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv")
+    table.columns
+
+.. jupyter-execute::
+    :linenos:
+
+    table.columns["Region"]
+
+So iteration is the same as for dicts.
+
+.. jupyter-execute::
+    :linenos:
+
+    for name in table.columns:
+        print(name)
+
+Table slicing using column names
+================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    table
+
+Slice using the column name.
+
+.. jupyter-execute::
+    :linenos:
+
+    table[:2, "Region":]
+
+Table slicing using indices
+===========================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    table[:2, :1]
 
 Changing displayed numerical precision
-""""""""""""""""""""""""""""""""""""""
+======================================
 
 We change the ``Ratio`` column to using scientific notation.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table.format_column('Ratio', '%.1e')
-    >>> print(table)
-    ==============================
-        Locus    Region      Ratio
-    ------------------------------
-    NP_003077       Con    2.5e+00
-    NP_004893       Con    1.2e+05
-    NP_005079       Con    9.5e+06
-    NP_005500    NonCon    7.4e-08
-    NP_055852    NonCon    1.1e+07
-    ------------------------------
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv")
+    table.format_column("Ratio", "%.1e")
+    table
 
 Change digits or column spacing
-"""""""""""""""""""""""""""""""
+===============================
 
 This can be done on table loading,
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',', digits=1, space=2)
-    >>> print(table)
-    =============================
-        Locus  Region       Ratio
-    -----------------------------
-    NP_003077     Con         2.5
-    NP_004893     Con    121351.4
-    NP_005079     Con   9516595.0
-    NP_005500  NonCon         0.0
-    NP_055852  NonCon  10933217.7
-    -----------------------------
+    table = load_table("data/stats.tsv", digits=1, space=2)
+    table
 
 or, for spacing at least, by modifying the attributes
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table.space = '    '
-    >>> print(table)
-    =================================
-        Locus    Region         Ratio
-    ---------------------------------
-    NP_003077       Con           2.5
-    NP_004893       Con      121351.4
-    NP_005079       Con     9516595.0
-    NP_005500    NonCon           0.0
-    NP_055852    NonCon    10933217.7
-    ---------------------------------
+    table.space = "    "
+    table
+
+Wrapping tables for display
+===========================
+
+Wrapping generates neat looking tables whether or not you index the table rows. We demonstrate here
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    h = ["name", "A/C", "A/G", "A/T", "C/A"]
+    rows = [["tardigrade", 0.0425, 0.1424, 0.0226, 0.0391]]
+    wrap_table = make_table(header=h, data=rows, max_width=30)
+    wrap_table
+
+.. jupyter-execute::
+    :linenos:
+
+    wrap_table = make_table(header=h, data=rows, max_width=30, index="name")
+    wrap_table
+
+Display the top of a table using ``head()``
+===========================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = make_table(data=dict(a=list(range(10)), b=list(range(10))))
+    table.head()
+
+You change how many rows are displayed.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.head(2)
+
+The table shape is that of the original table.
+
+Display the bottom of a table using ``tail()``
+==============================================
+
+.. jupyter-execute::
+
+    table.tail()
+
+You change how many rows are displayed.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.tail(1)
+
+Display random rows from a table
+================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table.set_repr_policy(random=3)
+    table
+
+Change the number of rows displayed by ``repr()``
+=================================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table.set_repr_policy(head=2, tail=3)
+    table
+
+.. note:: The ``...`` indicates the break between the top and bottom rows.
 
 Changing column headings
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 The table ``header`` is immutable. Changing column headings is done as follows.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table.header)
-    ['Locus', 'Region', 'Ratio']
-    >>> table = table.with_new_header('Ratio', 'Stat')
-    >>> print(table.header)
-    ['Locus', 'Region', 'Stat']
+    table = load_table("data/stats.tsv")
+    print(table.header)
+    table = table.with_new_header("Ratio", "Stat")
+    print(table.header)
 
-Creating new columns from existing ones
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Adding a new column
+===================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import make_table
+
+    table = make_table()
+    table
+
+.. jupyter-execute::
+    :linenos:
+
+    table.columns["a"] = [1, 3, 5]
+    table.columns["b"] = [2, 4, 6]
+    table
+
+Create a new column from existing ones
+======================================
 
 This can be used to take a single, or multiple columns and generate a new column of values. Here we'll take 2 columns and return True/False based on a condition.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> table = table.with_new_column('LargeCon',
-    ...                     lambda r_v: r_v[0] == 'Con' and r_v[1]>10.0,
-    ...                     columns=['Region', 'Ratio'])
-    >>> print(table)
-    ================================================
-        Locus    Region            Ratio    LargeCon
-    ------------------------------------------------
-    NP_003077       Con           2.5386       False
-    NP_004893       Con      121351.4264        True
-    NP_005079       Con     9516594.9789        True
-    NP_005500    NonCon           0.0000       False
-    NP_055852    NonCon    10933217.7090       False
-    ------------------------------------------------
+    table = load_table("data/stats.tsv")
+    table = table.with_new_column(
+        "LargeCon",
+        lambda r_v: r_v[0] == "Con" and r_v[1] > 10.0,
+        columns=["Region", "Ratio"],
+    )
+    table
+
+Get table data as a numpy array
+===============================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    table.array
+
+Get a table column as a list
+============================
+
+Via the ``Table.tolist()`` method.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    locus = table.tolist("Locus")
+    locus
+
+Or directly from the column array object.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.columns["Locus"].tolist()
+
+Get multiple table columns as a list
+====================================
+
+This returns a row oriented list.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    rows = table.tolist(["Region", "Locus"])
+    rows
+
+.. note:: column name order dictates the element order per row
+
+Get the table as a row oriented ``dict``
+========================================
+
+Keys in the resulting dict are the row indices, the value is a dict of column name, value pairs.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    table.to_dict()
+
+Get the table as a column oriented ``dict``
+===========================================
+
+Keys in the resulting dict are the column names, the value is a list.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    table.columns.to_dict()
+
+Get the table as a ``pandas.DataFrame``
+=======================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    df = table.to_dataframe()
+    df
+
+You can also specify column(s) are categories
+
+.. jupyter-execute::
+    :linenos:
+
+    df = table.to_dataframe(categories="Region")
 
 Appending tables
-^^^^^^^^^^^^^^^^
+================
 
-Can be done without specifying a new column. Here we simply use the same table data.
+.. warning:: Only for tables with the same columns.
 
-.. doctest::
+Can be done without specifying a new column (set the first argument to ``appended`` to be ``None``). Here we simply use the same table data.
 
-    >>> table1 = load_table('stats.txt', sep=',')
-    >>> table2 = load_table('stats.txt', sep=',')
-    >>> table = table1.appended(None, table2)
-    >>> print(table)
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_003077       Con           2.5386
-    NP_004893       Con      121351.4264
-    NP_005079       Con     9516594.9789
-    NP_005500    NonCon           0.0000
-    NP_055852    NonCon    10933217.7090
-    NP_003077       Con           2.5386
-    NP_004893       Con      121351.4264
-    NP_005079       Con     9516594.9789
-    NP_005500    NonCon           0.0000
-    NP_055852    NonCon    10933217.7090
-    ------------------------------------
+.. jupyter-execute::
+    :linenos:
 
-or with a new column
+    table1 = load_table("data/stats.tsv")
+    table2 = load_table("data/stats.tsv")
+    table = table1.appended(None, table2)
+    table
 
-.. doctest::
+Specifying with a new column. In this case, the value of the ``table.title`` becomes the value for the new column.
 
-    >>> table1.title = 'Data1'
-    >>> table2.title = 'Data2'
-    >>> table = table1.appended('Data#', table2, title='')
-    >>> print(table)
-    =============================================
-    Data#        Locus    Region            Ratio
-    ---------------------------------------------
-    Data1    NP_003077       Con           2.5386
-    Data1    NP_004893       Con      121351.4264
-    Data1    NP_005079       Con     9516594.9789
-    Data1    NP_005500    NonCon           0.0000
-    Data1    NP_055852    NonCon    10933217.7090
-    Data2    NP_003077       Con           2.5386
-    Data2    NP_004893       Con      121351.4264
-    Data2    NP_005079       Con     9516594.9789
-    Data2    NP_005500    NonCon           0.0000
-    Data2    NP_055852    NonCon    10933217.7090
-    ---------------------------------------------
+.. jupyter-execute::
+    :linenos:
+
+    table1.title = "Data1"
+    table2.title = "Data2"
+    table = table1.appended("Data#", table2, title="")
+    table
 
 .. note:: We assigned an empty string to ``title``, otherwise the resulting table has the same ``title`` attribute as that of ``table1``.
 
 Summing a single column
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> table.summed('Ratio')
-    20571166.652...
+    table = load_table("data/stats.tsv")
+    table.summed("Ratio")
+
+Because each column is just a ``numpy.ndarray``, this also can be done directly via the array methods.
+
+.. jupyter-execute::
+    :linenos:
+
+    table.columns["Ratio"].sum()
 
 Summing multiple columns or rows - strictly numerical data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================================================
 
 We define a strictly numerical table,
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> all_numeric = make_table(header=['A', 'B', 'C'], rows=[range(3),
-    ...                                 range(3,6), range(6,9), range(9,12)])
-    >>> print(all_numeric)
-    =============
-    A     B     C
-    -------------
-    0     1     2
-    3     4     5
-    6     7     8
-    9    10    11
-    -------------
+    from cogent3 import make_table
+
+    all_numeric = make_table(
+        header=["A", "B", "C"], data=[range(3), range(3, 6), range(6, 9), range(9, 12)]
+    )
+    all_numeric
 
 and sum all columns (default condition)
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> all_numeric.summed()
-    [18, 22, 26]
+    all_numeric.summed()
 
 and all rows
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> all_numeric.summed(col_sum=False)
-    [3, 12, 21, 30]
+    all_numeric.summed(col_sum=False)
 
 Summing multiple columns or rows with mixed non-numeric/numeric data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================================================
 
 We define a table with mixed data, like a distance matrix.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> mixed = make_table(header=['A', 'B', 'C'], rows=[['*',1,2], [3,'*', 5],
-    ...                                                 [6,7,'*']])
-    >>> print(mixed)
-    ===========
-    A    B    C
-    -----------
-    *    1    2
-    3    *    5
-    6    7    *
-    -----------
+    mixed = make_table(
+        header=["A", "B", "C"], data=[["*", 1, 2], [3, "*", 5], [6, 7, "*"]]
+    )
+    mixed
 
 and sum all columns (default condition), ignoring non-numerical data
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> mixed.summed(strict=False)
-    [9, 8, 7]
+    mixed.summed(strict=False)
 
 and all rows
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> mixed.summed(col_sum=False, strict=False)
-    [3, 8, 13]
-
+    mixed.summed(col_sum=False, strict=False)
 
 Filtering table rows
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 We can do this by providing a reference to an external function
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> sub_table = table.filtered(lambda x: x < 10.0, columns='Ratio')
-    >>> print(sub_table)
-    =============================
-        Locus    Region     Ratio
-    -----------------------------
-    NP_003077       Con    2.5386
-    NP_005500    NonCon    0.0000
-    -----------------------------
+    table = load_table("data/stats.tsv")
+    sub_table = table.filtered(lambda x: x < 10.0, columns="Ratio")
+    sub_table
 
 or using valid python syntax within a string, which is executed
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> sub_table = table.filtered("Ratio < 10.0")
-    >>> print(sub_table)
-    =============================
-        Locus    Region     Ratio
-    -----------------------------
-    NP_003077       Con    2.5386
-    NP_005500    NonCon    0.0000
-    -----------------------------
+    sub_table = table.filtered("Ratio < 10.0")
+    sub_table
 
 You can also filter for values in multiple columns
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> sub_table = table.filtered("Ratio < 10.0 and Region == 'NonCon'")
-    >>> print(sub_table)
-    =============================
-        Locus    Region     Ratio
-    -----------------------------
-    NP_005500    NonCon    0.0000
-    -----------------------------
+    sub_table = table.filtered("Ratio < 10.0 and Region == 'NonCon'")
+    sub_table
 
 Filtering table columns
-^^^^^^^^^^^^^^^^^^^^^^^
+=======================
 
 We select only columns that have a sum > 20 from the ``all_numeric`` table constructed above.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> big_numeric = all_numeric.filtered_by_column(lambda x: sum(x)>20)
-    >>> print(big_numeric)
-    ========
-     B     C
-    --------
-     1     2
-     4     5
-     7     8
-    10    11
-    --------
-
-Sorting
-^^^^^^^
+    big_numeric = all_numeric.filtered_by_column(lambda x: sum(x) > 20)
+    big_numeric
 
 Standard sorting
-""""""""""""""""
+================
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table.sorted(columns='Ratio'))
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_005500    NonCon           0.0000
-    NP_003077       Con           2.5386
-    NP_004893       Con      121351.4264
-    NP_005079       Con     9516594.9789
-    NP_055852    NonCon    10933217.7090
-    ------------------------------------
+    table = load_table("data/stats.tsv")
+    table.sorted(columns="Ratio")
 
 Reverse sorting
-"""""""""""""""
+===============
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> print(table.sorted(columns='Ratio', reverse='Ratio'))
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_055852    NonCon    10933217.7090
-    NP_005079       Con     9516594.9789
-    NP_004893       Con      121351.4264
-    NP_003077       Con           2.5386
-    NP_005500    NonCon           0.0000
-    ------------------------------------
+    table.sorted(columns="Ratio", reverse="Ratio")
 
 Sorting involving multiple columns, one reversed
-""""""""""""""""""""""""""""""""""""""""""""""""
+================================================
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> print(table.sorted(columns=['Region', 'Ratio'], reverse='Ratio'))
-    ====================================
-        Locus    Region            Ratio
-    ------------------------------------
-    NP_005079       Con     9516594.9789
-    NP_004893       Con      121351.4264
-    NP_003077       Con           2.5386
-    NP_055852    NonCon    10933217.7090
-    NP_005500    NonCon           0.0000
-    ------------------------------------
+    table.sorted(columns=["Region", "Ratio"], reverse="Ratio")
 
-Getting raw data
-^^^^^^^^^^^^^^^^
+Getting raw data for a single column
+====================================
 
-For a single column
-"""""""""""""""""""
+.. jupyter-execute::
+    :linenos:
 
-.. doctest::
+    table = load_table("data/stats.tsv")
+    raw = table.tolist("Region")
+    raw
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> raw = table.tolist('Region')
-    >>> print(raw)
-    ['Con', 'Con', 'Con', 'NonCon', 'NonCon']
+Getting raw data for multiple columns
+=====================================
 
-For multiple columns
-""""""""""""""""""""
+.. jupyter-execute::
+    :linenos:
 
-.. doctest::
+    table = load_table("data/stats.tsv")
+    raw = table.tolist(["Locus", "Region"])
+    raw
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> raw = table.tolist(['Locus', 'Region'])
-    >>> print(raw)
-    [['NP_003077', 'Con'], ['NP_004893', 'Con'], ...
+Getting distinct values
+=======================
 
-Iterating over table rows
-^^^^^^^^^^^^^^^^^^^^^^^^^
+.. jupyter-execute::
+    :linenos:
 
-.. doctest::
+    table = load_table("data/stats.tsv")
+    assert table.distinct_values("Region") == set(["NonCon", "Con"])
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> for row in table:
-    ...     print(row['Locus'])
-    ...
-    NP_003077
-    NP_004893
-    NP_005079
-    NP_005500
-    NP_055852
+Counting occurrences of values
+==============================
 
-Table slicing
-^^^^^^^^^^^^^
+.. jupyter-execute::
+    :linenos:
 
-Using column names
-""""""""""""""""""
+    table = load_table("data/stats.tsv")
+    assert table.count("Region == 'NonCon' and Ratio > 1") == 1
 
-.. doctest::
+Counting unique values
+======================
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table[:2, :'Region'])
-    =========
-        Locus
-    ---------
-    NP_003077
-    NP_004893
-    ---------
+This returns a ``CategoryCounter``, a dict like class.
 
-Using column indices
-""""""""""""""""""""
+.. jupyter-execute::
+    :linenos:
 
-.. doctest::
+    from cogent3 import make_table
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table[:2,: 1])
-    =========
-        Locus
-    ---------
-    NP_003077
-    NP_004893
-    ---------
+    table = make_table(
+        data=dict(A=["a", "b", "b", "b", "a"], B=["c", "c", "c", "c", "d"])
+    )
+    unique = table.count_unique("A")
+    type(unique)
 
-SQL-like capabilities
-^^^^^^^^^^^^^^^^^^^^^
+.. jupyter-execute::
+    :linenos:
 
-Distinct values
-"""""""""""""""
+    unique
 
-.. doctest::
+For multiple columns.
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> assert table.distinct_values('Region') == set(['NonCon', 'Con'])
+.. jupyter-execute::
+    :linenos:
 
-Counting
-""""""""
+    unique = table.count_unique(["A", "B"])
+    unique
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> assert table.count("Region == 'NonCon' and Ratio > 1") == 1
+    r = unique.to_table()
+    r
 
-Joining tables
-""""""""""""""
+Joining or merging tables
+=========================
 
-SQL-like join operations requires tables have different ``title`` attributes which are not ``None``. We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus`` but multiple columns can be used, and their names can be different between the tables. Note that the second table's title becomes a part of the column names.
+We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus``.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> rows = [['NP_004893', True], ['NP_005079', True],
-    ...         ['NP_005500', False], ['NP_055852', False]]
-    >>> region_type = make_table(header=['Locus', 'LargeCon'], rows=rows,
-    ...                 title='RegionClass')
-    >>> stats_table = load_table('stats.txt', sep=',', title='Stats')
-    >>> new = stats_table.joined(region_type, columns_self='Locus')
-    >>> print(new)
-    ============================================================
-        Locus    Region            Ratio    RegionClass_LargeCon
-    ------------------------------------------------------------
-    NP_004893       Con      121351.4264                    True
-    NP_005079       Con     9516594.9789                    True
-    NP_005500    NonCon           0.0000                   False
-    NP_055852    NonCon    10933217.7090                   False
-    ------------------------------------------------------------
+    rows = [
+        ["NP_004893", True],
+        ["NP_005079", True],
+        ["NP_005500", False],
+        ["NP_055852", False],
+    ]
+    region_type = make_table(header=["Locus", "LargeCon"], data=rows)
+    stats_table = load_table("data/stats.tsv")
+    new = stats_table.joined(region_type, columns_self="Locus")
+    new
 
-Exporting
-^^^^^^^^^
+.. note:: If the tables have titles, column names are prefixed with those instead of ``right_``.
 
-Writing delimited formats
-"""""""""""""""""""""""""
+.. note:: The ``joined()`` method is just a wrapper for the ``inner_join()`` and ``cross_join()`` (row cartesian product) methods, which you can use directly.
 
-.. doctest::
+Transpose a table
+=================
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> table.write('stats_tab.txt', sep='\t')
+.. jupyter-execute::
+    :linenos:
 
-Writing latex format
-""""""""""""""""""""
+    from cogent3 import make_table
+
+    header = ["#OTU ID", "14SK041", "14SK802"]
+    rows = [
+        [-2920, "332", 294],
+        [-1606, "302", 229],
+        [-393, 141, 125],
+        [-2109, 138, 120],
+    ]
+    table = make_table(header=header, rows=rows)
+    table
+
+We require a new column heading for the current header data. We also need to specify which existing column will become the header.
+
+.. jupyter-execute::
+    :linenos:
+
+    tp = table.transposed(new_column_name="sample", select_as_header="#OTU ID")
+    tp
+
+Specify markdown as the ``str()`` format
+========================================
+
+Using the method provides finer control over formatting.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv", format="md")
+    print(table)
+
+Specify latex as the ``str()`` format
+=====================================
+
+Using the method provides finer control over formatting.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv", format="tex")
+    print(table)
+
+Get a table as a markdown formatted string
+==========================================
+
+We use the ``justify`` argument to indicate the column justification.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    print(table.to_markdown(justify="ccr"))
+
+Get a table as a latex formatted string
+=======================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table(
+        "data/stats.tsv", title="Some stats.", legend="Derived from something."
+    )
+    print(table.to_latex(justify="ccr", label="tab:table1"))
+
+Get a table as a restructured text csv-table
+============================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table(
+        "data/stats.tsv", title="Some stats.", legend="Derived from something."
+    )
+    print(table.to_rst(csv_table=True))
+
+Get a table as a restructured text grid table
+=============================================
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table(
+        "data/stats.tsv", title="Some stats.", legend="Derived from something."
+    )
+    print(table.to_rst())
+
+Getting a latex format table with ``to_string()``
+=================================================
 
 It is also possible to specify column alignment, table caption and other arguments.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> table = load_table('stats.txt', sep=',')
-    >>> print(table.to_string(format='latex'))
-    \begin{table}[htp!]
-    \centering
-    \begin{tabular}{ r r r }
-    \hline
-    \bf{Locus} & \bf{Region} & \bf{Ratio} \\
-    \hline
-    \hline
-    NP_003077 &    Con &        2.5386 \\
-    NP_004893 &    Con &   121351.4264 \\
-    NP_005079 &    Con &  9516594.9789 \\
-    NP_005500 & NonCon &        0.0000 \\
-    NP_055852 & NonCon & 10933217.7090 \\
-    \hline
-    \end{tabular}
-    \end{table}
+    table = load_table("data/stats.tsv")
+    print(table.to_string(format="latex"))
 
-.. we remove the table data
+Getting a bedGraph format with ``to_string()``
+==============================================
 
-.. doctest::
-    :hide:
+This format allows display of annotation tracks on genome browsers. A small sample of a bigger table.
 
-    >>> import os
-    >>> os.remove('stats.txt')
-    >>> os.remove('stats_tab.txt')
+.. jupyter-execute::
+    :hide-code:
 
-Writing bedGraph format
-"""""""""""""""""""""""
+    rows = [
+        ["1", 100, 101, 1.123],
+        ["1", 101, 102, 1.123],
+        ["1", 102, 103, 1.123],
+        ["1", 103, 104, 1.123],
+        ["1", 104, 105, 1.123],
+        ["1", 105, 106, 1.123],
+        ["1", 106, 107, 1.123],
+        ["1", 107, 108, 1.123],
+        ["1", 108, 109, 1],
+        ["1", 109, 110, 1],
+        ["1", 110, 111, 1],
+        ["1", 111, 112, 1],
+        ["1", 112, 113, 1],
+        ["1", 113, 114, 1],
+        ["1", 114, 115, 1],
+        ["1", 115, 116, 1],
+        ["1", 116, 117, 1],
+        ["1", 117, 118, 1],
+        ["1", 118, 119, 2],
+        ["1", 119, 120, 2],
+        ["1", 120, 121, 2],
+        ["1", 150, 151, 2],
+        ["1", 151, 152, 2],
+        ["1", 152, 153, 2],
+        ["1", 153, 154, 2],
+        ["1", 154, 155, 2],
+        ["1", 155, 156, 2],
+        ["1", 156, 157, 2],
+        ["1", 157, 158, 2],
+        ["1", 158, 159, 2],
+        ["1", 159, 160, 2],
+        ["1", 160, 161, 2],
+    ]
+    bgraph = make_table(header=["chrom", "start", "end", "value"], rows=rows)
 
-This format allows display of annotation tracks on genome browsers.
+.. jupyter-execute::
+    :linenos:
 
-.. doctest::
-    :options: +NORMALIZE_WHITESPACE
+    bgraph.head()
 
-    >>> rows = [['1', 100, 101, 1.123], ['1', 101, 102, 1.123],
-    ...         ['1', 102, 103, 1.123], ['1', 103, 104, 1.123],
-    ...         ['1', 104, 105, 1.123], ['1', 105, 106, 1.123],
-    ...         ['1', 106, 107, 1.123], ['1', 107, 108, 1.123],
-    ...         ['1', 108, 109, 1], ['1', 109, 110, 1],
-    ...         ['1', 110, 111, 1], ['1', 111, 112, 1],
-    ...         ['1', 112, 113, 1], ['1', 113, 114, 1],
-    ...         ['1', 114, 115, 1], ['1', 115, 116, 1],
-    ...         ['1', 116, 117, 1], ['1', 117, 118, 1],
-    ...         ['1', 118, 119, 2], ['1', 119, 120, 2],
-    ...         ['1', 120, 121, 2], ['1', 150, 151, 2],
-    ...         ['1', 151, 152, 2], ['1', 152, 153, 2],
-    ...         ['1', 153, 154, 2], ['1', 154, 155, 2],
-    ...         ['1', 155, 156, 2], ['1', 156, 157, 2],
-    ...         ['1', 157, 158, 2], ['1', 158, 159, 2],
-    ...         ['1', 159, 160, 2], ['1', 160, 161, 2]]
-    ...
-    >>> bgraph = make_table(header=['chrom', 'start', 'end', 'value'],
-    ...                   rows=rows)
-    ...
-    >>> print(bgraph.to_string(format='bedgraph', name='test track',
-    ...     description='test of bedgraph', color=(255,0,0))) # doctest: +NORMALIZE_WHITESPACE
-    track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
-    1	100	108	1.12
-    1	108	118	1.00
-    1	118	161	2.00
+Then converted.
 
-    The bedgraph formatter defaults to rounding values to 2 decimal places. You can adjust that precision using the ``digits`` argument.
+.. jupyter-execute::
+    :linenos:
 
-.. doctest::
-    :options: +NORMALIZE_WHITESPACE
+    print(
+        bgraph.to_string(
+            format="bedgraph",
+            name="test track",
+            description="test of bedgraph",
+            color=(255, 0, 0),
+            digits=0,
+        )
+    )
 
-    >>> print(bgraph.to_string(format='bedgraph', name='test track',
-    ...   description='test of bedgraph', color=(255,0,0), digits=0)) # doctest: +NORMALIZE_WHITESPACE
-    track type=bedGraph name="test track" description="test of bedgraph" color=255,0,0
-    1	100	118	1.00
-    1	118	161	2.00
+Getting a table as html
+=======================
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3 import load_table
+
+    table = load_table("data/stats.tsv")
+    straight_html = table.to_rich_html(compact=True)
+
+We can provide customised formatting via a callback function.
+
+.. jupyter-execute::
+    :linenos:
+
+    def format_cell(value, row_num, col_num):
+        style = 'style="background: rgba(176, 245, 102, 0.25);"' if value else ""
+        return f"<td {style}>{value}</td>"
+
+    rich_html = table.to_rich_html(row_cell_func=format_cell, compact=False)
+
+Which produces the following...
+
+.. jupyter-execute::
+    :hide-code:
+
+    from IPython.core.display import HTML
+    HTML(rich_html)
+
+We could also use control html element format.
+
+.. jupyter-execute::
+    :linenos:
+
+    element_format = dict(thead=f'<thead style="background: rgba(0, 250, 0, 0.1);">')
+    rich_html = table.to_rich_html(element_formatters=element_format)
+
+Which produces the following...
+
+.. jupyter-execute::
+    :hide-code:
+
+    HTML(rich_html)
+
+What formats can be written?
+============================
+
+Appending any of the following to a filename will cause that format to be used for writing.
+
+.. jupyter-execute::
+    :linenos:
+
+    from cogent3.format.table import known_formats
+
+    known_formats
+
+Writing a latex formmated file
+==============================
+
+.. jupyter-execute::
+    :linenos:
+
+    table.write("stats_tab.tex", justify="ccr", label="tab:table1")
+
+Writing delimited formats
+=========================
+
+The delimiter can be specified explicitly using the ``sep`` argument or implicitly via the file name suffix.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = load_table("data/stats.tsv")
+    table.write("stats_tab.txt", sep="\t")
+
+..  cleanup
+
+.. jupyter-execute::
+    :hide-code:
+
+    import pathlib
+    
+    for name in ("stats_tab.txt", "stats_tab.tex"):
+        p = pathlib.Path(name)
+        if p.exists():
+            p.unlink()

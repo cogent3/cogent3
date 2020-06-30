@@ -1,3 +1,4 @@
+from collections import Counter, defaultdict
 from collections.abc import Mapping, MutableMapping
 
 import numpy
@@ -9,7 +10,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -144,6 +145,54 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = numpy.array(data, dtype=int)
         return data
 
+    def to_table(self, column_names=None, **kwargs):
+        """converts to Table
+
+        Parameters
+        ----------
+        column_names
+            the column name(s) for the key, defaults to "key". If a series, must
+            match dimensions of keys, e.g. for (a, b) keys, column_names=['A', 'B']
+            will result in a table with 3 columns ('A', 'B', 'count').
+        kwargs
+            passed to table constructor
+
+        Returns
+        -------
+        cogent3 Table instance
+        """
+        from cogent3.util.table import Table
+
+        if (
+            not column_names
+            or isinstance(column_names, str)
+            or not hasattr(column_names, "__len__")
+        ):
+            key = column_names if column_names is not None else "key"
+            data = {c[0]: c[1:] for c in zip([key, "count"], *list(self.items()))}
+            header = [key, "count"]
+            # if keys are tuples, construct the numpy array manually so the
+            # elements remain as tuples. numpy's object type casting converts
+            # these to lists otherwise
+            if type(next(iter(self))) == tuple:
+                num = len(data[key])
+                arr = numpy.empty(num, dtype=object)
+                for i in range(num):
+                    arr[i] = data[key][i]
+                data[key] = arr
+        else:
+            for key in self:
+                break
+            assert len(key) == len(column_names), "mismatched dimensions"
+            data = defaultdict(list)
+            for key, count in self.items():
+                for c, e in zip(column_names, key):
+                    data[c].append(e)
+                data["count"].append(count)
+            header = list(column_names) + ["count"]
+            data = dict(data)
+        return Table(header=header, data=data, **kwargs)
+
     @property
     def entropy(self):
         data = self.to_array()
@@ -153,6 +202,34 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
     def to_freqs(self):
         """returns dict of {key: val/total, ..}"""
         result = CategoryFreqs(self, total=self.sum)
+        return result
+
+    def count(self, indices):
+        """
+        Parameters
+        ----------
+        indices
+            select element(s) from a multi-element tuple keys, must be int or
+            series of ints
+
+        Returns
+        -------
+        CategoryCounter
+        """
+        if isinstance(indices, int):
+            indices = [indices]
+
+        counts = Counter()
+        for key in self:
+            try:
+                sub_key = tuple(key[i] for i in indices)
+                sub_key = sub_key[0] if len(sub_key) == 1 else sub_key
+            except IndexError:
+                msg = f"indices {indices} too big for key {key}"
+                raise IndexError(msg)
+            counts[sub_key] += self[key]
+
+        result = self.__class__(data=counts)
         return result
 
 
@@ -238,6 +315,8 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
 
 
 class NumberCounter(CategoryCounter):
+    """counts occurrences of numbers"""
+
     def __init__(self, data=None):
         super(NumberCounter, self).__init__(data=data)
 

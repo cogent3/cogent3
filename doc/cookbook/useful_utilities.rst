@@ -13,30 +13,37 @@ You have a function that you want to maximise/minimise. The parameters in your f
 
 We write a simple factory function that uses a provided value for omega to compute the squared deviation from an estimate, then use it to create our optimisable function.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> import numpy
-    >>> def DiffOmega(omega):
-    ...     def omega_from_S(S):
-    ...         omega_est = S/(1-numpy.e**(-1*S))
-    ...         return abs(omega-omega_est)**2
-    ...     return omega_from_S
-    >>> omega = 0.1
-    >>> f = DiffOmega(omega)
+    import numpy
+
+    def DiffOmega(omega):
+        def omega_from_S(S):
+            omega_est = S / (1 - numpy.e ** (-1 * S))
+            return abs(omega - omega_est) ** 2
+
+        return omega_from_S
+
+    omega = 0.1
+    f = DiffOmega(omega)
 
 We then import the minimise function and use it to minimise the function, obtaining the fit statistic and the associated estimate of S. Note that we provide lower and upper bounds (which are optional) and an initial guess for our parameter of interest (``S``).
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.maths.optimisers import minimise, maximise
-    >>> S = minimise(f,  # the function
-    ...     xinit=1.0, # the initial value
-    ...     bounds=(-100, 100), # [lower,upper] bounds for the parameter
-    ...     local=True, # just local optimisation, not Simulated Annealing
-    ...     show_progress=False)
-    >>> assert 0.0 <= f(S) < 1e-6
-    >>> print('S=%.4f' % S)
-    S=-3.6150
+    from cogent3.maths.optimisers import minimise, maximise
+
+    S = minimise(
+        f,  # the function
+        xinit=1.0,  # the initial value
+        bounds=(-100, 100),  # [lower,upper] bounds for the parameter
+        local=True,  # just local optimisation, not Simulated Annealing
+        show_progress=False,
+    )
+    assert 0.0 <= f(S) < 1e-6
+    print("S=%.4f" % S)
 
 The minimise and maximise functions can also handle multidimensional optimisations, just make xinit (and the bounds) lists rather than scalar values.
 
@@ -45,220 +52,261 @@ Miscellaneous functions
 
 .. index:: cogent3.util.misc
 
-Identity testing
-----------------
-
-Basic ``identity`` function to avoid having to test explicitly for None
-
-.. doctest::
-
-    >>> from cogent3.util.misc import identity
-    >>> my_var = None
-    >>> if identity(my_var):
-    ...   print("foo")
-    ... else:
-    ...   print("bar")
-    ...
-    bar
-
 Force a variable to be iterable
 -------------------------------
 
 This support method will force a variable to be an iterable, allowing you to guarantee that the variable will be safe for use in, say, a ``for`` loop.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
+    :raises: TypeError
 
-    >>> from cogent3.util.misc import iterable
-    >>> my_var = 10
-    >>> for i in my_var:
-    ...   print("will not work")
-    ...
-    Traceback (most recent call last):
-    TypeError: 'int' object is not iterable
-    >>> for i in iterable(my_var):
-    ...   print(i)
-    ...
-    10
+    from cogent3.util.misc import iterable
+
+    my_var = 10
+    for i in my_var:
+        print("will not work")
+
+    for i in iterable(my_var):
+        print(i)
 
 Curry a function
 ----------------
 
 curry(f,x)(y) = f(x,y) or = lambda y: f(x,y). This was modified from the Python Cookbook. Docstrings are also carried over.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import curry
-    >>> def foo(x,y):
-    ...   """Some function"""
-    ...   return x + y
-    ...
-    >>> bar = curry(foo, 5)
-    >>> print(bar.__doc__)
-     curry(foo,5)
-    == curried from foo ==
-     Some function
-    >>> bar(10)
-    15
+    from cogent3.util.misc import curry
+
+    def foo(x, y):
+        """Some function"""
+        return x + y
+
+    bar = curry(foo, 5)
+    print(bar.__doc__)
+    bar(10)
 
 Test to see if an object is iterable
 ------------------------------------
 
 Perform a simple test to see if an object supports iteration
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import is_iterable
-    >>> can_iter = [1,2,3,4]
-    >>> cannot_iter = 1.234
-    >>> is_iterable(can_iter)
-    True
-    >>> is_iterable(cannot_iter)
-    False
+    from cogent3.util.misc import is_iterable
+
+    can_iter = [1, 2, 3, 4]
+    cannot_iter = 1.234
+    is_iterable(can_iter)
+
+.. jupyter-execute::
+    :linenos:
+
+    is_iterable(cannot_iter)
 
 Test to see if an object is a single char
 -----------------------------------------
 
 Perform a simple test to see if an object is a single character
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import is_char
-    >>> class foo:
-    ...   pass
-    ...
-    >>> is_char('a')
-    True
-    >>> is_char('ab')
-    False
-    >>> is_char(foo())
-    False
+    from cogent3.util.misc import is_char
+
+    class foo:
+        pass
+
+    is_char("a")
+
+.. jupyter-execute::
+    :linenos:
+
+    is_char("ab")
+
+.. jupyter-execute::
+    :linenos:
+
+    is_char(foo())
 
 Flatten a deeply nested iterable
 --------------------------------
 
 To flatten a deeply nested iterable, use ``recursive_flatten``. This method supports multiple levels of nesting, and multiple iterable types
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import recursive_flatten
-    >>> l = [[[[1,2], 'abcde'], [5,6]], [7,8], [9,10]]
-    >>> recursive_flatten(l)
-    [1, 2, 'a', 'b', 'c', 'd', 'e', 5, 6, 7, 8, 9, 10]
+    from cogent3.util.misc import recursive_flatten
+
+    l = [[[[1, 2], "abcde"], [5, 6]], [7, 8], [9, 10]]
+
+.. jupyter-execute::
+    :linenos:
+
+    recursive_flatten(l)
 
 Test to determine if ``list`` of ``tuple``
 ------------------------------------------
 
 Perform a simple check to see if an object is not a list or a tuple
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import not_list_tuple
-    >>> not_list_tuple(1)
-    True
-    >>> not_list_tuple([1])
-    False
-    >>> not_list_tuple('ab')
-    True
+    from cogent3.util.misc import not_list_tuple
+
+    not_list_tuple(1)
+
+.. jupyter-execute::
+    :linenos:
+
+    not_list_tuple([1])
+
+.. jupyter-execute::
+    :linenos:
+
+    not_list_tuple("ab")
 
 Create a case-insensitive iterable
 ----------------------------------
 
 Create a case-insensitive object, for instance, if you want the key 'a' and 'A' to point to the same item in a dict
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import add_lowercase
-    >>> d = {'A':5,'B':6,'C':7,'foo':8,42:'life'}
-    >>> add_lowercase(d)  # doctest: +SKIP
-    {'A': 5, 'a': 5, 'C': 7, 'B': 6, 42: 'life', 'c': 7, 'b': 6, 'foo': 8}
+    from cogent3.util.misc import add_lowercase
+
+    d = {"A": 5, "B": 6, "C": 7, "foo": 8, 42: "life"}
+    add_lowercase(d)
 
 Construct a distance matrix lookup function
 -------------------------------------------
 
 Automatically construct a distance matrix lookup function. This is useful for maintaining flexibility about whether a function is being computed or if a lookup is being used
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import DistanceFromMatrix
-    >>> from numpy import array
-    >>> m = array([[1,2,3],[4,5,6],[7,8,9]])
-    >>> f = DistanceFromMatrix(m)
-    >>> f(0,0)
-    1
-    >>> f(1,2)
-    6
+    from cogent3.util.misc import DistanceFromMatrix
+    from numpy import array
+
+    m = array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    f = DistanceFromMatrix(m)
+    f(0, 0)
+
+.. jupyter-execute::
+    :linenos:
+
+    f(1, 2)
 
 Check class types
 -----------------
 
 Check an object against base classes or derived classes to see if it is acceptable
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import ClassChecker
-    >>> class not_okay(object):
-    ...   pass
-    ...
-    >>> no = not_okay()
-    >>> class okay(object):
-    ...   pass
-    ...
-    >>> o = okay()
-    >>> class my_dict(dict):
-    ...   pass
-    ...
-    >>> md = my_dict()
-    >>> cc = ClassChecker(str, okay, dict)
-    >>> o in cc
-    True
-    >>> no in cc
-    False
-    >>> 5 in cc
-    False
-    >>> {'a':5} in cc
-    True
-    >>> 'asasas' in cc
-    True
-    >>> md in cc
-    True
+    from cogent3.util.misc import ClassChecker
+
+    class not_okay(object):
+        pass
+
+    no = not_okay()
+
+    class okay(object):
+        pass
+
+    o = okay()
+
+    class my_dict(dict):
+        pass
+
+    md = my_dict()
+    cc = ClassChecker(str, okay, dict)
+    o in cc
+
+.. jupyter-execute::
+    :linenos:
+
+    no in cc
+
+.. jupyter-execute::
+    :linenos:
+
+    5 in cc
+
+.. jupyter-execute::
+    :linenos:
+
+    {"a": 5} in cc
+
+.. jupyter-execute::
+    :linenos:
+
+    "asasas" in cc
+
+.. jupyter-execute::
+    :linenos:
+
+    md in cc
 
 Delegate to a separate object
 -----------------------------
 
 Delegate object method calls, properties and variables to the appropriate object. Useful to combine multiple objects together while assuring that the calls will go to the correct object.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import Delegator
-    >>> class ListAndString(list, Delegator):
-    ...   def __init__(self, items, string):
-    ...     Delegator.__init__(self, string)
-    ...     for i in items:
-    ...       self.append(i)
-    ...
-    >>> ls = ListAndString([1,2,3], 'ab_cd')
-    >>> len(ls)
-    3
-    >>> ls[0]
-    1
-    >>> ls.upper()
-    'AB_CD'
-    >>> ls.split('_')
-    ['ab', 'cd']
+    from cogent3.util.misc import Delegator
+
+    class ListAndString(list, Delegator):
+        def __init__(self, items, string):
+            Delegator.__init__(self, string)
+            for i in items:
+                self.append(i)
+
+    ls = ListAndString([1, 2, 3], "ab_cd")
+    len(ls)
+
+.. jupyter-execute::
+    :linenos:
+
+    ls[0]
+
+.. jupyter-execute::
+    :linenos:
+
+    ls.upper()
+
+.. jupyter-execute::
+    :linenos:
+
+    ls.split("_")
 
 Wrap a function to hide from a class
 ------------------------------------
 
 Wrap a function to hide it from a class so that it isn't a method.
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import FunctionWrapper
-    >>> f = FunctionWrapper(str)
-    >>> f
-    <cogent3.util.misc.FunctionWrapper object at ...
-    >>> f(123)
-    '123'
+    from cogent3.util.misc import FunctionWrapper
+
+    f = FunctionWrapper(str)
+    f
+
+.. jupyter-execute::
+    :linenos:
+
+    f(123)
 
 Construct a constrained container
 ---------------------------------
@@ -267,13 +315,16 @@ Wrap a container with a constraint. This is useful for enforcing that the data c
 
 Here is a light example of the ``ConstrainedDict``
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.util.misc import ConstrainedDict
-    >>> d = ConstrainedDict({'a':1,'b':2,'c':3}, constraint='abc')
-    >>> d  # doctest: +SKIP
-    {'a': 1, 'c': 3, 'b': 2}
-    >>> d['d'] = 5
-    Traceback (most recent call last):
-    cogent3.util.misc.ConstraintError: Item 'd' not in constraint 'abc'
+    from cogent3.util.misc import ConstrainedDict
 
+    d = ConstrainedDict({"a": 1, "b": 2, "c": 3}, constraint="abc")
+    d
+
+.. jupyter-execute::
+    :linenos:
+    :raises: ConstraintError
+
+    d["d"] = 5

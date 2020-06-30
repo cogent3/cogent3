@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -99,24 +99,6 @@ class TestUtilFunctions(TestCase):
         expect_y = [0, 8, None, 0, 10, None, 2, 10, None, 2, 8]
         self.assertEqual(traces[0].x, expect_x)
         self.assertEqual(traces[0].y, expect_y)
-
-    def test_remove_trace(self):
-        """correctly removes a trace"""
-        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", is_aligned=True, window=5)
-        expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7, 9]
-        self.assertEqual(dp._aligned_coords, expect)
-        dp._build_fig()
-        traces = dp.traces
-        self.assertEqual(len(traces), 2)
-        _ = dp.pop_trace("Alignment")
-        self.assertEqual(len(traces), 1)
-        self.assertEqual(traces[0].name, "+ strand")
-
-        dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", is_aligned=True, window=5)
-        dp._build_fig()
-        dp.remove_traces("Alignment")
-        self.assertEqual(len(dp.traces), 1)
-        self.assertEqual(dp.traces[0].name, "+ strand")
 
     def test_align_without_gaps(self):
         """dotplot has alignment coordinates if no gaps"""

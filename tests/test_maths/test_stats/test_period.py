@@ -10,7 +10,6 @@ from cogent3.maths.period import (
 )
 from cogent3.maths.stats.period import (
     SeqToSymbols,
-    _seq_to_symbols,
     blockwise_bootstrap,
     chi_square,
     circular_indices,
@@ -25,7 +24,7 @@ __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -215,7 +214,7 @@ class TestPeriodStat(TestCase):
     def test_seq_to_symbol(self):
         """both py and pyx seq_to_symbol versions correctly convert a sequence"""
         motifs = [b"AA", b"AT", b"TT"]
-        symbols = _seq_to_symbols(b"AATGGTTA", motifs, 2)
+        symbols = seq_to_symbols(b"AATGGTTA", motifs, 2)
         self.assertEqual(symbols, numpy.array([1, 1, 0, 0, 0, 1, 0, 0]))
         symbols = seq_to_symbols(b"AAGATT", motifs, 2, numpy.zeros(6, numpy.uint8))
         self.assertEqual(symbols, numpy.array([1, 0, 0, 1, 1, 0]))

@@ -1,36 +1,82 @@
-.. _contents:
-
-.. warning::
-
-    We will soon stop using Read The Docs for our latest documentation. Please check the cogent3_ github page for the up-to-date link!
+#############
+Documentation
+#############
 
 
-####################
-``cogent3`` Overview
-####################
+cogent3_ is a software library for genomic biology. It is a comprehensive framework for manipulation of genomic sequence data and for conducting molecular evolutionary analyses. It is distinguished by many unique built-in capabilities. Of particular note are our non-stationary Markov substitution models. These include `non-stationary nucleotide <https://www.ncbi.nlm.nih.gov/pubmed/25503772>`_, and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ models. 
 
-cogent3_ is a software library for genomic biology. It is a comprehensive framework for manipulation of genomic sequence data and for conducting molecular evolutionary analyses. It is distinguished by many unique built-in capabilities. Of particular note are our non-stationary Markov substitution models. These include `non-stationary nucleotide <https://www.ncbi.nlm.nih.gov/pubmed/25503772>`_,
+.. dropdown:: Click to see an animation showing testing a hypothesis involving a non-stationary nucleotide process.
 
-.. raw:: html
+    .. raw:: html
 
-    <object type="image/svg+xml" data="./_static/svg/demo_fit_ns.svg"></object>
+        <object type="image/gif" data="../_static/gif/demo-fit-ns.gif" style="height: 400px; width: auto;"></object>
 
-and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ models. Plus, the ability to manipulate biological sequences by their annotations.
+Plus, the ability to manipulate biological sequences by their annotations.
 
-.. raw:: html
+.. dropdown:: Click to see an animation showing defining and using sequence annotations.
 
-    <object type="image/svg+xml" data="./_static/svg/annotate_domain.svg"></object>
+    .. raw:: html
 
-.. toctree::
-    :hidden:
-    :maxdepth: 2
+        <object type="image/gif" data="../_static/gif/demo-annotate.gif" style="height: 400px; width: auto;"></object>
+
+.. panels::
+    :header: bg-primary
+    :footer: text-right
     
-    warning
-    install
-    app/index
-    draw/index
-    library
-    licenses
-    general
+    ---
 
-.. _cogent3: https://github.com/cogent3/cogent3
+    ``cogent3`` apps
+    ^^^^^^^^^^^^^^^^
+    
+    ``cogent3`` comes with pre-defined "apps" that simplify otherwise complex tasks. They provide capabilities that can be used by themselves, or added together to define a pipeline. They also simplify parallel execution of pipelines.
+
+    +++++++++++
+
+    .. link-button:: app/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
+
+    ---
+
+    Cookbook
+    ^^^^^^^^
+
+    The cookbook presents short code recipes targeted at specific problems.
+
+    +++++++++++
+
+    .. link-button:: cookbook/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
+
+    ---
+
+    Tutorials
+    ^^^^^^^^^
+
+    The tutorials present code for solving more extensive problems.
+    
+    +++++++++++
+
+    .. link-button:: examples/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
+
+    ---
+
+    API
+    ^^^
+
+    The API for major ``cogent3`` objects
+    
+    +++++++++++
+
+    .. link-button:: api/index
+        :type: ref
+        :text: …
+        :classes: stretched-link
+
+.. _cogent3: https://cogent3.org

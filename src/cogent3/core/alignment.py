@@ -71,6 +71,7 @@ from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     bytes_to_string,
     extend_docstring_from,
+    get_format_suffixes,
     get_object_provenance,
 )
 from cogent3.util.union_dict import UnionDict
@@ -90,12 +91,10 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.6.30a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
-
-_compression = re.compile(r"\.(gz|bz2)$")
 
 
 class DataError(Exception):
@@ -1251,13 +1250,9 @@ class _SequenceCollectionBase:
         for seq_name in self.names:
             align_dict[seq_name] = str(self.named_seqs[seq_name])
 
-        if format is None and "." in filename:
-            # allow extension to work if provided
-            r = _compression.search(filename)
-            if r:
-                format = filename[: r.start()].split(".")[-1]
-            else:
-                format = filename.split(".")[-1]
+        suffix, cmp_suffix = get_format_suffixes(filename)
+        if format is None and suffix:
+            format = suffix
 
         if "order" not in kwargs:
             kwargs["order"] = self.names
@@ -2920,8 +2915,8 @@ class AlignmentI(object):
 
         text = [
             "<style>",
-            "tr { line-height: %dpt ; }" % int(font_size / 4),
-            ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
+            # "tr { line-height: %dpt ; }" % int(font_size / 4),
+            # ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
             "td { border: none !important; text-align: left !important; }",
             ".label { font-size: %dpt ; text-align: right !important; "
             "color: black !important; }" % font_size,

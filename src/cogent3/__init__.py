@@ -38,10 +38,11 @@ from cogent3.evolve.fast_distance import (
 from cogent3.evolve.models import available_models, get_model
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import FromFilenameParser
-from cogent3.parse.table import autogen_reader, load_delimited
+from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.misc import get_format_suffixes, open_
 from cogent3.util.table import Table as _Table
+from cogent3.util.table import cast_str_to_array
 
 
 __author__ = ""
@@ -69,7 +70,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -292,19 +293,20 @@ def load_aligned_seqs(
 
 def make_table(
     header=None,
-    rows=None,
+    data=None,
     row_order=None,
     digits=4,
     space=4,
     title="",
     max_width=1e100,
-    row_ids=None,
+    index=None,
     legend="",
     missing_data="",
     column_templates=None,
     dtype=None,
     data_frame=None,
     format="simple",
+    **kwargs,
 ):
     """
 
@@ -312,7 +314,7 @@ def make_table(
     ----------
     header
         column headings
-    rows
+    data
         a 2D dict, list or tuple. If a dict, it must have column
         headings as top level keys, and common row labels as keys in each
         column.
@@ -326,7 +328,7 @@ def make_table(
         as implied
     max_width
         maximum column width for printing
-    row_ids
+    index
         if True, the 0'th column is used as row identifiers and keys
         for slicing.
     legend
@@ -345,9 +347,18 @@ def make_table(
         output format when using str(Table)
 
     """
+    data = kwargs.get("rows", data)
+    if data_frame is not None:
+        from pandas import DataFrame
+
+        if not isinstance(data_frame, DataFrame):
+            raise TypeError(f"expecting a DataFrame, got{type(data_frame)}")
+
+        data = {c: data_frame[c].to_numpy() for c in data_frame}
+
     table = _Table(
         header=header,
-        rows=rows,
+        data=data,
         digits=digits,
         row_order=row_order,
         title=title,
@@ -356,7 +367,7 @@ def make_table(
         space=space,
         missing_data=missing_data,
         max_width=max_width,
-        row_ids=row_ids,
+        index=index,
         legend=legend,
         data_frame=data_frame,
         format=format,
@@ -374,13 +385,14 @@ def load_table(
     title="",
     missing_data="",
     max_width=1e100,
-    row_ids=None,
+    index=None,
     legend="",
     column_templates=None,
     dtype=None,
     static_column_types=False,
     limit=None,
     format="simple",
+    skip_inconsistent=False,
     **kwargs,
 ):
     """
@@ -417,7 +429,7 @@ def load_table(
         character assigned if a row has no entry for a column
     max_width
         maximum column width for printing
-    row_ids
+    index
         if True, the 0'th column is used as row identifiers and keys
         for slicing.
     legend
@@ -434,18 +446,22 @@ def load_table(
         a pandas DataFrame, supersedes header/rows
     format
         output format when using str(Table)
-
+    skip_inconsistent
+        skips rows that have different length to header row
     """
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
 
-    if not (reader or static_column_types):
-        if file_format == "pickle":
-            f = open_(filename, mode="rb")
-            loaded_table = pickle.load(f)
-            f.close()
-            return _Table(**loaded_table)
-        elif file_format == "csv":
+    if file_format in ("pickle", "pkl"):
+        f = open_(filename, mode="rb")
+        loaded_table = pickle.load(f)
+        f.close()
+        r = _Table()
+        r.__setstate__(loaded_table)
+        return r
+
+    if not reader:
+        if file_format == "csv":
             sep = sep or ","
         elif file_format == "tsv":
             sep = sep or "\t"
@@ -453,29 +469,30 @@ def load_table(
         header, rows, loaded_title, legend = load_delimited(
             filename, delimiter=sep, limit=limit, **kwargs
         )
+        if skip_inconsistent:
+            num_fields = len(header)
+            rows = [r for r in rows if len(r) == num_fields]
+        else:
+            lengths = set(map(len, [header] + rows))
+            if len(lengths) != 1:
+                msg = f"inconsistent number of fields {lengths}"
+                raise ValueError(msg)
+
         title = title or loaded_title
+        data = {column[0]: column[1:] for column in zip(header, *rows)}
     else:
         f = open_(filename, newline=None)
-        if not reader:
-            if file_format == "csv":
-                sep = sep or ","
-            elif file_format == "tsv":
-                sep = sep or "\t"
-            elif not sep:
-                raise ValueError(
-                    "static_column_types option requires a value " "for sep"
-                )
-
-            reader = autogen_reader(
-                f, sep, limit=limit, with_title=kwargs.get("with_title", False)
-            )
-
-        rows = [row for row in reader(f)]
+        data = [row for row in reader(f)]
+        header = data[0]
+        data = {column[0]: column[1:] for column in zip(*data)}
         f.close()
-        header = rows.pop(0)
+
+    for key, value in data.items():
+        data[key] = cast_str_to_array(value, static_type=static_column_types)
+
     return make_table(
         header=header,
-        rows=rows,
+        data=data,
         digits=digits,
         title=title,
         dtype=dtype,
@@ -483,12 +500,10 @@ def load_table(
         space=space,
         missing_data=missing_data,
         max_width=max_width,
-        row_ids=row_ids,
+        index=index,
         legend=legend,
         format=format,
     )
-
-    return table
 
 
 def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=False):

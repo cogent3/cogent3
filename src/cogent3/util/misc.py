@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
+import re
 import zipfile
 
 from bz2 import open as bzip_open
@@ -11,6 +12,8 @@ from pathlib import Path
 from random import choice, randint
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
+
+import numpy
 
 from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
 
@@ -28,7 +31,7 @@ __credits__ = [
     "Marcin Cieslik",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -127,30 +130,49 @@ def bytes_to_string(data):
 
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
-    op = {"gz": gzip_open, "bz2": bzip_open}.get(filename.split(".")[-1], open)
+    filename = Path(filename).expanduser().absolute()
+    op = {".gz": gzip_open, ".bz2": bzip_open}.get(filename.suffix, open)
     return op(filename, mode, **kwargs)
 
 
 class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
-    def __init__(self, path, tmpdir=".", in_zip=None, mode="w"):
+    def __init__(self, path, tmpdir=None, in_zip=None, mode="w"):
         self._path = path
         self._mode = mode
         self._file = None
         self._in_zip = in_zip
-        self._tmpdir = tmpdir
         self.succeeded = None
         self._close_func = (
             self._close_rename_zip if in_zip else self._close_rename_standard
         )
+        if tmpdir is None:
+            tmpdir = self._get_tmp_dir()
+        self._tmpdir = tmpdir
+
+    def _get_tmp_dir(self):
+        """returns parent of destination file"""
+        if self._in_zip:
+            parent = Path(self._in_zip).parent
+        else:
+            parent = Path(self._path).parent
+        if not parent.exists():
+            raise FileNotFoundError(f"{parent} directory does not exist")
+        return parent
 
     def __enter__(self):
         self._file = NamedTemporaryFile(self._mode, delete=False, dir=self._tmpdir)
         return self._file
 
     def _close_rename_standard(self, p):
-        p.rename(self._path)
+        try:
+            f = Path(self._path)
+            f.unlink()
+        except FileNotFoundError:
+            pass
+        finally:
+            p.rename(self._path)
 
     def _close_rename_zip(self, p):
         with zipfile.ZipFile(self._in_zip, "a") as out:
@@ -169,103 +191,29 @@ class atomic_write:
             p.unlink()
 
 
+_wout_period = re.compile(r"^\.")
+
+
 def get_format_suffixes(filename):
     """returns compression and/or file suffixes"""
-    if "." not in filename:
+    filename = Path(filename)
+    if not filename.suffix:
         return None, None
 
     compression_suffixes = ("bz2", "gz", "zip")
-    filename = filename.split(".")
-    suffixes = filename[1:] if len(filename) == 2 else filename[-2:]
+    suffixes = [_wout_period.sub("", sfx) for sfx in filename.suffixes[-2:]]
     if suffixes[-1] in compression_suffixes:
-        cmp_suffix = suffixes.pop(-1)
+        cmp_suffix = filename.suffix[1:]
     else:
         cmp_suffix = None
 
-    if suffixes:
+    if len(suffixes) == 2 and cmp_suffix is not None:
+        suffix = suffixes[0]
+    elif cmp_suffix is None:
         suffix = suffixes[-1]
     else:
         suffix = None
     return suffix, cmp_suffix
-
-
-class FilePath(str):
-    """ Hold paths for proper handling
-
-        Paths in this sense are filenames, directory paths, or filepaths.
-        Some examples include:
-         file.txt
-         ./path/to/file.txt
-         ./path/to/dir/
-         /path/to/file.txt
-         .
-         /
-
-        The purpose of this class is to allow all paths to be handled the
-         same since they sometimes need to be treated differently than
-         simple strings. For example, if a path has a space in it, and it
-         is being passed to system, it needs to be wrapped in quotes. But,
-         you wouldn't want it as a string wrapped in quotes b/c, e.g.,
-         isabs('"/absolute/path"') == False, b/c the first char is a ", not
-         a /.
-
-        * This would make more sense to call Path, but that conflicts with
-            the ResultPath.Path attribute. I'm not sure what to do about this
-            and want to see what others think. Once finalized, a global
-            replace should take care of making the switch.
-
-    """
-
-    def __new__(cls, path):
-        try:
-            return str.__new__(cls, path.strip('"'))
-        except AttributeError:
-            return str.__new__(cls, "")
-
-    def __str__(self):
-        """ wrap self in quotes, or return the empty string if self == '' """
-        if self == "":
-            return ""
-        return "".join(['"', self, '"'])
-
-    def __add__(self, other):
-        return FilePath("".join([self, other]))
-
-
-def get_tmp_filename(
-    tmp_dir=gettempdir(), prefix="tmp", suffix=".txt", result_constructor=FilePath
-):
-    """ Generate a temporary filename and return as a FilePath object
-
-        tmp_dir: the directory to house the tmp_filename (default: '/tmp')
-        prefix: string to append to beginning of filename (default: 'tmp')
-            Note: It is very useful to have prefix be descriptive of the
-            process which is creating the temporary file. For example, if
-            your temp file will be used to build a temporary blast database,
-            you might pass prefix=TempBlastDB
-        suffix: the suffix to be appended to the temp filename (default '.txt')
-        result_constructor: the constructor used to build the result filename
-            (default: cogent3.app.parameters.FilePath). Note that joining
-            FilePath objects with one another or with strings, you must use
-            the + operator. If this causes trouble, you can pass str as the
-            the result_constructor.
-    """
-    # check not none
-    if not tmp_dir:
-        tmp_dir = ""
-    # if not current directory, append "/" if not already on path
-    elif not tmp_dir.endswith("/"):
-        tmp_dir += "/"
-
-    chars = "abcdefghigklmnopqrstuvwxyz"
-    picks = chars + chars.upper() + "0123456790"
-    return (
-        result_constructor(tmp_dir)
-        + result_constructor(prefix)
-        + result_constructor(
-            "%s%s" % ("".join([choice(picks) for i in range(20)]), suffix)
-        )
-    )
 
 
 def iterable(item):
@@ -1137,3 +1085,9 @@ def extend_docstring_from(source, pre=False):
         return dest
 
     return docstring_inheriting_decorator
+
+
+def ascontiguousarray(source_array, dtype=None):
+    if source_array is not None:
+        return numpy.ascontiguousarray(source_array, dtype=dtype)
+    return source_array

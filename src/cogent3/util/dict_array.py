@@ -35,7 +35,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -364,10 +364,11 @@ class DictArrayTemplate(object):
         elif len(a.shape) == 2:
             heading = [""] + [str(n) for n in self.names[1]]
             a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
+            a = {d[0]: d[1:] for d in zip(heading, *a)}
         else:
             return "%s dimensional %s" % (len(self.names), type(self).__name__)
-        row_ids = len(self.names) == 2
-        t = Table(heading, rows=a, digits=3, row_ids=row_ids, max_width=80)
+
+        t = Table(heading, data=a, digits=3, index=heading[0], max_width=80)
         return t._repr_html_(include_shape=False)
 
 
@@ -544,8 +545,12 @@ class DictArray(object):
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
         """
-        if format.lower() in ("tsv", "csv"):
-            sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
+        if format.lower() not in ("tsv", "csv"):
+            msg = f"'{format}' not supported"
+            raise ValueError(msg)
+
+        sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
+
         data = self.to_dict(flatten=True)
         rows = [[f"dim-{i + 1}" for i in range(self.array.ndim)] + ["value"]] + [
             list(map(lambda x: str(x), row))
@@ -553,7 +558,7 @@ class DictArray(object):
         ]
         return "\n".join([sep.join(row) for row in rows])
 
-    def write(self, path, format="", sep="\t"):
+    def write(self, path, format="tsv", sep="\t"):
         """
         writes a flattened version to path
         Parameters

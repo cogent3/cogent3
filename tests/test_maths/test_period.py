@@ -4,30 +4,17 @@ from cogent3.maths.period import _autocorr_inner2 as py_autocorr_inner
 from cogent3.maths.period import _goertzel_inner as py_goertzel_inner
 from cogent3.maths.period import _ipdft_inner2 as py_ipdft_inner
 from cogent3.maths.period import auto_corr, dft, goertzel, hybrid, ipdft
+from cogent3.maths.period_numba import autocorr_inner as numba_autocorr_inner
+from cogent3.maths.period_numba import goertzel_inner as numba_goertzel_inner
+from cogent3.maths.period_numba import ipdft_inner as numba_ipdft_inner
 from cogent3.util.unit_test import TestCase, main
-
-
-# because we'll be comparing python and pyrexed implementations of the same
-# algorithms I'm separating out those imports to make it clear
-
-
-try:
-    from cogent3.maths._period import (
-        ipdft_inner as pyx_ipdft_inner,
-        goertzel_inner as pyx_goertzel_inner,
-        autocorr_inner as pyx_autocorr_inner,
-    )
-
-    pyrex_available = True
-except ImportError:
-    pyrex_available = False
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -44,8 +31,6 @@ class TestPeriod(TestCase):
 
     def test_inner_funcs(self):
         """python and pyrexed implementation should be the same"""
-        if pyrex_available is not True:
-            return
         x = array(
             [
                 0.04874203,
@@ -153,7 +138,7 @@ class TestPeriod(TestCase):
         N = 100
         period = 10
         self.assertFloatEqual(
-            py_goertzel_inner(x, N, period), pyx_goertzel_inner(x, N, period)
+            py_goertzel_inner(x, N, period), numba_goertzel_inner(x, N, period)
         )
 
         ulim = 8
@@ -173,8 +158,8 @@ class TestPeriod(TestCase):
             ]
         )
         py_result = py_ipdft_inner(x, X, W, ulim, N)
-        pyx_result = pyx_ipdft_inner(x, X, W, ulim, N)
-        for i, j in zip(py_result, pyx_result):
+        numba_result = numba_ipdft_inner(x, X, W, ulim, N)
+        for i, j in zip(py_result, numba_result):
             self.assertFloatEqual(abs(i), abs(j))
 
         x = array(
@@ -282,11 +267,11 @@ class TestPeriod(TestCase):
             ]
         )
         py_xc = zeros(2 * len(x) - 1, dtype=float64)
-        pyx_xc = py_xc.copy()
+        numba_xc = py_xc.copy()
         N = 100
         py_autocorr_inner(x, py_xc, N)
-        pyx_autocorr_inner(x, pyx_xc, N)
-        for i, j in zip(py_xc, pyx_xc):
+        numba_autocorr_inner(x, numba_xc, N)
+        for i, j in zip(py_xc, numba_xc):
             self.assertFloatEqual(i, j)
 
     def test_autocorr(self):

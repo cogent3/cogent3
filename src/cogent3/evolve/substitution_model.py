@@ -79,7 +79,7 @@ __contributors__ = [
     "Von Bing Yap",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -783,7 +783,11 @@ class Parametric(_ContinuousSubstitutionModel):
             title = "rate matrix"
 
         t = Table(
-            header=labels, rows=rows, max_width=max_width, title=title, row_ids=True
+            header=labels,
+            data=rows,
+            max_width=max_width,
+            title=title,
+            index=r"From\To",
         )
         result = t if return_table else t.to_string(center=True)
         return result

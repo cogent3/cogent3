@@ -13,7 +13,7 @@ from cogent3.align.align import (
     make_dna_scoring_dict,
     make_generic_scoring_dict,
 )
-from cogent3.evolve.models import HKY85
+from cogent3.evolve.models import HKY85, get_model
 
 
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
@@ -25,7 +25,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -145,9 +145,8 @@ class MultipleAlignmentTestCase(unittest.TestCase):
     ):
         kw["indel_rate"] = indel_rate
         kw["indel_length"] = indel_length
-        seqs = dict((key, DNA.make_seq(value)) for (key, value) in list(orig.items()))
+        seqs = {key: DNA.make_seq(value) for (key, value) in list(orig.items())}
         if len(seqs) == 2:
-            tree = cogent3.make_tree(tip_names=list(seqs.keys()))
             tree = cogent3.make_tree(treestring="(A:.1,B:.1)")
         else:
             tree = cogent3.make_tree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
@@ -157,11 +156,16 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         return aln
 
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
-        orig = dict((n, s.replace("-", "")) for (n, s) in list(seqs.items()))
+
+        orig = {n: s.replace("-", "") for (n, s) in list(seqs.items())}
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
-        result = dict((n, s.lower()) for (n, s) in list(aln.to_dict().items()))
+        result = {n: s.lower() for (n, s) in list(aln.to_dict().items())}
         # assert the alignment result is correct
         self.assertEqual(seqs, result)
+        # and the moltype matches the model
+        model = get_model(model)
+        self.assertIs(aln.moltype, model.moltype)
+
         # assert the returned alignment has the correct parameter values in the
         # align.info object.
         if param_vals:
@@ -170,6 +174,13 @@ class MultipleAlignmentTestCase(unittest.TestCase):
 
     def test_progressive1(self):
         """test progressive alignment, gaps in middle"""
+        self._test_aln(
+            {"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"},
+            model="F81",
+        )
+
+    def test_progessive_model_name(self):
+        """TreeAlign handles models specified by name"""
         self._test_aln({"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"})
 
     def test_progressive_est_tree(self):

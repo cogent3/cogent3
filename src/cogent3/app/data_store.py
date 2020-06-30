@@ -14,7 +14,6 @@ from pathlib import Path
 from pprint import pprint
 from warnings import warn
 
-from scitrack import get_text_hexdigest
 from tinydb import Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
@@ -28,13 +27,14 @@ from cogent3.util.misc import (
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
+from scitrack import get_text_hexdigest
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -126,6 +126,7 @@ class ReadOnlyDataStoreBase:
         d = locals()
         self._persistent = UnionDict({k: v for k, v in d.items() if k != "self"})
 
+        source = str(source)
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
@@ -841,7 +842,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ]
             rows.append(row)
 
-        table = Table(header=header, rows=rows, title="incomplete records")
+        table = Table(header=header, data=rows, title="incomplete records")
         return table
 
     @property
@@ -926,8 +927,18 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             data = record.read().splitlines()
             first = data.pop(0).split("\t")
             row = [first[0], record.name]
-            data = [r.split("\t")[-1].split(" : ", maxsplit=1) for r in data]
-            data = dict(data)
+            key = None
+            mapped = {}
+            for line in data:
+                line = line.split("\t")[-1].split(" : ", maxsplit=1)
+                if len(line) == 1:
+                    mapped[key] += line[0]
+                    continue
+
+                key = line[0]
+                mapped[key] = line[1]
+
+            data = mapped
             row.extend(
                 [
                     data["python"],
@@ -939,7 +950,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             rows.append(row)
         table = Table(
             header=["time", "name", "python version", "who", "command", "composable"],
-            rows=rows,
+            data=rows,
             title="summary of log files",
         )
         return table
@@ -959,7 +970,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         num_logs = len(self.logs)
         summary = Table(
             header=["record type", "number"],
-            rows=[
+            data=[
                 ["completed", num_complete],
                 ["incomplete", num_incomplete],
                 ["logs", num_logs],
@@ -972,7 +983,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
     def __init__(self, *args, **kwargs):
         if_exists = kwargs.pop("if_exists", RAISE)
-        create = kwargs.pop("create", None)
+        create = kwargs.pop("create", True)
         ReadOnlyTinyDbDataStore.__init__(self, *args, **kwargs)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 

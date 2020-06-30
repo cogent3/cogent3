@@ -1,11 +1,10 @@
 import json
 import os
+import pathlib
 import zipfile
 
 import numpy
 
-from cogent3 import load_aligned_seqs as _load_aligned_seqs
-from cogent3 import load_unaligned_seqs as _load_unaligned_seqs
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
 from cogent3.core.profile import (
@@ -15,10 +14,9 @@ from cogent3.core.profile import (
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
-from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.table import Table, convert2DDict
+from cogent3.util.table import Table
 
 from .composable import (
     ALIGNED_TYPE,
@@ -53,7 +51,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -95,19 +93,21 @@ def get_data_store(base_path, suffix=None, limit=None, verbose=False):
     -------
     ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
     """
-    if base_path.endswith("tinydb"):
+    base_path = pathlib.Path(base_path)
+    base_path = base_path.expanduser().absolute()
+    if base_path.suffix == ".tinydb":
         suffix = "json"
 
     if suffix is None:
         raise ValueError("suffix required")
 
-    if not os.path.exists(base_path):
+    if not base_path.exists():
         raise ValueError(f"'{base_path}' does not exist")
     if not type(suffix) == str:
         raise ValueError(f"{suffix} is not a string")
 
     zipped = zipfile.is_zipfile(base_path)
-    if base_path.endswith("tinydb"):
+    if base_path.suffix == ".tinydb":
         klass = ReadOnlyTinyDbDataStore
     elif zipped:
         klass = ReadOnlyZippedDataStore
@@ -309,7 +309,7 @@ class load_tabular(ComposableTabular):
             result = NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         if self.as_type == "table":
-            return Table(header, rows=data, title=title)
+            return Table(header=header, data=data, title=title)
 
         assert data.shape[1] == 3, "Invalid tabular data"
 

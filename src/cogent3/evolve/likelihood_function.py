@@ -36,7 +36,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -512,7 +512,7 @@ class LikelihoodFunction(ParameterController):
                 data = data[:5] + [["...", "..."]] + data[-5:]
                 table = table.__class__(
                     header=table.header,
-                    rows=data,
+                    data=data,
                     digits=table._digits,
                     title=table.title,
                 )
@@ -827,16 +827,14 @@ class LikelihoodFunction(ParameterController):
                     list_table.append(row)
             if table_dims:
                 title = ["", "%s params" % " ".join(table_dims)][with_titles]
-                row_ids = True
             else:
-                row_ids = False
                 title = ["", "global params"][with_titles]
-
+            row_ids = None
             stat_table = table.Table(
                 heading_names,
                 list_table,
                 max_width=80,
-                row_ids=row_ids,
+                index=row_ids,
                 title=title,
                 **self._format,
             )

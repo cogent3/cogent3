@@ -15,7 +15,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -344,7 +344,10 @@ class EstimateDistances(object):
                     row.append(d[(s2, s1)])
             twoD.append(row)
         T = table.Table(
-            [r"Seq1 \ Seq2"] + self._seqnames, twoD, row_ids=True, missing_data="*"
+            [r"Seq1 \ Seq2"] + self._seqnames,
+            twoD,
+            index=r"Seq1 \ Seq2",
+            missing_data="*",
         )
         return T
 

@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Protein sequences
 -----------------
 
@@ -6,32 +11,33 @@ Protein sequences
 Creating a ProteinSequence with a name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import PROTEIN
-    >>> p = PROTEIN.make_seq('THISISAPRQTEIN','myProtein')
-    >>> type(p)
-    <class 'cogent3.core.sequence.ProteinSequence'>
-    >>> str(p)
-    'THISISAPRQTEIN'
+    from cogent3 import PROTEIN
+
+    p = PROTEIN.make_seq("THISISAPRQTEIN", "myProtein")
+    type(p)
+    str(p)
 
 Converting a DNA sequence string to protein sequence string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3.core.genetic_code import DEFAULT as standard_code
-    >>> standard_code.translate('TTTGCAAAC')
-    'FAN'
+    from cogent3.core.genetic_code import DEFAULT as standard_code
+
+    standard_code.translate("TTTGCAAAC")
 
 Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown in :ref:`translation`.
 
 Loading protein sequences from a Phylip file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doctest::
+.. jupyter-execute::
+    :linenos:
 
-    >>> from cogent3 import load_aligned_seqs
-    >>> seq = load_aligned_seqs('data/abglobin_aa.phylip', moltype="protein")
+    from cogent3 import load_aligned_seqs
 
-Loading other formats, or collections of sequences is shown in :ref:`load-seqs`.
+    seq = load_aligned_seqs("data/abglobin_aa.phylip", moltype="protein")

@@ -8,7 +8,7 @@ File created on 22 May 2007.
 
 from os import environ, remove
 from os.path import exists
-from tempfile import mktemp
+from tempfile import NamedTemporaryFile, mktemp
 
 from numpy import (
     arange,
@@ -105,7 +105,6 @@ from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 from cogent3.evolve.substitution_model import Empirical, Parametric
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util.misc import get_tmp_filename
 from cogent3.util.unit_test import TestCase, main
 
 
@@ -113,7 +112,7 @@ __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
@@ -586,7 +585,9 @@ class CoevolutionTests(TestCase):
         )
 
         # keep all seqs
-        tmp_filepath = get_tmp_filename(prefix="tmp_test_coevolution", suffix=".fasta")
+        tmp_filepath = NamedTemporaryFile(
+            prefix="tmp_test_coevolution", suffix=".fasta"
+        ).name
         coevolve_alignments(
             mi_alignment, aln1, aln2, max_num_seqs=3, merged_aln_filepath=tmp_filepath
         )
@@ -596,7 +597,8 @@ class CoevolutionTests(TestCase):
         coevolve_alignments(
             mi_alignment, aln1, aln2, max_num_seqs=2, merged_aln_filepath=tmp_filepath
         )
-        self.assertEqual(load_aligned_seqs(tmp_filepath).num_seqs, 2)
+        seqs = load_aligned_seqs(tmp_filepath)
+        self.assertEqual(seqs.num_seqs, 2)
 
         # error if no sequence filter
         self.assertRaises(

@@ -11,12 +11,14 @@ from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
 
+from .pairwise_distance_numba import fill_diversity_matrix
+
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2020.2.7a"
+__version__ = "2020.6.30a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"  # pending addition of protein distance metrics
@@ -268,14 +270,6 @@ def _logdet(matrix, use_tk_adjustment=True):
     return total, p, d_xy, var
 
 
-try:
-    from ._pairwise_distance import _fill_diversity_matrix as fill_diversity_matrix
-
-    # raise ImportError # for testing
-except ImportError:
-    fill_diversity_matrix = _fill_diversity_matrix
-
-
 def _number_formatter(template):
     """flexible number formatter"""
 
@@ -308,7 +302,9 @@ def _make_stat_table(stats, names, **kwargs):
     for i in range(len(names)):
         rows[i].insert(0, names[i])
 
-    table = Table(header=header, rows=rows, row_ids=True, missing_data="*", **kwargs)
+    table = Table(
+        header=header, data=rows, index=r"Seq1 \ Seq2", missing_data="*", **kwargs
+    )
     return table
 
 
@@ -701,12 +697,12 @@ def available_distances():
 
     table = Table(
         header=["Abbreviation", "Suitable for moltype"],
-        rows=rows,
+        data=rows,
         title=(
             "Specify a pairwise genetic distance calculator "
             "using 'Abbreviation' (case insensitive)."
         ),
-        row_ids=True,
+        index="Abbreviation",
     )
     return table
 
@@ -736,6 +732,18 @@ class DistanceMatrix(DictArray):
     @property
     def names(self):
         return self.template.names[0]
+
+    def to_table(self):
+        """converted to a Table"""
+        from cogent3.util.table import Table
+
+        data = {"names": self.names}
+        for i, name in enumerate(self.names):
+            column = self.array[:, i]
+            data[name] = column
+        header = ["names"] + list(self.names)
+        table = Table(header=header, data=data, index="names")
+        return table
 
     def to_dict(self, **kwargs):
         """Returns a flattened dict with diagonal elements removed"""

@@ -1,4 +1,4 @@
-[![Build Status](https://dev.azure.com/GavinHuttley/cogent3/_apis/build/status/cogent3.cogent3?branchName=master)](https://dev.azure.com/GavinHuttley/cogent3/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://github.com/cogent3/cogent3/workflows/CI/badge.svg?branch=develop)](https://github.com/cogent3/cogent3/actions?workflow=CI)
 [![codecov](https://codecov.io/gh/cogent3/cogent3/branch/master/graph/badge.svg)](https://codecov.io/gh/cogent3/cogent3)
 ![Using Black Formatting](https://img.shields.io/badge/code%20style-black-000000.svg)
 [![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/release/python-360/)
@@ -14,9 +14,15 @@
 
 `cogent3` is unique in providing numerous [non-stationary Markov models](http://www.ncbi.nlm.nih.gov/pubmed/25503772) for modelling sequence evolution, [including codon models](https://www.ncbi.nlm.nih.gov/pubmed/28175284). `cogent3` also includes an extensive collection of time-reversible models (again including [novel codon models](https://www.ncbi.nlm.nih.gov/pubmed/19815689)). We have done more than just invent these new methods, we have [established the most robust algorithms](https://www.ncbi.nlm.nih.gov/pubmed/19099591) for their implementation and their [suitability for real data](https://www.ncbi.nlm.nih.gov/pubmed/23935949). Additionally, there are novel signal processing methods focussed on statistical estimation of [integer period signals](https://www.ncbi.nlm.nih.gov/pubmed/21527008).
 
+![nstat](https://cogent3.org/_static/gif/demo-fit-ns.gif)
+
 ### Anyone who wants to undertake exploratory genomic data analysis
 
-Beyond our novel methods, `cogent3` provides an extensive suite of capabilities for manipulating and analysing sequence data. For instance, the ability to read standard biological data formats, manipulate sequences by their annotations, to perform multiple sequence alignment using any of our substitution models, phylogenetic reconstruction and tree manipulation, manipulation of tabular data, visualisation of phylogenies and much more.
+Beyond our novel methods, `cogent3` provides an extensive suite of capabilities for manipulating and analysing sequence data. You can manipulate sequences by their annotations, e.g.
+
+![annot](https://cogent3.org/_static/gif/demo-annotate.gif)
+
+Plus, you can read standard tabular and biological data formats, perform multiple sequence alignment using any `cogent3` substitution models, phylogenetic reconstruction and tree manipulation, manipulation of tabular data, visualisation of phylogenies and much more.
 
 ### Anyone looking for a functional programming style approach to genomic data analysis
 
@@ -28,7 +34,25 @@ Our `cogent3.app` module provides a very different approach to using the library
 $ pip install cogent3
 ```
 
-### Installing the development version
+### Install `extra` -- adds visualisation support
+
+**NOTE:** Only available in the development version until release ≥2020.3
+
+The `extra` group includes python libraries required for visualisation (i.e. [plotly](https://pypi.org/project/plotly/) and [psutil](https://pypi.org/project/psutil/) plus [pandas](https://pypi.org/project/pandas/) (optional)
+
+```bash
+$ pip install cogent3[extra]
+```
+
+### Install `dev` -- adds `cogent3` development related libraries
+
+The `dev` group includes python libraries required for development of `cogent3`.
+
+```bash
+$ pip install cogent3[dev]
+```
+
+### Install the development version
 
 ```bash
 $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
