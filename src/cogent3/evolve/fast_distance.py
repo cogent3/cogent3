@@ -697,7 +697,7 @@ def available_distances():
 
     table = Table(
         header=["Abbreviation", "Suitable for moltype"],
-        rows=rows,
+        data=rows,
         title=(
             "Specify a pairwise genetic distance calculator "
             "using 'Abbreviation' (case insensitive)."

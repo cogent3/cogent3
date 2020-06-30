@@ -242,12 +242,6 @@ class Drawable:
         self.layout.yaxis.title = ytitle
         return UnionDict(data=traces, layout=self.layout)
 
-    def iplot(self, *args, **kwargs):
-        from plotly.offline import iplot as _iplot
-
-        deprecated("method", "iplot", "show", "2020.6")
-        _iplot(self.figure, *args, **kwargs)
-
     @extend_docstring_from(_show_)
     def show(self, renderer=None, **kwargs):
         _show_(self, renderer, **kwargs)

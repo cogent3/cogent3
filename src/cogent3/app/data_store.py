@@ -950,7 +950,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             rows.append(row)
         table = Table(
             header=["time", "name", "python version", "who", "command", "composable"],
-            rows=rows,
+            data=rows,
             title="summary of log files",
         )
         return table
@@ -970,7 +970,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         num_logs = len(self.logs)
         summary = Table(
             header=["record type", "number"],
-            rows=[
+            data=[
                 ["completed", num_complete],
                 ["incomplete", num_incomplete],
                 ["logs", num_logs],

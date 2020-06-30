@@ -512,7 +512,7 @@ class LikelihoodFunction(ParameterController):
                 data = data[:5] + [["...", "..."]] + data[-5:]
                 table = table.__class__(
                     header=table.header,
-                    rows=data,
+                    data=data,
                     digits=table._digits,
                     title=table.title,
                 )

@@ -2789,7 +2789,7 @@ def available_models(model_types=None):
 
     t = Table(
         header=column_headings,
-        rows=rows,
+        data=rows,
         title="Specify a model using 'Abbreviation' (case sensitive).",
     )
     return t

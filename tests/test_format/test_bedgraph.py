@@ -21,7 +21,7 @@ class FormatBedgraph(TestCase):
         """generate bedgraph from minimal data"""
         table = Table(
             header=["chrom", "start", "end", "value"],
-            rows=[["1", 100, i, 0] for i in range(101, 111)]
+            data=[["1", 100, i, 0] for i in range(101, 111)]
             + [["1", 150, i, 10] for i in range(151, 161)],
         )
 

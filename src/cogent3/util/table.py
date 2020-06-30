@@ -565,7 +565,7 @@ class Table:
 
         assert not (rows and data), "rows is deprecated, use data"
         if rows:
-            # todo deprecation warning
+            deprecated("argument", "rows", "data", "2020.11")
             data = rows
 
         attrs.update(kwargs)
@@ -600,14 +600,6 @@ class Table:
             header = list(data)
         elif header is None:
             header = []
-
-        if "row_ids" in kwargs:
-            deprecated("argument", "row_ids", "index", "2020.6")
-            index = kwargs.pop("row_ids")
-
-        if index in header and index == True:
-            index = header[0]
-            deprecated("argument", "index: bool", "index: string", "2020.6")
 
         has_index = index is not None
         if has_index and not isinstance(index, str):
