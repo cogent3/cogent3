@@ -601,14 +601,6 @@ class Table:
         elif header is None:
             header = []
 
-        if "row_ids" in kwargs:
-            deprecated("argument", "row_ids", "index", "2020.6")
-            index = kwargs.pop("row_ids")
-
-        if index in header and index == True:
-            index = header[0]
-            deprecated("argument", "index: bool", "index: string", "2020.6")
-
         has_index = index is not None
         if has_index and not isinstance(index, str):
             raise TypeError(f"only str type supported for index, not {type(index)}")
