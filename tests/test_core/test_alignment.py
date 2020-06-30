@@ -1032,11 +1032,6 @@ class SequenceCollectionBaseTests(object):
             result = infile.read()
         self.assertEqual(result, ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
         remove(fn)
-        # test writing to json file
-        fn = mktemp(suffix=".json")
-        aln.write(fn)
-        result = load_aligned_seqs(fn)
-        self.assertEqual(str(result), ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
 
     def test_len(self):
         """len(SequenceCollection) returns length of longest sequence"""
@@ -1515,6 +1510,15 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         seq1 = make_seq("AC", name="seq1")
         seq2 = make_seq("AC", name="seq2")
         coll = SequenceCollection(data=[seq1, seq2])
+
+    def test_write_to_json(self):
+        # test writing to json file
+        aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
+        fn = mktemp(suffix=".json")
+        aln.write(fn)
+        result = load_unaligned_seqs(fn)
+        self.assertEqual(str(result), ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
+        remove(fn)
 
 
 def _make_filter_func(aln):
@@ -2570,6 +2574,15 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # without a defined moltype
         aln = self.Class(data)
         logo = aln.seqlogo()
+
+    def test_write_to_json(self):
+        # test writing to json file
+        aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
+        fn = mktemp(suffix=".json")
+        aln.write(fn)
+        result = load_aligned_seqs(fn)
+        self.assertEqual(str(result), ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
+        remove(fn)
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
