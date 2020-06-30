@@ -2,18 +2,21 @@
 Documentation
 #############
 
-cogent3_ is a software library for genomic biology. It is a comprehensive framework for manipulation of genomic sequence data and for conducting molecular evolutionary analyses. It is distinguished by many unique built-in capabilities. Of particular note are our non-stationary Markov substitution models. These include `non-stationary nucleotide <https://www.ncbi.nlm.nih.gov/pubmed/25503772>`_,
+cogent3_ is a software library for genomic biology. It is a comprehensive framework for manipulation of genomic sequence data and for conducting molecular evolutionary analyses. It is distinguished by many unique built-in capabilities. Of particular note are our non-stationary Markov substitution models. These include `non-stationary nucleotide <https://www.ncbi.nlm.nih.gov/pubmed/25503772>`_, and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ models. 
 
-.. raw:: html
+.. dropdown:: Click to see an animation showing testing a hypothesis involving a non-stationary nucleotide process.
 
-    <object type="image/svg+xml" data="../_static/svg/demo_fit_ns.svg"></object>
+    .. raw:: html
 
-and `non-stationary codon <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`_ models. Plus, the ability to manipulate biological sequences by their annotations.
+        <object type="image/gif" data="../_static/gif/demo-fit-ns.gif" style="height: 400px; width: auto;"></object>
 
-.. raw:: html
+Plus, the ability to manipulate biological sequences by their annotations.
 
-    <object type="image/svg+xml" data="../_static/svg/annotate_domain.svg"></object>
+.. dropdown:: Click to see an animation showing defining and using sequence annotations.
 
+    .. raw:: html
+
+        <object type="image/gif" data="../_static/gif/demo-annotate.gif" style="height: 400px; width: auto;"></object>
 
 .. panels::
     :header: bg-primary
