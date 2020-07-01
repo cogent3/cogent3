@@ -472,6 +472,15 @@ class UtilsTests(TestCase):
             got, "cogent3.evolve.substitution_model." "TimeReversibleNucleotide"
         )
 
+        # handle a type
+        from cogent3 import SequenceCollection
+
+        instance = SequenceCollection(dict(a="ACG", b="GGG"))
+        instance_prov = get_object_provenance(instance)
+        self.assertEqual(instance_prov, "cogent3.core.alignment.SequenceCollection")
+        type_prov = get_object_provenance(SequenceCollection)
+        self.assertEqual(instance_prov, type_prov)
+
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
         # test delimiters, constructor, filter_
