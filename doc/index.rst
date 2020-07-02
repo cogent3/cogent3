@@ -79,4 +79,13 @@ Plus, the ability to manipulate biological sequences by their annotations.
         :text: …
         :classes: stretched-link
 
+.. toctree::
+    :hidden:
+    :maxdepth: 3
+
+    app/index
+    cookbook/index
+    examples/index
+    api/index
+
 .. _cogent3: https://cogent3.org
