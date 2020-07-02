@@ -42,7 +42,7 @@ except ImportError:
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Felix Schill"]
+__credits__ = ["Gavin Huttley", "Felix Schill", "Sheng Koh"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
 __maintainer__ = "Gavin Huttley"
@@ -783,23 +783,14 @@ class Table:
     def _repr_html_(self, include_shape=True):
         """returns html, used by Jupyter"""
         base_colour = "rgba(161, 195, 209, {alpha})"
+        colour = base_colour.format(alpha=0.25)
 
         def row_cell_func(val, row, col):
-            colour = base_colour.format(alpha=0.25)
-            try:
-                float(val)
-            except ValueError:
-                is_numeric = False
-            else:
-                is_numeric = True
-
             if self.index_name is not None and col == 0:
-                style = f' style="background: {colour}; font-weight: 600;"'
-            elif is_numeric:
-                style = f' style="font-family: monospace !important;"'
+                klass = f' class="index"'
             else:
-                style = ""
-            val = f"<td{style}>{val}</td>"
+                klass = ""
+            val = f"<td{klass}>{val}</td>"
             return val
 
         table, shape_info = self._get_repr_()
@@ -815,10 +806,7 @@ class Table:
         # formatting of titles, legends
         table.title, table.legend = None, None
         head_colour = base_colour.format(alpha=0.75)
-        element_format = dict(
-            thead=f'<thead style="background: {head_colour}; '
-            'font-weight: bold; text-align: center;">'
-        )
+        element_format = dict(thead=f'<thead class="head_cell">')
         html = table.to_rich_html(
             row_cell_func=row_cell_func, element_formatters=element_format
         )
@@ -826,27 +814,35 @@ class Table:
             title = title or ""
             legend = legend or ""
             caption = (
-                '<caption style="color: rgb(250, 250, 250); '
-                'background: rgba(30, 140, 200, 1); align=top;">'
-                f'<span style="font-weight: bold;">{title}</span>'
-                f"<span>{legend}</span></caption>"
+                "<caption>"
+                f'<span class="cell_title">{title}</span>'
+                f'<br><span class="cell_legend">{legend}</span></caption>'
             )
             html = html.splitlines()
             html.insert(1, caption)
             html = "\n".join(html)
         html = html.splitlines()
         html.insert(
-            1,
+            0,
             "\n".join(
                 [
-                    "<style>",
-                    "tr:last-child {border-bottom: 1px solid #000;} "
-                    "tr > th {text-align: center !important;} tr > td {text-align: left !important;}",
+                    '<div class="c3table">',
+                    "<style scoped>",
+                    "table {margin: 10px 0;}",
+                    "tr:last-child {border-bottom: 1px solid #000;} ",
+                    "tr > th {text-align: center !important; padding: 0 5px;} tr > td {text-align: right !important; padding: 5px;}",
+                    "tr:nth-child(even) {background: #f7f7f7;}",
+                    ".index {background: " + f"{colour}" + "; font-weight: 600;}",
+                    ".head_cell {background: "
+                    + f"{head_colour}"
+                    + "; font-weight: bold; text-align: center;}",
+                    "caption {color: rgb(250, 250, 250); background: rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; caption-side: top;}",
+                    ".cell_title {font-weight: bold;}",
                     "</style>",
                 ]
             ),
         )
-        html = "\n".join(["\n".join(html), shape_info])
+        html = "\n".join(["\n".join(html), shape_info, "</div>"])
         return html
 
     def _get_persistent_attrs(self):
@@ -1624,15 +1620,12 @@ class Table:
 
         Parameters
         ----------
+        concat_title_legend : bool
+            the table caption is formed by concatenating the table title and legend
         rows
             table data in row orientation
         header
             table header
-        caption
-            title text.
-        legend
-            If provided, the text is placed in a \\caption*{} command at the
-            bottom of the table and the caption is placed at the top.
         justify
             column justification, default is right aligned.
         label

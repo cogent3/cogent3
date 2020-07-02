@@ -405,8 +405,9 @@ class GeneticCodeTests(TestCase):
         """exercising the _repr_html_ method"""
         gc = get_code(1)
         got = gc._repr_html_().strip()
-        self.assertTrue(got.startswith("<table>"))
-        self.assertTrue(got.endswith("</table>"))
+        self.assertTrue(got.startswith('<div class="c3table">'))
+        self.assertTrue("<table>" in got)
+        self.assertTrue("</table>" in got)
         self.assertIn("Standard Nuclear", got)
 
 
