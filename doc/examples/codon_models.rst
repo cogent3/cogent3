@@ -227,17 +227,20 @@ Mixing branch and site-heterogeneity
 
 The following implements a modification of the approach of Zhang, Nielsen and Yang (Mol Biol Evol, 22:2472–9, 2005). For this model class, there are groups of branches for which all positions are evolving neutrally but some proportion of those neutrally evolving sites change to adaptively evolving on so-called foreground edges. For the current example, we'll define the Chimpanzee and Human branches as foreground and everything else as background. The following table defines the parameter scopes.
 
-+--------------+----------------+----------------------+---------------------+
-|  Site class  |   Proportion   |   Background edges   |  Foreground edges   |
-+==============+================+======================+=====================+
-|           0  |          p_0   |      0 < omega_0 < 1 |   0 < omega_0 < 1   |
-+--------------+----------------+----------------------+---------------------+
-|           1  |          p_1   |          omega_1=1   |         omega_1=1   |
-+--------------+----------------+----------------------+---------------------+
-|          2a  |          p_2   |    0 < omega_0 < 1   |       omega_2 > 1   |
-+--------------+----------------+----------------------+---------------------+
-|          2b  |          p_3   |          omega_1=1   |       omega_2 > 1   |
-+--------------+----------------+----------------------+---------------------+
+.. jupyter-execute::
+    :hide-code:
+
+    from numpy import array
+    from cogent3 import make_table
+    from IPython.core.display import HTML
+
+    header = ['Site Class', 'Proportion', 'Background Edges', 'Foreground Edges']
+    data = {'Site Class': array(['0', '1', '2a', '2b'], dtype='<U2'), 'Proportion': array(['p0', 'p1', 'p2', 'p3'], dtype='<U2'), 'Background Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega0 < 1', 'omega1 = 1'],
+      dtype='<U14'), 'Foreground Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega2 > 1', '0 < omega0 < 1'],
+      dtype='<U14')}
+    data = {k: array(data[k], dtype='U') for k in data}
+    table = make_table(header, data=data)
+    HTML(table._repr_html_(include_shape=False))
 
 .. note:: Our implementation is not as parametrically succinct as that of Zhang et al, we have 1 additional bin probability.
 
