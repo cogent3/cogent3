@@ -14,5 +14,5 @@ __contributors__ = [
     "Sheng Han Moses Koh",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.7.2a"
 __status__ = "Production"
