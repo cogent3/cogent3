@@ -73,6 +73,7 @@ from cogent3.util.misc import (
     extend_docstring_from,
     get_format_suffixes,
     get_object_provenance,
+    open_,
 )
 from cogent3.util.union_dict import UnionDict
 
@@ -1245,14 +1246,20 @@ class _SequenceCollectionBase:
         if filename is None:
             raise DataError("no filename specified")
 
+        suffix, cmp_suffix = get_format_suffixes(filename)
+        if format is None and suffix:
+            format = suffix
+
+        if format == "json":
+            f = open_(filename, "wt")
+            f.write(self.to_json())
+            f.close()
+            return
+
         # need to turn the alignment into a dictionary
         align_dict = {}
         for seq_name in self.names:
             align_dict[seq_name] = str(self.named_seqs[seq_name])
-
-        suffix, cmp_suffix = get_format_suffixes(filename)
-        if format is None and suffix:
-            format = suffix
 
         if "order" not in kwargs:
             kwargs["order"] = self.names
