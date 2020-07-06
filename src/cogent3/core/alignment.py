@@ -69,6 +69,7 @@ from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
+    atomic_write,
     bytes_to_string,
     extend_docstring_from,
     get_format_suffixes,
@@ -1245,14 +1246,19 @@ class _SequenceCollectionBase:
         if filename is None:
             raise DataError("no filename specified")
 
+        suffix, cmp_suffix = get_format_suffixes(filename)
+        if format is None and suffix:
+            format = suffix
+
+        if format == "json":
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
+            return
+
         # need to turn the alignment into a dictionary
         align_dict = {}
         for seq_name in self.names:
             align_dict[seq_name] = str(self.named_seqs[seq_name])
-
-        suffix, cmp_suffix = get_format_suffixes(filename)
-        if format is None and suffix:
-            format = suffix
 
         if "order" not in kwargs:
             kwargs["order"] = self.names

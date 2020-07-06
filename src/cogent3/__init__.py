@@ -37,7 +37,7 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import available_models, get_model
 from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.parse.sequence import FromFilenameParser
+from cogent3.parse.sequence import FromFilenameParser, load_from_json
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.misc import get_format_suffixes, open_
@@ -228,6 +228,10 @@ def load_unaligned_seqs(
     -------
     ``SequenceCollection``
     """
+    file_format, _ = get_format_suffixes(filename)
+    if file_format == "json":
+        return load_from_json(filename, (SequenceCollection,))
+
     parser_kw = parser_kw or {}
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
@@ -275,6 +279,10 @@ def load_aligned_seqs(
     -------
     ``ArrayAlignment`` or ``Alignment`` instance
     """
+    file_format, _ = get_format_suffixes(filename)
+    if file_format == "json":
+        return load_from_json(filename, (Alignment, ArrayAlignment))
+
     parser_kw = parser_kw or {}
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
