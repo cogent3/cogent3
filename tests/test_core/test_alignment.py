@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import json
 import os
+import pathlib
 import re
 import sys
 import unittest
 
 from os import remove
-from tempfile import mktemp
+from tempfile import TemporaryDirectory, mktemp
 
 import numpy
 
@@ -55,7 +56,7 @@ from cogent3.core.sequence import (
 )
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import get_object_provenance, open_
 from cogent3.util.unit_test import TestCase, main
 
 
@@ -1422,6 +1423,16 @@ class SequenceCollectionBaseTests(object):
         e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
         self.assertFloatEqual(entropy, array([e, 1.5]))
 
+    def test_write_to_json(self):
+        # test writing to json file
+        aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
+        with TemporaryDirectory(".") as dirname:
+            path = str(pathlib.Path(dirname) / "sample.json")
+            aln.write(path)
+            with open_(path) as fn:
+                got = json.loads(fn.read())
+                self.assertEqual(got, aln.to_rich_dict())
+
 
 class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
     """Tests of the SequenceCollection object. Includes ragged collection tests.
@@ -1509,15 +1520,6 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         seq1 = make_seq("AC", name="seq1")
         seq2 = make_seq("AC", name="seq2")
         coll = SequenceCollection(data=[seq1, seq2])
-
-    def test_write_to_json(self):
-        # test writing to json file
-        aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
-        fn = mktemp(suffix=".json")
-        aln.write(fn)
-        result = load_unaligned_seqs(fn)
-        self.assertEqual(str(result), ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
-        remove(fn)
 
 
 def _make_filter_func(aln):
@@ -2573,15 +2575,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # without a defined moltype
         aln = self.Class(data)
         logo = aln.seqlogo()
-
-    def test_write_to_json(self):
-        # test writing to json file
-        aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
-        fn = mktemp(suffix=".json")
-        aln.write(fn)
-        result = load_aligned_seqs(fn)
-        self.assertEqual(str(result), ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n")
-        remove(fn)
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):

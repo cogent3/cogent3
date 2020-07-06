@@ -69,11 +69,11 @@ from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
+    atomic_write,
     bytes_to_string,
     extend_docstring_from,
     get_format_suffixes,
     get_object_provenance,
-    open_,
 )
 from cogent3.util.union_dict import UnionDict
 
@@ -1251,9 +1251,8 @@ class _SequenceCollectionBase:
             format = suffix
 
         if format == "json":
-            f = open_(filename, "wt")
-            f.write(self.to_json())
-            f.close()
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
             return
 
         # need to turn the alignment into a dictionary
