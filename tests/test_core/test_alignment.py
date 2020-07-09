@@ -2077,7 +2077,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=seqs, moltype=DNA)
         got = aln.to_html(ref_name="longest")  # name_order=['seq1', 'seq2'])
         # ensure balanced tags are in the txt
-        for tag in ["<style>", "</style>", "<body>", "</body>", "<table>", "</table>"]:
+        for tag in ["<style>", "</style>", "<div", "</div>", "<table>", "</table>"]:
             self.assertTrue(tag in got)
 
         ref_row = (
