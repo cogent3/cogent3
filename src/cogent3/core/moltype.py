@@ -1312,7 +1312,6 @@ class MolType(object):
                 template % (char, self.label, font_family, font_size, colors[char])
             )
 
-        css = "\n".join(css)
         return css, styles
 
 
