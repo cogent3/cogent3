@@ -792,7 +792,7 @@ class RnaMolTypeTests(TestCase):
         expect = {b + "_dna" for b in states}
         self.assertEqual(got, expect)
         for state in expect:
-            self.assertTrue(state in css)
+            self.assertTrue(state in "\n".join(css))
 
         # check subset of protein
         css, styles = PROTEIN.get_css_style()

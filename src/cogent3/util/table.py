@@ -826,19 +826,22 @@ class Table:
             0,
             "\n".join(
                 [
-                    '<div class="c3table">',
-                    "<style scoped>",
-                    "table {margin: 10px 0;}",
-                    "tr:last-child {border-bottom: 1px solid #000;} ",
-                    "tr > th {text-align: center !important; padding: 0 5px;} tr > td {text-align: right !important; padding: 5px;}",
-                    "tr:nth-child(even) {background: #f7f7f7;}",
-                    ".index {background: " + f"{colour}" + "; font-weight: 600;}",
-                    ".head_cell {background: "
+                    "<style>",
+                    ".c3table table {margin: 10px 0;}",
+                    ".c3table tr:last-child {border-bottom: 1px solid #000;} ",
+                    ".c3table tr > th {text-align: center !important; padding: 0 5px;}",
+                    ".c3table tr > td {text-align: right !important; padding: 5px;}",
+                    ".c3table tr:nth-child(even) {background: #f7f7f7;}",
+                    ".c3table .index {background: "
+                    + f"{colour}"
+                    + "; font-weight: 600;}",
+                    ".c3table .head_cell {background: "
                     + f"{head_colour}"
                     + "; font-weight: bold; text-align: center;}",
-                    "caption {color: rgb(250, 250, 250); background: rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; caption-side: top;}",
-                    ".cell_title {font-weight: bold;}",
+                    ".c3table caption {color: rgb(250, 250, 250); background: rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; caption-side: top;}",
+                    ".c3table .cell_title {font-weight: bold;}",
                     "</style>",
+                    '<div class="c3table">',
                 ]
             ),
         )

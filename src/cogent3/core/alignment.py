@@ -2887,10 +2887,7 @@ class AlignmentI(object):
         table = ["<table>"]
         seq_ = "<td>%s</td>"
         label_ = '<td class="label">%s</td>'
-        num_row_ = (
-            '<tr style="background-color:'
-            'rgba(161, 195, 209, 0.5);"><td></td><td><b>{:,d}</b></td></tr>'
-        )
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
         for i in range(0, seqlen, interleave_len):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + interleave_len].tolist()
@@ -2923,15 +2920,18 @@ class AlignmentI(object):
             "<style>",
             # "tr { line-height: %dpt ; }" % int(font_size / 4),
             # ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
-            "td { border: none !important; text-align: left !important; }",
-            ".label { font-size: %dpt ; text-align: right !important; "
-            "color: black !important; }" % font_size,
-            css,
+            ".c3align td { border: none !important; text-align: left !important; }",
+            ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3align tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3align .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3align .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; }" % font_size,
+            "\n".join([".c3align " + style for style in css]),
             "</style>",
-            "<body>",
+            '<div class="c3align">',
             "\n".join(table),
             "<p><i>%s</i></p>" % summary,
-            "</body>",
+            "</div>",
         ]
         return "\n".join(text)
 
