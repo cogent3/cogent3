@@ -26,6 +26,7 @@ from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import (
+    atomic_write,
     extend_docstring_from,
     get_format_suffixes,
     get_object_provenance,
@@ -2084,6 +2085,11 @@ class Table:
         compress = compress or compress_suffix is not None
 
         mode = mode or {"pickle": "wb"}.get(format, "w")
+
+        if format == "json":
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
+            return
 
         if compress:
             if not filename.endswith(".gz"):

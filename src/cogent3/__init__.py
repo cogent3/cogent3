@@ -36,8 +36,9 @@ from cogent3.evolve.fast_distance import (
     get_distance_calculator,
 )
 from cogent3.evolve.models import available_models, get_model
+from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
-from cogent3.parse.sequence import FromFilenameParser, load_from_json
+from cogent3.parse.sequence import FromFilenameParser
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.misc import get_format_suffixes, open_
