@@ -461,6 +461,9 @@ def load_table(
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
 
+    if file_format == "json":
+        return load_from_json(filename, (_Table,))
+
     if file_format in ("pickle", "pkl"):
         f = open_(filename, mode="rb")
         loaded_table = pickle.load(f)
