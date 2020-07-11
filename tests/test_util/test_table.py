@@ -1039,9 +1039,20 @@ class TableTests(TestCase):
                     ),
                 )
                 self.assertEqual(
-                    t.array.T.tolist(),
-                    [stuff["values"] for stuff in data["columns"].values()],
+                    t.array.T.tolist(), [v["values"] for v in data["columns"].values()],
                 )
+
+    def test_load_table_from_json(self):
+        """tests loading a Table object from json file"""
+        with TemporaryDirectory(dir=".") as dirname:
+            json_path = os.path.join(dirname, "table.json")
+            t = load_table("data/sample.tsv")
+            t.write(json_path)
+
+            got = load_table(json_path)
+            self.assertEqual(got.shape, t.shape)
+            self.assertEqual(got.header, t.header)
+            assert_equal(got.array, t.array)
 
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""

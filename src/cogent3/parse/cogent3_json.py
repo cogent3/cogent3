@@ -36,7 +36,7 @@ def load_from_json(filename, classes):
         _, data, completed = load_record_from_json(content)
         if not completed:
             raise TypeError("json file is a record for type NotCompleted.")
-    except KeyError:
+    except (KeyError, TypeError):
         data = content
 
     type_ = data.get("type", None)
