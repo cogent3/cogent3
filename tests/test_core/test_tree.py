@@ -2,14 +2,16 @@
 """Tests of classes for dealing with trees and phylogeny.
 """
 import json
+import os
 import sys
 import unittest
 
 from copy import copy, deepcopy
+from tempfile import TemporaryDirectory
 
 from numpy import arange, array
 
-from cogent3 import make_tree
+from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
@@ -2154,6 +2156,20 @@ class TestTree(TestCase):
         for name in vals:
             node = sub1.get_node_matching_name(name)
             self.assertTrue(node.params["non-scalar"], {name: vals[node.name]})
+
+    def test_load_tree_from_json(self):
+        """tests loading a Tree from json file"""
+        with TemporaryDirectory(dir=".") as dirname:
+            json_path = os.path.join(dirname, "tree.json")
+            self.tree.write(json_path)
+            got = load_tree(json_path)
+            self.assertIsInstance(got, PhyloNode)
+            self.assertEqual(
+                got.get_newick(),
+                # Since json file has rich dict as its content, parameter with_node_names is set True here.
+                self.tree.get_newick(with_node_names=True),
+            )
+            self.assertEqual(got.get_node_names(), self.tree.get_node_names())
 
     def test_ascii(self):
         self.tree.ascii_art()

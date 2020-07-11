@@ -30,7 +30,7 @@ from cogent3.core.moltype import (
     available_moltypes,
     get_moltype,
 )
-from cogent3.core.tree import TreeBuilder, TreeError, TreeNode
+from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, TreeNode
 from cogent3.evolve.fast_distance import (
     available_distances,
     get_distance_calculator,
@@ -575,7 +575,7 @@ def load_tree(filename, format=None, underscore_unmunge=False):
     """
     file_format, _ = get_format_suffixes(filename)
     if file_format == "json":
-        return load_from_json(filename, (TreeNode,))
+        return load_from_json(filename, (TreeNode, PhyloNode))
 
     with open_(filename) as tfile:
         treestring = tfile.read()
