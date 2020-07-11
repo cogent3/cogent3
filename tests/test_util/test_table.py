@@ -2,6 +2,7 @@
 
 """Unit tests for table.
 """
+import json
 import os
 import pathlib
 import pickle
@@ -17,6 +18,7 @@ from numpy.testing import assert_equal
 
 from cogent3 import load_table, make_table
 from cogent3.parse.table import FilteringParser
+from cogent3.util.misc import get_object_provenance, open_
 from cogent3.util.table import (
     Table,
     cast_str_to_array,
@@ -1017,6 +1019,29 @@ class TableTests(TestCase):
             # loading without skip_inconsistent raise ValueError
             with self.assertRaises(ValueError):
                 r = load_table(path, skip_inconsistent=False)
+
+    def test_write_to_json(self):
+        """tests writing to json file"""
+        t = load_table("data/sample.tsv")
+        with TemporaryDirectory(".") as dirname:
+            path = pathlib.Path(dirname) / "table.json"
+            t.write(path)
+            with open_(path) as fn:
+                got = json.loads(fn.read())
+                self.assertEqual(got["type"], get_object_provenance(Table))
+                data = got["data"]
+                self.assertEqual(tuple(data["order"]), t.header)
+                self.assertEqual(
+                    t.shape,
+                    (
+                        len(tuple(data["columns"].items())[0][1]["values"]),
+                        len(data["columns"]),
+                    ),
+                )
+                self.assertEqual(
+                    t.array.T.tolist(),
+                    [stuff["values"] for stuff in data["columns"].values()],
+                )
 
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""
