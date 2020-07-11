@@ -37,7 +37,11 @@ from random import choice, shuffle
 from numpy import argsort, ceil, log, zeros
 
 from cogent3.maths.stats.test import correlation
-from cogent3.util.misc import atomic_write, get_object_provenance
+from cogent3.util.misc import (
+    atomic_write,
+    get_format_suffixes,
+    get_object_provenance,
+)
 
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
@@ -1448,7 +1452,8 @@ class TreeNode(object):
             the filename suffix. All attributes are saved in the xml format.
 
         """
-        if format == "json":
+        file_format, _ = get_format_suffixes(filename)
+        if file_format == "json":
             with atomic_write(filename, mode="wt") as f:
                 f.write(self.to_json())
             return
