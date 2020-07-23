@@ -159,6 +159,14 @@ class TestDendro(TestCase):
                 style,
             )
 
+    def test_style_edges(self):
+        """test style_edges only accepts edges present in tree"""
+        tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+        dnd = Dendrogram(tree=tree)
+        dnd.style_edges("a", line=dict(color="magenta"))
+        with self.assertRaises(ValueError):
+            dnd.style_edges("foo", line=dict(color="magenta"))
+
 
 if __name__ == "__main__":
     main()
