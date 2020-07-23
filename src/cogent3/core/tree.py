@@ -1448,7 +1448,7 @@ class TreeNode(object):
         with_distances
             whether branch lengths are included in string.
         format
-            default is newick, xml is alternate. Argument overrides
+            default is newick, xml and json are alternate. Argument overrides
             the filename suffix. All attributes are saved in the xml format.
 
         """

@@ -250,22 +250,6 @@ class TestTree(TestCase):
         u_c = make_uniform(c).get_newick()
         self.assertFalse(u_a == u_c)
 
-    def test_write_to_json(self):
-        tree = load_tree(filename=os.path.join(data_path, "brca1_5.tree"))
-        with TemporaryDirectory(dir=".") as dirname:
-            json_path = os.path.join(dirname, "brca1_5.json")
-            tree.write(json_path)
-            with open_(json_path) as fn:
-                got = json.loads(fn.read())
-                self.assertEqual(got["type"], get_object_provenance(PhyloNode))
-                self.assertEqual(
-                    tree.get_newick(semicolon=False, with_node_names=True),
-                    got["newick"],
-                )
-                self.assertEqual(
-                    set(tree.get_node_names()), got["edge_attributes"].keys()
-                )
-
 
 if __name__ == "__main__":
     main()
