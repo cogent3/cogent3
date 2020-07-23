@@ -2,18 +2,20 @@
 """Tests of classes for dealing with trees and phylogeny.
 """
 import json
+import os
 import sys
 import unittest
 
 from copy import copy, deepcopy
+from tempfile import TemporaryDirectory
 
 from numpy import arange, array
 
-from cogent3 import make_tree
+from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import get_object_provenance, open_
 from cogent3.util.unit_test import TestCase, main
 
 
@@ -36,6 +38,9 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+base_path = os.path.dirname(os.path.dirname(__file__))
+data_path = os.path.join(base_path, "data")
 
 
 class TreeTests(TestCase):
@@ -223,6 +228,22 @@ class TreeNodeTests(TestCase):
         attrs = {"length": 1.0}
         expect = tr.to_rich_dict()
         self.assertEqual(got, expect)
+
+    def test_write_to_json(self):
+        tree = load_tree(filename=os.path.join(data_path, "brca1_5.tree"))
+        with TemporaryDirectory(dir=".") as dirname:
+            json_path = os.path.join(dirname, "brca1_5.json")
+            tree.write(json_path)
+            with open_(json_path) as fn:
+                got = json.loads(fn.read())
+                self.assertEqual(got["type"], get_object_provenance(PhyloNode))
+                self.assertEqual(
+                    tree.get_newick(semicolon=False, with_node_names=True),
+                    got["newick"],
+                )
+                self.assertEqual(
+                    set(tree.get_node_names()), got["edge_attributes"].keys()
+                )
 
     def test_multifurcating(self):
         """Coerces nodes to have <= n children"""
@@ -2154,6 +2175,20 @@ class TestTree(TestCase):
         for name in vals:
             node = sub1.get_node_matching_name(name)
             self.assertTrue(node.params["non-scalar"], {name: vals[node.name]})
+
+    def test_load_tree_from_json(self):
+        """tests loading a Tree from json file"""
+        with TemporaryDirectory(dir=".") as dirname:
+            json_path = os.path.join(dirname, "tree.json")
+            self.tree.write(json_path)
+            got = load_tree(json_path)
+            self.assertIsInstance(got, PhyloNode)
+            self.assertEqual(
+                got.get_newick(),
+                # Since json file has rich dict as its content, parameter with_node_names is set True here.
+                self.tree.get_newick(with_node_names=True),
+            )
+            self.assertEqual(got.get_node_names(), self.tree.get_node_names())
 
     def test_ascii(self):
         self.tree.ascii_art()

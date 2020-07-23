@@ -37,7 +37,11 @@ from random import choice, shuffle
 from numpy import argsort, ceil, log, zeros
 
 from cogent3.maths.stats.test import correlation
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import (
+    atomic_write,
+    get_format_suffixes,
+    get_object_provenance,
+)
 
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
@@ -1444,10 +1448,16 @@ class TreeNode(object):
         with_distances
             whether branch lengths are included in string.
         format
-            default is newick, xml is alternate. Argument overrides
+            default is newick, xml and json are alternate. Argument overrides
             the filename suffix. All attributes are saved in the xml format.
 
         """
+        file_format, _ = get_format_suffixes(filename)
+        if file_format == "json":
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
+            return
+
         if format:
             xml = format.lower() == "xml"
         else:
