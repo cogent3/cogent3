@@ -671,8 +671,8 @@ class Dendrogram(Drawable):
             y = self.tree.max_y
 
         scale = 0.1 * self.tree.max_x
-        if scale < 1e-4:
-            text = "{:.2e}".format(scale)
+        if scale < 1e-2:
+            text = "{:.1e}".format(scale)
         else:
             text = "{:.2f}".format(scale)
 
