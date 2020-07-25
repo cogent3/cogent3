@@ -2601,6 +2601,18 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
         self.assertTrue(len(sub_align) == 3)
         self.assertEqual(sub_align.info["key"], "value")
 
+    def test_to_str(self):
+        """correctly returns str representation of an ArrayAlignment"""
+        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
+        aln.set_repr_policy(num_seqs=2)
+        got = self.Class(str(aln))
+        self.assertEqual(got.num_seqs, 2)
+        self.assertEqual(got.seq_len, 60)
+        aln.set_repr_policy(num_seqs=6, num_pos=10)
+        got = self.Class(str(aln))
+        self.assertEqual(got.num_seqs, 6)
+        self.assertEqual(got.seq_len, 10)
+
 
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
