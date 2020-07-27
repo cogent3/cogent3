@@ -387,6 +387,7 @@ class GeneticCodeTests(TestCase):
     def test_to_regex(self):
         """creates a regex from aa seq to match a DNA sequence"""
         import re
+
         from cogent3 import make_seq
 
         dna = "ACCGAACAGGGC"

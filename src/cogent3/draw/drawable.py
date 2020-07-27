@@ -58,8 +58,9 @@ def _customise_sphinx_gallery_renderer():
     # this is an ugly hack to get around plotly's NOT robust handling of script path
     # for automated file naming
     import inspect
-    from plotly.io._renderers import renderers
+
     from plotly.io import _base_renderers as base_render
+    from plotly.io._renderers import renderers
 
     class SphinxGalleryRenderer(base_render.ExternalRenderer):
         def render(self, fig_dict):
