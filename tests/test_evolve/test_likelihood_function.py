@@ -1970,7 +1970,7 @@ class ComparisonTests(TestCase):
 
     def test_loci(self):
         """recap multiple-loci"""
-        from cogent3.recalculation.scope import EACH, ALL
+        from cogent3.recalculation.scope import ALL, EACH
 
         aln = load_aligned_seqs("data/long_testseqs.fasta")
         half = len(aln) // 2

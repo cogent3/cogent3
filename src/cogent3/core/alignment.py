@@ -1737,8 +1737,8 @@ class _SequenceCollectionBase:
         -------
         a Drawable or AnnotatedDrawable
         """
-        from cogent3.draw.drawable import AnnotatedDrawable
         from cogent3.draw.dotplot import Dotplot
+        from cogent3.draw.drawable import AnnotatedDrawable
 
         if name1 is None and name2 is None:
             name1, name2 = list(choice(self.names, size=2, replace=False))
@@ -1851,7 +1851,7 @@ class _SequenceCollectionBase:
         numpy array of log2 based scores at every position
         """
         assert not self.is_ragged(), "all sequences must have same length"
-        from cogent3.parse import jaspar, cisbp
+        from cogent3.parse import cisbp, jaspar
 
         assert pssm or path, "Must specify a PSSM or a path"
         assert not (pssm and path), "Can only specify one of pssm, path"
@@ -3260,7 +3260,7 @@ class AlignmentI(object):
         include_gap
             whether to include gap counts, shown on right y-axis
         """
-        from cogent3.draw.drawable import Drawable, AnnotatedDrawable
+        from cogent3.draw.drawable import AnnotatedDrawable, Drawable
 
         window = window if window else numpy.sqrt(len(self))
         window = int(window)
@@ -3381,7 +3381,7 @@ class AlignmentI(object):
         elements and estimates that could not be computed for numerical reasons
         are set as nan
         """
-        from cogent3.draw.drawable import Drawable, AnnotatedDrawable
+        from cogent3.draw.drawable import AnnotatedDrawable, Drawable
         from cogent3.evolve import coevolution as coevo
         from cogent3.util.union_dict import UnionDict
 

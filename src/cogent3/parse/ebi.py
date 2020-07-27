@@ -1557,7 +1557,7 @@ def EbiParser(
 
 
 if __name__ == "__main__":
-    from getopt import getopt, GetoptError
+    from getopt import GetoptError, getopt
 
     usage = """ Usage: python __.py [options] [source]
 

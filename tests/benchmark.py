@@ -71,7 +71,8 @@ def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
 
 
 def quiet(f, *args, **kw):
-    import sys, io
+    import io
+    import sys
 
     temp = io.StringIO()
     _stdout = sys.stdout
