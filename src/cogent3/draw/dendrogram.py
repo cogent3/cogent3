@@ -671,8 +671,8 @@ class Dendrogram(Drawable):
             y = self.tree.max_y
 
         scale = 0.1 * self.tree.max_x
-        if scale < 1e-4:
-            text = "{:.2e}".format(scale)
+        if scale < 1e-2:
+            text = "{:.1e}".format(scale)
         else:
             text = "{:.2f}".format(scale)
 
@@ -839,6 +839,8 @@ class Dendrogram(Drawable):
         if type(edges) == str:
             edges = [edges]
         edges = frozenset(edges)
+        if not edges.issubset(set([edge.name for edge in self.tree.preorder()])):
+            raise ValueError("edge not present in tree")
         style = UnionDict(width=self._line_width, color=self._line_color)
         style.update(line)
         self._edge_sets[edges] = UnionDict(legendgroup=legendgroup, line=style)
