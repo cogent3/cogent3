@@ -1155,6 +1155,13 @@ class TableTests(TestCase):
         sv = table.to_tsv(with_title=True, with_legend=True)
         self.assertEqual(sv.splitlines(), ["A title"] + expect + ["A legend"])
 
+    def test_to_delim(self):
+        """successfully create separated format with arbitrary character"""
+        table = Table(header=self.t3_header, data=self.t3_rows,)
+        sv = table.to_string(sep=";")
+        expect = ["id;foo;bar", "6;abc;66", "7;bca;77"]
+        self.assertEqual(sv.splitlines(), expect)
+
     def test_to_rst_grid(self):
         """generates a rst grid table"""
         table = Table(header=["a", "b"], data=[[1, 2]], title="A title")
