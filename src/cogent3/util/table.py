@@ -1608,7 +1608,7 @@ class Table:
         -------
         str
         """
-        formatted_table = self._formatted()
+        formatted_table = self._formatted(stripped=True)
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
@@ -1806,7 +1806,7 @@ class Table:
         -------
         str
         """
-        formatted_table = self._formatted()
+        formatted_table = self._formatted(stripped=True)
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
