@@ -250,7 +250,8 @@ class TestPicklable(TestCase):
     def test_composite_pickleable(self):
         """composable functions should be pickleable"""
         from pickle import dumps
-        from cogent3.app import io, sample, evo, tree, translate, align
+
+        from cogent3.app import align, evo, io, sample, translate, tree
 
         read = io.load_aligned(moltype="dna")
         dumps(read)
@@ -284,7 +285,7 @@ class TestPicklable(TestCase):
     def test_triggers_bugcatcher(self):
         """a composable that does not trap failures returns NotCompletedResult
         requesting bug report"""
-        from cogent3.app import io, sample, evo, tree, translate, align
+        from cogent3.app import align, evo, io, sample, translate, tree
 
         read = io.load_aligned(moltype="dna")
         read.func = lambda x: None

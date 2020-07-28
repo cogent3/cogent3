@@ -1608,7 +1608,7 @@ class Table:
         -------
         str
         """
-        formatted_table = self._formatted()
+        formatted_table = self._formatted(stripped=True)
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
@@ -1765,7 +1765,7 @@ class Table:
 
         # convert self to a 2D list
         if format != "phylip":
-            formatted_table = self._formatted()
+            formatted_table = self._formatted(stripped=sep is not None)
         else:
             columns = [c for c in self.columns if c != self.index_name]
             table = self[:, columns]
@@ -1785,6 +1785,8 @@ class Table:
         elif format == "phylip":
             # need to eliminate row identifiers
             return table_format.phylip_matrix(formatted_table, header)
+        elif sep:
+            return table_format.separator_format(*args, sep=sep)
         else:
             return table_format.simple_format(
                 *args + (self._max_width, self.index_name, borders, self.space)
@@ -1804,7 +1806,7 @@ class Table:
         -------
         str
         """
-        formatted_table = self._formatted()
+        formatted_table = self._formatted(stripped=True)
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None

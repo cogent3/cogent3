@@ -1127,7 +1127,7 @@ class TableTests(TestCase):
             legend="A legend",
         )
         sv = table.to_csv()
-        expect = ["id,foo,bar", " 6,abc, 66", " 7,bca, 77"]
+        expect = ["id,foo,bar", "6,abc,66", "7,bca,77"]
         self.assertEqual(sv.splitlines(), expect)
         sv = table.to_csv(with_title=True)
         self.assertEqual(sv.splitlines(), ["A title"] + expect)
@@ -1146,7 +1146,7 @@ class TableTests(TestCase):
         )
 
         sv = table.to_tsv()
-        expect = ["id\tfoo\tbar", " 6\tabc\t 66", " 7\tbca\t 77"]
+        expect = ["id\tfoo\tbar", "6\tabc\t66", "7\tbca\t77"]
         self.assertEqual(sv.splitlines(), expect)
         sv = table.to_tsv(with_title=True)
         self.assertEqual(sv.splitlines(), ["A title"] + expect)
@@ -1154,6 +1154,13 @@ class TableTests(TestCase):
         self.assertEqual(sv.splitlines(), expect + ["A legend"])
         sv = table.to_tsv(with_title=True, with_legend=True)
         self.assertEqual(sv.splitlines(), ["A title"] + expect + ["A legend"])
+
+    def test_to_delim(self):
+        """successfully create separated format with arbitrary character"""
+        table = Table(header=self.t3_header, data=self.t3_rows,)
+        sv = table.to_string(sep=";")
+        expect = ["id;foo;bar", "6;abc;66", "7;bca;77"]
+        self.assertEqual(sv.splitlines(), expect)
 
     def test_to_rst_grid(self):
         """generates a rst grid table"""
@@ -1243,7 +1250,7 @@ class TableTests(TestCase):
         formatted = [
             f for f in writer([l.split(",") for l in comma_sep], has_header=True)
         ]
-        expected_format = ["id | foo | bar", " 6 | abc |  66", " 7 | bca |  77"]
+        expected_format = ["id | foo | bar", "6 | abc | 66", "7 | bca | 77"]
         self.assertEqual(formatted, expected_format)
 
     def test_set_repr_policy(self):

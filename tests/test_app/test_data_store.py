@@ -543,8 +543,9 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_unchanged_database_record(self):
         """tests unchanged record via the Readable and Writable DataStore interface to TinyDB"""
-        from cogent3.app.io import load_db
         from copy import deepcopy
+
+        from cogent3.app.io import load_db
 
         loader = load_db()
         data = self.data
@@ -642,8 +643,9 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_dblock(self):
         """locking/unlocking of db"""
-        from cogent3.app.data_store import _db_lockid
         from pathlib import Path
+
+        from cogent3.app.data_store import _db_lockid
 
         keys = list(self.data)
         with TemporaryDirectory(dir=".") as dirname:

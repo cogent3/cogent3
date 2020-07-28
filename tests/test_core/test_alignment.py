@@ -1324,7 +1324,7 @@ class SequenceCollectionBaseTests(object):
 
     def test_apply_pssm(self):
         """should successfully produce pssm scores"""
-        from cogent3.parse import jaspar, cisbp
+        from cogent3.parse import cisbp, jaspar
 
         _, pwm = jaspar.read("data/sample.jaspar")
         data = {

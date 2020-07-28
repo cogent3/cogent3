@@ -364,8 +364,8 @@ class MotifFreqsArray(_MotifNumberArray):
         self, height=400, width=800, wrap=None, ylim=None, vspace=0.05, colours=None
     ):
         """returns a sequence logo Drawable"""
-        from cogent3.draw.logo import get_mi_char_heights, get_logo
         from cogent3.draw.drawable import get_domain
+        from cogent3.draw.logo import get_logo, get_mi_char_heights
 
         assert 0 <= vspace <= 1, f"{vspace} not in range 0-1"
         if ylim is None:
