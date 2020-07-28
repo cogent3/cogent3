@@ -2774,7 +2774,7 @@ class AlignmentI(object):
 
     def _repr_html_(self):
         html = self.to_html(
-            name_order=self.names[: self._repr_policy["num_seqs"]],
+            num_seqs=self._repr_policy["num_seqs"],
             ref_name=self._repr_policy["ref_name"],
             limit=self._repr_policy["num_pos"],
         )
@@ -2782,7 +2782,7 @@ class AlignmentI(object):
 
     def to_html(
         self,
-        name_order=None,
+        num_seqs=None,
         interleave_len=60,
         limit=None,
         ref_name="longest",
@@ -2823,7 +2823,7 @@ class AlignmentI(object):
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        if not name_order:
+        if not num_seqs:
             ref_name = ref_name or "longest"
 
         if ref_name == "longest":
@@ -2839,6 +2839,7 @@ class AlignmentI(object):
         name_order = list(self.names)
         name_order.remove(ref)
         name_order.insert(0, ref)
+        name_order = name_order[:num_seqs]
 
         if limit is None:
             names, output = self._get_raw_pretty(name_order)

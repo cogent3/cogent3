@@ -570,9 +570,7 @@ class LikelihoodFunction(ParameterController):
         The other measures are always available in the params dict of each
         node.
         """
-        from cogent3.evolve.ns_substitution_model import (
-            DiscreteSubstitutionModel,
-        )
+        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
 
         is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
 
@@ -696,9 +694,7 @@ class LikelihoodFunction(ParameterController):
         motif_probs : dict or DictArray
             an item for each edge of the tree. Computed if not provided.
         """
-        from cogent3.evolve.ns_substitution_model import (
-            DiscreteSubstitutionModel,
-        )
+        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
 
         is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
 
