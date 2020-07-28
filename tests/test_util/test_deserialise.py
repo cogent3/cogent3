@@ -250,9 +250,7 @@ class TestDeserialising(TestCase):
     def test_roundtrip_model_result2(self):
         """model_result of split codon correct type after roundtrip"""
         from cogent3.app import evo as evo_app
-        from cogent3.evolve.parameter_controller import (
-            AlignmentLikelihoodFunction,
-        )
+        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
@@ -284,9 +282,7 @@ class TestDeserialising(TestCase):
     def test_model_collection_result(self):
         """round trip of model collection works"""
         from cogent3.app import evo as evo_app
-        from cogent3.evolve.parameter_controller import (
-            AlignmentLikelihoodFunction,
-        )
+        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
@@ -325,9 +321,7 @@ class TestDeserialising(TestCase):
     def test_roundtrip_hypothesis_result(self):
         """nested items retain the correct type after roundtrip"""
         from cogent3.app import evo as evo_app
-        from cogent3.evolve.parameter_controller import (
-            AlignmentLikelihoodFunction,
-        )
+        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",

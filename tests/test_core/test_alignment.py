@@ -2552,6 +2552,13 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln.set_repr_policy(num_seqs=5, num_pos=40, ref_name="b")
         got = aln._repr_html_()
         self.assertTrue(got.find(row_a) > got.find(row_b))
+        # tests repr policy has been successfully applied
+        aln.set_repr_policy(num_seqs=1)
+        got = aln._repr_html_()
+        self.assertEqual(got.count("</tr>"), 2)
+        aln.set_repr_policy(num_seqs=3)
+        got = aln._repr_html_()
+        self.assertEqual(got.count("</tr>"), 3)
 
     def test_seqlogo(self):
         """exercise producing a seq logo"""
