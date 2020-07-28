@@ -3865,11 +3865,10 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         Should be able to handle joint alphabets, e.g. codons.
         """
         result = []
-        num_seqs = self._repr_policy.get("num_seqs")
-        num_pos = self._repr_policy.get("num_pos")
-        names = self.names[:num_seqs]
+        names = list(map(str, self.names))
+        max_label_length = max(list(map(len, names))) + 1
         seq2str = self.alphabet.from_indices
-        for l, s in zip(names, [seq[:num_pos] for seq in self.array_seqs[:num_seqs]]):
+        for l, s in zip(self.names, self.array_seqs):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
