@@ -1200,6 +1200,17 @@ class TableTests(TestCase):
         # the next line was previously failing
         g = t._get_repr_()
 
+        table = Table(header=["a", "b"], data=[[1, 2]])
+        table, _, unset_columns = table._get_repr_()
+        self.assertEqual(table.shape, (1, 2))
+        self.assertEqual(unset_columns, "unset columns: ")
+
+        table = make_table(header=["a", "b"])
+        table.columns["a"] = ["a"]
+        table, _, unset_columns = table._get_repr_()
+        self.assertEqual(table.shape, (1, 1))
+        self.assertIn("b", unset_columns)
+
     def test_repr_html_(self):
         """should produce html"""
         # no index
@@ -1215,6 +1226,11 @@ class TableTests(TestCase):
             count=[1, 3, 2],
         )
         t = Table(data=data)
+        _ = t._repr_html_()
+
+        # some columns without data
+        table = make_table(header=["a", "b"])
+        table.columns["a"] = ["a"]
         _ = t._repr_html_()
 
     def test_array(self):
