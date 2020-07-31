@@ -800,7 +800,7 @@ class Table:
             val = f"<td{klass}>{val}</td>"
             return val
 
-        table, shape_info = self._get_repr_()
+        table, shape_info, unset_columns = self._get_repr_()
         shape_info = f"<p>{shape_info}</p>"
         if not include_shape:
             shape_info = ""

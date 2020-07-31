@@ -47,7 +47,7 @@ __status__ = "Production"
 
 class TrapOutput:
     def __call__(self, data, *args, **kwargs):
-        self.data, _ = data._get_repr_()
+        self.data, _, _ = data._get_repr_()
         self.output = repr(data)
 
 
@@ -1259,13 +1259,13 @@ class TableTests(TestCase):
         t.set_repr_policy(random=2)
         r = repr(t)
         self.assertIsInstance(r, str)
-        r, _ = t._get_repr_()
+        r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 2)
         t.set_repr_policy(head=1)
-        r, _ = t._get_repr_()
+        r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 1)
         t.set_repr_policy(tail=3)
-        r, _ = t._get_repr_()
+        r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 3)
 
     def test_head(self):
