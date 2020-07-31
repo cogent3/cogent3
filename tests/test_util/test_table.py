@@ -1294,7 +1294,7 @@ class TableTests(TestCase):
         t = Table(header=self.t1_header, data=self.t1_rows)
         t.head(nrows=3)
         self.assertEqual(head.data.shape[0], 3)
-        self.assertEqual(len(head.output.splitlines()), 9)
+        self.assertEqual(len(head.output.splitlines()), 10)
         self.assertEqual(head.data.tolist(), self.t1_rows[:3])
         table.display = display
 
@@ -1308,7 +1308,7 @@ class TableTests(TestCase):
         t = Table(header=self.t1_header, data=self.t1_rows)
         t.tail(nrows=3)
         self.assertEqual(tail.data.shape[0], 3)
-        self.assertEqual(len(tail.output.splitlines()), 9)
+        self.assertEqual(len(tail.output.splitlines()), 10)
         self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
         table.display = display
 
