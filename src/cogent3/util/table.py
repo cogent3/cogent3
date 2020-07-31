@@ -769,7 +769,8 @@ class Table:
 
         rows = {}
         for c in self.header:
-            rows[c] = [self.columns[c][i] for i in indices]
+            if len(self.columns[c]):
+                rows[c] = [self.columns[c][i] for i in indices]
 
         if ellipsis:
             for k, v in rows.items():
@@ -777,7 +778,7 @@ class Table:
 
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         kwargs = self._get_persistent_attrs()
-        table = self.__class__(header=self.header, data=rows, **kwargs)
+        table = self.__class__(header=tuple(rows.keys()), data=rows, **kwargs)
         table._column_templates.update(self._column_templates)
         return table, shape_info
 
