@@ -783,7 +783,10 @@ class Table:
         unset_columns = "unset columns: %s" % ", ".join(unset_columns)
 
         kwargs = self._get_persistent_attrs()
-        table = self.__class__(header=tuple(rows.keys()), data=rows, **kwargs)
+        header = self.header
+        if rows.keys():
+            header = tuple(rows.keys())
+        table = self.__class__(header=header, data=rows, **kwargs)
         table._column_templates.update(self._column_templates)
         return table, shape_info, unset_columns
 
