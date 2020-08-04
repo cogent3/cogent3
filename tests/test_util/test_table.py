@@ -1280,6 +1280,12 @@ class TableTests(TestCase):
         self.assertEqual(head.data.shape[0], 3)
         self.assertEqual(len(head.output.splitlines()), 9)
         self.assertEqual(head.data.tolist(), self.t1_rows[:3])
+        # tests when number of rows < default
+        t = make_table(data=dict(a=["a"], b=["b"]))
+        t.head()
+        self.assertEqual(head.data.shape[0], 1)
+        self.assertEqual(len(head.output.splitlines()), 7)
+        self.assertEqual(head.data.tolist(), [["a", "b"]])
         table.display = display
 
     def test_tail(self):
@@ -1294,6 +1300,12 @@ class TableTests(TestCase):
         self.assertEqual(tail.data.shape[0], 3)
         self.assertEqual(len(tail.output.splitlines()), 9)
         self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
+        # tests when number of rows < default
+        t = make_table(data=dict(a=["a"], b=["b"]))
+        t.tail()
+        self.assertEqual(tail.data.shape[0], 1)
+        self.assertEqual(len(tail.output.splitlines()), 7)
+        self.assertEqual(tail.data.tolist(), [["a", "b"]])
         table.display = display
 
     @skipIf(DataFrame is None, "pandas not installed")
