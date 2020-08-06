@@ -714,6 +714,8 @@ class Sequence(_Annotatable, SequenceI):
         if isinstance(orig_seq, _Annotatable):
             self.copy_annotations(orig_seq)
 
+        self._repr_policy = dict(num_pos=60)
+
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
 
@@ -1089,6 +1091,111 @@ class Sequence(_Annotatable, SequenceI):
         ]
 
         return annot
+
+    def _repr_html_(self):
+        html = self.to_html(limit=self._repr_policy["num_pos"],)
+        return html
+
+    def to_html(
+        self,
+        interleave_len=60,
+        limit=None,
+        colors=None,
+        font_size=12,
+        font_family="Lucida Console",
+    ):
+        """returns html with embedded styles for sequence colouring
+
+        Parameters
+        ----------
+        interleave_len
+            maximum number of printed bases, defaults to
+            alignment length
+        limit
+            truncate alignment to this length
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
+
+        To display in jupyter notebook:
+
+            >>> from IPython.core.display import HTML
+            >>> HTML(aln.to_html())
+        """
+        css, styles = self.moltype.get_css_style(
+            colors=colors, font_size=font_size, font_family=font_family
+        )
+
+        if limit is None:
+            seq = self._seq
+        else:
+            seq = self._seq[:limit]
+
+        gaps = "".join(self.moltype.gaps)
+        seqlen = len(seq)
+        start_gap = re.search("^[%s]+" % gaps, "".join(seq))
+        end_gap = re.search("[%s]+$" % gaps, "".join(seq))
+
+        start = 0 if start_gap is None else start_gap.end()
+        end = len(seq) if end_gap is None else end_gap.start()
+        seq_style = []
+        template = '<span class="%s">%%s</span>'
+        styled_seq = []
+        for i in range(seqlen):
+            char = seq[i]
+            if i < start or i >= end:
+                style = "terminal_ambig_%s" % self.moltype.label
+            else:
+                style = styles[char]
+
+            seq_style.append(template % style)
+            styled_seq.append(seq_style[-1] % char)
+
+        # make a html table
+        seq = array(styled_seq, dtype="O")
+        table = ["<table>"]
+        seq_ = "<td>%s</td>"
+        label_ = '<td class="label">%s</td>'
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
+        for i in range(0, seqlen, interleave_len):
+            table.append(num_row_.format(i))
+            seqblock = seq[i : i + interleave_len].tolist()
+            seqblock = "".join(seqblock)
+            row = "".join([label_ % self.name, seq_ % seqblock])
+            table.append("<tr>%s</tr>" % row)
+        table.append("</table>")
+        if limit and limit < len(self):
+            summary = ("%s (truncated to %s) %s " "sequence") % (
+                len(self),
+                limit if limit else len(self),
+                self.moltype.label,
+            )
+        else:
+            summary = ("%s %s " "sequence") % (len(self), self.moltype.label,)
+
+        text = [
+            "<style>",
+            # "tr { line-height: %dpt ; }" % int(font_size / 4),
+            # ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
+            ".c3align td { border: none !important; text-align: left !important; }",
+            ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3align tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3align .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3align .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; }" % font_size,
+            "\n".join([".c3align " + style for style in css]),
+            "</style>",
+            '<div class="c3align">',
+            "\n".join(table),
+            "<p><i>%s</i></p>" % summary,
+            "</div>",
+        ]
+        return "\n".join(text)
 
 
 class ProteinSequence(Sequence):
