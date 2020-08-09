@@ -726,7 +726,11 @@ class Table:
             return "0 rows x 0 columns"
 
         table, shape_info, unset_columns = self._get_repr_()
-        result = "\n".join([str(table), shape_info, unset_columns])
+        result = (
+            "\n".join([str(table), shape_info, unset_columns])
+            if unset_columns
+            else "\n".join([str(table), shape_info])
+        )
         return result
 
     def __str__(self):
@@ -780,7 +784,9 @@ class Table:
                 v.insert(head, ellipsis)
 
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
-        unset_columns = "unset columns: %s" % ", ".join(unset_columns)
+        unset_columns = (
+            "unset columns: %s" % ", ".join(unset_columns) if unset_columns else None
+        )
 
         kwargs = self._get_persistent_attrs()
         header = self.header
@@ -804,7 +810,11 @@ class Table:
             return val
 
         table, shape_info, unset_columns = self._get_repr_()
-        shape_info = f"<p>{shape_info}</p>"
+        shape_info = (
+            f"<p>{shape_info}; unset columns={unset_columns}</p>"
+            if unset_columns
+            else f"<p>{shape_info}</p>"
+        )
         if not include_shape:
             shape_info = ""
 

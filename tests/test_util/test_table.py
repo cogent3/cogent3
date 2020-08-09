@@ -1203,7 +1203,7 @@ class TableTests(TestCase):
         table = Table(header=["a", "b"], data=[[1, 2]])
         table, _, unset_columns = table._get_repr_()
         self.assertEqual(table.shape, (1, 2))
-        self.assertEqual(unset_columns, "unset columns: ")
+        self.assertIsNone(unset_columns)
 
         table = make_table(header=["a", "b"])
         table.columns["a"] = ["a"]
@@ -1294,7 +1294,7 @@ class TableTests(TestCase):
         t = Table(header=self.t1_header, data=self.t1_rows)
         t.head(nrows=3)
         self.assertEqual(head.data.shape[0], 3)
-        self.assertEqual(len(head.output.splitlines()), 10)
+        self.assertEqual(len(head.output.splitlines()), 9)
         self.assertEqual(head.data.tolist(), self.t1_rows[:3])
         table.display = display
 
@@ -1308,7 +1308,7 @@ class TableTests(TestCase):
         t = Table(header=self.t1_header, data=self.t1_rows)
         t.tail(nrows=3)
         self.assertEqual(tail.data.shape[0], 3)
-        self.assertEqual(len(tail.output.splitlines()), 10)
+        self.assertEqual(len(tail.output.splitlines()), 9)
         self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
         table.display = display
 
