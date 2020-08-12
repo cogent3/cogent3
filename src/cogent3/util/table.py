@@ -725,8 +725,12 @@ class Table:
         if self.shape == (0, 0):
             return "0 rows x 0 columns"
 
-        table, shape_info = self._get_repr_()
-        result = "\n".join([str(table), shape_info])
+        table, shape_info, unset_columns = self._get_repr_()
+        result = (
+            "\n".join([str(table), shape_info, unset_columns])
+            if unset_columns
+            else "\n".join([str(table), shape_info])
+        )
         return result
 
     def __str__(self):
@@ -768,18 +772,29 @@ class Table:
             indices = list(range(self.shape[0]))
 
         rows = {}
+        unset_columns = []
         for c in self.header:
-            rows[c] = [self.columns[c][i] for i in indices]
+            if len(self.columns[c]):
+                rows[c] = [self.columns[c][i] for i in indices]
+            else:
+                unset_columns.append(c)
 
         if ellipsis:
             for k, v in rows.items():
                 v.insert(head, ellipsis)
 
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
+        unset_columns = (
+            "unset columns: %s" % ", ".join(unset_columns) if unset_columns else None
+        )
+
         kwargs = self._get_persistent_attrs()
-        table = self.__class__(header=self.header, data=rows, **kwargs)
+        header = self.header
+        if rows.keys():
+            header = tuple(rows.keys())
+        table = self.__class__(header=header, data=rows, **kwargs)
         table._column_templates.update(self._column_templates)
-        return table, shape_info
+        return table, shape_info, unset_columns
 
     def _repr_html_(self, include_shape=True):
         """returns html, used by Jupyter"""
@@ -794,8 +809,12 @@ class Table:
             val = f"<td{klass}>{val}</td>"
             return val
 
-        table, shape_info = self._get_repr_()
-        shape_info = f"<p>{shape_info}</p>"
+        table, shape_info, unset_columns = self._get_repr_()
+        shape_info = (
+            f"<p>{shape_info}; unset columns={unset_columns}</p>"
+            if unset_columns
+            else f"<p>{shape_info}</p>"
+        )
         if not include_shape:
             shape_info = ""
 
