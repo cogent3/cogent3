@@ -949,6 +949,34 @@ class SequenceTests(TestCase):
             with self.assertRaises(AttributeError):
                 s.is_annotated()
 
+    def test_to_html(self):
+        """produce correct html formatted text"""
+        seq = DnaSequence("ACGGTGGGGGGGGG")
+        got = seq.to_html()
+        # ensure balanced tags are in the txt
+        for tag in ["<style>", "</style>", "<div", "</div>", "<table>", "</table>"]:
+            self.assertTrue(tag in got)
+
+        seq_row = (
+            '<tr><td class="label">None</td>'
+            '<td><span class="A_dna">A</span>'
+            '<span class="C_dna">C</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="T_dna">T</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span></td></tr>'
+        )
+
+        self.assertTrue(seq_row in got)
+
 
 class SequenceSubclassTests(TestCase):
     """Only one general set of tests, since the subclasses are very thin."""
