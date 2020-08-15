@@ -291,6 +291,8 @@ class MolTypeTests(TestCase):
         self.assertEqual(available.shape, (7, 3))
         self.assertEqual(available[1, "Number of states"], 4)
         self.assertEqual(available["dna", "Number of states"], 4)
+        txt = repr(available)
+        self.assertIn("'dna'", txt)
 
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""

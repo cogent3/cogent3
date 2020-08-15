@@ -44,7 +44,7 @@ class TestDendro(TestCase):
         tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
         dnd = Dendrogram(tree=tree)
         edges = dnd.get_edge_names("d", "c", clade=True, stem=False)
-        self.assertEqual(set(edges), set(["c", "d", "e", "e1"]))
+        self.assertEqual(set(edges), {"c", "d", "e", "e1"})
 
     def test_min_max_x_y(self):
         """correctly compute the min and max of x and y"""
@@ -166,6 +166,17 @@ class TestDendro(TestCase):
         dnd.style_edges("a", line=dict(color="magenta"))
         with self.assertRaises(ValueError):
             dnd.style_edges("foo", line=dict(color="magenta"))
+
+    def test_tip_font(self):
+        """test tip_font settable"""
+        tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+        dnd = Dendrogram(tree=tree)
+        dnd.tip_font |= dict(size=18)
+        self.assertEqual(dnd.tip_font.size, 18)
+        dnd.tip_font.size = 10
+        self.assertEqual(dnd.tip_font.size, 10)
+        dnd.tip_font.color = "red"
+        self.assertEqual(dnd.tip_font["color"], "red")
 
 
 if __name__ == "__main__":
