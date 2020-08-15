@@ -525,7 +525,7 @@ class hypothesis_result(model_collection_result):
         stats, table = self._get_repr_data_()
         result = []
         for t in (stats, table):
-            r, _ = t._get_repr_()
+            r, _, _ = t._get_repr_()
             result.append(str(r))
 
         return "\n".join(result)

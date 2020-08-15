@@ -2,6 +2,7 @@
 
 """Unit tests for table.
 """
+import contextlib
 import json
 import os
 import pathlib
@@ -47,7 +48,7 @@ __status__ = "Production"
 
 class TrapOutput:
     def __call__(self, data, *args, **kwargs):
-        self.data, _ = data._get_repr_()
+        self.data, _, _ = data._get_repr_()
         self.output = repr(data)
 
 
@@ -1200,6 +1201,17 @@ class TableTests(TestCase):
         # the next line was previously failing
         g = t._get_repr_()
 
+        table = Table(header=["a", "b"], data=[[1, 2]])
+        table, _, unset_columns = table._get_repr_()
+        self.assertEqual(table.shape, (1, 2))
+        self.assertIsNone(unset_columns)
+
+        table = make_table(header=["a", "b"])
+        table.columns["a"] = ["a"]
+        table, _, unset_columns = table._get_repr_()
+        self.assertEqual(table.shape, (1, 1))
+        self.assertIn("b", unset_columns)
+
     def test_repr_html_(self):
         """should produce html"""
         # no index
@@ -1215,6 +1227,11 @@ class TableTests(TestCase):
             count=[1, 3, 2],
         )
         t = Table(data=data)
+        _ = t._repr_html_()
+
+        # some columns without data
+        table = make_table(header=["a", "b"])
+        table.columns["a"] = ["a"]
         _ = t._repr_html_()
 
     def test_array(self):
@@ -1259,13 +1276,13 @@ class TableTests(TestCase):
         t.set_repr_policy(random=2)
         r = repr(t)
         self.assertIsInstance(r, str)
-        r, _ = t._get_repr_()
+        r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 2)
         t.set_repr_policy(head=1)
-        r, _ = t._get_repr_()
+        r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 1)
         t.set_repr_policy(tail=3)
-        r, _ = t._get_repr_()
+        r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 3)
 
     def test_head(self):
@@ -1280,6 +1297,12 @@ class TableTests(TestCase):
         self.assertEqual(head.data.shape[0], 3)
         self.assertEqual(len(head.output.splitlines()), 9)
         self.assertEqual(head.data.tolist(), self.t1_rows[:3])
+        # tests when number of rows < default
+        t = make_table(data=dict(a=["a"], b=["b"]))
+        t.head()
+        self.assertEqual(head.data.shape[0], 1)
+        self.assertEqual(len(head.output.splitlines()), 7)
+        self.assertEqual(head.data.tolist(), [["a", "b"]])
         table.display = display
 
     def test_tail(self):
@@ -1294,6 +1317,12 @@ class TableTests(TestCase):
         self.assertEqual(tail.data.shape[0], 3)
         self.assertEqual(len(tail.output.splitlines()), 9)
         self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
+        # tests when number of rows < default
+        t = make_table(data=dict(a=["a"], b=["b"]))
+        t.tail()
+        self.assertEqual(tail.data.shape[0], 1)
+        self.assertEqual(len(tail.output.splitlines()), 7)
+        self.assertEqual(tail.data.tolist(), [["a", "b"]])
         table.display = display
 
     @skipIf(DataFrame is None, "pandas not installed")
