@@ -965,6 +965,7 @@ class Table:
     def head(self, nrows=5):
         """displays top nrows"""
         repr_policy = self._repr_policy
+        nrows = min(nrows, self.shape[0])
         self._repr_policy = dict(head=nrows, tail=None, random=None)
         display(self)
         self._repr_policy = repr_policy
@@ -972,6 +973,7 @@ class Table:
     def tail(self, nrows=5):
         """displays bottom nrows"""
         repr_policy = self._repr_policy
+        nrows = min(nrows, self.shape[0])
         self._repr_policy = dict(head=None, tail=nrows, random=None)
         display(self)
         self._repr_policy = repr_policy
