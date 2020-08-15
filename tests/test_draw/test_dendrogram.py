@@ -44,7 +44,7 @@ class TestDendro(TestCase):
         tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
         dnd = Dendrogram(tree=tree)
         edges = dnd.get_edge_names("d", "c", clade=True, stem=False)
-        self.assertEqual(set(edges), set(["c", "d", "e", "e1"]))
+        self.assertEqual(set(edges), {"c", "d", "e", "e1"})
 
     def test_min_max_x_y(self):
         """correctly compute the min and max of x and y"""
