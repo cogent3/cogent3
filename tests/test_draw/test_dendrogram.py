@@ -167,6 +167,17 @@ class TestDendro(TestCase):
         with self.assertRaises(ValueError):
             dnd.style_edges("foo", line=dict(color="magenta"))
 
+    def test_tip_font(self):
+        """test tip_font settable"""
+        tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+        dnd = Dendrogram(tree=tree)
+        dnd.tip_font |= dict(size=18)
+        self.assertEqual(dnd.tip_font.size, 18)
+        dnd.tip_font.size = 10
+        self.assertEqual(dnd.tip_font.size, 10)
+        dnd.tip_font.color = "red"
+        self.assertEqual(dnd.tip_font["color"], "red")
+
 
 if __name__ == "__main__":
     main()

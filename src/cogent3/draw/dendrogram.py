@@ -623,7 +623,7 @@ class Dendrogram(Drawable):
 
     @contemporaneous.setter
     def contemporaneous(self, value):
-        if not type(value) == bool:
+        if type(value) != bool:
             raise TypeError
         if self._contemporaneous != value:
             klass = self.tree.__class__
@@ -641,6 +641,11 @@ class Dendrogram(Drawable):
     @property
     def tip_font(self):
         return self._tip_font
+
+    @tip_font.setter
+    def tip_font(self, val):
+        """update tip font settings"""
+        self._tip_font = val
 
     def _scale_label_pad(self):
         """returns the label pad scaled by maximum dist to tip"""
