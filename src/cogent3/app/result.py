@@ -338,7 +338,9 @@ class model_result(generic_result):
         Note
         ----
         In the case of a discrete time process, length is 'paralinear'"""
-        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
+        from cogent3.evolve.ns_substitution_model import (
+            DiscreteSubstitutionModel,
+        )
 
         try:
             model = self.lf.model
