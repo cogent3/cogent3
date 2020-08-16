@@ -2823,7 +2823,10 @@ class AlignmentI(object):
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        if not name_order:
+        if name_order:
+            self = self.take_seqs(name_order)
+        else:
+            name_order = list(self.names)
             ref_name = ref_name or "longest"
 
         if ref_name == "longest":
@@ -2836,7 +2839,6 @@ class AlignmentI(object):
                 raise ValueError(f"Unknown sequence name {ref_name}")
             ref = ref_name
 
-        name_order = list(self.names)
         name_order.remove(ref)
         name_order.insert(0, ref)
 
