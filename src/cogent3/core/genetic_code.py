@@ -243,15 +243,19 @@ class GeneticCode:
             raise InvalidCodonError("Codon or aa %s has wrong length" % item)
 
     def translate(self, dna, start=0):
-        """ Translates DNA to protein with current GeneticCode.
+        """Translates DNA to protein with current GeneticCode.
 
-        dna         = a string of nucleotides
-        start       = position to begin translation (used to implement frames)
+        Parameters
+        ----------
+        dna: str
+            a string of nucleotides
+        start: int
+            position to begin translation (used to implement frames)
 
-        Returns string containing amino acid sequence. Translates the entire
-        sequence: it is the caller's responsibility to find open reading frames.
-
-        NOTE: should return Protein object when we have a class for it.
+        Returns
+        -------
+        String containing amino acid sequence. Translates the entire sequence.
+        It is the caller's responsibility to find open reading frames.
         """
         if not dna:
             return ""
