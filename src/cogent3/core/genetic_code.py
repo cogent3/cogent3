@@ -197,6 +197,7 @@ class GeneticCode:
     blocks = property(_get_blocks)
 
     def to_table(self):
+        """returns aa to codon mapping as a cogent3 Table"""
         from cogent3.core.moltype import IUPAC_PROTEIN_code_aa
 
         rows = []
@@ -205,8 +206,7 @@ class GeneticCode:
             codons = ",".join(self[code])
             row = [aa, code, codons]
             rows.append(row)
-        t = Table(header=headers, data=rows, title=self.name)
-        return t
+        return Table(header=headers, data=rows, title=self.name)
 
     def __str__(self):
         """Returns code_sequence that constructs the GeneticCode."""
