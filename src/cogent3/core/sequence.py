@@ -712,7 +712,8 @@ class Sequence(_Annotatable, SequenceI):
         self.info = info
 
         if isinstance(orig_seq, _Annotatable):
-            self.copy_annotations(orig_seq)
+            for ann in orig_seq.annotations:
+                ann.copy_annotations_to(self)
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq

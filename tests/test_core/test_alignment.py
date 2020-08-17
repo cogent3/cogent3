@@ -200,9 +200,6 @@ class SequenceCollectionBaseTests(object):
 
     def setUp(self):
         """Define some standard SequenceCollection objects."""
-        if type(self.Class) == ArrayAlignment:
-            pass
-
         self.one_seq = self.Class({"a": "AAAAA"})
         self.ragged_padded = self.Class({"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"})
         self.identical = self.Class({"a": "AAAA", "b": "AAAA"})
@@ -332,7 +329,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a.names, ["seq_0", "seq_1", "seq_2"])
         self.assertEqual(list(a.seqs), ["AAAAA", "BBBBB", "CCCCC"])
 
-    def test_init_annotated_seq(self):
+    def test_init_seq_info(self):
         """SequenceCollection init from seqs w/ info should preserve data"""
         a = Sequence("AAA", name="a", info={"x": 3})
         b = Sequence("CCC", name="b", info={"x": 4})
@@ -351,6 +348,18 @@ class SequenceCollectionBaseTests(object):
         if self.Class is not ArrayAlignment:
             # ArrayAlignment is allowed to strip Info objects
             self.assertEqual([i.info.x for i in b.seqs], [5, 4, 3])
+
+    def test_init_annotated_seqs(self):
+        """correctly construct from list with annotated seq"""
+        if self.Class == ArrayAlignment:
+            # this class cannot be annotated
+            return
+        seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
+        _ = seq.add_feature("exon", "name", [(4, 10)])
+        coll = self.Class(data=[seq])
+        got_seq = coll.get_seq("seq1")
+        ann = got_seq.annotations[0]
+        self.assertEqual(str(got_seq[ann]), "GGGGGG")
 
     def test_init_pairs(self):
         """SequenceCollection init from list of (key,val) pairs should work correctly"""
