@@ -150,7 +150,13 @@ class SequenceI(object):
         return json.dumps(self.to_rich_dict())
 
     def translate(self, *args, **kwargs):
-        """translate() delegates to self._seq."""
+        """returns the result of call str.translate
+
+        Notes
+        -----
+        This is a string method, nothing to do with translating into a
+        protein sequence.
+        """
         return self._seq.translate(*args, **kwargs)
 
     def count(self, item):
