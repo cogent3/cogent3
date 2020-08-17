@@ -105,6 +105,11 @@ class TestConstructorFunctions(unittest.TestCase):
         self.assertTrue("Human" in got.to_dict())
         self.assertEqual(got.info["source"], path)
 
+    def test_load_unaligned_seqs_no_format(self):
+        """test loading unaligned from file"""
+        with self.assertRaises(ValueError):
+            got = load_unaligned_seqs("somepath")
+
     def test_load_aligned_seqs(self):
         """test loading aligned from file"""
         path = os.path.join(data_path, "brca1_5.paml")
@@ -117,6 +122,11 @@ class TestConstructorFunctions(unittest.TestCase):
         got = load_aligned_seqs(path, moltype="dna", array_align=False)
         self.assertEqual(got.moltype.label, "dna")
         self.assertIsInstance(got, Alignment)
+
+    def test_load_aligned_seqs_no_format(self):
+        """test loading unaligned from file"""
+        with self.assertRaises(ValueError):
+            got = load_aligned_seqs("somepath")
 
     def test_load_unaligned_seqs_from_json(self):
         """test loading an unaligned object from json file"""
