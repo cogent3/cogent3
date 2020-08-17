@@ -57,7 +57,7 @@ from cogent3.core.genetic_code import DEFAULT, get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import LostSpan, Span
 from cogent3.core.profile import PSSM, MotifCountsArray
-from cogent3.core.sequence import ArraySequence, frac_same
+from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2045,7 +2045,10 @@ class Aligned(object):
         if hasattr(data, "name"):
             self.name = data.name
 
-    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+    @extend_docstring_from(Sequence.annotate_matches_to)
+    def annotate_matches_to(
+        self, pattern, annot_type, name, allow_multiple=False
+    ):  # noqa
         return self.data.annotate_matches_to(
             pattern=pattern,
             annot_type=annot_type,
