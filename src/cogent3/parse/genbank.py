@@ -382,17 +382,6 @@ class Location(object):
             curr = "complement(%s)" % curr
         return curr
 
-    def isAmbiguous(self):
-        """Returns True if ambiguous (single-base ambiguity or two locations.)
-        """
-        if self.Ambiguity:
-            return True
-        try:
-            iter(self._data)
-            return True
-        except:
-            return False
-
     def first(self):
         """Returns first base self could be."""
         try:

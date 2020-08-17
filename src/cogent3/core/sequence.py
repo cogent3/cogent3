@@ -1100,8 +1100,7 @@ class Sequence(_Annotatable, SequenceI):
         return annot
 
     def _repr_html_(self):
-        html = self.to_html(limit=self._repr_policy["num_pos"],)
-        return html
+        return self.to_html(limit=self._repr_policy["num_pos"],)
 
     def to_html(
         self,
@@ -1138,11 +1137,7 @@ class Sequence(_Annotatable, SequenceI):
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        if limit is None:
-            seq = self._seq
-        else:
-            seq = self._seq[:limit]
-
+        seq = self._seq if limit is None else self._seq[:limit]
         gaps = "".join(self.moltype.gaps)
         seqlen = len(seq)
         start_gap = re.search("^[%s]+" % gaps, "".join(seq))
@@ -1176,19 +1171,14 @@ class Sequence(_Annotatable, SequenceI):
             row = "".join([label_ % self.name, seq_ % seqblock])
             table.append("<tr>%s</tr>" % row)
         table.append("</table>")
+        class_name = self.__class__.__name__
         if limit and limit < len(self):
-            summary = ("%s (truncated to %s) %s " "sequence") % (
-                len(self),
-                limit if limit else len(self),
-                self.moltype.label,
-            )
+            summary = f"{len(self)} (truncated to {limit if limit else len(self)}) {class_name}"
         else:
-            summary = ("%s %s " "sequence") % (len(self), self.moltype.label,)
+            summary = f"{len(self)} {class_name}"
 
         text = [
             "<style>",
-            # "tr { line-height: %dpt ; }" % int(font_size / 4),
-            # ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
             ".c3seq td { border: none !important; text-align: left !important; }",
             ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
