@@ -2,7 +2,7 @@
 from cogent3.core.annotation import Feature
 from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
-from cogent3.core.moltype import ASCII, DNA, PROTEIN
+from cogent3.core.moltype import get_moltype
 from cogent3.parse.record import FieldWrapper
 from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
@@ -651,7 +651,7 @@ def RichGenbankParser(
 
     """
     info_excludes = info_excludes or []
-    moltype = moltype or ASCII
+    moltype = get_moltype(moltype or "text")
     for rec in MinimalGenbankParser(handle):
         info = Info()
         # populate the info object, excluding the sequence
@@ -660,10 +660,8 @@ def RichGenbankParser(
                 continue
             info[label] = value
 
-        if rec["mol_type"] == "protein":  # which it doesn't for genbank
-            moltype = PROTEIN
-        elif rec["mol_type"] == "DNA":
-            moltype = DNA
+        if rec["mol_type"].lower() in ("dna", "rna", "protein"):
+            moltype = get_moltype(rec["mol_type"].lower())
 
         try:
             seq = moltype.make_seq(
