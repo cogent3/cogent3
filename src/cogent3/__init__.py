@@ -233,6 +233,11 @@ def load_unaligned_seqs(
     if file_format == "json":
         return load_from_json(filename, (SequenceCollection,))
 
+    format = format or file_format
+    if not format:
+        msg = "could not determined file format, set using the format argument"
+        raise ValueError(msg)
+
     parser_kw = parser_kw or {}
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
@@ -283,6 +288,11 @@ def load_aligned_seqs(
     file_format, _ = get_format_suffixes(filename)
     if file_format == "json":
         return load_from_json(filename, (Alignment, ArrayAlignment))
+
+    format = format or file_format
+    if not format:
+        msg = "could not determined file format, set using the format argument"
+        raise ValueError(msg)
 
     parser_kw = parser_kw or {}
     for other_kw in ("constructor_kw", "kw"):
