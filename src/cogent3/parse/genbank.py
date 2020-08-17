@@ -701,7 +701,7 @@ def RichGenbankParser(
             if add_annotation:
                 add_annotation(seq, feature, spans)
             else:
-                for id_field in ["gene", "note", "product", "clone"]:
+                for id_field in ["gene", "product", "clone", "note"]:
                     if id_field in feature:
                         name = feature[id_field]
                         if not isinstance(name, str):

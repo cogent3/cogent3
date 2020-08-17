@@ -483,6 +483,9 @@ ORIGIN
 
         self.assertEqual(len(got_1.annotations), len(got_2.annotations))
         self.assertEqual(got_2.moltype.label, "dna")
+        # name formed from /product value
+        got = {f.name for f in got_2.get_annotations_matching("mRNA")}
+        self.assertEqual(got, {"conserved hypothetical protein", "chaperone, putative"})
 
 
 class LocationTests(TestCase):
