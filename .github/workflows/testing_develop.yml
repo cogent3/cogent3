@@ -24,7 +24,7 @@ jobs:
           path: /Users/runner/conda_pkgs_dir
           key: ${{ runner.os }}-conda-${{ hashFiles('c3dev-environment.yml') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-conda-
 
       - uses: actions/cache@v2
         if: startsWith(runner.os, 'Linux')
@@ -38,9 +38,9 @@ jobs:
         if: startsWith(runner.os, 'Windows')
         with:
           path: C:\Users\runneradmin\conda_pkgs_dir
-          key: ${{ runner.os }}-pip-${{ hashFiles('c3dev-environment.yml') }}
+          key: ${{ runner.os }}-conda-${{ hashFiles('c3dev-environment.yml') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-conda-
 
       - uses: "actions/setup-python@v1"
         with:
