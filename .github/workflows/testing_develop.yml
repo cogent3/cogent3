@@ -18,6 +18,30 @@ jobs:
 
     steps:
       - uses: "actions/checkout@v2"
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'macOS')
+        with:
+          path: /Users/runner/conda_pkgs_dir
+          key: ${{ runner.os }}-conda-${{ hashFiles('c3dev-environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Linux')
+        with:
+          path: /home/runner/conda_pkgs_dir
+          key: ${{ runner.os }}-conda-${{ hashFiles('c3dev-environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-conda-
+
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Windows')
+        with:
+          path: C:\Users\runneradmin\conda_pkgs_dir
+          key: ${{ runner.os }}-pip-${{ hashFiles('c3dev-environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - uses: "actions/setup-python@v1"
         with:
           python-version: "${{ matrix.python-version }}"
@@ -32,9 +56,10 @@ jobs:
       - name: "Display conda env for ${{ matrix.python-version }}"
         shell: bash -l {0}
         run: |
-          conda activate 
+          conda activate
           conda info
           conda list
+
       - name: "Run tox targets for ${{ matrix.python-version }}"
         shell: bash -l {0}
         run: |
