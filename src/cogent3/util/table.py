@@ -1304,7 +1304,7 @@ class Table:
         -----
         All tables must have the same columns.
         """
-        if new_column:
+        if new_column is not None:
             assert new_column not in self.columns, f"'{new_column}' already exists"
         # default title is no title
         kwargs["title"] = kwargs.get("title", "")
@@ -1322,14 +1322,14 @@ class Table:
         raw_data = defaultdict(list)
         for table in table_series:
             assert set(table.columns.order) == columns, "columns don't match"
-            if new_column:
+            if new_column is not None:
                 new_col.extend([table.title] * table.shape[0])
             data = table.columns.to_dict()
             for c, v in data.items():
                 raw_data[c].extend(v)
 
         dtypes = {c: self.columns[c].dtype for c in self.columns}
-        if new_column:
+        if new_column is not None:
             columns = (new_column,) + self.columns.order
             raw_data[new_column] = new_col
             dtypes[new_column] = "<U15"
