@@ -12,6 +12,7 @@ from pathlib import Path
 from random import choice, randint
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
+from zipfile import ZipFile
 
 import numpy
 
@@ -128,10 +129,17 @@ def bytes_to_string(data):
     return data
 
 
+def zip_open(filename, mode, **kwargs):
+    """open a zip-compressed file"""
+    return ZipFile(filename, mode, **kwargs)
+
+
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
     filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open}.get(filename.suffix, open)
+    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": zip_open}.get(
+        filename.suffix, open
+    )
     return op(filename, mode, **kwargs)
 
 
