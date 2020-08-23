@@ -156,7 +156,7 @@ class CategoryCounts:
         if expected:
             expected = observed.template.wrap(expected)
 
-        if observed.array.min() < 0 or expected and expected.array.min() < 0:
+        if observed.array.min() < 0 or (expected and expected.array.min() < 0):
             raise ValueError("negative values encountered")
 
         if expected:
@@ -435,5 +435,6 @@ class TestResult:
         components = CategoryCounts(
             self.observed.to_dict(), expected=self.expected.to_dict()
         )
-        html = [table._repr_html_(include_shape=False), components._repr_html_()]
+        html = [table._repr_html_(include_shape=False)]
+        html.append(components._repr_html_())
         return "\n".join(html)

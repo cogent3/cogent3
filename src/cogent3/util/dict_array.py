@@ -558,6 +558,29 @@ class DictArray(object):
         ]
         return "\n".join([sep.join(row) for row in rows])
 
+    def to_table(self):
+        """return Table instance
+        
+        Notes
+        -----
+        Raises ValueError if number of dimensions > 2
+        """
+        ndim = self.array.ndim
+        if ndim > 2:
+            raise ValueError(f"cannot make 2D table from {ndim}D array")
+
+        from .table import Table
+
+        header = self.template.names[0] if ndim == 1 else self.template.names[1]
+        index = "" if ndim == 2 else None
+        if ndim == 1:
+            data = {c: [v] for c, v in zip(header, self.array)}
+        else:
+            data = {c: self.array[:, i].tolist() for i, c in enumerate(header)}
+            data[""] = self.template.names[0]
+
+        return Table(header=header, data=data, index=index)
+
     def write(self, path, format="tsv", sep="\t"):
         """
         writes a flattened version to path

@@ -597,11 +597,8 @@ class Table:
 
             data = {c: v for c, v in zip(header, zip(*data))}
 
-        if header is None and isinstance(data, dict):
-            header = list(data)
-        elif header is None:
-            header = []
-
+        if header is None:
+            header = list(data) if isinstance(data, dict) else []
         has_index = index is not None
         if has_index and not isinstance(index, str):
             raise TypeError(f"only str type supported for index, not {type(index)}")
