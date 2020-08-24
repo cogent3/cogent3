@@ -2,12 +2,16 @@
 
 """Unit tests for utility functions and classes.
 """
+import os
 import pathlib
 import tempfile
+import zipfile
 
 from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from zipfile import ZipFile
 
 from numpy.testing import assert_allclose
 
@@ -27,6 +31,7 @@ from cogent3.util.misc import (
     adjusted_gt_minprob,
     adjusted_within_bounds,
     atomic_write,
+    bytes_to_string,
     curry,
     extend_docstring_from,
     get_format_suffixes,
@@ -42,6 +47,7 @@ from cogent3.util.misc import (
     iterable,
     list_flatten,
     not_list_tuple,
+    open_zipped_file,
     path_exists,
     recursive_flatten,
     remove_files,
@@ -534,6 +540,20 @@ class UtilsTests(TestCase):
         self.assertTrue(path_exists(p))
         # or string instance
         self.assertTrue(path_exists(__file__))
+
+    def test_open_zipped_file(self):
+        with TemporaryDirectory(dir=".") as dirname:
+            filename = os.path.join(dirname, "foo.txt")
+            file = os.path.join(dirname, "foo.zip")
+            with open(filename, "w") as f:
+                f.write("any str")
+            with zipfile.ZipFile(file, "w") as zip:
+                zip.write(filename)
+
+            zf = ZipFile(file)
+            self.assertEqual(len(zf.namelist()), 1)
+            got = open_zipped_file(zf.namelist()[0], file)
+            self.assertEqual(bytes_to_string(got.readline()), "any str")
 
 
 class Atomic_writeTests(TestCase):

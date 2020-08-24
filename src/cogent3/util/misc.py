@@ -129,17 +129,16 @@ def bytes_to_string(data):
     return data
 
 
-def zip_open(filename, mode, **kwargs):
+def open_zipped_file(filename, file, mode="r", **kwargs):
     """open a zip-compressed file"""
-    return ZipFile(filename, mode, **kwargs)
+    with ZipFile(file) as zip:
+        return zip.open(filename, mode, **kwargs)
 
 
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
     filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": zip_open}.get(
-        filename.suffix, open
-    )
+    op = {".gz": gzip_open, ".bz2": bzip_open}.get(filename.suffix, open)
     return op(filename, mode, **kwargs)
 
 
