@@ -1196,6 +1196,10 @@ class Table:
         Row data provided to callback is a 1D list if more than one column,
         single value (row[col]) otherwise.
         """
+        # no point filtering if no rows, justv return self
+        if self.shape[0] == 0:
+            return self
+
         if isinstance(columns, str):
             columns = (columns,)
 
@@ -1243,6 +1247,10 @@ class Table:
             python code to be evaluated.
 
         """
+        # no rows, value must be 0
+        if self.shape[0] == 0:
+            return 0
+
         if isinstance(columns, str):
             columns = (columns,)
 

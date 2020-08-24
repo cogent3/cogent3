@@ -534,6 +534,12 @@ class TableTests(TestCase):
         self.assertEqual(t2.count("bar % 2 == 0"), 2)
         self.assertEqual(t2.count("id == 0"), 0)
 
+    def test_count_empty(self):
+        """empty table count method returns 0"""
+        t1 = Table(header=self.t1_header)
+        self.assertEqual(t1.count('chrom == "X"'), 0)
+        self.assertEqual(t1.count(lambda x: x == "X", columns="chrom"), 0)
+
     def test_count_unique(self):
         """correctly computes unique values"""
         data = {
@@ -583,6 +589,15 @@ class TableTests(TestCase):
         self.assertEqual(t2.filtered('foo == "cab"').shape[0], 1)
         self.assertEqual(t2.filtered("bar % 2 == 0").shape[0], 2)
         self.assertEqual(t2.filtered("id == 0").shape[0], 0)
+
+    def test_filtered_empty(self):
+        """test the table filtered method"""
+        t1 = Table(header=self.t1_header)
+        self.assertEqual(t1.shape[0], 0)
+        got = t1.filtered('chrom == "X"')
+        self.assertEqual(got.shape[0], 0)
+        got = t1.filtered(lambda x: x == "X", columns="chrom")
+        self.assertEqual(got.shape[0], 0)
 
     def test_filtered_by_column(self):
         """test the table filtered_by_column method"""
