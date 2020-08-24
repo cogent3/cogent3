@@ -117,6 +117,22 @@ class ContingencyTests(TestCase):
         table = CategoryCounts(dict(zip(keys, obs)), expected=dict(zip(keys, exp)))
         str(table)
 
+    def test_repr_contingency(self):
+        """exercising repr(CategoryCounts) with/without html=True"""
+        table = CategoryCounts(
+            {
+                "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
+                "b": {"env1": 1, "env3": 1, "env2": 3},
+            }
+        )
+        str(table)
+        obs = [2, 10, 8, 2, 4]
+        exp = [5.2] * 5
+        keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
+        table = CategoryCounts(dict(zip(keys, obs)), expected=dict(zip(keys, exp)))
+        got = table._get_repr_()
+        got = table._get_repr_(html=True)
+
     def test_accessing_elements(self):
         """successfully access elements"""
         table = CategoryCounts(
@@ -169,6 +185,18 @@ class ContingencyTests(TestCase):
             str(obj)
             repr(obj)
             obj._repr_html_()
+
+    def test_statistics(self):
+        """returns TestResult.statistics has stats"""
+        table = CategoryCounts(
+            {
+                "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
+                "b": {"env1": 1, "env3": 1, "env2": 3},
+            }
+        )
+        got = table.chisq_test()
+        stats = got.statistics
+        self.assertEqual(stats[0, "pvalue"], got.pvalue)
 
 
 if __name__ == "__main__":

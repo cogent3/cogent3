@@ -156,7 +156,7 @@ class CategoryCounts:
         if expected:
             expected = observed.template.wrap(expected)
 
-        if observed.array.min() < 0 or expected and expected.array.min() < 0:
+        if observed.array.min() < 0 or (expected and expected.array.min() < 0):
             raise ValueError("negative values encountered")
 
         if expected:
@@ -172,74 +172,43 @@ class CategoryCounts:
 
     def _get_repr_(self, html=False):
 
-        obs = self.observed.array.tolist()
-        exp = self.expected.array.tolist()
-        res = self.residuals.array.tolist()
+        obs = self.observed.to_table()
+        obs.title = "Observed"
+        exp = self.expected.to_table()
+        exp.title = "Expected"
+        exp.digits = 2
+        res = self.residuals.to_table()
+        res.title = "Residuals"
+        res.digits = 2
 
-        ndim = len(self.observed.shape)
+        ndim = self.observed.array.ndim
         if ndim == 1:
-            row_labels = "Observed", "Expected", "Residuals"
-            row_cell_func = _format_row_cell(row_labels)
-            col_labels = [str(c) for c in self.observed.template.names[0]]
-            rows = []
-            # format floats for expecteds and resid
-            for row_label, row in zip(row_labels, [obs, exp, res]):
-                if row_label == "Observed":
-                    row = [row_label] + [f"{v:,}" for v in row]
-                else:
-                    row = [row_label] + [f"{v:,.2f}" for v in row]
-                rows.append(row)
-
+            result = obs.appended("", exp, res, title=None)
             if html:
-                rows = rich_html(
-                    rows,
-                    header=[""] + col_labels,
-                    row_cell_func=row_cell_func,
-                    merge_identical=False,
-                )
+                result = result._repr_html_(include_shape=False)
             else:
-                header, rows = formatted_cells(rows, header=[""] + col_labels)
-                rows = simple_format(header, rows)
+                result, _, _ = result._get_repr_()
+                result = str(result)
+            return result
 
-        else:
-            row_labels = self.observed.template.names[0]
-            col_labels = self.observed.template.names[1]
-            row_cell_func = _format_row_cell(row_labels)
-            result = []
-            for caption, table in zip(
-                ("Observed", "Expected", "Residuals"), (obs, exp, res)
-            ):
-                rows = []
-                for i, r in enumerate(table):
-                    if caption == "Observed":
-                        r = [f"{v:,}" for v in r]
-                    else:
-                        r = [f"{v:,.2f}" for v in r]
-                    rows.append([row_labels[i]] + r)
-                if html:
-                    result.append(
-                        rich_html(
-                            rows,
-                            header=[""] + col_labels,
-                            caption=f"<b>{caption}</b>",
-                            row_cell_func=row_cell_func,
-                            merge_identical=False,
-                        )
-                    )
-                else:
-                    header, rows = formatted_cells(rows, header=[""] + col_labels)
-                    result.append(simple_format(header, rows, title=caption))
-            joiner = "<br>" if html else "\n"
-            rows = joiner.join(result)
-        return rows
+        result = []
+        for t in (obs, exp, res):
+            if html:
+                t = t._repr_html_(include_shape=False)
+            else:
+                t, _, _ = t._get_repr_()
+                t = str(t)
+
+            result.append(t)
+
+        joiner = "<br>" if html else "\n"
+        return joiner.join(result)
 
     def _repr_html_(self):
-        result = self._get_repr_(html=True)
-        return result
+        return self._get_repr_(html=True)
 
     def __repr__(self):
-        result = self._get_repr_(html=False)
-        return result
+        return self._get_repr_(html=False)
 
     def __str__(self):
         return self._get_repr_(html=False)
@@ -406,18 +375,24 @@ class TestResult:
         setattr(self, stat_name, stat)
 
     def _get_repr_(self):
+        from cogent3.util.table import Table
+
         header = [str(self.stat_name), "df", "pvalue"]
-        if self.pvalue > 1e-3:
-            pval = f"{self.pvalue:.4f}"
-        else:
-            pval = f"{self.pvalue:.4e}"
-        rows = [[f"{self.stat:.3f}", f"{self.df}", pval]]
-        return header, rows
+        col_templates = {
+            str(self.stat_name): "%.3f",
+            "df": "%s",
+            "pvalue": "%.4f" if self.pvalue > 1e-3 else "%.4e",
+        }
+        table = Table(
+            header,
+            [[self.stat, self.df, self.pvalue]],
+            title=self.test_name,
+            column_templates=col_templates,
+        )
+        return table
 
     def __repr__(self):
-        h, r = self._get_repr_()
-        h, r = formatted_cells(r, header=h)
-        result = simple_format(h, r, title=self.test_name)
+        result = str(self._get_repr_())
         components = CategoryCounts(
             self.observed.to_dict(), expected=self.expected.to_dict()
         )
@@ -428,12 +403,15 @@ class TestResult:
         return repr(self)
 
     def _repr_html_(self):
-        from cogent3.util.table import Table
-
-        h, r = self._get_repr_()
-        table = Table(h, r, title=self.test_name)
+        table = self._get_repr_()
         components = CategoryCounts(
             self.observed.to_dict(), expected=self.expected.to_dict()
         )
-        html = [table._repr_html_(include_shape=False), components._repr_html_()]
+        html = [table._repr_html_(include_shape=False)]
+        html.append(components._repr_html_())
         return "\n".join(html)
+
+    @property
+    def statistics(self):
+        """returns Table of stat, df and p-value"""
+        return self._get_repr_()

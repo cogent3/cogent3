@@ -514,6 +514,10 @@ class TableTests(TestCase):
         append_2 = t2.appended("foo2", [t3, t4])
         self.assertEqual(append_2.shape[0], t2.shape[0] + t3.shape[0] + t4.shape[0])
 
+        append_3 = t2.appended("", [t3, t4])
+        self.assertEqual(append_3.shape[0], t2.shape[0] + t3.shape[0] + t4.shape[0])
+        self.assertEqual(append_3.shape[1], t2.shape[1] + 1)
+
     def test_count(self):
         """test the table count method"""
         t1 = Table(header=self.t1_header, data=self.t1_rows)
