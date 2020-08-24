@@ -10,7 +10,7 @@ import zipfile
 from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
 from numpy.testing import assert_allclose
