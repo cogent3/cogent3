@@ -460,6 +460,7 @@ class Columns(MutableMapping):
     @index_name.setter
     def index_name(self, name):
         if name is None:
+            self._index_name = None
             return
 
         if name not in self:
@@ -984,13 +985,10 @@ class Table:
         return self._index_name
 
     @index_name.setter
-    def index_name(self, value):
-        if value is None:
-            return
-
-        self.columns.index_name = value
-        self._index_name = value
-        self._template = DictArrayTemplate(self.columns[value])
+    def index_name(self, name):
+        self.columns.index_name = name
+        self._index_name = name
+        self._template = None if name is None else DictArrayTemplate(self.columns[name])
 
     @property
     def header(self):

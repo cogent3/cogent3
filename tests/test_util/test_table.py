@@ -152,6 +152,12 @@ class TableTests(TestCase):
         t = Table(data=data, index="foo")
         self.assertEqual(t.index_name, "foo")
 
+        # correctly reset when assigned None
+        t.index_name = None
+        self.assertEqual(t.index_name, None)
+        self.assertEqual(t.columns.index_name, None)
+        self.assertEqual(t._template, None)
+
         # ... prior to providing columns
         t = Table(index="foo")
         for c, v in data.items():
