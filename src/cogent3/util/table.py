@@ -2061,6 +2061,9 @@ class Table:
             raise ValueError(f"not all '{select_as_header}' values unique")
 
         attr = self._get_persistent_attrs()
+        # on transpose, a row index becomes a column, so pop
+        del attr["index"]
+
         attr |= kwargs
         result = self.__class__(**attr)
 
