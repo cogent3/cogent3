@@ -2825,8 +2825,11 @@ class AlignmentI(object):
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
         )
-
+        orig_num_seqs = self.num_seqs
+        orig_len = len(self)
         if name_order:
+            # note this somewhat funky reassingnment to self to simplify following
+            # side effects are that "self" after this is NOT the original object
             self = self.take_seqs(name_order)
         else:
             name_order = list(self.names)
@@ -2908,16 +2911,16 @@ class AlignmentI(object):
             and len(name_order) < len(self.names)
         ):
             summary = ("%s x %s (truncated to %s x %s) %s " "alignment") % (
-                len(self.names),
-                len(self),
+                orig_num_seqs,
+                orig_len,
                 len(name_order) if name_order else len(self.names),
                 limit if limit else len(self),
                 self.moltype.label,
             )
         else:
             summary = ("%s x %s %s " "alignment") % (
-                len(self.names),
-                len(self),
+                orig_num_seqs,
+                orig_len,
                 self.moltype.label,
             )
 
