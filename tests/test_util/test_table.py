@@ -152,6 +152,12 @@ class TableTests(TestCase):
         t = Table(data=data, index="foo")
         self.assertEqual(t.index_name, "foo")
 
+        # correctly reset when assigned None
+        t.index_name = None
+        self.assertEqual(t.index_name, None)
+        self.assertEqual(t.columns.index_name, None)
+        self.assertEqual(t._template, None)
+
         # ... prior to providing columns
         t = Table(index="foo")
         for c, v in data.items():
@@ -795,6 +801,24 @@ class TableTests(TestCase):
         self.assertEqual(got.shape[1], t.shape[0] + 1)
         self.assertEqual(got.header, ("", "11", "22", "33", "44", "55"))
         r = str(got)  # this should not fail!
+
+    def test_transposed_forgets_index(self):
+        """transposed table defaults to no row index"""
+        data = {
+            "": [0, 1, 2, 3, 4, 5, 6],
+            "T": [2, 10, 1, 6, 1, 5, 0],
+            "C": [0, 0, 0, 0, 0, 0, 1],
+            "A": [8, 0, 9, 4, 9, 4, 4],
+            "G": [0, 0, 0, 0, 0, 1, 5],
+        }
+        t = Table(header=["", "T", "C", "A", "G"], data=data, index="")
+        tr = t.transposed("Base", select_as_header="")
+        self.assertEqual(tr.index_name, None)
+
+        # but you can set a new one
+        tr = t.transposed("Base", select_as_header="", index="Base")
+        self.assertEqual(tr.index_name, "Base")
+        self.assertEqual(tr["G", "5"], 1)
 
     def test_del_column(self):
         """correctly removes the column"""
