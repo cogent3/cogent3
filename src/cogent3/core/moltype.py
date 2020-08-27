@@ -1298,19 +1298,16 @@ class MolType(object):
             '.%s_%s{font-family: "%s",monospace !important; '
             "font-size: %dpt !important; color: %s; }"
         )
-        styles = _style_defaults[self.label].copy()
+        label = self.label or ""
+        styles = _style_defaults[label].copy()
         styles.update(
-            {
-                c: "_".join([c, self.label])
-                for c in list(self.alphabet) + ["terminal_ambig"]
-            }
+            {c: "_".join([c, label]) for c in list(self.alphabet) + ["terminal_ambig"]}
         )
 
-        css = []
-        for char in list(styles) + ["ambig"]:
-            css.append(
-                template % (char, self.label, font_family, font_size, colors[char])
-            )
+        css = [
+            template % (char, label, font_family, font_size, colors[char])
+            for char in list(styles) + ["ambig"]
+        ]
 
         return css, styles
 
@@ -1383,11 +1380,13 @@ BYTES = MolType(
     label="bytes",
 )
 
+# the None value catches cases where a moltype has no label attribute
 _style_defaults = {
-    mt.label: defaultdict(_DefaultValue("ambig_%s" % mt.label))
-    for mt in (ASCII, BYTES, DNA, RNA, PROTEIN, PROTEIN_WITH_STOP)
+    getattr(mt, "label", ""): defaultdict(
+        _DefaultValue("ambig_%s" % getattr(mt, "label", ""))
+    )
+    for mt in (ASCII, BYTES, DNA, RNA, PROTEIN, PROTEIN_WITH_STOP, None)
 }
-
 
 # following is a two-state MolType useful for testing
 AB = MolType(
