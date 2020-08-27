@@ -724,6 +724,8 @@ class Table:
             return "0 rows x 0 columns"
 
         table, shape_info, unset_columns = self._get_repr_()
+        if not self._repr_policy["show_shape"]:
+            shape_info = ""
         result = (
             "\n".join([str(table), shape_info, unset_columns])
             if unset_columns
@@ -742,7 +744,6 @@ class Table:
         rn = self._repr_policy["random"]
         head = self._repr_policy["head"]
         tail = self._repr_policy["tail"]
-        show_shape = self._repr_policy["show_shape"]
         if head is None and tail is None:
             if self.shape[0] < 50:
                 head = self.shape[0]
@@ -793,11 +794,9 @@ class Table:
             header = tuple(rows.keys())
         table = self.__class__(header=header, data=rows, **kwargs)
         table._column_templates.update(self._column_templates)
-        if not show_shape:
-            shape_info = ""
         return table, shape_info, unset_columns
 
-    def _repr_html_(self, include_shape=True):
+    def _repr_html_(self):
         """returns html, used by Jupyter"""
         base_colour = "rgba(161, 195, 209, {alpha})"
         colour = base_colour.format(alpha=0.25)
@@ -816,7 +815,7 @@ class Table:
             if unset_columns
             else f"<p>{shape_info}</p>"
         )
-        if not include_shape:
+        if not self._repr_policy["show_shape"]:
             shape_info = ""
 
         if self.shape == (0, 0):
