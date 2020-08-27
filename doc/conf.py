@@ -13,6 +13,7 @@ sys.path.append("../src")
 
 # Allow autosummary to generate stub files
 autosummary_generate = True
+add_module_names = False  # don't include module path to module/func names
 
 # Prevent numpydoc from requiring stub files for methods
 numpydoc_class_members_toctree = False
