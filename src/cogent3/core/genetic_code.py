@@ -219,7 +219,8 @@ class GeneticCode:
     def _repr_html_(self):
         """Returns the html representation of GeneticCode."""
         display = self.to_table()
-        return display._repr_html_(include_shape=False)
+        display.set_repr_policy(show_shape=False)
+        return display._repr_html_()
 
     def __eq__(self, other):
         """ Allows two GeneticCode objects to be compared to each other.
