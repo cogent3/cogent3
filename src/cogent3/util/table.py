@@ -645,10 +645,7 @@ class Table:
         self._column_templates = column_templates or {}
         # define the repr() display policy
         random = 0
-        show_shape = True
-        self._repr_policy = dict(
-            head=None, tail=None, random=random, show_shape=show_shape
-        )
+        self._repr_policy = dict(head=None, tail=None, random=random, show_shape=True)
         self.format = format
         self._missing_data = missing_data
 
