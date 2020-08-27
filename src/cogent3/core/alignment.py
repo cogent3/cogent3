@@ -2825,23 +2825,20 @@ class AlignmentI(object):
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
         )
-        orig_num_seqs = self.num_seqs
-        orig_len = len(self)
         if name_order:
-            # note this somewhat funky reassingnment to self to simplify following
-            # side effects are that "self" after this is NOT the original object
-            self = self.take_seqs(name_order)
+            selected = self.take_seqs(name_order)
         else:
             name_order = list(self.names)
             ref_name = ref_name or "longest"
+            selected = self
 
         if ref_name == "longest":
-            lengths = self.get_lengths(include_ambiguity=False, allow_gap=False)
+            lengths = selected.get_lengths(include_ambiguity=False, allow_gap=False)
             length_names = [(l, n) for n, l in lengths.items()]
             length_names.sort(reverse=True)
             ref = length_names[0][1]
         elif ref_name:
-            if ref_name not in self.names:
+            if ref_name not in selected.names:
                 raise ValueError(f"Unknown sequence name {ref_name}")
             ref = ref_name
 
@@ -2849,17 +2846,16 @@ class AlignmentI(object):
         name_order.insert(0, ref)
 
         if limit is None:
-            names, output = self._get_raw_pretty(name_order)
+            names, output = selected._get_raw_pretty(name_order)
         else:
-            names, output = self[:limit]._get_raw_pretty(name_order)
+            names, output = selected[:limit]._get_raw_pretty(name_order)
 
-        gaps = "".join(self.moltype.gaps)
+        gaps = "".join(selected.moltype.gaps)
         refname = names[0]
         refseq = output[refname]
         seqlen = len(refseq)
         start_gap = re.search("^[%s]+" % gaps, "".join(refseq))
         end_gap = re.search("[%s]+$" % gaps, "".join(refseq))
-        ref_colours = []
         start = 0 if start_gap is None else start_gap.end()
         end = len(refseq) if end_gap is None else end_gap.start()
         seq_style = []
@@ -2868,7 +2864,7 @@ class AlignmentI(object):
         for i in range(seqlen):
             char = refseq[i]
             if i < start or i >= end:
-                style = "terminal_ambig_%s" % self.moltype.label
+                style = "terminal_ambig_%s" % selected.moltype.label
             else:
                 style = styles[char]
 
@@ -2906,34 +2902,33 @@ class AlignmentI(object):
         table.append("</table>")
         if (
             limit
-            and limit < len(self)
+            and limit < len(selected)
             or name_order
-            and len(name_order) < len(self.names)
+            and len(name_order) < len(selected.names)
         ):
             summary = ("%s x %s (truncated to %s x %s) %s " "alignment") % (
-                orig_num_seqs,
-                orig_len,
-                len(name_order) if name_order else len(self.names),
-                limit if limit else len(self),
-                self.moltype.label,
+                self.num_seqs,
+                len(self),
+                len(name_order) if name_order else len(selected.names),
+                limit if limit else len(selected),
+                selected.moltype.label,
             )
         else:
             summary = ("%s x %s %s " "alignment") % (
-                orig_num_seqs,
-                orig_len,
-                self.moltype.label,
+                self.num_seqs,
+                len(self),
+                selected.moltype.label,
             )
 
         text = [
             "<style>",
-            # "tr { line-height: %dpt ; }" % int(font_size / 4),
-            # ".blank_row{ line-height: %dpt !important; " "opacity: 0.10; }" % font_size,
             ".c3align td { border: none !important; text-align: left !important; }",
             ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3align tr:nth-child(even) {background: #f7f7f7;}",
             ".c3align .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
             ".c3align .label { font-size: %dpt ; text-align: right !important; "
-            "color: black !important; padding: 0 4px; }" % font_size,
+            "color: black !important; padding: 0 4px; display: table-cell !important; "
+            "font-weight: normal !important; }" % font_size,
             "\n".join([".c3align " + style for style in css]),
             "</style>",
             '<div class="c3align">',
