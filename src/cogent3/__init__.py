@@ -430,14 +430,6 @@ def load_table(
         with a numeric/bool data types from the first non-header row.
         This assumes all subsequent entries in that column are of the same type.
         Default is False.
-    header
-        column headings
-    rows
-        a 2D dict, list or tuple. If a dict, it must have column
-        headings as top level keys, and common row labels as keys in each
-        column.
-    row_order
-        the order in which rows will be pulled from the twoDdict
     digits
         floating point resolution
     space
