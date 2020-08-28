@@ -430,14 +430,6 @@ def load_table(
         with a numeric/bool data types from the first non-header row.
         This assumes all subsequent entries in that column are of the same type.
         Default is False.
-    header
-        column headings
-    rows
-        a 2D dict, list or tuple. If a dict, it must have column
-        headings as top level keys, and common row labels as keys in each
-        column.
-    row_order
-        the order in which rows will be pulled from the twoDdict
     digits
         floating point resolution
     space
@@ -534,15 +526,24 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     Parameters
     ----------
     treestring
-        a newick or xml formatted tree string.
+        a newick or xml formatted tree string
     tip_names
-        a list of tip names.
+        a list of tip names, returns a "star" topology tree
+    format : str
+        indicates treestring is either newick or xml formatted, default
+        is newick
+    underscore_unmunge : bool
+        replace underscores with spaces in all names read, i.e. "sp_name"
+        becomes "sp name"
 
     Notes
     -----
     Underscore unmunging is turned off by default, although it is part
-    of the Newick format. Set ``underscore_unmunge=True`` to replace underscores
-    with spaces in all names read.
+    of the Newick format.
+
+    Returns
+    -------
+    PhyloNode
     """
     assert treestring or tip_names, "must provide either treestring or tip_names"
     if tip_names:
@@ -553,10 +554,7 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
 
     if format is None and treestring.startswith("<"):
         format = "xml"
-    if format == "xml":
-        parser = tree_xml_parse_string
-    else:
-        parser = newick_parse_string
+    parser = tree_xml_parse_string if format == "xml" else newick_parse_string
     tree_builder = TreeBuilder().create_edge
     # FIXME: More general strategy for underscore_unmunge
     if parser is newick_parse_string:
@@ -574,14 +572,22 @@ def load_tree(filename, format=None, underscore_unmunge=False):
 
     Parameters
     ----------
-    filename
-        a file containing a newick or xml formatted tree.
+    filename : str
+        a file path containing a newick or xml formatted tree.
+    format : str
+        either newick, xml or cogent3 json, default is newick
+    underscore_unmunge : bool
+        replace underscores with spaces in all names read, i.e. "sp_name"
+        becomes "sp name".
 
     Notes
     -----
     Underscore unmunging is turned off by default, although it is part
-    of the Newick format. Set ``underscore_unmunge=True`` to replace underscores
-    with spaces in all names read.
+    of the Newick format.
+
+    Returns
+    -------
+    PhyloNode
     """
     file_format, _ = get_format_suffixes(filename)
     if file_format == "json":
@@ -591,5 +597,5 @@ def load_tree(filename, format=None, underscore_unmunge=False):
         treestring = tfile.read()
         if format is None and filename.endswith(".xml"):
             format = "xml"
-    tree = make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
-    return tree
+
+    return make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
