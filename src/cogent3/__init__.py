@@ -526,15 +526,24 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     Parameters
     ----------
     treestring
-        a newick or xml formatted tree string.
+        a newick or xml formatted tree string
     tip_names
-        a list of tip names.
+        a list of tip names, returns a "star" topology tree
+    format : str
+        indicates treestring is either newick or xml formatted, default
+        is newick
+    underscore_unmunge : bool
+        replace underscores with spaces in all names read, i.e. "sp_name"
+        becomes "sp name"
 
     Notes
     -----
     Underscore unmunging is turned off by default, although it is part
-    of the Newick format. Set ``underscore_unmunge=True`` to replace underscores
-    with spaces in all names read.
+    of the Newick format.
+
+    Returns
+    -------
+    PhyloNode
     """
     assert treestring or tip_names, "must provide either treestring or tip_names"
     if tip_names:
@@ -563,14 +572,22 @@ def load_tree(filename, format=None, underscore_unmunge=False):
 
     Parameters
     ----------
-    filename
-        a file containing a newick or xml formatted tree.
+    filename : str
+        a file path containing a newick or xml formatted tree.
+    format : str
+        either newick, xml or cogent3 json, default is newick
+    underscore_unmunge : bool
+        replace underscores with spaces in all names read, i.e. "sp_name"
+        becomes "sp name".
 
     Notes
     -----
     Underscore unmunging is turned off by default, although it is part
-    of the Newick format. Set ``underscore_unmunge=True`` to replace underscores
-    with spaces in all names read.
+    of the Newick format.
+
+    Returns
+    -------
+    PhyloNode
     """
     file_format, _ = get_format_suffixes(filename)
     if file_format == "json":
