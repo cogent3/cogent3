@@ -545,10 +545,7 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
 
     if format is None and treestring.startswith("<"):
         format = "xml"
-    if format == "xml":
-        parser = tree_xml_parse_string
-    else:
-        parser = newick_parse_string
+    parser = tree_xml_parse_string if format == "xml" else newick_parse_string
     tree_builder = TreeBuilder().create_edge
     # FIXME: More general strategy for underscore_unmunge
     if parser is newick_parse_string:
@@ -583,5 +580,5 @@ def load_tree(filename, format=None, underscore_unmunge=False):
         treestring = tfile.read()
         if format is None and filename.endswith(".xml"):
             format = "xml"
-    tree = make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
-    return tree
+
+    return make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)
