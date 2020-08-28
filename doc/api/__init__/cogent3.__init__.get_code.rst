@@ -1,6 +1,6 @@
-available_moltypes
-==================
+get_code
+========
 
 .. currentmodule:: cogent3.__init__
 
-.. autofunction:: available_moltypes
+.. autofunction:: get_code
