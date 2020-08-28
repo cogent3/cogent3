@@ -74,7 +74,7 @@ These are all top level imports. For example,
     __init__/cogent3.__init__.available_apps
 
 ****************************
-The major cogent3 data types
+The Major cogent3 Data Types
 ****************************
 
 .. toctree::
