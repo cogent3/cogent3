@@ -75,6 +75,12 @@ class RefalignmentTests(TestCase):
                 make_generic_scoring_dict(10, get_moltype(test_moltype)),
             )
 
+    def test_align_to_ref_result_has_moltype(self):
+        """aligned object has correct moltype"""
+        aligner = align_app.align_to_ref(moltype="dna")
+        got = aligner(self.seqs)
+        self.assertEqual(got.moltype.label, "dna")
+
     def test_progressive_align_protein_moltype(self):
         """tests guide_tree is None and moltype is protein"""
         from cogent3 import load_aligned_seqs
