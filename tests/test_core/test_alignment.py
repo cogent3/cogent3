@@ -2572,6 +2572,10 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln.set_repr_policy(num_seqs=len(aln.seqs))
         got = aln._repr_html_()
         self.assertEqual(got.count("</tr>"), len(aln.seqs) + 1)
+        # tests _repr_html_ displays correct number of sequences
+        aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
+        got = aln._repr_html_()
+        self.assertIn("%d x %d" % (aln.num_seqs, aln.seq_len), got.splitlines()[-2])
 
     def test_seqlogo(self):
         """exercise producing a seq logo"""
