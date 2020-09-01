@@ -628,10 +628,13 @@ class TableTests(TestCase):
 
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[0], t1.shape[0])
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[1], 2)
-        # if name_index, includes that in return
+        # if index_name, includes that in return
         t1 = Table(header=self.t1_header, data=self.t1_rows, index="stableid")
         r = t1.get_columns(["length"])
         self.assertEqual(r.header, ("stableid", "length"))
+        # if index_name, unless excluded
+        r = t1.get_columns(["length"], with_index=False)
+        self.assertIs(r.index_name, None)
 
     def test_joined(self):
         """test the table joined method"""

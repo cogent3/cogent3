@@ -1342,9 +1342,21 @@ class Table:
             result.columns[c] = numpy.array(raw_data[c], dtype=dtypes[c])
         return result
 
-    def get_columns(self, columns):
-        """Return a Table with just columns"""
-        if self.index_name:
+    def get_columns(self, columns, with_index=True):
+        """select columns from self with index_name unless excluded
+
+        Parameters
+        ----------
+        columns : string or sequence of strings
+            names of columns
+        with_index : bool
+            If index_name is set, includes with columns.
+
+        Returns
+        -------
+        Table
+        """
+        if self.index_name and with_index:
             columns = [self.index_name] + [c for c in columns if c != self.index_name]
         return self[:, columns]
 
@@ -2056,6 +2068,7 @@ class Table:
         )
 
         if len(self.distinct_values(select_as_header)) != len(self):
+            raise ValueError(f"not all '{select_as_header}' values unique")
             raise ValueError(f"not all '{select_as_header}' values unique")
 
         attr = self._get_persistent_attrs()
