@@ -2050,6 +2050,47 @@ class Table:
         draw.layout |= default_layout
         return draw
 
+    def to_contingency(self, columns):
+        """construct object that can be used for statistical tests
+
+        Parameters
+        ----------
+        columns
+            columns to include. These correspond to contingency column
+            labels. The row labels come from values under the index_name
+            column.
+
+        Returns
+        -------
+        CategoryCounts, an object for performing statistical tests on
+        contingency tables.
+
+        Notes
+        -----
+        Only applies to cases where an index_name is defined. The selected columns
+        must be int types and represent the counts of corresponding categories.
+        """
+        from cogent3.maths.stats.contingency import CategoryCounts
+        from cogent3.util.dict_array import DictArrayTemplate
+
+        if self.index_name is None:
+            raise ValueError(f"requires index_name be set")
+
+        columns = [columns] if isinstance(columns, str) else columns
+        if not set(columns) <= set(self.header):
+            raise ValueError(f"unknown columns {columns}")
+
+        row_cats = self.columns[self.index_name]
+        # must be convertible to int
+        for col in columns:
+            if "int" not in self.columns[col].dtype.name:
+                raise TypeError(f"{col} is not of int type")
+
+        matrix = self.get_columns(columns, with_index=False).array.astype(int)
+
+        data = DictArrayTemplate(row_cats, columns).wrap(matrix)
+        return CategoryCounts(data)
+
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.
 
@@ -2068,7 +2109,6 @@ class Table:
         )
 
         if len(self.distinct_values(select_as_header)) != len(self):
-            raise ValueError(f"not all '{select_as_header}' values unique")
             raise ValueError(f"not all '{select_as_header}' values unique")
 
         attr = self._get_persistent_attrs()
