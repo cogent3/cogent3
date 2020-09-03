@@ -9,6 +9,7 @@ import zipfile
 
 from collections import defaultdict
 from fnmatch import fnmatch, translate
+from functools import cached_property
 from io import TextIOWrapper
 from json import JSONDecodeError
 from pathlib import Path
@@ -821,7 +822,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             incomplete.append(member)
         return incomplete
 
-    @property
+    @cached_property
     def summary_incomplete(self):
         """returns a table summarising incomplete results"""
         types = defaultdict(list)
@@ -917,7 +918,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         self._md5 = md5_setting
         return result
 
-    @property
+    @cached_property
     def logs(self):
         """returns all records with a .log suffix"""
         logfiles = []
@@ -927,7 +928,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             logfiles.append(member)
         return logfiles
 
-    @property
+    @cached_property
     def summary_logs(self):
         """returns a table summarising log files"""
         rows = []
@@ -963,7 +964,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         )
         return table
 
-    @property
+    @cached_property
     def describe(self):
         """returns tables describing content types"""
         lock_id = _db_lockid(self.source)

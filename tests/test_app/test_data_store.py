@@ -641,6 +641,8 @@ class TinyDBDataStoreTests(TestCase):
             # incomplete summmary has a row per type and 5 columns
             got = dstore.summary_incomplete
             self.assertEqual(got.shape, (1, 5))
+            # and can be called multiple times without failing
+            dstore.summary_incomplete
             dstore.close()
 
     def test_dblock(self):
