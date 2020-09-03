@@ -255,7 +255,8 @@ class Drawable:
         kwargs["width"] = kwargs.get("width", fig.layout.width)
         kwargs["height"] = kwargs.get("height", fig.layout.height)
 
-        write_image(fig, path, **kwargs)
+        path = pathlib.Path(path).expanduser().absolute()
+        write_image(fig, str(path), **kwargs)
 
     def to_image(self, format="png", **kwargs):
         """creates static image, suffix dictates format"""
