@@ -57,8 +57,7 @@ def make_record_for_json(identifier, data, completed):
         pass
 
     data = json.dumps(data)
-    record = dict(identifier=identifier, data=data, completed=completed)
-    return record
+    return dict(identifier=identifier, data=data, completed=completed)
 
 
 def load_record_from_json(data):
