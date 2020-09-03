@@ -53,7 +53,7 @@ from numpy.random import choice, permutation, randint
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3.core.annotation import Map, _Annotatable
-from cogent3.core.genetic_code import DEFAULT, get_code
+from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import LostSpan, Span
 from cogent3.core.profile import PSSM, MotifCountsArray
@@ -4026,7 +4026,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                 s = s.replace(gapchar, ambig)
         return s
 
-    def trim_stop_codons(self, gc=DEFAULT, allow_partial=False, **kwargs):
+    def trim_stop_codons(self, gc=1, allow_partial=False, **kwargs):
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -4044,10 +4044,10 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         stops = gc["*"]
         get_index = self.alphabet.degen.index
-        stop_indices = set(tuple(map(get_index, stop)) for stop in stops)
+        stop_indices = {tuple(map(get_index, stop)) for stop in stops}
         new_data = self.array_seqs.copy()
 
-        gap_indices = set(get_index(gap) for gap in self.moltype.gaps)
+        gap_indices = {get_index(gap) for gap in self.moltype.gaps}
         gap_index = get_index(self.moltype.gap)
 
         trim_length = len(self)
@@ -4065,7 +4065,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                         )
                     break
 
-            if nondegen_index is None or nondegen_index - 3 < 0:
+            if nondegen_index is None or nondegen_index < 3:
                 continue
 
             # slice last three valid positions and see if stop
@@ -4081,11 +4081,12 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         # this is an ugly hack for rather odd standard behaviour
         # we find the last alignment column to have not just gap chars
         # and trim up to that
+        i = 0
         for i in range(len(result) - 1, -1, -1):
             col = set(result.array_seqs[:, i])
             if not col <= gap_indices:
                 break
-        if i != len(result):
+        if len(result) != i:
             result = result[: i + 1]
 
         return result

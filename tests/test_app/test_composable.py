@@ -213,7 +213,7 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "select_translatable(type='sequences', "
-            "moltype='dna', gc='Standard Nuclear', "
+            "moltype='dna', gc=1, "
             "allow_rc=False, trim_terminal_stop=True)",
         )
 
@@ -222,7 +222,7 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "select_translatable(type='sequences', "
-            "moltype='dna', gc='Standard Nuclear', "
+            "moltype='dna', gc=1, "
             "allow_rc=True, trim_terminal_stop=True)",
         )
 
