@@ -2,7 +2,7 @@ from unittest import TestCase, main
 
 from numpy.testing import assert_allclose
 
-from cogent3.maths.stats.contingency import CategoryCounts
+from cogent3.maths.stats.contingency import CategoryCounts, calc_expected
 
 
 __author__ = "Gavin Huttley"
@@ -197,6 +197,14 @@ class ContingencyTests(TestCase):
         got = table.chisq_test()
         stats = got.statistics
         self.assertEqual(stats[0, "pvalue"], got.pvalue)
+
+    def test_calc_expected(self):
+        """handle case where expected is a single column vector"""
+        import numpy
+
+        nums = numpy.array([1, 2, 3]).reshape((3, 1))
+        got = calc_expected(nums)
+        assert_allclose(got, numpy.array([2, 2, 2]).reshape((3, 1)))
 
 
 if __name__ == "__main__":

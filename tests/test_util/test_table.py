@@ -628,10 +628,13 @@ class TableTests(TestCase):
 
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[0], t1.shape[0])
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[1], 2)
-        # if name_index, includes that in return
+        # if index_name, includes that in return
         t1 = Table(header=self.t1_header, data=self.t1_rows, index="stableid")
         r = t1.get_columns(["length"])
         self.assertEqual(r.header, ("stableid", "length"))
+        # if index_name, unless excluded
+        r = t1.get_columns(["length"], with_index=False)
+        self.assertIs(r.index_name, None)
 
     def test_joined(self):
         """test the table joined method"""
@@ -1542,6 +1545,32 @@ class TableTests(TestCase):
         _ = formatted_cells(data, header=head)
         data = [[230, "acdef", 1.3], [6, "cc", numpy.array([1.9876, 2.34])]]
         _ = formatted_cells(data, header=head)
+
+    def test_to_contingency(self):
+        """correctly construct contingency table"""
+        data = {"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}
+        table = make_table(header=["", "Ts", "Tv"], data=data)
+        with self.assertRaises(ValueError):
+            table.to_contingency(columns=["Ts", "Tv"])
+
+        table.index_name = ""
+        got = table.to_contingency(columns=["Ts", "Tv"])
+        assert_equal(got.observed, table[:, 1:].array)
+
+        got = table.to_contingency(["Ts"])
+        mean = got.observed.array.mean()
+        expected = numpy.array([[mean], [mean]])
+        assert_equal(got.expected, expected)
+
+        data = {
+            "": numpy.array(["syn", "nsyn"], dtype=object),
+            "Ts": numpy.array([31, 58], dtype=object),
+            "Tv": numpy.array([36, 138], dtype=object),
+        }
+
+        table = make_table(header=["", "Ts", "Tv"], data=data, index="")
+        with self.assertRaises(TypeError):
+            table.to_contingency(columns=["Ts", "Tv"])
 
 
 if __name__ == "__main__":

@@ -384,6 +384,29 @@ You can also specify column(s) are categories
 
     df = table.to_dataframe(categories="Region")
 
+Get a table of counts as a contingency table
+============================================
+
+If our table consists of counts data, the ``Table`` can convert it into a ``CategoryCount`` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the ``index`` argument.
+
+.. jupyter-execute::
+    :linenos:
+
+    table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}, index="")
+    table
+
+.. jupyter-execute::
+    :linenos:
+
+    contingency = table.to_contingency(["Ts", "Tv"])
+    contingency
+
+.. jupyter-execute::
+    :linenos:
+
+    g_test = contingency.G_independence()
+    g_test
+
 Appending tables
 ================
 
