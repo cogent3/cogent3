@@ -10,6 +10,7 @@ import zipfile
 from collections import defaultdict
 from fnmatch import fnmatch, translate
 from io import TextIOWrapper
+from json import JSONDecodeError
 from pathlib import Path
 from pprint import pprint
 from warnings import warn
@@ -63,7 +64,14 @@ def load_record_from_json(data):
     """returns identifier, data, completed status from json string"""
     if type(data) == str:
         data = json.loads(data)
-    value = json.loads(data["data"])
+
+    value = data["data"]
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except JSONDecodeError:
+            pass
+
     return data["identifier"], value, data["completed"]
 
 
