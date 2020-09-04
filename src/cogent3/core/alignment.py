@@ -25,7 +25,7 @@ import re
 import warnings
 
 from collections import Counter, defaultdict
-from copy import copy, deepcopy
+from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
@@ -55,7 +55,6 @@ import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 from cogent3.core.annotation import Map, _Annotatable
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import LostSpan, Span
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
