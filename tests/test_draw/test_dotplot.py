@@ -118,6 +118,14 @@ class TestUtilFunctions(TestCase):
         self.assertEqual(len(dp.seq1), 4)
         self.assertEqual(len(dp.seq2), 3)
 
+    def test_dotplot_title(self):
+        """setting empty string title works"""
+        seqs = make_unaligned_seqs(
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+        )
+        dp = seqs.dotplot("seq1", "seq3", title="")
+        self.assertEqual(dp.figure.layout.title, "")
+
 
 if __name__ == "__main__":
     main()

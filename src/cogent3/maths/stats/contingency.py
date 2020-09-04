@@ -49,15 +49,15 @@ def calc_expected(observed, pseudo_count=0):
         observed = observed.copy()
         observed += pseudo_count
 
-    num_dim = len(observed.shape)
-    if num_dim == 2:
+    if observed.ndim == 1 or (observed.ndim == 2 and 1 in observed.shape):
+        expecteds = zeros(observed.shape, dtype=float)
+        expecteds.fill(observed.mean())
+    elif observed.ndim == 2:
         rsum = observed.sum(axis=1)
         rfreq = rsum / rsum.sum()
         csum = observed.sum(axis=0)
         cfreq = csum / csum.sum()
         expecteds = outer(rfreq, cfreq) * rsum.sum()
-    elif num_dim == 1:
-        expecteds = [observed.mean()] * observed.shape[0]
     else:
         raise NotImplementedError("too many dimensions")
     return expecteds

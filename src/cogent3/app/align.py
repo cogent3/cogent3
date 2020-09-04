@@ -145,7 +145,7 @@ class align_to_ref(ComposableSeq):
             aligned = aligned.add_from_ref_aln(result)
 
         # default to ArrayAlign
-        new = aligned.to_type(array_align=True)
+        new = aligned.to_type(array_align=True, moltype=self._moltype)
         return new
 
 
