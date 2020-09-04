@@ -1451,6 +1451,14 @@ class SequenceCollectionBaseTests(object):
         token = 'class="label"'
         self.assertEqual(got.count(token), 2 * orig.count(token))
 
+        # using environment variable
+        env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
+        os.environ[env_name] = "wrap=2"
+        seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
+        got = seqs._repr_html_()
+        self.assertEqual(got.count(token), 3 * orig.count(token))
+        os.environ.pop(env_name, None)
+
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
         a = self.Class(dict(a="ACCC", b="AGTA"), moltype=DNA)

@@ -73,6 +73,7 @@ from cogent3.util.misc import (
     extend_docstring_from,
     get_format_suffixes,
     get_object_provenance,
+    get_setting_from_environ,
 )
 from cogent3.util.union_dict import UnionDict
 
@@ -2786,12 +2787,18 @@ class AlignmentI(object):
         return names, output
 
     def _repr_html_(self):
-        html = self.to_html(
-            name_order=self.names[: self._repr_policy["num_seqs"]],
-            ref_name=self._repr_policy["ref_name"],
-            limit=self._repr_policy["num_pos"],
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_seqs=int, num_pos=int, wrap=int, ref_name=str),
         )
-        return html
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            ref_name=settings["ref_name"],
+            limit=settings["num_pos"],
+            interleave_len=settings["wrap"],
+        )
 
     def to_html(
         self,
@@ -2915,7 +2922,7 @@ class AlignmentI(object):
             or name_order
             and len(name_order) < len(selected.names)
         ):
-            summary = ("%s x %s (truncated to %s x %s) %s " "alignment") % (
+            summary = ("%s x %s (truncated to %s x %s) %s alignment") % (
                 self.num_seqs,
                 len(self),
                 len(name_order) if name_order else len(selected.names),
@@ -2923,7 +2930,7 @@ class AlignmentI(object):
                 selected.moltype.label,
             )
         else:
-            summary = ("%s x %s %s " "alignment") % (
+            summary = ("%s x %s %s alignment") % (
                 self.num_seqs,
                 len(self),
                 selected.moltype.label,
