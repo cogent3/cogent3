@@ -361,14 +361,16 @@ class DictArrayTemplate(object):
         if len(a.shape) == 1:
             heading = [str(n) for n in self.names[0]]
             a = a[numpy.newaxis, :]
+            index = None
         elif len(a.shape) == 2:
             heading = [""] + [str(n) for n in self.names[1]]
             a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
             a = {d[0]: d[1:] for d in zip(heading, *a)}
+            index = heading[0]
         else:
             return "%s dimensional %s" % (len(self.names), type(self).__name__)
 
-        t = Table(heading, data=a, digits=3, index=heading[0], max_width=80)
+        t = Table(heading, data=a, digits=3, index=index, max_width=80)
         t.set_repr_policy(show_shape=False)
         return t._repr_html_()
 
