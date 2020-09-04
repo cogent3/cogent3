@@ -310,6 +310,18 @@ class DictArrayTest(TestCase):
         self.assertIsInstance(got, str)
         self.assertTrue(len(got), 100)
 
+        # case where 1D array
+        a = [4, 6, 4, 2]
+        darr = DictArrayTemplate(["A", "C", "G", "T"]).wrap(a)
+        got = darr._repr_html_()
+        self.assertTrue('class="index"' not in got)
+
+        # case of 3D array
+        d3 = numpy.arange(8).reshape((2, 2, 2))
+        darr = DictArrayTemplate(2, 2, 2).wrap(d3)
+        got = darr._repr_html_()
+        self.assertIn("3 dimensional", got)
+
     def test_write(self):
         """exercising write method"""
         data = [[3, 7], [2, 8], [5, 5]]
