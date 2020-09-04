@@ -35,6 +35,7 @@ from cogent3.util.misc import (
     get_merged_overlapping_coords,
     get_object_provenance,
     get_run_start_indices,
+    get_setting_from_environ,
     identity,
     is_char,
     is_char_or_noniterable,
@@ -534,6 +535,39 @@ class UtilsTests(TestCase):
         self.assertTrue(path_exists(p))
         # or string instance
         self.assertTrue(path_exists(__file__))
+
+    def test_get_setting_from_environ(self):
+        """correctly recovers environment variables"""
+        import os
+
+        def make_env_setting(d):
+            return ",".join([f"{k}={v}" for k, v in d.items()])
+
+        env_name = "DUMMY_SETTING"
+        os.environ.pop(env_name, None)
+        setting = dict(num_pos=2, num_seq=4, name="blah")
+        single_setting = dict(num_pos=2)
+        correct_names_types = dict(num_pos=int, num_seq=int, name=str)
+        incorrect_names_types = dict(num_pos=int, num_seq=int, name=float)
+
+        for stng in (setting, single_setting):
+            os.environ[env_name] = make_env_setting(stng)
+            got = get_setting_from_environ(env_name, correct_names_types)
+            for key in got:
+                self.assertEqual(got[key], setting[key])
+
+        os.environ[env_name] = make_env_setting(setting)
+        got = get_setting_from_environ(env_name, incorrect_names_types)
+        assert "name" not in got
+        for key in got:
+            self.assertEqual(got[key], setting[key])
+
+        # malformed env setting
+        os.environ[env_name] = make_env_setting(setting).replace("=", "")
+        got = get_setting_from_environ(env_name, correct_names_types)
+        self.assertEqual(got, {})
+
+        os.environ.pop(env_name, None)
 
 
 class Atomic_writeTests(TestCase):
