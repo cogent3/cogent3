@@ -26,6 +26,8 @@ def _get_class(provenance):
     index = provenance.rfind(".")
     assert index > 0
     klass = provenance[index + 1 :]
+    nc = "NotCompleted"
+    klass = nc if nc in klass else klass
     mod = import_module(provenance[:index])
     klass = getattr(mod, klass)
     return klass

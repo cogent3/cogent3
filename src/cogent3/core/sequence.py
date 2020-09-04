@@ -36,8 +36,7 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE
-from cogent3.core.genetic_code import GeneticCodes
+from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult
@@ -1225,14 +1224,6 @@ class NucleicAcidSequence(Sequence):
         self._annotations_nucleic_reversed_on(rc)
         return rc
 
-    def _gc_from_arg(self, gc):
-        # codon_alphabet is being deprecated in favor of genetic codes.
-        if gc is None:
-            gc = DEFAULT_GENETIC_CODE
-        elif isinstance(gc, (int, str)):
-            gc = GeneticCodes[gc]
-        return gc
-
     def has_terminal_stop(self, gc=None, allow_partial=False):
         """Return True if the sequence has a terminal stop codon.
 
@@ -1245,7 +1236,7 @@ class NucleicAcidSequence(Sequence):
             by 3, ignores the 3' terminal incomplete codon
 
         """
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         codons = self._seq
         divisible_by_3 = len(codons) % 3 == 0
         end3 = self.__class__(self._seq[-3:]).degap()
@@ -1269,7 +1260,7 @@ class NucleicAcidSequence(Sequence):
             by 3, ignores the 3' terminal incomplete codon
 
         """
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         codons = self._seq
         divisible_by_3 = len(codons) % 3 == 0
 
@@ -1296,7 +1287,7 @@ class NucleicAcidSequence(Sequence):
         -------
         sequence of PROTEIN moltype
         """
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         codon_alphabet = self.codon_alphabet(gc).with_gap_motif()
         # translate the codons
         translation = []
@@ -1331,7 +1322,7 @@ class NucleicAcidSequence(Sequence):
         return translation
 
     def get_orf_positions(self, gc=None, atg=False):
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         orfs = []
         start = None
         protein = self.get_translation(gc=gc)

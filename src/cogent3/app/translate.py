@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from cogent3.core.alignment import SequenceCollection
-from cogent3.core.genetic_code import DEFAULT, get_code
+from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
 from .composable import (
@@ -22,7 +22,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-def best_frame(seq, gc=DEFAULT, allow_rc=False, require_stop=False):
+def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
     """returns reading frame start that has either no stops or a single
     terminal stop codon
 
@@ -87,7 +87,7 @@ def best_frame(seq, gc=DEFAULT, allow_rc=False, require_stop=False):
     return frame
 
 
-def translate_frames(seq, moltype=None, gc=DEFAULT, allow_rc=False):
+def translate_frames(seq, moltype=None, gc=1, allow_rc=False):
     """translates a nucleic acid sequence 
     
     Parameters
@@ -161,9 +161,7 @@ class select_translatable(ComposableSeq):
     _output_types = SEQUENCE_TYPE
     _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
-    def __init__(
-        self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
-    ):
+    def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
         """selects translatable sequences
 
         Sequences are truncated to modulo 3. seqs.info has a translation_errors
@@ -249,9 +247,7 @@ class translate_seqs(ComposableSeq):
     _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
     _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
-    def __init__(
-        self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
-    ):
+    def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
         """generates aa sequences
 
         Parameters

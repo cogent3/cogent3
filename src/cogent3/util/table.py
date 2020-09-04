@@ -454,7 +454,7 @@ class Columns(MutableMapping):
 
     @property
     def index_name(self):
-        # check
+        """column name whose values can be used to index table rows"""
         return self._index_name
 
     @index_name.setter
@@ -978,6 +978,7 @@ class Table:
 
     @property
     def index_name(self):
+        """column name whose values can be used to index table rows"""
         if self._index_name is not None and not self._template:
             self.columns.index_name = self._index_name
             self.index_name = self._index_name

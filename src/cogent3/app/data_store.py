@@ -9,7 +9,9 @@ import zipfile
 
 from collections import defaultdict
 from fnmatch import fnmatch, translate
+from functools import cached_property
 from io import TextIOWrapper
+from json import JSONDecodeError
 from pathlib import Path
 from pprint import pprint
 from warnings import warn
@@ -55,15 +57,21 @@ def make_record_for_json(identifier, data, completed):
         pass
 
     data = json.dumps(data)
-    record = dict(identifier=identifier, data=data, completed=completed)
-    return record
+    return dict(identifier=identifier, data=data, completed=completed)
 
 
 def load_record_from_json(data):
     """returns identifier, data, completed status from json string"""
     if type(data) == str:
         data = json.loads(data)
-    value = json.loads(data["data"])
+
+    value = data["data"]
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except JSONDecodeError:
+            pass
+
     return data["identifier"], value, data["completed"]
 
 
@@ -813,7 +821,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             incomplete.append(member)
         return incomplete
 
-    @property
+    @cached_property
     def summary_incomplete(self):
         """returns a table summarising incomplete results"""
         types = defaultdict(list)
@@ -909,7 +917,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         self._md5 = md5_setting
         return result
 
-    @property
+    @cached_property
     def logs(self):
         """returns all records with a .log suffix"""
         logfiles = []
@@ -919,7 +927,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             logfiles.append(member)
         return logfiles
 
-    @property
+    @cached_property
     def summary_logs(self):
         """returns a table summarising log files"""
         rows = []
@@ -955,7 +963,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         )
         return table
 
-    @property
+    @cached_property
     def describe(self):
         """returns tables describing content types"""
         lock_id = _db_lockid(self.source)
