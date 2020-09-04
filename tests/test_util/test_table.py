@@ -1330,6 +1330,11 @@ class TableTests(TestCase):
         t.set_repr_policy(tail=3)
         r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 3)
+        t.set_repr_policy(show_shape=False)
+        r = repr(t)
+        self.assertFalse(f"\n{t.shape[0]:,} rows x {t.shape[1]:,} columns" in r)
+        r = t._repr_html_()
+        self.assertFalse(f"\n{t.shape[0]:,} rows x {t.shape[1]:,} columns" in r)
 
     def test_head(self):
         """returns the head of the table!"""

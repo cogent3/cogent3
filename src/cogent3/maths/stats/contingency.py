@@ -185,7 +185,8 @@ class CategoryCounts:
         if ndim == 1:
             result = obs.appended("", exp, res, title=None)
             if html:
-                result = result._repr_html_(include_shape=False)
+                result.set_repr_policy(show_shape=False)
+                result = result._repr_html_()
             else:
                 result, _, _ = result._get_repr_()
                 result = str(result)
@@ -194,7 +195,8 @@ class CategoryCounts:
         result = []
         for t in (obs, exp, res):
             if html:
-                t = t._repr_html_(include_shape=False)
+                t.set_repr_policy(show_shape=False)
+                t = t._repr_html_()
             else:
                 t, _, _ = t._get_repr_()
                 t = str(t)
@@ -404,10 +406,11 @@ class TestResult:
 
     def _repr_html_(self):
         table = self._get_repr_()
+        table.set_repr_policy(show_shape=False)
         components = CategoryCounts(
             self.observed.to_dict(), expected=self.expected.to_dict()
         )
-        html = [table._repr_html_(include_shape=False)]
+        html = [table._repr_html_()]
         html.append(components._repr_html_())
         return "\n".join(html)
 

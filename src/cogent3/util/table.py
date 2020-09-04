@@ -645,7 +645,7 @@ class Table:
         self._column_templates = column_templates or {}
         # define the repr() display policy
         random = 0
-        self._repr_policy = dict(head=None, tail=None, random=random)
+        self._repr_policy = dict(head=None, tail=None, random=random, show_shape=True)
         self.format = format
         self._missing_data = missing_data
 
@@ -724,6 +724,8 @@ class Table:
             return "0 rows x 0 columns"
 
         table, shape_info, unset_columns = self._get_repr_()
+        if not self._repr_policy["show_shape"]:
+            shape_info = ""
         result = (
             "\n".join([str(table), shape_info, unset_columns])
             if unset_columns
@@ -794,7 +796,7 @@ class Table:
         table._column_templates.update(self._column_templates)
         return table, shape_info, unset_columns
 
-    def _repr_html_(self, include_shape=True):
+    def _repr_html_(self):
         """returns html, used by Jupyter"""
         base_colour = "rgba(161, 195, 209, {alpha})"
         colour = base_colour.format(alpha=0.25)
@@ -813,7 +815,7 @@ class Table:
             if unset_columns
             else f"<p>{shape_info}</p>"
         )
-        if not include_shape:
+        if not self._repr_policy["show_shape"]:
             shape_info = ""
 
         if self.shape == (0, 0):
@@ -901,7 +903,7 @@ class Table:
 
         self._persistent_attrs["space"] = value
 
-    def set_repr_policy(self, head=None, tail=None, random=0):
+    def set_repr_policy(self, head=None, tail=None, random=0, show_shape=True):
         """specify policy for repr(self)
 
         Parameters
@@ -910,15 +912,19 @@ class Table:
         - head: number of top rows to included in represented display
         - tail: number of bottom rows to included in represented display
         - random: number of rows to sample randomly (supercedes head/tail)
+        - show_shape: boolean to determine if table shape info is displayed
         """
         if not any([head, tail, random]):
+            self._repr_policy["show_shape"] = show_shape
             return
         if random:
             assert (
                 type(random) == int and random > 0
             ), "random must be a positive integer"
             head = tail = None
-        self._repr_policy = dict(head=head, tail=tail, random=random)
+        self._repr_policy = dict(
+            head=head, tail=tail, random=random, show_shape=show_shape
+        )
 
     @property
     def format(self):
@@ -964,7 +970,10 @@ class Table:
         """displays top nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
-        self._repr_policy = dict(head=nrows, tail=None, random=None)
+        show_shape = self._repr_policy["show_shape"]
+        self._repr_policy = dict(
+            head=nrows, tail=None, random=None, show_shape=show_shape
+        )
         display(self)
         self._repr_policy = repr_policy
 
@@ -972,7 +981,10 @@ class Table:
         """displays bottom nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
-        self._repr_policy = dict(head=None, tail=nrows, random=None)
+        show_shape = self._repr_policy["show_shape"]
+        self._repr_policy = dict(
+            head=None, tail=nrows, random=None, show_shape=show_shape
+        )
         display(self)
         self._repr_policy = repr_policy
 
