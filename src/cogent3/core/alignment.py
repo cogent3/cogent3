@@ -522,7 +522,7 @@ class _SequenceCollectionBase:
         # both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
 
-        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest")
+        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -1891,7 +1891,7 @@ class _SequenceCollectionBase:
 
         return array(result)
 
-    def set_repr_policy(self, num_seqs=None, num_pos=None, ref_name=None):
+    def set_repr_policy(self, num_seqs=None, num_pos=None, ref_name=None, wrap=None):
         """specify policy for repr(self)
 
             Parameters
@@ -1903,21 +1903,32 @@ class _SequenceCollectionBase:
             ref_name : str or None
                 name of sequence to be placed first, or "longest" (default).
                 If latter, indicates longest sequence will be chosen.
+            wrap : int or None
+                number of printed bases per row
             """
         if num_seqs:
-            assert isinstance(num_seqs, int), "num_seqs is not an integer"
+            if not isinstance(num_seqs, int):
+                raise TypeError("num_seqs is not an integer")
             self._repr_policy["num_seqs"] = num_seqs
 
         if num_pos:
-            assert isinstance(num_pos, int), "num_pos is not an integer"
+            if not isinstance(num_pos, int):
+                raise TypeError("num_pos is not an integer")
             self._repr_policy["num_pos"] = num_pos
 
         if ref_name:
-            assert isinstance(ref_name, str), "ref_name is not a string"
+            if not isinstance(ref_name, str):
+                raise TypeError("ref_name is not a string")
+
             if ref_name != "longest" and ref_name not in self.names:
                 raise ValueError(f"no sequence name matching {ref_name}")
 
             self._repr_policy["ref_name"] = ref_name
+
+        if wrap:
+            if not isinstance(wrap, int):
+                raise TypeError("wrap is not an integer")
+            self._repr_policy["wrap"] = wrap
 
     def probs_per_seq(
         self,
@@ -2799,8 +2810,7 @@ class AlignmentI(object):
         name_order
             order of names for display.
         interleave_len
-            maximum number of printed bases, defaults to
-            alignment length
+            number of alignment columns per row
         limit
             truncate alignment to this length
         ref_name

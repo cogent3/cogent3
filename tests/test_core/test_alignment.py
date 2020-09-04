@@ -1398,32 +1398,58 @@ class SequenceCollectionBaseTests(object):
         seqs = self.Class({"a": "AAAAA"})
         seqs.set_repr_policy(num_seqs=None, num_pos=None)
         self.assertEqual(
-            seqs._repr_policy, dict(num_seqs=10, num_pos=60, ref_name="longest")
+            seqs._repr_policy,
+            dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60),
         )
 
     def test_set_repr_policy_invalid_input(self):
         """repr_policy should remain unchanged"""
         seqs = self.Class({"a": "AAAAA"})
-        try:
-            seqs.set_repr_policy(num_seqs="foo", num_pos=4.2)
-            self.fail("Inputs not detected as invalid")
-        except AssertionError:
+        invalid_args = (
+            dict(num_seqs="foo", err=TypeError),
+            dict(num_pos=4.2, err=TypeError),
+            dict(ref_name="blah", err=ValueError),
+            dict(wrap=3.1, err=TypeError),
+        )
+        for arg in invalid_args:
+            err = arg.pop("err")
+            with self.assertRaises(err):
+                seqs.set_repr_policy(**arg)
             self.assertEqual(
-                seqs._repr_policy, dict(num_seqs=10, num_pos=60, ref_name="longest")
+                seqs._repr_policy,
+                dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60),
             )
 
     def test_set_repr_policy_valid_input(self):
         """repr_policy should be set to new values"""
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
-        seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a")
-        self.assertEqual(seqs._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a"))
-        # should persist in slicing
+        seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+        self.assertEqual(
+            seqs._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+        )
+
         if self.Class == SequenceCollection:
+            # this class cannot slice
             return True
 
+        # should persist in slicing
         self.assertEqual(
-            seqs[:2]._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a")
+            seqs[:2]._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
         )
+
+    def test_set_wrap_affects_repr_html(self):
+        """the wrap argument affects the number of columns"""
+        if self.Class == SequenceCollection:
+            # this class does not have this method
+            return True
+
+        # indirectly tested via counting number of occurrences of 'class="label"'
+        seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
+        orig = seqs._repr_html_()
+        seqs.set_repr_policy(wrap=3)  # break alignment into 2
+        got = seqs._repr_html_()
+        token = 'class="label"'
+        self.assertEqual(got.count(token), 2 * orig.count(token))
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
