@@ -30,11 +30,7 @@ class _MotifNumberArray(DictArray):
         # todo validate that motifs are strings and row_indices are ints or
         # strings
         # todo change row_indices argument name to row_keys
-        if isinstance(data, numpy.ndarray):
-            some_data = data.any()
-        else:
-            some_data = any(data)
-
+        some_data = data.any() if isinstance(data, numpy.ndarray) else any(data)
         if not some_data or len(data) == 0:
             raise ValueError("Must provide data")
 
