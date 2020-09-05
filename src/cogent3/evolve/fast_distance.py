@@ -684,7 +684,8 @@ def get_distance_calculator(name, *args, **kwargs):
 
 
 def available_distances():
-    """returns Table listing available pairwise genetic distance calculator
+    """returns Table listing available fast pairwise genetic distance calculator
+
     Notes
     -----
     For more complicated genetic distance methods, see the evolve.models module.
