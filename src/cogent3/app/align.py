@@ -138,11 +138,7 @@ class align_to_ref(ComposableSeq):
             # as we're going to be using a pairwise distance that excludes gaps
             # eliminating positions with deletions in the reference
             result = result.filtered(no_ref_gap)
-            if aligned is None:
-                aligned = result
-                continue
-
-            aligned = aligned.add_from_ref_aln(result)
+            aligned = result if aligned is None else aligned.add_from_ref_aln(result)
 
         # default to ArrayAlign
         new = aligned.to_type(array_align=True, moltype=self._moltype)
