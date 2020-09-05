@@ -251,9 +251,7 @@ class progressive_align(ComposableSeq):
         self.func = self.multiple_align
 
     def _build_guide(self, seqs):
-        crude_aligner = align_to_ref(moltype=self._moltype)
-        aln = crude_aligner(seqs)
-        tree = self._make_tree(aln)
+        tree = self._make_tree(seqs)
         if self._scalar != 1:
             scaler = scale_branches(scalar=self._scalar)
             tree = scaler(tree)
