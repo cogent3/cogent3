@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
 from cogent3 import available_apps
-from cogent3.app import align, evo, io, sample, translate, tree
+from cogent3.app import align, dist, evo, io, sample, translate, tree
 
 
 __author__ = "Gavin Huttley"
@@ -27,6 +27,7 @@ def _get_all_composables(tmp_dir_name):
     applications = [
         align.align_to_ref(),
         align.progressive_align(model="GY94"),
+        dist.fast_slow_dist(moltype="dna", fast_calc="hamming"),
         evo.ancestral_states(),
         evo.bootstrap(hyp=test_hyp, num_reps=test_num_reps),
         evo.hypothesis(test_model1, test_model2),

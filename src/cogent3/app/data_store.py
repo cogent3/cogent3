@@ -347,7 +347,7 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
         kwargs
             ignored
         """
-        path = Path(source)
+        path = Path(source).expanduser()
         assert path.exists() and path.is_file()
         super(SingleReadDataStore, self).__init__(
             str(path.parent), suffix=str(path.suffix)

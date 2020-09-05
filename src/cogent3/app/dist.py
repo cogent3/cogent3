@@ -26,15 +26,33 @@ __status__ = "Alpha"
 
 
 class fast_slow_dist(ComposableDistance):
-    """Pairwise distance calculation. Uses fast (but less
-    numerically robust) approach where possible, slow (robust)
-    approach when not. Returns a DistanceMatrix."""
+    """Pairwise distance calculation for aligned sequences.
+
+    Uses fast (but less numerically robust) approach where possible, slow (robust)
+    approach when not. Returns a DistanceMatrix.
+    """
 
     _input_types = ALIGNED_TYPE
     _output_types = (PAIRWISE_DISTANCE_TYPE, SERIALISABLE_TYPE)
     _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
+        """
+        Parameters
+        ----------
+        moltype : str
+            cogent3 moltype
+        distance : str
+            Name of a distance method available as both fast and slow calculator.
+        fast_calc
+            Name of a fast distance calculator. See cogent3.available_distances().
+        slow_calc
+            Name of a slow distance calculator. See cogent3.available_models().
+
+        Notes
+        -----
+        If you provide fast_calc or slow_calc, you must specify the moltype.
+        """
         super(fast_slow_dist, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
@@ -51,7 +69,7 @@ class fast_slow_dist(ComposableDistance):
             fast_calc = distance
             slow_calc = distance
 
-        d = set(["hamming", "paralinear", "logdet"]) & set([slow_calc, fast_calc])
+        d = {"hamming", "percent", "paralinear", "logdet"} & {slow_calc, fast_calc}
         if d and not self._moltype:
             raise ValueError(f"you must provide a moltype for {d}")
 
@@ -81,6 +99,7 @@ class fast_slow_dist(ComposableDistance):
         elif slow_calc:
             self._moltype = slow_calc.moltype
         self._sm = slow_calc
+        self.func = self.calc_distance
 
     def _est_dist_pair_slow(self, aln):
         """returns distance between seq pairs in aln"""
@@ -90,10 +109,9 @@ class fast_slow_dist(ComposableDistance):
         lf.set_alignment(aln)
         lf.set_param_rule("length", is_independent=False)
         lf.optimise(max_restarts=0, show_progress=False)
-        dist = 2 * lf.get_param_value("length", edge=aln.names[0])
-        return dist
+        return 2 * lf.get_param_value("length", edge=aln.names[0])
 
-    def __call__(self, aln):
+    def calc_distance(self, aln):
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
