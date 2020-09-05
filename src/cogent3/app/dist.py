@@ -108,8 +108,7 @@ class fast_slow_dist(ComposableDistance):
         lf.set_alignment(aln)
         lf.set_param_rule("length", is_independent=False)
         lf.optimise(max_restarts=0, show_progress=False)
-        dist = 2 * lf.get_param_value("length", edge=aln.names[0])
-        return dist
+        return 2 * lf.get_param_value("length", edge=aln.names[0])
 
     def __call__(self, aln):
         if self._moltype and self._moltype != aln.moltype:
