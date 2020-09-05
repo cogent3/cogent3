@@ -534,7 +534,7 @@ class _PairwiseDistance(object):
 class HammingPair(_PairwiseDistance):
     """Hamming distance calculator for pairwise alignments"""
 
-    valid_moltypes = ("dna", "rna", "protein", "text")
+    valid_moltypes = ("dna", "rna", "protein", "text", "bytes")
 
     def __init__(self, moltype="text", *args, **kwargs):
         """states: the valid sequence states"""
@@ -545,7 +545,7 @@ class HammingPair(_PairwiseDistance):
 class PercentIdentityPair(_PairwiseDistance):
     """Percent identity distance calculator for pairwise alignments"""
 
-    valid_moltypes = ("dna", "rna", "protein", "text")
+    valid_moltypes = ("dna", "rna", "protein", "text", "bytes")
 
     def __init__(self, moltype="text", *args, **kwargs):
         """states: the valid sequence states"""
