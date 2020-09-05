@@ -194,6 +194,13 @@ class FastSlowDistTests(TestCase):
         got = fast_slow_dist(aln3).to_dict()
         self.assertTrue(got[("Human", "Opossum")] >= 0)
 
+        # now as a process
+        proc = align.align_to_ref() + dist_app.fast_slow_dist(
+            fast_calc="hamming", moltype="dna"
+        )
+        got = proc(self.seqs1)
+        self.assertEqual(got[("Human", "Rhesus")], 1)
+
         treestring = "(Human:0.2,Bandicoot:0.2)"
         aligner = align.progressive_align(model="WG01", guide_tree=treestring)
         _ = aligner(self.seqs5)
