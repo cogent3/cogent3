@@ -47,6 +47,7 @@ from cogent3.util.misc import (
     DistanceFromMatrix,
     bytes_to_string,
     get_object_provenance,
+    get_setting_from_environ,
 )
 from cogent3.util.transform import (
     KeepChars,
@@ -653,6 +654,108 @@ class SequenceI(object):
     def strand_symmetry(self, *args, **kwargs):
         raise TypeError("must be DNA or RNA moltype")
 
+    def _repr_html_(self):
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY", dict(num_pos=int),
+        )
+        settings.update(env_vals)
+        return self.to_html(limit=settings["num_pos"])
+
+    def to_html(
+        self,
+        interleave_len=60,
+        limit=None,
+        colors=None,
+        font_size=12,
+        font_family="Lucida Console",
+    ):
+        """returns html with embedded styles for sequence colouring
+
+        Parameters
+        ----------
+        interleave_len
+            maximum number of printed bases, defaults to
+            alignment length
+        limit
+            truncate alignment to this length
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
+
+        To display in jupyter notebook:
+
+            >>> from IPython.core.display import HTML
+            >>> HTML(aln.to_html())
+        """
+        # todo refactor interleave_len to be wrap
+        css, styles = self.moltype.get_css_style(
+            colors=colors, font_size=font_size, font_family=font_family
+        )
+
+        seq = str(self)
+        seq = seq if limit is None else seq[:limit]
+        gaps = "".join(self.moltype.gaps)
+        seqlen = len(seq)
+        start_gap = re.search("^[%s]+" % gaps, "".join(seq))
+        end_gap = re.search("[%s]+$" % gaps, "".join(seq))
+
+        start = 0 if start_gap is None else start_gap.end()
+        end = len(seq) if end_gap is None else end_gap.start()
+        seq_style = []
+        template = '<span class="%s">%%s</span>'
+        styled_seq = []
+        for i in range(seqlen):
+            char = seq[i]
+            if i < start or i >= end:
+                style = "terminal_ambig_%s" % self.moltype.label
+            else:
+                style = styles[char]
+
+            seq_style.append(template % style)
+            styled_seq.append(seq_style[-1] % char)
+
+        # make a html table
+        seq = array(styled_seq, dtype="O")
+        table = ["<table>"]
+        seq_ = "<td>%s</td>"
+        label_ = '<td class="label">%s</td>'
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
+        for i in range(0, seqlen, interleave_len):
+            table.append(num_row_.format(i))
+            seqblock = seq[i : i + interleave_len].tolist()
+            seqblock = "".join(seqblock)
+            row = "".join([label_ % self.name, seq_ % seqblock])
+            table.append("<tr>%s</tr>" % row)
+        table.append("</table>")
+        class_name = self.__class__.__name__
+        if limit and limit < len(self):
+            summary = f"{len(self)} (truncated to {limit if limit else len(self)}) {class_name}"
+        else:
+            summary = f"{len(self)} {class_name}"
+
+        text = [
+            "<style>",
+            ".c3seq td { border: none !important; text-align: left !important; }",
+            ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3seq .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; }" % font_size,
+            "\n".join([".c3seq " + style for style in css]),
+            "</style>",
+            '<div class="c3seq">',
+            "\n".join(table),
+            "<p><i>%s</i></p>" % summary,
+            "</div>",
+        ]
+        return "\n".join(text)
+
 
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
@@ -1098,101 +1201,6 @@ class Sequence(_Annotatable, SequenceI):
 
         return annot
 
-    def _repr_html_(self):
-        return self.to_html(limit=self._repr_policy["num_pos"],)
-
-    def to_html(
-        self,
-        interleave_len=60,
-        limit=None,
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
-    ):
-        """returns html with embedded styles for sequence colouring
-
-        Parameters
-        ----------
-        interleave_len
-            maximum number of printed bases, defaults to
-            alignment length
-        limit
-            truncate alignment to this length
-        colors
-            {character
-            moltype.
-        font_size
-            in points. Affects labels and sequence and line spacing
-            (proportional to value)
-        font_family
-            string denoting font family
-
-        To display in jupyter notebook:
-
-            >>> from IPython.core.display import HTML
-            >>> HTML(aln.to_html())
-        """
-        css, styles = self.moltype.get_css_style(
-            colors=colors, font_size=font_size, font_family=font_family
-        )
-
-        seq = self._seq if limit is None else self._seq[:limit]
-        gaps = "".join(self.moltype.gaps)
-        seqlen = len(seq)
-        start_gap = re.search("^[%s]+" % gaps, "".join(seq))
-        end_gap = re.search("[%s]+$" % gaps, "".join(seq))
-
-        start = 0 if start_gap is None else start_gap.end()
-        end = len(seq) if end_gap is None else end_gap.start()
-        seq_style = []
-        template = '<span class="%s">%%s</span>'
-        styled_seq = []
-        for i in range(seqlen):
-            char = seq[i]
-            if i < start or i >= end:
-                style = "terminal_ambig_%s" % self.moltype.label
-            else:
-                style = styles[char]
-
-            seq_style.append(template % style)
-            styled_seq.append(seq_style[-1] % char)
-
-        # make a html table
-        seq = array(styled_seq, dtype="O")
-        table = ["<table>"]
-        seq_ = "<td>%s</td>"
-        label_ = '<td class="label">%s</td>'
-        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
-        for i in range(0, seqlen, interleave_len):
-            table.append(num_row_.format(i))
-            seqblock = seq[i : i + interleave_len].tolist()
-            seqblock = "".join(seqblock)
-            row = "".join([label_ % self.name, seq_ % seqblock])
-            table.append("<tr>%s</tr>" % row)
-        table.append("</table>")
-        class_name = self.__class__.__name__
-        if limit and limit < len(self):
-            summary = f"{len(self)} (truncated to {limit if limit else len(self)}) {class_name}"
-        else:
-            summary = f"{len(self)} {class_name}"
-
-        text = [
-            "<style>",
-            ".c3seq td { border: none !important; text-align: left !important; }",
-            ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
-            ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
-            ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
-            ".c3seq .label { font-size: %dpt ; text-align: right !important; "
-            "color: black !important; padding: 0 4px; }" % font_size,
-            "\n".join([".c3seq " + style for style in css]),
-            "</style>",
-            '<div class="c3seq">',
-            "\n".join(table),
-            "<p><i>%s</i></p>" % summary,
-            "</div>",
-        ]
-        return "\n".join(text)
-
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
@@ -1481,6 +1489,7 @@ class ArraySequenceBase(object):
 
         self.moltype = self.alphabet.moltype
         self.info = info
+        self._repr_policy = dict(num_pos=60)
 
     def __getitem__(self, *args):
         """__getitem__ returns char or slice, as same class."""

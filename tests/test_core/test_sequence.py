@@ -977,6 +977,23 @@ class SequenceTests(TestCase):
 
         self.assertTrue(seq_row in got)
 
+    def test_repr_html(self):
+        """correctly uses set_repr and the environment variable settings"""
+        token = 'class="label"'
+        seq = self.SEQ("AAAAA")
+
+        orig = [l for l in seq._repr_html_().splitlines() if token in l][0]
+        orig_num = len(re.findall(r"\bA\b", orig))
+        self.assertEqual(orig_num, 5)
+
+        # using environment variable
+        env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
+        os.environ[env_name] = "num_pos=2"
+        got = [l for l in seq._repr_html_().splitlines() if token in l][0]
+        got_num = len(re.findall(r"\bA\b", got))
+        self.assertEqual(got_num, 2)
+        os.environ.pop(env_name, None)
+
 
 class SequenceSubclassTests(TestCase):
     """Only one general set of tests, since the subclasses are very thin."""
