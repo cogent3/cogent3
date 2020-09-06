@@ -240,7 +240,7 @@ The following implements a modification of the approach of Zhang, Nielsen and Ya
       dtype='<U14')}
     data = {k: array(data[k], dtype='U') for k in data}
     table = make_table(header, data=data)
-    HTML(table._repr_html_(include_shape=False))
+    HTML(table.set_repr_policy(show_shape=False))
 
 .. note:: Our implementation is not as parametrically succinct as that of Zhang et al, we have 1 additional bin probability.
 

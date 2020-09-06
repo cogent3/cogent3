@@ -1,8 +1,11 @@
 from unittest import TestCase, main
 
+import numpy
+
 from numpy.testing import assert_allclose
 
 from cogent3.maths.stats.contingency import CategoryCounts, calc_expected
+from cogent3.util.dict_array import DictArrayTemplate
 
 
 __author__ = "Gavin Huttley"
@@ -165,9 +168,9 @@ class ContingencyTests(TestCase):
 
     def test_validate_expecteds(self):
         """test provided expecteds total same as observed"""
-        obs = dict(a=10, b=2, c=2)
-        exp = [5, 5, 5]
         with self.assertRaises(AssertionError):
+            obs = dict(a=10, b=2, c=2)
+            exp = [5, 5, 5]
             CategoryCounts(obs, expected=exp)
 
     def test_repr_str_html(self):
@@ -198,13 +201,30 @@ class ContingencyTests(TestCase):
         stats = got.statistics
         self.assertEqual(stats[0, "pvalue"], got.pvalue)
 
-    def test_calc_expected(self):
+    def test_calc_expected2(self):
         """handle case where expected is a single column vector"""
-        import numpy
-
         nums = numpy.array([1, 2, 3]).reshape((3, 1))
         got = calc_expected(nums)
         assert_allclose(got, numpy.array([2, 2, 2]).reshape((3, 1)))
+
+    def test_category_counts_from_non_int_arrays(self):
+        """handles object and float numpy array, fails if float"""
+        a = numpy.array([[31, 36], [58, 138]], dtype=object)
+        darr = DictArrayTemplate(["syn", "nsyn"], ["Ts", "Tv"]).wrap(a)
+        got = CategoryCounts(darr)
+        assert_allclose(got.observed.array.tolist(), a.tolist())
+
+        for dtype in (object, float):
+            with self.assertRaises(TypeError):
+                a = numpy.array([[31.3, 36], [58, 138]], dtype=dtype)
+                darr = DictArrayTemplate(["syn", "nsyn"], ["Ts", "Tv"]).wrap(a)
+                _ = CategoryCounts(darr)
+
+        # negative values disallowed
+        with self.assertRaises(ValueError):
+            a = numpy.array([[31, -36], [58, 138]], dtype=int)
+            darr = DictArrayTemplate(["syn", "nsyn"], ["Ts", "Tv"]).wrap(a)
+            _ = CategoryCounts(darr)
 
 
 if __name__ == "__main__":

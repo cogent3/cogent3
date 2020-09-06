@@ -116,18 +116,18 @@ def estimate_pval(observed, stat_func, num_reps=1000):
     return num_gt / num_reps
 
 
-class _format_row_cell:
-    """class for handling html formatting of rows"""
+def _astype(data, dtype):
+    """returns numpy array of correct type, raises TypeError if fails"""
+    converted = data.astype(dtype)
+    try:
+        assert_allclose(
+            converted.tolist(), data.tolist(),
+        )
+    except AssertionError:
+        msg = f"could not reliably be converted to {dtype} from dtype={data.dtype}"
+        raise TypeError(msg)
 
-    def __init__(self, row_labels):
-        self.row_labels = row_labels
-
-    def __call__(self, val, row, col):
-        if val in self.row_labels:
-            result = f"<td><b>{val}<b></td>"
-        else:
-            result = f'<td style="text-align:right">{val}</td>'
-        return result
+    return converted
 
 
 class CategoryCounts:
@@ -142,7 +142,8 @@ class CategoryCounts:
         """Parameters
         -------------
         observed
-            a DictArray instance, or something that can be converted to one
+            a DictArray instance, or something that can be converted to one.
+            Values must be integers.
         expected
             provide in the case where you know the prior proportions, otherwise
             calculated from marginal frequencies
@@ -150,11 +151,15 @@ class CategoryCounts:
         if not isinstance(observed, DictArray):
             observed = DictArray(observed)
 
+        # make sure values are int
+        observed.array = _astype(observed.array, int)
+
         if observed.array.sum() == 0:
             raise ValueError("at least one value must be > 0")
 
         if expected:
             expected = observed.template.wrap(expected)
+            expected.array = _astype(expected.array, float)
 
         if observed.array.min() < 0 or (expected and expected.array.min() < 0):
             raise ValueError("negative values encountered")
