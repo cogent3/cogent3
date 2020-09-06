@@ -198,7 +198,7 @@ class ContingencyTests(TestCase):
         stats = got.statistics
         self.assertEqual(stats[0, "pvalue"], got.pvalue)
 
-    def test_calc_expected(self):
+    def test_calc_expected2(self):
         """handle case where expected is a single column vector"""
         import numpy
 
