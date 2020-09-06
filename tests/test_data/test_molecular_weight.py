@@ -21,8 +21,7 @@ __status__ = "Production"
 
 
 class WeightCalculatorTests(TestCase):
-    """Tests for WeightCalculator, which should calculate molecular weights.
-    """
+    """Tests for WeightCalculator, which should calculate molecular weights."""
 
     def test_call(self):
         """WeightCalculator should return correct molecular weight"""

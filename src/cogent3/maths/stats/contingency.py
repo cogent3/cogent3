@@ -121,7 +121,8 @@ def _astype(data, dtype):
     converted = data.astype(dtype)
     try:
         assert_allclose(
-            converted.tolist(), data.tolist(),
+            converted.tolist(),
+            data.tolist(),
         )
     except AssertionError:
         msg = f"could not reliably be converted to {dtype} from dtype={data.dtype}"

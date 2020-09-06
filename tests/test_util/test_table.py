@@ -293,12 +293,30 @@ class TableTests(TestCase):
         """correctly wraps table to <= maximum width"""
         # multi-row table
         d2D = {
-            "edge.parent": {"NineBande": "root", "Human": "edge.0",},
-            "x": {"NineBande": 1.0, "Human": 1.0,},
-            "length": {"NineBande": 4.0, "Human": 4.0,},
-            "y": {"NineBande": 3.0, "Human": 3.0,},
-            "z": {"NineBande": 6.0, "Human": 6.0,},
-            "edge.name": {"Human": "Human", "NineBande": "NineBande",},
+            "edge.parent": {
+                "NineBande": "root",
+                "Human": "edge.0",
+            },
+            "x": {
+                "NineBande": 1.0,
+                "Human": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "Human": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "Human": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "Human": 6.0,
+            },
+            "edge.name": {
+                "Human": "Human",
+                "NineBande": "NineBande",
+            },
         }
         row_order = list(d2D["edge.name"])
         t = Table(
@@ -327,11 +345,26 @@ class TableTests(TestCase):
 
         # multi-row table
         data = {
-            "edge.parent": {"NineBande": "root", "edge.1": "root",},
-            "x": {"NineBande": 1.0, "edge.1": 1.0,},
-            "length": {"NineBande": 4.0, "edge.1": 4.0,},
-            "y": {"NineBande": 3.0, "edge.1": 3.0,},
-            "z": {"NineBande": 6.0, "edge.1": 6.0,},
+            "edge.parent": {
+                "NineBande": "root",
+                "edge.1": "root",
+            },
+            "x": {
+                "NineBande": 1.0,
+                "edge.1": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "edge.1": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "edge.1": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "edge.1": 6.0,
+            },
         }
         t = Table(data=data, max_width=30)
         wrapped = str(t)
@@ -443,10 +476,30 @@ class TableTests(TestCase):
                 "DogFaced": "root",
                 "Human": "edge.0",
             },
-            "x": {"NineBande": 1.0, "edge.1": 1.0, "DogFaced": 1.0, "Human": 1.0,},
-            "length": {"NineBande": 4.0, "edge.1": 4.0, "DogFaced": 4.0, "Human": 4.0,},
-            "y": {"NineBande": 3.0, "edge.1": 3.0, "DogFaced": 3.0, "Human": 3.0,},
-            "z": {"NineBande": 6.0, "edge.1": 6.0, "DogFaced": 6.0, "Human": 6.0,},
+            "x": {
+                "NineBande": 1.0,
+                "edge.1": 1.0,
+                "DogFaced": 1.0,
+                "Human": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "edge.1": 4.0,
+                "DogFaced": 4.0,
+                "Human": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "edge.1": 3.0,
+                "DogFaced": 3.0,
+                "Human": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "edge.1": 6.0,
+                "DogFaced": 6.0,
+                "Human": 6.0,
+            },
             "edge.names": {
                 "NineBande": "NineBande",
                 "edge.1": "edge.1",
@@ -1006,15 +1059,37 @@ class TableTests(TestCase):
     def test_pickle_unpickle(self):
         """roundtrip via pickling"""
         data = {
-            "edge.parent": {"NineBande": "root", "edge.1": "root",},
-            "x": {"NineBande": 1.0, "edge.1": 1.0,},
-            "length": {"NineBande": 4.0, "edge.1": 4.0,},
-            "y": {"NineBande": 3.0, "edge.1": 3.0,},
-            "z": {"NineBande": 6.0, "edge.1": 6.0,},
-            "edge.name": {"NineBande": "NineBande", "edge.1": "edge.1",},
+            "edge.parent": {
+                "NineBande": "root",
+                "edge.1": "root",
+            },
+            "x": {
+                "NineBande": 1.0,
+                "edge.1": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "edge.1": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "edge.1": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "edge.1": 6.0,
+            },
+            "edge.name": {
+                "NineBande": "NineBande",
+                "edge.1": "edge.1",
+            },
         }
         t = Table(
-            data=data, max_width=50, index="edge.name", title="My title", legend="blah",
+            data=data,
+            max_width=50,
+            index="edge.name",
+            title="My title",
+            legend="blah",
         )
         # via string
         s = pickle.dumps(t)
@@ -1086,7 +1161,8 @@ class TableTests(TestCase):
                     ),
                 )
                 self.assertEqual(
-                    t.array.T.tolist(), [v["values"] for v in data["columns"].values()],
+                    t.array.T.tolist(),
+                    [v["values"] for v in data["columns"].values()],
                 )
 
     def test_load_table_from_json(self):
@@ -1204,7 +1280,10 @@ class TableTests(TestCase):
 
     def test_to_delim(self):
         """successfully create separated format with arbitrary character"""
-        table = Table(header=self.t3_header, data=self.t3_rows,)
+        table = Table(
+            header=self.t3_header,
+            data=self.t3_rows,
+        )
         sv = table.to_string(sep=";")
         expect = ["id;foo;bar", "6;abc;66", "7;bca;77"]
         self.assertEqual(sv.splitlines(), expect)
@@ -1220,7 +1299,10 @@ class TableTests(TestCase):
     def test_to_rst_csv(self):
         """generates a rst csv-table"""
         table = Table(
-            header=["a", "b"], data=[[1, 2]], title="A title", legend="A legend",
+            header=["a", "b"],
+            data=[[1, 2]],
+            title="A title",
+            legend="A legend",
         )
         got = table.to_rst(csv_table=True)
         self.assertEqual(
@@ -1237,7 +1319,12 @@ class TableTests(TestCase):
         got = table.to_rst(csv_table=True)
         self.assertEqual(
             got.splitlines(),
-            [".. csv-table::", '    :header: "a", "b"', "", "    1, 2",],
+            [
+                ".. csv-table::",
+                '    :header: "a", "b"',
+                "",
+                "    1, 2",
+            ],
         )
 
     def test_get_repr_(self):

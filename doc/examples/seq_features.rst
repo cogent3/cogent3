@@ -12,7 +12,6 @@ Annotations can be added in two ways: using either the ``add_annotation`` or the
 For illustrative purposes we define a sequence with 2 exons and grab the 1\ :sup:`st` \ exon:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -25,7 +24,6 @@ Here, '``exon``' is the feature type, and '``exon#``' the feature name. The feat
 We could also have created an annotation using the ``add_annotation`` method:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.core.annotation import Feature
 
@@ -35,14 +33,12 @@ We could also have created an annotation using the ``add_annotation`` method:
 We can use the features (eg ``exon1``) to get the corresponding sequence region.
 
 .. jupyter-execute::
-    :linenos:
 
     s[exon1]
 
 You can query annotations by type and optionally by label, receiving a list of features:
 
 .. jupyter-execute::
-    :linenos:
 
     exons = s.get_annotations_matching("exon")
     print(exons)
@@ -50,7 +46,6 @@ You can query annotations by type and optionally by label, receiving a list of f
 We can use this list to construct a pseudo-feature covering (or excluding) multiple features using ``get_region_covering_all``. For instance, getting all exons,
 
 .. jupyter-execute::
-    :linenos:
 
     print(s.get_region_covering_all(exons))
     s.get_region_covering_all(exons).get_slice()
@@ -58,7 +53,6 @@ We can use this list to construct a pseudo-feature covering (or excluding) multi
 or not exons (the exon *shadow*):
 
 .. jupyter-execute::
-    :linenos:
 
     print(s.get_region_covering_all(exons).get_shadow().get_slice())
 
@@ -67,6 +61,5 @@ The first of these essentially returns the CDS of the gene.
 Features are themselves sliceable:
 
 .. jupyter-execute::
-    :linenos:
 
     exon1[0:3].get_slice()

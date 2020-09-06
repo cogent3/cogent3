@@ -20,8 +20,7 @@ __status__ = "Production"
 
 
 class ClustalTests(TestCase):
-    """Tests for Clustal writer.
-    """
+    """Tests for Clustal writer."""
 
     def setUp(self):
         """Setup for Clustal tests."""

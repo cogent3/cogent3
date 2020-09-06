@@ -474,8 +474,7 @@ def t_one_sample(a, popmean=0, tails=None):
     t is a float; prob is a probability.
     a should support Mean, StandardDeviation, and Count.
     popmean should be the expected mean; 0 by default.
-    tails should be None (default), 'high', or 'low'.
-"""
+    tails should be None (default), 'high', or 'low'."""
     try:
         n = len(a)
         t = (mean(a) - popmean) / (std(a) / sqrt(n))
@@ -1074,8 +1073,7 @@ def correlation_test(
 
 
 def correlation_matrix(series, as_rows=True):
-    """Returns pairwise correlations between each pair of series.
-    """
+    """Returns pairwise correlations between each pair of series."""
     return corrcoef(series, rowvar=as_rows)
     # unused codes below
     if as_rows:
@@ -1197,17 +1195,16 @@ def regress_major(x, y):
 def z_test(a, popmean=0, popstdev=1, tails=None):
     """Returns z and probability score for a single sample of items.
 
-Calculates the z-score on ONE sample of items with mean x, given a population
-mean and standard deviation (parametric).
+    Calculates the z-score on ONE sample of items with mean x, given a population
+    mean and standard deviation (parametric).
 
-Usage:   z, prob = z_test(a, popmean, popstdev, tails)
+    Usage:   z, prob = z_test(a, popmean, popstdev, tails)
 
-z is a float; prob is a probability.
-a is a sample with Mean and Count.
-popmean should be the parametric population mean; 0 by default.
-popstdev should be the parametric population standard deviation, 1 by default.
-tails should be None (default), 'high', or 'low'.
-"""
+    z is a float; prob is a probability.
+    a is a sample with Mean and Count.
+    popmean should be the parametric population mean; 0 by default.
+    popstdev should be the parametric population standard deviation, 1 by default.
+    tails should be None (default), 'high', or 'low'."""
     try:
         z = (mean(a) - popmean) / popstdev * sqrt(len(a))
         return z, z_tailed_prob(z, tails)
@@ -1252,8 +1249,7 @@ def reverse_tails(tails):
 
 
 def tail(prob, test):
-    """If test is true, returns prob/2. Otherwise returns 1-(prob/2).
-    """
+    """If test is true, returns prob/2. Otherwise returns 1-(prob/2)."""
     prob /= 2
     if test:
         return prob
@@ -1263,8 +1259,7 @@ def tail(prob, test):
 
 # todo delete, now from itertools.combinations
 def combinations(n, k):
-    """Returns the number of ways of choosing k items from n.
-    """
+    """Returns the number of ways of choosing k items from n."""
     return exp(lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1))
 
 
@@ -1924,11 +1919,11 @@ def distance_matrix_permutation_test(
 def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
     """get values from matrix positions in cells and cells2
 
-        matrix: the numpy array from which values should be taken
-        cells: indices of first set of requested values
-        cells2: indices of second set of requested values or None
-         if they should be randomly selected
-        is_symmetric: True if matrix is symmetric
+    matrix: the numpy array from which values should be taken
+    cells: indices of first set of requested values
+    cells2: indices of second set of requested values or None
+     if they should be randomly selected
+    is_symmetric: True if matrix is symmetric
 
     """
 
@@ -1955,8 +1950,8 @@ def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
 def get_ltm_cells(cells):
     """converts matrix indices so all are below the diagonal
 
-        cells: list of indices into a 2D integer-indexable object
-         (typically a list or lists of array of arrays)
+    cells: list of indices into a 2D integer-indexable object
+     (typically a list or lists of array of arrays)
 
     """
     new_cells = []

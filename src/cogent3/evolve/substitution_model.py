@@ -462,11 +462,11 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         **kw,
     ):
         """
-         - with_rate: Add a 'rate' parameter which varies by bin.
-         - ordered_param: name of a single parameter which distinguishes any bins.
-         - distribution: choices of 'free' or 'gamma' or an instance of some
-           distribution. Could probably just deprecate free
-         - partitioned_params: names of params to be partitioned across bins
+        - with_rate: Add a 'rate' parameter which varies by bin.
+        - ordered_param: name of a single parameter which distinguishes any bins.
+        - distribution: choices of 'free' or 'gamma' or an instance of some
+          distribution. Could probably just deprecate free
+        - partitioned_params: names of params to be partitioned across bins
         """
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
@@ -679,7 +679,7 @@ class Empirical(StationaryQ, _ContinuousSubstitutionModel):
     @extend_docstring_from(_ContinuousSubstitutionModel.__init__)
     def __init__(self, alphabet, rate_matrix, **kw):
         """
-         - rate_matrix: The instantaneous rate matrix
+        - rate_matrix: The instantaneous rate matrix
         """
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
         d = locals()
@@ -709,8 +709,8 @@ class Parametric(_ContinuousSubstitutionModel):
     @extend_docstring_from(_ContinuousSubstitutionModel.__init__)
     def __init__(self, alphabet, predicates=None, scales=None, **kw):
         """
-         - predicates: a dict of {name:predicate}. See cogent3.evolve.predicate
-         - scales: scale rules, dict with predicates
+        - predicates: a dict of {name:predicate}. See cogent3.evolve.predicate
+        - scales: scale rules, dict with predicates
         """
         self._canned_predicates = None
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
@@ -974,7 +974,7 @@ class _CodonPredicates:
         """
         Parameters
         ----------
-        
+
         gc
             a genetic code instance
         """

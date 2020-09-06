@@ -9,7 +9,6 @@ Using a nucleotide model
 We load the unaligned sequences we will use in our examples.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app import io
 
@@ -22,7 +21,6 @@ Nucleotide alignment with default settings
 The default setting for "nucleotide" is a HKY85 model.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app.align import progressive_align
 
@@ -36,7 +34,6 @@ Specify a different distance measure for estimating the guide tree
 For the nucleotide case, you can use TN93 or paralinear.
 
 .. jupyter-execute::
-    :linenos:
 
     nt_aligner = progressive_align("nucleotide", distance="TN93")
     aligned = nt_aligner(seqs)
@@ -46,7 +43,6 @@ Providing a guide tree
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     tree = "((Chimp:0.001,Human:0.001):0.0076,Macaque:0.01,((Rat:0.01,Mouse:0.01):0.02,Mouse_Lemur:0.02):0.01)"
     nt_aligner = progressive_align("nucleotide", guide_tree=tree)
@@ -61,7 +57,6 @@ Specifying the substitution model
 You can use any nucleotide substitution model. For a list of all available, see ``cogent3.available_models()``.
 
 .. jupyter-execute::
-    :linenos:
 
     tree = "((Chimp:0.001,Human:0.001):0.0076,Macaque:0.01,((Rat:0.01,Mouse:0.01):0.02,Mouse_Lemur:0.02):0.01)"
     nt_aligner = progressive_align("F81", guide_tree=tree)
@@ -72,6 +67,5 @@ Alignment settings and file provenance are recorded in the ``info`` attribute
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     aligned.info

@@ -563,7 +563,7 @@ class DictArray(object):
 
     def to_table(self):
         """return Table instance
-        
+
         Notes
         -----
         Raises ValueError if number of dimensions > 2

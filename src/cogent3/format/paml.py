@@ -14,8 +14,7 @@ __maintainer__ = "Thomas La"
 
 
 def alignment_to_paml(alignment_dict, block_size=60, order=None):
-    """Returns a Paml string given an alignment.
-    """
+    """Returns a Paml string given an alignment."""
     return PamlFormatter().format(
         alignment_dict, block_size, [] if order is None else order
     )

@@ -28,9 +28,9 @@ _compression = re.compile(r"\.(gz|bz2)$")
 
 def save_to_filename(alignment, filename, format, **kw):
     """Arguments:
-            - alignment: to be written
-            - filename: name of the sequence alignment file
-            - format: the multiple sequence file format
+    - alignment: to be written
+    - filename: name of the sequence alignment file
+    - format: the multiple sequence file format
     """
     if format is None:
         raise FileFormatError("format not known")

@@ -74,8 +74,7 @@ def map_traceback(aligned_positions):
 
 
 def alignment_traceback(seqs, aligned_positions, word_length):
-    """Alignment object from state matrix and ending point.
-    """
+    """Alignment object from state matrix and ending point."""
     (starts, ends, maps) = map_traceback(aligned_positions)
     aligneds = []
     for (start, end, amap, (name, seq)) in zip(starts, ends, maps, seqs):

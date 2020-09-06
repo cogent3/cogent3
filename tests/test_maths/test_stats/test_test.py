@@ -1956,17 +1956,17 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertEqual(other_vals, [4, 13, 15])
 
     def test_distance_matrix_permutation_test_non_symmetric(self):
-        """ evaluate empirical p-values for a non symmetric matrix 
+        """evaluate empirical p-values for a non symmetric matrix
 
-            To test the empirical p-values, we look at a simple 3x3 matrix 
-             b/c it is easy to see what t score every permutation will 
-             generate -- there's only 6 permutations. 
-             Running dist_matrix_test with n=1000, we expect that each 
-             permutation will show up 160 times, so we know how many 
-             times to expect to see more extreme t scores. We therefore 
-             know what the empirical p-values will be. (n=1000 was chosen
-             empirically -- smaller values seem to lead to much more frequent
-             random failures.)
+        To test the empirical p-values, we look at a simple 3x3 matrix
+         b/c it is easy to see what t score every permutation will
+         generate -- there's only 6 permutations.
+         Running dist_matrix_test with n=1000, we expect that each
+         permutation will show up 160 times, so we know how many
+         times to expect to see more extreme t scores. We therefore
+         know what the empirical p-values will be. (n=1000 was chosen
+         empirically -- smaller values seem to lead to much more frequent
+         random failures.)
 
 
         """
@@ -2005,10 +2005,10 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertSimilarMeans(r, 4.0 / 6.0)
 
     def test_distance_matrix_permutation_test_symmetric(self):
-        """ evaluate empirical p-values for symmetric matrix
+        """evaluate empirical p-values for symmetric matrix
 
-            See test_distance_matrix_permutation_test_non_symmetric 
-            doc string for a description of how this test works. 
+        See test_distance_matrix_permutation_test_non_symmetric
+        doc string for a description of how this test works.
 
         """
 
@@ -2067,8 +2067,7 @@ class TestDistMatrixPermutationTest(TestCase):
         )
 
     def test_ANOVA_one_way(self):
-        """ANOVA one way returns same values as ANOVA on a stats package
-        """
+        """ANOVA one way returns same values as ANOVA on a stats package"""
         g1 = NumberCounter([10.0, 11.0, 10.0, 5.0, 6.0])
         g2 = NumberCounter([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
         g3 = NumberCounter([6.0, 7.0, 5.0, 6.0, 7.0])

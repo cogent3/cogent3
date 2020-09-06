@@ -9,7 +9,6 @@ Alphabets
 ``MolType`` instances have an ``Alphabet``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA, PROTEIN
 
@@ -19,7 +18,6 @@ Alphabets
 ``Alphabet`` instances have a ``MolType``.
 
 .. jupyter-execute::
-    :linenos:
 
     PROTEIN.alphabet.moltype == PROTEIN
 
@@ -29,7 +27,6 @@ Creating tuple alphabets
 You can create a tuple alphabet of, for example, dinucleotides or trinucleotides.
 
 .. jupyter-execute::
-    :linenos:
 
     dinuc_alphabet = DNA.alphabet.get_word_alphabet(2)
     print(dinuc_alphabet)
@@ -40,7 +37,6 @@ Convert a sequence into integers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     seq = "TAGT"
     indices = DNA.alphabet.to_indices(seq)
@@ -50,7 +46,6 @@ Convert integers to a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     seq = DNA.alphabet.from_indices([0, 2, 3, 0])
     seq
@@ -58,7 +53,6 @@ Convert integers to a sequence
 or
 
 .. jupyter-execute::
-    :linenos:
 
     seq = DNA.alphabet.from_ordinals_to_seq([0, 2, 3, 0])
     seq

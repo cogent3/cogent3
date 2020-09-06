@@ -15,7 +15,6 @@ Available molecular types
 =========================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import available_moltypes
 
@@ -24,7 +23,6 @@ Available molecular types
 For statements that have a ``moltype`` argument, use the entry under the "Abbreviation" column. For example:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -34,7 +32,6 @@ Getting a ``MolType``
 =====================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import get_moltype
 
@@ -47,7 +44,6 @@ Using a ``MolType`` to get ambiguity codes
 Just using ``dna`` from above.
 
 .. jupyter-execute::
-    :linenos:
 
     dna.ambiguities
 
@@ -55,7 +51,6 @@ Just using ``dna`` from above.
 ==========================================
 
 .. jupyter-execute::
-    :linenos:
 
     dna.degenerates
 
@@ -63,7 +58,6 @@ Nucleic acid ``MolType`` and complementing
 ==========================================
 
 .. jupyter-execute::
-    :linenos:
 
     dna.complement("AGG")
 
@@ -73,7 +67,6 @@ Making sequences
 Use the either the top level ``cogent3.make_seq`` function, or the method on the ``MolType`` instance.
 
 .. jupyter-execute::
-    :linenos:
 
     seq = dna.make_seq("AGGCTT", name="seq1")
     seq
@@ -82,7 +75,6 @@ Verify sequences
 ================
 
 .. jupyter-execute::
-    :linenos:
 
     rna = get_moltype("rna")
     rna.is_valid("ACGUACGUACGUACGU")
@@ -93,7 +85,6 @@ Making a custom ``MolType``
 We demonstrate this by customising DNA so it allows ``.`` as gaps
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.core import moltype as mt
 
@@ -111,7 +102,6 @@ We demonstrate this by customising DNA so it allows ``.`` as gaps
 .. warning:: At present, constructing a custom ``MolType`` that overrides a builtin one affects the original (in this instance, the ``DnaSequence`` class). All subsequent calls to the original class in the running process that made the change are affected. The below code is resetting this attribute now to allow the rest of the documentation to be executed.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
     from cogent3.core.sequence import DnaSequence

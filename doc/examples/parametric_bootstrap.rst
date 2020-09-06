@@ -15,7 +15,6 @@ This file contains an example for estimating the probability of a Likelihood rat
 From ``cogent3`` import all the components we need.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve import bootstrap
@@ -27,7 +26,6 @@ Define the null model that takes an alignment object and returns a likelihood fu
 We will use a HKY model.
 
 .. jupyter-execute::
-    :linenos:
 
     def create_alt_function():
         t = load_tree("data/test.tree")
@@ -37,7 +35,6 @@ We will use a HKY model.
 Define a function that takes an alignment object and returns an appropriately assembled function for the alternative model. Since the two models are identical bar the constraint on the branch lengths, we'll use the same code to generate the basic likelihood function as for the alt model, and then apply the constraint here
 
 .. jupyter-execute::
-    :linenos:
 
     def create_null_function():
         lf = create_alt_function()
@@ -48,14 +45,12 @@ Define a function that takes an alignment object and returns an appropriately as
 Get our observed data alignment
 
 .. jupyter-execute::
-    :linenos:
 
     aln = load_aligned_seqs("data/long_testseqs.fasta")
 
 Create a ``EstimateProbability`` bootstrap instance
 
 .. jupyter-execute::
-    :linenos:
 
     estimateP = bootstrap.EstimateProbability(
         create_null_function(), create_alt_function(), aln
@@ -64,27 +59,23 @@ Create a ``EstimateProbability`` bootstrap instance
 Specify how many random samples we want it to generate. Here we use a very small number of replicates only for the purpose of testing.
 
 .. jupyter-execute::
-    :linenos:
 
     estimateP.set_num_replicates(5)
 
 Run it.
 
 .. jupyter-execute::
-    :linenos:
 
     estimateP.run(show_progress=False)
 
 Get the estimated probability.
 
 .. jupyter-execute::
-    :linenos:
 
     p = estimateP.get_estimated_prob()
 
 ``p`` is a floating point value, as you'd expect. Grab the estimated likelihoods (null and alternate) for the observed data.
 
 .. jupyter-execute::
-    :linenos:
 
     print("%.2f, %.2f" % estimateP.get_observed_lnL())

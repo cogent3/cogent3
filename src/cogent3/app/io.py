@@ -437,7 +437,7 @@ class write_seqs(_checkpointable):
 
 
 class load_json(Composable):
-    """Loads json serialised cogent3 objects from a json file. 
+    """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
     _type = "output"
@@ -515,7 +515,7 @@ class write_json(_checkpointable):
 
 
 class load_db(Composable):
-    """Loads json serialised cogent3 objects from a TinyDB file. 
+    """Loads json serialised cogent3 objects from a TinyDB file.
     Returns whatever object type was stored."""
 
     _type = "output"

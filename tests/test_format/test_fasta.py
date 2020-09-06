@@ -20,8 +20,7 @@ __status__ = "Production"
 
 
 class FastaTests(TestCase):
-    """Tests for Fasta writer.
-    """
+    """Tests for Fasta writer."""
 
     def setUp(self):
         """Setup for Fasta tests."""

@@ -18,7 +18,6 @@ Creating a DNA sequence from a string
 All sequence and alignment objects have a molecular type, or ``MolType`` which provides key properties for validating sequence characters. Here we use the ``DNA`` ``MolType`` to create a DNA sequence.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -31,7 +30,6 @@ Creating a RNA sequence from a string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import RNA
 
@@ -41,7 +39,6 @@ Converting to FASTA format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -52,7 +49,6 @@ Convert a RNA sequence to FASTA format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import RNA
 
@@ -65,7 +61,6 @@ Creating a named sequence
 You can also use a convenience ``make_seq()`` function, providing the moltype as a string.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq
 
@@ -77,7 +72,6 @@ Setting or changing the name of a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq
 
@@ -89,7 +83,6 @@ Complementing a DNA sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -100,14 +93,12 @@ Reverse complementing a DNA sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     print(my_seq.rc())
 
 The ``rc`` method name is easier to type
 
 .. jupyter-execute::
-    :linenos:
 
     print(my_seq.rc())
 
@@ -117,7 +108,6 @@ Translate a ``DnaSequence`` to protein
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -130,7 +120,6 @@ Converting a DNA sequence to RNA
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -141,7 +130,6 @@ Convert an RNA sequence to DNA
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import RNA
 
@@ -152,7 +140,6 @@ Testing complementarity
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -164,7 +151,6 @@ Joining two DNA sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -178,7 +164,6 @@ Slicing DNA sequences
 ^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     my_seq[1:6]
 
@@ -190,7 +175,6 @@ The easiest approach is to work off the ``cogent3`` ``ArrayAlignment`` object.
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -204,7 +188,6 @@ Getting 1st and 2nd positions from codons
 In this instance we can use the annotatable sequence classes.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -226,7 +209,6 @@ Remove gaps from a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import RNA
 
