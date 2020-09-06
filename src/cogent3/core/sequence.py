@@ -851,12 +851,6 @@ class Sequence(_Annotatable, SequenceI):
         """Returns filtered seq; used to do DNA/RNA conversions."""
         return seq
 
-    def get_colour_scheme(self, colours):
-        return {}
-
-    def get_color_scheme(self, colors):  # alias to support US spelling
-        return self.get_colour_scheme(colours=colors)
-
     def copy_annotations(self, other):
         self.annotations = other.annotations[:]
 
@@ -1080,7 +1074,6 @@ class Sequence(_Annotatable, SequenceI):
 
     def gettype(self):
         """Return the sequence type."""
-
         return self.moltype.label
 
     def resolveambiguities(self):
@@ -1382,14 +1375,6 @@ class NucleicAcidSequence(Sequence):
 class DnaSequence(NucleicAcidSequence):
     """Holds the standard DNA sequence."""
 
-    def get_colour_scheme(self, colours):
-        return {
-            "A": colours.black,
-            "T": colours.red,
-            "C": colours.blue,
-            "G": colours.green,
-        }
-
     def _seq_filter(self, seq):
         """Converts U to T."""
         return seq.replace("u", "t").replace("U", "T")
@@ -1397,14 +1382,6 @@ class DnaSequence(NucleicAcidSequence):
 
 class RnaSequence(NucleicAcidSequence):
     """Holds the standard RNA sequence."""
-
-    def get_colour_scheme(self, colours):
-        return {
-            "A": colours.black,
-            "U": colours.red,
-            "C": colours.blue,
-            "G": colours.green,
-        }
 
     def _seq_filter(self, seq):
         """Converts T to U."""
