@@ -97,7 +97,12 @@ def _callback(callback, row, num_columns=None):
 
 
 def formatted_array(
-    series, title="", precision=4, format_spec=None, missing_data="", center=False,
+    series,
+    title="",
+    precision=4,
+    format_spec=None,
+    missing_data="",
+    center=False,
 ):
     """converts elements in a numpy array series to an equal length string.
 
@@ -1046,7 +1051,12 @@ class Table:
         return joined
 
     def inner_join(
-        self, other, columns_self=None, columns_other=None, use_index=True, **kwargs,
+        self,
+        other,
+        columns_self=None,
+        columns_other=None,
+        use_index=True,
+        **kwargs,
     ):
         """inner join of self with other
 
@@ -1149,7 +1159,12 @@ class Table:
         return joined
 
     def joined(
-        self, other, columns_self=None, columns_other=None, inner_join=True, **kwargs,
+        self,
+        other,
+        columns_self=None,
+        columns_other=None,
+        inner_join=True,
+        **kwargs,
     ):
         """returns a new table containing the join of this table and
         other. See docstring for inner_join, or cross_join

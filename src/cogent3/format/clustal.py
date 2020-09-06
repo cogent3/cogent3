@@ -20,9 +20,9 @@ __status__ = "Development"
 def clustal_from_alignment(aln, interleave_len=None):
     """Returns a string in Clustal format.
 
-        - aln: can be an Alignment object or a dict.
-        - interleave_len: sequence line width.  Only available if sequences are
-            aligned.
+    - aln: can be an Alignment object or a dict.
+    - interleave_len: sequence line width.  Only available if sequences are
+        aligned.
     """
     if not aln:
         return ""

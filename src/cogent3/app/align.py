@@ -147,7 +147,7 @@ class align_to_ref(ComposableSeq):
 
 class progressive_align(ComposableSeq):
     """Progressive multiple sequence alignment via any cogent3 model.
-     Returns an Alignment object."""
+    Returns an Alignment object."""
 
     _input_types = SEQUENCE_TYPE
     _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)

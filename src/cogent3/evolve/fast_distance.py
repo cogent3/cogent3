@@ -635,8 +635,8 @@ class LogDetPair(_PairwiseDistance):
 
     def __init__(self, moltype="dna", use_tk_adjustment=True, *args, **kwargs):
         """Arguments:
-            - moltype: string or moltype instance (must be dna or rna)
-            - use_tk_adjustment: use the correction of Tamura and Kumar 2002
+        - moltype: string or moltype instance (must be dna or rna)
+        - use_tk_adjustment: use the correction of Tamura and Kumar 2002
         """
         super(LogDetPair, self).__init__(moltype, *args, **kwargs)
         self.func = _logdet

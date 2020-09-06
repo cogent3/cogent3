@@ -408,16 +408,14 @@ def fdtrc(a, b, x):
 
 
 def gdtr(a, b, x):
-    """Returns integral from 0 to x of Gamma distribution with params a and b.
-    """
+    """Returns integral from 0 to x of Gamma distribution with params a and b."""
     if x < 0.0:
         raise ZeroDivisionError("x must be at least 0.")
     return igam(b, a * x)
 
 
 def gdtrc(a, b, x):
-    """Returns integral from x to inf of Gamma distribution with params a and b.
-    """
+    """Returns integral from x to inf of Gamma distribution with params a and b."""
     if x < 0.0:
         raise ZeroDivisionError("x must be at least 0.")
     return igamc(b, a * x)

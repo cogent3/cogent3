@@ -684,8 +684,7 @@ class modifiable_string(str):
 
 
 class _list_and_string(list, Delegator):
-    """Trivial class to demonstrate Delegator.
-    """
+    """Trivial class to demonstrate Delegator."""
 
     def __init__(self, items, string):
         Delegator.__init__(self, string)

@@ -157,8 +157,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
 
 
 def inputs_from_dict_array(darr):
-    """makes inputs for UPGMA_cluster from a DictArray object
-    """
+    """makes inputs for UPGMA_cluster from a DictArray object"""
     darr.array += numpy.eye(darr.shape[0]) * BIG_NUM
     nodes = list(map(PhyloNode, darr.keys()))
     return darr.array, nodes

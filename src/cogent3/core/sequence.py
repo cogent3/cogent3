@@ -657,7 +657,8 @@ class SequenceI(object):
     def _repr_html_(self):
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
-            "COGENT3_ALIGNMENT_REPR_POLICY", dict(num_pos=int),
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_pos=int),
         )
         settings.update(env_vals)
         return self.to_html(limit=settings["num_pos"])
@@ -1720,8 +1721,7 @@ class ArraySequenceBase(object):
         return list(self.gap_array().nonzero()[0])
 
     def frac_same_gaps(self, other):
-        """Returns fraction of positions where gaps match other's gaps.
-        """
+        """Returns fraction of positions where gaps match other's gaps."""
         if not other:
             return 0
         self_gaps = self.gap_array()

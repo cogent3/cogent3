@@ -842,8 +842,7 @@ class Range(SpanI):
     """Complex object consisting of many spans."""
 
     def __init__(self, spans=None):
-        """Returns a new Range object with data in spans.
-        """
+        """Returns a new Range object with data in spans."""
         spans = [] if spans is None else spans
         result = SpansOnly()
         # need to check if we got a single Span, since they define __iter__.

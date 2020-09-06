@@ -226,8 +226,7 @@ class ReadOnlyDataStoreBase:
         return None
 
     def get_relative_identifier(self, identifier):
-        """returns the identifier relative to store root path
-        """
+        """returns the identifier relative to store root path"""
         if isinstance(identifier, DataStoreMember) and identifier.parent is self:
             return identifier
 
@@ -247,8 +246,7 @@ class ReadOnlyDataStoreBase:
         return identifier
 
     def get_absolute_identifier(self, identifier, from_relative=False):
-        """returns the identifier relative to the root path
-        """
+        """returns the identifier relative to the root path"""
         if not from_relative:
             identifier = self.get_relative_identifier(identifier)
         source = self.source.replace(".zip", "")
@@ -781,8 +779,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         self._finish.detach()
 
     def lock(self):
-        """if writable, and not locked, locks the database to this pid
-        """
+        """if writable, and not locked, locks the database to this pid"""
         if not self.locked:
             self._db.insert(dict(identifier="LOCK", pid=os.getpid()))
             self._db.storage.flush()

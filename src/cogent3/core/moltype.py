@@ -1280,7 +1280,7 @@ class MolType(object):
 
     def get_css_style(self, colors=None, font_size=12, font_family="Lucida Console"):
         """returns string of CSS classes and {character: <CSS class name>, ...}
-        
+
         Parameters
         ----------
         colors

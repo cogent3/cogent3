@@ -88,8 +88,7 @@ class UPGMATests(TestCase):
         )
 
     def test_UPGMA_cluster(self):
-        """upgma works on pairwise distance dict
-        """
+        """upgma works on pairwise distance dict"""
         pairwise_dist = self.pairwise_distances
         cluster = upgma(pairwise_dist)
         cluster = cluster.sorted()  # so we can make a stable comparison
@@ -99,15 +98,13 @@ class UPGMATests(TestCase):
         self.assertTrue(cluster.same_topology(expect))
 
     def test_find_smallest_index(self):
-        """find_smallest_index returns the index of smallest value in array
-        """
+        """find_smallest_index returns the index of smallest value in array"""
         matrix = self.matrix
         index = find_smallest_index(matrix)
         self.assertEqual(index, (0, 1))
 
     def test_condense_matrix(self):
-        """condense_array joins two rows and columns identified by indices
-        """
+        """condense_array joins two rows and columns identified by indices"""
         matrix = self.matrix
         index = find_smallest_index(matrix)
         result = condense_matrix(matrix, index, 9999999999)
@@ -121,8 +118,7 @@ class UPGMATests(TestCase):
         self.assertEqual(result[4, 0], 22.5)
 
     def test_condense_node_order(self):
-        """condense_node_order condenses nodes in list based on index info
-        """
+        """condense_node_order condenses nodes in list based on index info"""
         matrix = self.matrix
         index = find_smallest_index(matrix)
         node_order = self.node_order
@@ -134,8 +130,7 @@ class UPGMATests(TestCase):
         self.assertEqual(node_order[4].__str__(), "e;")
 
     def test_upgma_cluster(self):
-        """UPGMA_cluster clusters nodes based on info in a matrix with UPGMA
-        """
+        """UPGMA_cluster clusters nodes based on info in a matrix with UPGMA"""
         matrix = self.matrix
         node_order = self.node_order
         large_number = 9999999999
@@ -145,8 +140,7 @@ class UPGMATests(TestCase):
         )
 
     def test_UPGMA_cluster_diag(self):
-        """UPGMA_cluster works when the diagonal has lowest values
-        """
+        """UPGMA_cluster works when the diagonal has lowest values"""
         # test that checking the diagonal works
         matrix = self.matrix_zeros
         node_order = self.node_order
@@ -157,8 +151,7 @@ class UPGMATests(TestCase):
         )
 
     def test_UPGMA_cluster_diag(self):
-        """UPGMA_cluster works when the diagonal has intermediate values
-        """
+        """UPGMA_cluster works when the diagonal has intermediate values"""
         # test that checking the diagonal works
         matrix = self.matrix_five
         node_order = self.node_order

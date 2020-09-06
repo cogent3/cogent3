@@ -97,7 +97,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
 
 def expected_number_subs(p0, Q, t):
     """returns the expected number of substitutions
-    
+
     p0
         initial state frequencies
     Q

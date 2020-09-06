@@ -67,8 +67,7 @@ def parse_single_line(line):
 
 
 def indent_splitter(lines):
-    """Yields the lines whenever it hits a line with same indent level as first.
-    """
+    """Yields the lines whenever it hits a line with same indent level as first."""
     first_line = True
     curr = []
     for line in lines:
@@ -424,8 +423,7 @@ class LocationList(list):
         return curr
 
     def strand(self):
-        """Returns strand of components: 1=forward, -1=reverse, 0=both
-        """
+        """Returns strand of components: 1=forward, -1=reverse, 0=both"""
         curr = {}
         for i in self:
             curr[i.Strand] = 1

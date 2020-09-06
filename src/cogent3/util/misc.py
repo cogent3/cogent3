@@ -60,9 +60,9 @@ def _adjusted_gt_minprob_vector(probs, minprob):
 
 def adjusted_gt_minprob(probs, minprob=1e-6):
     """returns numpy array of probs scaled such that minimum is > minval
-    
+
     result sums to 1 within machine precision
-    
+
     if 2D array, assumes row-order"""
     assert 0 <= minprob < 1, "invalid minval %s" % minprob
     probs = array(probs, dtype=float64)
@@ -80,7 +80,7 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
 
 def adjusted_within_bounds(value, lower, upper, eps=1e-7, action="warn"):
     """returns value such that lower <= value <= upper
-    
+
     Parameters
     ----------
     value
@@ -917,8 +917,7 @@ def NestedSplitter(
 
 
 def remove_files(list_of_filepaths, error_on_missing=True):
-    """Remove list of filepaths, optionally raising an error if any are missing
-    """
+    """Remove list of filepaths, optionally raising an error if any are missing"""
     missing = []
     for fp in list_of_filepaths:
         try:

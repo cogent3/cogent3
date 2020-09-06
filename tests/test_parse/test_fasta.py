@@ -89,10 +89,10 @@ class MinimalFastaParserTests(GenericFastaTest):
     def test_gt_bracket_in_seq(self):
         """MinimalFastaParser handles alternate finder function
 
-            this test also illustrates how to use the MinimalFastaParser
-            to handle "sequences" that start with a > symbol, which can
-            happen when we abuse the MinimalFastaParser to parse
-            fasta-like sequence quality files.
+        this test also illustrates how to use the MinimalFastaParser
+        to handle "sequences" that start with a > symbol, which can
+        happen when we abuse the MinimalFastaParser to parse
+        fasta-like sequence quality files.
         """
         oneseq_w_gt = ">abc\n>CAG\n".split("\n")
 

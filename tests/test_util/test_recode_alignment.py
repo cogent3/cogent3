@@ -37,10 +37,10 @@ __status__ = "Beta"
 
 
 class RecodeAlignmentTests(TestCase):
-    """ Tests of functions in recode_alphabet.py 
+    """Tests of functions in recode_alphabet.py
 
-        These functions will probably move at some point, and the unit tests
-            will move with them.
+    These functions will probably move at some point, and the unit tests
+        will move with them.
     """
 
     def setUp(self):
@@ -66,8 +66,7 @@ class RecodeAlignmentTests(TestCase):
         )
 
     def test_build_alphabet_map_w_alphabet_id(self):
-        """build_alphabet_map: returns correct dict when given alphabet_id
-        """
+        """build_alphabet_map: returns correct dict when given alphabet_id"""
         expected = dict(
             [
                 ("G", "G"),
@@ -101,8 +100,7 @@ class RecodeAlignmentTests(TestCase):
         self.assertEqual(build_alphabet_map("charge_3")["K"], "K")
 
     def test_build_alphabet_map_w_alphabet_def(self):
-        """build_alphabet_map: returns correct dict when given alphabet_def
-        """
+        """build_alphabet_map: returns correct dict when given alphabet_def"""
         expected = dict(
             [
                 ("G", "S"),
@@ -162,8 +160,7 @@ class RecodeAlignmentTests(TestCase):
                 raise AssertionError("Failed on def: %s" % str(alphabet_def))
 
     def test_recode_dense_alignment_leaves_original_alignment_intact(self):
-        """recode_dense_alignment: leaves input alignment intact
-        """
+        """recode_dense_alignment: leaves input alignment intact"""
         # provided with alphabet_id
         actual = recode_dense_alignment(self.aln, alphabet_id="charge_2")
         self.assertNotEqual(actual, self.aln)
@@ -172,8 +169,7 @@ class RecodeAlignmentTests(TestCase):
         self.assertNotEqual(actual, self.aln)
 
     def test_recode_dense_alignment(self):
-        """recode_dense_alignment: recode alignment to charge_2 alpha works
-        """
+        """recode_dense_alignment: recode alignment to charge_2 alpha works"""
         expected_c2 = ArrayAlignment(
             data={"1": "AKKAKAK", "2": "AKK-KAK", "3": "AAAAAA-"}
         )
@@ -211,8 +207,7 @@ class RecodeAlignmentTests(TestCase):
         self.assertEqual(actual, expected)
 
     def test_recode_dense_alignment_to_orig(self):
-        """recode_dense_alignment: recode aln to orig returns original aln
-        """
+        """recode_dense_alignment: recode aln to orig returns original aln"""
         # provided with alphabet_id
         self.assertEqual(recode_dense_alignment(self.aln, alphabet_id="orig"), self.aln)
         # provided with alphabet_def
@@ -282,8 +277,7 @@ class RecodeAlignmentTests(TestCase):
     #     self.assertNotEqual(actual,self.aln2)
 
     def test_recode_freq_vector(self):
-        """recode_freq_vector: bg freqs updated to reflect recoded alphabet
-        """
+        """recode_freq_vector: bg freqs updated to reflect recoded alphabet"""
 
         freqs = {"A": 0.21, "E": 0.29, "C": 0.05, "D": 0.45}
         a_def = [("A", "AEC"), ("E", "D")]
@@ -306,8 +300,7 @@ class RecodeAlignmentTests(TestCase):
         self.assertFloatEqual(recode_freq_vector(a_def, freqs), expected)
 
     def test_recode_freq_vector_ignores(self):
-        """recode_freq_vector: ignored chars are ignored
-        """
+        """recode_freq_vector: ignored chars are ignored"""
         freqs = {"A": 0.21, "B": 0.29, "C": 0.05, "D": 0.45, "X": 0.22, "Z": 0.5}
         a_def = [("A", "A"), ("B", "B"), ("C", "C"), ("D", "D"), ("X", "X"), ("Z", "Z")]
         expected = {"A": 0.21, "C": 0.05, "D": 0.45}
@@ -371,8 +364,7 @@ class RecodeMatrixTests(TestCase):
         self.alphabet2_w_ambig = [("D", "DEX"), ("L", "LIB"), ("C", "CZ")]
 
     def test_recode_counts_and_freqs(self):
-        """recode_counts_and_freqs: functions as expected
-        """
+        """recode_counts_and_freqs: functions as expected"""
         alphabet = alphabets["charge_his_3"]
         aa_order = "ACDEFGHIKLMNPQRSTVWY"
         actual = recode_counts_and_freqs(alphabet)
@@ -385,29 +377,25 @@ class RecodeMatrixTests(TestCase):
         self.assertEqual(actual, expected)
 
     def test_recode_count_matrix_2_states(self):
-        """recode_count_matrix: returns correct result with 2-state alphabet 
-        """
+        """recode_count_matrix: returns correct result with 2-state alphabet"""
         actual = recode_count_matrix(self.alphabet1, self.m1, self.aa_order1)
         expected = self.recoded_m1
         self.assertEqual(actual, expected)
 
     def test_recode_count_matrix_3_states(self):
-        """recode_count_matrix: returns correct result with 3-state alphabet 
-        """
+        """recode_count_matrix: returns correct result with 3-state alphabet"""
         actual = recode_count_matrix(self.alphabet2, self.m2, self.aa_order2)
         expected = self.recoded_m2
         self.assertEqual(actual, expected)
 
     def test_recode_count_matrix_3_states_ambig_ignored(self):
-        """recode_count_matrix: correct result w 3-state alphabet w ambig chars 
-        """
+        """recode_count_matrix: correct result w 3-state alphabet w ambig chars"""
         actual = recode_count_matrix(self.alphabet2_w_ambig, self.m2, self.aa_order2)
         expected = self.recoded_m2
         self.assertEqual(actual, expected)
 
     def test_recode_count_matrix_no_change(self):
-        """recode_count_matrix: no changes applied when they shouldn't be 
-        """
+        """recode_count_matrix: no changes applied when they shouldn't be"""
         # recoding recoded matrices
         actual = recode_count_matrix(self.alphabet1, self.recoded_m1, self.aa_order1)
         expected = self.recoded_m1

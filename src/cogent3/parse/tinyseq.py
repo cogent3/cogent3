@@ -32,7 +32,7 @@ def TinyseqParser(doc):
     ----------
     doc
         An xml.dom.minidom.Document, file object of string
-        
+
     Returns
     -------
     name, cogent sequence

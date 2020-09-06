@@ -37,13 +37,13 @@ def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
           best frame on rc, it will be negative
     require_stop
         a terminal stop must be present
-    
+
     Returns
     -------
     int
         1, 2, 3 if the best frame on the +_ strand; -1, -2, -3 if the best
         frame is on the reverse strand
-    
+
     Raises
     ------
     ValueError
@@ -88,8 +88,8 @@ def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
 
 
 def translate_frames(seq, moltype=None, gc=1, allow_rc=False):
-    """translates a nucleic acid sequence 
-    
+    """translates a nucleic acid sequence
+
     Parameters
     ----------
     moltype
@@ -98,7 +98,7 @@ def translate_frames(seq, moltype=None, gc=1, allow_rc=False):
         identifer for a genetic code or a genetic code instance
     allow_rc : bool
         includes frames sequence reverse complement
-        
+
     Returns
     -------
     [(frame, translation), ..]
@@ -118,7 +118,7 @@ def translate_frames(seq, moltype=None, gc=1, allow_rc=False):
 
 def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
     """returns set() of codons that are 4-fold degenerate for genetic code gc
-    
+
     Parameters
     ----------
     gc
@@ -178,7 +178,7 @@ class select_translatable(ComposableSeq):
               best frame on rc, it will be negative
         trim_terminal_stop : bool
             exclude terminal stop codon from seqs
-        
+
         Returns
         -------
         A sequence collection. Sequences that could not be translated

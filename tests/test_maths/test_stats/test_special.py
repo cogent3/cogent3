@@ -207,8 +207,7 @@ class SpecialTests(TestCase):
             # self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
 
     def test_ln_binomial_range(self):
-        """ln_binomial should increase in a monotonically increasing region.
-        """
+        """ln_binomial should increase in a monotonically increasing region."""
         start = 0
         end = 1
         step = 0.1

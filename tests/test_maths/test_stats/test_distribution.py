@@ -649,8 +649,7 @@ class DistributionsTests(TestCase):
             self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
 
     def test_binomial_exact_floats(self):
-        """binomial_exact should be within limits for floating point numbers
-        """
+        """binomial_exact should be within limits for floating point numbers"""
         expected = {
             (18.3, 100, 0.2): (0.09089812, 0.09807429),
             (2.7, 1050, 0.006): (0.03615498, 0.07623827),
