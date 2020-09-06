@@ -116,6 +116,20 @@ def estimate_pval(observed, stat_func, num_reps=1000):
     return num_gt / num_reps
 
 
+def _astype(data, dtype):
+    """returns numpy array of correct type, raises TypeError if fails"""
+    converted = data.astype(dtype)
+    try:
+        assert_allclose(
+            converted.tolist(), data.tolist(),
+        )
+    except AssertionError:
+        msg = f"could not reliably be converted to {dtype} from dtype={data.dtype}"
+        raise TypeError(msg)
+
+    return converted
+
+
 class CategoryCounts:
     """CategoryCounts for performing contingency tests
 
@@ -128,7 +142,8 @@ class CategoryCounts:
         """Parameters
         -------------
         observed
-            a DictArray instance, or something that can be converted to one
+            a DictArray instance, or something that can be converted to one.
+            Values must be integers.
         expected
             provide in the case where you know the prior proportions, otherwise
             calculated from marginal frequencies
@@ -136,11 +151,15 @@ class CategoryCounts:
         if not isinstance(observed, DictArray):
             observed = DictArray(observed)
 
+        # make sure values are int
+        observed.array = _astype(observed.array, int)
+
         if observed.array.sum() == 0:
             raise ValueError("at least one value must be > 0")
 
         if expected:
             expected = observed.template.wrap(expected)
+            expected.array = _astype(expected.array, float)
 
         if observed.array.min() < 0 or (expected and expected.array.min() < 0):
             raise ValueError("negative values encountered")
