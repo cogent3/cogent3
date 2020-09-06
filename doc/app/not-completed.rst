@@ -22,7 +22,6 @@ An app can return a ``NotCompleted`` result for one of 2 reasons. The object con
 The results when a condition was not met. For example, below I create an app that will return alignments that with 2 specific sequences but I'm including one that does not exist ("Mouse"). So this will fail.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app import io, sample
 
@@ -33,7 +32,6 @@ The results when a condition was not met. For example, below I create an app tha
     result
 
 .. jupyter-execute::
-    :linenos:
 
     result == False
     result.type
@@ -45,7 +43,6 @@ The results when a condition was not met. For example, below I create an app tha
 An ``ERROR`` type is returned if an exception is raised during the calculation. We trigger it in this case by trying to open a non-existent file.
 
 .. jupyter-execute::
-    :linenos:
     :raises:
 
     result = reader("primate_brca1.fasta")
@@ -55,7 +52,6 @@ Composed functions propagate ``NotCompleted`` results
 =====================================================
 
 .. jupyter-execute::
-    :linenos:
 
     process = reader + select_seqs
     result = process("data/primate_brca1.fasta")
@@ -64,7 +60,6 @@ Composed functions propagate ``NotCompleted`` results
 and
 
 .. jupyter-execute::
-    :linenos:
     :raises:
 
     result = process("primate_brca1.fasta")

@@ -14,7 +14,6 @@ You have a function that you want to maximise/minimise. The parameters in your f
 We write a simple factory function that uses a provided value for omega to compute the squared deviation from an estimate, then use it to create our optimisable function.
 
 .. jupyter-execute::
-    :linenos:
 
     import numpy
 
@@ -31,7 +30,6 @@ We write a simple factory function that uses a provided value for omega to compu
 We then import the minimise function and use it to minimise the function, obtaining the fit statistic and the associated estimate of S. Note that we provide lower and upper bounds (which are optional) and an initial guess for our parameter of interest (``S``).
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.maths.optimisers import minimise, maximise
 
@@ -58,7 +56,6 @@ Force a variable to be iterable
 This support method will force a variable to be an iterable, allowing you to guarantee that the variable will be safe for use in, say, a ``for`` loop.
 
 .. jupyter-execute::
-    :linenos:
     :raises: TypeError
 
     from cogent3.util.misc import iterable
@@ -76,7 +73,6 @@ Curry a function
 curry(f,x)(y) = f(x,y) or = lambda y: f(x,y). This was modified from the Python Cookbook. Docstrings are also carried over.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import curry
 
@@ -94,7 +90,6 @@ Test to see if an object is iterable
 Perform a simple test to see if an object supports iteration
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import is_iterable
 
@@ -103,7 +98,6 @@ Perform a simple test to see if an object supports iteration
     is_iterable(can_iter)
 
 .. jupyter-execute::
-    :linenos:
 
     is_iterable(cannot_iter)
 
@@ -113,7 +107,6 @@ Test to see if an object is a single char
 Perform a simple test to see if an object is a single character
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import is_char
 
@@ -123,12 +116,10 @@ Perform a simple test to see if an object is a single character
     is_char("a")
 
 .. jupyter-execute::
-    :linenos:
 
     is_char("ab")
 
 .. jupyter-execute::
-    :linenos:
 
     is_char(foo())
 
@@ -138,14 +129,12 @@ Flatten a deeply nested iterable
 To flatten a deeply nested iterable, use ``recursive_flatten``. This method supports multiple levels of nesting, and multiple iterable types
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import recursive_flatten
 
     l = [[[[1, 2], "abcde"], [5, 6]], [7, 8], [9, 10]]
 
 .. jupyter-execute::
-    :linenos:
 
     recursive_flatten(l)
 
@@ -155,19 +144,16 @@ Test to determine if ``list`` of ``tuple``
 Perform a simple check to see if an object is not a list or a tuple
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import not_list_tuple
 
     not_list_tuple(1)
 
 .. jupyter-execute::
-    :linenos:
 
     not_list_tuple([1])
 
 .. jupyter-execute::
-    :linenos:
 
     not_list_tuple("ab")
 
@@ -177,7 +163,6 @@ Create a case-insensitive iterable
 Create a case-insensitive object, for instance, if you want the key 'a' and 'A' to point to the same item in a dict
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import add_lowercase
 
@@ -190,7 +175,6 @@ Construct a distance matrix lookup function
 Automatically construct a distance matrix lookup function. This is useful for maintaining flexibility about whether a function is being computed or if a lookup is being used
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import DistanceFromMatrix
     from numpy import array
@@ -200,7 +184,6 @@ Automatically construct a distance matrix lookup function. This is useful for ma
     f(0, 0)
 
 .. jupyter-execute::
-    :linenos:
 
     f(1, 2)
 
@@ -210,7 +193,6 @@ Check class types
 Check an object against base classes or derived classes to see if it is acceptable
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import ClassChecker
 
@@ -232,27 +214,22 @@ Check an object against base classes or derived classes to see if it is acceptab
     o in cc
 
 .. jupyter-execute::
-    :linenos:
 
     no in cc
 
 .. jupyter-execute::
-    :linenos:
 
     5 in cc
 
 .. jupyter-execute::
-    :linenos:
 
     {"a": 5} in cc
 
 .. jupyter-execute::
-    :linenos:
 
     "asasas" in cc
 
 .. jupyter-execute::
-    :linenos:
 
     md in cc
 
@@ -262,7 +239,6 @@ Delegate to a separate object
 Delegate object method calls, properties and variables to the appropriate object. Useful to combine multiple objects together while assuring that the calls will go to the correct object.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import Delegator
 
@@ -276,17 +252,14 @@ Delegate object method calls, properties and variables to the appropriate object
     len(ls)
 
 .. jupyter-execute::
-    :linenos:
 
     ls[0]
 
 .. jupyter-execute::
-    :linenos:
 
     ls.upper()
 
 .. jupyter-execute::
-    :linenos:
 
     ls.split("_")
 
@@ -296,7 +269,6 @@ Wrap a function to hide from a class
 Wrap a function to hide it from a class so that it isn't a method.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import FunctionWrapper
 
@@ -304,7 +276,6 @@ Wrap a function to hide it from a class so that it isn't a method.
     f
 
 .. jupyter-execute::
-    :linenos:
 
     f(123)
 
@@ -316,7 +287,6 @@ Wrap a container with a constraint. This is useful for enforcing that the data c
 Here is a light example of the ``ConstrainedDict``
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import ConstrainedDict
 
@@ -324,7 +294,6 @@ Here is a light example of the ``ConstrainedDict``
     d
 
 .. jupyter-execute::
-    :linenos:
     :raises: ConstraintError
 
     d["d"] = 5

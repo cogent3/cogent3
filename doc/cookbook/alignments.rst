@@ -26,7 +26,6 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs, make_unaligned_seqs
 
@@ -40,7 +39,6 @@ Constructing a ``ArrayAlignment`` using ``make_aligned_seqs``
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -53,7 +51,6 @@ Converting a ``SequenceCollection`` to FASTA format
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_unaligned_seqs
 
@@ -71,7 +68,6 @@ Appending the sequences
 ``add_seqs`` without additional parameters will append the sequences to the end of the collection/alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -94,7 +90,6 @@ Inserting the sequences
 Sequences can be inserted into an alignment at the specified position using either the ``before_name`` or ``after_name`` arguments.
 
 .. jupyter-execute::
-    :linenos:
 
     new_aln = aln.add_seqs(new_seqs, before_name="seq2")
     print(new_aln)
@@ -107,7 +102,6 @@ Inserting sequence(s) based on their alignment to a reference sequence
 Already aligned sequences can be added to an existing ``Alignment`` object and aligned at the same time using the ``add_from_ref_aln`` method. The alignment is performed based on their alignment to a reference sequence (which must be present in both alignments). The method assumes the first sequence in ``ref_aln.names[0]`` is the reference.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -130,7 +124,6 @@ Removing all columns with gaps in a named sequence
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -150,7 +143,6 @@ Accessing individual sequences from a collection or alignment by name
 Using the ``get_seq`` method allows for extracting an unaligned sequence from a collection or alignment by name.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -167,7 +159,6 @@ Using the ``get_seq`` method allows for extracting an unaligned sequence from a 
 Alternatively, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use ``get_gapped_seq``.
 
 .. jupyter-execute::
-    :linenos:
 
     seq = aln.get_gapped_seq("seq1")
     seq.is_gapped()
@@ -176,7 +167,6 @@ Alternatively, if you want to extract the aligned (i.e., gapped) sequence from a
 To see the names of the sequences in a sequence collection, you can use either the ``Names`` attribute or ``get_seq_names`` method.
 
 .. jupyter-execute::
-    :linenos:
 
     aln.names
     aln.names
@@ -187,7 +177,6 @@ Slice the sequences from an alignment like a list
 The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object as a dictionary, obtaining the individual sequences using the titles as "keys" (above).  However, one can also iterate through the collection like a list.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_unaligned_seqs, load_aligned_seqs
 
@@ -205,7 +194,6 @@ Getting a subset of sequences from the alignment
 """"""""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -217,7 +205,6 @@ Getting a subset of sequences from the alignment
 Note, if you set ``array_align=False``, then the subset contain references to the original sequences, not copies.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -233,7 +220,6 @@ Creating an ``Alignment`` object from a ``SequenceCollection``
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_unaligned_seqs
     from cogent3.core.alignment import Alignment
@@ -250,7 +236,6 @@ Convert alignment to DNA, RNA or PROTEIN moltypes
 This is useful if you've loaded a sequence alignment without specifying the moltype and later need to convert it.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -262,7 +247,6 @@ This is useful if you've loaded a sequence alignment without specifying the molt
 To RNA
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -274,7 +258,6 @@ To RNA
 To PROTEIN
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -292,7 +275,6 @@ Remove all gaps from an alignment in FASTA format
 This necessarily returns a ``SequenceCollection``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -308,7 +290,6 @@ Writing sequences to file
 Both collection and alignment objects have a ``write`` method. The output format is inferred from the filename suffix,
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -319,14 +300,12 @@ Both collection and alignment objects have a ``write`` method. The output format
 or by the ``format`` argument.
 
 .. jupyter-execute::
-    :linenos:
 
     aln.write("sample", format="fasta")
 
 .. now clean the files up
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.misc import remove_files
 
@@ -336,7 +315,6 @@ Converting an alignment to FASTA format
 """""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
     from cogent3.core.alignment import Alignment
@@ -349,7 +327,6 @@ Converting an alignment into Phylip format
 """"""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
     from cogent3.core.alignment import Alignment
@@ -363,7 +340,6 @@ Converting an alignment to a list of strings
 """"""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
     from cogent3.core.alignment import Alignment
@@ -381,7 +357,6 @@ By rows (sequences)
 An ``Alignment`` can be sliced
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -392,7 +367,6 @@ An ``Alignment`` can be sliced
 but a ``SequenceCollection`` cannot be sliced
 
 .. jupyter-execute::
-    :linenos:
     :raises: TypeError
 
     from cogent3 import load_unaligned_seqs
@@ -405,7 +379,6 @@ Getting a single column from an alignment
 """""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -416,7 +389,6 @@ Getting a region of contiguous columns
 """"""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -427,7 +399,6 @@ Iterating over alignment positions
 """"""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -442,7 +413,6 @@ Getting codon 3rd positions from ``Alignment``
 We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -462,7 +432,6 @@ Getting codon 3rd positions from ``ArrayAlignment``
 We can use more conventional slice notation in this instance. Note, because Python counts from 0, the 3rd position starts at index 2.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -483,7 +452,6 @@ Trim terminal stop codons
 For evolutionary analyses that use codon models we need to exclude terminating stop codons. For the case where the sequences are all of length divisible by 3.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -497,7 +465,6 @@ For evolutionary analyses that use codon models we need to exclude terminating s
 If the alignment contains sequences not divisible by 3, use the ``allow_partial`` argument.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         data={
@@ -516,7 +483,6 @@ Eliminating columns with non-nucleotide characters
 We sometimes want to eliminate ambiguous or gap data from our alignments. We show how to exclude alignment columns by the characters they contain. In the first instance we do this just for single nucleotide columns, then for trinucleotides (equivalent for handling codons). Both are done using the ``no_degenerates`` method.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -532,7 +498,6 @@ We sometimes want to eliminate ambiguous or gap data from our alignments. We sho
 We apply to nucleotides,
 
 .. jupyter-execute::
-    :linenos:
 
     nucs = aln.no_degenerates()
     print(nucs)
@@ -540,7 +505,6 @@ We apply to nucleotides,
 Applying the same filter to trinucleotides (specified by setting ``motif_length=3``).
 
 .. jupyter-execute::
-    :linenos:
 
     trinucs = aln.no_degenerates(motif_length=3)
     print(trinucs)
@@ -549,7 +513,6 @@ Getting all variable positions from an alignment
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -562,7 +525,6 @@ Getting all constant positions from an alignment
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -577,7 +539,6 @@ Getting all variable codons from an alignment
 This is done using the ``filtered`` method using the ``motif_length`` argument. We demonstrate this first for the ``ArrayAlignment``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -590,7 +551,6 @@ This is done using the ``filtered`` method using the ``motif_length`` argument. 
 Then for the standard ``Alignment`` by first converting the ``ArrayAlignment``.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = aln.to_type(array_align=False)
     variable_codons = aln.filtered(lambda x: len(set("".join(x))) > 1, motif_length=3)
@@ -605,7 +565,6 @@ Extracting sequences by sequence identifier into a new alignment object
 You can use ``take_seqs`` to extract some sequences by sequence identifier from an alignment to a new alignment object:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -615,7 +574,6 @@ You can use ``take_seqs`` to extract some sequences by sequence identifier from 
 Alternatively, you can extract only the sequences which are not specified by passing ``negate=True``:
 
 .. jupyter-execute::
-    :linenos:
 
     aln.take_seqs(["Human", "Mouse"], negate=True)
 
@@ -625,7 +583,6 @@ Extracting sequences using an arbitrary function into a new alignment object
 You can use ``take_seqs_if`` to extract sequences into a new alignment object based on whether an arbitrary function applied to the sequence evaluates to True. For example, to extract sequences which don't contain any N bases you could do the following:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -646,7 +603,6 @@ You can use ``take_seqs_if`` to extract sequences into a new alignment object ba
 You can additionally get the sequences where the provided function evaluates to False:
 
 .. jupyter-execute::
-    :linenos:
 
     aln.take_seqs_if(no_N_chars, negate=True)
 
@@ -659,7 +615,6 @@ Getting motif counts
 We state the motif length we want and whether to allow gap or ambiguous characters. The latter only has meaning for IPUAC character sets (the DNA, RNA or PROTEIN moltypes). We illustrate this for the DNA moltype with motif lengths of 1 and 3.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -688,7 +643,6 @@ Computing motif probabilities from an alignment
 The method ``get_motif_probs`` of ``Alignment`` objects returns the probabilities for all motifs of a given length. For individual nucleotides:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -699,7 +653,6 @@ The method ``get_motif_probs`` of ``Alignment`` objects returns the probabilitie
 For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropriate word length. Here is an example with trinucleotides:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs, DNA
 
@@ -714,7 +667,6 @@ The same holds for other arbitrary alphabets, as long as they match the alignmen
 Some calculations in ``cogent3`` require all non-zero values in the motif probabilities, in which case we use a pseudo-count. We illustrate that here with a simple example where T is missing. Without the pseudo-count, the frequency of T is 0.0, with the pseudo-count defined as 1e-6 then the frequency of T will be slightly less than 1e-6.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(data=[("a", "AACAAC"), ("b", "AAGAAG")], moltype="dna")
     motif_probs = aln.get_motif_probs()
@@ -727,7 +679,6 @@ It is important to notice that motif probabilities are computed by treating sequ
 We then create a dinucleotide ``Alphabet`` object and use this to get dinucleotide probabilities. These frequencies are determined by breaking each aligned sequence up into non-overlapping dinucleotides and then doing a count. The expected value for the 'AA' dinucleotide in this case will be 2/8 = 0.25.
 
 .. jupyter-execute::
-    :linenos:
 
     seqs = [("a", "AACGTAAG"), ("b", "AACGTAAG")]
     aln = make_aligned_seqs(data=seqs, moltype="dna")
@@ -738,7 +689,6 @@ We then create a dinucleotide ``Alphabet`` object and use this to get dinucleoti
 What about counting the total incidence of dinucleotides including those not in-frame?  A naive application of the Python string object's count method will not work as desired either because it "returns the number of non-overlapping occurrences".
 
 .. jupyter-execute::
-    :linenos:
 
     seqs = [("my_seq", "AAAGTAAG")]
     aln = make_aligned_seqs(data=seqs, moltype="dna")
@@ -750,7 +700,6 @@ What about counting the total incidence of dinucleotides including those not in-
 To count all occurrences of a given dinucleotide in a DNA sequence, one could use a standard Python approach such as list comprehension:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq
 
@@ -766,7 +715,6 @@ Filtering extracted columns for the gap character
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -781,7 +729,6 @@ Calculating the gap fraction
 ++++++++++++++++++++++++++++
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -797,7 +744,6 @@ Extracting maps of aligned to unaligned positions (i.e., gap maps)
 It's often important to know how an alignment position relates to a position in one or more of the sequences in the alignment. The ``gap_maps`` method of the individual sequences is useful for this. To get a map of sequence to alignment positions for a specific sequence in your alignment, do the following:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -814,7 +760,6 @@ It's often important to know how an alignment position relates to a position in 
 It's now possible to look up positions in the ``seq1``, and find out what they map to in the alignment:
 
 .. jupyter-execute::
-    :linenos:
 
     seq_to_aln_map[3]
     seq_to_aln_map[8]
@@ -824,7 +769,6 @@ This tells us that in position 3 in ``seq1`` corresponds to position 3 in ``aln`
 Notice that we grabbed the first result from the call to ``gap_maps``. This is the sequence position to alignment position map. The second value returned is the alignment position to sequence position map, so if you want to find out what sequence positions the alignment positions correspond to (opposed to what alignment positions the sequence positions correspond to) for a given sequence, you would take the following steps:
 
 .. jupyter-execute::
-    :linenos:
 
     aln_to_seq_map = aln.get_gapped_seq("seq1").gap_maps()[1]
     aln_to_seq_map[3]
@@ -833,7 +777,6 @@ Notice that we grabbed the first result from the call to ``gap_maps``. This is t
 If an alignment position is a gap, and therefore has no corresponding sequence position, you'll get a ``KeyError``.
 
 .. jupyter-execute::
-    :linenos:
     :raises: KeyError
 
     seq_pos = aln_to_seq_map[7]
@@ -848,7 +791,6 @@ Filtering alignments based on gaps
 The ``omit_gap_runs`` method can be applied to remove long stretches of gaps in an alignment. In the following example, we remove sequences that have more than two adjacent gaps anywhere in the aligned sequence.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         data=[
@@ -863,7 +805,6 @@ The ``omit_gap_runs`` method can be applied to remove long stretches of gaps in 
 If instead, we just wanted to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, we could use the ``omit_gap_pos`` function. For example:
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         data=[
@@ -878,7 +819,6 @@ If instead, we just wanted to remove positions from the alignment which are gaps
 If you wanted to remove sequences which contain more than a certain percent gap characters, you could use the ``omit_gap_seqs`` method. This is commonly applied to filter partial sequences from an alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         data=[
@@ -894,6 +834,5 @@ If you wanted to remove sequences which contain more than a certain percent gap 
 Note that following this call to ``omit_gap_seqs``, the 4th column of ``filtered_aln`` is 100% gaps. This is generally not desirable, so a call to ``omit_gap_seqs`` is frequently followed with a call to ``omit_gap_pos`` with no parameters -- this defaults to removing positions which are all gaps:
 
 .. jupyter-execute::
-    :linenos:
 
     print(filtered_aln.omit_gap_pos())

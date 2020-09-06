@@ -2,7 +2,6 @@ Translate DNA sequences
 -----------------------
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import get_code
 
@@ -15,7 +14,6 @@ Translate all six frames
 ------------------------
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq, get_code
 
@@ -28,7 +26,6 @@ Find out how many stops in a frame
 ----------------------------------
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq, get_code
 
@@ -43,7 +40,6 @@ Translate a codon
 -----------------
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq, get_code
 
@@ -53,7 +49,6 @@ Translate a codon
 or get the codons for a single amino acid
 
 .. jupyter-execute::
-    :linenos:
 
     standard_code["A"]
 
@@ -61,7 +56,6 @@ Look up the amino acid corresponding to a single codon
 ------------------------------------------------------
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import get_code
 
@@ -72,7 +66,6 @@ Get all the codons for one amino acid
 -------------------------------------
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import get_code
 
@@ -83,7 +76,6 @@ Get all the codons for a group of amino acids
 ---------------------------------------------
 
 .. jupyter-execute::
-    :linenos:
 
     targets = ["A", "C"]
     codons = [standard_code[aa] for aa in targets]
@@ -95,7 +87,6 @@ Converting the ``CodonAlphabet`` to codon series
 ------------------------------------------------
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq
 
@@ -109,7 +100,6 @@ Obtaining the codons from a ``DnaSequence`` object
 Use the method ``get_in_motif_size``
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq
 
@@ -123,7 +113,6 @@ Translating a DNA sequence with a terminating stop codon
 You can't translate a sequence that contains a stop codon.
 
 .. jupyter-execute::
-    :linenos:
     :raises: AlphabetError
 
     pep = my_seq.get_translation()
@@ -132,7 +121,6 @@ By removing the trailing stop codon first
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq
 
@@ -146,7 +134,6 @@ By slicing the ``DnaSequence`` first
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_seq
 

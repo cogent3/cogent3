@@ -23,7 +23,6 @@ A simple example
 We make a very simple function ``first4``, that returns the first 4 elements of an alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     def first4(val):
         return val[:4]
@@ -31,7 +30,6 @@ We make a very simple function ``first4``, that returns the first 4 elements of 
 Now we define a ``user_function`` instance that takes and returns an ``ALIGNED_TYPE``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app.composable import user_function, ALIGNED_TYPE
 
@@ -45,14 +43,12 @@ Now we define a ``user_function`` instance that takes and returns an ``ALIGNED_T
 The ``repr()`` of your ``user_function`` instance indicates the wrapped function and the module it's in.
 
 .. jupyter-execute::
-    :linenos:
 
     just4
 
 You use it like all composable apps which we demonstrate using a small sample alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -70,7 +66,6 @@ This time we wrap a method call on a ``SequenceCollection`` (and the alignment s
 .. note:: The ``SERIALISABLE_TYPE`` indicates the data has the ability to be converted to ``json``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app.composable import (
         user_function,
@@ -98,7 +93,6 @@ A user function for with a different output type
 In this example, we make an function that returns ``DistanceMatrix`` of an alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app.composable import (
         user_function,

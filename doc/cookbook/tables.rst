@@ -19,7 +19,6 @@ Adding a new column
 ===================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -34,7 +33,6 @@ Add a title and a legend to a table
 This can be done when you create the table.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -45,7 +43,6 @@ This can be done when you create the table.
 It can be done by directly assigning to the corresponding attributes.
 
 .. jupyter-execute::
-    :linenos:
 
     data = dict(a=[0, 3], b=["a", "c"])
     table = make_table(data=data)
@@ -58,7 +55,6 @@ Iterating over table rows
 ``Table`` is a row oriented object. Iterating on the table returns each row as a new ``Table`` instance.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -70,7 +66,6 @@ Iterating over table rows
 The resulting rows can be indexed using their column names.
 
 .. jupyter-execute::
-    :linenos:
 
     for row in table:
         print(row["Locus"])
@@ -81,7 +76,6 @@ How many rows are there?
 The ``Table.shape`` attribute is like that of a ``numpy`` ``array``. The first element (``Table.shape[0]``) is the number of rows.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -95,7 +89,6 @@ How many columns are there?
 ``Table.shape[1]`` is the number of columns. Using the table from above.
 
 .. jupyter-execute::
-    :linenos:
 
     table.shape[1] == 2
 
@@ -105,7 +98,6 @@ Iterating over table columns
 The ``Table.columns`` attribute is a ``Columns`` instance, an object with ``dict`` attributes.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -113,14 +105,12 @@ The ``Table.columns`` attribute is a ``Columns`` instance, an object with ``dict
     table.columns
 
 .. jupyter-execute::
-    :linenos:
 
     table.columns["Region"]
 
 So iteration is the same as for dicts.
 
 .. jupyter-execute::
-    :linenos:
 
     for name in table.columns:
         print(name)
@@ -129,7 +119,6 @@ Table slicing using column names
 ================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table
@@ -137,7 +126,6 @@ Table slicing using column names
 Slice using the column name.
 
 .. jupyter-execute::
-    :linenos:
 
     table[:2, "Region":]
 
@@ -145,7 +133,6 @@ Table slicing using indices
 ===========================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table[:2, :1]
@@ -156,7 +143,6 @@ Changing displayed numerical precision
 We change the ``Ratio`` column to using scientific notation.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -170,7 +156,6 @@ Change digits or column spacing
 This can be done on table loading,
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv", digits=1, space=2)
     table
@@ -178,7 +163,6 @@ This can be done on table loading,
 or, for spacing at least, by modifying the attributes
 
 .. jupyter-execute::
-    :linenos:
 
     table.space = "    "
     table
@@ -189,7 +173,6 @@ Wrapping tables for display
 Wrapping generates neat looking tables whether or not you index the table rows. We demonstrate here
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -199,7 +182,6 @@ Wrapping generates neat looking tables whether or not you index the table rows. 
     wrap_table
 
 .. jupyter-execute::
-    :linenos:
 
     wrap_table = make_table(header=h, data=rows, max_width=30, index="name")
     wrap_table
@@ -208,7 +190,6 @@ Display the top of a table using ``head()``
 ===========================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = make_table(data=dict(a=list(range(10)), b=list(range(10))))
     table.head()
@@ -216,7 +197,6 @@ Display the top of a table using ``head()``
 You change how many rows are displayed.
 
 .. jupyter-execute::
-    :linenos:
 
     table.head(2)
 
@@ -232,7 +212,6 @@ Display the bottom of a table using ``tail()``
 You change how many rows are displayed.
 
 .. jupyter-execute::
-    :linenos:
 
     table.tail(1)
 
@@ -240,7 +219,6 @@ Display random rows from a table
 ================================
 
 .. jupyter-execute::
-    :linenos:
 
     table.set_repr_policy(random=3)
     table
@@ -249,7 +227,6 @@ Change the number of rows displayed by ``repr()``
 =================================================
 
 .. jupyter-execute::
-    :linenos:
 
     table.set_repr_policy(head=2, tail=3)
     table
@@ -262,7 +239,6 @@ Changing column headings
 The table ``header`` is immutable. Changing column headings is done as follows.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     print(table.header)
@@ -273,7 +249,6 @@ Adding a new column
 ===================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -281,7 +256,6 @@ Adding a new column
     table
 
 .. jupyter-execute::
-    :linenos:
 
     table.columns["a"] = [1, 3, 5]
     table.columns["b"] = [2, 4, 6]
@@ -293,7 +267,6 @@ Create a new column from existing ones
 This can be used to take a single, or multiple columns and generate a new column of values. Here we'll take 2 columns and return True/False based on a condition.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table = table.with_new_column(
@@ -307,7 +280,6 @@ Get table data as a numpy array
 ===============================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table.array
@@ -318,7 +290,6 @@ Get a table column as a list
 Via the ``Table.tolist()`` method.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     locus = table.tolist("Locus")
@@ -327,7 +298,6 @@ Via the ``Table.tolist()`` method.
 Or directly from the column array object.
 
 .. jupyter-execute::
-    :linenos:
 
     table.columns["Locus"].tolist()
 
@@ -337,7 +307,6 @@ Get multiple table columns as a list
 This returns a row oriented list.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     rows = table.tolist(["Region", "Locus"])
@@ -351,7 +320,6 @@ Get the table as a row oriented ``dict``
 Keys in the resulting dict are the row indices, the value is a dict of column name, value pairs.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table.to_dict()
@@ -362,7 +330,6 @@ Get the table as a column oriented ``dict``
 Keys in the resulting dict are the column names, the value is a list.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table.columns.to_dict()
@@ -371,7 +338,6 @@ Get the table as a ``pandas.DataFrame``
 =======================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     df = table.to_dataframe()
@@ -380,7 +346,6 @@ Get the table as a ``pandas.DataFrame``
 You can also specify column(s) are categories
 
 .. jupyter-execute::
-    :linenos:
 
     df = table.to_dataframe(categories="Region")
 
@@ -390,19 +355,16 @@ Get a table of counts as a contingency table
 If our table consists of counts data, the ``Table`` can convert it into a ``CategoryCount`` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the ``index`` argument.
 
 .. jupyter-execute::
-    :linenos:
 
     table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}, index="")
     table
 
 .. jupyter-execute::
-    :linenos:
 
     contingency = table.to_contingency(["Ts", "Tv"])
     contingency
 
 .. jupyter-execute::
-    :linenos:
 
     g_test = contingency.G_independence()
     g_test
@@ -415,7 +377,6 @@ Appending tables
 Can be done without specifying a new column (set the first argument to ``appended`` to be ``None``). Here we simply use the same table data.
 
 .. jupyter-execute::
-    :linenos:
 
     table1 = load_table("data/stats.tsv")
     table2 = load_table("data/stats.tsv")
@@ -425,7 +386,6 @@ Can be done without specifying a new column (set the first argument to ``appende
 Specifying with a new column. In this case, the value of the ``table.title`` becomes the value for the new column.
 
 .. jupyter-execute::
-    :linenos:
 
     table1.title = "Data1"
     table2.title = "Data2"
@@ -438,7 +398,6 @@ Summing a single column
 =======================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table.summed("Ratio")
@@ -446,7 +405,6 @@ Summing a single column
 Because each column is just a ``numpy.ndarray``, this also can be done directly via the array methods.
 
 .. jupyter-execute::
-    :linenos:
 
     table.columns["Ratio"].sum()
 
@@ -456,7 +414,6 @@ Summing multiple columns or rows - strictly numerical data
 We define a strictly numerical table,
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -468,14 +425,12 @@ We define a strictly numerical table,
 and sum all columns (default condition)
 
 .. jupyter-execute::
-    :linenos:
 
     all_numeric.summed()
 
 and all rows
 
 .. jupyter-execute::
-    :linenos:
 
     all_numeric.summed(col_sum=False)
 
@@ -485,7 +440,6 @@ Summing multiple columns or rows with mixed non-numeric/numeric data
 We define a table with mixed data, like a distance matrix.
 
 .. jupyter-execute::
-    :linenos:
 
     mixed = make_table(
         header=["A", "B", "C"], data=[["*", 1, 2], [3, "*", 5], [6, 7, "*"]]
@@ -495,14 +449,12 @@ We define a table with mixed data, like a distance matrix.
 and sum all columns (default condition), ignoring non-numerical data
 
 .. jupyter-execute::
-    :linenos:
 
     mixed.summed(strict=False)
 
 and all rows
 
 .. jupyter-execute::
-    :linenos:
 
     mixed.summed(col_sum=False, strict=False)
 
@@ -512,7 +464,6 @@ Filtering table rows
 We can do this by providing a reference to an external function
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     sub_table = table.filtered(lambda x: x < 10.0, columns="Ratio")
@@ -521,7 +472,6 @@ We can do this by providing a reference to an external function
 or using valid python syntax within a string, which is executed
 
 .. jupyter-execute::
-    :linenos:
 
     sub_table = table.filtered("Ratio < 10.0")
     sub_table
@@ -529,7 +479,6 @@ or using valid python syntax within a string, which is executed
 You can also filter for values in multiple columns
 
 .. jupyter-execute::
-    :linenos:
 
     sub_table = table.filtered("Ratio < 10.0 and Region == 'NonCon'")
     sub_table
@@ -540,7 +489,6 @@ Filtering table columns
 We select only columns that have a sum > 20 from the ``all_numeric`` table constructed above.
 
 .. jupyter-execute::
-    :linenos:
 
     big_numeric = all_numeric.filtered_by_column(lambda x: sum(x) > 20)
     big_numeric
@@ -549,7 +497,6 @@ Standard sorting
 ================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table.sorted(columns="Ratio")
@@ -558,7 +505,6 @@ Reverse sorting
 ===============
 
 .. jupyter-execute::
-    :linenos:
 
     table.sorted(columns="Ratio", reverse="Ratio")
 
@@ -566,7 +512,6 @@ Sorting involving multiple columns, one reversed
 ================================================
 
 .. jupyter-execute::
-    :linenos:
 
     table.sorted(columns=["Region", "Ratio"], reverse="Ratio")
 
@@ -574,7 +519,6 @@ Getting raw data for a single column
 ====================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     raw = table.tolist("Region")
@@ -584,7 +528,6 @@ Getting raw data for multiple columns
 =====================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     raw = table.tolist(["Locus", "Region"])
@@ -594,7 +537,6 @@ Getting distinct values
 =======================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     assert table.distinct_values("Region") == set(["NonCon", "Con"])
@@ -603,7 +545,6 @@ Counting occurrences of values
 ==============================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     assert table.count("Region == 'NonCon' and Ratio > 1") == 1
@@ -614,7 +555,6 @@ Counting unique values
 This returns a ``CategoryCounter``, a dict like class.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -625,20 +565,17 @@ This returns a ``CategoryCounter``, a dict like class.
     type(unique)
 
 .. jupyter-execute::
-    :linenos:
 
     unique
 
 For multiple columns.
 
 .. jupyter-execute::
-    :linenos:
 
     unique = table.count_unique(["A", "B"])
     unique
 
 .. jupyter-execute::
-    :linenos:
 
     r = unique.to_table()
     r
@@ -649,7 +586,6 @@ Joining or merging tables
 We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus``.
 
 .. jupyter-execute::
-    :linenos:
 
     rows = [
         ["NP_004893", True],
@@ -670,7 +606,6 @@ Transpose a table
 =================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -687,7 +622,6 @@ Transpose a table
 We require a new column heading for the current header data. We also need to specify which existing column will become the header.
 
 .. jupyter-execute::
-    :linenos:
 
     tp = table.transposed(new_column_name="sample", select_as_header="#OTU ID")
     tp
@@ -698,7 +632,6 @@ Specify markdown as the ``str()`` format
 Using the method provides finer control over formatting.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -711,7 +644,6 @@ Specify latex as the ``str()`` format
 Using the method provides finer control over formatting.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -724,7 +656,6 @@ Get a table as a markdown formatted string
 We use the ``justify`` argument to indicate the column justification.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     print(table.to_markdown(justify="ccr"))
@@ -733,7 +664,6 @@ Get a table as a latex formatted string
 =======================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table(
         "data/stats.tsv", title="Some stats.", legend="Derived from something."
@@ -744,7 +674,6 @@ Get a table as a restructured text csv-table
 ============================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table(
         "data/stats.tsv", title="Some stats.", legend="Derived from something."
@@ -755,7 +684,6 @@ Get a table as a restructured text grid table
 =============================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table(
         "data/stats.tsv", title="Some stats.", legend="Derived from something."
@@ -768,7 +696,6 @@ Getting a latex format table with ``to_string()``
 It is also possible to specify column alignment, table caption and other arguments.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     print(table.to_string(format="latex"))
@@ -818,14 +745,12 @@ This format allows display of annotation tracks on genome browsers. A small samp
     bgraph = make_table(header=["chrom", "start", "end", "value"], rows=rows)
 
 .. jupyter-execute::
-    :linenos:
 
     bgraph.head()
 
 Then converted.
 
 .. jupyter-execute::
-    :linenos:
 
     print(
         bgraph.to_string(
@@ -841,7 +766,6 @@ Getting a table as html
 =======================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -851,7 +775,6 @@ Getting a table as html
 We can provide customised formatting via a callback function.
 
 .. jupyter-execute::
-    :linenos:
 
     def format_cell(value, row_num, col_num):
         style = 'style="background: rgba(176, 245, 102, 0.25);"' if value else ""
@@ -870,7 +793,6 @@ Which produces the following...
 We could also use control html element format.
 
 .. jupyter-execute::
-    :linenos:
 
     element_format = dict(thead=f'<thead style="background: rgba(0, 250, 0, 0.1);">')
     rich_html = table.to_rich_html(element_formatters=element_format)
@@ -888,7 +810,6 @@ What formats can be written?
 Appending any of the following to a filename will cause that format to be used for writing.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.format.table import known_formats
 
@@ -898,7 +819,6 @@ Writing a latex formmated file
 ==============================
 
 .. jupyter-execute::
-    :linenos:
 
     table.write("stats_tab.tex", justify="ccr", label="tab:table1")
 
@@ -908,7 +828,6 @@ Writing delimited formats
 The delimiter can be specified explicitly using the ``sep`` argument or implicitly via the file name suffix.
 
 .. jupyter-execute::
-    :linenos:
 
     table = load_table("data/stats.tsv")
     table.write("stats_tab.txt", sep="\t")
