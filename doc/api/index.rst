@@ -82,5 +82,8 @@ The Major cogent3 Data Types
 
     alignment/alignment
     sequence/sequence
+    genetic_code/genetic_code
+    moltype/moltype
+    alphabet/alphabet
     table/table
     tree/tree
