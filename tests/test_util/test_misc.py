@@ -11,7 +11,6 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
 from tempfile import TemporaryDirectory
-from zipfile import ZipFile
 
 from numpy.testing import assert_allclose
 
@@ -47,7 +46,7 @@ from cogent3.util.misc import (
     iterable,
     list_flatten,
     not_list_tuple,
-    open_zipped_file,
+    open_,
     path_exists,
     recursive_flatten,
     remove_files,
@@ -543,16 +542,19 @@ class UtilsTests(TestCase):
 
     def test_open_zipped_file(self):
         with TemporaryDirectory(dir=".") as dirname:
-            filename = os.path.join(dirname, "foo.txt")
-            file = os.path.join(dirname, "foo.zip")
-            with open(filename, "w") as f:
+            zipped = os.path.join(dirname, "foo.txt")
+            filename = os.path.join(dirname, "foo.zip")
+            with open(zipped, "w") as f:
                 f.write("any str")
-            with zipfile.ZipFile(file, "w") as zip:
-                zip.write(filename)
+            with zipfile.ZipFile(filename, "w") as zip:
+                zip.write(zipped)
+            got = open_(filename)
+            self.assertEqual(bytes_to_string(got.readline()), "any str")
 
-            zf = ZipFile(file)
-            self.assertEqual(len(zf.namelist()), 1)
-            got = open_zipped_file(zf.namelist()[0], file)
+            filename = os.path.join(dirname, "foo.txt.zip")
+            with zipfile.ZipFile(filename, "w") as zip:
+                zip.write(zipped)
+            got = open_(filename)
             self.assertEqual(bytes_to_string(got.readline()), "any str")
 
 
