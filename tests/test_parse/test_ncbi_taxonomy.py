@@ -22,8 +22,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 good_nodes = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|
