@@ -803,6 +803,13 @@ class RnaMolTypeTests(TestCase):
         expect = {b + "_protein" for b in states}
         self.assertEqual(got, expect)
 
+    def test_get_css_no_label(self):
+        """should not fail when moltype has no label"""
+        dna = get_moltype("dna")
+        orig_label, dna.label = dna.label, None
+        _ = dna.get_css_style()
+        dna.label = orig_label
+
 
 class _AlphabetTestCase(TestCase):
     def assertEqualSeqs(self, a, b):

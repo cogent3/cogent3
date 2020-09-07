@@ -152,6 +152,12 @@ class TableTests(TestCase):
         t = Table(data=data, index="foo")
         self.assertEqual(t.index_name, "foo")
 
+        # correctly reset when assigned None
+        t.index_name = None
+        self.assertEqual(t.index_name, None)
+        self.assertEqual(t.columns.index_name, None)
+        self.assertEqual(t._template, None)
+
         # ... prior to providing columns
         t = Table(index="foo")
         for c, v in data.items():
@@ -534,6 +540,12 @@ class TableTests(TestCase):
         self.assertEqual(t2.count("bar % 2 == 0"), 2)
         self.assertEqual(t2.count("id == 0"), 0)
 
+    def test_count_empty(self):
+        """empty table count method returns 0"""
+        t1 = Table(header=self.t1_header)
+        self.assertEqual(t1.count('chrom == "X"'), 0)
+        self.assertEqual(t1.count(lambda x: x == "X", columns="chrom"), 0)
+
     def test_count_unique(self):
         """correctly computes unique values"""
         data = {
@@ -583,6 +595,15 @@ class TableTests(TestCase):
         self.assertEqual(t2.filtered('foo == "cab"').shape[0], 1)
         self.assertEqual(t2.filtered("bar % 2 == 0").shape[0], 2)
         self.assertEqual(t2.filtered("id == 0").shape[0], 0)
+
+    def test_filtered_empty(self):
+        """test the table filtered method"""
+        t1 = Table(header=self.t1_header)
+        self.assertEqual(t1.shape[0], 0)
+        got = t1.filtered('chrom == "X"')
+        self.assertEqual(got.shape[0], 0)
+        got = t1.filtered(lambda x: x == "X", columns="chrom")
+        self.assertEqual(got.shape[0], 0)
 
     def test_filtered_by_column(self):
         """test the table filtered_by_column method"""
@@ -780,6 +801,24 @@ class TableTests(TestCase):
         self.assertEqual(got.shape[1], t.shape[0] + 1)
         self.assertEqual(got.header, ("", "11", "22", "33", "44", "55"))
         r = str(got)  # this should not fail!
+
+    def test_transposed_forgets_index(self):
+        """transposed table defaults to no row index"""
+        data = {
+            "": [0, 1, 2, 3, 4, 5, 6],
+            "T": [2, 10, 1, 6, 1, 5, 0],
+            "C": [0, 0, 0, 0, 0, 0, 1],
+            "A": [8, 0, 9, 4, 9, 4, 4],
+            "G": [0, 0, 0, 0, 0, 1, 5],
+        }
+        t = Table(header=["", "T", "C", "A", "G"], data=data, index="")
+        tr = t.transposed("Base", select_as_header="")
+        self.assertEqual(tr.index_name, None)
+
+        # but you can set a new one
+        tr = t.transposed("Base", select_as_header="", index="Base")
+        self.assertEqual(tr.index_name, "Base")
+        self.assertEqual(tr["G", "5"], 1)
 
     def test_del_column(self):
         """correctly removes the column"""

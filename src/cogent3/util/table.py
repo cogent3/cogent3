@@ -460,6 +460,7 @@ class Columns(MutableMapping):
     @index_name.setter
     def index_name(self, name):
         if name is None:
+            self._index_name = None
             return
 
         if name not in self:
@@ -984,13 +985,10 @@ class Table:
         return self._index_name
 
     @index_name.setter
-    def index_name(self, value):
-        if value is None:
-            return
-
-        self.columns.index_name = value
-        self._index_name = value
-        self._template = DictArrayTemplate(self.columns[value])
+    def index_name(self, name):
+        self.columns.index_name = name
+        self._index_name = name
+        self._template = None if name is None else DictArrayTemplate(self.columns[name])
 
     @property
     def header(self):
@@ -1196,6 +1194,10 @@ class Table:
         Row data provided to callback is a 1D list if more than one column,
         single value (row[col]) otherwise.
         """
+        # no point filtering if no rows, justv return self
+        if self.shape[0] == 0:
+            return self
+
         if isinstance(columns, str):
             columns = (columns,)
 
@@ -1243,6 +1245,10 @@ class Table:
             python code to be evaluated.
 
         """
+        # no rows, value must be 0
+        if self.shape[0] == 0:
+            return 0
+
         if isinstance(columns, str):
             columns = (columns,)
 
@@ -2053,6 +2059,9 @@ class Table:
             raise ValueError(f"not all '{select_as_header}' values unique")
 
         attr = self._get_persistent_attrs()
+        # on transpose, a row index becomes a column, so pop
+        del attr["index"]
+
         attr |= kwargs
         result = self.__class__(**attr)
 
