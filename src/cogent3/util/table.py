@@ -1333,7 +1333,8 @@ class Table:
 
         Notes
         -----
-        All tables must have the same columns.
+        All tables must have the same columns. If a column dtype differs between tables,
+        dtype for that column in result is determined by numpy.
         """
         if new_column is not None:
             assert new_column not in self.columns, f"'{new_column}' already exists"
@@ -1351,23 +1352,33 @@ class Table:
         new_col = []
         table_series = (self,) + tables
         raw_data = defaultdict(list)
+        dtypes = defaultdict(set)
         for table in table_series:
             assert set(table.columns.order) == columns, "columns don't match"
             if new_column is not None:
                 new_col.extend([table.title] * table.shape[0])
+
+            for c in table.columns:
+                dtypes[c].add(table.columns[c].dtype)
+
             data = table.columns.to_dict()
             for c, v in data.items():
                 raw_data[c].extend(v)
 
-        dtypes = {c: self.columns[c].dtype for c in self.columns}
         if new_column is not None:
             columns = (new_column,) + self.columns.order
             raw_data[new_column] = new_col
-            dtypes[new_column] = "<U15"
+            dtypes[new_column] = set(["U"])
         else:
             columns = self.columns.order
+
         for c in columns:
-            result.columns[c] = numpy.array(raw_data[c], dtype=dtypes[c])
+            data = (
+                raw_data[c]
+                if len(dtypes[c]) != 1
+                else numpy.array(raw_data[c], dtype=dtypes[c].pop())
+            )
+            result.columns[c] = data
         return result
 
     def get_columns(self, columns, with_index=True):

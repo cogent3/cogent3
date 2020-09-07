@@ -577,6 +577,14 @@ class TableTests(TestCase):
         self.assertEqual(append_3.shape[0], t2.shape[0] + t3.shape[0] + t4.shape[0])
         self.assertEqual(append_3.shape[1], t2.shape[1] + 1)
 
+    def test_appended_mixed_dtypes(self):
+        """handles table columns with different dtypes"""
+        t1 = Table(header=["a", "b"], data=dict(a=[1], b=["s"]))
+        t2 = Table(header=["a", "b"], data=dict(a=[1.2], b=[4]))
+        appended = t1.appended(None, t2)
+        self.assertTrue("float" in appended.columns["a"].dtype.name)
+        self.assertTrue("object" in appended.columns["b"].dtype.name)
+
     def test_count(self):
         """test the table count method"""
         t1 = Table(header=self.t1_header, data=self.t1_rows)
