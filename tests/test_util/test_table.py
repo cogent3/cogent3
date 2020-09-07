@@ -170,6 +170,13 @@ class TableTests(TestCase):
         with self.assertRaises(ValueError):
             t.index_name
 
+    def test_table_data_int_keys(self):
+        """correctly construct table from dict with int's as keys"""
+        head = ["", 0, 1]
+        data = {0: [2, 2], 1: [2, 2], "": [0, 1]}
+        t = Table(head, data=data)
+        assert_equal(t.array.tolist(), [[0, 2, 2], [1, 2, 2]])
+
     def test_table_with_empty_string_index(self):
         """handle an index of empty string"""
         d = {
@@ -576,6 +583,14 @@ class TableTests(TestCase):
         append_3 = t2.appended("", [t3, t4])
         self.assertEqual(append_3.shape[0], t2.shape[0] + t3.shape[0] + t4.shape[0])
         self.assertEqual(append_3.shape[1], t2.shape[1] + 1)
+
+    def test_appended_mixed_dtypes(self):
+        """handles table columns with different dtypes"""
+        t1 = Table(header=["a", "b"], data=dict(a=[1], b=["s"]))
+        t2 = Table(header=["a", "b"], data=dict(a=[1.2], b=[4]))
+        appended = t1.appended(None, t2)
+        self.assertTrue("float" in appended.columns["a"].dtype.name)
+        self.assertTrue("object" in appended.columns["b"].dtype.name)
 
     def test_count(self):
         """test the table count method"""

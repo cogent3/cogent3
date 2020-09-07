@@ -66,6 +66,13 @@ class ContingencyTests(TestCase):
         got = table.G_independence(williams=True)
         self.assertEqual(got.df, 2)
 
+    def test_G_ind_with_pseudocount(self):
+        """G test of independence with pseudocount"""
+        table = CategoryCounts([[762, 327, 0], [484, 239, 0]])
+        got = table.G_independence(williams=True, pseudo_count=1)
+        assert_allclose(table.observed.array + 1, got.observed.array)
+        assert_allclose(got.expected.array, calc_expected(got.observed.array))
+
     def test_G_fit_with_expecteds(self):
         """compute G-fit with provided expecteds"""
         obs = [2, 10, 8, 2, 4]
@@ -76,6 +83,19 @@ class ContingencyTests(TestCase):
         got = table.G_fit()
         assert_allclose(got.G, 9.849234)
         assert_allclose(got.pvalue, 0.04304536)
+
+    def test_assign_expected(self):
+        """assign expected property"""
+        obs = [2, 10, 8, 2, 4]
+        exp = [5.2] * 5
+        keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
+        table = CategoryCounts(dict(zip(keys, obs)))
+        table.expected = dict(zip(keys, exp))
+        got = table.G_fit()
+        assert_allclose(got.G, 9.849234)
+        table.expected = None
+        got = table.G_fit()
+        print(got)
 
     def test_zero_observeds(self):
         """raises ValueError"""
@@ -184,7 +204,7 @@ class ContingencyTests(TestCase):
         got_g1 = table.G_fit()
         got_g2 = table.G_independence()
         got_chisq = table.chisq_test()
-        for obj in (got_g1, got_g2, got_chisq):
+        for obj in (table, got_g1, got_g2, got_chisq):
             str(obj)
             repr(obj)
             obj._repr_html_()
