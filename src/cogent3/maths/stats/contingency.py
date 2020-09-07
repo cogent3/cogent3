@@ -158,26 +158,16 @@ class CategoryCounts:
         if observed.array.sum() == 0:
             raise ValueError("at least one value must be > 0")
 
-        if expected:
-            expected = observed.template.wrap(expected)
-            expected.array = _astype(expected.array, float)
-
-        if observed.array.min() < 0 or (expected and expected.array.min() < 0):
+        if observed.array.min() < 0:
             raise ValueError("negative values encountered")
 
-        if expected:
-            assert_allclose(
-                observed.array.sum(), expected.array.sum()
-            ), "unequal totals of observed and expected"
-
         self._observed = observed
-        self._expected = expected
+        self.expected = expected
         self._residuals = None
         self._df = None
         self.shape = observed.shape
 
     def _get_repr_(self, html=False):
-
         obs = self.observed.to_table()
         obs.title = "Observed"
         exp = self.expected.to_table()
@@ -189,7 +179,7 @@ class CategoryCounts:
 
         ndim = self.observed.array.ndim
         if ndim == 1:
-            result = obs.appended("", exp, res, title=None)
+            result = obs.appended("", exp, res, title=None, digits=2)
             if html:
                 result.set_repr_policy(show_shape=False)
                 result = result._repr_html_()
@@ -200,8 +190,8 @@ class CategoryCounts:
 
         result = []
         for t in (obs, exp, res):
+            t.set_repr_policy(show_shape=False)
             if html:
-                t.set_repr_policy(show_shape=False)
                 t = t._repr_html_()
             else:
                 t, _, _ = t._get_repr_()
@@ -233,6 +223,24 @@ class CategoryCounts:
             self._expected = expecteds
 
         return self._expected
+
+    @expected.setter
+    def expected(self, expected):
+        if expected is None:
+            self._expected = None
+            return
+
+        expected = self.observed.template.wrap(expected)
+        expected.array = _astype(expected.array, float)
+
+        if expected.array.min() < 0:
+            raise ValueError("negative values encountered")
+
+        assert_allclose(
+            self.observed.array.sum(), expected.array.sum()
+        ), "unequal totals of observed and expected"
+
+        self._expected = expected
 
     @property
     def residuals(self):
@@ -397,6 +405,7 @@ class TestResult:
             title=self.test_name,
             column_templates=col_templates,
         )
+        table.set_repr_policy(show_shape=False)
         return table
 
     def __repr__(self):

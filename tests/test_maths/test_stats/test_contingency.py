@@ -77,6 +77,19 @@ class ContingencyTests(TestCase):
         assert_allclose(got.G, 9.849234)
         assert_allclose(got.pvalue, 0.04304536)
 
+    def test_assign_expected(self):
+        """assign expected property"""
+        obs = [2, 10, 8, 2, 4]
+        exp = [5.2] * 5
+        keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
+        table = CategoryCounts(dict(zip(keys, obs)))
+        table.expected = dict(zip(keys, exp))
+        got = table.G_fit()
+        assert_allclose(got.G, 9.849234)
+        table.expected = None
+        got = table.G_fit()
+        print(got)
+
     def test_zero_observeds(self):
         """raises ValueError"""
         with self.assertRaises(ValueError):
@@ -184,7 +197,7 @@ class ContingencyTests(TestCase):
         got_g1 = table.G_fit()
         got_g2 = table.G_independence()
         got_chisq = table.chisq_test()
-        for obj in (got_g1, got_g2, got_chisq):
+        for obj in (table, got_g1, got_g2, got_chisq):
             str(obj)
             repr(obj)
             obj._repr_html_()
