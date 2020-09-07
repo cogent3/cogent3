@@ -552,7 +552,11 @@ class UtilsTests(TestCase):
             got = open_(filename)
             self.assertEqual(bytes_to_string(got.readline()), "any str")
 
-            filename = os.path.join(dirname, "foo.txt.zip")
+        with TemporaryDirectory(dir=".") as dirname:
+            zipped = os.path.join(dirname, "bar.txt")
+            filename = os.path.join(dirname, "bar.txt.zip")
+            with open(zipped, "w") as f:
+                f.write("any str")
             with zipfile.ZipFile(filename, "w") as zip:
                 zip.write(zipped)
             got = open_(filename)
