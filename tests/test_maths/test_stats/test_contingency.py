@@ -66,6 +66,13 @@ class ContingencyTests(TestCase):
         got = table.G_independence(williams=True)
         self.assertEqual(got.df, 2)
 
+    def test_G_ind_with_pseudocount(self):
+        """G test of independence with pseudocount"""
+        table = CategoryCounts([[762, 327, 0], [484, 239, 0]])
+        got = table.G_independence(williams=True, pseudo_count=1)
+        assert_allclose(table.observed.array + 1, got.observed.array)
+        assert_allclose(got.expected.array, calc_expected(got.observed.array))
+
     def test_G_fit_with_expecteds(self):
         """compute G-fit with provided expecteds"""
         obs = [2, 10, 8, 2, 4]

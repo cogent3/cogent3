@@ -43,12 +43,8 @@ def shuffled_matrix(matrix):
 
 # todo following functions should be moved into stats.test and replace
 # or merge with the older implementations
-def calc_expected(observed, pseudo_count=0):
+def calc_expected(observed):
     """returns the expected array from product of marginal frequencies"""
-    if pseudo_count and (observed == 0).any():
-        observed = observed.copy()
-        observed += pseudo_count
-
     if observed.ndim == 1 or (observed.ndim == 2 and 1 in observed.shape):
         expecteds = zeros(observed.shape, dtype=float)
         expecteds.fill(observed.mean())
@@ -70,8 +66,22 @@ def calc_chisq(observed, expected):
     return stat
 
 
-def calc_G(observed, expected, pseudo_count=0, williams=True):
-    """returns the G statistic for the two numpy arrays"""
+def calc_G(observed, expected, williams=True):
+    """returns the G statistic for the two numpy arrays
+
+    Parameters
+    ----------
+    observed : numpy.ndarray
+        Observed counts
+    expected : numpy.ndarray
+        Expected values
+    williams : bool
+        Applies Williams correction for small sample size
+
+    Returns
+    -------
+    G statistic
+    """
     num_dim = len(observed.shape)
     df = observed.shape[0] - 1
     if num_dim == 2:
@@ -290,28 +300,45 @@ class CategoryCounts:
         ----------
         pseudo_count : int
             added to observed to avoid zero division
+        williams : bool
+            Applies Williams correction for small sample size
         shuffled : int
             pvalue is estimated via resampling shuffled times from the observed
             data, preserving the marginals
         """
         assert type(pseudo_count) == int, f"{pseudo_count} not an integer"
+        obs = self.observed
+        exp = self.expected
+        if pseudo_count and (obs.array == 0).any():
+            obs = obs.template.wrap(obs.array + pseudo_count)
+            exp = calc_expected(obs.array)
+            exp = obs.template.wrap(exp)
+
         assert type(shuffled) == int, f"{shuffled} not an integer"
         G = calc_G(
-            self.observed.array,
-            self.expected.array,
-            pseudo_count=pseudo_count,
+            obs.array,
+            exp.array,
             williams=williams,
         )
         if not shuffled:
             pval = chisqprob(G, self.df)
         else:
-            pval = estimate_pval(self.observed.array, calc_G, num_reps=shuffled)
+            pval = estimate_pval(obs.array, calc_G, num_reps=shuffled)
+
         title = "G-test for independence"
+        amendments = ""
+        if pseudo_count:
+            amendments = f"pseudo_count={pseudo_count}, "
+
         if williams:
-            title = f"{title} (with Williams correction)"
+            amendments = f"{amendments}Williams correction"
+
+        if amendments:
+            title = f"{title} (with {amendments})"
+
         result = TestResult(
-            self.observed,
-            self.expected,
+            obs,
+            exp,
             self.residuals,
             "G",
             G,
@@ -321,13 +348,15 @@ class CategoryCounts:
         )
         return result
 
-    def G_fit(self, pseudo_count=0, williams=True):
-        """performs the goodness-of-fit G test"""
-        assert type(pseudo_count) == int, f"{pseudo_count} not an integer"
-        obs = self.observed.array
-        if pseudo_count:
-            obs += pseudo_count
+    def G_fit(self, williams=True):
+        """performs the goodness-of-fit G test
 
+        Parameters
+        ----------
+        williams : bool
+            Applies Williams correction for small sample size
+        """
+        obs = self.observed.array
         G, pval = G_fit(obs.flatten(), self.expected.array.flatten(), williams=williams)
         title = "G-test goodness-of-fit"
         if williams:
