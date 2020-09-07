@@ -291,7 +291,7 @@ def GroupFastaParser(
     done_groups
         series of group keys to be excluded
 
-        """
+    """
 
     done_groups = [[], done_groups][done_groups is not None]
     parser = MinimalFastaParser(data, label_to_name=label_to_name, finder=XmfaFinder)

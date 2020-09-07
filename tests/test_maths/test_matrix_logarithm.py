@@ -68,7 +68,7 @@ class logarithm_tests(TestCase):
         self.assertFloatEqual(q_taylor, q_eig)
 
     def test_is_generator_unique(self):
-        """ is_generator_unique should identify non-unique primary roots or
+        """is_generator_unique should identify non-unique primary roots or
         raise a NotImplementedError for non-primary roots"""
         q_fail = array(
             [

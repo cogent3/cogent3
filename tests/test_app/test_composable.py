@@ -26,11 +26,11 @@ __status__ = "Alpha"
 class TestCheckpoint(TestCase):
     def test_checkpointable(self):
         """chained funcs should be be able to apply a checkpoint"""
-        path = "data" + os.sep + "brca1.fasta"
         reader = io_app.load_aligned(moltype="dna")
         omit_degens = sample_app.omit_degenerates(moltype="dna")
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_seqs(dirname)
+            path = "data" + os.sep + "brca1.fasta"
             aln = reader(path)
             outpath = writer(aln)
 
@@ -45,7 +45,7 @@ class TestCheckpoint(TestCase):
             self.assertTrue(len(got) > 1000)
 
 
-ComposableSeq._input_types = ComposableSeq._output_types = set([None])
+ComposableSeq._input_types = ComposableSeq._output_types = {None}
 
 
 class TestComposableBase(TestCase):
@@ -213,7 +213,7 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "select_translatable(type='sequences', "
-            "moltype='dna', gc='Standard Nuclear', "
+            "moltype='dna', gc=1, "
             "allow_rc=False, trim_terminal_stop=True)",
         )
 
@@ -222,7 +222,7 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "select_translatable(type='sequences', "
-            "moltype='dna', gc='Standard Nuclear', "
+            "moltype='dna', gc=1, "
             "allow_rc=True, trim_terminal_stop=True)",
         )
 
@@ -294,6 +294,10 @@ class TestPicklable(TestCase):
         self.assertEqual(got.type, "BUG")
 
 
+def _demo(ctx, expect):
+    return ctx.frame_start == expect
+
+
 class TestUserFunction(TestCase):
     def foo(self, val, *args, **kwargs):
         return val[:4]
@@ -301,18 +305,14 @@ class TestUserFunction(TestCase):
     def bar(self, val, *args, **kwargs):
         return val.distance_matrix(calc="hamming", show_progress=False)
 
-    def _demo(self, ctx, expect):
-        self.assertEqual(ctx.frame_start, expect)
-        return expect
-
     def test_user_function_custom_variables(self):
+        # not sure what this is meant to be testing
         demo = user_function(
-            self._demo, ("aligned", "serialisable"), ("aligned", "serialisable")
+            _demo, ("aligned", "serialisable"), ("aligned", "serialisable")
         )
-        foo = demo
         frame_start = 2
-        foo.frame_start = frame_start
-        foo(frame_start)
+        demo.frame_start = frame_start
+        self.assertTrue(demo(demo, 2))
 
     def test_user_function(self):
         """composable functions should be user definable"""

@@ -362,23 +362,23 @@ alphabets = {
 
 
 def build_alphabet_map(alphabet_id=None, alphabet_def=None):
-    """ return dict mapping old alphabet chars to new alphabet chars
+    """return dict mapping old alphabet chars to new alphabet chars
 
-        alphabet_id: string identifying an alphabet in
-            cogent3.util.recode_alignment.alphabets.
-            (See cogent3.util.recode_alignment.alphabets.keys()
-            for valid alphabet_ids.)
-        alphabet_def: list of two-element tuples where first element is
-            the new alphabet character and the second elements is an iterable
-            object containing the old alphabet chars which should be mapped to
-            the new char.
-            e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')]
-            (See cogent3.util.recode_alignment.alphabets.values()
-            for more examples.)
+    alphabet_id: string identifying an alphabet in
+        cogent3.util.recode_alignment.alphabets.
+        (See cogent3.util.recode_alignment.alphabets.keys()
+        for valid alphabet_ids.)
+    alphabet_def: list of two-element tuples where first element is
+        the new alphabet character and the second elements is an iterable
+        object containing the old alphabet chars which should be mapped to
+        the new char.
+        e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')]
+        (See cogent3.util.recode_alignment.alphabets.values()
+        for more examples.)
 
-        NOTE: Only one of the two parameters should be provided -- you either
-            provide the alphabet, or it is looked up. If you do provide both,
-            the alphabet_id is ignored.
+    NOTE: Only one of the two parameters should be provided -- you either
+        provide the alphabet, or it is looked up. If you do provide both,
+        the alphabet_id is ignored.
 
     """
     try:
@@ -399,22 +399,22 @@ def build_alphabet_map(alphabet_id=None, alphabet_def=None):
 def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     """Return new ArrayAlignment recoded in the provided reduced-state alphabet
 
-        aln: the ArrayAlignment object to be recoded
-        alphabet_id: string identifying an alphabet in
-            cogent3.util.recode_alignment.alphabets.
-            (See cogent3.util.recode_alignment.alphabets.keys()
-            for valid alphabet_ids.)
-        alphabet_def: list of two-element tuples where first element is
-            the new alphabet character and the second elements is an iterable
-            object containing the old alphabet chars which should be mapped to
-            the new char.
-            e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')]
-            (See cogent3.util.recode_alignment.alphabets.values()
-            for more examples.)
+    aln: the ArrayAlignment object to be recoded
+    alphabet_id: string identifying an alphabet in
+        cogent3.util.recode_alignment.alphabets.
+        (See cogent3.util.recode_alignment.alphabets.keys()
+        for valid alphabet_ids.)
+    alphabet_def: list of two-element tuples where first element is
+        the new alphabet character and the second elements is an iterable
+        object containing the old alphabet chars which should be mapped to
+        the new char.
+        e.g., [('A','CVILFMWAGSTPYH'),('B','QNDERKBZ')]
+        (See cogent3.util.recode_alignment.alphabets.values()
+        for more examples.)
 
-        Note: either alphabet_id OR alphabet_def must be passed. Either
-            provide the alphabet, or have it is looked up. If both are provided
-            the alphabet_id is ignored.
+    Note: either alphabet_id OR alphabet_def must be passed. Either
+        provide the alphabet, or have it is looked up. If both are provided
+        the alphabet_id is ignored.
 
     """
 
@@ -445,21 +445,21 @@ def recode_alignment(aln, alphabet_id=None, alphabet_def=None):
 
 
 def recode_freq_vector(alphabet_def, freqs, ignores="BXZ"):
-    """ recode the bg_freqs to reflect the recoding defined in alphabet_def
+    """recode the bg_freqs to reflect the recoding defined in alphabet_def
 
-        alphabet_def: list of tuples where new char is first tuple element
-            and sequence of old chars is second tuple element. (For examples,
-            see cogent3.util.recode_alignment.alphabets.values())
-        freqs: dict mapping chars to their frequencies
-        ignores: the degenerate characters -- we don't want to include these
-            in the new freqs, b/c they'll be counted multiple times. Also,
-            isn't clear what should be done if an alphabet were to split them
-            apart.
+    alphabet_def: list of tuples where new char is first tuple element
+        and sequence of old chars is second tuple element. (For examples,
+        see cogent3.util.recode_alignment.alphabets.values())
+    freqs: dict mapping chars to their frequencies
+    ignores: the degenerate characters -- we don't want to include these
+        in the new freqs, b/c they'll be counted multiple times. Also,
+        isn't clear what should be done if an alphabet were to split them
+        apart.
 
-        Note: there is no error-checking here, so you need to be sure that
-         the alphabet and the frequencies are compatible (i.e., freqs and the
-         old characters must overlap perfectly, with the exception of the
-         degenerate characters, which are ignored by default).
+    Note: there is no error-checking here, so you need to be sure that
+     the alphabet and the frequencies are compatible (i.e., freqs and the
+     old characters must overlap perfectly, with the exception of the
+     degenerate characters, which are ignored by default).
     """
     result = {}
     for new, olds in alphabet_def:
@@ -486,14 +486,14 @@ def square_matrix_to_dict(matrix, key_order="ACDEFGHIKLMNPQRSTVWY"):
 def recode_count_matrix(alphabet, count_matrix, aa_order):
     """Recodes a subsitution count matrix
 
-        alphabet: the alphabet to be used for recoding the matrix
-         (see cogent3.util.recode_alignment.alphabets.values()) for
-         examples
-        count_matrix: matrix to be recoded (e.g.,
-         cogent3.evolve.models.DSO78_matrix)
-        aa_order: the order of the rows/cols in the matrix as a string
-         (for cogent3.evolve.models.DSO78_matrix this would be
-         'ACDEFGHIKLMNPQRSTVWY')
+    alphabet: the alphabet to be used for recoding the matrix
+     (see cogent3.util.recode_alignment.alphabets.values()) for
+     examples
+    count_matrix: matrix to be recoded (e.g.,
+     cogent3.evolve.models.DSO78_matrix)
+    aa_order: the order of the rows/cols in the matrix as a string
+     (for cogent3.evolve.models.DSO78_matrix this would be
+     'ACDEFGHIKLMNPQRSTVWY')
 
     """
     m = square_matrix_to_dict(count_matrix, aa_order)
@@ -527,8 +527,7 @@ def recode_counts_and_freqs(
     freqs=DSO78_freqs,
     aa_order="ACDEFGHIKLMNPQRSTVWY",
 ):
-    """ recode a substituion count matrix and a vector of character freqs
-    """
+    """recode a substituion count matrix and a vector of character freqs"""
 
     recoded_freqs = recode_freq_vector(alphabet, freqs)
     for aa in aa_order:

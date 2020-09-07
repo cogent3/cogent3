@@ -114,9 +114,9 @@ class SimpleMotifProbModel(MotifProbModel):
 class ComplexMotifProbModel(MotifProbModel):
     def __init__(self, tuple_alphabet, mask):
         """Arguments:
-            - tuple_alphabet: series of multi-letter motifs
-            - monomers: the monomers from which the motifs are made
-            - mask: instantaneous change matrix"""
+        - tuple_alphabet: series of multi-letter motifs
+        - monomers: the monomers from which the motifs are made
+        - mask: instantaneous change matrix"""
         self.mask = mask
         self.tuple_alphabet = tuple_alphabet
         self.monomer_alphabet = monomers = tuple_alphabet.moltype.alphabet

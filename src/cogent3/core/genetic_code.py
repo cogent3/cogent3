@@ -219,10 +219,11 @@ class GeneticCode:
     def _repr_html_(self):
         """Returns the html representation of GeneticCode."""
         display = self.to_table()
-        return display._repr_html_(include_shape=False)
+        display.set_repr_policy(show_shape=False)
+        return display._repr_html_()
 
     def __eq__(self, other):
-        """ Allows two GeneticCode objects to be compared to each other.
+        """Allows two GeneticCode objects to be compared to each other.
         Two GeneticCode objects are equal if they have equal CodeSequences.
         """
         return str(self) == str(other)
@@ -274,8 +275,7 @@ class GeneticCode:
         return found
 
     def sixframes(self, dna):
-        """Returns six-frame translation as dict containing {frame:translation}
-        """
+        """Returns six-frame translation as dict containing {frame:translation}"""
         reverse = dna.rc()
         return [self.translate(dna, start) for start in range(3)] + [
             self.translate(reverse, start) for start in range(3)
@@ -453,7 +453,7 @@ DEFAULT = GeneticCodes[1]
 
 def get_code(code_id=1):
     """returns the genetic code
-    
+
     Parameters
     ----------
     code_id

@@ -8,3 +8,4 @@
     :template: class.rst
     
     Table
+    Columns

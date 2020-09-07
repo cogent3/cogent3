@@ -34,14 +34,12 @@ In the following I will construct GTR variants of i and iv and a HKY variant of 
 We import these explicitly from the ``cogent3.evolve.models`` module.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import get_model
 
 These are functions and calling them returns the indicated substitution model with default behaviour of recoding gap characters into N's.
 
 .. jupyter-execute::
-    :linenos:
 
     tf = get_model("GY94")
     nf = get_model("MG94GTR")
@@ -52,7 +50,6 @@ In the following demonstration I will use only the CNF form (``cnf``).
 For our example we load a sample alignment and tree as per usual. To reduce the computational overhead for this example we will limit the number of sampled taxa.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs, load_tree
 
@@ -65,7 +62,6 @@ Standard test of neutrality
 We construct a likelihood function and constrain omega parameter (the ratio of nonsynonymous to synonymous substitutions) to equal 1. We also set some display formatting parameters.
 
 .. jupyter-execute::
-    :linenos:
 
     lf = cnf.make_likelihood_function(tree, digits=2, space=3)
     lf.set_param_rule("omega", is_constant=True, value=1.0)
@@ -75,7 +71,6 @@ We then provide an alignment and optimise the model. In the current case we just
 .. note:: I'm going to specify a set of conditions that will be used for all optimiser steps. For those new to python, one can construct a dictionary with the following form ``{'argument_name': argument_value}``, or alternatively ``dict(argument_name=argument_value)``. I'm doing the latter. This dictionary is then passed to functions/methods by prefacing it with ``**``.
 
 .. jupyter-execute::
-    :linenos:
 
     optimiser_args = dict(
         local=True, max_restarts=5, tolerance=1e-8, show_progress=False
@@ -95,7 +90,6 @@ The above function has been fit using the default counting procedure for estimat
 We can then free up the omega parameter, but before we do that we'll store the log-likelihood and number of free parameters for the current model form for reuse later.
 
 .. jupyter-execute::
-    :linenos:
 
     neutral_lnL = lf.get_log_likelihood()
     neutral_nfp = lf.get_num_free_params()
@@ -108,7 +102,6 @@ We can then free up the omega parameter, but before we do that we'll store the l
 We then conduct a likelihood ratio test whether the MLE of omega significantly improves the fit over the constraint it equals 1. We import the convenience function from the ``cogent3`` stats module.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.maths.stats import chisqprob
 
@@ -119,7 +112,6 @@ We then conduct a likelihood ratio test whether the MLE of omega significantly i
 Not surprisingly, this is significant. We then ask whether the Human and Chimpanzee edges have a value of omega that is significantly different from the rest of the tree.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule(
         "omega", tip_names=["Chimpanzee", "Human"], outgroup_name="Galago", clade=True
@@ -130,7 +122,6 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
     chimp_human_clade_nfp = lf.get_num_free_params()
 
 .. jupyter-execute::
-    :linenos:
 
     LR = 2 * (chimp_human_clade_lnL - non_neutral_lnL)
     df = chimp_human_clade_nfp - non_neutral_nfp
@@ -144,7 +135,6 @@ Rate-heterogeneity model variants
 It is also possible to specify rate-heterogeneity variants of these models. In the first instance we'll create a likelihood function where these rate-classes are global across the entire tree. Because fitting these models can be time consuming I'm going to recreate the non-neutral likelihood function from above first, fit it, and then construct the rate-heterogeneity likelihood function. By doing this I can ensure that the richer model starts with parameter values that produce a log-likelihood the same as the null model, ensuring the subsequent optimisation step improves the likelihood over the null.
 
 .. jupyter-execute::
-    :linenos:
 
     lf = cnf.make_likelihood_function(tree, digits=2, space=3)
     lf.set_alignment(aln)
@@ -157,7 +147,6 @@ Now, we have a null model which we know (from having fit it above) has a MLE < 1
 To get all the parameter MLEs (branch lengths, GTR terms, etc ..) into the alternate model we get an annotated tree from the null model which will have these values associated with it.
 
 .. jupyter-execute::
-    :linenos:
 
     annot_tree = lf.get_annotated_tree()
     omega_mle = lf.get_param_value("omega")
@@ -165,7 +154,6 @@ To get all the parameter MLEs (branch lengths, GTR terms, etc ..) into the alter
 We can then construct a new likelihood function, specifying the rate-class properties.
 
 .. jupyter-execute::
-    :linenos:
 
     rate_lf = cnf.make_likelihood_function(
         annot_tree, bins=["neutral", "adaptive"], digits=2, space=3
@@ -174,14 +162,12 @@ We can then construct a new likelihood function, specifying the rate-class prope
 We define a very small value (``epsilon``) that is used to specify the starting values.
 
 .. jupyter-execute::
-    :linenos:
 
     epsilon = 1e-6
 
 We now provide starting parameter values for ``omega`` for the two bins, setting the boundary
 
 .. jupyter-execute::
-    :linenos:
 
     rate_lf.set_param_rule("omega", bin="neutral", upper=1, init=omega_mle)
     rate_lf.set_param_rule(
@@ -191,14 +177,12 @@ We now provide starting parameter values for ``omega`` for the two bins, setting
 and provide the starting values for the bin probabilities (``bprobs``).
 
 .. jupyter-execute::
-    :linenos:
 
     rate_lf.set_param_rule("bprobs", init=[1 - epsilon, epsilon])
 
 The above statement essentially assigns a probability of nearly 1 to the 'neutral' bin. We now set the alignment and fit the model.
 
 .. jupyter-execute::
-    :linenos:
 
     rate_lf.set_alignment(aln)
     rate_lf.optimise(**optimiser_args)
@@ -209,14 +193,12 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
     rate_lf
 
 .. jupyter-execute::
-    :linenos:
 
     print(chisqprob(LR, df))
 
 We can get the posterior probabilities of site-classifications out of this model as
 
 .. jupyter-execute::
-    :linenos:
 
     pp = rate_lf.get_bin_probs()
 
@@ -240,14 +222,13 @@ The following implements a modification of the approach of Zhang, Nielsen and Ya
       dtype='<U14')}
     data = {k: array(data[k], dtype='U') for k in data}
     table = make_table(header, data=data)
-    HTML(table._repr_html_(include_shape=False))
+    HTML(table.set_repr_policy(show_shape=False))
 
 .. note:: Our implementation is not as parametrically succinct as that of Zhang et al, we have 1 additional bin probability.
 
 After Zhang et al, we first define a null model that has 2 rate classes '0' and '1'. We also get all the MLEs out using ``get_statistics``, just printing out the bin parameters table in the current case.
 
 .. jupyter-execute::
-    :linenos:
 
     rate_lf = cnf.make_likelihood_function(tree, bins=["0", "1"], digits=2, space=3)
     rate_lf.set_param_rule("omega", bin="0", upper=1.0 - epsilon, init=1 - epsilon)
@@ -262,7 +243,6 @@ After Zhang et al, we first define a null model that has 2 rate classes '0' and 
 We're also going to use the MLEs from the ``rate_lf`` model, since that nests within the more complex branch by rate-class model. This is unfortunately quite ugly compared with just using the annotated tree approach described above. It is currently necessary, however, due to a bug in constructing annotated trees for models with binned parameters.
 
 .. jupyter-execute::
-    :linenos:
 
     globals = [t for t in tables if "global" in t.title][0]
     globals = dict(zip(globals.header, globals.tolist()[0]))
@@ -275,7 +255,6 @@ We're also going to use the MLEs from the ``rate_lf`` model, since that nests wi
 We now create the more complex model,
 
 .. jupyter-execute::
-    :linenos:
 
     rate_branch_lf = cnf.make_likelihood_function(
         tree, bins=["0", "1", "2a", "2b"], digits=2, space=3
@@ -284,7 +263,6 @@ We now create the more complex model,
 and set from the nested null model the branch lengths,
 
 .. jupyter-execute::
-    :linenos:
 
     for branch, length in lengths.items():
         rate_branch_lf.set_param_rule("length", edge=branch, init=length)
@@ -292,7 +270,6 @@ and set from the nested null model the branch lengths,
 GTR term MLES,
 
 .. jupyter-execute::
-    :linenos:
 
     for param, mle in globals.items():
         rate_branch_lf.set_param_rule(param, init=mle)
@@ -300,7 +277,6 @@ GTR term MLES,
 binned parameter values,
 
 .. jupyter-execute::
-    :linenos:
 
     rate_branch_lf.set_param_rule(
         "omega", bins=["0", "2a"], upper=1.0, init=rate_class_omegas["0"]
@@ -321,7 +297,6 @@ binned parameter values,
 and the bin probabilities.
 
 .. jupyter-execute::
-    :linenos:
 
     rate_branch_lf.set_param_rule(
         "bprobs",
@@ -336,7 +311,6 @@ and the bin probabilities.
 The result of these steps is to create a rate/branch model with initial parameter values that result in likelihood the same as the null.
 
 .. jupyter-execute::
-    :linenos:
 
     rate_branch_lf.set_alignment(aln)
 

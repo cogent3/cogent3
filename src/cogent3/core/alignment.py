@@ -25,7 +25,7 @@ import re
 import warnings
 
 from collections import Counter, defaultdict
-from copy import copy, deepcopy
+from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
@@ -53,9 +53,8 @@ from numpy.random import choice, permutation, randint
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3.core.annotation import Map, _Annotatable
-from cogent3.core.genetic_code import DEFAULT, get_code
+from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import LostSpan, Span
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
@@ -74,6 +73,7 @@ from cogent3.util.misc import (
     extend_docstring_from,
     get_format_suffixes,
     get_object_provenance,
+    get_setting_from_environ,
 )
 from cogent3.util.union_dict import UnionDict
 
@@ -288,8 +288,7 @@ def seqs_from_array_seqs(seqs, alphabet=None):
 
 
 def seqs_from_generic(seqs, alphabet=None):
-    """returns seqs, names
-    """
+    """returns seqs, names"""
     names = []
     for s in seqs:
         if hasattr(s, "name"):
@@ -523,7 +522,7 @@ class _SequenceCollectionBase:
         # both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
 
-        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest")
+        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -1185,9 +1184,11 @@ class _SequenceCollectionBase:
             combined = self.seqs + list(other)
 
         for seq in combined:
-            assert seq.__class__ == self_seq_class, (
-                "Seq classes different: Expected %s, Got %s"
-                % (seq.__class__, self_seq_class)
+            assert (
+                seq.__class__ == self_seq_class
+            ), "Seq classes different: Expected %s, Got %s" % (
+                seq.__class__,
+                self_seq_class,
             )
 
         combined_aln = self.__class__(data=combined, info=self.info)
@@ -1303,8 +1304,7 @@ class _SequenceCollectionBase:
             raise AttributeError("%s -- %s" % (msg, "Did you set a DNA moltype?"))
 
     def get_seq(self, seqname):
-        """Return a sequence object for the specified seqname.
-        """
+        """Return a sequence object for the specified seqname."""
         return self.named_seqs[seqname]
 
     def to_dict(self):
@@ -1655,12 +1655,12 @@ class _SequenceCollectionBase:
     def pad_seqs(self, pad_length=None, **kwargs):
         """Returns copy in which sequences are padded to same length.
 
-            Parameters
-            ----------
-            pad_length
-                Length all sequences are to be padded to.  Will pad
-                to max sequence length if pad_length is None or less than max
-                length.
+        Parameters
+        ----------
+        pad_length
+            Length all sequences are to be padded to.  Will pad
+            to max sequence length if pad_length is None or less than max
+            length.
         """
         # get max length
         max_len = max([len(s) for s in self.seqs])
@@ -1892,33 +1892,44 @@ class _SequenceCollectionBase:
 
         return array(result)
 
-    def set_repr_policy(self, num_seqs=None, num_pos=None, ref_name=None):
+    def set_repr_policy(self, num_seqs=None, num_pos=None, ref_name=None, wrap=None):
         """specify policy for repr(self)
 
-            Parameters
-            ----------
-            num_seqs : int or None
-                number of sequences to include in represented display.
-            num_pos : int or None
-                length of sequences to include in represented display.
-            ref_name : str or None
-                name of sequence to be placed first, or "longest" (default).
-                If latter, indicates longest sequence will be chosen.
-            """
+        Parameters
+        ----------
+        num_seqs : int or None
+            number of sequences to include in represented display.
+        num_pos : int or None
+            length of sequences to include in represented display.
+        ref_name : str or None
+            name of sequence to be placed first, or "longest" (default).
+            If latter, indicates longest sequence will be chosen.
+        wrap : int or None
+            number of printed bases per row
+        """
         if num_seqs:
-            assert isinstance(num_seqs, int), "num_seqs is not an integer"
+            if not isinstance(num_seqs, int):
+                raise TypeError("num_seqs is not an integer")
             self._repr_policy["num_seqs"] = num_seqs
 
         if num_pos:
-            assert isinstance(num_pos, int), "num_pos is not an integer"
+            if not isinstance(num_pos, int):
+                raise TypeError("num_pos is not an integer")
             self._repr_policy["num_pos"] = num_pos
 
         if ref_name:
-            assert isinstance(ref_name, str), "ref_name is not a string"
+            if not isinstance(ref_name, str):
+                raise TypeError("ref_name is not a string")
+
             if ref_name != "longest" and ref_name not in self.names:
                 raise ValueError(f"no sequence name matching {ref_name}")
 
             self._repr_policy["ref_name"] = ref_name
+
+        if wrap:
+            if not isinstance(wrap, int):
+                raise TypeError("wrap is not an integer")
+            self._repr_policy["wrap"] = wrap
 
     def probs_per_seq(
         self,
@@ -1982,9 +1993,7 @@ class _SequenceCollectionBase:
 
 
 class SequenceCollection(_SequenceCollectionBase):
-    """Container for unaligned sequences
-
-    """
+    """Container for unaligned sequences"""
 
     def copy_annotations(self, unaligned):
         """Copies annotations from seqs in unaligned to self, matching by name.
@@ -2062,8 +2071,7 @@ class Aligned(object):
     moltype = property(_get_moltype)
 
     def copy(self):
-        """Returns a shallow copy of self
-        """
+        """Returns a shallow copy of self"""
         return self.__class__(self.map, self.data)
 
     def deepcopy(self, sliced=True):
@@ -2354,13 +2362,11 @@ class AlignmentI(object):
         return result
 
     def take_positions_if(self, f, negate=False):
-        """Returns new Alignment containing cols where f(col) is True.
-        """
+        """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
     def iupac_consensus(self, alphabet=None):
-        """Returns string containing IUPAC consensus sequence of the alignment.
-        """
+        """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
         consensus = []
@@ -2469,7 +2475,7 @@ class AlignmentI(object):
                 -----
                 For motif_length > 1, it's advisable to specify exclude_unobserved=True,
                 this avoids unnecessary calculations.
-                """
+        """
 
         probs = self.probs_per_seq(
             motif_length=motif_length,
@@ -2712,7 +2718,7 @@ class AlignmentI(object):
             Setting with_replacement to True and otherwise leaving parameters
             as defaults generates a standard bootstrap resampling of the
             alignment.
-            """
+        """
         population_size = len(self) // motif_length
         if not n:
             n = population_size
@@ -2776,12 +2782,18 @@ class AlignmentI(object):
         return names, output
 
     def _repr_html_(self):
-        html = self.to_html(
-            name_order=self.names[: self._repr_policy["num_seqs"]],
-            ref_name=self._repr_policy["ref_name"],
-            limit=self._repr_policy["num_pos"],
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_seqs=int, num_pos=int, wrap=int, ref_name=str),
         )
-        return html
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            ref_name=settings["ref_name"],
+            limit=settings["num_pos"],
+            interleave_len=settings["wrap"],
+        )
 
     def to_html(
         self,
@@ -2800,8 +2812,7 @@ class AlignmentI(object):
         name_order
             order of names for display.
         interleave_len
-            maximum number of printed bases, defaults to
-            alignment length
+            number of alignment columns per row
         limit
             truncate alignment to this length
         ref_name
@@ -2906,7 +2917,7 @@ class AlignmentI(object):
             or name_order
             and len(name_order) < len(selected.names)
         ):
-            summary = ("%s x %s (truncated to %s x %s) %s " "alignment") % (
+            summary = ("%s x %s (truncated to %s x %s) %s alignment") % (
                 self.num_seqs,
                 len(self),
                 len(name_order) if name_order else len(selected.names),
@@ -2914,7 +2925,7 @@ class AlignmentI(object):
                 selected.moltype.label,
             )
         else:
-            summary = ("%s x %s %s " "alignment") % (
+            summary = ("%s x %s %s alignment") % (
                 self.num_seqs,
                 len(self),
                 selected.moltype.label,
@@ -3748,8 +3759,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
     }
 
     def __init__(self, *args, **kwargs):
-        """Returns new ArrayAlignment object. Inherits from SequenceCollection.
-        """
+        """Returns new ArrayAlignment object. Inherits from SequenceCollection."""
         kwargs["suppress_named_seqs"] = True
         super(ArrayAlignment, self).__init__(*args, **kwargs)
         self.array_positions = transpose(self.seq_data.astype(self.alphabet.array_type))
@@ -3897,8 +3907,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         )
 
     def iupac_consensus(self, alphabet=None):
-        """Returns string containing IUPAC consensus sequence of the alignment.
-        """
+        """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
         consensus = []
@@ -3938,7 +3947,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             Setting with_replacement to True and otherwise leaving parameters
             as defaults generates a standard bootstrap resampling of the
             alignment.
-            """
+        """
         population_size = len(self) // motif_length
         if not n:
             n = population_size
@@ -4026,7 +4035,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                 s = s.replace(gapchar, ambig)
         return s
 
-    def trim_stop_codons(self, gc=DEFAULT, allow_partial=False, **kwargs):
+    def trim_stop_codons(self, gc=1, allow_partial=False, **kwargs):
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -4044,10 +4053,10 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         stops = gc["*"]
         get_index = self.alphabet.degen.index
-        stop_indices = set(tuple(map(get_index, stop)) for stop in stops)
+        stop_indices = {tuple(map(get_index, stop)) for stop in stops}
         new_data = self.array_seqs.copy()
 
-        gap_indices = set(get_index(gap) for gap in self.moltype.gaps)
+        gap_indices = {get_index(gap) for gap in self.moltype.gaps}
         gap_index = get_index(self.moltype.gap)
 
         trim_length = len(self)
@@ -4065,7 +4074,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                         )
                     break
 
-            if nondegen_index is None or nondegen_index - 3 < 0:
+            if nondegen_index is None or nondegen_index < 3:
                 continue
 
             # slice last three valid positions and see if stop
@@ -4081,11 +4090,12 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         # this is an ugly hack for rather odd standard behaviour
         # we find the last alignment column to have not just gap chars
         # and trim up to that
+        i = 0
         for i in range(len(result) - 1, -1, -1):
             col = set(result.array_seqs[:, i])
             if not col <= gap_indices:
                 break
-        if i != len(result):
+        if len(result) != i:
             result = result[: i + 1]
 
         return result

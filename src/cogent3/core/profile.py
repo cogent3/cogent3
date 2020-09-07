@@ -30,11 +30,7 @@ class _MotifNumberArray(DictArray):
         # todo validate that motifs are strings and row_indices are ints or
         # strings
         # todo change row_indices argument name to row_keys
-        if isinstance(data, numpy.ndarray):
-            some_data = data.any()
-        else:
-            some_data = any(data)
-
+        some_data = data.any() if isinstance(data, numpy.ndarray) else any(data)
         if not some_data or len(data) == 0:
             raise ValueError("Must provide data")
 
@@ -150,7 +146,7 @@ class _MotifNumberArray(DictArray):
 
 def _get_ordered_motifs_from_tabular(data, index=1):
     """backend motif extraction function for motif_counts, motif_freqs and pssm
-       assumed index 1 are motif strings; motif returned in order of occurrence"""
+    assumed index 1 are motif strings; motif returned in order of occurrence"""
 
     chars = []
     for entry in data:
@@ -177,7 +173,7 @@ def make_motif_counts_from_tabular(tab_data):
     ----------
     tab_data : numpy array
        tab_data is numpy array, with tab_data.shape must be (n, 3)
-   """
+    """
     motif = _get_ordered_motifs_from_tabular(tab_data)
     data = _get_data_from_tabular(tab_data, motif, "int")
     return MotifCountsArray(data, motif)
@@ -269,10 +265,10 @@ class MotifFreqsArray(_MotifNumberArray):
 
     def entropy_terms(self):
         """Returns
-           -------
-           entropies : array
-                Has same dimension as self.array with
-                safe log operation applied.
+        -------
+        entropies : array
+             Has same dimension as self.array with
+             safe log operation applied.
         """
         entropies = safe_p_log_p(self.array)
         return self.template.wrap(entropies)

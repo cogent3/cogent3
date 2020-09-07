@@ -91,8 +91,7 @@ class CenterOfMassTests(TestCase):
         self.assertRaises(ValueError, com2, self.simple, weights)  # not aligned
 
     def test_center_of_mass(self):
-        """center_of_mass should make right choice between functional methods
-        """
+        """center_of_mass should make right choice between functional methods"""
         com = center_of_mass
         com1 = center_of_mass_one_array
         com2 = center_of_mass_two_array

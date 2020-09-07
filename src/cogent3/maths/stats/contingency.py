@@ -49,15 +49,15 @@ def calc_expected(observed, pseudo_count=0):
         observed = observed.copy()
         observed += pseudo_count
 
-    num_dim = len(observed.shape)
-    if num_dim == 2:
+    if observed.ndim == 1 or (observed.ndim == 2 and 1 in observed.shape):
+        expecteds = zeros(observed.shape, dtype=float)
+        expecteds.fill(observed.mean())
+    elif observed.ndim == 2:
         rsum = observed.sum(axis=1)
         rfreq = rsum / rsum.sum()
         csum = observed.sum(axis=0)
         cfreq = csum / csum.sum()
         expecteds = outer(rfreq, cfreq) * rsum.sum()
-    elif num_dim == 1:
-        expecteds = [observed.mean()] * observed.shape[0]
     else:
         raise NotImplementedError("too many dimensions")
     return expecteds
@@ -116,18 +116,19 @@ def estimate_pval(observed, stat_func, num_reps=1000):
     return num_gt / num_reps
 
 
-class _format_row_cell:
-    """class for handling html formatting of rows"""
+def _astype(data, dtype):
+    """returns numpy array of correct type, raises TypeError if fails"""
+    converted = data.astype(dtype)
+    try:
+        assert_allclose(
+            converted.tolist(),
+            data.tolist(),
+        )
+    except AssertionError:
+        msg = f"could not reliably be converted to {dtype} from dtype={data.dtype}"
+        raise TypeError(msg)
 
-    def __init__(self, row_labels):
-        self.row_labels = row_labels
-
-    def __call__(self, val, row, col):
-        if val in self.row_labels:
-            result = f"<td><b>{val}<b></td>"
-        else:
-            result = f'<td style="text-align:right">{val}</td>'
-        return result
+    return converted
 
 
 class CategoryCounts:
@@ -142,7 +143,8 @@ class CategoryCounts:
         """Parameters
         -------------
         observed
-            a DictArray instance, or something that can be converted to one
+            a DictArray instance, or something that can be converted to one.
+            Values must be integers.
         expected
             provide in the case where you know the prior proportions, otherwise
             calculated from marginal frequencies
@@ -150,11 +152,15 @@ class CategoryCounts:
         if not isinstance(observed, DictArray):
             observed = DictArray(observed)
 
+        # make sure values are int
+        observed.array = _astype(observed.array, int)
+
         if observed.array.sum() == 0:
             raise ValueError("at least one value must be > 0")
 
         if expected:
             expected = observed.template.wrap(expected)
+            expected.array = _astype(expected.array, float)
 
         if observed.array.min() < 0 or (expected and expected.array.min() < 0):
             raise ValueError("negative values encountered")
@@ -185,7 +191,8 @@ class CategoryCounts:
         if ndim == 1:
             result = obs.appended("", exp, res, title=None)
             if html:
-                result = result._repr_html_(include_shape=False)
+                result.set_repr_policy(show_shape=False)
+                result = result._repr_html_()
             else:
                 result, _, _ = result._get_repr_()
                 result = str(result)
@@ -194,7 +201,8 @@ class CategoryCounts:
         result = []
         for t in (obs, exp, res):
             if html:
-                t = t._repr_html_(include_shape=False)
+                t.set_repr_policy(show_shape=False)
+                t = t._repr_html_()
             else:
                 t, _, _ = t._get_repr_()
                 t = str(t)
@@ -404,10 +412,11 @@ class TestResult:
 
     def _repr_html_(self):
         table = self._get_repr_()
+        table.set_repr_policy(show_shape=False)
         components = CategoryCounts(
             self.observed.to_dict(), expected=self.expected.to_dict()
         )
-        html = [table._repr_html_(include_shape=False)]
+        html = [table._repr_html_()]
         html.append(components._repr_html_())
         return "\n".join(html)
 

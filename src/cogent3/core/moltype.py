@@ -58,7 +58,6 @@ from cogent3.core.alphabet import (
     Enumeration,
     _make_complement_array,
 )
-from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE
 from cogent3.core.genetic_code import get_code
 from cogent3.core.sequence import (
     ABSequence,
@@ -1281,7 +1280,7 @@ class MolType(object):
 
     def get_css_style(self, colors=None, font_size=12, font_family="Lucida Console"):
         """returns string of CSS classes and {character: <CSS class name>, ...}
-        
+
         Parameters
         ----------
         colors
@@ -1417,7 +1416,7 @@ class _CodonAlphabet(Alphabet):
         return self._gc
 
 
-def CodonAlphabet(gc=DEFAULT_GENETIC_CODE, include_stop_codons=False):
+def CodonAlphabet(gc=1, include_stop_codons=False):
     if isinstance(gc, (int, str)):
         gc = get_code(gc)
     if include_stop_codons:

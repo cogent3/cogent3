@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
+import os
 import re
+import warnings
 import zipfile
 
 from bz2 import open as bzip_open
@@ -59,9 +61,9 @@ def _adjusted_gt_minprob_vector(probs, minprob):
 
 def adjusted_gt_minprob(probs, minprob=1e-6):
     """returns numpy array of probs scaled such that minimum is > minval
-    
+
     result sums to 1 within machine precision
-    
+
     if 2D array, assumes row-order"""
     assert 0 <= minprob < 1, "invalid minval %s" % minprob
     probs = array(probs, dtype=float64)
@@ -79,7 +81,7 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
 
 def adjusted_within_bounds(value, lower, upper, eps=1e-7, action="warn"):
     """returns value such that lower <= value <= upper
-    
+
     Parameters
     ----------
     value
@@ -926,8 +928,7 @@ def NestedSplitter(
 
 
 def remove_files(list_of_filepaths, error_on_missing=True):
-    """Remove list of filepaths, optionally raising an error if any are missing
-    """
+    """Remove list of filepaths, optionally raising an error if any are missing"""
     missing = []
     for fp in list_of_filepaths:
         try:
@@ -1106,3 +1107,44 @@ def ascontiguousarray(source_array, dtype=None):
     if source_array is not None:
         return numpy.ascontiguousarray(source_array, dtype=dtype)
     return source_array
+
+
+def get_setting_from_environ(environ_var, params_types):
+    """extract settings from environment variable
+
+    Parameters
+    ----------
+    environ_var : str
+        name of an environment variable
+    params_types : dict
+        {param name: type}, values will be cast to type
+
+    Returns
+    -------
+    dict
+
+    Notes
+    -----
+    settings must of form 'param_name1=param_val,param_name2=param_val2'
+    """
+    var = os.environ.get(environ_var, None)
+    if var is None:
+        return {}
+
+    var = var.split(",")
+    result = {}
+    for item in var:
+        item = item.split("=")
+        if len(item) != 2 or item[0] not in params_types:
+            continue
+
+        name, val = item
+        try:
+            val = params_types[name](val)
+            result[name] = val
+        except Exception:
+            warnings.warn(
+                f"could not cast {name}={val} to type {params_types[name]}, skipping"
+            )
+
+    return result

@@ -175,7 +175,11 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
             self.indexes = numpy.ascontiguousarray(self.indexes)
         if not result.flags["C_CONTIGUOUS"]:
             result = numpy.ascontiguousarray(result)
-        return likelihood_tree.sum_input_likelihoods(self.indexes, result, likelihoods,)
+        return likelihood_tree.sum_input_likelihoods(
+            self.indexes,
+            result,
+            likelihoods,
+        )
 
     # For root
 

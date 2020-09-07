@@ -204,11 +204,11 @@ class Hybrid(_PeriodEstimator):
         return_all=False,
     ):
         """Arguments:
-            - length: the length of signals to be encountered
-            - period: specified period at which to return the signal
-            - llim, ulim: the smallest, largest periods to evaluate
-            - return_all: whether to return the hybrid, ipdft, autocorr
-              statistics as a numpy array, or just the hybrid statistic
+        - length: the length of signals to be encountered
+        - period: specified period at which to return the signal
+        - llim, ulim: the smallest, largest periods to evaluate
+        - return_all: whether to return the hybrid, ipdft, autocorr
+          statistics as a numpy array, or just the hybrid statistic
         """
         super(Hybrid, self).__init__(length, llim, ulim, period)
         self.ipdft = Ipdft(length, llim, ulim, period, abs_ft_sig)

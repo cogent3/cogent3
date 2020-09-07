@@ -41,8 +41,8 @@ _compression = re.compile(r"\.(gz|bz2)$")
 
 def FromFilenameParser(filename, format=None, **kw):
     """Arguments:
-            - filename: name of the sequence alignment file
-            - format: the multiple sequence file format
+    - filename: name of the sequence alignment file
+    - format: the multiple sequence file format
     """
     format = format_from_filename(filename, format)
     f = open_(filename, newline=None, mode="rt")

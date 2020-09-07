@@ -297,7 +297,7 @@ class NcbiTaxonNodeTests(TestCase):
 
     Note: nested_species is explicitly designed to test the case where the nodes
     file does _not_ contain the root, and where the id of the de facto
-    root is not 1, to make sure there's nothing special about a node 
+    root is not 1, to make sure there's nothing special about a node
     called 'root' or with id 1.
     """
 

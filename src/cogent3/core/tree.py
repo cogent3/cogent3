@@ -1297,7 +1297,7 @@ class TreeNode(object):
             return new_tree
 
     def _edgecount(self, parent, cache):
-        """"The number of edges beyond 'parent' in the direction of 'self',
+        """ "The number of edges beyond 'parent' in the direction of 'self',
         unrooted"""
         neighbours = self._getNeighboursExcept(parent)
         key = (id(parent), id(self))
@@ -1412,8 +1412,7 @@ class TreeNode(object):
         return "\n".join(lines)
 
     def _getXmlLines(self, indent=0, parent_params=None):
-        """Return the xml strings for this edge.
-        """
+        """Return the xml strings for this edge."""
         params = {}
         if parent_params is not None:
             params.update(parent_params)
@@ -1493,8 +1492,7 @@ class TreeNode(object):
         return [node.name for node in nodes]
 
     def get_tip_names(self, includeself=False):
-        """return the list of the names of all tips contained by this edge
-        """
+        """return the list of the names of all tips contained by this edge"""
         return self.get_node_names(includeself, tipsonly=True)
 
     def get_edge_vector(self, include_root=True):
@@ -2003,8 +2001,7 @@ class PhyloNode(TreeNode):
         return self is other or me.same_shape(them)
 
     def unrooted(self):
-        """A tree with at least 3 children at the root.
-        """
+        """A tree with at least 3 children at the root."""
         constructor = self._default_tree_constructor()
         need_to_expand = len(self.children) < 3
         new_children = []
@@ -2038,7 +2035,7 @@ class PhyloNode(TreeNode):
         return tip.parent.unrooted_deepcopy()
 
     def root_at_midpoint(self):
-        """ return a new tree rooted at midpoint of the two tips farthest apart
+        """return a new tree rooted at midpoint of the two tips farthest apart
 
         this fn doesn't preserve the internal node naming or structure,
         but does keep tip to tip distances correct.  uses unrooted_deepcopy()

@@ -53,8 +53,7 @@ def fix_rounding_error(x):
 
 
 def log_one_minus(x):
-    """Returns natural log of (1-x). Useful for probability calculations.
-    """
+    """Returns natural log of (1-x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
     else:
@@ -62,8 +61,7 @@ def log_one_minus(x):
 
 
 def one_minus_exp(x):
-    """Returns 1-exp(x). Useful for probability calculations.
-    """
+    """Returns 1-exp(x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
     else:

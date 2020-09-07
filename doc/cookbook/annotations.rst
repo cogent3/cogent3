@@ -19,7 +19,6 @@ Automated introduction from reading genbank files
 We load a sample genbank file with plenty of features and grab the CDS features.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.genbank import RichGenbankParser
 
@@ -28,7 +27,6 @@ We load a sample genbank file with plenty of features and grab the CDS features.
         print(accession)
 
 .. jupyter-execute::
-    :linenos:
 
     cds = seq.get_annotations_matching("CDS")
     print(cds)
@@ -39,7 +37,6 @@ Customising annotation construction from reading a genbank file
 You can write your own code to construct annotation objects. One reason you might do this is some genbank files do not have a ``/gene`` tag on gene related features, instead only possessing a ``/locus_tag``. For illustrating the approach we only create annotations for ``CDS`` features. We write a custom callback function that uses the ``locus_tag`` as the ``Feature`` name.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.core.annotation import Feature
 
@@ -64,7 +61,6 @@ Creating directly on a sequence
 """""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
     from cogent3.core.annotation import Feature
@@ -85,7 +81,6 @@ Via
 ++++++++++++++++++
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
     from cogent3.core.annotation import Feature
@@ -100,7 +95,6 @@ Via
 +++++++++++++++
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -115,7 +109,6 @@ Adding as a series or item-wise
 """""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -131,7 +124,6 @@ Taking the union of annotations
 Construct a pseudo-feature (``cds``) that's a union of other features (``exon1``, ``exon2``, ``exon3``).
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -149,7 +141,6 @@ Getting annotation coordinates
 These are useful for doing custom things, e.g. you could construct intron features using the below.
 
 .. jupyter-execute::
-    :linenos:
 
     cds.get_coordinates()
 
@@ -159,7 +150,6 @@ Annotations have shadows
 A shadow is a span representing everything but the annotation.
 
 .. jupyter-execute::
-    :linenos:
 
     not_cds = cds.get_shadow()
     not_cds
@@ -167,7 +157,6 @@ A shadow is a span representing everything but the annotation.
 Compare to the coordinates of the original.
 
 .. jupyter-execute::
-    :linenos:
 
     cds
 
@@ -177,7 +166,6 @@ Adding to a sequence member of an alignment
 The following annotation is directly applied onto the sequence and so is in ungapped sequence coordinates.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -192,7 +180,6 @@ Adding to an alignment
 We add an annotation directly onto an alignment. In this example we add a ``Variable`` that can be displayed as a red line on a drawing. The resulting annotation (``red_data`` here) is in **alignment coordinates**!
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.core.annotation import Variable
 
@@ -206,7 +193,6 @@ Slicing sequences and alignments by annotations
 By a feature or coordinates returns same sequence span
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -221,7 +207,6 @@ By a feature or coordinates returns same sequence span
 Using the annotation object ``get_slice`` method returns the same thing.
 
 .. jupyter-execute::
-    :linenos:
 
     s1[exon2]
     exon2.get_slice()
@@ -230,7 +215,6 @@ Slicing by pseudo-feature or feature series
 """""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -247,7 +231,6 @@ Slicing by pseudo-feature or feature series
 .. warning:: Slices are applied in order!
 
 .. jupyter-execute::
-    :linenos:
 
     print(s1)
     print(s1[exon1, exon2, exon3])
@@ -259,7 +242,6 @@ Slice series must not be overlapping
 """"""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
     :raises: ValueError
 
     s1[1:10, 9:15]
@@ -268,7 +250,6 @@ Slice series must not be overlapping
 But ``get_region_covering_all`` resolves this, ensuring no overlaps.
 
 .. jupyter-execute::
-    :linenos:
 
     print(s1.get_region_covering_all([exon3, exon3]).get_slice())
 
@@ -276,7 +257,6 @@ You can slice an annotation itself
 """"""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     print(s1[exon2])
     ex2_start = exon2[0:3]
@@ -290,7 +270,6 @@ Sequence vs Alignment slicing
 You can't slice an alignment using an annotation from a sequence.
 
 .. jupyter-execute::
-    :linenos:
     :raises: ValueError
 
     aln1[seq_exon]
@@ -301,7 +280,6 @@ Copying annotations
 You can copy annotations onto sequences with the same name, even if the length differs
 
 .. jupyter-execute::
-    :linenos:
 
     aln2 = make_aligned_seqs(
         data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
@@ -315,7 +293,6 @@ You can copy annotations onto sequences with the same name, even if the length d
 but if the feature lies outside the sequence being copied to, you get a lost span
 
 .. jupyter-execute::
-    :linenos:
 
     aln2 = make_aligned_seqs(data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False)
     seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
@@ -328,7 +305,6 @@ but if the feature lies outside the sequence being copied to, you get a lost spa
 You can copy to a sequence with a different name, in a different alignment if the feature lies within the length
 
 .. jupyter-execute::
-    :linenos:
 
     # new test
     aln2 = make_aligned_seqs(
@@ -343,7 +319,6 @@ You can copy to a sequence with a different name, in a different alignment if th
 If the sequence is shorter, again you get a lost span.
 
 .. jupyter-execute::
-    :linenos:
 
     aln2 = make_aligned_seqs(
         data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
@@ -360,7 +335,6 @@ Querying
 You need to get a corresponding annotation projected into alignment coordinates via a query.
 
 .. jupyter-execute::
-    :linenos:
 
     aln_exon = aln1.get_annotations_from_any_seq("exon")
     print(aln1[aln_exon])
@@ -369,7 +343,6 @@ Querying produces objects only valid for their source
 """""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
     :raises: ValueError
 
     cpgsite2 = s2.get_annotations_matching("cpgsite")
@@ -383,7 +356,6 @@ Querying for absent annotation
 You get back an empty list, and slicing with this returns an empty sequence.
 
 .. jupyter-execute::
-    :linenos:
 
     # this test is new
     dont_exist = s2.get_annotations_matching("dont_exist")
@@ -396,7 +368,6 @@ Querying features that span gaps in alignments
 If you query for a feature from a sequence, it's alignment coordinates may be discontinuous.
 
 .. jupyter-execute::
-    :linenos:
 
     aln3 = make_aligned_seqs(
         data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]], array_align=False
@@ -415,7 +386,6 @@ If you query for a feature from a sequence, it's alignment coordinates may be di
 To get positions spanned by a feature, including gaps, use ``as_one_span``.
 
 .. jupyter-execute::
-    :linenos:
 
     unified = aln_exons[0].as_one_span()
     print(aln3[unified])
@@ -426,7 +396,6 @@ Behaviour of annotations on nucleic acid sequences
 Reverse complementing a sequence **does not** reverse annotations, that is they retain the reference to the frame for which they were defined.
 
 .. jupyter-execute::
-    :linenos:
 
     plus = DNA.make_seq("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG")
     plus_rpt = plus.add_feature("blah", "a", [(5, 15), (25, 28)])
@@ -442,7 +411,6 @@ Masking annotated regions
 We mask the CDS regions.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.genbank import RichGenbankParser
 
@@ -459,7 +427,6 @@ Masking annotated regions on alignments
 We mask exon's on an alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -474,7 +441,6 @@ We mask exon's on an alignment.
 These also persist through reverse complement operations.
 
 .. jupyter-execute::
-    :linenos:
 
     rc = aln.rc()
     print(rc)
@@ -484,7 +450,6 @@ You can take mask of the shadow
 """""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -501,7 +466,6 @@ What features of a certain type are available?
 """"""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 
@@ -517,7 +481,6 @@ Getting all features of a type, or everything but that type
 The annotation methods ``get_region_covering_all`` and ``get_shadow`` can be used to grab all the coding sequences or non-coding sequences in a ``DnaSequence`` object.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.genbank import RichGenbankParser
 
@@ -537,7 +500,6 @@ Getting sequence features when you have an alignment object
 Sequence features can be accessed via a containing ``Alignment``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -558,7 +520,6 @@ We can display annotations on sequences, writing to file.
 We first make a sequence and add some annotations.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
 

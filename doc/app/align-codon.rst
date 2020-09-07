@@ -9,7 +9,6 @@ Using a codon model
 We load the unaligned sequences we will use in our examples.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app import io
 
@@ -22,7 +21,6 @@ Codon alignment with default settings
 The default settings will result in estimation of a guide tree (using percent identity between the sequences). The default "codon" model is MG94HKY.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app.align import progressive_align
 
@@ -33,7 +31,6 @@ The default settings will result in estimation of a guide tree (using percent id
 The parameters used to construct the alignment, including the guide tree and substitution model, are record in the ``info`` attribute.
 
 .. jupyter-execute::
-    :linenos:
 
     aligned.info
 
@@ -47,7 +44,6 @@ The distance measures available are the same as for the nucleotide case (percent
 .. note:: An estimated guide tree has its branch lengths scaled so they are consistent with usage in a codon model.
 
 .. jupyter-execute::
-    :linenos:
 
     nt_aligner = progressive_align("codon", distance="paralinear")
     aligned = nt_aligner(seqs)
@@ -59,7 +55,6 @@ Providing a guide tree
 .. note:: The guide tree needs to have branch lengths, otherwise a ``ValueError`` is raised.
 
 .. jupyter-execute::
-    :linenos:
 
     tree = "((Chimp:0.001,Human:0.001):0.0076,Macaque:0.01,((Rat:0.01,Mouse:0.01):0.02,Mouse_Lemur:0.02):0.01)"
     codon_aligner = progressive_align("codon", guide_tree=tree)
@@ -70,7 +65,6 @@ Specifying the gap parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     codon_aligner = progressive_align(
         "codon", guide_tree=tree, indel_rate=0.001, indel_length=0.01
@@ -84,7 +78,6 @@ Specifying the substitution model and parameters
 Any codon substitution model can be used. (See ``cogent3.available_models()``.) If you provide parameter values, those must be consistent with the model definition.
 
 .. jupyter-execute::
-    :linenos:
 
     codon_aligner = progressive_align(
         "CNFHKY", guide_tree=tree, param_vals=dict(omega=0.1, kappa=3)
@@ -96,6 +89,5 @@ Alignment settings and file provenance are recorded in the ``info`` attribute
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     aligned.info

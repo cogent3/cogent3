@@ -251,7 +251,7 @@ class functionTests(TestCase):
         """tests dist_pearson
 
         tests inputs of empty mtx, zeros, mtx compared with calcs done
-        by hand, and an example from 
+        by hand, and an example from
         http://davidmlane.com/hyperstat/A56626.html
         """
 

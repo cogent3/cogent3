@@ -12,7 +12,6 @@ Creating a ProteinSequence with a name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import PROTEIN
 
@@ -24,7 +23,6 @@ Converting a DNA sequence string to protein sequence string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.core.genetic_code import DEFAULT as standard_code
 
@@ -36,7 +34,6 @@ Loading protein sequences from a Phylip file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 

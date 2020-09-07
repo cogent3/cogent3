@@ -97,7 +97,12 @@ def _callback(callback, row, num_columns=None):
 
 
 def formatted_array(
-    series, title="", precision=4, format_spec=None, missing_data="", center=False,
+    series,
+    title="",
+    precision=4,
+    format_spec=None,
+    missing_data="",
+    center=False,
 ):
     """converts elements in a numpy array series to an equal length string.
 
@@ -454,7 +459,7 @@ class Columns(MutableMapping):
 
     @property
     def index_name(self):
-        # check
+        """column name whose values can be used to index table rows"""
         return self._index_name
 
     @index_name.setter
@@ -645,7 +650,7 @@ class Table:
         self._column_templates = column_templates or {}
         # define the repr() display policy
         random = 0
-        self._repr_policy = dict(head=None, tail=None, random=random)
+        self._repr_policy = dict(head=None, tail=None, random=random, show_shape=True)
         self.format = format
         self._missing_data = missing_data
 
@@ -724,6 +729,8 @@ class Table:
             return "0 rows x 0 columns"
 
         table, shape_info, unset_columns = self._get_repr_()
+        if not self._repr_policy["show_shape"]:
+            shape_info = ""
         result = (
             "\n".join([str(table), shape_info, unset_columns])
             if unset_columns
@@ -794,7 +801,7 @@ class Table:
         table._column_templates.update(self._column_templates)
         return table, shape_info, unset_columns
 
-    def _repr_html_(self, include_shape=True):
+    def _repr_html_(self):
         """returns html, used by Jupyter"""
         base_colour = "rgba(161, 195, 209, {alpha})"
         colour = base_colour.format(alpha=0.25)
@@ -813,7 +820,7 @@ class Table:
             if unset_columns
             else f"<p>{shape_info}</p>"
         )
-        if not include_shape:
+        if not self._repr_policy["show_shape"]:
             shape_info = ""
 
         if self.shape == (0, 0):
@@ -901,7 +908,7 @@ class Table:
 
         self._persistent_attrs["space"] = value
 
-    def set_repr_policy(self, head=None, tail=None, random=0):
+    def set_repr_policy(self, head=None, tail=None, random=0, show_shape=True):
         """specify policy for repr(self)
 
         Parameters
@@ -910,15 +917,19 @@ class Table:
         - head: number of top rows to included in represented display
         - tail: number of bottom rows to included in represented display
         - random: number of rows to sample randomly (supercedes head/tail)
+        - show_shape: boolean to determine if table shape info is displayed
         """
         if not any([head, tail, random]):
+            self._repr_policy["show_shape"] = show_shape
             return
         if random:
             assert (
                 type(random) == int and random > 0
             ), "random must be a positive integer"
             head = tail = None
-        self._repr_policy = dict(head=head, tail=tail, random=random)
+        self._repr_policy = dict(
+            head=head, tail=tail, random=random, show_shape=show_shape
+        )
 
     @property
     def format(self):
@@ -964,7 +975,10 @@ class Table:
         """displays top nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
-        self._repr_policy = dict(head=nrows, tail=None, random=None)
+        show_shape = self._repr_policy["show_shape"]
+        self._repr_policy = dict(
+            head=nrows, tail=None, random=None, show_shape=show_shape
+        )
         display(self)
         self._repr_policy = repr_policy
 
@@ -972,12 +986,16 @@ class Table:
         """displays bottom nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
-        self._repr_policy = dict(head=None, tail=nrows, random=None)
+        show_shape = self._repr_policy["show_shape"]
+        self._repr_policy = dict(
+            head=None, tail=nrows, random=None, show_shape=show_shape
+        )
         display(self)
         self._repr_policy = repr_policy
 
     @property
     def index_name(self):
+        """column name whose values can be used to index table rows"""
         if self._index_name is not None and not self._template:
             self.columns.index_name = self._index_name
             self.index_name = self._index_name
@@ -1033,7 +1051,12 @@ class Table:
         return joined
 
     def inner_join(
-        self, other, columns_self=None, columns_other=None, use_index=True, **kwargs,
+        self,
+        other,
+        columns_self=None,
+        columns_other=None,
+        use_index=True,
+        **kwargs,
     ):
         """inner join of self with other
 
@@ -1136,7 +1159,12 @@ class Table:
         return joined
 
     def joined(
-        self, other, columns_self=None, columns_other=None, inner_join=True, **kwargs,
+        self,
+        other,
+        columns_self=None,
+        columns_other=None,
+        inner_join=True,
+        **kwargs,
     ):
         """returns a new table containing the join of this table and
         other. See docstring for inner_join, or cross_join
@@ -1342,9 +1370,21 @@ class Table:
             result.columns[c] = numpy.array(raw_data[c], dtype=dtypes[c])
         return result
 
-    def get_columns(self, columns):
-        """Return a Table with just columns"""
-        if self.index_name:
+    def get_columns(self, columns, with_index=True):
+        """select columns from self with index_name unless excluded
+
+        Parameters
+        ----------
+        columns : string or sequence of strings
+            names of columns
+        with_index : bool
+            If index_name is set, includes with columns.
+
+        Returns
+        -------
+        Table
+        """
+        if self.index_name and with_index:
             columns = [self.index_name] + [c for c in columns if c != self.index_name]
         return self[:, columns]
 
@@ -2037,6 +2077,47 @@ class Table:
         draw.traces.append(tab)
         draw.layout |= default_layout
         return draw
+
+    def to_contingency(self, columns):
+        """construct object that can be used for statistical tests
+
+        Parameters
+        ----------
+        columns
+            columns to include. These correspond to contingency column
+            labels. The row labels come from values under the index_name
+            column.
+
+        Returns
+        -------
+        CategoryCounts, an object for performing statistical tests on
+        contingency tables.
+
+        Notes
+        -----
+        Only applies to cases where an index_name is defined. The selected columns
+        must be int types and represent the counts of corresponding categories.
+        """
+        from cogent3.maths.stats.contingency import CategoryCounts
+        from cogent3.util.dict_array import DictArrayTemplate
+
+        if self.index_name is None:
+            raise ValueError(f"requires index_name be set")
+
+        columns = [columns] if isinstance(columns, str) else columns
+        if not set(columns) <= set(self.header):
+            raise ValueError(f"unknown columns {columns}")
+
+        row_cats = self.columns[self.index_name]
+        # must be convertible to int
+        for col in columns:
+            if "int" not in self.columns[col].dtype.name:
+                raise TypeError(f"{col} is not of int type")
+
+        matrix = self.get_columns(columns, with_index=False).array.astype(int)
+
+        data = DictArrayTemplate(row_cats, columns).wrap(matrix)
+        return CategoryCounts(data)
 
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.

@@ -12,7 +12,6 @@ Loading a tree from a file and visualizing it with ``ascii_art()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -23,7 +22,6 @@ Writing a tree to a file
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -34,7 +32,6 @@ Getting the individual nodes of a tree by name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -43,14 +40,12 @@ Getting the individual nodes of a tree by name
     names[:4]
 
 .. jupyter-execute::
-    :linenos:
 
     names[4:]
     names_nodes = tr.get_nodes_dict()
     names_nodes["Human"]
 
 .. jupyter-execute::
-    :linenos:
 
     tr.get_node_matching_name("Mouse")
 
@@ -58,7 +53,6 @@ Getting the name of a node (or a tree)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -67,7 +61,6 @@ Getting the name of a node (or a tree)
     tr.name
 
 .. jupyter-execute::
-    :linenos:
 
     hu.name
 
@@ -75,7 +68,6 @@ The object type of a tree and its nodes is the same
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -85,7 +77,6 @@ The object type of a tree and its nodes is the same
     type(hu)
 
 .. jupyter-execute::
-    :linenos:
 
     type(tr)
 
@@ -95,7 +86,6 @@ Working with the nodes of a tree
 Get all the nodes, tips and edges
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -107,7 +97,6 @@ Get all the nodes, tips and edges
 only the terminal nodes (tips)
 
 .. jupyter-execute::
-    :linenos:
 
     for n in tr.iter_tips():
         print(n)
@@ -115,7 +104,6 @@ only the terminal nodes (tips)
 for internal nodes (edges) we can use Newick format to simplify the output
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -127,7 +115,6 @@ Getting the path between two tips or edges (connecting edges)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -140,7 +127,6 @@ Getting the distance between two nodes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -155,7 +141,6 @@ Getting the last common ancestor (LCA) for two nodes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -167,7 +152,6 @@ Getting the last common ancestor (LCA) for two nodes
     lca
 
 .. jupyter-execute::
-    :linenos:
 
     type(lca)
 
@@ -175,7 +159,6 @@ Getting all the ancestors for a node
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -188,7 +171,6 @@ Getting all the children for a node
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -202,7 +184,6 @@ Getting all the distances for a tree
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -212,7 +193,6 @@ Getting all the distances for a tree
 We also show how to select a subset of distances involving just one species.
 
 .. jupyter-execute::
-    :linenos:
 
     human_dists = [names for names in dists if "Human" in names]
     for dist in human_dists:
@@ -222,7 +202,6 @@ Getting the two nodes that are farthest apart
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -233,7 +212,6 @@ Get the nodes within a given distance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -250,7 +228,6 @@ At a named node
 """""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -261,7 +238,6 @@ At the midpoint
 """""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -269,7 +245,6 @@ At the midpoint
     print(tr.root_at_midpoint().ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     print(tr.ascii_art())
 
@@ -277,7 +252,6 @@ Near a given tip
 """"""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -285,7 +259,6 @@ Near a given tip
     print(tr.ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     print(tr.rooted_with_tip("Mouse").ascii_art())
 
@@ -296,7 +269,6 @@ Newick format
 """""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -304,7 +276,6 @@ Newick format
     tr.get_newick()
 
 .. jupyter-execute::
-    :linenos:
 
     tr.get_newick(with_distances=True)
 
@@ -312,7 +283,6 @@ XML format
 """"""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -327,7 +297,6 @@ Tree traversal
 Here is the example tree for reference:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -338,7 +307,6 @@ Preorder
 """"""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -350,7 +318,6 @@ Postorder
 """""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -365,7 +332,6 @@ One way to do it
 """"""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -396,7 +362,6 @@ Remove internal nodes with only one child. Create new connections
 and branch lengths (if tree is a PhyloNode) to reflect the change.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_tree
 
@@ -405,13 +370,11 @@ and branch lengths (if tree is a PhyloNode) to reflect the change.
     print(simple_tree.ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     simple_tree.prune()
     print(simple_tree.ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     print(simple_tree)
 
@@ -419,7 +382,6 @@ Create a full unrooted copy of the tree
 """""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -427,7 +389,6 @@ Create a full unrooted copy of the tree
     print(tr1.get_newick())
 
 .. jupyter-execute::
-    :linenos:
 
     tr2 = tr1.unrooted_deepcopy()
     print(tr2.get_newick())
@@ -438,7 +399,6 @@ Transform tree into a bifurcating tree
 Add internal nodes so that every node has 2 or fewer children.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -447,7 +407,6 @@ Add internal nodes so that every node has 2 or fewer children.
     print(tr.ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     print(tr.bifurcating().ascii_art())
 
@@ -461,7 +420,6 @@ stems for model parameterisation should be done using the
 "outgroup_name" argument.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -469,7 +427,6 @@ stems for model parameterisation should be done using the
     print(tr.ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     print(tr.balanced().ascii_art())
 
@@ -479,7 +436,6 @@ Test two trees for same topology
 Branch lengths don't matter.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -494,7 +450,6 @@ Sets each node's "TipDistance" attribute to be
 the distance from that node to its most distant tip.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -502,7 +457,6 @@ the distance from that node to its most distant tip.
     print(tr.ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     tr.set_tip_distances()
     for t in tr.preorder():
@@ -512,7 +466,6 @@ Scale branch lengths in place to integers for ascii output
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -520,7 +473,6 @@ Scale branch lengths in place to integers for ascii output
     print(tr)
 
 .. jupyter-execute::
-    :linenos:
 
     tr.scale_branch_lengths()
     print(tr)
@@ -531,7 +483,6 @@ Get a distance matrix between all pairs of tips
 and a list of the tip nodes.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 
@@ -552,7 +503,6 @@ means that the Pearson's correlation was perfectly bad (-1).
 Note: automatically strips out the names that don't match.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
 

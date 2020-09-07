@@ -154,7 +154,8 @@ class model_result(generic_result):
 
     def _repr_html_(self):
         table = self._get_repr_data_()
-        return table._repr_html_(include_shape=False)
+        table.set_repr_policy(show_shape=False)
+        return table._repr_html_()
 
     def __repr__(self):
         table = self._get_repr_data_()
@@ -411,7 +412,8 @@ class model_collection_result(generic_result):
 
     def _repr_html_(self):
         table = self._get_repr_data_()
-        return table._repr_html_(include_shape=False)
+        table.set_repr_policy(show_shape=False)
+        return table._repr_html_()
 
     def __repr__(self):
         table = self._get_repr_data_()
@@ -520,7 +522,8 @@ class hypothesis_result(model_collection_result):
 
     def _repr_html_(self):
         stats, table = self._get_repr_data_()
-        result = [t._repr_html_(include_shape=False) for t in (stats, table)]
+        table.set_repr_policy(show_shape=False)
+        result = [t._repr_html_() for t in (stats, table)]
         return "\n".join(result)
 
     def __repr__(self):

@@ -15,7 +15,6 @@ A common task concerns assessing how substitution model exchangeability paramete
 We start with the standard imports, plus using a canned codon substitution model and then load the sample data set.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import MG94HKY
@@ -26,7 +25,6 @@ We start with the standard imports, plus using a canned codon substitution model
 We construct the substitution model and likelihood function and set the alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     sm = MG94HKY()
     lf = sm.make_likelihood_function(tree, digits=2, space=3)
@@ -35,7 +33,6 @@ We construct the substitution model and likelihood function and set the alignmen
 At this point we have a likelihood function with two exchangeability parameters from the substitution model (``kappa`` the transition/transversion ratio; ``omega`` the nonsynonymous/synonymous ratio) plus branch lengths for all tree edges. To facilitate subsequent discussion I now display the tree
 
 .. jupyter-execute::
-    :linenos:
 
     print(tree.ascii_art())
 
@@ -54,7 +51,6 @@ Specifying a clade
 I'm going to cause ``omega`` to attain a different value for all branches aside from the primate clade and stem (``HowlerMon``, ``Human``, ``edge.0``).
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule(
         "omega",
@@ -75,7 +71,6 @@ This time I'll specify the stem leading to the primates as the edge of interest.
 .. note:: I need to reset the ``lf`` so all edges have the default value again. I'll show this only for this example, but rest assured I'm doing it for all others too.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule("omega", init=1.0)
     lf.set_param_rule(
@@ -99,7 +94,6 @@ I'll specify that both the primates and their stem are to be considered.
     lf.set_param_rule("omega", init=1.0)
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule(
         "omega",
@@ -169,7 +163,6 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
     lf.set_param_rule("omega", init=1.0)
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule(
         "omega",
@@ -185,7 +178,6 @@ I'll demonstrate these cases sequentially as they involve gradually increasing t
 I'll now free up ``omega`` on the primate clade, but making it a single value shared by all primate lineages.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule(
         "omega",
@@ -200,7 +192,6 @@ I'll now free up ``omega`` on the primate clade, but making it a single value sh
 Finally I'll allow all primate edges to have different values of ``omega``.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule(
         "omega",
@@ -215,7 +206,6 @@ Finally I'll allow all primate edges to have different values of ``omega``.
 We now allow ``omega`` to be different on all edges.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule("omega", is_independent=True)
     lf.optimise(local=True, show_progress=False)
