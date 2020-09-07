@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
-import os
 import re
 import zipfile
 
@@ -132,16 +131,16 @@ def bytes_to_string(data):
 
 def zip_open(filename, mode="r", **kwargs):
     """open a zip-compressed file"""
-    base = os.path.basename(filename)
-    zipped_fn, _ = os.path.splitext(base)
-    with ZipFile(filename) as zip:
-        return zip.open(zipped_fn, mode, **kwargs)
+    if mode == "rt":
+        mode = "r"
+    with ZipFile(filename) as zf:
+        return zf.open(zf.namelist()[0], mode, **kwargs)
 
 
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
     filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open, "zip": zip_open}.get(
+    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": zip_open}.get(
         filename.suffix, open
     )
     return op(filename, mode, **kwargs)
