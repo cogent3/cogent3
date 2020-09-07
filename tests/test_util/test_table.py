@@ -170,6 +170,13 @@ class TableTests(TestCase):
         with self.assertRaises(ValueError):
             t.index_name
 
+    def test_table_data_int_keys(self):
+        """correctly construct table from dict with int's as keys"""
+        head = ["", 0, 1]
+        data = {0: [2, 2], 1: [2, 2], "": [0, 1]}
+        t = Table(head, data=data)
+        assert_equal(t.array.tolist(), [[0, 2, 2], [1, 2, 2]])
+
     def test_table_with_empty_string_index(self):
         """handle an index of empty string"""
         d = {

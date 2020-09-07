@@ -586,12 +586,13 @@ class Table:
         if isinstance(data, dict):
             # convert containers like a defaultdict to a standard dict
             data = dict(data)
-
-        try:
-            len(data[0])
-            row_data = True
-        except (TypeError, IndexError, KeyError):
             row_data = False
+        else:
+            try:
+                len(data[0])
+                row_data = True
+            except (TypeError, IndexError, KeyError):
+                row_data = False
 
         if header and row_data:
             hlen = len(header)
