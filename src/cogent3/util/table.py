@@ -764,16 +764,19 @@ class Table:
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
             indices = list(sorted(indices))
-            shape_info = f"Random selection of {rn} rows"
+            shape_info = f"Random selection of {rn} rows from"
         elif all([head, tail]):
             indices = list(range(head)) + list(
                 range(self.shape[0] - tail, self.shape[0])
             )
             ellipsis = "..."
+            shape_info = f"Top {head} and bottom {tail} rows from"
         elif head:
             indices = list(range(head))
+            shape_info = f"Top {head} rows from"
         elif tail:
             indices = list(range(self.shape[0] - tail, self.shape[0]))
+            shape_info = f"Bottom {tail} rows from"
         else:
             indices = list(range(self.shape[0]))
 
@@ -915,10 +918,14 @@ class Table:
         Parameters
         ----------
 
-        - head: number of top rows to included in represented display
-        - tail: number of bottom rows to included in represented display
-        - random: number of rows to sample randomly (supercedes head/tail)
-        - show_shape: boolean to determine if table shape info is displayed
+        head : int
+            number of top rows to included in represented display
+        tail : int
+            number of bottom rows to included in represented display
+        random : int
+            number of rows to sample randomly (supercedes head/tail)
+        show_shape : bool
+            boolean to determine if table shape info is displayed
         """
         if not any([head, tail, random]):
             self._repr_policy["show_shape"] = show_shape
