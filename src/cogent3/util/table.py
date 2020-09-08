@@ -2097,7 +2097,7 @@ class Table:
         draw.layout |= default_layout
         return draw
 
-    def to_categorical(self, columns):
+    def to_categorical(self, columns=None):
         """construct object that can be used for statistical tests
 
         Parameters
@@ -2105,7 +2105,7 @@ class Table:
         columns
             columns to include. These correspond to contingency column
             labels. The row labels come from values under the index_name
-            column.
+            column. Defaults to all columns.
 
         Returns
         -------
@@ -2123,10 +2123,14 @@ class Table:
         if self.index_name is None:
             raise ValueError(f"requires index_name be set")
 
+        columns = list(self.header) if columns is None else columns
+
         columns = [columns] if isinstance(columns, str) else columns
         if not set(columns) <= set(self.header):
             raise ValueError(f"unknown columns {columns}")
 
+        if self.index_name in columns:
+            columns.remove(self.index_name)
         row_cats = self.columns[self.index_name]
         # must be convertible to int
         for col in columns:

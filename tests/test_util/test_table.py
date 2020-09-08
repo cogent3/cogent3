@@ -1669,6 +1669,14 @@ class TableTests(TestCase):
         expected = numpy.array([[mean], [mean]])
         assert_equal(got.expected, expected)
 
+        # works if index_name included
+        got = table.to_categorical(columns=["Ts", "Tv", ""])
+        assert_equal(got.observed, table[:, 1:].array)
+
+        # works if no columns specified
+        got = table.to_categorical()
+        assert_equal(got.observed, table[:, 1:].array)
+
         data = {
             "": numpy.array(["syn", "nsyn"], dtype=object),
             "Ts": numpy.array([31, 58], dtype=object),
