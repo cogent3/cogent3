@@ -361,7 +361,7 @@ If our table consists of counts data, the ``Table`` can convert it into a ``Cate
 
 .. jupyter-execute::
 
-    contingency = table.to_contingency(["Ts", "Tv"])
+    contingency = table.to_categorical(["Ts", "Tv"])
     contingency
 
 .. jupyter-execute::

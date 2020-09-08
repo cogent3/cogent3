@@ -55,8 +55,8 @@ __credits__ = [
 ]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 # SUPPORT2425

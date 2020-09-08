@@ -2090,7 +2090,7 @@ class Table:
         draw.layout |= default_layout
         return draw
 
-    def to_contingency(self, columns):
+    def to_categorical(self, columns):
         """construct object that can be used for statistical tests
 
         Parameters
