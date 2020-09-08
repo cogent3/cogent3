@@ -145,6 +145,54 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         data = numpy.array(data, dtype=int)
         return data
 
+    def to_dictarray(self):
+        """construct fully enumerated dictarray
+
+        Returns
+        -------
+        DictArray with dtype of int
+
+        Notes
+        -----
+        Unobserved combinations have zeros. Result can can be indexed as if it was a numpy array using key values
+        """
+        from itertools import product
+
+        from cogent3.util.dict_array import DictArrayTemplate
+
+        key = next(iter(self))
+        try:
+            ndim = 1 if isinstance(key, str) else len(key)
+        except TypeError:
+            ndim = 1
+
+        if ndim == 1:
+            names = sorted(self)
+            vals = [self[n] for n in names]
+            darr = DictArrayTemplate(names).wrap(vals, dtype=int)
+            return darr
+
+        categories = [sorted(set(labels)) for labels in zip(*self)]
+        shape = tuple(len(c) for c in categories)
+        darr = DictArrayTemplate(*categories).wrap(numpy.zeros(shape, dtype=int))
+        for comb in product(*categories):
+            indices = [[categories[i].index(c)] for i, c in enumerate(comb)]
+            darr.array[indices] = self[comb]
+
+        return darr
+
+    def to_categorical(self):
+        """create CategoryCount object
+
+        Notes
+        -----
+        Supports only 1 or dimensional data
+        """
+        from cogent3.maths.stats.contingency import CategoryCounts
+
+        darr = self.to_dictarray()
+        return CategoryCounts(darr)
+
     def to_table(self, column_names=None, **kwargs):
         """converts to Table
 

@@ -303,6 +303,59 @@ class TestNumber(TestCase):
         self.assertEqual(i02[("C", "G")], 3)
         self.assertEqual(i02[("G", "G")], 6)
 
+    def test_to_dictarray(self):
+        """correctly constructs dict arrays"""
+        d1 = {"T": 87, "C": 81, "A": 142, "expect": [142, 81, 87]}
+        d2 = {
+            ("T", "G"): 87,
+            ("C", "C"): 81,
+            ("A", "G"): 142,
+            ("T", "T"): 58,
+            "expect": [[0, 142, 0], [81, 0, 0], [0, 87, 58]],
+        }
+        d3 = {
+            ("T", "G", "A"): 87,
+            ("C", "C", "C"): 81,
+            ("A", "G", "A"): 142,
+            ("T", "T", "C"): 58,
+            "expect": [
+                [[0, 0], [142, 0], [0, 0]],
+                [[0, 81], [0, 0], [0, 0]],
+                [[0, 0], [87, 0], [0, 58]],
+            ],
+        }
+        for d in (d1, d2, d3):
+            expect = d.pop("expect")
+            cat_count = number.CategoryCounter(d)
+            darr = cat_count.to_dictarray()
+            assert_allclose(darr.array, expect)
+
+    def test_to_categorical(self):
+        """correctly constructs categorical data"""
+        d1 = {"T": 87, "C": 81, "A": 142, "expect": [142, 81, 87]}
+        d2 = {
+            ("T", "G"): 87,
+            ("C", "C"): 81,
+            ("A", "G"): 142,
+            ("T", "T"): 58,
+            "expect": [[0, 142, 0], [81, 0, 0], [0, 87, 58]],
+        }
+        d3 = {
+            ("T", "G", "A"): 87,
+            ("C", "C", "C"): 81,
+            ("A", "G", "A"): 142,
+            ("T", "T", "C"): 58,
+        }
+        for d in (d1, d2):
+            expect = d.pop("expect")
+            cats = number.CategoryCounter(d)
+            cat_count = cats.to_categorical()
+            assert_allclose(cat_count.observed.array, expect, err_msg=d)
+
+        with self.assertRaises(NotImplementedError):
+            cats = number.CategoryCounter(d3)
+            cats.to_categorical()
+
 
 if __name__ == "__main__":
     main()
