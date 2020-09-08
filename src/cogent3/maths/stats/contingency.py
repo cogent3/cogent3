@@ -171,6 +171,9 @@ class CategoryCounts:
         if observed.array.min() < 0:
             raise ValueError("negative values encountered")
 
+        if observed.array.ndim > 2:
+            raise NotImplementedError("not designed for >2D")
+
         self._observed = observed
         self.expected = expected
         self._residuals = None
