@@ -541,26 +541,35 @@ class UtilsTests(TestCase):
         # or string instance
         self.assertTrue(path_exists(__file__))
 
-    def test_open_zipped_file(self):
+    def test_open_zip(self):
         with TemporaryDirectory(dir=".") as dirname:
-            zipped = os.path.join(dirname, "foo.txt")
+            zipped1 = os.path.join(dirname, "foo.txt")
             filename = os.path.join(dirname, "foo.zip")
-            with open(zipped, "w") as f:
+            with open(zipped1, "w") as f:
                 f.write("any str")
             with zipfile.ZipFile(filename, "w") as zip:
-                zip.write(zipped)
-            got = open_(filename)
-            self.assertEqual(bytes_to_string(got.readline()), "any str")
+                zip.write(zipped1)
+            with open_(filename) as got:
+                self.assertEqual(
+                    bytes_to_string(bytes_to_string(got.readline())), "any str"
+                )
 
-        with TemporaryDirectory(dir=".") as dirname:
-            zipped = os.path.join(dirname, "bar.txt")
+            zipped2 = os.path.join(dirname, "bar.txt")
             filename = os.path.join(dirname, "bar.txt.zip")
-            with open(zipped, "w") as f:
+            with open(zipped2, "w") as f:
                 f.write("any str")
             with zipfile.ZipFile(filename, "w") as zip:
-                zip.write(zipped)
-            got = open_(filename)
-            self.assertEqual(bytes_to_string(got.readline()), "any str")
+                zip.write(zipped2)
+            with open_(filename) as got:
+                self.assertEqual(
+                    bytes_to_string(bytes_to_string(got.readline())), "any str"
+                )
+
+            # tests when archive has > 1 record
+            with zipfile.ZipFile(filename, "a") as zip:
+                zip.write(zipped1)
+            with self.assertRaises(ValueError):
+                open_(filename)
 
     def test_get_setting_from_environ(self):
         """correctly recovers environment variables"""

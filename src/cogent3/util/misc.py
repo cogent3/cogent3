@@ -131,18 +131,25 @@ def bytes_to_string(data):
     return data
 
 
-def zip_open(filename, mode="r", **kwargs):
-    """open a zip-compressed file"""
+def open_zip(filename, mode="r", **kwargs):
+    """open a zip-compressed file
+
+    Note
+    ----
+    Raises ValueError if archive has > 1 record
+    """
     if mode == "rt":
         mode = "r"
     with ZipFile(filename) as zf:
+        if len(zf.namelist()) != 1:
+            raise ValueError("Archive is supposed to have only one record.")
         return zf.open(zf.namelist()[0], mode, **kwargs)
 
 
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
     filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": zip_open}.get(
+    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
         filename.suffix, open
     )
     return op(filename, mode, **kwargs)
