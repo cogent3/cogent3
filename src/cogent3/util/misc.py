@@ -14,6 +14,7 @@ from pathlib import Path
 from random import choice, randint
 from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
+from zipfile import ZipFile
 
 import numpy
 
@@ -130,10 +131,25 @@ def bytes_to_string(data):
     return data
 
 
-def open_(filename, mode="rt", **kwargs):
+def open_zip(filename, mode="r", **kwargs):
+    """open a zip-compressed file
+
+    Note
+    ----
+    Raises ValueError if archive has > 1 record
+    """
+    with ZipFile(filename) as zf:
+        if len(zf.namelist()) != 1:
+            raise ValueError("Archive is supposed to have only one record.")
+        return zf.open(zf.namelist()[0], mode, **kwargs)
+
+
+def open_(filename, mode="r", **kwargs):
     """open that handles different compression"""
     filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open}.get(filename.suffix, open)
+    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
+        filename.suffix, open
+    )
     return op(filename, mode, **kwargs)
 
 

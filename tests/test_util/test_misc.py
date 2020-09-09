@@ -2,12 +2,15 @@
 
 """Unit tests for utility functions and classes.
 """
+import os
 import pathlib
 import tempfile
+import zipfile
 
 from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
+from tempfile import TemporaryDirectory
 
 from numpy.testing import assert_allclose
 
@@ -27,6 +30,7 @@ from cogent3.util.misc import (
     adjusted_gt_minprob,
     adjusted_within_bounds,
     atomic_write,
+    bytes_to_string,
     curry,
     extend_docstring_from,
     get_format_suffixes,
@@ -43,6 +47,7 @@ from cogent3.util.misc import (
     iterable,
     list_flatten,
     not_list_tuple,
+    open_,
     path_exists,
     recursive_flatten,
     remove_files,
@@ -535,6 +540,36 @@ class UtilsTests(TestCase):
         self.assertTrue(path_exists(p))
         # or string instance
         self.assertTrue(path_exists(__file__))
+
+    def test_open_zip(self):
+        with TemporaryDirectory(dir=".") as dirname:
+            zipped1 = os.path.join(dirname, "foo.txt")
+            filename = os.path.join(dirname, "foo.zip")
+            with open(zipped1, "w") as f:
+                f.write("any str")
+            with zipfile.ZipFile(filename, "w") as zip:
+                zip.write(zipped1)
+            with open_(filename) as got:
+                self.assertEqual(
+                    bytes_to_string(bytes_to_string(got.readline())), "any str"
+                )
+
+            zipped2 = os.path.join(dirname, "bar.txt")
+            filename = os.path.join(dirname, "bar.txt.zip")
+            with open(zipped2, "w") as f:
+                f.write("any str")
+            with zipfile.ZipFile(filename, "w") as zip:
+                zip.write(zipped2)
+            with open_(filename) as got:
+                self.assertEqual(
+                    bytes_to_string(bytes_to_string(got.readline())), "any str"
+                )
+
+            # tests when archive has > 1 record
+            with zipfile.ZipFile(filename, "a") as zip:
+                zip.write(zipped1)
+            with self.assertRaises(ValueError):
+                open_(filename)
 
     def test_get_setting_from_environ(self):
         """correctly recovers environment variables"""
