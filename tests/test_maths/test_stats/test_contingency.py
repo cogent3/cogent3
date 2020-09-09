@@ -36,7 +36,7 @@ class ContingencyTests(TestCase):
         )
 
     def test_chisq2(self):
-        """constrtucted from 2D dict"""
+        """constructed from 2D dict"""
         data = {
             "rest_of_tree": {"env1": 2, "env3": 1, "env2": 0},
             "b": {"env1": 1, "env3": 1, "env2": 3},

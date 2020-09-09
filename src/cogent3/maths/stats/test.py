@@ -1100,11 +1100,6 @@ def correlation_test(
 def correlation_matrix(series, as_rows=True):
     """Returns pairwise correlations between each pair of series."""
     return corrcoef(series, rowvar=as_rows)
-    # unused codes below
-    if as_rows:
-        return corrcoef(transpose(array(series)))
-    else:
-        return corrcoef(array(series))
 
 
 def regress(x, y):
