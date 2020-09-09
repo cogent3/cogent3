@@ -607,8 +607,8 @@ class UtilsTests(TestCase):
         os.environ.pop(env_name, None)
 
 
-class Atomic_writeTests(TestCase):
-    """Unit tests for the Atomic_write class."""
+class AtomicWriteTests(TestCase):
+    """testing the atomic_write class."""
 
     def test_rename(self):
         """Renames file as expected """
@@ -623,6 +623,18 @@ class Atomic_writeTests(TestCase):
             # file should overwrite file if file already exists
             with atomic_write(test_filepath, mode="w") as f:
                 f.write("abc")
+
+    def test_atomic_write_noncontext(self):
+        """atomic write works as more regular file object"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = pathlib.Path(dirname) /  "foo.txt"
+            zip_path = path.parent / f"{path.name}.zip"
+            aw = atomic_write(path, in_zip=zip_path, mode="w")
+            aw.write("some data")
+            aw.close()
+            ifile = open_(zip_path)
+            got = ifile.read()
+            self.assertEqual(got, "some data")
 
 
 class _my_dict(dict):

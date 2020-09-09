@@ -215,6 +215,15 @@ class atomic_write:
             self.succeeded = False
             p.unlink()
 
+    def write(self, text):
+        """writes text to file"""
+        fileobj = self._get_fileobj()
+        fileobj.write(text)
+
+    def close(self):
+        """closes file"""
+        self.__exit__(None, None, None)
+
 
 _wout_period = re.compile(r"^\.")
 
