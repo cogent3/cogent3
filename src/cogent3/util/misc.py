@@ -214,7 +214,7 @@ _wout_period = re.compile(r"^\.")
 
 
 def get_format_suffixes(filename):
-    """returns compression and/or file suffixes"""
+    """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
         return None, None
