@@ -1733,6 +1733,7 @@ class _SequenceCollectionBase:
         rc : bool or None
             include dotplot of reverse compliment also. Only applies to Nucleic
             acids moltypes
+
         Returns
         -------
         a Drawable or AnnotatedDrawable
