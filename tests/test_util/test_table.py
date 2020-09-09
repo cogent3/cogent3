@@ -247,6 +247,21 @@ class TableTests(TestCase):
         assert_equal(n.header, numpy.array(t.header)[columns])
         self.assertEqual(n.shape, (2, 2))
 
+    def test_slicing_using_numpy_indexing(self):
+        """support numpy advanced indexing"""
+        t = Table(header=self.t5_header, data=self.t5_rows)
+        indices = t.columns["b"] != 0
+        got = t[indices]
+        expect = t.array[[0, 2], :]
+        assert_equal(got.array, expect)
+        got = t[indices, [True, False, True, True]]
+        expect = expect[:, [0, 2, 3]]
+        assert_equal(got.array, expect)
+
+        # using numpy arrays for rows and columns
+        got_np = t[indices, numpy.array([True, False, True, True])]
+        assert_equal(got_np.array, got.array)
+
     def test_specifying_space(self):
         """controls spacing in simple format"""
         space = "        "
