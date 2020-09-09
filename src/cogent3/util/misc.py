@@ -180,9 +180,15 @@ class atomic_write:
             raise FileNotFoundError(f"{parent} directory does not exist")
         return parent
 
-    def __enter__(self):
-        self._file = NamedTemporaryFile(self._mode, delete=False, dir=self._tmpdir)
+    def _get_fileobj(self):
+        """returns file to be written to"""
+        if self._file is None:
+            self._file = NamedTemporaryFile(self._mode, delete=False, dir=self._tmpdir)
+
         return self._file
+
+    def __enter__(self):
+        return self._get_fileobj()
 
     def _close_rename_standard(self, p):
         try:
