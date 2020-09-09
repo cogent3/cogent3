@@ -161,6 +161,11 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(self, path, tmpdir=None, in_zip=None, mode="w"):
+        _, cmp = get_format_suffixes(path)
+        if in_zip and cmp == "zip":
+            in_zip = path if isinstance(in_zip, bool) else in_zip
+            path = str(path)[: str(path).rfind(".zip")]
+
         self._path = path
         self._mode = mode
         self._file = None

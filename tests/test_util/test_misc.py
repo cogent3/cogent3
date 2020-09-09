@@ -627,8 +627,28 @@ class AtomicWriteTests(TestCase):
     def test_atomic_write_noncontext(self):
         """atomic write works as more regular file object"""
         with TemporaryDirectory(dir=".") as dirname:
-            path = pathlib.Path(dirname) /  "foo.txt"
+            path = pathlib.Path(dirname) / "foo.txt"
             zip_path = path.parent / f"{path.name}.zip"
+            aw = atomic_write(path, in_zip=zip_path, mode="w")
+            aw.write("some data")
+            aw.close()
+            ifile = open_(zip_path)
+            got = ifile.read()
+            self.assertEqual(got, "some data")
+
+    def test_aw_zip_from_path(self):
+        """supports inferring zip archive name from path"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = pathlib.Path(dirname) / "foo.txt"
+            zip_path = path.parent / f"{path.name}.zip"
+            aw = atomic_write(zip_path, in_zip=True, mode="w")
+            aw.write("some data")
+            aw.close()
+            ifile = open_(zip_path)
+            got = ifile.read()
+            self.assertEqual(got, "some data")
+
+            zip_path.unlink()
             aw = atomic_write(path, in_zip=zip_path, mode="w")
             aw.write("some data")
             aw.close()
