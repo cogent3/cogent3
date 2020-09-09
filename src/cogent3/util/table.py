@@ -342,8 +342,14 @@ class Columns(MutableMapping):
             key = self._order[key[0]]
 
         if type(key) in (list, tuple):
-            key = [self._get_key_(k) for k in key]
-        elif isinstance(key, numpy.ndarray):
+            if all(type(e) == bool for e in key) and len(key) == len(self.order):
+                key = [k for k, b in zip(self.order, key) if b]
+            else:
+                key = [self._get_key_(k) for k in key]
+
+            return key
+
+        if isinstance(key, numpy.ndarray):
             # we try slicing by array
             cols = numpy.array(self.order, dtype="U")
             try:
@@ -351,10 +357,10 @@ class Columns(MutableMapping):
             except Exception:
                 msg = f"{key} could not be used to slice columns"
                 raise KeyError(msg)
-        else:
-            raise KeyError(f"{key}")
 
-        return key
+            return key
+
+        raise KeyError(f"{key}")
 
     def __contains__(self, key):
         return key in self._order
