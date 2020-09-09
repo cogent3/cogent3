@@ -544,30 +544,32 @@ class UtilsTests(TestCase):
     def test_open_zip(self):
         with TemporaryDirectory(dir=".") as dirname:
             zipped1 = os.path.join(dirname, "foo.txt")
-            filename = os.path.join(dirname, "foo.zip")
             with open(zipped1, "w") as f:
                 f.write("any str")
+
+            filename = os.path.join(dirname, "foo.zip")
             with zipfile.ZipFile(filename, "w") as zip:
                 zip.write(zipped1)
+
             with open_(filename) as got:
                 self.assertEqual(
                     bytes_to_string(bytes_to_string(got.readline())), "any str"
                 )
 
             zipped2 = os.path.join(dirname, "bar.txt")
-            filename = os.path.join(dirname, "bar.txt.zip")
             with open(zipped2, "w") as f:
                 f.write("any str")
+
+            filename = os.path.join(dirname, "bar.txt.zip")
             with zipfile.ZipFile(filename, "w") as zip:
                 zip.write(zipped2)
             with open_(filename) as got:
-                self.assertEqual(
-                    bytes_to_string(bytes_to_string(got.readline())), "any str"
-                )
+                self.assertEqual(got.readline(), "any str")
 
             # tests when archive has > 1 record
             with zipfile.ZipFile(filename, "a") as zip:
                 zip.write(zipped1)
+
             with self.assertRaises(ValueError):
                 open_(filename)
 
