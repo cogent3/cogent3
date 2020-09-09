@@ -541,37 +541,51 @@ class UtilsTests(TestCase):
         # or string instance
         self.assertTrue(path_exists(__file__))
 
-    def test_open_zip(self):
+    def test_open_reads_zip(self):
+        """correctly reads a zip compressed file"""
         with TemporaryDirectory(dir=".") as dirname:
-            zipped1 = os.path.join(dirname, "foo.txt")
-            with open(zipped1, "w") as f:
+            text_path = os.path.join(dirname, "foo.txt")
+            with open(text_path, "w") as f:
                 f.write("any str")
 
-            filename = os.path.join(dirname, "foo.zip")
-            with zipfile.ZipFile(filename, "w") as zip:
-                zip.write(zipped1)
+            zip_path = os.path.join(dirname, "foo.zip")
+            with zipfile.ZipFile(zip_path, "w") as zip:
+                zip.write(text_path)
 
-            with open_(filename) as got:
-                self.assertEqual(
-                    bytes_to_string(bytes_to_string(got.readline())), "any str"
-                )
-
-            zipped2 = os.path.join(dirname, "bar.txt")
-            with open(zipped2, "w") as f:
-                f.write("any str")
-
-            filename = os.path.join(dirname, "bar.txt.zip")
-            with zipfile.ZipFile(filename, "w") as zip:
-                zip.write(zipped2)
-            with open_(filename) as got:
+            with open_(zip_path) as got:
                 self.assertEqual(got.readline(), "any str")
 
-            # tests when archive has > 1 record
-            with zipfile.ZipFile(filename, "a") as zip:
-                zip.write(zipped1)
+    def test_open_writes_zip(self):
+        """correctly writes a zip compressed file"""
+        with TemporaryDirectory(dir=".") as dirname:
+            zip_path = pathlib.Path(dirname) / "foo.txt.zip"
+
+            with open_(zip_path, "w") as f:
+                f.write("any str")
+
+            with zipfile.ZipFile(zip_path, "r") as zip:
+                name = zip.namelist()[0]
+                got = zip.open(name).read()
+                self.assertEqual(got, b"any str")
+
+    def test_open_zip_multi(self):
+        """zip with multiple records cannot be opened using open_"""
+        with TemporaryDirectory(dir=".") as dirname:
+            text_path1 = os.path.join(dirname, "foo.txt")
+            with open(text_path1, "w") as f:
+                f.write("any str")
+
+            text_path2 = os.path.join(dirname, "bar.txt")
+            with open(text_path2, "w") as f:
+                f.write("any str")
+
+            zip_path = os.path.join(dirname, "foo.zip")
+            with zipfile.ZipFile(zip_path, "w") as zip:
+                zip.write(text_path1)
+                zip.write(text_path2)
 
             with self.assertRaises(ValueError):
-                open_(filename)
+                open_(zip_path)
 
     def test_get_setting_from_environ(self):
         """correctly recovers environment variables"""

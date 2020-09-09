@@ -2,6 +2,7 @@
 """Generally useful utility classes and methods.
 """
 import os
+import pathlib
 import re
 import warnings
 import zipfile
@@ -133,13 +134,19 @@ def bytes_to_string(data):
 
 
 def open_zip(filename, mode="r", **kwargs):
-    """read a single member zip-compressed file
+    """open a single member zip-compressed file
 
     Note
     ----
-    Raises ValueError if zip has > 1 record. The returned object is
-    wrapped by TextIOWrapper with latin encoding (so it's not a bytes string).
+    If mode="r". The function raises ValueError if zip has > 1 record.
+    The returned object is wrapped by TextIOWrapper with latin encoding
+    (so it's not a bytes string).
+
+    If mode="w", returns an atomic_write() instance.
     """
+    if mode.startswith("w"):
+        return atomic_write(filename, mode=mode, in_zip=True)
+
     mode = mode.strip("t")
     with ZipFile(filename) as zf:
         if len(zf.namelist()) != 1:
@@ -161,10 +168,11 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(self, path, tmpdir=None, in_zip=None, mode="w"):
+        path = pathlib.Path(path)
         _, cmp = get_format_suffixes(path)
         if in_zip and cmp == "zip":
             in_zip = path if isinstance(in_zip, bool) else in_zip
-            path = str(path)[: str(path).rfind(".zip")]
+            path = pathlib.Path(str(path)[: str(path).rfind(".zip")])
 
         self._path = path
         self._mode = mode
