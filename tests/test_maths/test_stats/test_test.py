@@ -51,6 +51,7 @@ from cogent3.maths.stats.test import (
     mw_boot,
     mw_test,
     pearson,
+    pearson_correlation,
     permute_2d,
     posteriors,
     regress,
@@ -92,6 +93,8 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 class TestsHelper(TestCase):
@@ -1278,13 +1281,15 @@ class CorrelationTests(TestsHelper):
 
         bad = [1, 2, 3]  # originally gave r = 1.0000000002
 
-        self.assertFloatEqual(correlation(x, x), (1, 0))
-        self.assertFloatEqual(correlation(x, y), (0, 1))
-        self.assertFloatEqual(correlation(y, z), (0, 1))
-        self.assertFloatEqualAbs(correlation(x, a), (0.9827076, 0.01729), 1e-5)
-        self.assertFloatEqualAbs(correlation(x, b), (-0.9621405, 0.03786), 1e-5)
-        self.assertFloatEqualAbs(correlation(x, c), (0.3779645, 0.622), 1e-3)
-        self.assertEqual(correlation(bad, bad), (1, 0))
+        self.assertFloatEqual(pearson_correlation(x, x), (1, 0))
+        self.assertFloatEqual(pearson_correlation(x, y), (0, 1))
+        self.assertFloatEqual(pearson_correlation(y, z), (0, 1))
+        self.assertFloatEqualAbs(pearson_correlation(x, a), (0.9827076, 0.01729), 1e-5)
+        self.assertFloatEqualAbs(pearson_correlation(x, b), (-0.9621405, 0.03786), 1e-5)
+        self.assertFloatEqualAbs(pearson_correlation(x, c), (0.3779645, 0.622), 1e-3)
+        self.assertEqual(pearson_correlation(bad, bad), (1, 0))
+        got = pearson_correlation(self.data1, self.data2, tails="low")
+        assert_allclose(got, (-0.03760147385, 0.4589314864))
 
     def test_correlation_test_pearson(self):
         """Test correlation_test using pearson on valid input."""

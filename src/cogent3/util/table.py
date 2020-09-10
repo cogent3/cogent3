@@ -776,13 +776,16 @@ class Table:
                 range(self.shape[0] - tail, self.shape[0])
             )
             ellipsis = "..."
-            shape_info = f"Top {head} and bottom {tail} rows from"
+            if head + tail < self.shape[0]:
+                shape_info = f"Top {head} and bottom {tail} rows from"
         elif head:
             indices = list(range(head))
-            shape_info = f"Top {head} rows from"
+            if head < self.shape[0]:
+                shape_info = f"Top {head} rows from"
         elif tail:
             indices = list(range(self.shape[0] - tail, self.shape[0]))
-            shape_info = f"Bottom {tail} rows from"
+            if tail < self.shape[0]:
+                shape_info = f"Bottom {tail} rows from"
         else:
             indices = list(range(self.shape[0]))
 

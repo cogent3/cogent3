@@ -845,16 +845,19 @@ def pearson(x_items, y_items):
 def spearman(x_items, y_items):
     """Returns Spearman's rho.
 
+    Parameters
+    ----------
+    x_items
+        the first list of observations
+    y_items
+        the second list of observations
+
+    Notes
+    -----
     This will always be a value between -1.0 and +1.0. x_items and y_items must
     be the same length, and cannot have fewer than 2 elements each. If one or
     both of the input vectors do not have any variation, the return value will
     be 0.0.
-
-    Parameters
-    ----------
-        x_items - the first list of observations
-        y_items - the second list of observations
-
     """
     x_items, y_items = array(x_items), array(y_items)
 
@@ -924,6 +927,52 @@ def _get_rank(data):
         i += dup_ranks
         ties += dup_ranks - 1
     return ranks, ties
+
+
+def pearson_correlation(x, y, tails=None):
+    """Computes the Pearson correlation between two vectors and its significance.
+
+    Parameters
+    ----------
+    x
+        the first list of observations
+    y
+        the second list of observations
+    tails
+        if None (the default), a two-sided test is performed. 'high' for a
+        one-tailed test for positive association, or 'low' for a one-tailed
+        test for negative association.
+
+    Returns
+    -------
+    Rho, pvalue
+
+    Notes
+    -----
+    Computes a parametric p-value by using Student's t-distribution with df=n-2
+    to perform the test of significance.
+    """
+    import numpy
+
+    assert len(x) == len(y), f"unequal lengths of x ({len(x)}) and y ({len(y)})"
+    n = len(x)
+    if tails is not None and tails != "high" and tails != "low":
+        raise ValueError(
+            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
+        )
+    # Calculate the correlation coefficient.
+    rho = pearson(x, y)
+    if numpy.allclose(rho, 1.0):
+        return rho, 0
+
+    df = n - 2
+    if n < 3:
+        pvalue = 1
+    else:
+        t = rho / sqrt((1 - (rho * rho)) / df)
+        pvalue = t_tailed_prob(t, df, tails)
+
+    return rho, pvalue
 
 
 def correlation(x_items, y_items):
