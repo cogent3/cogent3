@@ -2,12 +2,14 @@
 """Generally useful utility classes and methods.
 """
 import os
+import pathlib
 import re
 import warnings
 import zipfile
 
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
+from io import TextIOWrapper
 from os import path as os_path
 from os import remove
 from pathlib import Path
@@ -132,19 +134,28 @@ def bytes_to_string(data):
 
 
 def open_zip(filename, mode="r", **kwargs):
-    """open a zip-compressed file
+    """open a single member zip-compressed file
 
     Note
     ----
-    Raises ValueError if archive has > 1 record
+    If mode="r". The function raises ValueError if zip has > 1 record.
+    The returned object is wrapped by TextIOWrapper with latin encoding
+    (so it's not a bytes string).
+
+    If mode="w", returns an atomic_write() instance.
     """
+    if mode.startswith("w"):
+        return atomic_write(filename, mode=mode, in_zip=True)
+
+    mode = mode.strip("t")
     with ZipFile(filename) as zf:
         if len(zf.namelist()) != 1:
             raise ValueError("Archive is supposed to have only one record.")
-        return zf.open(zf.namelist()[0], mode, **kwargs)
+        opened = zf.open(zf.namelist()[0], mode=mode, **kwargs)
+        return TextIOWrapper(opened, encoding="latin-1")
 
 
-def open_(filename, mode="r", **kwargs):
+def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
     filename = Path(filename).expanduser().absolute()
     op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
@@ -157,6 +168,12 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(self, path, tmpdir=None, in_zip=None, mode="w"):
+        path = pathlib.Path(path)
+        _, cmp = get_format_suffixes(path)
+        if in_zip and cmp == "zip":
+            in_zip = path if isinstance(in_zip, bool) else in_zip
+            path = pathlib.Path(str(path)[: str(path).rfind(".zip")])
+
         self._path = path
         self._mode = mode
         self._file = None
@@ -171,17 +188,20 @@ class atomic_write:
 
     def _get_tmp_dir(self):
         """returns parent of destination file"""
-        if self._in_zip:
-            parent = Path(self._in_zip).parent
-        else:
-            parent = Path(self._path).parent
+        parent = Path(self._in_zip).parent if self._in_zip else Path(self._path).parent
         if not parent.exists():
             raise FileNotFoundError(f"{parent} directory does not exist")
         return parent
 
-    def __enter__(self):
-        self._file = NamedTemporaryFile(self._mode, delete=False, dir=self._tmpdir)
+    def _get_fileobj(self):
+        """returns file to be written to"""
+        if self._file is None:
+            self._file = NamedTemporaryFile(self._mode, delete=False, dir=self._tmpdir)
+
         return self._file
+
+    def __enter__(self):
+        return self._get_fileobj()
 
     def _close_rename_standard(self, p):
         try:
@@ -208,12 +228,21 @@ class atomic_write:
             self.succeeded = False
             p.unlink()
 
+    def write(self, text):
+        """writes text to file"""
+        fileobj = self._get_fileobj()
+        fileobj.write(text)
+
+    def close(self):
+        """closes file"""
+        self.__exit__(None, None, None)
+
 
 _wout_period = re.compile(r"^\.")
 
 
 def get_format_suffixes(filename):
-    """returns compression and/or file suffixes"""
+    """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
         return None, None
