@@ -29,10 +29,12 @@ from cogent3.maths.stats.distribution import (
     poisson_exact,
     poisson_high,
     poisson_low,
+    probability_points,
     stdtr,
     stdtri,
     t_high,
     t_low,
+    theoretical_quantiles,
     tprob,
     z_high,
     z_low,
@@ -49,6 +51,8 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_almost_equal
 
 
 class DistributionsTests(TestCase):
@@ -1925,6 +1929,68 @@ class DistributionsTests(TestCase):
                 for p in p_s:
                     self.assertFloatEqual(fdtri(k, n, p), exp[index])
                     index += 1
+
+    def test_probability_points(self):
+        """generates evenly spaced probabilities"""
+        expect = (
+            0.1190476190476190,
+            0.3095238095238095,
+            0.5000000000000000,
+            0.6904761904761905,
+            0.8809523809523809,
+        )
+        got = probability_points(5)
+        assert_almost_equal(got, expect)
+        expect = (
+            0.04545454545454546,
+            0.13636363636363635,
+            0.22727272727272727,
+            0.31818181818181818,
+            0.40909090909090912,
+            0.50000000000000000,
+            0.59090909090909094,
+            0.68181818181818177,
+            0.77272727272727271,
+            0.86363636363636365,
+            0.95454545454545459,
+        )
+        got = probability_points(11)
+        assert_almost_equal(got, expect)
+
+    def test_theoretical_quantiles(self):
+        """correctly produce theoretical quantiles"""
+        expect = probability_points(4)
+        got = theoretical_quantiles(4, dist="uniform")
+        assert_almost_equal(got, expect)
+        dists = ["normal", "chisq", "t", "poisson", "binomial", "F", "gamma"]
+        expect = (
+            -1.049131397963971,
+            -0.299306910465667,
+            0.299306910465667,
+            1.049131397963971,
+        )
+        p = probability_points(4)
+        got = theoretical_quantiles(len(expect), dist="normal")
+        assert_almost_equal(got, expect)
+
+        # for gamma with shape 2, scale 1/3
+        expect = [
+            3.833845224364122,
+            1.922822334309249,
+            0.9636761737854768,
+            0.3181293892593747,
+        ]
+        got = theoretical_quantiles(4, "chisq", 2)
+        assert_almost_equal(got, expect)
+
+        expect = (
+            -1.2064470985524887,
+            -0.3203979544794824,
+            0.3203979544794824,
+            1.2064470985524887,
+        )
+        got = theoretical_quantiles(4, "t", 4)
+        assert_almost_equal(got, expect)
 
 
 if __name__ == "__main__":
