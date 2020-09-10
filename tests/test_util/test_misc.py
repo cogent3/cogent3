@@ -646,8 +646,8 @@ class AtomicWriteTests(TestCase):
             aw = atomic_write(path, in_zip=zip_path, mode="w")
             aw.write("some data")
             aw.close()
-            ifile = open_(zip_path)
-            got = ifile.read()
+            with open_(zip_path) as ifile:
+                got = ifile.read()
             self.assertEqual(got, "some data")
 
     def test_aw_zip_from_path(self):
