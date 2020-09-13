@@ -804,6 +804,58 @@ def phylip_matrix(rows, names):
     return "\n".join(dmat)
 
 
+def get_continuation_tables_headers(
+    cols_widths, index_name=None, space=2, max_width=1e100
+):
+    """
+    returns column headers for continuation tables segmented to not exceed max_width
+    Parameters
+    ----------
+    cols_widths : list
+        [[col_name, length of longest string], ...]
+    index_name : str
+        column name to be used as an index
+    space : int
+        how much white space between columns
+    max_width : int
+        maximum width
+
+    Returns
+    -------
+    list of lists, each inner list is the column names for a subtable
+    """
+    width_map = dict(cols_widths)
+    index_width = 0 if index_name is None else width_map[index_name]
+    for name, width in width_map.items():
+        if index_width + width > max_width:
+            raise ValueError(
+                f"{index_name}={index_width} + {name} width={width} > max_width={max_width}"
+            )
+
+    if sum(v + space + index_width for _, v in cols_widths) < max_width:
+        return [l for l, _ in cols_widths]
+
+    headers = []
+    curr = [index_name] if index_name is not None else []
+    cum_sum = index_width
+    for name, width in cols_widths:
+        if name == index_name:
+            continue
+
+        cum_sum += space + width
+        if cum_sum > max_width:
+            headers.append(curr)
+            curr = [index_name, name] if index_name is not None else [name]
+            cum_sum = index_width + space + width
+            continue
+
+        curr.append(name)
+
+    headers.append(curr)
+
+    return headers
+
+
 class _MixedFormatter:
     """handles formatting of mixed data types"""
 

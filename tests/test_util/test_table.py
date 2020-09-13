@@ -501,6 +501,39 @@ class TableTests(TestCase):
                 numpy.array(f), "  blah  ", precision=1, pad=True, align="blah"
             )
 
+    def test_get_continuation_tables_headers(self):
+        """correctly identify the columns for subtables"""
+        cols_widths = [("", 10), ("b", 5), ("c", 3), ("d", 14), ("e", 15)]
+        got = get_continuation_tables_headers(cols_widths)
+        expect = [c for c, _ in cols_widths]
+        self.assertEqual(got, expect)
+        # fails if any column has a width < max_width
+        with self.assertRaises(ValueError):
+            get_continuation_tables_headers(cols_widths, max_width=5)
+
+        # or if the sum of the index_name width and column is > max_width
+        with self.assertRaises(ValueError):
+            get_continuation_tables_headers(cols_widths, index_name="", max_width=24)
+
+        got = get_continuation_tables_headers(cols_widths, max_width=25)
+        expect = [["", "b", "c"], ["d"], ["e"]]
+        self.assertEqual(got, expect)
+
+        # with an index column
+        got = get_continuation_tables_headers(cols_widths, index_name="", max_width=27)
+        expect = [["", "b", "c"], ["", "d"], ["", "e"]]
+        self.assertEqual(got, expect)
+
+        cols_widths = [("a", 10), ("b", 5), ("c", 3), ("d", 14), ("e", 15)]
+        got = get_continuation_tables_headers(cols_widths, index_name="a", max_width=27)
+        expect = [["a", "b", "c"], ["a", "d"], ["a", "e"]]
+        self.assertEqual(got, expect)
+
+        # space has an affect
+        got = get_continuation_tables_headers(cols_widths, max_width=25, space=4)
+        expect = [["a", "b"], ["c", "d"], ["e"]]
+        self.assertEqual(got, expect)
+
     def test_cast_to_array(self):
         """correctly cast to numpy array"""
         b = (True, False, True)
