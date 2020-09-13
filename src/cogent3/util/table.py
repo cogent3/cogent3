@@ -766,8 +766,7 @@ class Table:
         return html
 
     def _get_persistent_attrs(self):
-        attrs = UnionDict(self._persistent_attrs.copy())
-        return attrs
+        return UnionDict(self._persistent_attrs.copy())
 
     @property
     def title(self):
@@ -1085,14 +1084,10 @@ class Table:
     def get_row_indices(self, callback, columns, negate=False):
         """returns boolean array of callback values given columns"""
         subset = self[:, columns]
-        if not isinstance(callback, Callable):
-            data = subset
-        else:
-            data = subset.array
-
+        data = subset if not isinstance(callback, Callable) else subset.array
         num_columns = len(columns)
         match = not negate
-        indices = numpy.array(
+        return numpy.array(
             [
                 True
                 if _callback(callback, row=row, num_columns=num_columns) == match
@@ -1100,7 +1095,6 @@ class Table:
                 for row in data
             ]
         )
-        return indices
 
     def filtered(self, callback, columns=None, **kwargs):
         """Returns a table with rows satisfying the provided callback function.
@@ -1204,7 +1198,7 @@ class Table:
             data = subset[0].tolist()
         else:
             data = subset.array
-            data = list(tuple(e) for e in data)
+            data = [tuple(e) for e in data]
 
         return CategoryCounter(data=data)
 
@@ -1264,7 +1258,7 @@ class Table:
         if new_column is not None:
             columns = (new_column,) + self.columns.order
             raw_data[new_column] = new_col
-            dtypes[new_column] = set(["U"])
+            dtypes[new_column] = {"U"}
         else:
             columns = self.columns.order
 
@@ -1326,11 +1320,7 @@ class Table:
             columns = (columns,)
 
         subset = self[:, columns]
-        if not isinstance(callback, Callable):
-            data = subset
-        else:
-            data = subset.array
-
+        data = subset if not isinstance(callback, Callable) else subset.array
         num_columns = len(columns)
         values = numpy.array(
             [_callback(callback, row=row, num_columns=num_columns) for row in data]
@@ -1407,11 +1397,7 @@ class Table:
         strict
             if False, ignores cells with non numeric values.
         """
-        if indices is None:
-            data = self.array
-        else:
-            data = self[indices, :].array
-
+        data = self.array if indices is None else self[indices, :].array
         # a multi-rowed result
         if strict:
             result = data.sum(axis=1).tolist()
@@ -1601,10 +1587,9 @@ class Table:
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
-        result = table_format.separator_format(
+        return table_format.separator_format(
             header, formatted_table, title=title, legend=legend, sep=","
         )
-        return result
 
     def to_latex(
         self, concat_title_legend=True, justify=None, label=None, position=None
@@ -1639,7 +1624,7 @@ class Table:
             caption = " ".join([caption or "", legend or ""])
             caption = caption.strip()
             legend = None
-        result = table_format.latex(
+        return table_format.latex(
             formatted_table,
             header,
             caption=caption,
@@ -1648,7 +1633,6 @@ class Table:
             label=label,
             position=position,
         )
-        return result
 
     def to_markdown(self, space=1, justify=None):
         """
@@ -1734,11 +1718,7 @@ class Table:
             formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(), **kwargs)
             return formatted_table
 
-        if format.lower() == "phylip":
-            missing_data = "0.0000"
-        else:
-            missing_data = self._missing_data
-
+        missing_data = "0.0000" if format.lower() == "phylip" else self._missing_data
         if format.lower() in ("tsv", "csv"):
             sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
             format = ""
@@ -1799,10 +1779,9 @@ class Table:
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
-        result = table_format.separator_format(
+        return table_format.separator_format(
             header, formatted_table, title=title, legend=legend, sep="\t"
         )
-        return result
 
     def to_rich_html(
         self,
@@ -1913,10 +1892,7 @@ class Table:
 
     @extend_docstring_from(DictArray.to_dict)
     def to_dict(self, flatten=False):
-        if self.index_name:
-            index = self.columns[self.index_name]
-        else:
-            index = self.shape[0]
+        index = self.columns[self.index_name] if self.index_name else self.shape[0]
         template = DictArrayTemplate(index, self.columns.order)
         darr = template.wrap(self.array)
         return darr.to_dict(flatten=flatten)
@@ -2132,10 +2108,7 @@ class Table:
 
         if format is None:
             # try guessing from filename suffix
-            if compress:
-                index = -2
-            else:
-                index = -1
+            index = -2 if compress else -1
             suffix = filename.split(".")
             if len(suffix) > 1:
                 format = suffix[index]
