@@ -269,11 +269,10 @@ class SquareTreeGeometry(TreeGeometryBase):
         if self._y is None:
             num_kids = len(self.children)
             even = num_kids % 2 == 0
+            i = floor(num_kids / 2)
             if even:
-                i = floor(num_kids / 2)
                 val = (self.children[i].y + self.children[i - 1].y) / 2
             else:
-                i = floor(num_kids / 2)
                 val = self.children[i].y
             self._y = val
         return self._y
@@ -544,11 +543,7 @@ class Dendrogram(Drawable):
         if length_attr is None and not contemporaneous:
             contemporaneous = tree.children[0].length is None
 
-        if contemporaneous:
-            length_attr = "frac_pos"
-        else:
-            length_attr = length_attr or "length"
-
+        length_attr = "frac_pos" if contemporaneous else length_attr or "length"
         kwargs = UnionDict(length_attr=length_attr) if contemporaneous else {}
         self.tree = klass(tree, **kwargs)
         self.tree.propagate_properties()
@@ -576,16 +571,13 @@ class Dendrogram(Drawable):
 
     @property
     def label_pad(self):
-        if isinstance(self.tree, CircularTreeGeometry):
-            default = 0.15
-        else:
-            default = 0.025
-
-        if self._label_pad is None and not self.contemporaneous:
-            max_x = max(self.tree.max_x, abs(self.tree.min_x))
-            self._label_pad = max_x * default
-        elif self._label_pad is None:
-            self._label_pad = default
+        default = 0.15 if isinstance(self.tree, CircularTreeGeometry) else 0.025
+        if self._label_pad is None:
+            if not self.contemporaneous:
+                max_x = max(self.tree.max_x, abs(self.tree.min_x))
+                self._label_pad = max_x * default
+            else:
+                self._label_pad = default
         return self._label_pad
 
     @label_pad.setter
@@ -665,22 +657,10 @@ class Dendrogram(Drawable):
         if not self.scale_bar or self.contemporaneous:
             return None, None
 
-        if "left" in self.scale_bar:
-            x = self.tree.min_x
-        else:
-            x = self.tree.max_x
-
-        if "bottom" in self.scale_bar:
-            y = self.tree.min_y
-        else:
-            y = self.tree.max_y
-
+        x = self.tree.min_x if "left" in self.scale_bar else self.tree.max_x
+        y = self.tree.min_y if "bottom" in self.scale_bar else self.tree.max_y
         scale = 0.1 * self.tree.max_x
-        if scale < 1e-2:
-            text = "{:.1e}".format(scale)
-        else:
-            text = "{:.2f}".format(scale)
-
+        text = "{:.1e}".format(scale) if scale < 1e-2 else "{:.2f}".format(scale)
         shape = {
             "type": "line",
             "x0": x,
@@ -844,7 +824,7 @@ class Dendrogram(Drawable):
         if type(edges) == str:
             edges = [edges]
         edges = frozenset(edges)
-        if not edges.issubset(set([edge.name for edge in self.tree.preorder()])):
+        if not edges.issubset({edge.name for edge in self.tree.preorder()}):
             raise ValueError("edge not present in tree")
         style = UnionDict(width=self._line_width, color=self._line_color)
         style.update(line)
@@ -903,10 +883,9 @@ class Dendrogram(Drawable):
         -------
         list of edge names
         """
-        names = self.tree.get_edge_names(
+        return self.tree.get_edge_names(
             tip1, tip2, stem=stem, clade=clade, outgroup_name=outgroup
         )
-        return names
 
     @property
     def scale_bar(self):
