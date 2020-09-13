@@ -1534,6 +1534,35 @@ class Table:
 
         return result
 
+    def _formatted_by_col(self, missing_data="", pad=True):
+        """returns self as formatted strings
+
+        Parameters
+        ----------
+        missing_data : str
+            default str value for missing
+        pad : bool
+            if True, adds padding
+        """
+        missing_data = missing_data or self._missing_data
+        formatted = {}
+        col_widths = {}
+        for c in self.columns.order:
+            data = self.columns[c]
+            format_spec = self._column_templates.get(c, None)
+            frmt, c, width = formatted_array(
+                data,
+                c,
+                format_spec=format_spec,
+                missing_data=missing_data,
+                precision=self._digits,
+                pad=pad,
+            )
+            col_widths[c] = width
+            formatted[c] = frmt
+
+        return formatted, col_widths
+
     def _formatted(self, missing_data="", stripped=False):
         """returns self as formatted strings
 
@@ -1545,24 +1574,13 @@ class Table:
             if True, removes padding
 
         """
-        missing_data = missing_data or self._missing_data
-        formatted = []
-        for c in self.columns.order:
-            data = self.columns[c]
-            format_spec = self._column_templates.get(c, None)
-            frmt, c = formatted_array(
-                data,
-                c,
-                format_spec=format_spec,
-                missing_data=missing_data,
-                precision=self._digits,
-            )
-            if stripped:
-                c = c.strip()
-                frmt = [v.strip() for v in frmt]
-            formatted.append([c] + frmt)
-
-        formatted = list([list(e) for e in zip(*formatted)])
+        formatted_cols, _ = self._formatted_by_col(
+            missing_data=missing_data, pad=not stripped
+        )
+        ordered = [(self.columns.order.index(c.strip()), c) for c in formatted_cols]
+        ordered.sort()
+        formatted = [[c] + formatted_cols[c] for _, c in ordered]
+        formatted = [list(e) for e in zip(*formatted)]
         return formatted
 
     def to_csv(self, with_title=False, with_legend=False):
@@ -1834,6 +1852,7 @@ class Table:
         legend = self.legend if self.legend else ""
         if legend:
             legend = escape(legend)
+
         for i, (h, t) in enumerate(subtables):
             # but we strip the cell spacing
             sh = [v.strip() for v in h]
@@ -1939,37 +1958,29 @@ class Table:
         """returns a Plotly Table"""
         from cogent3.draw.drawable import Drawable
 
-        rows = self.array.tolist()
-        header, rows = table_format.formatted_cells(
-            rows,
-            self.header,
-            digits=self._digits,
-            column_templates=self._column_templates,
-            missing_data=self._missing_data,
-            center=False,
-        )
-        # we strip white space padding from header and cells
-        header = [e.strip() for e in header]
-        rows = [[e.strip() for e in row] for row in rows]
-        rows = list(zip(*rows))
+        columns, _ = self._formatted_by_col(pad=False)
+        header = [f"<b>{c}</b>" for c in self.header]
         if self.index_name:
             body_colour = ["white"] * self.shape[0]
             index_colour = ["rgba(161, 195, 209, 0.5)"] * self.shape[0]
             colours = [index_colour] + [body_colour[:] for i in range(self.shape[1])]
-            rows[0] = [f"<b>{e}</b>" for e in rows[0]]
+            columns[self.index_name] = [f"<b>{e}</b>" for e in columns[self.index_name]]
         else:
             colours = "white"
 
         tab = UnionDict(
             type="table",
             header=dict(
-                values=[f"<b>{c}</b>" for c in header],
+                values=header,
                 fill=dict(color="rgba(161, 195, 209, 1)"),
                 font=dict(size=font_size),
                 align="center",
             ),
-            cells=dict(values=rows, fill=dict(color=colours)),
+            cells=dict(
+                values=[columns[c] for c in self.header], fill=dict(color=colours)
+            ),
         )
+
         draw = Drawable()
         aspect_ratio = self.shape[0] / self.shape[1]
         layout = layout or {}
