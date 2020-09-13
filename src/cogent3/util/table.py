@@ -13,7 +13,6 @@ Table can read pickled and delimited formats.
 import csv
 import json
 import pickle
-import re
 
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
@@ -24,6 +23,7 @@ import numpy
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
+from cogent3.format.table import formatted_array
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import (
     atomic_write,
@@ -94,97 +94,6 @@ def _callback(callback, row, num_columns=None):
         return callback(row)
     else:
         return eval(callback, {}, row)
-
-
-def formatted_array(
-    series,
-    title="",
-    precision=4,
-    format_spec=None,
-    missing_data="",
-    center=False,
-):
-    """converts elements in a numpy array series to an equal length string.
-
-    Parameters
-    ----------
-    series
-        the series of table rows
-    title
-        title of series
-    precision
-        number of decimal places. Can be overridden by following.
-    format_spec
-        format specification as per the python Format Specification, Mini-Language
-        or a callable function.
-    missing_data
-        default missing data value.
-
-    Returns
-    -------
-    list of formatted series, formatted title
-    """
-    if callable(format_spec):
-        formatter = format_spec
-        format_spec = base_format = ""
-    else:
-        formatter = None
-
-    if isinstance(format_spec, str):
-        format_spec = format_spec.replace("%", "")
-
-    if format_spec:
-        match = re.search("[<>^]", format_spec[:2])
-        final_align = ">" if match is None else match.group()
-        align = ""
-    else:
-        final_align = align = ">"
-
-    base_format = format_spec if format_spec else ""
-    assert isinstance(series, numpy.ndarray), "must be numpy array"
-    if format_spec is None:
-        type_name = series.dtype.name
-        align = "^" if center else ">"
-        if "int" in type_name:
-            base_format = "d"
-        elif "float" in type_name:
-            base_format = f".{precision}f"
-        elif "bool" == type_name:
-            base_format = ""
-        else:
-            # handle mixed types with a custom formatter
-            formatter = _MixedFormatter(
-                align, len(title), precision, missing_data=missing_data
-            )
-            format_spec = base_format = ""
-
-        format_spec = base_format
-
-    formatted = []
-    max_length = len(title)
-    for i, v in enumerate(series):
-        if formatter:
-            v = formatter(v)
-        else:
-            try:
-                v = format(v, format_spec)
-            except (TypeError, ValueError):
-                # could be a python object
-                v = str(v)
-        l = len(v)
-        if l > max_length:
-            max_length = l
-            format_spec = f"{align}{max_length}{base_format}"
-        formatted.append(v)
-
-    # title is always right aligned, for now
-    title = format(title, f">{max_length}")
-    # now adjust to max_len
-    format_spec = f"{final_align}{max_length}s"
-    for i in range(len(series)):
-        if len(formatted[i]) < max_length:
-            formatted[i] = format(formatted[i].strip(), format_spec)
-    return formatted, title
 
 
 def cast_str_to_numeric(values):
@@ -279,36 +188,6 @@ def cast_to_1d_dict(data, row_order=None):
     else:
         result = data
     return result
-
-
-class _MixedFormatter:
-    """handles formatting of mixed data types"""
-
-    def __init__(
-        self, alignment, length, precision=4, float_type="f", missing_data=None
-    ):
-        self.missing_data = missing_data
-        self.length = length
-        self.alignment = alignment
-        self.precision = precision
-        self.float_type = float_type
-
-    def __call__(self, val):
-        prefix = f"{self.alignment}{self.length}"
-        float_spec = f"{prefix}.{self.precision}{self.float_type}"
-        int_spec = f"{prefix}d"
-        result = str(val)
-        if self.missing_data is not None and not result:
-            return self.missing_data
-
-        for fspec in (int_spec, float_spec, prefix):
-            try:
-                result = format(val, fspec)
-                break
-            except (TypeError, ValueError):
-                pass
-
-        return result
 
 
 class Columns(MutableMapping):

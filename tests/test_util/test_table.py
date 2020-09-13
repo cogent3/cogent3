@@ -18,6 +18,10 @@ from numpy import arange
 from numpy.testing import assert_equal
 
 from cogent3 import load_table, make_table
+from cogent3.format.table import (
+    formatted_array,
+    get_continuation_tables_headers,
+)
 from cogent3.parse.table import FilteringParser
 from cogent3.util.misc import get_object_provenance, open_
 from cogent3.util.table import (
@@ -25,7 +29,6 @@ from cogent3.util.table import (
     cast_str_to_array,
     cast_str_to_numeric,
     cast_to_array,
-    formatted_array,
 )
 
 
@@ -397,48 +400,48 @@ class TableTests(TestCase):
         """correctly format array data"""
         f = (2.53, 12.426, 9.9, 7.382e-08)
         # with default format_spec
-        g, l = formatted_array(numpy.array(f), "LR", precision=2)
+        g, l, w = formatted_array(numpy.array(f), "LR", precision=2)
         self.assertTrue(l.endswith("LR"))
         for e in g:
             v = e.split(".")
             self.assertEqual(len(v[-1]), 2, v)
         # handles bool
-        g, l = formatted_array(numpy.array([True, False, True]), "LR", precision=2)
+        g, l, w = formatted_array(numpy.array([True, False, True]), "LR", precision=2)
         self.assertEqual(g[0].strip(), "True")
         # title is always right aligned
-        _, l = formatted_array(numpy.array(f), "LR", format_spec=">.1f")
+        _, l, _ = formatted_array(numpy.array(f), "LR", format_spec=">.1f")
         self.assertTrue(l.endswith("LR"))
-        _, l = formatted_array(numpy.array(f), "LR", format_spec="<.1f")
-        self.assertTrue(l.endswith("LR"))
+        _, l, _ = formatted_array(numpy.array(f), "LR", format_spec="<.1f")
+        self.assertTrue(l.startswith("LR"))
 
         # using format_spec with right alignment character
-        g, l = formatted_array(numpy.array(f), "   blah", format_spec=">.1f")
+        g, l, w = formatted_array(numpy.array(f), "   blah", format_spec=">.1f")
         for e in g:
             # padded with spaces
             self.assertTrue(e.startswith(" "), e)
             self.assertFalse(e.endswith(" "), e)
 
         # using format_spec with left alignment character
-        g, l = formatted_array(numpy.array(f), "    blah", format_spec="<.1f")
+        g, l, w = formatted_array(numpy.array(f), "    blah", format_spec="<.1f")
         for e in g:
             # padded with spaces
             self.assertTrue(e.endswith(" "), e)
             self.assertFalse(e.startswith(" "), e)
 
         # using format_spec with center alignment character
-        g, l = formatted_array(numpy.array(f), "    blah", format_spec="^.1f")
+        g, l, w = formatted_array(numpy.array(f), "    blah", format_spec="^.1f")
         for e in g:
             # padded with spaces
             self.assertTrue(e.endswith(" "), e)
             self.assertTrue(e.startswith(" "), e)
 
-        g, _ = formatted_array(numpy.array(f), "blah", format_spec=".4f")
+        g, _, _ = formatted_array(numpy.array(f), "blah", format_spec=".4f")
         for e in g:
             v = e.split(".")
             self.assertEqual(len(v[-1]), 4, v)
 
         # cope with C-style format strings
-        g, _ = formatted_array(numpy.array(f), "blah", format_spec="%.4f")
+        g, _, _ = formatted_array(numpy.array(f), "blah", format_spec="%.4f")
         for e in g:
             v = e.split(".")
             self.assertEqual(len(v[-1]), 4, v)
@@ -452,10 +455,51 @@ class TableTests(TestCase):
             return val
 
         o = [3, "abc", 3.456789]
-        g, _ = formatted_array(numpy.array(o, dtype="O"), "blah", format_spec=formatcol)
+        g, _, _ = formatted_array(
+            numpy.array(o, dtype="O"), "blah", format_spec=formatcol
+        )
         self.assertEqual(g[0], "   3", g[0])
         self.assertEqual(g[1], " abc", g[1])
         self.assertEqual(g[2], "3.46", g)
+
+        # don't pad
+        g, l, w = formatted_array(numpy.array(f), "    blah", format_spec="<.1f")
+        g, l, w = formatted_array(
+            numpy.array(f), "    blah", format_spec="<.1f", pad=False
+        )
+        self.assertEqual(l, "blah")
+        for v in g:
+            self.assertTrue(" " not in v)
+
+        # use the align argument, 'c'
+        g, l, w = formatted_array(
+            numpy.array(f), "  blah  ", precision=1, pad=True, align="c"
+        )
+        for v in g:
+            self.assertTrue(v.startswith(" ") and v.endswith(" "))
+
+        # use the align argument, 'l'
+        g, l, w = formatted_array(
+            numpy.array(f), "  blah  ", precision=1, pad=True, align="l"
+        )
+        for v in g:
+            self.assertTrue(not v.startswith(" ") and v.endswith(" "))
+
+        # use the align argument, 'r'
+        col_title = "  blah  "
+        g, l, w = formatted_array(
+            numpy.array(f), col_title, precision=1, pad=True, align="r"
+        )
+        for v in g:
+            self.assertTrue(v.startswith(" ") and not v.endswith(" "))
+
+        self.assertEqual(w, len(col_title))
+
+        # raises error if align invalid value
+        with self.assertRaises(ValueError):
+            formatted_array(
+                numpy.array(f), "  blah  ", precision=1, pad=True, align="blah"
+            )
 
     def test_cast_to_array(self):
         """correctly cast to numpy array"""
