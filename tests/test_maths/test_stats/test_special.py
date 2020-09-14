@@ -26,8 +26,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
@@ -207,8 +207,7 @@ class SpecialTests(TestCase):
             # self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
 
     def test_ln_binomial_range(self):
-        """ln_binomial should increase in a monotonically increasing region.
-        """
+        """ln_binomial should increase in a monotonically increasing region."""
         start = 0
         end = 1
         step = 0.1

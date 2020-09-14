@@ -531,7 +531,8 @@ class LikelihoodFunction(ParameterController):
         title, results = self._for_display()
         for i, table in enumerate(results):
             table.title = table.title.capitalize()
-            results[i] = table._repr_html_(include_shape=False)
+            table.set_repr_policy(show_shape=False)
+            results[i] = table._repr_html_()
         results = ["<h4>%s</h4>" % title, lnL, nfp] + results
         return "\n".join(results)
 

@@ -58,7 +58,9 @@ def get_base_logo_layout(axnum, xtick_fontsize, ytick_fontsize):
     xanchor = "x" if axnum == 1 else f"x{axnum}"
     yanchor = "y" if axnum == 1 else f"y{axnum}"
     layout[f"x{axis}"] = dict(
-        anchor=yanchor, tickfont=dict(size=xtick_fontsize), ticks="inside",
+        anchor=yanchor,
+        tickfont=dict(size=xtick_fontsize),
+        ticks="inside",
     )
 
     layout[f"y{axis}"] = dict(

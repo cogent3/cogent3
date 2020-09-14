@@ -15,8 +15,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 maketrans = str.maketrans
@@ -67,8 +67,7 @@ def parse_single_line(line):
 
 
 def indent_splitter(lines):
-    """Yields the lines whenever it hits a line with same indent level as first.
-    """
+    """Yields the lines whenever it hits a line with same indent level as first."""
     first_line = True
     curr = []
     for line in lines:
@@ -424,8 +423,7 @@ class LocationList(list):
         return curr
 
     def strand(self):
-        """Returns strand of components: 1=forward, -1=reverse, 0=both
-        """
+        """Returns strand of components: 1=forward, -1=reverse, 0=both"""
         curr = {}
         for i in self:
             curr[i.Strand] = 1

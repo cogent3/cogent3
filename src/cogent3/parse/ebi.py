@@ -535,8 +535,7 @@ def dr_parser(lines):
 
 
 def dr_itemparser(lines):
-    """return a key, value pair from lines of a DR item.
-    """
+    """return a key, value pair from lines of a DR item."""
     fields = join_split_parser(lines)
     return fields[0], fields[1:]
 

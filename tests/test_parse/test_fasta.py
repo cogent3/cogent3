@@ -26,8 +26,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 base_path = os.path.dirname(os.path.dirname(__file__))
@@ -89,10 +89,10 @@ class MinimalFastaParserTests(GenericFastaTest):
     def test_gt_bracket_in_seq(self):
         """MinimalFastaParser handles alternate finder function
 
-            this test also illustrates how to use the MinimalFastaParser
-            to handle "sequences" that start with a > symbol, which can
-            happen when we abuse the MinimalFastaParser to parse
-            fasta-like sequence quality files.
+        this test also illustrates how to use the MinimalFastaParser
+        to handle "sequences" that start with a > symbol, which can
+        happen when we abuse the MinimalFastaParser to parse
+        fasta-like sequence quality files.
         """
         oneseq_w_gt = ">abc\n>CAG\n".split("\n")
 

@@ -6,7 +6,6 @@ Annotating alignments and sequences
 A Sequence with a couple of exons on it.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import DNA
     from cogent3.core.annotation import Feature
@@ -18,7 +17,6 @@ A Sequence with a couple of exons on it.
 The corresponding sequence can be extracted either with slice notation or by asking the feature to do it, since the feature knows what sequence it belongs to.
 
 .. jupyter-execute::
-    :linenos:
 
     s[exon1]
     exon1.get_slice()
@@ -26,7 +24,6 @@ The corresponding sequence can be extracted either with slice notation or by ask
 Usually the only way to get a ``Feature`` object like ``exon1`` is to ask the sequence for it. There is one method for querying annotations by type and optionally by name:
 
 .. jupyter-execute::
-    :linenos:
 
     exons = s.get_annotations_matching("exon")
     print(exons)
@@ -34,7 +31,6 @@ Usually the only way to get a ``Feature`` object like ``exon1`` is to ask the se
 If the sequence does not have a matching feature you get back an empty list, and slicing the sequence with that returns a sequence of length 0.
 
 .. jupyter-execute::
-    :linenos:
 
     dont_exist = s.get_annotations_matching("dont_exist")
     dont_exist
@@ -43,7 +39,6 @@ If the sequence does not have a matching feature you get back an empty list, and
 To construct a pseudo-feature covering (or excluding) multiple features, use ``get_region_covering_all``:
 
 .. jupyter-execute::
-    :linenos:
 
     print(s.get_region_covering_all(exons))
     print(s.get_region_covering_all(exons).get_shadow())
@@ -51,21 +46,18 @@ To construct a pseudo-feature covering (or excluding) multiple features, use ``g
 eg: all the exon sequence:
 
 .. jupyter-execute::
-    :linenos:
 
     s.get_region_covering_all(exons).get_slice()
 
 or with slice notation:
     
 .. jupyter-execute::
-    :linenos:
 
     s[exon1, exon2]
 
 Though ``.get_region_covering_all`` also guarantees no overlaps within the result, slicing does not:
 
 .. jupyter-execute::
-    :linenos:
     :raises: ValueError
 
     print(s.get_region_covering_all(exons + exons))
@@ -74,7 +66,6 @@ Though ``.get_region_covering_all`` also guarantees no overlaps within the resul
 You can use features, maps, slices or integers, but non-monotonic slices are not allowed:
 
 .. jupyter-execute::
-    :linenos:
     :raises: ValueError
 
     s[15:20, 5:16]
@@ -82,14 +73,12 @@ You can use features, maps, slices or integers, but non-monotonic slices are not
 Features are themselves sliceable:
 
 .. jupyter-execute::
-    :linenos:
 
     exon1[0:3].get_slice()
 
 When sequences are concatenated they keep their (non-overlapping) annotations:
     
 .. jupyter-execute::
-    :linenos:
 
     c = s[exon1[4:]] + s
     print(len(c))
@@ -99,7 +88,6 @@ When sequences are concatenated they keep their (non-overlapping) annotations:
 Since features know their parents you can't use a feature from one sequence to slice another:
     
 .. jupyter-execute::
-    :linenos:
     :raises: ValueError
 
     print(c[exon1])
@@ -107,7 +95,6 @@ Since features know their parents you can't use a feature from one sequence to s
 Features are generally attached to the thing they annotate, but in those cases where a free-floating feature is created it can later be attached:
 
 .. jupyter-execute::
-    :linenos:
 
     len(s.annotations)
     region = s.get_region_covering_all(exons)
@@ -120,7 +107,6 @@ Features are generally attached to the thing they annotate, but in those cases w
 When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence``) features are **not** reversed. Features are considered to have strand specific meaning (.e.g CDS, exons) and so stay on their original strands. We create a sequence with a CDS that spans multiple exons, and show that after getting the reverse complement we have exactly the same result from getting the CDS annotation.
 
 .. jupyter-execute::
-    :linenos:
 
     plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
     plus_cds = plus.add_annotation(Feature, "CDS", "gene", [(2, 6), (10, 15), (25, 35)])
@@ -132,7 +118,6 @@ When dealing with sequences that can be reverse complemented (e.g. ``DnaSequence
 Sequence features can be accessed via a containing ``Alignment``:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -147,7 +132,6 @@ Sequence features can be accessed via a containing ``Alignment``:
 But these will be returned as **alignment** features with locations in alignment coordinates.
 
 .. jupyter-execute::
-    :linenos:
 
     print(exon)
     print(aln_exons[0])
@@ -158,7 +142,6 @@ But these will be returned as **alignment** features with locations in alignment
 Similarly alignment features can be projected onto the aligned sequences, where they may end up falling across gaps:
 
 .. jupyter-execute::
-    :linenos:
 
     exons = aln.get_projected_annotations("y", "exon")
     print(exons)
@@ -167,7 +150,6 @@ Similarly alignment features can be projected onto the aligned sequences, where 
 We copy the annotations from another sequence,
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         [["x", "-AAAAAAAAA"], ["y", "TTTT--CCCC"]], array_align=False
@@ -181,7 +163,6 @@ We copy the annotations from another sequence,
 even if the name is different.
 
 .. jupyter-execute::
-    :linenos:
 
     exon = aln.get_seq("y").copy_annotations(s)
     aln_exons = list(aln.get_annotations_from_seq("y", "exon"))
@@ -191,7 +172,6 @@ even if the name is different.
 If the feature lies outside the sequence being copied to, you get a lost span
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs([["x", "-AAAA"], ["y", "TTTTT"]], array_align=False)
     seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
@@ -204,7 +184,6 @@ If the feature lies outside the sequence being copied to, you get a lost span
 You can copy to a sequence with a different name, in a different alignment if the feature lies within the length
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         [["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
@@ -218,7 +197,6 @@ You can copy to a sequence with a different name, in a different alignment if th
 If the sequence is shorter, again you get a lost span.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         [["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
@@ -232,7 +210,6 @@ If the sequence is shorter, again you get a lost span.
 We consider cases where there are terminal gaps.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         [["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
@@ -251,7 +228,6 @@ We consider cases where there are terminal gaps.
 In this case, only those residues included within the feature are covered - note the omission of the T in ``y`` opposite the gap in ``x``.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         [["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]], moltype="dna", array_align=False
@@ -267,14 +243,12 @@ In this case, only those residues included within the feature are covered - note
 ``Feature.as_one_span()``, is applied to the exon that straddles the gap in ``x``. The result is we preserve that feature.
 
 .. jupyter-execute::
-    :linenos:
 
     print(aln_exons[0].as_one_span().get_slice())
 
 These properties also are consistently replicated with reverse complemented sequences.
 
 .. jupyter-execute::
-    :linenos:
 
     aln_rc = aln.rc()
     rc_exons = list(aln_rc.get_annotations_from_any_seq("exon"))
@@ -284,7 +258,6 @@ These properties also are consistently replicated with reverse complemented sequ
 Features can provide their coordinates, useful for custom analyses.
     
 .. jupyter-execute::
-    :linenos:
 
     all_exons = aln.get_region_covering_all(aln_exons)
     coords = all_exons.get_coordinates()
@@ -295,7 +268,6 @@ Annotated regions can be masked (observed sequence characters replaced by anothe
 We create an alignment with a sequence that has two different annotation types.
 
 .. jupyter-execute::
-    :linenos:
 
     aln = make_aligned_seqs(
         [["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
@@ -311,7 +283,6 @@ We create an alignment with a sequence that has two different annotation types.
 Each sequence should correctly mask either the single feature, it's shadow, or the multiple features, or shadow.
 
 .. jupyter-execute::
-    :linenos:
 
     print(aln.get_seq("x").with_masked_annotations("exon", mask_char="?"))
     print(aln.get_seq("x").with_masked_annotations("exon", mask_char="?", shadow=True))
@@ -330,7 +301,6 @@ Each sequence should correctly mask either the single feature, it's shadow, or t
 The same methods can be applied to annotated Alignment's.
 
 .. jupyter-execute::
-    :linenos:
 
     print(aln.with_masked_annotations("exon", mask_char="?"))
     print(aln.with_masked_annotations("exon", mask_char="?", shadow=True))
@@ -342,7 +312,6 @@ The same methods can be applied to annotated Alignment's.
 It shouldn't matter whether annotated coordinates are entered separately, or as a series.
 
 .. jupyter-execute::
-    :linenos:
 
     data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]
     as_series = make_aligned_seqs(data, array_align=False)
@@ -351,7 +320,6 @@ It shouldn't matter whether annotated coordinates are entered separately, or as 
 We add annotations to the sequences as a series.
 
 .. jupyter-execute::
-    :linenos:
 
     as_series.get_seq("human").add_feature("cpgsite", "cpg", [(0, 2), (5, 7)])
     as_series.get_seq("mouse").add_feature("cpgsite", "cpg", [(5, 7), (8, 10)])
@@ -359,7 +327,6 @@ We add annotations to the sequences as a series.
 We add the annotations to the sequences one segment at a time.
 
 .. jupyter-execute::
-    :linenos:
 
     as_items.get_seq("human").add_feature("cpgsite", "cpg", [(0, 2)])
     as_items.get_seq("human").add_feature("cpgsite", "cpg", [(5, 7)])
@@ -369,7 +336,6 @@ We add the annotations to the sequences one segment at a time.
 These different constructions should generate the same output.
 
 .. jupyter-execute::
-    :linenos:
 
     serial = as_series.with_masked_annotations(["cpgsite"])
     print(serial)
@@ -379,7 +345,6 @@ These different constructions should generate the same output.
 Annotations should be correctly masked, whether the sequence has been reverse complemented or not. We use the plus/minus strand CDS containing sequences created above.
 
 .. jupyter-execute::
-    :linenos:
 
     print(plus.with_masked_annotations("CDS"))
     print(minus.with_masked_annotations("CDS"))

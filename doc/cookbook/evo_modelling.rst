@@ -16,7 +16,6 @@ The available pre-defined substitution models
 In cases where code takes a substitution model as an argument, you can use the value under “Abbreviation” as a string.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import available_models
 
@@ -26,7 +25,6 @@ Getting a substitution model with ``get_model()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import get_model
 
@@ -44,7 +42,6 @@ For nucleotide
 We specify a general time reversible nucleotide model with gamma distributed rate heterogeneity.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import get_model
 
@@ -57,7 +54,6 @@ For codon
 We specify a conditional nucleotide frequency codon model with nucleotide general time reversible parameters and a parameter for the ratio of nonsynonymous to synonymous substitutions (omega) with gamma distributed rate heterogeneity.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import get_model
 
@@ -70,7 +66,6 @@ For protein
 We specify a Jones, Taylor and Thornton 1992 empirical protein substitution model with gamma distributed rate heterogeneity.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import get_model
 
@@ -83,7 +78,6 @@ Making a likelihood function
 You start by specifying a substitution model and use that to construct a likelihood function for a specific tree.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_tree
     from cogent3.evolve.models import get_model
@@ -98,7 +92,6 @@ Providing an alignment to a likelihood function
 You need to load an alignment and then provide it a likelihood function. I construct very simple trees and alignments for this example.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_tree, make_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -117,7 +110,6 @@ Scoping parameters on trees – time heterogeneous models
 For many evolutionary analyses, it’s desirable to allow different branches on a tree to have different values of a parameter. We show this for a simple codon model case here where we want the great apes (the clade that includes human and orangutan) to have a different value of the ratio of nonsynonymous to synonymous substitutions. This parameter is identified in the precanned ``CNFGTR`` model as ``omega``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
     from cogent3.evolve.models import get_model
@@ -126,7 +118,6 @@ For many evolutionary analyses, it’s desirable to allow different branches on 
     print(tree.ascii_art())
 
 .. jupyter-execute::
-    :linenos:
 
     sm = get_model("CNFGTR")
     lf = sm.make_likelihood_function(tree, digits=2)
@@ -141,7 +132,6 @@ For many evolutionary analyses, it’s desirable to allow different branches on 
 We’ve set an *initial* value for this clade so that the edges affected by this rule are evident below.
 
 .. jupyter-execute::
-    :linenos:
 
     lf
 
@@ -153,7 +143,6 @@ Specifying a parameter as constant
 This means the parameter will not be modified during likelihood maximisation. We show this here by making the ``omega`` parameter constant at the value 1 – essentially the condition of selective neutrality.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
     from cogent3.evolve.models import get_model
@@ -169,7 +158,6 @@ Providing a starting value for a parameter
 This can be useful to improve performance, the closer you are to the maximum likelihood estimator the quicker optimisation will be.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
     from cogent3.evolve.models import get_model
@@ -185,7 +173,6 @@ Setting parameter bounds for optimisation
 This can be useful for stopping optimisers from getting stuck in a bad part of parameter space. The following is for ``omega`` in a codon model. I’m also providing an initial guess for the parameter (``init=0.1``) as well as a lower bound. An initial guess that is close to the maximum likelihood estimate will speed up optimisation.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
     from cogent3.evolve.models import get_model
@@ -201,7 +188,6 @@ Setting an upper bound for branch length
 If the branch length estimates seem too large, setting just an upper bound can be sensible. This will apply to all edges on the tree.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
     from cogent3.evolve.models import get_model
@@ -219,7 +205,6 @@ Specifying rate heterogeneity functions
 We extend the simple gamma distributed rate heterogeneity case for nucleotides from above to construction of the actual likelihood function. We do this for 4 bins and constraint the bin probabilities to be equal.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
     from cogent3.evolve.models import get_model
@@ -235,7 +220,6 @@ Specifying Phylo-HMMs
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree
     from cogent3.evolve.models import get_model
@@ -253,7 +237,6 @@ Fitting likelihood functions - Choice of optimisers
 There are 2 types of optimiser: simulated annealing, a *global* optimiser; and Powell, a *local* optimiser. The simulated annealing method is slow compared to Powell and in general Powell is an adequate choice. I setup a simple nucleotide model to illustrate these.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -268,21 +251,18 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
 The default is to use Powell. For Powell, it’s recommended to set the ``max_restarts`` argument since this provides a mechanism for Powell to attempt restarting the optimisation from a slightly different spot which can help in overcoming local maxima.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.optimise(local=True, max_restarts=5, show_progress=False)
 
 We might want to do crude simulated annealing following by more rigorous Powell. To do this we first need to use the global optimiser, setting ``local=False`` setting a large value for ``global_tolerance``.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.optimise(local=False, global_tolerance=1.0, show_progress=False)
 
 Followed by a standard call to ``optimise()``.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.optimise(show_progress=False, max_restarts=5, tolerance=1e-8)
 
@@ -294,7 +274,6 @@ There is no guarantee that an optimised function has achieved a global maximum. 
 We can monitor this situation using the ``limit_action`` argument to ``optimise``. Providing the value ``raise`` causes an exception to be raised if this condition occurs, as shown below. Providing ``warn`` (default) instead will cause a warning message to be printed to screen but execution will continue. The value ``ignore`` hides any such message.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -322,7 +301,6 @@ Overview of the fitted likelihood function
 In Jupyter, the likelihood function object presents a representation of the main object features.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -341,13 +319,11 @@ Log likelihood and number of free parameters
 Reusing the optimised ``lf`` object from above, we can get the log-likelihood and the number of free parameters.
 
 .. jupyter-execute::
-    :linenos:
 
     lnL = lf.lnL
     lnL
 
 .. jupyter-execute::
-    :linenos:
 
     nfp = lf.nfp
     nfp
@@ -360,14 +336,12 @@ Aikake Information Criterion
 Reusing the optimised ``lf`` object from above.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.get_aic()
 
 We can also get the second-order AIC.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.get_aic(second_order=True)
 
@@ -377,7 +351,6 @@ Bayesian Information Criterion
 Reusing the optimised ``lf`` object from above.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.get_bic()
 
@@ -392,13 +365,11 @@ One at a time
 We get the statistics out individually. We get the ``length`` for the Human edge and the exchangeability parameter ``A/G``.
 
 .. jupyter-execute::
-    :linenos:
 
     a_g = lf.get_param_value("A/G")
     a_g
 
 .. jupyter-execute::
-    :linenos:
 
     human = lf.get_param_value("length", "Human")
     human
@@ -407,7 +378,6 @@ Just the motif probabilities
 ''''''''''''''''''''''''''''
 
 .. jupyter-execute::
-    :linenos:
 
     mprobs = lf.get_motif_probs()
     mprobs
@@ -416,7 +386,6 @@ As tables
 '''''''''
 
 .. jupyter-execute::
-    :linenos:
 
     tables = lf.get_statistics(with_motif_probs=True, with_titles=True)
     tables[0]  # just displaying the first
@@ -427,7 +396,6 @@ Testing Hypotheses - Using Likelihood Ratio Tests
 We test the molecular clock hypothesis for human and chimpanzee lineages. The null has these two branches constrained to be equal.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -453,7 +421,6 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
 The alternate allows the human and chimpanzee branches to differ by just setting all lengths to be independent.
 
 .. jupyter-execute::
-    :linenos:
 
     lf.set_param_rule("length", is_independent=True)
     lf.set_name("Alt Hypothesis")
@@ -465,7 +432,6 @@ The alternate allows the human and chimpanzee branches to differ by just setting
 We import the function for computing the probability of a chi-square test statistic, compute the likelihood ratio test statistic, degrees of freedom and the corresponding probability.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.maths.stats import chisqprob
 
@@ -482,7 +448,6 @@ If we can't rely on the asymptotic behaviour of the LRT, e.g. due to small align
 In general, however, this capability derives from the ability of any defined ``evolve`` likelihood function to simulate an alignment. This property is provided as ``simulate_alignment`` method on likelihood function objects.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -511,7 +476,6 @@ Determining confidence intervals on MLEs
 The profile method is used to calculate a confidence interval for a named parameter. We show it here for a global substitution model exchangeability parameter (*kappa*, the ratio of transition to transversion rates) and for an edge specific parameter (just the human branch length).
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -535,7 +499,6 @@ The best approach is to use the json string from the ``to_json()`` method. The s
 To illustrate this, I create a very simple likelihood function. The ``json`` variable below is just a string that can be saved to disk.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -551,7 +514,6 @@ To illustrate this, I create a very simple likelihood function. The ``json`` var
 We deserialise the object from the string.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.util.deserialise import deserialise_object
 
@@ -564,7 +526,6 @@ Reconstructing ancestral sequences
 We first fit a likelihood function.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_tree, load_aligned_seqs
     from cogent3.evolve.models import get_model
@@ -579,7 +540,6 @@ We first fit a likelihood function.
 We then get the most likely ancestral sequences.
 
 .. jupyter-execute::
-    :linenos:
 
     ancestors = lf.likely_ancestral_seqs()
     ancestors[:60]
@@ -587,7 +547,6 @@ We then get the most likely ancestral sequences.
 Or we can get the posterior probabilities (returned as a ``DictArray``) of sequence states at each node.
 
 .. jupyter-execute::
-    :linenos:
 
     ancestral_probs = lf.reconstruct_ancestral_seqs()
     ancestral_probs["root"][:5]

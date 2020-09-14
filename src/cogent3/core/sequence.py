@@ -36,8 +36,7 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.genetic_code import DEFAULT as DEFAULT_GENETIC_CODE
-from cogent3.core.genetic_code import GeneticCodes
+from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts, TestResult
@@ -48,6 +47,7 @@ from cogent3.util.misc import (
     DistanceFromMatrix,
     bytes_to_string,
     get_object_provenance,
+    get_setting_from_environ,
 )
 from cogent3.util.transform import (
     KeepChars,
@@ -70,8 +70,8 @@ __credits__ = [
 ]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 ARRAY_TYPE = type(array(1))
@@ -654,6 +654,109 @@ class SequenceI(object):
     def strand_symmetry(self, *args, **kwargs):
         raise TypeError("must be DNA or RNA moltype")
 
+    def _repr_html_(self):
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_pos=int),
+        )
+        settings.update(env_vals)
+        return self.to_html(limit=settings["num_pos"])
+
+    def to_html(
+        self,
+        interleave_len=60,
+        limit=None,
+        colors=None,
+        font_size=12,
+        font_family="Lucida Console",
+    ):
+        """returns html with embedded styles for sequence colouring
+
+        Parameters
+        ----------
+        interleave_len
+            maximum number of printed bases, defaults to
+            alignment length
+        limit
+            truncate alignment to this length
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
+
+        To display in jupyter notebook:
+
+            >>> from IPython.core.display import HTML
+            >>> HTML(aln.to_html())
+        """
+        # todo refactor interleave_len to be wrap
+        css, styles = self.moltype.get_css_style(
+            colors=colors, font_size=font_size, font_family=font_family
+        )
+
+        seq = str(self)
+        seq = seq if limit is None else seq[:limit]
+        gaps = "".join(self.moltype.gaps)
+        seqlen = len(seq)
+        start_gap = re.search("^[%s]+" % gaps, "".join(seq))
+        end_gap = re.search("[%s]+$" % gaps, "".join(seq))
+
+        start = 0 if start_gap is None else start_gap.end()
+        end = len(seq) if end_gap is None else end_gap.start()
+        seq_style = []
+        template = '<span class="%s">%%s</span>'
+        styled_seq = []
+        for i in range(seqlen):
+            char = seq[i]
+            if i < start or i >= end:
+                style = "terminal_ambig_%s" % self.moltype.label
+            else:
+                style = styles[char]
+
+            seq_style.append(template % style)
+            styled_seq.append(seq_style[-1] % char)
+
+        # make a html table
+        seq = array(styled_seq, dtype="O")
+        table = ["<table>"]
+        seq_ = "<td>%s</td>"
+        label_ = '<td class="label">%s</td>'
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
+        for i in range(0, seqlen, interleave_len):
+            table.append(num_row_.format(i))
+            seqblock = seq[i : i + interleave_len].tolist()
+            seqblock = "".join(seqblock)
+            row = "".join([label_ % self.name, seq_ % seqblock])
+            table.append("<tr>%s</tr>" % row)
+        table.append("</table>")
+        class_name = self.__class__.__name__
+        if limit and limit < len(self):
+            summary = f"{len(self)} (truncated to {limit if limit else len(self)}) {class_name}"
+        else:
+            summary = f"{len(self)} {class_name}"
+
+        text = [
+            "<style>",
+            ".c3seq td { border: none !important; text-align: left !important; }",
+            ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3seq .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; }" % font_size,
+            "\n".join([".c3seq " + style for style in css]),
+            "</style>",
+            '<div class="c3seq">',
+            "\n".join(table),
+            "<p><i>%s</i></p>" % summary,
+            "</div>",
+        ]
+        return "\n".join(text)
+
 
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
@@ -747,12 +850,6 @@ class Sequence(_Annotatable, SequenceI):
     def _seq_filter(self, seq):
         """Returns filtered seq; used to do DNA/RNA conversions."""
         return seq
-
-    def get_colour_scheme(self, colours):
-        return {}
-
-    def get_color_scheme(self, colors):  # alias to support US spelling
-        return self.get_colour_scheme(colours=colors)
 
     def copy_annotations(self, other):
         self.annotations = other.annotations[:]
@@ -977,7 +1074,6 @@ class Sequence(_Annotatable, SequenceI):
 
     def gettype(self):
         """Return the sequence type."""
-
         return self.moltype.label
 
     def resolveambiguities(self):
@@ -1099,101 +1195,6 @@ class Sequence(_Annotatable, SequenceI):
 
         return annot
 
-    def _repr_html_(self):
-        return self.to_html(limit=self._repr_policy["num_pos"],)
-
-    def to_html(
-        self,
-        interleave_len=60,
-        limit=None,
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
-    ):
-        """returns html with embedded styles for sequence colouring
-
-        Parameters
-        ----------
-        interleave_len
-            maximum number of printed bases, defaults to
-            alignment length
-        limit
-            truncate alignment to this length
-        colors
-            {character
-            moltype.
-        font_size
-            in points. Affects labels and sequence and line spacing
-            (proportional to value)
-        font_family
-            string denoting font family
-
-        To display in jupyter notebook:
-
-            >>> from IPython.core.display import HTML
-            >>> HTML(aln.to_html())
-        """
-        css, styles = self.moltype.get_css_style(
-            colors=colors, font_size=font_size, font_family=font_family
-        )
-
-        seq = self._seq if limit is None else self._seq[:limit]
-        gaps = "".join(self.moltype.gaps)
-        seqlen = len(seq)
-        start_gap = re.search("^[%s]+" % gaps, "".join(seq))
-        end_gap = re.search("[%s]+$" % gaps, "".join(seq))
-
-        start = 0 if start_gap is None else start_gap.end()
-        end = len(seq) if end_gap is None else end_gap.start()
-        seq_style = []
-        template = '<span class="%s">%%s</span>'
-        styled_seq = []
-        for i in range(seqlen):
-            char = seq[i]
-            if i < start or i >= end:
-                style = "terminal_ambig_%s" % self.moltype.label
-            else:
-                style = styles[char]
-
-            seq_style.append(template % style)
-            styled_seq.append(seq_style[-1] % char)
-
-        # make a html table
-        seq = array(styled_seq, dtype="O")
-        table = ["<table>"]
-        seq_ = "<td>%s</td>"
-        label_ = '<td class="label">%s</td>'
-        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
-        for i in range(0, seqlen, interleave_len):
-            table.append(num_row_.format(i))
-            seqblock = seq[i : i + interleave_len].tolist()
-            seqblock = "".join(seqblock)
-            row = "".join([label_ % self.name, seq_ % seqblock])
-            table.append("<tr>%s</tr>" % row)
-        table.append("</table>")
-        class_name = self.__class__.__name__
-        if limit and limit < len(self):
-            summary = f"{len(self)} (truncated to {limit if limit else len(self)}) {class_name}"
-        else:
-            summary = f"{len(self)} {class_name}"
-
-        text = [
-            "<style>",
-            ".c3seq td { border: none !important; text-align: left !important; }",
-            ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
-            ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
-            ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
-            ".c3seq .label { font-size: %dpt ; text-align: right !important; "
-            "color: black !important; padding: 0 4px; }" % font_size,
-            "\n".join([".c3seq " + style for style in css]),
-            "</style>",
-            '<div class="c3seq">',
-            "\n".join(table),
-            "<p><i>%s</i></p>" % summary,
-            "</div>",
-        ]
-        return "\n".join(text)
-
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
@@ -1225,14 +1226,6 @@ class NucleicAcidSequence(Sequence):
         self._annotations_nucleic_reversed_on(rc)
         return rc
 
-    def _gc_from_arg(self, gc):
-        # codon_alphabet is being deprecated in favor of genetic codes.
-        if gc is None:
-            gc = DEFAULT_GENETIC_CODE
-        elif isinstance(gc, (int, str)):
-            gc = GeneticCodes[gc]
-        return gc
-
     def has_terminal_stop(self, gc=None, allow_partial=False):
         """Return True if the sequence has a terminal stop codon.
 
@@ -1245,7 +1238,7 @@ class NucleicAcidSequence(Sequence):
             by 3, ignores the 3' terminal incomplete codon
 
         """
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         codons = self._seq
         divisible_by_3 = len(codons) % 3 == 0
         end3 = self.__class__(self._seq[-3:]).degap()
@@ -1269,7 +1262,7 @@ class NucleicAcidSequence(Sequence):
             by 3, ignores the 3' terminal incomplete codon
 
         """
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         codons = self._seq
         divisible_by_3 = len(codons) % 3 == 0
 
@@ -1296,7 +1289,7 @@ class NucleicAcidSequence(Sequence):
         -------
         sequence of PROTEIN moltype
         """
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         codon_alphabet = self.codon_alphabet(gc).with_gap_motif()
         # translate the codons
         translation = []
@@ -1331,7 +1324,7 @@ class NucleicAcidSequence(Sequence):
         return translation
 
     def get_orf_positions(self, gc=None, atg=False):
-        gc = self._gc_from_arg(gc)
+        gc = get_code(gc)
         orfs = []
         start = None
         protein = self.get_translation(gc=gc)
@@ -1382,14 +1375,6 @@ class NucleicAcidSequence(Sequence):
 class DnaSequence(NucleicAcidSequence):
     """Holds the standard DNA sequence."""
 
-    def get_colour_scheme(self, colours):
-        return {
-            "A": colours.black,
-            "T": colours.red,
-            "C": colours.blue,
-            "G": colours.green,
-        }
-
     def _seq_filter(self, seq):
         """Converts U to T."""
         return seq.replace("u", "t").replace("U", "T")
@@ -1397,14 +1382,6 @@ class DnaSequence(NucleicAcidSequence):
 
 class RnaSequence(NucleicAcidSequence):
     """Holds the standard RNA sequence."""
-
-    def get_colour_scheme(self, colours):
-        return {
-            "A": colours.black,
-            "U": colours.red,
-            "C": colours.blue,
-            "G": colours.green,
-        }
 
     def _seq_filter(self, seq):
         """Converts T to U."""
@@ -1490,6 +1467,7 @@ class ArraySequenceBase(object):
 
         self.moltype = self.alphabet.moltype
         self.info = info
+        self._repr_policy = dict(num_pos=60)
 
     def __getitem__(self, *args):
         """__getitem__ returns char or slice, as same class."""
@@ -1720,8 +1698,7 @@ class ArraySequenceBase(object):
         return list(self.gap_array().nonzero()[0])
 
     def frac_same_gaps(self, other):
-        """Returns fraction of positions where gaps match other's gaps.
-        """
+        """Returns fraction of positions where gaps match other's gaps."""
         if not other:
             return 0
         self_gaps = self.gap_array()

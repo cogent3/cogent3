@@ -204,8 +204,7 @@ class AnnealingRun(object):
 
 
 class SimulatedAnnealing(object):
-    """Simulated annealing optimiser for bounded functions
-    """
+    """Simulated annealing optimiser for bounded functions"""
 
     def __init__(self, filename=None, interval=None, restore=True):
         """

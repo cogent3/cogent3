@@ -22,8 +22,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 good_nodes = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|
@@ -297,7 +297,7 @@ class NcbiTaxonNodeTests(TestCase):
 
     Note: nested_species is explicitly designed to test the case where the nodes
     file does _not_ contain the root, and where the id of the de facto
-    root is not 1, to make sure there's nothing special about a node 
+    root is not 1, to make sure there's nothing special about a node
     called 'root' or with id 1.
     """
 

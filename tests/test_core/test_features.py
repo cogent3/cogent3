@@ -725,8 +725,7 @@ class FeaturesTest(TestCase):
         )
 
     def test_annotate_matches_to(self):
-        """annotate_matches_to attaches annotations correctly to a Sequence
-        """
+        """annotate_matches_to attaches annotations correctly to a Sequence"""
         seq = DNA.make_seq("TTCCACTTCCGCTT", name="x")
         pattern = "CCRC"
         annot = seq.annotate_matches_to(

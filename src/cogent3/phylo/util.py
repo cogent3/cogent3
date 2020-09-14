@@ -14,7 +14,7 @@ __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
 __maintainer__ = "pm67nz@gmail.com"
-__email__ = "rob@spot.colorado.edu"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 

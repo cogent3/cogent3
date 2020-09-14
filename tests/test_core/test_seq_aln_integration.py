@@ -68,8 +68,7 @@ class AllTests(TestCase):
         self.assertEqual(str(self.da), "\n".join(exp_lines_general) + "\n")
 
     def test_printing_unnamed_seqs(self):
-        """Printing unnamed sequences should work the same on Aln and DenseAln
-        """
+        """Printing unnamed sequences should work the same on Aln and DenseAln"""
         exp_lines_gen = [">seq_0", "UCAGGG", ">seq_1", "YCU-RG", ">seq_2", "CAA-NR\n"]
         self.assertEqual(str(self.nn_aln), "\n".join(exp_lines_gen))
         self.assertEqual(str(self.nn_da), "\n".join(exp_lines_gen))

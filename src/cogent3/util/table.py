@@ -97,7 +97,12 @@ def _callback(callback, row, num_columns=None):
 
 
 def formatted_array(
-    series, title="", precision=4, format_spec=None, missing_data="", center=False,
+    series,
+    title="",
+    precision=4,
+    format_spec=None,
+    missing_data="",
+    center=False,
 ):
     """converts elements in a numpy array series to an equal length string.
 
@@ -337,8 +342,14 @@ class Columns(MutableMapping):
             key = self._order[key[0]]
 
         if type(key) in (list, tuple):
-            key = [self._get_key_(k) for k in key]
-        elif isinstance(key, numpy.ndarray):
+            if all(type(e) == bool for e in key) and len(key) == len(self.order):
+                key = [k for k, b in zip(self.order, key) if b]
+            else:
+                key = [self._get_key_(k) for k in key]
+
+            return key
+
+        if isinstance(key, numpy.ndarray):
             # we try slicing by array
             cols = numpy.array(self.order, dtype="U")
             try:
@@ -346,10 +357,10 @@ class Columns(MutableMapping):
             except Exception:
                 msg = f"{key} could not be used to slice columns"
                 raise KeyError(msg)
-        else:
-            raise KeyError(f"{key}")
 
-        return key
+            return key
+
+        raise KeyError(f"{key}")
 
     def __contains__(self, key):
         return key in self._order
@@ -454,12 +465,13 @@ class Columns(MutableMapping):
 
     @property
     def index_name(self):
-        # check
+        """column name whose values can be used to index table rows"""
         return self._index_name
 
     @index_name.setter
     def index_name(self, name):
         if name is None:
+            self._index_name = None
             return
 
         if name not in self:
@@ -580,12 +592,13 @@ class Table:
         if isinstance(data, dict):
             # convert containers like a defaultdict to a standard dict
             data = dict(data)
-
-        try:
-            len(data[0])
-            row_data = True
-        except (TypeError, IndexError, KeyError):
             row_data = False
+        else:
+            try:
+                len(data[0])
+                row_data = True
+            except (TypeError, IndexError, KeyError):
+                row_data = False
 
         if header and row_data:
             hlen = len(header)
@@ -597,11 +610,8 @@ class Table:
 
             data = {c: v for c, v in zip(header, zip(*data))}
 
-        if header is None and isinstance(data, dict):
-            header = list(data)
-        elif header is None:
-            header = []
-
+        if header is None:
+            header = list(data) if isinstance(data, dict) else []
         has_index = index is not None
         if has_index and not isinstance(index, str):
             raise TypeError(f"only str type supported for index, not {type(index)}")
@@ -647,7 +657,7 @@ class Table:
         self._column_templates = column_templates or {}
         # define the repr() display policy
         random = 0
-        self._repr_policy = dict(head=None, tail=None, random=random)
+        self._repr_policy = dict(head=None, tail=None, random=random, show_shape=True)
         self.format = format
         self._missing_data = missing_data
 
@@ -726,6 +736,8 @@ class Table:
             return "0 rows x 0 columns"
 
         table, shape_info, unset_columns = self._get_repr_()
+        if not self._repr_policy["show_shape"]:
+            shape_info = ""
         result = (
             "\n".join([str(table), shape_info, unset_columns])
             if unset_columns
@@ -758,16 +770,22 @@ class Table:
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
             indices = list(sorted(indices))
-            shape_info = f"Random selection of {rn} rows"
+            shape_info = f"Random selection of {rn} rows from"
         elif all([head, tail]):
             indices = list(range(head)) + list(
                 range(self.shape[0] - tail, self.shape[0])
             )
             ellipsis = "..."
+            if head + tail < self.shape[0]:
+                shape_info = f"Top {head} and bottom {tail} rows from"
         elif head:
             indices = list(range(head))
+            if head < self.shape[0]:
+                shape_info = f"Top {head} rows from"
         elif tail:
             indices = list(range(self.shape[0] - tail, self.shape[0]))
+            if tail < self.shape[0]:
+                shape_info = f"Bottom {tail} rows from"
         else:
             indices = list(range(self.shape[0]))
 
@@ -796,7 +814,7 @@ class Table:
         table._column_templates.update(self._column_templates)
         return table, shape_info, unset_columns
 
-    def _repr_html_(self, include_shape=True):
+    def _repr_html_(self):
         """returns html, used by Jupyter"""
         base_colour = "rgba(161, 195, 209, {alpha})"
         colour = base_colour.format(alpha=0.25)
@@ -815,7 +833,7 @@ class Table:
             if unset_columns
             else f"<p>{shape_info}</p>"
         )
-        if not include_shape:
+        if not self._repr_policy["show_shape"]:
             shape_info = ""
 
         if self.shape == (0, 0):
@@ -903,24 +921,32 @@ class Table:
 
         self._persistent_attrs["space"] = value
 
-    def set_repr_policy(self, head=None, tail=None, random=0):
+    def set_repr_policy(self, head=None, tail=None, random=0, show_shape=True):
         """specify policy for repr(self)
 
         Parameters
         ----------
 
-        - head: number of top rows to included in represented display
-        - tail: number of bottom rows to included in represented display
-        - random: number of rows to sample randomly (supercedes head/tail)
+        head : int
+            number of top rows to included in represented display
+        tail : int
+            number of bottom rows to included in represented display
+        random : int
+            number of rows to sample randomly (supercedes head/tail)
+        show_shape : bool
+            boolean to determine if table shape info is displayed
         """
         if not any([head, tail, random]):
+            self._repr_policy["show_shape"] = show_shape
             return
         if random:
             assert (
                 type(random) == int and random > 0
             ), "random must be a positive integer"
             head = tail = None
-        self._repr_policy = dict(head=head, tail=tail, random=random)
+        self._repr_policy = dict(
+            head=head, tail=tail, random=random, show_shape=show_shape
+        )
 
     @property
     def format(self):
@@ -966,7 +992,10 @@ class Table:
         """displays top nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
-        self._repr_policy = dict(head=nrows, tail=None, random=None)
+        show_shape = self._repr_policy["show_shape"]
+        self._repr_policy = dict(
+            head=nrows, tail=None, random=None, show_shape=show_shape
+        )
         display(self)
         self._repr_policy = repr_policy
 
@@ -974,12 +1003,16 @@ class Table:
         """displays bottom nrows"""
         repr_policy = self._repr_policy
         nrows = min(nrows, self.shape[0])
-        self._repr_policy = dict(head=None, tail=nrows, random=None)
+        show_shape = self._repr_policy["show_shape"]
+        self._repr_policy = dict(
+            head=None, tail=nrows, random=None, show_shape=show_shape
+        )
         display(self)
         self._repr_policy = repr_policy
 
     @property
     def index_name(self):
+        """column name whose values can be used to index table rows"""
         if self._index_name is not None and not self._template:
             self.columns.index_name = self._index_name
             self.index_name = self._index_name
@@ -987,13 +1020,10 @@ class Table:
         return self._index_name
 
     @index_name.setter
-    def index_name(self, value):
-        if value is None:
-            return
-
-        self.columns.index_name = value
-        self._index_name = value
-        self._template = DictArrayTemplate(self.columns[value])
+    def index_name(self, name):
+        self.columns.index_name = name
+        self._index_name = name
+        self._template = None if name is None else DictArrayTemplate(self.columns[name])
 
     @property
     def header(self):
@@ -1038,7 +1068,12 @@ class Table:
         return joined
 
     def inner_join(
-        self, other, columns_self=None, columns_other=None, use_index=True, **kwargs,
+        self,
+        other,
+        columns_self=None,
+        columns_other=None,
+        use_index=True,
+        **kwargs,
     ):
         """inner join of self with other
 
@@ -1141,7 +1176,12 @@ class Table:
         return joined
 
     def joined(
-        self, other, columns_self=None, columns_other=None, inner_join=True, **kwargs,
+        self,
+        other,
+        columns_self=None,
+        columns_other=None,
+        inner_join=True,
+        **kwargs,
     ):
         """returns a new table containing the join of this table and
         other. See docstring for inner_join, or cross_join
@@ -1199,6 +1239,10 @@ class Table:
         Row data provided to callback is a 1D list if more than one column,
         single value (row[col]) otherwise.
         """
+        # no point filtering if no rows, justv return self
+        if self.shape[0] == 0:
+            return self
+
         if isinstance(columns, str):
             columns = (columns,)
 
@@ -1246,6 +1290,10 @@ class Table:
             python code to be evaluated.
 
         """
+        # no rows, value must be 0
+        if self.shape[0] == 0:
+            return 0
+
         if isinstance(columns, str):
             columns = (columns,)
 
@@ -1302,9 +1350,10 @@ class Table:
 
         Notes
         -----
-        All tables must have the same columns.
+        All tables must have the same columns. If a column dtype differs between tables,
+        dtype for that column in result is determined by numpy.
         """
-        if new_column:
+        if new_column is not None:
             assert new_column not in self.columns, f"'{new_column}' already exists"
         # default title is no title
         kwargs["title"] = kwargs.get("title", "")
@@ -1320,28 +1369,50 @@ class Table:
         new_col = []
         table_series = (self,) + tables
         raw_data = defaultdict(list)
+        dtypes = defaultdict(set)
         for table in table_series:
             assert set(table.columns.order) == columns, "columns don't match"
-            if new_column:
+            if new_column is not None:
                 new_col.extend([table.title] * table.shape[0])
+
+            for c in table.columns:
+                dtypes[c].add(table.columns[c].dtype)
+
             data = table.columns.to_dict()
             for c, v in data.items():
                 raw_data[c].extend(v)
 
-        dtypes = {c: self.columns[c].dtype for c in self.columns}
-        if new_column:
+        if new_column is not None:
             columns = (new_column,) + self.columns.order
             raw_data[new_column] = new_col
-            dtypes[new_column] = "<U15"
+            dtypes[new_column] = set(["U"])
         else:
             columns = self.columns.order
+
         for c in columns:
-            result.columns[c] = numpy.array(raw_data[c], dtype=dtypes[c])
+            data = (
+                raw_data[c]
+                if len(dtypes[c]) != 1
+                else numpy.array(raw_data[c], dtype=dtypes[c].pop())
+            )
+            result.columns[c] = data
         return result
 
-    def get_columns(self, columns):
-        """Return a Table with just columns"""
-        if self.index_name:
+    def get_columns(self, columns, with_index=True):
+        """select columns from self with index_name unless excluded
+
+        Parameters
+        ----------
+        columns : string or sequence of strings
+            names of columns
+        with_index : bool
+            If index_name is set, includes with columns.
+
+        Returns
+        -------
+        Table
+        """
+        if self.index_name and with_index:
             columns = [self.index_name] + [c for c in columns if c != self.index_name]
         return self[:, columns]
 
@@ -2035,6 +2106,51 @@ class Table:
         draw.layout |= default_layout
         return draw
 
+    def to_categorical(self, columns=None):
+        """construct object that can be used for statistical tests
+
+        Parameters
+        ----------
+        columns
+            columns to include. These correspond to contingency column
+            labels. The row labels come from values under the index_name
+            column. Defaults to all columns.
+
+        Returns
+        -------
+        CategoryCounts, an object for performing statistical tests on
+        contingency tables.
+
+        Notes
+        -----
+        Only applies to cases where an index_name is defined. The selected columns
+        must be int types and represent the counts of corresponding categories.
+        """
+        from cogent3.maths.stats.contingency import CategoryCounts
+        from cogent3.util.dict_array import DictArrayTemplate
+
+        if self.index_name is None:
+            raise ValueError(f"requires index_name be set")
+
+        columns = list(self.header) if columns is None else columns
+
+        columns = [columns] if isinstance(columns, str) else columns
+        if not set(columns) <= set(self.header):
+            raise ValueError(f"unknown columns {columns}")
+
+        if self.index_name in columns:
+            columns.remove(self.index_name)
+        row_cats = self.columns[self.index_name]
+        # must be convertible to int
+        for col in columns:
+            if "int" not in self.columns[col].dtype.name:
+                raise TypeError(f"{col} is not of int type")
+
+        matrix = self.get_columns(columns, with_index=False).array.astype(int)
+
+        data = DictArrayTemplate(row_cats, columns).wrap(matrix)
+        return CategoryCounts(data)
+
     def transposed(self, new_column_name, select_as_header=None, **kwargs):
         """returns the transposed table.
 
@@ -2056,6 +2172,9 @@ class Table:
             raise ValueError(f"not all '{select_as_header}' values unique")
 
         attr = self._get_persistent_attrs()
+        # on transpose, a row index becomes a column, so pop
+        del attr["index"]
+
         attr |= kwargs
         result = self.__class__(**attr)
 

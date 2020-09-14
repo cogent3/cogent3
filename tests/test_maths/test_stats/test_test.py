@@ -51,6 +51,7 @@ from cogent3.maths.stats.test import (
     mw_boot,
     mw_test,
     pearson,
+    pearson_correlation,
     permute_2d,
     posteriors,
     regress,
@@ -89,9 +90,11 @@ __credits__ = [
 ]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 class TestsHelper(TestCase):
@@ -1278,13 +1281,15 @@ class CorrelationTests(TestsHelper):
 
         bad = [1, 2, 3]  # originally gave r = 1.0000000002
 
-        self.assertFloatEqual(correlation(x, x), (1, 0))
-        self.assertFloatEqual(correlation(x, y), (0, 1))
-        self.assertFloatEqual(correlation(y, z), (0, 1))
-        self.assertFloatEqualAbs(correlation(x, a), (0.9827076, 0.01729), 1e-5)
-        self.assertFloatEqualAbs(correlation(x, b), (-0.9621405, 0.03786), 1e-5)
-        self.assertFloatEqualAbs(correlation(x, c), (0.3779645, 0.622), 1e-3)
-        self.assertEqual(correlation(bad, bad), (1, 0))
+        self.assertFloatEqual(pearson_correlation(x, x), (1, 0))
+        self.assertFloatEqual(pearson_correlation(x, y), (0, 1))
+        self.assertFloatEqual(pearson_correlation(y, z), (0, 1))
+        self.assertFloatEqualAbs(pearson_correlation(x, a), (0.9827076, 0.01729), 1e-5)
+        self.assertFloatEqualAbs(pearson_correlation(x, b), (-0.9621405, 0.03786), 1e-5)
+        self.assertFloatEqualAbs(pearson_correlation(x, c), (0.3779645, 0.622), 1e-3)
+        self.assertEqual(pearson_correlation(bad, bad), (1, 0))
+        got = pearson_correlation(self.data1, self.data2, tails="low")
+        assert_allclose(got, (-0.03760147385, 0.4589314864))
 
     def test_correlation_test_pearson(self):
         """Test correlation_test using pearson on valid input."""
@@ -1956,17 +1961,17 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertEqual(other_vals, [4, 13, 15])
 
     def test_distance_matrix_permutation_test_non_symmetric(self):
-        """ evaluate empirical p-values for a non symmetric matrix 
+        """evaluate empirical p-values for a non symmetric matrix
 
-            To test the empirical p-values, we look at a simple 3x3 matrix 
-             b/c it is easy to see what t score every permutation will 
-             generate -- there's only 6 permutations. 
-             Running dist_matrix_test with n=1000, we expect that each 
-             permutation will show up 160 times, so we know how many 
-             times to expect to see more extreme t scores. We therefore 
-             know what the empirical p-values will be. (n=1000 was chosen
-             empirically -- smaller values seem to lead to much more frequent
-             random failures.)
+        To test the empirical p-values, we look at a simple 3x3 matrix
+         b/c it is easy to see what t score every permutation will
+         generate -- there's only 6 permutations.
+         Running dist_matrix_test with n=1000, we expect that each
+         permutation will show up 160 times, so we know how many
+         times to expect to see more extreme t scores. We therefore
+         know what the empirical p-values will be. (n=1000 was chosen
+         empirically -- smaller values seem to lead to much more frequent
+         random failures.)
 
 
         """
@@ -2005,10 +2010,10 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertSimilarMeans(r, 4.0 / 6.0)
 
     def test_distance_matrix_permutation_test_symmetric(self):
-        """ evaluate empirical p-values for symmetric matrix
+        """evaluate empirical p-values for symmetric matrix
 
-            See test_distance_matrix_permutation_test_non_symmetric 
-            doc string for a description of how this test works. 
+        See test_distance_matrix_permutation_test_non_symmetric
+        doc string for a description of how this test works.
 
         """
 
@@ -2067,8 +2072,7 @@ class TestDistMatrixPermutationTest(TestCase):
         )
 
     def test_ANOVA_one_way(self):
-        """ANOVA one way returns same values as ANOVA on a stats package
-        """
+        """ANOVA one way returns same values as ANOVA on a stats package"""
         g1 = NumberCounter([10.0, 11.0, 10.0, 5.0, 6.0])
         g2 = NumberCounter([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
         g3 = NumberCounter([6.0, 7.0, 5.0, 6.0, 7.0])

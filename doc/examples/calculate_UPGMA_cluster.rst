@@ -13,7 +13,6 @@ An example of how to calculate the pairwise distances for a set of sequences.
 .. note:: UPGMA should not be used for phylogenetic reconstruction.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
     from cogent3.evolve import distance
@@ -22,21 +21,18 @@ An example of how to calculate the pairwise distances for a set of sequences.
 Import a substitution model (or create your own)
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import HKY85
 
 Load the alignment.
 
 .. jupyter-execute::
-    :linenos:
 
     al = load_aligned_seqs("data/test.paml")
 
 Create a pairwise distances object calculator for the alignment, providing a substitution model instance.
 
 .. jupyter-execute::
-    :linenos:
 
     d = distance.EstimateDistances(al, submodel=HKY85())
     d.run(show_progress=False)
@@ -44,7 +40,6 @@ Create a pairwise distances object calculator for the alignment, providing a sub
 Now use this matrix to build a UPGMA cluster.
 
 .. jupyter-execute::
-    :linenos:
 
     mycluster = upgma(d.get_pairwise_distances())
     print(mycluster.ascii_art())
@@ -52,7 +47,6 @@ Now use this matrix to build a UPGMA cluster.
 We demonstrate saving this UPGMA cluster to a file.
 
 .. jupyter-execute::
-    :linenos:
 
     mycluster.write("test_upgma.tree")
 

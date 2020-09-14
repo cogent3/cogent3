@@ -46,10 +46,10 @@ class WLS(TreeEvaluator):
 
     def __init__(self, dists, weights=None):
         """Arguments:
-            - dists: a dict with structure (seq1, seq2): distance
-            - weights: an equivalently structured dict with measurements of
-              variability of the distance estimates. By default, the sqrt of
-              distance is used."""
+        - dists: a dict with structure (seq1, seq2): distance
+        - weights: an equivalently structured dict with measurements of
+          variability of the distance estimates. By default, the sqrt of
+          distance is used."""
         try:
             dists = dists.to_dict()
         except AttributeError:

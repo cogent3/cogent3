@@ -14,8 +14,7 @@ __maintainer__ = "Thomas La"
 
 
 def alignment_to_gde(alignment_dict, block_size=60, order=None):
-    """Returns a Gde string given an alignment.
-    """
+    """Returns a Gde string given an alignment."""
     return GDEFormatter().format(
         alignment_dict, block_size, [] if order is None else order
     )

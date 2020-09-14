@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import sys
@@ -16,6 +17,7 @@ from cogent3.app.data_store import (
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
     WritableZippedDataStore,
+    load_record_from_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
 
@@ -710,6 +712,23 @@ class SingleReadStoreTests(TestCase):
         data = data.splitlines()
         got = {l: s for l, s in MinimalFastaParser(data)}
         self.assertEqual(got, expect)
+
+
+class TestFunctions(TestCase):
+    """test support functions"""
+
+    def test_load_record_from_json(self):
+        """handle different types of input"""
+        orig = {"data": "blah", "identifier": "some.json", "completed": True}
+        data = orig.copy()
+        data2 = data.copy()
+        data2["data"] = json.dumps(data)
+        for d in (data, json.dumps(data), data2):
+            expected = "blah" if d != data2 else json.loads(data2["data"])
+            Id, data_, compl = load_record_from_json(d)
+            self.assertEqual(Id, "some.json")
+            self.assertEqual(data_, expected)
+            self.assertEqual(compl, True)
 
 
 if __name__ == "__main__":

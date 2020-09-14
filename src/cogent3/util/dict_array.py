@@ -361,15 +361,18 @@ class DictArrayTemplate(object):
         if len(a.shape) == 1:
             heading = [str(n) for n in self.names[0]]
             a = a[numpy.newaxis, :]
+            index = None
         elif len(a.shape) == 2:
             heading = [""] + [str(n) for n in self.names[1]]
             a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
             a = {d[0]: d[1:] for d in zip(heading, *a)}
+            index = heading[0]
         else:
             return "%s dimensional %s" % (len(self.names), type(self).__name__)
 
-        t = Table(heading, data=a, digits=3, index=heading[0], max_width=80)
-        return t._repr_html_(include_shape=False)
+        t = Table(heading, data=a, digits=3, index=index, max_width=80)
+        t.set_repr_policy(show_shape=False)
+        return t._repr_html_()
 
 
 class DictArray(object):
@@ -557,6 +560,29 @@ class DictArray(object):
             for row in [list(k) + [v] for k, v in data.items()]
         ]
         return "\n".join([sep.join(row) for row in rows])
+
+    def to_table(self):
+        """return Table instance
+
+        Notes
+        -----
+        Raises ValueError if number of dimensions > 2
+        """
+        ndim = self.array.ndim
+        if ndim > 2:
+            raise ValueError(f"cannot make 2D table from {ndim}D array")
+
+        from .table import Table
+
+        header = self.template.names[0] if ndim == 1 else self.template.names[1]
+        index = "" if ndim == 2 else None
+        if ndim == 1:
+            data = {c: [v] for c, v in zip(header, self.array)}
+        else:
+            data = {c: self.array[:, i].tolist() for i, c in enumerate(header)}
+            data[""] = self.template.names[0]
+
+        return Table(header=header, data=data, index=index)
 
     def write(self, path, format="tsv", sep="\t"):
         """

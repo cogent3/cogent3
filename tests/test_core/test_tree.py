@@ -35,8 +35,8 @@ __credits__ = [
 ]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 base_path = os.path.dirname(os.path.dirname(__file__))
@@ -1569,8 +1569,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(tmid.distance(tmid.get_node_matching_name("d")), 2.75)
 
     def test_root_at_midpoint4(self):
-        """midpoint should be selected correctly when it is an internal node
-        """
+        """midpoint should be selected correctly when it is an internal node"""
         tree = DndParser("(a:1,((c:1,d:3)n3:1,b:1)n2:1)rt;")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
@@ -1590,8 +1589,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(tmid.distance(tmid.get_node_matching_name("d")), 3)
 
     def test_root_at_midpoint5(self):
-        """midpoint should be selected correctly when on an even 2tip tree
-        """
+        """midpoint should be selected correctly when on an even 2tip tree"""
         tree = DndParser("""(BLO_1:0.649351,BLO_2:0.649351):0.0;""")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
@@ -2008,8 +2006,7 @@ class TestTree(TestCase):
         self.assertEqual(str(subtree), str(new_tree))
 
     def test_getsubtree_2(self):
-        """tree.get_sub_tree() has same pairwise tip dists as tree (len0 node)
-        """
+        """tree.get_sub_tree() has same pairwise tip dists as tree (len0 node)"""
         t1 = DndParser(
             "((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)", PhyloNode
         )  # note c,j is len 0 node
@@ -2020,7 +2017,7 @@ class TestTree(TestCase):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
     def test_getsubtree_3(self):
-        """tree.get_sub_tree() has same pairwise tip dists as tree 
+        """tree.get_sub_tree() has same pairwise tip dists as tree
 
         (nonzero nodes)
         """
@@ -2047,8 +2044,7 @@ class TestTree(TestCase):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
     def test_getsubtree_4(self):
-        """tree.get_sub_tree() handles keep_root correctly
-        """
+        """tree.get_sub_tree() handles keep_root correctly"""
         t1 = DndParser("((a:1,b:2):4,(((c:2)cparent:1, j:17):0,(d:1,e:4):2):3)")
         #           /----4--- /--1-a
         # ---------|          \--2-b

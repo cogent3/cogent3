@@ -13,7 +13,6 @@ Calculate pairwise distances between sequences
 An example of how to calculate the pairwise distances for a set of sequences.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
     from cogent3.evolve import distance
@@ -21,21 +20,18 @@ An example of how to calculate the pairwise distances for a set of sequences.
 Import a substitution model (or create your own)
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import HKY85
 
 Load my alignment
 
 .. jupyter-execute::
-    :linenos:
 
     al = load_aligned_seqs("data/long_testseqs.fasta")
 
 Create a pairwise distances object with your alignment and substitution model and run it.
 
 .. jupyter-execute::
-    :linenos:
 
     d = distance.EstimateDistances(al, submodel=HKY85())
     d.run(show_progress=False)
@@ -46,7 +42,6 @@ Note that pairwise distances can be distributed for computation across multiple 
 We'll write a phylip formatted distance matrix.
 
 .. jupyter-execute::
-    :linenos:
 
     d.write("dists_for_phylo.phylip", format="phylip")
 
@@ -55,7 +50,6 @@ We'll write a phylip formatted distance matrix.
 We'll also save the distances to file in Python's pickle format.
 
 .. jupyter-execute::
-    :linenos:
 
     import pickle
 

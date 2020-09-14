@@ -14,7 +14,6 @@ For a limited number of evolutionary models a fast implementation is
 available.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import available_distances
 
@@ -26,7 +25,6 @@ Computing genetic distances using the ``Alignment`` object
 Abbreviations listed from ``available_distances()`` can be used as values for the ``distance_matrix(calc=<abbreviation>)``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -38,7 +36,6 @@ Using the distance calculator directly
 ======================================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs, get_distance_calculator
 
@@ -47,7 +44,6 @@ Using the distance calculator directly
     dist_calc
 
 .. jupyter-execute::
-    :linenos:
 
     dist_calc.run(show_progress=False)
     dists = dist_calc.get_pairwise_distances()
@@ -56,7 +52,6 @@ Using the distance calculator directly
 The distance calculation object can provide more information. For instance, the standard errors.
 
 .. jupyter-execute::
-    :linenos:
 
     dist_calc.stderr
 
@@ -68,7 +63,6 @@ The standard ``cogent3`` likelihood function can also be used to estimate distan
 The following will use the F81 nucleotide substitution model and perform numerical optimisation.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs, get_model
     from cogent3.evolve import distance

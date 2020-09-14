@@ -15,8 +15,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
@@ -68,7 +68,7 @@ class logarithm_tests(TestCase):
         self.assertFloatEqual(q_taylor, q_eig)
 
     def test_is_generator_unique(self):
-        """ is_generator_unique should identify non-unique primary roots or
+        """is_generator_unique should identify non-unique primary roots or
         raise a NotImplementedError for non-primary roots"""
         q_fail = array(
             [

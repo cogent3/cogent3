@@ -292,7 +292,7 @@ class LikelihoodCalcs(TestCase):
         self.assertTrue(lf.lnL > -152)
 
     def test_discrete_nucleotide(self):
-        """test that partially discrete nucleotide model can be constructed, 
+        """test that partially discrete nucleotide model can be constructed,
         differs from continuous, and has the expected number of free params"""
         submod = TimeReversibleNucleotide(
             equal_motif_probs=True, motif_probs=None, predicates={"kappa": "transition"}

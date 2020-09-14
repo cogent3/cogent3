@@ -30,7 +30,11 @@ class TestIntegratingExponentiator(TestCase):
         q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.0
-            q[i, i] = -sum(q[i,])
+            q[i, i] = -sum(
+                q[
+                    i,
+                ]
+            )
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VanLoanIntegratingExponentiator(q, -diag(q))(1.0)
@@ -65,7 +69,7 @@ class TestIntegratingExponentiator(TestCase):
         )
 
     def test_von_bing_integrating_exponentiator(self):
-        """VonBingIntegratingExponentiator should reproduce Felsenstein 
+        """VonBingIntegratingExponentiator should reproduce Felsenstein
         analytic result, should throw if we pass it a defective matrix, and
         should match results obtained from VanLoanIntegratingExponentiator for
         a diagonisable matrix."""
@@ -74,7 +78,11 @@ class TestIntegratingExponentiator(TestCase):
         q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.0
-            q[i, i] = -sum(q[i,])
+            q[i, i] = -sum(
+                q[
+                    i,
+                ]
+            )
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VonBingIntegratingExponentiator(q)(1.0)

@@ -91,7 +91,8 @@ class DictArrayTest(TestCase):
         """convert_1D_dict produces valid template input"""
         data = dict(a=0, b=35, c=45)
         vals, keys = convert_1D_dict(data)
-        b = DictArrayTemplate(keys).wrap(vals)
+        b = DictArrayTemplate(keys)
+        b = b.wrap(vals)
         self.assertEqual(b.array.tolist(), [0, 35, 45])
 
     def test_construct_both_dim_str(self):
@@ -309,6 +310,18 @@ class DictArrayTest(TestCase):
         self.assertIsInstance(got, str)
         self.assertTrue(len(got), 100)
 
+        # case where 1D array
+        a = [4, 6, 4, 2]
+        darr = DictArrayTemplate(["A", "C", "G", "T"]).wrap(a)
+        got = darr._repr_html_()
+        self.assertTrue('class="index"' not in got)
+
+        # case of 3D array
+        d3 = numpy.arange(8).reshape((2, 2, 2))
+        darr = DictArrayTemplate(2, 2, 2).wrap(d3)
+        got = darr._repr_html_()
+        self.assertIn("3 dimensional", got)
+
     def test_write(self):
         """exercising write method"""
         data = [[3, 7], [2, 8], [5, 5]]
@@ -341,6 +354,32 @@ class DictArrayTest(TestCase):
         )
         with self.assertRaises(ValueError):
             darr.to_string(format="md"),
+
+    def test_to_table(self):
+        """creates Table when ndim <= 2"""
+        from cogent3.util.table import Table
+
+        a1D = DictArrayTemplate(["a", "b"]).wrap([0, 1])
+        t = a1D.to_table()
+        self.assertIsInstance(t, Table)
+        # 1D tables don't get an index column
+        self.assertEqual(t.index_name, None)
+        a2D = DictArrayTemplate(["a", "b"], ["c", "d"]).wrap(
+            numpy.array([0, 1, 2, 3]).reshape((2, 2))
+        )
+        t = a2D.to_table()
+        self.assertIsInstance(t, Table)
+        # make sure the 2D variant has an index column, name is empty string
+        self.assertEqual(t.index_name, "")
+        self.assertEqual(t.columns[""].tolist(), a2D.template.names[0])
+        # which works
+        self.assertEqual(t["b", "d"], 3)
+
+        a3D = DictArrayTemplate(["a", "b"], ["c", "d"], ["e", "f"]).wrap(
+            numpy.array([0, 1, 2, 3, 4, 5, 6, 7]).reshape((2, 2, 2))
+        )
+        with self.assertRaises(ValueError):
+            _ = a3D.to_table()
 
 
 if __name__ == "__main__":

@@ -50,13 +50,14 @@ _bases = "TCAG"
 class GeneticCode:
     """Holds codon to amino acid mapping, and vice versa.
 
-    Usage:  gc = GeneticCode(code_sequence)
-            sgc = GeneticCode(
-            'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
-            sgc['UUU'] == 'F'
-            sgc['TTT'] == 'F'
-            sgc['F'] == ['TTT', 'TTC']          #in arbitrary order
-            sgc['*'] == ['TAA', 'TAG', 'TGA']   #in arbitrary order
+    Use the `get_code()` function to get one of the included code instances. These are created as follows.
+
+    >>> code_sequence = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'
+    >>> gc = GeneticCode(code_sequence)
+    >>> sgc['UUU'] == 'F'
+    >>> sgc['TTT'] == 'F'
+    >>> sgc['F'] == ['TTT', 'TTC']          #in arbitrary order
+    >>> sgc['*'] == ['TAA', 'TAG', 'TGA']   #in arbitrary order
 
     code_sequence : 64 character string containing NCBI genetic code translation
 
@@ -73,8 +74,19 @@ class GeneticCode:
     def __init__(self, code_sequence, ID=None, name=None, start_codon_sequence=None):
         """Returns new GeneticCode object.
 
-        code_sequence : 64-character string containing NCBI representation
-        of the genetic code. Raises GeneticCodeInitError if length != 64.
+        code_sequence :
+
+        Parameters
+        ----------
+        code_sequence : str
+            64-character string containing NCBI representation of the genetic code.
+        ID
+            Identifier
+        name
+            name of the Genetic code
+        start_codon_sequence
+            64-character string where the '-' character indicates the corresponding
+            position of code_sequence **is not** a start codon
         """
         if len(code_sequence) != 64:
             raise GeneticCodeInitError(
@@ -219,10 +231,11 @@ class GeneticCode:
     def _repr_html_(self):
         """Returns the html representation of GeneticCode."""
         display = self.to_table()
-        return display._repr_html_(include_shape=False)
+        display.set_repr_policy(show_shape=False)
+        return display._repr_html_()
 
     def __eq__(self, other):
-        """ Allows two GeneticCode objects to be compared to each other.
+        """Allows two GeneticCode objects to be compared to each other.
         Two GeneticCode objects are equal if they have equal CodeSequences.
         """
         return str(self) == str(other)
@@ -274,8 +287,7 @@ class GeneticCode:
         return found
 
     def sixframes(self, dna):
-        """Returns six-frame translation as dict containing {frame:translation}
-        """
+        """Returns six-frame translation as dict containing {frame:translation}"""
         reverse = dna.rc()
         return [self.translate(dna, start) for start in range(3)] + [
             self.translate(reverse, start) for start in range(3)
@@ -453,7 +465,7 @@ DEFAULT = GeneticCodes[1]
 
 def get_code(code_id=1):
     """returns the genetic code
-    
+
     Parameters
     ----------
     code_id

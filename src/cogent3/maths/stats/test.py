@@ -72,8 +72,8 @@ __credits__ = [
 ]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
@@ -439,20 +439,27 @@ def bayes_updates(ds_given_h, priors=None):
 def t_paired(a, b, tails=None, exp_diff=0):
     """Returns t and prob for TWO RELATED samples of scores a and b.
 
-    From Sokal and Rohlf (1995), p. 354.
-    Calculates the vector of differences and compares it to exp_diff
-    using the 1-sample t test.
+    Parameters
+    ----------
+    a, b
+        equal length lists of paired observations (numbers).
+    tails
+        tails should be None (default), 'high', or 'low'.
+    exp_diff
+        The expected difference in means (a-b); 0 by default.
 
-    Usage:   t, prob = t_paired(a, b, tails, exp_diff)
+    Returns
+    -------
+    t, prob
 
-    t is a float; prob is a probability.
-    a and b should be equal-length lists of paired observations (numbers).
-    tails should be None (default), 'high', or 'low'.
-    exp_diff should be the expected difference in means (a-b); 0 by default.
+    Notes
+    -----
+    From Sokal and Rohlf (1995), p. 354. Calculates the vector of differences
+    and compares it to exp_diff using the 1-sample t test.
     """
     n = len(a)
     if n != len(b):
-        raise ValueError("Unequal length lists in ttest_paired.")
+        raise ValueError("Unequal length lists in t_paired.")
     try:
         diffs = array(a) - array(b)
         return t_one_sample(diffs, popmean=exp_diff, tails=tails)
@@ -474,8 +481,7 @@ def t_one_sample(a, popmean=0, tails=None):
     t is a float; prob is a probability.
     a should support Mean, StandardDeviation, and Count.
     popmean should be the expected mean; 0 by default.
-    tails should be None (default), 'high', or 'low'.
-"""
+    tails should be None (default), 'high', or 'low'."""
     try:
         n = len(a)
         t = (mean(a) - popmean) / (std(a) / sqrt(n))
@@ -497,18 +503,18 @@ def t_one_sample(a, popmean=0, tails=None):
 def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
     """Returns t, prob for two INDEPENDENT samples of scores a, and b.
 
-    From Sokal and Rohlf, p 223.
-
-    Usage:   t, prob = t_two_sample(a,b, tails, exp_diff)
-
-    t is a float; prob is a probability.
-    a and b should be sequences of observations (numbers). Need not be equal
-        lengths.
-    tails should be None (default), 'high', or 'low'.
-    exp_diff should be the expected difference in means (a-b); 0 by default.
-    none_on_zero_variance: if True, will return (None,None) if both a and b
-        have zero variance (e.g. a=[1,1,1] and b=[2,2,2]). If False, the
-        following values will be returned:
+    Parameters
+    ----------
+    a, b
+        equal length lists of paired observations (numbers).
+    tails
+        tails should be None (default), 'high', or 'low'.
+    exp_diff
+        The expected difference in means (a-b); 0 by default.
+    none_on_zero_variance
+        if True, will return (None,None) if both a and b have zero variance
+        (e.g. a=[1,1,1] and b=[2,2,2]). If False, the following values will
+        be returned:
 
             Two-tailed test (tails=None):
                 a < b: (-inf,0.0)
@@ -524,6 +530,14 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
 
         If a and b both have no variance and have the same single value (e.g.
         a=[1,1,1] and b=[1,1,1]), (None,None) will always be returned.
+
+    Returns
+    -------
+    t, prob
+
+    Notes
+    -----
+    From Sokal and Rohlf, p 223.
     """
     if tails is not None and tails != "high" and tails != "low":
         raise ValueError(
@@ -831,16 +845,19 @@ def pearson(x_items, y_items):
 def spearman(x_items, y_items):
     """Returns Spearman's rho.
 
+    Parameters
+    ----------
+    x_items
+        the first list of observations
+    y_items
+        the second list of observations
+
+    Notes
+    -----
     This will always be a value between -1.0 and +1.0. x_items and y_items must
     be the same length, and cannot have fewer than 2 elements each. If one or
     both of the input vectors do not have any variation, the return value will
     be 0.0.
-
-    Parameters
-    ----------
-        x_items - the first list of observations
-        y_items - the second list of observations
-
     """
     x_items, y_items = array(x_items), array(y_items)
 
@@ -912,6 +929,52 @@ def _get_rank(data):
     return ranks, ties
 
 
+def pearson_correlation(x, y, tails=None):
+    """Computes the Pearson correlation between two vectors and its significance.
+
+    Parameters
+    ----------
+    x
+        the first list of observations
+    y
+        the second list of observations
+    tails
+        if None (the default), a two-sided test is performed. 'high' for a
+        one-tailed test for positive association, or 'low' for a one-tailed
+        test for negative association.
+
+    Returns
+    -------
+    Rho, pvalue
+
+    Notes
+    -----
+    Computes a parametric p-value by using Student's t-distribution with df=n-2
+    to perform the test of significance.
+    """
+    import numpy
+
+    assert len(x) == len(y), f"unequal lengths of x ({len(x)}) and y ({len(y)})"
+    n = len(x)
+    if tails is not None and tails != "high" and tails != "low":
+        raise ValueError(
+            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
+        )
+    # Calculate the correlation coefficient.
+    rho = pearson(x, y)
+    if numpy.allclose(rho, 1.0):
+        return rho, 0
+
+    df = n - 2
+    if n < 3:
+        pvalue = 1
+    else:
+        t = rho / sqrt((1 - (rho * rho)) / df)
+        pvalue = t_tailed_prob(t, df, tails)
+
+    return rho, pvalue
+
+
 def correlation(x_items, y_items):
     """Returns Pearson correlation between x and y, and its significance.
 
@@ -935,6 +998,33 @@ def correlation_test(
 ):
     """Computes the correlation between two vectors and its significance.
 
+    Parameters
+    ----------
+    x_items
+        the first list of observations
+    y_items
+        the second list of observations
+    method : str
+        'pearson' or 'spearman'
+    tails
+        if None (the default), a two-sided test is performed. 'high' for a
+        one-tailed test for positive association, or 'low' for a one-tailed
+        test for negative association. This parameter affects both the
+        parametric and nonparametric tests, but the confidence interval
+        will always be two-sided permutations - the number of permutations
+        to use in the nonparametric test. Must be a number greater than or
+        equal to 0. If 0, the nonparametric test will not be performed. In
+        this case, the list of correlation coefficients obtained from
+        permutations will be empty, and the nonparametric p-value will be None
+    permutations : int
+        Permutes one of the input vectors theis number of times. Used in the
+        nonparametric test.
+    confidence_level
+        the confidence level to use when constructing the
+        confidence interval. Must be between 0 and 1 (exclusive)
+
+    Notes
+    -----
     Computes a parametric p-value by using Student's t-distribution with df=n-2
     to perform the test of significance, as well as a nonparametric p-value
     obtained by permuting one of the input vectors the specified number of
@@ -942,9 +1032,6 @@ def correlation_test(
     computed using Fisher's Z transform if the number of observations is
     greater than 3. Please see Sokal and Rohlf pp. 575-580 and pg. 598-601 for
     more details regarding these techniques.
-
-    Warning: the parametric p-value is unreliable when the method is spearman
-    and there are less than 11 observations in each vector.
 
     Returns the correlation coefficient (r or rho), the parametric p-value, a
     list of the r or rho values obtained from permuting the input, the
@@ -958,27 +1045,13 @@ def correlation_test(
     elements each. If one or both of the input vectors do not have any
     variation, r or rho will be 0.0.
 
-    Note: the parametric portion of this function is based on the correlation
+    The parametric portion of this function is based on the correlation
     function in this module.
 
-    Parameters
-    ----------
-        x_items - the first list of observations
-        y_items - the second list of observations
-        method - 'pearson' or 'spearman'
-        tails - if None (the default), a two-sided test is performed. 'high'
-        for a one-tailed test for positive association, or 'low' for a
-        one-tailed test for negative association. This parameter affects
-        both the parametric and nonparametric tests, but the confidence
-        interval will always be two-sided
-        permutations - the number of permutations to use in the nonparametric
-        test. Must be a number greater than or equal to 0. If 0, the
-        nonparametric test will not be performed. In this case, the list of
-        correlation coefficients obtained from permutations will be empty,
-        and the nonparametric p-value will be None
-        confidence_level - the confidence level to use when constructing the
-        confidence interval. Must be between 0 and 1 (exclusive)
-
+    Warning
+    -------
+    The parametric p-value is unreliable when the method is spearman
+    and there are less than 11 observations in each vector.
     """
     # Perform some initial error checking.
     if method == "pearson":
@@ -1074,14 +1147,8 @@ def correlation_test(
 
 
 def correlation_matrix(series, as_rows=True):
-    """Returns pairwise correlations between each pair of series.
-    """
+    """Returns pairwise correlations between each pair of series."""
     return corrcoef(series, rowvar=as_rows)
-    # unused codes below
-    if as_rows:
-        return corrcoef(transpose(array(series)))
-    else:
-        return corrcoef(array(series))
 
 
 def regress(x, y):
@@ -1197,17 +1264,26 @@ def regress_major(x, y):
 def z_test(a, popmean=0, popstdev=1, tails=None):
     """Returns z and probability score for a single sample of items.
 
-Calculates the z-score on ONE sample of items with mean x, given a population
-mean and standard deviation (parametric).
+    Parameters
+    ----------
+    a
+        list of observations (numbers).
+    popmean
+        the parametric population mean; 0 by default
+    popstdev
+        the parametric population standard deviation, 1 by default.
+    tails
+        tails should be None (default), 'high', or 'low'.
 
-Usage:   z, prob = z_test(a, popmean, popstdev, tails)
+    Returns
+    -------
+    z, prob
 
-z is a float; prob is a probability.
-a is a sample with Mean and Count.
-popmean should be the parametric population mean; 0 by default.
-popstdev should be the parametric population standard deviation, 1 by default.
-tails should be None (default), 'high', or 'low'.
-"""
+    Notes
+    -----
+    Calculates the z-score on ONE sample of items with mean x, given a
+    population mean and standard deviation (parametric).
+    """
     try:
         z = (mean(a) - popmean) / popstdev * sqrt(len(a))
         return z, z_tailed_prob(z, tails)
@@ -1252,8 +1328,7 @@ def reverse_tails(tails):
 
 
 def tail(prob, test):
-    """If test is true, returns prob/2. Otherwise returns 1-(prob/2).
-    """
+    """If test is true, returns prob/2. Otherwise returns 1-(prob/2)."""
     prob /= 2
     if test:
         return prob
@@ -1263,8 +1338,7 @@ def tail(prob, test):
 
 # todo delete, now from itertools.combinations
 def combinations(n, k):
-    """Returns the number of ways of choosing k items from n.
-    """
+    """Returns the number of ways of choosing k items from n."""
     return exp(lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1))
 
 
@@ -1422,14 +1496,13 @@ def sign_test(success, trials, alt="two sided"):
 
     Parameters
     ----------
-    success
+    success : int
         the number of successes
-    trials
+    trials : int
         the number of trials
     alt
         the alternate hypothesis, one of 'less', 'greater', 'two sided'
         (default).
-
     """
     lo = ["less", "lo", "lower", "l"]
     hi = ["greater", "hi", "high", "h", "g"]
@@ -1465,14 +1538,15 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         warns when values are tied. This should left at True
         unless a monte carlo variant, like ks_boot, is being used.
 
-    Note the 1-sample cases are not implemented, although their cdf's are
-    implemented in ks.py"""
-    # translation from R 2.4
+    Notes
+    -----
+    Translated from R 2.4. The 1-sample cases are not implemented, although
+    their cdf's are implemented in ks.py
+    """
+
     num_x = len(x)
     num_y = None
     x = list(zip(x, zeros(len(x), int)))
-    lo = ["less", "lo", "low", "lower", "l", "lt"]
-    hi = ["greater", "hi", "high", "h", "g", "gt"]
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided"]
     Pval = None
     if y is not None:  # in anticipation of actually implementing the 1-sample cases
@@ -1480,14 +1554,9 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         y = list(zip(y, ones(len(y), int)))
         n = num_x * num_y / (num_x + num_y)
         combined = x + y
-        if len(set(combined)) < num_x + num_y:
-            ties = True
-        else:
-            ties = False
-
+        ties = True if len(set(combined)) < num_x + num_y else False
         combined = array(combined, dtype=[("stat", float), ("sample", int)])
         combined.sort(order="stat")
-        cumsum = zeros(combined.shape[0], float)
         scales = array([1 / num_x, -1 / num_y])
         indices = combined["sample"]
         cumsum = scales.take(indices)
@@ -1495,6 +1564,8 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         if exact is None:
             exact = num_x * num_y < 1e4
 
+        lo = ["less", "lo", "low", "lower", "l", "lt"]
+        hi = ["greater", "hi", "high", "h", "g", "gt"]
         if alt in two:
             stat = max(fabs(cumsum))
         elif alt in lo:
@@ -1509,11 +1580,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         raise NotImplementedError
 
     if Pval is None:
-        if alt in two:
-            Pval = 1 - pkstwo(sqrt(n) * stat)
-        else:
-            Pval = exp(-2 * n * stat ** 2)
-
+        Pval = 1 - pkstwo(sqrt(n) * stat) if alt in two else exp(-2 * n * stat ** 2)
     if ties and warn_for_ties:
         warnings.warn("Cannot compute correct KS probability with ties")
 
@@ -1529,7 +1596,7 @@ def _get_bootstrap_sample(x, y, num_reps):
     combined = array(list(x) + list(y))
     total_obs = len(combined)
     num_x = len(x)
-    for i in range(num_reps):
+    for _ in range(num_reps):
         # sampling with replacement
         indices = randint(0, total_obs, total_obs)
         sampled = combined.take(indices)
@@ -1550,18 +1617,18 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
     alt
         alternate hypothesis, as per ks_test
     num_reps
-        number of replicates for the  bootstrap
+        number of replicates for the bootstrap
 
+    Notes
+    -----
+    Based on the ks_boot method in the R Matching package, see
+    http://sekhon.berkeley.edu/matching/
+    One important difference is I preserve the original sample sizes
+    instead of making them equal.
     """
-    # based on the ks_boot method in the R Matching package
-    # see http://sekhon.berkeley.edu/matching/
-    # One important difference is I preserve the original sample sizes
-    # instead of making them equal
     tol = MACHEP * 100
     combined = array(list(x) + list(y))
     observed_stat, _p = ks_test(x, y, exact=False, warn_for_ties=False)
-    total_obs = len(combined)
-    num_x = len(x)
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
         sample_stat, _p = ks_test(
@@ -1647,13 +1714,12 @@ def mw_boot(x, y, num_reps=1000):
     num_reps
         number of replicates for the  bootstrap
 
+    Notes
+    -----
     Uses the same Monte-Carlo resampling code as kw_boot
     """
     tol = MACHEP * 100
-    combined = array(list(x) + list(y))
     observed_stat, obs_p = mw_test(x, y)
-    total_obs = len(combined)
-    num_x = len(x)
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
         sample_stat, sample_p = mw_test(sampled_x, sampled_y)
@@ -1665,10 +1731,6 @@ def mw_boot(x, y, num_reps=1000):
 def permute_2d(m, p):
     """Performs 2D permutation of matrix m according to p."""
     return m[p][:, p]
-    # unused below
-    m_t = transpose(m)
-    r_t = take(m_t, p, axis=0)
-    return take(transpose(r_t), p, axis=0)
 
 
 def mantel(m1, m2, n):
@@ -1694,27 +1756,33 @@ def mantel_test(
     Returns the p-value, Mantel correlation statistic, and a list of Mantel
     correlation statistics for each permutation test.
 
-    WARNING: The two distance matrices must be symmetric, hollow distance
-    matrices, as only the lower triangle (excluding the diagonal) will be used
-    in the calculations (matching R's vegan::mantel function).
-
     Parameters
     ----------
-        m1  - the first distance matrix to use in the test (should be a numpy
+    m1
+        the first distance matrix to use in the test (should be a numpy
         array or convertible to a numpy array)
-        m2  - the second distance matrix to use in the test (should be a numpy
+    m2
+        the second distance matrix to use in the test (should be a numpy
         array or convertible to a numpy array)
-        n   - the number of permutations to test when calculating the p-value
-        alt - the type of alternative hypothesis to test (can be either
+    n
+        the number of permutations to test when calculating the p-value
+    alt
+        the type of alternative hypothesis to test (can be either
         'two sided' for a two-sided test, 'greater' or 'less' for one-sided
         tests)
-        suppress_symmetry_and_hollowness_check - by default, the input distance
+    suppress_symmetry_and_hollowness_check
+        by default, the input distance
         matrices will be checked for symmetry and hollowness. It is
         recommended to leave this check in place for safety, as the check
         is fairly fast. However, if you *know* you have symmetric and
         hollow distance matrices, you can disable this check for small
         performance gains on extremely large distance matrices
 
+    Warnings
+    --------
+    The two distance matrices must be symmetric, hollow distance
+    matrices, as only the lower triangle (excluding the diagonal) will be used
+    in the calculations (matching R's vegan::mantel function).
     """
     # Perform some sanity checks on our input.
     if alt not in ("two sided", "greater", "less"):
@@ -1786,11 +1854,7 @@ def _flatten_lower_triangle(matrix):
 
 def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     """returns the statistic (tau) and probability from Kendall's non-parametric
-    test of association that tau==0. Uses the large sample approximation when
-    len(x) >= 50 or when there are ties, otherwise it computes the probability
-    exactly.
-
-    Based on the algorithm implemented in R v2.5
+    test of association that tau==0.
 
     Parameters
     ----------
@@ -1802,6 +1866,12 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     warn
         whether to warn about tied values
 
+    Notes
+    -----
+    Uses the large sample approximation when len(x) >= 50 or when there are
+    ties, otherwise it computes the probability exactly.
+
+    Based on the algorithm implemented in R v2.5
     """
 
     assert len(x) == len(y), "data (x, y) not of same length"
@@ -1812,7 +1882,6 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     hi = ["greater", "hi", "high", "h", "g", "gt"]
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided", "ts"]
 
-    ties = False
     num = len(x)
     ties = len(set(x)) != num or len(set(y)) != num
     if ties and warn:
@@ -1924,11 +1993,11 @@ def distance_matrix_permutation_test(
 def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
     """get values from matrix positions in cells and cells2
 
-        matrix: the numpy array from which values should be taken
-        cells: indices of first set of requested values
-        cells2: indices of second set of requested values or None
-         if they should be randomly selected
-        is_symmetric: True if matrix is symmetric
+    matrix: the numpy array from which values should be taken
+    cells: indices of first set of requested values
+    cells2: indices of second set of requested values or None
+     if they should be randomly selected
+    is_symmetric: True if matrix is symmetric
 
     """
 
@@ -1955,8 +2024,8 @@ def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
 def get_ltm_cells(cells):
     """converts matrix indices so all are below the diagonal
 
-        cells: list of indices into a 2D integer-indexable object
-         (typically a list or lists of array of arrays)
+    cells: list of indices into a 2D integer-indexable object
+     (typically a list or lists of array of arrays)
 
     """
     new_cells = []

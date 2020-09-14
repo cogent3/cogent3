@@ -152,6 +152,12 @@ class TableTests(TestCase):
         t = Table(data=data, index="foo")
         self.assertEqual(t.index_name, "foo")
 
+        # correctly reset when assigned None
+        t.index_name = None
+        self.assertEqual(t.index_name, None)
+        self.assertEqual(t.columns.index_name, None)
+        self.assertEqual(t._template, None)
+
         # ... prior to providing columns
         t = Table(index="foo")
         for c, v in data.items():
@@ -163,6 +169,13 @@ class TableTests(TestCase):
 
         with self.assertRaises(ValueError):
             t.index_name
+
+    def test_table_data_int_keys(self):
+        """correctly construct table from dict with int's as keys"""
+        head = ["", 0, 1]
+        data = {0: [2, 2], 1: [2, 2], "": [0, 1]}
+        t = Table(head, data=data)
+        assert_equal(t.array.tolist(), [[0, 2, 2], [1, 2, 2]])
 
     def test_table_with_empty_string_index(self):
         """handle an index of empty string"""
@@ -234,6 +247,21 @@ class TableTests(TestCase):
         assert_equal(n.header, numpy.array(t.header)[columns])
         self.assertEqual(n.shape, (2, 2))
 
+    def test_slicing_using_numpy_indexing(self):
+        """support numpy advanced indexing"""
+        t = Table(header=self.t5_header, data=self.t5_rows)
+        indices = t.columns["b"] != 0
+        got = t[indices]
+        expect = t.array[[0, 2], :]
+        assert_equal(got.array, expect)
+        got = t[indices, [True, False, True, True]]
+        expect = expect[:, [0, 2, 3]]
+        assert_equal(got.array, expect)
+
+        # using numpy arrays for rows and columns
+        got_np = t[indices, numpy.array([True, False, True, True])]
+        assert_equal(got_np.array, got.array)
+
     def test_specifying_space(self):
         """controls spacing in simple format"""
         space = "        "
@@ -287,12 +315,30 @@ class TableTests(TestCase):
         """correctly wraps table to <= maximum width"""
         # multi-row table
         d2D = {
-            "edge.parent": {"NineBande": "root", "Human": "edge.0",},
-            "x": {"NineBande": 1.0, "Human": 1.0,},
-            "length": {"NineBande": 4.0, "Human": 4.0,},
-            "y": {"NineBande": 3.0, "Human": 3.0,},
-            "z": {"NineBande": 6.0, "Human": 6.0,},
-            "edge.name": {"Human": "Human", "NineBande": "NineBande",},
+            "edge.parent": {
+                "NineBande": "root",
+                "Human": "edge.0",
+            },
+            "x": {
+                "NineBande": 1.0,
+                "Human": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "Human": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "Human": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "Human": 6.0,
+            },
+            "edge.name": {
+                "Human": "Human",
+                "NineBande": "NineBande",
+            },
         }
         row_order = list(d2D["edge.name"])
         t = Table(
@@ -321,11 +367,26 @@ class TableTests(TestCase):
 
         # multi-row table
         data = {
-            "edge.parent": {"NineBande": "root", "edge.1": "root",},
-            "x": {"NineBande": 1.0, "edge.1": 1.0,},
-            "length": {"NineBande": 4.0, "edge.1": 4.0,},
-            "y": {"NineBande": 3.0, "edge.1": 3.0,},
-            "z": {"NineBande": 6.0, "edge.1": 6.0,},
+            "edge.parent": {
+                "NineBande": "root",
+                "edge.1": "root",
+            },
+            "x": {
+                "NineBande": 1.0,
+                "edge.1": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "edge.1": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "edge.1": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "edge.1": 6.0,
+            },
         }
         t = Table(data=data, max_width=30)
         wrapped = str(t)
@@ -437,10 +498,30 @@ class TableTests(TestCase):
                 "DogFaced": "root",
                 "Human": "edge.0",
             },
-            "x": {"NineBande": 1.0, "edge.1": 1.0, "DogFaced": 1.0, "Human": 1.0,},
-            "length": {"NineBande": 4.0, "edge.1": 4.0, "DogFaced": 4.0, "Human": 4.0,},
-            "y": {"NineBande": 3.0, "edge.1": 3.0, "DogFaced": 3.0, "Human": 3.0,},
-            "z": {"NineBande": 6.0, "edge.1": 6.0, "DogFaced": 6.0, "Human": 6.0,},
+            "x": {
+                "NineBande": 1.0,
+                "edge.1": 1.0,
+                "DogFaced": 1.0,
+                "Human": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "edge.1": 4.0,
+                "DogFaced": 4.0,
+                "Human": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "edge.1": 3.0,
+                "DogFaced": 3.0,
+                "Human": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "edge.1": 6.0,
+                "DogFaced": 6.0,
+                "Human": 6.0,
+            },
             "edge.names": {
                 "NineBande": "NineBande",
                 "edge.1": "edge.1",
@@ -514,6 +595,18 @@ class TableTests(TestCase):
         append_2 = t2.appended("foo2", [t3, t4])
         self.assertEqual(append_2.shape[0], t2.shape[0] + t3.shape[0] + t4.shape[0])
 
+        append_3 = t2.appended("", [t3, t4])
+        self.assertEqual(append_3.shape[0], t2.shape[0] + t3.shape[0] + t4.shape[0])
+        self.assertEqual(append_3.shape[1], t2.shape[1] + 1)
+
+    def test_appended_mixed_dtypes(self):
+        """handles table columns with different dtypes"""
+        t1 = Table(header=["a", "b"], data=dict(a=[1], b=["s"]))
+        t2 = Table(header=["a", "b"], data=dict(a=[1.2], b=[4]))
+        appended = t1.appended(None, t2)
+        self.assertTrue("float" in appended.columns["a"].dtype.name)
+        self.assertTrue("object" in appended.columns["b"].dtype.name)
+
     def test_count(self):
         """test the table count method"""
         t1 = Table(header=self.t1_header, data=self.t1_rows)
@@ -529,6 +622,12 @@ class TableTests(TestCase):
         self.assertEqual(t2.count('foo == "cab"'), 1)
         self.assertEqual(t2.count("bar % 2 == 0"), 2)
         self.assertEqual(t2.count("id == 0"), 0)
+
+    def test_count_empty(self):
+        """empty table count method returns 0"""
+        t1 = Table(header=self.t1_header)
+        self.assertEqual(t1.count('chrom == "X"'), 0)
+        self.assertEqual(t1.count(lambda x: x == "X", columns="chrom"), 0)
 
     def test_count_unique(self):
         """correctly computes unique values"""
@@ -580,6 +679,15 @@ class TableTests(TestCase):
         self.assertEqual(t2.filtered("bar % 2 == 0").shape[0], 2)
         self.assertEqual(t2.filtered("id == 0").shape[0], 0)
 
+    def test_filtered_empty(self):
+        """test the table filtered method"""
+        t1 = Table(header=self.t1_header)
+        self.assertEqual(t1.shape[0], 0)
+        got = t1.filtered('chrom == "X"')
+        self.assertEqual(got.shape[0], 0)
+        got = t1.filtered(lambda x: x == "X", columns="chrom")
+        self.assertEqual(got.shape[0], 0)
+
     def test_filtered_by_column(self):
         """test the table filtered_by_column method"""
         t1 = Table(header=self.t1_header, data=self.t1_rows)
@@ -603,10 +711,13 @@ class TableTests(TestCase):
 
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[0], t1.shape[0])
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[1], 2)
-        # if name_index, includes that in return
+        # if index_name, includes that in return
         t1 = Table(header=self.t1_header, data=self.t1_rows, index="stableid")
         r = t1.get_columns(["length"])
         self.assertEqual(r.header, ("stableid", "length"))
+        # if index_name, unless excluded
+        r = t1.get_columns(["length"], with_index=False)
+        self.assertIs(r.index_name, None)
 
     def test_joined(self):
         """test the table joined method"""
@@ -776,6 +887,24 @@ class TableTests(TestCase):
         self.assertEqual(got.shape[1], t.shape[0] + 1)
         self.assertEqual(got.header, ("", "11", "22", "33", "44", "55"))
         r = str(got)  # this should not fail!
+
+    def test_transposed_forgets_index(self):
+        """transposed table defaults to no row index"""
+        data = {
+            "": [0, 1, 2, 3, 4, 5, 6],
+            "T": [2, 10, 1, 6, 1, 5, 0],
+            "C": [0, 0, 0, 0, 0, 0, 1],
+            "A": [8, 0, 9, 4, 9, 4, 4],
+            "G": [0, 0, 0, 0, 0, 1, 5],
+        }
+        t = Table(header=["", "T", "C", "A", "G"], data=data, index="")
+        tr = t.transposed("Base", select_as_header="")
+        self.assertEqual(tr.index_name, None)
+
+        # but you can set a new one
+        tr = t.transposed("Base", select_as_header="", index="Base")
+        self.assertEqual(tr.index_name, "Base")
+        self.assertEqual(tr["G", "5"], 1)
 
     def test_del_column(self):
         """correctly removes the column"""
@@ -960,15 +1089,37 @@ class TableTests(TestCase):
     def test_pickle_unpickle(self):
         """roundtrip via pickling"""
         data = {
-            "edge.parent": {"NineBande": "root", "edge.1": "root",},
-            "x": {"NineBande": 1.0, "edge.1": 1.0,},
-            "length": {"NineBande": 4.0, "edge.1": 4.0,},
-            "y": {"NineBande": 3.0, "edge.1": 3.0,},
-            "z": {"NineBande": 6.0, "edge.1": 6.0,},
-            "edge.name": {"NineBande": "NineBande", "edge.1": "edge.1",},
+            "edge.parent": {
+                "NineBande": "root",
+                "edge.1": "root",
+            },
+            "x": {
+                "NineBande": 1.0,
+                "edge.1": 1.0,
+            },
+            "length": {
+                "NineBande": 4.0,
+                "edge.1": 4.0,
+            },
+            "y": {
+                "NineBande": 3.0,
+                "edge.1": 3.0,
+            },
+            "z": {
+                "NineBande": 6.0,
+                "edge.1": 6.0,
+            },
+            "edge.name": {
+                "NineBande": "NineBande",
+                "edge.1": "edge.1",
+            },
         }
         t = Table(
-            data=data, max_width=50, index="edge.name", title="My title", legend="blah",
+            data=data,
+            max_width=50,
+            index="edge.name",
+            title="My title",
+            legend="blah",
         )
         # via string
         s = pickle.dumps(t)
@@ -1040,7 +1191,8 @@ class TableTests(TestCase):
                     ),
                 )
                 self.assertEqual(
-                    t.array.T.tolist(), [v["values"] for v in data["columns"].values()],
+                    t.array.T.tolist(),
+                    [v["values"] for v in data["columns"].values()],
                 )
 
     def test_load_table_from_json(self):
@@ -1158,7 +1310,10 @@ class TableTests(TestCase):
 
     def test_to_delim(self):
         """successfully create separated format with arbitrary character"""
-        table = Table(header=self.t3_header, data=self.t3_rows,)
+        table = Table(
+            header=self.t3_header,
+            data=self.t3_rows,
+        )
         sv = table.to_string(sep=";")
         expect = ["id;foo;bar", "6;abc;66", "7;bca;77"]
         self.assertEqual(sv.splitlines(), expect)
@@ -1174,7 +1329,10 @@ class TableTests(TestCase):
     def test_to_rst_csv(self):
         """generates a rst csv-table"""
         table = Table(
-            header=["a", "b"], data=[[1, 2]], title="A title", legend="A legend",
+            header=["a", "b"],
+            data=[[1, 2]],
+            title="A title",
+            legend="A legend",
         )
         got = table.to_rst(csv_table=True)
         self.assertEqual(
@@ -1191,7 +1349,12 @@ class TableTests(TestCase):
         got = table.to_rst(csv_table=True)
         self.assertEqual(
             got.splitlines(),
-            [".. csv-table::", '    :header: "a", "b"', "", "    1, 2",],
+            [
+                ".. csv-table::",
+                '    :header: "a", "b"',
+                "",
+                "    1, 2",
+            ],
         )
 
     def test_get_repr_(self):
@@ -1284,6 +1447,11 @@ class TableTests(TestCase):
         t.set_repr_policy(tail=3)
         r, _, _ = t._get_repr_()
         self.assertEqual(r.shape[0], 3)
+        t.set_repr_policy(show_shape=False)
+        r = repr(t)
+        self.assertFalse(f"\n{t.shape[0]:,} rows x {t.shape[1]:,} columns" in r)
+        r = t._repr_html_()
+        self.assertFalse(f"\n{t.shape[0]:,} rows x {t.shape[1]:,} columns" in r)
 
     def test_head(self):
         """returns the head of the table!"""
@@ -1499,6 +1667,40 @@ class TableTests(TestCase):
         _ = formatted_cells(data, header=head)
         data = [[230, "acdef", 1.3], [6, "cc", numpy.array([1.9876, 2.34])]]
         _ = formatted_cells(data, header=head)
+
+    def test_to_categorical(self):
+        """correctly construct contingency table"""
+        data = {"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}
+        table = make_table(header=["", "Ts", "Tv"], data=data)
+        with self.assertRaises(ValueError):
+            table.to_categorical(columns=["Ts", "Tv"])
+
+        table.index_name = ""
+        got = table.to_categorical(columns=["Ts", "Tv"])
+        assert_equal(got.observed, table[:, 1:].array)
+
+        got = table.to_categorical(["Ts"])
+        mean = got.observed.array.mean()
+        expected = numpy.array([[mean], [mean]])
+        assert_equal(got.expected, expected)
+
+        # works if index_name included
+        got = table.to_categorical(columns=["Ts", "Tv", ""])
+        assert_equal(got.observed, table[:, 1:].array)
+
+        # works if no columns specified
+        got = table.to_categorical()
+        assert_equal(got.observed, table[:, 1:].array)
+
+        data = {
+            "": numpy.array(["syn", "nsyn"], dtype=object),
+            "Ts": numpy.array([31, 58], dtype=object),
+            "Tv": numpy.array([36, 138], dtype=object),
+        }
+
+        table = make_table(header=["", "Ts", "Tv"], data=data, index="")
+        with self.assertRaises(TypeError):
+            table.to_categorical(columns=["Ts", "Tv"])
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from cogent3.core.alignment import SequenceCollection
-from cogent3.core.genetic_code import DEFAULT, get_code
+from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
 from .composable import (
@@ -22,7 +22,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-def best_frame(seq, gc=DEFAULT, allow_rc=False, require_stop=False):
+def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
     """returns reading frame start that has either no stops or a single
     terminal stop codon
 
@@ -37,13 +37,13 @@ def best_frame(seq, gc=DEFAULT, allow_rc=False, require_stop=False):
           best frame on rc, it will be negative
     require_stop
         a terminal stop must be present
-    
+
     Returns
     -------
     int
         1, 2, 3 if the best frame on the +_ strand; -1, -2, -3 if the best
         frame is on the reverse strand
-    
+
     Raises
     ------
     ValueError
@@ -87,9 +87,9 @@ def best_frame(seq, gc=DEFAULT, allow_rc=False, require_stop=False):
     return frame
 
 
-def translate_frames(seq, moltype=None, gc=DEFAULT, allow_rc=False):
-    """translates a nucleic acid sequence 
-    
+def translate_frames(seq, moltype=None, gc=1, allow_rc=False):
+    """translates a nucleic acid sequence
+
     Parameters
     ----------
     moltype
@@ -98,7 +98,7 @@ def translate_frames(seq, moltype=None, gc=DEFAULT, allow_rc=False):
         identifer for a genetic code or a genetic code instance
     allow_rc : bool
         includes frames sequence reverse complement
-        
+
     Returns
     -------
     [(frame, translation), ..]
@@ -118,7 +118,7 @@ def translate_frames(seq, moltype=None, gc=DEFAULT, allow_rc=False):
 
 def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
     """returns set() of codons that are 4-fold degenerate for genetic code gc
-    
+
     Parameters
     ----------
     gc
@@ -161,9 +161,7 @@ class select_translatable(ComposableSeq):
     _output_types = SEQUENCE_TYPE
     _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
-    def __init__(
-        self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
-    ):
+    def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
         """selects translatable sequences
 
         Sequences are truncated to modulo 3. seqs.info has a translation_errors
@@ -180,7 +178,7 @@ class select_translatable(ComposableSeq):
               best frame on rc, it will be negative
         trim_terminal_stop : bool
             exclude terminal stop codon from seqs
-        
+
         Returns
         -------
         A sequence collection. Sequences that could not be translated
@@ -249,9 +247,7 @@ class translate_seqs(ComposableSeq):
     _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
     _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
-    def __init__(
-        self, moltype="dna", gc=DEFAULT, allow_rc=False, trim_terminal_stop=True
-    ):
+    def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
         """generates aa sequences
 
         Parameters

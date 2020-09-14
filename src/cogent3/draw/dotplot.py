@@ -266,7 +266,7 @@ class Dotplot(Drawable):
         )
 
         fwd, rev = self._fwd, self._rev
-        if not self.title:
+        if self.title is None:
             title = (
                 f"Window={self._window}, Matched ≥ {self._threshold}/"
                 f"{self._window} & Gap ≤ {self._min_gap}"

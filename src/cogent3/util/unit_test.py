@@ -55,8 +55,8 @@ __credits__ = [
 ]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 # SUPPORT2425
@@ -110,14 +110,12 @@ class TestCase(orig_TestCase):
         return list(d1.values()), [d2[k] for k in d1]
 
     def errorCheck(self, call, known_errors):
-        """Applies function to (data, error) tuples, checking for error
-        """
+        """Applies function to (data, error) tuples, checking for error"""
         for (data, error) in known_errors:
             self.assertRaises(error, call, data)
 
     def valueCheck(self, call, known_values, arg_prefix="", eps=None):
-        """Applies function to (data, expected) tuples, treating data as args
-        """
+        """Applies function to (data, expected) tuples, treating data as args"""
         for (data, expected) in known_values:
             observed = eval("call(" + arg_prefix + "data)")
             try:

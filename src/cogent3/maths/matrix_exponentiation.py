@@ -106,8 +106,7 @@ class PadeExponentiator(_Exponentiator):
         self.Q = Q
 
     def __call__(self, t=1.0):
-        """Compute the matrix exponential using Pade approximation of order q.
-        """
+        """Compute the matrix exponential using Pade approximation of order q."""
         A = self.Q * t
         M = A.shape[0]
         # Scale A so that norm is < 1/2

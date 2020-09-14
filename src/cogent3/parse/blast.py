@@ -169,7 +169,7 @@ def MinimalBlastParser9(lines, include_column_names=False):
 def MinimalPsiBlastParser9(lines, include_column_names=False):
     """Yields successive records from lines (props, data list)
 
-        lines must be of psi-blast output format
+    lines must be of psi-blast output format
     """
     return GenericBlastParser9(lines, PsiBlastFinder, include_column_names)
 
@@ -177,7 +177,7 @@ def MinimalPsiBlastParser9(lines, include_column_names=False):
 def MinimalBlatParser9(lines, include_column_names=True):
     """Yields successive records from lines (props, data list)
 
-       lines must be of blat output (blast9) format
+    lines must be of blat output (blast9) format
     """
     return GenericBlastParser9(lines, BlatFinder, include_column_names)
 

@@ -18,8 +18,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Development"
 
 
@@ -291,7 +291,7 @@ def GroupFastaParser(
     done_groups
         series of group keys to be excluded
 
-        """
+    """
 
     done_groups = [[], done_groups][done_groups is not None]
     parser = MinimalFastaParser(data, label_to_name=label_to_name, finder=XmfaFinder)

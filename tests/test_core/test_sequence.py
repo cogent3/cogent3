@@ -46,8 +46,8 @@ __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
@@ -976,6 +976,23 @@ class SequenceTests(TestCase):
         )
 
         self.assertTrue(seq_row in got)
+
+    def test_repr_html(self):
+        """correctly uses set_repr and the environment variable settings"""
+        token = 'class="label"'
+        seq = self.SEQ("AAAAA")
+
+        orig = [l for l in seq._repr_html_().splitlines() if token in l][0]
+        orig_num = len(re.findall(r"\bA\b", orig))
+        self.assertEqual(orig_num, 5)
+
+        # using environment variable
+        env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
+        os.environ[env_name] = "num_pos=2"
+        got = [l for l in seq._repr_html_().splitlines() if token in l][0]
+        got_num = len(re.findall(r"\bA\b", got))
+        self.assertEqual(got_num, 2)
+        os.environ.pop(env_name, None)
 
 
 class SequenceSubclassTests(TestCase):

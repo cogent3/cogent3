@@ -9,7 +9,6 @@ Loading a csv file
 We load a tab separated data file using the ``load_table()`` function. The format is inferred from the filename suffix and you will note, in this case, it's not actually a `csv` file.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -26,7 +25,6 @@ Loading delimited specifying the format
 Although unnecessary in this case, it's possible to override the suffix by specifying the delimiter using the ``sep`` argument.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -39,7 +37,6 @@ Loading a set number of lines from a file
 If you only want a subset of the contents of a file, use the ``FilteringParser``. This allows skipping certain lines by using a callback function. We illustrate this with ``stats.tsv``, skipping any rows with ``"Ratio"`` > 10.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_table
 
@@ -52,7 +49,6 @@ Selectively loading parts of a big file
 If you only want a subset of the contents of a file, use the ``FilteringParser``. This allows skipping certain lines by using a callback function. We illustrate this with ``stats.tsv``, skipping any rows with ``"Ratio"`` > 10.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.table import FilteringParser
 
@@ -70,7 +66,6 @@ Loading only some columns
 Specify the columns by their names.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.table import FilteringParser
 
@@ -81,7 +76,6 @@ Specify the columns by their names.
 Or, by their index.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.table import FilteringParser
 
@@ -97,7 +91,6 @@ Load raw data as a list of lists of strings
 We just use ``FilteringParser``.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.table import FilteringParser
 
@@ -111,7 +104,6 @@ Make a table from header and rows
 =================================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -126,7 +118,6 @@ Make a table from a ``dict``
 For a ``dict`` with key's as column headers.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -138,7 +129,6 @@ Specify the column order when creating from a ``dict``.
 =======================================================
 
 .. jupyter-execute::
-    :linenos:
 
     table = make_table(header=["C", "A", "B"], data=data)
     table
@@ -163,7 +153,6 @@ Create a table from a ``pandas.DataFrame``
 ==========================================
 
 .. jupyter-execute::
-    :linenos:
 
     from pandas import DataFrame
     from cogent3 import make_table
@@ -177,7 +166,6 @@ Create a table from header and rows
 ===================================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -190,7 +178,6 @@ Create a table from dict
 ``make_table()`` is the utility function for creating ``Table`` objects from standard python objects.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -202,7 +189,6 @@ Create a table from a 2D dict
 =============================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -223,7 +209,6 @@ Create a table that has complex python objects as elements
 ==========================================================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
@@ -239,7 +224,6 @@ Create an empty table
 =====================
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_table
 
