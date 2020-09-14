@@ -505,7 +505,8 @@ class TableTests(TestCase):
         """correctly identify the columns for subtables"""
         cols_widths = [("", 10), ("b", 5), ("c", 3), ("d", 14), ("e", 15)]
         got = get_continuation_tables_headers(cols_widths)
-        expect = [c for c, _ in cols_widths]
+        # no subtables, returns list of lists
+        expect = [[c for c, _ in cols_widths]]
         self.assertEqual(got, expect)
         # fails if any column has a width < max_width
         with self.assertRaises(ValueError):

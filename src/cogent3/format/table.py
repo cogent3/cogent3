@@ -833,7 +833,7 @@ def get_continuation_tables_headers(
             )
 
     if sum(v + space + index_width for _, v in cols_widths) < max_width:
-        return [l for l, _ in cols_widths]
+        return [[l for l, _ in cols_widths]]
 
     headers = []
     curr = [index_name] if index_name is not None else []
