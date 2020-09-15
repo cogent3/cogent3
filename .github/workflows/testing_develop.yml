@@ -13,60 +13,58 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest]
         python-version: [3.6, 3.7, 3.8]
 
     steps:
       - uses: "actions/checkout@v2"
-      - uses: actions/cache@v2
-        if: startsWith(runner.os, 'macOS')
-        with:
-          path: /Users/runner/conda_pkgs_dir
-          key: ${{ runner.os }}-conda-${{ hashFiles('c3dev-environment.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-conda-
 
+      # caching
       - uses: actions/cache@v2
         if: startsWith(runner.os, 'Linux')
         with:
-          path: /home/runner/conda_pkgs_dir
-          key: ${{ runner.os }}-conda-${{ hashFiles('c3dev-environment.yml') }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-conda-
+            ${{ runner.os }}-pip-
+
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'macOS')
+        with:
+          path: ~/Library/Caches/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - uses: actions/cache@v2
         if: startsWith(runner.os, 'Windows')
         with:
-          path: C:\Users\runneradmin\conda_pkgs_dir
-          key: ${{ runner.os }}-conda-${{ hashFiles('c3dev-environment.yml') }}
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-conda-
+            ${{ runner.os }}-pip-
 
       - uses: "actions/setup-python@v1"
         with:
           python-version: "${{ matrix.python-version }}"
 
-      - name: Make conda environment
-        uses: goanpeca/setup-miniconda@v1
-        with:
-           activate-environment: c3dev
-           environment-file: c3dev-environment.yml
-           python-version: "${{ matrix.python-version }}"
-
-      - name: "Display conda env for ${{ matrix.python-version }}"
-        shell: bash -l {0}
+      # Setup virtualenv
+      - name: "Setup virtualenv for ${{ matrix.python-version }}"
         run: |
-          conda activate
-          conda info
-          conda list
+          python --version
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
 
       - name: "Run tox targets for ${{ matrix.python-version }}"
         shell: bash -l {0}
         run: |
-          conda activate c3dev
+          source .venv/bin/activate
           python -m tox
           ls
           ls tests
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:

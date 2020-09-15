@@ -1,0 +1,9 @@
+matplotlib
+pillow
+psutil
+scipy
+sphinx-gallery
+sphinx_bootstrap_theme
+tox
+tox-gh-actions
+git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3[dev]
