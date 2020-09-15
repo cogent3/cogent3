@@ -26,7 +26,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
       - uses: actions/cache@v2
         if: startsWith(runner.os, 'macOS')
@@ -34,7 +34,7 @@ jobs:
           path: ~/Library/Caches/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
       - uses: actions/cache@v2
         if: startsWith(runner.os, 'Windows')
@@ -42,7 +42,7 @@ jobs:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
       - uses: "actions/setup-python@v1"
         with:
