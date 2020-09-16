@@ -589,6 +589,10 @@ class Table:
         if index_name in result.columns:
             result.index_name = index_name
 
+        for c in self._column_templates:
+            if c in result.columns:
+                result._column_templates[c] = self._column_templates[c]
+
         return result
 
     def __getstate__(self):

@@ -250,6 +250,12 @@ class TableTests(TestCase):
         assert_equal(n.header, numpy.array(t.header)[columns])
         self.assertEqual(n.shape, (2, 2))
 
+        # column formatting copied on slice
+        t = Table(header=self.t5_header, data=self.t5_rows)
+        t.format_column("c", "%.2e")
+        n = t[:, 1:]
+        self.assertEqual(n._column_templates, t._column_templates)
+
     def test_slicing_using_numpy_indexing(self):
         """support numpy advanced indexing"""
         t = Table(header=self.t5_header, data=self.t5_rows)
