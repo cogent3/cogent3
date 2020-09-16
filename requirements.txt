@@ -6,4 +6,4 @@ sphinx-gallery==0.7.0
 sphinx_bootstrap_theme==0.7.1
 tox==3.19.0
 tox-gh-actions==1.2.0
-git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3[dev]
+.[dev]
