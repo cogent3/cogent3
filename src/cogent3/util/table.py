@@ -13,7 +13,6 @@ Table can read pickled and delimited formats.
 import csv
 import json
 import pickle
-import re
 
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
@@ -24,6 +23,7 @@ import numpy
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
+from cogent3.format.table import formatted_array
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import (
     atomic_write,
@@ -94,97 +94,6 @@ def _callback(callback, row, num_columns=None):
         return callback(row)
     else:
         return eval(callback, {}, row)
-
-
-def formatted_array(
-    series,
-    title="",
-    precision=4,
-    format_spec=None,
-    missing_data="",
-    center=False,
-):
-    """converts elements in a numpy array series to an equal length string.
-
-    Parameters
-    ----------
-    series
-        the series of table rows
-    title
-        title of series
-    precision
-        number of decimal places. Can be overridden by following.
-    format_spec
-        format specification as per the python Format Specification, Mini-Language
-        or a callable function.
-    missing_data
-        default missing data value.
-
-    Returns
-    -------
-    list of formatted series, formatted title
-    """
-    if callable(format_spec):
-        formatter = format_spec
-        format_spec = base_format = ""
-    else:
-        formatter = None
-
-    if isinstance(format_spec, str):
-        format_spec = format_spec.replace("%", "")
-
-    if format_spec:
-        match = re.search("[<>^]", format_spec[:2])
-        final_align = ">" if match is None else match.group()
-        align = ""
-    else:
-        final_align = align = ">"
-
-    base_format = format_spec if format_spec else ""
-    assert isinstance(series, numpy.ndarray), "must be numpy array"
-    if format_spec is None:
-        type_name = series.dtype.name
-        align = "^" if center else ">"
-        if "int" in type_name:
-            base_format = "d"
-        elif "float" in type_name:
-            base_format = f".{precision}f"
-        elif "bool" == type_name:
-            base_format = ""
-        else:
-            # handle mixed types with a custom formatter
-            formatter = _MixedFormatter(
-                align, len(title), precision, missing_data=missing_data
-            )
-            format_spec = base_format = ""
-
-        format_spec = base_format
-
-    formatted = []
-    max_length = len(title)
-    for i, v in enumerate(series):
-        if formatter:
-            v = formatter(v)
-        else:
-            try:
-                v = format(v, format_spec)
-            except (TypeError, ValueError):
-                # could be a python object
-                v = str(v)
-        l = len(v)
-        if l > max_length:
-            max_length = l
-            format_spec = f"{align}{max_length}{base_format}"
-        formatted.append(v)
-
-    # title is always right aligned, for now
-    title = format(title, f">{max_length}")
-    # now adjust to max_len
-    format_spec = f"{final_align}{max_length}s"
-    for i in range(len(series)):
-        if len(formatted[i]) < max_length:
-            formatted[i] = format(formatted[i].strip(), format_spec)
-    return formatted, title
 
 
 def cast_str_to_numeric(values):
@@ -279,36 +188,6 @@ def cast_to_1d_dict(data, row_order=None):
     else:
         result = data
     return result
-
-
-class _MixedFormatter:
-    """handles formatting of mixed data types"""
-
-    def __init__(
-        self, alignment, length, precision=4, float_type="f", missing_data=None
-    ):
-        self.missing_data = missing_data
-        self.length = length
-        self.alignment = alignment
-        self.precision = precision
-        self.float_type = float_type
-
-    def __call__(self, val):
-        prefix = f"{self.alignment}{self.length}"
-        float_spec = f"{prefix}.{self.precision}{self.float_type}"
-        int_spec = f"{prefix}d"
-        result = str(val)
-        if self.missing_data is not None and not result:
-            return self.missing_data
-
-        for fspec in (int_spec, float_spec, prefix):
-            try:
-                result = format(val, fspec)
-                break
-            except (TypeError, ValueError):
-                pass
-
-        return result
 
 
 class Columns(MutableMapping):
@@ -710,6 +589,10 @@ class Table:
         if index_name in result.columns:
             result.index_name = index_name
 
+        for c in self._column_templates:
+            if c in result.columns:
+                result._column_templates[c] = self._column_templates[c]
+
         return result
 
     def __getstate__(self):
@@ -887,8 +770,7 @@ class Table:
         return html
 
     def _get_persistent_attrs(self):
-        attrs = UnionDict(self._persistent_attrs.copy())
-        return attrs
+        return UnionDict(self._persistent_attrs.copy())
 
     @property
     def title(self):
@@ -1206,14 +1088,10 @@ class Table:
     def get_row_indices(self, callback, columns, negate=False):
         """returns boolean array of callback values given columns"""
         subset = self[:, columns]
-        if not isinstance(callback, Callable):
-            data = subset
-        else:
-            data = subset.array
-
+        data = subset if not isinstance(callback, Callable) else subset.array
         num_columns = len(columns)
         match = not negate
-        indices = numpy.array(
+        return numpy.array(
             [
                 True
                 if _callback(callback, row=row, num_columns=num_columns) == match
@@ -1221,7 +1099,6 @@ class Table:
                 for row in data
             ]
         )
-        return indices
 
     def filtered(self, callback, columns=None, **kwargs):
         """Returns a table with rows satisfying the provided callback function.
@@ -1325,7 +1202,7 @@ class Table:
             data = subset[0].tolist()
         else:
             data = subset.array
-            data = list(tuple(e) for e in data)
+            data = [tuple(e) for e in data]
 
         return CategoryCounter(data=data)
 
@@ -1385,7 +1262,7 @@ class Table:
         if new_column is not None:
             columns = (new_column,) + self.columns.order
             raw_data[new_column] = new_col
-            dtypes[new_column] = set(["U"])
+            dtypes[new_column] = {"U"}
         else:
             columns = self.columns.order
 
@@ -1447,11 +1324,7 @@ class Table:
             columns = (columns,)
 
         subset = self[:, columns]
-        if not isinstance(callback, Callable):
-            data = subset
-        else:
-            data = subset.array
-
+        data = subset if not isinstance(callback, Callable) else subset.array
         num_columns = len(columns)
         values = numpy.array(
             [_callback(callback, row=row, num_columns=num_columns) for row in data]
@@ -1528,11 +1401,7 @@ class Table:
         strict
             if False, ignores cells with non numeric values.
         """
-        if indices is None:
-            data = self.array
-        else:
-            data = self[indices, :].array
-
+        data = self.array if indices is None else self[indices, :].array
         # a multi-rowed result
         if strict:
             result = data.sum(axis=1).tolist()
@@ -1655,6 +1524,35 @@ class Table:
 
         return result
 
+    def _formatted_by_col(self, missing_data="", pad=True):
+        """returns self as formatted strings
+
+        Parameters
+        ----------
+        missing_data : str
+            default str value for missing
+        pad : bool
+            if True, adds padding
+        """
+        missing_data = missing_data or self._missing_data
+        formatted = {}
+        col_widths = {}
+        for c in self.columns.order:
+            data = self.columns[c]
+            format_spec = self._column_templates.get(c, None)
+            frmt, c, width = formatted_array(
+                data,
+                c,
+                format_spec=format_spec,
+                missing_data=missing_data,
+                precision=self._digits,
+                pad=pad,
+            )
+            col_widths[c] = width
+            formatted[c] = frmt
+
+        return formatted, col_widths
+
     def _formatted(self, missing_data="", stripped=False):
         """returns self as formatted strings
 
@@ -1666,24 +1564,13 @@ class Table:
             if True, removes padding
 
         """
-        missing_data = missing_data or self._missing_data
-        formatted = []
-        for c in self.columns.order:
-            data = self.columns[c]
-            format_spec = self._column_templates.get(c, None)
-            frmt, c = formatted_array(
-                data,
-                c,
-                format_spec=format_spec,
-                missing_data=missing_data,
-                precision=self._digits,
-            )
-            if stripped:
-                c = c.strip()
-                frmt = [v.strip() for v in frmt]
-            formatted.append([c] + frmt)
-
-        formatted = list([list(e) for e in zip(*formatted)])
+        formatted_cols, _ = self._formatted_by_col(
+            missing_data=missing_data, pad=not stripped
+        )
+        ordered = [(self.columns.order.index(c.strip()), c) for c in formatted_cols]
+        ordered.sort()
+        formatted = [[c] + formatted_cols[c] for _, c in ordered]
+        formatted = [list(e) for e in zip(*formatted)]
         return formatted
 
     def to_csv(self, with_title=False, with_legend=False):
@@ -1704,10 +1591,9 @@ class Table:
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
-        result = table_format.separator_format(
+        return table_format.separator_format(
             header, formatted_table, title=title, legend=legend, sep=","
         )
-        return result
 
     def to_latex(
         self, concat_title_legend=True, justify=None, label=None, position=None
@@ -1742,7 +1628,7 @@ class Table:
             caption = " ".join([caption or "", legend or ""])
             caption = caption.strip()
             legend = None
-        result = table_format.latex(
+        return table_format.latex(
             formatted_table,
             header,
             caption=caption,
@@ -1751,7 +1637,6 @@ class Table:
             label=label,
             position=position,
         )
-        return result
 
     def to_markdown(self, space=1, justify=None):
         """
@@ -1837,11 +1722,7 @@ class Table:
             formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(), **kwargs)
             return formatted_table
 
-        if format.lower() == "phylip":
-            missing_data = "0.0000"
-        else:
-            missing_data = self._missing_data
-
+        missing_data = "0.0000" if format.lower() == "phylip" else self._missing_data
         if format.lower() in ("tsv", "csv"):
             sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
             format = ""
@@ -1902,10 +1783,9 @@ class Table:
         header = formatted_table.pop(0)
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
-        result = table_format.separator_format(
+        return table_format.separator_format(
             header, formatted_table, title=title, legend=legend, sep="\t"
         )
-        return result
 
     def to_rich_html(
         self,
@@ -1955,6 +1835,7 @@ class Table:
         legend = self.legend if self.legend else ""
         if legend:
             legend = escape(legend)
+
         for i, (h, t) in enumerate(subtables):
             # but we strip the cell spacing
             sh = [v.strip() for v in h]
@@ -2015,10 +1896,7 @@ class Table:
 
     @extend_docstring_from(DictArray.to_dict)
     def to_dict(self, flatten=False):
-        if self.index_name:
-            index = self.columns[self.index_name]
-        else:
-            index = self.shape[0]
+        index = self.columns[self.index_name] if self.index_name else self.shape[0]
         template = DictArrayTemplate(index, self.columns.order)
         darr = template.wrap(self.array)
         return darr.to_dict(flatten=flatten)
@@ -2060,37 +1938,29 @@ class Table:
         """returns a Plotly Table"""
         from cogent3.draw.drawable import Drawable
 
-        rows = self.array.tolist()
-        header, rows = table_format.formatted_cells(
-            rows,
-            self.header,
-            digits=self._digits,
-            column_templates=self._column_templates,
-            missing_data=self._missing_data,
-            center=False,
-        )
-        # we strip white space padding from header and cells
-        header = [e.strip() for e in header]
-        rows = [[e.strip() for e in row] for row in rows]
-        rows = list(zip(*rows))
+        columns, _ = self._formatted_by_col(pad=False)
+        header = [f"<b>{c}</b>" for c in self.header]
         if self.index_name:
             body_colour = ["white"] * self.shape[0]
             index_colour = ["rgba(161, 195, 209, 0.5)"] * self.shape[0]
             colours = [index_colour] + [body_colour[:] for i in range(self.shape[1])]
-            rows[0] = [f"<b>{e}</b>" for e in rows[0]]
+            columns[self.index_name] = [f"<b>{e}</b>" for e in columns[self.index_name]]
         else:
             colours = "white"
 
         tab = UnionDict(
             type="table",
             header=dict(
-                values=[f"<b>{c}</b>" for c in header],
+                values=header,
                 fill=dict(color="rgba(161, 195, 209, 1)"),
                 font=dict(size=font_size),
                 align="center",
             ),
-            cells=dict(values=rows, fill=dict(color=colours)),
+            cells=dict(
+                values=[columns[c] for c in self.header], fill=dict(color=colours)
+            ),
         )
+
         draw = Drawable()
         aspect_ratio = self.shape[0] / self.shape[1]
         layout = layout or {}
@@ -2242,10 +2112,7 @@ class Table:
 
         if format is None:
             # try guessing from filename suffix
-            if compress:
-                index = -2
-            else:
-                index = -1
+            index = -2 if compress else -1
             suffix = filename.split(".")
             if len(suffix) > 1:
                 format = suffix[index]

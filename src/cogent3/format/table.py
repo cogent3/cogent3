@@ -802,3 +802,187 @@ def phylip_matrix(rows, names):
         dmat += append_species(name, rows[i], mat_breaks)
 
     return "\n".join(dmat)
+
+
+def get_continuation_tables_headers(
+    cols_widths, index_name=None, space=2, max_width=1e100
+):
+    """
+    returns column headers for continuation tables segmented to not exceed max_width
+    Parameters
+    ----------
+    cols_widths : list
+        [[col_name, length of longest string], ...]
+    index_name : str
+        column name to be used as an index
+    space : int
+        how much white space between columns
+    max_width : int
+        maximum width
+
+    Returns
+    -------
+    list of lists, each inner list is the column names for a subtable
+    """
+    width_map = dict(cols_widths)
+    index_width = 0 if index_name is None else width_map[index_name]
+    for name, width in width_map.items():
+        if index_width + width > max_width:
+            raise ValueError(
+                f"{index_name}={index_width} + {name} width={width} > max_width={max_width}"
+            )
+
+    if sum(v + space + index_width for _, v in cols_widths) < max_width:
+        return [[l for l, _ in cols_widths]]
+
+    headers = []
+    curr = [index_name] if index_name is not None else []
+    cum_sum = index_width
+    for name, width in cols_widths:
+        if name == index_name:
+            continue
+
+        cum_sum += space + width
+        if cum_sum > max_width:
+            headers.append(curr)
+            curr = [index_name, name] if index_name is not None else [name]
+            cum_sum = index_width + space + width
+            continue
+
+        curr.append(name)
+
+    headers.append(curr)
+
+    return headers
+
+
+class _MixedFormatter:
+    """handles formatting of mixed data types"""
+
+    def __init__(
+        self, alignment, length, precision=4, float_type="f", missing_data=None
+    ):
+        self.missing_data = missing_data
+        self.length = length
+        self.alignment = alignment
+        self.precision = precision
+        self.float_type = float_type
+
+    def __call__(self, val):
+        prefix = f"{self.alignment}{self.length}"
+        float_spec = f"{prefix}.{self.precision}{self.float_type}"
+        int_spec = f"{prefix}d"
+        result = str(val)
+        if self.missing_data is not None and not result:
+            return self.missing_data
+
+        for fspec in (int_spec, float_spec, prefix):
+            try:
+                result = format(val, fspec)
+                break
+            except (TypeError, ValueError):
+                pass
+
+        return result
+
+
+def formatted_array(
+    series,
+    title="",
+    precision=4,
+    format_spec=None,
+    missing_data="",
+    pad=True,
+    align="r",
+):
+    """converts elements in a numpy array series to an equal length string.
+
+    Parameters
+    ----------
+    series
+        the series of table rows
+    title
+        title of series
+    precision
+        number of decimal places. Can be overridden by following.
+    format_spec
+        format specification as per the python Format Specification, Mini-Language
+        or a callable function.
+    missing_data
+        default missing data value.
+    pad : bool
+        Whether to pad all strings to same length
+    align : str
+        either 'l', 'c', 'r' for left, center or right alignment, Defaults to 'r'.
+        Only applied if pad==True
+
+    Returns
+    -------
+    list of formatted series, formatted title, maximum string length
+    """
+    assert isinstance(series, numpy.ndarray), "must be numpy array"
+    assert series.ndim == 1, "must be a 1D numpy array"
+    if pad and align.lower() not in set("lrc"):
+        raise ValueError(f"alignment {align} not in 'l,c,r'")
+
+    if pad:
+        align = {"l": "<", "c": "^", "r": ">"}[align]
+
+    if callable(format_spec):
+        formatter = format_spec
+        format_spec = ""
+    else:
+        formatter = None
+
+    if isinstance(format_spec, str):
+        format_spec = format_spec.replace("%", "")
+
+    if format_spec is None:
+        type_name = series.dtype.name
+        if "int" in type_name:
+            base_format = "d"
+        elif "float" in type_name:
+            base_format = f".{precision}f"
+        elif "bool" == type_name:
+            base_format = ""
+        else:
+            # handle mixed types with a custom formatter
+            formatter = _MixedFormatter(
+                align, len(title), precision, missing_data=missing_data
+            )
+            base_format = ""
+
+        format_spec = base_format
+
+    formatted = []
+    max_length = len(title)
+    for i, v in enumerate(series):
+        if formatter:
+            v = formatter(v)
+        else:
+            try:
+                v = format(v, format_spec)
+            except (TypeError, ValueError):
+                # could be a python object
+                v = str(v)
+
+        l = len(v)
+        if l > max_length:
+            max_length = l
+
+        formatted.append(v)
+
+    if not pad:
+        return formatted, title.strip(), max_length
+
+    if format_spec:
+        match = re.search("[<>^]", format_spec[:2])
+        final_align = align if match is None else match.group()
+    else:
+        final_align = align
+
+    # now adjust to max_len
+    format_spec = f"{final_align}{max_length}s"
+    title = format(title, format_spec)
+    formatted = [format(v.strip(), format_spec) for v in formatted]
+    return formatted, title, max_length
