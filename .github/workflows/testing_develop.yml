@@ -18,30 +18,68 @@ jobs:
 
     steps:
       - uses: "actions/checkout@v2"
+
+      # caching
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Linux')
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+            ${{ runner.os }}-pip-
+
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'macOS')
+        with:
+          path: ~/Library/Caches/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+            ${{ runner.os }}-pip-
+
+      - uses: actions/cache@v2
+        if: startsWith(runner.os, 'Windows')
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+            ${{ runner.os }}-pip-
+
       - uses: "actions/setup-python@v1"
         with:
           python-version: "${{ matrix.python-version }}"
 
-      - name: Make conda environment
-        uses: goanpeca/setup-miniconda@v1
-        with:
-           activate-environment: c3dev
-           environment-file: c3dev-environment.yml
-           python-version: "${{ matrix.python-version }}"
+      # Setup virtualenv
+      - name: "Setup virtualenv for ${{ matrix.python-version }} on Linux or MacOS"
+        if: startsWith(runner.os, 'macOS') || startsWith(runner.os, 'Linux')
+        run: |
+          python --version
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
 
-      - name: "Display conda env for ${{ matrix.python-version }}"
+      - name: "Run tox targets for ${{ matrix.python-version }} on Linux or MacOS"
+        if: startsWith(runner.os, 'macOS') || startsWith(runner.os, 'Linux')
         shell: bash -l {0}
         run: |
-          conda activate 
-          conda info
-          conda list
-      - name: "Run tox targets for ${{ matrix.python-version }}"
-        shell: bash -l {0}
-        run: |
-          conda activate c3dev
+          source .venv/bin/activate
           python -m tox
           ls
           ls tests
+
+      - name: "Install requirements and run tox targets for ${{ matrix.python-version }} on Windows"
+        if: startsWith(runner.os, 'Windows')
+        shell: bash -l {0}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m tox
+          ls
+          ls tests
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:

@@ -1,0 +1,9 @@
+matplotlib==3.2.2
+pillow==7.1.2
+psutil==5.7.0
+scipy==1.4.1
+sphinx-gallery==0.7.0
+sphinx_bootstrap_theme==0.7.1
+tox==3.19.0
+tox-gh-actions==1.2.0
+.[dev]
