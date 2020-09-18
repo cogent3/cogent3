@@ -90,7 +90,7 @@ class _LikelihoodParameterController(_LF):
         self.set_default_tree_parameter_rules()
         self.mprobs_from_alignment = motif_probs_from_align
         self.optimise_motif_probs = optimise_motif_probs
-        self._name = ""
+        self._name = None
         self._format = {}
 
     def save(self, filename):

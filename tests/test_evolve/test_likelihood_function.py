@@ -1364,6 +1364,13 @@ NineBande      root    1.0000    1.0000
         got = lf._repr_html_()
         self.assertIn("<p>log-likelihood", got)
 
+    def test_get_set_name_properties(self):
+        """correctly creates lf name attr"""
+        lf = get_model("HKY85").make_likelihood_function(self.tree)
+        self.assertEqual(lf.name, lf.model.name)
+        lf.name = ""
+        self.assertEqual(lf.name, "")
+
 
 class ComparisonTests(TestCase):
     """comparisons of likelihood calcs with earlier pycogent"""

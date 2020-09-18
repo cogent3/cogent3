@@ -500,7 +500,7 @@ class LikelihoodFunction(ParameterController):
 
     def _for_display(self):
         """processes statistics tables for display"""
-        title = self._name if self._name else "Likelihood function statistics"
+        title = self.name if self.name else "Likelihood function statistics"
         result = []
         result += self.get_statistics(with_motif_probs=True, with_titles=True)
         for i, table in enumerate(result):
@@ -928,12 +928,23 @@ class LikelihoodFunction(ParameterController):
         data = json.dumps(data)
         return data
 
-    # For tests.  Compat with old LF interface
-    def set_name(self, name):
+    @property
+    def name(self):
+        if self._name is None:
+            self._name = self.model.name or ""
+
+        return self._name
+
+    @name.setter
+    def name(self, name):
         self._name = name
 
+    # For tests.  Compat with old LF interface
+    def set_name(self, name):
+        self.name = name
+
     def get_name(self):
-        return self._name or "unnamed"
+        return self.name
 
     def set_tables_format(self, space=4, digits=4):
         """sets display properties for statistics tables. This affects results
