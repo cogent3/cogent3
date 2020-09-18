@@ -89,7 +89,7 @@ def TN93(**kw):
 
 
 def HKY85(**kw):
-    """Hasegawa, Kishino and Yanamo 1985 model"""
+    """Hasegawa, Kishino and Yano 1985 model"""
     kw["recode_gaps"] = True
     return _solved_nucleotide("HKY85", [kappa], **kw)
 
