@@ -204,7 +204,7 @@ class model(ComposableModel):
 
     def fit(self, aln, initialise=None, construct=True, **opt_args):
         moltypes = {aln.moltype.label, self._sm.moltype.label}
-        if moltypes == {"protein", "dna"} or moltypes == {"protein", "rna"}:
+        if moltypes in [{"protein", "dna"}, {"protein", "rna"}]:
             msg = (
                 f"substitution model moltype '{self._sm.moltype.label}' and"
                 f" alignment moltype '{aln.moltype.label}' are incompatible"
