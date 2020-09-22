@@ -234,6 +234,7 @@ class model_result(generic_result):
         self._init_stats()
         if len(self) == 1:
             result = list(self.values())[0]
+            result.name = self.name
         else:
             result = OrderedDict()
             for k in sorted(self):
@@ -241,6 +242,7 @@ class model_result(generic_result):
                 if type(k) == str and k.isdigit():
                     k = int(k)
                 result[k] = v
+                v.name = f"{self.name} pos-{k}"
 
         return result
 
