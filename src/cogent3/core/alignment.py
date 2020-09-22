@@ -2846,9 +2846,14 @@ class AlignmentI(object):
 
         if ref_name == "longest":
             lengths = selected.get_lengths(include_ambiguity=False, allow_gap=False)
-            length_names = [(l, n) for n, l in lengths.items()]
-            length_names.sort(reverse=True)
-            ref = length_names[0][1]
+
+            length_names = defaultdict(list)
+            for n, l in lengths.items():
+                length_names[l].append(n)
+
+            longest = max(length_names)
+            ref = sorted(length_names[longest])[0]
+
         elif ref_name:
             if ref_name not in selected.names:
                 raise ValueError(f"Unknown sequence name {ref_name}")
