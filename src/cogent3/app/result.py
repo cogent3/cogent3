@@ -27,7 +27,7 @@ class generic_result(MutableMapping):
     _type = "generic_result"
 
     def __init__(self, source):
-        self._store = dict()
+        self._store = {}
         self._construction_kwargs = dict(source=source)
         self.source = source
 
@@ -51,8 +51,7 @@ class generic_result(MutableMapping):
         num = len(self)
         types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self.keys()[:4]]
         types = ", ".join(types)
-        result = f"{num}x {name}({types})"
-        return result
+        return f"{num}x {name}({types})"
 
     def __str__(self):
         return repr(self)
@@ -126,7 +125,7 @@ class model_result(generic_result):
             elapsed_time=elapsed_time,
             num_evaluations=num_evaluations,
         )
-        self._store = dict()
+        self._store = {}
         self._name = name
         assert stat is sum or stat is max
         self._stat = stat
@@ -149,8 +148,7 @@ class model_result(generic_result):
                 row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
 
-        table = Table(header=header, data=rows, title=self.name)
-        return table
+        return Table(header=header, data=rows, title=self.name)
 
     def _repr_html_(self):
         table = self._get_repr_data_()
@@ -223,9 +221,7 @@ class model_result(generic_result):
             seq = "".join(("".join(t) for t in zip(seq1, seq2, seq3)))
             data[n] = seq
 
-        simaln = aln.__class__(data=data)
-
-        return simaln
+        return aln.__class__(data=data)
 
     def __lt__(self, other):
         self_lnL = self.lnL
@@ -238,6 +234,7 @@ class model_result(generic_result):
         self._init_stats()
         if len(self) == 1:
             result = list(self.values())[0]
+            result.name = self.name
         else:
             result = OrderedDict()
             for k in sorted(self):
@@ -245,6 +242,7 @@ class model_result(generic_result):
                 if type(k) == str and k.isdigit():
                     k = int(k)
                 result[k] = v
+                v.name = f"{self.name} pos-{k}"
 
         return result
 
@@ -253,10 +251,7 @@ class model_result(generic_result):
         if self._lnL is None:
             lnL = 0.0
             for v in self.values():
-                if isinstance(v, dict):
-                    l = v.get("lnL")
-                else:
-                    l = v.lnL
+                l = v.get("lnL") if isinstance(v, dict) else v.lnL
                 lnL = self._stat([l, lnL])
 
             self._lnL = lnL
@@ -267,10 +262,7 @@ class model_result(generic_result):
         if self._nfp is None:
             nfp = 0
             for v in self.values():
-                if isinstance(v, dict):
-                    n = v.get("nfp")
-                else:
-                    n = v.nfp
+                n = v.get("nfp") if isinstance(v, dict) else v.nfp
                 nfp = self._stat([n, nfp])
 
             self._nfp = nfp
@@ -282,10 +274,7 @@ class model_result(generic_result):
         if self._DLC is None:
             DLC = []
             for v in self.values():
-                if isinstance(v, dict):
-                    d = v.get("DLC")
-                else:
-                    d = v.all_psubs_DLC()
+                d = v.get("DLC") if isinstance(v, dict) else v.all_psubs_DLC()
                 DLC.append(d != False)
 
             self._DLC = all(DLC)
@@ -542,8 +531,7 @@ class hypothesis_result(model_collection_result):
     @property
     def alt(self):
         alts = [self[k] for k in self if k != self._name_of_null]
-        alt = max(alts)
-        return alt
+        return max(alts)
 
     @property
     def LR(self):
@@ -555,8 +543,7 @@ class hypothesis_result(model_collection_result):
     @property
     def df(self):
         """returns the degrees-of-freedom (alt.nfp - null.nfp)"""
-        df = self.alt.nfp - self.null.nfp
-        return df
+        return self.alt.nfp - self.null.nfp
 
     @property
     def pvalue(self):
@@ -596,8 +583,7 @@ class bootstrap_result(generic_result):
     @property
     def null_dist(self):
         """returns the LR values corresponding to the synthetic data"""
-        result = [self[k].LR for k in self if k != "observed"]
-        return result
+        return [self[k].LR for k in self if k != "observed"]
 
 
 class tabular_result(generic_result):
