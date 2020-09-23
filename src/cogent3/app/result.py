@@ -141,12 +141,14 @@ class model_result(generic_result):
         self.deserialised_values()  # making sure we're fully reloaded
         attrs = list(self._stat_attrs)
         header = ["key"] + attrs[:]
-        rows = [[""] + [getattr(self, attr) for attr in attrs]]
+        rows = [[repr("")] + [getattr(self, attr) for attr in attrs]]
         if len(self) > 1:
             # we just add keys, lnL and nfp
             for key in self:
                 row = [repr(key), self[key].lnL, self[key].nfp, "", ""]
                 rows.append(row)
+        else:
+            rows[0][0] = repr(list(self)[0])
 
         return Table(header=header, data=rows, title=self.name)
 
@@ -505,13 +507,14 @@ class hypothesis_result(model_collection_result):
 
         table = Table(header=["hypothesis", "key"] + attrs, data=rows, title=self.name)
         table = table.sorted(columns="nfp")
+        table.set_repr_policy(show_shape=False)
         stats = [[self.LR, self.df, self.pvalue]]
         stats = Table(header=["LR", "df", "pvalue"], data=stats, title="Statistics")
+        stats.set_repr_policy(show_shape=False)
         return stats, table
 
     def _repr_html_(self):
         stats, table = self._get_repr_data_()
-        table.set_repr_policy(show_shape=False)
         result = [t._repr_html_() for t in (stats, table)]
         return "\n".join(result)
 
