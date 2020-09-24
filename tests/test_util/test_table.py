@@ -625,6 +625,16 @@ class TableTests(TestCase):
         self.assertEqual(t.columns.order[0], "edge.names")
         self.assertEqual(t["Human", "edge.parent"], "edge.0")
 
+        # providing path raises TypeError
+        with self.assertRaises(TypeError):
+            make_table("some_path.tsv")
+
+        with self.assertRaises(TypeError):
+            make_table(header="some_path.tsv")
+
+        with self.assertRaises(TypeError):
+            make_table(data="some_path.tsv")
+
     def test_modify_title_legend(self):
         """reflected in persistent attrs"""
         rows = (
@@ -1290,6 +1300,11 @@ class TableTests(TestCase):
             self.assertEqual(got.shape, t.shape)
             self.assertEqual(got.header, t.header)
             assert_equal(got.array, t.array)
+
+    def test_load_table_invalid_type(self):
+        """raises TypeError if filename invalid type"""
+        with self.assertRaises(TypeError):
+            load_table({"a": [0, 1]})
 
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""
