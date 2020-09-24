@@ -366,6 +366,9 @@ def make_table(
         output format when using str(Table)
 
     """
+    if any([isinstance(a, str) for a in (header, data)]):
+        raise TypeError(f"str type invalid, if its a path use load_table()")
+
     data = kwargs.get("rows", data)
     if data_frame is not None:
         from pandas import DataFrame
@@ -460,6 +463,13 @@ def load_table(
     skip_inconsistent
         skips rows that have different length to header row
     """
+    import pathlib
+
+    if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
+        raise TypeError(
+            "filename must be string or Path, perhaps you want make_table()"
+        )
+
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
 
