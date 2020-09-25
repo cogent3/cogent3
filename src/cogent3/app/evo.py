@@ -260,6 +260,18 @@ class hypothesis(ComposableHypothesis):
     _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(self, null, *alternates, init_alt=None):
+        """
+        Parameters
+        ----------
+        null : model
+            The null model instance
+        alternates : model or series of models
+            The alternate model or a series of them
+        init_alt : callable
+            A callback function for initialising the alternate model
+            likelihood function prior to optimisation. Defaults to using
+            MLEs from the null model.
+        """
         # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
             input_types=self._input_types,
