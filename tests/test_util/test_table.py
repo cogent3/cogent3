@@ -1103,6 +1103,17 @@ class TableTests(TestCase):
         table = make_table(header=["a"])
         self.assertEqual(str(table), "=\na\n-\n-")
 
+    def test_str_object_col(self):
+        """str works when a column has complex object"""
+        # data has tuples in an array
+        data = dict(
+            key=numpy.array([("a", "c"), ("b", "c"), ("a", "d")], dtype="O"),
+            count=[1, 3, 2],
+        )
+        t = Table(data=data)
+        got = str(t)
+        self.assertEqual(len(got.splitlines()), 7)
+
     def test_str_md_format(self):
         """str() produces markdown table"""
         md_table = make_table(

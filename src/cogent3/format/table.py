@@ -921,7 +921,6 @@ def formatted_array(
     list of formatted series, formatted title, maximum string length
     """
     assert isinstance(series, numpy.ndarray), "must be numpy array"
-    assert series.ndim == 1, "must be a 1D numpy array"
     if pad and align.lower() not in set("lrc"):
         raise ValueError(f"alignment {align} not in 'l,c,r'")
 
