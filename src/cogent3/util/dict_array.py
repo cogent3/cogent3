@@ -311,8 +311,16 @@ class DictArrayTemplate(object):
         return DictArray(array, self)
 
     def interpret_index(self, names):
+        if isinstance(names, numpy.ndarray) and "int" in names.dtype.name:
+            # the numpy item() method casts to the nearest Python type
+            names = tuple(v.item() for v in names)
+
+        if any(isinstance(names, t_) for t_ in (list, numpy.ndarray)):
+            names = tuple(names)
+
         if not isinstance(names, tuple):
             names = (names,)
+
         index = []
         remaining = []
         for (ordinals, allnames, name) in zip(self.ordinals, self.names, names):

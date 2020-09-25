@@ -271,6 +271,25 @@ class TableTests(TestCase):
         got_np = t[indices, numpy.array([True, False, True, True])]
         assert_equal(got_np.array, got.array)
 
+    def test_slicing_with_index(self):
+        """different slice types work when index_name defined"""
+        # slicing by int works with index too
+        t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
+        got = t[[1]]
+        self.assertEqual(got.columns["edge.name"], "NineBande")
+        self.assertEqual(got.shape, (1, t.shape[1]))
+        for v, dtype in [(1, None), (1, object), ("NineBande", "U")]:
+            got = t[numpy.array([v], dtype=dtype)]
+            self.assertEqual(got.columns["edge.name"], "NineBande")
+            self.assertEqual(got.shape, (1, t.shape[1]))
+
+        # works if, for some reason, the index column has floats
+        t = Table(header=self.t7_header, data=self.t7_rows, index="stat")
+        got = t[[1827.5580]]
+        self.assertEqual(got.shape, (1, t.shape[1]))
+        got = t[numpy.array([1827.5580])]
+        self.assertEqual(got.shape, (1, t.shape[1]))
+
     def test_specifying_space(self):
         """controls spacing in simple format"""
         space = "        "
