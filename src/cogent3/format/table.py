@@ -911,7 +911,8 @@ def formatted_array(
     missing_data
         default missing data value.
     pad : bool
-        Whether to pad all strings to same length
+        Whether to pad all strings to same length. If False, alignment setting is
+        ignored.
     align : str
         either 'l', 'c', 'r' for left, center or right alignment, Defaults to 'r'.
         Only applied if pad==True
@@ -919,24 +920,36 @@ def formatted_array(
     Returns
     -------
     list of formatted series, formatted title, maximum string length
+
+    Notes
+    -----
+    The precedence for formatting is format_spec supersedes pad, precision and
+    align values.
     """
     assert isinstance(series, numpy.ndarray), "must be numpy array"
     if pad and align.lower() not in set("lrc"):
-        raise ValueError(f"alignment {align} not in 'l,c,r'")
+        raise ValueError(f"align value '{align}' not in 'l,c,r'")
 
     if pad:
         align = {"l": "<", "c": "^", "r": ">"}[align]
 
     if callable(format_spec):
         formatter = format_spec
-        format_spec = ""
+        format_spec = None
     else:
         formatter = None
+
+    if format_spec and set(format_spec.strip()) <= set("<>^"):
+        # format_spec just an alignment character, in which case we assign
+        # that to align and reset format_spec as None so other formatting
+        # options have an effect
+        align = format_spec
+        format_spec = None
 
     if isinstance(format_spec, str):
         format_spec = format_spec.replace("%", "")
 
-    if format_spec is None:
+    if not any([format_spec, formatter]):
         type_name = series.dtype.name
         if "int" in type_name:
             base_format = "d"
