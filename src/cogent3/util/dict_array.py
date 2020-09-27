@@ -315,16 +315,13 @@ class DictArrayTemplate(object):
             # the numpy item() method casts to the nearest Python type
             names = tuple(v.item() for v in names)
 
-        if any(isinstance(names, t_) for t_ in (list, numpy.ndarray)):
-            names = tuple(names)
-
         if not isinstance(names, tuple):
             names = (names,)
 
         index = []
         remaining = []
         for (ordinals, allnames, name) in zip(self.ordinals, self.names, names):
-            if type(name) not in (int, slice):
+            if type(name) not in (int, slice, list, numpy.ndarray):
                 name = ordinals[name]
             elif isinstance(name, slice):
                 start = name.start
@@ -341,19 +338,32 @@ class DictArrayTemplate(object):
                     pass
                 name = slice(start, stop, name.step)
                 remaining.append(allnames.__getitem__(name))
+            elif type(name) in (list, numpy.ndarray):
+                name = [ordinals.get(n, n) for n in name]
+                remaining.append([allnames[i] for i in name])
+
             index.append(name)
         remaining.extend(self.names[len(index) :])
-        if remaining:
-            klass = type(self)(*remaining)
-        else:
-            klass = None
+        klass = type(self)(*remaining) if remaining else None
         return (tuple(index), klass)
 
 
 class DictArray(object):
-    """Wraps a numpy array so that it can be indexed with strings like nested
-    dictionaries (only ordered), for things like substitution matrices and
-    bin probabilities."""
+    """Wraps a numpy array so that it can be indexed with strings. Behaves
+    like nested dictionaries (only ordered).
+
+    Notes
+    -----
+    Used for things like substitution matrices and bin probabilities.
+
+    Indexing can be done via conventional integer based operations, using
+    keys, lists of int/keys.
+
+    Behaviour differs from numpy array indexing when you provide lists of
+    indices. Such indexing is applied sequentially, e.g. darr[[0, 2], [1, 2]]
+    will return the intersection of rows [0, 2] with columns [1, 2]. In numpy,
+    the result would instead be the elements at [0, 1], [2, 2].
+    """
 
     def __init__(self, *args, **kwargs):
         """allow alternate ways of creating for time being"""
@@ -432,9 +442,28 @@ class DictArray(object):
 
     def __getitem__(self, names):
         (index, remaining) = self.template.interpret_index(names)
-        result = self.array[index]
+        if list in {type(v) for v in index}:
+            result = self.array
+            for dim, indices in enumerate(index):
+                if isinstance(indices, slice):
+                    indices = (
+                        (indices,)
+                        if dim == 0
+                        else (slice(None, None),) * dim + (indices,)
+                    )
+                    result = result[tuple(indices)]
+                    continue
+
+                if isinstance(indices, int):
+                    indices = [indices]
+
+                result = result.take(indices, axis=dim)
+
+        else:
+            result = self.array[index]
+
         if remaining is not None:
-            result = self.__class__(result, remaining)
+            result = self.__class__(result.reshape(remaining._shape), remaining)
         return result
 
     def __iter__(self):

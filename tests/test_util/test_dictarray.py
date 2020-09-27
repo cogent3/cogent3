@@ -117,6 +117,23 @@ class DictArrayTest(TestCase):
         self.assertEqual(b[0].keys(), [0, 1, 2])
         self.assertEqual(sum(b[0]), 1)
 
+    def test_str_labels(self):
+        """DictArray with str labels or numpy U dtype"""
+        b = DictArrayTemplate(["Ab", "Bb", "Cb"], ["Db", "Eb", "Fb"]).wrap(self.a)
+        self.assertEqual(b.keys(), ["Ab", "Bb", "Cb"])
+        self.assertEqual(b[0].keys(), ["Db", "Eb", "Fb"])
+        self.assertEqual(b["Ab", "Eb"], 0)
+        self.assertEqual(b["Bb", "Eb"], 1)
+
+        b = DictArrayTemplate(
+            numpy.array(["Ab", "Bb", "Cb"], dtype="U"),
+            numpy.array(["Db", "Eb", "Fb"], dtype="U"),
+        ).wrap(self.a)
+        self.assertEqual(b.keys(), ["Ab", "Bb", "Cb"])
+        self.assertEqual(b[0].keys(), ["Db", "Eb", "Fb"])
+        self.assertEqual(b["Ab", "Eb"], 0)
+        self.assertEqual(b["Bb", "Eb"], 1)
+
     def test_with_mixed_label_types(self):
         """DictArray constructed with mixed label types."""
         b = DictArrayTemplate("ABC", 3).wrap(self.a)
@@ -369,6 +386,7 @@ class DictArrayTest(TestCase):
         )
         t = a2D.to_table()
         self.assertIsInstance(t, Table)
+        self.assertEqual(t.shape, (2, 3))  # because index column added
         # make sure the 2D variant has an index column, name is empty string
         self.assertEqual(t.index_name, "")
         self.assertEqual(t.columns[""].tolist(), a2D.template.names[0])
@@ -380,6 +398,42 @@ class DictArrayTest(TestCase):
         )
         with self.assertRaises(ValueError):
             _ = a3D.to_table()
+
+    def test_interpret_index(self):
+        """correctly handles just explicitly defined indices"""
+        n = ["ab", "dna", "rna"]
+        a1D = DictArrayTemplate(n)
+        got = a1D.interpret_index(["ab", "rna"])
+        self.assertEqual(got[0], ([0, 2],))
+        got = a1D.interpret_index([0, 2])
+        self.assertEqual(got[0], ([0, 2],))
+
+    def test_slicing_combos(self):
+        """different mixtures of slicing should work"""
+        darr = DictArrayTemplate(list(DNA), list(DNA)).wrap(
+            [
+                [0.7, 0.1, 0.2, 0.3],
+                [0.1, 0.7, 0.1, 0.3],
+                [0.3, 0.2, 0.6, 0.3],
+                [0.4, 0.1, 0.1, 0.7],
+            ]
+        )
+        got = darr["C":"G", "C":"G"]
+        assert_allclose(got.array, numpy.array([[0.7, 0.1], [0.2, 0.6]]))
+
+        got = darr[[1, 2], [1, 2]]
+        assert_allclose(got.array, numpy.array([[0.7, 0.1], [0.2, 0.6]]))
+
+        got = darr[[2, 3], "C"]
+        assert_allclose(got.array, numpy.array([0.2, 0.1]))
+        got = darr["C", [2, 3]]
+        assert_allclose(got.array, numpy.array([0.1, 0.3]))
+
+        got = darr[[1, 2], "T":"A"]
+        assert_allclose(got.array, numpy.array([[0.1, 0.7], [0.3, 0.2]]))
+
+        got = darr["T":"A", [1, 2]]
+        assert_allclose(got.array, numpy.array([[0.1, 0.2], [0.7, 0.1]]))
 
 
 if __name__ == "__main__":
