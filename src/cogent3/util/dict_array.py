@@ -349,39 +349,6 @@ class DictArrayTemplate(object):
             klass = None
         return (tuple(index), klass)
 
-    def array_repr(self, a):
-        if len(a.shape) == 1:
-            heading = [str(n) for n in self.names[0]]
-            a = a[numpy.newaxis, :]
-        elif len(a.shape) == 2:
-            heading = [""] + [str(n) for n in self.names[1]]
-            a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
-        else:
-            return "%s dimensional %s" % (len(self.names), type(self).__name__)
-
-        formatted = table.formatted_cells(rows=a, header=heading)
-        return str(table.simple_format(formatted[0], formatted[1], space=4))
-
-    def _get_repr_html(self, a):
-        """returns Table._repr_html_()"""
-        from cogent3.util.table import Table
-
-        if len(a.shape) == 1:
-            heading = [str(n) for n in self.names[0]]
-            a = a[numpy.newaxis, :]
-            index = None
-        elif len(a.shape) == 2:
-            heading = [""] + [str(n) for n in self.names[1]]
-            a = [[str(name)] + list(row) for (name, row) in zip(self.names[0], a)]
-            a = {d[0]: d[1:] for d in zip(heading, *a)}
-            index = heading[0]
-        else:
-            return "%s dimensional %s" % (len(self.names), type(self).__name__)
-
-        t = Table(heading, data=a, digits=3, index=index, max_width=80)
-        t.set_repr_policy(show_shape=False)
-        return t._repr_html_()
-
 
 class DictArray(object):
     """Wraps a numpy array so that it can be indexed with strings like nested
@@ -488,7 +455,12 @@ class DictArray(object):
         return [(n, self[n]) for n in list(self.keys())]
 
     def __repr__(self):
-        return self.template.array_repr(self.array)
+        if self.array.ndim > 2:
+            return "%s dimensional %s" % (self.array.ndim, type(self).__name__)
+
+        t = self.to_table()
+        t.set_repr_policy(show_shape=False)
+        return t
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -543,7 +515,12 @@ class DictArray(object):
         return template.wrap(result)
 
     def _repr_html_(self):
-        return self.template._get_repr_html(self.array)
+        if self.array.ndim > 2:
+            return "%s dimensional %s" % (self.array.ndim, type(self).__name__)
+
+        t = self.to_table()
+        t.set_repr_policy(show_shape=False)
+        return t._repr_html_()
 
     def to_string(self, format="tsv", sep=None):
         """Return the data as a formatted string.
