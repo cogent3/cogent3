@@ -719,7 +719,7 @@ class Table:
         if not self._repr_policy["show_shape"]:
             shape_info = ""
 
-        if self.shape == (0, 0):
+        if self.shape[0] == 0:
             return shape_info
 
         title, legend = table.title, table.legend
