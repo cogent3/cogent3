@@ -489,7 +489,7 @@ class DictArray(object):
 
         t = self.to_table()
         t.set_repr_policy(show_shape=False)
-        return t
+        return str(t)
 
     def __ne__(self, other):
         return not self.__eq__(other)
