@@ -339,7 +339,7 @@ class DictArrayTemplate(object):
                 name = slice(start, stop, name.step)
                 remaining.append(allnames.__getitem__(name))
             elif type(name) in (list, numpy.ndarray):
-                name = [ordinals.get(n, n) for n in name]
+                name = [n if type(n) == int else ordinals[n] for n in name]
                 remaining.append([allnames[i] for i in name])
 
             index.append(name)

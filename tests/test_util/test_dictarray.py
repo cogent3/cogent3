@@ -435,6 +435,19 @@ class DictArrayTest(TestCase):
         got = darr["T":"A", [1, 2]]
         assert_allclose(got.array, numpy.array([[0.1, 0.2], [0.7, 0.1]]))
 
+        # make sure we cope with keys that are int's
+        nums = list(range(1, 5))
+        darr = DictArrayTemplate(nums, nums).wrap(
+            [
+                [0.7, 0.1, 0.2, 0.3],
+                [0.1, 0.7, 0.1, 0.3],
+                [0.3, 0.2, 0.6, 0.3],
+                [0.4, 0.1, 0.1, 0.7],
+            ]
+        )
+        got = darr[[1, 2], [1, 2]]
+        assert_allclose(got.array, numpy.array([[0.7, 0.1], [0.2, 0.6]]))
+
 
 if __name__ == "__main__":
     main()
