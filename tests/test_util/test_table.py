@@ -221,7 +221,8 @@ class TableTests(TestCase):
     def test_indexing_rows(self):
         """works using names or ints"""
         t = Table(header=self.t7_header, data=self.t7_rows, index="gene")
-        self.assertEqual(t["ENSG00000019485", "chrom"], "A")
+        got = t["ENSG00000019485", "chrom"]
+        self.assertEqual(got, "A")
 
     def test_immutability_cells(self):
         """table cells are immutable"""
@@ -1509,9 +1510,14 @@ class TableTests(TestCase):
         # no index
         t = Table(header=self.t8_header, data=self.t8_rows)
         _ = t._repr_html_()
+
         # with an index
         t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
-        _ = t._repr_html_()
+        got = t._repr_html_()
+        # and the index column should contain "index" css class
+        self.assertEqual(
+            got.count("index"), t.shape[0] + 1
+        )  # add 1 for CSS style sheet
 
         # data has tuples in an array
         data = dict(
@@ -1613,7 +1619,10 @@ class TableTests(TestCase):
         t.tail(nrows=3)
         self.assertEqual(tail.data.shape[0], 3)
         self.assertEqual(len(tail.output.splitlines()), 9)
-        self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
+        self.assertEqual(
+            [int(v) for v in tail.data[:, -1].tolist()],
+            [r[-1] for r in self.t1_rows[-3:]],
+        )
         # tests when number of rows < default
         t = make_table(data=dict(a=["a"], b=["b"]))
         t.tail()
