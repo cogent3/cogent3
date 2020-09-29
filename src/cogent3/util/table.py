@@ -1789,7 +1789,7 @@ class Table:
         element_formatters=None,
         merge_identical=False,
         compact=False,
-    ):
+    ):  # pragma: no cover
         """returns just the table as html.
 
         Parameters
