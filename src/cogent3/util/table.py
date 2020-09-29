@@ -639,12 +639,8 @@ class Table:
         rn = self._repr_policy["random"]
         head = self._repr_policy["head"]
         tail = self._repr_policy["tail"]
-        if head is None and tail is None:
-            if self.shape[0] < 50:
-                head = self.shape[0]
-                tail = None
-            else:
-                head, tail = 5, 5
+        if not any([head, tail]):
+            head, tail = (self.shape[0], None) if self.shape[0] < 50 else (5, 5)
             self._repr_policy["head"] = head
             self._repr_policy["tail"] = tail
 
@@ -1505,11 +1501,7 @@ class Table:
         data = numpy.array(self.columns[columns], dtype="O").T
         for c in reverse:
             index = columns.index(c)
-            dtype = self.columns[c].dtype.name
-            if "int" in dtype or "float" in dtype or "complex" in dtype:
-                func = _reverse_num
-            else:
-                func = _reverse_str
+            func = _reverse_num if array_is_num_type(self.columns[c]) else _reverse_str
             func = numpy.vectorize(func)
             data[:, index] = func(data[:, index])
 
@@ -1571,6 +1563,8 @@ class Table:
         ordered.sort()
         formatted = [[c] + formatted_cols[c] for _, c in ordered]
         formatted = [list(e) for e in zip(*formatted)]
+        if not formatted and self.header:
+            formatted = [self.header]
         return formatted
 
     def to_csv(self, with_title=False, with_legend=False):
@@ -1736,34 +1730,41 @@ class Table:
         if sep == "\t":
             return self.to_tsv(**kwargs)
 
-        # convert self to a 2D list
-        if format != "phylip":
-            formatted_table = self._formatted(stripped=sep is not None)
-        else:
+        if format in ("rest", "rst"):
+            return self.to_rst(**kwargs)
+
+        if format in ("markdown", "md"):
+            return self.to_markdown(**kwargs)
+
+        if format.endswith("tex"):
+            return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
+
+        if format == "html":
+            return self.to_rich_html(**kwargs)
+
+        if format == "phylip":
+            # need to eliminate row identifiers
             columns = [c for c in self.columns if c != self.index_name]
             table = self[:, columns]
-            formatted_table = table._formatted(missing_data=missing_data)
+            formatted_table = table._formatted(missing_data="0.0000")
+            header = formatted_table.pop(0)
+            return table_format.phylip_matrix(formatted_table, header)
+
+        orig_formats = self._column_templates
+        self._column_templates = col_formats
+
+        formatted_table = self._formatted(stripped=sep is not None)
+        self._column_templates = orig_formats
 
         header = formatted_table.pop(0)
         args = (header, formatted_table, self.title, self.legend)
 
-        if format in ("rest", "rst"):
-            return self.to_rst(**kwargs)
-        elif format in ("markdown", "md"):
-            return self.to_markdown(**kwargs)
-        elif format.endswith("tex"):
-            return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
-        elif format == "html":
-            return self.to_rich_html(**kwargs)
-        elif format == "phylip":
-            # need to eliminate row identifiers
-            return table_format.phylip_matrix(formatted_table, header)
-        elif sep:
+        if sep:
             return table_format.separator_format(*args, sep=sep)
-        else:
-            return table_format.simple_format(
-                *args + (self._max_width, self.index_name, borders, self.space)
-            )
+
+        return table_format.simple_format(
+            *args + (self._max_width, self.index_name, borders, self.space)
+        )
 
     def to_tsv(self, with_title=False, with_legend=False):
         """return table formatted as tab separated values
