@@ -1532,6 +1532,10 @@ class TableTests(TestCase):
         table.columns["a"] = ["a"]
         _ = t._repr_html_()
 
+        # single column with a single value should not fail
+        table = make_table(data={"kappa": [3.2]}, title="a title")
+        _ = table._repr_html_()
+
     def test_array(self):
         """should produce array"""
         # data has tuples in an array
