@@ -40,6 +40,26 @@ known_formats = (
     "tsv",
 )
 
+css_c3table_template = "\n".join(
+    (
+        ".c3table table {margin: 10px 0;}",
+        ".c3table tr:last-child {border-bottom: 1px solid #000;} ",
+        ".c3table tr > th {text-align: left; padding: 0 5px;}",
+        ".c3table tr > td {text-align: left; padding: 5px;}",
+        ".c3table tr:nth-child(even) {background: #f7f7f7 !important;}",
+        ".c3table .ellipsis {background: rgba(0, 0, 0, .01);}",
+        ".c3table .index {background: %(colour)s; margin: 10px; font-weight: 600;}",
+        ".c3table .head_cell {background: %(head_colour)s; font-weight: bold; text-align: center;}",
+        ".c3table caption {color: rgb(250, 250, 250); background: "
+        "rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; "
+        "caption-side: top;}",
+        ".c3table .cell_title {font-weight: bold;}",
+        ".c3col_left { text-align: left !important; display: block;}",
+        ".c3col_right { text-align: right !important; display: block;}",
+        ".c3col_center { text-align: center !important; display: block;}",
+    )
+)
+
 
 def _merged_cell_text_wrap(text, max_line_length, space):
     """ left justify wraps text into multiple rows"""
@@ -998,3 +1018,36 @@ def formatted_array(
     title = format(title, format_spec)
     formatted = [format(v.strip(), format_spec) for v in formatted]
     return formatted, title, max_length
+
+
+class HtmlElement:
+    """wrapper for text to become a HTML element"""
+
+    def __init__(self, text, tag, css_classes=None, newline=False):
+        """
+        Parameters
+        ----------
+        text : str
+            cell content
+        tag : str
+            html table cell tag, e.g. 'td', 'th'
+        classes : list
+            list of custom CSS classes
+        newline : bool
+            puts the open, close tags on new lines
+        """
+        self.text = str(text)
+        self.tag = tag
+        css_classes = [css_classes] if isinstance(css_classes, str) else css_classes
+        self.css_classes = css_classes
+        self.newline = newline
+
+    def __str__(self):
+        txt = self.text
+        classes = "" if self.css_classes is None else " ".join(self.css_classes)
+        classes = f' class="{classes}"' if classes else ""
+        nl = "\n" if self.newline else ""
+        return f"{nl}<{self.tag}{classes}>{nl}{txt}{nl}</{self.tag}>"
+
+    def __repr__(self):
+        return repr(self.text)

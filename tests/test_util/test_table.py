@@ -1184,6 +1184,51 @@ class TableTests(TestCase):
         self.assertEqual(tex[2], r"\caption{a title.}")
         self.assertEqual(tex[3], r"\label{table}")
 
+    def test_to_html(self):
+        """generates html table within c3table div"""
+        # with no index, or title, or legend
+        import re
+
+        t = Table(header=self.t8_header, data=self.t8_rows)
+        got = t.to_html()
+        # make sure tags are matched
+        for tag in ("div", "style", "table", "thead"):
+            self.assertEqual(len(re.findall(f"<[/]*{tag}.*>", got)), 2)
+
+        self.assertEqual(len(re.findall(f"<[/]*tr>", got)), 4)
+        # 2 columns should be left aligned, 4 right aligned
+        # adding 1 for the CSS style definition
+        self.assertEqual(got.count("c3col_left"), 4 + 1)
+        self.assertEqual(got.count("c3col_right"), 8 + 1)
+        self.assertEqual(got.count("cell_title"), 1)  # CSS defn only
+        num_spans = got.count("span")
+        num_caption = got.count("caption")
+
+        t = Table(header=self.t8_header, data=self.t8_rows, title="a title")
+        got = t.to_html()
+        self.assertEqual(got.count("cell_title"), 2)
+        # number of spans increases by 2 to enclose the title
+        self.assertEqual(got.count("span"), num_spans + 2)
+        self.assertEqual(got.count("caption"), num_caption + 2)
+
+        t = Table(header=self.t8_header, data=self.t8_rows, legend="a legend")
+        got = t.to_html()
+        self.assertEqual(got.count("cell_title"), 1)
+        # cell_legend not actually defined in CSS yet
+        self.assertEqual(got.count("cell_legend"), 1)
+        # number of spans increases by 2 to enclose the title
+        self.assertEqual(got.count("span"), num_spans + 2)
+        self.assertEqual(got.count("caption"), num_caption + 2)
+
+        t = Table(
+            header=self.t8_header, data=self.t8_rows, title="a title", legend="a legend"
+        )
+        got = t.to_html()
+        self.assertEqual(got.count("cell_title"), 2)
+        # cell_legend not actually defined in CSS yet
+        self.assertEqual(got.count("cell_legend"), 1)
+        self.assertEqual(got.count("caption"), num_caption + 2)
+
     def test_invalid_format(self):
         """should raise value error"""
         t = make_table(self.t2_header, data=self.t2_rows)
@@ -1535,6 +1580,19 @@ class TableTests(TestCase):
         # single column with a single value should not fail
         table = make_table(data={"kappa": [3.2]}, title="a title")
         _ = table._repr_html_()
+
+        # set head and tail, introduces ellipsis row class
+        table = make_table(data={"A": list("abcdefghijk"), "B": list(range(11))})
+        table.set_repr_policy(head=8, tail=1)
+        got = table._repr_html_().splitlines()
+        num_rows = 0
+        for l in got:
+            if "<tr>" in l:
+                num_rows += 1
+                if "ellipsis" in l:
+                    break
+
+        self.assertEqual(num_rows, 9)
 
     def test_array(self):
         """should produce array"""
