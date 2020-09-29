@@ -40,6 +40,26 @@ known_formats = (
     "tsv",
 )
 
+css_c3table_template = "\n".join(
+    (
+        ".c3table table {margin: 10px 0;}",
+        ".c3table tr:last-child {border-bottom: 1px solid #000;} ",
+        ".c3table tr > th {text-align: left; padding: 0 5px;}",
+        ".c3table tr > td {text-align: left; padding: 5px;}",
+        ".c3table tr:nth-child(even) {background: #f7f7f7 !important;}",
+        ".c3table .ellipsis {background: rgba(0, 0, 0, .01);}",
+        ".c3table .index {background: %(colour)s; margin: 10px; font-weight: 600;}",
+        ".c3table .head_cell {background: %(head_colour)s; font-weight: bold; text-align: center;}",
+        ".c3table caption {color: rgb(250, 250, 250); background: "
+        "rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; "
+        "caption-side: top;}",
+        ".c3table .cell_title {font-weight: bold;}",
+        ".c3col_left { text-align: left !important; display: block;}",
+        ".c3col_right { text-align: right !important; display: block;}",
+        ".c3col_center { text-align: center !important; display: block;}",
+    )
+)
+
 
 def _merged_cell_text_wrap(text, max_line_length, space):
     """ left justify wraps text into multiple rows"""
@@ -911,7 +931,8 @@ def formatted_array(
     missing_data
         default missing data value.
     pad : bool
-        Whether to pad all strings to same length
+        Whether to pad all strings to same length. If False, alignment setting is
+        ignored.
     align : str
         either 'l', 'c', 'r' for left, center or right alignment, Defaults to 'r'.
         Only applied if pad==True
@@ -919,24 +940,36 @@ def formatted_array(
     Returns
     -------
     list of formatted series, formatted title, maximum string length
+
+    Notes
+    -----
+    The precedence for formatting is format_spec supersedes pad, precision and
+    align values.
     """
     assert isinstance(series, numpy.ndarray), "must be numpy array"
     if pad and align.lower() not in set("lrc"):
-        raise ValueError(f"alignment {align} not in 'l,c,r'")
+        raise ValueError(f"align value '{align}' not in 'l,c,r'")
 
     if pad:
         align = {"l": "<", "c": "^", "r": ">"}[align]
 
     if callable(format_spec):
         formatter = format_spec
-        format_spec = ""
+        format_spec = None
     else:
         formatter = None
+
+    if format_spec and set(format_spec.strip()) <= set("<>^"):
+        # format_spec just an alignment character, in which case we assign
+        # that to align and reset format_spec as None so other formatting
+        # options have an effect
+        align = format_spec
+        format_spec = None
 
     if isinstance(format_spec, str):
         format_spec = format_spec.replace("%", "")
 
-    if format_spec is None:
+    if not any([format_spec, formatter]):
         type_name = series.dtype.name
         if "int" in type_name:
             base_format = "d"
@@ -985,3 +1018,36 @@ def formatted_array(
     title = format(title, format_spec)
     formatted = [format(v.strip(), format_spec) for v in formatted]
     return formatted, title, max_length
+
+
+class HtmlElement:
+    """wrapper for text to become a HTML element"""
+
+    def __init__(self, text, tag, css_classes=None, newline=False):
+        """
+        Parameters
+        ----------
+        text : str
+            cell content
+        tag : str
+            html table cell tag, e.g. 'td', 'th'
+        classes : list
+            list of custom CSS classes
+        newline : bool
+            puts the open, close tags on new lines
+        """
+        self.text = str(text)
+        self.tag = tag
+        css_classes = [css_classes] if isinstance(css_classes, str) else css_classes
+        self.css_classes = css_classes
+        self.newline = newline
+
+    def __str__(self):
+        txt = self.text
+        classes = "" if self.css_classes is None else " ".join(self.css_classes)
+        classes = f' class="{classes}"' if classes else ""
+        nl = "\n" if self.newline else ""
+        return f"{nl}<{self.tag}{classes}>{nl}{txt}{nl}</{self.tag}>"
+
+    def __repr__(self):
+        return repr(self.text)
