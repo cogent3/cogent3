@@ -21,6 +21,7 @@ from cogent3 import load_table, make_table
 from cogent3.format.table import (
     formatted_array,
     get_continuation_tables_headers,
+    is_html_markup,
 )
 from cogent3.parse.table import FilteringParser
 from cogent3.util.misc import get_object_provenance, open_
@@ -1901,6 +1902,17 @@ class TableTests(TestCase):
         table = make_table(header=["", "Ts", "Tv"], data=data, index="")
         with self.assertRaises(TypeError):
             table.to_categorical(columns=["Ts", "Tv"])
+
+    def test_is_html_markup(self):
+        """format function confirms correctly specified html"""
+        self.assertTrue(is_html_markup("<table>blah</table>"))
+        self.assertTrue(is_html_markup("<table>blah<table>blah</table></table>"))
+        self.assertTrue(is_html_markup("<i>blah</i><sub>blah</sub>"))
+        self.assertTrue(is_html_markup("<i>blah</i>\n<sub>blah</sub>"))
+        self.assertFalse(is_html_markup("<table>blah</tabl>"))
+        self.assertFalse(is_html_markup("<table>"))
+        self.assertFalse(is_html_markup("blah < blah"))
+        self.assertFalse(is_html_markup("blah > blah"))
 
 
 if __name__ == "__main__":

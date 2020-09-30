@@ -1932,10 +1932,11 @@ class Table:
             ]
 
         title = self.title if self.title else ""
-        if title:
+        if title and not table_format.is_html_markup(title):
             title = escape(title)
+
         legend = self.legend if self.legend else ""
-        if legend:
+        if legend and not table_format.is_html_markup(legend):
             legend = escape(legend)
 
         for i, header in enumerate(headers):

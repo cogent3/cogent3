@@ -1051,3 +1051,22 @@ class HtmlElement:
 
     def __repr__(self):
         return repr(self.text)
+
+
+def is_html_markup(text):
+    """checks if text contains balanced html markup
+
+    <token ...> body </token>
+    """
+    pattern = re.compile("(?<=[<])[a-z]+")
+    tokens = set(pattern.findall(text))
+    if not tokens:
+        return False
+
+    for token in tokens:
+        num_start = len(re.findall(f"<{token}", text))
+        num_end = len(re.findall(f"</{token}", text))
+        if num_start != num_end:
+            return False
+
+    return True
