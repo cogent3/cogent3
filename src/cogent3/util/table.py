@@ -1901,7 +1901,7 @@ class Table:
         alpha = 0.0 if self.index_name is None else 0.25
 
         style = table_format.css_c3table_template % dict(
-            colour='"white"' if self.index_name else base_colour.format(alpha=alpha),
+            colour=base_colour.format(alpha=alpha),
             head_colour=base_colour.format(alpha=0.75),
         )
 
@@ -1932,10 +1932,11 @@ class Table:
             ]
 
         title = self.title if self.title else ""
-        if title:
+        if title and not table_format.is_html_markup(title):
             title = escape(title)
+
         legend = self.legend if self.legend else ""
-        if legend:
+        if legend and not table_format.is_html_markup(legend):
             legend = escape(legend)
 
         for i, header in enumerate(headers):
