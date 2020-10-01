@@ -1545,7 +1545,6 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     """
 
     num_x = len(x)
-    num_y = None
     x = list(zip(x, zeros(len(x), int)))
     two = ["two sided", "2", 2, "two tailed", "two", "two.sided"]
     Pval = None
@@ -1554,7 +1553,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         y = list(zip(y, ones(len(y), int)))
         n = num_x * num_y / (num_x + num_y)
         combined = x + y
-        ties = True if len(set(combined)) < num_x + num_y else False
+        ties = len(set(combined)) < num_x + num_y
         combined = array(combined, dtype=[("stat", float), ("sample", int)])
         combined.sort(order="stat")
         scales = array([1 / num_x, -1 / num_y])
@@ -1640,8 +1639,7 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
 
 
 def _average_rank(start_rank, end_rank):
-    ave_rank = npsum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
-    return ave_rank
+    return npsum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
 
 
 def mw_test(x, y):
@@ -1797,9 +1795,10 @@ def mantel_test(
         raise ValueError(
             "The number of permutations must be greater than or " "equal to one."
         )
-    if not suppress_symmetry_and_hollowness_check:
-        if not (is_symmetric_and_hollow(m1) and is_symmetric_and_hollow(m2)):
-            raise ValueError("Both distance matrices must be symmetric and " "hollow.")
+    if not suppress_symmetry_and_hollowness_check and not (
+        is_symmetric_and_hollow(m1) and is_symmetric_and_hollow(m2)
+    ):
+        raise ValueError("Both distance matrices must be symmetric and " "hollow.")
 
     # Get a flattened list of lower-triangular matrix elements (excluding the
     # diagonal) in column-major order. Use these values to calculate the
@@ -1811,7 +1810,7 @@ def mantel_test(
     size = len(m1)
     better = 0
     perm_stats = []
-    for i in range(n):
+    for _ in range(n):
         perm = permute_2d(m1, permutation(size))
         perm_flat = _flatten_lower_triangle(perm)
         r = pearson(perm_flat, m2_flat)
@@ -1961,7 +1960,7 @@ def distance_matrix_permutation_test(
     count_more_extreme = 0
     stats = []
     indices = list(range(len(matrix)))
-    for k in range(n):
+    for _ in range(n):
         # shuffle the order of indices, and use those to permute the matrix
         permuted_matrix = permute_2d(matrix, permutation(indices))
         special_values, other_values = get_values_from_matrix(
