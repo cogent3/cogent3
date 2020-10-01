@@ -17,6 +17,9 @@ from numpy import (
 
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.test import (
+    ALT_HIGH,
+    ALT_LOW,
+    ALT_TWO_SIDED,
     ANOVA_one_way,
     G_2_by_2,
     G_fit,
@@ -24,6 +27,7 @@ from cogent3.maths.stats.test import (
     MonteCarloP,
     ZeroExpectedError,
     _flatten_lower_triangle,
+    _get_alternate,
     _get_rank,
     _permute_observations,
     bayes_updates,
@@ -382,6 +386,17 @@ class TestsTests(TestCase):
         self.assertEqual(
             permute_2d(a, [1, 2, 0]), array([[4, 5, 3], [7, 8, 6], [1, 2, 0]])
         )
+
+    def test_get_alternate(self):
+        """correctly identifies the specified alternate hypothesis"""
+        alt = _get_alternate("lo")
+        self.assertEqual(alt, ALT_LOW)
+        alt = _get_alternate("hi")
+        self.assertEqual(alt, ALT_HIGH)
+        alt = _get_alternate("2")
+        self.assertEqual(alt, ALT_TWO_SIDED)
+        with self.assertRaises(ValueError):
+            _get_alternate("22")
 
 
 class GTests(TestCase):
@@ -981,8 +996,7 @@ class StatTests(TestsHelper):
         """reverse_tails should return 'high' if tails was 'low' or vice versa"""
         self.assertEqual(reverse_tails("high"), "low")
         self.assertEqual(reverse_tails("low"), "high")
-        self.assertEqual(reverse_tails(None), None)
-        self.assertEqual(reverse_tails(3), 3)
+        self.assertEqual(reverse_tails(None), ALT_TWO_SIDED)
 
     def test_tail(self):
         """tail should return prob/2 if test is true, or 1-(prob/2) if false"""
