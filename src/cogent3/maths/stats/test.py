@@ -77,6 +77,39 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
+# defining globals for the alternate hypotheses
+ALT_TWO_SIDED = "2"
+ALT_LOW = "low"
+ALT_HIGH = "high"
+
+
+def _get_alternate(value: str):
+    """identify the alternate hypothesis
+
+    Parameters
+    ----------
+    value : str
+        the input alternate
+
+    Returns
+    -------
+    the corresponding global ALT_LOW, ALT_HIGH, ALT_TWO_SIDED
+    """
+    value = value.lower()
+    alts = {k: ALT_LOW for k in ("less", "lo", "low", "lower", "l", "lt", "<")}
+    alts.update({k: ALT_HIGH for k in ("greater", "hi", "high", "h", "g", "gt", ">")})
+    alts.update(
+        {
+            k: ALT_TWO_SIDED
+            for k in ("two sided", "2", "two tailed", "two", "two.sided", "ts")
+        }
+    )
+    alt = alts.get(value, None)
+    if alt is None:
+        raise ValueError(f"alternate hypothesis '{value}' not in {sorted(alts)}")
+    return alt
+
+
 class IndexOrValueError(IndexError, ValueError):
     pass
 
@@ -539,10 +572,8 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
     -----
     From Sokal and Rohlf, p 223.
     """
-    if tails is not None and tails != "high" and tails != "low":
-        raise ValueError(
-            "Invalid tail type '%s'. Must be either None, " "'high', or 'low'." % tails
-        )
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
 
     try:
         # see if we need to back off to the single-observation for single-item
@@ -618,17 +649,15 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
 
 def _t_test_no_variance(mean1, mean2, tails):
     """Handles case where two distributions have no variance."""
-    if tails is not None and tails != "high" and tails != "low":
-        raise ValueError(
-            "Invalid tail type '%s'. Must be either None, " "'high', or 'low'." % tails
-        )
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
 
-    if tails is None:
+    if tails == ALT_TWO_SIDED:
         if mean1 < mean2:
             result = (float("-inf"), 0.0)
         else:
             result = (float("inf"), 0.0)
-    elif tails == "high":
+    elif tails == ALT_HIGH:
         if mean1 < mean2:
             result = (float("-inf"), 1.0)
         else:
@@ -669,10 +698,8 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
         exp_diff - the expected difference in means (x_items - y_items)
 
     """
-    if tails is not None and tails != "high" and tails != "low":
-        raise ValueError(
-            "Invalid tail type '%s'. Must be either None, " "'high', or 'low'." % tails
-        )
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
     if permutations < 0:
         raise ValueError(
             "Invalid number of permutations: %d. Must be greater "
@@ -715,11 +742,11 @@ def mc_t_two_sample(x_items, y_items, tails=None, permutations=999, exp_diff=0):
         ]
 
         # Compute nonparametric p-value based on the permuted t-test results.
-        if tails is None:
+        if tails == ALT_TWO_SIDED:
             better = (absolute(array(perm_t_stats)) >= absolute(obs_t)).sum()
-        elif tails == "low":
+        elif tails == ALT_LOW:
             better = (array(perm_t_stats) <= obs_t).sum()
-        elif tails == "high":
+        elif tails == ALT_HIGH:
             better = (array(perm_t_stats) >= obs_t).sum()
         nonparam_p_val = (better + 1) / (permutations + 1)
 
@@ -956,10 +983,9 @@ def pearson_correlation(x, y, tails=None):
 
     assert len(x) == len(y), f"unequal lengths of x ({len(x)}) and y ({len(y)})"
     n = len(x)
-    if tails is not None and tails != "high" and tails != "low":
-        raise ValueError(
-            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
-        )
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
+
     # Calculate the correlation coefficient.
     rho = pearson(x, y)
     if numpy.allclose(rho, 1.0):
@@ -1309,9 +1335,12 @@ def z_tailed_prob(z, tails):
 
 def t_tailed_prob(t, df, tails):
     """Return appropriate p-value for given t and df, depending on tails."""
-    if tails == "high":
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
+
+    if tails == ALT_HIGH:
         return t_high(t, df)
-    elif tails == "low":
+    elif tails == ALT_LOW:
         return t_low(t, df)
     else:
         return tprob(t, df)
@@ -1319,10 +1348,13 @@ def t_tailed_prob(t, df, tails):
 
 def reverse_tails(tails):
     """Swaps high for low or vice versa, leaving other values alone."""
-    if tails == "high":
-        return "low"
-    elif tails == "low":
-        return "high"
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
+
+    if tails == ALT_HIGH:
+        return ALT_LOW
+    elif tails == ALT_LOW:
+        return ALT_HIGH
     else:
         return tails
 
@@ -1412,10 +1444,13 @@ def f_two_sample(a, b, tails=None):
 
     This implementation returns the same results as the F test in R.
     """
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
+
     dfn, dfd, F = f_value(a, b)
-    if tails == "low":
+    if tails == ALT_LOW:
         return dfn, dfd, F, f_low(dfn, dfd, F)
-    elif tails == "high":
+    elif tails == ALT_HIGH:
         return dfn, dfd, F, f_high(dfn, dfd, F)
     else:
         if var(a) >= var(b):
@@ -1472,16 +1507,19 @@ def MonteCarloP(value, rand_values, tail="high"):
         low = look for smaller values than expected by chance
         high = look for larger values than expected by chance
     """
+    tail = tail or "2"
+    tail = _get_alternate(str(tail))
+
     pop_size = len(rand_values)
     rand_values.sort()
-    if tail == "high":
+    if tail == ALT_HIGH:
         num_better = pop_size
         for i, curr_val in enumerate(rand_values):
             if value <= curr_val:
                 num_better = i
                 break
         p_val = 1 - (num_better / pop_size)
-    elif tail == "low":
+    elif tail == ALT_LOW:
         num_better = pop_size
         for i, curr_val in enumerate(rand_values):
             if value < curr_val:
@@ -1504,22 +1542,18 @@ def sign_test(success, trials, alt="two sided"):
         the alternate hypothesis, one of 'less', 'greater', 'two sided'
         (default).
     """
-    lo = ["less", "lo", "lower", "l"]
-    hi = ["greater", "hi", "high", "h", "g"]
-    two = ["two sided", "2", 2, "two tailed", "two"]
-    alt = alt.lower().strip()
-    if alt in lo:
+    alt = _get_alternate(str(alt))
+    if alt == ALT_LOW:
         p = binomial_low(success, trials, 0.5)
-    elif alt in hi:
+    elif alt == ALT_HIGH:
         success -= 1
         p = binomial_high(success, trials, 0.5)
-    elif alt in two:
+    else:
         success = min(success, trials - success)
         hi = 1 - binomial_high(success, trials, 0.5)
         lo = binomial_low(success, trials, 0.5)
         p = hi + lo
-    else:
-        raise RuntimeError("alternate [%s] not in %s" % (lo + hi + two))
+
     return p
 
 
@@ -1543,18 +1577,17 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
     Translated from R 2.4. The 1-sample cases are not implemented, although
     their cdf's are implemented in ks.py
     """
+    alt = _get_alternate(str(alt))
 
     num_x = len(x)
-    num_y = None
     x = list(zip(x, zeros(len(x), int)))
-    two = ["two sided", "2", 2, "two tailed", "two", "two.sided"]
     Pval = None
     if y is not None:  # in anticipation of actually implementing the 1-sample cases
         num_y = len(y)
         y = list(zip(y, ones(len(y), int)))
         n = num_x * num_y / (num_x + num_y)
         combined = x + y
-        ties = True if len(set(combined)) < num_x + num_y else False
+        ties = len(set(combined)) < num_x + num_y
         combined = array(combined, dtype=[("stat", float), ("sample", int)])
         combined.sort(order="stat")
         scales = array([1 / num_x, -1 / num_y])
@@ -1564,23 +1597,25 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         if exact is None:
             exact = num_x * num_y < 1e4
 
-        lo = ["less", "lo", "low", "lower", "l", "lt"]
-        hi = ["greater", "hi", "high", "h", "g", "gt"]
-        if alt in two:
+        if alt == ALT_TWO_SIDED:
             stat = max(fabs(cumsum))
-        elif alt in lo:
+        elif alt == ALT_LOW:
             stat = -cumsum.min()
-        elif alt in hi:
+        elif alt == ALT_HIGH:
             stat = cumsum.max()
         else:
             raise RuntimeError("Unknown alt: %s" % alt)
-        if exact and alt in two and not ties:
+        if exact and alt == ALT_TWO_SIDED and not ties:
             Pval = 1 - psmirnov2x(stat, num_x, num_y)
     else:
         raise NotImplementedError
 
     if Pval is None:
-        Pval = 1 - pkstwo(sqrt(n) * stat) if alt in two else exp(-2 * n * stat ** 2)
+        Pval = (
+            1 - pkstwo(sqrt(n) * stat)
+            if alt == ALT_TWO_SIDED and not ties
+            else exp(-2 * n * stat ** 2)
+        )
     if ties and warn_for_ties:
         warnings.warn("Cannot compute correct KS probability with ties")
 
@@ -1627,7 +1662,6 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
     instead of making them equal.
     """
     tol = MACHEP * 100
-    combined = array(list(x) + list(y))
     observed_stat, _p = ks_test(x, y, exact=False, warn_for_ties=False)
     num_greater = 0
     for sampled_x, sampled_y in _get_bootstrap_sample(x, y, num_reps):
@@ -1640,8 +1674,7 @@ def ks_boot(x, y, alt="two sided", num_reps=1000):
 
 
 def _average_rank(start_rank, end_rank):
-    ave_rank = npsum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
-    return ave_rank
+    return npsum(range(start_rank, end_rank + 1)) / (1 + end_rank - start_rank)
 
 
 def mw_test(x, y):
@@ -1785,11 +1818,7 @@ def mantel_test(
     in the calculations (matching R's vegan::mantel function).
     """
     # Perform some sanity checks on our input.
-    if alt not in ("two sided", "greater", "less"):
-        raise ValueError(
-            "Unrecognized alternative hypothesis. Must be either "
-            "'two sided', 'greater', or 'less'."
-        )
+    alt = _get_alternate(str(alt))
     m1, m2 = asarray(m1), asarray(m2)
     if m1.shape != m2.shape:
         raise ValueError("Both distance matrices must be the same size.")
@@ -1797,9 +1826,10 @@ def mantel_test(
         raise ValueError(
             "The number of permutations must be greater than or " "equal to one."
         )
-    if not suppress_symmetry_and_hollowness_check:
-        if not (is_symmetric_and_hollow(m1) and is_symmetric_and_hollow(m2)):
-            raise ValueError("Both distance matrices must be symmetric and " "hollow.")
+    if not suppress_symmetry_and_hollowness_check and not (
+        is_symmetric_and_hollow(m1) and is_symmetric_and_hollow(m2)
+    ):
+        raise ValueError("Both distance matrices must be symmetric and " "hollow.")
 
     # Get a flattened list of lower-triangular matrix elements (excluding the
     # diagonal) in column-major order. Use these values to calculate the
@@ -1811,17 +1841,17 @@ def mantel_test(
     size = len(m1)
     better = 0
     perm_stats = []
-    for i in range(n):
+    for _ in range(n):
         perm = permute_2d(m1, permutation(size))
         perm_flat = _flatten_lower_triangle(perm)
         r = pearson(perm_flat, m2_flat)
 
-        if alt == "two sided":
+        if alt == ALT_TWO_SIDED:
             if abs(r) >= abs(orig_stat):
                 better += 1
         else:
-            if (alt == "greater" and r >= orig_stat) or (
-                alt == "less" and r <= orig_stat
+            if (alt == ALT_HIGH and r >= orig_stat) or (
+                alt == ALT_LOW and r <= orig_stat
             ):
                 better += 1
         perm_stats.append(r)
@@ -1877,10 +1907,7 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
     assert len(x) == len(y), "data (x, y) not of same length"
     assert len(x) > 2, "not enough observations"
 
-    # possible alternate hypotheses arguments
-    lo = ["less", "lo", "lower", "l", "lt"]
-    hi = ["greater", "hi", "high", "h", "g", "gt"]
-    two = ["two sided", "2", 2, "two tailed", "two", "two.sided", "ts"]
+    alt = _get_alternate(str(alt))
 
     num = len(x)
     ties = len(set(x)) != num or len(set(y)) != num
@@ -1892,28 +1919,25 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
 
     if num < 50 and not ties and exact:
         combs = int(num * (num - 1) / 2)
-        working = []
-        for i in range(combs):
-            row = [-1 for j in range(combs)]
-            working.append(row)
+        working = -ones((combs, combs), dtype=float)
 
         tau = kendalls_tau(x, y, False)
         q = round((tau + 1) * num * (num - 1) / 4)
-        if alt in two:
+        if alt == ALT_TWO_SIDED:
             if q > num * (num - 1) / 4:
                 p = 1 - pkendall(q - 1, num, Gamma(num + 1), working)
             else:
                 p = pkendall(q, num, Gamma(num + 1), working)
             p = min(2 * p, 1)
-        elif alt in hi:
+        elif alt == ALT_HIGH:
             p = 1 - pkendall(q - 1, num, Gamma(num + 1), working)
-        elif alt in lo:
+        elif alt == ALT_LOW:
             p = pkendall(q, num, Gamma(num + 1), working)
     else:
         tau, p = kendalls_tau(x, y, True)
-        if alt in hi:
+        if alt == ALT_HIGH:
             p /= 2
-        elif alt in lo:
+        elif alt == ALT_LOW:
             p = 1 - p / 2
     return tau, p
 
@@ -1947,6 +1971,8 @@ def distance_matrix_permutation_test(
         one half otherwise the degrees of freedom value will be incorrect.
     """
     # if matrix is symmetric convert all indices to lower trangular
+    tails = tails or "2"
+    tails = _get_alternate(str(tails))
     if is_symmetric:
         cells = get_ltm_cells(cells)
         if cells2:
@@ -1961,7 +1987,7 @@ def distance_matrix_permutation_test(
     count_more_extreme = 0
     stats = []
     indices = list(range(len(matrix)))
-    for k in range(n):
+    for _ in range(n):
         # shuffle the order of indices, and use those to permute the matrix
         permuted_matrix = permute_2d(matrix, permutation(indices))
         special_values, other_values = get_values_from_matrix(
@@ -1971,13 +1997,13 @@ def distance_matrix_permutation_test(
         # with these p-values, we only use the current_stat value)
         current_stat, current_p = f(special_values, other_values, tails)
         stats.append(current_stat)
-        if tails is None:
+        if tails == ALT_TWO_SIDED:
             if abs(current_stat) > abs(stat):
                 count_more_extreme += 1
-        elif tails == "low":
+        elif tails == ALT_LOW:
             if current_stat < stat:
                 count_more_extreme += 1
-        elif tails == "high":
+        elif tails == ALT_HIGH:
             if current_stat > stat:
                 count_more_extreme += 1
 
