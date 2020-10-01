@@ -896,16 +896,22 @@ class LikelihoodFunction(ParameterController):
                 edge_attr[edge]["length"] = None
 
         model = self._model.to_rich_dict(for_pickle=False)
+
         aln_defn = self.defn_for["alignment"]
-        alignment = {a["locus"]: a["value"] for a in aln_defn.get_param_rules()}
-        mprobs = self.get_motif_probs()
-        if len(alignment) == 1:
-            alignment = list(alignment.values())[0]
-            mprobs = mprobs.to_dict()
+        if len(aln_defn.index) == 1:
+            alignment = self.get_param_value("alignment").to_rich_dict()
+            mprobs = self.get_motif_probs().to_dict()
         else:
-            for k in alignment:
-                alignment[k] = alignment[k].to_rich_dict()
-                mprobs[k] = mprobs[k].to_dict()
+            alignment = {a["locus"]: a["value"] for a in aln_defn.get_param_rules()}
+            mprobs = self.get_motif_probs()
+            if len(alignment) == 1:
+                alignment = list(alignment.values())[0]
+                mprobs = mprobs.to_dict()
+            else:
+                for k in alignment:
+                    alignment[k] = alignment[k].to_rich_dict()
+                    mprobs[k] = mprobs[k].to_dict()
+
         DLC = self.all_psubs_DLC()
         try:
             unique_Q = self.all_rate_matrices_unique()
