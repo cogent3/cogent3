@@ -465,14 +465,14 @@ class TestCaseTests(TestCase):
 
     def test_assertEqualItems(self):
         """assertEqualItems should raise exception if items not equal"""
-        self.assertEqualItems("abc", "abc")
-        self.assertEqualItems("abc", "cba")
-        self.assertEqualItems("", "")
-        self.assertEqualItems("abc", ["a", "b", "c"])
-        self.assertEqualItems([0], [0.0])
+        self.assertCountEqual("abc", "abc")
+        self.assertCountEqual("abc", "cba")
+        self.assertCountEqual("", "")
+        self.assertCountEqual("abc", ["a", "b", "c"])
+        self.assertCountEqual([0], [0.0])
 
         try:
-            self.assertEqualItems("abc", "abcd")
+            self.assertCountEqual("abc", "abcd")
         except:
             message = str(exc_info()[1])
             self.assertEqual(
@@ -485,7 +485,7 @@ class TestCaseTests(TestCase):
             )
 
         try:
-            self.assertEqualItems("cab", "acc")
+            self.assertCountEqual("cab", "acc")
         except:
             message = str(exc_info()[1])
             self.assertEqual(message, "Observed b and expected c at sorted index 1")
@@ -495,7 +495,7 @@ class TestCaseTests(TestCase):
                 % (repr(first), repr(second))
             )
         try:
-            self.assertEqualItems("cba", "yzx")
+            self.assertCountEqual("cba", "yzx")
         except:
             message = str(exc_info()[1])
             self.assertEqual(message, "Observed a and expected x at sorted index 0")

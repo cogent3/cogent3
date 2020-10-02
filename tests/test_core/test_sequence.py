@@ -287,7 +287,7 @@ class SequenceTests(TestCase):
         r = self.RNA("UUUUCCCCAAAAGGGG")
         s = r.shuffle()
         self.assertNotEqual(r, s)
-        self.assertEqualItems(r, s)
+        self.assertCountEqual(r, s)
 
     def test_complement(self):
         """Sequence complement should correctly complement sequence"""
