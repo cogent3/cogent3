@@ -1,3 +1,5 @@
+from unittest import TestCase, main
+
 from cogent3.parse.blast import (
     FastacmdTaxonomyParser,
     GenericBlastParser9,
@@ -17,7 +19,6 @@ from cogent3.parse.blast import (
     make_label,
     query_finder,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Micah Hamady"
@@ -28,6 +29,8 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_equal
 
 
 class BlastTests(TestCase):
@@ -281,30 +284,38 @@ ece:Z4182	cvi:CV2422	41.67	72	42	0	39	110	29	100	2e-06	52.8""".split(
 
     def test_QMEBlast9(self):
         """QMEBlast9 should return expected lines from all iterations"""
-        self.assertFloatEqual(
-            QMEBlast9(self.rec3),
-            [
-                ("ece:Z4181", "ece:Z4181", 3e-47),
-                ("ece:Z4181", "ecs:ECs3717", 3e-47),
-                ("ece:Z4181", "spt:SPA2730", 1e-5),
-                ("ece:Z4181", "ecs:ECs3717", 3e-54),  # WARNING: allows duplicates
-                ("ece:Z4181", "cvi:CV2421", 2e-8),
-                ("ece:Z4182", "ece:Z4182", 3e-47),
-                ("ece:Z4182", "cvi:CV2422", 2e-6),
-            ],
+        expect = list(
+            zip(
+                *[
+                    ("ece:Z4181", "ece:Z4181", 3e-47),
+                    ("ece:Z4181", "ecs:ECs3717", 3e-47),
+                    ("ece:Z4181", "spt:SPA2730", 1e-5),
+                    ("ece:Z4181", "ecs:ECs3717", 3e-54),  # WARNING: allows duplicates
+                    ("ece:Z4181", "cvi:CV2421", 2e-8),
+                    ("ece:Z4182", "ece:Z4182", 3e-47),
+                    ("ece:Z4182", "cvi:CV2422", 2e-6),
+                ],
+            )
         )
+        got = list(zip(*QMEBlast9(self.rec3)))
+        assert_equal(got[:-1], expect[:-1])
+        assert_allclose(got[-1], expect[-1])
 
     def test_QMEPsiBlast9(self):
         """QMEPsiBlast9 should only return items from last iterations"""
-        self.assertFloatEqual(
-            QMEPsiBlast9(self.rec3),
-            [
-                ("ece:Z4181", "ecs:ECs3717", 3e-54),
-                ("ece:Z4181", "cvi:CV2421", 2e-8),
-                ("ece:Z4182", "ece:Z4182", 3e-47),
-                ("ece:Z4182", "cvi:CV2422", 2e-6),
-            ],
+        expect = list(
+            zip(
+                *[
+                    ("ece:Z4181", "ecs:ECs3717", 3e-54),
+                    ("ece:Z4181", "cvi:CV2421", 2e-8),
+                    ("ece:Z4182", "ece:Z4182", 3e-47),
+                    ("ece:Z4182", "cvi:CV2422", 2e-6),
+                ]
+            )
         )
+        got = list(zip(*QMEPsiBlast9(self.rec3)))
+        assert_equal(got[:-1], expect[:-1])
+        assert_allclose(got[-1], expect[-1])
 
     def test_fastacmd_taxonomy_splitter(self):
         """fastacmd_taxonomy_splitter should split records into groups"""

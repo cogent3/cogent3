@@ -2,12 +2,12 @@
 """Provides tests for classes and functions in profile.py
 """
 from collections import Counter
+from unittest import TestCase, main
 
 from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose
 
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley"

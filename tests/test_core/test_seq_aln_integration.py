@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 
+from unittest import TestCase, main
+
 from numpy import alltrue, array, transpose
 
 from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.moltype import RNA
-from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
-from cogent3.util.unit_test import TestCase, main
+from cogent3.core.sequence import ArraySequence, RnaSequence
 
 
 __author__ = "Sandra Smit"
@@ -17,6 +18,8 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
+
+from numpy.testing import assert_equal
 
 
 class AllTests(TestCase):
@@ -133,10 +136,10 @@ class AllTests(TestCase):
         sub_data = array([[0, 1, 3], [Y, 1, 3], [1, 2, R]])
 
         # First check some data
-        self.assertEqual(self.da.array_seqs, full_data)
-        self.assertEqual(self.da.array_positions, transpose(full_data))
-        self.assertEqual(sub_da.array_seqs, sub_data)
-        self.assertEqual(sub_da.array_positions, transpose(sub_data))
+        assert_equal(self.da.array_seqs, full_data)
+        assert_equal(self.da.array_positions, transpose(full_data))
+        assert_equal(sub_da.array_seqs, sub_data)
+        assert_equal(sub_da.array_positions, transpose(sub_data))
 
         obs_sub_da_TP = self.da.take_positions([0, 1, 5])
         obs_sub_da_SA = self.da.get_sub_alignment(pos=[0, 1, 5])
@@ -144,15 +147,15 @@ class AllTests(TestCase):
         # When using the get_sub_alignment method the data is right
         self.assertEqual(obs_sub_da_SA, sub_da)
         self.assertNotEqual(obs_sub_da_SA, self.da)
-        self.assertEqual(obs_sub_da_SA.array_seqs, sub_data)
-        self.assertEqual(obs_sub_da_SA.array_positions, transpose(sub_data))
+        assert_equal(obs_sub_da_SA.array_seqs, sub_data)
+        assert_equal(obs_sub_da_SA.array_positions, transpose(sub_data))
 
         # For the take_positions method: Why does this work
         self.assertEqual(obs_sub_da_TP, sub_da)
         self.assertNotEqual(obs_sub_da_TP, self.da)
         # If the data doesn't match?
-        self.assertEqual(obs_sub_da_TP.array_seqs, sub_data)
-        self.assertEqual(obs_sub_da_TP.array_positions, transpose(sub_data))
+        assert_equal(obs_sub_da_TP.array_seqs, sub_data)
+        assert_equal(obs_sub_da_TP.array_positions, transpose(sub_data))
         # Shouldn't the __eq__ method check the data at least?
 
     def test_subset_positions_Alignment(self):
@@ -255,7 +258,7 @@ class AllTests(TestCase):
 
         # check is produces the right string from the beginning
         self.assertEqual(str(model1), "U-C-A-G-")
-        self.assertEqual(model1._data, [0, 4, 1, 4, 2, 4, 3, 4])
+        assert_equal(model1._data, [0, 4, 1, 4, 2, 4, 3, 4])
         # ArraySequence should maybe have the same degap method as normal seq
         self.assertEqual(str(model1.degap()), "UCAG")
 

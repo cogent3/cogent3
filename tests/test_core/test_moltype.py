@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import pickle
 
-from cogent3.core import moltype, sequence
+from unittest import TestCase, main
+
+from cogent3.core import sequence
 from cogent3.core.moltype import (
     DNA,
     PROTEIN,
@@ -20,14 +22,12 @@ from cogent3.core.moltype import (
     IUPAC_RNA_chars,
     MolType,
     RnaStandardPairs,
-    array,
     available_moltypes,
     get_moltype,
     make_matches,
     make_pairs,
 )
-from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW
-from cogent3.util.unit_test import TestCase, main
+from cogent3.data.molecular_weight import DnaMW, RnaMW
 
 
 __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
@@ -40,6 +40,9 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 # ind some of the standard alphabets to reduce typing
+from numpy.testing import assert_allclose
+
+
 RnaBases = RNA.alphabets.base
 DnaBases = DNA.alphabets.base
 AminoAcids = PROTEIN.alphabets.base
@@ -116,7 +119,7 @@ class make_matches_tests(TestCase):
                 ("n", "n"): False,
             },
         )
-        self.assertNotContains(m, ("x", "z"))
+        self.assertNotIn(("x", "z"), m)
 
     def test_init_all(self):
         """make_matches with everything should produce correct dict"""
@@ -172,12 +175,12 @@ class make_pairs_tests(TestCase):
     def test_init_pairs(self):
         """make_pairs with just pairs should equal the original"""
         self.assertEqual(make_pairs(self.pairs), self.pairs)
-        self.assertNotSameObj(make_pairs(self.pairs), self.pairs)
+        self.assertIsNot(make_pairs(self.pairs), self.pairs)
 
     def test_init_monomers(self):
         """make_pairs with pairs and monomers should equal just the pairs"""
         self.assertEqual(make_pairs(self.pairs, "ABCDEFG"), self.pairs)
-        self.assertNotSameObj(make_pairs(self.pairs, "ABCDEFG"), self.pairs)
+        self.assertIsNot(make_pairs(self.pairs, "ABCDEFG"), self.pairs)
 
     def test_init_gaps(self):
         """make_pairs should add all combinations of gaps as weak pairs"""
@@ -229,15 +232,15 @@ class CoreObjectGroupTests(TestCase):
 
         base = o("base")
         c = CoreObjectGroup(base)
-        self.assertSameObj(c.base, base)
-        self.assertSameObj(c.degen, None)
-        self.assertSameObj(c.base.degen, None)
+        self.assertIs(c.base, base)
+        self.assertIs(c.degen, None)
+        self.assertIs(c.base.degen, None)
 
         base, degen, gap, degengap = list(map(o, ["base", "degen", "gap", "degengap"]))
         c = CoreObjectGroup(base, degen, gap, degengap)
-        self.assertSameObj(c.base, base)
-        self.assertSameObj(c.base.degen, degen)
-        self.assertSameObj(c.degen.gapped, degengap)
+        self.assertIs(c.base, base)
+        self.assertIs(c.base.degen, degen)
+        self.assertIs(c.degen.gapped, degengap)
 
 
 class AlphabetGroupTests(TestCase):
@@ -297,11 +300,11 @@ class MolTypeTests(TestCase):
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
         a = MolType("Abc")
-        self.assertContains(a.alphabet, "A")
-        self.assertNotContains(a.alphabet, "a")  # case-sensitive
-        self.assertContains(a.alphabet, "b")
-        self.assertNotContains(a.alphabet, "B")
-        self.assertNotContains(a.alphabet, "x")
+        self.assertIn("A", a.alphabet)
+        self.assertNotIn("a", a.alphabet)  # case-sensitive
+        self.assertIn("b", a.alphabet)
+        self.assertNotIn("B", a.alphabet)
+        self.assertNotIn("x", a.alphabet)
 
     def test_init_everything(self):
         """MolType should init OK with all parameters set"""
@@ -315,7 +318,7 @@ class MolTypeTests(TestCase):
             add_lower=False,
         )
         for i in "Abcd~":
-            self.assertContains(a, i)
+            self.assertIn(i, a)
         self.assertEqual(a.complement("b"), "c")
         self.assertEqual(a.complement("AbcAA"), "AcbAA")
         self.assertEqual(a.first_degenerate("AbcdA"), 3)
@@ -372,19 +375,19 @@ class MolTypeTests(TestCase):
     def test_contains(self):
         """MolType contains should return correct result"""
         for i in "UCAGWSMKRYBDHVN-" + "UCAGWSMKRYBDHVN-".lower():
-            self.assertContains(RnaMolType, i)
+            self.assertIn(i, RnaMolType)
         for i in "x!@#$%^&ZzQq":
-            self.assertNotContains(RnaMolType, i)
+            self.assertNotIn(i, RnaMolType)
 
         a = MolType(dict.fromkeys("ABC"), add_lower=True)
         for i in "abcABC":
-            self.assertContains(a, i)
-        self.assertNotContains(a, "x")
+            self.assertIn(i, a)
+        self.assertNotIn("x", a)
         b = MolType(dict.fromkeys("ABC"), add_lower=False)
         for i in "ABC":
-            self.assertContains(b, i)
+            self.assertIn(i, b)
         for i in "abc":
-            self.assertNotContains(b, i)
+            self.assertNotIn(i, b)
 
     def test_iter(self):
         """MolType iter should iterate over monomer order"""
@@ -505,13 +508,13 @@ class MolTypeTests(TestCase):
         u = d(s, "random")
         for i, j in zip(s, t):
             if i in RnaMolType.degenerates:
-                self.assertContains(RnaMolType.degenerates[i], j)
+                self.assertIn(j, RnaMolType.degenerates[i])
             else:
                 self.assertEqual(i, j)
         self.assertNotEqual(t, u)
         self.assertEqual(d(tuple("UCAG"), "random"), tuple("UCAG"))
         self.assertEqual(len(s), len(t))
-        self.assertSameObj(RnaMolType.first_degenerate(t), None)
+        self.assertIs(RnaMolType.first_degenerate(t), None)
         # should raise exception on unknown disambiguation method
         self.assertRaises(NotImplementedError, d, s, "xyz")
 
@@ -632,11 +635,11 @@ class MolTypeTests(TestCase):
         p = ProteinMolType.mw
         self.assertEqual(p(""), 0)
         self.assertEqual(r(""), 0)
-        self.assertFloatEqual(p("A"), 89.09)
-        self.assertFloatEqual(r("A"), 375.17)
-        self.assertFloatEqual(p("AAA"), 231.27)
-        self.assertFloatEqual(r("AAA"), 1001.59)
-        self.assertFloatEqual(r("AAACCCA"), 2182.37)
+        assert_allclose(p("A"), 89.09)
+        assert_allclose(r("A"), 375.17)
+        assert_allclose(p("AAA"), 231.27)
+        assert_allclose(r("AAA"), 1001.59)
+        assert_allclose(r("AAACCCA"), 2182.37)
 
     def test_can_match(self):
         """MolType can_match should return True if all positions can match"""
@@ -747,10 +750,10 @@ class RnaMolTypeTests(TestCase):
         """RnaMolType should __contain__ the expected symbols."""
         keys = "ucagrymkwsbhvdn?-"
         for k in keys:
-            self.assertContains(RnaMolType, k)
+            self.assertIn(k, RnaMolType)
         for k in keys.upper():
-            self.assertContains(RnaMolType, k)
-        self.assertNotContains(RnaMolType, "X")
+            self.assertIn(k, RnaMolType)
+        self.assertNotIn("X", RnaMolType)
 
     def test_degenerate_from_seq(self):
         """RnaMolType degenerate_from_seq should give correct results"""

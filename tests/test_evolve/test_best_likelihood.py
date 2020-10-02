@@ -2,6 +2,8 @@
 
 import math
 
+from unittest import TestCase, main
+
 from cogent3 import DNA, make_aligned_seqs
 from cogent3.evolve.best_likelihood import (
     BestLogLikelihood,
@@ -12,7 +14,6 @@ from cogent3.evolve.best_likelihood import (
     get_G93_lnL_from_array,
     get_ML_probs,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Helen Lindsay"
@@ -23,6 +24,9 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Helen Lindsay"
 __email__ = "helen.lindsay@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
+
 
 IUPAC_DNA_ambiguities = "NRYWSKMBDHV"
 
@@ -123,21 +127,21 @@ class TestGoldman93(TestCase):
         }
         sum = 0
         for pattern, lnL, freq in obs:
-            self.assertFloatEqual(lnL, expect[pattern])
+            assert_allclose(lnL, expect[pattern])
             sum += lnL
             self.assertTrue(lnL >= 0)
-        self.assertFloatEqual(sum, 1)
+        assert_allclose(sum, 1)
 
     def test_get_G93_lnL_from_array(self):
         columns = aligned_columns_to_rows(self.aln, 1)
         obs = get_G93_lnL_from_array(columns)
         expect = math.log(math.pow(4 / 13.0, 4)) + 3 * math.log(math.pow(3 / 13.0, 3))
-        self.assertFloatEqual(obs, expect)
+        assert_allclose(obs, expect)
 
     def test_BestLogLikelihood(self):
         obs = BestLogLikelihood(self.aln, DNA.alphabet)
         expect = math.log(math.pow(4 / 13.0, 4)) + 3 * math.log(math.pow(3 / 13.0, 3))
-        self.assertFloatEqual(obs, expect)
+        assert_allclose(obs, expect)
         lnL, l = BestLogLikelihood(self.aln, DNA.alphabet, return_length=True)
         self.assertEqual(l, len(self.aln))
 

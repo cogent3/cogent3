@@ -3,8 +3,9 @@
 """
 import warnings
 
+from unittest import TestCase, main
+
 from cogent3.core.info import DbRef, DbRefs, Info, _make_list
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
@@ -61,10 +62,10 @@ class DbRefTests(TestCase):
 
     def test_cmp(self):
         """DbRef cmp should first try numeric, then alphabetic, cmp."""
-        self.assertLessThan(DbRef("abc"), DbRef("xyz"))
+        self.assertLess(DbRef("abc"), DbRef("xyz"))
         self.assertEqual(DbRef("abc"), DbRef("abc"))
-        self.assertGreaterThan(DbRef("123"), DbRef("14"))
-        self.assertLessThan(DbRef("123"), DbRef("abc"))
+        self.assertGreater(DbRef("123"), DbRef("14"))
+        self.assertLess(DbRef("123"), DbRef("abc"))
         # check that it ignores other attributes
         self.assertEqual(DbRef("x", "y", "z", "a", "b"), DbRef("x"))
 
@@ -103,7 +104,7 @@ class InfoTests(TestCase):
         """Info empty init should work as expected"""
         d = Info()
         self.assertEqual(len(d), 1)
-        self.assertContains(d, "Refs")
+        self.assertIn("Refs", d)
         self.assertEqual(d.Refs, DbRefs())
         self.assertTrue(isinstance(d.Refs, DbRefs))
 
@@ -124,27 +125,27 @@ class InfoTests(TestCase):
             raise Exception("Failed to prevent deletion of required key Refs" "")
         d.GenBank = ("qaz", "wsx")
         self.assertEqual(d.GenBank, ["qaz", "wsx"])
-        self.assertContains(d.Refs, "GenBank")
-        self.assertContains(d, "GenBank")
+        self.assertIn("GenBank", d.Refs)
+        self.assertIn("GenBank", d)
         d.GenBank = "xyz"
         self.assertEqual(d.GenBank, ["xyz"])
-        self.assertSameObj(d.GenBank, d.Refs.GenBank)
+        self.assertIs(d.GenBank, d.Refs.GenBank)
         d.GO = "x"
         self.assertEqual(d.GO, ["x"])
         d.GO.append("y")
         self.assertEqual(d.GO, ["x", "y"])
         d.ZZZ = "zzz"
         self.assertEqual(d.ZZZ, "zzz")
-        self.assertNotContains(d.Refs, "ZZZ")
-        self.assertNotContains(d, "XXX")
+        self.assertNotIn("ZZZ", d.Refs)
+        self.assertNotIn("XXX", d)
         self.assertEqual(d.XXX, None)
 
     def test_identity(self):
         """Info should get its own new Refs when created"""
         i = Info()
         j = Info()
-        self.assertNotSameObj(i, j)
-        self.assertNotSameObj(i.Refs, j.Refs)
+        self.assertIsNot(i, j)
+        self.assertIsNot(i.Refs, j.Refs)
 
     def test_update(self):
         """update should warn the user of overlapping keys"""

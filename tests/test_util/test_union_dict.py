@@ -2,8 +2,9 @@
 
 """Unit tests for union_dict.
 """
+from unittest import TestCase, main
+
 from cogent3.util.union_dict import UnionDict
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Thomas La"

@@ -2,6 +2,8 @@
 """Tests of parsers for dealing with NCBI Taxonomy files.
 """
 
+from unittest import TestCase, main
+
 from cogent3.parse.ncbi_taxonomy import (
     MissingParentError,
     NcbiName,
@@ -9,12 +11,9 @@ from cogent3.parse.ncbi_taxonomy import (
     NcbiNameParser,
     NcbiTaxon,
     NcbiTaxonLookup,
-    NcbiTaxonNode,
-    NcbiTaxonomy,
     NcbiTaxonomyFromFiles,
     NcbiTaxonParser,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Jason Carnes"
@@ -356,7 +355,7 @@ class NcbiTaxonNodeTests(TestCase):
         self.assertEqual(len(dec), 1)
         assert dec[0] is tx[555]
         sp = tx["f"].getRankedDescendants("species")
-        self.assertSameItems(sp, [tx[1010], tx[9999], tx[7777], tx[6666]])
+        self.assertCountEqual(sp, [tx[1010], tx[9999], tx[7777], tx[6666]])
         empty = tx[11].getRankedDescendants("superclass")
         self.assertEqual(empty, [])
         gr = tx[3].getRankedDescendants("group")

@@ -1,3 +1,5 @@
+from unittest import TestCase, main
+
 from numpy import arange, array, convolve, exp, float64, pi, random, sin, zeros
 
 from cogent3.maths.period import _autocorr_inner2 as py_autocorr_inner
@@ -7,7 +9,6 @@ from cogent3.maths.period import auto_corr, dft, goertzel, hybrid, ipdft
 from cogent3.maths.period_numba import autocorr_inner as numba_autocorr_inner
 from cogent3.maths.period_numba import goertzel_inner as numba_goertzel_inner
 from cogent3.maths.period_numba import ipdft_inner as numba_ipdft_inner
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
@@ -18,6 +19,8 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 
 class TestPeriod(TestCase):
@@ -137,7 +140,7 @@ class TestPeriod(TestCase):
         )
         N = 100
         period = 10
-        self.assertFloatEqual(
+        assert_allclose(
             py_goertzel_inner(x, N, period), numba_goertzel_inner(x, N, period)
         )
 
@@ -160,7 +163,7 @@ class TestPeriod(TestCase):
         py_result = py_ipdft_inner(x, X, W, ulim, N)
         numba_result = numba_ipdft_inner(x, X, W, ulim, N)
         for i, j in zip(py_result, numba_result):
-            self.assertFloatEqual(abs(i), abs(j))
+            assert_allclose(abs(i), abs(j), rtol=1e-6)
 
         x = array(
             [
@@ -272,14 +275,14 @@ class TestPeriod(TestCase):
         py_autocorr_inner(x, py_xc, N)
         numba_autocorr_inner(x, numba_xc, N)
         for i, j in zip(py_xc, numba_xc):
-            self.assertFloatEqual(i, j)
+            assert_allclose(i, j)
 
     def test_autocorr(self):
         """correctly compute autocorrelation"""
         s = [1, 1, 1, 1]
         X, periods = auto_corr(s, llim=-3, ulim=None)
         exp_X = array([1, 2, 3, 4, 3, 2, 1], dtype=float)
-        self.assertEqual(X, exp_X)
+        assert_equal(X, exp_X)
 
         auto_x, auto_periods = auto_corr(self.sig, llim=2, ulim=50)
         max_idx = list(auto_x).index(max(auto_x))
@@ -313,7 +316,7 @@ class TestPeriod(TestCase):
             )
         )
         X = abs(X)
-        self.assertFloatEqual(X, exp_X, eps=1e-3)
+        assert_almost_equal(X, exp_X, decimal=4)
 
         ipdft_x, ipdft_periods = ipdft(self.sig, llim=2, ulim=50)
         ipdft_x = abs(ipdft_x)
@@ -324,7 +327,7 @@ class TestPeriod(TestCase):
     def test_goertzel(self):
         """goertzel and ipdft should be the same"""
         ipdft_pwr, ipdft_prd = ipdft(self.sig, llim=10, ulim=10)
-        self.assertFloatEqual(goertzel(self.sig, 10), ipdft_pwr)
+        assert_allclose(goertzel(self.sig, 10), ipdft_pwr)
 
     def test_hybrid(self):
         """correctly compute hybrid statistic"""
@@ -342,9 +345,9 @@ class TestPeriod(TestCase):
         hybrid_ipdft_autocorr_stats, hybrid_periods = hybrid(
             self.sig, llim=None, ulim=50, return_all=True
         )
-        self.assertEqual(hybrid_ipdft_autocorr_stats[0], hybrid_x)
-        self.assertEqual(hybrid_ipdft_autocorr_stats[1], ipdft_pwr)
-        self.assertEqual(hybrid_ipdft_autocorr_stats[2], auto_x)
+        assert_equal(hybrid_ipdft_autocorr_stats[0], hybrid_x)
+        assert_equal(hybrid_ipdft_autocorr_stats[1], ipdft_pwr)
+        assert_equal(hybrid_ipdft_autocorr_stats[2], auto_x)
 
         ipdft_pwr, ipdft_prd = ipdft(self.sig, llim=10, ulim=10)
         auto_x, auto_periods = auto_corr(self.sig, llim=10, ulim=10)

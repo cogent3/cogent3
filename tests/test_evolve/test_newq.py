@@ -2,6 +2,8 @@
 
 import warnings
 
+from unittest import TestCase, main
+
 from numpy import dot, ones
 from numpy.testing import assert_allclose
 
@@ -22,7 +24,6 @@ from cogent3.evolve.substitution_model import (
     TimeReversibleNucleotide,
 )
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
-from cogent3.util.unit_test import TestCase, main
 
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
@@ -124,9 +125,7 @@ class NewQ(TestCase):
 
         nuc_lf.set_alignment(self.aln)
         new_di_lf.set_alignment(self.aln)
-        self.assertFloatEqual(
-            nuc_lf.get_log_likelihood(), new_di_lf.get_log_likelihood()
-        )
+        assert_allclose(nuc_lf.get_log_likelihood(), new_di_lf.get_log_likelihood())
 
     def test_lf_display(self):
         """str of likelihood functions should not fail"""
@@ -201,7 +200,7 @@ class NewQ(TestCase):
                 for other in results[:i]:
                     self.assertNotAlmostEqual(other, lh, places=2)
                 for other in results[i:]:
-                    self.assertFloatEqual(other, lh)
+                    assert_allclose(other, lh)
                 results.append(lh)
 
     def test_position_specific_mprobs(self):
@@ -269,9 +268,7 @@ class NewQ(TestCase):
             cd_lf = cd.make_likelihood_function(self.tree)
             cd_lf.set_param_rule("length", is_independent=False, init=0.4)
             cd_lf.set_alignment(self.aln)
-            self.assertFloatEqual(
-                cd_lf.get_log_likelihood(), ps_lf.get_log_likelihood()
-            )
+            assert_allclose(cd_lf.get_log_likelihood(), ps_lf.get_log_likelihood())
 
         compare_models(self.posn_root_probs, 2)
         # trinucleotide
@@ -361,11 +358,11 @@ class NewQ(TestCase):
         d = dot(e, d)
 
         prob_vectors = lf.get_motif_probs_by_node()
-        self.assertFloatEqual(prob_vectors["a"].array, a)
-        self.assertFloatEqual(prob_vectors["b"].array, b)
-        self.assertFloatEqual(prob_vectors["c"].array, c)
-        self.assertFloatEqual(prob_vectors["d"].array, d)
-        self.assertFloatEqual(prob_vectors["edge.0"].array, e)
+        assert_allclose(prob_vectors["a"].array, a)
+        assert_allclose(prob_vectors["b"].array, b)
+        assert_allclose(prob_vectors["c"].array, c)
+        assert_allclose(prob_vectors["d"].array, d)
+        assert_allclose(prob_vectors["edge.0"].array, e)
 
     def test_get_motif_probs_by_node_mg94(self):
         """handles different statespace dimensions from process and stationary distribution"""

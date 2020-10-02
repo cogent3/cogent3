@@ -4,6 +4,8 @@
 Currently using tests against calculations in R, spreadsheets being unreliable.
 """
 
+from unittest import TestCase, main
+
 from cogent3.maths.stats.distribution import (
     bdtr,
     bdtrc,
@@ -40,7 +42,6 @@ from cogent3.maths.stats.distribution import (
     z_low,
     zprob,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
@@ -52,7 +53,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose, assert_almost_equal
 
 
 class DistributionsTests(TestCase):
@@ -95,9 +96,9 @@ class DistributionsTests(TestCase):
         ]
 
         for z, p in zip(self.values, probs):
-            self.assertFloatEqual(z_low(z), p)
+            assert_allclose(z_low(z), p, rtol=1e-6)
         for z, p in zip(self.negvalues, negprobs):
-            self.assertFloatEqual(z_low(z), p)
+            assert_allclose(z_low(z), p, rtol=1e-6)
 
     def test_z_high(self):
         """z_high should match R's pnorm(lower.tail=FALSE) function"""
@@ -132,9 +133,9 @@ class DistributionsTests(TestCase):
         ]
 
         for z, p in zip(self.values, probs):
-            self.assertFloatEqual(z_high(z), p)
+            assert_allclose(z_high(z), p, rtol=1e-6)
         for z, p in zip(self.negvalues, negprobs):
-            self.assertFloatEqual(z_high(z), p)
+            assert_allclose(z_high(z), p, rtol=1e-6)
 
     def test_zprob(self):
         """zprob should match twice the z_high probability for abs(z)"""
@@ -158,9 +159,9 @@ class DistributionsTests(TestCase):
         ]
 
         for z, p in zip(self.values, probs):
-            self.assertFloatEqual(zprob(z), p)
+            assert_allclose(zprob(z), p, rtol=1e-6)
         for z, p in zip(self.negvalues, probs):
-            self.assertFloatEqual(zprob(z), p)
+            assert_allclose(zprob(z), p, rtol=1e-6)
 
     def test_chi_low(self):
         """chi_low should match R's pchisq() function"""
@@ -211,7 +212,7 @@ class DistributionsTests(TestCase):
         }
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
-                self.assertFloatEqual(chi_low(x, df), p)
+                assert_allclose(chi_low(x, df), p, rtol=1e-6)
 
     def test_chi_high(self):
         """chi_high should match R's pchisq(lower.tail=FALSE) function"""
@@ -262,7 +263,7 @@ class DistributionsTests(TestCase):
 
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
-                self.assertFloatEqual(chi_high(x, df), p)
+                assert_allclose(chi_high(x, df), p, rtol=1e-6)
 
     def test_t_low(self):
         """t_low should match R's pt() function"""
@@ -358,9 +359,9 @@ class DistributionsTests(TestCase):
 
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
-                self.assertFloatEqualRel(t_low(x, df), p, eps=1e-4)
+                assert_almost_equal(t_low(x, df), p, decimal=4)
             for x, p in zip(self.negvalues, negprobs[df]):
-                self.assertFloatEqualRel(t_low(x, df), p, eps=1e-4)
+                assert_almost_equal(t_low(x, df), p, decimal=4)
 
     def test_t_high(self):
         """t_high should match R's pt(lower.tail=FALSE) function"""
@@ -456,9 +457,9 @@ class DistributionsTests(TestCase):
 
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
-                self.assertFloatEqualRel(t_high(x, df), p, eps=1e-4)
+                assert_almost_equal(t_high(x, df), p, decimal=4)
             for x, p in zip(self.negvalues, negprobs[df]):
-                self.assertFloatEqualRel(t_high(x, df), p, eps=1e-4)
+                assert_almost_equal(t_high(x, df), p, decimal=4)
 
     def test_tprob(self):
         """tprob should match twice the t_high probability for abs(t)"""
@@ -518,7 +519,7 @@ class DistributionsTests(TestCase):
         }
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
-                self.assertFloatEqualRel(tprob(x, df), p, eps=1e-4)
+                assert_almost_equal(tprob(x, df), p, decimal=4)
 
     def test_poisson_low(self):
         """Lower tail of poisson should match R for integer successes"""
@@ -540,7 +541,7 @@ class DistributionsTests(TestCase):
             (180, 1024): 8.266457e-233,
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqual(poisson_low(*key), value)
+            assert_allclose(poisson_low(*key), value, rtol=1e-6)
 
     def test_poisson_high(self):
         """Upper tail of poisson should match R for integer successes"""
@@ -562,7 +563,7 @@ class DistributionsTests(TestCase):
             (180, 1024): 1,
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqual(poisson_high(*key), value)
+            assert_allclose(poisson_high(*key), value)
 
     def test_poisson_exact(self):
         """Poisson exact should match expected values from R"""
@@ -582,7 +583,7 @@ class DistributionsTests(TestCase):
             (180, 1024): 6.815085e-233,
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqual(poisson_exact(*key), value)
+            assert_allclose(poisson_exact(*key), value, rtol=1e-6)
 
     def test_binomial_high(self):
         """Binomial high should match values from R for integer successes"""
@@ -601,7 +602,7 @@ class DistributionsTests(TestCase):
             (-0.5, 3, 0.1): 1,
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqualRel(binomial_high(*key), value, 1e-4)
+            assert_almost_equal(binomial_high(*key), value, 1e-4)
         # should reject if successes > trials or successes < -1
         self.assertRaises(ValueError, binomial_high, 7, 5, 0.5)
 
@@ -621,7 +622,7 @@ class DistributionsTests(TestCase):
             (1032, 2050, 0.5): 0.6297845,
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqualRel(binomial_low(*key), value, 1e-4)
+            assert_almost_equal(binomial_low(*key), value, 1e-4)
 
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""
@@ -633,7 +634,7 @@ class DistributionsTests(TestCase):
         )
 
         for i in range(len(expected)):
-            self.assertFloatEqual(binomial_exact(i, 10, 0.3), expected[i])
+            assert_allclose(binomial_exact(i, 10, 0.3), expected[i])
 
     def test_binomial_exact(self):
         """binomial_exact should match values from R for integer successes"""
@@ -650,7 +651,7 @@ class DistributionsTests(TestCase):
             (1032, 2050, 0.5): 0.01679804,
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
+            assert_almost_equal(binomial_exact(*key), value, 1e-4)
 
     def test_binomial_exact_floats(self):
         """binomial_exact should be within limits for floating point numbers"""
@@ -667,7 +668,7 @@ class DistributionsTests(TestCase):
         for (key, value) in list(expected.items()):
             min_val, max_val = value
             assert min_val < binomial_exact(*key) < max_val
-            # self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
+            # assert_almost_equal(binomial_exact(*key), value, 1e-4)
 
     def test_binomial_exact_errors(self):
         """binomial_exact should raise errors on invalid input"""
@@ -719,7 +720,7 @@ class DistributionsTests(TestCase):
         e = list(expected.items())
         e.sort()
         for (key, value) in e:
-            self.assertFloatEqualRel(f_high(*key), value)
+            assert_almost_equal(f_high(*key), value)
 
     def test_f_low(self):
         """F low should match values from R for integer successes"""
@@ -740,15 +741,15 @@ class DistributionsTests(TestCase):
             (1032, 2050, 0.1): 1.70204e-278,
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqualRel(f_low(*key), value)
+            assert_almost_equal(f_low(*key), value)
 
     def test_fprob(self):
         """fprob should return twice the tail on a particular side"""
         error = 1e-4
         # right-hand side
-        self.assertFloatEqualAbs(fprob(10, 10, 1.2), 0.7788, eps=error)
+        assert_allclose(fprob(10, 10, 1.2), 0.7788, rtol=error)
         # left-hand side
-        self.assertFloatEqualAbs(fprob(10, 10, 1.2, side="left"), 1.2212, eps=error)
+        assert_allclose(fprob(10, 10, 1.2, side="left"), 1.2212, rtol=error)
         self.assertRaises(ValueError, fprob, 10, 10, -3)
         self.assertRaises(ValueError, fprob, 10, 10, 1, "non_valid_side")
 
@@ -785,7 +786,7 @@ class DistributionsTests(TestCase):
         index = 0
         for i in t:
             for j in k:
-                self.assertFloatEqual(stdtr(j, i), exp[index])
+                assert_allclose(stdtr(j, i), exp[index])
                 index += 1
 
     def test_bdtr(self):
@@ -874,7 +875,7 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(bdtr(k, n, p), exp[index])
+                    assert_allclose(bdtr(k, n, p), exp[index])
                     index += 1
 
     def test_bdtrc(self):
@@ -964,7 +965,7 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(bdtrc(k, n, p), exp[index])
+                    assert_allclose(bdtrc(k, n, p), exp[index])
                     index += 1
 
     def test_pdtr(self):
@@ -1006,7 +1007,7 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for m in m_s:
-                self.assertFloatEqual(pdtr(k, m), exp[index])
+                assert_allclose(pdtr(k, m), exp[index])
                 index += 1
 
     def test_pdtrc(self):
@@ -1048,7 +1049,7 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for m in m_s:
-                self.assertFloatEqual(pdtrc(k, m), exp[index])
+                assert_allclose(pdtrc(k, m), exp[index])
                 index += 1
 
     def test_fdtr(self):
@@ -1142,7 +1143,7 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(fdtr(a, b, x), exp[index])
+                    assert_allclose(fdtr(a, b, x), exp[index])
                     index += 1
 
     def test_fdtrc(self):
@@ -1236,7 +1237,7 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(fdtrc(a, b, x), exp[index])
+                    assert_allclose(fdtrc(a, b, x), exp[index])
                     index += 1
 
     def test_gdtr(self):
@@ -1330,7 +1331,7 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(gdtr(a, b, x), exp[index])
+                    assert_allclose(gdtr(a, b, x), exp[index])
                     index += 1
 
     def test_gdtrc(self):
@@ -1424,7 +1425,7 @@ class DistributionsTests(TestCase):
         for a in a_s:
             for b in b_s:
                 for x in x_s:
-                    self.assertFloatEqual(gdtrc(a, b, x), exp[index])
+                    assert_allclose(gdtrc(a, b, x), exp[index])
                     index += 1
 
     def test_chdtri(self):
@@ -1466,7 +1467,7 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for p in p_s:
-                self.assertFloatEqual(chdtri(k, p), exp[index])
+                assert_allclose(chdtri(k, p), exp[index])
                 index += 1
 
     def test_stdtri(self):
@@ -1508,7 +1509,7 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for p in p_s:
-                self.assertFloatEqual(stdtri(k, p), exp[index])
+                assert_allclose(stdtri(k, p), exp[index], rtol=1e-6, atol=1e-6)
                 index += 1
 
     def test_pdtri(self):
@@ -1550,7 +1551,7 @@ class DistributionsTests(TestCase):
         index = 0
         for k in k_s:
             for p in p_s:
-                self.assertFloatEqual(pdtri(k, p), exp[index])
+                assert_allclose(pdtri(k, p), exp[index])
                 index += 1
 
     def test_bdtri(self):
@@ -1624,7 +1625,7 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(bdtri(k, n, p), exp[index])
+                    assert_allclose(bdtri(k, n, p), exp[index])
                     index += 1
 
     def test_gdtri(self):
@@ -1763,7 +1764,7 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(gdtri(k, n, p), exp[index])
+                    assert_allclose(gdtri(k, n, p), exp[index], rtol=1e-6)
                     index += 1
 
     def test_fdtri(self):
@@ -1927,7 +1928,7 @@ class DistributionsTests(TestCase):
         for k in k_s:
             for n in n_s:
                 for p in p_s:
-                    self.assertFloatEqual(fdtri(k, n, p), exp[index])
+                    assert_allclose(fdtri(k, n, p), exp[index])
                     index += 1
 
     def test_probability_points(self):
