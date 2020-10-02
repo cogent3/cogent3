@@ -210,7 +210,7 @@ class NonStatMarkov(TestCase):
         gen_lf = self.make_cached("general", max_evaluations=25)
         gen_stat_lnL = gen_stat_lf.get_log_likelihood()
         gen_lnL = gen_lf.get_log_likelihood()
-        self.assertLessThan(gen_stat_lnL, gen_lnL)
+        self.assertLess(gen_stat_lnL, gen_lnL)
 
     def test_general_stationary_is_stationary(self):
         """should be stationary"""

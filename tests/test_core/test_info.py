@@ -61,10 +61,10 @@ class DbRefTests(TestCase):
 
     def test_cmp(self):
         """DbRef cmp should first try numeric, then alphabetic, cmp."""
-        self.assertLessThan(DbRef("abc"), DbRef("xyz"))
+        self.assertLess(DbRef("abc"), DbRef("xyz"))
         self.assertEqual(DbRef("abc"), DbRef("abc"))
-        self.assertGreaterThan(DbRef("123"), DbRef("14"))
-        self.assertLessThan(DbRef("123"), DbRef("abc"))
+        self.assertGreater(DbRef("123"), DbRef("14"))
+        self.assertLess(DbRef("123"), DbRef("abc"))
         # check that it ignores other attributes
         self.assertEqual(DbRef("x", "y", "z", "a", "b"), DbRef("x"))
 

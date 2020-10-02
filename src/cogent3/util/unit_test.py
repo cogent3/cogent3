@@ -418,32 +418,6 @@ class TestCase(orig_TestCase):
             msg or "Item %s should not have been in %s" % (repr(item), repr(observed))
         )
 
-    def assertGreaterThan(self, observed, value, msg=None):
-        """Fail if observed is <= value"""
-        try:
-            if value is None or observed is None:
-                raise ValueError
-            if (asarray(observed) > value).all():
-                return
-        except:
-            pass
-        raise self.failureException(
-            msg or "Observed %s has elements <= %s" % (repr(observed), repr(value))
-        )
-
-    def assertLessThan(self, observed, value, msg=None):
-        """Fail if observed is >= value"""
-        try:
-            if value is None or observed is None:
-                raise ValueError
-            if (asarray(observed) < value).all():
-                return
-        except:
-            pass
-        raise self.failureException(
-            msg or "Observed %s has elements >= %s" % (repr(observed), repr(value))
-        )
-
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
         try:

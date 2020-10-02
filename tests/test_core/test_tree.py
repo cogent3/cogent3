@@ -1656,9 +1656,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(
             sorted(rooted.get_tip_names()), sorted(unrooted.get_tip_names())
         )
-        self.assertLessThan(
-            len(unrooted.get_node_names()), len(rooted.get_node_names())
-        )
+        self.assertLess(len(unrooted.get_node_names()), len(rooted.get_node_names()))
 
     def test_get_figure(self):
         """exercising get_figure"""
