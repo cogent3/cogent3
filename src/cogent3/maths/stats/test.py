@@ -824,6 +824,8 @@ def pearson(x_items, y_items):
         )
     except (ZeroDivisionError, ValueError, FloatingPointError):  # no variation
         r = 0.0
+
+    r = 0.0 if isnan(r) else r
     # check we didn't get a naughty value for r due to rounding error
     if r > 1.0:
         r = 1.0
