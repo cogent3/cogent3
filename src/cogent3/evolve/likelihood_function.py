@@ -897,13 +897,9 @@ class LikelihoodFunction(ParameterController):
         else:
             alignment = {a["locus"]: a["value"] for a in aln_defn.get_param_rules()}
             mprobs = self.get_motif_probs()
-            if len(alignment) == 1:
-                alignment = list(alignment.values())[0]
-                mprobs = mprobs.to_dict()
-            else:
-                for k in alignment:
-                    alignment[k] = alignment[k].to_rich_dict()
-                    mprobs[k] = mprobs[k].to_dict()
+            for k in alignment:
+                alignment[k] = alignment[k].to_rich_dict()
+                mprobs[k] = mprobs[k].to_dict()
 
         DLC = self.all_psubs_DLC()
         try:
