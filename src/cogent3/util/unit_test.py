@@ -350,31 +350,6 @@ class TestCase(orig_TestCase):
 
     assertNotEqual = assertNotEquals = failIfEqual
 
-    def assertSameItems(self, observed, expected, msg=None):
-        """Fail if the two items contain non-identical elements"""
-        obs_items = list(observed)
-        exp_items = list(expected)
-        if len(obs_items) != len(exp_items):
-            raise self.failureException(
-                msg
-                or "Observed and expected are different lengths: %s and %s"
-                % (len(obs_items), len(exp_items))
-            )
-
-        obs_ids = [(id(i), i) for i in obs_items]
-        exp_ids = [(id(i), i) for i in exp_items]
-        obs_ids.sort()
-        exp_ids.sort()
-        for index, (obs, exp) in enumerate(zip(obs_ids, exp_ids)):
-            o_id, o = obs
-            e_id, e = exp
-            if o_id != e_id:  # i.e. the ids are different
-                raise self.failureException(
-                    msg
-                    or "Observed %s <%s> and expected %s <%s> at sorted index %s"
-                    % (o, o_id, e, e_id, index)
-                )
-
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
         try:

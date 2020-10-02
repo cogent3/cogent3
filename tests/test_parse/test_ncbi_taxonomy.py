@@ -356,7 +356,7 @@ class NcbiTaxonNodeTests(TestCase):
         self.assertEqual(len(dec), 1)
         assert dec[0] is tx[555]
         sp = tx["f"].getRankedDescendants("species")
-        self.assertSameItems(sp, [tx[1010], tx[9999], tx[7777], tx[6666]])
+        self.assertCountEqual(sp, [tx[1010], tx[9999], tx[7777], tx[6666]])
         empty = tx[11].getRankedDescendants("superclass")
         self.assertEqual(empty, [])
         gr = tx[3].getRankedDescendants("group")
