@@ -375,28 +375,6 @@ class TestCase(orig_TestCase):
                     % (o, o_id, e, e_id, index)
                 )
 
-    def assertContains(self, observed, item, msg=None):
-        """Fail if item not in observed"""
-        try:
-            if item in observed:
-                return
-        except (TypeError, ValueError):
-            pass
-        raise self.failureException(
-            msg or "Item %s not found in %s" % (repr(item), repr(observed))
-        )
-
-    def assertNotContains(self, observed, item, msg=None):
-        """Fail if item in observed"""
-        try:
-            if item not in observed:
-                return
-        except (TypeError, ValueError):
-            return
-        raise self.failureException(
-            msg or "Item %s should not have been in %s" % (repr(item), repr(observed))
-        )
-
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
         try:

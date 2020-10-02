@@ -103,7 +103,7 @@ class InfoTests(TestCase):
         """Info empty init should work as expected"""
         d = Info()
         self.assertEqual(len(d), 1)
-        self.assertContains(d, "Refs")
+        self.assertIn("Refs", d)
         self.assertEqual(d.Refs, DbRefs())
         self.assertTrue(isinstance(d.Refs, DbRefs))
 
@@ -124,8 +124,8 @@ class InfoTests(TestCase):
             raise Exception("Failed to prevent deletion of required key Refs" "")
         d.GenBank = ("qaz", "wsx")
         self.assertEqual(d.GenBank, ["qaz", "wsx"])
-        self.assertContains(d.Refs, "GenBank")
-        self.assertContains(d, "GenBank")
+        self.assertIn("GenBank", d.Refs)
+        self.assertIn("GenBank", d)
         d.GenBank = "xyz"
         self.assertEqual(d.GenBank, ["xyz"])
         self.assertIs(d.GenBank, d.Refs.GenBank)
@@ -135,8 +135,8 @@ class InfoTests(TestCase):
         self.assertEqual(d.GO, ["x", "y"])
         d.ZZZ = "zzz"
         self.assertEqual(d.ZZZ, "zzz")
-        self.assertNotContains(d.Refs, "ZZZ")
-        self.assertNotContains(d, "XXX")
+        self.assertNotIn("ZZZ", d.Refs)
+        self.assertNotIn("XXX", d)
         self.assertEqual(d.XXX, None)
 
     def test_identity(self):

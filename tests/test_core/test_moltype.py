@@ -116,7 +116,7 @@ class make_matches_tests(TestCase):
                 ("n", "n"): False,
             },
         )
-        self.assertNotContains(m, ("x", "z"))
+        self.assertNotIn(("x", "z"), m)
 
     def test_init_all(self):
         """make_matches with everything should produce correct dict"""
@@ -297,11 +297,11 @@ class MolTypeTests(TestCase):
     def test_init_minimal(self):
         """MolType should init OK with just monomers"""
         a = MolType("Abc")
-        self.assertContains(a.alphabet, "A")
-        self.assertNotContains(a.alphabet, "a")  # case-sensitive
-        self.assertContains(a.alphabet, "b")
-        self.assertNotContains(a.alphabet, "B")
-        self.assertNotContains(a.alphabet, "x")
+        self.assertIn("A", a.alphabet)
+        self.assertNotIn("a", a.alphabet)  # case-sensitive
+        self.assertIn("b", a.alphabet)
+        self.assertNotIn("B", a.alphabet)
+        self.assertNotIn("x", a.alphabet)
 
     def test_init_everything(self):
         """MolType should init OK with all parameters set"""
@@ -315,7 +315,7 @@ class MolTypeTests(TestCase):
             add_lower=False,
         )
         for i in "Abcd~":
-            self.assertContains(a, i)
+            self.assertIn(i, a)
         self.assertEqual(a.complement("b"), "c")
         self.assertEqual(a.complement("AbcAA"), "AcbAA")
         self.assertEqual(a.first_degenerate("AbcdA"), 3)
@@ -372,19 +372,19 @@ class MolTypeTests(TestCase):
     def test_contains(self):
         """MolType contains should return correct result"""
         for i in "UCAGWSMKRYBDHVN-" + "UCAGWSMKRYBDHVN-".lower():
-            self.assertContains(RnaMolType, i)
+            self.assertIn(i, RnaMolType)
         for i in "x!@#$%^&ZzQq":
-            self.assertNotContains(RnaMolType, i)
+            self.assertNotIn(i, RnaMolType)
 
         a = MolType(dict.fromkeys("ABC"), add_lower=True)
         for i in "abcABC":
-            self.assertContains(a, i)
-        self.assertNotContains(a, "x")
+            self.assertIn(i, a)
+        self.assertNotIn("x", a)
         b = MolType(dict.fromkeys("ABC"), add_lower=False)
         for i in "ABC":
-            self.assertContains(b, i)
+            self.assertIn(i, b)
         for i in "abc":
-            self.assertNotContains(b, i)
+            self.assertNotIn(i, b)
 
     def test_iter(self):
         """MolType iter should iterate over monomer order"""
@@ -505,7 +505,7 @@ class MolTypeTests(TestCase):
         u = d(s, "random")
         for i, j in zip(s, t):
             if i in RnaMolType.degenerates:
-                self.assertContains(RnaMolType.degenerates[i], j)
+                self.assertIn(j, RnaMolType.degenerates[i])
             else:
                 self.assertEqual(i, j)
         self.assertNotEqual(t, u)
@@ -747,10 +747,10 @@ class RnaMolTypeTests(TestCase):
         """RnaMolType should __contain__ the expected symbols."""
         keys = "ucagrymkwsbhvdn?-"
         for k in keys:
-            self.assertContains(RnaMolType, k)
+            self.assertIn(k, RnaMolType)
         for k in keys.upper():
-            self.assertContains(RnaMolType, k)
-        self.assertNotContains(RnaMolType, "X")
+            self.assertIn(k, RnaMolType)
+        self.assertNotIn("X", RnaMolType)
 
     def test_degenerate_from_seq(self):
         """RnaMolType degenerate_from_seq should give correct results"""

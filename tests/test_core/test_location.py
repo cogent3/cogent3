@@ -54,15 +54,15 @@ class SpanTests(TestCase):
 
     def test_contains(self):
         """Span object contains its start but not its end"""
-        self.assertNotContains(self.empty, 0)
-        self.assertContains(self.full, 30)
-        self.assertContains(self.full, 34)
-        self.assertNotContains(self.full, 35)
-        self.assertContains(self.full, self.inside)
-        self.assertNotContains(self.full, self.overlapping)
-        self.assertContains(self.spans_zero, 0)
-        self.assertContains(self.spans_zero, -5)
-        self.assertNotContains(self.spans_zero, 5)
+        self.assertNotIn(0, self.empty)
+        self.assertIn(30, self.full)
+        self.assertIn(34, self.full)
+        self.assertNotIn(35, self.full)
+        self.assertIn(self.inside, self.full)
+        self.assertNotIn(self.overlapping, self.full)
+        self.assertIn(0, self.spans_zero)
+        self.assertIn(-5, self.spans_zero)
+        self.assertNotIn(5, self.spans_zero)
 
     def test_overlaps(self):
         """Span objects should be able to overlap points or spans"""
@@ -380,38 +380,38 @@ class RangeTests(TestCase):
 
     def test_contains(self):
         """Range contains an item if any span contains it"""
-        self.assertContains(self.one, 50)
-        self.assertContains(self.one, 0)
-        self.assertContains(self.one, 99)
-        self.assertNotContains(self.one, 100)
-        self.assertContains(self.three, 6)
-        self.assertNotContains(self.three, 7)
-        self.assertNotContains(self.three, 8)
-        self.assertNotContains(self.three, 14)
-        self.assertContains(self.three, 15)
-        self.assertNotContains(self.three, 29)
-        self.assertContains(self.three, 30)
-        self.assertContains(self.three, 34)
-        self.assertNotContains(self.three, 35)
-        self.assertNotContains(self.three, 40)
+        self.assertIn(50, self.one)
+        self.assertIn(0, self.one)
+        self.assertIn(99, self.one)
+        self.assertNotIn(100, self.one)
+        self.assertIn(6, self.three)
+        self.assertNotIn(7, self.three)
+        self.assertNotIn(8, self.three)
+        self.assertNotIn(14, self.three)
+        self.assertIn(15, self.three)
+        self.assertNotIn(29, self.three)
+        self.assertIn(30, self.three)
+        self.assertIn(34, self.three)
+        self.assertNotIn(35, self.three)
+        self.assertNotIn(40, self.three)
         # should work if a span is added
         self.three.spans.append(40)
-        self.assertContains(self.three, 40)
+        self.assertIn(40, self.three)
         # should work for spans
-        self.assertContains(self.three, Span(31, 33))
-        self.assertNotContains(self.three, Span(31, 37))
+        self.assertIn(Span(31, 33), self.three)
+        self.assertNotIn(Span(31, 37), self.three)
         # span contains itself
-        self.assertContains(self.two, self.twocopy)
+        self.assertIn(self.twocopy, self.two)
         # should work for ranges
-        self.assertContains(self.three, Range([6, Span(15, 16), Span(30, 33)]))
+        self.assertIn(Range([6, Span(15, 16), Span(30, 33)]), self.three)
         # should work for copy, except when extra piece added
         threecopy = Range(self.three)
-        self.assertContains(self.three, threecopy)
+        self.assertIn(threecopy, self.three)
         threecopy.spans.append(1000)
-        self.assertNotContains(self.three, threecopy)
+        self.assertNotIn(threecopy, self.three)
         self.three.spans.append(Span(950, 1050))
-        self.assertContains(self.three, threecopy)
-        self.assertNotContains(threecopy, self.three)
+        self.assertIn(threecopy, self.three)
+        self.assertNotIn(self.three, threecopy)
 
     def test_overlaps(self):
         """Range overlaps should return true if any component overlapping"""
