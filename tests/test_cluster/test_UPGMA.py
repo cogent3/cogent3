@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 from collections import defaultdict
+from unittest import TestCase, main
 
 import numpy
 
 from numpy import array
+from numpy.testing import assert_allclose
 
 from cogent3 import make_tree
 from cogent3.cluster.UPGMA import (
@@ -16,7 +18,6 @@ from cogent3.cluster.UPGMA import (
 )
 from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray, DictArrayTemplate, convert2DDict
-from cogent3.util.unit_test import TestCase, main
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -108,7 +109,7 @@ class UPGMATests(TestCase):
         matrix = self.matrix
         index = find_smallest_index(matrix)
         result = condense_matrix(matrix, index, 9999999999)
-        self.assertFloatEqual(result[0, 0], 5000000.0)
+        assert_allclose(result[0, 0], 5000000.0)
         self.assertEqual(result[1, 4], 9999999999)
         self.assertEqual(result[0, 1], 9999999999)
         self.assertEqual(result[0, 2], 4.5)
@@ -173,8 +174,8 @@ class UPGMATests(TestCase):
         matrix_array, PhyloNode_order = inputs_from_dict_array(matrix_d2d)
         self.assertEqual(PhyloNode_order[0].name, "1")
         self.assertEqual(PhyloNode_order[2].name, "3")
-        self.assertFloatEqual(matrix_array[0][2], 0.92)
-        self.assertFloatEqual(matrix_array[1][0], 0.86)
+        assert_allclose(matrix_array[0][2], 0.92)
+        assert_allclose(matrix_array[1][0], 0.86)
 
 
 # run if called from command line

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """ Unit tests for Genetic Code classes.
 """
+from unittest import TestCase, main
+
 from cogent3 import DNA, RNA
 from cogent3.core.genetic_code import (
     DEFAULT,
@@ -11,7 +13,6 @@ from cogent3.core.genetic_code import (
     available_codes,
     get_code,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Greg Caporaso"
@@ -75,8 +76,8 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(sgc.is_stop("UAA"), True)
         self.assertEqual(sgc.is_stop("AAA"), False)
         self.assertEqual(len(sgc.sense_codons), 61)
-        self.assertContains(sgc.sense_codons, "AAA")
-        self.assertNotContains(sgc.sense_codons, "TGA")
+        self.assertIn("AAA", sgc.sense_codons)
+        self.assertNotIn("TGA", sgc.sense_codons)
 
     def test_standard_code_lookup(self):
         """GeneticCodes should hold codes keyed by id as string and number"""
@@ -357,7 +358,7 @@ class GeneticCodeTests(TestCase):
         obs_synonyms = GeneticCode(self.SGC).synonyms
         # note that the lists will be arbitrary-order
         for i in expected_synonyms:
-            self.assertEqualItems(obs_synonyms[i], expected_synonyms[i])
+            self.assertCountEqual(obs_synonyms[i], expected_synonyms[i])
 
     def test_get_code(self):
         """correctly return the genetic code"""
