@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 __all__ = [
-    "test_unit_test",
     "test_misc",
     "test_dictarray",
     "test_table",

@@ -8,7 +8,6 @@ __all__ = [
     "table",
     "transform",
     "union_dict",
-    "unit_test",
     "warning",
     "recode_alignment",
 ]
