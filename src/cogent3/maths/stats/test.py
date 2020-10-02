@@ -4,19 +4,15 @@
 
 import warnings
 
-from operator import add
-from random import choice
-
 from numpy import (
     absolute,
+    allclose,
     any,
     arctanh,
     array,
     asarray,
-    clip,
     concatenate,
     corrcoef,
-    cov,
     exp,
     fabs,
     isinf,
@@ -25,9 +21,10 @@ from numpy import (
     mean,
 )
 from numpy import median as _median
-from numpy import nan, nonzero, ones, ravel, reshape, sqrt
+from numpy import nonzero, ones, ravel, sqrt
+from numpy import std as _std
 from numpy import sum as npsum
-from numpy import take, tanh, trace, transpose, zeros
+from numpy import take, tanh, trace, zeros
 from numpy.random import permutation, randint
 
 from cogent3.maths.stats.distribution import (
@@ -114,40 +111,6 @@ class IndexOrValueError(IndexError, ValueError):
     pass
 
 
-var = cov  # cov will calculate variance if called on a vector
-
-
-def std_(x, axis=None):
-    """Returns standard deviations by axis (similiar to numpy.std)
-
-    The result is unbiased, matching the result from MLab.std
-    """
-    x = asarray(x)
-
-    if axis is None:
-        d = x - mean(x)
-        return sqrt(npsum(d ** 2) / (len(x) - 1))
-    elif axis == 0:
-        result = []
-        for col in range(x.shape[1]):
-            vals = x[:, col]
-            d = vals - mean(vals)
-            result.append(sqrt(npsum(d ** 2) / (len(x) - 1)))
-        return result
-    elif axis == 1:
-        result = []
-        for row in range(x.shape[0]):
-            vals = x[row, :]
-            d = vals - mean(vals)
-            result.append(sqrt(npsum(d ** 2) / (len(x) - 1)))
-        return result
-    else:
-        raise ValueError("axis out of bounds")
-
-
-# tested only by std
-
-
 def var(x, axis=None):
     """Returns unbiased standard deviations over given axis.
 
@@ -173,7 +136,7 @@ def var(x, axis=None):
     return sample_SS / (n - 1)
 
 
-def std(x, axis=None):
+def std(x, axis=None):  # pragma: no cover
     """computed unbiased standard deviations along given axis or flat array.
 
     Similar with numpy.std, except that it is unbiased. (var = SS/n-1)
@@ -517,7 +480,7 @@ def t_one_sample(a, popmean=0, tails=None):
     tails should be None (default), 'high', or 'low'."""
     try:
         n = len(a)
-        t = (mean(a) - popmean) / (std(a) / sqrt(n))
+        t = (mean(a) - popmean) / (_std(a, ddof=1) / sqrt(n))
     except (
         ZeroDivisionError,
         ValueError,
@@ -789,7 +752,7 @@ def t_one_observation(x, sample, tails=None, exp_diff=0, none_on_zero_variance=T
     """
     try:
         sample_mean = mean(sample)
-        sample_std = std(sample)
+        sample_std = _std(sample, ddof=1)
 
         if sample_std == 0:
             # The list does not vary.
@@ -979,8 +942,6 @@ def pearson_correlation(x, y, tails=None):
     Computes a parametric p-value by using Student's t-distribution with df=n-2
     to perform the test of significance.
     """
-    import numpy
-
     assert len(x) == len(y), f"unequal lengths of x ({len(x)}) and y ({len(y)})"
     n = len(x)
     tails = tails or "2"
@@ -988,7 +949,7 @@ def pearson_correlation(x, y, tails=None):
 
     # Calculate the correlation coefficient.
     rho = pearson(x, y)
-    if numpy.allclose(rho, 1.0):
+    if allclose(rho, 1.0):
         return rho, 0
 
     df = n - 2
@@ -1260,7 +1221,7 @@ def regress_residuals(x, y):
 def stdev_from_mean(x):
     """returns num standard deviations from the mean of each val in x[]"""
     x = array(x)
-    return (x - mean(x)) / std(x)
+    return (x - x.mean()) / x.std(ddof=1)
 
 
 def regress_major(x, y):
