@@ -7,16 +7,16 @@ import os
 import re
 
 from pickle import dumps
+from unittest import TestCase, main
 
 from numpy import array
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.core.annotation import Feature, SimpleVariable, Variable
 from cogent3.core.moltype import (
     ASCII,
     BYTES,
     DNA,
-    PROTEIN,
     RNA,
     AlphabetError,
     get_moltype,
@@ -31,14 +31,12 @@ from cogent3.core.sequence import (
     ArrayRnaCodonSequence,
     ArrayRnaSequence,
     ArraySequence,
-    ArraySequenceBase,
     DnaSequence,
     ProteinSequence,
     RnaSequence,
     Sequence,
 )
 from cogent3.util.misc import get_object_provenance
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
@@ -286,7 +284,7 @@ class SequenceTests(TestCase):
         """Sequence shuffle should return new random sequence w/ same monomers"""
         r = self.RNA("UUUUCCCCAAAAGGGG")
         s = r.shuffle()
-        self.assertNotEqual(r, s)
+        self.assertFalse(r == s)
         self.assertCountEqual(r, s)
 
     def test_complement(self):
@@ -404,7 +402,7 @@ class SequenceTests(TestCase):
                 assert j in s.moltype.degenerates[i]
             else:
                 assert i == j
-        self.assertNotEqual(t, u)
+        self.assertFalse(t == u)
         self.assertEqual(len(s), len(t))
 
     def test_degap(self):
@@ -510,11 +508,11 @@ class SequenceTests(TestCase):
         """Sequence MW should return correct molecular weight"""
         self.assertEqual(self.PROT("").mw(), 0)
         self.assertEqual(self.RNA("").mw(), 0)
-        self.assertFloatEqual(self.PROT("A").mw(), 89.09)
-        self.assertFloatEqual(self.RNA("A").mw(), 375.17)
-        self.assertFloatEqual(self.PROT("AAA").mw(), 231.27)
-        self.assertFloatEqual(self.RNA("AAA").mw(), 1001.59)
-        self.assertFloatEqual(self.RNA("AAACCCA").mw(), 2182.37)
+        assert_allclose(self.PROT("A").mw(), 89.09)
+        assert_allclose(self.RNA("A").mw(), 375.17)
+        assert_allclose(self.PROT("AAA").mw(), 231.27)
+        assert_allclose(self.RNA("AAA").mw(), 1001.59)
+        assert_allclose(self.RNA("AAACCCA").mw(), 2182.37)
 
     def test_can_match(self):
         """Sequence can_match should return True if all positions can match"""
@@ -703,7 +701,7 @@ class SequenceTests(TestCase):
         self.assertEqual(e.frac_same_gaps(e), 0.0)
         self.assertEqual(s4.frac_same_gaps(s5), 0.0)
         self.assertEqual(s4.frac_same_gaps(s6), 0.5)
-        self.assertFloatEqual(s6.frac_same_gaps(s8), 2 / 3.0)
+        assert_allclose(s6.frac_same_gaps(s8), 2 / 3.0)
 
     def test_frac_diffGaps(self):
         """Sequence frac_diff_gaps should return difference in gap positions"""
@@ -730,7 +728,7 @@ class SequenceTests(TestCase):
         self.assertEqual(e.frac_diff_gaps(e), 0.0)
         self.assertEqual(s4.frac_diff_gaps(s5), 1.0)
         self.assertEqual(s4.frac_diff_gaps(s6), 0.5)
-        self.assertFloatEqual(s6.frac_diff_gaps(s8), 1 / 3.0)
+        assert_allclose(s6.frac_diff_gaps(s8), 1 / 3.0)
 
     def test_frac_same_non_gaps(self):
         """Sequence frac_same_non_gaps should return similarities at non-gaps"""
@@ -746,7 +744,7 @@ class SequenceTests(TestCase):
         e = self.RNA("")
 
         def test(x, y, z):
-            return self.assertFloatEqual(x.frac_same_non_gaps(y), z)
+            return assert_allclose(x.frac_same_non_gaps(y), z)
 
         test(s1, s2, 0.25)
         test(s1, s3, 0)
@@ -773,7 +771,7 @@ class SequenceTests(TestCase):
         e = self.RNA("")
 
         def test(x, y, z):
-            return self.assertFloatEqual(x.frac_diff_non_gaps(y), z)
+            return assert_allclose(x.frac_diff_non_gaps(y), z)
 
         test(s1, s2, 0.75)
         test(s1, s3, 1)
@@ -807,7 +805,7 @@ class SequenceTests(TestCase):
         e = self.RNA("")
 
         def test(x, y, z):
-            return self.assertFloatEqual(x.frac_similar(y, transitions), z)
+            return assert_allclose(x.frac_similar(y, transitions), z)
 
         test(e, e, 0)
         test(s1, e, 0)
@@ -1049,7 +1047,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
         orig = "TCAGGA"
         r = self.SequenceClass(orig)
-        self.assertEqual(r._data, array([0, 1, 2, 3, 3, 2]))
+        assert_equal(r._data, array([0, 1, 2, 3, 3, 2]))
         self.assertEqual(str(r), orig)
 
 
@@ -1065,7 +1063,7 @@ class CodonSequenceTests(SequenceTests, TestCase):
 
         orig = "TCAGGA"
         r = self.SequenceClass(orig)
-        self.assertEqual(r._data, array([6, 62]))
+        assert_equal(r._data, array([6, 62]))
         self.assertEqual(str(r), orig)
 
 
@@ -1085,8 +1083,8 @@ class DnaSequenceGapTests(TestCase):
     def test_gaps(self):
         """gapped sequence gaps() should return correct array"""
         sc = self.SequenceClass
-        self.assertEqual(sc("TC").gaps(), array([0, 0]))
-        self.assertEqual(sc("T-").gaps(), array([0, 1]))
+        assert_equal(sc("TC").gaps(), array([0, 0]))
+        assert_equal(sc("T-").gaps(), array([0, 1]))
 
     def test_degap(self):
         """gapped sequence degap() should return correct array"""
@@ -1096,8 +1094,8 @@ class DnaSequenceGapTests(TestCase):
     def test_nongaps(self):
         """gapped sequence nongaps() should return correct array"""
         sc = self.SequenceClass
-        self.assertEqual(sc("TC").nongaps(), array([1, 1]))
-        self.assertEqual(sc("T-").nongaps(), array([1, 0]))
+        assert_equal(sc("TC").nongaps(), array([1, 1]))
+        assert_equal(sc("T-").nongaps(), array([1, 0]))
 
     def test_regap(self):
         """gapped sequence regap() should return correct sequence"""
@@ -1144,7 +1142,7 @@ class SequenceIntegrationTests(TestCase):
         """ArrayDnaCodonSequence should behave as expected"""
         d = ArrayDnaCodonSequence("UUUCGU")
         self.assertEqual(str(d), "TTTCGT")
-        self.assertEqual(d._data, array([0, 28]))
+        assert_equal(d._data, array([0, 28]))
         self.assertEqual(str(d.to_rna()), "UUUCGU")
         self.assertEqual(str(d.to_dna()), "TTTCGT")
 
@@ -1152,7 +1150,7 @@ class SequenceIntegrationTests(TestCase):
         """ArrayRnaCodonSequence should behave as expected"""
         r = ArrayRnaCodonSequence("UUUCGU")
         self.assertEqual(str(r), "UUUCGU")
-        self.assertEqual(r._data, array([0, 28]))
+        assert_equal(r._data, array([0, 28]))
         self.assertEqual(str(r.to_rna()), "UUUCGU")
         self.assertEqual(str(r.to_dna()), "TTTCGT")
 
@@ -1198,25 +1196,25 @@ class ModelSequenceTests(SequenceTests):
         """Sequence gap_array should return array of gaps"""
         r = self.RNA("-?A-?NRY-")
         v = r.gap_array()
-        self.assertEqual(v, array([1, 1, 0, 1, 1, 0, 0, 0, 1]))
+        assert_equal(v, array([1, 1, 0, 1, 1, 0, 0, 0, 1]))
         r = self.RNA("AC")
         v = r.gap_array()
-        self.assertEqual(v, array([0, 0]))
+        assert_equal(v, array([0, 0]))
         r = self.RNA("-?")
         v = r.gap_array()
-        self.assertEqual(v, array([1, 1]))
+        assert_equal(v, array([1, 1]))
 
     def test_gap_indices(self):
         """Sequence gap_indices should return positions of gaps"""
         r = self.RNA("-?A-?NRY-")
         v = r.gap_indices()
-        self.assertEqual(v, array([0, 1, 3, 4, 8]))
+        assert_equal(v, array([0, 1, 3, 4, 8]))
         r = self.RNA("AC")
         v = r.gap_indices()
-        self.assertEqual(v, array([]))  # note: always returns array
+        assert_equal(v, array([]))  # note: always returns array
         r = self.RNA("-?")
         v = r.gap_indices()
-        self.assertEqual(v, array([0, 1]))
+        assert_equal(v, array([0, 1]))
 
     def test_count_ab(self):
         """abseq array seq should count characters"""

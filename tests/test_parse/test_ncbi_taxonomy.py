@@ -2,6 +2,8 @@
 """Tests of parsers for dealing with NCBI Taxonomy files.
 """
 
+from unittest import TestCase, main
+
 from cogent3.parse.ncbi_taxonomy import (
     MissingParentError,
     NcbiName,
@@ -9,12 +11,9 @@ from cogent3.parse.ncbi_taxonomy import (
     NcbiNameParser,
     NcbiTaxon,
     NcbiTaxonLookup,
-    NcbiTaxonNode,
-    NcbiTaxonomy,
     NcbiTaxonomyFromFiles,
     NcbiTaxonParser,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Jason Carnes"

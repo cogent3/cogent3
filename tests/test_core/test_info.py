@@ -3,8 +3,9 @@
 """
 import warnings
 
+from unittest import TestCase, main
+
 from cogent3.core.info import DbRef, DbRefs, Info, _make_list
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"

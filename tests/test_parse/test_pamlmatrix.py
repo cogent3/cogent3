@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 from io import StringIO
+from unittest import TestCase, main
 
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 from cogent3.parse.paml_matrix import PamlMatrixParser
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Matthew Wakefield"
@@ -14,6 +14,9 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_equal
+
 
 data = """
        27									    
@@ -57,10 +60,8 @@ data = """
 class TestParsePamlMatrix(TestCase):
     def test_parse(self):
         matrix, freqs = PamlMatrixParser(StringIO(data))
-        self.assertEqual(DSO78_matrix, matrix)
-        self.assertEqual(DSO78_freqs, freqs)
-
-    pass
+        assert_equal(DSO78_matrix, matrix)
+        assert_equal(DSO78_freqs, freqs)
 
 
 if __name__ == "__main__":

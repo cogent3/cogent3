@@ -1,6 +1,7 @@
 import json
 
 from tempfile import TemporaryDirectory
+from unittest import TestCase, main
 
 import numpy
 
@@ -17,7 +18,6 @@ from cogent3.app.result import model_collection_result, model_result
 from cogent3.core import alignment, moltype
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley"
@@ -105,8 +105,8 @@ class TestDeserialising(TestCase):
         """Tree to_json enables roundtrip"""
         tree = make_tree(treestring="(c:01,d:0.3,(a:0.05,b:0.08)xx:0.2)")
         got = deserialise_object(tree.to_json())
-        self.assertFloatEqual(got.get_node_matching_name("a").length, 0.05)
-        self.assertFloatEqual(got.get_node_matching_name("xx").length, 0.2)
+        assert_allclose(got.get_node_matching_name("a").length, 0.05)
+        assert_allclose(got.get_node_matching_name("xx").length, 0.2)
 
     def test_roundtrip_submod(self):
         """substitution model to_json enables roundtrip"""
@@ -153,7 +153,7 @@ class TestDeserialising(TestCase):
         lnL = lf.get_log_likelihood()
         data = lf.to_json()
         got_obj = deserialise_object(data)
-        self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
+        assert_allclose(got_obj.get_log_likelihood(), lnL)
 
     def test_roundtrip_discrete_time_likelihood_function(self):
         """discrete time likelihood function.to_json enables roundtrip"""
@@ -171,7 +171,7 @@ class TestDeserialising(TestCase):
         lnL = lf.get_log_likelihood()
         data = lf.to_json()
         got_obj = deserialise_object(data)
-        self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
+        assert_allclose(got_obj.get_log_likelihood(), lnL)
 
     def test_roundtrip_het_lf(self):
         """correctly round trips a site-het model"""
@@ -212,7 +212,7 @@ class TestDeserialising(TestCase):
                 outfile.write(data)
 
             got = deserialise_object(outpath)
-            self.assertFloatEqual(got.get_log_likelihood(), lnL)
+            assert_allclose(got.get_log_likelihood(), lnL)
 
     def test_roundtrip_model_result(self):
         """mode_result.to_json enables roundtrip and lazy evaluation"""

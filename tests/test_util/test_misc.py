@@ -11,6 +11,7 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
 from tempfile import TemporaryDirectory
+from unittest import TestCase, main
 
 from numpy.testing import assert_allclose
 
@@ -30,7 +31,6 @@ from cogent3.util.misc import (
     adjusted_gt_minprob,
     adjusted_within_bounds,
     atomic_write,
-    bytes_to_string,
     curry,
     extend_docstring_from,
     get_format_suffixes,
@@ -52,7 +52,6 @@ from cogent3.util.misc import (
     recursive_flatten,
     remove_files,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
@@ -114,9 +113,9 @@ class UtilsTests(TestCase):
         l, u = 1e-5, 2
         eps = 1e-6
         got = adjusted_within_bounds(l - eps, l, u, eps=eps)
-        self.assertFloatEqual(got, l)
+        assert_allclose(got, l)
         got = adjusted_within_bounds(u + eps, l, u, eps=eps)
-        self.assertFloatEqual(got, u)
+        assert_allclose(got, u)
         with self.assertRaises(ValueError):
             got = adjusted_within_bounds(u + 4, l, u, eps=eps, action="raise")
 

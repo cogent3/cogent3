@@ -1,3 +1,5 @@
+from unittest import TestCase, main
+
 import numpy as np
 
 from numpy import array, diag, dot, exp
@@ -5,7 +7,6 @@ from numpy import array, diag, dot, exp
 import cogent3.maths.matrix_exponentiation as cmme
 
 from cogent3.maths import matrix_exponential_integration as expm
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Ben Kaehler"
@@ -16,6 +17,8 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Ben Kaehler"
 __email__ = "benjamin.kaehler@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 class TestIntegratingExponentiator(TestCase):
@@ -38,7 +41,7 @@ class TestIntegratingExponentiator(TestCase):
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VanLoanIntegratingExponentiator(q, -diag(q))(1.0)
-        self.assertFloatEqual(dot(p0, I), result)
+        assert_allclose(dot(p0, I), result)
 
         self.assertRaises(
             ArithmeticError,
@@ -55,15 +58,11 @@ class TestIntegratingExponentiator(TestCase):
                 [[exp(t) - 1.0, exp(t) * (t - 1.0) + 1.0], [0.0, exp(t) - 1.0]]
             )
 
-        self.assertFloatEqual(
-            expm.VanLoanIntegratingExponentiator(Q)(1.0), integral(1.0)
-        )
-        self.assertFloatEqual(
-            expm.VanLoanIntegratingExponentiator(Q)(2.0), integral(2.0)
-        )
+        assert_allclose(expm.VanLoanIntegratingExponentiator(Q)(1.0), integral(1.0))
+        assert_allclose(expm.VanLoanIntegratingExponentiator(Q)(2.0), integral(2.0))
 
         R = array([[1.0], [1.0]])
-        self.assertFloatEqual(
+        assert_allclose(
             expm.VanLoanIntegratingExponentiator(Q, R, cmme.TaylorExponentiator)(1.0),
             dot(integral(1.0), R),
         )
@@ -86,7 +85,7 @@ class TestIntegratingExponentiator(TestCase):
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VonBingIntegratingExponentiator(q)(1.0)
-        self.assertFloatEqual(dot(dot(p0, I), -diag(q)), result)
+        assert_allclose(dot(dot(p0, I), -diag(q)), result)
 
         self.assertRaises(
             ArithmeticError,
@@ -103,13 +102,13 @@ class TestIntegratingExponentiator(TestCase):
             ]
         )
 
-        self.assertFloatEqual(
+        assert_allclose(
             expm.VonBingIntegratingExponentiator(p)(1.0),
             expm.VanLoanIntegratingExponentiator(
                 p, exponentiator=cmme.FastExponentiator
             )(1.0),
         )
-        self.assertFloatEqual(
+        assert_allclose(
             expm.VonBingIntegratingExponentiator(p)(2.0),
             expm.VanLoanIntegratingExponentiator(
                 p, exponentiator=cmme.FastExponentiator
@@ -134,7 +133,7 @@ class TestIntegratingExponentiator(TestCase):
         Q = get_calibrated_Q(R)
         length = 0.1
         got = expm.expected_number_subs(moprobs, Q, length)
-        self.assertFloatEqual(got, length)
+        assert_allclose(got, length)
         # case 2, length != ENS
 
         A = array(

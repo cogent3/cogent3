@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import pickle
 
-from cogent3.core import moltype, sequence
+from unittest import TestCase, main
+
+from cogent3.core import sequence
 from cogent3.core.moltype import (
     DNA,
     PROTEIN,
@@ -20,14 +22,12 @@ from cogent3.core.moltype import (
     IUPAC_RNA_chars,
     MolType,
     RnaStandardPairs,
-    array,
     available_moltypes,
     get_moltype,
     make_matches,
     make_pairs,
 )
-from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW
-from cogent3.util.unit_test import TestCase, main
+from cogent3.data.molecular_weight import DnaMW, RnaMW
 
 
 __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
@@ -40,6 +40,9 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 # ind some of the standard alphabets to reduce typing
+from numpy.testing import assert_allclose
+
+
 RnaBases = RNA.alphabets.base
 DnaBases = DNA.alphabets.base
 AminoAcids = PROTEIN.alphabets.base
@@ -632,11 +635,11 @@ class MolTypeTests(TestCase):
         p = ProteinMolType.mw
         self.assertEqual(p(""), 0)
         self.assertEqual(r(""), 0)
-        self.assertFloatEqual(p("A"), 89.09)
-        self.assertFloatEqual(r("A"), 375.17)
-        self.assertFloatEqual(p("AAA"), 231.27)
-        self.assertFloatEqual(r("AAA"), 1001.59)
-        self.assertFloatEqual(r("AAACCCA"), 2182.37)
+        assert_allclose(p("A"), 89.09)
+        assert_allclose(r("A"), 375.17)
+        assert_allclose(p("AAA"), 231.27)
+        assert_allclose(r("AAA"), 1001.59)
+        assert_allclose(r("AAACCCA"), 2182.37)
 
     def test_can_match(self):
         """MolType can_match should return True if all positions can match"""

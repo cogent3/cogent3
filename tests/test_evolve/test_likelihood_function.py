@@ -14,6 +14,8 @@ import json
 import os
 import warnings
 
+from unittest import TestCase, main
+
 import numpy
 
 from numpy import dot, ones
@@ -40,7 +42,6 @@ from cogent3.evolve.models import (
 )
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
-from cogent3.util.unit_test import TestCase, main
 
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
@@ -268,7 +269,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod)
         likelihood_function.set_param_rule("omega", value=0.5, is_constant=True)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -103.05742415448259)
+        assert_allclose(evolve_lnL, -103.05742415448259)
 
     def test_nucleotide(self):
         """test a nucleotide model."""
@@ -279,7 +280,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod)
         self.assertEqual(likelihood_function.get_num_free_params(), 0)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -148.6455087258624)
+        assert_allclose(evolve_lnL, -148.6455087258624)
 
     def test_solved_nucleotide(self):
         """test a solved nucleotide model."""
@@ -313,7 +314,7 @@ class LikelihoodCalcs(TestCase):
         )
         likelihood_function = self._makeLikelihoodFunction(submod)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -118.35045332768402)
+        assert_allclose(evolve_lnL, -118.35045332768402)
 
     def test_protein(self):
         """test a protein model."""
@@ -322,7 +323,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod, translate=True)
 
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -91.35162044257062)
+        assert_allclose(evolve_lnL, -91.35162044257062)
 
 
 class LikelihoodFunctionTests(TestCase):
@@ -376,10 +377,10 @@ class LikelihoodFunctionTests(TestCase):
         nfp = lf.get_num_free_params()
         lnL = lf.get_log_likelihood()
         l = len(self.data)
-        self.assertFloatEqual(lf.get_aic(), aic(lnL, nfp))
-        self.assertFloatEqual(lf.get_aic(second_order=True), aic(lnL, nfp, l))
+        assert_allclose(lf.get_aic(), aic(lnL, nfp))
+        assert_allclose(lf.get_aic(second_order=True), aic(lnL, nfp, l))
 
-        self.assertFloatEqual(lf.get_bic(), bic(lnL, nfp, l))
+        assert_allclose(lf.get_bic(), bic(lnL, nfp, l))
 
     def test_result_str(self):
         # actualy more a test of self._setLengthsAndBetas()
@@ -707,8 +708,8 @@ DogFaced     root      1.0000    1.0000
         Q = lf.get_rate_matrix_for_edge("NineBande", calibrated=False)
         Q2 = lf.get_rate_matrix_for_edge("NineBande", calibrated=True)
         P = lf.get_psub_for_edge("NineBande")
-        self.assertFloatEqual(expm(Q.array)(1.0), P.array)
-        self.assertFloatEqual(expm(Q2.array)(length), P.array)
+        assert_allclose(expm(Q.array)(1.0), P.array)
+        assert_allclose(expm(Q2.array)(length), P.array)
 
         # should fail for a discrete Markov model
         dm = ns_substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
@@ -805,7 +806,7 @@ DogFaced     root      1.0000    1.0000
             for rule in rules:
                 lf.set_param_rule(**rule)
         new_lnL = lf.get_log_likelihood()
-        self.assertFloatEqual(new_lnL, lnL)
+        assert_allclose(new_lnL, lnL)
 
     def test_get_param_rules_discrete(self):
         """discrete time models produce valid rules"""
@@ -1074,7 +1075,7 @@ DogFaced     root      1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_diff(self):
         """non-reversible likelihood initialised from nested, non-scoped, time-reversible"""
@@ -1099,7 +1100,7 @@ DogFaced     root      1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr(self):
         """time-reversible likelihood initialised from nested, non-scoped, time-reversible"""
@@ -1123,7 +1124,7 @@ DogFaced     root      1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GTR")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr_scoped(self):
         """time-reversible likelihood initialised from nested, scoped, time-reversible"""
@@ -1150,7 +1151,7 @@ DogFaced     root      1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GTR")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_nr(self):
         """non-reversible likelihood initialised from nested, non-scoped, non-reversible"""
@@ -1183,7 +1184,7 @@ DogFaced     root      1.0000    1.0000
         glf.initialise_from_nested(slf)
         expect = slf.get_log_likelihood()
         got = glf.get_log_likelihood()
-        self.assertFloatEqual(got, expect)
+        assert_allclose(got, expect)
 
     def test_initialise_from_nested_same_type_nr_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, non-reversible"""
@@ -1229,7 +1230,7 @@ DogFaced     root      1.0000    1.0000
         lf.set_param_rule("kappa", init=1)
         lf.set_param_rule("length", edge="a", init=length)
         len_dict = lf.get_lengths_as_ens()
-        self.assertFloatEqual(len_dict["a"], length)
+        assert_allclose(len_dict["a"], length)
 
     def test_get_lengths_as_ens_not_equal(self):
         """lengths do not equal ENS for a non-reversible model"""

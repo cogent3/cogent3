@@ -8,6 +8,7 @@ import unittest
 
 from copy import copy, deepcopy
 from tempfile import TemporaryDirectory
+from unittest import TestCase, main
 
 from numpy import arange, array
 
@@ -16,7 +17,6 @@ from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance, open_
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
@@ -38,6 +38,9 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_equal
+
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
@@ -1125,7 +1128,7 @@ class TreeNodeTests(TestCase):
         """make_tree_array maps nodes to the descendants in them"""
         tree = self.TreeRoot
         result, node_list = tree.make_tree_array()
-        self.assertEqual(
+        assert_equal(
             result, array([[1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 1, 0], [0, 0, 1, 0]])
         )
         nodes = [node.name for node in node_list]
@@ -1133,7 +1136,7 @@ class TreeNodeTests(TestCase):
         # test if works with a dec_list supplied
         dec_list = ["d", "added", "e", "g", "h"]
         result2, node_list = tree.make_tree_array(dec_list)
-        self.assertEqual(
+        assert_equal(
             result2,
             array([[1, 0, 1, 1, 1], [1, 0, 1, 1, 0], [1, 0, 1, 1, 0], [0, 0, 0, 1, 0]]),
         )
@@ -1460,12 +1463,12 @@ class PhyloNodeTests(TestCase):
         names = ["H", "G", "M"]
         exp = (array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]]), nodes)
         obs = self.t.tip_to_tip_distances(endpoints=names)
-        self.assertEqual(obs[0], exp[0])
-        self.assertEqual(obs[1], exp[1])
+        assert_equal(obs[0], exp[0])
+        assert_equal(obs[1], exp[1])
 
         obs = self.t.tip_to_tip_distances(endpoints=nodes)
-        self.assertEqual(obs[0], exp[0])
-        self.assertEqual(obs[1], exp[1])
+        assert_equal(obs[0], exp[0])
+        assert_equal(obs[1], exp[1])
 
     def test_prune(self):
         """prune should reconstruct correct topology and Lengths of tree."""
@@ -1597,13 +1600,9 @@ class PhyloNodeTests(TestCase):
         nontipnames = [t.name for t in tree.nontips()]
 
         self.assertTrue(tmid.is_root())
-        self.assertFloatEqual(
-            tmid.distance(tmid.get_node_matching_name("BLO_2")), 0.649351
-        )
-        self.assertFloatEqual(
-            tmid.distance(tmid.get_node_matching_name("BLO_1")), 0.649351
-        )
-        self.assertFloatEqual(tmid[0].distance(tmid[1]), 2.0 * 0.649351)
+        assert_allclose(tmid.distance(tmid.get_node_matching_name("BLO_2")), 0.649351)
+        assert_allclose(tmid.distance(tmid.get_node_matching_name("BLO_1")), 0.649351)
+        assert_allclose(tmid[0].distance(tmid[1]), 2.0 * 0.649351)
 
     def test_set_tip_distances(self):
         """set_tip_distances should correctly set tip distances."""
@@ -1680,13 +1679,13 @@ class _tip_tip_distances_I:
         """tip_to_tip should work for one-level multifurcating tree"""
         matrix, order = self.fun(self.root_one_level)
         self.assertEqual([i.name for i in order], list("abc"))
-        self.assertEqual(matrix, array([[0, 3, 4], [3, 0, 5], [4, 5, 0]]))
+        assert_equal(matrix, array([[0, 3, 4], [3, 0, 5], [4, 5, 0]]))
 
     def test_two_level(self):
         """tip_to_tip should work for two-level tree"""
         matrix, order = self.fun(self.root_two_level)
         self.assertEqual([i.name for i in order], list("abcd"))
-        self.assertFloatEqual(
+        assert_allclose(
             matrix,
             array([[0, 3, 4, 1.4], [3, 0, 5, 2.4], [4, 5, 0, 3.4], [1.4, 2.4, 3.4, 0]]),
         )
@@ -1704,15 +1703,15 @@ class Test_tip_tip_distances_array(_tip_tip_distances_I, TestCase):
         """tip_to_tip should work for small but complex tree"""
         dist, tips = self.fun(self.root_std)
         tips = [tip.name for tip in tips]
-        self.assertEqual(dist, tree_std_dist)
-        self.assertEqual(tips, tree_std_tips)
+        assert_equal(dist, tree_std_dist)
+        assert_equal(tips, tree_std_tips)
 
     def test_one_child(self):
         """tip_to_tip should work for tree with a single child"""
         dist, tips = self.fun(self.root_one_child)
         tips = [tip.name for tip in tips]
-        self.assertEqual(dist, tree_one_child_dist)
-        self.assertEqual(tips, tree_one_child_tips)
+        assert_equal(dist, tree_one_child_dist)
+        assert_equal(tips, tree_one_child_tips)
 
 
 # for use with testing iterative copy method
@@ -2110,15 +2109,13 @@ class TestTree(TestCase):
 
         # sameroot should have longer root to tip dists
         for tip in t1.tips():
-            self.assertFloatEqual(t1.distance(tip), true_root_dists[tip.name])
+            assert_allclose(t1.distance(tip), true_root_dists[tip.name])
         for tip in subtree.tips():
-            self.assertFloatEqual(subtree.distance(tip), true_sub_root_dists[tip.name])
+            assert_allclose(subtree.distance(tip), true_sub_root_dists[tip.name])
         for tip in sub_sameroot.tips():
-            self.assertFloatEqual(sub_sameroot.distance(tip), true_root_dists[tip.name])
+            assert_allclose(sub_sameroot.distance(tip), true_root_dists[tip.name])
         for tip in sub_sameroot2.tips():
-            self.assertFloatEqual(
-                sub_sameroot2.distance(tip), true_root_dists[tip.name]
-            )
+            assert_allclose(sub_sameroot2.distance(tip), true_root_dists[tip.name])
 
     def test_getsubtree_5(self):
         """get sub tree correctly uses tips only if specified"""

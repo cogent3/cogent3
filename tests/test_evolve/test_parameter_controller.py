@@ -1,12 +1,12 @@
 import os
 import warnings
 
+from unittest import TestCase, main
+
 import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
 
 from cogent3 import make_aligned_seqs, make_tree
-from cogent3.maths import optimisers
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Peter Maxwell"
@@ -17,6 +17,9 @@ __version__ = "2020.7.2a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_almost_equal
+
 
 base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")
@@ -68,8 +71,10 @@ class test_parameter_controller(TestCase):
 
         def compare_mprobs(got, exp):
             # handle min val
-            for e in got:
-                self.assertFloatEqual(got[e], exp[e], eps=3e-6)
+            motifs = list(got)
+            assert_almost_equal(
+                [got[m] for m in motifs], [exp[m] for m in motifs], decimal=5
+            )
 
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             model_gaps=True, motif_probs=None
@@ -83,7 +88,7 @@ class test_parameter_controller(TestCase):
         compare_mprobs(got, mprobs)
 
         lf.set_motif_probs_from_data(self.al[:1], is_constant=True)
-        self.assertFloatEqual(lf.get_motif_probs()["G"], 0.6, eps=3e-6)
+        assert_almost_equal(lf.get_motif_probs()["G"], 0.6, decimal=4)
 
         lf.set_motif_probs_from_data(self.al[:1], pseudocount=1)
         self.assertNotEqual(lf.get_motif_probs()["G"], 0.6)
@@ -102,7 +107,7 @@ class test_parameter_controller(TestCase):
             "G": 7.5 / 27,
         }
         compare_mprobs(motif_probs, correct_probs)
-        self.assertFloatEqual(sum(motif_probs.values()), 1.0)
+        assert_allclose(sum(motif_probs.values()), 1.0)
 
     def test_setMultiLocus(self):
         """2 loci each with own mprobs"""
