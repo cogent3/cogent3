@@ -21,6 +21,7 @@ from cogent3 import load_table, make_table
 from cogent3.format.table import (
     formatted_array,
     get_continuation_tables_headers,
+    is_html_markup,
 )
 from cogent3.parse.table import FilteringParser
 from cogent3.util.misc import get_object_provenance, open_
@@ -221,7 +222,8 @@ class TableTests(TestCase):
     def test_indexing_rows(self):
         """works using names or ints"""
         t = Table(header=self.t7_header, data=self.t7_rows, index="gene")
-        self.assertEqual(t["ENSG00000019485", "chrom"], "A")
+        got = t["ENSG00000019485", "chrom"]
+        self.assertEqual(got, "A")
 
     def test_immutability_cells(self):
         """table cells are immutable"""
@@ -270,6 +272,25 @@ class TableTests(TestCase):
         # using numpy arrays for rows and columns
         got_np = t[indices, numpy.array([True, False, True, True])]
         assert_equal(got_np.array, got.array)
+
+    def test_slicing_with_index(self):
+        """different slice types work when index_name defined"""
+        # slicing by int works with index too
+        t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
+        got = t[[1]]
+        self.assertEqual(got.columns["edge.name"], "NineBande")
+        self.assertEqual(got.shape, (1, t.shape[1]))
+        for v, dtype in [(1, None), (1, object), ("NineBande", "U")]:
+            got = t[numpy.array([v], dtype=dtype)]
+            self.assertEqual(got.columns["edge.name"], "NineBande")
+            self.assertEqual(got.shape, (1, t.shape[1]))
+
+        # works if, for some reason, the index column has floats
+        t = Table(header=self.t7_header, data=self.t7_rows, index="stat")
+        got = t[[1827.5580]]
+        self.assertEqual(got.shape, (1, t.shape[1]))
+        got = t[numpy.array([1827.5580])]
+        self.assertEqual(got.shape, (1, t.shape[1]))
 
     def test_specifying_space(self):
         """controls spacing in simple format"""
@@ -624,6 +645,16 @@ class TableTests(TestCase):
         # index col is the first one, and the data can be indexed
         self.assertEqual(t.columns.order[0], "edge.names")
         self.assertEqual(t["Human", "edge.parent"], "edge.0")
+
+        # providing path raises TypeError
+        with self.assertRaises(TypeError):
+            make_table("some_path.tsv")
+
+        with self.assertRaises(TypeError):
+            make_table(header="some_path.tsv")
+
+        with self.assertRaises(TypeError):
+            make_table(data="some_path.tsv")
 
     def test_modify_title_legend(self):
         """reflected in persistent attrs"""
@@ -1074,6 +1105,17 @@ class TableTests(TestCase):
         table = make_table(header=["a"])
         self.assertEqual(str(table), "=\na\n-\n-")
 
+    def test_str_object_col(self):
+        """str works when a column has complex object"""
+        # data has tuples in an array
+        data = dict(
+            key=numpy.array([("a", "c"), ("b", "c"), ("a", "d")], dtype="O"),
+            count=[1, 3, 2],
+        )
+        t = Table(data=data)
+        got = str(t)
+        self.assertEqual(len(got.splitlines()), 7)
+
     def test_str_md_format(self):
         """str() produces markdown table"""
         md_table = make_table(
@@ -1142,6 +1184,51 @@ class TableTests(TestCase):
         tex = tex.splitlines()
         self.assertEqual(tex[2], r"\caption{a title.}")
         self.assertEqual(tex[3], r"\label{table}")
+
+    def test_to_html(self):
+        """generates html table within c3table div"""
+        # with no index, or title, or legend
+        import re
+
+        t = Table(header=self.t8_header, data=self.t8_rows)
+        got = t.to_html()
+        # make sure tags are matched
+        for tag in ("div", "style", "table", "thead"):
+            self.assertEqual(len(re.findall(f"<[/]*{tag}.*>", got)), 2)
+
+        self.assertEqual(len(re.findall(f"<[/]*tr>", got)), 4)
+        # 2 columns should be left aligned, 4 right aligned
+        # adding 1 for the CSS style definition
+        self.assertEqual(got.count("c3col_left"), 4 + 1)
+        self.assertEqual(got.count("c3col_right"), 8 + 1)
+        self.assertEqual(got.count("cell_title"), 1)  # CSS defn only
+        num_spans = got.count("span")
+        num_caption = got.count("caption")
+
+        t = Table(header=self.t8_header, data=self.t8_rows, title="a title")
+        got = t.to_html()
+        self.assertEqual(got.count("cell_title"), 2)
+        # number of spans increases by 2 to enclose the title
+        self.assertEqual(got.count("span"), num_spans + 2)
+        self.assertEqual(got.count("caption"), num_caption + 2)
+
+        t = Table(header=self.t8_header, data=self.t8_rows, legend="a legend")
+        got = t.to_html()
+        self.assertEqual(got.count("cell_title"), 1)
+        # cell_legend not actually defined in CSS yet
+        self.assertEqual(got.count("cell_legend"), 1)
+        # number of spans increases by 2 to enclose the title
+        self.assertEqual(got.count("span"), num_spans + 2)
+        self.assertEqual(got.count("caption"), num_caption + 2)
+
+        t = Table(
+            header=self.t8_header, data=self.t8_rows, title="a title", legend="a legend"
+        )
+        got = t.to_html()
+        self.assertEqual(got.count("cell_title"), 2)
+        # cell_legend not actually defined in CSS yet
+        self.assertEqual(got.count("cell_legend"), 1)
+        self.assertEqual(got.count("caption"), num_caption + 2)
 
     def test_invalid_format(self):
         """should raise value error"""
@@ -1290,6 +1377,11 @@ class TableTests(TestCase):
             self.assertEqual(got.shape, t.shape)
             self.assertEqual(got.header, t.header)
             assert_equal(got.array, t.array)
+
+    def test_load_table_invalid_type(self):
+        """raises TypeError if filename invalid type"""
+        with self.assertRaises(TypeError):
+            load_table({"a": [0, 1]})
 
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""
@@ -1464,9 +1556,14 @@ class TableTests(TestCase):
         # no index
         t = Table(header=self.t8_header, data=self.t8_rows)
         _ = t._repr_html_()
+
         # with an index
         t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
-        _ = t._repr_html_()
+        got = t._repr_html_()
+        # and the index column should contain "index" css class
+        self.assertEqual(
+            got.count("index"), t.shape[0] + 1
+        )  # add 1 for CSS style sheet
 
         # data has tuples in an array
         data = dict(
@@ -1480,6 +1577,23 @@ class TableTests(TestCase):
         table = make_table(header=["a", "b"])
         table.columns["a"] = ["a"]
         _ = t._repr_html_()
+
+        # single column with a single value should not fail
+        table = make_table(data={"kappa": [3.2]}, title="a title")
+        _ = table._repr_html_()
+
+        # set head and tail, introduces ellipsis row class
+        table = make_table(data={"A": list("abcdefghijk"), "B": list(range(11))})
+        table.set_repr_policy(head=8, tail=1)
+        got = table._repr_html_().splitlines()
+        num_rows = 0
+        for l in got:
+            if "<tr>" in l:
+                num_rows += 1
+                if "ellipsis" in l:
+                    break
+
+        self.assertEqual(num_rows, 9)
 
     def test_array(self):
         """should produce array"""
@@ -1568,7 +1682,10 @@ class TableTests(TestCase):
         t.tail(nrows=3)
         self.assertEqual(tail.data.shape[0], 3)
         self.assertEqual(len(tail.output.splitlines()), 9)
-        self.assertEqual(tail.data.tolist(), self.t1_rows[-3:])
+        self.assertEqual(
+            [int(v) for v in tail.data[:, -1].tolist()],
+            [r[-1] for r in self.t1_rows[-3:]],
+        )
         # tests when number of rows < default
         t = make_table(data=dict(a=["a"], b=["b"]))
         t.tail()
@@ -1785,6 +1902,17 @@ class TableTests(TestCase):
         table = make_table(header=["", "Ts", "Tv"], data=data, index="")
         with self.assertRaises(TypeError):
             table.to_categorical(columns=["Ts", "Tv"])
+
+    def test_is_html_markup(self):
+        """format function confirms correctly specified html"""
+        self.assertTrue(is_html_markup("<table>blah</table>"))
+        self.assertTrue(is_html_markup("<table>blah<table>blah</table></table>"))
+        self.assertTrue(is_html_markup("<i>blah</i><sub>blah</sub>"))
+        self.assertTrue(is_html_markup("<i>blah</i>\n<sub>blah</sub>"))
+        self.assertFalse(is_html_markup("<table>blah</tabl>"))
+        self.assertFalse(is_html_markup("<table>"))
+        self.assertFalse(is_html_markup("blah < blah"))
+        self.assertFalse(is_html_markup("blah > blah"))
 
 
 if __name__ == "__main__":

@@ -396,15 +396,15 @@ number of free parameters = 0\n\
 4.0000
 ------
 =============================
-     edge    parent    length
+edge         parent    length
 -----------------------------
-    Human    edge.0    0.3000
+Human        edge.0    0.3000
 HowlerMon    edge.0    0.4000
-   edge.0    edge.1    0.7000
-    Mouse    edge.1    0.5000
-   edge.1      root    0.6000
-NineBande      root    0.2000
- DogFaced      root    0.1000
+edge.0       edge.1    0.7000
+Mouse        edge.1    0.5000
+edge.1       root      0.6000
+NineBande    root      0.2000
+DogFaced     root      0.1000
 -----------------------------
 ====================================
      A         C         G         T
@@ -420,15 +420,15 @@ NineBande      root    0.2000
 log-likelihood = -382.5399
 number of free parameters = 14
 ===============================
-     edge  parent  length  beta
+edge       parent  length  beta
 -------------------------------
-    Human  edge.0    1.00  1.00
+Human      edge.0    1.00  1.00
 HowlerMon  edge.0    1.00  1.00
-   edge.0  edge.1    1.00  1.00
-    Mouse  edge.1    1.00  1.00
-   edge.1    root    1.00  1.00
-NineBande    root    1.00  1.00
- DogFaced    root    1.00  1.00
+edge.0     edge.1    1.00  1.00
+Mouse      edge.1    1.00  1.00
+edge.1     root      1.00  1.00
+NineBande  root      1.00  1.00
+DogFaced   root      1.00  1.00
 -------------------------------
 ======================
    A     C     G     T
@@ -575,45 +575,15 @@ number of free parameters = 0
 6.0000
 ------
 =============================
-     edge    parent    length
+edge         parent    length
 -----------------------------
-    Human    edge.0    4.0000
+Human        edge.0    4.0000
 HowlerMon    edge.0    4.0000
-   edge.0    edge.1    4.0000
-    Mouse    edge.1    4.0000
-   edge.1      root    4.0000
-NineBande      root    4.0000
- DogFaced      root    4.0000
------------------------------
-====================================
-     A         C         G         T
-------------------------------------
-0.2500    0.2500    0.2500    0.2500
-------------------------------------""",
-        )
-
-        # self.submodel.setScaleRule("ts",['beta'])
-        # self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
-        self.assertEqual(
-            str(likelihood_function),
-            """Likelihood function statistics
-log-likelihood = -413.1886
-number of free parameters = 0
-======
-  beta
-------
-6.0000
-------
-=============================
-     edge    parent    length
------------------------------
-    Human    edge.0    4.0000
-HowlerMon    edge.0    4.0000
-   edge.0    edge.1    4.0000
-    Mouse    edge.1    4.0000
-   edge.1      root    4.0000
-NineBande      root    4.0000
- DogFaced      root    4.0000
+edge.0       edge.1    4.0000
+Mouse        edge.1    4.0000
+edge.1       root      4.0000
+NineBande    root      4.0000
+DogFaced     root      4.0000
 -----------------------------
 ====================================
      A         C         G         T
@@ -658,15 +628,15 @@ NineBande      root    4.0000
 log-likelihood = -382.5399
 number of free parameters = 14
 =======================================
-     edge    parent    length      beta
+edge         parent    length      beta
 ---------------------------------------
-    Human    edge.0    1.0000    1.0000
+Human        edge.0    1.0000    1.0000
 HowlerMon    edge.0    1.0000    1.0000
-   edge.0    edge.1    1.0000    1.0000
-    Mouse    edge.1    1.0000    1.0000
-   edge.1      root    1.0000    1.0000
-NineBande      root    1.0000    1.0000
- DogFaced      root    1.0000    1.0000
+edge.0       edge.1    1.0000    1.0000
+Mouse        edge.1    1.0000    1.0000
+edge.1       root      1.0000    1.0000
+NineBande    root      1.0000    1.0000
+DogFaced     root      1.0000    1.0000
 ---------------------------------------
 ====================================
      A         C         G         T

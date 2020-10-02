@@ -508,14 +508,7 @@ class LikelihoodFunction(ParameterController):
                 "motif" in table.title and table.shape[1] == 2 and table.shape[0] >= 60
             ):  # just sort codon motif probs, then truncate
                 table = table.sorted(columns="motif")
-                data = table.tolist()
-                data = data[:5] + [["...", "..."]] + data[-5:]
-                table = table.__class__(
-                    header=table.header,
-                    data=data,
-                    digits=table._digits,
-                    title=table.title,
-                )
+                table.set_repr_policy(head=5, tail=5, show_shape=False)
                 result[i] = table
         return title, result
 

@@ -13,6 +13,7 @@ Table can read pickled and delimited formats.
 import csv
 import json
 import pickle
+import re
 
 from collections import defaultdict
 from collections.abc import Callable, MutableMapping
@@ -23,7 +24,6 @@ import numpy
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
-from cogent3.format.table import formatted_array
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import (
     atomic_write,
@@ -94,6 +94,14 @@ def _callback(callback, row, num_columns=None):
         return callback(row)
     else:
         return eval(callback, {}, row)
+
+
+_num_type = re.compile("^(float|int|complex)").search
+
+
+def array_is_num_type(data):
+    """whether data has a dtype for int, float or complex"""
+    return _num_type(data.dtype.name) != None
 
 
 def cast_str_to_numeric(values):
@@ -252,6 +260,7 @@ class Columns(MutableMapping):
         if isinstance(key, slice):
             key, _ = self._template.interpret_index(key)
             key = self._order[key[0]]
+
         if isinstance(key, numpy.ndarray):
             key = numpy.array(self._order)[key].tolist()
 
@@ -584,6 +593,9 @@ class Table:
         index_name = attr.pop("index")
         result = self.__class__(**attr)
         for c in columns:
+            if len(self.columns[c]) == 0:
+                continue
+
             result.columns[c] = self.columns[c][rows]
 
         if index_name in result.columns:
@@ -619,6 +631,9 @@ class Table:
             return "0 rows x 0 columns"
 
         table, shape_info, unset_columns = self._get_repr_()
+        if self.shape[0] == 0:
+            return "\n".join([shape_info, unset_columns])
+
         if not self._repr_policy["show_shape"]:
             shape_info = ""
         result = (
@@ -639,17 +654,12 @@ class Table:
         rn = self._repr_policy["random"]
         head = self._repr_policy["head"]
         tail = self._repr_policy["tail"]
-        if head is None and tail is None:
-            if self.shape[0] < 50:
-                head = self.shape[0]
-                tail = None
-            else:
-                head, tail = 5, 5
+        if not any([head, tail]):
+            head, tail = (self.shape[0], None) if self.shape[0] < 50 else (5, 5)
             self._repr_policy["head"] = head
             self._repr_policy["tail"] = tail
 
         shape_info = ""
-        ellipsis = None
         if rn:
             indices = numpy.random.choice(self.shape[0], size=rn, replace=False)
             indices = list(sorted(indices))
@@ -658,7 +668,6 @@ class Table:
             indices = list(range(head)) + list(
                 range(self.shape[0] - tail, self.shape[0])
             )
-            ellipsis = "..."
             if head + tail < self.shape[0]:
                 shape_info = f"Top {head} and bottom {tail} rows from"
         elif head:
@@ -672,45 +681,24 @@ class Table:
         else:
             indices = list(range(self.shape[0]))
 
-        rows = {}
-        unset_columns = []
-        for c in self.header:
-            if len(self.columns[c]):
-                rows[c] = [self.columns[c][i] for i in indices]
-            else:
-                unset_columns.append(c)
-
-        if ellipsis:
-            for k, v in rows.items():
-                v.insert(head, ellipsis)
-
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
+        unset_columns = [c for c in self.header if not len(self.columns[c])]
         unset_columns = (
-            "unset columns: %s" % ", ".join(unset_columns) if unset_columns else None
+            "unset columns: %s" % ", ".join(map(repr, unset_columns))
+            if unset_columns
+            else None
         )
+        table = self[indices] if self.shape[0] > 0 else None
 
-        kwargs = self._get_persistent_attrs()
-        header = self.header
-        if rows.keys():
-            header = tuple(rows.keys())
-        table = self.__class__(header=header, data=rows, **kwargs)
-        table._column_templates.update(self._column_templates)
         return table, shape_info, unset_columns
 
     def _repr_html_(self):
         """returns html, used by Jupyter"""
-        base_colour = "rgba(161, 195, 209, {alpha})"
-        colour = base_colour.format(alpha=0.25)
-
-        def row_cell_func(val, row, col):
-            if self.index_name is not None and col == 0:
-                klass = f' class="index"'
-            else:
-                klass = ""
-            val = f"<td{klass}>{val}</td>"
-            return val
-
         table, shape_info, unset_columns = self._get_repr_()
+        if isinstance(table, numpy.ndarray):
+            # single row / column
+            table = self
+
         shape_info = (
             f"<p>{shape_info}; unset columns={unset_columns}</p>"
             if unset_columns
@@ -719,54 +707,39 @@ class Table:
         if not self._repr_policy["show_shape"]:
             shape_info = ""
 
-        if self.shape == (0, 0):
+        if self.shape[0] == 0:
             return shape_info
 
-        title, legend = table.title, table.legend
-        # current rich_html does not provide a good mechanism for custom
-        # formatting of titles, legends
-        table.title, table.legend = None, None
-        head_colour = base_colour.format(alpha=0.75)
-        element_format = dict(thead=f'<thead class="head_cell">')
-        html = table.to_rich_html(
-            row_cell_func=row_cell_func, element_formatters=element_format
-        )
-        if title or legend:
-            title = title or ""
-            legend = legend or ""
-            caption = (
-                "<caption>"
-                f'<span class="cell_title">{title}</span>'
-                f'<br><span class="cell_legend">{legend}</span></caption>'
-            )
-            html = html.splitlines()
-            html.insert(1, caption)
-            html = "\n".join(html)
+        html = table.to_html()
+        # add elipsis if head + row < self.shape[0]
         html = html.splitlines()
-        html.insert(
-            0,
-            "\n".join(
-                [
-                    "<style>",
-                    ".c3table table {margin: 10px 0;}",
-                    ".c3table tr:last-child {border-bottom: 1px solid #000;} ",
-                    ".c3table tr > th {text-align: center !important; padding: 0 5px;}",
-                    ".c3table tr > td {text-align: right !important; padding: 5px;}",
-                    ".c3table tr:nth-child(even) {background: #f7f7f7;}",
-                    ".c3table .index {background: "
-                    + f"{colour}"
-                    + "; font-weight: 600;}",
-                    ".c3table .head_cell {background: "
-                    + f"{head_colour}"
-                    + "; font-weight: bold; text-align: center;}",
-                    ".c3table caption {color: rgb(250, 250, 250); background: rgba(30, 140, 200, 1); padding: 3px; white-space: nowrap; caption-side: top;}",
-                    ".c3table .cell_title {font-weight: bold;}",
-                    "</style>",
-                    '<div class="c3table">',
-                ]
-            ),
-        )
-        html = "\n".join(["\n".join(html), shape_info, "</div>"])
+        head = self._repr_policy.get("head") or self.shape[0]
+        tail = self._repr_policy.get("tail") or self.shape[0]
+        if head + tail < self.shape[0] and head and tail:
+            HE = table_format.HtmlElement
+            ellipsis = []
+            for c in table.columns:
+                if array_is_num_type(table.columns[c]):
+                    css_class = "c3col_right"
+                else:
+                    css_class = "c3col_left"
+
+                ellipsis.append(
+                    str(HE(HE("...", "span", css_classes=[css_class]), "td"))
+                )
+
+            ellipsis = str(HE("".join(ellipsis), "tr", css_classes="ellipsis"))
+            num_rows = 0
+            for idx in range(len(html)):
+                item = html[idx]
+                if "<tr>" in item:
+                    num_rows += 1
+                if num_rows == head:
+                    html.insert(idx + 1, ellipsis)
+                    break
+
+        html.insert(-1, shape_info)
+        html = "\n".join(html)
         return html
 
     def _get_persistent_attrs(self):
@@ -905,6 +878,7 @@ class Table:
     def index_name(self, name):
         self.columns.index_name = name
         self._index_name = name
+        self._persistent_attrs["index"] = name
         self._template = None if name is None else DictArrayTemplate(self.columns[name])
 
     @property
@@ -1505,11 +1479,7 @@ class Table:
         data = numpy.array(self.columns[columns], dtype="O").T
         for c in reverse:
             index = columns.index(c)
-            dtype = self.columns[c].dtype.name
-            if "int" in dtype or "float" in dtype or "complex" in dtype:
-                func = _reverse_num
-            else:
-                func = _reverse_str
+            func = _reverse_num if array_is_num_type(self.columns[c]) else _reverse_str
             func = numpy.vectorize(func)
             data[:, index] = func(data[:, index])
 
@@ -1533,14 +1503,21 @@ class Table:
             default str value for missing
         pad : bool
             if True, adds padding
+
+        Returns
+        -------
+        dict of formatted columns, list of [(name, length),..]
         """
         missing_data = missing_data or self._missing_data
         formatted = {}
-        col_widths = {}
+        col_widths = []
         for c in self.columns.order:
             data = self.columns[c]
+            if len(data) == 0:
+                continue
+
             format_spec = self._column_templates.get(c, None)
-            frmt, c, width = formatted_array(
+            frmt, c, width = table_format.formatted_array(
                 data,
                 c,
                 format_spec=format_spec,
@@ -1548,7 +1525,7 @@ class Table:
                 precision=self._digits,
                 pad=pad,
             )
-            col_widths[c] = width
+            col_widths.append((c, width))
             formatted[c] = frmt
 
         return formatted, col_widths
@@ -1571,6 +1548,8 @@ class Table:
         ordered.sort()
         formatted = [[c] + formatted_cols[c] for _, c in ordered]
         formatted = [list(e) for e in zip(*formatted)]
+        if not formatted and self.header:
+            formatted = [self.header]
         return formatted
 
     def to_csv(self, with_title=False, with_legend=False):
@@ -1736,34 +1715,50 @@ class Table:
         if sep == "\t":
             return self.to_tsv(**kwargs)
 
-        # convert self to a 2D list
-        if format != "phylip":
-            formatted_table = self._formatted(stripped=sep is not None)
-        else:
+        if format in ("rest", "rst"):
+            return self.to_rst(**kwargs)
+
+        if format in ("markdown", "md"):
+            return self.to_markdown(**kwargs)
+
+        if format.endswith("tex"):
+            return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
+
+        if format == "html":
+            return self.to_rich_html(**kwargs)
+
+        if format == "phylip":
+            # need to eliminate row identifiers
             columns = [c for c in self.columns if c != self.index_name]
             table = self[:, columns]
-            formatted_table = table._formatted(missing_data=missing_data)
+            formatted_table = table._formatted(missing_data="0.0000")
+            header = formatted_table.pop(0)
+            return table_format.phylip_matrix(formatted_table, header)
+
+        # convert self to a 2D list after caching current column templates
+        col_formats = {}
+        for c in self.columns:
+            if c in self._column_templates:
+                col_formats[c] = self._column_templates[c]
+                continue
+
+            col_formats[c] = ">" if array_is_num_type(self.columns[c]) else "<"
+
+        orig_formats = self._column_templates
+        self._column_templates = col_formats
+
+        formatted_table = self._formatted(stripped=sep is not None)
+        self._column_templates = orig_formats
 
         header = formatted_table.pop(0)
         args = (header, formatted_table, self.title, self.legend)
 
-        if format in ("rest", "rst"):
-            return self.to_rst(**kwargs)
-        elif format in ("markdown", "md"):
-            return self.to_markdown(**kwargs)
-        elif format.endswith("tex"):
-            return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
-        elif format == "html":
-            return self.to_rich_html(**kwargs)
-        elif format == "phylip":
-            # need to eliminate row identifiers
-            return table_format.phylip_matrix(formatted_table, header)
-        elif sep:
+        if sep:
             return table_format.separator_format(*args, sep=sep)
-        else:
-            return table_format.simple_format(
-                *args + (self._max_width, self.index_name, borders, self.space)
-            )
+
+        return table_format.simple_format(
+            *args + (self._max_width, self.index_name, borders, self.space)
+        )
 
     def to_tsv(self, with_title=False, with_legend=False):
         """return table formatted as tab separated values
@@ -1794,7 +1789,7 @@ class Table:
         element_formatters=None,
         merge_identical=False,
         compact=False,
-    ):
+    ):  # pragma: no cover
         """returns just the table as html.
 
         Parameters
@@ -1813,6 +1808,8 @@ class Table:
             cells within a row are merged to one span.
 
         """
+        deprecated("method", "to_rich_html", "to_html", "2021.10")
+
         element_formatters = element_formatters or {}
         formatted_table = self.array.tolist()
         header, formatted_table = table_format.formatted_cells(
@@ -1868,6 +1865,122 @@ class Table:
             )
             tables.append(subtable)
         return "\n".join(tables)
+
+    def to_html(self, column_alignment=None):
+        """construct html table
+
+        Parameters
+        ----------
+        column_alignment : dict
+            {col_name: alignment character, ...} where alignment character
+            can be one of 'l', 'c', 'r'. Defaults to 'r' for numeric columns,
+            'l' for text columns.
+
+        Returns
+        -------
+        string
+
+        Notes
+        -----
+        Placed within c3table div element, embeds CSS style.
+        """
+        column_alignment = column_alignment or {}
+        for c, v in column_alignment.items():
+            v = v.lower()
+            if v not in "clr":
+                raise ValueError(f"invalid column alignment value {v} for '{c}'")
+
+            column_alignment[c] = {
+                "c": "c3col_center",
+                "l": "c3col_left",
+                "r": "c3col_right",
+            }[v]
+
+        base_colour = "rgba(161, 195, 209, {alpha})"
+        # alpha applied to the index column background
+        alpha = 0.0 if self.index_name is None else 0.25
+
+        style = table_format.css_c3table_template % dict(
+            colour=base_colour.format(alpha=alpha),
+            head_colour=base_colour.format(alpha=0.75),
+        )
+
+        HtmlElement = table_format.HtmlElement
+        tables = [str(HtmlElement(style, "style", newline=True))]
+
+        cols, widths = self._formatted_by_col(pad=False)
+        headers = table_format.get_continuation_tables_headers(
+            widths,
+            index_name=self.index_name,
+            max_width=self._max_width,
+        )
+
+        for c in self.columns:
+            c = c.strip()
+            css_class = (
+                "c3col_right" if array_is_num_type(self.columns[c]) else "c3col_left"
+            )
+
+            css_class = [column_alignment.get(c, css_class)]
+            cols[c] = [
+                HtmlElement(
+                    HtmlElement(v, "span", css_classes=css_class),
+                    "td",
+                    css_classes=["index"] if c == self.index_name else None,
+                )
+                for v in cols[c]
+            ]
+
+        title = self.title if self.title else ""
+        if title and not table_format.is_html_markup(title):
+            title = escape(title)
+
+        legend = self.legend if self.legend else ""
+        if legend and not table_format.is_html_markup(legend):
+            legend = escape(legend)
+
+        for i, header in enumerate(headers):
+            if title and i == 0:
+                st = HtmlElement(title, "span", css_classes=["cell_title"])
+            elif title:
+                st = HtmlElement("continuation", "span", css_classes=["cell_title"])
+            else:
+                st = None
+
+            if st:
+                st = str(HtmlElement(str(st), "br"))
+
+            if legend and i == 0:
+                legend = HtmlElement(legend, "span", css_classes=["cell_legend"])
+                st = f"{st} {legend}" if st else f"{legend}"
+
+            caption = str(HtmlElement(st, "caption", newline=True)) if st else ""
+            rows = []
+            for i, row in enumerate(zip(*[cols[c] for c in header])):
+                txt = HtmlElement("".join([str(e) for e in row]), "tr")
+                rows.append(str(txt))
+
+            rows = str(HtmlElement("\n".join(rows), "tbody", newline=True))
+
+            if column_alignment:
+                header = [
+                    HtmlElement(c, "span", css_classes=column_alignment.get(c, None))
+                    for c in header
+                ]
+
+            header = "".join([str(HtmlElement(c, "th")) for c in header])
+            header = str(
+                HtmlElement(header, "thead", css_classes=["head_cell"], newline=True)
+            )
+
+            subtable = HtmlElement(
+                "".join([caption, header, rows]), "table", newline=True
+            )
+            tables.append(str(subtable))
+
+        return str(
+            HtmlElement("\n".join(tables), "div", css_classes=["c3table"], newline=True)
+        )
 
     def tolist(self, columns=None):
         """Returns raw data as a list

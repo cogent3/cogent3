@@ -19,12 +19,14 @@ class ExpectedImportError(ImportError):
     pass
 
 
-def fail(msg):
+def fail(msg):  # pragma: no cover
     print(msg, file=sys.stderr)
     raise ExpectedImportError
 
 
-def importVersionedModule(name, exec_globals, min_version, alt_desc):
+def importVersionedModule(
+    name, exec_globals, min_version, alt_desc
+):  # pragma: no cover
     if "COGENT3_PURE_PYTHON" in os.environ:
         fail('Not using compiled module "%s".  Will use %s.' % (name, alt_desc))
     try:

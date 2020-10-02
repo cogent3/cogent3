@@ -81,6 +81,24 @@ class TestModelResult(TestCase):
         got = result.alignment
         self.assertEqual(got.to_dict(), _data)
 
+    def test_model_name_lf_name(self):
+        """model_result.name is set as lf.name"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "F81",
+            name="blah",
+            show_progress=False,
+            opt_args=dict(max_evaluations=5, limit_action="ignore"),
+        )
+        result = mod(aln)
+        self.assertEqual(result.name, result.lf.name)
+        print(result)
+
     def test_model_result_alignment_split_pos_model(self):
         """returns alignment from lf with split codon positions"""
         _data = {
