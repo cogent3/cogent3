@@ -128,7 +128,7 @@ class InfoTests(TestCase):
         self.assertContains(d, "GenBank")
         d.GenBank = "xyz"
         self.assertEqual(d.GenBank, ["xyz"])
-        self.assertSameObj(d.GenBank, d.Refs.GenBank)
+        self.assertIs(d.GenBank, d.Refs.GenBank)
         d.GO = "x"
         self.assertEqual(d.GO, ["x"])
         d.GO.append("y")
@@ -143,8 +143,8 @@ class InfoTests(TestCase):
         """Info should get its own new Refs when created"""
         i = Info()
         j = Info()
-        self.assertNotSameObj(i, j)
-        self.assertNotSameObj(i.Refs, j.Refs)
+        self.assertIsNot(i, j)
+        self.assertIsNot(i.Refs, j.Refs)
 
     def test_update(self):
         """update should warn the user of overlapping keys"""

@@ -969,29 +969,29 @@ class TestCaseTests(TestCase):
 
     def test_assertSameObj_true(self):
         """assertSameObj should pass when 'a is b'"""
-        self.assertSameObj("foo", "foo")
-        self.assertSameObj(None, None)
+        self.assertIs("foo", "foo")
+        self.assertIs(None, None)
         bar = lambda x: 5
-        self.assertSameObj(bar, bar)
+        self.assertIs(bar, bar)
 
     def test_assertSameObj_false(self):
         """assertSameObj should raise when 'a is not b'"""
-        self.assertRaises(AssertionError, self.assertSameObj, "foo", "bar")
-        self.assertRaises(AssertionError, self.assertSameObj, None, "bar")
-        self.assertRaises(AssertionError, self.assertSameObj, lambda x: 5, lambda y: 6)
+        self.assertRaises(AssertionError, self.assertIs, "foo", "bar")
+        self.assertRaises(AssertionError, self.assertIs, None, "bar")
+        self.assertRaises(AssertionError, self.assertIs, lambda x: 5, lambda y: 6)
 
     def test_assertNotSameObj_true(self):
         """assertNotSameObj should pass when 'a is not b'"""
-        self.assertNotSameObj("foo", "bar")
-        self.assertNotSameObj(None, 5)
-        self.assertNotSameObj(lambda x: 5, lambda y: 6)
+        self.assertIsNot("foo", "bar")
+        self.assertIsNot(None, 5)
+        self.assertIsNot(lambda x: 5, lambda y: 6)
 
     def test_assertNotSameObj_false(self):
         """assertSameObj should raise when 'a is b'"""
-        self.assertRaises(AssertionError, self.assertNotSameObj, "foo", "foo")
-        self.assertRaises(AssertionError, self.assertNotSameObj, None, None)
+        self.assertRaises(AssertionError, self.assertIsNot, "foo", "foo")
+        self.assertRaises(AssertionError, self.assertIsNot, None, None)
         bar = lambda x: 5
-        self.assertRaises(AssertionError, self.assertNotSameObj, bar, bar)
+        self.assertRaises(AssertionError, self.assertIsNot, bar, bar)
 
 
 if __name__ == "__main__":

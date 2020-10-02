@@ -578,12 +578,12 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(t2.tips()), 1024)
         self.assertEqual(len(t3.tips()), 1024)
 
-        self.assertNotSameObj(t, t2)
+        self.assertIsNot(t, t2)
         self.assertEqual(t.name, t2.name)
         self.assertNotEqual(t.name, t3.name)
 
         self.assertEqual(t.XYZ, t2.XYZ)
-        self.assertNotSameObj(t.XYZ, t2.XYZ)
+        self.assertIsNot(t.XYZ, t2.XYZ)
 
         self.assertEqual(t.get_newick(), t2.get_newick())
 

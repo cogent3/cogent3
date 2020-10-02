@@ -128,10 +128,10 @@ class SpanTests(TestCase):
         second = [r, o, f, s, e, i, n]
         second.sort()
         for i, j in zip(first, second):
-            self.assertSameObj(i, j)
+            self.assertIs(i, j)
 
         for i, j in zip(first, expected_order):
-            self.assertSameObj(i, j)
+            self.assertIs(i, j)
 
     def test_sort(self):
         """Span should support sort by 1st/2nd index and direction"""
@@ -151,7 +151,7 @@ class SpanTests(TestCase):
         first.sort()
 
         for i, j in zip(first, expected_order):
-            self.assertSameObj(i, j)
+            self.assertIs(i, j)
 
     def test_starts_before(self):
         """Span starts_before should match hand-calculated results"""

@@ -510,29 +510,3 @@ class TestCase(orig_TestCase):
             raise self.failureException(
                 msg or "p-value %s, G-test p %s" % (repr(pvalue), repr(p))
             )
-
-    def assertSameObj(self, observed, expected, msg=None):
-        """Fail if 'observed is not expected'"""
-        try:
-            if observed is expected:
-                return
-        except:
-            pass
-        raise self.failureException(
-            msg
-            or "Observed %s is not the same as expected %s"
-            % (repr(observed), repr(expected))
-        )
-
-    def assertNotSameObj(self, observed, expected, msg=None):
-        """Fail if 'observed is expected'"""
-        try:
-            if observed is not expected:
-                return
-        except:
-            pass
-        raise self.failureException(
-            msg
-            or "Observed %s is the same as expected %s"
-            % (repr(observed), repr(expected))
-        )

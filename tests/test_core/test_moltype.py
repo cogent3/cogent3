@@ -172,12 +172,12 @@ class make_pairs_tests(TestCase):
     def test_init_pairs(self):
         """make_pairs with just pairs should equal the original"""
         self.assertEqual(make_pairs(self.pairs), self.pairs)
-        self.assertNotSameObj(make_pairs(self.pairs), self.pairs)
+        self.assertIsNot(make_pairs(self.pairs), self.pairs)
 
     def test_init_monomers(self):
         """make_pairs with pairs and monomers should equal just the pairs"""
         self.assertEqual(make_pairs(self.pairs, "ABCDEFG"), self.pairs)
-        self.assertNotSameObj(make_pairs(self.pairs, "ABCDEFG"), self.pairs)
+        self.assertIsNot(make_pairs(self.pairs, "ABCDEFG"), self.pairs)
 
     def test_init_gaps(self):
         """make_pairs should add all combinations of gaps as weak pairs"""
@@ -229,15 +229,15 @@ class CoreObjectGroupTests(TestCase):
 
         base = o("base")
         c = CoreObjectGroup(base)
-        self.assertSameObj(c.base, base)
-        self.assertSameObj(c.degen, None)
-        self.assertSameObj(c.base.degen, None)
+        self.assertIs(c.base, base)
+        self.assertIs(c.degen, None)
+        self.assertIs(c.base.degen, None)
 
         base, degen, gap, degengap = list(map(o, ["base", "degen", "gap", "degengap"]))
         c = CoreObjectGroup(base, degen, gap, degengap)
-        self.assertSameObj(c.base, base)
-        self.assertSameObj(c.base.degen, degen)
-        self.assertSameObj(c.degen.gapped, degengap)
+        self.assertIs(c.base, base)
+        self.assertIs(c.base.degen, degen)
+        self.assertIs(c.degen.gapped, degengap)
 
 
 class AlphabetGroupTests(TestCase):
@@ -511,7 +511,7 @@ class MolTypeTests(TestCase):
         self.assertNotEqual(t, u)
         self.assertEqual(d(tuple("UCAG"), "random"), tuple("UCAG"))
         self.assertEqual(len(s), len(t))
-        self.assertSameObj(RnaMolType.first_degenerate(t), None)
+        self.assertIs(RnaMolType.first_degenerate(t), None)
         # should raise exception on unknown disambiguation method
         self.assertRaises(NotImplementedError, d, s, "xyz")
 
