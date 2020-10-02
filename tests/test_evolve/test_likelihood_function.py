@@ -1338,6 +1338,14 @@ DogFaced     root      1.0000    1.0000
             motif_probs = d["motif_probs"]
             self.assertEqual(alignment[loci_name], loci[i].to_rich_dict())
             self.assertEqual(motif_probs[loci_name], loci[i].get_motif_probs())
+        # tests single alignment
+        lf = model.make_likelihood_function(tree)
+        lf.set_alignment(aln1)
+        d = lf.to_rich_dict()
+        alignment = d["alignment"]
+        motif_probs = d["motif_probs"]
+        self.assertEqual(alignment, aln1.to_rich_dict())
+        self.assertEqual(motif_probs, aln1.get_motif_probs())
 
     def test_repr(self):
         """repr should not fail"""
