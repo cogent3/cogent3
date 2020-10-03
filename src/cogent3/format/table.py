@@ -13,8 +13,6 @@ from xml.sax.saxutils import escape
 
 import numpy
 
-from cogent3.util.warning import discontinued
-
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"

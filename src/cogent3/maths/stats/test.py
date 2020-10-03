@@ -54,6 +54,7 @@ from cogent3.maths.stats.special import (
 )
 from cogent3.util.warning import discontinued
 
+
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
@@ -152,7 +153,7 @@ def std(x, axis=None):  # pragma: no cover
     return sqrt(sample_variance)
 
 
-def median(m, axis=None):   # pragma: no cover
+def median(m, axis=None):  # pragma: no cover
     """Returns medians by axis (similiar to numpy.mean)
 
     numpy.median does not except an axis parameter. Is safe for substition for
