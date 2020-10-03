@@ -21,7 +21,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class ConvertFields(object):
+class ConvertFields(object):  # pragma: no cover
     """converter for input data to Table"""
 
     def __init__(self, conversion, by_column=True):
@@ -70,7 +70,7 @@ def SeparatorFormatParser(
     strip_wspace=True,
     limit=None,
     **kw,
-):
+):  # pragma: no cover
     """Returns a parser for a delimited tabular file.
 
     Parameters

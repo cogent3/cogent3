@@ -1211,6 +1211,8 @@ class TableTests(TestCase):
         # number of spans increases by 2 to enclose the title
         self.assertEqual(got.count("span"), num_spans + 2)
         self.assertEqual(got.count("caption"), num_caption + 2)
+        # no <br> element
+        self.assertNotIn("<br>", got)
 
         t = Table(header=self.t8_header, data=self.t8_rows, legend="a legend")
         got = t.to_html()
@@ -1220,6 +1222,8 @@ class TableTests(TestCase):
         # number of spans increases by 2 to enclose the title
         self.assertEqual(got.count("span"), num_spans + 2)
         self.assertEqual(got.count("caption"), num_caption + 2)
+        # no <br> element
+        self.assertNotIn("<br>", got)
 
         t = Table(
             header=self.t8_header, data=self.t8_rows, title="a title", legend="a legend"
@@ -1229,6 +1233,8 @@ class TableTests(TestCase):
         # cell_legend not actually defined in CSS yet
         self.assertEqual(got.count("cell_legend"), 1)
         self.assertEqual(got.count("caption"), num_caption + 2)
+        # has <br> element
+        self.assertIn("<br>", got)
 
     def test_invalid_format(self):
         """should raise value error"""

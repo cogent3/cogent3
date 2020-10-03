@@ -1947,11 +1947,9 @@ class Table:
             else:
                 st = None
 
-            if st:
-                st = str(HtmlElement(str(st), "br"))
-
             if legend and i == 0:
                 legend = HtmlElement(legend, "span", css_classes=["cell_legend"])
+                legend = HtmlElement(legend, "br") if title else legend
                 st = f"{st} {legend}" if st else f"{legend}"
 
             caption = str(HtmlElement(st, "caption", newline=True)) if st else ""
