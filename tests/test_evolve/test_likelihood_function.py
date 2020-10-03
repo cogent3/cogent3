@@ -1323,6 +1323,31 @@ DogFaced     root      1.0000    1.0000
             lf.set_alignment(_aln)
             _ = lf.to_rich_dict()
 
+        # tests multiple alignments
+        half = len(self.data) // 2
+        aln1 = self.data[:half]
+        aln2 = self.data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        tree = make_tree(tip_names=self.data.names)
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree, loci=loci_names)
+        lf.set_alignment(loci)
+        for i, loci_name in enumerate(loci_names):
+            d = lf.to_rich_dict()
+            alignment = d["alignment"]
+            motif_probs = d["motif_probs"]
+            self.assertEqual(alignment[loci_name], loci[i].to_rich_dict())
+            self.assertEqual(motif_probs[loci_name], loci[i].get_motif_probs())
+        # tests single alignment
+        lf = model.make_likelihood_function(tree)
+        lf.set_alignment(aln1)
+        d = lf.to_rich_dict()
+        alignment = d["alignment"]
+        motif_probs = d["motif_probs"]
+        self.assertEqual(alignment, aln1.to_rich_dict())
+        self.assertEqual(motif_probs, aln1.get_motif_probs())
+
     def test_repr(self):
         """repr should not fail"""
         lf = self._makeLikelihoodFunction()
