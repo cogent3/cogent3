@@ -1,4 +1,5 @@
 import json
+import os
 
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
@@ -17,7 +18,10 @@ from cogent3 import (
 from cogent3.app.result import model_collection_result, model_result
 from cogent3.core import alignment, moltype
 from cogent3.evolve.models import get_model
-from cogent3.util.deserialise import deserialise_object
+from cogent3.util.deserialise import (
+    deserialise_likelihood_function,
+    deserialise_object,
+)
 
 
 __author__ = "Gavin Huttley"
@@ -444,6 +448,40 @@ class TestDeserialising(TestCase):
         jdata = json.dumps(data)
         got = deserialise_object(jdata)
         self.assertEqual(got, data)
+
+    def test_deserialise_likelihood_function(self):
+        """correctly deserialise data into likelihood function"""
+        # tests multiple alignments
+        data = load_aligned_seqs(
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+        )
+        half = len(data) // 2
+        aln1 = data[:half]
+        aln2 = data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        tree = make_tree(tip_names=data.names)
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree, loci=loci_names)
+        lf.set_alignment(loci)
+        lf_rich_dict = lf.to_rich_dict()
+        got = deserialise_likelihood_function(lf_rich_dict)
+        self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
+        self.assertEqual(
+            str(lf.defn_for["alignment"].assignments),
+            str(got.defn_for["alignment"].assignments),
+        )
+        # tests single alignment
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree)
+        lf.set_alignment(aln1)
+        lf_rich_dict = lf.to_rich_dict()
+        got = deserialise_likelihood_function(lf_rich_dict)
+        self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
+        self.assertEqual(
+            str(lf.defn_for["alignment"].assignments),
+            str(got.defn_for["alignment"].assignments),
+        )
 
 
 if __name__ == "__main__":
