@@ -59,6 +59,8 @@ class ContingencyTests(TestCase):
         got = table.chisq_test()
         assert_allclose(got.chisq, 173.7603305785124)
         self.assertLess(got.pvalue, 2.2e-16)  # value from R
+        _ = got._repr_html_()  # shouldn't fail
+        self.assertIn("1.12e-39", str(got))  # used sci formatting
 
     def test_G_ind(self):
         """correctly produce G test of independence"""
@@ -83,6 +85,8 @@ class ContingencyTests(TestCase):
         got = table.G_fit()
         assert_allclose(got.G, 9.849234)
         assert_allclose(got.pvalue, 0.04304536)
+        _ = got._repr_html_()  # shouldn't fail
+        self.assertIn("0.0430", str(got))  # used normal formatting
 
     def test_assign_expected(self):
         """assign expected property"""
