@@ -397,6 +397,8 @@ class TestsTests(TestCase):
 
     def test_sign_test(self):
         """sign_test, should match values from R"""
+        import numpy
+
         v = [
             ("two sided", 26, 50, 0.88772482734078251),
             ("less", 26, 50, 0.6641),
@@ -406,6 +408,7 @@ class TestsTests(TestCase):
             ("2", 30, 50, 0.20263875106454063),
             ("h", 49, 50, 4.5297099404706387e-14),
             ("h", 50, 50, 8.8817841970012543e-16),
+            ("2", numpy.int64(95), 124, 2.204644901720111e-09),
         ]
         for alt, success, trials, p in v:
             result = sign_test(success, trials, alt=alt)
