@@ -429,7 +429,7 @@ class TestResult:
         col_templates = {
             str(self.stat_name): "%.3f",
             "df": "%s",
-            "pvalue": "%.4f" if self.pvalue > 1e-3 else "%.4e",
+            "pvalue": "%.4f" if self.pvalue > 1e-3 else "%.2e",
         }
         table = Table(
             header,

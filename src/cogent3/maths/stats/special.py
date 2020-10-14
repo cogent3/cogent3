@@ -742,6 +742,10 @@ def Gamma(x):
     """Returns the gamma function, a generalization of the factorial.
 
     See Cephes docs for details."""
+    if hasattr(x, "item"):
+        # avoid issue of x being a limited precision numpy type
+        # use item() method casts to the nearest Python type
+        x = x.item()
 
     sgngam = 1
     q = abs(x)

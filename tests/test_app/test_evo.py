@@ -105,6 +105,8 @@ class TestModel(TestCase):
 
     def test_model_hypothesis_result_repr(self):
         """result objects __repr__ and _repr_html_ methods work correctly"""
+        import re
+
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
@@ -119,10 +121,25 @@ class TestModel(TestCase):
         )
         hyp = evo_app.hypothesis(model1, model2)
         result = hyp(aln)
+        # check the p-val formatted as %.4f
+        pval = str(result).splitlines()[4].split()[-1]
+        self.assertTrue(re.search(r"\d\.\d+", pval) is not None)
         self.assertIsInstance(result.__repr__(), str)
         self.assertIsInstance(result._repr_html_(), str)
         self.assertIsInstance(result.null.__repr__(), str)
         self.assertIsInstance(result.null._repr_html_(), str)
+        aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+        aln = aln.take_seqs(["Human", "Rhesus", "Galago"])[2::3].omit_gap_pos()
+        model1 = evo_app.model(
+            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
+        model2 = evo_app.model(
+            "HKY85", opt_args=dict(max_evaluations=100, limit_action="ignore")
+        )
+        hyp = evo_app.hypothesis(model1, model2)
+        result = hyp(aln)
+        pval = str(result).splitlines()[4].split()[-1]
+        self.assertTrue(re.search(r"[0-9\.]+e-\d+", pval) is not None)
 
     def test_hypothesis_str(self):
         """correct str representation"""
