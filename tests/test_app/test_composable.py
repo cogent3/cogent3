@@ -214,7 +214,7 @@ class TestNotCompletedResult(TestCase):
             got,
             "select_translatable(type='sequences', "
             "moltype='dna', gc=1, "
-            "allow_rc=False, trim_terminal_stop=True)",
+            "allow_rc=False,\ntrim_terminal_stop=True)",
         )
 
         func = select_translatable(allow_rc=True)
@@ -223,7 +223,7 @@ class TestNotCompletedResult(TestCase):
             got,
             "select_translatable(type='sequences', "
             "moltype='dna', gc=1, "
-            "allow_rc=True, trim_terminal_stop=True)",
+            "allow_rc=True,\ntrim_terminal_stop=True)",
         )
 
         nodegen = omit_degenerates()
@@ -231,14 +231,14 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "omit_degenerates(type='aligned', moltype=None, "
-            "gap_is_degen=True, motif_length=1)",
+            "gap_is_degen=True,\nmotif_length=1)",
         )
         ml = min_length(100)
         got = str(ml)
         self.assertEqual(
             got,
             "min_length(type='sequences', length=100, "
-            "motif_length=1, subtract_degen=True, "
+            "motif_length=1, subtract_degen=True,\n"
             "moltype=None)",
         )
 
