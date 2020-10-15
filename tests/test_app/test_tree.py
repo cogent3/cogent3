@@ -85,7 +85,9 @@ class TestTree(TestCase):
         proc = fast_slow_dist + quick
         self.assertEqual(
             str(proc),
-            "fast_slow_dist(type='distance', distance=None, moltype='dna', fast_calc='hamming', slow_calc=None) + quick_tree(type='tree', drop_invalid=False)",
+            "fast_slow_dist(type='distance', distance=None, moltype='dna',\n"
+            "fast_calc='hamming', slow_calc=None) + quick_tree(type='tree',\n"
+            "drop_invalid=False)",
         )
         self.assertIsInstance(proc, tree_app.quick_tree)
         self.assertEqual(proc._type, "tree")

@@ -34,9 +34,9 @@ class TestModel(TestCase):
             got,
             (
                 "model(type='model', sm='HKY85', tree=None, "
-                "name=None, sm_args=None, lf_args=None, "
+                "name=None, sm_args=None,\nlf_args=None, "
                 "time_het='max', param_rules=None, "
-                "opt_args=None, split_codons=False, "
+                "opt_args=None,\nsplit_codons=False, "
                 "show_progress=False, verbose=False)"
             ),
         )
@@ -149,10 +149,10 @@ class TestModel(TestCase):
         got = str(hyp)
         expect = (
             "hypothesis(type='hypothesis', null='HKY85', "
-            "alternates=(model(type='model', sm='HKY85', tree=None, "
-            "name='hky85-max-het', sm_args=None, lf_args=None, "
+            "alternates=(model(type='model',\nsm='HKY85', tree=None, "
+            "name='hky85-max-het', sm_args=None, lf_args=None,\n"
             "time_het='max', param_rules=None, opt_args=None,"
-            " split_codons=False, show_progress=False, verbose=False),),"
+            " split_codons=False,\nshow_progress=False, verbose=False),),"
             " init_alt=None)"
         )
         self.assertEqual(got, expect)

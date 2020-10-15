@@ -18,11 +18,6 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-def _get_bin(bins, value):
-    """returns bin index corresponding to value"""
-    pass
-
-
 # todo this should probably go into different module
 def shuffled_matrix(matrix):
     """returns a randomly sampled matrix with same marginals"""
