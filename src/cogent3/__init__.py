@@ -76,7 +76,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
-from cogent3.util.warning import deprecated
+from cogent3.util.warning import deprecated, discontinued
 
 
 if sys.version_info < (3, 6):
@@ -359,8 +359,6 @@ def make_table(
     column_templates
         dict of column headings
         or a function that will handle the formatting.
-    dtype
-        optional numpy array typecode.
     limit
         exits after this many lines. Only applied for non pickled data
         file types.
@@ -376,6 +374,10 @@ def make_table(
     if "index" in kwargs:
         deprecated("argument", "index", "index_name", "2021.11")
         index_name = kwargs.pop("index", index_name)
+
+    if "dtype" in kwargs:
+        kwargs.pop("dtype")
+        discontinued("argument", "dtype", "2021.04")
 
     data = kwargs.get("rows", data)
     if data_frame is not None:
@@ -418,7 +420,6 @@ def load_table(
     index_name=None,
     legend="",
     column_templates=None,
-    dtype=None,
     static_column_types=False,
     limit=None,
     format="simple",
@@ -459,13 +460,9 @@ def load_table(
     column_templates
         dict of column headings
         or a function that will handle the formatting.
-    dtype
-        optional numpy array typecode.
     limit
         exits after this many lines. Only applied for non pickled data
         file types.
-    data_frame
-        a pandas DataFrame, supersedes header/rows
     format
         output format when using str(Table)
     skip_inconsistent
@@ -481,6 +478,10 @@ def load_table(
     if "index" in kwargs:
         deprecated("argument", "index", "index_name", "2021.11")
         index_name = kwargs.pop("index", index_name)
+
+    if "dtype" in kwargs:
+        kwargs.pop("dtype")
+        discontinued("argument", "dtype", "2021.04")
 
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
@@ -531,7 +532,6 @@ def load_table(
         data=data,
         digits=digits,
         title=title,
-        dtype=dtype,
         column_templates=column_templates,
         space=space,
         missing_data=missing_data,
