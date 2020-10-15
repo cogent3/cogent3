@@ -142,7 +142,7 @@ class TableTests(TestCase):
 
     def test_index_name(self):
         """correctly assigns"""
-        t = Table(header=self.t3_header, data=self.t3_rows, index="foo")
+        t = Table(header=self.t3_header, data=self.t3_rows, index_name="foo")
         self.assertEqual(t.index_name, "foo")
         # fails if not an existing column
         with self.assertRaises(ValueError):
@@ -151,9 +151,9 @@ class TableTests(TestCase):
         data = t.columns.to_dict()
         # correctly handled when provided on construction
         with self.assertRaises(ValueError):
-            t = Table(data=data, index="missing")
+            t = Table(data=data, index_name="missing")
 
-        t = Table(data=data, index="foo")
+        t = Table(data=data, index_name="foo")
         self.assertEqual(t.index_name, "foo")
 
         # correctly reset when assigned None
@@ -163,11 +163,11 @@ class TableTests(TestCase):
         self.assertEqual(t._template, None)
 
         # ... prior to providing columns
-        t = Table(index="foo")
+        t = Table(index_name="foo")
         for c, v in data.items():
             t.columns[c] = v
         self.assertEqual(t.index_name, "foo")
-        t = Table(index="missing")
+        t = Table(index_name="missing")
         for c, v in data.items():
             t.columns[c] = v
 
@@ -188,7 +188,7 @@ class TableTests(TestCase):
             "Chimpanzee": [0.0, 0.19, 0.005],
             "Galago": [0.19, 0.0, 0.19],
         }
-        table = make_table(data=d, index="")
+        table = make_table(data=d, index_name="")
         val = table["Galago", "Chimpanzee"]
         self.assertEqual(val, 0.19)
 
@@ -221,13 +221,13 @@ class TableTests(TestCase):
 
     def test_indexing_rows(self):
         """works using names or ints"""
-        t = Table(header=self.t7_header, data=self.t7_rows, index="gene")
+        t = Table(header=self.t7_header, data=self.t7_rows, index_name="gene")
         got = t["ENSG00000019485", "chrom"]
         self.assertEqual(got, "A")
 
     def test_immutability_cells(self):
         """table cells are immutable"""
-        t = Table(header=self.t7_header, data=self.t7_rows, index="gene")
+        t = Table(header=self.t7_header, data=self.t7_rows, index_name="gene")
         with self.assertRaises(TypeError):
             t["ENSG00000019485", "chrom"] = "D"
 
@@ -275,8 +275,8 @@ class TableTests(TestCase):
 
     def test_slicing_with_index(self):
         """different slice types work when index_name defined"""
-        # slicing by int works with index too
-        t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
+        # slicing by int works with index_name too
+        t = Table(header=self.t8_header, data=self.t8_rows, index_name="edge.name")
         got = t[[1]]
         self.assertEqual(got.columns["edge.name"], "NineBande")
         self.assertEqual(got.shape, (1, t.shape[1]))
@@ -285,8 +285,8 @@ class TableTests(TestCase):
             self.assertEqual(got.columns["edge.name"], "NineBande")
             self.assertEqual(got.shape, (1, t.shape[1]))
 
-        # works if, for some reason, the index column has floats
-        t = Table(header=self.t7_header, data=self.t7_rows, index="stat")
+        # works if, for some reason, the index_name column has floats
+        t = Table(header=self.t7_header, data=self.t7_rows, index_name="stat")
         got = t[[1827.5580]]
         self.assertEqual(got.shape, (1, t.shape[1]))
         got = t[numpy.array([1827.5580])]
@@ -334,9 +334,9 @@ class TableTests(TestCase):
         index = "A/C"
         h = ["A/C", "A/G", "A/T", "C/A"]
         rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
-        t = Table(header=h, data=rows, max_width=30, index=index)
+        t = Table(header=h, data=rows, max_width=30, index_name=index)
         wrapped = str(t)
-        # index column occurs twice for these conditions
+        # index_name column occurs twice for these conditions
         for c in h:
             expect = 2 if c == index else 1
             self.assertEqual(wrapped.count(c), expect)
@@ -377,7 +377,7 @@ class TableTests(TestCase):
             row_order=row_order,
             space=8,
             max_width=50,
-            index="edge.name",
+            index_name="edge.name",
             title="My title",
             legend="legend: this is a nonsense example.",
         )
@@ -391,7 +391,7 @@ class TableTests(TestCase):
         rows = [[0.0425, 0.1424, 0.0226, 0.0391]]
         t = Table(header=h, data=rows, max_width=30)
         wrapped = str(t)
-        # index column occurs twice for these conditions
+        # index_name column occurs twice for these conditions
         for c in h:
             self.assertEqual(wrapped.count(c), 1)
 
@@ -547,7 +547,7 @@ class TableTests(TestCase):
         expect = [["", "b", "c"], ["d"], ["e"]]
         self.assertEqual(got, expect)
 
-        # with an index column
+        # with an index_name column
         got = get_continuation_tables_headers(cols_widths, index_name="", max_width=27)
         expect = [["", "b", "c"], ["", "d"], ["", "e"]]
         self.assertEqual(got, expect)
@@ -636,13 +636,13 @@ class TableTests(TestCase):
         }
         t = make_table(data=data)
         self.assertEqual(t.shape, (4, 6))
-        # if index column not specified
+        # if index_name column not specified
         with self.assertRaises(IndexError):
             _ = t["Human", "edge.parent"]
 
-        # use an index
-        t = make_table(data=data, index="edge.names")
-        # index col is the first one, and the data can be indexed
+        # use an index_name
+        t = make_table(data=data, index_name="edge.names")
+        # index_name col is the first one, and the data can be indexed
         self.assertEqual(t.columns.order[0], "edge.names")
         self.assertEqual(t["Human", "edge.parent"], "edge.0")
 
@@ -827,7 +827,7 @@ class TableTests(TestCase):
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[0], t1.shape[0])
         self.assertEqual(t1.get_columns(["chrom", "length"]).shape[1], 2)
         # if index_name, includes that in return
-        t1 = Table(header=self.t1_header, data=self.t1_rows, index="stableid")
+        t1 = Table(header=self.t1_header, data=self.t1_rows, index_name="stableid")
         r = t1.get_columns(["length"])
         self.assertEqual(r.header, ("stableid", "length"))
         # if index_name, unless excluded
@@ -1004,7 +1004,7 @@ class TableTests(TestCase):
         r = str(got)  # this should not fail!
 
     def test_transposed_forgets_index(self):
-        """transposed table defaults to no row index"""
+        """transposed table defaults to no row index_name"""
         data = {
             "": [0, 1, 2, 3, 4, 5, 6],
             "T": [2, 10, 1, 6, 1, 5, 0],
@@ -1012,12 +1012,12 @@ class TableTests(TestCase):
             "A": [8, 0, 9, 4, 9, 4, 4],
             "G": [0, 0, 0, 0, 0, 1, 5],
         }
-        t = Table(header=["", "T", "C", "A", "G"], data=data, index="")
+        t = Table(header=["", "T", "C", "A", "G"], data=data, index_name="")
         tr = t.transposed("Base", select_as_header="")
         self.assertEqual(tr.index_name, None)
 
         # but you can set a new one
-        tr = t.transposed("Base", select_as_header="", index="Base")
+        tr = t.transposed("Base", select_as_header="", index_name="Base")
         self.assertEqual(tr.index_name, "Base")
         self.assertEqual(tr["G", "5"], 1)
 
@@ -1047,7 +1047,7 @@ class TableTests(TestCase):
         t5_row_sum = t5.with_new_column("sum", sum, t5.header)
         self.assertEqual(t5_row_sum.get_columns("sum").tolist(), [4, 4, 8])
         # now using a string expression
-        t8 = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
+        t8 = Table(header=self.t8_header, data=self.t8_rows, index_name="edge.name")
         n = t8.with_new_column("YZ", callback="y+z")
         assert_equal(n.columns["YZ"], [9.0, 9.0])
         # if the new column alreayb exists, the new table has the newest column
@@ -1187,7 +1187,7 @@ class TableTests(TestCase):
 
     def test_to_html(self):
         """generates html table within c3table div"""
-        # with no index, or title, or legend
+        # with no index_name, or title, or legend
         import re
 
         t = Table(header=self.t8_header, data=self.t8_rows)
@@ -1251,7 +1251,7 @@ class TableTests(TestCase):
             ["e", 0.44084000179091454, 0.44083999937417828, 0.44084000179090932, ""],
         ]
         header = ["seq1/2", "a", "c", "b", "e"]
-        dist = Table(header=header, data=rows, index="seq1/2")
+        dist = Table(header=header, data=rows, index_name="seq1/2")
         r = dist.to_string(format="phylip")
         r = r.splitlines()
         self.assertEqual(r[0].strip(), "4")
@@ -1294,7 +1294,7 @@ class TableTests(TestCase):
         t = Table(
             data=data,
             max_width=50,
-            index="edge.name",
+            index_name="edge.name",
             title="My title",
             legend="blah",
         )
@@ -1559,14 +1559,14 @@ class TableTests(TestCase):
 
     def test_repr_html_(self):
         """should produce html"""
-        # no index
+        # no index_name
         t = Table(header=self.t8_header, data=self.t8_rows)
         _ = t._repr_html_()
 
-        # with an index
-        t = Table(header=self.t8_header, data=self.t8_rows, index="edge.name")
+        # with an index_name
+        t = Table(header=self.t8_header, data=self.t8_rows, index_name="edge.name")
         got = t._repr_html_()
-        # and the index column should contain "index" css class
+        # and the index_name column should contain "index_name" css class
         self.assertEqual(
             got.count("index"), t.shape[0] + 1
         )  # add 1 for CSS style sheet
@@ -1815,7 +1815,7 @@ class TableTests(TestCase):
         got = load_table(path, reader=reader)
         self.assertEqual(got.shape, (10, 1))
 
-        # specified by index
+        # specified by index_name
         reader = FilteringParser(columns=[0, 2], with_header=True, sep="\t")
         got = load_table(path, reader=reader)
         self.assertEqual(got.shape, (10, 2))
@@ -1833,7 +1833,7 @@ class TableTests(TestCase):
         with self.assertRaises(ValueError):
             _ = load_table(path, reader=reader)
 
-        # raises IndexError if column index doesn't exist
+        # raises IndexError if column index_name doesn't exist
         reader = FilteringParser(columns=[0, 10], with_header=True, sep="\t")
         with self.assertRaises(IndexError):
             _ = load_table(path, reader=reader)
@@ -1905,7 +1905,7 @@ class TableTests(TestCase):
             "Tv": numpy.array([36, 138], dtype=object),
         }
 
-        table = make_table(header=["", "Ts", "Tv"], data=data, index="")
+        table = make_table(header=["", "Ts", "Tv"], data=data, index_name="")
         with self.assertRaises(TypeError):
             table.to_categorical(columns=["Ts", "Tv"])
 

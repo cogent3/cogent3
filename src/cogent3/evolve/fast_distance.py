@@ -303,7 +303,7 @@ def _make_stat_table(stats, names, **kwargs):
         rows[i].insert(0, names[i])
 
     table = Table(
-        header=header, data=rows, index=r"Seq1 \ Seq2", missing_data="*", **kwargs
+        header=header, data=rows, index_name=r"Seq1 \ Seq2", missing_data="*", **kwargs
     )
     return table
 
@@ -703,7 +703,7 @@ def available_distances():
             "Specify a pairwise genetic distance calculator "
             "using 'Abbreviation' (case insensitive)."
         ),
-        index="Abbreviation",
+        index_name="Abbreviation",
     )
     return table
 
@@ -743,7 +743,7 @@ class DistanceMatrix(DictArray):
             column = self.array[:, i]
             data[name] = column
         header = ["names"] + list(self.names)
-        table = Table(header=header, data=data, index="names")
+        table = Table(header=header, data=data, index_name="names")
         return table
 
     def to_dict(self, **kwargs):

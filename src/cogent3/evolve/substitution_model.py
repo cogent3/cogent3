@@ -787,7 +787,7 @@ class Parametric(_ContinuousSubstitutionModel):
             data=rows,
             max_width=max_width,
             title=title,
-            index=r"From\To",
+            index_name=r"From\To",
         )
         result = t if return_table else t.to_string(center=True)
         return result

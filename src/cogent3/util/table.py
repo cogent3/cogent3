@@ -363,12 +363,14 @@ class Columns(MutableMapping):
             return
 
         if name not in self:
-            raise ValueError(f"'{name}' unknown, index must be an existing column")
+            raise ValueError(f"'{name}' unknown, index_name must be an existing column")
 
-        # make sure index has unique values
+        # make sure index_name has unique values
         unique = set(self[name])
         if len(unique) != self._num_rows:
-            raise ValueError(f"cannot use '{name}' as index, not all values unique")
+            raise ValueError(
+                f"cannot use '{name}' as index_name, not all values unique"
+            )
 
         self._index_name = name
         order = [name] + [c for c in self._order if c != name]
@@ -446,7 +448,7 @@ class Table:
         self,
         header=None,
         data=None,
-        index=None,
+        index_name=None,
         title="",
         legend="",
         digits=4,
@@ -468,6 +470,10 @@ class Table:
         if rows:
             deprecated("argument", "rows", "data", "2020.11")
             data = rows
+
+        if "index" in kwargs:
+            deprecated("argument", "index", "index_name", "2021.11")
+            index_name = kwargs.pop("index", index_name)
 
         attrs.update(kwargs)
 
@@ -500,21 +506,23 @@ class Table:
 
         if header is None:
             header = list(data) if isinstance(data, dict) else []
-        has_index = index is not None
-        if has_index and not isinstance(index, str):
-            raise TypeError(f"only str type supported for index, not {type(index)}")
+        has_index = index_name is not None
+        if has_index and not isinstance(index_name, str):
+            raise TypeError(
+                f"only str type supported for index_name, not {type(index_name)}"
+            )
 
         if data:
             row_order = kwargs.get("row_order", None)
             data = cast_to_1d_dict(data, row_order=row_order)
             if has_index:
                 try:
-                    self.columns[index] = data[index]
+                    self.columns[index_name] = data[index_name]
                 except KeyError:
-                    raise ValueError(f"'{index}' not in data")
+                    raise ValueError(f"'{index_name}' not in data")
 
             for c in header:
-                if c == index:
+                if c == index_name:
                     continue
                 self.columns[c] = data[c]
 
@@ -523,12 +531,12 @@ class Table:
             for c in header:
                 self.columns[c] = []
 
-        # this assignment triggers creation of row template if index specified
+        # this assignment triggers creation of row template if index_name specified
         # but only if we have data
         if len(self.columns) > 0:
-            self.index_name = index
+            self.index_name = index_name
         elif has_index:
-            self._index_name = index
+            self._index_name = index_name
 
         # default title / legend to be empty strings
         self._title = str(title) if title else ""
@@ -557,7 +565,7 @@ class Table:
 
     def __getitem__(self, names):
         # this is funky, but a side-effect of construction allowing setting
-        # prior to having assigned the index column
+        # prior to having assigned the index_name column
         self.index_name
 
         if isinstance(names, tuple):
@@ -590,7 +598,7 @@ class Table:
             return self.columns[columns[0]][rows]
 
         attr = self._get_persistent_attrs()
-        index_name = attr.pop("index")
+        index_name = attr.pop("index_name")
         result = self.__class__(**attr)
         for c in columns:
             if len(self.columns[c]) == 0:
@@ -620,7 +628,7 @@ class Table:
             data.pop(k, None)
 
         kwargs = data.pop("init_table")
-        index = kwargs.pop("index")
+        index = kwargs.pop("index_name")
         table = self.__class__(**kwargs)
         table.columns.__setstate__(data["data"])
         table.index_name = index
@@ -878,7 +886,7 @@ class Table:
     def index_name(self, name):
         self.columns.index_name = name
         self._index_name = name
-        self._persistent_attrs["index"] = name
+        self._persistent_attrs["index_name"] = name
         self._template = None if name is None else DictArrayTemplate(self.columns[name])
 
     @property
@@ -946,7 +954,7 @@ class Table:
             self[row, columns_self]==other[row, columns_other] for all i
         use_index
             if no columns specified and both self and other have a nominated
-            index, this will be used.
+            index_name, this will be used.
 
         Notes
         -----
@@ -994,9 +1002,7 @@ class Table:
 
         output_mask = [c for c in other.columns if c not in columns_other]
 
-        # key is a tuple made from specified columns; data is the row index
         other_row_index = defaultdict(list)
-        # subtable = other.columns.take_columns(columns_other)
         subtable = other[:, columns_other]
         for row_index, row in enumerate(subtable.columns.array):
             # insert new entry for each row
@@ -1283,7 +1289,7 @@ class Table:
             numpy type of result
         """
         attr = self._get_persistent_attrs()
-        index = attr.pop("index")
+        index = attr.pop("index_name")
         attr |= kwargs
         result = self.__class__(**attr)
         for c in self.columns:
@@ -1897,7 +1903,7 @@ class Table:
             }[v]
 
         base_colour = "rgba(161, 195, 209, {alpha})"
-        # alpha applied to the index column background
+        # alpha applied to the index_name column background
         alpha = 0.0 if self.index_name is None else 0.25
 
         style = table_format.css_c3table_template % dict(
@@ -2153,8 +2159,8 @@ class Table:
             raise ValueError(f"not all '{select_as_header}' values unique")
 
         attr = self._get_persistent_attrs()
-        # on transpose, a row index becomes a column, so pop
-        del attr["index"]
+        # on transpose, a row index_name becomes a column, so pop
+        del attr["index_name"]
 
         attr |= kwargs
         result = self.__class__(**attr)

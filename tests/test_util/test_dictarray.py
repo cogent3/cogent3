@@ -379,15 +379,15 @@ class DictArrayTest(TestCase):
         a1D = DictArrayTemplate(["a", "b"]).wrap([0, 1])
         t = a1D.to_table()
         self.assertIsInstance(t, Table)
-        # 1D tables don't get an index column
+        # 1D tables don't get an index_name column
         self.assertEqual(t.index_name, None)
         a2D = DictArrayTemplate(["a", "b"], ["c", "d"]).wrap(
             numpy.array([0, 1, 2, 3]).reshape((2, 2))
         )
         t = a2D.to_table()
         self.assertIsInstance(t, Table)
-        self.assertEqual(t.shape, (2, 3))  # because index column added
-        # make sure the 2D variant has an index column, name is empty string
+        self.assertEqual(t.shape, (2, 3))  # because index_name column added
+        # make sure the 2D variant has an index_name column, name is empty string
         self.assertEqual(t.index_name, "")
         self.assertEqual(t.columns[""].tolist(), a2D.template.names[0])
         # which works
