@@ -459,6 +459,37 @@ class Table:
         missing_data="",
         **kwargs,
     ):
+        """
+
+        Parameters
+        ----------
+        header
+            column headings
+        data
+            a 2D dict, list or tuple. If a dict, it must have column
+            headings as top level keys, and common row labels as keys in each
+            column.
+        index_name
+            column name with values to be used as row identifiers and keys
+            for slicing. All column values must be unique.
+        legend
+            table legend
+        title
+            as implied
+        digits
+            floating point resolution
+        space
+            number of spaces between columns or a string
+        max_width
+            maximum column width for printing
+        column_templates
+            dict of column headings
+            or a function that will handle the formatting.
+        format
+            output format when using str(Table)
+        missing_data
+            replace missing data with this
+        """
         attrs = {
             k: v
             for k, v in locals().items()

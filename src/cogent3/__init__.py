@@ -354,6 +354,8 @@ def make_table(
         for slicing. All column values must be unique.
     legend
         table legend
+    missing_data
+        replace missing data with this
     column_templates
         dict of column headings
         or a function that will handle the formatting.
