@@ -338,8 +338,8 @@ def simple_format(
         forces wrapping of table onto successive lines if its'
         width exceeds that specified
     identifiers
-        column index for the last column that uniquely identify
-        rows. Required if table width exceeds max_width.
+        index for the column that uniquely identify rows. Required if table
+        width exceeds max_width.
     borders
         whether to display borders.
     space
@@ -827,12 +827,13 @@ def get_continuation_tables_headers(
 ):
     """
     returns column headers for continuation tables segmented to not exceed max_width
+
     Parameters
     ----------
     cols_widths : list
         [[col_name, length of longest string], ...]
     index_name : str
-        column name to be used as an index
+        column name of an index. This column included in all sub table headers.
     space : int
         how much white space between columns
     max_width : int

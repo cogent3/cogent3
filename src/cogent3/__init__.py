@@ -76,6 +76,8 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+from cogent3.util.warning import deprecated, discontinued
+
 
 if sys.version_info < (3, 6):
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
@@ -318,7 +320,7 @@ def make_table(
     space=4,
     title="",
     max_width=1e100,
-    index=None,
+    index_name=None,
     legend="",
     missing_data="",
     column_templates=None,
@@ -347,16 +349,16 @@ def make_table(
         as implied
     max_width
         maximum column width for printing
-    index
-        if True, the 0'th column is used as row identifiers and keys
-        for slicing.
+    index_name
+        column name with values to be used as row identifiers and keys
+        for slicing. All column values must be unique.
     legend
         table legend
+    missing_data
+        replace missing data with this
     column_templates
         dict of column headings
         or a function that will handle the formatting.
-    dtype
-        optional numpy array typecode.
     limit
         exits after this many lines. Only applied for non pickled data
         file types.
@@ -368,6 +370,14 @@ def make_table(
     """
     if any([isinstance(a, str) for a in (header, data)]):
         raise TypeError(f"str type invalid, if its a path use load_table()")
+
+    if "index" in kwargs:
+        deprecated("argument", "index", "index_name", "2021.11")
+        index_name = kwargs.pop("index", index_name)
+
+    if "dtype" in kwargs:
+        kwargs.pop("dtype")
+        discontinued("argument", "dtype", "2021.04")
 
     data = kwargs.get("rows", data)
     if data_frame is not None:
@@ -389,7 +399,7 @@ def make_table(
         space=space,
         missing_data=missing_data,
         max_width=max_width,
-        index=index,
+        index_name=index_name,
         legend=legend,
         data_frame=data_frame,
         format=format,
@@ -407,10 +417,9 @@ def load_table(
     title="",
     missing_data="",
     max_width=1e100,
-    index=None,
+    index_name=None,
     legend="",
     column_templates=None,
-    dtype=None,
     static_column_types=False,
     limit=None,
     format="simple",
@@ -443,21 +452,17 @@ def load_table(
         character assigned if a row has no entry for a column
     max_width
         maximum column width for printing
-    index
-        if True, the 0'th column is used as row identifiers and keys
-        for slicing.
+    index_name
+        column name with values to be used as row identifiers and keys
+        for slicing. All column values must be unique.
     legend
         table legend
     column_templates
         dict of column headings
         or a function that will handle the formatting.
-    dtype
-        optional numpy array typecode.
     limit
         exits after this many lines. Only applied for non pickled data
         file types.
-    data_frame
-        a pandas DataFrame, supersedes header/rows
     format
         output format when using str(Table)
     skip_inconsistent
@@ -469,6 +474,14 @@ def load_table(
         raise TypeError(
             "filename must be string or Path, perhaps you want make_table()"
         )
+
+    if "index" in kwargs:
+        deprecated("argument", "index", "index_name", "2021.11")
+        index_name = kwargs.pop("index", index_name)
+
+    if "dtype" in kwargs:
+        kwargs.pop("dtype")
+        discontinued("argument", "dtype", "2021.04")
 
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
@@ -519,12 +532,11 @@ def load_table(
         data=data,
         digits=digits,
         title=title,
-        dtype=dtype,
         column_templates=column_templates,
         space=space,
         missing_data=missing_data,
         max_width=max_width,
-        index=index,
+        index_name=index_name,
         legend=legend,
         format=format,
     )

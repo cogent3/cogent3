@@ -183,7 +183,7 @@ Wrapping generates neat looking tables whether or not you index the table rows. 
 
 .. jupyter-execute::
 
-    wrap_table = make_table(header=h, data=rows, max_width=30, index="name")
+    wrap_table = make_table(header=h, data=rows, max_width=30, index_name="name")
     wrap_table
 
 Display the top of a table using ``head()``
@@ -356,7 +356,7 @@ If our table consists of counts data, the ``Table`` can convert it into a ``Cate
 
 .. jupyter-execute::
 
-    table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}, index="")
+    table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}, index_name="")
     table
 
 .. jupyter-execute::

@@ -123,7 +123,9 @@ class _LikelihoodTreeEdge(object):
             rows = list(zip(motifs, observed, expected))
             rows.sort(key=lambda row: (-row[1], row[0]))
             table = Table(
-                header=["Pattern", "Observed", "Expected"], data=rows, index="Pattern"
+                header=["Pattern", "Observed", "Expected"],
+                data=rows,
+                index_name="Pattern",
             )
             return (G, table)
         else:

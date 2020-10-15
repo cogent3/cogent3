@@ -832,7 +832,7 @@ class LikelihoodFunction(ParameterController):
                 heading_names,
                 list_table,
                 max_width=80,
-                index=row_ids,
+                index_name=row_ids,
                 title=title,
                 **self._format,
             )

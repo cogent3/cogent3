@@ -596,7 +596,7 @@ class DictArray(object):
             data = {c: self.array[:, i].tolist() for i, c in enumerate(header)}
             data[""] = self.template.names[0]
 
-        return Table(header=header, data=data, index=index)
+        return Table(header=header, data=data, index_name=index)
 
     def write(self, path, format="tsv", sep="\t"):
         """

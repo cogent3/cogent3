@@ -140,7 +140,7 @@ A ``Table`` can be indexed like a dict if you designate a column as the index (a
 
 .. jupyter-execute::
 
-    table = load_table("data/stats.tsv", index="Locus")
+    table = load_table("data/stats.tsv", index_name="Locus")
     table["NP_055852"]
 
 .. jupyter-execute::
