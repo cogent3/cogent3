@@ -287,11 +287,7 @@ class _InputDefn(_LeafDefn):
             k: set(v) for k, v in zip(range(num_valid_dims), zip(*self.index))
         }
 
-        discard = []
-        for k, v in dimensioned.items():
-            if len(v) == 1:
-                discard.append(k)
-
+        discard = [k for k, v in dimensioned.items() if len(v) == 1]
         for k in discard:
             del dimensioned[k]
 
