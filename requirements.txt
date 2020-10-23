@@ -1,6 +1,6 @@
 pillow==8.0.0
 psutil==5.7.2
-scipy==1.5.2
+scipy==1.5.3
 tox==3.20.1
 tox-gh-actions==2.1.0
 .[dev]
