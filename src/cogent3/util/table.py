@@ -1473,7 +1473,7 @@ class Table:
 
         return result
 
-    def sorted(self, columns=None, reverse=False, **kwargs):
+    def sorted(self, columns=None, reverse=None, **kwargs):
         """Returns a new table sorted according to columns order.
 
         Parameters
@@ -1488,8 +1488,8 @@ class Table:
         Either can be provided as just a single string, or a series of
         strings. If only reverse is provided, that order is used.
         """
-        reverse = reverse if reverse else []
-        if reverse and columns is None:
+        reverse = reverse if reverse is not None else []
+        if reverse != [] and columns is None:
             columns = reverse
 
         if columns is None:
