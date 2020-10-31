@@ -1483,12 +1483,10 @@ class Table:
         reverse
             column headings, these columns will be reverse sorted.
 
-            Either can be provided as just a single string, or a series of
-            strings.
-
         Notes
         -----
-        If only reverse is provided, that order is used.
+        Either can be provided as just a single string, or a series of
+        strings. If only reverse is provided, that order is used.
         """
         reverse = reverse if reverse else []
         if reverse and columns is None:
