@@ -770,11 +770,7 @@ class LikelihoodFunction(ParameterController):
         param_names = self.get_param_names()
 
         mprob_name = [n for n in param_names if "mprob" in n]
-        if mprob_name:
-            mprob_name = mprob_name[0]
-        else:
-            mprob_name = ""
-
+        mprob_name = mprob_name[0] if mprob_name else ""
         if not with_motif_probs:
             param_names.remove(mprob_name)
 

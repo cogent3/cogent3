@@ -944,6 +944,10 @@ class TableTests(TestCase):
         self.assertEqual(table[0, "stableid"], "ENSG00000019102")
         self.assertEqual(table[last_index, "stableid"], "ENSG00000019144")
 
+        # providing reversed argument name raises TypeError
+        with self.assertRaises(TypeError):
+            table.sorted(reversed="chrom")
+
     def test_summed(self):
         """test the table summed method"""
         t5 = Table(header=self.t5_header, data=self.t5_rows)
