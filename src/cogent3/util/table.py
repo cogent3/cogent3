@@ -1488,6 +1488,11 @@ class Table:
         Either can be provided as just a single string, or a series of
         strings. If only reverse is provided, that order is used.
         """
+        if "reversed" in kwargs:
+            raise TypeError(
+                "got an unexpected keyword argument 'reversed', " "use 'reverse'"
+            )
+
         reverse = reverse if reverse is not None else []
         if reverse != [] and columns is None:
             columns = reverse
