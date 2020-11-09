@@ -75,6 +75,16 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
 Making an alignment from standard python objects
 ------------------------------------------------
 
+From a dict of strings
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    from cogent3 import make_aligned_seqs
+
+    seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
+    seqs_loaded = make_aligned_seqs(seqs)
+
 From a series of strings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -85,16 +95,6 @@ From a series of strings
     seqs = [">seq1", "AATCG-A", ">seq2", "AATCGGA"]
     seqs_loaded = make_aligned_seqs(seqs)
     print(seqs_loaded)
-
-From a dict of strings
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
-    seqs_loaded = make_aligned_seqs(seqs)
 
 Stripping label characters on loading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -114,7 +114,20 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
     loaded_seqs = make_aligned_seqs(
         DNA_seqs, moltype="dna", label_to_name=lambda x: x.split()[0]
     )
-    print(loaded_seqs)
+    loaded_seqs
+
+Making a sequence collection from standard python objects
+---------------------------------------------------------
+
+This is done using ``make_unaligned_seqs()``, which returns a ``SequenceCollection`` instance. The function arguments match those of ``make_aligned_seqs()``. We demonstrate only for the case where the input data is a ``dict``.
+
+.. jupyter-execute::
+
+    from cogent3 import make_unaligned_seqs
+
+    seqs = {"seq1": "AATCA", "seq2": "AATCGGA"}
+    seqs = make_unaligned_seqs(data=seqs, moltype="dna")
+    seqs
 
 Loading sequences using format parsers
 --------------------------------------
