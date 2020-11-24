@@ -3,7 +3,7 @@
    Compatible with blat v.34
 """
 
-from cogent3.parse.table import ConvertFields
+from cogent3.parse.table import convert_fields
 from cogent3.util.table import Table
 
 
@@ -38,23 +38,19 @@ def make_header(lines):
 
 int_series = lambda x: list(map(int, x.replace(",", " ").split()))
 
-row_converter = ConvertFields(
-    [(i, int) for i in range(8)]
+rows_to_convert=([(i, int) for i in range(8)]
     + [(i, int) for i in range(10, 13)]
     + [(i, int) for i in range(14, 18)]
-    + [(i, int_series) for i in range(18, 21)]
-)
+    + [(i, int_series) for i in range(18, 21)])
 
-
-def MinimalPslParser(data, row_converter=row_converter):
+def MinimalPslParser(data, rows_to_convert=rows_to_convert):
     """returns version, header and rows from data"""
     if type(data) == str:
         data = open(data)
-
+    
     psl_version = None
     header = None
     rows = []
-
     for record in data:
         if psl_version is None:
             assert "psLayout version" in record
@@ -72,8 +68,9 @@ def MinimalPslParser(data, row_converter=row_converter):
             continue
 
         rows += [record.rstrip().split("\t")]
+
         if header is not None:
-            yield row_converter(rows[0])
+            yield convert_fields(rows_to_convert,rows[0])
             rows = []
 
     try:

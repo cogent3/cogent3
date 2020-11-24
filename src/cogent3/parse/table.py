@@ -21,46 +21,31 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class ConvertFields(object):  # pragma: no cover
-    """converter for input data to Table"""
-
-    def __init__(self, conversion, by_column=True):
-        """handles conversions of columns or lines
+def convert_fields(conversion, line,by_column=True):
+    """handles conversions of columns or lines. Specifically, casts to specified data types.
 
         Parameters
         ----------
+        conversion
+            a tuple consisting of the index of data (starting from 0) and the associated data type to be cast to if converting by column.
+            if converting by row, row needs to be castable.
         by_column
             conversion will by done for each column, otherwise
             done by entire line
+        line
+            current line to be done
 
         """
-        super(ConvertFields, self).__init__()
-        discontinued("function", "ConvertFields", "2020.11.1")
-
-        self.conversion = conversion
-        self.by_column = by_column
-
-        self._func = self.convert_by_columns
-
-        if not self.by_column:
-            assert isinstance(
-                conversion, Callable
-            ), "conversion must be callable to convert by line"
-            self._func = self.convert_by_line
-
-    def convert_by_columns(self, line):
-        """converts each column in a line"""
-        for index, cast in self.conversion:
+    if  by_column:
+        for index, cast in conversion:
             line[index] = cast(line[index])
         return line
+    else: 
 
-    def convert_by_line(self, line):
-        """converts each column in a line"""
-        return self.conversion(line)
-
-    def __call__(self, *args, **kwargs):
-        return self._func(*args, **kwargs)
-
+        assert isinstance(
+            conversion, Callable
+        ), "conversion must be callable to convert by line"
+        return conversion(line)
 
 def SeparatorFormatParser(
     with_header=True,
