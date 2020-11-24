@@ -1393,6 +1393,17 @@ class TableTests(TestCase):
         with self.assertRaises(TypeError):
             load_table({"a": [0, 1]})
 
+    def test_load_table_filename_case(self):
+        """load_table insensitive to file name case"""
+        with TemporaryDirectory(".") as dirname:
+            dirname = pathlib.Path(dirname)
+            with open(dirname / "temp.CSV", "w") as outfile:
+                outfile.write("a,b,c\n0,2,abc\n1,3,efg")
+
+            table = load_table(dirname / "temp.CSV")
+            data = table.columns.to_dict()
+        self.assertEqual(data, dict(a=[0, 1], b=[2, 3], c=["abc", "efg"]))
+
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""
         t = load_table("data/sample.tsv", sep="\t", static_column_types=False)
