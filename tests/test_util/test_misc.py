@@ -434,6 +434,19 @@ class UtilsTests(TestCase):
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
         self.assertEqual(get_merged_by_value_coords(data, digits=1), [[20, 24, 0.1]])
 
+    def test_get_format_suffixes_returns_lower_case(self):
+        """should always return lower case"""
+        a, b = get_format_suffixes("suffixes.GZ")
+        self.assertTrue(a == None and b == "gz")
+        a, b = get_format_suffixes("suffixes.ABCD")
+        self.assertTrue(a == "abcd" and b == None)
+        a, b = get_format_suffixes("suffixes.ABCD.BZ2")
+        self.assertTrue(a == "abcd" and b == "bz2")
+        a, b = get_format_suffixes("suffixes.abcd.BZ2")
+        self.assertTrue(a == "abcd" and b == "bz2")
+        a, b = get_format_suffixes("suffixes.ABCD.bz2")
+        self.assertTrue(a == "abcd" and b == "bz2")
+
     def test_get_format_suffixes(self):
         """correctly return suffixes for compressed etc.. formats"""
         a, b = get_format_suffixes("no_suffixes")
