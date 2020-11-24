@@ -248,9 +248,9 @@ def get_format_suffixes(filename):
         return None, None
 
     compression_suffixes = ("bz2", "gz", "zip")
-    suffixes = [_wout_period.sub("", sfx) for sfx in filename.suffixes[-2:]]
+    suffixes = [_wout_period.sub("", sfx).lower() for sfx in filename.suffixes[-2:]]
     if suffixes[-1] in compression_suffixes:
-        cmp_suffix = filename.suffix[1:]
+        cmp_suffix = suffixes[-1]
     else:
         cmp_suffix = None
 
