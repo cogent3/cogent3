@@ -574,7 +574,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     def _has_other_suffixes(self, path, suffix):
         p = Path(path)
-        allowed = {str(suffix), "log"}
+        allowed = {str(suffix).lower(), "log"}
         for f in p.iterdir():
             if get_format_suffixes(str(f))[0] not in allowed:
                 return True
