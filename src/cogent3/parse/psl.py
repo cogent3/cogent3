@@ -3,7 +3,6 @@
    Compatible with blat v.34
 """
 
-from cogent3.parse.table import convert_fields
 from cogent3.util.table import Table
 
 
@@ -36,8 +35,6 @@ def make_header(lines):
     return header
 
 
-
-
 def MinimalPslParser(data, rows_to_convert=rows_to_convert):
     """returns version, header and rows from data"""
     if type(data) == str:
@@ -65,7 +62,7 @@ def MinimalPslParser(data, rows_to_convert=rows_to_convert):
         rows += [record.rstrip().split("\t")]
 
         if header is not None:
-            yield  rows[0]
+            yield rows[0]
             rows = []
 
     try:
