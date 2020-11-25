@@ -16,8 +16,6 @@ import numpy
 
 from numpy.linalg import LinAlgError, eig, inv, solve
 
-from cogent3.util.modules import ExpectedImportError, importVersionedModule
-
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
