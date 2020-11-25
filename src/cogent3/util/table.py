@@ -495,12 +495,6 @@ class Table:
             for k, v in locals().items()
             if k not in ("self", "__class__", "data", "header", "kwargs")
         }
-        rows = kwargs.pop("rows", None)
-
-        assert not (rows and data), "rows is deprecated, use data"
-        if rows:
-            deprecated("argument", "rows", "data", "2020.11")
-            data = rows
 
         if "index" in kwargs:
             deprecated("argument", "index", "index_name", "2021.11")
