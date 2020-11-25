@@ -21,7 +21,6 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-
 def SeparatorFormatParser(
     with_header=True,
     converter=None,

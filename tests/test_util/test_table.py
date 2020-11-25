@@ -1935,5 +1935,6 @@ class TableTests(TestCase):
         self.assertFalse(is_html_markup("blah < blah"))
         self.assertFalse(is_html_markup("blah > blah"))
 
+
 if __name__ == "__main__":
     main()

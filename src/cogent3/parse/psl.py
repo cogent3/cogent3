@@ -35,7 +35,7 @@ def make_header(lines):
     return header
 
 
-def MinimalPslParser(data, rows_to_convert=rows_to_convert):
+def MinimalPslParser(data):
     """returns version, header and rows from data"""
     if type(data) == str:
         data = open(data)
