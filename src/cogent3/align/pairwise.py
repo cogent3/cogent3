@@ -15,7 +15,6 @@ from cogent3.align.traceback import alignment_traceback, map_traceback
 from cogent3.core.alignment import Aligned
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.util.misc import ascontiguousarray
-from cogent3.util.modules import ExpectedImportError, importVersionedModule
 
 from . import pairwise_pogs_numba as align_module
 from . import pairwise_seqs_numba as seq_align_module
