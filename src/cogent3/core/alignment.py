@@ -2800,6 +2800,7 @@ class AlignmentI(object):
         self,
         name_order=None,
         interleave_len=60,
+        wrap=60,
         limit=None,
         ref_name="longest",
         colors=None,
@@ -2813,7 +2814,9 @@ class AlignmentI(object):
         name_order
             order of names for display.
         interleave_len
-            number of alignment columns per row
+            number of alignment columns per row, will be replaced by wrap in version 2021.6
+        wrap
+            number of alignment columns per row, old name is interleave_len
         limit
             truncate alignment to this length
         ref_name
@@ -2834,6 +2837,13 @@ class AlignmentI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
+        if interleave_len != 60:
+            cogent3.util.warning.deprecated(
+                "argument", "interleave_len", "wrap", "2021.6"
+            )
+            if wrap == 60:
+                wrap = interleave_len
+
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
         )
@@ -2909,9 +2919,9 @@ class AlignmentI(object):
         seq_ = "<td>%s</td>"
         label_ = '<td class="label">%s</td>'
         num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
-        for i in range(0, seqlen, interleave_len):
+        for i in range(0, seqlen, wrap):
             table.append(num_row_.format(i))
-            seqblock = seqs[:, i : i + interleave_len].tolist()
+            seqblock = seqs[:, i : i + wrap].tolist()
             for n, s in zip(names, seqblock):
                 s = "".join(s)
                 row = "".join([label_ % n, seq_ % s])
@@ -2955,7 +2965,7 @@ class AlignmentI(object):
         ]
         return "\n".join(text)
 
-    def to_pretty(self, name_order=None, interleave_len=None):
+    def to_pretty(self, name_order=None, interleave_len=None, wrap=None):
         """returns a string representation of the alignment in pretty print format
 
         Parameters
@@ -2963,9 +2973,16 @@ class AlignmentI(object):
         name_order
             order of names for display.
         interleave_len
-            maximum number of printed bases, defaults to alignment length
-
+            maximum number of printed bases, defaults to alignment length, will be replaced by wrap in version 2021.6
+        wrap
+            maximum number of printed bases, old name is interleave_len
         """
+        if interleave_len != None:
+            cogent3.util.warning.deprecated(
+                "argument", "interleave_len", "wrap", "2021.6"
+            )
+            if wrap == None:
+                wrap = interleave_len
         names, output = self._get_raw_pretty(name_order=name_order)
         label_width = max(list(map(len, names)))
         name_template = "{:>%d}" % label_width
@@ -2974,18 +2991,18 @@ class AlignmentI(object):
         def make_line(label, seq):
             return "%s    %s" % (label, seq)
 
-        if interleave_len is None:
+        if wrap is None:
             result = [make_line(display_names[n], "".join(output[n])) for n in names]
             return "\n".join(result)
 
         align_length = len(self)
         result = []
-        for start in range(0, align_length, interleave_len):
+        for start in range(0, align_length, wrap):
             for n in names:
                 result.append(
                     make_line(
                         display_names[n],
-                        "".join(output[n][start : start + interleave_len]),
+                        "".join(output[n][start : start + wrap]),
                     )
                 )
 
