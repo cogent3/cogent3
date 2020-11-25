@@ -23,7 +23,7 @@ from cogent3.format.table import (
     get_continuation_tables_headers,
     is_html_markup,
 )
-from cogent3.parse.table import FilteringParser, convert_fields
+from cogent3.parse.table import FilteringParser
 from cogent3.util.misc import get_object_provenance, open_
 from cogent3.util.table import (
     Table,
@@ -1934,14 +1934,6 @@ class TableTests(TestCase):
         self.assertFalse(is_html_markup("<table>"))
         self.assertFalse(is_html_markup("blah < blah"))
         self.assertFalse(is_html_markup("blah > blah"))
-
-    def test_field_conversion(self):
-        tuples = [(0, int), (1, str), (2, int), (4, float), (5, int), (6, str)]
-        line = ["5", "15", "14", "13", "16", "15", "16"]
-        self.assertEqual(
-            convert_fields(tuples, line), [5, "15", 14, "13", float(16), 15, "16"]
-        )
-
 
 if __name__ == "__main__":
     main()

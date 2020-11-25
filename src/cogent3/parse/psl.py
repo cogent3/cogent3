@@ -36,18 +36,13 @@ def make_header(lines):
     return header
 
 
-int_series = lambda x: list(map(int, x.replace(",", " ").split()))
 
-rows_to_convert=([(i, int) for i in range(8)]
-    + [(i, int) for i in range(10, 13)]
-    + [(i, int) for i in range(14, 18)]
-    + [(i, int_series) for i in range(18, 21)])
 
 def MinimalPslParser(data, rows_to_convert=rows_to_convert):
     """returns version, header and rows from data"""
     if type(data) == str:
         data = open(data)
-    
+
     psl_version = None
     header = None
     rows = []
@@ -70,7 +65,7 @@ def MinimalPslParser(data, rows_to_convert=rows_to_convert):
         rows += [record.rstrip().split("\t")]
 
         if header is not None:
-            yield convert_fields(rows_to_convert,rows[0])
+            yield  rows[0]
             rows = []
 
     try:

@@ -21,31 +21,6 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def convert_fields(conversion, line,by_column=True):
-    """handles conversions of columns or lines. Specifically, casts to specified data types.
-
-        Parameters
-        ----------
-        conversion
-            a tuple consisting of the index of data (starting from 0) and the associated data type to be cast to if converting by column.
-            if converting by row, row needs to be castable.
-        by_column
-            conversion will by done for each column, otherwise
-            done by entire line
-        line
-            current line to be done
-
-        """
-    if  by_column:
-        for index, cast in conversion:
-            line[index] = cast(line[index])
-        return line
-    else: 
-
-        assert isinstance(
-            conversion, Callable
-        ), "conversion must be callable to convert by line"
-        return conversion(line)
 
 def SeparatorFormatParser(
     with_header=True,
