@@ -950,7 +950,7 @@ class SequenceTests(TestCase):
     def test_to_html(self):
         """produce correct html formatted text"""
         seq = DnaSequence("ACGGTGGGGGGGGG")
-        got = seq.to_html()
+        got = seq.to_html(wrap=50)
         # ensure balanced tags are in the txt
         for tag in ["<style>", "</style>", "<div", "</div>", "<table>", "</table>"]:
             self.assertTrue(tag in got)
@@ -974,6 +974,35 @@ class SequenceTests(TestCase):
         )
 
         self.assertTrue(seq_row in got)
+
+    def test_to_html_deprecation_warning(self):
+        """produce correct html formatted text"""
+        seq = DnaSequence("ACGGTGGGGGGGGG")
+        got = seq.to_html(interleave_len=50)
+        # ensure balanced tags are in the txt
+        for tag in ["<style>", "</style>", "<div", "</div>", "<table>", "</table>"]:
+            self.assertTrue(tag in got)
+
+        seq_row = (
+            '<tr><td class="label">None</td>'
+            '<td><span class="A_dna">A</span>'
+            '<span class="C_dna">C</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="T_dna">T</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span>'
+            '<span class="G_dna">G</span></td></tr>'
+        )
+
+        self.assertTrue(seq_row in got)
+        self.assertRaises(DeprecationWarning)
 
     def test_repr_html(self):
         """correctly uses set_repr and the environment variable settings"""
