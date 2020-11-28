@@ -2122,8 +2122,9 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
         aln = self.Class(data=seqs, moltype=DNA)
         # should raise warning here
-        aln.to_pretty(name_order=["seq1", "seq2", "seq3"], interleave_len=4)   
-        self.assertRaises(DeprecationWarning)
+        with self.assertWarns(DeprecationWarning):
+            aln.to_pretty(name_order=["seq1", "seq2", "seq3"], interleave_len=4)
+
 
     def test_to_html(self):
         """produce correct html formatted text"""
@@ -2176,10 +2177,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=seqs, moltype=DNA)
         # specify interleave_len in 2 cases, wrap specified and not specified
         # both should raise warnings
-        got = aln.to_html(ref_name="seq2", interleave_len=40)
-        self.assertRaises(DeprecationWarning)
-        
-        
+        with self.assertWarns(DeprecationWarning):
+            aln.to_html(ref_name="seq2", interleave_len=40)
 
     def test_variable_positions(self):
         """correctly identify variable positions"""

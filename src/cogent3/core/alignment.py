@@ -1103,7 +1103,7 @@ class _SequenceCollectionBase:
         """
         return alignment_to_fasta(self.to_dict())
 
-    def to_nexus(self, seq_type, interleave_len=50):
+    def to_nexus(self, seq_type, wrap=50, interleave_len=None):
         """
         Return alignment in NEXUS format and mapping to sequence ids
 
@@ -1115,7 +1115,14 @@ class _SequenceCollectionBase:
 
         Raises exception if invalid alignment
         """
-        return nexus_from_alignment(self, seq_type, interleave_len=interleave_len)
+        if interleave_len != None:
+            cogent3.util.warning.deprecated(
+                "argument", "interleave_len", "wrap", "2021.6"
+            )
+            if wrap == 50:
+                wrap = interleave_len
+
+        return nexus_from_alignment(self, seq_type, wrap=wrap)
 
     @property
     def num_seqs(self):
@@ -2799,7 +2806,7 @@ class AlignmentI(object):
     def to_html(
         self,
         name_order=None,
-        interleave_len=60,
+        interleave_len=None,
         wrap=60,
         limit=None,
         ref_name="longest",
@@ -2814,7 +2821,7 @@ class AlignmentI(object):
         name_order
             order of names for display.
         interleave_len
-            number of alignment columns per row, will be replaced by wrap in version 2021.6
+            will be replaced by wrap in version 2021.6
         wrap
             number of alignment columns per row, old name is interleave_len
         limit
@@ -2837,7 +2844,7 @@ class AlignmentI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
-        if interleave_len != 60:
+        if interleave_len != None:
             cogent3.util.warning.deprecated(
                 "argument", "interleave_len", "wrap", "2021.6"
             )
@@ -2965,7 +2972,7 @@ class AlignmentI(object):
         ]
         return "\n".join(text)
 
-    def to_pretty(self, name_order=None, interleave_len=None, wrap=None):
+    def to_pretty(self, name_order=None, wrap=None, interleave_len=None):
         """returns a string representation of the alignment in pretty print format
 
         Parameters
@@ -2973,7 +2980,7 @@ class AlignmentI(object):
         name_order
             order of names for display.
         interleave_len
-            maximum number of printed bases, defaults to alignment length, will be replaced by wrap in version 2021.6
+            will be replaced by wrap in version 2021.6
         wrap
             maximum number of printed bases, old name is interleave_len
         """

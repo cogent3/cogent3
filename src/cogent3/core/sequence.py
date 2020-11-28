@@ -667,20 +667,19 @@ class SequenceI(object):
 
     def to_html(
         self,
-        interleave_len=60,
         wrap=60,
         limit=None,
         colors=None,
         font_size=12,
         font_family="Lucida Console",
+        interleave_len=None,
     ):
         """returns html with embedded styles for sequence colouring
 
         Parameters
         ----------
         interleave_len
-            maximum number of printed bases, defaults to
-            alignment length, replaced by wrap in version 2021.6
+            replaced by wrap in version 2021.6
         wrap
             maximum number of printed bases, defaults to
             alignment length, old name is interleave_len
@@ -700,7 +699,7 @@ class SequenceI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
-        if interleave_len != 60:
+        if interleave_len != None:
             cogent3.util.warning.deprecated(
                 "argument", "interleave_len", "wrap", "2021.6"
             )
