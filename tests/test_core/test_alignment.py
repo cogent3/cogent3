@@ -2125,7 +2125,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         with self.assertWarns(DeprecationWarning):
             aln.to_pretty(name_order=["seq1", "seq2", "seq3"], interleave_len=4)
 
-
     def test_to_html(self):
         """produce correct html formatted text"""
         seqs = {"seq1": "ACG", "seq2": "-CT"}

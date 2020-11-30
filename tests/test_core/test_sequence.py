@@ -981,7 +981,6 @@ class SequenceTests(TestCase):
         with self.assertWarns(DeprecationWarning):
             seq.to_html(interleave_len=50)
 
-
     def test_repr_html(self):
         """correctly uses set_repr and the environment variable settings"""
         token = 'class="label"'
