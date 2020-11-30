@@ -1252,7 +1252,7 @@ class _SequenceCollectionBase:
         """
 
         if filename is None:
-            raise DataError("no filename specified")
+            raise IOError("no filename specified")
 
         suffix, cmp_suffix = get_format_suffixes(filename)
         if format is None and suffix:
@@ -1264,12 +1264,13 @@ class _SequenceCollectionBase:
             return
 
         # need to turn the alignment into a dictionary
-        align_dict = {}
-        for seq_name in self.names:
-            align_dict[seq_name] = str(self.named_seqs[seq_name])
+        align_dict = {
+            seq_name: str(self.named_seqs[seq_name]) for seq_name in self.names
+        }
 
         if "order" not in kwargs:
             kwargs["order"] = self.names
+
         save_to_filename(align_dict, filename, format, **kwargs)
 
     def __len__(self):
