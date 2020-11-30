@@ -10,17 +10,24 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def nexus_from_alignment(aln, seq_type, interleave_len=50):
+def nexus_from_alignment(aln, seq_type, wrap=50, interleave_len=None):
     """returns a nexus formatted string
 
     Parameters
     ----------
     seq_type
         dna, rna, or protein
-    interleave_len
+    wrap
         the line width
+    interleave_len
+        will be replaced by wrap in version 2021.6
 
     """
+    if interleave_len != None:
+        cogent3.util.warning.deprecated("argument", "interleave_len", "wrap", "2021.6")
+        if wrap == 50:
+            wrap = interleave_len
+
     if aln.is_ragged():
         raise ValueError(
             "Sequences in alignment are not all the same "
@@ -40,13 +47,10 @@ def nexus_from_alignment(aln, seq_type, interleave_len=50):
     names_seqs = sorted(aln.named_seqs.items())
     while cur_ix < aln_len:
         nexus_out.extend(
-            [
-                "    %s    %s" % (x, y[cur_ix : cur_ix + interleave_len])
-                for x, y in names_seqs
-            ]
+            ["    %s    %s" % (x, y[cur_ix : cur_ix + wrap]) for x, y in names_seqs]
         )
         nexus_out.append("")
-        cur_ix += interleave_len
+        cur_ix += wrap
     nexus_out.append("    ;\nend;")
 
     return "\n".join(nexus_out)

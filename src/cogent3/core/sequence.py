@@ -35,6 +35,8 @@ from numpy import (
 )
 from numpy.random import permutation
 
+import cogent3
+
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
@@ -665,19 +667,22 @@ class SequenceI(object):
 
     def to_html(
         self,
-        interleave_len=60,
+        wrap=60,
         limit=None,
         colors=None,
         font_size=12,
         font_family="Lucida Console",
+        interleave_len=None,
     ):
         """returns html with embedded styles for sequence colouring
 
         Parameters
         ----------
         interleave_len
+            replaced by wrap in version 2021.6
+        wrap
             maximum number of printed bases, defaults to
-            alignment length
+            alignment length, old name is interleave_len
         limit
             truncate alignment to this length
         colors
@@ -694,6 +699,13 @@ class SequenceI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
+        if interleave_len != None:
+            cogent3.util.warning.deprecated(
+                "argument", "interleave_len", "wrap", "2021.6"
+            )
+            if wrap == 60:
+                wrap = interleave_len
+
         # todo refactor interleave_len to be wrap
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
@@ -727,9 +739,9 @@ class SequenceI(object):
         seq_ = "<td>%s</td>"
         label_ = '<td class="label">%s</td>'
         num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
-        for i in range(0, seqlen, interleave_len):
+        for i in range(0, seqlen, wrap):
             table.append(num_row_.format(i))
-            seqblock = seq[i : i + interleave_len].tolist()
+            seqblock = seq[i : i + wrap].tolist()
             seqblock = "".join(seqblock)
             row = "".join([label_ % self.name, seq_ % seqblock])
             table.append("<tr>%s</tr>" % row)
