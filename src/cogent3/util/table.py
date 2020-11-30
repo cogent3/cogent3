@@ -2270,7 +2270,7 @@ class Table:
             rows = self.tolist()
             rows.insert(0, self.header[:])
             rows = writer(rows, has_header=True)
-            outfile.writelines("\n".join(rows))
+            outfile.write("\n".join(rows))
         elif format == "pickle":
             data = self.__getstate__()
             pickle.dump(data, outfile, protocol=1)
@@ -2284,6 +2284,6 @@ class Table:
                 writer.writerow([self.legend])
         else:
             table = self.to_string(format=format, sep=sep, **kwargs)
-            outfile.writelines(table + "\n")
+            outfile.write(table + "\n")
 
         outfile.close()
