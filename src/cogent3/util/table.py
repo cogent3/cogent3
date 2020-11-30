@@ -30,7 +30,6 @@ from cogent3.util.misc import (
     extend_docstring_from,
     get_format_suffixes,
     get_object_provenance,
-    open_,
 )
 from cogent3.util.union_dict import UnionDict
 from cogent3.util.warning import deprecated
@@ -2253,7 +2252,7 @@ class Table:
                 filename = "%s.gz" % filename
             mode = "wt"
 
-        outfile = open_(filename, mode)
+        outfile = atomic_write(filename, mode=mode)
 
         if format is None:
             # try guessing from filename suffix
@@ -2286,4 +2285,5 @@ class Table:
         else:
             table = self.to_string(format=format, sep=sep, **kwargs)
             outfile.writelines(table + "\n")
+
         outfile.close()
