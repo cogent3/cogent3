@@ -1,7 +1,10 @@
 #! /usr/bin/env python
 import os
+import pathlib
 import unittest
 import warnings
+
+from tempfile import TemporaryDirectory
 
 from numpy import exp, log
 
@@ -431,6 +434,14 @@ class ConsensusTests(unittest.TestCase):
         ct = sct.get_consensus_tree(method="rooted")
         maj_tree = self.rooted_trees_lengths[0][1]
         self.assertTrue(abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
+
+    def test_scored_trees_collection_write(self):
+        """writes a tree collection"""
+        sct = ScoredTreeCollection(self.rooted_trees_lengths)
+        with TemporaryDirectory(".") as dirname:
+            dirname = pathlib.Path(dirname)
+            out = dirname / "collection.trees"
+            sct.write(out)
 
     def test_consensus_from_scored_trees_collection(self):
         """tree collection should get same consensus as direct approach"""
