@@ -1457,18 +1457,11 @@ class TreeNode(object):
                 f.write(self.to_json())
             return
 
-        if format:
-            xml = format.lower() == "xml"
-        else:
-            xml = filename.lower().endswith("xml")
+        xml = format.lower() == "xml" if format else filename.lower().endswith("xml")
+        data = self.get_xml() if xml else self.get_newick(with_distances=with_distances)
 
-        if xml:
-            data = self.get_xml()
-        else:
-            data = self.get_newick(with_distances=with_distances)
-        outf = open(filename, "w")
-        outf.writelines(data)
-        outf.close()
+        with atomic_write(filename, mode="wt") as outf:
+            outf.writelines(data)
 
     def get_node_names(self, includeself=True, tipsonly=False):
         """Return a list of edges from this edge - may or may not include self.
