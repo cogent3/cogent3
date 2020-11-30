@@ -27,8 +27,7 @@ from itertools import combinations, product
 
 import numpy
 
-from cogent3.format import table
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import atomic_write, get_object_provenance
 
 
 __author__ = "Peter Maxwell"
@@ -599,8 +598,8 @@ class DictArray(object):
         return Table(header=header, data=data, index_name=index)
 
     def write(self, path, format="tsv", sep="\t"):
-        """
-        writes a flattened version to path
+        """writes a flattened version to path
+
         Parameters
         ----------
         path : str
@@ -613,5 +612,5 @@ class DictArray(object):
             provided
         """
         data = self.to_string(format=format, sep=sep)
-        with open_(path, "w") as outfile:
+        with atomic_write(path, mode="wt") as outfile:
             outfile.write(data)

@@ -248,6 +248,26 @@ class TreeNodeTests(TestCase):
                     set(tree.get_node_names()), got["edge_attributes"].keys()
                 )
 
+    def test_write_to_txt(self):
+        """write a tree to newick"""
+        tree = load_tree(filename=os.path.join(data_path, "brca1_5.tree"))
+        with TemporaryDirectory(dir=".") as dirname:
+            out_path = os.path.join(dirname, "brca1_5.txt")
+            tree.write(out_path)
+            with open_(out_path) as fn:
+                got = fn.read()
+                self.assertTrue(got.count("(") == got.count(")") == 3)
+
+    def test_write_to_xml(self):
+        """write a tree to xml"""
+        tree = load_tree(filename=os.path.join(data_path, "brca1_5.tree"))
+        with TemporaryDirectory(dir=".") as dirname:
+            out_path = os.path.join(dirname, "brca1_5.xml")
+            tree.write(out_path)
+            with open_(out_path) as fn:
+                got = fn.read()
+                self.assertTrue(got.count("<clade>") == got.count("</clade>") > 0)
+
     def test_multifurcating(self):
         """Coerces nodes to have <= n children"""
         t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"

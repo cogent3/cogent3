@@ -30,7 +30,6 @@ from cogent3.util.misc import (
     extend_docstring_from,
     get_format_suffixes,
     get_object_provenance,
-    open_,
 )
 from cogent3.util.union_dict import UnionDict
 from cogent3.util.warning import deprecated
@@ -2253,7 +2252,7 @@ class Table:
                 filename = "%s.gz" % filename
             mode = "wt"
 
-        outfile = open_(filename, mode)
+        outfile = atomic_write(filename, mode=mode)
 
         if format is None:
             # try guessing from filename suffix
@@ -2271,7 +2270,7 @@ class Table:
             rows = self.tolist()
             rows.insert(0, self.header[:])
             rows = writer(rows, has_header=True)
-            outfile.writelines("\n".join(rows))
+            outfile.write("\n".join(rows))
         elif format == "pickle":
             data = self.__getstate__()
             pickle.dump(data, outfile, protocol=1)
@@ -2285,5 +2284,6 @@ class Table:
                 writer.writerow([self.legend])
         else:
             table = self.to_string(format=format, sep=sep, **kwargs)
-            outfile.writelines(table + "\n")
+            outfile.write(table + "\n")
+
         outfile.close()

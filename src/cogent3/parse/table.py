@@ -21,7 +21,6 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-
 class FilteringParser:
     """A parser for a delimited tabular file that returns records matching a condition."""
 

@@ -7,7 +7,7 @@ from cogent3.format.gde import alignment_to_gde
 from cogent3.format.paml import alignment_to_paml
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.parse.record import FileFormatError
-from cogent3.util.misc import open_
+from cogent3.util.misc import atomic_write
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"
@@ -35,17 +35,15 @@ def save_to_filename(alignment, filename, format, **kw):
     if format is None:
         raise FileFormatError("format not known")
 
-    f = open_(filename, "wt")
-    try:
-        write_alignment_to_file(f, alignment, format, **kw)
-    except Exception:
+    with atomic_write(filename, mode="wt") as f:
         try:
-            os.unlink(filename)
+            write_alignment_to_file(f, alignment, format, **kw)
         except Exception:
-            pass
-        raise
-    finally:
-        f.close()
+            try:
+                os.unlink(filename)
+            except Exception:
+                pass
+            raise
 
 
 def write_alignment_to_file(f, alignment, format, **kw):

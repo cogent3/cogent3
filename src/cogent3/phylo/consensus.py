@@ -11,7 +11,7 @@ from cogent3.util.misc import extend_docstring_from
 
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2015, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "BSD-3"
 __version__ = "2020.7.2a"

@@ -683,6 +683,18 @@ class AtomicWriteTests(TestCase):
                 got = ifile.read()
                 self.assertEqual(got, "some data")
 
+    def test_expanduser(self):
+        """expands user correctly"""
+        # create temp file directory
+        home = os.environ["HOME"]
+        with tempfile.TemporaryDirectory(dir=home) as dirname:
+            # create temp filepath
+            dirname = pathlib.Path(dirname)
+            test_filepath = dirname / "Atomic_write_test"
+            test_filepath = str(test_filepath).replace(home, "~")
+            with atomic_write(test_filepath, mode="w") as f:
+                f.write("abc")
+
 
 class _my_dict(dict):
     """Used for testing subclass behavior of ClassChecker"""
