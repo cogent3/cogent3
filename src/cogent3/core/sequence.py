@@ -699,12 +699,11 @@ class SequenceI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
-        if interleave_len != None:
+        if interleave_len is not None:
             cogent3.util.warning.deprecated(
                 "argument", "interleave_len", "wrap", "2021.6"
             )
-            if wrap == 60:
-                wrap = interleave_len
+            wrap = interleave_len if wrap == 60 else wrap
 
         # todo refactor interleave_len to be wrap
         css, styles = self.moltype.get_css_style(

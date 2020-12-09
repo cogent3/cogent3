@@ -23,10 +23,9 @@ def nexus_from_alignment(aln, seq_type, wrap=50, interleave_len=None):
         will be replaced by wrap in version 2021.6
 
     """
-    if interleave_len != None:
+    if interleave_len is not None:
         cogent3.util.warning.deprecated("argument", "interleave_len", "wrap", "2021.6")
-        if wrap == 50:
-            wrap = interleave_len
+        wrap = interleave_len if wrap == 50 else wrap
 
     if aln.is_ragged():
         raise ValueError(

@@ -1115,12 +1115,11 @@ class _SequenceCollectionBase:
 
         Raises exception if invalid alignment
         """
-        if interleave_len != None:
+        if interleave_len is not None:
             cogent3.util.warning.deprecated(
                 "argument", "interleave_len", "wrap", "2021.6"
             )
-            if wrap == 50:
-                wrap = interleave_len
+            wrap = interleave_len
 
         return nexus_from_alignment(self, seq_type, wrap=wrap)
 
@@ -2845,12 +2844,11 @@ class AlignmentI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
-        if interleave_len != None:
+        if interleave_len is not None:
             cogent3.util.warning.deprecated(
                 "argument", "interleave_len", "wrap", "2021.6"
             )
-            if wrap == 60:
-                wrap = interleave_len
+            wrap = interleave_len if wrap == 60 else wrap
 
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
@@ -2985,12 +2983,12 @@ class AlignmentI(object):
         wrap
             maximum number of printed bases, old name is interleave_len
         """
-        if interleave_len != None:
+        if interleave_len is not None:
             cogent3.util.warning.deprecated(
                 "argument", "interleave_len", "wrap", "2021.6"
             )
-            if wrap == None:
-                wrap = interleave_len
+            wrap = interleave_len
+
         names, output = self._get_raw_pretty(name_order=name_order)
         label_width = max(list(map(len, names)))
         name_template = "{:>%d}" % label_width
