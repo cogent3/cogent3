@@ -2801,7 +2801,7 @@ class AlignmentI(object):
             name_order=self.names[: settings["num_seqs"]],
             ref_name=settings["ref_name"],
             limit=settings["num_pos"],
-            interleave_len=settings["wrap"],
+            wrap=settings["wrap"],
         )
 
     def to_html(
