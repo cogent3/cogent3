@@ -636,6 +636,18 @@ class UtilsTests(TestCase):
 class AtomicWriteTests(TestCase):
     """testing the atomic_write class."""
 
+    def test_does_not_write_if_exception(self):
+        """file does not exist if an exception raised before closing"""
+        # create temp file directory
+        with tempfile.TemporaryDirectory(".") as dirname:
+            dirname = pathlib.Path(dirname)
+            test_filepath = dirname / "Atomic_write_test"
+            with self.assertRaises(AssertionError):
+                with atomic_write(test_filepath, mode="w") as f:
+                    f.write("abc")
+                    raise AssertionError
+            self.assertFalse(test_filepath.exists())
+
     def test_rename(self):
         """Renames file as expected """
         # create temp file directory
