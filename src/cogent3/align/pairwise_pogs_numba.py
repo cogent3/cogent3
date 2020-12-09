@@ -6,7 +6,6 @@ from numba import (
     float64,
     int32,
     int64,
-    jitclass,
     njit,
     optional,
     types,
