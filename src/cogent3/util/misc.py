@@ -203,30 +203,30 @@ class atomic_write:
     def __enter__(self):
         return self._get_fileobj()
 
-    def _close_rename_standard(self, p):
+    def _close_rename_standard(self, src):
+        dest = Path(self._path)
         try:
-            f = Path(self._path)
-            f.unlink()
+            dest.unlink()
         except FileNotFoundError:
             pass
         finally:
-            p.rename(self._path)
+            src.rename(dest)
 
-    def _close_rename_zip(self, p):
+    def _close_rename_zip(self, src):
         with zipfile.ZipFile(self._in_zip, "a") as out:
-            out.write(str(p), arcname=self._path)
+            out.write(str(src), arcname=self._path)
 
-        p.unlink()
+        src.unlink()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._file.close()
-        p = Path(self._file.name)
+        tmpfile_name = Path(self._file.name)
         if exc_type is None:
-            self._close_func(p)
+            self._close_func(tmpfile_name)
             self.succeeded = True
         else:
             self.succeeded = False
-            p.unlink()
+            tmpfile_name.unlink()
 
     def write(self, text):
         """writes text to file"""
