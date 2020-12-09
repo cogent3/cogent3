@@ -93,7 +93,7 @@ class ClustalTests(TestCase):
             clustal_from_alignment(self.alignment_dict), self.clustal_with_label
         )
         self.assertEqual(
-            clustal_from_alignment(self.alignment_dict, interleave_len=2),
+            clustal_from_alignment(self.alignment_dict, wrap=2),
             self.clustal_with_label_lw2,
         )
 
@@ -104,7 +104,7 @@ class ClustalTests(TestCase):
             self.clustal_with_label_reordered,
         )
         self.assertEqual(
-            clustal_from_alignment(self.alignment_object, interleave_len=2),
+            clustal_from_alignment(self.alignment_object, wrap=2),
             self.clustal_with_label_lw2_reordered,
         )
 
