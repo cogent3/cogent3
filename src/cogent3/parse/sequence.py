@@ -109,6 +109,7 @@ PARSERS = {
     "msf": gcg.MsfParser,
     "nex": nexus.MinimalNexusAlignParser,
     "nxs": nexus.MinimalNexusAlignParser,
+    "nexus": nexus.MinimalNexusAlignParser,
 }
 
 XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}
