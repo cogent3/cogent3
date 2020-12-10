@@ -138,7 +138,7 @@ class _seq_loader:
         seqs = self.klass(data=data, moltype=self.moltype)
         seqs.info.source = abs_path
 
-        if self._output_types & {"sequences"}:
+        if self._output_types & {SEQUENCE_TYPE}:
             seqs = seqs.degap()
             seqs.info.source = abs_path
 
