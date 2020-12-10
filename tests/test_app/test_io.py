@@ -106,6 +106,14 @@ class TestIo(TestCase):
         fasta_loader = io_app.load_aligned(format="fasta")
         validate(fasta_paths, fasta_loader)
 
+    def test_load_aligned_nexus(self):
+        """should handle nexus too"""
+        nexus_paths = io_app.get_data_store(self.basedir, suffix="nex")
+        loader = io_app.load_aligned(format="nexus")
+        results = [loader(m) for m in nexus_paths]
+        for result in results:
+            self.assertIsInstance(result, ArrayAlignment)
+
     def test_load_aligned_from_zip(self):
         """correctly loads aligned seqs from a zip archive"""
 
