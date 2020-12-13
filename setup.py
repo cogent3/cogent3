@@ -94,6 +94,7 @@ setup(
             "jupyter_client",
             "jupyterlab",
             "jupytext",
+            "kaleido",
             "nbconvert",
             "nbformat",
             "nbsphinx",
@@ -110,7 +111,7 @@ setup(
             "sphinx_panels",
             "tox",
         ],
-        "extra": ["pandas", "plotly", "psutil"],
+        "extra": ["pandas", "plotly", "psutil", "kaleido"],
     },
     project_urls=PROJECT_URLS,
 )
