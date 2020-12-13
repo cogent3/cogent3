@@ -1,2 +1,3 @@
 include MANIFEST.in LICENSE
+include requirements.txt
 recursive-include src *
