@@ -26,7 +26,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"
@@ -535,8 +535,7 @@ def dr_parser(lines):
 
 
 def dr_itemparser(lines):
-    """return a key, value pair from lines of a DR item.
-    """
+    """return a key, value pair from lines of a DR item."""
     fields = join_split_parser(lines)
     return fields[0], fields[1:]
 
@@ -1557,7 +1556,7 @@ def EbiParser(
 
 
 if __name__ == "__main__":
-    from getopt import getopt, GetoptError
+    from getopt import GetoptError, getopt
 
     usage = """ Usage: python __.py [options] [source]
 

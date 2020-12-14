@@ -13,7 +13,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -114,9 +114,9 @@ class SimpleMotifProbModel(MotifProbModel):
 class ComplexMotifProbModel(MotifProbModel):
     def __init__(self, tuple_alphabet, mask):
         """Arguments:
-            - tuple_alphabet: series of multi-letter motifs
-            - monomers: the monomers from which the motifs are made
-            - mask: instantaneous change matrix"""
+        - tuple_alphabet: series of multi-letter motifs
+        - monomers: the monomers from which the motifs are made
+        - mask: instantaneous change matrix"""
         self.mask = mask
         self.tuple_alphabet = tuple_alphabet
         self.monomer_alphabet = monomers = tuple_alphabet.moltype.alphabet

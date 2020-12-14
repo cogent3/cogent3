@@ -10,10 +10,12 @@ import zipfile
 from collections import defaultdict
 from fnmatch import fnmatch, translate
 from io import TextIOWrapper
+from json import JSONDecodeError
 from pathlib import Path
 from pprint import pprint
 from warnings import warn
 
+from scitrack import get_text_hexdigest
 from tinydb import Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
@@ -27,14 +29,13 @@ from cogent3.util.misc import (
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
-from scitrack import get_text_hexdigest
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -55,15 +56,21 @@ def make_record_for_json(identifier, data, completed):
         pass
 
     data = json.dumps(data)
-    record = dict(identifier=identifier, data=data, completed=completed)
-    return record
+    return dict(identifier=identifier, data=data, completed=completed)
 
 
 def load_record_from_json(data):
     """returns identifier, data, completed status from json string"""
     if type(data) == str:
         data = json.loads(data)
-    value = json.loads(data["data"])
+
+    value = data["data"]
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except JSONDecodeError:
+            pass
+
     return data["identifier"], value, data["completed"]
 
 
@@ -219,8 +226,7 @@ class ReadOnlyDataStoreBase:
         return None
 
     def get_relative_identifier(self, identifier):
-        """returns the identifier relative to store root path
-        """
+        """returns the identifier relative to store root path"""
         if isinstance(identifier, DataStoreMember) and identifier.parent is self:
             return identifier
 
@@ -240,8 +246,7 @@ class ReadOnlyDataStoreBase:
         return identifier
 
     def get_absolute_identifier(self, identifier, from_relative=False):
-        """returns the identifier relative to the root path
-        """
+        """returns the identifier relative to the root path"""
         if not from_relative:
             identifier = self.get_relative_identifier(identifier)
         source = self.source.replace(".zip", "")
@@ -340,7 +345,7 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
         kwargs
             ignored
         """
-        path = Path(source)
+        path = Path(source).expanduser()
         assert path.exists() and path.is_file()
         super(SingleReadDataStore, self).__init__(
             str(path.parent), suffix=str(path.suffix)
@@ -569,7 +574,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     def _has_other_suffixes(self, path, suffix):
         p = Path(path)
-        allowed = {str(suffix), "log"}
+        allowed = {str(suffix).lower(), "log"}
         for f in p.iterdir():
             if get_format_suffixes(str(f))[0] not in allowed:
                 return True
@@ -774,8 +779,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         self._finish.detach()
 
     def lock(self):
-        """if writable, and not locked, locks the database to this pid
-        """
+        """if writable, and not locked, locks the database to this pid"""
         if not self.locked:
             self._db.insert(dict(identifier="LOCK", pid=os.getpid()))
             self._db.storage.flush()

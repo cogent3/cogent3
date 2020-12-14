@@ -9,7 +9,6 @@ Using a protein model
 We load the unaligned sequences we will use in our examples and translate them.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app import io, translate
 
@@ -24,7 +23,6 @@ Protein alignment with default settings
 The default setting for "protein" is a WG01 model.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.app.align import progressive_align
 
@@ -40,7 +38,6 @@ The distance measures available are percent or paralinear.
 .. note:: An estimated guide tree has its branch lengths scaled so they are consistent with usage in a codon model.
 
 .. jupyter-execute::
-    :linenos:
 
     aa_aligner = progressive_align("protein", distance="paralinear")
     aligned = aa_aligner(seqs)
@@ -50,6 +47,5 @@ Alignment settings and file provenance are recorded in the ``info`` attribute
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     aligned.info

@@ -8,7 +8,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -58,7 +58,9 @@ def get_base_logo_layout(axnum, xtick_fontsize, ytick_fontsize):
     xanchor = "x" if axnum == 1 else f"x{axnum}"
     yanchor = "y" if axnum == 1 else f"y{axnum}"
     layout[f"x{axis}"] = dict(
-        anchor=yanchor, tickfont=dict(size=xtick_fontsize), ticks="inside",
+        anchor=yanchor,
+        tickfont=dict(size=xtick_fontsize),
+        ticks="inside",
     )
 
     layout[f"y{axis}"] = dict(

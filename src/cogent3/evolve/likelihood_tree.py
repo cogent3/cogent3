@@ -16,7 +16,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -123,7 +123,9 @@ class _LikelihoodTreeEdge(object):
             rows = list(zip(motifs, observed, expected))
             rows.sort(key=lambda row: (-row[1], row[0]))
             table = Table(
-                header=["Pattern", "Observed", "Expected"], data=rows, index="Pattern"
+                header=["Pattern", "Observed", "Expected"],
+                data=rows,
+                index_name="Pattern",
             )
             return (G, table)
         else:
@@ -175,7 +177,11 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
             self.indexes = numpy.ascontiguousarray(self.indexes)
         if not result.flags["C_CONTIGUOUS"]:
             result = numpy.ascontiguousarray(result)
-        return likelihood_tree.sum_input_likelihoods(self.indexes, result, likelihoods,)
+        return likelihood_tree.sum_input_likelihoods(
+            self.indexes,
+            result,
+            likelihoods,
+        )
 
     # For root
 

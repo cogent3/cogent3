@@ -51,7 +51,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -138,7 +138,7 @@ class _seq_loader:
         seqs = self.klass(data=data, moltype=self.moltype)
         seqs.info.source = abs_path
 
-        if self._output_types & {"sequences"}:
+        if self._output_types & {SEQUENCE_TYPE}:
             seqs = seqs.degap()
             seqs.info.source = abs_path
 
@@ -437,7 +437,7 @@ class write_seqs(_checkpointable):
 
 
 class load_json(Composable):
-    """Loads json serialised cogent3 objects from a json file. 
+    """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
     _type = "output"
@@ -515,7 +515,7 @@ class write_json(_checkpointable):
 
 
 class load_db(Composable):
-    """Loads json serialised cogent3 objects from a TinyDB file. 
+    """Loads json serialised cogent3 objects from a TinyDB file.
     Returns whatever object type was stored."""
 
     _type = "output"

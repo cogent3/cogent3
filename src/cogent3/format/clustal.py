@@ -11,19 +11,32 @@ __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
 
 
-def clustal_from_alignment(aln, interleave_len=None):
-    """Returns a string in Clustal format.
-
-        - aln: can be an Alignment object or a dict.
-        - interleave_len: sequence line width.  Only available if sequences are
-            aligned.
+def clustal_from_alignment(aln, interleave_len=None, wrap=None):
     """
+    Parameters
+    ----------
+    aln
+        can be an Alignment object or a dict
+    wrap
+        sequence line width.  Only available if sequences are
+        aligned.
+
+    Returns
+    -------
+    Returns a string in Clustal format
+    """
+    if interleave_len is not None:
+        from cogent3.util.warning import deprecated
+
+        deprecated("argument", "interleave_len", "wrap", "2021.6")
+        wrap = interleave_len if wrap == 60 else wrap
+
     if not aln:
         return ""
 
@@ -55,7 +68,7 @@ def clustal_from_alignment(aln, interleave_len=None):
     # Get ordered seqs
     ordered_seqs = [seqs.named_seqs[label] for label in order]
 
-    if interleave_len is not None:
+    if wrap is not None:
         curr_ix = 0
         while curr_ix < aln_len:
             clustal_list.extend(
@@ -64,13 +77,13 @@ def clustal_from_alignment(aln, interleave_len=None):
                     % (
                         x,
                         " " * (max_spaces - len(x)),
-                        y[curr_ix : curr_ix + interleave_len],
+                        y[curr_ix : curr_ix + wrap],
                     )
                     for x, y in zip(order, ordered_seqs)
                 ]
             )
             clustal_list.append("")
-            curr_ix += interleave_len
+            curr_ix += wrap
     else:
         clustal_list.extend(
             [

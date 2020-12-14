@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 import re
+import textwrap
 import time
 import traceback
 
@@ -29,7 +30,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -62,11 +63,7 @@ def _get_source(source):
 
 
 def _get_origin(origin):
-    if type(origin) == str:
-        result = origin
-    else:
-        result = origin.__class__.__name__
-    return result
+    return origin if type(origin) == str else origin.__class__.__name__
 
 
 class NotCompleted(int):
@@ -187,11 +184,7 @@ class ComposableType:
             return True
 
         name = data.__class__.__name__
-        valid = False
-        for type_ in self._data_types:
-            if type_ == name:
-                valid = True
-                break
+        valid = name in self._data_types
         if not valid:
             msg = f"invalid data type, '{name}' not in {', '.join(self._data_types)}"
             valid = NotCompleted("ERROR", self, message=msg, source=data)
@@ -214,6 +207,7 @@ class Composable(ComposableType):
         if txt:
             txt += " + "
         txt += "%s(%s)" % (self.__class__.__name__, ", ".join(self._formatted))
+        txt = textwrap.fill(txt, width=80, break_long_words=False)
         return txt
 
     def __repr__(self):

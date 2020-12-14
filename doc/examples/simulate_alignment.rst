@@ -6,7 +6,6 @@ Simulate an alignment
 For this example we just create a simple model using a four taxon tree with different branch lengths and a Felsenstein model.
 
 .. jupyter-execute::
-    :linenos:
 
     import sys
     from cogent3 import make_tree
@@ -15,14 +14,12 @@ For this example we just create a simple model using a four taxon tree with diff
 Specify the 4 taxon tree,
 
 .. jupyter-execute::
-    :linenos:
 
     t = make_tree("(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1);")
 
 Define our Felsenstein 1981 substitution model.
 
 .. jupyter-execute::
-    :linenos:
 
     sm = get_model("F81")
     lf = sm.make_likelihood_function(t)
@@ -33,7 +30,6 @@ Define our Felsenstein 1981 substitution model.
 We'll now create a simulated alignment of length 1000 nucleotides.
 
 .. jupyter-execute::
-    :linenos:
 
     simulated = lf.simulate_alignment(sequence_length=1000)
     simulated

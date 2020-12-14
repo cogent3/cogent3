@@ -30,7 +30,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -105,6 +105,14 @@ class TestIo(TestCase):
         fasta_paths = io_app.get_data_store(self.basedir, suffix=".fasta", limit=2)
         fasta_loader = io_app.load_aligned(format="fasta")
         validate(fasta_paths, fasta_loader)
+
+    def test_load_aligned_nexus(self):
+        """should handle nexus too"""
+        nexus_paths = io_app.get_data_store(self.basedir, suffix="nex")
+        loader = io_app.load_aligned(format="nexus")
+        results = [loader(m) for m in nexus_paths]
+        for result in results:
+            self.assertIsInstance(result, ArrayAlignment)
 
     def test_load_aligned_from_zip(self):
         """correctly loads aligned seqs from a zip archive"""

@@ -2,7 +2,7 @@
 from cogent3.core.annotation import Feature
 from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
-from cogent3.core.moltype import ASCII, DNA, PROTEIN
+from cogent3.core.moltype import get_moltype
 from cogent3.parse.record import FieldWrapper
 from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
@@ -14,9 +14,9 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 maketrans = str.maketrans
@@ -67,8 +67,7 @@ def parse_single_line(line):
 
 
 def indent_splitter(lines):
-    """Yields the lines whenever it hits a line with same indent level as first.
-    """
+    """Yields the lines whenever it hits a line with same indent level as first."""
     first_line = True
     curr = []
     for line in lines:
@@ -382,17 +381,6 @@ class Location(object):
             curr = "complement(%s)" % curr
         return curr
 
-    def isAmbiguous(self):
-        """Returns True if ambiguous (single-base ambiguity or two locations.)
-        """
-        if self.Ambiguity:
-            return True
-        try:
-            iter(self._data)
-            return True
-        except:
-            return False
-
     def first(self):
         """Returns first base self could be."""
         try:
@@ -435,8 +423,7 @@ class LocationList(list):
         return curr
 
     def strand(self):
-        """Returns strand of components: 1=forward, -1=reverse, 0=both
-        """
+        """Returns strand of components: 1=forward, -1=reverse, 0=both"""
         curr = {}
         for i in self:
             curr[i.Strand] = 1
@@ -651,7 +638,7 @@ def RichGenbankParser(
 
     """
     info_excludes = info_excludes or []
-    moltype = moltype or ASCII
+    moltype = get_moltype(moltype or "text")
     for rec in MinimalGenbankParser(handle):
         info = Info()
         # populate the info object, excluding the sequence
@@ -660,10 +647,8 @@ def RichGenbankParser(
                 continue
             info[label] = value
 
-        if rec["mol_type"] == "protein":  # which it doesn't for genbank
-            moltype = PROTEIN
-        elif rec["mol_type"] == "DNA":
-            moltype = DNA
+        if rec["mol_type"].lower() in ("dna", "rna", "protein"):
+            moltype = get_moltype(rec["mol_type"].lower())
 
         try:
             seq = moltype.make_seq(
@@ -703,7 +688,7 @@ def RichGenbankParser(
             if add_annotation:
                 add_annotation(seq, feature, spans)
             else:
-                for id_field in ["gene", "note", "product", "clone"]:
+                for id_field in ["gene", "product", "clone", "note"]:
                     if id_field in feature:
                         name = feature[id_field]
                         if not isinstance(name, str):

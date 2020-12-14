@@ -16,7 +16,7 @@ __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
@@ -207,8 +207,13 @@ def MinimalNexusAlignParser(align_path):
 
     isblock = re.compile(r"begin\s+(data|characters)").search
     inblock = False
-    line = infile.readline().lower()
-    if not line.startswith("#nexus"):
+    try:
+        line = infile.readline()
+    except AttributeError:
+        # guessing it's a list of strings from a nexus file
+        line = infile.pop(0)
+
+    if not line.lower().startswith("#nexus"):
         raise ValueError("not a nexus file")
 
     block = []
@@ -225,7 +230,8 @@ def MinimalNexusAlignParser(align_path):
             elif not line.startswith(";"):
                 block.append(line)
 
-    infile.close()
+    if hasattr(infile, "close"):
+        infile.close()
 
     if not block:
         raise ValueError("not found DATA or CHARACTER block")

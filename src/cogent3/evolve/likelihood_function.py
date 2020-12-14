@@ -36,7 +36,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -500,7 +500,7 @@ class LikelihoodFunction(ParameterController):
 
     def _for_display(self):
         """processes statistics tables for display"""
-        title = self._name if self._name else "Likelihood function statistics"
+        title = self.name if self.name else "Likelihood function statistics"
         result = []
         result += self.get_statistics(with_motif_probs=True, with_titles=True)
         for i, table in enumerate(result):
@@ -508,14 +508,7 @@ class LikelihoodFunction(ParameterController):
                 "motif" in table.title and table.shape[1] == 2 and table.shape[0] >= 60
             ):  # just sort codon motif probs, then truncate
                 table = table.sorted(columns="motif")
-                data = table.tolist()
-                data = data[:5] + [["...", "..."]] + data[-5:]
-                table = table.__class__(
-                    header=table.header,
-                    data=data,
-                    digits=table._digits,
-                    title=table.title,
-                )
+                table.set_repr_policy(head=5, tail=5, show_shape=False)
                 result[i] = table
         return title, result
 
@@ -531,7 +524,8 @@ class LikelihoodFunction(ParameterController):
         title, results = self._for_display()
         for i, table in enumerate(results):
             table.title = table.title.capitalize()
-            results[i] = table._repr_html_(include_shape=False)
+            table.set_repr_policy(show_shape=False)
+            results[i] = table._repr_html_()
         results = ["<h4>%s</h4>" % title, lnL, nfp] + results
         return "\n".join(results)
 
@@ -570,7 +564,9 @@ class LikelihoodFunction(ParameterController):
         The other measures are always available in the params dict of each
         node.
         """
-        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
+        from cogent3.evolve.ns_substitution_model import (
+            DiscreteSubstitutionModel,
+        )
 
         is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
 
@@ -694,7 +690,9 @@ class LikelihoodFunction(ParameterController):
         motif_probs : dict or DictArray
             an item for each edge of the tree. Computed if not provided.
         """
-        from cogent3.evolve.ns_substitution_model import DiscreteSubstitutionModel
+        from cogent3.evolve.ns_substitution_model import (
+            DiscreteSubstitutionModel,
+        )
 
         is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
 
@@ -772,11 +770,7 @@ class LikelihoodFunction(ParameterController):
         param_names = self.get_param_names()
 
         mprob_name = [n for n in param_names if "mprob" in n]
-        if mprob_name:
-            mprob_name = mprob_name[0]
-        else:
-            mprob_name = ""
-
+        mprob_name = mprob_name[0] if mprob_name else ""
         if not with_motif_probs:
             param_names.remove(mprob_name)
 
@@ -834,7 +828,7 @@ class LikelihoodFunction(ParameterController):
                 heading_names,
                 list_table,
                 max_width=80,
-                index=row_ids,
+                index_name=row_ids,
                 title=title,
                 **self._format,
             )
@@ -891,8 +885,18 @@ class LikelihoodFunction(ParameterController):
                 edge_attr[edge]["length"] = None
 
         model = self._model.to_rich_dict(for_pickle=False)
-        alignment = self.get_param_value("alignment").to_rich_dict()
-        mprobs = self.get_motif_probs().to_dict()
+
+        aln_defn = self.defn_for["alignment"]
+        if len(aln_defn.index) == 1:
+            alignment = self.get_param_value("alignment").to_rich_dict()
+            mprobs = self.get_motif_probs().to_dict()
+        else:
+            alignment = {a["locus"]: a["value"] for a in aln_defn.get_param_rules()}
+            mprobs = self.get_motif_probs()
+            for k in alignment:
+                alignment[k] = alignment[k].to_rich_dict()
+                mprobs[k] = mprobs[k].to_dict()
+
         DLC = self.all_psubs_DLC()
         try:
             unique_Q = self.all_rate_matrices_unique()
@@ -923,12 +927,23 @@ class LikelihoodFunction(ParameterController):
         data = json.dumps(data)
         return data
 
-    # For tests.  Compat with old LF interface
-    def set_name(self, name):
+    @property
+    def name(self):
+        if self._name is None:
+            self._name = self.model.name or ""
+
+        return self._name
+
+    @name.setter
+    def name(self, name):
         self._name = name
 
+    # For tests.  Compat with old LF interface
+    def set_name(self, name):
+        self.name = name
+
     def get_name(self):
-        return self._name or "unnamed"
+        return self.name
 
     def set_tables_format(self, space=4, digits=4):
         """sets display properties for statistics tables. This affects results

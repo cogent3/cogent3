@@ -10,7 +10,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -74,6 +74,12 @@ class RefalignmentTests(TestCase):
                 aligner._kwargs["S"],
                 make_generic_scoring_dict(10, get_moltype(test_moltype)),
             )
+
+    def test_align_to_ref_result_has_moltype(self):
+        """aligned object has correct moltype"""
+        aligner = align_app.align_to_ref(moltype="dna")
+        got = aligner(self.seqs)
+        self.assertEqual(got.moltype.label, "dna")
 
     def test_progressive_align_protein_moltype(self):
         """tests guide_tree is None and moltype is protein"""

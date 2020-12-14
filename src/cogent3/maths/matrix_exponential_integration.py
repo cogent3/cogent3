@@ -19,7 +19,7 @@ __author__ = "Ben Kaehler"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
 __credits__ = ["Ben Kaehler", "Von Bing Yap", "Gavin Huttley", "Ananias Iliadis"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Ben Kaehler"
 __email__ = "benjamin.kaehler@anu.edu.au"
 __status__ = "Production"
@@ -97,7 +97,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
 
 def expected_number_subs(p0, Q, t):
     """returns the expected number of substitutions
-    
+
     p0
         initial state frequencies
     Q

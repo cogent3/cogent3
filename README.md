@@ -36,12 +36,10 @@ $ pip install cogent3
 
 ### Install `extra` -- adds visualisation support
 
-**NOTE:** Only available in the development version until release ≥2020.3
-
-The `extra` group includes python libraries required for visualisation (i.e. [plotly](https://pypi.org/project/plotly/) and [psutil](https://pypi.org/project/psutil/) plus [pandas](https://pypi.org/project/pandas/) (optional)
+The `extra` group includes python libraries required for visualisation, i.e. [plotly](https://pypi.org/project/plotly/), [kaleido](https://pypi.org/project/kaleido/), [psutil](https://pypi.org/project/psutil/) and [pandas](https://pypi.org/project/pandas/).
 
 ```bash
-$ pip install cogent3[extra]
+$ pip install "cogent3[extra]"
 ```
 
 ### Install `dev` -- adds `cogent3` development related libraries
@@ -49,7 +47,7 @@ $ pip install cogent3[extra]
 The `dev` group includes python libraries required for development of `cogent3`.
 
 ```bash
-$ pip install cogent3[dev]
+$ pip install "cogent3[dev]"
 ```
 
 ### Install the development version
@@ -60,11 +58,11 @@ $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
 
 ## Project Information
 
-`cogent3` is released under the BSD-3 license, documentation for [`cogent3` is on readthedocs](https://cogent3.readthedocs.io/en/latest/), while [`cogent3` code is on GitHub](https://github.com/cogent3/cogent3). If you would like to contribute (and we hope you do!), we have created a companion [`c3dev` GitHub](https://github.com/cogent3/c3dev) repo which provides details on how to contribute and some useful tools for doing so.
+`cogent3` is released under the BSD-3 license, documentation is at [cogent3.org](https://cogent3.org), while [`cogent3` code is on GitHub](https://github.com/cogent3/cogent3). If you would like to contribute (and we hope you do!), we have created a companion [`c3dev` GitHub](https://github.com/cogent3/c3dev) repo which provides details on how to contribute and some useful tools for doing so.
 
 ## Project History
 
-`cogent3` is a descendant of [PyCogent](https://github.com/pycogent/pycogent.github.com). While there is much in common with PyCogent, the amount of change has been substantial, motivating a new name `cogent3`. This name has been chosen because `cogent` was always the import name (dating back to [PyEvolve in 2004](https://www.ncbi.nlm.nih.gov/pubmed/14706121)) and it's Python 3 only.
+`cogent3` is a descendant of [PyCogent](https://github.com/pycogent/pycogent.github.com). While there is much in common with PyCogent, the amount of change has been substantial, motivating the name change to `cogent3`. This name has been chosen because `cogent` was always the import name (dating back to [PyEvolve in 2004](https://www.ncbi.nlm.nih.gov/pubmed/14706121)) and it's Python 3 only.
 
 Given this history, we are grateful to the multitude of individuals who have made contributions over the years. These individuals are explicitly acknowledged in all the files they contributed to and were co-authors on the original [PyEvolve](https://www.ncbi.nlm.nih.gov/pubmed/14706121) and [PyCogent](https://www.ncbi.nlm.nih.gov/pubmed/17708774) publications.
 

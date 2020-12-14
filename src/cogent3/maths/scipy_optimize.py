@@ -36,23 +36,19 @@ except ImportError:
 
 
 def max(m, axis=0):
-    """max(m,axis=0) returns the maximum of m along dimension axis.
-    """
+    """max(m,axis=0) returns the maximum of m along dimension axis."""
     m = asarray(m)
     return numpy.maximum.reduce(m, axis)
 
 
 def min(m, axis=0):
-    """min(m,axis=0) returns the minimum of m along dimension axis.
-    """
+    """min(m,axis=0) returns the minimum of m along dimension axis."""
     m = asarray(m)
     return numpy.minimum.reduce(m, axis)
 
 
 def is_array_scalar(x):
-    """Test whether `x` is either a scalar or an array scalar.
-
-    """
+    """Test whether `x` is either a scalar or an array scalar."""
     return len(atleast_1d(x) == 1)
 
 
@@ -60,7 +56,7 @@ abs = absolute
 
 pymin = builtins.min
 pymax = builtins.max
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 
 
 _epsilon = sqrt(numpy.finfo(float).eps)

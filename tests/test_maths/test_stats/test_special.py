@@ -3,6 +3,8 @@
 """
 import math
 
+from unittest import TestCase, main
+
 from cogent3.maths.stats.special import (
     combinations,
     combinations_exact,
@@ -18,17 +20,18 @@ from cogent3.maths.stats.special import (
     permutations,
     permutations_exact,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_almost_equal
 
 
 class SpecialTests(TestCase):
@@ -43,7 +46,7 @@ class SpecialTests(TestCase):
         self.assertEqual(permutations(4, 2), 12)
         self.assertEqual(permutations(4, 3), 24)
         self.assertEqual(permutations(4, 4), 24)
-        self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e239)
+        assert_allclose(permutations(300, 100), 3.8807387193009318e239)
 
     def test_permutations_errors(self):
         """permutations should raise errors on invalid input"""
@@ -53,14 +56,14 @@ class SpecialTests(TestCase):
 
     def test_permutations_float(self):
         """permutations should use gamma function when floats as input"""
-        self.assertFloatEqual(permutations(1.0, 1), 1)
-        self.assertFloatEqual(permutations(2, 1.0), 2)
-        self.assertFloatEqual(permutations(3.0, 1.0), 3)
-        self.assertFloatEqual(permutations(4.0, 1), 4)
-        self.assertFloatEqual(permutations(4.0, 2.0), 12)
-        self.assertFloatEqual(permutations(4.0, 3.0), 24)
-        self.assertFloatEqual(permutations(4, 4.0), 24)
-        self.assertFloatEqual(permutations(300, 100), 3.8807387193009318e239)
+        assert_allclose(permutations(1.0, 1), 1)
+        assert_allclose(permutations(2, 1.0), 2)
+        assert_allclose(permutations(3.0, 1.0), 3)
+        assert_allclose(permutations(4.0, 1), 4)
+        assert_allclose(permutations(4.0, 2.0), 12)
+        assert_allclose(permutations(4.0, 3.0), 24)
+        assert_allclose(permutations(4, 4.0), 24)
+        assert_allclose(permutations(300, 100), 3.8807387193009318e239)
 
     def test_permutations_range(self):
         """permutations should increase gradually with increasing k"""
@@ -79,27 +82,25 @@ class SpecialTests(TestCase):
 
     def test_permutations_exact(self):
         """permutations_exact should return expected results"""
-        self.assertFloatEqual(permutations_exact(1, 1), 1)
-        self.assertFloatEqual(permutations_exact(2, 1), 2)
-        self.assertFloatEqual(permutations_exact(3, 1), 3)
-        self.assertFloatEqual(permutations_exact(4, 1), 4)
-        self.assertFloatEqual(permutations_exact(4, 2), 12)
-        self.assertFloatEqual(permutations_exact(4, 3), 24)
-        self.assertFloatEqual(permutations_exact(4, 4), 24)
-        self.assertFloatEqual(permutations_exact(300, 100), 3.8807387193009318e239)
+        assert_allclose(permutations_exact(1, 1), 1)
+        assert_allclose(permutations_exact(2, 1), 2)
+        assert_allclose(permutations_exact(3, 1), 3)
+        assert_allclose(permutations_exact(4, 1), 4)
+        assert_allclose(permutations_exact(4, 2), 12)
+        assert_allclose(permutations_exact(4, 3), 24)
+        assert_allclose(permutations_exact(4, 4), 24)
+        assert_allclose(permutations_exact(300, 100) / 3.8807387193009318e239, 1.0)
 
     def test_ln_permutations(self):
         """ln_permutations should return expected results"""
-        self.assertFloatEqual(ln_permutations(1, 1), math.log(1))
-        self.assertFloatEqual(ln_permutations(2, 1), math.log(2))
-        self.assertFloatEqual(ln_permutations(3, 1.0), math.log(3))
-        self.assertFloatEqual(ln_permutations(4, 1), math.log(4))
-        self.assertFloatEqual(ln_permutations(4.0, 2), math.log(12))
-        self.assertFloatEqual(ln_permutations(4, 3.0), math.log(24))
-        self.assertFloatEqual(ln_permutations(4, 4), math.log(24))
-        self.assertFloatEqual(
-            ln_permutations(300.0, 100), math.log(3.8807387193009318e239)
-        )
+        assert_allclose(ln_permutations(1, 1), math.log(1))
+        assert_allclose(ln_permutations(2, 1), math.log(2))
+        assert_allclose(ln_permutations(3, 1.0), math.log(3))
+        assert_allclose(ln_permutations(4, 1), math.log(4))
+        assert_allclose(ln_permutations(4.0, 2), math.log(12))
+        assert_allclose(ln_permutations(4, 3.0), math.log(24))
+        assert_allclose(ln_permutations(4, 4), math.log(24))
+        assert_allclose(ln_permutations(300.0, 100), math.log(3.8807387193009318e239))
 
     def test_combinations(self):
         """combinations should return expected results when int as input"""
@@ -111,7 +112,7 @@ class SpecialTests(TestCase):
         self.assertEqual(combinations(4, 3), 4)
         self.assertEqual(combinations(4, 4), 1)
         self.assertEqual(combinations(20, 4), 19 * 17 * 15)
-        self.assertFloatEqual(combinations(300, 100), 4.1582514632578812e81)
+        assert_allclose(combinations(300, 100), 4.1582514632578812e81)
 
     def test_combinations_errors(self):
         """combinations should raise errors on invalid input"""
@@ -121,15 +122,15 @@ class SpecialTests(TestCase):
 
     def test_combinations_float(self):
         """combinations should use gamma function when floats as input"""
-        self.assertFloatEqual(combinations(1.0, 1.0), 1)
-        self.assertFloatEqual(combinations(2.0, 1.0), 2)
-        self.assertFloatEqual(combinations(3.0, 1.0), 3)
-        self.assertFloatEqual(combinations(4.0, 1.0), 4)
-        self.assertFloatEqual(combinations(4.0, 2), 6)
-        self.assertFloatEqual(combinations(4, 3.0), 4)
-        self.assertFloatEqual(combinations(4.0, 4.0), 1)
-        self.assertFloatEqual(combinations(20.0, 4.0), 19 * 17 * 15)
-        self.assertFloatEqual(combinations(300, 100.0), 4.1582514632578812e81)
+        assert_allclose(combinations(1.0, 1.0), 1)
+        assert_allclose(combinations(2.0, 1.0), 2)
+        assert_allclose(combinations(3.0, 1.0), 3)
+        assert_allclose(combinations(4.0, 1.0), 4)
+        assert_allclose(combinations(4.0, 2), 6)
+        assert_allclose(combinations(4, 3.0), 4)
+        assert_allclose(combinations(4.0, 4.0), 1)
+        assert_allclose(combinations(20.0, 4.0), 19 * 17 * 15)
+        assert_allclose(combinations(300, 100.0), 4.1582514632578812e81)
 
     def test_combinations_range(self):
         """combinations should decrease gradually with increasing k"""
@@ -156,21 +157,19 @@ class SpecialTests(TestCase):
         self.assertEqual(combinations_exact(4, 3), 4)
         self.assertEqual(combinations_exact(4, 4), 1)
         self.assertEqual(combinations_exact(20, 4), 19 * 17 * 15)
-        self.assertFloatEqual(combinations_exact(300, 100), 4.1582514632578812e81)
+        assert_allclose(combinations_exact(300, 100), 4.1582514632578812e81)
 
     def test_ln_combinations(self):
         """ln_combinations should return expected results"""
-        self.assertFloatEqual(ln_combinations(1, 1), math.log(1))
-        self.assertFloatEqual(ln_combinations(2, 1), math.log(2))
-        self.assertFloatEqual(ln_combinations(3, 1), math.log(3))
-        self.assertFloatEqual(ln_combinations(4.0, 1), math.log(4))
-        self.assertFloatEqual(ln_combinations(4, 2.0), math.log(6))
-        self.assertFloatEqual(ln_combinations(4, 3), math.log(4))
-        self.assertFloatEqual(ln_combinations(4, 4.0), math.log(1))
-        self.assertFloatEqual(ln_combinations(20, 4), math.log(19 * 17 * 15))
-        self.assertFloatEqual(
-            ln_combinations(300, 100), math.log(4.1582514632578812e81)
-        )
+        assert_allclose(ln_combinations(1, 1), math.log(1))
+        assert_allclose(ln_combinations(2, 1), math.log(2))
+        assert_allclose(ln_combinations(3, 1), math.log(3))
+        assert_allclose(ln_combinations(4.0, 1), math.log(4))
+        assert_allclose(ln_combinations(4, 2.0), math.log(6))
+        assert_allclose(ln_combinations(4, 3), math.log(4))
+        assert_allclose(ln_combinations(4, 4.0), math.log(1))
+        assert_allclose(ln_combinations(20, 4), math.log(19 * 17 * 15))
+        assert_allclose(ln_combinations(300, 100), math.log(4.1582514632578812e81))
 
     def test_ln_binomial_integer(self):
         """ln_binomial should match R results for integer values"""
@@ -187,7 +186,7 @@ class SpecialTests(TestCase):
             (1032, 2050, 0.5): math.log(0.01679804),
         }
         for (key, value) in list(expected.items()):
-            self.assertFloatEqualRel(ln_binomial(*key), value, 1e-4)
+            assert_allclose(ln_binomial(*key), value, 1e-4)
 
     def test_ln_binomial_floats(self):
         """Binomial exact should match values from R for integer successes"""
@@ -204,11 +203,10 @@ class SpecialTests(TestCase):
         for (key, value) in list(expected.items()):
             min_val, max_val = value
             assert min_val < ln_binomial(*key) < max_val
-            # self.assertFloatEqualRel(binomial_exact(*key), value, 1e-4)
+            # self.assert_allclose(binomial_exact(*key), value, 1e-4)
 
     def test_ln_binomial_range(self):
-        """ln_binomial should increase in a monotonically increasing region.
-        """
+        """ln_binomial should increase in a monotonically increasing region."""
         start = 0
         end = 1
         step = 0.1
@@ -224,19 +222,19 @@ class SpecialTests(TestCase):
 
     def test_log_one_minus_large(self):
         """log_one_minus_x should return math.log(1-x) if x is large"""
-        self.assertFloatEqual(log_one_minus(0.2), math.log(1 - 0.2))
+        assert_allclose(log_one_minus(0.2), math.log(1 - 0.2))
 
     def test_log_one_minus_small(self):
         """log_one_minus_x should return -x if x is small"""
-        self.assertFloatEqualRel(log_one_minus(1e-30), 1e-30)
+        assert_allclose(log_one_minus(1e-30), -1e-30, rtol=1e-30, atol=1e-30)
 
     def test_one_minus_exp_large(self):
         """one_minus_exp_x should return 1 - math.exp(x) if x is large"""
-        self.assertFloatEqual(one_minus_exp(0.2), 1 - (math.exp(0.2)))
+        assert_allclose(one_minus_exp(0.2), 1 - (math.exp(0.2)))
 
     def test_one_minus_exp_small(self):
         """one_minus_exp_x should return -x if x is small"""
-        self.assertFloatEqual(one_minus_exp(1e-30), -1e-30)
+        assert_allclose(one_minus_exp(1e-30), -1e-30)
 
     def test_log1p(self):
         """log1p should give same results as cephes"""
@@ -269,7 +267,7 @@ class SpecialTests(TestCase):
             1.09861228867,
         ]
         for p, e in zip(p_s, exp):
-            self.assertFloatEqual(log1p(p), e)
+            assert_allclose(log1p(p), e)
 
     def test_igami(self):
         """igami should give same result as cephes implementation"""
@@ -309,7 +307,7 @@ class SpecialTests(TestCase):
             188.010915412,
         ]
         for o, e in zip(obs, exp):
-            self.assertFloatEqual(o, e)
+            assert_allclose(o, e)
 
     def test_ndtri(self):
         """ndtri should give same result as implementation in cephes"""
@@ -416,7 +414,7 @@ class SpecialTests(TestCase):
             2.32634787404,
         ]
         obs = [ndtri(i / 100.0) for i in range(100)]
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs, exp)
 
     def test_incbi(self):
         """incbi results should match cephes libraries"""
@@ -575,10 +573,10 @@ class SpecialTests(TestCase):
                 for y in yy_range:
                     result = incbi(a, b, y)
                     e = exp[i]
-                    self.assertFloatEqual(e, result)
+                    assert_allclose(e, result)
                     i += 1
         # specific cases that failed elsewhere
-        self.assertFloatEqual(incbi(999, 2, 1e-10), 0.97399698104554944)
+        assert_allclose(incbi(999, 2, 1e-10), 0.97399698104554944)
 
 
 # execute tests if called from command line

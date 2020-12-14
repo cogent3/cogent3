@@ -11,7 +11,6 @@ The simplest script
 We use a canned nucleotide substitution model (the ``HKY85`` model) on just three primate species. As there is only one unrooted tree possible, the sequence names are all that's required to make the tree.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.models import get_model
     from cogent3 import load_aligned_seqs, make_tree

@@ -21,7 +21,7 @@ __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -204,11 +204,11 @@ class Hybrid(_PeriodEstimator):
         return_all=False,
     ):
         """Arguments:
-            - length: the length of signals to be encountered
-            - period: specified period at which to return the signal
-            - llim, ulim: the smallest, largest periods to evaluate
-            - return_all: whether to return the hybrid, ipdft, autocorr
-              statistics as a numpy array, or just the hybrid statistic
+        - length: the length of signals to be encountered
+        - period: specified period at which to return the signal
+        - llim, ulim: the smallest, largest periods to evaluate
+        - return_all: whether to return the hybrid, ipdft, autocorr
+          statistics as a numpy array, or just the hybrid statistic
         """
         super(Hybrid, self).__init__(length, llim, ulim, period)
         self.ipdft = Ipdft(length, llim, ulim, period, abs_ft_sig)

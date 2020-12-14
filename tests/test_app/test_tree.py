@@ -1,23 +1,35 @@
+import json
 import os
 
+from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
-from cogent3 import DNA, load_aligned_seqs, make_aligned_seqs, make_tree
+from cogent3 import (
+    DNA,
+    load_aligned_seqs,
+    load_tree,
+    make_aligned_seqs,
+    make_tree,
+)
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.util.misc import get_object_provenance, open_
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+base_path = os.path.dirname(os.path.dirname(__file__))
+data_path = os.path.join(base_path, "data")
 
 
 class TestTree(TestCase):
@@ -56,9 +68,7 @@ class TestTree(TestCase):
 
     def test_quick_tree(self):
         """correctly calc a nj tree"""
-        path = os.path.join(
-            os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
-        )
+        path = os.path.join(data_path, "brca1_5.paml")
         aln = load_aligned_seqs(path, moltype=DNA)
         fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         dist_matrix = fast_slow_dist(aln)
@@ -68,16 +78,16 @@ class TestTree(TestCase):
 
     def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
-        path = os.path.join(
-            os.path.abspath(__file__).split("test_app")[0], "data/brca1_5.paml"
-        )
+        path = os.path.join(data_path, "brca1_5.paml")
         aln1 = load_aligned_seqs(path, moltype=DNA)
         fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
         proc = fast_slow_dist + quick
         self.assertEqual(
             str(proc),
-            "fast_slow_dist(type='distance', distance=None, moltype='dna', fast_calc='hamming', slow_calc=None) + quick_tree(type='tree', drop_invalid=False)",
+            "fast_slow_dist(type='distance', distance=None, moltype='dna',\n"
+            "fast_calc='hamming', slow_calc=None) + quick_tree(type='tree',\n"
+            "drop_invalid=False)",
         )
         self.assertIsInstance(proc, tree_app.quick_tree)
         self.assertEqual(proc._type, "tree")

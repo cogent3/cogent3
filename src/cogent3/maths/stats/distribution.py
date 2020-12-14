@@ -4,7 +4,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 """
 
 from numpy import arctan as atan
-from numpy import exp, sqrt
+from numpy import array, exp, sqrt
 
 from cogent3.maths.stats.special import (
     MACHEP,
@@ -33,9 +33,9 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 incbet = betai  # shouldn't have renamed it...
@@ -408,16 +408,14 @@ def fdtrc(a, b, x):
 
 
 def gdtr(a, b, x):
-    """Returns integral from 0 to x of Gamma distribution with params a and b.
-    """
+    """Returns integral from 0 to x of Gamma distribution with params a and b."""
     if x < 0.0:
         raise ZeroDivisionError("x must be at least 0.")
     return igam(b, a * x)
 
 
 def gdtrc(a, b, x):
-    """Returns integral from x to inf of Gamma distribution with params a and b.
-    """
+    """Returns integral from x to inf of Gamma distribution with params a and b."""
     if x < 0.0:
         raise ZeroDivisionError("x must be at least 0.")
     return igamc(b, a * x)
@@ -533,3 +531,56 @@ def fdtri(a, b, y):
         w = incbi(0.5 * a, 0.5 * b, 1.0 - y)
         x = b * w / (a * (1.0 - w))
     return x
+
+
+def probability_points(n):
+    """return series of n probabilities
+
+    Returns
+    -------
+    Numpy array of probabilities
+
+    Notes
+    -----
+    Useful for plotting probability distributions
+    """
+    assert n > 0, f"{n} must be > 0"
+    adj = 0.5 if n > 10 else 3 / 8
+    denom = n if n > 10 else n + 1 - 2 * adj
+    return array([(i - adj) / denom for i in range(1, n + 1)])
+
+
+def theoretical_quantiles(n, dist, *args):
+    """returns theoretical quantiles from dist
+
+    Parameters
+    ----------
+    n : int
+        number of elements
+    dist : str
+        one of 'normal', 'chisq', 't', 'uniform'
+
+    Returns
+    -------
+    Numpy array of quantiles
+    """
+    dist = dist.lower()
+    funcs = dict(
+        normal=ndtri,
+        chisq=chdtri,
+        t=stdtri,
+    )
+
+    if dist != "uniform" and dist not in funcs:
+        raise ValueError(f"'{dist} not in {list(funcs)}")
+
+    probs = probability_points(n)
+    if dist == "uniform":
+        return probs
+
+    func = funcs[dist]
+
+    if not args:
+        return array([func(p) for p in probs])
+
+    return array([func(*(args + (p,))) for p in probs])

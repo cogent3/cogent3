@@ -2,19 +2,19 @@
 """Provides tests for classes and functions in profile.py
 """
 from collections import Counter
+from unittest import TestCase, main
 
 from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose
 
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

@@ -17,7 +17,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -26,11 +26,11 @@ __status__ = "Alpha"
 class TestCheckpoint(TestCase):
     def test_checkpointable(self):
         """chained funcs should be be able to apply a checkpoint"""
-        path = "data" + os.sep + "brca1.fasta"
         reader = io_app.load_aligned(moltype="dna")
         omit_degens = sample_app.omit_degenerates(moltype="dna")
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_seqs(dirname)
+            path = "data" + os.sep + "brca1.fasta"
             aln = reader(path)
             outpath = writer(aln)
 
@@ -45,7 +45,7 @@ class TestCheckpoint(TestCase):
             self.assertTrue(len(got) > 1000)
 
 
-ComposableSeq._input_types = ComposableSeq._output_types = set([None])
+ComposableSeq._input_types = ComposableSeq._output_types = {None}
 
 
 class TestComposableBase(TestCase):
@@ -213,8 +213,8 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "select_translatable(type='sequences', "
-            "moltype='dna', gc='Standard Nuclear', "
-            "allow_rc=False, trim_terminal_stop=True)",
+            "moltype='dna', gc=1, "
+            "allow_rc=False,\ntrim_terminal_stop=True)",
         )
 
         func = select_translatable(allow_rc=True)
@@ -222,8 +222,8 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "select_translatable(type='sequences', "
-            "moltype='dna', gc='Standard Nuclear', "
-            "allow_rc=True, trim_terminal_stop=True)",
+            "moltype='dna', gc=1, "
+            "allow_rc=True,\ntrim_terminal_stop=True)",
         )
 
         nodegen = omit_degenerates()
@@ -231,14 +231,14 @@ class TestNotCompletedResult(TestCase):
         self.assertEqual(
             got,
             "omit_degenerates(type='aligned', moltype=None, "
-            "gap_is_degen=True, motif_length=1)",
+            "gap_is_degen=True,\nmotif_length=1)",
         )
         ml = min_length(100)
         got = str(ml)
         self.assertEqual(
             got,
             "min_length(type='sequences', length=100, "
-            "motif_length=1, subtract_degen=True, "
+            "motif_length=1, subtract_degen=True,\n"
             "moltype=None)",
         )
 
@@ -250,7 +250,8 @@ class TestPicklable(TestCase):
     def test_composite_pickleable(self):
         """composable functions should be pickleable"""
         from pickle import dumps
-        from cogent3.app import io, sample, evo, tree, translate, align
+
+        from cogent3.app import align, evo, io, sample, translate, tree
 
         read = io.load_aligned(moltype="dna")
         dumps(read)
@@ -284,13 +285,17 @@ class TestPicklable(TestCase):
     def test_triggers_bugcatcher(self):
         """a composable that does not trap failures returns NotCompletedResult
         requesting bug report"""
-        from cogent3.app import io, sample, evo, tree, translate, align
+        from cogent3.app import align, evo, io, sample, translate, tree
 
         read = io.load_aligned(moltype="dna")
         read.func = lambda x: None
         got = read("somepath.fasta")
         self.assertIsInstance(got, NotCompleted)
         self.assertEqual(got.type, "BUG")
+
+
+def _demo(ctx, expect):
+    return ctx.frame_start == expect
 
 
 class TestUserFunction(TestCase):
@@ -300,18 +305,14 @@ class TestUserFunction(TestCase):
     def bar(self, val, *args, **kwargs):
         return val.distance_matrix(calc="hamming", show_progress=False)
 
-    def _demo(self, ctx, expect):
-        self.assertEqual(ctx.frame_start, expect)
-        return expect
-
     def test_user_function_custom_variables(self):
+        # not sure what this is meant to be testing
         demo = user_function(
-            self._demo, ("aligned", "serialisable"), ("aligned", "serialisable")
+            _demo, ("aligned", "serialisable"), ("aligned", "serialisable")
         )
-        foo = demo
         frame_start = 2
-        foo.frame_start = frame_start
-        foo(frame_start)
+        demo.frame_start = frame_start
+        self.assertTrue(demo(demo, 2))
 
     def test_user_function(self):
         """composable functions should be user definable"""

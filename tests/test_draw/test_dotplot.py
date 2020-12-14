@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -117,6 +117,14 @@ class TestUtilFunctions(TestCase):
         self.assertNotEqual(dp._aligned_coords, None)
         self.assertEqual(len(dp.seq1), 4)
         self.assertEqual(len(dp.seq2), 3)
+
+    def test_dotplot_title(self):
+        """setting empty string title works"""
+        seqs = make_unaligned_seqs(
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+        )
+        dp = seqs.dotplot("seq1", "seq3", title="")
+        self.assertEqual(dp.figure.layout.title, "")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,10 @@
 #! /usr/bin/env python
 import os
+import pathlib
 import unittest
 import warnings
+
+from tempfile import TemporaryDirectory
 
 from numpy import exp, log
 
@@ -23,7 +26,7 @@ warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2015, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -32,7 +35,7 @@ __credits__ = [
     "Ben Kaehler",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -431,6 +434,14 @@ class ConsensusTests(unittest.TestCase):
         ct = sct.get_consensus_tree(method="rooted")
         maj_tree = self.rooted_trees_lengths[0][1]
         self.assertTrue(abs(get_ac(ct).length - get_ac(maj_tree).length) < 1e-9)
+
+    def test_scored_trees_collection_write(self):
+        """writes a tree collection"""
+        sct = ScoredTreeCollection(self.rooted_trees_lengths)
+        with TemporaryDirectory(".") as dirname:
+            dirname = pathlib.Path(dirname)
+            out = dirname / "collection.trees"
+            sct.write(out)
 
     def test_consensus_from_scored_trees_collection(self):
         """tree collection should get same consensus as direct approach"""

@@ -1,3 +1,5 @@
+from unittest import TestCase, main
+
 import numpy as np
 
 from numpy import array, diag, dot, exp
@@ -5,17 +7,18 @@ from numpy import array, diag, dot, exp
 import cogent3.maths.matrix_exponentiation as cmme
 
 from cogent3.maths import matrix_exponential_integration as expm
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Ben Kaehler"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
 __credits__ = ["Ben Kaehler", "Ananias Iliadis", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Ben Kaehler"
 __email__ = "benjamin.kaehler@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 class TestIntegratingExponentiator(TestCase):
@@ -30,11 +33,15 @@ class TestIntegratingExponentiator(TestCase):
         q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.0
-            q[i, i] = -sum(q[i,])
+            q[i, i] = -sum(
+                q[
+                    i,
+                ]
+            )
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VanLoanIntegratingExponentiator(q, -diag(q))(1.0)
-        self.assertFloatEqual(dot(p0, I), result)
+        assert_allclose(dot(p0, I), result)
 
         self.assertRaises(
             ArithmeticError,
@@ -51,21 +58,17 @@ class TestIntegratingExponentiator(TestCase):
                 [[exp(t) - 1.0, exp(t) * (t - 1.0) + 1.0], [0.0, exp(t) - 1.0]]
             )
 
-        self.assertFloatEqual(
-            expm.VanLoanIntegratingExponentiator(Q)(1.0), integral(1.0)
-        )
-        self.assertFloatEqual(
-            expm.VanLoanIntegratingExponentiator(Q)(2.0), integral(2.0)
-        )
+        assert_allclose(expm.VanLoanIntegratingExponentiator(Q)(1.0), integral(1.0))
+        assert_allclose(expm.VanLoanIntegratingExponentiator(Q)(2.0), integral(2.0))
 
         R = array([[1.0], [1.0]])
-        self.assertFloatEqual(
+        assert_allclose(
             expm.VanLoanIntegratingExponentiator(Q, R, cmme.TaylorExponentiator)(1.0),
             dot(integral(1.0), R),
         )
 
     def test_von_bing_integrating_exponentiator(self):
-        """VonBingIntegratingExponentiator should reproduce Felsenstein 
+        """VonBingIntegratingExponentiator should reproduce Felsenstein
         analytic result, should throw if we pass it a defective matrix, and
         should match results obtained from VanLoanIntegratingExponentiator for
         a diagonisable matrix."""
@@ -74,11 +77,15 @@ class TestIntegratingExponentiator(TestCase):
         q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.0
-            q[i, i] = -sum(q[i,])
+            q[i, i] = -sum(
+                q[
+                    i,
+                ]
+            )
         p0 = array([0.2, 0.3, 0.3, 0.2])
 
         I = expm.VonBingIntegratingExponentiator(q)(1.0)
-        self.assertFloatEqual(dot(dot(p0, I), -diag(q)), result)
+        assert_allclose(dot(dot(p0, I), -diag(q)), result)
 
         self.assertRaises(
             ArithmeticError,
@@ -95,13 +102,13 @@ class TestIntegratingExponentiator(TestCase):
             ]
         )
 
-        self.assertFloatEqual(
+        assert_allclose(
             expm.VonBingIntegratingExponentiator(p)(1.0),
             expm.VanLoanIntegratingExponentiator(
                 p, exponentiator=cmme.FastExponentiator
             )(1.0),
         )
-        self.assertFloatEqual(
+        assert_allclose(
             expm.VonBingIntegratingExponentiator(p)(2.0),
             expm.VanLoanIntegratingExponentiator(
                 p, exponentiator=cmme.FastExponentiator
@@ -126,7 +133,7 @@ class TestIntegratingExponentiator(TestCase):
         Q = get_calibrated_Q(R)
         length = 0.1
         got = expm.expected_number_subs(moprobs, Q, length)
-        self.assertFloatEqual(got, length)
+        assert_allclose(got, length)
         # case 2, length != ENS
 
         A = array(

@@ -18,7 +18,7 @@ __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"  # pending addition of protein distance metrics
@@ -303,7 +303,7 @@ def _make_stat_table(stats, names, **kwargs):
         rows[i].insert(0, names[i])
 
     table = Table(
-        header=header, data=rows, index=r"Seq1 \ Seq2", missing_data="*", **kwargs
+        header=header, data=rows, index_name=r"Seq1 \ Seq2", missing_data="*", **kwargs
     )
     return table
 
@@ -534,7 +534,7 @@ class _PairwiseDistance(object):
 class HammingPair(_PairwiseDistance):
     """Hamming distance calculator for pairwise alignments"""
 
-    valid_moltypes = ("dna", "rna", "protein", "text")
+    valid_moltypes = ("dna", "rna", "protein", "text", "bytes")
 
     def __init__(self, moltype="text", *args, **kwargs):
         """states: the valid sequence states"""
@@ -545,7 +545,7 @@ class HammingPair(_PairwiseDistance):
 class PercentIdentityPair(_PairwiseDistance):
     """Percent identity distance calculator for pairwise alignments"""
 
-    valid_moltypes = ("dna", "rna", "protein", "text")
+    valid_moltypes = ("dna", "rna", "protein", "text", "bytes")
 
     def __init__(self, moltype="text", *args, **kwargs):
         """states: the valid sequence states"""
@@ -635,8 +635,8 @@ class LogDetPair(_PairwiseDistance):
 
     def __init__(self, moltype="dna", use_tk_adjustment=True, *args, **kwargs):
         """Arguments:
-            - moltype: string or moltype instance (must be dna or rna)
-            - use_tk_adjustment: use the correction of Tamura and Kumar 2002
+        - moltype: string or moltype instance (must be dna or rna)
+        - use_tk_adjustment: use the correction of Tamura and Kumar 2002
         """
         super(LogDetPair, self).__init__(moltype, *args, **kwargs)
         self.func = _logdet
@@ -684,7 +684,8 @@ def get_distance_calculator(name, *args, **kwargs):
 
 
 def available_distances():
-    """returns Table listing available pairwise genetic distance calculator
+    """returns Table listing available fast pairwise genetic distance calculator
+
     Notes
     -----
     For more complicated genetic distance methods, see the evolve.models module.
@@ -702,7 +703,7 @@ def available_distances():
             "Specify a pairwise genetic distance calculator "
             "using 'Abbreviation' (case insensitive)."
         ),
-        index="Abbreviation",
+        index_name="Abbreviation",
     )
     return table
 
@@ -742,7 +743,7 @@ class DistanceMatrix(DictArray):
             column = self.array[:, i]
             data[name] = column
         header = ["names"] + list(self.names)
-        table = Table(header=header, data=data, index="names")
+        table = Table(header=header, data=data, index_name="names")
         return table
 
     def to_dict(self, **kwargs):

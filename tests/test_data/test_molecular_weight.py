@@ -1,28 +1,25 @@
 #!/usr/bin/env python
 """Tests for molecular weight.
 """
-from cogent3.data.molecular_weight import (
-    DnaMW,
-    ProteinMW,
-    RnaMW,
-    WeightCalculator,
-)
-from cogent3.util.unit_test import TestCase, main
+from unittest import TestCase, main
+
+from cogent3.data.molecular_weight import ProteinMW, RnaMW
 
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 class WeightCalculatorTests(TestCase):
-    """Tests for WeightCalculator, which should calculate molecular weights.
-    """
+    """Tests for WeightCalculator, which should calculate molecular weights."""
 
     def test_call(self):
         """WeightCalculator should return correct molecular weight"""
@@ -30,12 +27,12 @@ class WeightCalculatorTests(TestCase):
         p = ProteinMW
         self.assertEqual(p(""), 0)
         self.assertEqual(r(""), 0)
-        self.assertFloatEqual(p("A"), 89.09)
-        self.assertFloatEqual(r("A"), 375.17)
-        self.assertFloatEqual(p("AAA"), 231.27)
-        self.assertFloatEqual(r("AAA"), 1001.59)
-        self.assertFloatEqual(r("AAACCCA"), 2182.37)
-        self.assertFloatEqual(
+        assert_allclose(p("A"), 89.09)
+        assert_allclose(r("A"), 375.17)
+        assert_allclose(p("AAA"), 231.27)
+        assert_allclose(r("AAA"), 1001.59)
+        assert_allclose(r("AAACCCA"), 2182.37)
+        assert_allclose(
             p(
                 "MVQQAESLEAESNLPREALDTEEGEFMACSPVALDESDPDWCKTASGHIKRPMNAFMVWSKIERRKIMEQSPDMHNAEISKRLGKR\
                                  WKMLKDSEKIPFIREAERLRLKHMADYPDYKYRPRKKPKMDPSAKPSASQSPEKSAAGGGGGSAGGGAGGAKTSKGSSKKCGKLKA\

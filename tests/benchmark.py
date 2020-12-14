@@ -16,7 +16,7 @@ __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -71,7 +71,8 @@ def makePC(modelClass, parameterisation, length, taxa, tree, opt_mprobs, **kw):
 
 
 def quiet(f, *args, **kw):
-    import sys, io
+    import io
+    import sys
 
     temp = io.StringIO()
     _stdout = sys.stdout

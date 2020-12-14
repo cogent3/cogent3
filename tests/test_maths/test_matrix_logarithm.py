@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for matrix logarithm."""
+from unittest import TestCase, main
+
 from numpy import array
 
 from cogent3.maths.matrix_logarithm import (
@@ -7,17 +9,18 @@ from cogent3.maths.matrix_logarithm import (
     logm,
     logm_taylor,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 class logarithm_tests(TestCase):
@@ -35,7 +38,7 @@ class logarithm_tests(TestCase):
         )
 
         q = logm(p)
-        self.assertFloatEqual(
+        assert_allclose(
             q,
             array(
                 [
@@ -45,6 +48,7 @@ class logarithm_tests(TestCase):
                     [0.35144866, 0.31279003, 0.10478999, -0.76902868],
                 ]
             ),
+            rtol=1e-6,
         )
 
     def test_logm_taylor(self):
@@ -65,10 +69,10 @@ class logarithm_tests(TestCase):
                 [0.23022035, 0.22306947, 0.06995306, 0.47675713],
             ]
         )
-        self.assertFloatEqual(q_taylor, q_eig)
+        assert_allclose(q_taylor, q_eig)
 
     def test_is_generator_unique(self):
-        """ is_generator_unique should identify non-unique primary roots or
+        """is_generator_unique should identify non-unique primary roots or
         raise a NotImplementedError for non-primary roots"""
         q_fail = array(
             [

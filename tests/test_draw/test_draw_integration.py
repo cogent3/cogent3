@@ -13,7 +13,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -375,7 +375,7 @@ class TableDrawablesTest(BaseDrawablesTests):
 
     def test_to_plotly(self):
         """exercise producing a plotly table"""
-        table = make_table(header=["a", "b"], data=[[0, 1]], index="a")
+        table = make_table(header=["a", "b"], data=[[0, 1]], index_name="a")
         drawable = table.to_plotly()
         self.assertIsInstance(drawable, Drawable)
         self._check_drawable_attrs(drawable.figure, "table")

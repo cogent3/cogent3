@@ -14,7 +14,6 @@ Loading aligned sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -24,7 +23,6 @@ Loading aligned sequences
 The load functions record the origin of the data in the ``info`` attribute under a `"source"` key.
 
 .. jupyter-execute::
-    :linenos:
 
     aln.info.source
 
@@ -38,7 +36,6 @@ Loading unaligned sequences
 The ``load_unaligned_seqs()`` function returns a sequence collection.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_unaligned_seqs
 
@@ -51,7 +48,6 @@ Specifying the file format
 The loading functions use the filename suffix to infer the file format. This can be overridden using the ``format`` argument.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -64,7 +60,6 @@ Specifying the sequence molecular type
 Simple case of loading a ``list`` of aligned amino acid sequences in FASTA format, with and without ``moltype`` specification. When ``moltype`` is not specified it defaults to ``BYTES`` for the ``ArrayAlignment`` class, ``ASCII`` for the ``Alignment`` class.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -80,11 +75,20 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
 Making an alignment from standard python objects
 ------------------------------------------------
 
+From a dict of strings
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    from cogent3 import make_aligned_seqs
+
+    seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
+    seqs_loaded = make_aligned_seqs(seqs)
+
 From a series of strings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -92,24 +96,12 @@ From a series of strings
     seqs_loaded = make_aligned_seqs(seqs)
     print(seqs_loaded)
 
-From a dict of strings
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. jupyter-execute::
-    :linenos:
-
-    from cogent3 import make_aligned_seqs
-
-    seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
-    seqs_loaded = make_aligned_seqs(seqs)
-
 Stripping label characters on loading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Load a list of aligned nucleotide sequences, while specifying the DNA molecule type and stripping the comments from the label. In this example, stripping is accomplished by passing a function that removes everything after the first whitespace to the ``label_to_name`` parameter.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -122,7 +114,20 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
     loaded_seqs = make_aligned_seqs(
         DNA_seqs, moltype="dna", label_to_name=lambda x: x.split()[0]
     )
-    print(loaded_seqs)
+    loaded_seqs
+
+Making a sequence collection from standard python objects
+---------------------------------------------------------
+
+This is done using ``make_unaligned_seqs()``, which returns a ``SequenceCollection`` instance. The function arguments match those of ``make_aligned_seqs()``. We demonstrate only for the case where the input data is a ``dict``.
+
+.. jupyter-execute::
+
+    from cogent3 import make_unaligned_seqs
+
+    seqs = {"seq1": "AATCA", "seq2": "AATCGGA"}
+    seqs = make_unaligned_seqs(data=seqs, moltype="dna")
+    seqs
 
 Loading sequences using format parsers
 --------------------------------------
@@ -137,7 +142,6 @@ To load FASTA formatted sequences directly, you can use the ``MinimalFastaParser
 .. note:: This returns the sequences as strings.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.fasta import MinimalFastaParser
 
@@ -151,7 +155,6 @@ Handling overloaded FASTA sequence labels
 The FASTA label field is frequently overloaded, with different information fields present in the field and separated by some delimiter. This can be flexibly addressed using the ``LabelParser``. By creating a custom label parser, we can decide which part we use as the sequence name. We show how to convert a field into something specific.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.fasta import LabelParser
 
@@ -168,7 +171,6 @@ The FASTA label field is frequently overloaded, with different information field
 ``RichLabel`` objects have an ``Info`` object as an attribute, allowing specific reference to all the specified label fields.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.parse.fasta import MinimalFastaParser, LabelParser
 

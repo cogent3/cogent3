@@ -10,7 +10,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -74,8 +74,7 @@ def map_traceback(aligned_positions):
 
 
 def alignment_traceback(seqs, aligned_positions, word_length):
-    """Alignment object from state matrix and ending point.
-    """
+    """Alignment object from state matrix and ending point."""
     (starts, ends, maps) = map_traceback(aligned_positions)
     aligneds = []
     for (start, end, amap, (name, seq)) in zip(starts, ends, maps, seqs):

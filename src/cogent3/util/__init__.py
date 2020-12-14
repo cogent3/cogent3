@@ -8,7 +8,6 @@ __all__ = [
     "table",
     "transform",
     "union_dict",
-    "unit_test",
     "warning",
     "recode_alignment",
 ]
@@ -28,7 +27,7 @@ __credits__ = [
     "Thomas La",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

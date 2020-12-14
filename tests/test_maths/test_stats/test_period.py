@@ -1,13 +1,8 @@
+from unittest import TestCase, main
+
 import numpy
 
-from cogent3.maths.period import (
-    AutoCorrelation,
-    Hybrid,
-    Ipdft,
-    auto_corr,
-    hybrid,
-    ipdft,
-)
+from cogent3.maths.period import AutoCorrelation, Hybrid, Ipdft, ipdft
 from cogent3.maths.stats.period import (
     SeqToSymbols,
     blockwise_bootstrap,
@@ -17,17 +12,18 @@ from cogent3.maths.stats.period import (
     g_statistic,
     seq_to_symbols,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_equal
 
 
 class TestPeriodStat(TestCase):
@@ -202,8 +198,8 @@ class TestPeriodStat(TestCase):
         """calc g-stat correctly"""
         X, periods = ipdft(self.sig, llim=2, ulim=39)
         g_obs, p_val = g_statistic(X)
-        self.assertFloatEqual(p_val, 0.9997, eps=1e-3)
-        self.assertFloatEqual(g_obs, 0.0577, eps=1e-3)
+        assert_allclose(p_val, 0.9997, rtol=1e-3)
+        assert_allclose(g_obs, 0.0577, rtol=1e-3)
 
     def test_circular_indices(self):
         v = list(range(10))
@@ -215,20 +211,18 @@ class TestPeriodStat(TestCase):
         """both py and pyx seq_to_symbol versions correctly convert a sequence"""
         motifs = [b"AA", b"AT", b"TT"]
         symbols = seq_to_symbols(b"AATGGTTA", motifs, 2)
-        self.assertEqual(symbols, numpy.array([1, 1, 0, 0, 0, 1, 0, 0]))
+        assert_equal(symbols, numpy.array([1, 1, 0, 0, 0, 1, 0, 0]))
         symbols = seq_to_symbols(b"AAGATT", motifs, 2, numpy.zeros(6, numpy.uint8))
-        self.assertEqual(symbols, numpy.array([1, 0, 0, 1, 1, 0]))
+        assert_equal(symbols, numpy.array([1, 0, 0, 1, 1, 0]))
 
     def test_seq_to_symbol_factory(self):
         """checks factory function for conversion works"""
         motifs = ["AA", "AT", "TT"]
         seq_to_symbols = SeqToSymbols(motifs)
         got = seq_to_symbols("AATGGTTA")
-        self.assertEqual(got, numpy.array([1, 1, 0, 0, 0, 1, 0, 0]))
+        assert_equal(got, numpy.array([1, 1, 0, 0, 0, 1, 0, 0]))
         got = seq_to_symbols("AAGATT")
-        self.assertEqual(
-            seq_to_symbols("AAGATT"), numpy.array([1, 0, 0, 1, 1, 0], numpy.uint8)
-        )
+        assert_equal(got, numpy.array([1, 0, 0, 1, 1, 0], numpy.uint8))
 
     def test_permutation(self):
         s = (

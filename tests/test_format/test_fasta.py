@@ -13,15 +13,14 @@ __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Production"
 
 
 class FastaTests(TestCase):
-    """Tests for Fasta writer.
-    """
+    """Tests for Fasta writer."""
 
     def setUp(self):
         """Setup for Fasta tests."""

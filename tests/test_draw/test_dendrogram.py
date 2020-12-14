@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley and Rahul Ghangas"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -44,7 +44,7 @@ class TestDendro(TestCase):
         tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
         dnd = Dendrogram(tree=tree)
         edges = dnd.get_edge_names("d", "c", clade=True, stem=False)
-        self.assertEqual(set(edges), set(["c", "d", "e", "e1"]))
+        self.assertEqual(set(edges), {"c", "d", "e", "e1"})
 
     def test_min_max_x_y(self):
         """correctly compute the min and max of x and y"""
@@ -158,6 +158,25 @@ class TestDendro(TestCase):
                 2,
                 style,
             )
+
+    def test_style_edges(self):
+        """test style_edges only accepts edges present in tree"""
+        tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+        dnd = Dendrogram(tree=tree)
+        dnd.style_edges("a", line=dict(color="magenta"))
+        with self.assertRaises(ValueError):
+            dnd.style_edges("foo", line=dict(color="magenta"))
+
+    def test_tip_font(self):
+        """test tip_font settable"""
+        tree = make_tree(treestring="(a,b,(c,(d,e)e1)e2)")
+        dnd = Dendrogram(tree=tree)
+        dnd.tip_font |= dict(size=18)
+        self.assertEqual(dnd.tip_font.size, 18)
+        dnd.tip_font.size = 10
+        self.assertEqual(dnd.tip_font.size, 10)
+        dnd.tip_font.color = "red"
+        self.assertEqual(dnd.tip_font["color"], "red")
 
 
 if __name__ == "__main__":

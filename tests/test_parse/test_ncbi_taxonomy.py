@@ -2,6 +2,8 @@
 """Tests of parsers for dealing with NCBI Taxonomy files.
 """
 
+from unittest import TestCase, main
+
 from cogent3.parse.ncbi_taxonomy import (
     MissingParentError,
     NcbiName,
@@ -9,21 +11,18 @@ from cogent3.parse.ncbi_taxonomy import (
     NcbiNameParser,
     NcbiTaxon,
     NcbiTaxonLookup,
-    NcbiTaxonNode,
-    NcbiTaxonomy,
     NcbiTaxonomyFromFiles,
     NcbiTaxonParser,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Jason Carnes"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 good_nodes = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|
@@ -297,7 +296,7 @@ class NcbiTaxonNodeTests(TestCase):
 
     Note: nested_species is explicitly designed to test the case where the nodes
     file does _not_ contain the root, and where the id of the de facto
-    root is not 1, to make sure there's nothing special about a node 
+    root is not 1, to make sure there's nothing special about a node
     called 'root' or with id 1.
     """
 
@@ -356,7 +355,7 @@ class NcbiTaxonNodeTests(TestCase):
         self.assertEqual(len(dec), 1)
         assert dec[0] is tx[555]
         sp = tx["f"].getRankedDescendants("species")
-        self.assertSameItems(sp, [tx[1010], tx[9999], tx[7777], tx[6666]])
+        self.assertCountEqual(sp, [tx[1010], tx[9999], tx[7777], tx[6666]])
         empty = tx[11].getRankedDescendants("superclass")
         self.assertEqual(empty, [])
         gr = tx[3].getRankedDescendants("group")

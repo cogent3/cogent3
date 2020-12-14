@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Classes for reading multiple sequence alignment files in different formats."""
 
+
 import re
 import xml.dom.minidom
 
@@ -29,7 +30,7 @@ __credits__ = [
     "Rob Knight",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -40,8 +41,8 @@ _compression = re.compile(r"\.(gz|bz2)$")
 
 def FromFilenameParser(filename, format=None, **kw):
     """Arguments:
-            - filename: name of the sequence alignment file
-            - format: the multiple sequence file format
+    - filename: name of the sequence alignment file
+    - format: the multiple sequence file format
     """
     format = format_from_filename(filename, format)
     f = open_(filename, newline=None, mode="rt")
@@ -108,6 +109,7 @@ PARSERS = {
     "msf": gcg.MsfParser,
     "nex": nexus.MinimalNexusAlignParser,
     "nxs": nexus.MinimalNexusAlignParser,
+    "nexus": nexus.MinimalNexusAlignParser,
 }
 
 XML_PARSERS = {"gbseq": gbseq.GbSeqXmlParser, "tseq": tinyseq.TinyseqParser}

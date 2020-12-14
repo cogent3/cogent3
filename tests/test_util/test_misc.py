@@ -2,12 +2,16 @@
 
 """Unit tests for utility functions and classes.
 """
+import os
 import pathlib
 import tempfile
+import zipfile
 
 from copy import copy, deepcopy
 from os import remove, rmdir
 from os.path import exists
+from tempfile import TemporaryDirectory
+from unittest import TestCase, main
 
 from numpy.testing import assert_allclose
 
@@ -35,6 +39,7 @@ from cogent3.util.misc import (
     get_merged_overlapping_coords,
     get_object_provenance,
     get_run_start_indices,
+    get_setting_from_environ,
     identity,
     is_char,
     is_char_or_noniterable,
@@ -42,11 +47,11 @@ from cogent3.util.misc import (
     iterable,
     list_flatten,
     not_list_tuple,
+    open_,
     path_exists,
     recursive_flatten,
     remove_files,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
@@ -60,9 +65,9 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
@@ -108,9 +113,9 @@ class UtilsTests(TestCase):
         l, u = 1e-5, 2
         eps = 1e-6
         got = adjusted_within_bounds(l - eps, l, u, eps=eps)
-        self.assertFloatEqual(got, l)
+        assert_allclose(got, l)
         got = adjusted_within_bounds(u + eps, l, u, eps=eps)
-        self.assertFloatEqual(got, u)
+        assert_allclose(got, u)
         with self.assertRaises(ValueError):
             got = adjusted_within_bounds(u + 4, l, u, eps=eps, action="raise")
 
@@ -429,6 +434,19 @@ class UtilsTests(TestCase):
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
         self.assertEqual(get_merged_by_value_coords(data, digits=1), [[20, 24, 0.1]])
 
+    def test_get_format_suffixes_returns_lower_case(self):
+        """should always return lower case"""
+        a, b = get_format_suffixes("suffixes.GZ")
+        self.assertTrue(a == None and b == "gz")
+        a, b = get_format_suffixes("suffixes.ABCD")
+        self.assertTrue(a == "abcd" and b == None)
+        a, b = get_format_suffixes("suffixes.ABCD.BZ2")
+        self.assertTrue(a == "abcd" and b == "bz2")
+        a, b = get_format_suffixes("suffixes.abcd.BZ2")
+        self.assertTrue(a == "abcd" and b == "bz2")
+        a, b = get_format_suffixes("suffixes.ABCD.bz2")
+        self.assertTrue(a == "abcd" and b == "bz2")
+
     def test_get_format_suffixes(self):
         """correctly return suffixes for compressed etc.. formats"""
         a, b = get_format_suffixes("no_suffixes")
@@ -471,6 +489,15 @@ class UtilsTests(TestCase):
         self.assertEqual(
             got, "cogent3.evolve.substitution_model." "TimeReversibleNucleotide"
         )
+
+        # handle a type
+        from cogent3 import SequenceCollection
+
+        instance = SequenceCollection(dict(a="ACG", b="GGG"))
+        instance_prov = get_object_provenance(instance)
+        self.assertEqual(instance_prov, "cogent3.core.alignment.SequenceCollection")
+        type_prov = get_object_provenance(SequenceCollection)
+        self.assertEqual(instance_prov, type_prov)
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
@@ -526,9 +553,100 @@ class UtilsTests(TestCase):
         # or string instance
         self.assertTrue(path_exists(__file__))
 
+    def test_open_reads_zip(self):
+        """correctly reads a zip compressed file"""
+        with TemporaryDirectory(dir=".") as dirname:
+            text_path = os.path.join(dirname, "foo.txt")
+            with open(text_path, "w") as f:
+                f.write("any str")
 
-class Atomic_writeTests(TestCase):
-    """Unit tests for the Atomic_write class."""
+            zip_path = os.path.join(dirname, "foo.zip")
+            with zipfile.ZipFile(zip_path, "w") as zip:
+                zip.write(text_path)
+
+            with open_(zip_path) as got:
+                self.assertEqual(got.readline(), "any str")
+
+    def test_open_writes_zip(self):
+        """correctly writes a zip compressed file"""
+        with TemporaryDirectory(dir=".") as dirname:
+            zip_path = pathlib.Path(dirname) / "foo.txt.zip"
+
+            with open_(zip_path, "w") as f:
+                f.write("any str")
+
+            with zipfile.ZipFile(zip_path, "r") as zip:
+                name = zip.namelist()[0]
+                got = zip.open(name).read()
+                self.assertEqual(got, b"any str")
+
+    def test_open_zip_multi(self):
+        """zip with multiple records cannot be opened using open_"""
+        with TemporaryDirectory(dir=".") as dirname:
+            text_path1 = os.path.join(dirname, "foo.txt")
+            with open(text_path1, "w") as f:
+                f.write("any str")
+
+            text_path2 = os.path.join(dirname, "bar.txt")
+            with open(text_path2, "w") as f:
+                f.write("any str")
+
+            zip_path = os.path.join(dirname, "foo.zip")
+            with zipfile.ZipFile(zip_path, "w") as zip:
+                zip.write(text_path1)
+                zip.write(text_path2)
+
+            with self.assertRaises(ValueError):
+                open_(zip_path)
+
+    def test_get_setting_from_environ(self):
+        """correctly recovers environment variables"""
+        import os
+
+        def make_env_setting(d):
+            return ",".join([f"{k}={v}" for k, v in d.items()])
+
+        env_name = "DUMMY_SETTING"
+        os.environ.pop(env_name, None)
+        setting = dict(num_pos=2, num_seq=4, name="blah")
+        single_setting = dict(num_pos=2)
+        correct_names_types = dict(num_pos=int, num_seq=int, name=str)
+        incorrect_names_types = dict(num_pos=int, num_seq=int, name=float)
+
+        for stng in (setting, single_setting):
+            os.environ[env_name] = make_env_setting(stng)
+            got = get_setting_from_environ(env_name, correct_names_types)
+            for key in got:
+                self.assertEqual(got[key], setting[key])
+
+        os.environ[env_name] = make_env_setting(setting)
+        got = get_setting_from_environ(env_name, incorrect_names_types)
+        assert "name" not in got
+        for key in got:
+            self.assertEqual(got[key], setting[key])
+
+        # malformed env setting
+        os.environ[env_name] = make_env_setting(setting).replace("=", "")
+        got = get_setting_from_environ(env_name, correct_names_types)
+        self.assertEqual(got, {})
+
+        os.environ.pop(env_name, None)
+
+
+class AtomicWriteTests(TestCase):
+    """testing the atomic_write class."""
+
+    def test_does_not_write_if_exception(self):
+        """file does not exist if an exception raised before closing"""
+        # create temp file directory
+        with tempfile.TemporaryDirectory(".") as dirname:
+            dirname = pathlib.Path(dirname)
+            test_filepath = dirname / "Atomic_write_test"
+            with self.assertRaises(AssertionError):
+                with atomic_write(test_filepath, mode="w") as f:
+                    f.write("abc")
+                    raise AssertionError
+            self.assertFalse(test_filepath.exists())
 
     def test_rename(self):
         """Renames file as expected """
@@ -541,6 +659,51 @@ class Atomic_writeTests(TestCase):
             f = open(test_filepath, "w").close()
             self.assertTrue(exists(test_filepath))
             # file should overwrite file if file already exists
+            with atomic_write(test_filepath, mode="w") as f:
+                f.write("abc")
+
+    def test_atomic_write_noncontext(self):
+        """atomic write works as more regular file object"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = pathlib.Path(dirname) / "foo.txt"
+            zip_path = path.parent / f"{path.name}.zip"
+            aw = atomic_write(path, in_zip=zip_path, mode="w")
+            aw.write("some data")
+            aw.close()
+            with open_(zip_path) as ifile:
+                got = ifile.read()
+            self.assertEqual(got, "some data")
+
+    def test_aw_zip_from_path(self):
+        """supports inferring zip archive name from path"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = pathlib.Path(dirname) / "foo.txt"
+            zip_path = path.parent / f"{path.name}.zip"
+            aw = atomic_write(zip_path, in_zip=True, mode="w")
+            aw.write("some data")
+            aw.close()
+            with open_(zip_path) as ifile:
+                got = ifile.read()
+                self.assertEqual(got, "some data")
+
+            path = pathlib.Path(dirname) / "foo2.txt"
+            zip_path = path.parent / f"{path.name}.zip"
+            aw = atomic_write(path, in_zip=zip_path, mode="w")
+            aw.write("some data")
+            aw.close()
+            with open_(zip_path) as ifile:
+                got = ifile.read()
+                self.assertEqual(got, "some data")
+
+    def test_expanduser(self):
+        """expands user correctly"""
+        # create temp file directory
+        home = os.environ["HOME"]
+        with tempfile.TemporaryDirectory(dir=home) as dirname:
+            # create temp filepath
+            dirname = pathlib.Path(dirname)
+            test_filepath = dirname / "Atomic_write_test"
+            test_filepath = str(test_filepath).replace(home, "~")
             with atomic_write(test_filepath, mode="w") as f:
                 f.write("abc")
 
@@ -641,8 +804,7 @@ class modifiable_string(str):
 
 
 class _list_and_string(list, Delegator):
-    """Trivial class to demonstrate Delegator.
-    """
+    """Trivial class to demonstrate Delegator."""
 
     def __init__(self, items, string):
         Delegator.__init__(self, string)

@@ -32,7 +32,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -204,7 +204,7 @@ class model(ComposableModel):
 
     def fit(self, aln, initialise=None, construct=True, **opt_args):
         moltypes = {aln.moltype.label, self._sm.moltype.label}
-        if moltypes == {"protein", "dna"} or moltypes == {"protein", "rna"}:
+        if moltypes in [{"protein", "dna"}, {"protein", "rna"}]:
             msg = (
                 f"substitution model moltype '{self._sm.moltype.label}' and"
                 f" alignment moltype '{aln.moltype.label}' are incompatible"
@@ -260,6 +260,18 @@ class hypothesis(ComposableHypothesis):
     _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(self, null, *alternates, init_alt=None):
+        """
+        Parameters
+        ----------
+        null : model
+            The null model instance
+        alternates : model or series of models
+            The alternate model or a series of them
+        init_alt : callable
+            A callback function for initialising the alternate model
+            likelihood function prior to optimisation. Defaults to using
+            MLEs from the null model.
+        """
         # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
             input_types=self._input_types,

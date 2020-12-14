@@ -8,7 +8,6 @@ This document describes how to perform a coevolutionary analysis on a ``ArrayAli
 Before using an alignment in a coevolutionary analysis, you should be confident in the alignment. Poorly aligned sequences can yield very misleading results. There can be no ambiguous residue/base codes (e.g., B/Z/X in protein alignments) -- while some of the algorithms could tolerate them (e.g. Mutual Information), others which rely on information such as background residue frequencies (e.g. Statistical Coupling Analysis) cannot handle them. Some recoded amino acid alphabets will also not handle ambiguous residues. The best strategy is just to exclude ambiguous codes all together. To test for invalid characters before starting an analysis you can do the following:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
     from cogent3.core.alignment import ArrayAlignment
@@ -24,7 +23,6 @@ Before using an alignment in a coevolutionary analysis, you should be confident 
 To run a coevolutionary analysis, first create a ``ArrayAlignment``:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
     from cogent3.core.alignment import ArrayAlignment
@@ -38,7 +36,6 @@ To run a coevolutionary analysis, first create a ``ArrayAlignment``:
 Perform a coevolutionary analysis on a pair of positions in the alignment using mutual information (``mi``):
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.coevolution import coevolve_pair_functions, coevolve_pair
 
@@ -47,7 +44,6 @@ Perform a coevolutionary analysis on a pair of positions in the alignment using 
 Perform a coevolutionary analysis on a pair of positions in the alignment using statistical coupling analysis (``sca``):
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.coevolution import coevolve_pair_functions, coevolve_pair
 
@@ -56,7 +52,6 @@ Perform a coevolutionary analysis on a pair of positions in the alignment using 
 Perform a coevolutionary analysis on one position and all other positions in the alignment using mutual information (``mi``):
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.coevolution import (
         coevolve_position_functions,
@@ -68,7 +63,6 @@ Perform a coevolutionary analysis on one position and all other positions in the
 Perform a coevolutionary analysis on all pairs of positions in the alignment using mutual information (``mi``):
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.coevolution import (
         coevolve_alignment_functions,
@@ -80,14 +74,12 @@ Perform a coevolutionary analysis on all pairs of positions in the alignment usi
 View the available algorithms for computing coevolution values:
 
 .. jupyter-execute::
-    :linenos:
 
     print(coevolve_pair_functions.keys())
 
 Perform an intermolecular coevolutionary analysis using mutual information (``mi``). Note that there are strict requirements on the sequence identifiers for intermolecular analyses, and some important considerations involved in preparing alignments for these analyses. See the coevolve_alignments docstring (i.e., ``help(coevolve_alignments)`` from the python interpreter) for information. Briefly, sequence identifiers are split on ``+`` symbols. The ids before the + must match perfectly between the two alignments as these are used to match the sequences between alignments. In the following example, these are common species names: human, chicken, echidna, and pig. The text after the ``+`` can be anything, and should probably be the original database identifiers of the sequences.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.evolve.coevolution import (
         coevolve_alignment_functions,

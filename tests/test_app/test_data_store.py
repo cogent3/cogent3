@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import sys
@@ -16,6 +17,7 @@ from cogent3.app.data_store import (
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
     WritableZippedDataStore,
+    load_record_from_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
 
@@ -24,7 +26,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -543,8 +545,9 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_unchanged_database_record(self):
         """tests unchanged record via the Readable and Writable DataStore interface to TinyDB"""
-        from cogent3.app.io import load_db
         from copy import deepcopy
+
+        from cogent3.app.io import load_db
 
         loader = load_db()
         data = self.data
@@ -642,8 +645,9 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_dblock(self):
         """locking/unlocking of db"""
-        from cogent3.app.data_store import _db_lockid
         from pathlib import Path
+
+        from cogent3.app.data_store import _db_lockid
 
         keys = list(self.data)
         with TemporaryDirectory(dir=".") as dirname:
@@ -708,6 +712,23 @@ class SingleReadStoreTests(TestCase):
         data = data.splitlines()
         got = {l: s for l, s in MinimalFastaParser(data)}
         self.assertEqual(got, expect)
+
+
+class TestFunctions(TestCase):
+    """test support functions"""
+
+    def test_load_record_from_json(self):
+        """handle different types of input"""
+        orig = {"data": "blah", "identifier": "some.json", "completed": True}
+        data = orig.copy()
+        data2 = data.copy()
+        data2["data"] = json.dumps(data)
+        for d in (data, json.dumps(data), data2):
+            expected = "blah" if d != data2 else json.loads(data2["data"])
+            Id, data_, compl = load_record_from_json(d)
+            self.assertEqual(Id, "some.json")
+            self.assertEqual(data_, expected)
+            self.assertEqual(compl, True)
 
 
 if __name__ == "__main__":

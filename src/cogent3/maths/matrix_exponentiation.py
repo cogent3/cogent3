@@ -16,14 +16,12 @@ import numpy
 
 from numpy.linalg import LinAlgError, eig, inv, solve
 
-from cogent3.util.modules import ExpectedImportError, importVersionedModule
-
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -106,8 +104,7 @@ class PadeExponentiator(_Exponentiator):
         self.Q = Q
 
     def __call__(self, t=1.0):
-        """Compute the matrix exponential using Pade approximation of order q.
-        """
+        """Compute the matrix exponential using Pade approximation of order q."""
         A = self.Q * t
         M = A.shape[0]
         # Scale A so that norm is < 1/2

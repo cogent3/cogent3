@@ -1,22 +1,29 @@
 """Unit tests for statistical tests and utility functions.
 """
-import math
+
+from unittest import TestCase, main
 
 from numpy import (
     arange,
     array,
+    asarray,
     concatenate,
-    cov,
     fill_diagonal,
+    isfinite,
+    logical_and,
     ones,
+    ravel,
     reshape,
-    sqrt,
     testing,
     tril,
+    zeros,
 )
 
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.test import (
+    ALT_HIGH,
+    ALT_LOW,
+    ALT_TWO_SIDED,
     ANOVA_one_way,
     G_2_by_2,
     G_fit,
@@ -24,10 +31,10 @@ from cogent3.maths.stats.test import (
     MonteCarloP,
     ZeroExpectedError,
     _flatten_lower_triangle,
+    _get_alternate,
     _get_rank,
     _permute_observations,
     bayes_updates,
-    calc_contingency_expected,
     combinations,
     correlation,
     correlation_matrix,
@@ -51,6 +58,7 @@ from cogent3.maths.stats.test import (
     mw_boot,
     mw_test,
     pearson,
+    pearson_correlation,
     permute_2d,
     posteriors,
     regress,
@@ -67,13 +75,10 @@ from cogent3.maths.stats.test import (
     t_one_observation,
     t_one_sample,
     t_paired,
-    t_tailed_prob,
     t_two_sample,
     tail,
-    z_tailed_prob,
     z_test,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Rob Knight"
@@ -88,10 +93,40 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_equal
+
+
+def is_prob(value):
+    """helper function to establish a 0 <= value <= 1"""
+    value = asarray(value)
+    return logical_and(value >= 0, value <= 1.0).all()
+
+
+def similar_means(observed, expected, pvalue=0.01):
+    """False if observed p is lower than pvalue"""
+
+    observed, expected = asarray(observed), asarray(expected)
+
+    t, p = t_two_sample(observed, expected)
+
+    # handle case where all elements were the same
+    if p is None or not isfinite(p):
+
+        if not observed.shape:
+            observed = observed.reshape((1,))
+
+        if not expected.shape:
+            expected = expected.reshape((1,))
+
+        if observed[0] == expected[0]:
+            return True
+
+    return p > pvalue
 
 
 class TestsHelper(TestCase):
@@ -137,7 +172,7 @@ class TestsHelper(TestCase):
             except TypeError:
                 p_val = obs[p_val_idx]
 
-            self.assertIsProb(p_val)
+            self.assertTrue(is_prob(p_val))
             if p_val >= exp_min and p_val <= exp_max:
                 found_match = True
                 break
@@ -150,7 +185,7 @@ class TestsTests(TestCase):
     def test_std(self):
         """Should produce a standard deviation of 1.0 for a std normal dist"""
         expected = 1.58113883008
-        self.assertFloatEqual(std(array([1, 2, 3, 4, 5])), expected)
+        assert_allclose(std(array([1, 2, 3, 4, 5])), expected)
 
         expected_a = array([expected, expected, expected, expected, expected])
         a = array(
@@ -162,8 +197,8 @@ class TestsTests(TestCase):
                 [2, 3, 4, 5, 1],
             ]
         )
-        self.assertFloatEqual(std(a, axis=0), expected_a)
-        self.assertFloatEqual(std(a, axis=1), expected_a)
+        assert_allclose(std(a, axis=0), expected_a)
+        assert_allclose(std(a, axis=1), expected_a)
         self.assertRaises(ValueError, std, a, 5)
 
     def test_std_2d(self):
@@ -210,117 +245,124 @@ class TestsTests(TestCase):
 
         expected = array([5.5, 6.5, 7.5])
         observed = median(m, axis=0)
-        self.assertEqual(observed, expected)
+        assert_equal(observed, expected)
 
         expected = array([2.0, 5.0, 8.0, 11.0])
         observed = median(m, axis=1)
-        self.assertEqual(observed, expected)
+        assert_equal(observed, expected)
 
         self.assertRaises(ValueError, median, m, 10)
 
     def test_tail(self):
         """tail should return x/2 if test is true; 1-(x/2) otherwise"""
-        self.assertFloatEqual(tail(0.25, "a" == "a"), 0.25 / 2)
-        self.assertFloatEqual(tail(0.25, "a" != "a"), 1 - (0.25 / 2))
+        assert_allclose(tail(0.25, "a" == "a"), 0.25 / 2)
+        assert_allclose(tail(0.25, "a" != "a"), 1 - (0.25 / 2))
 
     def test_combinations(self):
         """combinations should return correct binomial coefficient"""
-        self.assertFloatEqual(combinations(5, 3), 10)
-        self.assertFloatEqual(combinations(5, 2), 10)
+        assert_allclose(combinations(5, 3), 10)
+        assert_allclose(combinations(5, 2), 10)
         # only one way to pick no items or the same number of items
-        self.assertFloatEqual(combinations(123456789, 0), 1)
-        self.assertFloatEqual(combinations(123456789, 123456789), 1)
+        assert_allclose(combinations(123456789, 0), 1)
+        assert_allclose(combinations(123456789, 123456789), 1)
         # n ways to pick one item
-        self.assertFloatEqual(combinations(123456789, 1), 123456789)
+        assert_allclose(combinations(123456789, 1), 123456789, rtol=1e-6)
         # n(n-1)/2 ways to pick 2 items
-        self.assertFloatEqual(combinations(123456789, 2), 123456789 * 123456788 / 2)
+        assert_allclose(combinations(123456789, 2), 123456789 * 123456788 / 2)
         # check an arbitrary value in R
-        self.assertFloatEqual(combinations(1234567, 12), 2.617073e64)
+        assert_allclose(combinations(1234567, 12), 2.617073e64, rtol=1e-6)
 
     def test_multiple_comparisons(self):
         """multiple_comparisons should match values from R"""
-        self.assertFloatEqual(multiple_comparisons(1e-7, 10000), 1 - 0.9990005)
-        self.assertFloatEqual(multiple_comparisons(0.05, 10), 0.4012631)
-        self.assertFloatEqual(multiple_comparisons(1e-20, 1), 1e-20)
-        self.assertFloatEqual(multiple_comparisons(1e-300, 1), 1e-300)
-        self.assertFloatEqual(multiple_comparisons(0.95, 3), 0.99987499999999996)
-        self.assertFloatEqual(multiple_comparisons(0.75, 100), 0.999999999999679)
-        self.assertFloatEqual(multiple_comparisons(0.5, 1000), 1)
-        self.assertFloatEqual(multiple_comparisons(0.01, 1000), 0.99995682875259)
-        self.assertFloatEqual(multiple_comparisons(0.5, 5), 0.96875)
-        self.assertFloatEqual(multiple_comparisons(1e-20, 10), 1e-19)
+        assert_allclose(
+            multiple_comparisons(1e-7, 10000), 1 - 0.9990005, rtol=1e-6, atol=1e-6
+        )
+        assert_allclose(multiple_comparisons(0.05, 10), 0.4012631)
+        assert_allclose(multiple_comparisons(1e-20, 1), 1e-20)
+        assert_allclose(multiple_comparisons(1e-300, 1), 1e-300)
+        assert_allclose(multiple_comparisons(0.95, 3), 0.99987499999999996)
+        assert_allclose(multiple_comparisons(0.75, 100), 0.999999999999679)
+        assert_allclose(multiple_comparisons(0.5, 1000), 1)
+        assert_allclose(multiple_comparisons(0.01, 1000), 0.99995682875259)
+        assert_allclose(multiple_comparisons(0.5, 5), 0.96875)
+        assert_allclose(multiple_comparisons(1e-20, 10), 1e-19)
 
     def test_multiple_inverse(self):
         """multiple_inverse should invert multiple_comparisons results"""
         # NOTE: multiple_inverse not very accurate close to 1
-        self.assertFloatEqual(multiple_inverse(1 - 0.9990005, 10000), 1e-7)
-        self.assertFloatEqual(multiple_inverse(0.4012631, 10), 0.05)
-        self.assertFloatEqual(multiple_inverse(1e-20, 1), 1e-20)
-        self.assertFloatEqual(multiple_inverse(1e-300, 1), 1e-300)
-        self.assertFloatEqual(multiple_inverse(0.96875, 5), 0.5)
-        self.assertFloatEqual(multiple_inverse(1e-19, 10), 1e-20)
+        assert_allclose(
+            multiple_inverse(1 - 0.9990005, 10000), 1e-7, rtol=1e-6, atol=1e-6
+        )
+        assert_allclose(multiple_inverse(0.4012631, 10), 0.05, rtol=1e-6, atol=1e-6)
+        assert_allclose(multiple_inverse(1e-20, 1), 1e-20)
+        assert_allclose(multiple_inverse(1e-300, 1), 1e-300)
+        assert_allclose(multiple_inverse(0.96875, 5), 0.5)
+        assert_allclose(multiple_inverse(1e-19, 10), 1e-20)
 
     def test_multiple_n(self):
         """multiple_n should swap parameters in multiple_comparisons"""
-        self.assertFloatEqual(multiple_n(1e-7, 1 - 0.9990005), 10000)
-        self.assertFloatEqual(multiple_n(0.05, 0.4012631), 10)
-        self.assertFloatEqual(multiple_n(1e-20, 1e-20), 1)
-        self.assertFloatEqual(multiple_n(1e-300, 1e-300), 1)
-        self.assertFloatEqual(multiple_n(0.95, 0.99987499999999996), 3)
-        self.assertFloatEqual(multiple_n(0.5, 0.96875), 5)
-        self.assertFloatEqual(multiple_n(1e-20, 1e-19), 10)
+        assert_allclose(multiple_n(1e-7, 1 - 0.9990005), 10000, rtol=1e-6, atol=1e-6)
+        assert_allclose(multiple_n(0.05, 0.4012631), 10, rtol=1e-6, atol=1e-6)
+        assert_allclose(multiple_n(1e-20, 1e-20), 1)
+        assert_allclose(multiple_n(1e-300, 1e-300), 1)
+        assert_allclose(multiple_n(0.95, 0.99987499999999996), 3)
+        assert_allclose(multiple_n(0.5, 0.96875), 5)
+        assert_allclose(multiple_n(1e-20, 1e-19), 10)
 
     def test_fisher(self):
         """fisher results should match p 795 Sokal and Rohlf"""
-        self.assertFloatEqual(
-            fisher([0.073, 0.086, 0.10, 0.080, 0.060]), 0.0045957946540917905
+        assert_allclose(
+            fisher([0.073, 0.086, 0.10, 0.080, 0.060]),
+            0.0045957946540917905,
+            rtol=1e-6,
+            atol=1e-6,
         )
 
     def test_regress(self):
         """regression slope, intercept should match p 459 Sokal and Rohlf"""
         x = [0, 12, 29.5, 43, 53, 62.5, 75.5, 85, 93]
         y = [8.98, 8.14, 6.67, 6.08, 5.90, 5.83, 4.68, 4.20, 3.72]
-        self.assertFloatEqual(regress(x, y), (-0.05322, 8.7038), 0.001)
+        assert_allclose(regress(x, y), (-0.05322, 8.7038), 0.001)
         # higher precision from OpenOffice
-        self.assertFloatEqual(regress(x, y), (-0.05322215, 8.70402730))
+        assert_allclose(regress(x, y), (-0.05322215, 8.70402730))
 
         # add test to confirm no overflow error with large numbers
         x = [32119, 33831]
         y = [2.28, 2.43]
         exp = (8.761682243e-05, -5.341209112e-01)
-        self.assertFloatEqual(regress(x, y), exp, 0.001)
+        assert_allclose(regress(x, y), exp, 0.001)
 
     def test_regress_origin(self):
         """regression slope constrained through origin should match Excel"""
         x = array([1, 2, 3, 4])
         y = array([4, 2, 6, 8])
-        self.assertFloatEqual(regress_origin(x, y), (1.9333333, 0))
+        assert_allclose(regress_origin(x, y), (1.9333333, 0))
 
         # add test to confirm no overflow error with large numbers
         x = [32119, 33831]
         y = [2.28, 2.43]
         exp = (7.1428649481939822e-05, 0)
-        self.assertFloatEqual(regress_origin(x, y), exp, 0.001)
+        assert_allclose(regress_origin(x, y), exp, 0.001)
 
     def test_regress_R2(self):
         """regress_R2 returns the R^2 value of a regression"""
         x = [1.0, 2.0, 3.0, 4.0, 5.0]
         y = [2.1, 4.2, 5.9, 8.4, 9.6]
         result = regress_R2(x, y)
-        self.assertFloatEqual(result, 0.99171419347896)
+        assert_allclose(result, 0.99171419347896)
 
     def test_regress_residuals(self):
         """regress_residuals reprts error for points in linear regression"""
         x = [1.0, 2.0, 3.0, 4.0, 5.0]
         y = [2.1, 4.2, 5.9, 8.4, 9.6]
         result = regress_residuals(x, y)
-        self.assertFloatEqual(result, [-0.1, 0.08, -0.14, 0.44, -0.28])
+        assert_allclose(result, [-0.1, 0.08, -0.14, 0.44, -0.28])
 
     def test_stdev_from_mean(self):
         """stdev_from_mean returns num std devs from mean for each val in x"""
         x = [2.1, 4.2, 5.9, 8.4, 9.6]
         result = stdev_from_mean(x)
-        self.assertFloatEqual(
+        assert_allclose(
             result,
             [
                 -1.292463399014413,
@@ -351,10 +393,12 @@ class TestsTests(TestCase):
             17.25,
             9.52,
         ]
-        self.assertFloatEqual(regress_major(x, y), (18.93633, -32.55208))
+        assert_allclose(regress_major(x, y), (18.93633, -32.55208), rtol=1e-6)
 
     def test_sign_test(self):
         """sign_test, should match values from R"""
+        import numpy
+
         v = [
             ("two sided", 26, 50, 0.88772482734078251),
             ("less", 26, 50, 0.6641),
@@ -364,21 +408,29 @@ class TestsTests(TestCase):
             ("2", 30, 50, 0.20263875106454063),
             ("h", 49, 50, 4.5297099404706387e-14),
             ("h", 50, 50, 8.8817841970012543e-16),
+            ("2", numpy.int64(95), 124, 2.204644901720111e-09),
         ]
         for alt, success, trials, p in v:
             result = sign_test(success, trials, alt=alt)
-            self.assertFloatEqual(result, p, eps=1e-5)
+            assert_allclose(result, p, rtol=1e-5)
 
     def test_permute_2d(self):
         """permute_2d permutes rows and cols of a matrix."""
         a = reshape(arange(9), (3, 3))
-        self.assertEqual(permute_2d(a, [0, 1, 2]), a)
-        self.assertEqual(
-            permute_2d(a, [2, 1, 0]), array([[8, 7, 6], [5, 4, 3], [2, 1, 0]])
-        )
-        self.assertEqual(
-            permute_2d(a, [1, 2, 0]), array([[4, 5, 3], [7, 8, 6], [1, 2, 0]])
-        )
+        assert_equal(permute_2d(a, [0, 1, 2]), a)
+        assert_equal(permute_2d(a, [2, 1, 0]), array([[8, 7, 6], [5, 4, 3], [2, 1, 0]]))
+        assert_equal(permute_2d(a, [1, 2, 0]), array([[4, 5, 3], [7, 8, 6], [1, 2, 0]]))
+
+    def test_get_alternate(self):
+        """correctly identifies the specified alternate hypothesis"""
+        alt = _get_alternate("lo")
+        self.assertEqual(alt, ALT_LOW)
+        alt = _get_alternate("hi")
+        self.assertEqual(alt, ALT_HIGH)
+        alt = _get_alternate("2")
+        self.assertEqual(alt, ALT_TWO_SIDED)
+        with self.assertRaises(ValueError):
+            _get_alternate("22")
 
 
 class GTests(TestCase):
@@ -386,9 +438,9 @@ class GTests(TestCase):
 
     def test_G_2_by_2_2tailed_equal(self):
         """G_2_by_2 should return 0 if all cell counts are equal"""
-        self.assertFloatEqual(0, G_2_by_2(1, 1, 1, 1, False, False)[0])
-        self.assertFloatEqual(0, G_2_by_2(100, 100, 100, 100, False, False)[0])
-        self.assertFloatEqual(0, G_2_by_2(100, 100, 100, 100, True, False)[0])
+        assert_allclose(0, G_2_by_2(1, 1, 1, 1, False, False)[0])
+        assert_allclose(0, G_2_by_2(100, 100, 100, 100, False, False)[0])
+        assert_allclose(0, G_2_by_2(100, 100, 100, 100, True, False)[0])
 
     def test_G_2_by_2_bad_data(self):
         """G_2_by_2 should raise ValueError if any counts are negative"""
@@ -398,29 +450,27 @@ class GTests(TestCase):
         """G_2_by_2 values should match examples in Sokal & Rohlf"""
         # example from p 731, Sokal and Rohlf (1995)
         # without correction
-        self.assertFloatEqual(
-            G_2_by_2(12, 22, 16, 50, False, False)[0], 1.33249, 0.0001
-        )
-        self.assertFloatEqual(
-            G_2_by_2(12, 22, 16, 50, False, False)[1], 0.24836, 0.0001
-        )
+        assert_allclose(G_2_by_2(12, 22, 16, 50, False, False)[0], 1.33249, 0.0001)
+        assert_allclose(G_2_by_2(12, 22, 16, 50, False, False)[1], 0.24836, 0.0001)
         # with correction
-        self.assertFloatEqual(G_2_by_2(12, 22, 16, 50, True, False)[0], 1.30277, 0.0001)
-        self.assertFloatEqual(G_2_by_2(12, 22, 16, 50, True, False)[1], 0.25371, 0.0001)
+        assert_allclose(G_2_by_2(12, 22, 16, 50, True, False)[0], 1.30277, 0.0001)
+        assert_allclose(G_2_by_2(12, 22, 16, 50, True, False)[1], 0.25371, 0.0001)
 
     def test_G_2_by_2_1tailed_examples(self):
         """G_2_by_2 values should match values from codon_binding program"""
         # first up...the famous arginine case
-        self.assertFloatEqualAbs(G_2_by_2(36, 16, 38, 106), (29.111609, 0), 0.00001)
+        assert_allclose(
+            G_2_by_2(36, 16, 38, 106), (29.111609, 0), rtol=0.00001, atol=1e-6
+        )
         # then some other miscellaneous positive and negative values
-        self.assertFloatEqualAbs(
-            G_2_by_2(0, 52, 12, 132), (-7.259930, 0.996474), 0.00001
+        assert_allclose(
+            G_2_by_2(0, 52, 12, 132), (-7.259930, 0.996474), rtol=0.00001, atol=1e-6
         )
-        self.assertFloatEqualAbs(
-            G_2_by_2(5, 47, 14, 130), (-0.000481, 0.508751), 0.00001
+        assert_allclose(
+            G_2_by_2(5, 47, 14, 130), (-0.000481, 0.508751), rtol=0.00001, atol=1e-6
         )
-        self.assertFloatEqualAbs(
-            G_2_by_2(5, 47, 36, 108), (-6.065167, 0.993106), 0.00001
+        assert_allclose(
+            G_2_by_2(5, 47, 36, 108), (-6.065167, 0.993106), rtol=0.00001, atol=1e-6
         )
 
     def test_Gfit_unequal_lists(self):
@@ -452,21 +502,21 @@ class GTests(TestCase):
             15.06250,
         ]
         # without correction
-        self.assertFloatEqualAbs(G_fit(obs, exp, False)[0], 8.82397, 0.00002)
-        self.assertFloatEqualAbs(G_fit(obs, exp, False)[1], 0.26554, 0.00002)
+        assert_allclose(G_fit(obs, exp, False)[0], 8.82397, 0.00002)
+        assert_allclose(G_fit(obs, exp, False)[1], 0.26554, 0.00002)
         # with correction
-        self.assertFloatEqualAbs(G_fit(obs, exp)[0], 8.76938, 0.00002)
-        self.assertFloatEqualAbs(G_fit(obs, exp)[1], 0.26964, 0.00002)
+        assert_allclose(G_fit(obs, exp)[0], 8.76938, 0.00002)
+        assert_allclose(G_fit(obs, exp)[1], 0.26964, 0.00002)
 
         # example from p. 700, Sokal and Rohlf (1995)
         obs = [130, 46]
         exp = [132, 44]
         # without correction
-        self.assertFloatEqualAbs(G_fit(obs, exp, False)[0], 0.12002, 0.00002)
-        self.assertFloatEqualAbs(G_fit(obs, exp, False)[1], 0.72901, 0.00002)
+        assert_allclose(G_fit(obs, exp, False)[0], 0.12002, 0.00002)
+        assert_allclose(G_fit(obs, exp, False)[1], 0.72901, 0.00002)
         # with correction
-        self.assertFloatEqualAbs(G_fit(obs, exp)[0], 0.11968, 0.00002)
-        self.assertFloatEqualAbs(G_fit(obs, exp)[1], 0.72938, 0.00002)
+        assert_allclose(G_fit(obs, exp)[0], 0.11968, 0.00002)
+        assert_allclose(G_fit(obs, exp)[1], 0.72938, 0.00002)
 
     def test_safe_sum_p_log_p(self):
         """safe_sum_p_log_p should ignore zero elements, not raise error"""
@@ -476,8 +526,8 @@ class GTests(TestCase):
     def test_G_ind(self):
         """G test for independence should match Sokal and Rohlf p 738 values"""
         a = array([[29, 11], [273, 191], [8, 31], [64, 64]])
-        self.assertFloatEqual(G_ind(a)[0], 28.59642)
-        self.assertFloatEqual(G_ind(a, True)[0], 28.31244)
+        assert_allclose(G_ind(a)[0], 28.59642)
+        assert_allclose(G_ind(a, True)[0], 28.31244, rtol=1e-5)
 
 
 class LikelihoodTests(TestCase):
@@ -494,10 +544,10 @@ class LikelihoodTests(TestCase):
         equal_answer = [1, 1, 1, 1]
         unequal_answer = [2, 1, 0.5, 0.5]
         for obs, exp in zip(likelihoods(equal, equal), equal_answer):
-            self.assertFloatEqual(obs, exp)
+            assert_allclose(obs, exp)
 
         for obs, exp in zip(likelihoods(unequal, equal), unequal_answer):
-            self.assertFloatEqual(obs, exp)
+            assert_allclose(obs, exp)
 
     def test_likelihoods_equal_evidence(self):
         """likelihoods should return vector of 1's if evidence equal for all"""
@@ -508,11 +558,11 @@ class LikelihoodTests(TestCase):
         not_unity = [0.7, 0.7, 0.7, 0.7]
 
         for obs, exp in zip(likelihoods(equal, unequal), equal_answer):
-            self.assertFloatEqual(obs, exp)
+            assert_allclose(obs, exp)
 
         # should be the same if evidences don't sum to 1
         for obs, exp in zip(likelihoods(not_unity, unequal), equal_answer):
-            self.assertFloatEqual(obs, exp)
+            assert_allclose(obs, exp)
 
     def test_likelihoods_unequal_evidence(self):
         """likelihoods should update based on weighted sum if evidence unequal"""
@@ -523,7 +573,7 @@ class LikelihoodTests(TestCase):
         # if priors and evidence both unequal, likelihoods should change
         # (calculated using StarCalc)
         for obs, exp in zip(likelihoods(not_unity, unequal), products):
-            self.assertFloatEqual(obs, exp)
+            assert_allclose(obs, exp)
 
     def test_posteriors_unequal_lists(self):
         """posteriors should raise ValueError if input lists unequal lengths"""
@@ -535,7 +585,7 @@ class LikelihoodTests(TestCase):
         second = [0.25, 0.5, 0, 0.1, 1]
         product = [0, 0.125, 0, 0.1, 0.25]
         for obs, exp in zip(posteriors(first, second), product):
-            self.assertFloatEqual(obs, exp)
+            assert_allclose(obs, exp)
 
 
 class BayesUpdateTests(TestCase):
@@ -565,21 +615,21 @@ class BayesUpdateTests(TestCase):
         """bayes_updates should match hand calculations of probability updates"""
         # result for first -> fourth calculated by hand
         for obs, exp in zip(bayes_updates(self.test), self.result):
-            self.assertFloatEqualAbs(obs, exp, 1e-11)
+            assert_allclose(obs, exp, rtol=1e-11, atol=1e-6)
 
     def test_bayes_updates_permuted(self):
         """bayes_updates should not be affected by order of inputs"""
         for obs, exp in zip(bayes_updates(self.permuted), self.result):
-            self.assertFloatEqualAbs(obs, exp, 1e-11)
+            assert_allclose(obs, exp, rtol=1e-11, atol=1e-6)
 
     def test_bayes_update_nondiscriminating(self):
         """bayes_updates should be unaffected by extra nondiscriminating data"""
         # deletion of non-discriminating evidence should not affect result
         for obs, exp in zip(bayes_updates(self.deleted), self.result):
-            self.assertFloatEqualAbs(obs, exp, 1e-11)
+            assert_allclose(obs, exp, rtol=1e-5, atol=1e-6)
         # additional non-discriminating evidence should not affect result
         for obs, exp in zip(bayes_updates(self.extra), self.result):
-            self.assertFloatEqualAbs(obs, exp, 1e-11)
+            assert_allclose(obs, exp, rtol=1e-5, atol=1e-6)
 
 
 class StatTests(TestsHelper):
@@ -628,8 +678,8 @@ class StatTests(TestsHelper):
         """t_paired should match values from Sokal & Rohlf p 353"""
         x, y = self.x, self.y
         # check value of t and the probability for 2-tailed
-        self.assertFloatEqual(t_paired(y, x)[0], 19.7203, 1e-4)
-        self.assertFloatEqual(t_paired(y, x)[1], 1.301439e-11, 1e-4)
+        assert_allclose(t_paired(y, x)[0], 19.7203, 1e-4)
+        assert_allclose(t_paired(y, x)[1], 1.301439e-11, 1e-4)
 
     def test_t_paired_no_variance(self):
         """t_paired should return None if lists are invariant"""
@@ -642,10 +692,10 @@ class StatTests(TestsHelper):
         """t_paired should match pre-calculated 1-tailed values"""
         x, y = self.x, self.y
         # check probability for 1-tailed low and high
-        self.assertFloatEqual(t_paired(y, x, "low")[1], 1 - (1.301439e-11 / 2), 1e-4)
-        self.assertFloatEqual(t_paired(x, y, "high")[1], 1 - (1.301439e-11 / 2), 1e-4)
-        self.assertFloatEqual(t_paired(y, x, "high")[1], 1.301439e-11 / 2, 1e-4)
-        self.assertFloatEqual(t_paired(x, y, "low")[1], 1.301439e-11 / 2, 1e-4)
+        assert_allclose(t_paired(y, x, "low")[1], 1 - (1.301439e-11 / 2), 1e-4)
+        assert_allclose(t_paired(x, y, "high")[1], 1 - (1.301439e-11 / 2), 1e-4)
+        assert_allclose(t_paired(y, x, "high")[1], 1.301439e-11 / 2, 1e-4)
+        assert_allclose(t_paired(x, y, "low")[1], 1.301439e-11 / 2, 1e-4)
 
     def test_t_paired_specific_difference(self):
         """t_paired should allow a specific difference to be passed"""
@@ -655,7 +705,7 @@ class StatTests(TestsHelper):
         # same, except that reversing list order reverses sign of difference
         self.assertFalse(t_paired(x, y, exp_diff=-0.2)[0] > 1e-10)
         # check that there's no significant difference from the true mean
-        self.assertFloatEqual(t_paired(y, x, exp_diff=0.2)[1], 1, 1e-4)
+        assert_allclose(t_paired(y, x, exp_diff=0.2)[1], 1, 1e-4)
 
     def test_t_paired_bad_data(self):
         """t_paired should raise ValueError on lists of different lengths"""
@@ -665,7 +715,7 @@ class StatTests(TestsHelper):
         """t_two_sample should match example on p.225 of Sokal and Rohlf"""
         I = array([7.2, 7.1, 9.1, 7.2, 7.3, 7.2, 7.5])
         II = array([8.8, 7.5, 7.7, 7.6, 7.4, 6.7, 7.2])
-        self.assertFloatEqual(t_two_sample(I, II), (-0.1184, 0.45385 * 2), 0.001)
+        assert_allclose(t_two_sample(I, II), (-0.1184, 0.45385 * 2), rtol=0.01)
 
     def test_t_two_sample_no_variance(self):
         """t_two_sample should properly handle lists that are invariant"""
@@ -676,7 +726,7 @@ class StatTests(TestsHelper):
         self.assertEqual(t_two_sample(x, y), (None, None))
 
         # Test none_on_zero_variance=False on various tail types. We use
-        # self.assertEqual instead of self.assertFloatEqual because the latter
+        # self.assertEqual instead of assert_allclose because the latter
         # sees inf and -inf as being equal.
 
         # Two tailed: a < b
@@ -728,25 +778,25 @@ class StatTests(TestsHelper):
         """t_one_sample results should match those from R"""
         x = array(list(range(-5, 5)))
         y = array(list(range(-1, 10)))
-        self.assertFloatEqualAbs(t_one_sample(x), (-0.5222, 0.6141), 1e-4)
-        self.assertFloatEqualAbs(t_one_sample(y), (4, 0.002518), 1e-4)
+        assert_allclose(t_one_sample(x), (-0.5222, 0.6141), 1e-4)
+        assert_allclose(t_one_sample(y), (4, 0.002518), rtol=1e-3)
         # do some one-tailed tests as well
-        self.assertFloatEqualAbs(t_one_sample(y, tails="low"), (4, 0.9987), 1e-4)
-        self.assertFloatEqualAbs(t_one_sample(y, tails="high"), (4, 0.001259), 1e-4)
+        assert_allclose(t_one_sample(y, tails="low"), (4, 0.9987), rtol=1e-3)
+        assert_allclose(t_one_sample(y, tails="high"), (4, 0.001259), rtol=1e-3)
 
     def test_t_two_sample_switch(self):
         """t_two_sample should call t_one_observation if 1 item in sample."""
         sample = array([4.02, 3.88, 3.34, 3.87, 3.18])
         x = array([3.02])
-        self.assertFloatEqual(t_two_sample(x, sample), (-1.5637254, 0.1929248))
-        self.assertFloatEqual(t_two_sample(sample, x), (1.5637254, 0.1929248))
+        assert_allclose(t_two_sample(x, sample), (-1.5637254, 0.1929248))
+        assert_allclose(t_two_sample(sample, x), (1.5637254, 0.1929248))
 
         # can't do the test if both samples have single item
         self.assertEqual(t_two_sample(x, x), (None, None))
 
         # Test special case if t=0.
-        self.assertFloatEqual(t_two_sample([2], [1, 2, 3]), (0.0, 1.0))
-        self.assertFloatEqual(t_two_sample([1, 2, 3], [2]), (0.0, 1.0))
+        assert_allclose(t_two_sample([2], [1, 2, 3]), (0.0, 1.0))
+        assert_allclose(t_two_sample([1, 2, 3], [2]), (0.0, 1.0))
 
     def test_t_one_observation(self):
         """t_one_observation should match p. 228 of Sokal and Rohlf"""
@@ -754,7 +804,7 @@ class StatTests(TestsHelper):
         x = 3.02
         # note that this differs after the 3rd decimal place from what's in the
         # book, because Sokal and Rohlf round their intermediate steps...
-        self.assertFloatEqual(t_one_observation(x, sample), (-1.5637254, 0.1929248))
+        assert_allclose(t_one_observation(x, sample), (-1.5637254, 0.1929248))
 
     def test_t_one_observation_no_variance(self):
         """t_one_observation should correctly handle an invariant list."""
@@ -787,7 +837,7 @@ class StatTests(TestsHelper):
         I = array([7.2, 7.1, 9.1, 7.2, 7.3, 7.2, 7.5])
         II = array([8.8, 7.5, 7.7, 7.6, 7.4, 6.7, 7.2])
         obs = mc_t_two_sample(I, II)
-        self.assertFloatEqual(obs[:2], exp)
+        assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 999)
         self.assertCorrectPValue(0.8, 0.9, mc_t_two_sample, [I, II], p_val_idx=3)
 
@@ -796,13 +846,13 @@ class StatTests(TestsHelper):
         I = [7.2, 7.1, 9.1, 7.2, 7.3, 7.2, 7.5]
         II = [8.8, 7.5, 7.7, 7.6, 7.4, 6.7, 7.2]
         obs = mc_t_two_sample(I, II)
-        self.assertFloatEqual(obs[:2], exp)
+        assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 999)
         self.assertCorrectPValue(0.8, 0.9, mc_t_two_sample, [I, II], p_val_idx=3)
 
         exp = (-0.11858541225631833, 0.45378289658933718)
         obs = mc_t_two_sample(I, II, tails="low")
-        self.assertFloatEqual(obs[:2], exp)
+        assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 999)
         self.assertCorrectPValue(
             0.4, 0.47, mc_t_two_sample, [I, II], {"tails": "low"}, p_val_idx=3
@@ -810,7 +860,7 @@ class StatTests(TestsHelper):
 
         exp = (-0.11858541225631833, 0.54621710341066287)
         obs = mc_t_two_sample(I, II, tails="high", permutations=99)
-        self.assertFloatEqual(obs[:2], exp)
+        assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 99)
         self.assertCorrectPValue(
             0.4,
@@ -823,7 +873,7 @@ class StatTests(TestsHelper):
 
         exp = (-2.8855783649036986, 0.99315596652421401)
         obs = mc_t_two_sample(I, II, tails="high", permutations=99, exp_diff=1)
-        self.assertFloatEqual(obs[:2], exp)
+        assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 99)
         self.assertCorrectPValue(
             0.55,
@@ -841,7 +891,7 @@ class StatTests(TestsHelper):
         I = array([7.2, 7.1, 9.1, 7.2, 7.3, 7.2])
         II = array([8.8, 7.5, 7.7, 7.6, 7.4, 6.7, 7.2])
         obs = mc_t_two_sample(I, II)
-        self.assertFloatEqual(obs[:2], exp)
+        assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 999)
         self.assertCorrectPValue(0.8, 0.9, mc_t_two_sample, [I, II], p_val_idx=3)
 
@@ -851,24 +901,24 @@ class StatTests(TestsHelper):
         x = array([3.02])
         exp = (-1.5637254, 0.1929248)
         obs = mc_t_two_sample(x, sample)
-        self.assertFloatEqual(obs[:2], exp)
-        self.assertFloatEqual(len(obs[2]), 999)
-        self.assertIsProb(obs[3])
+        assert_allclose(obs[:2], exp)
+        assert_allclose(len(obs[2]), 999)
+        self.assertTrue(is_prob(obs[3]))
 
         exp = (1.5637254, 0.1929248)
         obs = mc_t_two_sample(sample, x)
-        self.assertFloatEqual(obs[:2], exp)
-        self.assertFloatEqual(len(obs[2]), 999)
-        self.assertIsProb(obs[3])
+        assert_allclose(obs[:2], exp)
+        assert_allclose(len(obs[2]), 999)
+        self.assertTrue(is_prob(obs[3]))
 
         # Test the case where we can have no variance in the permuted lists.
         x = array([1, 1, 2])
         y = array([1])
         exp = (0.5, 0.666666666667)
         obs = mc_t_two_sample(x, y)
-        self.assertFloatEqual(obs[:2], exp)
-        self.assertFloatEqual(len(obs[2]), 999)
-        self.assertIsProb(obs[3])
+        assert_allclose(obs[:2], exp)
+        assert_allclose(len(obs[2]), 999)
+        self.assertTrue(is_prob(obs[3]))
 
     def test_mc_t_two_sample_no_perms(self):
         """Test gives empty permutation results if no perms are given."""
@@ -876,7 +926,8 @@ class StatTests(TestsHelper):
         I = array([7.2, 7.1, 9.1, 7.2, 7.3, 7.2, 7.5])
         II = array([8.8, 7.5, 7.7, 7.6, 7.4, 6.7, 7.2])
         obs = mc_t_two_sample(I, II, permutations=0)
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs[:2], exp[:2])
+        assert_equal(obs[2:], exp[2:])
 
     def test_mc_t_two_sample_no_mc(self):
         """Test no MC stats if initial t-test is bad."""
@@ -944,7 +995,7 @@ class StatTests(TestsHelper):
         exp = (-0.70710678118654791, 0.51851851851851838)
         obs = mc_t_two_sample(x, y, permutations=10000)
 
-        self.assertFloatEqual(obs[:2], exp)
+        assert_allclose(obs[:2], exp)
         self.assertEqual(len(obs[2]), 10000)
         self.assertCorrectPValue(
             0.97, 1.0, mc_t_two_sample, [x, y], {"permutations": 10000}, p_val_idx=3
@@ -970,44 +1021,41 @@ class StatTests(TestsHelper):
         self.assertEqual(len(obs[1]), 1)
         self.assertEqual(len(obs[0][0]), len(I))
         self.assertEqual(len(obs[1][0]), len(II))
-        self.assertFloatEqual(
-            sorted(concatenate((obs[0][0], obs[1][0]))), sorted(I + II)
-        )
+        assert_allclose(sorted(concatenate((obs[0][0], obs[1][0]))), sorted(I + II))
 
     def test_reverse_tails(self):
         """reverse_tails should return 'high' if tails was 'low' or vice versa"""
         self.assertEqual(reverse_tails("high"), "low")
         self.assertEqual(reverse_tails("low"), "high")
-        self.assertEqual(reverse_tails(None), None)
-        self.assertEqual(reverse_tails(3), 3)
+        self.assertEqual(reverse_tails(None), ALT_TWO_SIDED)
 
     def test_tail(self):
         """tail should return prob/2 if test is true, or 1-(prob/2) if false"""
-        self.assertFloatEqual(tail(0.25, True), 0.125)
-        self.assertFloatEqual(tail(0.25, False), 0.875)
-        self.assertFloatEqual(tail(1, True), 0.5)
-        self.assertFloatEqual(tail(1, False), 0.5)
-        self.assertFloatEqual(tail(0, True), 0)
-        self.assertFloatEqual(tail(0, False), 1)
+        assert_allclose(tail(0.25, True), 0.125)
+        assert_allclose(tail(0.25, False), 0.875)
+        assert_allclose(tail(1, True), 0.5)
+        assert_allclose(tail(1, False), 0.5)
+        assert_allclose(tail(0, True), 0)
+        assert_allclose(tail(0, False), 1)
 
     def test_z_test(self):
         """z_test should give correct values"""
         sample = array([1, 2, 3, 4, 5])
-        self.assertFloatEqual(z_test(sample, 3, 1), (0, 1))
-        self.assertFloatEqual(z_test(sample, 3, 2, "high"), (0, 0.5))
-        self.assertFloatEqual(z_test(sample, 3, 2, "low"), (0, 0.5))
+        assert_allclose(z_test(sample, 3, 1), (0, 1))
+        assert_allclose(z_test(sample, 3, 2, "high"), (0, 0.5))
+        assert_allclose(z_test(sample, 3, 2, "low"), (0, 0.5))
         # check that population mean and variance, and tails, can be set OK.
-        self.assertFloatEqual(
+        assert_allclose(
             z_test(sample, 0, 1), (6.7082039324993694, 1.9703444711798951e-11)
         )
-        self.assertFloatEqual(
+        assert_allclose(
             z_test(sample, 1, 10), (0.44721359549995793, 0.65472084601857694)
         )
-        self.assertFloatEqual(
+        assert_allclose(
             z_test(sample, 1, 10, "high"),
             (0.44721359549995793, 0.65472084601857694 / 2),
         )
-        self.assertFloatEqual(
+        assert_allclose(
             z_test(sample, 1, 10, "low"),
             (0.44721359549995793, 1 - (0.65472084601857694 / 2)),
         )
@@ -1060,14 +1108,14 @@ class CorrelationTests(TestsHelper):
         m1 = array([[0, 1, 2], [1, 0, 3], [2, 3, 0]])
         m2 = array([[0, 2, 7], [2, 0, 6], [7, 6, 0]])
         p, stat, perms = mantel_test(m1, m1, 999, alt="greater")
-        self.assertFloatEqual(stat, 1.0)
+        assert_allclose(stat, 1.0)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
             0.09, 0.25, mantel_test, (m1, m1, 999), {"alt": "greater"}
         )
 
         p, stat, perms = mantel_test(m1, m2, 999, alt="greater")
-        self.assertFloatEqual(stat, 0.755928946018)
+        assert_allclose(stat, 0.755928946018)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
             0.2, 0.5, mantel_test, (m1, m2, 999), {"alt": "greater"}
@@ -1082,17 +1130,17 @@ class CorrelationTests(TestsHelper):
         m2 = array([[0, 2, 7], [2, 0, 6], [7, 6, 0]])
         m3 = array([[0, 0.5, 0.25], [0.5, 0, 0.1], [0.25, 0.1, 0]])
         p, stat, perms = mantel_test(m1, m1, 999, alt="less")
-        self.assertFloatEqual(p, 1.0)
-        self.assertFloatEqual(stat, 1.0)
+        assert_allclose(p, 1.0)
+        assert_allclose(stat, 1.0)
         self.assertEqual(len(perms), 999)
 
         p, stat, perms = mantel_test(m1, m2, 999, alt="less")
-        self.assertFloatEqual(stat, 0.755928946018)
+        assert_allclose(stat, 0.755928946018)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(0.6, 1.0, mantel_test, (m1, m2, 999), {"alt": "less"})
 
         p, stat, perms = mantel_test(m1, m3, 999, alt="less")
-        self.assertFloatEqual(stat, -0.989743318611)
+        assert_allclose(stat, -0.989743318611)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(0.1, 0.25, mantel_test, (m1, m3, 999), {"alt": "less"})
 
@@ -1105,21 +1153,21 @@ class CorrelationTests(TestsHelper):
         m2 = array([[0, 2, 7], [2, 0, 6], [7, 6, 0]])
         m3 = array([[0, 0.5, 0.25], [0.5, 0, 0.1], [0.25, 0.1, 0]])
         p, stat, perms = mantel_test(m1, m1, 999, alt="two sided")
-        self.assertFloatEqual(stat, 1.0)
+        assert_allclose(stat, 1.0)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
             0.20, 0.45, mantel_test, (m1, m1, 999), {"alt": "two sided"}
         )
 
         p, stat, perms = mantel_test(m1, m2, 999, alt="two sided")
-        self.assertFloatEqual(stat, 0.755928946018)
+        assert_allclose(stat, 0.755928946018)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
             0.6, 0.75, mantel_test, (m1, m2, 999), {"alt": "two sided"}
         )
 
         p, stat, perms = mantel_test(m1, m3, 999, alt="two sided")
-        self.assertFloatEqual(stat, -0.989743318611)
+        assert_allclose(stat, -0.989743318611)
         self.assertEqual(len(perms), 999)
         self.assertCorrectPValue(
             0.2, 0.45, mantel_test, (m1, m3, 999), {"alt": "two sided"}
@@ -1176,9 +1224,9 @@ class CorrelationTests(TestsHelper):
     def test_pearson(self):
         """Test pearson correlation method on valid data."""
         # This test output was verified by R.
-        self.assertFloatEqual(pearson([1, 2], [1, 2]), 1.0)
-        self.assertFloatEqual(pearson([1, 2, 3], [1, 2, 3]), 1.0)
-        self.assertFloatEqual(pearson([1, 2, 3], [1, 2, 4]), 0.9819805)
+        assert_allclose(pearson([1, 2], [1, 2]), 1.0)
+        assert_allclose(pearson([1, 2, 3], [1, 2, 3]), 1.0)
+        assert_allclose(pearson([1, 2, 3], [1, 2, 4]), 0.9819805)
 
     def test_pearson_invalid_input(self):
         """Test running pearson on bad input."""
@@ -1190,33 +1238,33 @@ class CorrelationTests(TestsHelper):
         # One vector has no ties.
         exp = 0.3719581
         obs = spearman(self.a, self.b)
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs, exp)
 
         # Both vectors have no ties.
         exp = 0.2969697
         obs = spearman(self.b, self.c)
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs, exp)
 
         # Both vectors have ties.
         exp = 0.388381
         obs = spearman(self.a, self.r)
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs, exp)
 
         exp = -0.17575757575757578
         obs = spearman(self.data1, self.data2)
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs, exp)
 
     def test_spearman_no_variation(self):
         """Test the spearman function with a vector having no variation."""
         exp = 0.0
         obs = spearman([1, 1, 1], [1, 2, 3])
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs, exp)
 
     def test_spearman_ranked(self):
         """Test the spearman function with a vector that is already ranked."""
         exp = 0.2969697
         obs = spearman(self.b_ranked, self.c_ranked)
-        self.assertFloatEqual(obs, exp)
+        assert_allclose(obs, exp)
 
     def test_spearman_one_obs(self):
         """Test running spearman on a single observation."""
@@ -1235,23 +1283,28 @@ class CorrelationTests(TestsHelper):
             4,
         )
         obs = _get_rank(self.x)
-        self.assertFloatEqual(exp, obs)
+        assert_allclose(obs[0], exp[0])
+        self.assertEqual(obs[1], exp[1])
 
         exp = ([1.5, 3.0, 5.5, 4.0, 1.5, 7.0, 8.0, 9.0, 10.0, 5.5], 2)
         obs = _get_rank(self.a)
-        self.assertFloatEqual(exp, obs)
+        assert_allclose(obs[0], exp[0])
+        self.assertEqual(obs[1], exp[1])
 
         exp = ([2, 7, 10, 1, 3, 6, 4, 8, 5, 9], 0)
         obs = _get_rank(self.b)
-        self.assertFloatEqual(exp, obs)
+        assert_allclose(obs[0], exp[0])
+        self.assertEqual(obs[1], exp[1])
 
         exp = ([1.5, 7.0, 10.0, 1.5, 3.0, 6.0, 4.0, 8.0, 5.0, 9.0], 1)
         obs = _get_rank(self.r)
-        self.assertFloatEqual(exp, obs)
+        assert_allclose(obs[0], exp[0])
+        self.assertEqual(obs[1], exp[1])
 
         exp = ([], 0)
         obs = _get_rank([])
-        self.assertEqual(exp, obs)
+        assert_allclose(obs[0], exp[0])
+        self.assertEqual(obs[1], exp[1])
 
     def test_get_rank_invalid_input(self):
         """Test the _get_rank function with invalid input."""
@@ -1278,13 +1331,17 @@ class CorrelationTests(TestsHelper):
 
         bad = [1, 2, 3]  # originally gave r = 1.0000000002
 
-        self.assertFloatEqual(correlation(x, x), (1, 0))
-        self.assertFloatEqual(correlation(x, y), (0, 1))
-        self.assertFloatEqual(correlation(y, z), (0, 1))
-        self.assertFloatEqualAbs(correlation(x, a), (0.9827076, 0.01729), 1e-5)
-        self.assertFloatEqualAbs(correlation(x, b), (-0.9621405, 0.03786), 1e-5)
-        self.assertFloatEqualAbs(correlation(x, c), (0.3779645, 0.622), 1e-3)
-        self.assertEqual(correlation(bad, bad), (1, 0))
+        assert_allclose(pearson_correlation(x, x), (1, 0))
+        assert_allclose(pearson_correlation(x, y), (0, 1), rtol=1e-3)
+        assert_allclose(pearson_correlation(y, z), (0, 1))
+        assert_allclose(
+            pearson_correlation(x, a), (0.9827076, 0.01729), rtol=1e-4, atol=1e-6
+        )
+        assert_allclose(pearson_correlation(x, b), (-0.9621405, 0.03786), rtol=1e-4)
+        assert_allclose(pearson_correlation(x, c), (0.3779645, 0.622), 1e-3)
+        self.assertEqual(pearson_correlation(bad, bad), (1, 0))
+        got = pearson_correlation(self.data1, self.data2, tails="low")
+        assert_allclose(got, (-0.03760147385, 0.4589314864))
 
     def test_correlation_test_pearson(self):
         """Test correlation_test using pearson on valid input."""
@@ -1298,7 +1355,7 @@ class CorrelationTests(TestsHelper):
             confidence_level=0.90,
             permutations=990,
         )
-        self.assertFloatEqual(obs[:2], (-0.03760147, 0.91786297277172868))
+        assert_allclose(obs[:2], (-0.03760147, 0.91786297277172868), rtol=1e-6)
         self.assertEqual(len(obs[2]), 990)
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
@@ -1310,7 +1367,7 @@ class CorrelationTests(TestsHelper):
             {"method": "pearson", "confidence_level": 0.90, "permutations": 990},
             p_val_idx=3,
         )
-        self.assertFloatEqual(obs[4], (-0.5779077, 0.5256224))
+        assert_allclose(obs[4], (-0.5779077, 0.5256224))
 
         # Test with non-default tail type.
         obs = correlation_test(
@@ -1321,7 +1378,7 @@ class CorrelationTests(TestsHelper):
             permutations=990,
             tails="low",
         )
-        self.assertFloatEqual(obs[:2], (-0.03760147, 0.45893148638586434))
+        assert_allclose(obs[:2], (-0.03760147, 0.45893148638586434), rtol=1e-6)
         self.assertEqual(len(obs[2]), 990)
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
@@ -1338,14 +1395,14 @@ class CorrelationTests(TestsHelper):
             },
             p_val_idx=3,
         )
-        self.assertFloatEqual(obs[4], (-0.5779077, 0.5256224))
+        assert_allclose(obs[4], (-0.5779077, 0.5256224))
 
     def test_correlation_test_spearman(self):
         """Test correlation_test using spearman on valid input."""
         # This example taken from Wikipedia page:
         # http://en.wikipedia.org/wiki/Spearman's_rank_correlation_coefficient
         obs = correlation_test(self.data1, self.data2, method="spearman", tails="high")
-        self.assertFloatEqual(obs[:2], (-0.17575757575757578, 0.686405827612))
+        assert_allclose(obs[:2], (-0.17575757575757578, 0.686405827612))
         self.assertEqual(len(obs[2]), 999)
         for rho in obs[2]:
             self.assertTrue(rho >= -1.0 and rho <= 1.0)
@@ -1357,7 +1414,7 @@ class CorrelationTests(TestsHelper):
             {"method": "spearman", "tails": "high"},
             p_val_idx=3,
         )
-        self.assertFloatEqual(obs[4], (-0.7251388558041697, 0.51034422964834503))
+        assert_allclose(obs[4], (-0.7251388558041697, 0.51034422964834503))
 
         # The p-value is off because the example uses a one-tailed test, while
         # we use a two-tailed test. Someone confirms the answer that we get
@@ -1365,7 +1422,7 @@ class CorrelationTests(TestsHelper):
         # http://stats.stackexchange.com/questions/22816/calculating-p-value-
         #     for-spearmans-rank-correlation-coefficient-example-on-wikip
         obs = correlation_test(self.data1, self.data2, method="spearman", tails=None)
-        self.assertFloatEqual(obs[:2], (-0.17575757575757578, 0.62718834477648433))
+        assert_allclose(obs[:2], (-0.17575757575757578, 0.62718834477648433))
         self.assertEqual(len(obs[2]), 999)
         for rho in obs[2]:
             self.assertTrue(rho >= -1.0 and rho <= 1.0)
@@ -1377,7 +1434,7 @@ class CorrelationTests(TestsHelper):
             {"method": "spearman", "tails": None},
             p_val_idx=3,
         )
-        self.assertFloatEqual(obs[4], (-0.7251388558041697, 0.51034422964834503))
+        assert_allclose(obs[4], (-0.7251388558041697, 0.51034422964834503))
 
     def test_correlation_test_invalid_input(self):
         """Test correlation_test using invalid input."""
@@ -1420,36 +1477,40 @@ class CorrelationTests(TestsHelper):
             (-0.97687328610475876, 0.93488023560400879),
         )
         obs = correlation_test([1, 2, 3, 4], [1, 2, 1, 1], permutations=0)
-        self.assertFloatEqual(obs, exp)
+        for o, e in zip(obs, exp):
+            if isinstance(e, type(None)):
+                assert_equal(o, e)
+            else:
+                assert_allclose(o, e)
 
     def test_correlation_test_perfect_correlation(self):
         """Test correlation_test with perfectly-correlated input vectors."""
         # These results were verified with R.
         obs = correlation_test([1, 2, 3, 4], [1, 2, 3, 4])
-        self.assertFloatEqual(obs[:2], (0.99999999999999978, 2.2204460492503131e-16))
+        assert_allclose(obs[:2], (0.99999999999999978, 2.2204460492503131e-16))
         self.assertEqual(len(obs[2]), 999)
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(
             0.06, 0.09, correlation_test, ([1, 2, 3, 4], [1, 2, 3, 4]), p_val_idx=3
         )
-        self.assertFloatEqual(obs[4], (0.99999999999998879, 1.0))
+        assert_allclose(obs[4], (0.99999999999998879, 1.0))
 
     def test_correlation_test_small_obs(self):
         """Test correlation_test with a small number of observations."""
         # These results were verified with R.
         obs = correlation_test([1, 2, 3], [1, 2, 3])
-        self.assertFloatEqual(obs[:2], (1.0, 0))
+        assert_allclose(obs[:2], (1.0, 0))
         self.assertEqual(len(obs[2]), 999)
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
         self.assertCorrectPValue(
             0.3, 0.4, correlation_test, ([1, 2, 3], [1, 2, 3]), p_val_idx=3
         )
-        self.assertFloatEqual(obs[4], (None, None))
+        self.assertEqual(obs[4], (None, None))
 
         obs = correlation_test([1, 2, 3], [1, 2, 3], method="spearman")
-        self.assertFloatEqual(obs[:2], (1.0, 0))
+        assert_allclose(obs[:2], (1.0, 0))
         self.assertEqual(len(obs[2]), 999)
         for r in obs[2]:
             self.assertTrue(r >= -1.0 and r <= 1.0)
@@ -1461,7 +1522,7 @@ class CorrelationTests(TestsHelper):
             {"method": "spearman"},
             p_val_idx=3,
         )
-        self.assertFloatEqual(obs[4], (None, None))
+        self.assertEqual(obs[4], (None, None))
 
     def test_correlation_matrix(self):
         """Correlations in matrix should match values from R"""
@@ -1469,9 +1530,9 @@ class CorrelationTests(TestsHelper):
         b = [1.5, 1.4, 1.2, 1.1]
         c = [15, 10, 5, 20]
         m = correlation_matrix([a, b, c])
-        self.assertFloatEqual(m[0, 0], [1.0])
-        self.assertFloatEqual([m[1, 0], m[1, 1]], [correlation(b, a)[0], 1.0])
-        self.assertFloatEqual(m[2], [correlation(c, a)[0], correlation(c, b)[0], 1.0])
+        assert_allclose(m[0, 0], [1.0])
+        assert_allclose([m[1, 0], m[1, 1]], [correlation(b, a)[0], 1.0])
+        assert_allclose(m[2], [correlation(c, a)[0], correlation(c, b)[0], 1.0])
 
 
 class Ftest(TestCase):
@@ -1482,7 +1543,7 @@ class Ftest(TestCase):
         a = array([1, 3, 5, 7, 9, 8, 6, 4, 2])
         b = array([5, 4, 6, 3, 7, 6, 4, 5])
         self.assertEqual(f_value(a, b), (8, 7, 4.375))
-        self.assertFloatEqual(f_value(b, a), (7, 8, 0.2285714))
+        assert_allclose(f_value(b, a), (7, 8, 0.2285714), rtol=1e-6)
         too_short = array([4])
         self.assertRaises(ValueError, f_value, too_short, b)
 
@@ -1706,21 +1767,24 @@ class Ftest(TestCase):
 
         # allowed error. This big, because results from R
         # are rounded at 4 decimals
-        error = 1e-4
+        error = 1e-3
 
-        self.assertFloatEqual(f_two_sample(a, a), (49, 49, 1, 1), eps=error)
-        self.assertFloatEqual(f_two_sample(a, b), (49, 49, 0.8575, 0.5925), eps=error)
-        self.assertFloatEqual(f_two_sample(b, a), (49, 49, 1.1662, 0.5925), eps=error)
-        self.assertFloatEqual(
-            f_two_sample(a, b, tails="low"), (49, 49, 0.8575, 0.2963), eps=error
+        assert_allclose(f_two_sample(a, a), (49, 49, 1, 1), rtol=error)
+        assert_allclose(f_two_sample(a, b), (49, 49, 0.8575, 0.5925), rtol=error)
+        assert_allclose(f_two_sample(b, a), (49, 49, 1.1662, 0.5925), rtol=error)
+        assert_allclose(
+            f_two_sample(a, b, tails="low"), (49, 49, 0.8575, 0.2963), rtol=error
         )
-        self.assertFloatEqual(
-            f_two_sample(a, b, tails="high"), (49, 49, 0.8575, 0.7037), eps=error
+        assert_allclose(
+            f_two_sample(a, b, tails="high"), (49, 49, 0.8575, 0.7037), rtol=error
         )
-        self.assertFloatEqual(f_two_sample(a, c), (49, 59, 0.6587, 0.1345), eps=error)
+        assert_allclose(f_two_sample(a, c), (49, 59, 0.6587, 0.1345), rtol=error)
         # p value very small, so first check df's and F value
-        self.assertFloatEqualAbs(
-            f_two_sample(d, a, tails="low")[0:3], (29, 49, 0.0028), eps=error
+        assert_allclose(
+            f_two_sample(d, a, tails="low")[0:3],
+            (29, 49, 0.0028),
+            rtol=error,
+            atol=1e-4,
         )
         assert f_two_sample(d, a, tails="low")[3] < 2.2e-16  # p value
 
@@ -1753,13 +1817,13 @@ class MannWhitneyTests(TestCase):
     def test_mw_test(self):
         """mann-whitney test results should match Sokal & Rohlf"""
         U, p = mw_test(self.x, self.y)
-        self.assertFloatEqual(U, 123.5)
+        assert_allclose(U, 123.5)
         self.assertTrue(0.02 <= p <= 0.05)
 
     def test_mw_boot(self):
         """excercising the Monte-carlo variant of mann-whitney"""
         U, p = mw_boot(self.x, self.y, 10)
-        self.assertFloatEqual(U, 123.5)
+        assert_allclose(U, 123.5)
         self.assertTrue(0 <= p <= 0.5)
 
 
@@ -1770,8 +1834,8 @@ class KendallTests(TestCase):
         """conducts the tests for each alternate hypothesis against expecteds"""
         for alt, exp_p, exp_tau in alt_expecteds:
             tau, p_val = kendall_correlation(x, y, alt=alt, warn=False)
-            self.assertFloatEqual(tau, exp_tau, eps=1e-3)
-            self.assertFloatEqual(p_val, exp_p, eps=1e-3)
+            assert_allclose(tau, exp_tau, rtol=1e-3)
+            assert_allclose(p_val, exp_p, rtol=1e-3)
 
     def test_exact_calcs(self):
         """calculations of exact probabilities should match R"""
@@ -1956,17 +2020,17 @@ class TestDistMatrixPermutationTest(TestCase):
         self.assertEqual(other_vals, [4, 13, 15])
 
     def test_distance_matrix_permutation_test_non_symmetric(self):
-        """ evaluate empirical p-values for a non symmetric matrix 
+        """evaluate empirical p-values for a non symmetric matrix
 
-            To test the empirical p-values, we look at a simple 3x3 matrix 
-             b/c it is easy to see what t score every permutation will 
-             generate -- there's only 6 permutations. 
-             Running dist_matrix_test with n=1000, we expect that each 
-             permutation will show up 160 times, so we know how many 
-             times to expect to see more extreme t scores. We therefore 
-             know what the empirical p-values will be. (n=1000 was chosen
-             empirically -- smaller values seem to lead to much more frequent
-             random failures.)
+        To test the empirical p-values, we look at a simple 3x3 matrix
+         b/c it is easy to see what t score every permutation will
+         generate -- there's only 6 permutations.
+         Running dist_matrix_test with n=1000, we expect that each
+         permutation will show up 160 times, so we know how many
+         times to expect to see more extreme t scores. We therefore
+         know what the empirical p-values will be. (n=1000 was chosen
+         empirically -- smaller values seem to lead to much more frequent
+         random failures.)
 
 
         """
@@ -1981,34 +2045,34 @@ class TestDistMatrixPermutationTest(TestCase):
         # looks at each possible permutation n times --
         # compare first row to rest
         r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False)
-        self.assertSimilarMeans(r, 0.0 / 6.0)
+        self.assertTrue(similar_means(r, 0.0 / 6.0))
         r = make_result_list(
             m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False, tails="high"
         )
-        self.assertSimilarMeans(r, 4.0 / 6.0)
+        self.assertTrue(similar_means(r, 4.0 / 6.0))
         r = make_result_list(
             m, [(0, 0), (0, 1), (0, 2)], n=n, is_symmetric=False, tails="low"
         )
-        self.assertSimilarMeans(r, 0.0 / 6.0)
+        self.assertTrue(similar_means(r, 0.0 / 6.0))
 
         # looks at each possible permutation n times --
         # compare last row to rest
         r = make_result_list(m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False)
-        self.assertSimilarMeans(r, 0.0 / 6.0)
+        self.assertTrue(similar_means(r, 0.0 / 6.0))
         r = make_result_list(
             m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False, tails="high"
         )
-        self.assertSimilarMeans(r, 0.0 / 6.0)
+        self.assertTrue(similar_means(r, 0.0 / 6.0))
         r = make_result_list(
             m, [(2, 0), (2, 1), (2, 2)], n=n, is_symmetric=False, tails="low"
         )
-        self.assertSimilarMeans(r, 4.0 / 6.0)
+        self.assertTrue(similar_means(r, 4.0 / 6.0))
 
     def test_distance_matrix_permutation_test_symmetric(self):
-        """ evaluate empirical p-values for symmetric matrix
+        """evaluate empirical p-values for symmetric matrix
 
-            See test_distance_matrix_permutation_test_non_symmetric 
-            doc string for a description of how this test works. 
+        See test_distance_matrix_permutation_test_non_symmetric
+        doc string for a description of how this test works.
 
         """
 
@@ -2023,11 +2087,11 @@ class TestDistMatrixPermutationTest(TestCase):
         # looks at each possible permutation n times --
         # compare first row to rest
         r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n)
-        self.assertSimilarMeans(r, 2.0 / 6.0)
+        self.assertTrue(similar_means(r, 2.0 / 6.0))
         r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, tails="high")
-        self.assertSimilarMeans(r, 0.77281447417149496, 0)
+        self.assertTrue(similar_means(r, 0.77281447417149496, 0))
         r = make_result_list(m, [(0, 0), (0, 1), (0, 2)], n=n, tails="low")
-        self.assertSimilarMeans(r, 2.0 / 6.0)
+        self.assertTrue(similar_means(r, 2.0 / 6.0))
 
         # The following lines are not part of the test code, but are useful in
         # figuring out what t-scores all of the permutations will yield.
@@ -2067,8 +2131,7 @@ class TestDistMatrixPermutationTest(TestCase):
         )
 
     def test_ANOVA_one_way(self):
-        """ANOVA one way returns same values as ANOVA on a stats package
-        """
+        """ANOVA one way returns same values as ANOVA on a stats package"""
         g1 = NumberCounter([10.0, 11.0, 10.0, 5.0, 6.0])
         g2 = NumberCounter([1.0, 2.0, 3.0, 4.0, 1.0, 2.0])
         g3 = NumberCounter([6.0, 7.0, 5.0, 6.0, 7.0])
@@ -2076,13 +2139,13 @@ class TestDistMatrixPermutationTest(TestCase):
         dfn, dfd, F, between_MS, within_MS, group_means, prob = ANOVA_one_way(i)
         self.assertEqual(dfn, 2)
         self.assertEqual(dfd, 13)
-        self.assertFloatEqual(F, 18.565450643776831)
-        self.assertFloatEqual(between_MS, 55.458333333333343)
-        self.assertFloatEqual(within_MS, 2.9871794871794868)
-        self.assertFloatEqual(
+        assert_allclose(F, 18.565450643776831)
+        assert_allclose(between_MS, 55.458333333333343)
+        assert_allclose(within_MS, 2.9871794871794868)
+        assert_allclose(
             group_means, [8.4000000000000004, 2.1666666666666665, 6.2000000000000002]
         )
-        self.assertFloatEqual(prob, 0.00015486238993089464)
+        assert_allclose(prob, 0.00015486238993089464)
 
 
 # execute tests if called from command line

@@ -26,9 +26,9 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
@@ -470,6 +470,22 @@ ORIGIN
             got = cds[locus].get_slice().trim_stop_codon().get_translation()
             self.assertEqual(str(got), expects[locus])
         infile.close()
+
+    def test_rich_parser_moltype(self):
+        """correctly handles moltypes"""
+        with open("data/annotated_seq.gb") as infile:
+            parser = RichGenbankParser(infile)
+            got_1 = [s for _, s in parser][0]
+
+        with open("data/annotated_seq.gb") as infile:
+            parser = RichGenbankParser(infile, moltype="dna")
+            got_2 = [s for _, s in parser][0]
+
+        self.assertEqual(len(got_1.annotations), len(got_2.annotations))
+        self.assertEqual(got_2.moltype.label, "dna")
+        # name formed from /product value
+        got = {f.name for f in got_2.get_annotations_matching("mRNA")}
+        self.assertEqual(got, {"conserved hypothetical protein", "chaperone, putative"})
 
 
 class LocationTests(TestCase):

@@ -1,12 +1,8 @@
 #!/usr/bin/env python
-import os
 import pathlib
-import re
-import subprocess
 import sys
 
-from setuptools import Command, find_packages, setup
-from setuptools.extension import Extension
+from setuptools import find_packages, setup
 
 
 __author__ = "Peter Maxwell"
@@ -19,9 +15,9 @@ __contributors__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 # Check Python version, no point installing if unsupported version inplace
@@ -38,39 +34,6 @@ if sys.version_info < min_version:
 # On windows with no commandline probably means we want to build an installer.
 if sys.platform == "win32" and len(sys.argv) < 2:
     sys.argv[1:] = ["bdist_wininst"]
-
-
-# A new command for predist, ie: pyrexc but no compile.
-class NullCommand(Command):
-    description = "Generate .c files from .pyx files"
-    # List of option tuples: long name, short name (or None), and help string.
-    user_options = []  # [('', '', ""),]
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        pass
-
-
-class BuildDocumentation(NullCommand):
-    description = "Generate HTML documentation files"
-
-    def run(self):
-        # Restructured Text -> HTML
-        try:
-            import sphinx
-        except ImportError:
-            print("Failed to build html due to ImportErrors for sphinx")
-            return
-        cwd = os.getcwd()
-        os.chdir("doc")
-        subprocess.call(["make", "html"])
-        os.chdir(cwd)
-        print("Built index.html")
 
 
 short_description = "COmparative GENomics Toolkit 3"
@@ -131,6 +94,7 @@ setup(
             "jupyter_client",
             "jupyterlab",
             "jupytext",
+            "kaleido",
             "nbconvert",
             "nbformat",
             "nbsphinx",
@@ -139,7 +103,6 @@ setup(
             "plotly",
             "psutil",
             "pytest",
-            "pytest-azurepipelines",
             "pytest-cov",
             "pytest>=4.3.0",
             "sphinx",
@@ -148,7 +111,7 @@ setup(
             "sphinx_panels",
             "tox",
         ],
-        "extra": ["pandas", "plotly", "psutil"],
+        "extra": ["pandas", "plotly", "psutil", "kaleido"],
     },
     project_urls=PROJECT_URLS,
 )

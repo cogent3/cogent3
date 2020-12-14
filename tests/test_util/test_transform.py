@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Tests of transformation and composition functions .
 """
+from unittest import TestCase, main
+
 from cogent3.util.transform import (
     KeepChars,
     first_index_in_set,
@@ -8,17 +10,18 @@ from cogent3.util.transform import (
     per_longest,
     per_shortest,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 class has_x(object):
@@ -125,50 +128,50 @@ class SequenceFunctionsTests(TestCase):
 
         # test behavior with default aggregator and normalizer
         f = for_seq(is_eq)
-        self.assertFloatEqual(f(s1, s1), 1.0)
-        self.assertFloatEqual(f(s1, short), 1.0)
-        self.assertFloatEqual(f(short, s1), 1.0)
-        self.assertFloatEqual(f(short, s4), 0.0)
-        self.assertFloatEqual(f(s4, short), 0.0)
-        self.assertFloatEqual(f(s1, s2), 0.6)
+        assert_allclose(f(s1, s1), 1.0)
+        assert_allclose(f(s1, short), 1.0)
+        assert_allclose(f(short, s1), 1.0)
+        assert_allclose(f(short, s4), 0.0)
+        assert_allclose(f(s4, short), 0.0)
+        assert_allclose(f(s1, s2), 0.6)
 
         f = for_seq(is_ne)
-        self.assertFloatEqual(f(s1, s1), 0.0)
-        self.assertFloatEqual(f(s1, short), 0.0)
-        self.assertFloatEqual(f(short, s1), 0.0)
-        self.assertFloatEqual(f(short, s4), 1.0)
-        self.assertFloatEqual(f(s4, short), 1.0)
-        self.assertFloatEqual(f(s1, s2), 0.4)
+        assert_allclose(f(s1, s1), 0.0)
+        assert_allclose(f(s1, short), 0.0)
+        assert_allclose(f(short, s1), 0.0)
+        assert_allclose(f(short, s4), 1.0)
+        assert_allclose(f(s4, short), 1.0)
+        assert_allclose(f(s1, s2), 0.4)
 
         f = for_seq(lt_5)
-        self.assertFloatEqual(f(s3, s3), 1.0)
-        self.assertFloatEqual(f(s3, s4), 0.0)
-        self.assertFloatEqual(f(s2, s3), 0.6)
+        assert_allclose(f(s3, s3), 1.0)
+        assert_allclose(f(s3, s4), 0.0)
+        assert_allclose(f(s2, s3), 0.6)
 
         f = for_seq(diff)
-        self.assertFloatEqual(f(s1, s1), 0.0)
-        self.assertFloatEqual(f(s4, s1), 2.0)
-        self.assertFloatEqual(f(s1, s4), -2.0)
+        assert_allclose(f(s1, s1), 0.0)
+        assert_allclose(f(s4, s1), 2.0)
+        assert_allclose(f(s1, s4), -2.0)
 
         # test behavior with different aggregator
         f = for_seq(diff)
-        self.assertFloatEqual(f(s1, s5), 0)
+        assert_allclose(f(s1, s5), 0)
         f = for_seq(diff, aggregator=sum)
-        self.assertFloatEqual(f(s1, s5), 0)
+        assert_allclose(f(s1, s5), 0)
         f = for_seq(diff, aggregator=sumsq)
-        self.assertFloatEqual(f(s1, s5), 2.0)
+        assert_allclose(f(s1, s5), 2.0)
 
         # test behavior with different normalizer
         f = for_seq(diff, aggregator=sumsq, normalizer=None)
-        self.assertFloatEqual(f(s1, s5), 10)
+        assert_allclose(f(s1, s5), 10)
         f = for_seq(diff, aggregator=sumsq)
-        self.assertFloatEqual(f(s1, s5), 2.0)
+        assert_allclose(f(s1, s5), 2.0)
         f = for_seq(diff, aggregator=sumsq, normalizer=times_two)
-        self.assertFloatEqual(f(s1, s5), 20)
+        assert_allclose(f(s1, s5), 20)
         f = for_seq(diff, aggregator=sumsq)
-        self.assertFloatEqual(f(s5, short), 4)
+        assert_allclose(f(s5, short), 4)
         f = for_seq(diff, aggregator=sumsq, normalizer=long_norm)
-        self.assertFloatEqual(f(s5, short), 0.8)
+        assert_allclose(f(s5, short), 0.8)
 
 
 class Filter_Criteria_Tests(TestCase):

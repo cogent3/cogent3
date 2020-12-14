@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Tests of the geometry package."""
 from math import sqrt
+from unittest import TestCase, main
 
 from numpy import (
     all,
@@ -16,7 +17,7 @@ from numpy import (
 )
 from numpy.linalg import inv, norm
 from numpy.random import choice, dirichlet
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.geometry import (
     aitchison_distance,
@@ -31,14 +32,13 @@ from cogent3.maths.geometry import (
     multiplicative_replacement,
     sphere_points,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight", "Helmut Simon"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
@@ -59,12 +59,12 @@ class CenterOfMassTests(TestCase):
     def test_center_of_mass_one_array(self):
         """center_of_mass_one_array should behave correctly"""
         com1 = center_of_mass_one_array
-        self.assertEqual(com1(self.simple), array([2, 2]))
-        self.assertEqual(com1(self.simple_list), array([2, 2]))
-        self.assertFloatEqual(com1(self.more_weight), array([2, 2.785714]))
-        self.assertEqual(com1(self.square), array([2, 2]))
-        self.assertEqual(com1(self.square_odd), array([2, 2]))
-        self.assertEqual(com1(self.sec_weight, 1), array([2, 2]))
+        assert_equal(com1(self.simple), array([2, 2]))
+        assert_equal(com1(self.simple_list), array([2, 2]))
+        assert_allclose(com1(self.more_weight), array([2, 2.785714]), rtol=1e-6)
+        assert_equal(com1(self.square), array([2, 2]))
+        assert_equal(com1(self.square_odd), array([2, 2]))
+        assert_equal(com1(self.sec_weight, 1), array([2, 2]))
 
     def test_CoM_one_array_wrong(self):
         """center_of_mass_one_array should fail on wrong input"""
@@ -79,9 +79,9 @@ class CenterOfMassTests(TestCase):
         com2 = center_of_mass_two_array
         coor = take(self.square_odd, (0, 1), 1)
         weights = take(self.square_odd, (2,), 1)
-        self.assertEqual(com2(coor, weights), array([2, 2]))
+        assert_equal(com2(coor, weights), array([2, 2]))
         weights = weights.ravel()
-        self.assertEqual(com2(coor, weights), array([2, 2]))
+        assert_equal(com2(coor, weights), array([2, 2]))
 
     def test_CoM_two_array_wrong(self):
         """center_of_mass_two_array should fail on wrong input"""
@@ -91,19 +91,18 @@ class CenterOfMassTests(TestCase):
         self.assertRaises(ValueError, com2, self.simple, weights)  # not aligned
 
     def test_center_of_mass(self):
-        """center_of_mass should make right choice between functional methods
-        """
+        """center_of_mass should make right choice between functional methods"""
         com = center_of_mass
         com1 = center_of_mass_one_array
         com2 = center_of_mass_two_array
-        self.assertEqual(com(self.simple), com1(self.simple))
-        self.assertFloatEqual(com(self.more_weight), com1(self.more_weight))
-        self.assertEqual(com(self.sec_weight, 1), com1(self.sec_weight, 1))
+        assert_equal(com(self.simple), com1(self.simple))
+        assert_allclose(com(self.more_weight), com1(self.more_weight))
+        assert_equal(com(self.sec_weight, 1), com1(self.sec_weight, 1))
         coor = take(self.square_odd, (0, 1), 1)
         weights = take(self.square_odd, (2,), 1)
-        self.assertEqual(com(coor, weights), com2(coor, weights))
+        assert_equal(com(coor, weights), com2(coor, weights))
         weights = weights.ravel()
-        self.assertEqual(com(coor, weights), com2(coor, weights))
+        assert_equal(com(coor, weights), com2(coor, weights))
 
     def test_distance(self):
         """distance should return Euclidean distance correctly."""
@@ -124,11 +123,11 @@ class CenterOfMassTests(TestCase):
         self.assertEqual(distance(a1, a1), 0)
         self.assertEqual(distance(a2, a2), 0)
         self.assertEqual(distance(a1, a2), distance(a2, a1))
-        self.assertFloatEqual(distance(a1, a2), sqrt(22.25))
+        assert_allclose(distance(a1, a2), sqrt(22.25))
 
     def test_sphere_points(self):
         """tests sphere points"""
-        self.assertEqual(sphere_points(1), array([[1.0, 0.0, 0.0]]))
+        assert_equal(sphere_points(1), array([[1.0, 0.0, 0.0]]))
 
 
 class TestAitchison(TestCase):

@@ -37,7 +37,11 @@ from random import choice, shuffle
 from numpy import argsort, ceil, log, zeros
 
 from cogent3.maths.stats.test import correlation
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import (
+    atomic_write,
+    get_format_suffixes,
+    get_object_provenance,
+)
 
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
@@ -55,7 +59,7 @@ __credits__ = [
     "Justin Kuczynski",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -1293,7 +1297,7 @@ class TreeNode(object):
             return new_tree
 
     def _edgecount(self, parent, cache):
-        """"The number of edges beyond 'parent' in the direction of 'self',
+        """ "The number of edges beyond 'parent' in the direction of 'self',
         unrooted"""
         neighbours = self._getNeighboursExcept(parent)
         key = (id(parent), id(self))
@@ -1408,8 +1412,7 @@ class TreeNode(object):
         return "\n".join(lines)
 
     def _getXmlLines(self, indent=0, parent_params=None):
-        """Return the xml strings for this edge.
-        """
+        """Return the xml strings for this edge."""
         params = {}
         if parent_params is not None:
             params.update(parent_params)
@@ -1444,22 +1447,21 @@ class TreeNode(object):
         with_distances
             whether branch lengths are included in string.
         format
-            default is newick, xml is alternate. Argument overrides
+            default is newick, xml and json are alternate. Argument overrides
             the filename suffix. All attributes are saved in the xml format.
 
         """
-        if format:
-            xml = format.lower() == "xml"
-        else:
-            xml = filename.lower().endswith("xml")
+        file_format, _ = get_format_suffixes(filename)
+        if file_format == "json":
+            with atomic_write(filename, mode="wt") as f:
+                f.write(self.to_json())
+            return
 
-        if xml:
-            data = self.get_xml()
-        else:
-            data = self.get_newick(with_distances=with_distances)
-        outf = open(filename, "w")
-        outf.writelines(data)
-        outf.close()
+        xml = format.lower() == "xml" if format else filename.lower().endswith("xml")
+        data = self.get_xml() if xml else self.get_newick(with_distances=with_distances)
+
+        with atomic_write(filename, mode="wt") as outf:
+            outf.writelines(data)
 
     def get_node_names(self, includeself=True, tipsonly=False):
         """Return a list of edges from this edge - may or may not include self.
@@ -1483,8 +1485,7 @@ class TreeNode(object):
         return [node.name for node in nodes]
 
     def get_tip_names(self, includeself=False):
-        """return the list of the names of all tips contained by this edge
-        """
+        """return the list of the names of all tips contained by this edge"""
         return self.get_node_names(includeself, tipsonly=True)
 
     def get_edge_vector(self, include_root=True):
@@ -1993,8 +1994,7 @@ class PhyloNode(TreeNode):
         return self is other or me.same_shape(them)
 
     def unrooted(self):
-        """A tree with at least 3 children at the root.
-        """
+        """A tree with at least 3 children at the root."""
         constructor = self._default_tree_constructor()
         need_to_expand = len(self.children) < 3
         new_children = []
@@ -2028,7 +2028,7 @@ class PhyloNode(TreeNode):
         return tip.parent.unrooted_deepcopy()
 
     def root_at_midpoint(self):
-        """ return a new tree rooted at midpoint of the two tips farthest apart
+        """return a new tree rooted at midpoint of the two tips farthest apart
 
         this fn doesn't preserve the internal node naming or structure,
         but does keep tip to tip distances correct.  uses unrooted_deepcopy()

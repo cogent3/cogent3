@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """ Unit tests for Genetic Code classes.
 """
+from unittest import TestCase, main
+
 from cogent3 import DNA, RNA
 from cogent3.core.genetic_code import (
     DEFAULT,
@@ -11,14 +13,13 @@ from cogent3.core.genetic_code import (
     available_codes,
     get_code,
 )
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -75,8 +76,8 @@ class GeneticCodeTests(TestCase):
         self.assertEqual(sgc.is_stop("UAA"), True)
         self.assertEqual(sgc.is_stop("AAA"), False)
         self.assertEqual(len(sgc.sense_codons), 61)
-        self.assertContains(sgc.sense_codons, "AAA")
-        self.assertNotContains(sgc.sense_codons, "TGA")
+        self.assertIn("AAA", sgc.sense_codons)
+        self.assertNotIn("TGA", sgc.sense_codons)
 
     def test_standard_code_lookup(self):
         """GeneticCodes should hold codes keyed by id as string and number"""
@@ -357,7 +358,7 @@ class GeneticCodeTests(TestCase):
         obs_synonyms = GeneticCode(self.SGC).synonyms
         # note that the lists will be arbitrary-order
         for i in expected_synonyms:
-            self.assertEqualItems(obs_synonyms[i], expected_synonyms[i])
+            self.assertCountEqual(obs_synonyms[i], expected_synonyms[i])
 
     def test_get_code(self):
         """correctly return the genetic code"""
@@ -387,6 +388,7 @@ class GeneticCodeTests(TestCase):
     def test_to_regex(self):
         """creates a regex from aa seq to match a DNA sequence"""
         import re
+
         from cogent3 import make_seq
 
         dna = "ACCGAACAGGGC"
@@ -405,8 +407,11 @@ class GeneticCodeTests(TestCase):
         """exercising the _repr_html_ method"""
         gc = get_code(1)
         got = gc._repr_html_().strip()
-        self.assertTrue(got.startswith("<table>"))
-        self.assertTrue(got.endswith("</table>"))
+        self.assertTrue(
+            '<div class="c3table">' in got or '<div class="c3align">' in got
+        )
+        self.assertTrue("<table>" in got)
+        self.assertTrue("</table>" in got)
         self.assertIn("Standard Nuclear", got)
 
 

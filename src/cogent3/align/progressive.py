@@ -12,7 +12,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -66,9 +66,11 @@ def TreeAlign(
         tip_names = tree.get_tip_names()
         tip_names.sort()
         seq_names.sort()
-        assert tip_names == seq_names, (
-            "names don't match between seqs and tree: tree=%s; seqs=%s"
-            % (tip_names, seq_names)
+        assert (
+            tip_names == seq_names
+        ), "names don't match between seqs and tree: tree=%s; seqs=%s" % (
+            tip_names,
+            seq_names,
         )
         ests_from_pairwise = False
     elif two_seqs:

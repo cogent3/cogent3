@@ -15,7 +15,6 @@ Using a ``cogent3`` progressive aligner for nucleotides
 We load a canned nucleotide substitution model and the progressive aligner ``TreeAlign`` function.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_unaligned_seqs, make_tree
     from cogent3.align.progressive import TreeAlign
@@ -23,7 +22,6 @@ We load a canned nucleotide substitution model and the progressive aligner ``Tre
 We first align without providing a guide tree. The ``TreeAlign`` algorithm builds pairwise alignments and estimates the substitution model parameters and pairwise distances. The distances are used to build a neighbour joining tree and the median value of substitution model parameters are provided to the substitution model for the progressive alignment step.
 
 .. jupyter-execute::
-    :linenos:
 
     seqs = load_unaligned_seqs("data/test2.fasta", moltype="dna")
     aln, tree = TreeAlign("HKY85", seqs, show_progress=False)
@@ -32,7 +30,6 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
 We then align using a guide tree (pre-estimated) and specifying the ratio of transitions to transversions (kappa).
 
 .. jupyter-execute::
-    :linenos:
 
     tree = make_tree(
         "(((NineBande:0.013,Mouse:0.185):0.023,DogFaced:0.046):0.027,Human:0.034,HowlerMon:0.019)"
@@ -49,7 +46,6 @@ Using a ``cogent3`` progressive aligner for codons
 We load a canned codon substitution model and use a pre-defined tree and parameter estimates.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_unaligned_seqs, make_tree
     from cogent3.align.progressive import TreeAlign
@@ -70,7 +66,6 @@ Converting gaps from aa-seq alignment to nuc seq alignment
 We load some unaligned DNA sequences and show their translation.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_unaligned_seqs
     from cogent3.evolve.models import get_model
@@ -91,14 +86,12 @@ We load some unaligned DNA sequences and show their translation.
     print(unaligned_DNA)
 
 .. jupyter-execute::
-    :linenos:
 
     print(unaligned_DNA.get_translation())
 
 We load an alignment of these protein sequences.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import make_aligned_seqs
 
@@ -112,7 +105,6 @@ We load an alignment of these protein sequences.
 We then obtain an alignment of the DNA sequences from the alignment of their translation.
 
 .. jupyter-execute::
-    :linenos:
 
     aligned_DNA = aligned_aa.replace_seqs(unaligned_DNA, aa_to_codon=True)
     aligned_DNA

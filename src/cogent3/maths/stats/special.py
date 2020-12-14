@@ -10,9 +10,9 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
@@ -53,8 +53,7 @@ def fix_rounding_error(x):
 
 
 def log_one_minus(x):
-    """Returns natural log of (1-x). Useful for probability calculations.
-    """
+    """Returns natural log of (1-x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
     else:
@@ -62,8 +61,7 @@ def log_one_minus(x):
 
 
 def one_minus_exp(x):
-    """Returns 1-exp(x). Useful for probability calculations.
-    """
+    """Returns 1-exp(x). Useful for probability calculations."""
     if abs(x) < log_epsilon:
         return -x
     else:
@@ -744,6 +742,10 @@ def Gamma(x):
     """Returns the gamma function, a generalization of the factorial.
 
     See Cephes docs for details."""
+    if hasattr(x, "item"):
+        # avoid issue of x being a limited precision numpy type
+        # use item() method casts to the nearest Python type
+        x = x.item()
 
     sgngam = 1
     q = abs(x)

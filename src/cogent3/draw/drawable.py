@@ -12,7 +12,7 @@ __author__ = "Rahul Ghangas and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rahul Ghangas", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -58,8 +58,9 @@ def _customise_sphinx_gallery_renderer():
     # this is an ugly hack to get around plotly's NOT robust handling of script path
     # for automated file naming
     import inspect
-    from plotly.io._renderers import renderers
+
     from plotly.io import _base_renderers as base_render
+    from plotly.io._renderers import renderers
 
     class SphinxGalleryRenderer(base_render.ExternalRenderer):
         def render(self, fig_dict):
@@ -254,7 +255,8 @@ class Drawable:
         kwargs["width"] = kwargs.get("width", fig.layout.width)
         kwargs["height"] = kwargs.get("height", fig.layout.height)
 
-        write_image(fig, path, **kwargs)
+        path = pathlib.Path(path).expanduser().absolute()
+        write_image(fig, str(path), **kwargs)
 
     def to_image(self, format="png", **kwargs):
         """creates static image, suffix dictates format"""

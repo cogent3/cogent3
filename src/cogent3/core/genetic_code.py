@@ -16,7 +16,7 @@ __author__ = "Greg Caporaso and Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -50,13 +50,14 @@ _bases = "TCAG"
 class GeneticCode:
     """Holds codon to amino acid mapping, and vice versa.
 
-    Usage:  gc = GeneticCode(code_sequence)
-            sgc = GeneticCode(
-            'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG')
-            sgc['UUU'] == 'F'
-            sgc['TTT'] == 'F'
-            sgc['F'] == ['TTT', 'TTC']          #in arbitrary order
-            sgc['*'] == ['TAA', 'TAG', 'TGA']   #in arbitrary order
+    Use the `get_code()` function to get one of the included code instances. These are created as follows.
+
+    >>> code_sequence = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'
+    >>> gc = GeneticCode(code_sequence)
+    >>> sgc['UUU'] == 'F'
+    >>> sgc['TTT'] == 'F'
+    >>> sgc['F'] == ['TTT', 'TTC']          #in arbitrary order
+    >>> sgc['*'] == ['TAA', 'TAG', 'TGA']   #in arbitrary order
 
     code_sequence : 64 character string containing NCBI genetic code translation
 
@@ -73,8 +74,19 @@ class GeneticCode:
     def __init__(self, code_sequence, ID=None, name=None, start_codon_sequence=None):
         """Returns new GeneticCode object.
 
-        code_sequence : 64-character string containing NCBI representation
-        of the genetic code. Raises GeneticCodeInitError if length != 64.
+        code_sequence :
+
+        Parameters
+        ----------
+        code_sequence : str
+            64-character string containing NCBI representation of the genetic code.
+        ID
+            Identifier
+        name
+            name of the Genetic code
+        start_codon_sequence
+            64-character string where the '-' character indicates the corresponding
+            position of code_sequence **is not** a start codon
         """
         if len(code_sequence) != 64:
             raise GeneticCodeInitError(
@@ -197,6 +209,7 @@ class GeneticCode:
     blocks = property(_get_blocks)
 
     def to_table(self):
+        """returns aa to codon mapping as a cogent3 Table"""
         from cogent3.core.moltype import IUPAC_PROTEIN_code_aa
 
         rows = []
@@ -205,8 +218,7 @@ class GeneticCode:
             codons = ",".join(self[code])
             row = [aa, code, codons]
             rows.append(row)
-        t = Table(header=headers, data=rows, title=self.name)
-        return t
+        return Table(header=headers, data=rows, title=self.name)
 
     def __str__(self):
         """Returns code_sequence that constructs the GeneticCode."""
@@ -219,10 +231,11 @@ class GeneticCode:
     def _repr_html_(self):
         """Returns the html representation of GeneticCode."""
         display = self.to_table()
-        return display._repr_html_(include_shape=False)
+        display.set_repr_policy(show_shape=False)
+        return display._repr_html_()
 
     def __eq__(self, other):
-        """ Allows two GeneticCode objects to be compared to each other.
+        """Allows two GeneticCode objects to be compared to each other.
         Two GeneticCode objects are equal if they have equal CodeSequences.
         """
         return str(self) == str(other)
@@ -243,15 +256,19 @@ class GeneticCode:
             raise InvalidCodonError("Codon or aa %s has wrong length" % item)
 
     def translate(self, dna, start=0):
-        """ Translates DNA to protein with current GeneticCode.
+        """Translates DNA to protein with current GeneticCode.
 
-        dna         = a string of nucleotides
-        start       = position to begin translation (used to implement frames)
+        Parameters
+        ----------
+        dna: str
+            a string of nucleotides
+        start: int
+            position to begin translation (used to implement frames)
 
-        Returns string containing amino acid sequence. Translates the entire
-        sequence: it is the caller's responsibility to find open reading frames.
-
-        NOTE: should return Protein object when we have a class for it.
+        Returns
+        -------
+        String containing amino acid sequence. Translates the entire sequence.
+        It is the caller's responsibility to find open reading frames.
         """
         if not dna:
             return ""
@@ -270,8 +287,7 @@ class GeneticCode:
         return found
 
     def sixframes(self, dna):
-        """Returns six-frame translation as dict containing {frame:translation}
-        """
+        """Returns six-frame translation as dict containing {frame:translation}"""
         reverse = dna.rc()
         return [self.translate(dna, start) for start in range(3)] + [
             self.translate(reverse, start) for start in range(3)
@@ -449,7 +465,7 @@ DEFAULT = GeneticCodes[1]
 
 def get_code(code_id=1):
     """returns the genetic code
-    
+
     Parameters
     ----------
     code_id
@@ -484,7 +500,7 @@ def available_codes():
     table = Table(
         header=header,
         data=rows,
-        index="Code ID",
+        index_name="Code ID",
         title="Specify a genetic code using either 'Name' or "
         "Code ID (as an integer or string)",
     )

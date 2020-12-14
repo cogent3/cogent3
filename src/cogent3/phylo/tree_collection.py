@@ -1,13 +1,17 @@
 from numpy import exp, log
 
+from cogent3.util.misc import atomic_write
+
 from . import consensus
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2015, The Cogent Project"
+__copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 
 
 class _UserList(list):
@@ -24,14 +28,13 @@ class ScoredTreeCollection(_UserList):
     """An ordered list of (score, tree) tuples"""
 
     def write(self, filename):
-        f = open(filename, "w")
-        for (score, tree) in self:
-            f.writelines(
-                self.scored_tree_format(
-                    tree.get_newick(with_distances=True), str(score)
+        with atomic_write(filename, mode="wt") as f:
+            for (score, tree) in self:
+                f.writelines(
+                    self.scored_tree_format(
+                        tree.get_newick(with_distances=True), str(score)
+                    )
                 )
-            )
-        f.close()
 
     def scored_tree_format(self, tree, score):
         return [tree, "\t[", score, "]\n"]

@@ -6,7 +6,6 @@ Manipulation of Tree Node Objects
 Examples of how to initialize and manipulate various tree node objects.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3.core.tree import PhyloNode
     from cogent3 import load_tree, make_tree
@@ -23,7 +22,6 @@ The basic properties of the tree node objects are:
 The following demonstrates the two methods for initializing a phylogenetic tree object.
 
 .. jupyter-execute::
-    :linenos:
 
     simple_tree_string = "(B:0.2,(C:0.3,D:0.4)E:0.5)F;"
     complex_tree_string = "(((363564 AB294167.1 Alkalibacterium putridalgicola:0.0028006,55874 AB083411.1 Marinilactibacillus psychrotolerans:0.0022089):0.40998,(15050 Y10772.1 Facklamia hominis:0.32304,(132509 AY707780.1 Aerococcus viridans:0.58815,((143063 AY879307.1 Abiotrophia defectiva:0.5807,83619 AB042060.1 Bacillus schlegelii:0.23569):0.03586,169722 AB275483.1 Fibrobacter succinogenes:0.38272):0.06516):0.03492):0.14265):0.63594,(3589 M62687.1 Fibrobacter intestinalis:0.65866,314063 CP001146.1 Dictyoglomus thermophilum:0.38791):0.32147,276579 EU652053.1 Thermus scotoductus:0.57336);"
@@ -35,49 +33,42 @@ Now to displaying, creating, deleting, and inserting a node in simple_tree.  Not
 Display the original tree.
 
 .. jupyter-execute::
-    :linenos:
 
     print(simple_tree.ascii_art())
 
 Create a new node object.
 
 .. jupyter-execute::
-    :linenos:
 
     A_node = PhyloNode(name="A", Length=0.1)
 
 Display the children of the root node, one of which is the parent of the tip we wish to alter.  To add or remove a node, we need to use the parent of the target node, which in this case is the internal node 'E.'
 
 .. jupyter-execute::
-    :linenos:
 
     print(simple_tree.children)
 
 Remove the 'C' tip.  **Note:** ``remove()`` and ``remove_node()`` return 'True' if a node is removed, 'False' if they cannot remove a node.
 
 .. jupyter-execute::
-    :linenos:
 
     simple_tree.children[1].remove("C")
 
 Insert the new 'A' tip where 'C' was previously.
 
 .. jupyter-execute::
-    :linenos:
 
     simple_tree.children[1].insert(0, A_node)
 
 Finally, display the modified tree.
 
 .. jupyter-execute::
-    :linenos:
 
     print(simple_tree.ascii_art())
 
 When deleting tree nodes, it is often desirable to clean up any unbranched internal nodes that may have resulted from removal of tips.  For example, if we wanted to delete the node 'A' that was previously added, the resulting tree would have an unbranched internal node 'E.'
 
 .. jupyter-execute::
-    :linenos:
 
     simple_tree.children[1].remove("A")
     print(simple_tree.ascii_art())
@@ -85,7 +76,6 @@ When deleting tree nodes, it is often desirable to clean up any unbranched inter
 With the ``prune()`` method, internal nodes with only a single branch are removed.
 
 .. jupyter-execute::
-    :linenos:
 
     simple_tree.prune()
     print(simple_tree.ascii_art())
@@ -98,7 +88,6 @@ Now to look at the more complex and realistic tree.  In complex_tree, there are 
 First, let's split the ungainly name string for each tip and only preserve the genus and species component, separated by a space.
 
 .. jupyter-execute::
-    :linenos:
 
     for n in complex_tree.iter_tips():
         n.name = n.name.split()[2] + " " + n.name.split()[3]
@@ -106,7 +95,6 @@ First, let's split the ungainly name string for each tip and only preserve the g
 Now we display the tree with ``ascii_art()``.
 
 .. jupyter-execute::
-    :linenos:
 
     print(complex_tree.ascii_art(show_internal=False))
 
@@ -115,14 +103,12 @@ For another example of manipulating a phylogenetic tree, let us suppose that we 
 First, generate a list of tip nodes.
 
 .. jupyter-execute::
-    :linenos:
 
     tips = complex_tree.tips()
 
 Next, iterate through this list, compare the distances to *Aerococcus*, and append to the deletion list if greater than 1.8.
 
 .. jupyter-execute::
-    :linenos:
 
     tips_to_delete = []
     AEROCOCCUS_INDEX = 3
@@ -133,7 +119,6 @@ Next, iterate through this list, compare the distances to *Aerococcus*, and appe
 Now for the actual deletion process.  We can simply use the parent of each node in the deletion list to remove itself.  Pruning is necessary to prevent internal nodes from being left as tips.  **Note:** ``remove()`` and ``remove_node()`` return 'True' if a node is successfully removed, 'False' otherwise.
 
 .. jupyter-execute::
-    :linenos:
 
     for n in tips_to_delete:
         n.parent.remove(n)
@@ -142,6 +127,5 @@ Now for the actual deletion process.  We can simply use the parent of each node 
 Finally, print the modified ``complex_tree``.
 
 .. jupyter-execute::
-    :linenos:
 
     print(complex_tree.ascii_art(show_internal=False))

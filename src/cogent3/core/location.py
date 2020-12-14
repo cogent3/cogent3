@@ -56,9 +56,9 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Prototype"
 
 strip = str.strip
@@ -842,8 +842,7 @@ class Range(SpanI):
     """Complex object consisting of many spans."""
 
     def __init__(self, spans=None):
-        """Returns a new Range object with data in spans.
-        """
+        """Returns a new Range object with data in spans."""
         spans = [] if spans is None else spans
         result = SpansOnly()
         # need to check if we got a single Span, since they define __iter__.

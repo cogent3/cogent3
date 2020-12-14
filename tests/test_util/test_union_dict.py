@@ -2,15 +2,16 @@
 
 """Unit tests for union_dict.
 """
+from unittest import TestCase, main
+
 from cogent3.util.union_dict import UnionDict
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

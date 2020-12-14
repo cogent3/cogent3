@@ -8,7 +8,6 @@ Available genetic codes
 ***********************
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import available_codes
 
@@ -19,7 +18,6 @@ In cases where a ``cogent3`` object method has a ``gc`` argument, you can just u
 For example:
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs
 
@@ -29,7 +27,6 @@ For example:
 We specify the genetic code, and that codons that are incomplete as they contain a gap, are converted to ``?``.
 
 .. jupyter-execute::
-    :linenos:
 
     aa_seqs = nt_seqs.get_translation(gc=1, incomplete_ok=True)
     aa_seqs[:20]
@@ -40,7 +37,6 @@ Getting a genetic code with ``get_code()``
 This function can be used directly to get a genetic code. We will get the code with ID 4.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import get_code
 

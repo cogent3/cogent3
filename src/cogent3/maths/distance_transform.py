@@ -110,14 +110,14 @@ __credits__ = [
     "Greg Caporaso",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
 
 
 def _rankdata(a):
-    """ Ranks the data in a, dealing with ties appropritely.  First ravels
+    """Ranks the data in a, dealing with ties appropritely.  First ravels
     a.  Adapted from Gary Perlman's |Stat ranksort.
     private helper function
 
@@ -205,7 +205,7 @@ def trans_hellinger(m):
 
 
 def dist_bray_curtis(datamtx, strict=True):
-    """ returns bray curtis distance (normalized manhattan distance) btw rows
+    """returns bray curtis distance (normalized manhattan distance) btw rows
 
     dist(a,b) = manhattan distance / sum on i( (a_i + b_i) )
 
@@ -262,7 +262,7 @@ dist_bray_curtis_faith = dist_bray_curtis
 
 
 def dist_bray_curtis_magurran(datamtx, strict=True):
-    """ returns bray curtis distance (quantitative sorensen) btw rows
+    """returns bray curtis distance (quantitative sorensen) btw rows
 
     dist(a,b) = 2*sum on i( min( a_i, b_i)) / sum on i( (a_i + b_i) )
 
@@ -636,7 +636,7 @@ def dist_hellinger(datamtx, strict=True):
 
 
 def dist_kulczynski(datamtx, strict=True):
-    """ calculates the kulczynski distances between rows of a matrix
+    """calculates the kulczynski distances between rows of a matrix
 
     see for example Faith et al., composiitonal dissimilarity, 1987
     returns a distance of 1 between a row of zeros and a row with at least one
@@ -693,7 +693,7 @@ def dist_kulczynski(datamtx, strict=True):
 
 
 def dist_manhattan(datamtx, strict=True):
-    """ returns manhattan (city block) distance between rows
+    """returns manhattan (city block) distance between rows
 
     dist(a,b) = sum on i( abs(a_i - b_i) )
     negative values ok (but not tested)
@@ -818,7 +818,7 @@ def dist_abund_jaccard(datamtx, strict=True):
 
 
 def dist_morisita_horn(datamtx, strict=True):
-    """ returns morisita-horn distance between rows
+    """returns morisita-horn distance between rows
 
     dist(a,b) = 1 - 2*sum(a_i * b_i) /( (d_a + d_b)* N_a * N_b )
 
@@ -884,7 +884,7 @@ def dist_morisita_horn(datamtx, strict=True):
 
 
 def dist_pearson(datamtx, strict=True):
-    """ Calculates pearson distance (1-r) between rows
+    """Calculates pearson distance (1-r) between rows
 
 
     note that the literature sometimer refers to the pearson dissimilarity
@@ -957,7 +957,7 @@ def dist_pearson(datamtx, strict=True):
 
 
 def dist_soergel(datamtx, strict=True):
-    """ Calculate soergel distance between rows of a matrix
+    """Calculate soergel distance between rows of a matrix
 
     see for example Evaluation of Distance Metrics..., Fechner 2004
     dist(a,b) = sum on i( abs(a_i - b_i) ) / sum on i( max(a_i, b_i) )
@@ -1007,7 +1007,7 @@ def dist_soergel(datamtx, strict=True):
 
 
 def dist_spearman_approx(datamtx, strict=True):
-    """ Calculate spearman rank distance (1-r) using an approximation formula
+    """Calculate spearman rank distance (1-r) using an approximation formula
 
     considers only rank order of elements in a row, averaging ties
     [19.2, 2.1, 0.03, 2.1] -> [3, 1.5, 0, 1.5]
@@ -1115,11 +1115,11 @@ def dist_specprof(datamtx, strict=True):
 
 
 def binary_dist_otu_gain(otumtx):
-    """ Calculates number of new OTUs observed in sample A wrt sample B
+    """Calculates number of new OTUs observed in sample A wrt sample B
 
-        This is an non-phylogenetic distance matrix analagous to unifrac_g.
-        The number of OTUs gained in each sample is computed with respect to
-        each other sample.
+    This is an non-phylogenetic distance matrix analagous to unifrac_g.
+    The number of OTUs gained in each sample is computed with respect to
+    each other sample.
 
     """
     result = []

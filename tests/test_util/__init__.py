@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 __all__ = [
-    "test_unit_test",
     "test_misc",
     "test_dictarray",
     "test_table",
@@ -21,7 +20,7 @@ __credits__ = [
     "Greg Caporaso",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

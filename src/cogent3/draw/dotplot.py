@@ -8,7 +8,7 @@ __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -266,7 +266,7 @@ class Dotplot(Drawable):
         )
 
         fwd, rev = self._fwd, self._rev
-        if not self.title:
+        if self.title is None:
             title = (
                 f"Window={self._window}, Matched ≥ {self._threshold}/"
                 f"{self._window} & Gap ≤ {self._min_gap}"

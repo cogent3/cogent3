@@ -2,19 +2,21 @@
 """Tests of classes for dealing with trees and phylogeny.
 """
 import json
+import os
 import sys
 import unittest
 
 from copy import copy, deepcopy
+from tempfile import TemporaryDirectory
+from unittest import TestCase, main
 
 from numpy import arange, array
 
-from cogent3 import make_tree
+from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
-from cogent3.util.misc import get_object_provenance
-from cogent3.util.unit_test import TestCase, main
+from cogent3.util.misc import get_object_provenance, open_
 
 
 __author__ = "Rob Knight"
@@ -32,10 +34,16 @@ __credits__ = [
     "Jose Carlos Clemente Litran",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose, assert_equal
+
+
+base_path = os.path.dirname(os.path.dirname(__file__))
+data_path = os.path.join(base_path, "data")
 
 
 class TreeTests(TestCase):
@@ -223,6 +231,42 @@ class TreeNodeTests(TestCase):
         attrs = {"length": 1.0}
         expect = tr.to_rich_dict()
         self.assertEqual(got, expect)
+
+    def test_write_to_json(self):
+        tree = load_tree(filename=os.path.join(data_path, "brca1_5.tree"))
+        with TemporaryDirectory(dir=".") as dirname:
+            json_path = os.path.join(dirname, "brca1_5.json")
+            tree.write(json_path)
+            with open_(json_path) as fn:
+                got = json.loads(fn.read())
+                self.assertEqual(got["type"], get_object_provenance(PhyloNode))
+                self.assertEqual(
+                    tree.get_newick(semicolon=False, with_node_names=True),
+                    got["newick"],
+                )
+                self.assertEqual(
+                    set(tree.get_node_names()), got["edge_attributes"].keys()
+                )
+
+    def test_write_to_txt(self):
+        """write a tree to newick"""
+        tree = load_tree(filename=os.path.join(data_path, "brca1_5.tree"))
+        with TemporaryDirectory(dir=".") as dirname:
+            out_path = os.path.join(dirname, "brca1_5.txt")
+            tree.write(out_path)
+            with open_(out_path) as fn:
+                got = fn.read()
+                self.assertTrue(got.count("(") == got.count(")") == 3)
+
+    def test_write_to_xml(self):
+        """write a tree to xml"""
+        tree = load_tree(filename=os.path.join(data_path, "brca1_5.tree"))
+        with TemporaryDirectory(dir=".") as dirname:
+            out_path = os.path.join(dirname, "brca1_5.xml")
+            tree.write(out_path)
+            with open_(out_path) as fn:
+                got = fn.read()
+                self.assertTrue(got.count("<clade>") == got.count("</clade>") > 0)
 
     def test_multifurcating(self):
         """Coerces nodes to have <= n children"""
@@ -557,12 +601,12 @@ class TreeNodeTests(TestCase):
         self.assertEqual(len(t2.tips()), 1024)
         self.assertEqual(len(t3.tips()), 1024)
 
-        self.assertNotSameObj(t, t2)
+        self.assertIsNot(t, t2)
         self.assertEqual(t.name, t2.name)
         self.assertNotEqual(t.name, t3.name)
 
         self.assertEqual(t.XYZ, t2.XYZ)
-        self.assertNotSameObj(t.XYZ, t2.XYZ)
+        self.assertIsNot(t.XYZ, t2.XYZ)
 
         self.assertEqual(t.get_newick(), t2.get_newick())
 
@@ -1104,7 +1148,7 @@ class TreeNodeTests(TestCase):
         """make_tree_array maps nodes to the descendants in them"""
         tree = self.TreeRoot
         result, node_list = tree.make_tree_array()
-        self.assertEqual(
+        assert_equal(
             result, array([[1, 1, 1, 1], [1, 1, 1, 0], [1, 1, 1, 0], [0, 0, 1, 0]])
         )
         nodes = [node.name for node in node_list]
@@ -1112,7 +1156,7 @@ class TreeNodeTests(TestCase):
         # test if works with a dec_list supplied
         dec_list = ["d", "added", "e", "g", "h"]
         result2, node_list = tree.make_tree_array(dec_list)
-        self.assertEqual(
+        assert_equal(
             result2,
             array([[1, 0, 1, 1, 1], [1, 0, 1, 1, 0], [1, 0, 1, 1, 0], [0, 0, 0, 1, 0]]),
         )
@@ -1439,12 +1483,12 @@ class PhyloNodeTests(TestCase):
         names = ["H", "G", "M"]
         exp = (array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]]), nodes)
         obs = self.t.tip_to_tip_distances(endpoints=names)
-        self.assertEqual(obs[0], exp[0])
-        self.assertEqual(obs[1], exp[1])
+        assert_equal(obs[0], exp[0])
+        assert_equal(obs[1], exp[1])
 
         obs = self.t.tip_to_tip_distances(endpoints=nodes)
-        self.assertEqual(obs[0], exp[0])
-        self.assertEqual(obs[1], exp[1])
+        assert_equal(obs[0], exp[0])
+        assert_equal(obs[1], exp[1])
 
     def test_prune(self):
         """prune should reconstruct correct topology and Lengths of tree."""
@@ -1548,8 +1592,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(tmid.distance(tmid.get_node_matching_name("d")), 2.75)
 
     def test_root_at_midpoint4(self):
-        """midpoint should be selected correctly when it is an internal node
-        """
+        """midpoint should be selected correctly when it is an internal node"""
         tree = DndParser("(a:1,((c:1,d:3)n3:1,b:1)n2:1)rt;")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
@@ -1569,8 +1612,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(tmid.distance(tmid.get_node_matching_name("d")), 3)
 
     def test_root_at_midpoint5(self):
-        """midpoint should be selected correctly when on an even 2tip tree
-        """
+        """midpoint should be selected correctly when on an even 2tip tree"""
         tree = DndParser("""(BLO_1:0.649351,BLO_2:0.649351):0.0;""")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
@@ -1578,13 +1620,9 @@ class PhyloNodeTests(TestCase):
         nontipnames = [t.name for t in tree.nontips()]
 
         self.assertTrue(tmid.is_root())
-        self.assertFloatEqual(
-            tmid.distance(tmid.get_node_matching_name("BLO_2")), 0.649351
-        )
-        self.assertFloatEqual(
-            tmid.distance(tmid.get_node_matching_name("BLO_1")), 0.649351
-        )
-        self.assertFloatEqual(tmid[0].distance(tmid[1]), 2.0 * 0.649351)
+        assert_allclose(tmid.distance(tmid.get_node_matching_name("BLO_2")), 0.649351)
+        assert_allclose(tmid.distance(tmid.get_node_matching_name("BLO_1")), 0.649351)
+        assert_allclose(tmid[0].distance(tmid[1]), 2.0 * 0.649351)
 
     def test_set_tip_distances(self):
         """set_tip_distances should correctly set tip distances."""
@@ -1637,9 +1675,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(
             sorted(rooted.get_tip_names()), sorted(unrooted.get_tip_names())
         )
-        self.assertLessThan(
-            len(unrooted.get_node_names()), len(rooted.get_node_names())
-        )
+        self.assertLess(len(unrooted.get_node_names()), len(rooted.get_node_names()))
 
     def test_get_figure(self):
         """exercising get_figure"""
@@ -1663,13 +1699,13 @@ class _tip_tip_distances_I:
         """tip_to_tip should work for one-level multifurcating tree"""
         matrix, order = self.fun(self.root_one_level)
         self.assertEqual([i.name for i in order], list("abc"))
-        self.assertEqual(matrix, array([[0, 3, 4], [3, 0, 5], [4, 5, 0]]))
+        assert_equal(matrix, array([[0, 3, 4], [3, 0, 5], [4, 5, 0]]))
 
     def test_two_level(self):
         """tip_to_tip should work for two-level tree"""
         matrix, order = self.fun(self.root_two_level)
         self.assertEqual([i.name for i in order], list("abcd"))
-        self.assertFloatEqual(
+        assert_allclose(
             matrix,
             array([[0, 3, 4, 1.4], [3, 0, 5, 2.4], [4, 5, 0, 3.4], [1.4, 2.4, 3.4, 0]]),
         )
@@ -1687,15 +1723,15 @@ class Test_tip_tip_distances_array(_tip_tip_distances_I, TestCase):
         """tip_to_tip should work for small but complex tree"""
         dist, tips = self.fun(self.root_std)
         tips = [tip.name for tip in tips]
-        self.assertEqual(dist, tree_std_dist)
-        self.assertEqual(tips, tree_std_tips)
+        assert_equal(dist, tree_std_dist)
+        assert_equal(tips, tree_std_tips)
 
     def test_one_child(self):
         """tip_to_tip should work for tree with a single child"""
         dist, tips = self.fun(self.root_one_child)
         tips = [tip.name for tip in tips]
-        self.assertEqual(dist, tree_one_child_dist)
-        self.assertEqual(tips, tree_one_child_tips)
+        assert_equal(dist, tree_one_child_dist)
+        assert_equal(tips, tree_one_child_tips)
 
 
 # for use with testing iterative copy method
@@ -1987,8 +2023,7 @@ class TestTree(TestCase):
         self.assertEqual(str(subtree), str(new_tree))
 
     def test_getsubtree_2(self):
-        """tree.get_sub_tree() has same pairwise tip dists as tree (len0 node)
-        """
+        """tree.get_sub_tree() has same pairwise tip dists as tree (len0 node)"""
         t1 = DndParser(
             "((a:1,b:2):4,((c:3, j:17.2):0,(d:1,e:1):2):3)", PhyloNode
         )  # note c,j is len 0 node
@@ -1999,7 +2034,7 @@ class TestTree(TestCase):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
     def test_getsubtree_3(self):
-        """tree.get_sub_tree() has same pairwise tip dists as tree 
+        """tree.get_sub_tree() has same pairwise tip dists as tree
 
         (nonzero nodes)
         """
@@ -2026,8 +2061,7 @@ class TestTree(TestCase):
             self.assertEqual((pair, dist), (pair, orig_dists[pair]))
 
     def test_getsubtree_4(self):
-        """tree.get_sub_tree() handles keep_root correctly
-        """
+        """tree.get_sub_tree() handles keep_root correctly"""
         t1 = DndParser("((a:1,b:2):4,(((c:2)cparent:1, j:17):0,(d:1,e:4):2):3)")
         #           /----4--- /--1-a
         # ---------|          \--2-b
@@ -2095,15 +2129,13 @@ class TestTree(TestCase):
 
         # sameroot should have longer root to tip dists
         for tip in t1.tips():
-            self.assertFloatEqual(t1.distance(tip), true_root_dists[tip.name])
+            assert_allclose(t1.distance(tip), true_root_dists[tip.name])
         for tip in subtree.tips():
-            self.assertFloatEqual(subtree.distance(tip), true_sub_root_dists[tip.name])
+            assert_allclose(subtree.distance(tip), true_sub_root_dists[tip.name])
         for tip in sub_sameroot.tips():
-            self.assertFloatEqual(sub_sameroot.distance(tip), true_root_dists[tip.name])
+            assert_allclose(sub_sameroot.distance(tip), true_root_dists[tip.name])
         for tip in sub_sameroot2.tips():
-            self.assertFloatEqual(
-                sub_sameroot2.distance(tip), true_root_dists[tip.name]
-            )
+            assert_allclose(sub_sameroot2.distance(tip), true_root_dists[tip.name])
 
     def test_getsubtree_5(self):
         """get sub tree correctly uses tips only if specified"""
@@ -2154,6 +2186,20 @@ class TestTree(TestCase):
         for name in vals:
             node = sub1.get_node_matching_name(name)
             self.assertTrue(node.params["non-scalar"], {name: vals[node.name]})
+
+    def test_load_tree_from_json(self):
+        """tests loading a Tree from json file"""
+        with TemporaryDirectory(dir=".") as dirname:
+            json_path = os.path.join(dirname, "tree.json")
+            self.tree.write(json_path)
+            got = load_tree(json_path)
+            self.assertIsInstance(got, PhyloNode)
+            self.assertEqual(
+                got.get_newick(),
+                # Since json file has rich dict as its content, parameter with_node_names is set True here.
+                self.tree.get_newick(with_node_names=True),
+            )
+            self.assertEqual(got.get_node_names(), self.tree.get_node_names())
 
     def test_ascii(self):
         self.tree.ascii_art()

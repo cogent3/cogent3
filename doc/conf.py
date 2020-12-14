@@ -13,6 +13,7 @@ sys.path.append("../src")
 
 # Allow autosummary to generate stub files
 autosummary_generate = True
+add_module_names = False  # don't include module path to module/func names
 
 # Prevent numpydoc from requiring stub files for methods
 numpydoc_class_members_toctree = False
@@ -65,9 +66,9 @@ master_doc = "index"
 project = "cogent3"
 copyright = "2020, cogent3 Team"
 
-release = "2020.6.30a"
+release = "2020.12.14a"
 
-version = release
+version = ""
 
 # exclude_trees = ["_build"]
 

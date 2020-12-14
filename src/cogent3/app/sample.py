@@ -22,7 +22,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -201,7 +201,7 @@ class omit_gap_pos(ComposableAligned):
 
 
 class take_codon_positions(ComposableAligned):
-    """Extracts the specified codon position(s) from an alignment. 
+    """Extracts the specified codon position(s) from an alignment.
     Returns an Alignment."""
 
     _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
@@ -312,7 +312,7 @@ class take_named_seqs(ComposableSeq):
 
         Returns
         -------
-        A new sequence collection, or False if not all the named sequences are 
+        A new sequence collection, or False if not all the named sequences are
         in the collection.
         """
         super(take_named_seqs, self).__init__(
@@ -336,7 +336,7 @@ class take_named_seqs(ComposableSeq):
 
 
 class min_length(ComposableSeq):
-    """Filters sequence collections / alignments by length. Returns the 
+    """Filters sequence collections / alignments by length. Returns the
     data if it satisfies the condition, NotCompleted otherwise."""
 
     _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
@@ -415,7 +415,7 @@ class _GetStart:
 
 
 class fixed_length(ComposableAligned):
-    """Sample an alignment to a fixed length. Returns an Alignment of the 
+    """Sample an alignment to a fixed length. Returns an Alignment of the
     specified length, or NotCompleted if alignment too short."""
 
     _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)

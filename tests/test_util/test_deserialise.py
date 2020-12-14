@@ -1,6 +1,8 @@
 import json
+import os
 
 from tempfile import TemporaryDirectory
+from unittest import TestCase, main
 
 import numpy
 
@@ -16,15 +18,17 @@ from cogent3 import (
 from cogent3.app.result import model_collection_result, model_result
 from cogent3.core import alignment, moltype
 from cogent3.evolve.models import get_model
-from cogent3.util.deserialise import deserialise_object
-from cogent3.util.unit_test import TestCase, main
+from cogent3.util.deserialise import (
+    deserialise_likelihood_function,
+    deserialise_object,
+)
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -105,8 +109,8 @@ class TestDeserialising(TestCase):
         """Tree to_json enables roundtrip"""
         tree = make_tree(treestring="(c:01,d:0.3,(a:0.05,b:0.08)xx:0.2)")
         got = deserialise_object(tree.to_json())
-        self.assertFloatEqual(got.get_node_matching_name("a").length, 0.05)
-        self.assertFloatEqual(got.get_node_matching_name("xx").length, 0.2)
+        assert_allclose(got.get_node_matching_name("a").length, 0.05)
+        assert_allclose(got.get_node_matching_name("xx").length, 0.2)
 
     def test_roundtrip_submod(self):
         """substitution model to_json enables roundtrip"""
@@ -153,7 +157,7 @@ class TestDeserialising(TestCase):
         lnL = lf.get_log_likelihood()
         data = lf.to_json()
         got_obj = deserialise_object(data)
-        self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
+        assert_allclose(got_obj.get_log_likelihood(), lnL)
 
     def test_roundtrip_discrete_time_likelihood_function(self):
         """discrete time likelihood function.to_json enables roundtrip"""
@@ -171,7 +175,7 @@ class TestDeserialising(TestCase):
         lnL = lf.get_log_likelihood()
         data = lf.to_json()
         got_obj = deserialise_object(data)
-        self.assertFloatEqual(got_obj.get_log_likelihood(), lnL)
+        assert_allclose(got_obj.get_log_likelihood(), lnL)
 
     def test_roundtrip_het_lf(self):
         """correctly round trips a site-het model"""
@@ -212,7 +216,7 @@ class TestDeserialising(TestCase):
                 outfile.write(data)
 
             got = deserialise_object(outpath)
-            self.assertFloatEqual(got.get_log_likelihood(), lnL)
+            assert_allclose(got.get_log_likelihood(), lnL)
 
     def test_roundtrip_model_result(self):
         """mode_result.to_json enables roundtrip and lazy evaluation"""
@@ -250,7 +254,9 @@ class TestDeserialising(TestCase):
     def test_roundtrip_model_result2(self):
         """model_result of split codon correct type after roundtrip"""
         from cogent3.app import evo as evo_app
-        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
+        from cogent3.evolve.parameter_controller import (
+            AlignmentLikelihoodFunction,
+        )
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
@@ -282,7 +288,9 @@ class TestDeserialising(TestCase):
     def test_model_collection_result(self):
         """round trip of model collection works"""
         from cogent3.app import evo as evo_app
-        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
+        from cogent3.evolve.parameter_controller import (
+            AlignmentLikelihoodFunction,
+        )
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
@@ -321,7 +329,9 @@ class TestDeserialising(TestCase):
     def test_roundtrip_hypothesis_result(self):
         """nested items retain the correct type after roundtrip"""
         from cogent3.app import evo as evo_app
-        from cogent3.evolve.parameter_controller import AlignmentLikelihoodFunction
+        from cogent3.evolve.parameter_controller import (
+            AlignmentLikelihoodFunction,
+        )
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
@@ -438,6 +448,40 @@ class TestDeserialising(TestCase):
         jdata = json.dumps(data)
         got = deserialise_object(jdata)
         self.assertEqual(got, data)
+
+    def test_deserialise_likelihood_function(self):
+        """correctly deserialise data into likelihood function"""
+        # tests multiple alignments
+        data = load_aligned_seqs(
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+        )
+        half = len(data) // 2
+        aln1 = data[:half]
+        aln2 = data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        tree = make_tree(tip_names=data.names)
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree, loci=loci_names)
+        lf.set_alignment(loci)
+        lf_rich_dict = lf.to_rich_dict()
+        got = deserialise_likelihood_function(lf_rich_dict)
+        self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
+        self.assertEqual(
+            str(lf.defn_for["alignment"].assignments),
+            str(got.defn_for["alignment"].assignments),
+        )
+        # tests single alignment
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree)
+        lf.set_alignment(aln1)
+        lf_rich_dict = lf.to_rich_dict()
+        got = deserialise_likelihood_function(lf_rich_dict)
+        self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
+        self.assertEqual(
+            str(lf.defn_for["alignment"].assignments),
+            str(got.defn_for["alignment"].assignments),
+        )
 
 
 if __name__ == "__main__":

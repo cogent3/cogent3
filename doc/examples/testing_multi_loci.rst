@@ -11,7 +11,6 @@ Likelihood analysis of multiple loci
 We want to know whether an exchangeability parameter is different between alignments. We will specify a null model, under which each alignment get's it's own motif probabilities and all alignments share branch lengths and the exchangeability parameter kappa (the transition / transversion ratio). We'll split the example alignment into two-pieces.
 
 .. jupyter-execute::
-    :linenos:
 
     from cogent3 import load_aligned_seqs, make_tree, make_table
     from cogent3.evolve.models import HKY85
@@ -26,7 +25,6 @@ We want to know whether an exchangeability parameter is different between alignm
 We provide names for those alignments, then construct the tree, model instances.
 
 .. jupyter-execute::
-    :linenos:
 
     loci_names = ["1st-half", "2nd-half"]
     loci = [aln1, aln2]
@@ -36,7 +34,6 @@ We provide names for those alignments, then construct the tree, model instances.
 To make a likelihood function with multiple alignments we provide the list of loci names. We can then specify a parameter (other than length) to be the same across the loci (using the imported ``ALL``) or different for each locus (using ``EACH``). We conduct a LR test as before.
 
 .. jupyter-execute::
-    :linenos:
 
     lf = mod.make_likelihood_function(tree, loci=loci_names, digits=2, space=3)
     lf.set_param_rule("length", is_independent=False)
@@ -46,7 +43,6 @@ To make a likelihood function with multiple alignments we provide the list of lo
     lf
 
 .. jupyter-execute::
-    :linenos:
 
     all_lnL = lf.lnL
     all_nfp = lf.nfp
@@ -55,7 +51,6 @@ To make a likelihood function with multiple alignments we provide the list of lo
     lf
 
 .. jupyter-execute::
-    :linenos:
 
     each_lnL = lf.lnL
     each_nfp = lf.nfp
@@ -65,7 +60,6 @@ To make a likelihood function with multiple alignments we provide the list of lo
 Just to pretty up the result display, I'll print(a table consisting of the test statistics created on the fly.)
 
 .. jupyter-execute::
-    :linenos:
 
     make_table(
         header=["LR", "df", "p"], rows=[[LR, df, chisqprob(LR, df)]], digits=2, space=3,

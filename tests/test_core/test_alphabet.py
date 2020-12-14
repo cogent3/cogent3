@@ -5,6 +5,10 @@ Note: individual alphabets are typically in MolType and are tested there.
 """
 import pickle
 
+from unittest import TestCase, main
+
+from numpy.testing import assert_equal
+
 from cogent3.core.alphabet import (
     CharAlphabet,
     Enumeration,
@@ -18,7 +22,6 @@ from cogent3.core.alphabet import (
     uint32,
 )
 from cogent3.core.moltype import RNA
-from cogent3.util.unit_test import TestCase, main
 
 
 DnaBases = CharAlphabet("TCAG")
@@ -29,9 +32,9 @@ __author__ = "Rob Knight, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
+__version__ = "2020.12.14a"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
@@ -190,20 +193,20 @@ class EnumerationTests(TestCase):
         """Enumeration counts should count freqs in array"""
         a = DnaBases
         f = array([[0, 0, 1, 0, 0, 3]])
-        self.assertEqual(a.counts(f), array([4, 1, 0, 1]))
+        assert_equal(a.counts(f), array([4, 1, 0, 1]))
         # check that it works with byte array
         f = array([[0, 0, 1, 0, 0, 3]], "B")
-        self.assertEqual(a.counts(f), array([4, 1, 0, 1]))
+        assert_equal(a.counts(f), array([4, 1, 0, 1]))
         # should ignore out-of-bounds items
         g = [0, 4]
-        self.assertEqual(a.counts(g), array([1, 0, 0, 0]))
+        assert_equal(a.counts(g), array([1, 0, 0, 0]))
         # make sure it works for long sequences, i.e. no wraparound at 255
         h = [0, 3] * 70000
-        self.assertEqual(a.counts(h), array([70000, 0, 0, 70000]))
+        assert_equal(a.counts(h), array([70000, 0, 0, 70000]))
         h2 = array(h).astype("B")
-        self.assertEqual(a.counts(h2), array([70000, 0, 0, 70000]))
+        assert_equal(a.counts(h2), array([70000, 0, 0, 70000]))
         i = array([0, 3] * 75000)
-        self.assertEqual(a.counts(i), array([75000, 0, 0, 75000]))
+        assert_equal(a.counts(i), array([75000, 0, 0, 75000]))
         # make sure it works for long _binary_ sequences, e.g. the results
         # of array comparisons.
         a = array([0, 1, 2, 3] * 10000)
@@ -233,7 +236,7 @@ class CharAlphabetTests(TestCase):
     def test_from_string(self):
         """CharAlphabet from_string should return correct array"""
         r = CharAlphabet("UCAG")
-        self.assertEqual(r.from_string("UUCUGA"), array([0, 0, 1, 0, 3, 2], "B"))
+        assert_equal(r.from_string("UUCUGA"), array([0, 0, 1, 0, 3, 2], "B"))
 
     def test_is_valid(self):
         """CharAlphabet is_valid should return True for valid sequence"""
@@ -250,13 +253,13 @@ class CharAlphabetTests(TestCase):
         """CharAlphabet from_array should return correct array"""
         r = CharAlphabet("UCAG")
         got = r.from_array(array(["UUC", "UGA"], "c"))
-        self.assertEqual(got, array([[0, 0, 1], [0, 3, 2]], "B"))
+        assert_equal(got, array([[0, 0, 1], [0, 3, 2]], "B"))
 
     def test_to_chars(self):
         """CharAlphabet to_chars should convert an input array to chars"""
         r = CharAlphabet("UCAG")
         c = r.to_chars(array([[0, 0, 1], [0, 3, 2]], "B"))
-        self.assertEqual(c, array(["UUC", "UGA"], "c"))
+        assert_equal(c, array(["UUC", "UGA"], "c"))
 
     def test_to_string(self):
         """CharAlphabet to_string should convert an input array to string"""
@@ -275,7 +278,7 @@ class CharAlphabetTests(TestCase):
         rp = r.pairs
         self.assertEqual(len(rp), 16)
         rp2 = r.pairs
-        self.assertSameObj(rp, rp2)
+        self.assertIs(rp, rp2)
 
     def test_triples(self):
         """triples should cache the same object."""
@@ -283,7 +286,7 @@ class CharAlphabetTests(TestCase):
         rt = r.Triples
         self.assertEqual(len(rt), 64)
         rt2 = r.Triples
-        self.assertSameObj(rt, rt2)
+        self.assertIs(rt, rt2)
 
 
 class JointEnumerationTests(TestCase):
@@ -297,14 +300,14 @@ class JointEnumerationTests(TestCase):
         self.assertEqual(a.shape, (4, 4))
         self.assertEqual(a[0], ("T", "U"))
         self.assertEqual(a[-1], ("G", "G"))
-        self.assertEqual(a._sub_enum_factors, array([[4], [1]]))
+        assert_equal(a._sub_enum_factors, array([[4], [1]]))
 
         # should work for arbitrary sequences
         a = JointEnumeration(["TCAG", "UCAG"])
         self.assertEqual(len(a), 16)
         self.assertEqual(a[0], ("T", "U"))
         self.assertEqual(a[-1], ("G", "G"))
-        self.assertEqual(a._sub_enum_factors, array([[4], [1]]))
+        assert_equal(a._sub_enum_factors, array([[4], [1]]))
 
         # should work for different length sequences
         a = JointEnumeration(["TCA", "UCAG"])
@@ -312,7 +315,7 @@ class JointEnumerationTests(TestCase):
         self.assertEqual(len(a), 12)
         self.assertEqual(a[0], ("T", "U"))
         self.assertEqual(a[-1], ("A", "G"))
-        self.assertEqual(a._sub_enum_factors, array([[4], [1]]))  # note: _not_ [3,1]
+        assert_equal(a._sub_enum_factors, array([[4], [1]]))  # note: _not_ [3,1]
 
     def test_to_indices(self):
         """JointEnumeration to_indices should convert tuples correctly"""
@@ -331,14 +334,14 @@ class JointEnumerationTests(TestCase):
         a = JointEnumeration(["xyz", "abcd", "ef"])
         v = [[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]
         result = a.pack_arrays(v)
-        self.assertEqual(result, array([7, 15, 18, 0]))
+        assert_equal(result, array([7, 15, 18, 0]))
 
     def test_unpack_arrays(self):
         """JointEnumeration unpack_arrays should return correct arrays."""
         a = JointEnumeration(["xyz", "abcd", "ef"])
         v = [7, 15, 18, 0]
         result = a.unpack_arrays(v)
-        self.assertEqual(result, array([[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
+        assert_equal(result, array([[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
 
 
 if __name__ == "__main__":

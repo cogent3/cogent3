@@ -24,7 +24,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -55,11 +55,11 @@ class LightweightTreeNode(frozenset):
 
 class PartialTree(object):
     """A candidate tree stored as
-      (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
-      At each iteration (ie: call of the join method) the number of subtrees
-      is reduced as 2 of them are joined, while the number of partitions is
-      increased as a new edge is introduced.
-      """
+    (distance matrix, list of subtrees, list of tip sets, set of partitions, score).
+    At each iteration (ie: call of the join method) the number of subtrees
+    is reduced as 2 of them are joined, while the number of partitions is
+    increased as a new edge is introduced.
+    """
 
     def __init__(self, d, nodes, tips, score):
         self.d = d
@@ -285,7 +285,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
 
 def nj(dists, show_progress=True):
     """Arguments:
-        - dists: dict of (name1, name2): distance
+    - dists: dict of (name1, name2): distance
     """
     (result,) = gnj(dists, keep=1, show_progress=show_progress)
     (score, tree) = result

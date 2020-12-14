@@ -8,7 +8,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -41,6 +41,7 @@ def _get_app_attr(name, obj, mod, is_composable):
 def available_apps():
     """returns table of all available apps"""
     from cogent3.util.table import Table
+
     from .composable import Composable, user_function
 
     # excluding composable, find all class

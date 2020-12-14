@@ -14,6 +14,8 @@ import json
 import os
 import warnings
 
+from unittest import TestCase, main
+
 import numpy
 
 from numpy import dot, ones
@@ -40,7 +42,6 @@ from cogent3.evolve.models import (
 )
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
-from cogent3.util.unit_test import TestCase, main
 
 
 warnings.filterwarnings("ignore", "Motif probs overspecified")
@@ -60,7 +61,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -268,7 +269,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod)
         likelihood_function.set_param_rule("omega", value=0.5, is_constant=True)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -103.05742415448259)
+        assert_allclose(evolve_lnL, -103.05742415448259)
 
     def test_nucleotide(self):
         """test a nucleotide model."""
@@ -279,7 +280,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod)
         self.assertEqual(likelihood_function.get_num_free_params(), 0)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -148.6455087258624)
+        assert_allclose(evolve_lnL, -148.6455087258624)
 
     def test_solved_nucleotide(self):
         """test a solved nucleotide model."""
@@ -292,7 +293,7 @@ class LikelihoodCalcs(TestCase):
         self.assertTrue(lf.lnL > -152)
 
     def test_discrete_nucleotide(self):
-        """test that partially discrete nucleotide model can be constructed, 
+        """test that partially discrete nucleotide model can be constructed,
         differs from continuous, and has the expected number of free params"""
         submod = TimeReversibleNucleotide(
             equal_motif_probs=True, motif_probs=None, predicates={"kappa": "transition"}
@@ -313,7 +314,7 @@ class LikelihoodCalcs(TestCase):
         )
         likelihood_function = self._makeLikelihoodFunction(submod)
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -118.35045332768402)
+        assert_allclose(evolve_lnL, -118.35045332768402)
 
     def test_protein(self):
         """test a protein model."""
@@ -322,7 +323,7 @@ class LikelihoodCalcs(TestCase):
         likelihood_function = self._makeLikelihoodFunction(submod, translate=True)
 
         evolve_lnL = likelihood_function.get_log_likelihood()
-        self.assertFloatEqual(evolve_lnL, -91.35162044257062)
+        assert_allclose(evolve_lnL, -91.35162044257062)
 
 
 class LikelihoodFunctionTests(TestCase):
@@ -376,10 +377,10 @@ class LikelihoodFunctionTests(TestCase):
         nfp = lf.get_num_free_params()
         lnL = lf.get_log_likelihood()
         l = len(self.data)
-        self.assertFloatEqual(lf.get_aic(), aic(lnL, nfp))
-        self.assertFloatEqual(lf.get_aic(second_order=True), aic(lnL, nfp, l))
+        assert_allclose(lf.get_aic(), aic(lnL, nfp))
+        assert_allclose(lf.get_aic(second_order=True), aic(lnL, nfp, l))
 
-        self.assertFloatEqual(lf.get_bic(), bic(lnL, nfp, l))
+        assert_allclose(lf.get_bic(), bic(lnL, nfp, l))
 
     def test_result_str(self):
         # actualy more a test of self._setLengthsAndBetas()
@@ -396,15 +397,15 @@ number of free parameters = 0\n\
 4.0000
 ------
 =============================
-     edge    parent    length
+edge         parent    length
 -----------------------------
-    Human    edge.0    0.3000
+Human        edge.0    0.3000
 HowlerMon    edge.0    0.4000
-   edge.0    edge.1    0.7000
-    Mouse    edge.1    0.5000
-   edge.1      root    0.6000
-NineBande      root    0.2000
- DogFaced      root    0.1000
+edge.0       edge.1    0.7000
+Mouse        edge.1    0.5000
+edge.1       root      0.6000
+NineBande    root      0.2000
+DogFaced     root      0.1000
 -----------------------------
 ====================================
      A         C         G         T
@@ -420,15 +421,15 @@ NineBande      root    0.2000
 log-likelihood = -382.5399
 number of free parameters = 14
 ===============================
-     edge  parent  length  beta
+edge       parent  length  beta
 -------------------------------
-    Human  edge.0    1.00  1.00
+Human      edge.0    1.00  1.00
 HowlerMon  edge.0    1.00  1.00
-   edge.0  edge.1    1.00  1.00
-    Mouse  edge.1    1.00  1.00
-   edge.1    root    1.00  1.00
-NineBande    root    1.00  1.00
- DogFaced    root    1.00  1.00
+edge.0     edge.1    1.00  1.00
+Mouse      edge.1    1.00  1.00
+edge.1     root      1.00  1.00
+NineBande  root      1.00  1.00
+DogFaced   root      1.00  1.00
 -------------------------------
 ======================
    A     C     G     T
@@ -575,45 +576,15 @@ number of free parameters = 0
 6.0000
 ------
 =============================
-     edge    parent    length
+edge         parent    length
 -----------------------------
-    Human    edge.0    4.0000
+Human        edge.0    4.0000
 HowlerMon    edge.0    4.0000
-   edge.0    edge.1    4.0000
-    Mouse    edge.1    4.0000
-   edge.1      root    4.0000
-NineBande      root    4.0000
- DogFaced      root    4.0000
------------------------------
-====================================
-     A         C         G         T
-------------------------------------
-0.2500    0.2500    0.2500    0.2500
-------------------------------------""",
-        )
-
-        # self.submodel.setScaleRule("ts",['beta'])
-        # self.submodel.setScaleRule("tv",['beta'], exclude_pars = True)
-        self.assertEqual(
-            str(likelihood_function),
-            """Likelihood function statistics
-log-likelihood = -413.1886
-number of free parameters = 0
-======
-  beta
-------
-6.0000
-------
-=============================
-     edge    parent    length
------------------------------
-    Human    edge.0    4.0000
-HowlerMon    edge.0    4.0000
-   edge.0    edge.1    4.0000
-    Mouse    edge.1    4.0000
-   edge.1      root    4.0000
-NineBande      root    4.0000
- DogFaced      root    4.0000
+edge.0       edge.1    4.0000
+Mouse        edge.1    4.0000
+edge.1       root      4.0000
+NineBande    root      4.0000
+DogFaced     root      4.0000
 -----------------------------
 ====================================
      A         C         G         T
@@ -658,15 +629,15 @@ NineBande      root    4.0000
 log-likelihood = -382.5399
 number of free parameters = 14
 =======================================
-     edge    parent    length      beta
+edge         parent    length      beta
 ---------------------------------------
-    Human    edge.0    1.0000    1.0000
+Human        edge.0    1.0000    1.0000
 HowlerMon    edge.0    1.0000    1.0000
-   edge.0    edge.1    1.0000    1.0000
-    Mouse    edge.1    1.0000    1.0000
-   edge.1      root    1.0000    1.0000
-NineBande      root    1.0000    1.0000
- DogFaced      root    1.0000    1.0000
+edge.0       edge.1    1.0000    1.0000
+Mouse        edge.1    1.0000    1.0000
+edge.1       root      1.0000    1.0000
+NineBande    root      1.0000    1.0000
+DogFaced     root      1.0000    1.0000
 ---------------------------------------
 ====================================
      A         C         G         T
@@ -737,8 +708,8 @@ NineBande      root    1.0000    1.0000
         Q = lf.get_rate_matrix_for_edge("NineBande", calibrated=False)
         Q2 = lf.get_rate_matrix_for_edge("NineBande", calibrated=True)
         P = lf.get_psub_for_edge("NineBande")
-        self.assertFloatEqual(expm(Q.array)(1.0), P.array)
-        self.assertFloatEqual(expm(Q2.array)(length), P.array)
+        assert_allclose(expm(Q.array)(1.0), P.array)
+        assert_allclose(expm(Q2.array)(length), P.array)
 
         # should fail for a discrete Markov model
         dm = ns_substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
@@ -835,7 +806,7 @@ NineBande      root    1.0000    1.0000
             for rule in rules:
                 lf.set_param_rule(**rule)
         new_lnL = lf.get_log_likelihood()
-        self.assertFloatEqual(new_lnL, lnL)
+        assert_allclose(new_lnL, lnL)
 
     def test_get_param_rules_discrete(self):
         """discrete time models produce valid rules"""
@@ -1104,7 +1075,7 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_diff(self):
         """non-reversible likelihood initialised from nested, non-scoped, time-reversible"""
@@ -1129,7 +1100,7 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr(self):
         """time-reversible likelihood initialised from nested, non-scoped, time-reversible"""
@@ -1153,7 +1124,7 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GTR")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr_scoped(self):
         """time-reversible likelihood initialised from nested, scoped, time-reversible"""
@@ -1180,7 +1151,7 @@ NineBande      root    1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GTR")
         glf.initialise_from_nested(slf)
-        self.assertFloatEqual(glf.get_log_likelihood(), slf.get_log_likelihood())
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_nr(self):
         """non-reversible likelihood initialised from nested, non-scoped, non-reversible"""
@@ -1213,7 +1184,7 @@ NineBande      root    1.0000    1.0000
         glf.initialise_from_nested(slf)
         expect = slf.get_log_likelihood()
         got = glf.get_log_likelihood()
-        self.assertFloatEqual(got, expect)
+        assert_allclose(got, expect)
 
     def test_initialise_from_nested_same_type_nr_scoped(self):
         """non-reversible likelihood initialised from nested, scoped, non-reversible"""
@@ -1259,7 +1230,7 @@ NineBande      root    1.0000    1.0000
         lf.set_param_rule("kappa", init=1)
         lf.set_param_rule("length", edge="a", init=length)
         len_dict = lf.get_lengths_as_ens()
-        self.assertFloatEqual(len_dict["a"], length)
+        assert_allclose(len_dict["a"], length)
 
     def test_get_lengths_as_ens_not_equal(self):
         """lengths do not equal ENS for a non-reversible model"""
@@ -1352,6 +1323,31 @@ NineBande      root    1.0000    1.0000
             lf.set_alignment(_aln)
             _ = lf.to_rich_dict()
 
+        # tests multiple alignments
+        half = len(self.data) // 2
+        aln1 = self.data[:half]
+        aln2 = self.data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        tree = make_tree(tip_names=self.data.names)
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree, loci=loci_names)
+        lf.set_alignment(loci)
+        for i, loci_name in enumerate(loci_names):
+            d = lf.to_rich_dict()
+            alignment = d["alignment"]
+            motif_probs = d["motif_probs"]
+            self.assertEqual(alignment[loci_name], loci[i].to_rich_dict())
+            self.assertEqual(motif_probs[loci_name], loci[i].get_motif_probs())
+        # tests single alignment
+        lf = model.make_likelihood_function(tree)
+        lf.set_alignment(aln1)
+        d = lf.to_rich_dict()
+        alignment = d["alignment"]
+        motif_probs = d["motif_probs"]
+        self.assertEqual(alignment, aln1.to_rich_dict())
+        self.assertEqual(motif_probs, aln1.get_motif_probs())
+
     def test_repr(self):
         """repr should not fail"""
         lf = self._makeLikelihoodFunction()
@@ -1363,6 +1359,13 @@ NineBande      root    1.0000    1.0000
         lf = self._makeLikelihoodFunction()
         got = lf._repr_html_()
         self.assertIn("<p>log-likelihood", got)
+
+    def test_get_set_name_properties(self):
+        """correctly creates lf name attr"""
+        lf = get_model("HKY85").make_likelihood_function(self.tree)
+        self.assertEqual(lf.name, lf.model.name)
+        lf.name = ""
+        self.assertEqual(lf.name, "")
 
 
 class ComparisonTests(TestCase):
@@ -1970,7 +1973,7 @@ class ComparisonTests(TestCase):
 
     def test_loci(self):
         """recap multiple-loci"""
-        from cogent3.recalculation.scope import EACH, ALL
+        from cogent3.recalculation.scope import ALL, EACH
 
         aln = load_aligned_seqs("data/long_testseqs.fasta")
         half = len(aln) // 2

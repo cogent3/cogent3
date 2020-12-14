@@ -1,17 +1,20 @@
+from unittest import TestCase, main
+
 import numpy as np
 
 from cogent3.maths.stats.jackknife import JackknifeStats
-from cogent3.util.unit_test import TestCase, main
 
 
 __author__ = "Anuj Pahwa, Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Anuj Pahwa", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+from numpy.testing import assert_allclose
 
 
 def pmcc(data, axis=1):
@@ -94,8 +97,8 @@ class JackknifeTests(TestCase):
         # Scalar
         pmcc_stat = stat_maker(pmcc, data, 1)
         test_knife = JackknifeStats(data.shape[1], pmcc_stat)
-        self.assertFloatEqual(test_knife.jackknifed_stat, 1.2905845)
-        self.assertFloatEqual(test_knife.standard_error, 0.2884490)
+        assert_allclose(test_knife.jackknifed_stat, 1.2905845)
+        assert_allclose(test_knife.standard_error, 0.2884490)
         self.assertTrue(test_knife._jackknifed_stat != None)
 
         # Vector
@@ -107,8 +110,8 @@ class JackknifeTests(TestCase):
         got_standard_err = test_knife.standard_error
 
         for index in [0, 1]:
-            self.assertFloatEqual(got_jk_stat[index], expected_jk_stat[index])
-            self.assertFloatEqual(got_standard_err[index], expected_standard_err[index])
+            assert_allclose(got_jk_stat[index], expected_jk_stat[index])
+            assert_allclose(got_standard_err[index], expected_standard_err[index])
 
     def test_tables(self):
         """jackknife should work for calculators return scalars or vectors"""

@@ -24,7 +24,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley", "Helen Lindsay"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.ed.au"
 __status__ = "Production"
@@ -90,7 +90,7 @@ class _LikelihoodParameterController(_LF):
         self.set_default_tree_parameter_rules()
         self.mprobs_from_alignment = motif_probs_from_align
         self.optimise_motif_probs = optimise_motif_probs
-        self._name = ""
+        self._name = None
         self._format = {}
 
     def save(self, filename):
@@ -213,7 +213,7 @@ class _LikelihoodParameterController(_LF):
         outgroup_name=None,
     ):
         """From information specifying the scope of a parameter derive a list of
-         edge names"""
+        edge names"""
 
         if edges is not None:
             if tip_names or edge:
@@ -258,7 +258,7 @@ class _LikelihoodParameterController(_LF):
         """modifes the scope of all submodel rate, aside from excluded params,
         by constructing a list of parameter rules and using the
         apply_param_rules method
-        
+
         Parameters
         ----------
         exclude_params
@@ -518,9 +518,12 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
                 locus_name = "for locus '%s'" % self.locus_names[index]
             else:
                 locus_name = ""
-            assert not set(aln.names).symmetric_difference(tip_names), (
-                "Tree tip names %s and aln seq names %s don't match %s"
-                % (self.tree.get_tip_names(), aln.names, locus_name)
+            assert not set(aln.names).symmetric_difference(
+                tip_names
+            ), "Tree tip names %s and aln seq names %s don't match %s" % (
+                self.tree.get_tip_names(),
+                aln.names,
+                locus_name,
             )
             assert "root" not in aln.names, "'root' is a reserved name."
         with self.updates_postponed():

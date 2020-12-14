@@ -14,7 +14,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.6.30a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -80,6 +80,24 @@ class TestModelResult(TestCase):
         result = mod(aln)
         got = result.alignment
         self.assertEqual(got.to_dict(), _data)
+
+    def test_model_name_lf_name(self):
+        """model_result.name is set as lf.name"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "F81",
+            name="blah",
+            show_progress=False,
+            opt_args=dict(max_evaluations=5, limit_action="ignore"),
+        )
+        result = mod(aln)
+        self.assertEqual(result.name, result.lf.name)
+        print(result)
 
     def test_model_result_alignment_split_pos_model(self):
         """returns alignment from lf with split codon positions"""
