@@ -1,16 +1,7 @@
 import numba
 import numpy as np
 
-from numba import (
-    boolean,
-    float64,
-    int32,
-    int64,
-    njit,
-    optional,
-    types,
-    uint8,
-)
+from numba import boolean, float64, int32, int64, njit, optional, types, uint8
 from numba.core.types.containers import Tuple
 
 
@@ -18,7 +9,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
 __license__ = "BSD-3"
-__version__ = "2020.7.2a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

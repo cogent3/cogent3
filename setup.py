@@ -15,7 +15,7 @@ __contributors__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.7.2a"
+__version__ = "2020.12.14a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -94,6 +94,7 @@ setup(
             "jupyter_client",
             "jupyterlab",
             "jupytext",
+            "kaleido",
             "nbconvert",
             "nbformat",
             "nbsphinx",
@@ -110,7 +111,7 @@ setup(
             "sphinx_panels",
             "tox",
         ],
-        "extra": ["pandas", "plotly", "psutil"],
+        "extra": ["pandas", "plotly", "psutil", "kaleido"],
     },
     project_urls=PROJECT_URLS,
 )
