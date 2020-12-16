@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
@@ -174,6 +175,25 @@ class TestComposableBase(TestCase):
             r = process.apply_to(dstore, show_progress=False)
             self.assertEqual(len(process.data_store.incomplete), 3)
             process.data_store.close()
+
+    def test_apply_to_not_partially_done(self):
+        """correctly applies process when result already partially done"""
+        dstore = io_app.get_data_store("data", suffix="fasta")
+        num_records = len(dstore)
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = pathlib.Path(dirname)
+            reader = io_app.load_aligned(format="fasta", moltype="dna")
+            outpath = dirname / "delme.tinydb"
+            writer = io_app.write_db(outpath)
+            _ = writer(reader(dstore[0]))
+            writer.data_store.close()
+
+            writer = io_app.write_db(outpath, if_exists="ignore")
+            process = reader + writer
+            _ = process.apply_to(dstore, show_progress=False)
+            writer.data_store.close()
+            dstore = io_app.get_data_store(outpath)
+            self.assertEqual(len(dstore), num_records)
 
 
 class TestNotCompletedResult(TestCase):

@@ -428,8 +428,8 @@ class Composable(ComposableType):
             LOGGER.log_file_path = logger
         elif logger == True:
             log_file_path = pathlib.Path(_make_logfile_name(self))
-            source = pathlib.Path(self.data_store.source)
-            log_file_path = source.parent / log_file_path
+            src = pathlib.Path(self.data_store.source)
+            log_file_path = src.parent / log_file_path
             LOGGER = scitrack.CachingLogger()
             LOGGER.log_file_path = str(log_file_path)
         else:
@@ -458,15 +458,21 @@ class Composable(ComposableType):
             outcome = result if process is self else self(result)
             results.append(outcome)
             if LOGGER:
-                member = dstore[i]
+                member = todo[i]
                 # ensure member is a DataStoreMember instance
                 if not isinstance(member, DataStoreMember):
                     member = SingleReadDataStore(member)[0]
 
+                mem_id = self.data_store.make_relative_identifier(member.name)
+                src = self.data_store.make_relative_identifier(result)
+                assert (
+                    src == mem_id
+                ), f"mismatched input data and result identifiers: {src} != {mem_id}"
+
                 LOGGER.log_message(member, label="input")
                 if member.md5:
                     LOGGER.log_message(member.md5, label="input md5sum")
-                mem_id = self.data_store.make_relative_identifier(member.name)
+
                 if outcome:
                     member = self.data_store.get_member(mem_id)
                     LOGGER.log_message(member, label="output")
@@ -605,6 +611,8 @@ class _checkpointable(Composable):
         """
         super(_checkpointable, self).__init__(**kwargs)
         self._formatted_params()
+
+        data_path = str(data_path)
 
         if data_path.endswith(".tinydb") and not self.__class__.__name__.endswith("db"):
             raise ValueError("tinydb suffix reserved for write_db")
