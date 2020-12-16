@@ -293,8 +293,66 @@ class MotifFreqsArrayTests(TestCase):
         expected = [0.25, -1]
         assert_allclose(rel_entropy, expected)
 
+    def test_pairwise_jsd(self):
+        """correctly constructs pairwise JSD dict"""
+        from numpy.random import random
+
+        from cogent3.maths.measure import jsd
+
+        data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
+        expect = jsd(data[0], data[1])
+        freqs = MotifFreqsArray(array(data), "ACGT")
+        got = freqs.pairwise_jsd()
+        assert_allclose(list(got.values())[0], expect)
+
+        data = []
+        for _ in range(6):
+            freqs = random(4)
+            freqs = freqs / freqs.sum()
+            data.append(freqs)
+
+        freqs = MotifFreqsArray(array(data), "ACGT")
+        pwise = freqs.pairwise_jsd()
+        self.assertEqual(len(pwise), 6 * 6 - 6)
+
+    def test_pairwise_jsm(self):
+        """correctly constructs pairwise JS metric dict"""
+        from numpy.random import random
+
+        from cogent3.maths.measure import jsm
+
+        data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
+        expect = jsm(data[0], data[1])
+        freqs = MotifFreqsArray(array(data), "ACGT")
+        got = freqs.pairwise_jsm()
+        assert_allclose(list(got.values())[0], expect)
+
+        data = []
+        for _ in range(6):
+            freqs = random(4)
+            freqs = freqs / freqs.sum()
+            data.append(freqs)
+
+        freqs = MotifFreqsArray(array(data), "ACGT")
+        pwise = freqs.pairwise_jsm()
+        self.assertEqual(len(pwise), 6 * 6 - 6)
+
+    def test_pairwise_(self):
+        """returns None when single row"""
+        # ndim=1
+        data = [0.25, 0.25, 0.25, 0.25]
+        freqs = MotifFreqsArray(array(data), "ACGT")
+        got = freqs.pairwise_jsm()
+        self.assertEqual(got, None)
+
+        # ndim=2
+        data = array([[0.25, 0.25, 0.25, 0.25]])
+        freqs = MotifFreqsArray(data, "ACGT")
+        got = freqs.pairwise_jsm()
+        self.assertEqual(got, None)
+
     def test_information(self):
-        """calculates entr0pies correctly"""
+        """calculates entropies correctly"""
         data = [[0.25, 0.25, 0.25, 0.25], [0.5, 0.5, 0, 0]]
         got = MotifFreqsArray(array(data), "ABCD")
         entropy = got.information()
@@ -307,7 +365,7 @@ class MotifFreqsArrayTests(TestCase):
         pos1 = Counter()
         pos2 = Counter()
         num = 1000
-        for i in range(num):
+        for _ in range(num):
             seq = farr.simulate_seq()
             self.assertEqual(len(seq), 2)
             pos1[seq[0]] += 1
