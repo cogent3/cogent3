@@ -92,7 +92,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.14a"
+__version__ = "2020.12.21a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -1437,7 +1437,7 @@ class _SequenceCollectionBase:
         allow_gap=False,
         exclude_unobserved=False,
     ):
-        """returns dict of counts of motifs per sequence
+        """counts of motifs per sequence
 
         Parameters
         ----------
@@ -1449,6 +1449,10 @@ class _SequenceCollectionBase:
         allow_gap
             if True, motifs containing a gap character are included.
 
+        Returns
+        -------
+        MotifCountsArray
+
         Notes
         -----
 
@@ -1459,7 +1463,7 @@ class _SequenceCollectionBase:
         counts = []
         motifs = set()
         for name in self.names:
-            seq = self.named_seqs[name]
+            seq = self.get_seq(name)
             c = seq.counts(
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
@@ -1480,7 +1484,7 @@ class _SequenceCollectionBase:
         allow_gap=False,
         exclude_unobserved=False,
     ):
-        """returns dict of counts of motifs
+        """counts of motifs
 
         Parameters
         ----------
@@ -3074,7 +3078,7 @@ class AlignmentI(object):
         exclude_unobserved=False,
         alert=False,
     ):
-        """returns dict of counts of non-overlapping motifs per sequence
+        """counts of non-overlapping motifs per sequence
 
         Parameters
         ----------
@@ -3090,6 +3094,10 @@ class AlignmentI(object):
         alert
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
+
+        Returns
+        -------
+        MotifCountsArray
         """
         length = (len(self) // motif_length) * motif_length
         if alert and len(self) != length:

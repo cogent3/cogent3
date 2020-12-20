@@ -12,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.14a"
+__version__ = "2020.12.21a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -142,6 +142,23 @@ class _MotifNumberArray(DictArray):
                 row_order = numpy.take(row_order, indices)
 
         return self.__class__(result, motifs=motifs, row_indices=row_order)
+
+    def _pairwise_stat(self, func):
+        """returns self dict of pairwise measurements between arrays"""
+        if len(self.shape) <= 1 or self.shape[0] <= 1:
+            return None
+
+        from itertools import combinations
+
+        data = {k: v.array for k, v in self.items()}
+        keys = list(data)
+        stats = {}
+        for k1, k2 in combinations(range(len(keys)), 2):
+            name1, name2 = keys[k1], keys[k2]
+            stats[(name1, name2)] = func(data[name1], data[name2])
+            stats[(name2, name1)] = stats[(name1, name2)]
+
+        return stats
 
 
 def _get_ordered_motifs_from_tabular(data, index=1):
@@ -428,6 +445,18 @@ class MotifFreqsArray(_MotifNumberArray):
             axnum += 1
 
         return logo
+
+    def pairwise_jsm(self) -> dict:
+        """pairwise Jensen-Shannon metric"""
+        from cogent3.maths.measure import jsm
+
+        return self._pairwise_stat(jsm)
+
+    def pairwise_jsd(self) -> dict:
+        """pairwise Jensen-Shannon divergence"""
+        from cogent3.maths.measure import jsd
+
+        return self._pairwise_stat(jsd)
 
 
 class PSSM(_MotifNumberArray):
