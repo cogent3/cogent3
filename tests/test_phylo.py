@@ -35,7 +35,7 @@ __credits__ = [
     "Ben Kaehler",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.14a"
+__version__ = "2020.12.21a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
