@@ -1,4 +1,4 @@
-pillow==8.0.1
+pillow==8.1.0
 psutil==5.8.0
 scipy==1.5.4
 tox==3.20.1
