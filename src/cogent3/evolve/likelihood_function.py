@@ -1096,7 +1096,7 @@ class LikelihoodFunction(ParameterController):
         return True
 
     def initialise_from_nested(self, nested_lf):
-        from cogent3.evolve.substitution_model import TimeReversible
+        from cogent3.evolve.substitution_model import Stationary
 
         assert (
             self.get_num_free_params() > nested_lf.get_num_free_params()
@@ -1104,11 +1104,11 @@ class LikelihoodFunction(ParameterController):
         compatible_likelihood_functions(self, nested_lf)
 
         same = (
-            isinstance(self.model, TimeReversible)
-            and isinstance(nested_lf.model, TimeReversible)
+            isinstance(self.model, Stationary)
+            and isinstance(nested_lf.model, Stationary)
         ) or (
-            not isinstance(self.model, TimeReversible)
-            and not isinstance(nested_lf.model, TimeReversible)
+            not isinstance(self.model, Stationary)
+            and not isinstance(nested_lf.model, Stationary)
         )
 
         mprobs = nested_lf.get_motif_probs()

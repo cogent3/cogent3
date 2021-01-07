@@ -40,6 +40,7 @@ from cogent3.evolve.models import (
     get_model,
     ssGN,
 )
+from cogent3.evolve.ns_substitution_model import GeneralStationary
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
 
@@ -990,6 +991,24 @@ DogFaced     root      1.0000    1.0000
         edge_sets = [dict(edges=("Human", "Mouse"))]
         null.set_time_heterogeneity(edge_sets=edge_sets, is_independent=False)
 
+    def test_init_from_nested_genstat(self):
+        """initialising a general stationary model from a nested time-reversible model works"""
+        tree = make_tree(tip_names=["Human", "Mouse", "Opossum"])
+        gtr = get_model("GTR")
+        gs = GeneralStationary(gtr.alphabet)
+        gtr_lf = gtr.make_likelihood_function(tree)
+        gtr_lf.set_alignment(_aln)
+        mprobs = dict(A=0.1, T=0.2, C=0.3, G=0.4)
+        gtr_lf.set_motif_probs(mprobs)
+        rate_params = {"A/C": 0.75, "A/G": 3, "A/T": 1.5, "C/G": 0.2, "C/T": 6}
+        for par_name, val in rate_params.items():
+            gtr_lf.set_param_rule(par_name, init=val)
+
+        gs_lf = gs.make_likelihood_function(tree)
+        gs_lf.set_alignment(_aln)
+        gs_lf.initialise_from_nested(gtr_lf)
+        assert_allclose(gs_lf.lnL, gtr_lf.lnL)
+
     def test_set_time_heterogeneity(self):
         """correctly apply time heterogeneity of rate terms"""
         lf = self.submodel.make_likelihood_function(self.tree)
@@ -1100,6 +1119,35 @@ DogFaced     root      1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_diff_stat(self):
+        """non-reversible stationary initialised from nested time-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {"A/C": 2.0, "A/G": 3.0, "A/T": 4.0, "C/G": 5.0, "C/T": 6.0}
+
+        simple = GTR()
+        tree = make_tree(tip_names=["Human", "Mouse", "Opossum"])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name("GTR")
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule("length", edge=e, init=val)
+
+        # set mprobs and then set the rate terms
+        from cogent3.evolve.ns_substitution_model import GeneralStationary
+
+        rich = GeneralStationary(DNA.alphabet)
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name("GSN")
+        glf.initialise_from_nested(slf)
+        print(slf)
+        print(glf)
         assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr(self):
