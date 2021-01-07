@@ -209,6 +209,12 @@ class NonStatMarkov(TestCase):
         gen_lnL = gen_lf.get_log_likelihood()
         self.assertLess(gen_stat_lnL, gen_lnL)
 
+    def test_general_stationary_param_list(self):
+        """general stationary returns parameter list"""
+        gs = GeneralStationary(DNA.alphabet)
+        params = gs.get_param_list()
+        self.assertTrue(params != [])
+
     def test_general_stationary_is_stationary(self):
         """should be stationary"""
         gen_stat_lf = self.make_cached("gen_stat")
