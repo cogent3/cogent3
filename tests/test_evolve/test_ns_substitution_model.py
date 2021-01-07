@@ -140,14 +140,14 @@ class MakeCachedObjects:
         self.results["discrete"] = dis_lf
 
     def __call__(self, obj_name, **kwargs):
-        funcs = dict(
-            general=self.fit_general,
-            gen_stat=self.fit_gen_stat,
-            discrete=self.fit_discrete,
-            constructed_gen=self.fit_constructed_gen,
-        )
-
         if obj_name not in self.results:
+            funcs = dict(
+                general=self.fit_general,
+                gen_stat=self.fit_gen_stat,
+                discrete=self.fit_discrete,
+                constructed_gen=self.fit_constructed_gen,
+            )
+
             funcs[obj_name](results=self.results, **kwargs)
         return self.results[obj_name]
 

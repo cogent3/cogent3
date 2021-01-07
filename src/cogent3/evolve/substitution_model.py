@@ -578,7 +578,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     def get_param_matrix_coords(self, include_ref_cell=False):
         """returncoordinates for every predicate"""
         dim = len(self.alphabet)
-        mats = numpy.zeros((dim, dim), dtype=int)
         param_coords = {}
         for key, m in self.predicate_masks.items():
             coords = [(i, j) for i in range(dim) for j in range(dim) if m[i, j] != 0]

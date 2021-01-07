@@ -74,7 +74,6 @@ class GeneralStationary(Stationary):
     every possible instantaneous substitution, except the last in each column.
     As general as can be while still having stationary motif probabilities"""
 
-    # @extend_docstring_from(_ContinuousSubstitutionModel)
     def __init__(self, alphabet, **kw):
         Stationary.__init__(self, alphabet, **kw)
 
