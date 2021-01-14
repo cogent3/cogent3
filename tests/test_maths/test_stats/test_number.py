@@ -125,6 +125,33 @@ class TestNumber(TestCase):
         self.assertEqual(nums.mode, 4)
         self.assertEqual(len(nums), 6)
 
+    def test_keys_values_items(self):
+        """return a list of these elements"""
+        data = [0, 0, 2, 4, 4, 4]
+        nums = number.CategoryCounter(data)
+        self.assertEqual(nums.keys(), [0, 2, 4])
+        self.assertEqual(nums.values(), [2, 1, 3])
+        self.assertEqual(nums.items(), [(0, 2), (2, 1), (4, 3)])
+
+        freqs = nums.to_freqs()
+        self.assertEqual(freqs.keys(), [0, 2, 4])
+        assert_allclose(freqs.values(), [0.3333333333333333, 0.16666666666666666, 0.5])
+        self.assertEqual(len(freqs.items()), 3)
+        self.assertEqual(freqs.items()[-1], (4, 0.5))
+
+    def test_repr(self):
+        """should precede with class name"""
+        data = [0, 0, 2, 4, 4, 4]
+        nums = number.CategoryCounter(data)
+        got = repr(nums)
+        self.assertTrue(got.startswith(nums.__class__.__name__))
+        freqs = nums.to_freqs()
+        got = repr(freqs)
+        self.assertTrue(got.startswith(freqs.__class__.__name__))
+        nums = number.NumberCounter(data)
+        got = repr(nums)
+        self.assertTrue(got.startswith(nums.__class__.__name__))
+
     def test_category_counter_stats(self):
         """stats from CategoryCounter correct"""
         data = "TCTTTAGAGAACAGTTTATTATACACTAAA"

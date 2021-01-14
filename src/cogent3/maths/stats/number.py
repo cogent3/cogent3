@@ -127,7 +127,16 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         return self
 
     def __repr__(self):
-        return repr(self.__dict__)
+        return f"{self.__class__.__name__}({repr(self.__dict__)})"
+
+    def keys(self):
+        return list(self)
+
+    def values(self):
+        return [self[k] for k in self]
+
+    def items(self):
+        return [(k, self[k]) for k in self]
 
     def to_dict(self):
         return dict(self)
@@ -333,7 +342,16 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         return iter(self.__dict__)
 
     def __repr__(self):
-        return repr(self.__dict__)
+        return f"{self.__class__.__name__}({repr(self.__dict__)})"
+
+    def keys(self):
+        return list(self)
+
+    def values(self):
+        return [self[k] for k in self]
+
+    def items(self):
+        return [(k, self[k]) for k in self]
 
     def to_dict(self):
         return dict(self)
