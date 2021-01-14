@@ -125,6 +125,19 @@ class TestNumber(TestCase):
         self.assertEqual(nums.mode, 4)
         self.assertEqual(len(nums), 6)
 
+    def test_repr(self):
+        """should precede with class name"""
+        data = [0, 0, 2, 4, 4, 4]
+        nums = number.CategoryCounter(data)
+        got = repr(nums)
+        self.assertTrue(got.startswith(nums.__class__.__name__))
+        freqs = nums.to_freqs()
+        got = repr(freqs)
+        self.assertTrue(got.startswith(freqs.__class__.__name__))
+        nums = number.NumberCounter(data)
+        got = repr(nums)
+        self.assertTrue(got.startswith(nums.__class__.__name__))
+
     def test_category_counter_stats(self):
         """stats from CategoryCounter correct"""
         data = "TCTTTAGAGAACAGTTTATTATACACTAAA"
