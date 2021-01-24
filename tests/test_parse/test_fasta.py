@@ -454,7 +454,7 @@ class GroupFastaParsingTest(TestCase):
             got = group.to_dict()
             want = expected[count]
             self.assertEqual(got, want)
-            self.assertEqual(group.info.Group, "group%s" % (count + 1))
+            self.assertEqual(group.info.Group, f"group{count + 1}")
             count += 1
 
         # check we don't return a done group

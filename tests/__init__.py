@@ -3,7 +3,7 @@
 sub_modules = ["test_draw", "test_phylo"]
 
 for sub_module in sub_modules:
-    exec("from %s import %s" % (__name__, sub_module))
+    exec(f"from {__name__} import {sub_module}")
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2020, The Cogent Project"

@@ -476,7 +476,7 @@ class TableTests(TestCase):
         # handle a formatter function
         def formatcol(value):
             if isinstance(value, float):
-                val = "%.2f" % value
+                val = f"{value:.2f}"
             else:
                 val = str(value)
             return val
