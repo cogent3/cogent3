@@ -157,8 +157,8 @@ class ScaleRuleTests(unittest.TestCase):
         dN = length * a["dN"] / (3.0 * b["dN"])
         dS = length * a["dS"] / (3.0 * b["dS"])
         # following are results from PAML
-        self.assertEqual("%.4f" % dN, "0.0325")
-        self.assertEqual("%.4f" % dS, "0.0514")
+        self.assertEqual(f"{dN:.4f}", "0.0325")
+        self.assertEqual(f"{dS:.4f}", "0.0514")
 
 
 if __name__ == "__main__":

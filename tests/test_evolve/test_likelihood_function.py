@@ -100,7 +100,7 @@ def isTransition(motif1, motif2):
 def numdiffs_position(motif1, motif2):
     assert len(motif1) == len(
         motif2
-    ), "motif1[%s] & motif2[%s] have inconsistent length" % (motif1, motif2)
+    ), f"motif1[{motif1}] & motif2[{motif2}] have inconsistent length"
 
     ndiffs, position = 0, -1
     for i in range(len(motif1)):
@@ -180,7 +180,7 @@ class LikelihoodCalcs(TestCase):
         aln["root"] = one
         aln = make_aligned_seqs(data=aln)
         submod = get_model("TN93")
-        tree = make_tree("%s" % str(tuple(aln.names)))
+        tree = make_tree(f"{str(tuple(aln.names))}")
         lf = submod.make_likelihood_function(tree)
         try:
             lf.set_alignment(aln)
@@ -189,7 +189,7 @@ class LikelihoodCalcs(TestCase):
 
         collection = aln.degap().named_seqs
         collection.pop("Human")
-        tree = make_tree("%s" % str(tuple(collection.keys())))
+        tree = make_tree(f"{str(tuple(collection.keys()))}")
         lf = submod.make_likelihood_function(tree, aligned=False)
         try:
             lf.set_sequences(collection)

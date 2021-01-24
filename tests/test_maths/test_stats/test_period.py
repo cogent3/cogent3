@@ -186,8 +186,8 @@ class TestPeriodStat(TestCase):
 
     def test_chi_square(self):
         D, cs_p_val = chi_square(self.x, 10)
-        self.assertEqual("%.4f" % D, "0.4786")
-        self.assertEqual("%.4f" % cs_p_val, "0.4891")
+        self.assertEqual(f"{D:.4f}", "0.4786")
+        self.assertEqual(f"{cs_p_val:.4f}", "0.4891")
 
     def test_factorial(self):
         self.assertEqual(factorial(1), 1)

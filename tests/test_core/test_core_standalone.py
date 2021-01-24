@@ -326,14 +326,14 @@ class AlignmentTestMethods(unittest.TestCase):
         sub_align = self.alignment.take_seqs(subset)
         new = sub_align.names
         new.sort()
-        assert new == subset, "included subset didn't work %s, %s" % (new, subset)
+        assert new == subset, f"included subset didn't work {new}, {subset}"
 
         # testing exclusion of one
         to_exclude = ["NineBande"]
         sub_align = self.alignment.take_seqs(to_exclude, negate=True)
         new = sub_align.names
         new.sort()
-        assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
+        assert new == subset, f"excluded subset didn't work {new}, {subset}"
 
         # testing exclusion of two
         subset = ["DogFaced", "HowlerMon", "NineBande"]
@@ -342,7 +342,7 @@ class AlignmentTestMethods(unittest.TestCase):
         sub_align = self.alignment.take_seqs(to_exclude, negate=True)
         new = sub_align.names
         new.sort()
-        assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
+        assert new == subset, f"excluded subset didn't work {new}, {subset}"
 
     def test_slice_align(self):
         """test slicing of sequences"""
