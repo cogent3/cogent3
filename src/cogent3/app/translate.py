@@ -286,5 +286,4 @@ class translate_seqs(ComposableSeq):
 
         if self._trim_terminal_stop:
             seqs = seqs.trim_stop_codons(gc=self._gc)
-        aa = seqs.get_translation(gc=self._gc)
-        return aa
+        return seqs.get_translation(gc=self._gc)

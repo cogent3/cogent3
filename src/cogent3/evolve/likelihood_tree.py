@@ -274,7 +274,7 @@ class LikelihoodTreeLeaf(object):
 
     def backward(self):
         index = numpy.array(self.index[::-1, ...])
-        result = self.__class__(
+        return self.__class__(
             self.uniq,
             self.input_likelihoods,
             self.counts,
@@ -283,7 +283,6 @@ class LikelihoodTreeLeaf(object):
             self.alphabet,
             None,
         )
-        return result
 
     def __len__(self):
         return len(self.index)

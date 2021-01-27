@@ -104,8 +104,7 @@ def xmfa_label_to_name(line):
         (lo, hi) = (hi, lo)
     else:
         assert strand == "+"
-    name = "%s:%s:%s-%s" % (sp, contig, lo, hi)
-    return name
+    return "%s:%s:%s-%s" % (sp, contig, lo, hi)
 
 
 def is_xmfa_blank_or_comment(x):

@@ -35,8 +35,7 @@ def _goertzel_inner(x, N, period):
         s = x[n] + coeff * s_prev - s_prev2
         s_prev2 = s_prev
         s_prev = s
-    pwr = sqrt(s_prev2 ** 2 + s_prev ** 2 - coeff * s_prev2 * s_prev)
-    return pwr
+    return sqrt(s_prev2 ** 2 + s_prev ** 2 - coeff * s_prev2 * s_prev)
 
 
 def _ipdft_inner(x, X, W, ulim, N):  # naive python
@@ -217,8 +216,7 @@ class Hybrid(_PeriodEstimator):
 
     def getNumStats(self):
         """the number of stats computed by this calculator"""
-        num = [1, 3][self._return_all]
-        return num
+        return [1, 3][self._return_all]
 
     def evaluate(self, x):
         if self.period is None:

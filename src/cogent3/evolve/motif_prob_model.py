@@ -185,8 +185,7 @@ class MonomerProbModel(ComplexMotifProbModel):
         return result
 
     def calc_word_weight_matrix(self, monomer_probs):
-        result = monomer_probs.take(self.mutant_motif) * self.mask
-        return result
+        return monomer_probs.take(self.mutant_motif) * self.mask
 
     def make_motif_word_prob_defns(self):
         monomer_probs = self.make_motif_probs_defn()
@@ -292,8 +291,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
     def calc_word_weight_matrix(self, motif_probs):
         context_probs = numpy.dot(motif_probs, self.w2c)
         context_probs[context_probs == 0.0] = numpy.inf
-        result = motif_probs / context_probs.take(self.context_indices)
-        return result
+        return motif_probs / context_probs.take(self.context_indices)
 
     def make_motif_word_prob_defns(self):
         mprobs = self.make_motif_probs_defn()

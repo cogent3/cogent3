@@ -107,8 +107,7 @@ def parse_attributes_gff2(attributes, span):
     name = attributes[attributes.find('"') + 1 :]
     if '"' in name:
         name = name[: name.find('"')]
-    attr_dict = {"ID": name, "Info": attributes}
-    return attr_dict
+    return {"ID": name, "Info": attributes}
 
 
 def parse_attributes_gff3(attributes, span):

@@ -156,10 +156,9 @@ class TreeEvaluator(object):
             assert set(ordered_names).issubset(all_names)
         else:
             ordered_names = self.names
-        names = list(fixed_names) + [
+        return list(fixed_names) + [
             n for n in ordered_names if n not in fixed_names_set
         ]
-        return names
 
     @UI.display_wrap
     def trex(

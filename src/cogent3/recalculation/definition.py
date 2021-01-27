@@ -144,10 +144,9 @@ class CalculationDefn(_NonLeafDefn):
 
     def make_cell(self, *args):
         calc = self.make_calc_function()
-        cell = EvaluatedCell(
+        return EvaluatedCell(
             self.name, calc, args, recycling=self.recycling, default=self.default
         )
-        return cell
 
     def make_cells(self, input_soup, variable=None):
         # input soups contains all necessary values for calc on self.

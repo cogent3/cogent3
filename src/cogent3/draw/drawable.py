@@ -574,9 +574,7 @@ class AnnotatedDrawable(Drawable):
         else:
             func = self._build_fig
 
-        result = func()
-
-        return result
+        return func()
 
     def remove_track(self, left_track=False, bottom_track=False):
         """
@@ -659,7 +657,7 @@ class Shape:
     def as_trace(self, name=None):
         """returns component for plotly display"""
         name = name or self.name
-        data = UnionDict(
+        return UnionDict(
             type="scatter",
             x=self.x,
             y=self.y,
@@ -673,7 +671,6 @@ class Shape:
             showlegend=self._showlegend,
             hoverinfo="text",
         )
-        return data
 
 
 class Rectangle(Shape):

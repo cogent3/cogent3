@@ -290,8 +290,7 @@ class EstimateDistances(object):
         dists = self.get_pairwise_param(
             "length", summary_function=summary_function, **kwargs
         )
-        result = None if not dists else DistanceMatrix(dists)
-        return result
+        return None if not dists else DistanceMatrix(dists)
 
     def get_param_values(self, param, **kwargs):
         """Returns a Numbers object with all estimated values of param.
@@ -343,13 +342,12 @@ class EstimateDistances(object):
                 except KeyError:
                     row.append(d[(s2, s1)])
             twoD.append(row)
-        T = table.Table(
+        return table.Table(
             [r"Seq1 \ Seq2"] + self._seqnames,
             twoD,
             index_name=r"Seq1 \ Seq2",
             missing_data="*",
         )
-        return T
 
     def get_newick_trees(self):
         """Returns a list of Newick format trees for supertree methods."""

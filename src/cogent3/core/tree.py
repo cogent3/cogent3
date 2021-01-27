@@ -1778,8 +1778,7 @@ class TreeNode(object):
         if style not in types:
             raise ValueError(f"{style} not in supported types {types}")
 
-        dnd = Dendrogram(self, style=style, **kwargs)
-        return dnd
+        return Dendrogram(self, style=style, **kwargs)
 
 
 class PhyloNode(TreeNode):

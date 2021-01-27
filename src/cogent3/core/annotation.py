@@ -328,8 +328,7 @@ class _Feature(_Annotatable, _Serialisable):
         """returns plotly trace"""
         from cogent3.draw.drawable import make_shape
 
-        result = make_shape(type_=self)
-        return result
+        return make_shape(type_=self)
 
     def attach(self):
         self.parent.attach_annotations([self])
@@ -496,8 +495,7 @@ class _SimpleVariable(_Feature):
         keep = self.map.nongap()
         indices = numpy.concatenate([list(span) for span in keep.spans])
         data = numpy.asarray(self.data)[indices]
-        new = self.__class__(self.parent, self.map[keep], data=data, original=self)
-        return new
+        return self.__class__(self.parent, self.map[keep], data=data, original=self)
 
 
 def SimpleVariable(parent, type, name, data):

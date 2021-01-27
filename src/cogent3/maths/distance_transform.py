@@ -151,8 +151,7 @@ def trans_chord(m):
     """
     m = array(m)
     row_norms = sqrt(sum(square(m), axis=1, keepdims=True))
-    result = m / row_norms
-    return result
+    return m / row_norms
 
 
 def trans_chisq(m):
@@ -185,8 +184,7 @@ def trans_specprof(m):
     """
     m = array(m)
     row_sums = sum(m, axis=1, keepdims=True)
-    result = m / row_sums
-    return result
+    return m / row_sums
 
 
 def trans_hellinger(m):
@@ -200,8 +198,7 @@ def trans_hellinger(m):
     """
     m = array(m)
     row_sums = sum(m, axis=1, keepdims=True)
-    result = sqrt(m / row_sums)
-    return result
+    return sqrt(m / row_sums)
 
 
 def dist_bray_curtis(datamtx, strict=True):

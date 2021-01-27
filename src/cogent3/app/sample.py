@@ -35,8 +35,7 @@ __status__ = "Alpha"
 def intersection(groups):
     """returns the intersection of all groups"""
     common = set(groups.pop())
-    intersect = common.intersection(*map(set, groups))
-    return intersect
+    return common.intersection(*map(set, groups))
 
 
 def union(groups):

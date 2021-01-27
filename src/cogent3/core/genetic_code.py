@@ -497,11 +497,10 @@ def available_codes():
     all_keys = sorted({int(k) for k in GeneticCodes if str(k).isdigit()})
     rows = [(k, GeneticCodes[k].name) for k in all_keys]
     header = ["Code ID", "Name"]
-    table = Table(
+    return Table(
         header=header,
         data=rows,
         index_name="Code ID",
         title="Specify a genetic code using either 'Name' or "
         "Code ID (as an integer or string)",
     )
-    return table
