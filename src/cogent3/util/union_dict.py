@@ -60,17 +60,9 @@ class UnionDict(dict):
 
         self.update({key: value})
 
-    def __or__(self, other):
+    def __ior__(self, other):
         self.union(other)
         return self
-
-    if sys.version_info[:2] == (3, 9):
-        def __ror__(self, other):
-            other.union(self)
-            return other
-
-        def __ior__(self, other):
-            return self.__or__(other)
 
     def union(self, other):
         """returns the union of self with other
