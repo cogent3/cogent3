@@ -2,7 +2,7 @@
 """UnionDict extension of dict.
 """
 from cogent3.util.misc import extend_docstring_from
-
+import sys
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
@@ -63,6 +63,14 @@ class UnionDict(dict):
     def __or__(self, other):
         self.union(other)
         return self
+
+    if sys.version_info[:2] == (3, 9):
+        def __ror__(self, other):
+            other.union(self)
+            return other
+
+        def __ior__(self, other):
+            return self.__or__(other)
 
     def union(self, other):
         """returns the union of self with other
