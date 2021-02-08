@@ -2,7 +2,7 @@
 """UnionDict extension of dict.
 """
 from cogent3.util.misc import extend_docstring_from
-
+import sys
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
