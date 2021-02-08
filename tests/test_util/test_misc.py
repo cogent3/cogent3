@@ -2,6 +2,8 @@
 
 """Unit tests for utility functions and classes.
 """
+import bz2
+import gzip
 import os
 import pathlib
 import tempfile
@@ -48,6 +50,7 @@ from cogent3.util.misc import (
     list_flatten,
     not_list_tuple,
     open_,
+    open_zip,
     path_exists,
     recursive_flatten,
     remove_files,
@@ -673,6 +676,38 @@ class AtomicWriteTests(TestCase):
             with open_(zip_path) as ifile:
                 got = ifile.read()
             self.assertEqual(got, "some data")
+
+    def test_open_handles_bom(self):
+        """handle files with a byte order mark"""
+        with TemporaryDirectory(dir=".") as dirname:
+            # create the different file types
+            dirname = pathlib.Path(dirname)
+
+            text = "some text"
+
+            # plain text
+            textfile = dirname / "sample.txt"
+            textfile.write_text(text, encoding="utf-8-sig")
+
+            # gzipped
+            gzip_file = dirname / "sample.txt.gz"
+            with gzip.open(gzip_file, "wt", encoding="utf-8-sig") as outfile:
+                outfile.write(text)
+
+            # bzipped
+            bzip_file = dirname / "sample.txt.bz2"
+            with bz2.open(bzip_file, "wt", encoding="utf-8-sig") as outfile:
+                outfile.write(text)
+
+            # zipped
+            zip_file = dirname / "sample.zip"
+            with zipfile.ZipFile(zip_file, "w") as outfile:
+                outfile.write(textfile, "sample.txt")
+
+            for path in (bzip_file, gzip_file, textfile, zip_file):
+                with open_(path) as infile:
+                    got = infile.read()
+                    self.assertEqual(got, text, msg=f"failed reading {path}")
 
     def test_aw_zip_from_path(self):
         """supports inferring zip archive name from path"""

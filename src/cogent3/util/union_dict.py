@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """UnionDict extension of dict.
 """
-from cogent3.util.misc import extend_docstring_from
 import sys
+
+from cogent3.util.misc import extend_docstring_from
+
 
 __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"

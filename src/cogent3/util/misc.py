@@ -20,6 +20,7 @@ from zipfile import ZipFile
 
 import numpy
 
+from chardet import detect
 from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
 
 
@@ -144,6 +145,10 @@ def open_zip(filename, mode="r", **kwargs):
 
     If mode="w", returns an atomic_write() instance.
     """
+    binary_mode = "b" in mode
+    mode = mode[:1]
+
+    encoding = kwargs.pop("encoding") if "encoding" in kwargs else "latin-1"
     if mode.startswith("w"):
         return atomic_write(filename, mode=mode, in_zip=True)
 
@@ -151,23 +156,42 @@ def open_zip(filename, mode="r", **kwargs):
     with ZipFile(filename) as zf:
         if len(zf.namelist()) != 1:
             raise ValueError("Archive is supposed to have only one record.")
+
         opened = zf.open(zf.namelist()[0], mode=mode, **kwargs)
-        return TextIOWrapper(opened, encoding="latin-1")
+
+        if binary_mode:
+            return opened
+
+        return TextIOWrapper(opened, encoding=encoding)
 
 
 def open_(filename, mode="rt", **kwargs):
     """open that handles different compression"""
+
     filename = Path(filename).expanduser().absolute()
     op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
         filename.suffix, open
     )
-    return op(filename, mode, **kwargs)
+
+    encoding = None
+    need_encoding = mode.startswith("r") and "b" not in mode
+    if need_encoding:
+        if "encoding" not in kwargs:
+            with op(filename, mode="rb") as infile:
+                data = infile.read(100)
+
+            encoding = detect(data)
+            encoding = encoding["encoding"]
+        else:
+            encoding = kwargs.pop("encoding")
+
+    return op(filename, mode, encoding=encoding, **kwargs)
 
 
 class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
-    def __init__(self, path, tmpdir=None, in_zip=None, mode="w"):
+    def __init__(self, path, tmpdir=None, in_zip=None, mode="w", encoding=None):
         path = pathlib.Path(path).expanduser()
         _, cmp = get_format_suffixes(path)
         if in_zip and cmp == "zip":
@@ -177,6 +201,7 @@ class atomic_write:
         self._path = path
         self._mode = mode
         self._file = None
+        self._encoding = encoding
         self._in_zip = in_zip
         self.succeeded = None
         self._close_func = (
@@ -196,7 +221,9 @@ class atomic_write:
     def _get_fileobj(self):
         """returns file to be written to"""
         if self._file is None:
-            self._file = NamedTemporaryFile(self._mode, delete=False, dir=self._tmpdir)
+            self._file = NamedTemporaryFile(
+                self._mode, delete=False, dir=self._tmpdir, encoding=self._encoding
+            )
 
         return self._file
 
