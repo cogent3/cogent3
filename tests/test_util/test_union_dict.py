@@ -65,6 +65,18 @@ class UnionDictTests(TestCase):
         self.assertEqual(d.d.f, 0)
         self.assertEqual(d.d.g, 7)
 
+    def test_or(self):
+        """should not modify original"""
+        d = UnionDict({"a": 1, "b": 2, "c": 3, "d": {"e": 5, "f": 6}})
+        e = UnionDict({"b": 0, "d": {"f": 0, "g": 7}})
+        f = d | e
+        self.assertEqual(f.a, 1)
+        self.assertEqual(f.b, 0)
+        self.assertEqual(f.d.e, 5)
+        self.assertEqual(f.d.f, 0)
+        self.assertEqual(f.d.g, 7)
+        self.assertTrue(f.d is not e.d)
+
     def test_union_value_dict(self):
         """replacing union or of a value with a dict should be dict"""
         d = UnionDict({"A": {"B": "Blah"}})

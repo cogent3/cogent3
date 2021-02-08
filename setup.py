@@ -82,7 +82,14 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
-    install_requires=["numba>0.48.0", "numpy", "scitrack", "tqdm", "tinydb"],
+    install_requires=[
+        "numpy",
+        "numba>0.48.0;python_version<'3.9'",
+        "numba@git+https://github.com/numba/numba.git@a3d29a7f4b354ca99df3ba567f69e7cf84ce9ebd#egg=numba-0.53.0rc1 ; python_version>='3.9'",
+        "scitrack",
+        "tqdm",
+        "tinydb",
+    ],
     extras_require={
         "dev": [
             "black",
