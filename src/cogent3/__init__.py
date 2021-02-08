@@ -368,7 +368,7 @@ def make_table(
         output format when using str(Table)
 
     """
-    if any([isinstance(a, str) for a in (header, data)]):
+    if any(isinstance(a, str) for a in (header, data)):
         raise TypeError(f"str type invalid, if its a path use load_table()")
 
     if "index" in kwargs:
@@ -388,7 +388,7 @@ def make_table(
 
         data = {c: data_frame[c].to_numpy() for c in data_frame}
 
-    table = _Table(
+    return _Table(
         header=header,
         data=data,
         digits=digits,
@@ -404,8 +404,6 @@ def make_table(
         data_frame=data_frame,
         format=format,
     )
-
-    return table
 
 
 def load_table(
@@ -488,8 +486,7 @@ def load_table(
 
     if file_format == "json":
         return load_from_json(filename, (_Table,))
-
-    if file_format in ("pickle", "pkl"):
+    elif file_format in ("pickle", "pkl"):
         f = open_(filename, mode="rb")
         loaded_table = pickle.load(f)
         f.close()
@@ -497,7 +494,12 @@ def load_table(
         r.__setstate__(loaded_table)
         return r
 
-    if not reader:
+    if reader:
+        with open_(filename, newline=None) as f:
+            data = [row for row in reader(f)]
+            header = data[0]
+            data = {column[0]: column[1:] for column in zip(*data)}
+    else:
         if file_format == "csv":
             sep = sep or ","
         elif file_format == "tsv":
@@ -517,12 +519,6 @@ def load_table(
 
         title = title or loaded_title
         data = {column[0]: column[1:] for column in zip(header, *rows)}
-    else:
-        f = open_(filename, newline=None)
-        data = [row for row in reader(f)]
-        header = data[0]
-        data = {column[0]: column[1:] for column in zip(*data)}
-        f.close()
 
     for key, value in data.items():
         data[key] = cast_str_to_array(value, static_type=static_column_types)
