@@ -751,8 +751,7 @@ class natsel_zhang(ComposableHypothesis):
             )
         )
         alt_args["param_rules"] = rules
-        alt = model(**alt_args)
-        return alt
+        return model(**alt_args)
 
     def test_hypothesis(self, aln, *args, **kwargs):
         null_result = self.null(aln)
@@ -911,8 +910,7 @@ class natsel_sitehet(ComposableHypothesis):
             )
         )
         alt_args["param_rules"] = rules
-        alt = model(**alt_args)
-        return alt
+        return model(**alt_args)
 
     def test_hypothesis(self, aln, *args, **kwargs):
         null_result = self.null(aln)

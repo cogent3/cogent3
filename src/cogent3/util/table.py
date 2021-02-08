@@ -175,8 +175,7 @@ def cast_2d_to_1d_dict(data, row_order=None):
         key = list(data.keys())[0]
         row_order = list(data[key])
 
-    result = {c: [data[c][r] for r in row_order] for c in data}
-    return result
+    return {c: [data[c][r] for r in row_order] for c in data}
 
 
 def cast_to_1d_dict(data, row_order=None):
@@ -339,8 +338,7 @@ class Columns(MutableMapping):
         v = d[:5]
         if num > 5:
             v.append(f"... + {num - 5} more")
-        txt = f"{self.__class__.__name__}({', '.join(v)})"
-        return txt
+        return f"{self.__class__.__name__}({', '.join(v)})"
 
     def __str__(self):
         return repr(self)
@@ -430,8 +428,7 @@ class Columns(MutableMapping):
 
     def to_dict(self):
         """returns column based dict"""
-        result = {c: self[c].tolist() for c in self}
-        return result
+        return {c: self[c].tolist() for c in self}
 
     def to_rich_dict(self):
         data = self.__getstate__()
@@ -668,12 +665,11 @@ class Table:
 
         if not self._repr_policy["show_shape"]:
             shape_info = ""
-        result = (
+        return (
             "\n".join([str(table), shape_info, unset_columns])
             if unset_columns
             else "\n".join([str(table), shape_info])
         )
-        return result
 
     def __str__(self):
         if self.shape == (0, 0):

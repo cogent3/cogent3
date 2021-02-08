@@ -352,11 +352,10 @@ class Calculator(object):
     def get_value_array(self):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
-        values = [
+        return [
             p.transform_to_optimiser(self._get_current_cell_value(p))
             for p in self.opt_pars
         ]
-        return values
 
     # get_bounds_vectors and testoptparvector make up the old LikelihoodFunction
     # interface expected by the optimiser.

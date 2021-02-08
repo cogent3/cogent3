@@ -115,14 +115,13 @@ class NotCompleted(int):
 
     def to_rich_dict(self):
         """returns components for to_json"""
-        data = {
+        return {
             "type": get_object_provenance(self),
             "not_completed_construction": dict(
                 args=self._persistent[0], kwargs=self._persistent[1]
             ),
             "version": __version__,
         }
-        return data
 
     def to_json(self):
         """returns json string"""
@@ -650,8 +649,7 @@ class _checkpointable(Composable):
         if self._callback:
             data = self._callback(data)
 
-        identifier = self.data_store.make_absolute_identifier(data)
-        return identifier
+        return self.data_store.make_absolute_identifier(data)
 
     def job_done(self, data):
         identifier = self._make_output_identifier(data)

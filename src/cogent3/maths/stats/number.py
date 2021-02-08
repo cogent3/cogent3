@@ -92,20 +92,17 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         return result
 
     def expanded_values(self):
-        values = list(self.values())
-        return values
+        return list(self.values())
 
     def copy(self):
         data = self.to_dict().copy()
-        new = self.__class__(data)
-        return new
+        return self.__class__(data)
 
     def __setitem__(self, key, val):
         self.__dict__[key] = val
 
     def __getitem__(self, key):
-        val = 0 if key not in self.__dict__ else self.__dict__[key]
-        return val
+        return 0 if key not in self.__dict__ else self.__dict__[key]
 
     def __delitem__(self, key):
         del self.__dict__[key]
@@ -145,8 +142,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         """return values for these keys as a list"""
         if keys is None:
             keys = list(self)
-        result = [self[key] for key in keys]
-        return result
+        return [self[key] for key in keys]
 
     def to_array(self, keys=None):
         """return values for these keys as an array"""
@@ -258,8 +254,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
 
     def to_freqs(self):
         """returns dict of {key: val/total, ..}"""
-        result = CategoryFreqs(self, total=self.sum)
-        return result
+        return CategoryFreqs(self, total=self.sum)
 
     def count(self, indices):
         """
@@ -286,8 +281,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
                 raise IndexError(msg)
             counts[sub_key] += self[key]
 
-        result = self.__class__(data=counts)
-        return result
+        return self.__class__(data=counts)
 
 
 class CategoryFreqs(MutableMapping, SummaryStatBase):
@@ -317,20 +311,17 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
             assert_allclose(self.sum, 1)
 
     def expanded_values(self):
-        values = list(self.values())
-        return values
+        return list(self.values())
 
     def copy(self):
         data = self.to_dict().copy()
-        new = self.__class__(data=data)
-        return new
+        return self.__class__(data=data)
 
     def __setitem__(self, key, val):
         self.__dict__[key] = val
 
     def __getitem__(self, key):
-        val = 0 if key not in self.__dict__ else self.__dict__[key]
-        return val
+        return 0 if key not in self.__dict__ else self.__dict__[key]
 
     def __delitem__(self, key):
         del self.__dict__[key]
@@ -360,8 +351,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
         """return values for these keys as a list"""
         if keys is None:
             keys = list(self)
-        result = [self[key] for key in keys]
-        return result
+        return [self[key] for key in keys]
 
     def to_array(self, keys=None):
         """return just these keys as an array"""
@@ -376,8 +366,7 @@ class CategoryFreqs(MutableMapping, SummaryStatBase):
 
     def to_normalized(self):
         """returns rescaled self so sum is 1"""
-        result = CategoryFreqs(self, total=self.sum, assert_unity=True)
-        return result
+        return CategoryFreqs(self, total=self.sum, assert_unity=True)
 
 
 class NumberCounter(CategoryCounter):

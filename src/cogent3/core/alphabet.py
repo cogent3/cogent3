@@ -239,8 +239,7 @@ class Enumeration(tuple):
         would produce the result [1,1,2,0], returning the index of each
         element in the input.
         """
-        result = [self._obj_to_index[e] for e in data]
-        return result
+        return [self._obj_to_index[e] for e in data]
 
     def is_valid(self, seq):
         """Returns True if seq contains only items in self."""

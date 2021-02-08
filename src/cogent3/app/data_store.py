@@ -151,8 +151,7 @@ class ReadOnlyDataStoreBase:
         self._checksums = {}
 
     def __getstate__(self):
-        data = self._persistent.copy()
-        return data
+        return self._persistent.copy()
 
     def __setstate__(self, data):
         new = self.__class__(**data)
@@ -168,8 +167,7 @@ class ReadOnlyDataStoreBase:
 
         num = len(self)
         name = self.__class__.__name__
-        txt = f"{num}x member {name}(source='{self.source}', members={sample})"
-        return txt
+        return f"{num}x member {name}(source='{self.source}', members={sample})"
 
     def __str__(self):
         return str(list(self))
@@ -328,8 +326,7 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
         if not os.path.exists(identifier):
             raise ValueError(f"path '{identifier}' does not exist")
 
-        infile = open_(identifier)
-        return infile
+        return open_(identifier)
 
 
 class SingleReadDataStore(ReadOnlyDirectoryDataStore):
@@ -448,8 +445,7 @@ class WritableDataStoreBase:
     def make_absolute_identifier(self, data):
         """returns a absolute identifier for a new member, includes source"""
         basename = self.make_relative_identifier(data)
-        identifier = self.get_absolute_identifier(basename, from_relative=True)
-        return identifier
+        return self.get_absolute_identifier(basename, from_relative=True)
 
     def add_file(self, path, make_unique=True, keep_suffix=True, cleanup=False):
         """
@@ -846,8 +842,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ]
             rows.append(row)
 
-        table = Table(header=header, data=rows, title="incomplete records")
-        return table
+        return Table(header=header, data=rows, title="incomplete records")
 
     @property
     def members(self):
@@ -952,12 +947,11 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
                 ]
             )
             rows.append(row)
-        table = Table(
+        return Table(
             header=["time", "name", "python version", "who", "command", "composable"],
             data=rows,
             title="summary of log files",
         )
-        return table
 
     @property
     def describe(self):
@@ -972,7 +966,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         num_incomplete = len(self.incomplete)
         num_complete = len(self.members)
         num_logs = len(self.logs)
-        summary = Table(
+        return Table(
             header=["record type", "number"],
             data=[
                 ["completed", num_complete],
@@ -981,7 +975,6 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ],
             title=title,
         )
-        return summary
 
 
 class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
@@ -1039,9 +1032,7 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
         record = make_record_for_json(relative_id, not_completed, False)
         doc_id = self.db.insert(record)
 
-        member = DataStoreMember(relative_id, self, id=doc_id)
-
-        return member
+        return DataStoreMember(relative_id, self, id=doc_id)
 
     def add_file(self, path, make_unique=True, keep_suffix=True, cleanup=False):
         """

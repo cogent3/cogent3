@@ -25,9 +25,7 @@ def pog_traceback(pogs, aligned_positions):
     for dim in [0, 1]:
         align_builder.add_skipped(dim, upto[dim], len(pogs[dim]))
 
-    result_pog = align_builder.get_pog()
-
-    return result_pog
+    return align_builder.get_pog()
 
 
 class POGBuilder(object):

@@ -99,8 +99,7 @@ class PredicateAlias(predicate):
         return self.name
 
     def interpret(self, model):
-        subpred = self.subpredicate.interpret(model)
-        return subpred
+        return self.subpredicate.interpret(model)
 
 
 class _UnaryPredicate(predicate):

@@ -60,6 +60,11 @@ class UnionDict(dict):
 
         self.update({key: value})
 
+    def __or__(self, other):
+        result = self.__class__(self)
+        result.union(other)
+        return result
+
     def __ior__(self, other):
         self.union(other)
         return self

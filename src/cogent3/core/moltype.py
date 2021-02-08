@@ -1112,8 +1112,7 @@ class MolType(object):
         if include_gap:
             degen.append(self.gap)
 
-        pos = [i for i, c in enumerate(sequence) if c in degen]
-        return pos
+        return [i for i, c in enumerate(sequence) if c in degen]
 
     def count_degenerate(self, sequence):
         """Counts the degenerate bases in the specified sequence."""

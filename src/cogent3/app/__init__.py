@@ -64,5 +64,4 @@ def available_apps():
         )
     )
     header = ["module", "name", "composable", "doc", "inputs", "outputs", "data type"]
-    table = Table(header, rows)
-    return table
+    return Table(header, rows)

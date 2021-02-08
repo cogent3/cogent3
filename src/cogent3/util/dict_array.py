@@ -249,8 +249,7 @@ class NumericKey(int):
     """a distinct numerical type for use as a DictArray key"""
 
     def __new__(cls, val):
-        result = int.__new__(cls, val)
-        return result
+        return int.__new__(cls, val)
 
 
 class DictArrayTemplate(object):
@@ -428,13 +427,12 @@ class DictArray(object):
 
     def to_rich_dict(self):
         data = self.array.tolist()
-        result = {
+        return {
             "type": get_object_provenance(self.template),
             "array": data,
             "names": self.template.names,
             "version": __version__,
         }
-        return result
 
     def to_json(self):
         return json.dumps(self.to_rich_dict())

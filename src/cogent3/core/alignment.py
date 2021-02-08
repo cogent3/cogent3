@@ -528,8 +528,7 @@ class _SequenceCollectionBase:
         """Returns self in FASTA-format, respecting name order."""
         from cogent3.format.alignment import FORMATTERS
 
-        fasta = FORMATTERS["fasta"](self.to_dict())
-        return fasta
+        return FORMATTERS["fasta"](self.to_dict())
 
     def _make_named_seqs(self, names, seqs):
         """Returns named_seqs: dict of name:seq."""
@@ -555,8 +554,7 @@ class _SequenceCollectionBase:
 
     def copy(self):
         """Returns deep copy of self."""
-        result = self.__class__(self, moltype=self.moltype, info=self.info)
-        return result
+        return self.__class__(self, moltype=self.moltype, info=self.info)
 
     def deepcopy(self, sliced=True):
         """Returns deep copy of self."""
@@ -1427,8 +1425,7 @@ class _SequenceCollectionBase:
         counts = self.counts_per_seq(
             motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
         )
-        lengths = counts.row_sum()
-        return lengths
+        return counts.row_sum()
 
     def counts_per_seq(
         self,
@@ -1613,8 +1610,9 @@ class _SequenceCollectionBase:
             raise ValueError(f"unknown moltype '{moltype}'")
 
         data = [s.to_moltype(moltype) for s in self.seqs]
-        new = self.__class__(data=data, moltype=moltype, name=self.name, info=self.info)
-        return new
+        return self.__class__(
+            data=data, moltype=moltype, name=self.name, info=self.info
+        )
 
     def to_dna(self):
         """returns copy of self as an alignment of DNA moltype seqs"""
@@ -1704,11 +1702,7 @@ class _SequenceCollectionBase:
 
     def strand_symmetry(self, motif_length=1):
         """returns dict of strand symmetry test results per seq"""
-        result = {
-            s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs
-        }
-
-        return result
+        return {s.name: s.strand_symmetry(motif_length=motif_length) for s in self.seqs}
 
     def dotplot(
         self,
@@ -2200,8 +2194,7 @@ class Aligned(object):
         return self.__class__(map=self.map, data=data)
 
     def remapped_to(self, map):
-        result = Aligned(map[self.map.inverse()].inverse(), self.data)
-        return result
+        return Aligned(map[self.map.inverse()].inverse(), self.data)
 
     def get_annotations_matching(self, alignment, annotation_type="*", **kwargs):
         for annot in self.data.get_annotations_matching(
@@ -2533,8 +2526,7 @@ class AlignmentI(object):
             chars = list(map(alpha.index, chars))
 
         predicate = AllowedCharacters(chars, is_array=is_array)
-        new = self.filtered(predicate, motif_length=motif_length)
-        return new
+        return self.filtered(predicate, motif_length=motif_length)
 
     def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
@@ -3189,8 +3181,7 @@ class AlignmentI(object):
                 moltype = ArrayAlignment.moltype if array_align else Alignment.moltype
             else:
                 moltype = self.moltype
-        new = klass(data=data, moltype=moltype, info=self.info, names=self.names)
-        return new
+        return klass(data=data, moltype=moltype, info=self.info, names=self.names)
 
     def distance_matrix(self, calc="percent", show_progress=False, drop_invalid=False):
         """Returns pairwise distances between sequences.
@@ -3999,14 +3990,13 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             wrapped_locations = locations.reshape((n, motif_length))
             wrapped_locations += arange(motif_length)
         positions = take(self.array_positions, locations, 0)
-        result = self.__class__(
+        return self.__class__(
             positions.T,
             moltype=self.moltype,
             force_same_data=True,
             info=self.info,
             names=self.names,
         )
-        return result
 
     def filtered(self, predicate, motif_length=1, drop_remainder=True, **kwargs):
         """The alignment positions where predicate(column) is true.
@@ -4048,14 +4038,13 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             return None
 
         positions = self.array_seqs.take(indices, axis=1)
-        result = self.__class__(
+        return self.__class__(
             positions,
             force_same_data=True,
             moltype=self.moltype,
             info=self.info,
             names=self.names,
         )
-        return result
 
     def get_gapped_seq(self, seq_name, recode_gaps=False, moltype=None):
         """Return a gapped Sequence object for the specified seqname.
@@ -4218,8 +4207,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         new = new.add_from_ref_aln(
             ref_aln, before_name=before_name, after_name=after_name
         )
-        result = new.to_type(array_align=True, moltype=self.moltype)
-        return result
+        return new.to_type(array_align=True, moltype=self.moltype)
 
     def replace_seqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.
@@ -4770,9 +4758,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                     self.__class__({new_seq.name: str(new_seq)})
                 )
 
-        aln = self.add_seqs(temp_aln, before_name, after_name)
-
-        return aln
+        return self.add_seqs(temp_aln, before_name, after_name)
 
     def replace_seqs(self, seqs, aa_to_codon=True):
         """Returns new alignment with same shape but with data taken from seqs.

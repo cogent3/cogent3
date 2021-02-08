@@ -69,8 +69,7 @@ def deserialise_not_completed(data):
     init = data.pop("not_completed_construction")
     args = init.pop("args")
     kwargs = init.pop("kwargs")
-    result = klass(*args, **kwargs)
-    return result
+    return klass(*args, **kwargs)
 
 
 def deserialise_map_spans(map_element):
@@ -84,8 +83,7 @@ def deserialise_map_spans(map_element):
         spans.append(instance)
 
     map_element["spans"] = spans
-    map_instance = map_klass(**map_element)
-    return map_instance
+    return map_klass(**map_element)
 
 
 def deserialise_annotation(data, parent):
