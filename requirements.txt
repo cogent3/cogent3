@@ -1,7 +1,7 @@
 chardet==4.0.0
 pillow==8.1.0
 psutil==5.8.0
-scipy==1.5.4
+scipy==1.6.1
 tox==3.22.0
 tox-gh-actions==2.4.0
 .[dev]
