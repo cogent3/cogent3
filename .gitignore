@@ -38,6 +38,8 @@ tests/draw_results
 .idea/*
 .DS_Store
 __pycache__
+*.code-workspace
+*.wpu
 
 # vi
 .*.swp

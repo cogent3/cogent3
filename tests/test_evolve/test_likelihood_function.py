@@ -1146,8 +1146,6 @@ DogFaced     root      1.0000    1.0000
         glf.set_alignment(_aln)
         glf.set_name("GSN")
         glf.initialise_from_nested(slf)
-        print(slf)
-        print(glf)
         assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
     def test_initialise_from_nested_same_type_tr(self):
