@@ -416,11 +416,31 @@ class NonScalarDefn(_InputDefn):
         pass
 
 
-def _proportions(total, params):
-    """List of N proportions from N-1 ratios
+def _proportions(total, params) -> list:
+    """Produces a list of N proportions from N-1 ratios and a total
 
+    A recursive function that is the inverse of _unpack_proportions.
+
+    Paramters
+    ---------
+    total: int
+         The sum of `values` the array put into _unpack_proportions
+
+    params: sequence
+          The sequence output by _unpack_proportions, with int values
+          between 0 and infinity
+
+    Returns
+    -------
+    sequence: The `values` , the array that was put into
+    _unpack_proportions to get `params`
+
+    Examples
+    --------
     >>> _proportions(1.0, [3, 1, 1])
-    [0.125, 0.125, 0.375, 0.375]"""
+    [0.125, 0.125, 0.375, 0.375]
+    """
+
     if len(params) == 0:
         return [total]
     half = (len(params) + 1) // 2
@@ -430,8 +450,42 @@ def _proportions(total, params):
     )
 
 
-def _unpack_proportions(values):
-    """List of N-1 ratios from N proportions"""
+def _unpack_proportions(values) -> list:
+    """Produces a list of N-1 ratios from N proportions
+
+    An invertible map that takes `values` an array of N numbers between 0 and total
+    whose sum is total to an array of N-1 numbers between 0 and infinity.
+
+    Parameters
+    ----------
+    values: sequence
+        A sequence of N ints, where the ints
+        have values between 0 and 1 (non inclusive).
+
+    Raises
+    ------
+    AssertionError Exception
+         Raises if there will be a negative or 0 value in the output array.
+
+    Returns
+    -------
+    list: returns a list of size N-1 ints, where the unts take values
+    between 0 and infinity.
+
+    Notes:
+    ------
+    The function recursively halves the list into left side and right
+    side (in that order) and for each halving divides the sum of the right half by the
+    sum of the left half and adds the resulting value to the returned list.
+
+    Examples
+    -------
+    >>> _unpack_proportions([0.125, 0.125, 0.375, 0.375])
+    [3, 1, 1]
+
+    >>> _unpack_proportions([0.1, 0.2, 0.9, 0])
+    AssertionError
+    """
     if len(values) == 1:
         return []
     half = len(values) // 2
