@@ -162,5 +162,36 @@ class ArrayMathTests(TestCase):
         assert_equal(column_degeneracy(array([[]])), [])
 
 
+class TestUtils(TestCase):
+    def test_proportions_and_ratios(self):
+        """interconverts proportions and ratios"""
+        from cogent3.maths.util import (
+            proportions_to_ratios,
+            ratios_to_proportions,
+        )
+
+        probs = array([0.3, 0.1, 0.1, 0.5])
+        ratios = proportions_to_ratios(probs)
+        assert_allclose(ratios, [0.6 / 0.4, 0.1 / 0.3, 0.5 / 0.1])
+
+        probs = array([0.3, 0.1, 0.6])
+        ratios = proportions_to_ratios(probs)
+        assert_allclose(ratios, [0.7 / 0.3, 0.6 / 0.1])
+
+        got = ratios_to_proportions(1, ratios)
+        assert_allclose(got, probs)
+
+        probs = array([0.3, 0.1, -0.1, 0.5])
+        with self.assertRaises(AssertionError):
+            proportions_to_ratios(probs)
+
+        probs = array([0.3, 0.1, 0.0, 0.5])
+        with self.assertRaises(AssertionError):
+            proportions_to_ratios(probs)
+
+        with self.assertRaises(AssertionError):
+            ratios_to_proportions(1.0, [2.3, 1.1, -0.3])
+
+
 if __name__ == "__main__":
     main()
