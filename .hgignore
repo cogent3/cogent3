@@ -29,3 +29,4 @@ draw_results
 *.code-workspace
 coverage.xml
 __pycache__
+junit-*.xml
