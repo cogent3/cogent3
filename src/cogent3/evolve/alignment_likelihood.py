@@ -1,9 +1,8 @@
-from cogent3 import (
-    DNA,
-    make_aligned_seqs,
-
-)
 import math
+
+from cogent3 import DNA, make_aligned_seqs
+
+
 def logLikelihood(pi, rateMatrix, alignment):
     """Produced a log-likelihood of an unrooted tree of three DNA sequences
 
@@ -31,15 +30,22 @@ def logLikelihood(pi, rateMatrix, alignment):
     """
     probability = 1
     length = len(alignment)
-    for i in range(0,length):
-            probability *= probabilityPosition(pi, rateMatrix, alignment[i])
+    for i in range(0, length):
+        probability *= probabilityPosition(pi, rateMatrix, alignment[i])
     return math.log10(probability)
+
 
 def probabilityPosition(pi, rm, alnCol):
     probability = 0
-    for i in range(0,4):
-        probability += pi[i]*rm[i][baseToPos(alnCol.seqs[0])]*rm[i][baseToPos(alnCol.seqs[1])]*rm[i][baseToPos(alnCol.seqs[2])]
-    return (probability)    
+    for i in range(0, 4):
+        probability += (
+            pi[i]
+            * rm[i][baseToPos(alnCol.seqs[0])]
+            * rm[i][baseToPos(alnCol.seqs[1])]
+            * rm[i][baseToPos(alnCol.seqs[2])]
+        )
+    return probability
+
 
 def baseToPos(base):
     if base == "T":
