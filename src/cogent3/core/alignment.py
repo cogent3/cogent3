@@ -472,6 +472,7 @@ class _SequenceCollectionBase:
             data = list(data)
         # set the name
         self.name = name
+        names = list(names) if names is not None else names
         # figure out alphabet and moltype
         self.alphabet, self.moltype = self._get_alphabet_and_moltype(
             alphabet, moltype, data

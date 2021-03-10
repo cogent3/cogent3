@@ -43,6 +43,7 @@ def _get_all_composables(tmp_dir_name):
         sample.omit_duplicated(),
         sample.take_codon_positions(1),
         sample.take_named_seqs(),
+        sample.take_n_seqs(2),
         sample.trim_stop_codons(gc=1),
         translate.select_translatable(),
         tree.quick_tree(),
