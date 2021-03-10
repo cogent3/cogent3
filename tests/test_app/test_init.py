@@ -52,7 +52,7 @@ def _get_all_composables(tmp_dir_name):
     return applications
 
 
-class TestAvalableApps(TestCase):
+class TestAvailableApps(TestCase):
     def test_available_apps(self):
         """available_apps returns a table"""
         from cogent3.util.table import Table
