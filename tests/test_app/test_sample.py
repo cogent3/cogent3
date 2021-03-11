@@ -449,6 +449,70 @@ class TranslateTests(TestCase):
         expect = {"seq1": "AAATTTCCC", "seq2": "AAATTT"}
         self.assertEqual(got.to_dict(), expect)
 
+    def test_take_n_seqs(self):
+        """select specified number of sequences from a collection"""
+        seqs1 = make_unaligned_seqs(
+            data={
+                "a": "ACGT",
+                "b": "ACG-",
+                "c": "ACGN",
+                "d": "ACGG",
+                "e": "ACGG",
+                "k": "ACGG",
+                "f": "RAAA",
+                "g": "YAAA",
+                "h": "GGGG",
+            }
+        )
+        seqs2 = seqs1.take_seqs(["a", "c", "e", "g", "h"])
+
+        # by order, fixed
+        take = sample.take_n_seqs(3, fixed_choice=True)
+        got = take(seqs1)
+        self.assertEqual(len(got.names), 3)
+        # this should return NotCompleted because it applies the names present in 1 to the next one
+        got = take(seqs2)
+        self.assertIsInstance(got, NotCompleted)
+
+        take = sample.take_n_seqs(30)
+        # this should fail because too few seqs
+        got = take(seqs1)
+        self.assertIsInstance(got, NotCompleted)
+
+        # by order, not fixed
+        take = sample.take_n_seqs(3, fixed_choice=False)
+        got1 = take(seqs1)
+        got2 = take(seqs2)
+        self.assertNotEqual(set(got1.names), set(got2.names))
+
+        # random choice, fixed
+        take = sample.take_n_seqs(3, random=True, fixed_choice=True)
+        self.assertEqual(take._fixed_choice, True)
+
+        got1 = take(seqs2)
+        got2 = take(seqs1)
+        self.assertEqual(got1.names, got2.names)
+
+        # random choice, not fixed
+        take = sample.take_n_seqs(2, random=True, fixed_choice=False)
+        self.assertEqual(take._fixed_choice, False)
+        # testing this is hard, we simply expect the labels to differ on subsequent call
+        # the probability of drawing a specific pair of names on one call is 1/(9 choose 2) = 1/36
+        # at n = 11, the probability all the pairs will be identical is ~=0
+        first_call = take(seqs1)
+        for _ in range(11):
+            got = take(seqs1)
+            different = first_call.names != got.names
+            if different:
+                break
+
+        self.assertTrue(different, msg="failed to generate different random sample")
+
+        # try setting the seed
+        take = sample.take_n_seqs(2, random=True, seed=123)
+        got = take(seqs1)
+        self.assertNotIsInstance(got, NotCompleted)
+
 
 if __name__ == "__main__":
     main()
