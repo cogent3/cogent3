@@ -21,7 +21,7 @@ from cogent3.core.alphabet import (
     uint16,
     uint32,
 )
-from cogent3.core.moltype import RNA
+from cogent3.core.moltype import RNA, get_moltype
 
 
 DnaBases = CharAlphabet("TCAG")
@@ -287,6 +287,20 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(len(rt), 64)
         rt2 = r.Triples
         self.assertIs(rt, rt2)
+
+    def test_from_seq_to_array(self):
+        """convert a sequence into indices"""
+        dna = get_moltype("dna")
+        seq = dna.make_seq("ACGG")
+        got = dna.alphabet.from_seq_to_array(seq)
+        assert_equal(got, array([dna.alphabet.index(b) for b in seq]))
+
+    def test_from_ordinals_to_seq(self):
+        """check indices convert to a sequence"""
+        indices = [2, 1, 3, 3]
+        dna = get_moltype("dna")
+        got = dna.alphabet.from_ordinals_to_seq(indices)
+        self.assertEqual(got, dna.make_seq("ACGG"))
 
 
 class JointEnumerationTests(TestCase):

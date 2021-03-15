@@ -263,18 +263,7 @@ class Enumeration(tuple):
 
         """
         # if it's a normal Python type, map will work
-        try:
-            return list(map(self.__getitem__, data))
-        # otherwise, it's probably an array object.
-        except TypeError:
-            try:
-                data = list(map(int, data))
-            except (TypeError, ValueError):  # might be char array?
-                print("DATA", data)
-                print("FIRST MAP:", list(map(str, data)))
-                print("SECOND MAP:", list(map(ord, list(map(str, data)))))
-                data = list(map(ord, list(map(str, data))))
-            return list(map(self.__getitem__, data))
+        return [self[index] for index in data]
 
     def __pow__(self, num):
         """Returns JointEnumeration with num copies of self.
