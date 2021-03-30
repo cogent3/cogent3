@@ -85,7 +85,7 @@ setup(
     install_requires=[
         "numpy",
         "numba>0.48.0;python_version<'3.9'",
-        "numba@git+https://github.com/numba/numba.git@a3d29a7f4b354ca99df3ba567f69e7cf84ce9ebd#egg=numba-0.53.0rc1 ; python_version>='3.9'",
+        "numba>0.53; python_version>='3.9'",
         "scitrack",
         "tqdm",
         "tinydb",
