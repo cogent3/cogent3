@@ -263,18 +263,7 @@ class Enumeration(tuple):
 
         """
         # if it's a normal Python type, map will work
-        try:
-            return list(map(self.__getitem__, data))
-        # otherwise, it's probably an array object.
-        except TypeError:
-            try:
-                data = list(map(int, data))
-            except (TypeError, ValueError):  # might be char array?
-                print("DATA", data)
-                print("FIRST MAP:", list(map(str, data)))
-                print("SECOND MAP:", list(map(ord, list(map(str, data)))))
-                data = list(map(ord, list(map(str, data))))
-            return list(map(self.__getitem__, data))
+        return [self[index] for index in data]
 
     def __pow__(self, num):
         """Returns JointEnumeration with num copies of self.
@@ -594,11 +583,20 @@ class Alphabet(Enumeration):
     def from_seq_to_array(self, sequence):
         """Returns an array of indices corresponding to items in sequence.
 
+        Parameters
+        ----------
+        sequence: Sequence
+         A cogent3 sequence object
+
+        Returns
+        -------
+        ndarray
+
+        Notes
+        -----
         Unlike to_indices() in superclass, this method returns a numpy array
         object. It also breaks the seqeunce into items in the current alphabet
         (e.g. breaking a raw DNA sequence into codons), which to_indices() does
-        not do. It also requires the sequence to be a Sequence object rather
-        than an arbitrary string, tuple, etc.
         """
         sequence = sequence.get_in_motif_size(self._motiflen)
         return array(list(map(self.index, sequence)))
@@ -606,9 +604,21 @@ class Alphabet(Enumeration):
     def from_ordinals_to_seq(self, data):
         """Returns a Sequence object corresponding to indices in data.
 
-        Unlike from_indices() in superclass, this method uses the MolType to
-        coerce the result into a sequence of the correct class. Note that if
-        the MolType is not set, this method will raise an AttributeError.
+        Parameters
+        ----------
+        data: series
+            series of int
+
+        Returns
+        -------
+        Sequence with self.moltype
+
+        Notes
+        -----
+        Unlike from_indices(), this method uses the MolType to
+        coerce the result into a sequence of the correct class.
+
+        Raises an AttributeError if MolType is not set.
         """
         result = ""
         return self.moltype.make_seq("".join(self[i] for i in data))
