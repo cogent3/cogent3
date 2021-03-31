@@ -175,7 +175,7 @@ class model(ComposableModel):
             lf.apply_param_rules([rule])
 
         if initialise:
-            initialise(lf, identifier)
+            lf = initialise(lf, identifier)
 
         self._lf = lf
 
@@ -278,7 +278,6 @@ class hypothesis(ComposableHypothesis):
         To stop the null MLEs from being used, provide a lambda function that
         just returns the likelihood function, e.g. init_alt=lambda lf, identifier: lf
         """
-        # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
@@ -305,7 +304,7 @@ class hypothesis(ComposableHypothesis):
             return alt
 
         if callable(self._init_alt):
-            init_func = self._init_alt(null)
+            init_func = self._init_alt
         else:
             init_func = init
 

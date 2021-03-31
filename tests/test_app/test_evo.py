@@ -56,6 +56,27 @@ class TestModel(TestCase):
         with self.assertRaises(ValueError):
             hyp = evo_app.hypothesis(model1, model2)
 
+    def test_hyp_init(self):
+        """uses user specified init_alt function, or not"""
+        opt_args = dict(max_evaluations=25, limit_action="ignore")
+        model1 = evo_app.model("F81", opt_args=opt_args)
+        model2 = evo_app.model("HKY85", opt_args=opt_args)
+        # defaults to using null for init
+        hyp = evo_app.hypothesis(model1, model2)
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        result = hyp(aln)
+        self.assertEqual(result.df, 1)
+
+        # user specified function
+        hyp = evo_app.hypothesis(model1, model2, init_alt=lambda x, y: x)
+        result = hyp(aln)
+        self.assertEqual(result.df, 1)
+
     def test_model_time_het(self):
         """support lf time-het argument edge_sets"""
         _data = {
