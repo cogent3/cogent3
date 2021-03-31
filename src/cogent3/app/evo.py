@@ -71,10 +71,10 @@ class model(ComposableModel):
             instance.
         name
             name of the model
-        sm_args
+        sm_args : dict
             arguments to be passed to the substitution model constructor, e.g.
             dict(optimise_motif_probs=True)
-        lf_args
+        lf_args : dict
             arguments to be passed to the likelihood function constructor
         time_het
             'max' or a list of dicts corresponding to edge_sets, e.g.
@@ -84,7 +84,7 @@ class model(ComposableModel):
         param_rules
             other parameter rules, passed to the likelihood function
             set_param_rule() method
-        opt_args
+        opt_args : dict
             arguments for the numerical optimiser, e.g.
             dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
             limit_action='ignore')
@@ -175,7 +175,7 @@ class model(ComposableModel):
             lf.apply_param_rules([rule])
 
         if initialise:
-            initialise(lf, identifier)
+            lf = initialise(lf, identifier)
 
         self._lf = lf
 
@@ -269,10 +269,15 @@ class hypothesis(ComposableHypothesis):
             The alternate model or a series of them
         init_alt : callable
             A callback function for initialising the alternate model
-            likelihood function prior to optimisation. Defaults to using
-            MLEs from the null model.
+            likelihood function prior to optimisation. It must take 2 input
+            arguments and return the modified alternate likelihood function.
+            Default is to use MLEs from the null model.
+
+        Notes
+        -----
+        To stop the null MLEs from being used, provide a lambda function that
+        just returns the likelihood function, e.g. init_alt=lambda lf, identifier: lf
         """
-        # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
@@ -299,7 +304,7 @@ class hypothesis(ComposableHypothesis):
             return alt
 
         if callable(self._init_alt):
-            init_func = self._init_alt(null)
+            init_func = self._init_alt
         else:
             init_func = init
 
