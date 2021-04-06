@@ -282,7 +282,7 @@ class Columns(MutableMapping):
         return len(self._order)
 
     def __setitem__(self, key, val):
-        key = str(key)
+        key = str(key).strip()
         if isinstance(val, str):
             val = [val]
         try:
