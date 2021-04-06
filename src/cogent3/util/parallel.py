@@ -15,6 +15,8 @@ import numpy
 from cogent3.util.misc import extend_docstring_from
 
 
+multiprocessing.set_start_method("fork")
+
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2020, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh", "Gavin Huttley"]
