@@ -414,19 +414,17 @@ class WritableDataStoreBase:
 
     def make_relative_identifier(self, data):
         """returns identifier for a new member relative to source"""
+        from cogent3.app.composable import _get_source
+
         if isinstance(data, DataStoreMember):
             data = data.name
         elif type(data) != str:
-            try:
-                data = data.info.source
-            except AttributeError:
-                try:
-                    data = data.source
-                except AttributeError:
-                    raise ValueError(
-                        "objects for storage require either a "
-                        "source or info.source string attribute"
-                    )
+            data = _get_source(data)
+            if data is None:
+                raise ValueError(
+                    "objects for storage require either a "
+                    "source or info.source string attribute"
+                )
         basename = os.path.basename(data)
         suffix, comp = get_format_suffixes(basename)
         if suffix and comp:

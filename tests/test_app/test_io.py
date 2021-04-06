@@ -4,10 +4,10 @@ import pathlib
 import shutil
 import zipfile
 
-from os.path import basename, join
+from os.path import join
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import numpy
 
@@ -456,30 +456,31 @@ class TestIo(TestCase):
         """correctly writes an object with info attribute from json"""
         # create a mock object that pretends like it's been derived from
         # something
-        from cogent3.util.union_dict import UnionDict
+        from cogent3.app.result import generic_result
 
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme")
-            mock = Mock()
-            mock.to_rich_dict = DNA.to_rich_dict
-            mock.info = UnionDict(source=join("blah", "delme.json"))
+
+            obj = generic_result(source=join("blah", "delme.json"))
+            obj["dna"] = DNA
             writer = io_app.write_json(outdir, create=True)
-            _ = writer(mock)
+            _ = writer(obj)
             reader = io_app.load_json()
             got = reader(join(outdir, "delme.json"))
-            self.assertEqual(got, DNA)
+            got.deserialised_values()
+            self.assertEqual(got["dna"], DNA)
 
         # now with a zipped archive
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme.zip")
-            mock = Mock()
-            mock.to_rich_dict = DNA.to_rich_dict
-            mock.info = UnionDict(source=join("blah", "delme.json"))
+            obj = generic_result(source=join("blah", "delme.json"))
+            obj["dna"] = DNA
             writer = io_app.write_json(outdir, create=True)
-            identifier = writer(mock)
+            identifier = writer(obj)
             reader = io_app.load_json()
             got = reader(writer.data_store[0])
-            self.assertEqual(got, DNA)
+            got.deserialised_values()
+            self.assertEqual(got["dna"], DNA)
             expect = join(outdir.replace(".zip", ""), "delme.json")
             if expect.startswith("." + os.sep):
                 expect = expect[2:]
