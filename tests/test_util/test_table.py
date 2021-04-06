@@ -1393,6 +1393,18 @@ class TableTests(TestCase):
         with self.assertRaises(TypeError):
             load_table({"a": [0, 1]})
 
+    def test_make_table_white_space_in_column(self):
+        """strips white space from column headers"""
+        # matching header and data keys
+        t = make_table(header=[" a"], data={" a": [0, 2]}, sep="\t")
+        self.assertEqual(t.columns["a"].tolist(), [0, 2])
+        self.assertIsInstance(t.to_string(), str)
+
+        # data key has a space
+        t = make_table(data={" a": [0, 2]}, sep="\t")
+        self.assertEqual(t.columns["a"].tolist(), [0, 2])
+        self.assertIsInstance(t.to_string(), str)
+
     def test_load_table_filename_case(self):
         """load_table insensitive to file name case"""
         with TemporaryDirectory(".") as dirname:
