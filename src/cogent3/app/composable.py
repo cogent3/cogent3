@@ -50,15 +50,16 @@ def _make_logfile_name(process):
 
 def _get_source(source):
     if isinstance(source, str):
-        result = str(source)
-    else:
+        return str(source)
+
+    # todo maybe a dict? see about getting keys
+    try:
+        result = source.source
+    except AttributeError:
         try:
-            result = source.source
+            result = source.info.source
         except AttributeError:
-            try:
-                result = source.info.source
-            except AttributeError:
-                result = None
+            result = None
     return result
 
 
