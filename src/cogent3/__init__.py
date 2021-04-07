@@ -506,7 +506,7 @@ def load_table(
             sep = sep or "\t"
 
         header, rows, loaded_title, legend = load_delimited(
-            filename, delimiter=sep, limit=limit, **kwargs
+            filename, sep=sep, limit=limit, **kwargs
         )
         if skip_inconsistent:
             num_fields = len(header)
