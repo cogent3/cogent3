@@ -39,7 +39,7 @@ To create a table from the follow examples, you specify your header and use ``ma
 Using ``load_delimited()``
 --------------------------
 
-This is just a standard parsing function which doesn't do any filtering, or casting elements.
+This is just a standard parsing function which does not do any filtering or converting elements to non-string types.
 
 .. jupyter-execute::
 
@@ -56,7 +56,7 @@ Using ``FilteringParser``
     from cogent3.parse.table import FilteringParser
     
     reader = FilteringParser(with_header=False, sep="\t")
-    rows = list(parser("data/CerebellumDukeDNaseSeq.pk"))
+    rows = list(reader("data/CerebellumDukeDNaseSeq.pk"))
     rows[:4]
 
 Selectively loading parts of a big file
