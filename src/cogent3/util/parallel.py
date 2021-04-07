@@ -143,7 +143,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         elif COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == "warn":
             warnings.warn(err_msg, UserWarning)
 
-        max_workers = max_workers or 0
+        max_workers = max_workers or 1
 
         if max_workers > COMM.Get_attr(MPI.UNIVERSE_SIZE):
             warnings.warn(
@@ -151,7 +151,6 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
             )
 
         max_workers = min(max_workers, COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1)
-
         if not chunksize:
             chunksize = set_default_chunksize(s, max_workers)
 
