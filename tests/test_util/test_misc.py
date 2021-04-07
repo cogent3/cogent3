@@ -651,6 +651,24 @@ class AtomicWriteTests(TestCase):
                     raise AssertionError
             self.assertFalse(test_filepath.exists())
 
+    def test_writes_compressed_formats(self):
+        """correctly writes / reads different compression formats"""
+        fpath = pathlib.Path("data/sample.tsv")
+        with open(fpath) as infile:
+            expect = infile.read()
+
+        with tempfile.TemporaryDirectory(".") as dirname:
+            dirname = pathlib.Path(dirname)
+            for suffix in ["gz", "bz2", "zip"]:
+                outpath = dirname / f"{fpath.name}.{suffix}"
+                with atomic_write(outpath, mode="wt") as f:
+                    f.write(expect)
+
+                with open_(outpath) as infile:
+                    got = infile.read()
+
+                self.assertEqual(got, expect, msg=f"write failed for {suffix}")
+
     def test_rename(self):
         """Renames file as expected """
         # create temp file directory
