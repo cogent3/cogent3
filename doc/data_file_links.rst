@@ -54,3 +54,5 @@ All data files referred to in the documentation can be download by clicking on t
 :download:`tbp.jaspar <data/tbp.jaspar>`
 
 :download:`stats.tsv <data/stats.tsv>`
+
+:download:`CerebellumDukeDNaseSeq.pk <data/CerebellumDukeDNaseSeq.pk>`

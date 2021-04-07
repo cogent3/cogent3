@@ -31,6 +31,34 @@ Although unnecessary in this case, it's possible to override the suffix by speci
     table = load_table("data/stats.tsv", sep="\t")
     table
 
+Loading delimited data without a header line
+============================================
+
+To create a table from the follow examples, you specify your header and use ``make_table()``.
+
+Using ``load_delimited()``
+--------------------------
+
+This is just a standard parsing function which does not do any filtering or converting elements to non-string types.
+
+.. jupyter-execute::
+
+    from cogent3.parse.table import load_delimited
+
+    header, rows, title, legend = load_delimited("data/CerebellumDukeDNaseSeq.pk", header=False, sep="\t")
+    rows[:4]
+
+Using ``FilteringParser``
+-------------------------
+
+.. jupyter-execute::
+
+    from cogent3.parse.table import FilteringParser
+    
+    reader = FilteringParser(with_header=False, sep="\t")
+    rows = list(reader("data/CerebellumDukeDNaseSeq.pk"))
+    rows[:4]
+
 Selectively loading parts of a big file
 =======================================
 
