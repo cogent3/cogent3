@@ -6,7 +6,7 @@ import pathlib
 from collections.abc import Callable
 
 from cogent3.util.misc import open_
-from cogent3.util.warning import discontinued
+from cogent3.util.warning import deprecated, discontinued
 
 from .record_finder import is_empty
 
@@ -129,16 +129,47 @@ class FilteringParser:
 def load_delimited(
     filename,
     header=True,
-    delimiter=",",
+    sep=",",
+    delimiter=None,
     with_title=False,
     with_legend=False,
     limit=None,
 ):
+    """
+    basic processing of tabular data
+
+    Parameters
+    ----------
+    filename: Path
+        path to delimited file
+    header: bool
+        whether the first line of the file (after the title, if present) is a header
+    sep: str
+        the character separating columns
+    with_title: bool
+        whether the first line of the file is a title
+    with_legend: bool
+        whether the last line of the file is a title
+    limit: int
+        how many lines to read
+
+    Returns
+    -------
+    header, rows, title, legend
+
+    Notes
+    -----
+    All row values remain as strings.
+    """
+    if delimiter:
+        sep = delimiter
+        deprecated("argument", "delimiter", "sep", "2022.1")
+
     if limit is not None:
         limit += 1  # don't count header line
 
     with open_(filename) as f:
-        reader = csv.reader(f, dialect="excel", delimiter=delimiter)
+        reader = csv.reader(f, dialect="excel", delimiter=sep)
         title = "".join(next(reader)) if with_title else ""
         rows = []
         num_lines = 0

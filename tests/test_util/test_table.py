@@ -1376,6 +1376,26 @@ class TableTests(TestCase):
                     [v["values"] for v in data["columns"].values()],
                 )
 
+    def test_write_compressed(self):
+        """tests writing to compressed format"""
+        t = load_table("data/sample.tsv")
+        with open("data/sample.tsv") as infile:
+            expect = infile.read()
+
+        with TemporaryDirectory(".") as dirname:
+            path = pathlib.Path(dirname) / "table.txt"
+            # using the compressed option
+            t.write(path, sep="\t", compress=True)
+            with open_(f"{path}.gz") as infile:
+                got = infile.read()
+            self.assertEqual(got, expect)
+
+            # specifying via a suffix
+            t.write(f"{path}.gz", sep="\t")
+            with open_(f"{path}.gz") as infile:
+                got = infile.read()
+            self.assertEqual(got, expect)
+
     def test_load_table_from_json(self):
         """tests loading a Table object from json file"""
         with TemporaryDirectory(dir=".") as dirname:
