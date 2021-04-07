@@ -12,6 +12,7 @@ Table can read pickled and delimited formats.
 
 import csv
 import json
+import pathlib
 import pickle
 import re
 
@@ -2232,6 +2233,7 @@ class Table:
         Unformatted numerical values are written to file in order to preserve
         numerical accuracy.
         """
+        filename = pathlib.Path(filename)
         file_suffix, compress_suffix = get_format_suffixes(filename)
         format = format or file_suffix
         compress = compress or compress_suffix is not None
@@ -2244,18 +2246,13 @@ class Table:
             return
 
         if compress:
-            if not filename.endswith(".gz"):
-                filename = "%s.gz" % filename
+            if ".gz" not in filename.suffixes:
+                filename = pathlib.Path(f"{filename}.gz")
             mode = "wt"
 
         outfile = atomic_write(filename, mode=mode)
 
-        if format is None:
-            # try guessing from filename suffix
-            index = -2 if compress else -1
-            suffix = filename.split(".")
-            if len(suffix) > 1:
-                format = suffix[index]
+        format = format if format else file_suffix
 
         if format == "csv":
             sep = sep or ","
