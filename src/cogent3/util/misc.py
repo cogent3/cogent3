@@ -2,8 +2,9 @@
 """Generally useful utility classes and methods.
 """
 import os
-import pathlib
 import re
+import shutil
+import uuid
 import warnings
 import zipfile
 
@@ -14,7 +15,7 @@ from os import path as os_path
 from os import remove
 from pathlib import Path
 from random import choice, randint
-from tempfile import NamedTemporaryFile, gettempdir
+from tempfile import mkdtemp
 from warnings import warn
 from zipfile import ZipFile
 
@@ -173,7 +174,7 @@ def open_(filename, mode="rt", **kwargs):
         filename.suffix, open
     )
 
-    encoding = None
+    encoding = kwargs.pop("encoding", None)
     need_encoding = mode.startswith("r") and "b" not in mode
     if need_encoding:
         if "encoding" not in kwargs:
@@ -182,8 +183,6 @@ def open_(filename, mode="rt", **kwargs):
 
             encoding = detect(data)
             encoding = encoding["encoding"]
-        else:
-            encoding = kwargs.pop("encoding")
 
     return op(filename, mode, encoding=encoding, **kwargs)
 
@@ -192,13 +191,14 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(self, path, tmpdir=None, in_zip=None, mode="w", encoding=None):
-        path = pathlib.Path(path).expanduser()
+        path = Path(path).expanduser()
         _, cmp = get_format_suffixes(path)
         if in_zip and cmp == "zip":
             in_zip = path if isinstance(in_zip, bool) else in_zip
-            path = pathlib.Path(str(path)[: str(path).rfind(".zip")])
+            path = Path(str(path)[: str(path).rfind(".zip")])
 
         self._path = path
+        self._cmp = cmp
         self._mode = mode
         self._file = None
         self._encoding = encoding
@@ -207,23 +207,41 @@ class atomic_write:
         self._close_func = (
             self._close_rename_zip if in_zip else self._close_rename_standard
         )
-        if tmpdir is None:
-            tmpdir = self._get_tmp_dir()
-        self._tmpdir = tmpdir
+        self._tmppath = self._make_tmppath(tmpdir, path)
 
-    def _get_tmp_dir(self):
-        """returns parent of destination file"""
-        parent = Path(self._in_zip).parent if self._in_zip else Path(self._path).parent
-        if not parent.exists():
-            raise FileNotFoundError(f"{parent} directory does not exist")
-        return parent
+    def _make_tmppath(self, tmpdir, path):
+        """returns path of temporary file
+
+        Parameters
+        ----------
+        tmpdir: Path
+            to directory
+        path: Path
+            for destination file
+
+        Returns
+        -------
+        full path to a temporary file
+
+        Notes
+        -----
+        Uses a random uuid as the file name, adds suffixes from path
+        """
+        suffixes = (
+            "".join(path.suffixes) if not self._in_zip else "".join(path.suffixes[:-1])
+        )
+        name = f"{uuid.uuid4()}{suffixes}"
+        tmpdir = Path(mkdtemp()) if tmpdir is None else Path(tmpdir)
+        if not tmpdir.exists():
+            raise FileNotFoundError(f"{tmpdir} directory does not exist")
+
+        tmp_path = tmpdir / name
+        return tmp_path
 
     def _get_fileobj(self):
         """returns file to be written to"""
         if self._file is None:
-            self._file = NamedTemporaryFile(
-                self._mode, delete=False, dir=self._tmpdir, encoding=self._encoding
-            )
+            self._file = open_(self._tmppath, self._mode, encoding=self._encoding)
 
         return self._file
 
@@ -239,21 +257,22 @@ class atomic_write:
         finally:
             src.rename(dest)
 
+        shutil.rmtree(src.parent)
+
     def _close_rename_zip(self, src):
         with zipfile.ZipFile(self._in_zip, "a") as out:
             out.write(str(src), arcname=self._path)
 
-        src.unlink()
+        shutil.rmtree(src.parent)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._file.close()
-        tmpfile_name = Path(self._file.name)
         if exc_type is None:
-            self._close_func(tmpfile_name)
+            self._close_func(self._tmppath)
             self.succeeded = True
         else:
             self.succeeded = False
-            tmpfile_name.unlink()
+            shutil.rmtree(self._tmppath.parent)
 
     def write(self, text):
         """writes text to file"""
