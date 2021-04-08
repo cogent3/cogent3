@@ -2708,7 +2708,12 @@ def AH96(**kw):
 def get_model(name, **kw):
     """returns an instance of the named model
 
-    name is case sensitive and must be in the models attribute"""
+    name is case sensitive.
+
+    Notes
+    -----
+    See available_models() for the full list.
+    """
     if isinstance(name, _SubstitutionModel):
         # already a substitution model
         return name
@@ -2753,8 +2758,7 @@ def WG01(**kw):
 
 
 def available_models(model_types=None):
-    """This function returns a cogent3 Table instance with header
-    ['Model Type', 'Abbreviation', 'Description']."""
+    """returns Table listing the pre-defined substitution models"""
     column_headings = ["Model Type", "Abbreviation", "Description"]
     _model_types = {
         "nucleotide": nucleotide_models,

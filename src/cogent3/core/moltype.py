@@ -616,7 +616,7 @@ class MolType(object):
             everything into the alphabet. Slated for deletion.
         preserve_existing_moltypes
             if True (default: False), does not
-            set the MolType of the things added in **kwargs to self.
+            set the MolType of the things added in \*\*kwargs to self.
         make_alphabet_group
             if True, makes an AlphabetGroup relating
             the various alphabets to one another.
@@ -1490,7 +1490,7 @@ def get_moltype(name):
 
 
 def available_moltypes():
-    """returns Table listing available moltypes"""
+    """returns Table listing the available moltypes"""
     from cogent3.util.table import Table
 
     rows = []

@@ -141,7 +141,7 @@ def load_delimited(
     Parameters
     ----------
     filename: Path
-        path to delimited file
+        path to delimited file (can begin with ~)
     header: bool
         whether the first line of the file (after the title, if present) is a header
     sep: str
@@ -149,9 +149,9 @@ def load_delimited(
     with_title: bool
         whether the first line of the file is a title
     with_legend: bool
-        whether the last line of the file is a title
+        whether the last line of the file is a legend
     limit: int
-        how many lines to read
+        maximum number of lines to read from the file
 
     Returns
     -------
@@ -165,7 +165,7 @@ def load_delimited(
         sep = delimiter
         deprecated("argument", "delimiter", "sep", "2022.1")
 
-    if limit is not None:
+    if limit is not None and header:
         limit += 1  # don't count header line
 
     with open_(filename) as f:
