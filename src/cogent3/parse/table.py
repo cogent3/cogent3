@@ -85,6 +85,19 @@ class FilteringParser:
         self.columns = indices
 
     def __call__(self, lines):
+        """a generator that yields individual lines processed according to the
+        provided conditions
+
+        Parameters
+        ----------
+        lines: path or iterable
+            If file path, handles file open and close. Will expand user
+            component (i.e. '~/') of path.
+
+        Notes
+        -----
+        Elements within a row are strings
+        """
         input_from_path = False
         if isinstance(lines, str) or isinstance(lines, pathlib.Path):
             path = pathlib.Path(lines).expanduser()
