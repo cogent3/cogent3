@@ -20,6 +20,7 @@ These are all top level imports. For example,
 
     __init__/cogent3.__init__.load_unaligned_seqs
     __init__/cogent3.__init__.load_aligned_seqs
+    __init__/cogent3.__init__.load_delimited
     __init__/cogent3.__init__.load_table
     __init__/cogent3.__init__.load_tree
 
@@ -55,6 +56,7 @@ These are all top level imports. For example,
 
     __init__/cogent3.__init__.get_code
     __init__/cogent3.__init__.get_moltype
+    __init__/cogent3.__init__.get_model
 
 Displaying cogent3 builtins
 ===========================
