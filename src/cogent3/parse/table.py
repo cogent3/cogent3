@@ -87,7 +87,7 @@ class FilteringParser:
     def __call__(self, lines):
         input_from_path = False
         if isinstance(lines, str) or isinstance(lines, pathlib.Path):
-            path = pathlib.Path(lines)
+            path = pathlib.Path(lines).expanduser()
             input_from_path = path.exists()
 
             if input_from_path:
