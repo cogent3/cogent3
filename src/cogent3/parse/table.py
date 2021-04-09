@@ -85,6 +85,19 @@ class FilteringParser:
         self.columns = indices
 
     def __call__(self, lines):
+        """a generator that yields individual lines processed according to the
+        provided conditions
+
+        Parameters
+        ----------
+        lines: path or iterable
+            If file path, handles file open and close. Will expand user
+            component (i.e. '~/') of path.
+
+        Notes
+        -----
+        Elements within a row are strings
+        """
         input_from_path = False
         if isinstance(lines, str) or isinstance(lines, pathlib.Path):
             path = pathlib.Path(lines).expanduser()
@@ -141,7 +154,7 @@ def load_delimited(
     Parameters
     ----------
     filename: Path
-        path to delimited file
+        path to delimited file (can begin with ~)
     header: bool
         whether the first line of the file (after the title, if present) is a header
     sep: str
@@ -149,9 +162,9 @@ def load_delimited(
     with_title: bool
         whether the first line of the file is a title
     with_legend: bool
-        whether the last line of the file is a title
+        whether the last line of the file is a legend
     limit: int
-        how many lines to read
+        maximum number of lines to read from the file
 
     Returns
     -------
@@ -165,7 +178,7 @@ def load_delimited(
         sep = delimiter
         deprecated("argument", "delimiter", "sep", "2022.1")
 
-    if limit is not None:
+    if limit is not None and header:
         limit += 1  # don't count header line
 
     with open_(filename) as f:
