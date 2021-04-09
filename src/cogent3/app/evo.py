@@ -212,6 +212,8 @@ class model(ComposableModel):
             return NotCompleted("ERROR", self, msg, source=aln)
 
         evaluation_limit = opt_args.get("max_evaluations", None)
+        # todo handle case where successive alignments of 3 seqs have
+        # different names and thus we need to make a different tree each time
         if self._tree is None:
             assert len(aln.names) == 3
             self._tree = make_tree(tip_names=aln.names)
