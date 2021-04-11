@@ -18,6 +18,7 @@ from random import choice, randint
 from tempfile import mkdtemp
 from warnings import warn
 from zipfile import ZipFile
+from operator import itemgetter
 
 import numpy
 
@@ -1054,13 +1055,16 @@ def get_independent_coords(spans, random_tie_breaker=False):
 
 
 def get_merged_overlapping_coords(start_end):
-    """merges overlapping spans, assumes sorted by start"""
+    """takes a list of intervals and
+    merges overlapping spans, assumes sorted by start"""
+    start_end = sorted(start_end, key=itemgetter(0))
     result = [list(start_end[0])]
     prev_end = result[0][-1]
     for i in range(1, len(start_end)):
         curr_start, curr_end = start_end[i]
+        assert curr_start <= curr_end
         # if we're beyond previous, add and continue
-        if curr_start > prev_end:
+        if curr_start - 1 > prev_end:
             prev_end = curr_end
             result.append([curr_start, curr_end])
         elif curr_end > prev_end:

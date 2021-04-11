@@ -361,6 +361,12 @@ class UtilsTests(TestCase):
 
     def test_get_merged_spans(self):
         """tests merger of overlapping spans"""
+        # shuffled coordinates
+        sample = [[0, 10], [13, 16], [19, 20], [12, 15], [18, 25] ]
+        result = get_merged_overlapping_coords(sample)
+        expect = [[0, 10], [12, 16], [18, 25]]
+        self.assertEqual(result, expect)
+        # overlapping and nesting
         sample = [[0, 10], [12, 15], [13, 16], [18, 25], [19, 20]]
         result = get_merged_overlapping_coords(sample)
         expect = [[0, 10], [12, 16], [18, 25]]
@@ -369,10 +375,15 @@ class UtilsTests(TestCase):
         result = get_merged_overlapping_coords(sample)
         expect = [[0, 10], [12, 16], [18, 25]]
         self.assertEqual(result, expect)
+        # intervals that are immediately next to each other
+        sample=[[20,25],[38,60],[28,28],[30,40],[50,52],[70,80],[81,90]]
+        result = get_merged_overlapping_coords(sample)
+        expect = [[20, 25], [28, 28], [30, 60], [70, 90]]
+        self.assertEqual(result, expect)
         # test with tuples
         sample = tuple(map(tuple, sample))
         result = get_merged_overlapping_coords(sample)
-        expect = [[0, 10], [12, 16], [18, 25]]
+        expect = [[20, 25], [28, 28], [30, 60], [70, 90]]
         self.assertEqual(result, expect)
 
     def test_get_run_start_indices(self):
