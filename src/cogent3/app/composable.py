@@ -405,6 +405,7 @@ class Composable(ComposableType):
         Returns
         -------
         Result of the process as a list
+
         Notes
         -----
         If run in parallel, this instance serves as the master object and

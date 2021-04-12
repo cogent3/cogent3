@@ -110,7 +110,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
     max_workers : int or None
         maximum number of workers. Defaults to 1-maximum available.
     use_mpi : bool
-        use MPI for parallel execution
+        use MPI for parallel execution.
     if_serial : str
         action to take if conditions will result in serial execution. Valid
         values are 'raise', 'ignore', 'warn'. Defaults to 'raise'.
@@ -122,6 +122,14 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
     -------
     imap is a generator yielding result of f(s[i]), map returns the result
     series
+
+    Notes
+    -----
+    To use MPI, you must have openmpi (use conda or your preferred package manager)
+    and mpi4py (use pip or conda) installed. In addition, your initial script must
+    have a ``if __name__ == '__main__':`` block. You then invoke your program using
+
+    $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <initial script>
     """
 
     if_serial = if_serial.lower()
@@ -135,7 +143,7 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
 
         err_msg = (
             "Execution in serial. For parallel MPI execution, use:\n"
-            " $ mpirun -n 1 <executable script>"
+            " $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <executable script>"
         )
 
         if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == "raise":
