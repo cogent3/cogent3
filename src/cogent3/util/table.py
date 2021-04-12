@@ -534,7 +534,7 @@ class Table:
                 f"only str type supported for index_name, not {type(index_name)}"
             )
 
-        if data:
+        if len(data) if hasattr(data, "__len__") else 0:
             row_order = kwargs.get("row_order", None)
             data = cast_to_1d_dict(data, row_order=row_order)
             if has_index:
