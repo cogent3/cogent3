@@ -1024,9 +1024,13 @@ class LikelihoodFunction(ParameterController):
             a random number generator.
         exclude_internal
             if True, only sequences for tips are returned.
+        locus
+            if fit to multiple alignments, select the values corresponding to
+            locus for generating data
+        seed
+            seed value for the random number generator
         root_sequence
-            a sequence from which all others evolve.
-
+            a sequence from which all others evolve
         """
 
         if sequence_length is None:
