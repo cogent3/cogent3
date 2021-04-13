@@ -231,7 +231,12 @@ class atomic_write:
             "".join(path.suffixes) if not self._in_zip else "".join(path.suffixes[:-1])
         )
         name = f"{uuid.uuid4()}{suffixes}"
-        tmpdir = Path(mkdtemp()) if tmpdir is None else Path(tmpdir)
+        tmpdir = (
+            Path(mkdtemp(dir=self._path.absolute().parent))
+            if tmpdir is None
+            else Path(tmpdir)
+        )
+
         if not tmpdir.exists():
             raise FileNotFoundError(f"{tmpdir} directory does not exist")
 
