@@ -642,6 +642,15 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         md5 : bool
             record md5 hexadecimal checksum of data when possible
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "class",
+            self.__class__.__name__,
+            "2021.10.01",
+            reason="zips are not efficient for incremental inclusion of files, use a tinydb instead",
+        )
+
         ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
