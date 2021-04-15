@@ -29,6 +29,7 @@ from cogent3.util.misc import (
     MappedDict,
     MappedList,
     NestedSplitter,
+    _path_relative_to_zip_parent,
     add_lowercase,
     adjusted_gt_minprob,
     adjusted_within_bounds,
@@ -759,6 +760,13 @@ class AtomicWriteTests(TestCase):
             test_filepath = str(test_filepath).replace(home, "~")
             with atomic_write(test_filepath, mode="w") as f:
                 f.write("abc")
+
+    def test_path_relative_to_zip_parent(self):
+        """correctly generates member paths for a zip archive"""
+        zip_path = pathlib.Path("some/path/to/a/data.zip")
+        for member in ("data/member.txt", "member.txt", "a/b/c/member.txt"):
+            got = _path_relative_to_zip_parent(zip_path, pathlib.Path(member))
+            self.assertEqual(got.parts[0], "data")
 
 
 class _my_dict(dict):

@@ -187,15 +187,56 @@ def open_(filename, mode="rt", **kwargs):
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
+def _path_relative_to_zip_parent(zip_path, member_path):
+    """returns member_path relative to zip_path
+
+    Parameters
+    ----------
+    zip_path: Path
+    member_path: Path
+
+    Notes
+    -----
+    with zip_path = "parentdir/named.zip", then member_path="named/member.tsv"
+    or path="member.tsv" will return "named/member.tsv"
+    """
+    zip_name = zip_path.name.replace(".zip", "")
+    if zip_name not in member_path.parts:
+        return Path(zip_name) / member_path
+
+    return Path(*member_path.parts[member_path.parts.index(zip_name) :])
+
+
 class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(self, path, tmpdir=None, in_zip=None, mode="w", encoding=None):
+        """
+
+        Parameters
+        ----------
+        path
+            path to file, or relative to directory specified by in_zip
+        tmpdir
+            directory where temporary file will be created
+        in_zip
+            path to the zip archive containing path,
+            e.g. if in_zip="path/to/data.zip", then path="data/seqs.tsv"
+            Decompressing the archive will produce the "data/seqs.tsv"
+        mode
+            file writing mode
+        encoding
+            text encoding
+        """
         path = Path(path).expanduser()
+        in_zip = Path(in_zip) if isinstance(in_zip, str) else in_zip
         _, cmp = get_format_suffixes(path)
         if in_zip and cmp == "zip":
             in_zip = path if isinstance(in_zip, bool) else in_zip
             path = Path(str(path)[: str(path).rfind(".zip")])
+
+        if in_zip:
+            path = _path_relative_to_zip_parent(in_zip, path)
 
         self._path = path
         self._cmp = cmp
@@ -203,21 +244,20 @@ class atomic_write:
         self._file = None
         self._encoding = encoding
         self._in_zip = in_zip
+        self._tmppath = self._make_tmppath(tmpdir)
+
         self.succeeded = None
         self._close_func = (
             self._close_rename_zip if in_zip else self._close_rename_standard
         )
-        self._tmppath = self._make_tmppath(tmpdir, path)
 
-    def _make_tmppath(self, tmpdir, path):
+    def _make_tmppath(self, tmpdir):
         """returns path of temporary file
 
         Parameters
         ----------
         tmpdir: Path
             to directory
-        path: Path
-            for destination file
 
         Returns
         -------
@@ -228,14 +268,13 @@ class atomic_write:
         Uses a random uuid as the file name, adds suffixes from path
         """
         suffixes = (
-            "".join(path.suffixes) if not self._in_zip else "".join(path.suffixes[:-1])
+            "".join(self._path.suffixes)
+            if not self._in_zip
+            else "".join(self._path.suffixes[:-1])
         )
+        parent = self._in_zip.parent if self._in_zip else self._path.parent
         name = f"{uuid.uuid4()}{suffixes}"
-        tmpdir = (
-            Path(mkdtemp(dir=self._path.absolute().parent))
-            if tmpdir is None
-            else Path(tmpdir)
-        )
+        tmpdir = Path(mkdtemp(dir=parent)) if tmpdir is None else Path(tmpdir)
 
         if not tmpdir.exists():
             raise FileNotFoundError(f"{tmpdir} directory does not exist")
