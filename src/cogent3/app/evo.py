@@ -50,6 +50,7 @@ class model(ComposableModel):
         self,
         sm,
         tree=None,
+        unique_trees=False,
         name=None,
         sm_args=None,
         lf_args=None,
@@ -69,6 +70,9 @@ class model(ComposableModel):
             if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
+        unique_trees: bool
+            whether to specify a unique tree per alignment. Only applies if
+            number of sequences equals 3.
         name
             name of the model
         sm_args : dict
@@ -109,6 +113,10 @@ class model(ComposableModel):
         )
         self._verbose = verbose
         self._formatted_params()
+        assert not (
+            tree and unique_trees
+        ), "cannot provide a tree when unique_trees is True"
+        self._unique_trees = unique_trees
         sm_args = sm_args or {}
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
@@ -212,10 +220,8 @@ class model(ComposableModel):
             return NotCompleted("ERROR", self, msg, source=aln)
 
         evaluation_limit = opt_args.get("max_evaluations", None)
-        # todo handle case where successive alignments of 3 seqs have
-        # different names and thus we need to make a different tree each time
-        if self._tree is None:
-            assert len(aln.names) == 3
+        if self._tree is None or self._unique_trees:
+            assert len(aln.names) == 3, "to model more than 3, you must provide a tree"
             self._tree = make_tree(tip_names=aln.names)
 
         result = model_result(
