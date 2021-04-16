@@ -207,7 +207,9 @@ class Composable(ComposableType):
         if txt:
             txt += " + "
         txt += "%s(%s)" % (self.__class__.__name__, ", ".join(self._formatted))
-        txt = textwrap.fill(txt, width=80, break_long_words=False)
+        txt = textwrap.fill(
+            txt, width=80, break_long_words=False, break_on_hyphens=False
+        )
         return txt
 
     def __repr__(self):
