@@ -500,6 +500,20 @@ DogFaced   root      1.00  1.00
         lf.set_param_rule("beta", bin="high", value=10.0)
         simulated_alignment = lf.simulate_alignment(100)
 
+    def test_simulate_alignment1(self):
+        "Simulate alignment when no alignment set"
+        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
+        t = make_tree("(a,c);")
+        sm = get_model("F81")
+        lf = sm.make_likelihood_function(t)
+        # no provided alignment raises an exception
+        with self.assertRaises(ValueError):
+            lf.simulate_alignment()
+
+        # unless you provide length
+        sim_aln = lf.simulate_alignment(sequence_length=10)
+        self.assertEqual(len(sim_aln), 10)
+
     def test_simulate_alignment2(self):
         "Simulate alignment with dinucleotide model"
         al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})

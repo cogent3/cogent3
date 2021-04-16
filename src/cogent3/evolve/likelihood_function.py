@@ -1032,16 +1032,19 @@ class LikelihoodFunction(ParameterController):
         root_sequence
             a sequence from which all others evolve
         """
-
+        orig_ambig = {}
         if sequence_length is None:
             lht = self.get_param_value("lht", locus=locus)
-            sequence_length = len(lht.index)
+            try:
+                sequence_length = len(lht.index)
+            except AttributeError:
+                raise ValueError(
+                    f"Must provide sequence_length since no alignment set on self"
+                )
+
             leaves = self.get_param_value("leaf_likelihoods", locus=locus)
-            orig_ambig = {}
             for (seq_name, leaf) in list(leaves.items()):
                 orig_ambig[seq_name] = leaf.get_ambiguous_positions()
-        else:
-            orig_ambig = {}
 
         if random_series is None:
             random_series = random.Random()
