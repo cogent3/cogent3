@@ -83,6 +83,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
     install_requires=[
+        "chardet",
         "numpy",
         "numba>0.48.0;python_version<'3.9'",
         "numba>0.53; python_version>='3.9'",
