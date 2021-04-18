@@ -381,6 +381,11 @@ class TestUserFunction(TestCase):
         self.assertEqual(
             str(u_function_2), "user_function(name='bar', module='test_composable')"
         )
+        # added into a composable func
+        loader = io_app.load_aligned()
+        proc = loader + u_function_1
+        got = str(proc)
+        self.assertTrue(got.startswith("load_aligned"))
 
 
 if __name__ == "__main__":
