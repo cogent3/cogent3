@@ -686,9 +686,14 @@ class user_function(Composable):
         self._func(self, *args, **kwargs)
 
     def __str__(self):
-        name = self.func.__name__
-        module = self.func.__module__
-        return f"user_function(name='{name}', module='{module}')"
+        txt = "" if not self.input else str(self.input)
+        if txt:
+            txt += " + "
+        txt += f"user_function(name='{self.func.__name__}', module='{self.func.__module__}')"
+        txt = textwrap.fill(
+            txt, width=80, break_long_words=False, break_on_hyphens=False
+        )
+        return txt
 
     def __repr__(self):
         return str(self)
