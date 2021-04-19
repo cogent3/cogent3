@@ -7,7 +7,12 @@ from unittest.mock import Mock
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app.composable import ComposableSeq, NotCompleted, user_function
+from cogent3.app.composable import (
+    SERIALISABLE_TYPE,
+    ComposableSeq,
+    NotCompleted,
+    user_function,
+)
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
@@ -386,6 +391,49 @@ class TestUserFunction(TestCase):
         proc = loader + u_function_1
         got = str(proc)
         self.assertTrue(got.startswith("load_aligned"))
+
+    def test_user_function_with_args_kwargs(self):
+        """correctly handles definition with args, kwargs"""
+        from math import log
+
+        def product(val, multiplier, take_log=False):
+            result = val * multiplier
+            if take_log:
+                result = log(result)
+
+            return result
+
+        # without defining any args, kwargs
+        ufunc = user_function(
+            product,
+            SERIALISABLE_TYPE,
+            SERIALISABLE_TYPE,
+        )
+        self.assertEqual(ufunc(2, 2), 4)
+        self.assertEqual(ufunc(2, 2, take_log=True), log(4))
+
+        # defining default arg2
+        ufunc = user_function(
+            product,
+            SERIALISABLE_TYPE,
+            SERIALISABLE_TYPE,
+            2,
+        )
+        self.assertEqual(ufunc(2), 4)
+        self.assertEqual(ufunc(2, take_log=True), log(4))
+
+        # defining default kwarg only
+        ufunc = user_function(
+            product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, take_log=True
+        )
+        self.assertEqual(ufunc(2, 2), log(4))
+        self.assertEqual(ufunc(2, 2, take_log=False), 4)
+
+        # defining default arg and kwarg
+        ufunc = user_function(
+            product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, 2, take_log=True
+        )
+        self.assertEqual(ufunc(2), log(4))
 
 
 if __name__ == "__main__":

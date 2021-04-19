@@ -7,12 +7,18 @@ import textwrap
 import time
 import traceback
 
+from copy import deepcopy
+
 import scitrack
 
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import progress_display as UI
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import (
+    extend_docstring_from,
+    get_object_provenance,
+    open_,
+)
 
 from .data_store import (
     IGNORE,
@@ -194,7 +200,7 @@ class ComposableType:
 class Composable(ComposableType):
     def __init__(self, **kwargs):
         super(Composable, self).__init__(**kwargs)
-        self.func = None  # over-ride in subclass
+        # self.func = None  # over-ride in subclass
         self._in = None  # input rules
         self._out = None  # rules receiving output
         # rules operating on result but not part of a chain
@@ -676,20 +682,64 @@ class user_function(Composable):
 
     _type = "function"
 
-    def __init__(self, func, input_types, output_types, data_types=None):
+    @extend_docstring_from(ComposableType.__init__, pre=False)
+    def __init__(
+        self, func, input_types, output_types, *args, data_types=None, **kwargs
+    ):
+        """
+        func : callable
+            user specified function
+        *args
+            positional arguments to append to incoming values prior to calling
+            func
+        **kwargs
+            keyword arguments to include when calling func
+
+        Notes
+        -----
+        Known types are defined as constants in ``cogent3.app.composable``, e.g.
+        ALIGNED_TYPE, SERIALISABLE_TYPE, RESULT_TYPE.
+
+        If you create a function ``foo(arg1, arg2, kwarg1=False)``. You can
+        turn this into a user function, e.g.
+
+        >>> ufunc = user_function(foo, in_types, out_types, arg2val, kwarg1=True)
+
+        Then
+
+        >>> ufunc(val) == foo(val, arg2val, kwarg1=True)
+        """
         super(user_function, self).__init__(
             input_types=input_types, output_types=output_types
         )
-        self.func = func
+        self._user_func = func
+        self._args = args
+        self._kwargs = kwargs
 
     def func(self, *args, **kwargs):
-        self._func(self, *args, **kwargs)
+        """
+        Parameters
+        ----------
+        args
+            self._args + args are passed to the user function
+        kwargs
+            a deep copy of self._kwargs is updated by kwargs and passed to the
+            user function
+
+        Returns
+        -------
+        the result of the user function
+        """
+        args = self._args + args
+        kwargs_ = deepcopy(self._kwargs)
+        kwargs_.update(kwargs)
+        return self._user_func(*args, **kwargs_)
 
     def __str__(self):
         txt = "" if not self.input else str(self.input)
         if txt:
             txt += " + "
-        txt += f"user_function(name='{self.func.__name__}', module='{self.func.__module__}')"
+        txt += f"user_function(name='{self._user_func.__name__}', module='{self._user_func.__module__}')"
         txt = textwrap.fill(
             txt, width=80, break_long_words=False, break_on_hyphens=False
         )
