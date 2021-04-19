@@ -6,7 +6,7 @@ import pathlib
 from collections.abc import Callable
 
 from cogent3.util.misc import open_
-from cogent3.util.warning import deprecated, discontinued
+from cogent3.util.warning import deprecated
 
 from .record_finder import is_empty
 
