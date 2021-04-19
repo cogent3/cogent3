@@ -324,7 +324,6 @@ def make_table(
     legend="",
     missing_data="",
     column_templates=None,
-    dtype=None,
     data_frame=None,
     format="simple",
     **kwargs,
@@ -375,10 +374,6 @@ def make_table(
         deprecated("argument", "index", "index_name", "2021.11")
         index_name = kwargs.pop("index", index_name)
 
-    if "dtype" in kwargs:
-        kwargs.pop("dtype")
-        discontinued("argument", "dtype", "2021.04")
-
     data = kwargs.get("rows", data)
     if data_frame is not None:
         from pandas import DataFrame
@@ -394,7 +389,6 @@ def make_table(
         digits=digits,
         row_order=row_order,
         title=title,
-        dtype=dtype,
         column_templates=column_templates,
         space=space,
         missing_data=missing_data,
@@ -476,10 +470,6 @@ def load_table(
     if "index" in kwargs:
         deprecated("argument", "index", "index_name", "2021.11")
         index_name = kwargs.pop("index", index_name)
-
-    if "dtype" in kwargs:
-        kwargs.pop("dtype")
-        discontinued("argument", "dtype", "2021.04")
 
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
