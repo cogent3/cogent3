@@ -13,10 +13,10 @@ from cogent3.util.table import Table
 
 
 __author__ = "Greg Caporaso and Rob Knight"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"

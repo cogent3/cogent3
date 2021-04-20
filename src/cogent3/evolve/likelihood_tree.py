@@ -13,10 +13,10 @@ numpy.seterr(all="ignore")
 numerictypes = numpy.core.numerictypes.sctype2char
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

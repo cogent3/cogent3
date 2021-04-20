@@ -23,10 +23,10 @@ from cogent3.core.location import LostSpan, Map, Span, _LostSpan
 
 
 __author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Hua Ying"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"

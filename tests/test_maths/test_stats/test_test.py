@@ -82,7 +82,7 @@ from cogent3.maths.stats.test import (
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Catherine Lozupone",
@@ -93,7 +93,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
