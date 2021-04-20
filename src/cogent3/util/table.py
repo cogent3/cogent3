@@ -12,6 +12,7 @@ Table can read pickled and delimited formats.
 
 import csv
 import json
+import pathlib
 import pickle
 import re
 
@@ -41,10 +42,10 @@ except ImportError:
     display = lambda x: print(repr(x))
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Felix Schill", "Sheng Koh"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -175,8 +176,7 @@ def cast_2d_to_1d_dict(data, row_order=None):
         key = list(data.keys())[0]
         row_order = list(data[key])
 
-    result = {c: [data[c][r] for r in row_order] for c in data}
-    return result
+    return {c: [data[c][r] for r in row_order] for c in data}
 
 
 def cast_to_1d_dict(data, row_order=None):
@@ -283,7 +283,7 @@ class Columns(MutableMapping):
         return len(self._order)
 
     def __setitem__(self, key, val):
-        key = str(key)
+        key = str(key).strip()
         if isinstance(val, str):
             val = [val]
         try:
@@ -339,8 +339,7 @@ class Columns(MutableMapping):
         v = d[:5]
         if num > 5:
             v.append(f"... + {num - 5} more")
-        txt = f"{self.__class__.__name__}({', '.join(v)})"
-        return txt
+        return f"{self.__class__.__name__}({', '.join(v)})"
 
     def __str__(self):
         return repr(self)
@@ -430,8 +429,7 @@ class Columns(MutableMapping):
 
     def to_dict(self):
         """returns column based dict"""
-        result = {c: self[c].tolist() for c in self}
-        return result
+        return {c: self[c].tolist() for c in self}
 
     def to_rich_dict(self):
         data = self.__getstate__()
@@ -536,7 +534,7 @@ class Table:
                 f"only str type supported for index_name, not {type(index_name)}"
             )
 
-        if data:
+        if len(data) if hasattr(data, "__len__") else 0:
             row_order = kwargs.get("row_order", None)
             data = cast_to_1d_dict(data, row_order=row_order)
             if has_index:
@@ -668,12 +666,11 @@ class Table:
 
         if not self._repr_policy["show_shape"]:
             shape_info = ""
-        result = (
+        return (
             "\n".join([str(table), shape_info, unset_columns])
             if unset_columns
             else "\n".join([str(table), shape_info])
         )
-        return result
 
     def __str__(self):
         if self.shape == (0, 0):
@@ -2236,6 +2233,7 @@ class Table:
         Unformatted numerical values are written to file in order to preserve
         numerical accuracy.
         """
+        filename = pathlib.Path(filename)
         file_suffix, compress_suffix = get_format_suffixes(filename)
         format = format or file_suffix
         compress = compress or compress_suffix is not None
@@ -2248,18 +2246,13 @@ class Table:
             return
 
         if compress:
-            if not filename.endswith(".gz"):
-                filename = "%s.gz" % filename
+            if ".gz" not in filename.suffixes:
+                filename = pathlib.Path(f"{filename}.gz")
             mode = "wt"
 
         outfile = atomic_write(filename, mode=mode)
 
-        if format is None:
-            # try guessing from filename suffix
-            index = -2 if compress else -1
-            suffix = filename.split(".")
-            if len(suffix) > 1:
-                format = suffix[index]
+        format = format if format else file_suffix
 
         if format == "csv":
             sep = sep or ","

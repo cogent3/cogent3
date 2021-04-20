@@ -21,10 +21,10 @@ from cogent3.util.misc import adjusted_gt_minprob
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley", "Helen Lindsay"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.ed.au"
 __status__ = "Production"

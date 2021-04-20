@@ -14,10 +14,10 @@ from cogent3.util.misc import open_
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Development"
@@ -104,8 +104,7 @@ def xmfa_label_to_name(line):
         (lo, hi) = (hi, lo)
     else:
         assert strand == "+"
-    name = "%s:%s:%s-%s" % (sp, contig, lo, hi)
-    return name
+    return "%s:%s:%s-%s" % (sp, contig, lo, hi)
 
 
 def is_xmfa_blank_or_comment(x):

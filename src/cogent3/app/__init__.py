@@ -5,10 +5,10 @@ from warnings import filterwarnings
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -39,7 +39,7 @@ def _get_app_attr(name, obj, mod, is_composable):
 
 
 def available_apps():
-    """returns table of all available apps"""
+    """returns Table listing the available apps"""
     from cogent3.util.table import Table
 
     from .composable import Composable, user_function
@@ -64,5 +64,4 @@ def available_apps():
         )
     )
     header = ["module", "name", "composable", "doc", "inputs", "outputs", "data type"]
-    table = Table(header, rows)
-    return table
+    return Table(header, rows)

@@ -12,10 +12,10 @@ def a_c(x, y):
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -157,8 +157,8 @@ class ScaleRuleTests(unittest.TestCase):
         dN = length * a["dN"] / (3.0 * b["dN"])
         dS = length * a["dS"] / (3.0 * b["dS"])
         # following are results from PAML
-        self.assertEqual("%.4f" % dN, "0.0325")
-        self.assertEqual("%.4f" % dS, "0.0514")
+        self.assertEqual(f"{dN:.4f}", "0.0325")
+        self.assertEqual(f"{dS:.4f}", "0.0514")
 
 
 if __name__ == "__main__":

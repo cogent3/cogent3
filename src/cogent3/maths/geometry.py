@@ -32,7 +32,7 @@ from numpy.linalg import norm
 
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Sandra Smit",
     "Gavin Huttley",
@@ -42,7 +42,7 @@ __credits__ = [
     "Helmut Simon",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"

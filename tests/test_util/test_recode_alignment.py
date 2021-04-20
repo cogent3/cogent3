@@ -16,10 +16,10 @@ from cogent3.util.recode_alignment import (
 
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
@@ -130,11 +130,11 @@ class RecodeAlignmentTests(TestCase):
             try:
                 build_alphabet_map(alphabet_id=alphabet_id)
             except ValueError:
-                raise AssertionError("Failed on id: %s" % alphabet_id)
+                raise AssertionError(f"Failed on id: {alphabet_id}")
             try:
                 build_alphabet_map(alphabet_def=alphabet_def)
             except ValueError:
-                raise AssertionError("Failed on def: %s" % str(alphabet_def))
+                raise AssertionError(f"Failed on def: {str(alphabet_def)}")
 
     def test_recode_dense_alignment_handles_all_ids_and_defs_wo_error(self):
         """recode_dense_alignment: handles pre-defined alphabets w/o error"""
@@ -142,11 +142,11 @@ class RecodeAlignmentTests(TestCase):
             try:
                 recode_dense_alignment(self.aln, alphabet_id=alphabet_id)
             except ValueError:
-                raise AssertionError("Failed on id: %s" % alphabet_id)
+                raise AssertionError(f"Failed on id: {alphabet_id}")
             try:
                 recode_dense_alignment(self.aln, alphabet_def=alphabet_def)
             except ValueError:
-                raise AssertionError("Failed on def: %s" % str(alphabet_def))
+                raise AssertionError(f"Failed on def: {str(alphabet_def)}")
 
     def test_recode_dense_alignment_leaves_original_alignment_intact(self):
         """recode_dense_alignment: leaves input alignment intact"""

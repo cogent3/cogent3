@@ -41,10 +41,10 @@ except ImportError:
 TEST_ROOT = pathlib.Path(__file__).parent.parent
 
 __author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La", "Christopher Bradley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -476,7 +476,7 @@ class TableTests(TestCase):
         # handle a formatter function
         def formatcol(value):
             if isinstance(value, float):
-                val = "%.2f" % value
+                val = f"{value:.2f}"
             else:
                 val = str(value)
             return val
@@ -1376,6 +1376,26 @@ class TableTests(TestCase):
                     [v["values"] for v in data["columns"].values()],
                 )
 
+    def test_write_compressed(self):
+        """tests writing to compressed format"""
+        t = load_table("data/sample.tsv")
+        with open("data/sample.tsv") as infile:
+            expect = infile.read()
+
+        with TemporaryDirectory(".") as dirname:
+            path = pathlib.Path(dirname) / "table.txt"
+            # using the compressed option
+            t.write(path, sep="\t", compress=True)
+            with open_(f"{path}.gz") as infile:
+                got = infile.read()
+            self.assertEqual(got, expect)
+
+            # specifying via a suffix
+            t.write(f"{path}.gz", sep="\t")
+            with open_(f"{path}.gz") as infile:
+                got = infile.read()
+            self.assertEqual(got, expect)
+
     def test_load_table_from_json(self):
         """tests loading a Table object from json file"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -1392,6 +1412,18 @@ class TableTests(TestCase):
         """raises TypeError if filename invalid type"""
         with self.assertRaises(TypeError):
             load_table({"a": [0, 1]})
+
+    def test_make_table_white_space_in_column(self):
+        """strips white space from column headers"""
+        # matching header and data keys
+        t = make_table(header=[" a"], data={" a": [0, 2]}, sep="\t")
+        self.assertEqual(t.columns["a"].tolist(), [0, 2])
+        self.assertIsInstance(t.to_string(), str)
+
+        # data key has a space
+        t = make_table(data={" a": [0, 2]}, sep="\t")
+        self.assertEqual(t.columns["a"].tolist(), [0, 2])
+        self.assertIsInstance(t.to_string(), str)
 
     def test_load_table_filename_case(self):
         """load_table insensitive to file name case"""

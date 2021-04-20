@@ -31,10 +31,10 @@ from cogent3.util.misc import atomic_write, get_object_provenance
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -249,8 +249,7 @@ class NumericKey(int):
     """a distinct numerical type for use as a DictArray key"""
 
     def __new__(cls, val):
-        result = int.__new__(cls, val)
-        return result
+        return int.__new__(cls, val)
 
 
 class DictArrayTemplate(object):
@@ -428,13 +427,12 @@ class DictArray(object):
 
     def to_rich_dict(self):
         data = self.array.tolist()
-        result = {
+        return {
             "type": get_object_provenance(self.template),
             "array": data,
             "names": self.template.names,
             "version": __version__,
         }
-        return result
 
     def to_json(self):
         return json.dumps(self.to_rich_dict())

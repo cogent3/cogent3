@@ -11,10 +11,10 @@ from cogent3.util import progress_display as UI
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -156,10 +156,9 @@ class TreeEvaluator(object):
             assert set(ordered_names).issubset(all_names)
         else:
             ordered_names = self.names
-        names = list(fixed_names) + [
+        return list(fixed_names) + [
             n for n in ordered_names if n not in fixed_names_set
         ]
-        return names
 
     @UI.display_wrap
     def trex(

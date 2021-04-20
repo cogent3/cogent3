@@ -71,6 +71,7 @@ from collections import defaultdict
 import numpy
 
 from cogent3.maths.stats.distribution import chdtri
+from cogent3.maths.util import proportions_to_ratios, ratios_to_proportions
 from cogent3.util.dict_array import DictArrayTemplate
 
 from .calculation import ConstCell, EvaluatedCell, LogOptPar, OptPar
@@ -85,10 +86,10 @@ from .setting import ConstVal, Var
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -144,10 +145,9 @@ class CalculationDefn(_NonLeafDefn):
 
     def make_cell(self, *args):
         calc = self.make_calc_function()
-        cell = EvaluatedCell(
+        return EvaluatedCell(
             self.name, calc, args, recycling=self.recycling, default=self.default
         )
-        return cell
 
     def make_cells(self, input_soup, variable=None):
         # input soups contains all necessary values for calc on self.
@@ -417,37 +417,8 @@ class NonScalarDefn(_InputDefn):
         pass
 
 
-def _proportions(total, params):
-    """List of N proportions from N-1 ratios
-
-    >>> _proportions(1.0, [3, 1, 1])
-    [0.125, 0.125, 0.375, 0.375]"""
-    if len(params) == 0:
-        return [total]
-    half = (len(params) + 1) // 2
-    part = 1.0 / (params[0] + 1.0)  # ratio -> proportion
-    return _proportions(total * part, params[1:half]) + _proportions(
-        total * (1.0 - part), params[half:]
-    )
-
-
-def _unpack_proportions(values):
-    """List of N-1 ratios from N proportions"""
-    if len(values) == 1:
-        return []
-    half = len(values) // 2
-    (num, denom) = (sum(values[half:]), sum(values[:half]))
-    assert num > 0 and denom > 0
-    ratio = num / denom
-    return (
-        [ratio]
-        + _unpack_proportions(values[:half])
-        + _unpack_proportions(values[half:])
-    )
-
-
 def _ratio_to_proportion(*ratios):
-    return numpy.asarray(_proportions(1.0, ratios))
+    return numpy.asarray(ratios_to_proportions(1.0, ratios))
 
 
 class PartitionDefn(_InputDefn):
@@ -529,7 +500,7 @@ class PartitionDefn(_InputDefn):
         # required since it is now always 1.0.
         N = len(value)
         assert abs(sum(value) - 1.0) < 0.00001
-        ratios = _unpack_proportions(value)
+        ratios = proportions_to_ratios(value)
         ratios = [LogOptPar(name + "_ratio", scope, (1e-6, r, 1e6)) for r in ratios]
 
         partition = EvaluatedCell(name, _ratio_to_proportion, tuple(ratios))

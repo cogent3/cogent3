@@ -15,10 +15,10 @@ from .pairwise_distance_numba import fill_diversity_matrix
 
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"  # pending addition of protein distance metrics
@@ -75,8 +75,7 @@ def get_moltype_index_array(moltype, invalid=-9):
 def seq_to_indices(seq, char_to_index):
     """returns an array with sequence characters replaced by their index"""
     ords = list(map(ord, seq))
-    indices = char_to_index.take(ords)
-    return indices
+    return char_to_index.take(ords)
 
 
 def _fill_diversity_matrix(matrix, seq1, seq2):
@@ -302,10 +301,9 @@ def _make_stat_table(stats, names, **kwargs):
     for i in range(len(names)):
         rows[i].insert(0, names[i])
 
-    table = Table(
+    return Table(
         header=header, data=rows, index_name=r"Seq1 \ Seq2", missing_data="*", **kwargs
     )
-    return table
 
 
 class _PairwiseDistance(object):
@@ -449,8 +447,7 @@ class _PairwiseDistance(object):
         if include_duplicates:
             dists = self._expand(dists)
 
-        result = DistanceMatrix(dists)
-        return result
+        return DistanceMatrix(dists)
 
     def _expand(self, pwise):
         """returns a pwise statistic dict that includes duplicates"""
@@ -491,8 +488,7 @@ class _PairwiseDistance(object):
         stats = {k: sqrt(self._dists[k].variance) for k in self._dists}
         stats = self._expand(stats)
         kwargs = dict(title="Standard Error of Pairwise Distances", digits=4)
-        t = _make_stat_table(stats, self.names, **kwargs)
-        return t
+        return _make_stat_table(stats, self.names, **kwargs)
 
     @property
     def variances(self):
@@ -516,8 +512,7 @@ class _PairwiseDistance(object):
         stats = {k: self._dists[k].fraction_variable for k in self._dists}
         stats = self._expand(stats)
         kwargs = dict(title="Proportion variable sites", digits=4)
-        t = _make_stat_table(stats, self.names, **kwargs)
-        return t
+        return _make_stat_table(stats, self.names, **kwargs)
 
     @property
     def lengths(self):
@@ -527,8 +522,7 @@ class _PairwiseDistance(object):
         stats = {k: self._dists[k].length for k in self._dists}
         stats = self._expand(stats)
         kwargs = dict(title="Pairwise Aligned Lengths", digits=0)
-        t = _make_stat_table(stats, self.names, **kwargs)
-        return t
+        return _make_stat_table(stats, self.names, **kwargs)
 
 
 class HammingPair(_PairwiseDistance):
@@ -568,8 +562,7 @@ class PercentIdentityPair(_PairwiseDistance):
         if include_duplicates:
             dists = self._expand(dists)
 
-        result = DistanceMatrix(dists)
-        return result
+        return DistanceMatrix(dists)
 
 
 class _NucleicSeqPair(_PairwiseDistance):
@@ -743,8 +736,7 @@ class DistanceMatrix(DictArray):
             column = self.array[:, i]
             data[name] = column
         header = ["names"] + list(self.names)
-        table = Table(header=header, data=data, index_name="names")
-        return table
+        return Table(header=header, data=data, index_name="names")
 
     def to_dict(self, **kwargs):
         """Returns a flattened dict with diagonal elements removed"""
@@ -758,13 +750,12 @@ class DistanceMatrix(DictArray):
         # a list of tuples
         dists = self.to_dict()
         json_safe = [(k[0], k[1], dists[k]) for k in dists]
-        data = dict(
+        return dict(
             dists=json_safe,
             invalid=self._invalid,
             type=get_object_provenance(self),
             version=__version__,
         )
-        return data
 
     def take_dists(self, names, negate=False):
         """
@@ -817,8 +808,7 @@ class DistanceMatrix(DictArray):
         exclude += names[rows != 0].tolist()
         exclude = set(exclude)
         keep = set(names) ^ exclude
-        result = self.take_dists(keep)
-        return result
+        return self.take_dists(keep)
 
     def quick_tree(self, show_progress=False):
         """returns a neighbour joining tree

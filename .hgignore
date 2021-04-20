@@ -15,7 +15,7 @@ build
 *htmlcov*
 *.idea
 draw_results
-*.coverage
+*.coverage*
 *egg-info*
 *.wpu
 .cache*
@@ -29,3 +29,4 @@ draw_results
 *.code-workspace
 coverage.xml
 __pycache__
+junit-*.xml

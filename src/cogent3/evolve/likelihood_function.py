@@ -24,7 +24,7 @@ from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Andrew Butterfield",
@@ -36,7 +36,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -1024,20 +1024,27 @@ class LikelihoodFunction(ParameterController):
             a random number generator.
         exclude_internal
             if True, only sequences for tips are returned.
+        locus
+            if fit to multiple alignments, select the values corresponding to
+            locus for generating data
+        seed
+            seed value for the random number generator
         root_sequence
-            a sequence from which all others evolve.
-
+            a sequence from which all others evolve
         """
-
+        orig_ambig = {}
         if sequence_length is None:
             lht = self.get_param_value("lht", locus=locus)
-            sequence_length = len(lht.index)
+            try:
+                sequence_length = len(lht.index)
+            except AttributeError:
+                raise ValueError(
+                    f"Must provide sequence_length since no alignment set on self"
+                )
+
             leaves = self.get_param_value("leaf_likelihoods", locus=locus)
-            orig_ambig = {}
             for (seq_name, leaf) in list(leaves.items()):
                 orig_ambig[seq_name] = leaf.get_ambiguous_positions()
-        else:
-            orig_ambig = {}
 
         if random_series is None:
             random_series = random.Random()
@@ -1096,7 +1103,7 @@ class LikelihoodFunction(ParameterController):
         return True
 
     def initialise_from_nested(self, nested_lf):
-        from cogent3.evolve.substitution_model import TimeReversible
+        from cogent3.evolve.substitution_model import Stationary
 
         assert (
             self.get_num_free_params() > nested_lf.get_num_free_params()
@@ -1104,11 +1111,11 @@ class LikelihoodFunction(ParameterController):
         compatible_likelihood_functions(self, nested_lf)
 
         same = (
-            isinstance(self.model, TimeReversible)
-            and isinstance(nested_lf.model, TimeReversible)
+            isinstance(self.model, Stationary)
+            and isinstance(nested_lf.model, Stationary)
         ) or (
-            not isinstance(self.model, TimeReversible)
-            and not isinstance(nested_lf.model, TimeReversible)
+            not isinstance(self.model, Stationary)
+            and not isinstance(nested_lf.model, Stationary)
         )
 
         mprobs = nested_lf.get_motif_probs()

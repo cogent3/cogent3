@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -25,9 +25,7 @@ def pog_traceback(pogs, aligned_positions):
     for dim in [0, 1]:
         align_builder.add_skipped(dim, upto[dim], len(pogs[dim]))
 
-    result_pog = align_builder.get_pog()
-
-    return result_pog
+    return align_builder.get_pog()
 
 
 class POGBuilder(object):

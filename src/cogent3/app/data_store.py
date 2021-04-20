@@ -32,10 +32,10 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -151,8 +151,7 @@ class ReadOnlyDataStoreBase:
         self._checksums = {}
 
     def __getstate__(self):
-        data = self._persistent.copy()
-        return data
+        return self._persistent.copy()
 
     def __setstate__(self, data):
         new = self.__class__(**data)
@@ -168,8 +167,7 @@ class ReadOnlyDataStoreBase:
 
         num = len(self)
         name = self.__class__.__name__
-        txt = f"{num}x member {name}(source='{self.source}', members={sample})"
-        return txt
+        return f"{num}x member {name}(source='{self.source}', members={sample})"
 
     def __str__(self):
         return str(list(self))
@@ -328,8 +326,7 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
         if not os.path.exists(identifier):
             raise ValueError(f"path '{identifier}' does not exist")
 
-        infile = open_(identifier)
-        return infile
+        return open_(identifier)
 
 
 class SingleReadDataStore(ReadOnlyDirectoryDataStore):
@@ -417,19 +414,17 @@ class WritableDataStoreBase:
 
     def make_relative_identifier(self, data):
         """returns identifier for a new member relative to source"""
+        from cogent3.app.composable import _get_source
+
         if isinstance(data, DataStoreMember):
             data = data.name
         elif type(data) != str:
-            try:
-                data = data.info.source
-            except AttributeError:
-                try:
-                    data = data.source
-                except AttributeError:
-                    raise ValueError(
-                        "objects for storage require either a "
-                        "source or info.source string attribute"
-                    )
+            data = _get_source(data)
+            if data is None:
+                raise ValueError(
+                    "objects for storage require either a "
+                    "source or info.source string attribute"
+                )
         basename = os.path.basename(data)
         suffix, comp = get_format_suffixes(basename)
         if suffix and comp:
@@ -448,8 +443,7 @@ class WritableDataStoreBase:
     def make_absolute_identifier(self, data):
         """returns a absolute identifier for a new member, includes source"""
         basename = self.make_relative_identifier(data)
-        identifier = self.get_absolute_identifier(basename, from_relative=True)
-        return identifier
+        return self.get_absolute_identifier(basename, from_relative=True)
 
     def add_file(self, path, make_unique=True, keep_suffix=True, cleanup=False):
         """
@@ -648,6 +642,15 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         md5 : bool
             record md5 hexadecimal checksum of data when possible
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "class",
+            self.__class__.__name__,
+            "2021.10.01",
+            reason="zips are not efficient for incremental inclusion of files, use a tinydb instead",
+        )
+
         ReadOnlyZippedDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
@@ -846,8 +849,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ]
             rows.append(row)
 
-        table = Table(header=header, data=rows, title="incomplete records")
-        return table
+        return Table(header=header, data=rows, title="incomplete records")
 
     @property
     def members(self):
@@ -952,12 +954,11 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
                 ]
             )
             rows.append(row)
-        table = Table(
+        return Table(
             header=["time", "name", "python version", "who", "command", "composable"],
             data=rows,
             title="summary of log files",
         )
-        return table
 
     @property
     def describe(self):
@@ -972,7 +973,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         num_incomplete = len(self.incomplete)
         num_complete = len(self.members)
         num_logs = len(self.logs)
-        summary = Table(
+        return Table(
             header=["record type", "number"],
             data=[
                 ["completed", num_complete],
@@ -981,7 +982,6 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
             ],
             title=title,
         )
-        return summary
 
 
 class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
@@ -1039,9 +1039,7 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
         record = make_record_for_json(relative_id, not_completed, False)
         doc_id = self.db.insert(record)
 
-        member = DataStoreMember(relative_id, self, id=doc_id)
-
-        return member
+        return DataStoreMember(relative_id, self, id=doc_id)
 
     def add_file(self, path, make_unique=True, keep_suffix=True, cleanup=False):
         """

@@ -17,10 +17,10 @@ TRACE_DEFAULT = "COGENT3_TRACE" in os.environ
 TRACE_SCALE = 100000
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -352,11 +352,10 @@ class Calculator(object):
     def get_value_array(self):
         """This being a caching function, you can ask it for its current
         input!  Handy for initialising the optimiser."""
-        values = [
+        return [
             p.transform_to_optimiser(self._get_current_cell_value(p))
             for p in self.opt_pars
         ]
-        return values
 
     # get_bounds_vectors and testoptparvector make up the old LikelihoodFunction
     # interface expected by the optimiser.

@@ -6,16 +6,16 @@ import pathlib
 from collections.abc import Callable
 
 from cogent3.util.misc import open_
-from cogent3.util.warning import discontinued
+from cogent3.util.warning import deprecated
 
 from .record_finder import is_empty
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -85,9 +85,22 @@ class FilteringParser:
         self.columns = indices
 
     def __call__(self, lines):
+        """a generator that yields individual lines processed according to the
+        provided conditions
+
+        Parameters
+        ----------
+        lines: path or iterable
+            If file path, handles file open and close. Will expand user
+            component (i.e. '~/') of path.
+
+        Notes
+        -----
+        Elements within a row are strings
+        """
         input_from_path = False
         if isinstance(lines, str) or isinstance(lines, pathlib.Path):
-            path = pathlib.Path(lines)
+            path = pathlib.Path(lines).expanduser()
             input_from_path = path.exists()
 
             if input_from_path:
@@ -129,16 +142,47 @@ class FilteringParser:
 def load_delimited(
     filename,
     header=True,
-    delimiter=",",
+    sep=",",
+    delimiter=None,
     with_title=False,
     with_legend=False,
     limit=None,
 ):
-    if limit is not None:
+    """
+    basic processing of tabular data
+
+    Parameters
+    ----------
+    filename: Path
+        path to delimited file (can begin with ~)
+    header: bool
+        whether the first line of the file (after the title, if present) is a header
+    sep: str
+        the character separating columns
+    with_title: bool
+        whether the first line of the file is a title
+    with_legend: bool
+        whether the last line of the file is a legend
+    limit: int
+        maximum number of lines to read from the file
+
+    Returns
+    -------
+    header, rows, title, legend
+
+    Notes
+    -----
+    All row values remain as strings.
+    """
+    if delimiter:
+        sep = delimiter
+        deprecated("argument", "delimiter", "sep", "2022.1")
+
+    if limit is not None and header:
         limit += 1  # don't count header line
 
     with open_(filename) as f:
-        reader = csv.reader(f, dialect="excel", delimiter=delimiter)
+        reader = csv.reader(f, dialect="excel", delimiter=sep)
         title = "".join(next(reader)) if with_title else ""
         rows = []
         num_lines = 0

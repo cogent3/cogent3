@@ -18,10 +18,10 @@ from .period_numba import autocorr_inner, goertzel_inner, ipdft_inner
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -35,8 +35,7 @@ def _goertzel_inner(x, N, period):
         s = x[n] + coeff * s_prev - s_prev2
         s_prev2 = s_prev
         s_prev = s
-    pwr = sqrt(s_prev2 ** 2 + s_prev ** 2 - coeff * s_prev2 * s_prev)
-    return pwr
+    return sqrt(s_prev2 ** 2 + s_prev ** 2 - coeff * s_prev2 * s_prev)
 
 
 def _ipdft_inner(x, X, W, ulim, N):  # naive python
@@ -217,8 +216,7 @@ class Hybrid(_PeriodEstimator):
 
     def getNumStats(self):
         """the number of stats computed by this calculator"""
-        num = [1, 3][self._return_all]
-        return num
+        return [1, 3][self._return_all]
 
     def evaluate(self, x):
         if self.period is None:

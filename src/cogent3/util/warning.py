@@ -4,16 +4,16 @@ from warnings import warn as _warn
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Jai Ram Rideout"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def deprecated(_type, old, new, version, stack_level=2):
+def deprecated(_type, old, new, version, reason=None, stack_level=2):
     """a convenience function for deprecating classes, functions, arguments.
 
     Parameters
@@ -25,25 +25,24 @@ def deprecated(_type, old, new, version, stack_level=2):
     version
         the version by which support for the old name will be
         discontinued
+    reason
+        why, and what choices users have
     stack_level
         as per warnings.warn
 
     """
-    msg = "use %s %s instead of %s, support discontinued in version %s" % (
-        _type,
-        new,
-        old,
-        version,
+    msg = (
+        f"use {_type} {new} instead of {old}, support discontinued in version {version}"
     )
+    if reason is not None:
+        msg = f"{msg}\n{reason}"
 
-    # DeprecationWarnings are ignored by default in python 2.7, so temporarily
-    # force them to be handled.
     with catch_warnings():
         simplefilter("always")
         _warn(msg, DeprecationWarning, stack_level)
 
 
-def discontinued(_type, name, version, stack_level=2):
+def discontinued(_type, name, version, reason=None, stack_level=2):
     """convenience func to warn about discontinued attributes
 
     Parameters
@@ -55,15 +54,17 @@ def discontinued(_type, name, version, stack_level=2):
     version
         the version by which support for the old name will be
         discontinued
+    reason
+        why, and what choices users have
     stack_level
         as per warnings.warn
 
     """
-    msg = "%s %s is discontinued, support will be stopped in version %s" % (
-        _type,
-        name,
-        version,
+    msg = (
+        f"{_type} {name} is discontinued, support will be stopped in version {version}"
     )
+    if reason is not None:
+        msg = f"{msg}\n{reason}"
 
     with catch_warnings():
         simplefilter("always")

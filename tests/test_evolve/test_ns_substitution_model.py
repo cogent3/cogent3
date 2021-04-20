@@ -7,7 +7,7 @@ import numpy
 from numpy import array, dot, empty, ones
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, make_aligned_seqs, make_tree
+from cogent3 import DNA, get_model, make_aligned_seqs, make_tree
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
@@ -28,10 +28,10 @@ warnings.filterwarnings("ignore", "Model not reversible")
 
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Ananias Iliadis"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -140,14 +140,14 @@ class MakeCachedObjects:
         self.results["discrete"] = dis_lf
 
     def __call__(self, obj_name, **kwargs):
-        funcs = dict(
-            general=self.fit_general,
-            gen_stat=self.fit_gen_stat,
-            discrete=self.fit_discrete,
-            constructed_gen=self.fit_constructed_gen,
-        )
-
         if obj_name not in self.results:
+            funcs = dict(
+                general=self.fit_general,
+                gen_stat=self.fit_gen_stat,
+                discrete=self.fit_discrete,
+                constructed_gen=self.fit_constructed_gen,
+            )
+
             funcs[obj_name](results=self.results, **kwargs)
         return self.results[obj_name]
 
@@ -184,7 +184,6 @@ class NonStatMarkov(TestCase):
     def test_paralinear_consistent_discrete_continuous(self):
         """paralinear masure should be consistent between the two classes"""
         gen_lf = self.make_cached("general", max_evaluations=2)
-        gen_lnL = gen_lf.get_log_likelihood()
         dis_lf = self._setup_discrete_from_general(gen_lf)
         ct_para = gen_lf.get_paralinear_metric()
         dt_para = dis_lf.get_paralinear_metric()
@@ -208,6 +207,12 @@ class NonStatMarkov(TestCase):
         gen_stat_lnL = gen_stat_lf.get_log_likelihood()
         gen_lnL = gen_lf.get_log_likelihood()
         self.assertLess(gen_stat_lnL, gen_lnL)
+
+    def test_general_stationary_param_list(self):
+        """general stationary returns parameter list"""
+        gs = GeneralStationary(DNA.alphabet)
+        params = gs.get_param_list()
+        self.assertTrue(params != [])
 
     def test_general_stationary_is_stationary(self):
         """should be stationary"""

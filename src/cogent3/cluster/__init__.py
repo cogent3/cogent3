@@ -5,10 +5,10 @@
 __all__ = ["UPGMA"]
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell", "Justin Kuczynski"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"

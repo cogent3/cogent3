@@ -68,7 +68,7 @@ from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __contributors__ = [
     "Gavin Huttley",
     "Andrew Butterfield",
@@ -79,7 +79,7 @@ __contributors__ = [
     "Von Bing Yap",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -426,8 +426,7 @@ class _SubstitutionModel(object):
 
 def non_zero_coords(matrix):
     dim = matrix.shape[0]
-    coords = [(i, j) for i in range(dim) for j in range(dim) if matrix[i, j] != 0]
-    return coords
+    return [(i, j) for i in range(dim) for j in range(dim) if matrix[i, j] != 0]
 
 
 class _ContinuousSubstitutionModel(_SubstitutionModel):
@@ -572,13 +571,11 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         for m in self.predicate_masks.values():
             mats += m
         ref_mask = self._instantaneous_mask - mats
-        ref_cells = set(non_zero_coords(ref_mask))
-        return ref_cells
+        return set(non_zero_coords(ref_mask))
 
     def get_param_matrix_coords(self, include_ref_cell=False):
         """returncoordinates for every predicate"""
         dim = len(self.alphabet)
-        mats = numpy.zeros((dim, dim), dtype=int)
         param_coords = {}
         for key, m in self.predicate_masks.items():
             coords = [(i, j) for i in range(dim) for j in range(dim) if m[i, j] != 0]
@@ -594,8 +591,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         Q = CalcDefn(self.calcQ, name="Q")(word_probs, mprobs_matrix, *rate_params)
         expm = NonParamDefn("expm")
         exp = ExpDefn(expm)
-        Qd = CallDefn(exp, Q, name="Qd")
-        return Qd
+        return CallDefn(exp, Q, name="Qd")
 
     def _make_bin_param_defn(self, edge_par_name, bin_par_name, bprob_defn):
         # if no ordered param defined, behaves as old, everything indexed by
@@ -638,10 +634,9 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
     def make_psubs_defn(self, bprobs, word_probs, mprobs_matrix, rate_params):
         distance = self.make_distance_defn(bprobs)
-        P = self.make_continuous_psub_defn(
+        return self.make_continuous_psub_defn(
             word_probs, mprobs_matrix, distance, rate_params
         )
-        return P
 
     def make_distance_defn(self, bprobs):
         length = LengthDefn()
@@ -656,8 +651,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         self, word_probs, mprobs_matrix, distance, rate_params
     ):
         Qd = self.make_Qd_defn(word_probs, mprobs_matrix, rate_params)
-        P = CallDefn(Qd, distance, name="psubs")
-        return P
+        return CallDefn(Qd, distance, name="psubs")
 
 
 class StationaryQ:

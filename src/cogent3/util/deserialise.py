@@ -13,10 +13,10 @@ from cogent3.util.misc import open_, path_exists
 
 
 __author__ = ["Gavin Huttley"]
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -69,8 +69,7 @@ def deserialise_not_completed(data):
     init = data.pop("not_completed_construction")
     args = init.pop("args")
     kwargs = init.pop("kwargs")
-    result = klass(*args, **kwargs)
-    return result
+    return klass(*args, **kwargs)
 
 
 def deserialise_map_spans(map_element):
@@ -84,8 +83,7 @@ def deserialise_map_spans(map_element):
         spans.append(instance)
 
     map_element["spans"] = spans
-    map_instance = map_klass(**map_element)
-    return map_instance
+    return map_klass(**map_element)
 
 
 def deserialise_annotation(data, parent):

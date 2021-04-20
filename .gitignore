@@ -22,9 +22,10 @@ lib64
 pip-log.txt
 
 # Unit test / coverage reports
-.coverage
+.coverage*
 .tox
 coverage.xml
+junit-*.xml
 nosetests.xml
 tests/draw_results
 
@@ -38,6 +39,8 @@ tests/draw_results
 .idea/*
 .DS_Store
 __pycache__
+*.code-workspace
+*.wpu
 
 # vi
 .*.swp

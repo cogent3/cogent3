@@ -29,7 +29,7 @@ from cogent3.util import progress_display as UI
 
 
 __author__ = "Gavin Huttley, Andrew Butterfield and Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Andrew Butterfield",
@@ -38,7 +38,7 @@ __credits__ = [
     "Peter Maxwell",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

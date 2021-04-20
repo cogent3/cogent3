@@ -40,6 +40,7 @@ from cogent3.evolve.models import (
     get_model,
     ssGN,
 )
+from cogent3.evolve.ns_substitution_model import GeneralStationary
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
 
@@ -51,7 +52,7 @@ TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -61,7 +62,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -99,7 +100,7 @@ def isTransition(motif1, motif2):
 def numdiffs_position(motif1, motif2):
     assert len(motif1) == len(
         motif2
-    ), "motif1[%s] & motif2[%s] have inconsistent length" % (motif1, motif2)
+    ), f"motif1[{motif1}] & motif2[{motif2}] have inconsistent length"
 
     ndiffs, position = 0, -1
     for i in range(len(motif1)):
@@ -179,7 +180,7 @@ class LikelihoodCalcs(TestCase):
         aln["root"] = one
         aln = make_aligned_seqs(data=aln)
         submod = get_model("TN93")
-        tree = make_tree("%s" % str(tuple(aln.names)))
+        tree = make_tree(f"{str(tuple(aln.names))}")
         lf = submod.make_likelihood_function(tree)
         try:
             lf.set_alignment(aln)
@@ -188,7 +189,7 @@ class LikelihoodCalcs(TestCase):
 
         collection = aln.degap().named_seqs
         collection.pop("Human")
-        tree = make_tree("%s" % str(tuple(collection.keys())))
+        tree = make_tree(f"{str(tuple(collection.keys()))}")
         lf = submod.make_likelihood_function(tree, aligned=False)
         try:
             lf.set_sequences(collection)
@@ -498,6 +499,20 @@ DogFaced   root      1.00  1.00
         lf.set_param_rule("beta", bin="low", value=0.1)
         lf.set_param_rule("beta", bin="high", value=10.0)
         simulated_alignment = lf.simulate_alignment(100)
+
+    def test_simulate_alignment1(self):
+        "Simulate alignment when no alignment set"
+        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
+        t = make_tree("(a,c);")
+        sm = get_model("F81")
+        lf = sm.make_likelihood_function(t)
+        # no provided alignment raises an exception
+        with self.assertRaises(ValueError):
+            lf.simulate_alignment()
+
+        # unless you provide length
+        sim_aln = lf.simulate_alignment(sequence_length=10)
+        self.assertEqual(len(sim_aln), 10)
 
     def test_simulate_alignment2(self):
         "Simulate alignment with dinucleotide model"
@@ -990,6 +1005,24 @@ DogFaced     root      1.0000    1.0000
         edge_sets = [dict(edges=("Human", "Mouse"))]
         null.set_time_heterogeneity(edge_sets=edge_sets, is_independent=False)
 
+    def test_init_from_nested_genstat(self):
+        """initialising a general stationary model from a nested time-reversible model works"""
+        tree = make_tree(tip_names=["Human", "Mouse", "Opossum"])
+        gtr = get_model("GTR")
+        gs = GeneralStationary(gtr.alphabet)
+        gtr_lf = gtr.make_likelihood_function(tree)
+        gtr_lf.set_alignment(_aln)
+        mprobs = dict(A=0.1, T=0.2, C=0.3, G=0.4)
+        gtr_lf.set_motif_probs(mprobs)
+        rate_params = {"A/C": 0.75, "A/G": 3, "A/T": 1.5, "C/G": 0.2, "C/T": 6}
+        for par_name, val in rate_params.items():
+            gtr_lf.set_param_rule(par_name, init=val)
+
+        gs_lf = gs.make_likelihood_function(tree)
+        gs_lf.set_alignment(_aln)
+        gs_lf.initialise_from_nested(gtr_lf)
+        assert_allclose(gs_lf.lnL, gtr_lf.lnL)
+
     def test_set_time_heterogeneity(self):
         """correctly apply time heterogeneity of rate terms"""
         lf = self.submodel.make_likelihood_function(self.tree)
@@ -1099,6 +1132,33 @@ DogFaced     root      1.0000    1.0000
         glf = rich.make_likelihood_function(tree, digits=2)
         glf.set_alignment(_aln)
         glf.set_name("GN")
+        glf.initialise_from_nested(slf)
+        assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_diff_stat(self):
+        """non-reversible stationary initialised from nested time-reversible"""
+        mprobs = {b: p for b, p in zip(DNA, [0.1, 0.2, 0.3, 0.4])}
+        rate_params = {"A/C": 2.0, "A/G": 3.0, "A/T": 4.0, "C/G": 5.0, "C/T": 6.0}
+
+        simple = GTR()
+        tree = make_tree(tip_names=["Human", "Mouse", "Opossum"])
+        slf = simple.make_likelihood_function(tree, digits=2)
+        slf.set_alignment(_aln)
+        slf.set_name("GTR")
+        slf.set_motif_probs(mprobs)
+        for param, val in rate_params.items():
+            slf.set_param_rule(param, init=val)
+        lengths = {e: v for e, v in zip(tree.get_tip_names(), (0.2, 0.4, 0.1))}
+        for e, val in lengths.items():
+            slf.set_param_rule("length", edge=e, init=val)
+
+        # set mprobs and then set the rate terms
+        from cogent3.evolve.ns_substitution_model import GeneralStationary
+
+        rich = GeneralStationary(DNA.alphabet)
+        glf = rich.make_likelihood_function(tree, digits=2)
+        glf.set_alignment(_aln)
+        glf.set_name("GSN")
         glf.initialise_from_nested(slf)
         assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 

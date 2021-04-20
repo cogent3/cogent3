@@ -11,11 +11,11 @@ from cogent3.parse.greengenes import (
 
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"  # consider project name
+__copyright__ = "Copyright 2007-2021, The Cogent Project"  # consider project name
 # remember to add yourself if you make changes
 __credits__ = ["Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Prototype"

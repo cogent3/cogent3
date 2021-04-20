@@ -17,7 +17,7 @@ from cogent3.util.misc import NestedSplitter, curry, identity, list_flatten
 
 
 __author__ = "Zongzhi Liu and Sandra Smit"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Zongzhi Liu",
     "Sandra Smit",
@@ -26,7 +26,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"
@@ -270,8 +270,7 @@ def join_split_dict_parser(
             if len(v) > 1:
                 pairs[i][1] = v
 
-    result = pairs_to_dict(pairs, dict_mode)
-    return result
+    return pairs_to_dict(pairs, dict_mode)
 
 
 def mapping_parser(line, fields, delimiters=None, flatten=list_flatten):
@@ -530,8 +529,7 @@ def dr_parser(lines):
     """
     lines = labeloff(lines)
     keyvalues = list(map(dr_itemparser, period_tail_finder(lines)))
-    result = pairs_to_dict(keyvalues, "always_multi_value")
-    return result
+    return pairs_to_dict(keyvalues, "always_multi_value")
 
 
 def dr_itemparser(lines):
@@ -863,8 +861,7 @@ def ft_id_mutation_parser(description):
     """
     desc_id_dict = ft_id_parser(description)
     desc = desc_id_dict.pop("Description")
-    result = dict(desc_id_dict, **ft_mutation_parser(desc))
-    return result
+    return dict(desc_id_dict, **ft_mutation_parser(desc))
 
 
 ft_description_parsers = {

@@ -13,10 +13,10 @@ from cogent3.util.table import Table
 
 
 __author__ = "Greg Caporaso and Rob Knight"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -497,11 +497,10 @@ def available_codes():
     all_keys = sorted({int(k) for k in GeneticCodes if str(k).isdigit()})
     rows = [(k, GeneticCodes[k].name) for k in all_keys]
     header = ["Code ID", "Name"]
-    table = Table(
+    return Table(
         header=header,
         data=rows,
         index_name="Code ID",
         title="Specify a genetic code using either 'Name' or "
         "Code ID (as an integer or string)",
     )
-    return table

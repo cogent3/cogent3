@@ -7,12 +7,18 @@ import textwrap
 import time
 import traceback
 
+from copy import deepcopy
+
 import scitrack
 
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import progress_display as UI
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import (
+    extend_docstring_from,
+    get_object_provenance,
+    open_,
+)
 
 from .data_store import (
     IGNORE,
@@ -27,10 +33,10 @@ from .data_store import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -50,15 +56,16 @@ def _make_logfile_name(process):
 
 def _get_source(source):
     if isinstance(source, str):
-        result = str(source)
-    else:
+        return str(source)
+
+    # todo maybe a dict? see about getting keys
+    try:
+        result = source.source
+    except AttributeError:
         try:
-            result = source.source
+            result = source.info.source
         except AttributeError:
-            try:
-                result = source.info.source
-            except AttributeError:
-                result = None
+            result = None
     return result
 
 
@@ -115,14 +122,13 @@ class NotCompleted(int):
 
     def to_rich_dict(self):
         """returns components for to_json"""
-        data = {
+        return {
             "type": get_object_provenance(self),
             "not_completed_construction": dict(
                 args=self._persistent[0], kwargs=self._persistent[1]
             ),
             "version": __version__,
         }
-        return data
 
     def to_json(self):
         """returns json string"""
@@ -194,7 +200,7 @@ class ComposableType:
 class Composable(ComposableType):
     def __init__(self, **kwargs):
         super(Composable, self).__init__(**kwargs)
-        self.func = None  # over-ride in subclass
+        # self.func = None  # over-ride in subclass
         self._in = None  # input rules
         self._out = None  # rules receiving output
         # rules operating on result but not part of a chain
@@ -207,7 +213,9 @@ class Composable(ComposableType):
         if txt:
             txt += " + "
         txt += "%s(%s)" % (self.__class__.__name__, ", ".join(self._formatted))
-        txt = textwrap.fill(txt, width=80, break_long_words=False)
+        txt = textwrap.fill(
+            txt, width=80, break_long_words=False, break_on_hyphens=False
+        )
         return txt
 
     def __repr__(self):
@@ -405,6 +413,7 @@ class Composable(ComposableType):
         Returns
         -------
         Result of the process as a list
+
         Notes
         -----
         If run in parallel, this instance serves as the master object and
@@ -650,8 +659,7 @@ class _checkpointable(Composable):
         if self._callback:
             data = self._callback(data)
 
-        identifier = self.data_store.make_absolute_identifier(data)
-        return identifier
+        return self.data_store.make_absolute_identifier(data)
 
     def job_done(self, data):
         identifier = self._make_output_identifier(data)
@@ -674,19 +682,68 @@ class user_function(Composable):
 
     _type = "function"
 
-    def __init__(self, func, input_types, output_types, data_types=None):
+    @extend_docstring_from(ComposableType.__init__, pre=False)
+    def __init__(
+        self, func, input_types, output_types, *args, data_types=None, **kwargs
+    ):
+        """
+        func : callable
+            user specified function
+        *args
+            positional arguments to append to incoming values prior to calling
+            func
+        **kwargs
+            keyword arguments to include when calling func
+
+        Notes
+        -----
+        Known types are defined as constants in ``cogent3.app.composable``, e.g.
+        ALIGNED_TYPE, SERIALISABLE_TYPE, RESULT_TYPE.
+
+        If you create a function ``foo(arg1, arg2, kwarg1=False)``. You can
+        turn this into a user function, e.g.
+
+        >>> ufunc = user_function(foo, in_types, out_types, arg2val, kwarg1=True)
+
+        Then
+
+        >>> ufunc(val) == foo(val, arg2val, kwarg1=True)
+        """
         super(user_function, self).__init__(
             input_types=input_types, output_types=output_types
         )
-        self.func = func
+        self._user_func = func
+        self._args = args
+        self._kwargs = kwargs
 
     def func(self, *args, **kwargs):
-        self._func(self, *args, **kwargs)
+        """
+        Parameters
+        ----------
+        args
+            self._args + args are passed to the user function
+        kwargs
+            a deep copy of self._kwargs is updated by kwargs and passed to the
+            user function
+
+        Returns
+        -------
+        the result of the user function
+        """
+        args = self._args + args
+        kwargs_ = deepcopy(self._kwargs)
+        kwargs_.update(kwargs)
+        return self._user_func(*args, **kwargs_)
 
     def __str__(self):
-        name = self.func.__name__
-        module = self.func.__module__
-        return f"user_function(name='{name}', module='{module}')"
+        txt = "" if not self.input else str(self.input)
+        if txt:
+            txt += " + "
+        txt += f"user_function(name='{self._user_func.__name__}', module='{self._user_func.__module__}')"
+        txt = textwrap.fill(
+            txt, width=80, break_long_words=False, break_on_hyphens=False
+        )
+        return txt
 
     def __repr__(self):
         return str(self)

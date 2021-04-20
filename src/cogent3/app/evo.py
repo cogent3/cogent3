@@ -29,10 +29,10 @@ from .result import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -50,6 +50,7 @@ class model(ComposableModel):
         self,
         sm,
         tree=None,
+        unique_trees=False,
         name=None,
         sm_args=None,
         lf_args=None,
@@ -69,12 +70,15 @@ class model(ComposableModel):
             if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
+        unique_trees: bool
+            whether to specify a unique tree per alignment. Only applies if
+            number of sequences equals 3.
         name
             name of the model
-        sm_args
+        sm_args : dict
             arguments to be passed to the substitution model constructor, e.g.
             dict(optimise_motif_probs=True)
-        lf_args
+        lf_args : dict
             arguments to be passed to the likelihood function constructor
         time_het
             'max' or a list of dicts corresponding to edge_sets, e.g.
@@ -84,7 +88,7 @@ class model(ComposableModel):
         param_rules
             other parameter rules, passed to the likelihood function
             set_param_rule() method
-        opt_args
+        opt_args : dict
             arguments for the numerical optimiser, e.g.
             dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
             limit_action='ignore')
@@ -109,6 +113,10 @@ class model(ComposableModel):
         )
         self._verbose = verbose
         self._formatted_params()
+        assert not (
+            tree and unique_trees
+        ), "cannot provide a tree when unique_trees is True"
+        self._unique_trees = unique_trees
         sm_args = sm_args or {}
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
@@ -175,7 +183,7 @@ class model(ComposableModel):
             lf.apply_param_rules([rule])
 
         if initialise:
-            initialise(lf, identifier)
+            lf = initialise(lf, identifier)
 
         self._lf = lf
 
@@ -212,8 +220,8 @@ class model(ComposableModel):
             return NotCompleted("ERROR", self, msg, source=aln)
 
         evaluation_limit = opt_args.get("max_evaluations", None)
-        if self._tree is None:
-            assert len(aln.names) == 3
+        if self._tree is None or self._unique_trees:
+            assert len(aln.names) == 3, "to model more than 3, you must provide a tree"
             self._tree = make_tree(tip_names=aln.names)
 
         result = model_result(
@@ -269,10 +277,15 @@ class hypothesis(ComposableHypothesis):
             The alternate model or a series of them
         init_alt : callable
             A callback function for initialising the alternate model
-            likelihood function prior to optimisation. Defaults to using
-            MLEs from the null model.
+            likelihood function prior to optimisation. It must take 2 input
+            arguments and return the modified alternate likelihood function.
+            Default is to use MLEs from the null model.
+
+        Notes
+        -----
+        To stop the null MLEs from being used, provide a lambda function that
+        just returns the likelihood function, e.g. init_alt=lambda lf, identifier: lf
         """
-        # todo document! init_alt needs to be able to take null, alt and *args
         super(hypothesis, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
@@ -299,7 +312,7 @@ class hypothesis(ComposableHypothesis):
             return alt
 
         if callable(self._init_alt):
-            init_func = self._init_alt(null)
+            init_func = self._init_alt
         else:
             init_func = init
 
@@ -751,8 +764,7 @@ class natsel_zhang(ComposableHypothesis):
             )
         )
         alt_args["param_rules"] = rules
-        alt = model(**alt_args)
-        return alt
+        return model(**alt_args)
 
     def test_hypothesis(self, aln, *args, **kwargs):
         null_result = self.null(aln)
@@ -911,8 +923,7 @@ class natsel_sitehet(ComposableHypothesis):
             )
         )
         alt_args["param_rules"] = rules
-        alt = model(**alt_args)
-        return alt
+        return model(**alt_args)
 
     def test_hypothesis(self, aln, *args, **kwargs):
         null_result = self.null(aln)

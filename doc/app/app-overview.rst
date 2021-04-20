@@ -1,3 +1,5 @@
+.. _apps:
+
 **********************
 Overview of using apps
 **********************
@@ -68,7 +70,7 @@ You can do parallel computation
 
     process.apply_to(dstore, parallel=True)
 
-By default, this will use all available processors on your machine. If you are running in an mpi environment, you can add the argument ``par_kw=dict(use_mpi=True)``.
+By default, this will use all available processors on your machine. If you are running in an mpi environment, you can add the argument ``par_kw=dict(use_mpi=True)``. For more details, see :ref:`parallel`.
 
 You can log the settings and data analysed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

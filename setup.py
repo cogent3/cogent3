@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __contributors__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -15,7 +15,7 @@ __contributors__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -82,7 +82,15 @@ setup(
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
-    install_requires=["numba>0.48.0", "numpy", "scitrack", "tqdm", "tinydb"],
+    install_requires=[
+        "chardet",
+        "numpy",
+        "numba>0.48.0;python_version<'3.9'",
+        "numba>0.53; python_version>='3.9'",
+        "scitrack",
+        "tqdm",
+        "tinydb",
+    ],
     extras_require={
         "dev": [
             "black",

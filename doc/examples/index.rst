@@ -57,3 +57,11 @@ Phylogenetic Reconstruction
     calculate_UPGMA_cluster
     phylo_by_ls
 
+*********
+Utilities
+*********
+
+.. toctree::
+    :maxdepth: 1
+    
+    parallel

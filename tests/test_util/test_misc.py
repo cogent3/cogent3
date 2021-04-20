@@ -2,6 +2,8 @@
 
 """Unit tests for utility functions and classes.
 """
+import bz2
+import gzip
 import os
 import pathlib
 import tempfile
@@ -27,6 +29,7 @@ from cogent3.util.misc import (
     MappedDict,
     MappedList,
     NestedSplitter,
+    _path_relative_to_zip_parent,
     add_lowercase,
     adjusted_gt_minprob,
     adjusted_within_bounds,
@@ -48,6 +51,7 @@ from cogent3.util.misc import (
     list_flatten,
     not_list_tuple,
     open_,
+    open_zip,
     path_exists,
     recursive_flatten,
     remove_files,
@@ -55,7 +59,7 @@ from cogent3.util.misc import (
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Amanda Birmingham",
@@ -65,7 +69,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -648,6 +652,24 @@ class AtomicWriteTests(TestCase):
                     raise AssertionError
             self.assertFalse(test_filepath.exists())
 
+    def test_writes_compressed_formats(self):
+        """correctly writes / reads different compression formats"""
+        fpath = pathlib.Path("data/sample.tsv")
+        with open(fpath) as infile:
+            expect = infile.read()
+
+        with tempfile.TemporaryDirectory(".") as dirname:
+            dirname = pathlib.Path(dirname)
+            for suffix in ["gz", "bz2", "zip"]:
+                outpath = dirname / f"{fpath.name}.{suffix}"
+                with atomic_write(outpath, mode="wt") as f:
+                    f.write(expect)
+
+                with open_(outpath) as infile:
+                    got = infile.read()
+
+                self.assertEqual(got, expect, msg=f"write failed for {suffix}")
+
     def test_rename(self):
         """Renames file as expected """
         # create temp file directory
@@ -673,6 +695,38 @@ class AtomicWriteTests(TestCase):
             with open_(zip_path) as ifile:
                 got = ifile.read()
             self.assertEqual(got, "some data")
+
+    def test_open_handles_bom(self):
+        """handle files with a byte order mark"""
+        with TemporaryDirectory(dir=".") as dirname:
+            # create the different file types
+            dirname = pathlib.Path(dirname)
+
+            text = "some text"
+
+            # plain text
+            textfile = dirname / "sample.txt"
+            textfile.write_text(text, encoding="utf-8-sig")
+
+            # gzipped
+            gzip_file = dirname / "sample.txt.gz"
+            with gzip.open(gzip_file, "wt", encoding="utf-8-sig") as outfile:
+                outfile.write(text)
+
+            # bzipped
+            bzip_file = dirname / "sample.txt.bz2"
+            with bz2.open(bzip_file, "wt", encoding="utf-8-sig") as outfile:
+                outfile.write(text)
+
+            # zipped
+            zip_file = dirname / "sample.zip"
+            with zipfile.ZipFile(zip_file, "w") as outfile:
+                outfile.write(textfile, "sample.txt")
+
+            for path in (bzip_file, gzip_file, textfile, zip_file):
+                with open_(path) as infile:
+                    got = infile.read()
+                    self.assertEqual(got, text, msg=f"failed reading {path}")
 
     def test_aw_zip_from_path(self):
         """supports inferring zip archive name from path"""
@@ -706,6 +760,13 @@ class AtomicWriteTests(TestCase):
             test_filepath = str(test_filepath).replace(home, "~")
             with atomic_write(test_filepath, mode="w") as f:
                 f.write("abc")
+
+    def test_path_relative_to_zip_parent(self):
+        """correctly generates member paths for a zip archive"""
+        zip_path = pathlib.Path("some/path/to/a/data.zip")
+        for member in ("data/member.txt", "member.txt", "a/b/c/member.txt"):
+            got = _path_relative_to_zip_parent(zip_path, pathlib.Path(member))
+            self.assertEqual(got.parts[0], "data")
 
 
 class _my_dict(dict):

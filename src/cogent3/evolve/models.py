@@ -22,10 +22,10 @@ from cogent3.util.table import Table
 
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "James Kondilios"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
@@ -113,8 +113,7 @@ def DT(optimise_motif_probs=True, motif_length=1, **kw):
     kw["optimise_motif_probs"] = optimise_motif_probs
     kw["mprob_model"] = "tuple"
     kw["name"] = kw.get("name", f"DT-{motif_length}")
-    sm = ns_substitution_model.DiscreteSubstitutionModel(alpha, **kw)
-    return sm
+    return ns_substitution_model.DiscreteSubstitutionModel(alpha, **kw)
 
 
 def GN(optimise_motif_probs=True, **kw):
@@ -127,8 +126,7 @@ def GN(optimise_motif_probs=True, **kw):
     kwargs = dict(recode_gaps=True, model_gaps=False)
     kwargs.update(kw)
     kwargs.update(required)
-    sm = ns_substitution_model.NonReversibleNucleotide(**kwargs)
-    return sm
+    return ns_substitution_model.NonReversibleNucleotide(**kwargs)
 
 
 def ssGN(optimise_motif_probs=True, **kw):
@@ -2680,11 +2678,9 @@ def DSO78(**kw):
     Atlas of protein sequence and structure, Vol 5, Suppl. 3.
     National Biomedical Research Foundation,  Washington D. C
     Matrix imported from PAML dayhoff.dat file"""
-    sm = substitution_model.EmpiricalProteinMatrix(
+    return substitution_model.EmpiricalProteinMatrix(
         DSO78_matrix, DSO78_freqs, name="DSO78", **kw
     )
-
-    return sm
 
 
 def JTT92(**kw):
@@ -2693,11 +2689,9 @@ def JTT92(**kw):
     The rapid generation of mutation data matrices from protein sequences.
     Comput Appl Biosci. 1992 Jun;8(3):275-82.
     Matrix imported from PAML jones.dat file"""
-    sm = substitution_model.EmpiricalProteinMatrix(
+    return substitution_model.EmpiricalProteinMatrix(
         JTT92_matrix, JTT92_freqs, name="JTT92", **kw
     )
-
-    return sm
 
 
 def AH96(**kw):
@@ -2706,17 +2700,20 @@ def AH96(**kw):
     Model of amino acid substitution in proteins encoded by mitochondrial DNA.
     J Mol Evol. 1996 Apr;42(4):459-68.
     Matrix imported from PAML mtREV24.dat file"""
-    sm = substitution_model.EmpiricalProteinMatrix(
+    return substitution_model.EmpiricalProteinMatrix(
         AH96_matrix, AH96_freqs, name="AH96_mtREV24", **kw
     )
-
-    return sm
 
 
 def get_model(name, **kw):
     """returns an instance of the named model
 
-    name is case sensitive and must be in the models attribute"""
+    name is case sensitive.
+
+    Notes
+    -----
+    See available_models() for the full list.
+    """
     if isinstance(name, _SubstitutionModel):
         # already a substitution model
         return name
@@ -2739,11 +2736,9 @@ def AH96_mtmammals(**kw):
     Model of amino acid substitution in proteins encoded by mitochondrial DNA.
     J Mol Evol. 1996 Apr;42(4):459-68.
     Matrix imported from PAML mtmam.dat file"""
-    sm = substitution_model.EmpiricalProteinMatrix(
+    return substitution_model.EmpiricalProteinMatrix(
         AH96_mtmammals_matrix, AH96_mtmammals_freqs, name="AH96_mtmammals", **kw
     )
-
-    return sm
 
 
 def mtmam(**kw):
@@ -2757,16 +2752,13 @@ def WG01(**kw):
     families using a maximum-likelihood approach.
     Mol Biol Evol. 2001 May;18(5):691-9.
     Matrix imported from PAML wag.dat file"""
-    sm = substitution_model.EmpiricalProteinMatrix(
+    return substitution_model.EmpiricalProteinMatrix(
         WG01_matrix, WG01_freqs, name="WG01", **kw
     )
 
-    return sm
-
 
 def available_models(model_types=None):
-    """This function returns a cogent3 Table instance with header
-    ['Model Type', 'Abbreviation', 'Description']."""
+    """returns Table listing the pre-defined substitution models"""
     column_headings = ["Model Type", "Abbreviation", "Description"]
     _model_types = {
         "nucleotide": nucleotide_models,
@@ -2787,9 +2779,8 @@ def available_models(model_types=None):
                 description = ""
             rows.append([mod_type, abbreviation, description])
 
-    t = Table(
+    return Table(
         header=column_headings,
         data=rows,
         title="Specify a model using 'Abbreviation' (case sensitive).",
     )
-    return t

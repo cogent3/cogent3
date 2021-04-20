@@ -13,10 +13,10 @@ types and the MolType can be made after the objects are created.
 """
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -616,7 +616,7 @@ class MolType(object):
             everything into the alphabet. Slated for deletion.
         preserve_existing_moltypes
             if True (default: False), does not
-            set the MolType of the things added in **kwargs to self.
+            set the MolType of the things added in \*\*kwargs to self.
         make_alphabet_group
             if True, makes an AlphabetGroup relating
             the various alphabets to one another.
@@ -1112,8 +1112,7 @@ class MolType(object):
         if include_gap:
             degen.append(self.gap)
 
-        pos = [i for i, c in enumerate(sequence) if c in degen]
-        return pos
+        return [i for i, c in enumerate(sequence) if c in degen]
 
     def count_degenerate(self, sequence):
         """Counts the degenerate bases in the specified sequence."""
@@ -1491,7 +1490,7 @@ def get_moltype(name):
 
 
 def available_moltypes():
-    """returns Table listing available moltypes"""
+    """returns Table listing the available moltypes"""
     from cogent3.util.table import Table
 
     rows = []

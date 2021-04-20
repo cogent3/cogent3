@@ -62,7 +62,7 @@ from .annotation import Map, _Annotatable
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Peter Maxwell",
@@ -71,7 +71,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -1031,8 +1031,7 @@ class Sequence(_Annotatable, SequenceI):
     def _mapped(self, map):
         # Called by generic __getitem__
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
-        new = self.__class__("".join(segments), self.name, info=self.info)
-        return new
+        return self.__class__("".join(segments), self.name, info=self.info)
 
     def __add__(self, other):
         """Adds two sequences (other can be a string as well)."""
@@ -1197,14 +1196,12 @@ class Sequence(_Annotatable, SequenceI):
             return []
 
         num_match = len(pos) if allow_multiple else 1
-        annot = [
+        return [
             self.add_feature(
                 annot_type, f"{name}:{i}" if allow_multiple else name, [pos[i]]
             )
             for i in range(num_match)
         ]
-
-        return annot
 
 
 class ProteinSequence(Sequence):
@@ -1379,8 +1376,7 @@ class NucleicAcidSequence(Sequence):
         template = DictArrayTemplate(motifs, ["+", "-"])
         obs = template.wrap(obs)
         cat = CategoryCounts(obs)
-        result = cat.G_fit()
-        return result
+        return cat.G_fit()
 
 
 class DnaSequence(NucleicAcidSequence):

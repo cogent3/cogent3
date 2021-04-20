@@ -9,10 +9,10 @@ from cogent3.util.warning import deprecated
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rahul Ghangas", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -574,9 +574,7 @@ class AnnotatedDrawable(Drawable):
         else:
             func = self._build_fig
 
-        result = func()
-
-        return result
+        return func()
 
     def remove_track(self, left_track=False, bottom_track=False):
         """
@@ -659,7 +657,7 @@ class Shape:
     def as_trace(self, name=None):
         """returns component for plotly display"""
         name = name or self.name
-        data = UnionDict(
+        return UnionDict(
             type="scatter",
             x=self.x,
             y=self.y,
@@ -673,7 +671,6 @@ class Shape:
             showlegend=self._showlegend,
             hoverinfo="text",
         )
-        return data
 
 
 class Rectangle(Shape):

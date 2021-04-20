@@ -99,7 +99,7 @@ except ImportError:
 
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Micah Hamady",
@@ -110,7 +110,7 @@ __credits__ = [
     "Greg Caporaso",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
@@ -151,8 +151,7 @@ def trans_chord(m):
     """
     m = array(m)
     row_norms = sqrt(sum(square(m), axis=1, keepdims=True))
-    result = m / row_norms
-    return result
+    return m / row_norms
 
 
 def trans_chisq(m):
@@ -185,8 +184,7 @@ def trans_specprof(m):
     """
     m = array(m)
     row_sums = sum(m, axis=1, keepdims=True)
-    result = m / row_sums
-    return result
+    return m / row_sums
 
 
 def trans_hellinger(m):
@@ -200,8 +198,7 @@ def trans_hellinger(m):
     """
     m = array(m)
     row_sums = sum(m, axis=1, keepdims=True)
-    result = sqrt(m / row_sums)
-    return result
+    return sqrt(m / row_sums)
 
 
 def dist_bray_curtis(datamtx, strict=True):

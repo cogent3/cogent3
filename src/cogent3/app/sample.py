@@ -19,10 +19,10 @@ from .translate import get_fourfold_degenerate_sets
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -35,8 +35,7 @@ __status__ = "Alpha"
 def intersection(groups):
     """returns the intersection of all groups"""
     common = set(groups.pop())
-    intersect = common.intersection(*map(set, groups))
-    return intersect
+    return common.intersection(*map(set, groups))
 
 
 def union(groups):
@@ -328,6 +327,76 @@ class take_named_seqs(ComposableSeq):
     def take_seqs(self, data):
         try:
             data = data.take_seqs(self._names, negate=self._negate)
+        except KeyError:
+            missing = set(self._names) - set(data.names)
+            msg = f"named seq(s) {missing} not in {data.names}"
+            data = NotCompleted("FALSE", self, msg, source=data)
+        return data
+
+
+class take_n_seqs(ComposableSeq):
+    """Selects n sequences from a collection. Chooses first n sequences, or selects randomly if specified.
+
+    Returns original object type with the selected sequences, NotCompleted object otherwise.
+    """
+
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
+    def __init__(self, number, random=False, seed=None, fixed_choice=True):
+        """
+        selects n sequences from a collection
+
+        Parameters
+        ----------
+        number: int
+            number of sequences to sample. If number of sequences in a collectionis < n, returns NotCompleted
+            indicating a FAIL.
+        random: bool
+            Whether to choose the sequences randomly.
+        seed: int
+            Seed for the numpy random number generator.
+        fixed_choice: bool
+            sequence names selected from the first alignment are used for all others.
+
+        Returns
+        -------
+        A new sequence collection, or NotCompleted if not insufficient sequences are in the collection.
+        """
+        super(take_n_seqs, self).__init__(
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
+        )
+        self._formatted_params()
+
+        if seed:
+            np_random.seed(seed)
+
+        self._names = None
+        self._number = number
+        self._random = random
+        self._fixed_choice = fixed_choice
+        self.func = self.take_seqs
+
+    def _set_names(self, data):
+        """set the names attribute"""
+        if not self._random:
+            self._names = data.names[: self._number]
+            return
+
+        self._names = np_random.choice(data.names, self._number, replace=False)
+
+    def take_seqs(self, data):
+        if len(data.names) < self._number:
+            return NotCompleted("FALSE", self.take_seqs, "not enough sequences")
+
+        if self._names is None or not self._fixed_choice:
+            self._set_names(data)
+
+        try:
+            data = data.take_seqs(self._names)
         except KeyError:
             missing = set(self._names) - set(data.names)
             msg = f"named seq(s) {missing} not in {data.names}"

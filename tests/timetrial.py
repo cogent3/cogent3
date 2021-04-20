@@ -12,10 +12,10 @@ import time
 
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Edward Lang"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -84,7 +84,7 @@ def main():
             i = i + 1
             attempt = 0
         else:
-            print("Discarding probably bogus time: %.3f seconds" % end_time)
+            print(f"Discarding probably bogus time: {end_time:.3f} seconds")
             attempt = attempt + 1
         if attempt == 5:
             print("Aborting early due to multiple errors")
@@ -94,11 +94,11 @@ def main():
     mean = total_time / len(times)
     sd = standard_dev(times, mean)
     print("")
-    print("Fastest time   : %.3f" % times[0])
-    print("Slowest time   : %.3f" % times[len(times) - 1])
-    print("Mean           : %.3f" % mean)
-    print("Standard dev   : %.3f" % sd)
-    print("Total time     : %.3f" % total_time)
+    print(f"Fastest time   : {times[0]:.3f}")
+    print(f"Slowest time   : {times[len(times) - 1]:.3f}")
+    print(f"Mean           : {mean:.3f}")
+    print(f"Standard dev   : {sd:.3f}")
+    print(f"Total time     : {total_time:.3f}")
 
     print("")
 
@@ -110,7 +110,7 @@ def main():
             corrected_times.append(times[i])
             corrected_total = corrected_total + times[i]
         else:
-            print("Discarding value '%.3f'" % times[i])
+            print(f"Discarding value '{times[i]:.3f}'")
 
     if len(times) != len(corrected_times):
         corrected_mean = corrected_total / len(corrected_times)
@@ -118,10 +118,10 @@ def main():
 
         print("")
         print("CORRECTED RESULTS")
-        print("Fastest time   : %.3f" % corrected_times[0])
-        print("Slowest time   : %.3f" % corrected_times[len(corrected_times) - 1])
-        print("Mean           : %.3f" % corrected_mean)
-        print("Standard dev   : %.3f" % corrected_sd)
+        print(f"Fastest time   : {corrected_times[0]:.3f}")
+        print(f"Slowest time   : {corrected_times[len(corrected_times) - 1]:.3f}")
+        print(f"Mean           : {corrected_mean:.3f}")
+        print(f"Standard dev   : {corrected_sd:.3f}")
 
 
 if __name__ == "__main__":

@@ -38,10 +38,10 @@ filterwarnings("ignore", "invalid value encountered in", category=RuntimeWarning
 Float = numpy.core.numerictypes.sctype2char(float)
 
 __author__ = "Rob Knight and Jeremy Widmann"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Sandra Smit"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -160,6 +160,37 @@ class ArrayMathTests(TestCase):
         assert_equal(column_degeneracy(a, cutoff=2), [3, 3, 3])
         # same behavior on empty array
         assert_equal(column_degeneracy(array([[]])), [])
+
+
+class TestUtils(TestCase):
+    def test_proportions_and_ratios(self):
+        """interconverts proportions and ratios"""
+        from cogent3.maths.util import (
+            proportions_to_ratios,
+            ratios_to_proportions,
+        )
+
+        probs = array([0.3, 0.1, 0.1, 0.5])
+        ratios = proportions_to_ratios(probs)
+        assert_allclose(ratios, [0.6 / 0.4, 0.1 / 0.3, 0.5 / 0.1])
+
+        probs = array([0.3, 0.1, 0.6])
+        ratios = proportions_to_ratios(probs)
+        assert_allclose(ratios, [0.7 / 0.3, 0.6 / 0.1])
+
+        got = ratios_to_proportions(1, ratios)
+        assert_allclose(got, probs)
+
+        probs = array([0.3, 0.1, -0.1, 0.5])
+        with self.assertRaises(AssertionError):
+            proportions_to_ratios(probs)
+
+        probs = array([0.3, 0.1, 0.0, 0.5])
+        with self.assertRaises(AssertionError):
+            proportions_to_ratios(probs)
+
+        with self.assertRaises(AssertionError):
+            ratios_to_proportions(1.0, [2.3, 1.1, -0.3])
 
 
 if __name__ == "__main__":

@@ -9,10 +9,10 @@ from cogent3.util.dict_array import DictArray, DictArrayTemplate
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -280,7 +280,7 @@ class CategoryCounts:
         else:
             pval = estimate_pval(self.observed.array, calc_chisq, num_reps=shuffled)
         title = "Chisq-test for independence"
-        result = TestResult(
+        return TestResult(
             self.observed,
             self.expected,
             self.residuals,
@@ -290,7 +290,6 @@ class CategoryCounts:
             pval,
             test_name=title,
         )
-        return result
 
     def G_independence(self, pseudo_count=0, williams=True, shuffled=0):
         """performs the independence G test
@@ -334,7 +333,7 @@ class CategoryCounts:
         if amendments:
             title = f"{title} (with {amendments})"
 
-        result = TestResult(
+        return TestResult(
             obs,
             exp,
             self.residuals,
@@ -344,7 +343,6 @@ class CategoryCounts:
             pval,
             test_name=title,
         )
-        return result
 
     def G_fit(self, williams=True):
         """performs the goodness-of-fit G test
@@ -360,7 +358,7 @@ class CategoryCounts:
         if williams:
             title = f"{title} (with Williams correction)"
 
-        result = TestResult(
+        return TestResult(
             self.observed,
             self.expected,
             self.residuals,
@@ -370,15 +368,13 @@ class CategoryCounts:
             pval,
             test_name=title,
         )
-        return result
 
     def to_dict(self):
-        result = dict(
+        return dict(
             observed=self.observed.to_dict(),
             expected=self.expected.to_dict(),
             residuals=self.residuals.to_dict(),
         )
-        return result
 
 
 class TestResult:

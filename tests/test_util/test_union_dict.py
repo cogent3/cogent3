@@ -8,10 +8,10 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -64,6 +64,18 @@ class UnionDictTests(TestCase):
         self.assertEqual(d.d.e, 5)
         self.assertEqual(d.d.f, 0)
         self.assertEqual(d.d.g, 7)
+
+    def test_or(self):
+        """should not modify original"""
+        d = UnionDict({"a": 1, "b": 2, "c": 3, "d": {"e": 5, "f": 6}})
+        e = UnionDict({"b": 0, "d": {"f": 0, "g": 7}})
+        f = d | e
+        self.assertEqual(f.a, 1)
+        self.assertEqual(f.b, 0)
+        self.assertEqual(f.d.e, 5)
+        self.assertEqual(f.d.f, 0)
+        self.assertEqual(f.d.g, 7)
+        self.assertTrue(f.d is not e.d)
 
     def test_union_value_dict(self):
         """replacing union or of a value with a dict should be dict"""

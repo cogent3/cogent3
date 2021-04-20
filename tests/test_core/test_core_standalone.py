@@ -29,10 +29,10 @@ from cogent3.parse.record import FileFormatError
 
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -326,14 +326,14 @@ class AlignmentTestMethods(unittest.TestCase):
         sub_align = self.alignment.take_seqs(subset)
         new = sub_align.names
         new.sort()
-        assert new == subset, "included subset didn't work %s, %s" % (new, subset)
+        assert new == subset, f"included subset didn't work {new}, {subset}"
 
         # testing exclusion of one
         to_exclude = ["NineBande"]
         sub_align = self.alignment.take_seqs(to_exclude, negate=True)
         new = sub_align.names
         new.sort()
-        assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
+        assert new == subset, f"excluded subset didn't work {new}, {subset}"
 
         # testing exclusion of two
         subset = ["DogFaced", "HowlerMon", "NineBande"]
@@ -342,7 +342,7 @@ class AlignmentTestMethods(unittest.TestCase):
         sub_align = self.alignment.take_seqs(to_exclude, negate=True)
         new = sub_align.names
         new.sort()
-        assert new == subset, "excluded subset didn't work %s, %s" % (new, subset)
+        assert new == subset, f"excluded subset didn't work {new}, {subset}"
 
     def test_slice_align(self):
         """test slicing of sequences"""

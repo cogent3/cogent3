@@ -1,12 +1,17 @@
 #!/usr/bin/env python
+import os
+import pathlib
+
+
+os.chdir(pathlib.Path(__file__).parent)
 
 sub_modules = ["test_draw", "test_phylo"]
 
 for sub_module in sub_modules:
-    exec("from %s import %s" % (__name__, sub_module))
+    exec(f"from {__name__} import {sub_module}")
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -16,7 +21,7 @@ __credits__ = [
     "Edward Lang",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

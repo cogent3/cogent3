@@ -47,7 +47,7 @@ from cogent3.util.table import cast_str_to_array
 
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Rob Knight",
@@ -71,7 +71,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -324,7 +324,6 @@ def make_table(
     legend="",
     missing_data="",
     column_templates=None,
-    dtype=None,
     data_frame=None,
     format="simple",
     **kwargs,
@@ -368,16 +367,12 @@ def make_table(
         output format when using str(Table)
 
     """
-    if any([isinstance(a, str) for a in (header, data)]):
+    if any(isinstance(a, str) for a in (header, data)):
         raise TypeError(f"str type invalid, if its a path use load_table()")
 
     if "index" in kwargs:
         deprecated("argument", "index", "index_name", "2021.11")
         index_name = kwargs.pop("index", index_name)
-
-    if "dtype" in kwargs:
-        kwargs.pop("dtype")
-        discontinued("argument", "dtype", "2021.04")
 
     data = kwargs.get("rows", data)
     if data_frame is not None:
@@ -388,13 +383,12 @@ def make_table(
 
         data = {c: data_frame[c].to_numpy() for c in data_frame}
 
-    table = _Table(
+    return _Table(
         header=header,
         data=data,
         digits=digits,
         row_order=row_order,
         title=title,
-        dtype=dtype,
         column_templates=column_templates,
         space=space,
         missing_data=missing_data,
@@ -404,8 +398,6 @@ def make_table(
         data_frame=data_frame,
         format=format,
     )
-
-    return table
 
 
 def load_table(
@@ -479,17 +471,12 @@ def load_table(
         deprecated("argument", "index", "index_name", "2021.11")
         index_name = kwargs.pop("index", index_name)
 
-    if "dtype" in kwargs:
-        kwargs.pop("dtype")
-        discontinued("argument", "dtype", "2021.04")
-
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
 
     if file_format == "json":
         return load_from_json(filename, (_Table,))
-
-    if file_format in ("pickle", "pkl"):
+    elif file_format in ("pickle", "pkl"):
         f = open_(filename, mode="rb")
         loaded_table = pickle.load(f)
         f.close()
@@ -497,14 +484,19 @@ def load_table(
         r.__setstate__(loaded_table)
         return r
 
-    if not reader:
+    if reader:
+        with open_(filename, newline=None) as f:
+            data = [row for row in reader(f)]
+            header = data[0]
+            data = {column[0]: column[1:] for column in zip(*data)}
+    else:
         if file_format == "csv":
             sep = sep or ","
         elif file_format == "tsv":
             sep = sep or "\t"
 
         header, rows, loaded_title, legend = load_delimited(
-            filename, delimiter=sep, limit=limit, **kwargs
+            filename, sep=sep, limit=limit, **kwargs
         )
         if skip_inconsistent:
             num_fields = len(header)
@@ -517,12 +509,6 @@ def load_table(
 
         title = title or loaded_title
         data = {column[0]: column[1:] for column in zip(header, *rows)}
-    else:
-        f = open_(filename, newline=None)
-        data = [row for row in reader(f)]
-        header = data[0]
-        data = {column[0]: column[1:] for column in zip(*data)}
-        f.close()
 
     for key, value in data.items():
         data[key] = cast_str_to_array(value, static_type=static_column_types)

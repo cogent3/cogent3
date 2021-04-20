@@ -10,10 +10,10 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -245,7 +245,7 @@ class TreeGeometryBase(PhyloNode):
             return None
 
         x = self.x
-        data = UnionDict(
+        return UnionDict(
             x=x,
             y=self.y,
             xshift=xshift,
@@ -255,7 +255,6 @@ class TreeGeometryBase(PhyloNode):
             text=f"{val:.2f}",
             xanchor="center",
         )
-        return data
 
 
 class SquareTreeGeometry(TreeGeometryBase):
@@ -303,11 +302,9 @@ class SquareTreeGeometry(TreeGeometryBase):
         value = self.params.get(attr, None)
         if value is None:
             value = getattr(self, attr, None)
-        data = UnionDict(
+        return UnionDict(
             x=x, y=y, textangle=self.theta, showarrow=False, text=value, xanchor="left"
         )
-
-        return data
 
 
 class _AngularGeometry:
@@ -424,7 +421,7 @@ class CircularTreeGeometry(TreeGeometryBase):
         radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
         x, y = polar_2_cartesian(self.theta, radius)
 
-        data = UnionDict(
+        return UnionDict(
             x=x,
             y=y,
             textangle=textangle,
@@ -433,7 +430,6 @@ class CircularTreeGeometry(TreeGeometryBase):
             xanchor="center",
             yanchor="middle",
         )
-        return data
 
     @extend_docstring_from(TreeGeometryBase.support_text_coord)
     def support_text_coord(self, xshift, yshift, threshold=1, max_attr_length=4):
@@ -465,7 +461,7 @@ class CircularTreeGeometry(TreeGeometryBase):
         new_yshift = float(d.T[1])
 
         x = self.x
-        data = UnionDict(
+        return UnionDict(
             x=x,
             y=self.y,
             xshift=new_xshift,
@@ -475,7 +471,6 @@ class CircularTreeGeometry(TreeGeometryBase):
             text=f"{val:.2f}",
             xanchor="center",
         )
-        return data
 
     def get_segment_to_child(self, child):
         """returns coordinates connecting a child to self and descendants"""
