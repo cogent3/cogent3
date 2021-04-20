@@ -8,7 +8,7 @@ import sys
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
 __version__ = "2020.2.7a"

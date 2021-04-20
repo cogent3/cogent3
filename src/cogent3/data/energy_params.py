@@ -15,10 +15,10 @@ sequence is self-complementary (seq = Reverse Comp of seq)
 """
 
 __author__ = "Amanda Birmingham"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Amanda Birmingham", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Amanda Birmingham"
 __email__ = "amanda.birmingham@thermofisher.com"
 __status__ = "Production"

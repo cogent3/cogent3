@@ -44,10 +44,10 @@ from cogent3.maths.distance_transform import (
 
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2020, The Cogent Project"
+__copyright__ = "Copyright 2007-2021, The Cogent Project"
 __contributors__ = ["Justin Kuczynski", "Zongzhi Liu", "Greg Caporaso"]
 __license__ = "BSD-3"
-__version__ = "2020.12.21a"
+__version__ = "2021.04.20a"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
