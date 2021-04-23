@@ -8,7 +8,9 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
 from cogent3.app.data_store import (
+    IGNORE,
     OVERWRITE,
+    RAISE,
     DataStoreMember,
     ReadOnlyDirectoryDataStore,
     ReadOnlyTinyDbDataStore,
@@ -431,14 +433,18 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
 
 
 class TinyDBDataStoreTests(TestCase):
-    basedir = "data"
     ReadClass = ReadOnlyTinyDbDataStore
     WriteClass = WritableTinyDbDataStore
+    suffix = ".json"
 
     def setUp(self):
-        dstore = ReadOnlyDirectoryDataStore(self.basedir, suffix="fasta")
+        dstore = ReadOnlyDirectoryDataStore("data", suffix="fasta")
         data = {m.name: m.read() for m in dstore}
         self.data = data
+
+    @property
+    def basedir(self):
+        return _get_base_dir(self)
 
     def test_len(self):
         """len tindydb data store correct"""
@@ -652,22 +658,24 @@ class TinyDBDataStoreTests(TestCase):
         keys = list(self.data)
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
+            # creation automatically locks db to creating process id (pid)
             dstore = self.WriteClass(path, if_exists="overwrite")
             for k in keys:
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
             self.assertTrue(dstore.locked)
+
+            # unlocking
             dstore.unlock(force=True)
-            # now introduce an artificial lock, making sure lock flushed to disk
+            self.assertFalse(dstore.locked)
+
+            # introduce an artificial lock, making sure lock flushed to disk
             dstore.db.insert({"identifier": "LOCK", "pid": 123})
             dstore.db.storage.flush()
             self.assertTrue(dstore.locked)
+            # validate the PID of the lock
             self.assertEqual(_db_lockid(dstore.source), 123)
-            # now calling _source_create_delete with overwrite should have no
-            # effect
-            dstore._source_create_delete("overwrite", False)
             path = Path(dstore.source)
-            self.assertTrue(path.exists())
             # unlocking with wrong pid has no effect
             dstore.unlock()
             self.assertTrue(dstore.locked)
@@ -675,10 +683,77 @@ class TinyDBDataStoreTests(TestCase):
             dstore.unlock(force=True)
             self.assertFalse(dstore.locked)
             dstore.close()
-            # and now a call to _source_create_delete will delete
-            dstore._source_create_delete("overwrite", False)
-            self.assertFalse(path.exists())
-            dstore.close()
+
+    def test_db_creation(self):
+        """overwrite, raise, ignore conditions"""
+        from pathlib import Path
+
+        def create_tinydb(path, create, locked=False):
+            if path.exists():
+                path.unlink()
+
+            dstore = self.WriteClass(path, create=create)
+            for k in keys:
+                id_ = dstore.make_relative_identifier(k)
+                dstore.write(id_, self.data[k])
+
+            num_members = len(dstore)
+
+            if locked:
+                dstore.db.insert({"identifier": "LOCK", "pid": 123})
+                dstore.db.storage.flush()
+                dstore.db.storage.close()
+            else:
+                dstore.close()
+
+            return num_members
+
+        keys = list(self.data)
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / f"{self.basedir}.tinydb"
+            # correctly overwrite a tinydb irrespective of lock status
+            for locked in (False, True):
+                create_tinydb(path, create=True, locked=locked)
+                dstore = self.WriteClass(path, create=True, if_exists=OVERWRITE)
+                self.assertEqual(len(dstore), 0)
+                self.assertTrue(dstore.locked)
+                dstore.write("id.json", "some data")
+                dstore.close()
+                self.assertTrue(path.exists())
+
+            # correctly raises exception when RAISE irrespective of lock status
+            for locked in (False, True):
+                create_tinydb(path, create=True, locked=locked)
+                with self.assertRaises(FileExistsError):
+                    self.WriteClass(path, create=True, if_exists=RAISE)
+
+            # correctly warns if IGNORE, irrespective of lock status
+            for locked in (False, True):
+                num_members = create_tinydb(path, create=True, locked=locked)
+                dstore = self.WriteClass(path, create=True, if_exists=IGNORE)
+                self.assertEqual(len(dstore), num_members)
+                self.assertTrue(dstore.locked)
+                dstore.write("id.json", "some data")
+                self.assertEqual(len(dstore), num_members + 1)
+                dstore.close()
+                self.assertTrue(path.exists())
+
+    def test_db_creation2(self):
+        """handles create path argument"""
+        from pathlib import Path
+
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname) / "subdir"
+            path = dirname / f"{self.basedir}.tinydb"
+
+            # raises FileNotFoundError when create is False and full path does
+            # not exist
+            with self.assertRaises(FileNotFoundError):
+                self.WriteClass(path, create=False)
+
+            # correctly creates tinydb when full path does not exist
+            dstore = self.WriteClass(path, create=True)
 
 
 class SingleReadStoreTests(TestCase):
