@@ -702,11 +702,12 @@ def _db_lockid(path):
     """returns value for pid in LOCK record or None"""
     if not os.path.exists(path):
         return None
-    db = TinyDB(path)
-    query = Query().identifier.matches("LOCK")
-    got = db.get(query)
-    lockid = None if not got else got["pid"]
-    db.close()
+
+    with TinyDB(path) as db:
+        query = Query().identifier.matches("LOCK")
+        got = db.get(query)
+        lockid = None if not got else got["pid"]
+
     return lockid
 
 
