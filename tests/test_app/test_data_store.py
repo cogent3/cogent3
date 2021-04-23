@@ -433,6 +433,7 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
 
 
 class TinyDBDataStoreTests(TestCase):
+    basedir = "data"
     ReadClass = ReadOnlyTinyDbDataStore
     WriteClass = WritableTinyDbDataStore
     suffix = ".json"
@@ -441,10 +442,6 @@ class TinyDBDataStoreTests(TestCase):
         dstore = ReadOnlyDirectoryDataStore("data", suffix="fasta")
         data = {m.name: m.read() for m in dstore}
         self.data = data
-
-    @property
-    def basedir(self):
-        return _get_base_dir(self)
 
     def test_len(self):
         """len tindydb data store correct"""
