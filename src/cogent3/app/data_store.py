@@ -27,6 +27,7 @@ from cogent3.util.misc import (
     get_format_suffixes,
     open_,
 )
+from cogent3.util.parallel import is_master_process
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
 
@@ -106,7 +107,6 @@ class DataStoreMember(str):
 
 
 class ReadOnlyDataStoreBase:
-    """a read only data store"""
 
     store_suffix = None
 
@@ -386,13 +386,13 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
 
 
 class WritableDataStoreBase:
+    """a writeable data store"""
+
     def __init__(self, if_exists=RAISE, create=False):
         """
-        Parameters
-        ----------
         if_exists : str
              behaviour when the destination already exists. Valid constants are
-             defined in this file as OVERWRITE, SKIP, RAISE, IGNORE (they
+             defined in this file as OVERWRITE, RAISE, IGNORE (they
              correspond to lower case version of the same word)
         create : bool
             if True, the destination is created
@@ -410,6 +410,7 @@ class WritableDataStoreBase:
         if create is False and if_exists == OVERWRITE:
             warn(f"'{OVERWRITE}' reset to '{IGNORE}' and create=True", UserWarning)
             create = True
+
         self._source_create_delete(if_exists, create)
 
     def make_relative_identifier(self, data):
@@ -530,6 +531,8 @@ class WritableDataStoreBase:
 
 
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBase):
+    @extend_docstring_from(ReadOnlyDirectoryDataStore.__init__, pre=False)
+    @extend_docstring_from(WritableDataStoreBase.__init__, pre=False)
     def __init__(
         self,
         source,
@@ -541,22 +544,10 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         **kwargs,
     ):
         """
-        Parameters
-        ----------
-        source
-            path to directory / zip file
-        suffix
-            only members whose name matches the suffix are considered included
-        mode : str
-            file opening mode, defaults to write
-        if_exists : str
-             behaviour when the destination already exists. Valid constants are
-             defined in this file as OVERWRITE, SKIP, RAISE, IGNORE (they
-             correspond to lower case version of the same word)
-        create : bool
-            if True, the destination is created
         md5 : bool
             record md5 hexadecimal checksum of data when possible
+        mode : str
+            file opening mode, defaults to write
         """
         assert "w" in mode or "a" in mode
         ReadOnlyDirectoryDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
@@ -575,10 +566,13 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         return False
 
     def _source_create_delete(self, if_exists, create):
-        exists = os.path.exists(self.source)
-        if exists and if_exists == RAISE:
-            raise RuntimeError(f"'{self.source}' exists")
-        elif exists and if_exists == OVERWRITE:
+        if not is_master_process():
+            return
+
+        path = Path(self.source)
+        if path.exists() and if_exists == RAISE:
+            raise FileExistsError(f"'{self.source}' exists")
+        elif path.exists() and if_exists == OVERWRITE:
             if self._has_other_suffixes(self.source, self.suffix):
                 raise RuntimeError(
                     f"Unsafe to delete {self.source} as it contains ",
@@ -589,11 +583,11 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
                 shutil.rmtree(self.source)
             except NotADirectoryError:
                 os.remove(self.source)
-        elif not exists and not create:
-            raise RuntimeError(f"'{self.source}' does not exist")
+        elif not path.exists() and not create:
+            raise FileNotFoundError(f"'{self.source}' does not exist")
 
         if create:
-            os.makedirs(self.source, exist_ok=True)
+            path.mkdir(parents=True, exist_ok=True)
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
@@ -666,10 +660,12 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
         return False
 
     def _source_create_delete(self, if_exists, create):
+        if not is_master_process():
+            return
         exists = os.path.exists(self.source)
         dirname = os.path.dirname(self.source)
         if exists and if_exists == RAISE:
-            raise RuntimeError(f"'{self.source}' exists")
+            raise FileExistsError(f"'{self.source}' exists")
         elif exists and if_exists == OVERWRITE:
             if self._has_other_suffixes(self.source, self.suffix):
                 raise RuntimeError(
@@ -679,7 +675,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
                 )
             os.remove(self.source)
         elif dirname and not os.path.exists(dirname) and not create:
-            raise RuntimeError(f"'{dirname}' does not exist")
+            raise FileExistsError(f"'{dirname}' does not exist")
 
         if create and dirname:
             os.makedirs(dirname, exist_ok=True)
@@ -706,11 +702,12 @@ def _db_lockid(path):
     """returns value for pid in LOCK record or None"""
     if not os.path.exists(path):
         return None
-    db = TinyDB(path)
-    query = Query().identifier.matches("LOCK")
-    got = db.get(query)
-    lockid = None if not got else got["pid"]
-    db.close()
+
+    with TinyDB(path) as db:
+        query = Query().identifier.matches("LOCK")
+        got = db.get(query)
+        lockid = None if not got else got["pid"]
+
     return lockid
 
 
@@ -719,6 +716,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 
     store_suffix = "tinydb"
 
+    @extend_docstring_from(ReadOnlyDirectoryDataStore.__init__)
     def __init__(self, *args, **kwargs):
         kwargs["suffix"] = "json"
         super(ReadOnlyTinyDbDataStore, self).__init__(*args, **kwargs)
@@ -985,31 +983,52 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 
 
 class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
+    @extend_docstring_from(WritableDirectoryDataStore.__init__)
     def __init__(self, *args, **kwargs):
+        """
+
+        Notes
+        -----
+        A TinyDb file can be locked. In which case, ``if_exists=OVERWRITE``
+        will be converted to RAISE.
+        """
         if_exists = kwargs.pop("if_exists", RAISE)
         create = kwargs.pop("create", True)
         ReadOnlyTinyDbDataStore.__init__(self, *args, **kwargs)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
 
     def _source_create_delete(self, if_exists, create):
-        if _db_lockid(self.source):
+        if not is_master_process():
             return
 
-        exists = os.path.exists(self.source)
-        dirname = os.path.dirname(self.source)
-        if exists and if_exists == RAISE:
-            raise RuntimeError(f"'{self.source}' exists")
-        elif exists and if_exists == OVERWRITE:
+        path = Path(self.source)
+        if if_exists == OVERWRITE and path.exists():
             try:
-                os.remove(self.source)
+                path.unlink()
             except PermissionError:
                 # probably user accidentally created a directory
-                shutil.rmtree(self.source)
-        elif dirname and not os.path.exists(dirname) and not create:
-            raise RuntimeError(f"'{dirname}' does not exist")
+                shutil.rmtree(path)
+            return
 
-        if create and dirname:
-            os.makedirs(dirname, exist_ok=True)
+        locked_id = _db_lockid(self.source)
+        pid = os.getpid()
+        if path.exists() and if_exists == RAISE:
+            msg = f"'{path}' exists"
+            if locked_id is not None:
+                msg = (
+                    f"{msg}, and is locked by process pid {locked_id}."
+                    f" Current pid is {pid}"
+                )
+            raise FileExistsError(msg)
+
+        if if_exists == IGNORE and locked_id is not None:
+            warn(f"'{self.source}' is locked to {locked_id}, current pid is {pid}.")
+            return
+
+        if path.parent and not path.parent.exists() and not create:
+            raise FileNotFoundError(f"'{path.parent}' does not exist, set create=True")
+
+        path.parent.mkdir(parents=True, exist_ok=True)
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
