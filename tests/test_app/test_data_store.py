@@ -281,6 +281,11 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
     ReadClass = ReadOnlyDirectoryDataStore
     WriteClass = WritableDirectoryDataStore
 
+    def setUp(self):
+        dstore = ReadOnlyDirectoryDataStore("data", suffix="fasta")
+        data = {m.name: m.read() for m in dstore}
+        self.data = data
+
     def test_write_class_source_create_delete(self):
         with TemporaryDirectory(dir=".") as dirname:
             # tests the case when the directory has the file with the same suffix to self.suffix
@@ -335,6 +340,69 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
                 path, suffix=".json", if_exists=OVERWRITE, create=True
             )
             self.assertEqual(len(dstore), 0)
+
+    def test_data_store_creation(self):
+        """overwrite, raise, ignore conditions"""
+        from pathlib import Path
+
+        def create_data_store(path):
+            if path.exists():
+                shutil.rmtree(path, ignore_errors=True)
+
+            dstore = self.WriteClass(path, suffix=".json", create=True)
+            for k in self.data:
+                id_ = dstore.make_relative_identifier(k)
+                dstore.write(id_, self.data[k])
+
+            return len(dstore)
+
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / f"{self.basedir}.tinydb"
+
+            create_data_store(path)
+            # if_exists=OVERWRITE, correctly overwrite existing directory
+            # data_store
+            dstore = self.WriteClass(
+                path, suffix=".json", create=True, if_exists=OVERWRITE
+            )
+            self.assertEqual(len(dstore), 0)
+            dstore.write("id.json", "some data")
+            self.assertEqual(len(dstore), 1)
+            self.assertTrue(path.exists())
+            dstore.close()
+
+            # if_exists=RAISE, correctly raises exception
+            num_members = create_data_store(path)
+            with self.assertRaises(FileExistsError):
+                self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
+
+            dstore = self.ReadClass(path, suffix=".json")
+            self.assertEqual(len(dstore), num_members)
+
+            # if_exists=IGNORE, works
+            num_members = create_data_store(path)
+            dstore = self.WriteClass(
+                path, suffix=".json", create=True, if_exists=IGNORE
+            )
+            self.assertEqual(len(dstore), num_members)
+            dstore.write("id.json", "some data")
+            self.assertEqual(len(dstore), num_members + 1)
+            dstore.close()
+
+    def test_data_store_creation2(self):
+        """handles create path argument"""
+        from pathlib import Path
+
+        with TemporaryDirectory(dir=".") as dirname:
+            path = Path(dirname) / "subdir"
+            # raises FileNotFoundError when create is False and full path does
+            # not exist
+            with self.assertRaises(FileNotFoundError):
+                self.WriteClass(path, suffix=".json", create=False)
+
+            # correctly creates tinydb when full path does not exist
+            _ = self.WriteClass(path, suffix=".json", create=True)
 
 
 class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
