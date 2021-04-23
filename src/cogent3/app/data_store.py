@@ -106,7 +106,6 @@ class DataStoreMember(str):
 
 
 class ReadOnlyDataStoreBase:
-    """a read only data store"""
 
     store_suffix = None
 
@@ -386,13 +385,13 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
 
 
 class WritableDataStoreBase:
+    """a writeable data store"""
+
     def __init__(self, if_exists=RAISE, create=False):
         """
-        Parameters
-        ----------
         if_exists : str
              behaviour when the destination already exists. Valid constants are
-             defined in this file as OVERWRITE, SKIP, RAISE, IGNORE (they
+             defined in this file as OVERWRITE, RAISE, IGNORE (they
              correspond to lower case version of the same word)
         create : bool
             if True, the destination is created
@@ -410,6 +409,7 @@ class WritableDataStoreBase:
         if create is False and if_exists == OVERWRITE:
             warn(f"'{OVERWRITE}' reset to '{IGNORE}' and create=True", UserWarning)
             create = True
+
         self._source_create_delete(if_exists, create)
 
     def make_relative_identifier(self, data):
@@ -530,6 +530,8 @@ class WritableDataStoreBase:
 
 
 class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBase):
+    @extend_docstring_from(ReadOnlyDirectoryDataStore.__init__, pre=False)
+    @extend_docstring_from(WritableDataStoreBase.__init__, pre=False)
     def __init__(
         self,
         source,
@@ -541,22 +543,10 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         **kwargs,
     ):
         """
-        Parameters
-        ----------
-        source
-            path to directory / zip file
-        suffix
-            only members whose name matches the suffix are considered included
-        mode : str
-            file opening mode, defaults to write
-        if_exists : str
-             behaviour when the destination already exists. Valid constants are
-             defined in this file as OVERWRITE, SKIP, RAISE, IGNORE (they
-             correspond to lower case version of the same word)
-        create : bool
-            if True, the destination is created
         md5 : bool
             record md5 hexadecimal checksum of data when possible
+        mode : str
+            file opening mode, defaults to write
         """
         assert "w" in mode or "a" in mode
         ReadOnlyDirectoryDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
@@ -719,6 +709,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 
     store_suffix = "tinydb"
 
+    @extend_docstring_from(ReadOnlyDirectoryDataStore.__init__)
     def __init__(self, *args, **kwargs):
         kwargs["suffix"] = "json"
         super(ReadOnlyTinyDbDataStore, self).__init__(*args, **kwargs)
@@ -985,7 +976,15 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 
 
 class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
+    @extend_docstring_from(WritableDirectoryDataStore.__init__)
     def __init__(self, *args, **kwargs):
+        """
+
+        Notes
+        -----
+        A TinyDb file can be locked. In which case, ``if_exists=OVERWRITE``
+        will be converted to RAISE.
+        """
         if_exists = kwargs.pop("if_exists", RAISE)
         create = kwargs.pop("create", True)
         ReadOnlyTinyDbDataStore.__init__(self, *args, **kwargs)
