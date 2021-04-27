@@ -4,6 +4,7 @@ from cogent3.core import moltype
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
+from cogent3.util.misc import extend_docstring_from
 
 from .substitution_model import (
     Parametric,
@@ -154,27 +155,33 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
 
 
 class NonReversibleNucleotide(Parametric):
-    """A nucleotide substitution model."""
+    """Base non-reversible nucleotide substitution model."""
 
+    @extend_docstring_from(Parametric.__init__)
     def __init__(self, *args, **kw):
         Parametric.__init__(self, moltype.DNA.alphabet, *args, **kw)
 
 
 class NonReversibleDinucleotide(Parametric):
-    """A dinucleotide substitution model."""
+    """Base non-reversible dinucleotide substitution model."""
 
+    @extend_docstring_from(Parametric.__init__)
     def __init__(self, *args, **kw):
         Parametric.__init__(self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
 
 
 class NonReversibleTrinucleotide(Parametric):
-    """A trinucleotide substitution model."""
+    """Base non-reversible trinucleotide substitution model."""
 
+    @extend_docstring_from(Parametric.__init__)
     def __init__(self, *args, **kw):
         Parametric.__init__(self, moltype.DNA.alphabet, motif_length=3, *args, **kw)
 
 
 class NonReversibleCodon(_Codon, Parametric):
+    """Base non-reversible codon substitution model."""
+
+    @extend_docstring_from(Parametric.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
         if gc is not None:
             alphabet = moltype.CodonAlphabet(gc=gc)
@@ -192,7 +199,7 @@ class StrandSymmetric(NonReversibleNucleotide):
 
 
 class NonReversibleProtein(Parametric):
-    """base protein substitution model."""
+    """Base non-reversible protein substitution model."""
 
     def __init__(self, with_selenocysteine=False, *args, **kw):
         alph = moltype.PROTEIN.alphabet

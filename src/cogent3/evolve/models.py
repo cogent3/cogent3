@@ -2710,6 +2710,14 @@ def get_model(name, **kw):
 
     name is case sensitive.
 
+    Parameters
+    ----------
+    optimise_motif_probs: bool
+        Treat like other free parameters.
+    recode_gaps: bool
+        Whether gaps in an alignment should be treated as an ambiguous state
+        instead.
+
     Notes
     -----
     See available_models() for the full list.
