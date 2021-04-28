@@ -144,31 +144,37 @@ class _SubstitutionModel(object):
         name="",
         motifs=None,
     ):
-        # subclasses can extend this incomplete docstring
         """
-
-        alphabet:
-         - alphabet - An Alphabet object
-         - motif_length: Use a tuple alphabet based on 'alphabet'.
-         - motifs: Use a subalphabet that only contains those motifs.
-         - model_gaps: Whether the gap motif should be included as a state.
-         - recode_gaps: Whether gaps in an alignment should be treated as an
-           ambiguous state instead.
-
-        Motif Probability:
-         - motif_probs: Dictionary of probabilities.
-         - equal_motif_probs: Flag to set alignment motif probs equal.
-         - motif_probs_alignment: An alignment from which motif probs are set.
-
-         If none of these options are set then motif probs will be derived
-         from the data: ie the particular alignment provided later.
-
-         - optimise_motif_probs: Treat like other free parameters.  Any values
-           set by the other motif_prob options will be used as initial values.
-
-         - mprob_model: 'tuple', 'conditional', 'monomer' or 'monomers' to specify how
+        Parameters
+        ----------
+        alphabet
+            An Alphabet object
+        motif_probs
+            Dictionary of probabilities.
+        optimise_motif_probs: bool
+            Treat like other free parameters.  Any values set by the other
+            motif_prob options will be used as initial values.
+        equal_motif_probs: bool
+            Flag to set alignment motif probs equal.
+        motif_probs_from_data: bool
+            Get motif probabilities from data provided to likelihood function.
+        motif_probs_alignment
+            An alignment from which motif probs are set.
+        mprob_model: str
+            'tuple', 'conditional', 'monomer' or 'monomers' to specify how
            tuple-alphabet (including codon) motif probs are used.
-
+        model_gaps: bool
+            Whether the gap motif should be included as a state.
+        recode_gaps: bool
+            Whether gaps in an alignment should be treated as an ambiguous
+            state instead.
+        motif_length: int
+            Based on 'alphabet', uses a tuple alphabet where individual words
+            have motif_length number of characters.
+        name: str
+            Name of this model
+        motifs
+            Use a subalphabet that only contains those motifs.
         """
         d = locals()
         exclude = ("self", "__class__")
@@ -461,11 +467,15 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         **kw,
     ):
         """
-        - with_rate: Add a 'rate' parameter which varies by bin.
-        - ordered_param: name of a single parameter which distinguishes any bins.
-        - distribution: choices of 'free' or 'gamma' or an instance of some
-          distribution. Could probably just deprecate free
-        - partitioned_params: names of params to be partitioned across bins
+        with_rate: bool
+            Add a 'rate' parameter which varies by bin.
+        ordered_param: str
+            name of a single parameter which distinguishes any bins.
+        distribution: str
+            choices of 'free' or 'gamma' or an instance of some distribution
+        partitioned_params
+            names of params to be partitioned across bins
+        kw
         """
 
         _SubstitutionModel.__init__(self, alphabet, **kw)
@@ -703,8 +713,11 @@ class Parametric(_ContinuousSubstitutionModel):
     @extend_docstring_from(_ContinuousSubstitutionModel.__init__)
     def __init__(self, alphabet, predicates=None, scales=None, **kw):
         """
-        - predicates: a dict of {name:predicate}. See cogent3.evolve.predicate
-        - scales: scale rules, dict with predicates
+        predicates: dict
+            a dict of {name:predicate}. See cogent3.evolve.predicate
+        scales: dict
+            scale rules, dict with predicates
+        kw
         """
         self._canned_predicates = None
         _ContinuousSubstitutionModel.__init__(self, alphabet, **kw)
@@ -887,11 +900,14 @@ class Parametric(_ContinuousSubstitutionModel):
 
 
 class Stationary(StationaryQ, Parametric):
+    @extend_docstring_from(Parametric.__init__)
     def __init__(self, *args, **kw):
+        """"""
         Parametric.__init__(self, *args, **kw)
 
 
 class TimeReversible(Stationary):
+    @extend_docstring_from(Stationary.__init__)
     def __init__(self, *args, **kw):
         """"""
         Stationary.__init__(self, *args, **kw)
@@ -1009,6 +1025,7 @@ class _Codon:
 class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
     """Core substitution model for codons"""
 
+    @extend_docstring_from(_TimeReversibleNucleotide.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
         if gc is not None:
             alphabet = moltype.CodonAlphabet(gc=gc)

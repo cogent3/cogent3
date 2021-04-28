@@ -509,9 +509,13 @@ class hypothesis_result(model_collection_result):
         table = table.sorted(columns="nfp")
         table.set_repr_policy(show_shape=False)
         stats = [[self.LR, self.df, self.pvalue]]
-        col_templates = {
-            "pvalue": "%.4f" if self.pvalue > 1e-3 else "%.2e",
-        }
+        col_templates = (
+            None
+            if self.pvalue is None
+            else {
+                "pvalue": "%.4f" if self.pvalue > 1e-3 else "%.2e",
+            }
+        )
         stats = Table(
             header=["LR", "df", "pvalue"],
             data=stats,

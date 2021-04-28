@@ -31,7 +31,6 @@ class TestModel(TestCase):
         """correct str representation"""
         model = evo_app.model("HKY85", time_het="max")
         got = " ".join(str(model).splitlines())
-        print(got)
         expect = (
             "model(type='model', sm='HKY85', tree=None, unique_trees=False, "
             "name=None, sm_args=None, lf_args=None, "
@@ -79,6 +78,32 @@ class TestModel(TestCase):
         hyp = evo_app.hypothesis(model1, model2, init_alt=lambda x, y: x)
         result = hyp(aln)
         self.assertEqual(result.df, 1)
+
+    def test_hyp_init_sequential(self):
+        """uses preceding model to initialise function"""
+        opt_args = dict(max_evaluations=15, limit_action="ignore")
+        model1 = evo_app.model("F81", opt_args=opt_args)
+        model2 = evo_app.model("HKY85", opt_args=opt_args)
+        model3 = evo_app.model("GTR", opt_args=opt_args)
+        # defaults to initialise model3 from model 2 from model1
+        hyp = evo_app.hypothesis(model1, model2, model3, sequential=True)
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        result = hyp(aln)
+        self.assertTrue(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
+
+        # can be set to False, in which case all models start at defaults
+        hyp = evo_app.hypothesis(model1, model2, model3, sequential=False)
+        result = hyp(aln)
+        self.assertFalse(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
 
     def test_model_time_het(self):
         """support lf time-het argument edge_sets"""
@@ -177,7 +202,7 @@ class TestModel(TestCase):
             "name='hky85-max-het', sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, opt_args=None,"
             " split_codons=False, show_progress=False, verbose=False),),"
-            " init_alt=None)"
+            " sequential=True, init_alt=None)"
         )
         self.assertEqual(got, expect)
 
@@ -438,7 +463,6 @@ class TestHypothesisResult(TestCase):
         tree = "(Mouse,Human,Opossum)"
         m1 = evo_app.model("JTT92", tree=tree)
         r = m1(aln)
-        print(r)
         self.assertEqual(r.origin, "model")
 
 
