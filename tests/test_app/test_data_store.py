@@ -819,6 +819,7 @@ class TinyDBDataStoreTests(TestCase):
 
             # correctly creates tinydb when full path does not exist
             dstore = self.WriteClass(path, create=True)
+            dstore.close()
 
 
 class SingleReadStoreTests(TestCase):
