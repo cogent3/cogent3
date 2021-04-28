@@ -407,10 +407,6 @@ class WritableDataStoreBase:
         self._members = []
         if_exists = if_exists.lower()
         assert if_exists in (OVERWRITE, SKIP, RAISE, IGNORE)
-        if create is False and if_exists == OVERWRITE:
-            warn(f"'{OVERWRITE}' reset to '{IGNORE}' and create=True", UserWarning)
-            create = True
-
         self._source_create_delete(if_exists, create)
 
     def make_relative_identifier(self, data):
