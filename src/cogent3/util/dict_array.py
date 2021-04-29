@@ -389,6 +389,17 @@ class DictArray(object):
     def to_array(self):
         return self.array
 
+    def __add__(self, other):
+        if not isinstance(other, type(self)):
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
+
+        if other.template.names != self.template.names:
+            raise ValueError(
+                f"unequal dimension names {self.template.names} != {other.template.names}"
+            )
+
+        return self.template.wrap(self.array + other.array)
+
     def __array__(self, dtype=None):
         array = self.array
         if dtype is not None:
