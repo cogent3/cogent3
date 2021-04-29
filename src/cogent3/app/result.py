@@ -138,6 +138,9 @@ class model_result(generic_result):
         self._unique_Q = unique_Q
 
     def _get_repr_data_(self):
+        if len(self) == 0:
+            return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
+
         self.deserialised_values()  # making sure we're fully reloaded
         attrs = list(self._stat_attrs)
         header = ["key"] + attrs[:]
