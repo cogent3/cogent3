@@ -7,7 +7,11 @@ from numpy.testing import assert_allclose, assert_raises
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
 from cogent3.app.composable import NotCompleted
-from cogent3.app.result import hypothesis_result, model_result
+from cogent3.app.result import (
+    hypothesis_result,
+    model_collection_result,
+    model_result,
+)
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
 
@@ -104,6 +108,34 @@ class TestModel(TestCase):
         self.assertFalse(
             result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
         )
+
+    def test_model_collection_init_sequential(self):
+        """modelc collection uses preceding model to initialise function"""
+        opt_args = dict(max_evaluations=15, limit_action="ignore")
+        model1 = evo_app.model("F81", opt_args=opt_args)
+        model2 = evo_app.model("HKY85", opt_args=opt_args)
+        model3 = evo_app.model("GTR", opt_args=opt_args)
+        # defaults to initialise model3 from model 2 from model1
+        mod_coll = evo_app.model_collection(model1, model2, model3, sequential=True)
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        result = mod_coll(aln)
+        self.assertTrue(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
+
+        # can be set to False, in which case all models start at defaults
+        mod_coll = evo_app.hypothesis(model1, model2, model3, sequential=False)
+        result = mod_coll(aln)
+        self.assertFalse(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
+
+        self.assertIsInstance(result, model_collection_result)
 
     def test_model_time_het(self):
         """support lf time-het argument edge_sets"""
