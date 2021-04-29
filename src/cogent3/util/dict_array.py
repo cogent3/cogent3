@@ -418,15 +418,20 @@ class DictArray(object):
         shape = self.shape
         result = {}
         if len(names) == 1:
-            result = {names[0][i]: self.array[i] for i in range(len(names[0]))}
+            result = {
+                names[0][i]: v.item() if hasattr(v, "item") else v
+                for i, v in enumerate(self.array)
+            }
         elif flatten:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
+                value = value.item() if hasattr(value, "item") else value
                 coord = tuple(n[i] for n, i in zip(names, indices))
                 result[coord] = value
         else:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
+                value = value.item() if hasattr(value, "item") else value
                 coord = tuple(n[i] for n, i in zip(names, indices))
                 current = result
                 nested = coord[0]

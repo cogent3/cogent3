@@ -1,3 +1,4 @@
+import json
 import os
 
 from tempfile import TemporaryDirectory
@@ -230,6 +231,48 @@ class DictArrayTest(TestCase):
         self.assertEqual(b.array.tolist(), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         c = DictArrayTemplate("de", "DE").wrap([[b, b], [b, b]])
         self.assertTrue(isinstance(c.to_dict()["d"], dict))
+
+    def test_to_dict_values(self):
+        """values from to_dict should be python types"""
+        keys = "a", "b", "c", "d"
+        for data, _type in [
+            ([0, 35, 45, 3], int),
+            (["abc", "def", "jkl;", "aa"], str),
+            ([0.1, 0.2, 0.3, 0.4], float),
+        ]:
+            darr = DictArrayTemplate(keys).wrap(data)
+            got = {type(v) for v in darr.to_dict().values()}
+            self.assertEqual(got, {_type})
+
+        for data, _type in [
+            ([0, 35, 45, 3], int),
+            (["abc", "def", "jkl;", "aa"], str),
+            ([0.1, 0.2, 0.3, 0.4], float),
+        ]:
+            darr = DictArrayTemplate(keys[:2], keys[2:]).wrap([data[:2], data[2:]])
+            got = {type(v) for d in darr.to_dict().values() for v in d.values()}
+            self.assertEqual(got, {_type})
+
+    def test_to_dict_json(self):
+        """should be able to json.dumps result of to_dict"""
+        keys = "a", "b", "c", "d"
+        for data in [
+            [0, 35, 45, 3],
+            ["abc", "def", "jkl;", "aa"],
+            [0.1, 0.2, 0.3, 0.4],
+        ]:
+            darr = DictArrayTemplate(keys).wrap(data)
+            got = json.dumps(darr.to_dict())
+            self.assertIsInstance(got, str)
+
+        for data in [
+            [0, 35, 45, 3],
+            ["abc", "def", "jkl;", "aa"],
+            [0.1, 0.2, 0.3, 0.4],
+        ]:
+            darr = DictArrayTemplate(keys[:2], keys[2:]).wrap([data[:2], data[2:]])
+            got = json.dumps(darr.to_dict())
+            self.assertIsInstance(got, str)
 
     def test_to_dict_roundtrip(self):
         """roundtrip of DictArray.to_dict() should produce same order."""
