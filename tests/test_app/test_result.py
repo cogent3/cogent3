@@ -317,12 +317,17 @@ class TestModelCollectionResult(TestCase):
         self.assertEqual(hyp.null.name, "F81")
 
     def test_repr_str(self):
-        """it works"""
+        """it works even when no values"""
         mr = model_collection_result(source="blah")
-        r = repr(mr)
+        self.assertIsInstance(repr(mr), str)
 
 
 class TestHypothesisResult(TestCase):
+    def test_repr_str(self):
+        """it works even when no values"""
+        hr = hypothesis_result(source="blah")
+        self.assertIsInstance(repr(hr), str)
+
     def test_pvalue(self):
         """hypothesis test p-value property"""
         _data = {
