@@ -65,6 +65,24 @@ class TestGenericResult(TestCase):
 
 
 class TestModelResult(TestCase):
+    def test_repr(self):
+        """does not fail"""
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        mod = evo_app.model(
+            "F81",
+            show_progress=False,
+            opt_args=dict(max_evaluations=1, limit_action="ignore"),
+        )
+        result = mod(aln)
+        self.assertIsInstance(repr(result), str)
+        # no values set
+        self.assertIsInstance(repr(model_result(source="blah")), str)
+
     def test_model_result_alignment(self):
         """returns alignment from lf"""
         _data = {
@@ -154,9 +172,7 @@ class TestModelResult(TestCase):
         result = mod(aln)
         self.assertTrue(len(result.tree), 3)
         # check the trees are different by summing lengths
-        lengths = set()
-        for i, t in result.tree.items():
-            lengths.add(t.total_length())
+        lengths = {t.total_length() for _, t in result.tree.items()}
         self.assertTrue(len(lengths) > 1)
 
     def test_model_result_simulate_alignment(self):
@@ -299,6 +315,11 @@ class TestModelCollectionResult(TestCase):
         hyp = mr.get_hypothesis_result("F81", "HKY85")
         self.assertIsInstance(hyp, hypothesis_result)
         self.assertEqual(hyp.null.name, "F81")
+
+    def test_repr_str(self):
+        """it works"""
+        mr = model_collection_result(source="blah")
+        r = repr(mr)
 
 
 class TestHypothesisResult(TestCase):
