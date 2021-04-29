@@ -475,6 +475,21 @@ class model_collection_result(generic_result):
 
         return selected[0]
 
+    def get_hypothesis_result(self, name_null, name_alt):
+        """returns a hypothesis result with two models
+
+        Parameters
+        ----------
+        name_null : str
+            name of the null model
+        name_alt : str
+            name of the alternate model
+        """
+        result = hypothesis_result(name_of_null=name_null, source=self.source)
+        result[name_null] = self[name_null]
+        result[name_alt] = self[name_alt]
+        return result
+
 
 class hypothesis_result(model_collection_result):
     """Storage of a collection of model_result instances that are hierarchically

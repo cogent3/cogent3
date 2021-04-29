@@ -4,6 +4,7 @@ from cogent3 import make_aligned_seqs
 from cogent3.app import evo as evo_app
 from cogent3.app.result import (
     generic_result,
+    hypothesis_result,
     model_collection_result,
     model_result,
 )
@@ -235,10 +236,15 @@ class TestModelCollectionResult(TestCase):
         model2 = evo_app.model(
             "HKY85", opt_args=dict(max_evaluations=25, limit_action="ignore")
         )
+        model3 = evo_app.model(
+            "GTR", opt_args=dict(max_evaluations=25, limit_action="ignore")
+        )
         mr1 = model1(aln)
         mr2 = model2(aln)
+        mr3 = model3(aln)
         self._model_results[mr1.name] = mr1
         self._model_results[mr2.name] = mr2
+        self._model_results[mr3.name] = mr3
 
     def test_get_best_model(self):
         """should correctly identify the best model"""
@@ -285,6 +291,14 @@ class TestModelCollectionResult(TestCase):
         got = deserialise_object(coll.to_json())
         m = got.select_models()
         self.assertIsInstance(m[0], model_result)
+
+    def test_to_hypothesis(self):
+        """creates a hypothesis_result from two model results"""
+        mr = model_collection_result(source="blah")
+        mr.update(self._model_results)
+        hyp = mr.get_hypothesis_result("F81", "HKY85")
+        self.assertIsInstance(hyp, hypothesis_result)
+        self.assertEqual(hyp.null.name, "F81")
 
 
 class TestHypothesisResult(TestCase):
