@@ -24,6 +24,7 @@ from .composable import (
 from .result import (
     bootstrap_result,
     hypothesis_result,
+    model_collection_result,
     model_result,
     tabular_result,
 )
@@ -277,9 +278,9 @@ class _InitFrom:
         return other
 
 
-class hypothesis(ComposableHypothesis):
-    """Specify a hypothesis through defining two models. Returns a
-    hypothesis_result."""
+class model_collection(ComposableHypothesis):
+    """Fits a collection of models. Returns a
+    model_collection_result."""
 
     _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
     _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
@@ -308,7 +309,7 @@ class hypothesis(ComposableHypothesis):
         To stop the null MLEs from being used, provide a lambda function that
         just returns the likelihood function, e.g. init_alt=lambda lf, identifier: lf
         """
-        super(hypothesis, self).__init__(
+        super(model_collection, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
@@ -329,6 +330,9 @@ class hypothesis(ComposableHypothesis):
         self.func = self.test_hypothesis
         self._init_alt = init_alt
         self._sequential = sequential
+
+    def _make_result(self, aln):
+        return model_collection_result(source=aln.info)
 
     def _initialised_alt(self, null, aln):
         if callable(self._init_alt):
@@ -369,9 +373,17 @@ class hypothesis(ComposableHypothesis):
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
-        result = hypothesis_result(name_of_null=null.name, source=aln.info.source)
+        result = self._make_result(aln)
         result.update(results)
         return result
+
+
+class hypothesis(model_collection):
+    """Specify a hypothesis through defining two models. Returns a
+    hypothesis_result."""
+
+    def _make_result(self, aln):
+        return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
 
 class bootstrap(ComposableHypothesis):
