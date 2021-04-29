@@ -448,6 +448,22 @@ class DictArrayTest(TestCase):
         got = darr[[1, 2], [1, 2]]
         assert_allclose(got.array, numpy.array([[0.7, 0.1], [0.2, 0.6]]))
 
+    def test_add(self):
+        """can add compatible dict arrays"""
+        data = numpy.array([[7, 1], [1, 7]])
+        darr1 = DictArrayTemplate(list("AB"), list("CD")).wrap(data)
+        darr2 = DictArrayTemplate(list("AB"), list("CD")).wrap(data)
+        darr3 = darr1 + darr2
+        assert_allclose(darr3.array, 2 * data)
+        self.assertEqual(darr3.template.names, darr1.template.names)
+        # must be correct type
+        with self.assertRaises(TypeError):
+            darr1 + data
+
+        # must be equal dimensions
+        with self.assertRaises(ValueError):
+            darr1 + DictArrayTemplate(list("CD"), list("AB")).wrap(data)
+
 
 if __name__ == "__main__":
     main()
