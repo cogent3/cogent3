@@ -838,9 +838,9 @@ class CharAlphabet(Alphabet):
             return ""
         elif len(s) == 1:
             val = self.to_chars(data)
-            val = val.tostring().decode("utf-8")
+            val = val.tobytes().decode("utf-8")
             return val
         else:
             return delimiter.join(
-                [i.tostring().decode("utf-8") for i in self.to_chars(data)]
+                [i.tobytes().decode("utf-8") for i in self.to_chars(data)]
             )
