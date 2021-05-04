@@ -116,7 +116,6 @@ class TestModelResult(TestCase):
         )
         result = mod(aln)
         self.assertEqual(result.name, result.lf.name)
-        print(result)
 
     def test_model_result_alignment_split_pos_model(self):
         """returns alignment from lf with split codon positions"""
@@ -231,6 +230,11 @@ class TestModelResult(TestCase):
         with self.assertRaises(TypeError):
             r["name"] = aln
 
+    def test_repr_str(self):
+        """it works even when no values"""
+        mr = model_result(source="blah")
+        self.assertIsInstance(repr(mr), str)
+
 
 class TestModelCollectionResult(TestCase):
     _model_results = {}
@@ -325,7 +329,7 @@ class TestModelCollectionResult(TestCase):
 class TestHypothesisResult(TestCase):
     def test_repr_str(self):
         """it works even when no values"""
-        hr = hypothesis_result(source="blah")
+        hr = hypothesis_result(name_of_null="null", source="blah")
         self.assertIsInstance(repr(hr), str)
 
     def test_pvalue(self):

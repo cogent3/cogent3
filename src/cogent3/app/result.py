@@ -410,6 +410,9 @@ class model_collection_result(generic_result):
         return table._repr_html_()
 
     def __repr__(self):
+        if len(self) == 0:
+            return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
+
         table = self._get_repr_data_()
         return str(table._get_repr_())
 
@@ -549,6 +552,9 @@ class hypothesis_result(model_collection_result):
         return "\n".join(result)
 
     def __repr__(self):
+        if len(self) == 0:
+            return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
+
         stats, table = self._get_repr_data_()
         result = []
         for t in (stats, table):
