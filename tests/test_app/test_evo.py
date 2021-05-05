@@ -387,22 +387,23 @@ def _make_getter(val):
 
 
 def _make_hyp(aic1, aic2, aic3, nfp1, nfp2, nfp3):
-    null = MagicMock()
-    null.name = "unrooted"
-    null.lf.get_aic = _make_getter(aic1)
-    null.nfp = nfp1
-    alt1 = MagicMock()
-    alt1.name = "alt1"
-    alt1.lf.get_aic = _make_getter(aic2)
-    alt1.nfp = nfp2
-    alt2 = MagicMock()
-    alt2.name = "alt2"
-    alt2.lf.get_aic = _make_getter(aic3)
-    alt2.nfp = nfp3
+    null = _make_mock_result("unrooted", aic1, nfp1)
+    alt1 = _make_mock_result("alt1", aic2, nfp2)
+    alt2 = _make_mock_result("alt2", aic3, nfp3)
+    # this is a really ugly hack to address type validation on result setitem!
+    hypothesis_result._item_types = ("model_result", "MagicMock")
     hyp = hypothesis_result("unrooted", source="something")
     for m in (null, alt1, alt2):
         hyp[m.name] = m
     return hyp
+
+
+def _make_mock_result(arg0, arg1, arg2):
+    result = MagicMock()
+    result.name = arg0
+    result.lf.get_aic = _make_getter(arg1)
+    result.nfp = arg2
+    return result
 
 
 class TestHypothesisResult(TestCase):
