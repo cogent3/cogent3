@@ -1,12 +1,13 @@
 from unittest import TestCase, main
 
-from cogent3 import make_aligned_seqs
+from cogent3 import make_aligned_seqs, make_table
 from cogent3.app import evo as evo_app
 from cogent3.app.result import (
     generic_result,
     hypothesis_result,
     model_collection_result,
     model_result,
+    tabular_result,
 )
 from cogent3.util.deserialise import deserialise_object
 
@@ -19,6 +20,8 @@ __version__ = "2021.04.20a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+from cogent3.util.dict_array import DictArray
 
 
 class TestGenericResult(TestCase):
@@ -62,6 +65,12 @@ class TestGenericResult(TestCase):
         result["key"] = data
         keys = result.keys()
         self.assertEqual(keys, ["key"])
+
+    def test_invalid_setitem(self):
+        """generic_result raise TypeError if trying to set invalid item type for json"""
+        gr = generic_result("null")
+        with self.assertRaises(TypeError):
+            gr["null"] = {0, 23}
 
 
 class TestModelResult(TestCase):
@@ -235,6 +244,12 @@ class TestModelResult(TestCase):
         mr = model_result(source="blah")
         self.assertIsInstance(repr(mr), str)
 
+    def test_model_result_invalid_setitem(self):
+        """model_result raise TypeError if trying to set incorrect item type"""
+        mr = model_result()
+        with self.assertRaises(TypeError):
+            mr["null"] = 23
+
 
 class TestModelCollectionResult(TestCase):
     _model_results = {}
@@ -325,6 +340,12 @@ class TestModelCollectionResult(TestCase):
         mr = model_collection_result(source="blah")
         self.assertIsInstance(repr(mr), str)
 
+    def test_model_collection_result_invalid_setitem(self):
+        """model_collection_result raise TypeError if trying to set incorrect item type"""
+        mcr = model_collection_result()
+        with self.assertRaises(TypeError):
+            mcr["null"] = 23
+
 
 class TestHypothesisResult(TestCase):
     def test_repr_str(self):
@@ -349,6 +370,29 @@ class TestHypothesisResult(TestCase):
         hyp = evo_app.hypothesis(model1, model2)
         result = hyp(aln)
         self.assertTrue(0 <= result.pvalue <= 1)
+
+    def test_invalid_setitem(self):
+        """hypothesis_result raise TypeError if trying to set incorrect item type"""
+        hr = hypothesis_result("null")
+        with self.assertRaises(TypeError):
+            hr["null"] = {0, 23}
+
+
+class TestTabularResult(TestCase):
+    def test_valid_setitem(self):
+        """tabular_result works when set correct item type"""
+        tr = tabular_result("null")
+        tr["result"] = make_table(data={"A": [0, 1]})
+        darr = DictArray({"A": [0, 1]})
+        tr["result2"] = darr
+        js = tr.to_json()
+        self.assertIsInstance(js, str)
+
+    def test_invalid_setitem(self):
+        """tabular_result raise TypeError if trying to set incorrect item type"""
+        tr = tabular_result("null")
+        with self.assertRaises(TypeError):
+            tr["null"] = {0, 23}
 
 
 if __name__ == "__main__":

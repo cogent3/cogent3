@@ -25,6 +25,7 @@ class generic_result(MutableMapping):
     """A dict style container for storing results."""
 
     _type = "generic_result"
+    _item_types = ()
 
     def __init__(self, source):
         self._store = {}
@@ -32,6 +33,23 @@ class generic_result(MutableMapping):
         self.source = source
 
     def __setitem__(self, key, val):
+        if isinstance(val, dict):
+            type_name = val.get("type", None)
+            type_name = type_name or ""
+        else:
+            type_name = val.__class__.__name__
+
+        for item_type in self._item_types:
+            if item_type in type_name:
+                break
+        else:
+            if self._item_types:
+                msg = f"{type_name} not in supported types {self._item_types}"
+                raise TypeError(msg)
+
+        if not hasattr(val, "to_json"):
+            json.dumps(val)
+
         self._store[key] = val
 
     def __getitem__(self, key):
@@ -100,6 +118,7 @@ class model_result(generic_result):
 
     _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
+    _item_types = ("AlignmentLikelihoodFunction",)
 
     def __init__(
         self,
@@ -165,16 +184,6 @@ class model_result(generic_result):
         return repr(table)
 
     def __setitem__(self, key, lf):
-        if isinstance(lf, dict):
-            type_name = lf.get("type", None)
-            type_name = type_name or ""
-        else:
-            type_name = lf.__class__.__name__
-
-        if "AlignmentLikelihoodFunction" not in type_name:
-            msg = f"{type_name} not a supported type"
-            raise TypeError(msg)
-
         super(self.__class__, self).__setitem__(key, lf)
         self._init_stats()
 
@@ -380,6 +389,7 @@ class model_collection_result(generic_result):
     """Storage of a collection of model_result."""
 
     _type = "model_collection_result"
+    _item_types = ("model_result",)
 
     def __init__(self, name=None, source=None):
         """
@@ -502,6 +512,7 @@ class hypothesis_result(model_collection_result):
     related."""
 
     _type = "hypothesis_result"
+    _item_types = ("model_result",)
 
     @extend_docstring_from(model_collection_result.__init__, pre=True)
     def __init__(self, name_of_null, name=None, source=None):
@@ -600,6 +611,7 @@ class hypothesis_result(model_collection_result):
 
 class bootstrap_result(generic_result):
     _type = "bootstrap_result"
+    _item_types = ("hypothesis_result", "model_collection_result")
 
     def __init__(self, source=None):
         super(bootstrap_result, self).__init__(source)
@@ -626,10 +638,18 @@ class bootstrap_result(generic_result):
 
 
 class tabular_result(generic_result):
-    """stores one or multiple tabular data sets, keyed by a title"""
+    """stores one or multiple cogent3 Tables, DictArray"""
 
     _type = "tabular_result"
     _stat_attrs = ("header", "rows")
+    _item_types = (
+        "Table",
+        "DictArray",
+        "MotifCounts",
+        "MotifFreqs",
+        "PSSM",
+        "DistanceMatrix",
+    )
 
     def __init__(self, source=None):
         super(tabular_result, self).__init__(source)
