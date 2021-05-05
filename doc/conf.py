@@ -84,7 +84,10 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "navbar_title": "Docs",
     "navbar_site_name": "Sections",
-    "navbar_links": [("Install", "install"), ("Gallery", "draw/index.html", True),],
+    "navbar_links": [
+        ("Install", "install"),
+        ("Gallery", "draw/index.html", True),
+    ],
     "navbar_class": "navbar navbar-inverse",
     "navbar_fixed_top": "true",
     "source_link_position": "skipped",
