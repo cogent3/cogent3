@@ -292,7 +292,18 @@ class LikelihoodFunction(ParameterController):
         return result
 
     def get_psub_for_edge(self, name, **kw):
-        """returns the substitution probability matrix for the named edge"""
+        """returns the substitution probability matrix for the named edge
+
+        Parameters
+        ----------
+        name : str
+            name of the edge
+
+        Returns
+        -------
+        DictArray
+        """
+        # todo handle case of multiple loci
         try:
             # For PartialyDiscretePsubsDefn
             array = self.get_param_value("dpsubs", edge=name, **kw)
@@ -306,12 +317,19 @@ class LikelihoodFunction(ParameterController):
         Parameters
         ----------
         calibrated : bool
-            scales the rate matrix by branch length for each edge. If a rate
-            heterogeneity model, then the matrix is further scaled by rate
-            for a bin
+            If True, the rate matrix is scaled such that
+            ``sum(pi_i * Qii) == 1``. If False, the calibrated matrix is
+            multiplied by the length parameter (and the rate parameter for a
+            bin if it is a rate heterogeneity model).
+
         Returns
         -------
-        If a single rate matrix, the key is an empty tuple
+        {scope: DictArray, ...}
+
+        Notes
+        -----
+        If a single rate matrix (e.g. it's a time-homogeneous model), the key
+        is an empty tuple.
         """
         defn = self.defn_for["Q"]
 
@@ -359,8 +377,22 @@ class LikelihoodFunction(ParameterController):
     def get_rate_matrix_for_edge(self, name, calibrated=True, **kw):
         """returns the rate matrix (Q) for the named edge
 
-        If calibrated=False, expm(Q) will give the same result as
-        get_psub_for_edge(name)"""
+        Parameters
+        ----------
+        name : str
+            name of the edge
+        calibrated : bool
+            If True, the rate matrix is scaled such that
+            ``sum(pi_i * Qii) == 1``. If False, the calibrated matrix is
+            multiplied by the length parameter (and the rate parameter for a
+            bin if it is a rate heterogeneity model).
+
+        Notes
+        -----
+        If ``calibrated=False``, ``expm(Q)`` will give the same result as
+        ``self.get_psub_for_edge(name)``
+        """
+        # todo handle case of multiple loci
         try:
             array = self.get_param_value("Q", edge=name, **kw)
             array = array.copy()
@@ -399,14 +431,21 @@ class LikelihoodFunction(ParameterController):
         return root_lht.calc_G_statistic(root_lh, return_table)
 
     def reconstruct_ancestral_seqs(self, locus=None):
-        """returns a dict of DictArray objects containing probabilities
-        of each alphabet state for each node in the tree.
+        """computes the conditional probabilities of each state for each node
+        in the tree.
 
         Parameters
         ----------
         locus
             a named locus
 
+        Returns
+        -------
+        {node_name: DictArray, ...}
+
+        Notes
+        -----
+        Alignment columns are rows in the DictArray.
         """
         result = {}
         array_template = None
@@ -443,7 +482,7 @@ class LikelihoodFunction(ParameterController):
             )
         return result
 
-    def likely_ancestral_seqs(self, locus=None):
+    def likely_ancestral_seqs(self, locus=None) -> ArrayAlignment:
         """Returns the most likely reconstructed ancestral sequences as an
         alignment.
 
@@ -451,7 +490,6 @@ class LikelihoodFunction(ParameterController):
         ----------
         locus
             a named locus
-
         """
         prob_array = self.reconstruct_ancestral_seqs(locus=locus)
         seqs = []
