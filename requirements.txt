@@ -3,6 +3,6 @@ pillow==8.2.0
 psutil==5.8.0
 scipy==1.5.4; python_version < '3.7'
 scipy==1.6.1; python_version > '3.6'
-tox==3.23.0
+tox==3.23.1
 tox-gh-actions==2.5.0
 .[dev]
