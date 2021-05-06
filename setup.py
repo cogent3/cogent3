@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import pathlib
 import sys
 
@@ -76,9 +75,9 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},
