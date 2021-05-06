@@ -417,6 +417,7 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
 
             # if_exists=IGNORE, works
             created = create_data_store(path)
+            created._members = []
             dstore = self.WriteClass(
                 path, suffix=".json", create=True, if_exists=IGNORE
             )
