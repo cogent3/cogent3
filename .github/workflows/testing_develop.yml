@@ -52,34 +52,19 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
 
-      # Setup virtualenv
-      - name: "Setup virtualenv for ${{ matrix.python-version }} on Linux or MacOS"
-        if: startsWith(runner.os, 'macOS') || startsWith(runner.os, 'Linux')
+      # Setup env
+      - name: "Installs for ${{ matrix.python-version }}"
+        shell: bash -l {0}
         run: |
           python --version
-          python -m venv .venv
-          source .venv/bin/activate
           python -m pip install --upgrade pip wheel setuptools
           python -m pip install -r requirements.txt
 
-      - name: "Run tox targets for ${{ matrix.python-version }} on Linux or MacOS"
-        if: startsWith(runner.os, 'macOS') || startsWith(runner.os, 'Linux')
-        shell: bash -l {0}
-        run: |
-          source .venv/bin/activate
-          python -m tox
-          ls
-          ls tests
-
-      - name: "Install requirements and run tox targets for ${{ matrix.python-version }} on Windows"
-        if: startsWith(runner.os, 'Windows')
-        shell: bash -l {0}
-        run: |
-          python -m pip install --upgrade pip wheel setuptools
-          python -m pip install -r requirements.txt
-          python -m tox
-          ls
-          ls tests
+      - name: "Run tox targets for ${{ matrix.python-version }}"
+        run: tox
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
