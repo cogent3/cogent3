@@ -375,38 +375,42 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             dstore.close()
             return dstore
 
-        def show_path_contents(path, tag):
-            print(f"{tag}  :  {['/'.join(p.parts[1:]) for p in path.glob('*')]}\n")
+        def get_path_contents(path):
+            return ["/".join(p.parts[1:]) for p in path.glob("*")]
 
         with TemporaryDirectory(dir=".") as dirname:
             dirname = Path(dirname)
             path = dirname / self.basedir
             _ = create_data_store(path)
 
-            show_path_contents(path, "before overwrite")
             # if_exists=OVERWRITE, correctly overwrite existing directory
             # data_store
             dstore = self.WriteClass(
                 path, suffix=".json", create=True, if_exists=OVERWRITE
             )
-            show_path_contents(path, "after overwrite")
             self.assertEqual(len(dstore), 0)
             dstore.write("id.json", "some data")
             self.assertEqual(len(dstore), 1)
             self.assertTrue(path.exists())
             dstore.close()
-            show_path_contents(path, "end of overwrite")
 
             # if_exists=RAISE, correctly raises exception
-            created = create_data_store(path, debug=True)
-            show_path_contents(path, "before raise, after creation")
+            created = create_data_store(path, debug=False)
+            created._members = []
+            contents = get_path_contents(path)
+            print(f"after creation: {contents}")
             with self.assertRaises(FileExistsError):
                 self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
-            show_path_contents(path, "after raise")
+            contents = get_path_contents(path)
+            print(f"after except: {contents}")
 
+            contents = get_path_contents(path)
+            print(f"before read: {contents}")
             dstore = self.ReadClass(path, suffix=".json")
             dstore._members = []
-            show_path_contents(path, "read after raise")
+            print(f"after read: {contents}")
+            print(dstore)
+            print(created)
             self.assertEqual(
                 len(dstore), len(created), msg=f"got {dstore}, original is {created}"
             )
