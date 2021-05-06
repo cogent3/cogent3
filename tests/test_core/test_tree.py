@@ -1582,7 +1582,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(result.get_distances(), tree.get_distances())
 
     def test_root_at_midpoint3(self):
-        """ midpoint between nodes should behave correctly"""
+        """midpoint between nodes should behave correctly"""
         tree = DndParser("(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())

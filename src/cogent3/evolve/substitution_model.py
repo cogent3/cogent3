@@ -902,14 +902,14 @@ class Parametric(_ContinuousSubstitutionModel):
 class Stationary(StationaryQ, Parametric):
     @extend_docstring_from(Parametric.__init__)
     def __init__(self, *args, **kw):
-        """"""
+        """ """
         Parametric.__init__(self, *args, **kw)
 
 
 class TimeReversible(Stationary):
     @extend_docstring_from(Stationary.__init__)
     def __init__(self, *args, **kw):
-        """"""
+        """ """
         Stationary.__init__(self, *args, **kw)
         if not self.symmetric:
             raise ValueError(

@@ -230,7 +230,7 @@ class BlastXmlResultTests(TestCase):
         self.assertEqual(best_hit["ALIGNMENT_LENGTH"], "14")
 
     def test_best_hits_unique(self):
-        """The result should never contain identical hits """
+        """The result should never contain identical hits"""
         records = [h for _, h in self.result.best_hits_by_query(n=5)][0]
         self.assertEqual(len(records), 3)
         values = {tuple(h.values()) for h in records}

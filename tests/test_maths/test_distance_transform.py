@@ -292,7 +292,7 @@ class functionTests(TestCase):
 
     # now binary fns
     def test_binary_dist_otu_gain(self):
-        """ binary OTU gain functions as expected """
+        """binary OTU gain functions as expected"""
         actual = binary_dist_otu_gain(self.input_binary_dist_otu_gain1)
         expected = array([[0, 1, 2, 2], [1, 0, 2, 1], [1, 1, 0, 1], [1, 0, 1, 0]])
         assert_equal(actual, expected)
@@ -518,12 +518,12 @@ class functionTests(TestCase):
         assert_allclose(dist, exp)
 
     def test_dist_bray_curtis_magurran1(self):
-        """ zero values should return zero dist, or 1 with nonzero samples"""
+        """zero values should return zero dist, or 1 with nonzero samples"""
         res = dist_bray_curtis_magurran(numpy.array([[0, 0, 0], [0, 0, 0], [1, 1, 1]]))
         assert_allclose(res, numpy.array([[0, 0, 1], [0, 0, 1], [1, 1, 0]]))
 
     def test_dist_bray_curtis_magurran2(self):
-        """ should match hand-calculated values"""
+        """should match hand-calculated values"""
         res = dist_bray_curtis_magurran(numpy.array([[1, 4, 3], [1, 3, 5], [0, 2, 0]]))
         assert_allclose(
             res,

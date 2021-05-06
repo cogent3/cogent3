@@ -200,7 +200,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f("aBcDeF"), "aBc")
 
     def test_first_index_in_set(self):
-        """first_index_in_set should return index of first occurrence """
+        """first_index_in_set should return index of first occurrence"""
         vowels = "aeiou"
         s1 = "ebcua"
         s2 = "bcbae"

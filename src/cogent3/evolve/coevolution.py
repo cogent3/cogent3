@@ -142,7 +142,7 @@ def mi(h1, h2, joint_h):
 
 
 def normalized_mi(h1, h2, joint_h):
-    """ MI normalized by joint entropy, as described in Martin 2005 """
+    """MI normalized by joint entropy, as described in Martin 2005"""
     return mi(h1, h2, joint_h) / joint_h
 
 
@@ -165,7 +165,7 @@ def join_positions(pos1, pos2):
 
 
 def joint_entropy(pos1, pos2):
-    """ Calculate the joint entroy of a pair of positions """
+    """Calculate the joint entroy of a pair of positions"""
     return CategoryCounter(join_positions(pos1, pos2)).entropy
 
 
@@ -1307,7 +1307,7 @@ def ancestral_state_position(
 def ancestral_state_pair(
     aln, tree, pos1, pos2, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
 ):
-    """"""
+    """ """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = dict(
         list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs))
@@ -1404,7 +1404,7 @@ method_abbrevs_to_names = {
 
 
 def sca_input_validation(alignment, **kwargs):
-    """SCA specific validations steps """
+    """SCA specific validations steps"""
 
     # check that all required parameters are present in kwargs
     required_parameters = ["cutoff"]
@@ -1449,7 +1449,7 @@ def validate_alphabet(alphabet, freqs):
 
 
 def ancestral_states_input_validation(alignment, **kwargs):
-    """Ancestral States (AS) specific validations steps """
+    """Ancestral States (AS) specific validations steps"""
     # check that all required parameters are present in kwargs
     required_parameters = ["tree"]
     for rp in required_parameters:
@@ -1497,7 +1497,7 @@ def validate_tree(alignment, tree):
 
 
 def validate_position(alignment, position):
-    """ValueError if position is outside the range of the alignment """
+    """ValueError if position is outside the range of the alignment"""
     if not 0 <= position < len(alignment):
         raise ValueError(
             "Position is outside the range of the alignment: " + str(position)
@@ -2324,7 +2324,7 @@ def aln_position_pairs_ge_threshold(
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
 ):
-    """wrapper function for aln_position_pairs_cmp_threshold """
+    """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix,
         threshold,
@@ -2340,7 +2340,7 @@ def aln_position_pairs_le_threshold(
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
 ):
-    """wrapper function for aln_position_pairs_cmp_threshold """
+    """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix, threshold, less_equal, null_value, intermolecular_data_only
     )
@@ -2403,7 +2403,7 @@ def count_cmp_threshold(
 def count_ge_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
 ):
-    """wrapper function for count_cmp_threshold """
+    """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, greater_equal, null_value, symmetric, ignore_diagonal
     )
@@ -2412,14 +2412,14 @@ def count_ge_threshold(
 def count_le_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
 ):
-    """wrapper function for count_cmp_threshold """
+    """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, less_equal, null_value, symmetric, ignore_diagonal
     )
 
 
 def ltm_to_symmetric(m):
-    """ Copies values from lower triangle to upper triangle"""
+    """Copies values from lower triangle to upper triangle"""
     assert (
         m.shape[0] == m.shape[1]
     ), "Making matrices symmetric only supported for square matrices"

@@ -58,7 +58,7 @@ __status__ = "Beta"
 
 
 class RecodeError(Exception):
-    """ A generic error to be raised when errors occur in recoding """
+    """A generic error to be raised when errors occur in recoding"""
 
     pass
 

@@ -79,10 +79,10 @@ def item_empty_filter(d):
 
 
 class EbiTests(TestCase):
-    """ Tests ebi parsers and generic parsers and general functions """
+    """Tests ebi parsers and generic parsers and general functions"""
 
     def setUp(self):
-        """ Construct some fake data for testing purposes """
+        """Construct some fake data for testing purposes"""
         pass
 
     def test_item_empty_filter(self):
@@ -270,7 +270,7 @@ class EbiTests(TestCase):
         self.assertEqual(mapping_parser("", fields), {})
 
     def test_linecode_merging_maker(self):
-        """linecode_merging_maker: """
+        """linecode_merging_maker:"""
         f = linecode_merging_maker
         lines = ["ID   id.", "RN   rn.", "RR   invalid", "RN  rn."]
         labels = ["ID", "REF", "RR", "RN  rn."]
@@ -281,7 +281,7 @@ class EbiTests(TestCase):
         pass
 
     def test_MinimalEbiParser_valid(self):
-        """MinimalEbiParser: integrity of output """
+        """MinimalEbiParser: integrity of output"""
         f = curry(MinimalEbiParser, strict=False)
 
         # test valid result: sequence, number of records, keys of a header
@@ -337,7 +337,7 @@ class EbiTests(TestCase):
         self.assertRaises(RecordError, list, f(fake_records_valid, strict=True))
 
     def test_EbiParser(self):
-        """EbiParser: """
+        """EbiParser:"""
         f = curry(EbiParser, strict=False)
         first_valid = fake_records_valid[:-5]
 
@@ -517,7 +517,7 @@ class RootParsersKnownValues(TestCase):
 
 
 class FT_Tests(TestCase):
-    """Tests for FT parsers. """
+    """Tests for FT parsers."""
 
     def test_ft_basic_itemparser(self):
         """ft_basic_itemparser: known values"""
@@ -625,7 +625,7 @@ class FT_Tests(TestCase):
 
 
 class CC_Tests(TestCase):
-    """tests for cc_parsers. """
+    """tests for cc_parsers."""
 
     def test_cc_itemfinder_valid(self):
         """cc_itemfinder: yield each expected block."""
