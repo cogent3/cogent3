@@ -345,34 +345,17 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
         """overwrite, raise, ignore conditions"""
         from pathlib import Path
 
-        def create_data_store(path, debug=False):
+        def create_data_store(path):
             if path.exists():
                 shutil.rmtree(path, ignore_errors=True)
 
             dstore = self.WriteClass(path, suffix=".json", create=True)
-            if debug:
-                from cogent3 import make_table
-
-                rows = []
-
             for k in self.data:
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
-                if debug:
-                    rows.append([id_, k])
-
-            if debug:
-                m1 = dstore[0]
-                repr(m1)
-                m2 = dstore[1]
-                repr(m2)
-                print(
-                    make_table(
-                        header=["id_", "name"], data=rows, title=f"title: {dstore}"
-                    )
-                )
 
             dstore.close()
+            dstore._members = []
             return dstore
 
         def get_path_contents(path):
@@ -395,29 +378,20 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             dstore.close()
 
             # if_exists=RAISE, correctly raises exception
-            created = create_data_store(path, debug=False)
-            created._members = []
-            contents = get_path_contents(path)
-            print(f"after creation: {contents}")
+            created = create_data_store(path)
+            # created._members = []
             with self.assertRaises(FileExistsError):
                 self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
-            contents = get_path_contents(path)
-            print(f"after except: {contents}")
 
-            contents = get_path_contents(path)
-            print(f"before read: {contents}")
             dstore = self.ReadClass(path, suffix=".json")
             dstore._members = []
-            print(f"after read: {contents}")
-            print(dstore)
-            print(created)
             self.assertEqual(
                 len(dstore), len(created), msg=f"got {dstore}, original is {created}"
             )
 
             # if_exists=IGNORE, works
             created = create_data_store(path)
-            created._members = []
+            # created._members = []
             dstore = self.WriteClass(
                 path, suffix=".json", create=True, if_exists=IGNORE
             )
