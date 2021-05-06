@@ -48,13 +48,11 @@ jobs:
             ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
             ${{ runner.os }}-pip-
 
-      - uses: "actions/setup-python@v1"
-        with:
-          python-version: "${{ matrix.python-version }}"
-
       # Setup env
-      - name: "Installs for ${{ matrix.python-version }}"
       - uses: "actions/setup-python@v2"
+        with:
+            python-version: "${{ matrix.python-version }}"
+      - name: "Installs for ${{ matrix.python-version }}"
         shell: bash -l {0}
         run: |
           python --version
