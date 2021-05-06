@@ -220,7 +220,7 @@ class DirectedMotifChange(predicate):
         return positions
 
     def test_motifs(self, from_motifs, to_motifs, x, y):
-        """"positions where both motifs patterns are found"""
+        """ "positions where both motifs patterns are found"""
         pre = self.test_motif(from_motifs, x)
         post = self.test_motif(to_motifs, y)
         return pre & post

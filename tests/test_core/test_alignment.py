@@ -278,7 +278,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(git([]), "empty")
 
     def test_init_aln(self):
-        """ SequenceCollection should init from existing alignments"""
+        """SequenceCollection should init from existing alignments"""
         exp = self.Class(["AAA", "AAA"])
         x = self.Class(self.a)
         y = self.Class(self.b)
@@ -1663,7 +1663,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         )
 
     def test_filter_drop_remainder(self):
-        """filter allows dropping """
+        """filter allows dropping"""
         raw = {"a": "ACGACGACG", "b": "CCC---CCC", "c": "AAAA--AAA"}
         aln = self.Class(raw)
         func = _make_filter_func(aln)
@@ -2170,7 +2170,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue(got.find(ref_row) < got.find(other_row))
 
     def test_to_html_deprecation_warning(self):
-        """ should raise warning using wrap and not interleave_len"""
+        """should raise warning using wrap and not interleave_len"""
         seqs = {"seq1": "ACG", "seq2": "-CT"}
 
         aln = self.Class(data=seqs, moltype=DNA)
@@ -2982,7 +2982,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(len(new_seq.data.annotations), 2)
 
     def test_deepcopy2(self):
-        """"Aligned.deepcopy correctly handles gapped sequences"""
+        """ "Aligned.deepcopy correctly handles gapped sequences"""
         seqs = self.Class(
             data={
                 "a": "CAGATTTGGCAGTT-",

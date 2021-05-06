@@ -57,7 +57,7 @@ valid_values = dict(
 
 
 def raise_invalid_vals(key, val):
-    """raises RuntimeError on invalid values for keys """
+    """raises RuntimeError on invalid values for keys"""
     if key not in valid_values:
         return True
     if not str(val) in valid_values[key]:

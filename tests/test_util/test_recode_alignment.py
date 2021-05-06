@@ -33,7 +33,7 @@ class RecodeAlignmentTests(TestCase):
     """
 
     def setUp(self):
-        """ Initialize some variables for the tests """
+        """Initialize some variables for the tests"""
         self.canonical_abbrevs = "ACDEFGHIKLMNPQRSTVWY"
         self.ambiguous_abbrevs = "BXZ"
 
@@ -47,7 +47,7 @@ class RecodeAlignmentTests(TestCase):
         )
 
     def test_build_alphabet_map_handles_bad_data(self):
-        """build_alphabet_map:  bad data raises error """
+        """build_alphabet_map:  bad data raises error"""
         self.assertRaises(ValueError, build_alphabet_map)
         self.assertRaises(ValueError, build_alphabet_map, "not_a_valid_id")
         self.assertRaises(
@@ -249,10 +249,10 @@ class RecodeAlignmentTests(TestCase):
 
 
 class RecodeMatrixTests(TestCase):
-    """ Tests of substitution matrix recoding. """
+    """Tests of substitution matrix recoding."""
 
     def setUp(self):
-        """ Create variables for use in the tests """
+        """Create variables for use in the tests"""
         self.m1 = [
             [0, 4, 1, 3, 5],
             [4, 0, 2, 4, 6],

@@ -1484,7 +1484,7 @@ def binary_dist_pearson(datamtx, strict=True):
 
 
 if __name__ == "__main__":
-    """ just a test run"""
+    """just a test run"""
     matrix1 = array(
         [
             [10, 8, 4, 1],

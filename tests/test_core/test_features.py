@@ -17,7 +17,7 @@ __status__ = "Alpha"
 
 
 class FeaturesTest(TestCase):
-    """ Tests of features in core """
+    """Tests of features in core"""
 
     def setUp(self):
         # A Sequence with a couple of exons on it.
@@ -176,7 +176,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(len(self.s.annotations), 2)
 
     def test_feature_reverse(self):
-        """ reverse complement of features"""
+        """reverse complement of features"""
 
         # When dealing with sequences that can be reverse complemented
         # (e.g. DnaSequence) features are **not** reversed.
@@ -196,7 +196,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
 
     def test_feature_from_alignment(self):
-        """ seq features obtained from the alignment"""
+        """seq features obtained from the alignment"""
 
         # Sequence features can be accessed via a containing Alignment:
 
@@ -553,7 +553,7 @@ class FeaturesTest(TestCase):
         )
 
     def test_constructor_equivalence(self):
-        """"""
+        """ """
 
         # These different constructions should generate the same output.
         data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]

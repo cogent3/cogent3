@@ -60,7 +60,7 @@ css_c3table_template = "\n".join(
 
 
 def _merged_cell_text_wrap(text, max_line_length, space):
-    """ left justify wraps text into multiple rows"""
+    """left justify wraps text into multiple rows"""
     max_line_width = max_line_length - (2 * space)
     if len(text) < max_line_length:
         return [text]

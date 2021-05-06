@@ -2117,7 +2117,7 @@ class TestDistMatrixPermutationTest(TestCase):
         )
 
     def test_distance_matrix_permutation_test_return_scores(self):
-        """ return_scores=True functions as expected """
+        """return_scores=True functions as expected"""
         # use alt statistical test to make results simple
         def fake_stat_test(a, b, tails=None):
             return 42.0, 42.0
