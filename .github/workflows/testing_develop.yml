@@ -54,6 +54,7 @@ jobs:
 
       # Setup env
       - name: "Installs for ${{ matrix.python-version }}"
+      - uses: "actions/setup-python@v2"
         shell: bash -l {0}
         run: |
           python --version
