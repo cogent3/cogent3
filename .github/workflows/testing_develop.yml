@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.7]
+        python-version: [3.8]
 
     steps:
       - uses: "actions/checkout@v2"
@@ -38,8 +38,8 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
         
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./tests/junit-*.xml
-          fail_ci_if_error: true
+#      - name: Upload coverage to Codecov
+#        uses: codecov/codecov-action@v1
+#        with:
+#          file: ./tests/junit-*.xml
+#          fail_ci_if_error: true

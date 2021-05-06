@@ -345,43 +345,68 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
         """overwrite, raise, ignore conditions"""
         from pathlib import Path
 
-        def create_data_store(path):
+        def create_data_store(path, debug=False):
             if path.exists():
                 shutil.rmtree(path, ignore_errors=True)
 
             dstore = self.WriteClass(path, suffix=".json", create=True)
+            if debug:
+                from cogent3 import make_table
+
+                rows = []
+
             for k in self.data:
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
+                if debug:
+                    rows.append([id_, k])
+
+            if debug:
+                m1 = dstore[0]
+                repr(m1)
+                m2 = dstore[1]
+                repr(m2)
+                print(
+                    make_table(
+                        header=["id_", "name"], data=rows, title=f"title: {dstore}"
+                    )
+                )
 
             dstore.close()
             return dstore
 
+        def show_path_contents(path, tag):
+            print(f"{tag}  :  {['/'.join(p.parts[1:]) for p in path.glob('*')]}\n")
+
         with TemporaryDirectory(dir=".") as dirname:
             dirname = Path(dirname)
             path = dirname / self.basedir
+            _ = create_data_store(path)
 
-            created = create_data_store(path)
+            show_path_contents(path, "before overwrite")
             # if_exists=OVERWRITE, correctly overwrite existing directory
             # data_store
             dstore = self.WriteClass(
                 path, suffix=".json", create=True, if_exists=OVERWRITE
             )
+            show_path_contents(path, "after overwrite")
             self.assertEqual(len(dstore), 0)
             dstore.write("id.json", "some data")
             self.assertEqual(len(dstore), 1)
             self.assertTrue(path.exists())
             dstore.close()
+            show_path_contents(path, "end of overwrite")
 
             # if_exists=RAISE, correctly raises exception
-            print(self.data.keys())
-            created = create_data_store(path)
+            created = create_data_store(path, debug=True)
+            show_path_contents(path, "before raise, after creation")
             with self.assertRaises(FileExistsError):
                 self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
+            show_path_contents(path, "after raise")
 
             dstore = self.ReadClass(path, suffix=".json")
-            print(created, type(dstore))
-            print(dstore, type(dstore))
+            dstore._members = []
+            show_path_contents(path, "read after raise")
             self.assertEqual(
                 len(dstore), len(created), msg=f"got {dstore}, original is {created}"
             )
