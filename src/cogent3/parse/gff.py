@@ -9,7 +9,7 @@ __credits__ = [
     "Christopher Bradley",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.5.7a"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

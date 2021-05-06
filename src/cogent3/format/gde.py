@@ -9,7 +9,7 @@ __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.5.7a"
 __maintainer__ = "Thomas La"
 
 
