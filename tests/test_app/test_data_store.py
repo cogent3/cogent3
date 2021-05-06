@@ -380,6 +380,8 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
                 self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
 
             dstore = self.ReadClass(path, suffix=".json")
+            print(created, type(dstore))
+            print(dstore, type(dstore))
             self.assertEqual(
                 len(dstore), len(created), msg=f"got {dstore}, original is {created}"
             )
