@@ -199,6 +199,7 @@ class TestComposableBase(TestCase):
             writer.data_store.close()
             dstore = io_app.get_data_store(outpath)
             self.assertEqual(len(dstore), num_records)
+            dstore.close()
 
 
 class TestNotCompletedResult(TestCase):

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import pathlib
 import sys
 
@@ -21,11 +20,11 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 # Check Python version, no point installing if unsupported version inplace
-min_version = (3, 6)
+min_version = (3, 7)
 if sys.version_info < min_version:
-    py_version = ".".join([str(n) for n in sys.version_info])
+    py_version = ".".join(str(n) for n in sys.version_info)
     msg = (
-        f"Python-{'.'.join(min_version)} or greater is required, "
+        f"Python-{'.'.join(map(str, min_version))} or greater is required, "
         f"Python-{py_version} used."
     )
     raise RuntimeError(msg)
@@ -76,9 +75,9 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     packages=find_packages(where="src"),
     package_dir={"": PACKAGE_DIR},

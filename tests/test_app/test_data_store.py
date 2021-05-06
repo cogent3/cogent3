@@ -354,13 +354,15 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
 
-            return len(dstore)
+            dstore.close()
+            dstore._members = []
+            return dstore
 
         with TemporaryDirectory(dir=".") as dirname:
             dirname = Path(dirname)
-            path = dirname / f"{self.basedir}.tinydb"
+            path = dirname / self.basedir
+            _ = create_data_store(path)
 
-            create_data_store(path)
             # if_exists=OVERWRITE, correctly overwrite existing directory
             # data_store
             dstore = self.WriteClass(
@@ -373,21 +375,28 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             dstore.close()
 
             # if_exists=RAISE, correctly raises exception
-            num_members = create_data_store(path)
+            created = create_data_store(path)
+            # created._members = []
             with self.assertRaises(FileExistsError):
                 self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
 
             dstore = self.ReadClass(path, suffix=".json")
-            self.assertEqual(len(dstore), num_members)
+            dstore._members = []
+            self.assertEqual(
+                len(dstore), len(created), msg=f"got {dstore}, original is {created}"
+            )
 
             # if_exists=IGNORE, works
-            num_members = create_data_store(path)
+            created = create_data_store(path)
+            # created._members = []
             dstore = self.WriteClass(
                 path, suffix=".json", create=True, if_exists=IGNORE
             )
-            self.assertEqual(len(dstore), num_members)
+            self.assertEqual(
+                len(dstore), len(created), msg=f"got {dstore}, original is {created}"
+            )
             dstore.write("id.json", "some data")
-            self.assertEqual(len(dstore), num_members + 1)
+            self.assertEqual(len(dstore), len(created) + 1)
             dstore.close()
 
     def test_data_store_creation2(self):

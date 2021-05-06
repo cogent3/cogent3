@@ -15,7 +15,9 @@ import numpy
 from cogent3.util.misc import extend_docstring_from
 
 
-multiprocessing.set_start_method("fork")
+multiprocessing.set_start_method(
+    "fork" if sys.platform == "darwin" else "spawn", force=True
+)
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
