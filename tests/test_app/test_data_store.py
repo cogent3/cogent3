@@ -359,7 +359,7 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
 
         with TemporaryDirectory(dir=".") as dirname:
             dirname = Path(dirname)
-            path = dirname / f"{self.basedir}.tinydb"
+            path = dirname / self.basedir
 
             created = create_data_store(path)
             # if_exists=OVERWRITE, correctly overwrite existing directory
