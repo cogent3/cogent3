@@ -752,12 +752,12 @@ class AtomicWriteTests(TestCase):
     def test_expanduser(self):
         """expands user correctly"""
         # create temp file directory
-        home = os.environ["HOME"]
+        home = pathlib.Path("~").expanduser()
         with tempfile.TemporaryDirectory(dir=home) as dirname:
             # create temp filepath
             dirname = pathlib.Path(dirname)
             test_filepath = dirname / "Atomic_write_test"
-            test_filepath = str(test_filepath).replace(home, "~")
+            test_filepath = str(test_filepath).replace(str(home), "~")
             with atomic_write(test_filepath, mode="w") as f:
                 f.write("abc")
 
