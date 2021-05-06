@@ -23,9 +23,9 @@ __status__ = "Production"
 # Check Python version, no point installing if unsupported version inplace
 min_version = (3, 6)
 if sys.version_info < min_version:
-    py_version = ".".join([str(n) for n in sys.version_info])
+    py_version = ".".join(str(n) for n in sys.version_info)
     msg = (
-        f"Python-{'.'.join(min_version)} or greater is required, "
+        f"Python-{'.'.join(map(str, min_version))} or greater is required, "
         f"Python-{py_version} used."
     )
     raise RuntimeError(msg)
