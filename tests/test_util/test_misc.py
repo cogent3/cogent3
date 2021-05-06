@@ -757,7 +757,7 @@ class AtomicWriteTests(TestCase):
             # create temp filepath
             dirname = pathlib.Path(dirname)
             test_filepath = dirname / "Atomic_write_test"
-            test_filepath = str(test_filepath).replace(home, "~")
+            test_filepath = str(test_filepath).replace(str(home), "~")
             with atomic_write(test_filepath, mode="w") as f:
                 f.write("abc")
 
