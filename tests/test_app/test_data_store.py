@@ -374,6 +374,7 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             dstore.close()
 
             # if_exists=RAISE, correctly raises exception
+            print(self.data)
             created = create_data_store(path)
             with self.assertRaises(FileExistsError):
                 self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
