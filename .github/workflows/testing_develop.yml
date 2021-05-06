@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [macos-latest]
         python-version: [3.6]
 
     steps:
@@ -29,9 +29,9 @@ jobs:
       - name: "Installs for ${{ matrix.python-version }}"
         shell: bash -l {0}
         run: |
-          python --version
-          python -m pip install --upgrade pip wheel setuptools
-          python -m pip install -r requirements.txt
+          python3 --version
+          python3 -m pip install --upgrade pip wheel setuptools
+          python3 -m pip install -r requirements.txt
 
       - name: "Run tox targets for ${{ matrix.python-version }}"
         run: tox
