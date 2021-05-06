@@ -1,3 +1,4 @@
+import datetime
 import os
 import shutil
 import sys
@@ -63,8 +64,10 @@ exclude_patterns = [
 master_doc = "index"
 
 # General information about the project.
+today = datetime.date.today()
+year = today.strftime("%Y")
 project = "cogent3"
-copyright = "2020, cogent3 Team"
+copyright = f"2020-{year}, cogent3 Team"
 
 release = "2021.04.20a"
 
