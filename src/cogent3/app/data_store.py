@@ -587,7 +587,8 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
-        if identifier.split(".")[-1] != self.suffix:
+        id_suffix = identifier.split(".")[-1]
+        if id_suffix not in (self.suffix, "log"):
             raise ValueError(
                 f"identifier does not end with required suffix {self.suffix}"
             )
@@ -683,7 +684,8 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
-        if identifier.split(".")[-1] != self.suffix:
+        id_suffix = identifier.split(".")[-1]
+        if id_suffix not in (self.suffix, "log"):
             raise ValueError(
                 f"identifier does not end with required suffix {self.suffix}"
             )
@@ -1038,7 +1040,8 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
-        if identifier.split(".")[-1] != self.suffix:
+        id_suffix = identifier.split(".")[-1]
+        if id_suffix not in (self.suffix, "log"):
             raise ValueError(
                 f"identifier does not end with required suffix {self.suffix}"
             )
