@@ -587,6 +587,12 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        id_suffix = identifier.split(".")[-1]
+        if id_suffix not in (self.suffix, "log"):
+            raise ValueError(
+                f"identifier does not end with required suffix {self.suffix}"
+            )
+
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
 
@@ -678,6 +684,12 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        id_suffix = identifier.split(".")[-1]
+        if id_suffix not in (self.suffix, "log"):
+            raise ValueError(
+                f"identifier does not end with required suffix {self.suffix}"
+            )
+
         relative_id = self.get_relative_identifier(identifier)
         absolute_id = self.get_absolute_identifier(relative_id, from_relative=True)
 
@@ -1028,6 +1040,12 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        id_suffix = identifier.split(".")[-1]
+        if id_suffix not in (self.suffix, "log"):
+            raise ValueError(
+                f"identifier does not end with required suffix {self.suffix}"
+            )
+
         matches = self.filtered(identifier)
         if matches:
             return matches[0]

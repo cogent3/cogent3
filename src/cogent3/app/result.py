@@ -67,7 +67,8 @@ class generic_result(MutableMapping):
     def __repr__(self):
         name = self.__class__.__name__
         num = len(self)
-        types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self.keys()[:4]]
+        types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self]
+        types = types[:3] + ["..."] if num > 5 else types
         types = ", ".join(types)
         return f"{num}x {name}({types})"
 

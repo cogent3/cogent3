@@ -4,6 +4,7 @@ import shutil
 import sys
 import zipfile
 
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
@@ -158,6 +159,20 @@ class DataStoreBaseTests:
             got = dstore.read(abs_id)
             self.assertEqual(got, expect)
             dstore.close()
+
+    def test_write_wout_suffix(self):
+        """appends suffix expected to records"""
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / f"{self.basedir}.tinydb"
+            dstore = self.WriteClass(path, suffix="fasta", create=True)
+            with self.assertRaises(ValueError):
+                dstore.write("1", str(dict(a=24, b="some text")))
+
+            dstore.write("1.fasta", str(dict(a=24, b="some text")))
+            dstore.close()
+            dstore = self.ReadClass(path, suffix="fasta")
+            self.assertEqual(len(dstore), 1)
 
     @skipIf(sys.platform.lower() != "darwin", "broken on linux")
     def test_md5_write(self):
@@ -343,7 +358,6 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
 
     def test_data_store_creation(self):
         """overwrite, raise, ignore conditions"""
-        from pathlib import Path
 
         def create_data_store(path):
             if path.exists():
@@ -401,8 +415,6 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
 
     def test_data_store_creation2(self):
         """handles create path argument"""
-        from pathlib import Path
-
         with TemporaryDirectory(dir=".") as dirname:
             path = Path(dirname) / "subdir"
             # raises FileNotFoundError when create is False and full path does
@@ -725,7 +737,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_dblock(self):
         """locking/unlocking of db"""
-        from pathlib import Path
 
         from cogent3.app.data_store import _db_lockid
 
@@ -760,7 +771,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_db_creation(self):
         """overwrite, raise, ignore conditions"""
-        from pathlib import Path
 
         def create_tinydb(path, create, locked=False):
             if path.exists():
@@ -815,7 +825,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_db_creation2(self):
         """handles create path argument"""
-        from pathlib import Path
 
         with TemporaryDirectory(dir=".") as dirname:
             dirname = Path(dirname) / "subdir"
@@ -828,6 +837,21 @@ class TinyDBDataStoreTests(TestCase):
 
             # correctly creates tinydb when full path does not exist
             dstore = self.WriteClass(path, create=True)
+            dstore.close()
+
+    def test_write_wout_suffix(self):
+        """appends suffix expected to records"""
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / f"{self.basedir}.tinydb"
+            dstore = self.WriteClass(path, create=True)
+            with self.assertRaises(ValueError):
+                dstore.write("1", dict(a=24, b="some text"))
+
+            dstore.write("1.json", dict(a=24, b="some text"))
+            dstore.close()
+            dstore = self.ReadClass(path)
+            self.assertEqual(len(dstore), 1)
             dstore.close()
 
 
