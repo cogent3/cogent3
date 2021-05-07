@@ -173,6 +173,7 @@ class DataStoreBaseTests:
             dstore.close()
             dstore = self.ReadClass(path, suffix="fasta")
             self.assertEqual(len(dstore), 1)
+            dstore.close()
 
     @skipIf(sys.platform.lower() != "darwin", "broken on linux")
     def test_md5_write(self):
@@ -852,6 +853,7 @@ class TinyDBDataStoreTests(TestCase):
             dstore.close()
             dstore = self.ReadClass(path)
             self.assertEqual(len(dstore), 1)
+            dstore.close()
 
 
 class SingleReadStoreTests(TestCase):
