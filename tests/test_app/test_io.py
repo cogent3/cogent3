@@ -7,7 +7,6 @@ import zipfile
 from os.path import join
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
-from unittest.mock import patch
 
 import numpy
 
@@ -19,11 +18,13 @@ from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import WritableZippedDataStore
 from cogent3.app.io import write_db
+from cogent3.app.result import generic_result
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.util.table import Table
+from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
@@ -34,6 +35,13 @@ __version__ = "2021.5.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+def _get_generic_result(source):
+    """creates a generic result with a DNA moltype as the single value"""
+    gr = generic_result(source=source)
+    gr["dna"] = DNA
+    return gr
 
 
 class TestIo(TestCase):
@@ -199,17 +207,16 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme")
             writer = write_db(outpath, create=True, if_exists="ignore")
-            mock = patch("data.source", autospec=True)
-            mock.to_json = DNA.to_json
-            mock.source = join("blah", "delme.json")
-            got = writer(mock)
+            gr = _get_generic_result(join("blah", "delme.json"))
+            got = writer(gr)
             writer.data_store.db.close()
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
             got = reader(dstore[0])
             dstore.close()
-            self.assertIsInstance(got, DNA.__class__)
-            self.assertEqual(got, DNA)
+            got.deserialised_values()
+            self.assertIsInstance(got["dna"], DNA.__class__)
+            self.assertEqual(got["dna"], DNA)
 
     def test_write_db_load_db2(self):
         """correctly write/load built-in python from tinydb"""
@@ -232,10 +239,8 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             outpath = join(dirname, "delme")
             writer = write_db(outpath, create=True, if_exists="ignore")
-            mock = patch("data.source", autospec=True)
-            mock.to_json = DNA.to_json
-            mock.source = join("blah", "delme.json")
-            got = writer(mock)
+            gr = _get_generic_result(join("blah", "delme.json"))
+            got = writer(gr)
             writer.data_store.db.close()
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
@@ -492,27 +497,25 @@ class TestIo(TestCase):
         # something
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme")
-            mock = patch("data.source", autospec=True)
-            mock.to_rich_dict = DNA.to_rich_dict
-            mock.source = join("blah", "delme.json")
+            gr = _get_generic_result(join("blah", "delme.json"))
             writer = io_app.write_json(outdir, create=True)
-            _ = writer(mock)
+            _ = writer(gr)
             reader = io_app.load_json()
             got = reader(writer.data_store[0])
-            self.assertEqual(got, DNA)
+            got.deserialised_values()
+            self.assertEqual(got["dna"], DNA)
 
         # now with a zipped archive
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme.zip")
-            mock = patch("data.source", autospec=True)
-            mock.to_rich_dict = DNA.to_rich_dict
-            mock.source = join("blah", "delme.json")
+            gr = _get_generic_result(join("blah", "delme.json"))
             writer = io_app.write_json(outdir, create=True)
-            identifier = writer(mock)
+            identifier = writer(gr)
             reader = io_app.load_json()
             # checking loadable from a data store member too
             got = reader(writer.data_store[0])
-            self.assertEqual(got, DNA)
+            got.deserialised_values()
+            self.assertEqual(got["dna"], DNA)
             expect = join(outdir.replace(".zip", ""), "delme.json")
             if expect.startswith("." + os.sep):
                 expect = expect[2:]
