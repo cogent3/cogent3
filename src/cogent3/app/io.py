@@ -31,6 +31,7 @@ from .composable import (
     ComposableTabular,
     NotCompleted,
     _checkpointable,
+    _get_source,
 )
 from .data_store import (
     IGNORE,
@@ -579,6 +580,25 @@ class write_db(_checkpointable):
         self._load_checkpoint = self
 
     def write(self, data, identifier=None):
+        """
+
+        Parameters
+        ----------
+        data
+            object that has a `to_json()` method, or can be json serialised
+        identifier : str
+            if not provided, taken from data.source or data.info.source
+
+        Returns
+        -------
+        identifier
+        """
+        data_source = _get_source(data)
+        if (data_source and identifier is not None) and str(data_source) != str(
+            identifier
+        ):
+            raise ValueError(f"identifier {identifier} != data source {data_source}")
+
         if identifier is None:
             identifier = self._make_output_identifier(data)
         # todo revisit this when we establish immutability behaviour of database
