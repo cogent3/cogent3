@@ -41,6 +41,7 @@ readme_path = pathlib.Path(__file__).parent / "README.md"
 
 long_description = readme_path.read_text()
 
+
 PACKAGE_DIR = "src"
 
 PROJECT_URLS = {
@@ -59,7 +60,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     platforms=["any"],
-    license=["BSD"],
+    license=__license__,
     keywords=[
         "biology",
         "genomics",
