@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import shutil
 import sys
 import zipfile
@@ -8,6 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
+from cogent3 import load_aligned_seqs
 from cogent3.app.data_store import (
     IGNORE,
     OVERWRITE,
@@ -300,6 +302,26 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
         dstore = ReadOnlyDirectoryDataStore("data", suffix="fasta")
         data = {m.name: m.read() for m in dstore}
         self.data = data
+
+    def test_identifier_write_str_data(self):
+        """data must be string type"""
+        data = load_aligned_seqs("data/brca1_5.paml")
+        with TemporaryDirectory(dir=".") as dirname:
+            path = pathlib.Path(dirname) / "delme"
+            dstore = self.WriteClass(
+                path, suffix=".fasta", if_exists=OVERWRITE, create=True
+            )
+            # fails with not string
+            with self.assertRaises(TypeError):
+                dstore.write(data.info.source, data)
+
+            # even bytes
+            with self.assertRaises(TypeError):
+                dstore.write(f"{data.info.source}-2.fasta", str(data).encode("utf-8"))
+
+            # but works if data is str
+            dstore.write(f"{data.info.source}-1.fasta", str(data))
+            dstore.close()
 
     def test_write_class_source_create_delete(self):
         with TemporaryDirectory(dir=".") as dirname:

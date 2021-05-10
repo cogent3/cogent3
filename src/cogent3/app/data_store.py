@@ -507,20 +507,29 @@ class WritableDataStoreBase:
         record = json.dumps(record)
         self.write(identifier, record)
 
-    def write(self, *args, **kwargs):
+    def write(self, identifier, data, *args, **kwargs):
         """
         Parameters
         ----------
         identifier : str
-            identifier that data wil be saved under
+            identifier that data will be saved under. Must have a suffix matching
+            self.suffix or ``.log``.
         data
-            data to be saved
+            data to be saved. If a tinydb, must be an object that can be
+            converted to json, or has a to_json() method. Otherwise, it must be a string.
 
         Returns
         -------
         DataStoreMember instance
         """
-        raise NotImplementedError
+        if not isinstance(data, str):
+            raise TypeError(f"data must be a string type, not {type(data)}")
+
+        id_suffix = identifier.split(".")[-1]
+        if id_suffix not in (self.suffix, "log"):
+            raise ValueError(
+                f"identifier does not end with required suffix {self.suffix}"
+            )
 
     def close(self):
         pass
@@ -587,6 +596,7 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        super().write(identifier, data)
         id_suffix = identifier.split(".")[-1]
         if id_suffix not in (self.suffix, "log"):
             raise ValueError(
@@ -684,6 +694,7 @@ class WritableZippedDataStore(ReadOnlyZippedDataStore, WritableDataStoreBase):
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        super().write(identifier, data)
         id_suffix = identifier.split(".")[-1]
         if id_suffix not in (self.suffix, "log"):
             raise ValueError(
@@ -1040,6 +1051,9 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        # writing into a tinydb has its own logic for conversion to json
+        #  so we don't validate data is a string for this case
+        super().write(identifier, "")
         id_suffix = identifier.split(".")[-1]
         if id_suffix not in (self.suffix, "log"):
             raise ValueError(
