@@ -71,6 +71,8 @@ Making a writeable data store
 
 The creation of a writeable data store is handled for you by the different writers we provide under ``cogent3.app.io``.
 
+.. warning:: The ``WritableZippedDataStore`` is deprecated.
+
 TinyDB data stores are special
 ------------------------------
 
