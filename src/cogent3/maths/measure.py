@@ -1,4 +1,6 @@
-from numpy import array, diag, diagonal, dot, eye, log, sqrt
+from math import fsum
+
+from numpy import array, diag, diagonal, dot, eye, isclose, log, sqrt
 from numpy.linalg import slogdet
 from numpy.testing import assert_allclose, assert_equal
 
@@ -115,9 +117,17 @@ def jsd(freqs1, freqs2, validate=False):
         except ValueError as err:
             raise AssertionError("freqs not valid") from err
 
-    H_mn = safe_p_log_p(freqs1 / 2 + freqs2 / 2).sum()
-    mn_H = sum([sum(i) for i in map(safe_p_log_p, [freqs1, freqs2])]) / 2
-    return H_mn - mn_H
+    H_mn = fsum(safe_p_log_p(freqs1 / 2 + freqs2 / 2))
+    mn_H = fsum([fsum(i) for i in map(safe_p_log_p, [freqs1, freqs2])]) / 2
+    jsd_ = H_mn - mn_H
+    if jsd_ < 0 and isclose(jsd_, 0, atol=1e-10):
+        jsd_ = 0
+    elif jsd_ < 0:
+        raise ArithmeticError(
+            f"{jsd_} is negative and below defined precision threshold"
+        )
+
+    return jsd_
 
 
 @cogent3.util.misc.extend_docstring_from(jsd)

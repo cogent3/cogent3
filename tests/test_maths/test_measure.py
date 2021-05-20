@@ -214,6 +214,30 @@ class TestJensenShannon(TestCase):
             atol=self.atol,
         )
 
+        assert_allclose(
+            jsd(case4[0], case4[0], validate=True),
+            0.0,
+            err_msg="Testing case4 for jsd failed",
+            atol=self.atol,
+        )
+
+    def test_jsd_precision(self):
+        """handle case where the difference is incredibly small"""
+        pi_0 = [
+            0.4398948756903677,
+            0.1623791467423164,
+            0.31844113569205656,
+            0.07928484187525932,
+        ]
+        pi_1 = [
+            0.43989487569036767,
+            0.16237914674231643,
+            0.3184411356920566,
+            0.07928484187525933,
+        ]
+        result = jsd(pi_0, pi_1)
+        self.assertTrue(result >= 0)
+
     def test_jsm(self):
         """evaluate jsm between identical, and non-identical distributions"""
         case1 = [
