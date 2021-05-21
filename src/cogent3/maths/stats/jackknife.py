@@ -14,6 +14,28 @@ __status__ = "Production"
 
 
 def index_gen(length):
+    """returns a callable
+
+    Parameters
+    ----------
+    length : int
+        length of series of integers to generate
+
+    Returns
+    -------
+    callable
+
+    Notes
+    -----
+    When invoked with an int, returns all indices except that provided.
+    The result can be used with a numpy.take(data, indices).
+
+    >>> gen_series = index_gen(4)
+    >>> gen_series(0)
+    [1, 2, 3]
+    >>> gen_series(1)
+    [0, 2, 3]
+    """
     data = tuple(range(length))
 
     def gen(i):
