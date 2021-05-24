@@ -74,10 +74,25 @@ class concat:
         data
             series of alignment instances
         """
-        names = self._name_callback(list(aln.names for aln in data))
-        collated = defaultdict(list)
+        if len(data) == 0:
+            raise ValueError("no data")
+
+        names = []
         for aln in data:
-            assert isinstance(aln, ArrayAlignment) or isinstance(aln, Alignment)
+            if not (isinstance(aln, ArrayAlignment) or isinstance(aln, Alignment)):
+                raise TypeError(f"{type(aln)} invalid for concat")
+            names.append(aln.names)
+
+        names = self._name_callback(names)
+        collated = defaultdict(list)
+        if self._moltype is None:
+            self._moltype = aln.moltype
+
+        for aln in data:
+            if self._moltype and aln.moltype != self._moltype:
+                # try converting
+                aln = aln.to_moltype(self.moltype)
+
             if self._intersect:
                 seqs = aln.take_seqs(names).to_dict()
             else:
