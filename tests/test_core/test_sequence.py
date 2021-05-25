@@ -1108,6 +1108,14 @@ class DnaSequenceGapTests(TestCase):
         sc = self.SequenceClass
         self.assertEqual(str(sc("TC").regap(sc("A---A-"))), "T---C-")
 
+    def test_degap_name(self):
+        """degap preserves name attribute"""
+        # todo this should work for any seq class, but is not
+        seq = DNA.make_seq("ACG---T", "blah")
+        got = seq.degap()
+        self.assertEqual(str(got), "ACGT")
+        self.assertEqual(got.name, "blah")
+
 
 class SequenceIntegrationTests(TestCase):
     """Should be able to convert regular to model sequences, and back"""
