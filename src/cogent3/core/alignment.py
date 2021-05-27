@@ -4440,7 +4440,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(s)
             else:
                 aligned_seqs.append(self._seq_to_aligned(s, n))
-        self.named_seqs = self.named_seqs = dict(list(zip(names, aligned_seqs)))
+        self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
 
     def _coerce_seqs(self, seqs, is_array):
