@@ -342,7 +342,7 @@ class SequenceI(object):
 
     def degap(self):
         """Deletes all gap characters from sequence."""
-        return self.__class__(self.moltype.degap(self), info=self.info)
+        return self.__class__(self.moltype.degap(self), name=self.name, info=self.info)
 
     def gap_indices(self):
         """Returns list of indices of all gaps in the sequence, or []."""
