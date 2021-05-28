@@ -9,16 +9,18 @@ from cogent3 import (
 )
 from cogent3.align.align import make_generic_scoring_dict
 from cogent3.app import align as align_app
-from cogent3.app.align import (
+from cogent3.app.align import _map_ref_gaps_to_seq
+from cogent3.app.composable import NotCompleted
+from cogent3.core.alignment import Aligned, Alignment
+from cogent3.core.location import (
+    LostSpan,
+    Map,
+    Span,
     _gap_insertion_data,
     _gap_pos_to_map,
     _interconvert_seq_aln_coords,
-    _map_ref_gaps_to_seq,
     _merged_gaps,
 )
-from cogent3.app.composable import NotCompleted
-from cogent3.core.alignment import Aligned, Alignment
-from cogent3.core.location import LostSpan, Map, Span
 
 
 __author__ = "Gavin Huttley"
