@@ -1,9 +1,24 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, get_moltype, make_tree, make_unaligned_seqs
+from cogent3 import (
+    DNA,
+    get_moltype,
+    make_aligned_seqs,
+    make_tree,
+    make_unaligned_seqs,
+)
 from cogent3.align.align import make_generic_scoring_dict
 from cogent3.app import align as align_app
+from cogent3.app.align import (
+    _gap_insertion_data,
+    _gap_pos_to_map,
+    _interconvert_seq_aln_coords,
+    _map_ref_gaps_to_seq,
+    _merged_gaps,
+)
 from cogent3.app.composable import NotCompleted
+from cogent3.core.alignment import Aligned, Alignment
+from cogent3.core.location import LostSpan, Map, Span
 
 
 __author__ = "Gavin Huttley"
@@ -50,7 +65,6 @@ _codon_models = [
 
 class RefalignmentTests(TestCase):
     seqs = make_unaligned_seqs(_seqs, moltype=DNA)
-    treestring = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
 
     def test_align_to_ref(self):
         """correctly aligns to a reference"""
@@ -80,6 +94,149 @@ class RefalignmentTests(TestCase):
         aligner = align_app.align_to_ref(moltype="dna")
         got = aligner(self.seqs)
         self.assertEqual(got.moltype.label, "dna")
+
+    def test__gap_insertion_data(self):
+        """identifies gap locations and lengths"""
+        seq = DNA.make_seq("AACCCCCCGGG")
+        # no gaps
+        m = _gap_pos_to_map([], [], len(seq))
+        got = _gap_insertion_data(Aligned(m, seq))
+        expect = [], []
+        self.assertEqual(got, expect)
+        # one gap
+        gap_positions = [2]
+        gap_lengths = [3]
+        m = _gap_pos_to_map(gap_positions, gap_lengths, len(seq))
+        got = _gap_insertion_data(Aligned(m, seq))
+        expect = list(zip(gap_positions, gap_lengths)), [0]
+        self.assertEqual(got, expect)
+        # two gaps
+        gap_positions = [2, 8]
+        gap_lengths = [3, 1]
+        m = _gap_pos_to_map(gap_positions, gap_lengths, len(seq))
+        got = _gap_insertion_data(Aligned(m, seq))
+        expect = list(zip(gap_positions, gap_lengths)), [0, 3]
+        self.assertEqual(got, expect)
+
+    def test__merged_gaps(self):
+        """correctly merges gaps"""
+        with self.assertRaises(ValueError):
+            _merged_gaps([], [], function="blah")
+
+        a = [(2, 3), (4, 9)]
+        b = [(2, 6), (8, 5)]
+        # omitting one just returns the other
+        self.assertIs(_merged_gaps(a, []), a)
+        self.assertIs(_merged_gaps([], b), b)
+        # specifying 'sum' means (2, 9)
+        got = _merged_gaps(a, b, function="sum")
+        self.assertEqual(got, [(2, 9), (4, 9), (8, 5)])
+        # specifying 'max' means (2, 6)
+        got = _merged_gaps(a, b, function="max")
+        self.assertEqual(got, [(2, 6), (4, 9), (8, 5)])
+
+    def test__gap_pos_to_map(self):
+        """correctly converts a gap positions to a Map"""
+        gap_positions = [2, 9]
+        gap_lengths = [3, 1]
+        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
+        self.assertTrue(all(map.spans[i].lost for i in (1, 3)))
+        self.assertEqual(len(map), 24)
+        # no gaps
+        map = _gap_pos_to_map([], [], 20)
+        self.assertEqual(len(map), 20)
+        self.assertEqual(len(map.spans), 1)
+        # gap at start
+        gap_positions = [0]
+        gap_lengths = [3]
+        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
+        self.assertTrue(map.spans[0].lost and not map.spans[1].lost)
+        self.assertEqual(len(map), 23)
+        self.assertEqual(len(map.spans), 2)
+        # gap at end
+        gap_positions = [20]
+        gap_lengths = [3]
+        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
+        self.assertTrue(map.spans[-1].lost and not map.spans[0].lost)
+        self.assertEqual(len(map), 23)
+        self.assertEqual(len(map.spans), 2)
+        # fail if pos beyond sequence
+        with self.assertRaises(ValueError):
+            _gap_pos_to_map([40], [2], 20)
+
+    def test__map_ref_gaps_to_seq(self):
+        """correctly handle case where ref and curr ref are equal"""
+        aln = make_aligned_seqs(
+            {
+                "Ref": "CAG---GAGAACAGAAACCCAT--TACTCACT",
+                "Qu2": "CAGCATGAGAACAGAAACCCGT--TA---ACT",
+            },
+            array_align=False,
+            moltype="dna",
+        )
+        ref = aln.named_seqs["Ref"]
+        other = aln.named_seqs["Qu2"]
+        got = _map_ref_gaps_to_seq(ref, ref, other)
+        self.assertIs(got, other.map)
+
+    def test_seq_2_aln_coords(self):
+        """correctly converts sequence coordinates to alignment coordinates"""
+        got = _interconvert_seq_aln_coords([], [], 20, seq_pos=True)
+        assert got == 20
+
+        # aligned seq has one gap after
+        got = _interconvert_seq_aln_coords([(22, 3)], [0], 20, seq_pos=True)
+        assert got == 20
+
+        # aligned seq has one 2bp gap before
+        got = _interconvert_seq_aln_coords([(12, 2)], [0], 20, seq_pos=True)
+        assert got == 22
+
+        # aligned seq has two 2bp gap before
+        got = _interconvert_seq_aln_coords([(10, 2), (12, 2)], [0], 20, seq_pos=True)
+        assert got == 24
+
+    def test_aln_2_seq_coord(self):
+        """correctly converts alignment coordinates to sequence coordinates"""
+        got = _interconvert_seq_aln_coords([], [], 20, seq_pos=False)
+        assert got == 20
+
+        # query has one gap after
+        got = _interconvert_seq_aln_coords([(22, 3)], [0], 20, seq_pos=False)
+        assert got == 20
+
+        # query has one 2bp gap before
+        got = _interconvert_seq_aln_coords([(12, 2)], [0], 20, seq_pos=False)
+        assert got == 18
+
+        # query has two 2bp gap before
+        got = _interconvert_seq_aln_coords([(10, 2), (12, 2)], [0], 20, seq_pos=False)
+        assert got == 16
+
+    def test_aln_to_ref_known(self):
+        """correctly recapitulates known case"""
+        orig = make_aligned_seqs(
+            {
+                "Ref": "CAG---GAGAACAGAAACCCAT--TACTCACT",
+                "Qu1": "CAG---GAGAACAG---CCCGTGTTACTCACT",
+                "Qu2": "CAGCATGAGAACAGAAACCCGT--TA---ACT",
+                "Qu3": "CAGCATGAGAACAGAAACCCGT----CTCACT",
+                "Qu4": "CAGCATGAGAACAGAAACCCGTGTTACTCACT",
+                "Qu5": "CAG---GAGAACAG---CCCAT--TACTCACT",
+                "Qu6": "CAG---GA-AACAG---CCCAT--TACTCACT",
+                "Qu7": "CAG---GA--ACAGA--CCCGT--TA---ACT",
+            },
+            moltype="dna",
+        )
+        expect = orig.to_dict()
+        aligner = align_app.align_to_ref(ref_seq="Ref")
+        aln = aligner(orig.degap())
+        self.assertEqual(aln.to_dict(), expect)
+
+
+class ProgressiveAlignment(TestCase):
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA)
+    treestring = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
 
     def test_progressive_align_protein_moltype(self):
         """tests guide_tree is None and moltype is protein"""
