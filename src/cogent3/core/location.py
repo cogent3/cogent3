@@ -1046,3 +1046,141 @@ def RangeFromString(string, delimiter=","):
         else:
             result.spans.append(Span(int(p)))
     return result
+
+
+def _gap_insertion_data(seq):
+    """compute gap position, length and cumulative offsets
+
+    Parameters
+    ----------
+    seq
+        a cogent3 annotatable sequence
+
+    Returns
+    -------
+    [(seq position, gap length), ...], [cum sum gap length, ...]
+
+    Notes
+    -----
+    The sequence position is in unaligned sequence coordinates. offsets are
+    calculated as the cumulative sum of gap lengths. The offset
+    plus the sequence position gives the alignment coordinate for a gap.
+    """
+    gap_pos = []
+    offsets = []
+    offset = 0
+    for i, span in enumerate(seq.map.spans):
+        if not span.lost:
+            continue
+        pos = seq.map.spans[i - 1].end if i else 0
+        gap_pos.append((pos, len(span)))
+        offsets.append(offset)
+        offset += span.length
+
+    return gap_pos, offsets
+
+
+def _merged_gaps(a_gaps, b_gaps, function="max"):
+    """merges gaps that occupy same position
+
+    Parameters
+    ----------
+    a_gaps, b_gaps
+        [(gap position, length),...]
+    function
+        When a and b contain a gap at the same position, function is applied
+        to the gap lengths. Valid values are either 'max' or 'sum'.
+
+    Returns
+    -------
+    Merged places as [(gap position, length),...]
+
+    Notes
+    -----
+    If a_gaps and b_gaps are from the same underlying sequence, set
+    function to 'max'. Use 'sum' when the gaps derive from different
+    sequences.
+    """
+    if function.lower() not in "maxsum":
+        raise ValueError(f"{function} not allowed, choose either 'sum' or 'max'")
+
+    function = max if function.lower() == "max" else sum
+
+    if not a_gaps:
+        return b_gaps
+
+    if not b_gaps:
+        return a_gaps
+
+    places = sorted(a_gaps + b_gaps)
+
+    positions, lengths = [places[0][0]], [places[0][1]]
+    for i, (pos, l) in enumerate(places[1:], 1):
+        if positions[-1] == pos:
+            lengths[-1] = function([lengths[-1], l])
+            continue
+
+        positions.append(pos)
+        lengths.append(l)
+    return list(zip(positions, lengths))
+
+
+def _gap_pos_to_map(gap_pos, gap_lengths, seq_length):
+    """[(pos, gap length), ...]"""
+
+    if not gap_pos:
+        return Map([(0, seq_length)], parent_length=seq_length)
+
+    spans = []
+    last = pos = 0
+    for i, pos in enumerate(gap_pos):
+        if pos > seq_length:
+            raise ValueError(
+                f"cannot have gap at position {pos} beyond seq_length= {seq_length}"
+            )
+
+        gap = LostSpan(length=gap_lengths[i])
+        spans.extend([gap] if pos == 0 else [Span(last, pos), gap])
+        last = pos
+
+    if pos < seq_length:
+        spans.append(Span(last, seq_length))
+
+    return Map(spans=spans, parent_length=seq_length)
+
+
+def _interconvert_seq_aln_coords(gaps, offsets, pos, seq_pos=True):
+    """converts sequence position to an alignment position
+
+    Parameters
+    ----------
+    gaps
+        series of [(seq pos, length), ..]
+    offsets
+        the offset of seq pos, which is basically the sum of all lengths up
+        to the previous gap
+    p
+        the sequence coordinate to convert
+    seq_pos : bool
+        whether pos is in sequence coordinates. If False, means it is in
+        alignment coordinates.
+    Returns
+    -------
+    alignment coordinate
+    """
+    if pos < 0:
+        raise ValueError(f"negative value {pos}")
+
+    if not gaps or pos == 0:
+        return pos
+
+    offset = 0
+    for i, (p, len) in enumerate(gaps):
+        assert p >= 0 and len > 0
+        if p + offset >= pos:
+            break
+        offset += len
+    assert offset < pos, f"calculated offset {offset} greater than align pos {p}"
+    if not seq_pos:  # we subtract the gap length total to get to seq coords
+        offset = -offset
+    return pos + offset
