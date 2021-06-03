@@ -1,6 +1,71 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "cogent3"
+author = "Gavin Huttley"
+author-email = "Gavin.Huttley@anu.edu.au"
+home-page = "https://cogent3.org"
+keywords = "biology, genomics, statistics, phylogeny, evolution, bioinformatics"
+description-file = "README.md"
+license = "BSD-3"
+requires-python = ">=3.7"
+requires = ["chardet",
+        "numpy",
+        "numba>0.48.0;python_version<'3.9'",
+        "numba>0.53; python_version>='3.9'",
+        "scitrack",
+        "tqdm",
+        "tinydb"]
+classifiers = [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: BSD License",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+    ]
+
+[tool.flit.metadata.urls]
+Documentation = "https://www.cogent3.org/"
+"Bug Tracker" = "https://github.com/cogent3/cogent3/issues"
+"Source Code" = "https://github.com/cogent3/cogent3"
+
+[tool.flit.sdist]
+include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
+exclude = ["doc/*.html"]
+
+[tool.flit.metadata.requires-extra]
+test = [
+    "black",
+    "isort",
+    "pytest",
+    "pytest-cov",
+    "tox"]
+doc  = [
+    "click",
+    "ipykernel",
+    "ipywidgets",
+    "jupyter-sphinx",
+    "jupyter_client",
+    "jupyterlab",
+    "jupytext",
+    "kaleido",
+    "nbconvert",
+    "nbformat",
+    "nbsphinx",
+    "numpydoc",
+    "psutil",
+    "sphinx",
+    "sphinx-autobuild",
+    "sphinxcontrib-bibtex",
+    "sphinx_panels",
+]
+extra = ["pandas", "plotly", "psutil", "kaleido"]
 
 [tool.pytest.ini_options]
 testpaths = [

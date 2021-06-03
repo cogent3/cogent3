@@ -29,7 +29,8 @@ jobs:
       - name: "Installs for ${{ matrix.python-version }}"
         run: |
           python --version
-          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install --upgrade pip wheel setuptools flit
+          python -m pip install --upgrade tox tox-gh-actions
           python -m pip install -r requirements.txt
 
       - name: "Run tox targets for ${{ matrix.python-version }}"
