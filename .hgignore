@@ -32,3 +32,4 @@ __pycache__
 junit-*.xml
 doc/draw*
 dist/*
+working/*
