@@ -1070,8 +1070,19 @@ class TreeNodeTests(TestCase):
         self.assertEqual(obs_1, exp_1)
         self.assertEqual(obs_2, exp_2)
 
+    def test_lowest_common_ancestor_invalid_tips(self):
+        """fail if tips not present"""
+        t = DndParser("((a,(b,c)d)e,f,(g,h)i)j;")
+        # no tips present in tree should raise exception
+        with self.assertRaises(ValueError):
+            t.lowest_common_ancestor(["m", "n"])
+
+        # not all tips present in tree should raise exception
+        with self.assertRaises(ValueError):
+            t.lowest_common_ancestor(["a", "n"])
+
     def test_last_common_ancestor(self):
-        """TreeNode LastCommonAncestor should provide last common ancestor"""
+        """TreeNode last_common_ancestor should provide last common ancestor"""
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes["a"]
         b = nodes["b"]

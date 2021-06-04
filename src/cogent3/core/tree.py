@@ -634,8 +634,9 @@ class TreeNode(object):
         tipnames = set(tipnames)
         tips = [tip for tip in self.tips() if tip.name in tipnames]
 
-        if len(tips) == 0:
-            return None
+        if len(tips) != len(tipnames):
+            missing = tipnames - set(self.get_tip_names())
+            raise ValueError(f"tipnames {missing} not present in self")
 
         # scrub tree
         if hasattr(self, "black"):
