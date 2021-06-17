@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import warnings
 
-import numpy
-
 from cogent3.maths.matrix_exponentiation import (
     CheckedExponentiator,
     FastExponentiator,
@@ -10,19 +8,9 @@ from cogent3.maths.matrix_exponentiation import (
     PadeExponentiator,
 )
 from cogent3.recalculation.definition import (
-    CalcDefn,
     CalculationDefn,
-    CallDefn,
-    ConstDefn,
-    GammaDefn,
-    MonotonicDefn,
-    NonParamDefn,
-    PartitionDefn,
     PositiveParamDefn,
-    ProductDefn,
     RatioParamDefn,
-    SelectForDimension,
-    WeightedPartitionDefn,
 )
 
 
