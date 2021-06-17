@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 """Parsers for blast, psi-blast and blat.
 """
-from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """ matrix based distance metrics, and related coordinate transforms
 
 functions to compute distance matrices row by row from abundance matrices,
@@ -62,18 +61,16 @@ from numpy import (
     argsort,
     array,
     asarray,
-    geterr,
     isfinite,
     isnan,
     logical_and,
-    logical_not,
-    logical_or,
-    logical_xor,
     mean,
     min,
     multiply,
     nan_to_num,
-    nonzero,
+)
+from numpy import ndim as rank
+from numpy import (
     ravel,
     seterr,
     shape,
@@ -86,16 +83,6 @@ from numpy import (
     zeros,
 )
 from numpy.linalg import norm
-
-
-try:
-    from numpy import ndim as rank
-except ImportError:
-    from numpy import rank
-
-# any, all from numpy override built in any, all, preventing:
-# ValueError: The truth value of an array with more than one element is
-# ambiguous. Use a.any() or a.all()
 
 
 __author__ = "Justin Kuczynski"

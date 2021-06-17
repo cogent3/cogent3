@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
@@ -24,6 +22,8 @@ def nexus_from_alignment(aln, seq_type, wrap=50, interleave_len=None):
 
     """
     if interleave_len is not None:
+        import cogent3
+
         cogent3.util.warning.deprecated("argument", "interleave_len", "wrap", "2021.6")
         wrap = interleave_len if wrap == 50 else wrap
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """A recalculation engine, something like a spreadsheet.
 
 Goals:
@@ -64,13 +63,11 @@ Recycling:
   the one to be used next for recycling.
 """
 
-import warnings
 
 from collections import defaultdict
 
 import numpy
 
-from cogent3.maths.stats.distribution import chdtri
 from cogent3.maths.util import proportions_to_ratios, ratios_to_proportions
 from cogent3.util.dict_array import DictArrayTemplate
 

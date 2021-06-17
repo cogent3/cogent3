@@ -8,9 +8,7 @@ from numpy import (
     multiply,
     pi,
     polyval,
-    power,
     sqrt,
-    sum,
     zeros,
 )
 

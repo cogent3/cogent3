@@ -1,4 +1,4 @@
-from random import choice, random, shuffle
+from random import choice
 
 import numpy
 

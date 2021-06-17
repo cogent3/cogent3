@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Parsers for the LL_tmpl file from LocusLink.
 
 Notes:
@@ -373,12 +372,3 @@ def LocusLinkParser(lines):
     for record in LLFinder(lines):
         curr = LinesToLocusLink(record)
         yield curr
-
-
-if __name__ == "__main__":
-    from sys import argv, stdout
-
-    filename = argv[1]
-    count = 0
-    for record in LocusLinkParser(open(filename)):
-        print(record)

@@ -17,7 +17,6 @@ correct ambiguity for recoding -- will move to its own module.
 """
 
 import json
-import string
 
 from itertools import product
 
@@ -30,7 +29,6 @@ from numpy import (
     frombuffer,
     newaxis,
     ravel,
-    remainder,
     sum,
     take,
     transpose,

@@ -1,8 +1,6 @@
 import importlib
 import inspect
 
-from warnings import filterwarnings
-
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"

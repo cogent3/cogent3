@@ -194,7 +194,6 @@ class Dotplot(Drawable):
         show_progress : bool
             displays progress bar
         """
-        from cogent3.core.alignment import Aligned
 
         # we ensure sequences have gaps parsed and the calculate aspect ratio
         if hasattr(seq1, "moltype"):
