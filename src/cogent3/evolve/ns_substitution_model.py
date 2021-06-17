@@ -9,9 +9,7 @@ from cogent3.util.misc import extend_docstring_from
 from .substitution_model import (
     Parametric,
     Stationary,
-    TimeReversibleNucleotide,
     _Codon,
-    _ContinuousSubstitutionModel,
     _SubstitutionModel,
 )
 
@@ -62,7 +60,7 @@ class General(Parametric):
                 y = alphabet[j]
                 self.parameter_order.append("%s/%s" % (x, y))
                 self.param_pick[i, j] = len(self.parameter_order)
-        const_param = self.parameter_order.pop()
+        _ = self.parameter_order.pop()
         self.symmetric = False
         self.check_params_exist()
 

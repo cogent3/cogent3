@@ -18,7 +18,7 @@ def MsfParser(f):
     # parse optional header
     # parse optional text information
     # file header and sequence header are seperated by a line ending in '..'
-    line = f.readline().strip()
+    _ = f.readline()
     for line in f:
         line = line.strip()
         if line.endswith(".."):

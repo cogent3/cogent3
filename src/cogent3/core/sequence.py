@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Contains classes that represent biological sequence data. These
 provide generic biological sequence manipulation functions, plus functions
 that are critical for the EVOLVE calculations.
@@ -12,7 +11,6 @@ performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
 
-import copy
 import json
 import re
 import warnings
@@ -41,7 +39,7 @@ from cogent3.core.alphabet import AlphabetError
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
-from cogent3.maths.stats.contingency import CategoryCounts, TestResult
+from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.parse import gff
 from cogent3.util.dict_array import DictArrayTemplate
@@ -51,12 +49,7 @@ from cogent3.util.misc import (
     get_object_provenance,
     get_setting_from_environ,
 )
-from cogent3.util.transform import (
-    KeepChars,
-    for_seq,
-    per_longest,
-    per_shortest,
-)
+from cogent3.util.transform import for_seq, per_shortest
 
 from .annotation import Map, _Annotatable
 

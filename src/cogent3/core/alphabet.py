@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 alphabet.py
 
@@ -18,7 +17,6 @@ correct ambiguity for recoding -- will move to its own module.
 """
 
 import json
-import re
 import string
 
 from itertools import product
@@ -42,7 +40,7 @@ from numpy import (
     zeros,
 )
 
-from cogent3.util.misc import bytes_to_string, get_object_provenance
+from cogent3.util.misc import get_object_provenance
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -182,7 +180,6 @@ class Enumeration(tuple):
         accidentally use negative numbers as indices (this is very bad when
         doing indexed lookups).
         """
-        data = data or []
         self.moltype = moltype
 
         # check if motif lengths are homogeneous -- if so, set length
@@ -620,7 +617,6 @@ class Alphabet(Enumeration):
 
         Raises an AttributeError if MolType is not set.
         """
-        result = ""
         return self.moltype.make_seq("".join(self[i] for i in data))
 
     def get_matched_array(self, motifs, dtype=Float):

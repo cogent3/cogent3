@@ -132,9 +132,6 @@ IUPAC_DNA_ambiguities_complements = {
 
 IUPAC_DNA_complements = {"A": "T", "C": "G", "G": "C", "T": "A", "-": "-"}
 
-IUPAC_DNA_complements = {"A": "T", "C": "G", "G": "C", "T": "A", "-": "-"}
-
-
 # note change in standard order from DNA
 IUPAC_RNA_chars = ["U", "C", "A", "G"]
 IUPAC_RNA_ambiguities = {
@@ -874,7 +871,6 @@ class MolType(object):
         """
         all = {}
         for i in self.alphabet:
-            curr = str(i)
             all[i] = i
         for key, val in list(self.degenerates.items()):
             all[key] = val

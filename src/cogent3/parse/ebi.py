@@ -1501,7 +1501,6 @@ _parsers = {
     "KW": kw_parser,
     "FT": ft_parser,
     "SQ": sq_parser,
-    "XX": None,
     "PR": pr_parser,
     "XX": None,
     "FH": None,

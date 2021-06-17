@@ -184,17 +184,7 @@ def maximise(
     try:
         # Global optimisation
         if do_global:
-            if 0 and not do_local:
-                warnings.warn(
-                    "local=False causes the post-global optimisation local "
-                    '"polishing" optimisation to be skipped entirely, which seems '
-                    "pointless, so its meaning may change to a simple boolean "
-                    "flag: local or global."
-                )
-                # It also needlessly complicates this function.
-                gend = 1.0
-            else:
-                gend = 0.9
+            gend = 0.9
             callback = unsteadyProgressIndicator(ui.display, "Global", 0.0, gend)
             gtol = [tolerance, global_tolerance][do_local]
             opt = GlobalOptimiser(filename=filename, interval=interval)

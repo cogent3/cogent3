@@ -80,7 +80,6 @@ class _Annotatable:
                 )
             for base in containers:
                 feature = feature.remapped_to(base, base.map)
-            index = map
         else:
             map = as_map(index, len(self))
         return map

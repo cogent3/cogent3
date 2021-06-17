@@ -83,7 +83,6 @@ def calc_rows(
     source_row_index_cache = np.zeros(256)
 
     N = max(T.shape[0], T.shape[1])
-    row_count = plan.shape[0]
 
     dest_states = max(0, state_directions.shape[0])
     d4 = max(4, state_directions.shape[1])

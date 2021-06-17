@@ -262,10 +262,7 @@ class BlastXMLResult(dict):
         mp = parser(data, True)
 
         for props, rec_data in mp:
-
-            iteration = 1
-            if self.ITERATION in props:
-                iteration = int(props[self.ITERATION])
+            iteration = int(props[self.ITERATION]) if self.ITERATION in props else 1
 
             hits = []
             # check if found any hits

@@ -376,7 +376,7 @@ class CircularTreeGeometry(TreeGeometryBase):
     @property
     def x(self):
         if self._x is None:
-            y = self.y  # triggers populating values
+            _ = self.y  # triggers populating values
         return self._x
 
     @property

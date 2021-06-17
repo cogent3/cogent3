@@ -687,7 +687,7 @@ class PairEmissionProbs(object):
         to_end = numpy.array([(len(T) - 1, 0, 0, 0)])
         for (state, (i, j)) in cells:
             if i > last_i:
-                rr = pair.calc_rows(
+                _ = pair.calc_rows(
                     last_i + 1,
                     i + 1,
                     0,
@@ -816,8 +816,6 @@ class PairEmissionProbs(object):
             memory = problem_size * encoder.bytes / 10 ** 6
             if dp_options.local:
                 msg = "Local alignment"
-            elif cells is not None:
-                msg = "Posterior probs"
             elif (
                 self.pair.size[0] - 2 >= 3
                 and not backward

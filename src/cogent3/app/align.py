@@ -10,7 +10,6 @@ from cogent3.align.progressive import TreeAlign
 from cogent3.app import dist
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import (
-    Map,
     _gap_insertion_data,
     _gap_pos_to_map,
     _interconvert_seq_aln_coords,

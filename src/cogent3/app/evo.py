@@ -1,7 +1,4 @@
-import os
 import warnings
-
-from tqdm import tqdm
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode

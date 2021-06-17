@@ -307,7 +307,7 @@ class load_tabular(ComposableTabular):
         try:
             header, data, title = self._parse(path)
         except Exception as err:
-            result = NotCompleted("ERROR", self, err.args[0], source=str(path))
+            return NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         if self.as_type == "table":
             return Table(header=header, data=data, title=title)
