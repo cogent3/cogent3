@@ -83,7 +83,6 @@ def kendalls_tau(x, y, return_p=True):
     """
     ranked = as_paired_ranks(x, y)
     n = len(ranked)
-    denom = n * (n - 1) / 2
     con = 0
     discor = 0
     x_tied = 0

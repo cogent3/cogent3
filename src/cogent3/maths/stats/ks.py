@@ -74,7 +74,6 @@ def pkolmogorov2x(statistic, n):
     m = 2 * k - 1
     h = k - n * statistic
     H = ones(m ** 2, "d")
-    Q = zeros(m ** 2, "d")
     for i in range(m):
         for j in range(m):
             if i - j + 1 < 0:

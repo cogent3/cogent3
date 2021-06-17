@@ -5,7 +5,6 @@ import numpy
 
 from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
-from cogent3.util.warning import deprecated
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"

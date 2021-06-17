@@ -69,7 +69,7 @@ class _SciPyOptimiser(object):
         if tolerance is None:
             tolerance = 1e-6
 
-        fval_last = fval = numpy.inf
+        fval_last = numpy.inf
         if len(xopt) == 0:
             return function(xopt), xopt
 

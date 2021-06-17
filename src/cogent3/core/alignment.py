@@ -211,7 +211,7 @@ class GapsOk:
 
     def gap_run_ok(self, seq):
         """runs of gaps <= allowed_run"""
-        curr_run = max_run = 0
+        curr_run = 0
         is_gap = self.gap_chars.__contains__
         result = True
         for i in seq:
@@ -674,10 +674,9 @@ class _SequenceCollectionBase:
             # if we got names from the sequences, but otherwise assign the
             # names to successive sequences in order
             if (names is None) or (None in names):
-                per_seq_names = name_order = name_order
+                per_seq_names = name_order
             else:  # got names from seqs, so assume name_order is in Names
                 per_seq_names = names
-                name_order = name_order
 
         # check for duplicate names
         duplicates, fixed_names, fixed_seqs = self._strip_duplicates(
@@ -3908,7 +3907,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         result = []
         names = list(map(str, self.names))
-        max_label_length = max(list(map(len, names))) + 1
         seq2str = self.alphabet.from_indices
         for l, s in zip(self.names, self.array_seqs):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))

@@ -84,7 +84,6 @@ def get_dotplot_coords(
         acceptable_noise = min(len1, len2) / window
         threshold = suitable_threshold(window, acceptable_noise / universe)
 
-    key = (window, threshold, min_gap)
     fwd = dotplot(
         str(seq1),
         str(seq2),

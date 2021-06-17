@@ -20,7 +20,6 @@ from cogent3.recalculation.definition import (
     NonParamDefn,
     ProbabilityParamDefn,
     SumDefn,
-    _FuncDefn,
 )
 
 

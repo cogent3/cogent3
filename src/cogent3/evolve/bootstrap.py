@@ -24,7 +24,6 @@ the EstimateProbability class.
 
 import random
 
-from cogent3.util import parallel
 from cogent3.util import progress_display as UI
 
 

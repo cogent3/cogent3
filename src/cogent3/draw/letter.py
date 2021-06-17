@@ -15,11 +15,8 @@ The SVG paths for each character were generated via the following process:
   SVG path formatting and then into an array format for inclusion here.
 """
 
-import os
-
 import numpy
 
-from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 

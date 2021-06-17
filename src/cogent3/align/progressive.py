@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-
-
 from cogent3 import make_tree
-from cogent3.core.info import Info
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI

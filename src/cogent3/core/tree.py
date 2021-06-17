@@ -1865,8 +1865,6 @@ class PhyloNode(TreeNode):
         to_process = [(self, 0.0)]
         tips_to_save = []
 
-        curr_node, curr_dist = to_process[0]
-
         seen = set([id(self)])
         while to_process:
             curr_node, curr_dist = to_process.pop(0)

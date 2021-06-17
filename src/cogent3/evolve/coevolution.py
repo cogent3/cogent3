@@ -47,11 +47,9 @@ line.
 
 """
 
-from optparse import make_option
-from os.path import basename, exists, splitext
+from os.path import basename
 from pickle import Pickler, Unpickler
 from random import shuffle
-from sys import exit
 
 from numpy import (
     abs,
@@ -80,11 +78,10 @@ from numpy import (
 from numpy.linalg import norm
 
 from cogent3 import PROTEIN, make_aligned_seqs
-from cogent3.core.alignment import ArrayAlignment, seqs_from_fasta
-from cogent3.core.alphabet import Alphabet, CharAlphabet
+from cogent3.core.alignment import ArrayAlignment
+from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.core.sequence import Sequence
-from cogent3.core.tree import TreeError
 from cogent3.evolve.substitution_model import (
     EmpiricalProteinMatrix,
     Parametric,
@@ -92,15 +89,6 @@ from cogent3.evolve.substitution_model import (
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.number import CategoryCounter, CategoryFreqs
 from cogent3.maths.stats.special import ROUND_ERROR
-from cogent3.parse.newick import TreeParseError
-from cogent3.parse.record import FileFormatError, RecordError
-from cogent3.util.recode_alignment import (
-    alphabets,
-    recode_counts_and_freqs,
-    recode_dense_alignment,
-    recode_freq_vector,
-    square_matrix_to_dict,
-)
 
 
 __author__ = "Greg Caporaso"
@@ -226,7 +214,7 @@ def mi_pair(
             for exclude in excludes:
                 if exclude in states:
                     try:
-                        col = exclude_handler(col, excludes)
+                        _ = exclude_handler(col, excludes)
                         break
                     except TypeError:
                         return null_value
@@ -787,8 +775,6 @@ def sca_pair(
             sca_pair(aln,10,20,0.85) != \
             sca_pair(aln.take_positions([10,20]),0,1,0.85)
     """
-    num_positions = len(alignment)
-    num_seqs = alignment.num_seqs
 
     # Calculate frequency distributions
     natural_probs = probs_from_dict(background_freqs, alphabet)
@@ -1171,7 +1157,7 @@ def resampled_mi_pair(
         for exclude in excludes:
             if exclude in states:
                 try:
-                    col = exclude_handler(col, excludes)
+                    _ = exclude_handler(col, excludes)
                     break
                 except TypeError:
                     return null_value

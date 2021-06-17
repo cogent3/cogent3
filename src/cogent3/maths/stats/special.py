@@ -458,7 +458,6 @@ def igam(a, x):
 
 def lgam(x):
     """Natural log of the gamma fuction: see Cephes docs for details"""
-    sgngam = 1
     if x < -34:
         q = -x
         w = lgam(q)

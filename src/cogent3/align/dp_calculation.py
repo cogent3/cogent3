@@ -1,7 +1,3 @@
-#!/usr/bin/env/python
-
-import numpy
-
 from cogent3.align import indel_model, pairwise
 from cogent3.maths.markov import SiteClassTransitionMatrix
 from cogent3.recalculation.definition import (
@@ -9,7 +5,6 @@ from cogent3.recalculation.definition import (
     CalculationDefn,
     NonParamDefn,
     PartitionDefn,
-    PositiveParamDefn,
     ProbabilityParamDefn,
 )
 
