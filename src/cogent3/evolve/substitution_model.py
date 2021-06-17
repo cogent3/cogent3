@@ -30,7 +30,6 @@ called Q) is determined.
 >>> parameter_controller = model.make_likelihood_function(tree)
 """
 
-import inspect
 import json
 import warnings
 
@@ -42,28 +41,27 @@ from numpy.linalg import svd
 
 from cogent3.core import moltype
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
-from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.evolve.substitution_calculation import (
     AlignmentAdaptDefn,
-    CalcDefn,
-    CallDefn,
-    ConstDefn,
     ExpDefn,
-    GammaDefn,
     LengthDefn,
-    MonotonicDefn,
-    NonParamDefn,
-    PartitionDefn,
-    ProductDefn,
-    RateDefn,
-    SelectForDimension,
 )
 from cogent3.evolve.substitution_calculation import (
     SubstitutionParameterDefn as ParamDefn,
 )
-from cogent3.evolve.substitution_calculation import WeightedPartitionDefn
-from cogent3.maths.optimisers import ParameterOutOfBoundsError
+from cogent3.recalculation.definition import (
+    CalcDefn,
+    CallDefn,
+    ConstDefn,
+    GammaDefn,
+    MonotonicDefn,
+    NonParamDefn,
+    PartitionDefn,
+    ProductDefn,
+    SelectForDimension,
+    WeightedPartitionDefn,
+)
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 
