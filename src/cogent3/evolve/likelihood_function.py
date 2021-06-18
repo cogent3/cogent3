@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import json
 import random
 
@@ -1077,7 +1075,7 @@ class LikelihoodFunction(ParameterController):
                 sequence_length = len(lht.index)
             except AttributeError:
                 raise ValueError(
-                    f"Must provide sequence_length since no alignment set on self"
+                    "Must provide sequence_length since no alignment set on self"
                 )
 
             leaves = self.get_param_value("leaf_likelihoods", locus=locus)
