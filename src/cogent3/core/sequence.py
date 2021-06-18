@@ -1861,7 +1861,7 @@ class ArrayRnaSequence(ArrayNucleicAcidSequence):
         """Returns new ArrayRnaSequence, converting T -> U"""
         if hasattr(data, "upper"):
             data = data.upper().replace("T", "U")
-        return super(ArrayNucleicAcidSequence, self).__init__(data, *args, **kwargs)
+        return super(ArrayRnaSequence, self).__init__(data, *args, **kwargs)
 
 
 class ArrayDnaSequence(ArrayNucleicAcidSequence):
@@ -1872,7 +1872,7 @@ class ArrayDnaSequence(ArrayNucleicAcidSequence):
         """Returns new ArrayRnaSequence, converting U -> T"""
         if hasattr(data, "upper"):
             data = data.upper().replace("U", "T")
-        return super(ArrayNucleicAcidSequence, self).__init__(data, *args, **kwargs)
+        return super(ArrayDnaSequence, self).__init__(data, *args, **kwargs)
 
 
 class ArrayCodonSequence(ArraySequence):

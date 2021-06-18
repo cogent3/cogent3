@@ -236,22 +236,6 @@ def assign_sequential_names(ignored, num_seqs, base_name="seq", start_at=0):
     return ["%s_%s" % (base_name, i) for i in range(start_at, start_at + num_seqs)]
 
 
-class SeqLabeler(object):
-    """Allows flexible seq labeling in to_fasta()."""
-
-    def __init__(self, aln, label_f=assign_sequential_names, **kwargs):
-        """Initializes a new seq labeler."""
-        self._aln = aln
-        self._label_f = label_f
-        self._map = {
-            orig: new for orig, new in zip(aln.names, label_f(len(aln.names, **kwargs)))
-        }
-
-    def __call__(self, s):
-        """Returns seq name from seq id"""
-        return self._map[s.name]
-
-
 def coerce_to_string(s):
     """Converts an arbitrary sequence into a string."""
     if isinstance(s, str):  # if it's a string, OK as is
@@ -904,9 +888,10 @@ class _SequenceCollectionBase:
         # TODO handle case of not strict by building mask of degen positions
         # per seq
         if mask_degen and not hasattr(self.moltype, "alphabets"):
-            UserWarning(
+            warnings.warn(
                 "in get_identical_sets, strict has no effect as moltype "
-                "has no degenerate characters"
+                "has no degenerate characters",
+                UserWarning,
             )
             mask_degen = False
         elif mask_degen:
@@ -4284,9 +4269,10 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         """
         if mask_degen and not hasattr(self.moltype, "alphabets"):
-            UserWarning(
+            warnings.warn(
                 "in get_identical_sets, strict has no effect as moltype "
-                "has no degenerate characters"
+                "has no degenerate characters",
+                UserWarning,
             )
             mask_degen = False
 
