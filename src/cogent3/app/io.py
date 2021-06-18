@@ -146,7 +146,7 @@ class _seq_loader:
         return seqs
 
 
-class load_aligned(_seq_loader, ComposableAligned):
+class load_aligned(ComposableAligned, _seq_loader):
     """Loads aligned sequences. Returns an Alignment object."""
 
     klass = ArrayAlignment
@@ -164,7 +164,7 @@ class load_aligned(_seq_loader, ComposableAligned):
         format : str
             sequence file format
         """
-        super(ComposableAligned, self).__init__(
+        super(load_aligned, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
@@ -195,7 +195,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         format : str
             sequence file format
         """
-        super(ComposableSeq, self).__init__(
+        super(load_unaligned, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
@@ -239,7 +239,7 @@ class load_tabular(ComposableTabular):
         strict
             all rows MUST have the same number of records
         """
-        super(ComposableTabular, self).__init__(
+        super(load_tabular, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
