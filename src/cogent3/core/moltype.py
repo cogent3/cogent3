@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 moltype.py
 
@@ -30,21 +29,6 @@ from random import choice
 from string import ascii_letters as letters
 
 import numpy
-
-from numpy import (
-    arange,
-    array,
-    asarray,
-    newaxis,
-    ravel,
-    remainder,
-    take,
-    transpose,
-    uint8,
-    uint16,
-    uint32,
-    zeros,
-)
 
 from cogent3.core.alignment import (
     Alignment,

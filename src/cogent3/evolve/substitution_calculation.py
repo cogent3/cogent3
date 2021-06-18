@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import warnings
 
+from numpy.linalg import LinAlgError
+
 from cogent3.maths.matrix_exponentiation import (
     CheckedExponentiator,
     FastExponentiator,
-    LinAlgError,
     PadeExponentiator,
 )
 from cogent3.recalculation.definition import (

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
 import os
@@ -14,7 +13,7 @@ from io import TextIOWrapper
 from os import path as os_path
 from os import remove
 from pathlib import Path
-from random import choice, randint
+from random import randint
 from tempfile import mkdtemp
 from warnings import warn
 from zipfile import ZipFile
@@ -22,7 +21,7 @@ from zipfile import ZipFile
 import numpy
 
 from chardet import detect
-from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
+from numpy import array, finfo, float64
 
 
 __author__ = "Rob Knight"

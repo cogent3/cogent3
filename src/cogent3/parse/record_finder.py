@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Provides some classes for treating files as sequences of records.
 
 Typically more useful as subclasses. Covers the three main types of records:
@@ -13,7 +12,7 @@ whitespace.  The TailedRecodeFinder is Functional similar to
 DelimitedRecordFinder except that it accept a is_tail function instead of a
 str.  Note that its default constuctor is rstrip instead of strip.
 """
-from cogent3.parse.record import FieldError, RecordError
+from cogent3.parse.record import RecordError
 
 
 __author__ = "Rob Knight"

@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-
 import numpy
-
-from cogent3.evolve import substitution_model
 
 
 Float = numpy.core.numerictypes.sctype2char(float)

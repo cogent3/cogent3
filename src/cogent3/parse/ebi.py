@@ -3,7 +3,7 @@
 """
 import sys
 
-from pprint import pformat, pprint
+from pprint import pprint
 
 from cogent3.core.sequence import Sequence
 from cogent3.parse.record import FieldError, RecordError
@@ -11,9 +11,8 @@ from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
     TailedRecordFinder,
-    is_empty,
 )
-from cogent3.util.misc import NestedSplitter, curry, identity, list_flatten
+from cogent3.util.misc import NestedSplitter, curry, list_flatten
 
 
 __author__ = "Zongzhi Liu and Sandra Smit"

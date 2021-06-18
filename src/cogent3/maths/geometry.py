@@ -2,33 +2,25 @@
 """Code for geometric operations, e.g. distances and center of mass."""
 
 from numpy import (
-    allclose,
     any,
     append,
     array,
-    c_,
     cos,
     delete,
-    dot,
     exp,
-    identity,
     insert,
     linalg,
     log,
     mean,
     min,
-    minimum,
     newaxis,
     nonzero,
-    ones,
     pi,
     sin,
     sqrt,
     sum,
     take,
-    vstack,
 )
-from numpy.linalg import norm
 
 
 __author__ = "Sandra Smit"

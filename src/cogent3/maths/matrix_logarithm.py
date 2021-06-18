@@ -8,7 +8,7 @@ from itertools import combinations
 
 from numpy import allclose, argmin, array, diag, dot, exp, eye
 from numpy import inner as innerproduct
-from numpy import isclose, log, ones, pi, transpose, zeros
+from numpy import isclose, log, ones, pi, zeros
 from numpy.linalg import eig as eigenvectors
 from numpy.linalg import inv as inverse
 from numpy.linalg import norm

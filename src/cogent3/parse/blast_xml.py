@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Parsers for XML output of blast, psi-blast and blat.
 """
 
@@ -14,9 +13,7 @@ __status__ = "Prototype"
 
 import xml.dom.minidom
 
-from operator import eq as _eq
 from operator import gt as _gt
-from operator import le as _le
 from operator import lt as _lt
 
 from cogent3.parse.blast import MinimalBlastParser9, MinimalPsiBlastParser9

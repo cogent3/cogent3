@@ -8,8 +8,6 @@ import cogent3.util.misc
 
 from cogent3.maths.util import safe_p_log_p, validate_freqs_array
 
-from .util import safe_log
-
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"

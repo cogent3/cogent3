@@ -6,7 +6,7 @@ Data in from the European rRNA database in distribution format.
 
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.info import Info
-from cogent3.core.sequence import RnaSequence, Sequence
+from cogent3.core.sequence import RnaSequence
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import DelimitedRecordFinder
 

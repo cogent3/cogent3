@@ -7,8 +7,6 @@ import numpy
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 
-from . import substitution_calculation
-
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"

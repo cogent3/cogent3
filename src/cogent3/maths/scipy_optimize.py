@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # We don't want to depend on the monolithic, fortranish,
 # Num-overlapping, mac-unfriendly SciPy.  But this
 # module is too good to pass up. It has been lightly customised for
@@ -23,13 +22,8 @@ import builtins
 
 import numpy
 
-from numpy import absolute, asarray, atleast_1d, eye, isinf, sqrt, squeeze
+from numpy import absolute, asarray, atleast_1d, eye, sqrt, squeeze
 
-
-try:
-    import linesearch  # from SciPy
-except ImportError:
-    linesearch = None
 
 # These have been copied from Numeric's MLab.py
 # I don't think they made the transition to scipy_core

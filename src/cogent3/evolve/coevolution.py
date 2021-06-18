@@ -52,27 +52,17 @@ from pickle import Pickler, Unpickler
 from random import shuffle
 
 from numpy import (
-    abs,
     array,
     e,
-    exp,
     float,
-    float64,
     greater_equal,
     isnan,
     less_equal,
     log,
-    mean,
     nan,
     nonzero,
     ones,
-    put,
     ravel,
-    reshape,
-    sqrt,
-    take,
-    transpose,
-    tril,
     zeros,
 )
 from numpy.linalg import norm

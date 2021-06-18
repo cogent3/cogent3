@@ -4,7 +4,7 @@ from numbers import Number
 import numpy
 
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
-from numpy.linalg import det, inv, norm
+from numpy.linalg import det, inv
 
 from cogent3 import DNA, RNA, get_moltype
 from cogent3.util.dict_array import DictArray
