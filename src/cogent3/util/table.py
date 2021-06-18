@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 A light-weight Table class for manipulating 2D data and representing it as
 text, or writing to file for import into other packages.

@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 __all__ = [
     "consensus",
-    "distance",
     "least_squares",
     "maximum_likelihood",
     "nj",

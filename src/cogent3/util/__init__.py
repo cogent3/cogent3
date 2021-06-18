@@ -2,14 +2,15 @@
 __all__ = [
     "checkpointing",
     "deserialise",
+    "dict_array",
     "misc",
-    "modules",
     "parallel",
+    "progress_display",
+    "recode_alignment",
     "table",
     "transform",
     "union_dict",
     "warning",
-    "recode_alignment",
 ]
 
 __author__ = ""

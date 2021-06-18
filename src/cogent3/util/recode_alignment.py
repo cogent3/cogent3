@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# Author: Greg Caporaso (gregcaporaso@gmail.com)
-# recode_alignment.py
-
 """This file contains functions for recoding alignment objects with
  reduced-state alphabets, and also defines some reduced-state alphabets.
 
@@ -38,12 +34,10 @@ Rob Knight. BMC Evolutionary Biology, 2008.
 
 """
 
-from optparse import OptionParser
 
 from numpy import array, take, zeros
 
-from cogent3 import PROTEIN
-from cogent3.core.alignment import Alignment, ArrayAlignment
+from cogent3.core.alignment import ArrayAlignment
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 
 

@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-
 import csv
 import pathlib
-
-from collections.abc import Callable
 
 from cogent3.util.misc import open_
 from cogent3.util.warning import deprecated
