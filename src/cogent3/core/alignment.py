@@ -888,9 +888,10 @@ class _SequenceCollectionBase:
         # TODO handle case of not strict by building mask of degen positions
         # per seq
         if mask_degen and not hasattr(self.moltype, "alphabets"):
-            UserWarning(
+            warnings.warn(
                 "in get_identical_sets, strict has no effect as moltype "
-                "has no degenerate characters"
+                "has no degenerate characters",
+                UserWarning,
             )
             mask_degen = False
         elif mask_degen:
@@ -4268,9 +4269,10 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         """
         if mask_degen and not hasattr(self.moltype, "alphabets"):
-            UserWarning(
+            warnings.warn(
                 "in get_identical_sets, strict has no effect as moltype "
-                "has no degenerate characters"
+                "has no degenerate characters",
+                UserWarning,
             )
             mask_degen = False
 
