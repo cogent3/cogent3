@@ -403,7 +403,7 @@ def is_iterable(obj):
     """return True if obj is iterable"""
     try:
         iter(obj)
-    except TypeError as e:
+    except TypeError:
         return False
     else:
         return True
@@ -1157,7 +1157,6 @@ def get_merged_by_value_coords(spans_value, digits=None):
     starts, ends, vals = list(zip(*spans_value))
     indices_distinct_vals = get_run_start_indices(vals, digits=digits)
     data = []
-    i = 0
     for index, val in indices_distinct_vals:
         start = starts[index]
         end = ends[index]

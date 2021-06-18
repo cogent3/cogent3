@@ -253,7 +253,7 @@ def join_split_dict_parser(
 
     try:
         dict(pairs)  # catch error for any not splitted pair.
-    except ValueError as e:  # dictionary update sequence element #1 has length 1;
+    except ValueError:  # dictionary update sequence element #1 has length 1;
         if strict:
             raise ValueError("e\nFailed to get a dict from pairs: %s" % pairs)
         else:
@@ -819,7 +819,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter="("):
     desc = description.rstrip(" )")
     try:
         mutation, comment = desc.split(mutation_comment_delimiter, 1)
-    except ValueError as e:  # too many values to unpack
+    except ValueError:  # too many values to unpack
         mutation, comment = desc, ""
 
     # split mutation into mut_from, mut_to
@@ -827,7 +827,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter="("):
     mutation_delimiter = "->"
     try:
         mut_from, mut_to = list(map(strip, mutation.split(mutation_delimiter, 1)))
-    except ValueError as e:  # too many values to unpack
+    except ValueError:  # too many values to unpack
         mut_from, mut_to = mutation, ""
 
     # replace desc in fields with mut_from, mut_to and comment to get the
@@ -1540,7 +1540,7 @@ def EbiParser(
             sequence = seq_constructor(sequence)
         try:
             header = header_constructor(header_dict, strict=strict)
-        except (RecordError, FieldError, ValueError) as e:
+        except (RecordError, FieldError, ValueError):
             if strict:
                 #!! just raise is better than raise RecordError
                 raise  # RecordError, str(e)

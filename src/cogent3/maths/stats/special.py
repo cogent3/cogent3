@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Translations of functions from Release 2.3 of the Cephes Math Library,
 (c) Stephen L. Moshier 1984, 1995.
 """
@@ -464,11 +463,7 @@ def lgam(x):
         p = floor(q)
         if p == q:
             raise OverflowError("lgam returned infinity.")
-        i = p
-        if i & 1 == 0:
-            sgngam = -1
-        else:
-            sgngam = 1
+
         z = q - p
         if z > 0.5:
             p += 1
@@ -478,6 +473,7 @@ def lgam(x):
             raise OverflowError("lgam returned infinity.")
         z = LOGPI - log(z) - w
         return z
+
     if x < 13:
         z = 1
         p = 0
@@ -493,10 +489,7 @@ def lgam(x):
             p += 1
             u = x + p
         if z < 0:
-            sgngam = -1
             z = -z
-        else:
-            sgngam = 1
         if u == 2:
             return log(z)
         p -= 2
@@ -1120,11 +1113,11 @@ def ndtri(y0):
 def incbi(aa, bb, yy0):
     """Incomplete beta inverse function. See Cephes for docs."""
     # handle easy cases first
-    i = 0
     if yy0 <= 0:
         return 0.0
     elif yy0 >= 1.0:
         return 1.0
+
     # define inscrutable parameters
     x0 = 0.0
     yl = 0.0

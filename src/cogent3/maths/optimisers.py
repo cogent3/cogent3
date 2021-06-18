@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """Local or Global-then-local optimisation with progress display
 """
 
@@ -109,7 +106,7 @@ def bounds_exception_catching_function(f):
                 if not acceptable_inf(result):
                     warnings.warn("Non-finite f %s from %s" % (result, x))
                     raise ParameterOutOfBoundsError
-        except (ArithmeticError, ParameterOutOfBoundsError) as detail:
+        except (ArithmeticError, ParameterOutOfBoundsError):
             result = out_of_bounds_value
         return result
 

@@ -70,18 +70,7 @@ from numpy import (
     nan_to_num,
 )
 from numpy import ndim as rank
-from numpy import (
-    ravel,
-    seterr,
-    shape,
-    sqrt,
-    square,
-    std,
-    sum,
-    take,
-    where,
-    zeros,
-)
+from numpy import ravel, seterr, shape, sqrt, square, sum, take, where, zeros
 from numpy.linalg import norm
 
 
@@ -344,7 +333,6 @@ def dist_canberra(datamtx, strict=True):
         r1 = datamtx[i]
         for j in range(i):
             r2 = datamtx[j]
-            dist = 0.0
             net = abs(r1 - r2) / (r1 + r2)
             num_nonzeros = 0
             for k in range(r1.size):
@@ -561,7 +549,6 @@ def dist_gower(datamtx, strict=True):
         r1 = datamtx[i]
         for j in range(i):
             r2 = datamtx[j]
-            rowdiff = r2 - r1
             dist = sum(abs(r1 - r2) / coldiffs)
             dists[i, j] = dists[j, i] = dist
 
@@ -910,10 +897,7 @@ def dist_pearson(datamtx, strict=True):
         return zeros((0, 0), "d")
 
     rowmeans = mean(datamtx, axis=1)
-    rowstds = std(datamtx, axis=1)
-
     dists = zeros((numrows, numrows), "d")
-    n = float(numrows)
 
     for i in range(numrows):
         r1 = datamtx[i, :]

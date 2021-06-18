@@ -173,7 +173,7 @@ class Drawable:
         else:
             try:
                 self._traces = [UnionDict(trace) for trace in traces]
-            except ValueError as msg:
+            except ValueError:
                 raise TypeError(f"expected a series of dicts, got {traces}")
         title = title if title is None else dict(text=title)
         self._default_layout = UnionDict(

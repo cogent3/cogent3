@@ -1730,7 +1730,6 @@ class Table:
             formatted_table = bedgraph.bedgraph(self.sorted().array.tolist(), **kwargs)
             return formatted_table
 
-        missing_data = "0.0000" if format.lower() == "phylip" else self._missing_data
         if format.lower() in ("tsv", "csv"):
             sep = sep or {"tsv": "\t", "csv": ","}[format.lower()]
             format = ""
@@ -1873,7 +1872,7 @@ class Table:
                 )
             elif title:
                 st = element_formatters.get(
-                    "caption", f'<span style="font-weight:bold">continuation</span>'
+                    "caption", '<span style="font-weight:bold">continuation</span>'
                 )
             else:
                 st = None
@@ -2140,7 +2139,7 @@ class Table:
         from cogent3.util.dict_array import DictArrayTemplate
 
         if self.index_name is None:
-            raise ValueError(f"requires index_name be set")
+            raise ValueError("requires index_name be set")
 
         columns = list(self.header) if columns is None else columns
 

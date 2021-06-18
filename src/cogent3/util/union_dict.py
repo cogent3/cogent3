@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 """UnionDict extension of dict.
 """
-import sys
-
-from cogent3.util.misc import extend_docstring_from
 
 
 __author__ = "Thomas La"
@@ -45,8 +41,9 @@ class UnionDict(dict):
     def __getattr__(self, item):
         if item in self:
             return self.get(item)
+
         try:
-            result = super().__getattr__(item)
+            return super().__getattr__(item)
         except AttributeError:
             raise AttributeError(f"'{item}' not a key or attribute")
 
