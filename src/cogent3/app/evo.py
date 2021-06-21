@@ -349,7 +349,7 @@ class model_collection(ComposableHypothesis):
     def test_hypothesis(self, aln):
         try:
             null = self.null(aln)
-        except ValueError as err:
+        except ValueError:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
@@ -358,7 +358,7 @@ class model_collection(ComposableHypothesis):
 
         try:
             alts = [alt for alt in self._initialised_alt(null, aln)]
-        except ValueError as err:
+        except ValueError:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
