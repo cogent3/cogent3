@@ -1,16 +1,8 @@
-#!/usr/bin/env python
-
 import concurrent.futures as concurrentfutures
-import math
 import multiprocessing
 import os
-import random
 import sys
-import threading
-import time
 import warnings
-
-import numpy
 
 from cogent3.util.misc import extend_docstring_from
 

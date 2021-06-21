@@ -495,7 +495,6 @@ class PartitionDefn(_InputDefn):
         # This was originally put in its own function so as to provide a
         # closure containing the value of sum(value), which is no longer
         # required since it is now always 1.0.
-        N = len(value)
         assert abs(sum(value) - 1.0) < 0.00001
         ratios = proportions_to_ratios(value)
         ratios = [LogOptPar(name + "_ratio", scope, (1e-6, r, 1e6)) for r in ratios]

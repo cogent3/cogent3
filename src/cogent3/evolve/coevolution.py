@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# Authors: Greg Caporaso (gregcaporaso@gmail.com), Brett Easton, Gavin Huttley
-# coevolution.py
-
 """ Description
 File created on 03 May 2007.
 
@@ -619,7 +615,7 @@ def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
         # pos_freq as a float could be greater than scaled_aln_size.
         # In this case I cast it to an int. I don't like this alignment
         # scaling stuff though.
-        except ValueError as e:
+        except ValueError:
             results.append(binomial_exact(int(pos_freq), scaled_aln_size, natural_prob))
     return array(results)
 
@@ -895,7 +891,6 @@ def sca_position(
      or a string.
 
     """
-    num_seqs = alignment.num_seqs
     natural_probs = probs_from_dict(background_freqs, alphabet)
     aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(aln_freqs, natural_probs, scaled_aln_size)
@@ -984,7 +979,6 @@ def sca_alignment(
      or a string.
 
     """
-    num_seqs = alignment.num_seqs
     natural_probs = probs_from_dict(background_freqs, alphabet)
     aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(aln_freqs, natural_probs, scaled_aln_size)
@@ -1611,7 +1605,7 @@ def merge_alignments(alignment1, alignment2):
             result[merged_name] = Sequence(
                 alignment1.get_gapped_seq(orig_name)
             ) + Sequence(alignment2.get_gapped_seq(aln2_name_map[merged_name]))
-    except KeyError as e:
+    except KeyError:
         raise KeyError(
             "A sequence identifier is in alignment2 "
             + "but not alignment1 -- did you filter out sequences identifiers"
@@ -2032,9 +2026,9 @@ def is_parsimony_informative(
         pass
     ignored = None if not ignored else list(set(ignored) & set(column_freqs.keys()))
     if ignored:
-        for e in ignored:
+        for e_ in ignored:
             try:
-                del column_freqs[e]
+                del column_freqs[e_]
             except KeyError:
                 pass
 
@@ -2493,7 +2487,7 @@ def parse_coevolution_matrix_filepath(filepath):
         alignment_id = fields[0]
         alphabet_id = fields[1]
         method_id = fields[2]
-        extension = fields[3]
+        _ = fields[3]  # extension
     except IndexError:
         raise ValueError(
             "output filepath not in parsable format: %s. See doc string for format definition."

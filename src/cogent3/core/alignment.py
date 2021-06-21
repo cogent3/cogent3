@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Code for handling multiple sequence alignments. In particular:
 
     - SequenceCollection handles both aligned and unaligned sequences.
@@ -894,8 +893,6 @@ class _SequenceCollectionBase:
                 UserWarning,
             )
             mask_degen = False
-        elif mask_degen:
-            degens = list(self.moltype.degenerates) + [self.moltype.gap]
 
         def reduced(seq, indices):
             s = "".join(seq[i] for i in range(len(seq)) if i not in indices)
@@ -3891,7 +3888,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         Should be able to handle joint alphabets, e.g. codons.
         """
         result = []
-        names = list(map(str, self.names))
         seq2str = self.alphabet.from_indices
         for l, s in zip(self.names, self.array_seqs):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))

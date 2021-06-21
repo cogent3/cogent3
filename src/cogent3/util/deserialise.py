@@ -175,8 +175,7 @@ def deserialise_seq(data, aligned=False):
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
     make_seq = data["moltype"].make_seq
-    type_ = data.pop("type")
-    klass = _get_class(type_)
+    _ = data.pop("type")
     if "-" in data["seq"]:
         aligned = True
 

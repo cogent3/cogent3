@@ -157,7 +157,6 @@ def rich_html(
         data += [thead] + row + ["</thead>"]
 
     formatted_rows = []
-    td = formatted("td", "<td>")
     for ridx, row in enumerate(rows):
         new = [formatted("tr", "<tr>")]
         for cidx, cell in row_iterator(row):

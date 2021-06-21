@@ -148,8 +148,6 @@ class Brent:
             tol2 = 2.0 * tol1
             xmid = 0.5 * (a + b)
             if abs(x - xmid) < (tol2 - 0.5 * (b - a)):  # check for convergence
-                xmin = x
-                fval = fx
                 break
             infinities_present = [f for f in [fw, fv, fx] if numpy.isposinf(f)]
             if infinities_present or (abs(deltax) <= tol1):

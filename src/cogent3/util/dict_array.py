@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Wrapper for numpy arrays so that they can be indexed by name
 
     >>> a = numpy.identity(3, int)
@@ -546,7 +545,7 @@ class DictArray(object):
     def row_sum(self):
         """returns DictArray summed across rows"""
         axis = 1 if len(self.shape) == 2 else 0
-        result = self.array.sum(axis=1)
+        result = self.array.sum(axis=axis)
         template = DictArrayTemplate(self.template.names[0])
         return template.wrap(result)
 

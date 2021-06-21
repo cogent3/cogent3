@@ -536,16 +536,18 @@ class LikelihoodFunction(ParameterController):
 
     def _for_display(self):
         """processes statistics tables for display"""
-        title = self.name if self.name else "Likelihood function statistics"
+        title = self.name or "Likelihood function statistics"
         result = []
         result += self.get_statistics(with_motif_probs=True, with_titles=True)
-        for i, table in enumerate(result):
+        for i, table_ in enumerate(result):
             if (
-                "motif" in table.title and table.shape[1] == 2 and table.shape[0] >= 60
+                "motif" in table_.title
+                and table_.shape[1] == 2
+                and table_.shape[0] >= 60
             ):  # just sort codon motif probs, then truncate
-                table = table.sorted(columns="motif")
-                table.set_repr_policy(head=5, tail=5, show_shape=False)
-                result[i] = table
+                table_ = table_.sorted(columns="motif")
+                table_.set_repr_policy(head=5, tail=5, show_shape=False)
+                result[i] = table_
         return title, result
 
     def _repr_html_(self):
@@ -558,10 +560,10 @@ class LikelihoodFunction(ParameterController):
 
         nfp = "<p>number of free parameters = %d</p>" % self.get_num_free_params()
         title, results = self._for_display()
-        for i, table in enumerate(results):
-            table.title = table.title.capitalize()
-            table.set_repr_policy(show_shape=False)
-            results[i] = table._repr_html_()
+        for i, table_ in enumerate(results):
+            table_.title = table_.title.capitalize()
+            table_.set_repr_policy(show_shape=False)
+            results[i] = table_._repr_html_()
         results = ["<h4>%s</h4>" % title, lnL, nfp] + results
         return "\n".join(results)
 
@@ -578,14 +580,10 @@ class LikelihoodFunction(ParameterController):
             lnL = None
 
         nfp = "number of free parameters = %d" % self.get_num_free_params()
-        for table in results:
-            table.title = ""
+        for table_ in results:
+            table_.title = ""
 
-        if lnL:
-            results = [title, lnL, nfp] + results
-        else:
-            results = [title, nfp] + results
-
+        results = [title, lnL, nfp] + results if lnL else [title, nfp] + results
         return "\n".join(map(str, results))
 
     def get_annotated_tree(self, length_as=None):

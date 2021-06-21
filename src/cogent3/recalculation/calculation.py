@@ -235,7 +235,7 @@ class Calculator(object):
                     cell.prime(self.cell_values)
                 except KeyboardInterrupt:
                     raise
-                except Exception as detail:
+                except Exception:
                     print(("Failed initial calculation of %s" % cell.name))
                     raise
             else:
@@ -530,9 +530,9 @@ class Calculator(object):
             elapsed[cell.rank] = t1 - t0
 
         tds = []
-        for ((name, cells), width) in self._cellsGroupedForDisplay:
-            text = "".join([" +"[cell.rank in elapsed] for cell in cells])
-            elap = sum([elapsed.get(cell.rank, 0) for cell in cells])
+        for ((_, cells), width) in self._cellsGroupedForDisplay:
+            text = "".join(" +"[cell.rank in elapsed] for cell in cells)
+            elap = sum(elapsed.get(cell.rank, 0) for cell in cells)
             if len(text) > width - 4:
                 edge_width = min(len(text), (width - 4 - 3)) // 2
                 elipsis = ["   ", "..."][not not text.strip()]
