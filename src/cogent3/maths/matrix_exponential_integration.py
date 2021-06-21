@@ -48,7 +48,7 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
         exponentiator -- Exponentiator used in Van Loan method. Defaults to
         RobustEstimator.
         """
-        self.Q = Q
+        super(VanLoanIntegratingExponentiator, self).__init__(Q)
         Qdim = len(Q)
         if R is None:
             self.R = identity(Qdim)
@@ -76,7 +76,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
         """
         Q -- a diagonisable matrix.
         """
-        self.Q = Q
+        super(VonBingIntegratingExponentiator, self).__init__(Q)
         self.roots, self.evT = eig(Q)
         self.evI = inv(self.evT.T)
         # Remove following check if performance is a concern
