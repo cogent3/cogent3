@@ -148,8 +148,8 @@ class quick_tree(ComposableTree):
         dists = dists.drop_invalid() if self._drop_invalid else dists
         if dists is None or (dists.shape[0] != size and not self._drop_invalid):
             msg = (
-                f"some pairwise distances could not be computed with"
-                " {self._distance}, pick a different distance"
+                "some pairwise distances could not be computed with"
+                f" {self._distance}, pick a different distance"
             )
             raise ValueError(msg)
 

@@ -367,7 +367,7 @@ def make_table(
 
     """
     if any(isinstance(a, str) for a in (header, data)):
-        raise TypeError(f"str type invalid, if its a path use load_table()")
+        raise TypeError("str type invalid, if it's a path use load_table()")
 
     if "index" in kwargs:
         deprecated("argument", "index", "index_name", "2021.11")
