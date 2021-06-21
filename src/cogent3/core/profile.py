@@ -420,8 +420,7 @@ class MotifFreqsArray(_MotifNumberArray):
                 ylim=ylim,
                 colours=colours,
             )
-            xtick_vals = [j for j in range(0, segment.shape[0], 20)]
-            xtick_text = [f"{i + j}" for j in range(0, segment.shape[0], 20)]
+
             sublogo.layout[f"x{axis}"].showticklabels = False
             sublogo.layout[f"x{axis}"].domain = [0, segment.shape[0] / wrap]
 

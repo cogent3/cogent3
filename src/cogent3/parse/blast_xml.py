@@ -258,16 +258,14 @@ class BlastXMLResult(dict):
         # code below copied from BlastResult, unchanged.
         mp = parser(data, True)
 
-        for props, rec_data in mp:
-            iteration = int(props[self.ITERATION]) if self.ITERATION in props else 1
-
+        for _, rec_data in mp:
             hits = []
             # check if found any hits
             if len(rec_data) > 1:
                 for h in rec_data[1:]:
                     hits.append(dict(list(zip(rec_data[0], h))))
             else:
-                hits.append(dict(list(zip(rec_data[0], ["" for x in rec_data[0]]))))
+                hits.append(dict(list(zip(rec_data[0], ["" for _ in rec_data[0]]))))
 
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]

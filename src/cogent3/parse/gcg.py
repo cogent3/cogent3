@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley"]
@@ -14,7 +12,6 @@ import warnings
 
 def MsfParser(f):
     """Read sequences from a msf format file"""
-    alignmentdict = {}
     # parse optional header
     # parse optional text information
     # file header and sequence header are seperated by a line ending in '..'

@@ -154,7 +154,7 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
             try:
                 name, info = info_maker(label)  # will raise exception if bad
                 yield name, seq_maker(seq, name=name, info=info)
-            except Exception as e:
+            except Exception:
                 raise RecordError(
                     "Sequence construction failed on record with label %s" % label
                 )
@@ -163,7 +163,7 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
             try:
                 name, info = info_maker(label)
                 yield (name, seq_maker(seq, name=name, info=info))
-            except Exception as e:
+            except Exception:
                 continue
 
 

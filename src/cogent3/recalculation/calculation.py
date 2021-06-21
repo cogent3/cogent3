@@ -235,7 +235,7 @@ class Calculator(object):
                     cell.prime(self.cell_values)
                 except KeyboardInterrupt:
                     raise
-                except Exception as detail:
+                except Exception:
                     print(("Failed initial calculation of %s" % cell.name))
                     raise
             else:
@@ -524,7 +524,7 @@ class Calculator(object):
                 t0 = time.time()
                 data[cell.rank] = cell.calc(*[data[a] for a in cell.arg_ranks])
                 t1 = time.time()
-            except (ParameterOutOfBoundsError, ArithmeticError) as exception:
+            except (ParameterOutOfBoundsError, ArithmeticError):
                 error_cell = cell
                 break
             elapsed[cell.rank] = t1 - t0
