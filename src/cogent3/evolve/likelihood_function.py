@@ -536,7 +536,7 @@ class LikelihoodFunction(ParameterController):
 
     def _for_display(self):
         """processes statistics tables for display"""
-        title = self.name if self.name else "Likelihood function statistics"
+        title = self.name or "Likelihood function statistics"
         result = []
         result += self.get_statistics(with_motif_probs=True, with_titles=True)
         for i, table_ in enumerate(result):
@@ -583,11 +583,7 @@ class LikelihoodFunction(ParameterController):
         for table_ in results:
             table_.title = ""
 
-        if lnL:
-            results = [title, lnL, nfp] + results
-        else:
-            results = [title, nfp] + results
-
+        results = [title, lnL, nfp] + results if lnL else [title, nfp] + results
         return "\n".join(map(str, results))
 
     def get_annotated_tree(self, length_as=None):

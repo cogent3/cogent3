@@ -33,23 +33,23 @@ def MsfParser(f):
     sequences = {}
     for line in f:
         line = line.strip().split()
-        if line and line[0] in sequences:
-            sequences[line[0]] += "".join(line[1:])
-        elif line and line[0] in seqinfo:
-            sequences[line[0]] = "".join(line[1:])
+        if line:
+            if line[0] in sequences:
+                sequences[line[0]] += "".join(line[1:])
+            elif line[0] in seqinfo:
+                sequences[line[0]] = "".join(line[1:])
     # consistency check
     if len(sequences) != len(seqinfo):
         warnings.warn(
             "Number of loaded seqs[%s] not same as "
             "expected[%s]." % (len(sequences), len(seqinfo))
         )
-    for name in sequences:
-        if len(sequences[name]) != seqinfo[name]:
+    for name, value_ in sequences.items():
+        if len(value_) != seqinfo[name]:
             warnings.warn(
                 "Length of loaded seqs [%s] is [%s] not "
                 "[%s] as expected." % (name, len(sequences[name]), seqinfo[name])
             )
 
     # yield sequences
-    for name in sequences:
-        yield (name, sequences[name])
+    yield from sequences.items()
