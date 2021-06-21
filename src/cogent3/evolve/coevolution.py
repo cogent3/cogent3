@@ -2026,9 +2026,9 @@ def is_parsimony_informative(
         pass
     ignored = None if not ignored else list(set(ignored) & set(column_freqs.keys()))
     if ignored:
-        for e in ignored:
+        for e_ in ignored:
             try:
-                del column_freqs[e]
+                del column_freqs[e_]
             except KeyError:
                 pass
 
@@ -2487,7 +2487,7 @@ def parse_coevolution_matrix_filepath(filepath):
         alignment_id = fields[0]
         alphabet_id = fields[1]
         method_id = fields[2]
-        _ = fields[3] # extension
+        _ = fields[3]  # extension
     except IndexError:
         raise ValueError(
             "output filepath not in parsable format: %s. See doc string for format definition."
