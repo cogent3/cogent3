@@ -471,12 +471,16 @@ class AlphabetGroup(CoreObjectGroup):
                 degens = "".join(degens)
             else:
                 constructor = Alphabet  # assume multi-char
-        self.base = constructor(chars, moltype=moltype)
-        self.degen = constructor(chars + degens, moltype=moltype)
-        self.gapped = constructor(chars + gap, gap, moltype=moltype)
-        self.degen_gapped = constructor(
-            chars + gap + degens + missing, gap, moltype=moltype
+
+        super(AlphabetGroup, self).__init__(
+            base=constructor(chars, moltype=moltype),
+            degen=constructor(chars + degens, moltype=moltype),
+            gapped=constructor(chars + gap, gap, moltype=moltype),
+            degen_gapped=constructor(
+                chars + gap + degens + missing, gap, moltype=moltype
+            ),
         )
+
         self._items = [self.base, self.degen, self.gapped, self.degen_gapped]
         self._set_relationships()
         # set complements if MolType was specified
