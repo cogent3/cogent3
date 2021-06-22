@@ -3244,7 +3244,7 @@ class AlignmentI(object):
             else:
                 subaln = self
 
-            for i in ui.series(range(bootstrap), count=bootstrap, noun="bootstrap"):
+            for _ in ui.series(range(bootstrap), count=bootstrap, noun="bootstrap"):
                 b = subaln.sample(with_replacement=True)
                 try:
                     bdist = b.distance_matrix(

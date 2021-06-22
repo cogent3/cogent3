@@ -452,7 +452,7 @@ class SelectFromDimension(_Defn):
 
 class _NonLeafDefn(_Defn):
     def __init__(self, *args, **kw):
-        _Defn.__init__(self)
+        super(_NonLeafDefn, self).__init__()
         valid_dimensions = []
         for arg in args:
             assert isinstance(arg, _Defn), type(arg)
@@ -508,7 +508,7 @@ class _LeafDefn(_Defn):
     def __init__(
         self, name=None, extra_label=None, dimensions=None, independent_by_default=None
     ):
-        _Defn.__init__(self)
+        super(_LeafDefn, self).__init__()
         if dimensions is not None:
             assert type(dimensions) in [list, tuple], type(dimensions)
             self.valid_dimensions = tuple(dimensions)

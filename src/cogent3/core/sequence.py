@@ -634,7 +634,7 @@ class SequenceI(object):
                 last_nongap = i
         missing = self.moltype.missing
         if first_nongap is None:  # sequence was all gaps
-            result = self.__class__([missing for i in len(self)], info=self.info)
+            result = self.__class__([missing for _ in len(self)], info=self.info)
         else:
             prefix = missing * first_nongap
             mid = str(self[first_nongap : last_nongap + 1])

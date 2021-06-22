@@ -189,11 +189,13 @@ class WeightedPartitionDefn(CalculationDefn):
     """Uses a PartitionDefn (ie: N-1 optimiser parameters) to make
     an array of floats with weighted average of 1.0"""
 
-    def __init__(self, weights, name):
+    def __init__(self, weights, name=None):
         N = len(weights.bin_names)
         partition = PartitionDefn(size=N, name=name + "_partition")
         partition.user_param = False
-        CalculationDefn.__init__(self, weights, partition, name=name + "_distrib")
+        super(WeightedPartitionDefn, self).__init__(
+            weights, partition, name=name + "_distrib"
+        )
 
     def calc(self, weights, values):
         scale = numpy.sum(weights * values)
