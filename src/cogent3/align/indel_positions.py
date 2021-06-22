@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
@@ -31,7 +29,7 @@ def pog_traceback(pogs, aligned_positions):
 class POGBuilder(object):
     def __init__(self, children):
         self.children = children
-        self.remap = [{} for child in children]
+        self.remap = [{} for _ in children]
         self.started = [False, False]
         self.last = [None, None]
         self.result = [[]]

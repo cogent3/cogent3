@@ -212,8 +212,8 @@ class Calculator(object):
                 other_cells.append(cell)
         self._cells = self.opt_pars + other_cells
         data_sets = [[0], [0, 1]][self.with_undo]
-        self.cell_values = [[None] * len(self._cells) for switch in data_sets]
-        self.arg_ranks = [[] for cell in self._cells]
+        self.cell_values = [[None] * len(self._cells) for _ in data_sets]
+        self.arg_ranks = [[] for _ in self._cells]
         for (i, cell) in enumerate(self._cells):
             cell.rank = i
             cell.consequences = {}
