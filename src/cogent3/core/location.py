@@ -141,7 +141,7 @@ class SpanI(object):
         """Returns length of self."""
         raise NotImplementedError
 
-    def __lt__(self):
+    def __lt__(self, other):
         """Compares indices of self with indices of other."""
         raise NotImplementedError
 
