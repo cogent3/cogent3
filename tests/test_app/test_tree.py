@@ -106,7 +106,6 @@ class TestTree(TestCase):
         # tests when distances contain None
         data = dict(
             seq1="AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
-            seq2="TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
         )
         aln2 = make_aligned_seqs(data=data, moltype=DNA)
         tree2 = proc(aln2)
@@ -129,7 +128,7 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
         )
 
         data = {
@@ -159,7 +158,7 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
         )
 
         data = {
@@ -181,7 +180,7 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
         )
 
         data = {
@@ -234,7 +233,14 @@ class TestTree(TestCase):
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
-            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data.keys()))
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
+        )
+
+        data = {"a": {"b": 0.1, "a": 0.0}, "b": {"a": 0.1, "b": 0.0}}
+        darr = DistanceMatrix(data)
+        tree = quick_tree.quick_tree(darr)
+        self.assertEqual(
+            set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
         )
 
     def test_uniformize_tree(self):
