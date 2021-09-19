@@ -9,7 +9,7 @@ from cogent3 import (
 )
 from cogent3.align.align import make_generic_scoring_dict
 from cogent3.app import align as align_app
-from cogent3.app.align import _map_ref_gaps_to_seq
+from cogent3.app.align import _GapOffset, _map_ref_gaps_to_seq
 from cogent3.app.composable import NotCompleted
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import (
@@ -361,6 +361,46 @@ class ProgressiveAlignment(TestCase):
         )
         aln = aligner(seqs)
         self.assertEqual(len(aln), 14)
+
+
+class GapOffsetTests(TestCase):
+    def test_empty(self):
+        """create an empty offset"""
+        goff = _GapOffset({})
+        for i in range(4):
+            self.assertEqual(goff[i], 0)
+
+        goff = _GapOffset({}, invert=True)
+        for i in range(4):
+            self.assertEqual(goff[i], 0)
+
+    def test_repr_str(self):
+        """repr and str work"""
+        goff = _GapOffset({}, invert=True)
+        for func in (str, repr):
+            self.assertEqual(func(goff), "{}")
+
+    def test_gap_offset(self):
+        goff = _GapOffset({1: 2, 3: 4})
+        self.assertEqual(goff.min_pos, 1)
+        self.assertEqual(goff.max_pos, 3)
+        self.assertEqual(goff.total, 6)
+        self.assertEqual(goff[0], 0)
+        self.assertEqual(goff[1], 0)
+        self.assertEqual(goff[2], 2)
+        self.assertEqual(goff[3], 2)
+        self.assertEqual(goff[4], 6)
+
+    def test_gap_offset_invert(self):
+        aln2seq = _GapOffset({2: 1, 5: 2, 7: 2}, invert=True)
+        self.assertEqual(aln2seq._store, {3: 1, 2: 0, 8: 3, 6: 1, 12: 5, 10: 3})
+        self.assertEqual(aln2seq.max_pos, 12)
+        self.assertEqual(aln2seq.min_pos, 2)
+        self.assertEqual(aln2seq[11], 3)
+        seq2aln = _GapOffset({2: 1, 5: 2, 7: 2})
+        for seq_pos in range(20):
+            aln_pos = seq_pos + seq2aln[seq_pos]
+            self.assertEqual(aln_pos - aln2seq[aln_pos], seq_pos)
 
 
 if __name__ == "__main__":

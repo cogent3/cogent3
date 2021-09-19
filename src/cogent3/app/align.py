@@ -1,5 +1,7 @@
 import warnings
 
+from bisect import bisect_left
+
 from cogent3 import make_tree
 from cogent3.align import (
     global_pairwise,
@@ -36,6 +38,92 @@ __version__ = "2021.5.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+class _GapOffset:
+    """computes sum of gap lengths preceding a position. Acts like a dict
+    for getting the offset for an integer key with the __getitem__ returning
+    the offset.
+    If your coordinate is an alignment position, set invert=True.
+    Examples
+    --------
+    From sequence coordinate to an alignment coordinate
+
+    >>> seq2aln = _GapOffset({1:3, 7:1})
+    >>> seq_pos = 2
+    >>> aln_pos = seq_pos + seq2aln[seq_pos]
+    >>> aln_pos
+    5
+
+    From alignment coordinate to a sequence coordinate
+
+    >>> aln2seq = _GapOffset({1:3, 7:1}, invert=True)
+    >>> seq_pos = aln_pos - aln2seq[seq_pos]
+    >>> seq_pos
+    2
+    """
+
+    def __init__(self, gaps_lengths, invert=False):
+        """
+        Parameters
+        ----------
+        gaps_lengths : dict
+            {pos: length, ...} where pos is a gap insert position and length
+            how long the gap is.
+        invert : bool
+            if True, query keys are taken as being in alignment coordinates
+        """
+        offset = 0
+        min_val = None
+        result = {}
+        k = -1
+        l = 0
+        for k, l in sorted(gaps_lengths.items()):
+            if invert:
+                result[k + offset + l] = offset + l
+                result[k + offset] = offset
+            else:
+                result[k] = offset
+
+            offset += l
+            if min_val is None:
+                min_val = k
+
+        self._store = result
+        self.min_pos = min_val
+        self.max_pos = k + offset if invert else k
+        self.total = offset
+        self._ordered = None
+        self._invert = invert
+
+    def __repr__(self):
+        return repr(self._store)
+
+    def __str__(self):
+        return str(self._store)
+
+    def __getitem__(self, k):
+        if not self._store:
+            return 0
+
+        if k in self._store:
+            return self._store[k]
+
+        if k < self.min_pos:
+            return 0
+
+        if k > self.max_pos:
+            return self.total
+
+        if self._ordered is None:
+            self._ordered = sorted(self._store)
+
+        # k is definitely bounded by min and max positions here
+        i = bisect_left(self._ordered, k)
+        pos = self._ordered[i]
+        if self._invert:
+            pos = pos if pos in [k, 0] else self._ordered[i - 1]
+        return self._store[pos]
 
 
 def _map_ref_gaps_to_seq(all_ref_seq, curr_ref, other):
