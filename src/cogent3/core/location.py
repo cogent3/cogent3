@@ -713,6 +713,18 @@ class Map(object):
         spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
         return Map(spans=spans, parent_length=self.parent_length)
 
+    def get_gap_coordinates(self):
+        """returns [(gap pos, gap length), ...]"""
+        gap_pos = []
+        for i, span in enumerate(self.spans):
+            if not span.lost:
+                continue
+
+            pos = self.spans[i - 1].end if i else 0
+            gap_pos.append((pos, len(span)))
+
+        return gap_pos
+
     def gaps(self):
         """The gaps (lost spans) in this map"""
         locations = []
@@ -1184,3 +1196,38 @@ def _interconvert_seq_aln_coords(gaps, offsets, pos, seq_pos=True):
     if not seq_pos:  # we subtract the gap length total to get to seq coords
         offset = -offset
     return pos + offset
+
+
+def gap_coords_to_map(gaps_lengths: dict, seq_length: int) -> Map:
+    """
+    Parameters
+    ----------
+    gaps_lengths
+        {gap insertion pos: gap length, ...}
+    seq_length : int
+        length of unaligned sequence
+
+    Returns
+    -------
+    Map
+    """
+
+    if not gaps_lengths:
+        return Map([(0, seq_length)], parent_length=seq_length)
+
+    spans = []
+    last = pos = 0
+    for pos in sorted(gaps_lengths):
+        if pos > seq_length:
+            raise ValueError(
+                f"cannot have gap at position {pos} beyond seq_length= {seq_length}"
+            )
+
+        gap = LostSpan(length=gaps_lengths[pos])
+        spans.extend([gap] if pos == 0 else [Span(last, pos), gap])
+        last = pos
+
+    if pos < seq_length:
+        spans.append(Span(last, seq_length))
+
+    return Map(spans=spans, parent_length=seq_length)
