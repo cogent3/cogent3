@@ -72,7 +72,6 @@ class _GapOffset:
         min_val = None
         result = {}
         k = -1
-        l = 0
         for k, l in sorted(gaps_lengths.items()):
             if invert:
                 result[k + offset + l] = offset + l
@@ -406,7 +405,6 @@ class align_to_ref(ComposableSeq):
             seqs = seqs.to_moltype(self._moltype)
 
         ref_seq = seqs.get_seq(self._ref_name)
-        ref_gaps = []
         kwargs = self._kwargs.copy()
         pwise = []
         for seq in seqs.seqs:
