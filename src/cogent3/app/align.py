@@ -11,11 +11,7 @@ from cogent3.align import (
 from cogent3.align.progressive import TreeAlign
 from cogent3.app import dist
 from cogent3.core.alignment import Aligned, Alignment
-from cogent3.core.location import (
-    _gap_insertion_data,
-    _gap_pos_to_map,
-    gap_coords_to_map,
-)
+from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model
 

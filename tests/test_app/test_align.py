@@ -20,11 +20,7 @@ from cogent3.app.align import (
 )
 from cogent3.app.composable import NotCompleted
 from cogent3.core.alignment import Aligned
-from cogent3.core.location import (
-    _gap_insertion_data,
-    _gap_pos_to_map,
-    gap_coords_to_map,
-)
+from cogent3.core.location import gap_coords_to_map
 
 
 __author__ = "Gavin Huttley"
@@ -122,29 +118,6 @@ class RefalignmentTests(TestCase):
         got = aligner(self.seqs)
         self.assertEqual(got.moltype.label, "dna")
 
-    def test__gap_insertion_data(self):
-        """identifies gap locations and lengths"""
-        seq = DNA.make_seq("AACCCCCCGGG")
-        # no gaps
-        m = _gap_pos_to_map([], [], len(seq))
-        got = _gap_insertion_data(Aligned(m, seq))
-        expect = [], []
-        self.assertEqual(got, expect)
-        # one gap
-        gap_positions = [2]
-        gap_lengths = [3]
-        m = _gap_pos_to_map(gap_positions, gap_lengths, len(seq))
-        got = _gap_insertion_data(Aligned(m, seq))
-        expect = list(zip(gap_positions, gap_lengths)), [0]
-        self.assertEqual(got, expect)
-        # two gaps
-        gap_positions = [2, 8]
-        gap_lengths = [3, 1]
-        m = _gap_pos_to_map(gap_positions, gap_lengths, len(seq))
-        got = _gap_insertion_data(Aligned(m, seq))
-        expect = list(zip(gap_positions, gap_lengths)), [0, 3]
-        self.assertEqual(got, expect)
-
     def test_merged_gaps(self):
         """correctly merges gaps"""
         a = dict([(2, 3), (4, 9)])
@@ -154,35 +127,6 @@ class RefalignmentTests(TestCase):
         self.assertIs(_merged_gaps({}, b), b)
         got = _merged_gaps(a, b)
         self.assertEqual(got, [(2, 6), (4, 9), (8, 5)])
-
-    def test__gap_pos_to_map(self):
-        """correctly converts a gap positions to a Map"""
-        gap_positions = [2, 9]
-        gap_lengths = [3, 1]
-        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
-        self.assertTrue(all(map.spans[i].lost for i in (1, 3)))
-        self.assertEqual(len(map), 24)
-        # no gaps
-        map = _gap_pos_to_map([], [], 20)
-        self.assertEqual(len(map), 20)
-        self.assertEqual(len(map.spans), 1)
-        # gap at start
-        gap_positions = [0]
-        gap_lengths = [3]
-        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
-        self.assertTrue(map.spans[0].lost and not map.spans[1].lost)
-        self.assertEqual(len(map), 23)
-        self.assertEqual(len(map.spans), 2)
-        # gap at end
-        gap_positions = [20]
-        gap_lengths = [3]
-        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
-        self.assertTrue(map.spans[-1].lost and not map.spans[0].lost)
-        self.assertEqual(len(map), 23)
-        self.assertEqual(len(map.spans), 2)
-        # fail if pos beyond sequence
-        with self.assertRaises(ValueError):
-            _gap_pos_to_map([40], [2], 20)
 
     def test_aln_to_ref_known(self):
         """correctly recapitulates known case"""
