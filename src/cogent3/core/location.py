@@ -1092,51 +1092,6 @@ def _gap_insertion_data(seq):
     return gap_pos, offsets
 
 
-def _merged_gaps(a_gaps, b_gaps, function="max"):
-    """merges gaps that occupy same position
-
-    Parameters
-    ----------
-    a_gaps, b_gaps
-        [(gap position, length),...]
-    function
-        When a and b contain a gap at the same position, function is applied
-        to the gap lengths. Valid values are either 'max' or 'sum'.
-
-    Returns
-    -------
-    Merged places as [(gap position, length),...]
-
-    Notes
-    -----
-    If a_gaps and b_gaps are from the same underlying sequence, set
-    function to 'max'. Use 'sum' when the gaps derive from different
-    sequences.
-    """
-    if function.lower() not in "maxsum":
-        raise ValueError(f"{function} not allowed, choose either 'sum' or 'max'")
-
-    function = max if function.lower() == "max" else sum
-
-    if not a_gaps:
-        return b_gaps
-
-    if not b_gaps:
-        return a_gaps
-
-    places = sorted(a_gaps + b_gaps)
-
-    positions, lengths = [places[0][0]], [places[0][1]]
-    for i, (pos, l) in enumerate(places[1:], 1):
-        if positions[-1] == pos:
-            lengths[-1] = function([lengths[-1], l])
-            continue
-
-        positions.append(pos)
-        lengths.append(l)
-    return list(zip(positions, lengths))
-
-
 def _gap_pos_to_map(gap_pos, gap_lengths, seq_length):
     """[(pos, gap length), ...]"""
 

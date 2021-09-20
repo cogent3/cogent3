@@ -9,7 +9,13 @@ from cogent3 import (
 )
 from cogent3.align.align import make_generic_scoring_dict
 from cogent3.app import align as align_app
-from cogent3.app.align import _GapOffset, _map_ref_gaps_to_seq
+from cogent3.app.align import (
+    _gap_difference,
+    _gap_union,
+    _GapOffset,
+    _map_ref_gaps_to_seq,
+    _merged_gaps,
+)
 from cogent3.app.composable import NotCompleted
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import (
@@ -19,7 +25,7 @@ from cogent3.core.location import (
     _gap_insertion_data,
     _gap_pos_to_map,
     _interconvert_seq_aln_coords,
-    _merged_gaps,
+    gap_coords_to_map,
 )
 
 
@@ -63,6 +69,11 @@ _codon_models = [
     "H04GGK",
     "GNC",
 ]
+
+
+def make_aligned(gaps_lengths, seq, name="seq1"):
+    seq = seq.moltype.make_seq(seq, name=name)
+    return Aligned(gap_coords_to_map(gaps_lengths, len(seq)), seq)
 
 
 class RefalignmentTests(TestCase):
@@ -234,6 +245,61 @@ class RefalignmentTests(TestCase):
         aligner = align_app.align_to_ref(ref_seq="Ref")
         aln = aligner(orig.degap())
         self.assertEqual(aln.to_dict(), expect)
+
+    def test_gap_union(self):
+        """correctly identifies the union of all gaps"""
+        # fails if not all sequences same
+        seq = DNA.make_seq("AACCCGTT")
+        all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
+        final_seq = make_aligned(all_gaps, seq)
+        gap_sets = [
+            dict([(5, 1), (6, 3)]),
+            dict([(2, 1), (5, 3)]),
+            dict([(2, 1), (5, 1), (6, 2)]),
+            dict([(0, 3)]),
+        ]
+        seqs = [make_aligned(gaps, seq) for gaps in gap_sets]
+        got = _gap_union(seqs)
+        self.assertEqual(got, dict(all_gaps))
+
+        # must all be Aligned instances
+        with self.assertRaises(TypeError):
+            _gap_union(seqs + ["GGGGGGGG"])
+
+        # must all have the same name
+        with self.assertRaises(ValueError):
+            _gap_union(seqs + [make_aligned({}, seq, name="blah")])
+
+    def test_gap_difference(self):
+        """correctly identifies the difference in gaps"""
+        seq = DNA.make_seq("AACCCGTT")
+        all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
+        gap_sets = [
+            dict([(5, 1), (6, 3)]),
+            dict([(2, 1), (5, 3)]),
+            dict([(2, 1), (5, 1), (6, 2)]),
+            dict([(0, 3)]),
+        ]
+        seqs = [make_aligned(gaps, seq) for gaps in gap_sets]
+        union = _gap_union(seqs)
+        expects = [
+            [dict([(0, 3), (2, 1)]), dict([(5, 2)])],
+            [dict([(0, 3), (6, 3)]), {}],
+            [dict([(0, 3)]), dict([(5, 2), (6, 1)])],
+            [dict([(2, 1), (5, 3), (6, 3)]), {}],
+        ]
+        for seq, (plain, overlap) in zip(seqs, expects):
+            seq_gaps = dict(seq.map.get_gap_coordinates())
+            got_plain, got_overlap = _gap_difference(seq_gaps, union)
+            self.assertEqual(got_plain, dict(plain))
+            self.assertEqual(got_overlap, dict(overlap))
+
+    def test_merged_gaps(self):
+        """correctly handles gap values"""
+        a_gaps = {0: 2}
+        b_gaps = {2: 2}
+        self.assertEqual(_merged_gaps(a_gaps, {}), a_gaps)
+        self.assertEqual(_merged_gaps({}, b_gaps), b_gaps)
 
 
 class ProgressiveAlignment(TestCase):

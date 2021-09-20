@@ -15,7 +15,6 @@ from cogent3.core.location import (
     _gap_insertion_data,
     _gap_pos_to_map,
     _interconvert_seq_aln_coords,
-    _merged_gaps,
 )
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model
@@ -124,6 +123,117 @@ class _GapOffset:
         if self._invert:
             pos = pos if pos in [k, 0] else self._ordered[i - 1]
         return self._store[pos]
+
+
+class _GapOffset:
+    """computes sum of gap lengths preceding a position. Acts like a dict
+    for getting the offset for an integer key with the __getitem__ returning
+    the offset. If your coordinate is an alignment position, set invert=True.
+    """
+
+    def __init__(self, gaps_lengths, invert=False):
+        """
+        Parameters
+        ----------
+        gaps_lengths : dict
+            {pos: length, ...} where pos is a gap insert position and length
+            how long the gap is.
+        invert : bool
+            if True, query keys are taken as being in alignment coordinates
+        """
+        offset = 0
+        min_val = None
+        result = {}
+        k = -1
+        l = 0
+        for k, l in sorted(gaps_lengths.items()):
+            if invert:
+                result[k + offset + l] = offset + l
+                result[k + offset] = offset
+            else:
+                result[k] = offset
+
+            offset += l
+            if min_val is None:
+                min_val = k
+
+        self._store = result
+        self.min_pos = min_val
+        self.max_pos = k + offset if invert else k
+        self.total = offset
+        self._ordered = None
+        self._invert = invert
+
+    def __repr__(self):
+        return repr(self._store)
+
+    def __str__(self):
+        return str(self._store)
+
+    def __getitem__(self, k):
+        if not self._store:
+            return 0
+
+        if k in self._store:
+            return self._store[k]
+
+        if k < self.min_pos:
+            return 0
+
+        if k > self.max_pos:
+            return self.total
+
+        if self._ordered is None:
+            self._ordered = sorted(self._store)
+
+        # k is definitely bounded by min and max positions here
+        i = bisect_left(self._ordered, k)
+        pos = self._ordered[i]
+        if self._invert:
+            pos = pos if pos in [k, 0] else self._ordered[i - 1]
+        return self._store[pos]
+
+
+def _gap_union(seqs) -> dict:
+    """returns the union of all gaps in seqs"""
+    seq_name = None
+    all_gaps = {}
+    for seq in seqs:
+        if not isinstance(seq, Aligned):
+            raise TypeError(f"must be Aligned instances, not {type(seq)}")
+        if seq_name is not None and seq.name != seq_name:
+            raise ValueError("all sequences must have the same name")
+        if seq_name is None:
+            seq_name = seq.name
+
+        gaps_lengths = dict(seq.map.get_gap_coordinates())
+        all_gaps = _merged_gaps(all_gaps, gaps_lengths)
+    return all_gaps
+
+
+def _gap_difference(seq_gaps: dict, union_gaps: dict) -> tuple:
+    """
+
+    Parameters
+    ----------
+    seq_gaps
+        {gap pos: length, } of a sequence used to generate the gap union
+    union_gaps
+        {gap pos: maximum length, ...} derived from the same seq aligned
+        to different sequences
+
+    Returns
+    -------
+    gaps missing from seq_gaps, seq_gaps that overlap with union gaps
+    """
+    differences = {}
+    subset_diffs = {}
+    for position, length in union_gaps.items():
+        if position not in seq_gaps:
+            differences[position] = length
+        elif seq_gaps[position] != length:
+            subset_diffs[position] = length - seq_gaps[position]
+    return differences, subset_diffs
 
 
 def _map_ref_gaps_to_seq(all_ref_seq, curr_ref, other):
@@ -412,3 +522,38 @@ class progressive_align(ComposableSeq):
                 result = NotCompleted("ERROR", self, err.args[0], source=seqs)
                 return result
         return result
+
+
+def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
+    """merges gaps that occupy same position
+
+    Parameters
+    ----------
+    a_gaps, b_gaps
+        [(gap position, length),...]
+
+    Returns
+    -------
+    Merged places as {gap position: length, ...}
+
+    Notes
+    -----
+    If a_gaps and b_gaps are from the same underlying sequence, set
+    function to 'max'. Use 'sum' when the gaps derive from different
+    sequences.
+    """
+
+    if not a_gaps:
+        return b_gaps
+
+    if not b_gaps:
+        return a_gaps
+
+    places = set(a_gaps) | set(b_gaps)
+    return {
+        place: max(
+            a_gaps.get(place, 0),
+            b_gaps.get(place, 0),
+        )
+        for place in places
+    }
