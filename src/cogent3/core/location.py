@@ -1116,43 +1116,6 @@ def _gap_pos_to_map(gap_pos, gap_lengths, seq_length):
     return Map(spans=spans, parent_length=seq_length)
 
 
-def _interconvert_seq_aln_coords(gaps, offsets, pos, seq_pos=True):
-    """converts sequence position to an alignment position
-
-    Parameters
-    ----------
-    gaps
-        series of [(seq pos, length), ..]
-    offsets
-        the offset of seq pos, which is basically the sum of all lengths up
-        to the previous gap
-    p
-        the sequence coordinate to convert
-    seq_pos : bool
-        whether pos is in sequence coordinates. If False, means it is in
-        alignment coordinates.
-    Returns
-    -------
-    alignment coordinate
-    """
-    if pos < 0:
-        raise ValueError(f"negative value {pos}")
-
-    if not gaps or pos == 0:
-        return pos
-
-    offset = 0
-    for i, (p, len) in enumerate(gaps):
-        assert p >= 0 and len > 0
-        if p + offset >= pos:
-            break
-        offset += len
-    assert offset < pos, f"calculated offset {offset} greater than align pos {p}"
-    if not seq_pos:  # we subtract the gap length total to get to seq coords
-        offset = -offset
-    return pos + offset
-
-
 def gap_coords_to_map(gaps_lengths: dict, seq_length: int) -> Map:
     """
     Parameters
