@@ -4,7 +4,14 @@
 """
 from unittest import TestCase, main
 
-from cogent3.core.location import Map, Range, RangeFromString, Span
+from cogent3 import DNA
+from cogent3.core.location import (
+    Map,
+    Range,
+    RangeFromString,
+    Span,
+    gap_coords_to_map,
+)
 
 
 __author__ = "Rob Knight"
@@ -527,6 +534,38 @@ class MapTests(TestCase):
         map = Map(spans, parent_length=100)
         coords = map.get_coordinates()
         self.assertEqual(coords, spans)
+
+    def test_get_gap_coords(self):
+        """returns gap start and lengths"""
+        m, seq = DNA.make_seq("-AC--GT-TTA--").parse_out_gaps()
+        got = m.get_gap_coordinates()
+        self.assertEqual(dict(got), {0: 1, 2: 2, 4: 1, 7: 2})
+
+    def test_gap_coords_to_map(self):
+        """construct a Map from coordinates of gap alone"""
+        m, seq = DNA.make_seq("-AC--GT-TTA--").parse_out_gaps()
+        gap_coords = {0: 1, 2: 2, 4: 1, 7: 2}
+        seqlen = 70
+        got = gap_coords_to_map(gap_coords, seqlen)
+        self.assertEqual(len(got), seqlen + sum(gap_coords.values()))
+
+        gap_coords = {5: 2, 17: 3, 10: 2}
+        seqlen = 20
+        got = gap_coords_to_map(gap_coords, seqlen)
+        self.assertEqual(len(got), sum(gap_coords.values()) + seqlen)
+
+        # roundtrip from Map.get_gap_coordinates()
+        self.assertEqual(dict(got.get_gap_coordinates()), gap_coords)
+
+        # and no gaps
+        m, seq = DNA.make_seq("ACGTTTA").parse_out_gaps()
+        got = gap_coords_to_map({}, len(seq))
+        self.assertEqual(len(got), len(m))
+        self.assertEqual(got.get_coordinates(), m.get_coordinates())
+
+        # and gaps outside sequence
+        with self.assertRaises(ValueError):
+            got = gap_coords_to_map({20: 1}, len(seq))
 
 
 # run the following if invoked from command-line

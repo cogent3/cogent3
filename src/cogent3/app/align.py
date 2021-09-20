@@ -1,5 +1,7 @@
 import warnings
 
+from bisect import bisect_left
+
 from cogent3 import make_tree
 from cogent3.align import (
     global_pairwise,
@@ -9,12 +11,7 @@ from cogent3.align import (
 from cogent3.align.progressive import TreeAlign
 from cogent3.app import dist
 from cogent3.core.alignment import Aligned, Alignment
-from cogent3.core.location import (
-    _gap_insertion_data,
-    _gap_pos_to_map,
-    _interconvert_seq_aln_coords,
-    _merged_gaps,
-)
+from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model
 
@@ -38,40 +35,294 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-def _map_ref_gaps_to_seq(all_ref_seq, curr_ref, other):
-    """inject ref gaps missing from curr_ref into other map
+class _GapOffset:
+    """computes sum of gap lengths preceding a position. Acts like a dict
+    for getting the offset for an integer key with the __getitem__ returning
+    the offset.
+    If your coordinate is an alignment position, set invert=True.
+    Examples
+    --------
+    From sequence coordinate to an alignment coordinate
+
+    >>> seq2aln = _GapOffset({1:3, 7:1})
+    >>> seq_pos = 2
+    >>> aln_pos = seq_pos + seq2aln[seq_pos]
+    >>> aln_pos
+    5
+
+    From alignment coordinate to a sequence coordinate
+
+    >>> aln2seq = _GapOffset({1:3, 7:1}, invert=True)
+    >>> seq_pos = aln_pos - aln2seq[seq_pos]
+    >>> seq_pos
+    2
+    """
+
+    def __init__(self, gaps_lengths, invert=False):
+        """
+        Parameters
+        ----------
+        gaps_lengths : dict
+            {pos: length, ...} where pos is a gap insert position and length
+            how long the gap is.
+        invert : bool
+            if True, query keys are taken as being in alignment coordinates
+        """
+        offset = 0
+        min_val = None
+        result = {}
+        k = -1
+        for k, l in sorted(gaps_lengths.items()):
+            if invert:
+                result[k + offset + l] = offset + l
+                result[k + offset] = offset
+            else:
+                result[k] = offset
+
+            offset += l
+            if min_val is None:
+                min_val = k
+
+        self._store = result
+        self.min_pos = min_val
+        self.max_pos = k + offset if invert else k
+        self.total = offset
+        self._ordered = None
+        self._invert = invert
+
+    def __repr__(self):
+        return repr(self._store)
+
+    def __str__(self):
+        return str(self._store)
+
+    def __getitem__(self, k):
+        if not self._store:
+            return 0
+
+        if k in self._store:
+            return self._store[k]
+
+        if k < self.min_pos:
+            return 0
+
+        if k > self.max_pos:
+            return self.total
+
+        if self._ordered is None:
+            self._ordered = sorted(self._store)
+
+        # k is definitely bounded by min and max positions here
+        i = bisect_left(self._ordered, k)
+        pos = self._ordered[i]
+        if self._invert:
+            pos = pos if pos in [k, 0] else self._ordered[i - 1]
+        return self._store[pos]
+
+
+def _gap_union(seqs) -> dict:
+    """returns the union of all gaps in seqs"""
+    seq_name = None
+    all_gaps = {}
+    for seq in seqs:
+        if not isinstance(seq, Aligned):
+            raise TypeError(f"must be Aligned instances, not {type(seq)}")
+        if seq_name is None:
+            seq_name = seq.name
+        if seq.name != seq_name:
+            raise ValueError("all sequences must have the same name")
+
+        gaps_lengths = dict(seq.map.get_gap_coordinates())
+        all_gaps = _merged_gaps(all_gaps, gaps_lengths)
+    return all_gaps
+
+
+def _gap_difference(seq_gaps: dict, union_gaps: dict) -> tuple:
+    """
+
+    Parameters
+    ----------
+    seq_gaps
+        {gap pos: length, } of a sequence used to generate the gap union
+    union_gaps
+        {gap pos: maximum length, ...} derived from the same seq aligned
+        to different sequences
 
     Returns
     -------
-    Map
+    gaps missing from seq_gaps, seq_gaps that overlap with union gaps
     """
-    all_gap_pos, _ = _gap_insertion_data(all_ref_seq)
-    c_gpos, c_offsets = _gap_insertion_data(curr_ref)
-    o_gpos, o_offsets = _gap_insertion_data(other)
-    unique_ref_gaps = set(all_gap_pos) - set(c_gpos)
-    if not unique_ref_gaps:  # other seq map unchanged
-        return other.map
+    missing = {}
+    overlapping = {}
+    for position, length in union_gaps.items():
+        if position not in seq_gaps:
+            missing[position] = length
+        elif seq_gaps[position] != length:
+            overlapping[position] = length - seq_gaps[position]
+    return missing, overlapping
 
-    # we add the offset from the full ref up to the new gap
-    new_gaps = []
-    for unique in unique_ref_gaps:
-        # convert ref seq coord into current alignment coord
-        aln_pos = _interconvert_seq_aln_coords(
-            c_gpos, c_offsets, unique[0], seq_pos=True
-        )
-        # convert current alignment coord into query seq coord
-        seq_pos = _interconvert_seq_aln_coords(
-            o_gpos, o_offsets, aln_pos, seq_pos=False
-        )
-        new_gaps.append((seq_pos, unique[1]))
 
-    # because we combine gap positions from two different sequences,
-    # the reference and the other, we need to merge overlapping gaps by
-    # summation, rather than max
-    o_gpos = _merged_gaps(o_gpos, new_gaps, function="sum")
-    gap_pos, gap_lengths = list(zip(*o_gpos))
-    seq = other.data
-    return _gap_pos_to_map(gap_pos, gap_lengths, len(seq))
+def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
+    """merges gaps that occupy same position
+
+    Parameters
+    ----------
+    a_gaps, b_gaps
+        [(gap position, length),...]
+
+    Returns
+    -------
+    Merged places as {gap position: length, ...}
+
+    Notes
+    -----
+    If a_gaps and b_gaps are from the same underlying sequence, set
+    function to 'max'. Use 'sum' when the gaps derive from different
+    sequences.
+    """
+
+    if not a_gaps:
+        return b_gaps
+
+    if not b_gaps:
+        return a_gaps
+
+    places = set(a_gaps) | set(b_gaps)
+    return {
+        place: max(
+            a_gaps.get(place, 0),
+            b_gaps.get(place, 0),
+        )
+        for place in places
+    }
+
+
+def _subset_gaps_to_align_coords(
+    subset_gaps: dict, orig_gaps: dict, seq_2_aln: _GapOffset
+) -> dict:
+    """compute alignment coords of subset gaps
+
+    Parameters
+    ----------
+    subset_gaps : dict
+        {position: length delta} lengths are the adjusted gap lengths
+    orig_gaps : dict
+        {position: orig length} the original gap lengths are from a pairwise
+        alignment
+    seq_2_aln : dict
+        {seq position: alignment position, ...}
+
+    Returns
+    -------
+    dict
+        {alignment position + orig length: length delta, ...}
+
+    Notes
+    -----
+    """
+    result = {}
+    for p in subset_gaps:
+        offset = seq_2_aln[p]
+        result[offset + p + orig_gaps[p]] = subset_gaps[p]
+
+    return result
+
+
+def _combined_refseq_gaps(seq_gaps: dict, union_gaps: dict) -> dict:
+    # takes union gaps and refseq gaps, converts into diffs and
+    # subset diffs
+    seq2aln = _GapOffset(seq_gaps)
+    diff_gaps, subset_gaps = _gap_difference(seq_gaps, union_gaps)
+    align_coord_gaps = _subset_gaps_to_align_coords(subset_gaps, seq_gaps, seq2aln)
+    align_coord_gaps.update({p + seq2aln[p]: diff_gaps[p] for p in diff_gaps})
+    return align_coord_gaps
+
+
+def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) -> dict:
+    """projects refseq aligned gaps into otherseq
+
+    Parameters
+    ----------
+    other_seq_gaps : dict
+        {gap in other seq position: gap length}
+    refseq_gaps : dict
+        {gap as alignment position: gap length}
+    seqlen : int
+        length of sequence being injected into
+
+    Returns
+    -------
+    dict
+        {gap in other seq position: gap length}
+    """
+    aln2seq = _GapOffset(other_seq_gaps, invert=True)
+    # to inject a gap means to convert it from alignment coordinates into
+    # sequence coordinates
+    # we probably need to include the refseq gap union because we need to
+    # establish whether a refseq gap overlaps with a gap in other seq
+    # and
+    all_gaps = {}
+    all_gaps.update(other_seq_gaps)
+    for gap_pos, gap_length in sorted(refseq_gaps.items()):
+        offset = aln2seq[gap_pos]
+        gap_pos -= offset
+        gap_pos = min(seqlen, gap_pos)
+        if gap_pos < 0:
+            raise ValueError(
+                f"computed gap_pos {gap_pos} < 0, correct reference sequence?"
+            )
+        if gap_pos in all_gaps:
+            gap_length += all_gaps[gap_pos]
+
+        all_gaps[gap_pos] = gap_length
+
+    return all_gaps
+
+
+def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
+    """
+    turns pairwise alignments to a reference into a multiple alignment
+
+    Parameters
+    ----------
+    pwise
+        Series of pairwise alignments to ref_seq as
+        [(non-refseq name, aligned pair), ...]
+    ref_seq
+        The sequence common in all pairwise alignments
+    moltype
+        molecular type for the returned alignment
+    info
+        info object
+
+    Returns
+    -------
+    ArrayAlign
+    """
+    if not hasattr(ref_seq, "name"):
+        raise TypeError(f"ref_seq must be a cogent3 sequence, not {type(ref_seq)}")
+
+    refseqs = [s for _, aln in pwise for s in aln.seqs if s.name == ref_seq.name]
+    ref_gaps = _gap_union(refseqs)
+
+    m = gap_coords_to_map(ref_gaps, len(ref_seq))
+    aligned = [Aligned(m, ref_seq)]
+    for other_name, aln in pwise:
+        curr_ref = aln.named_seqs[ref_seq.name]
+        curr_ref_gaps = dict(curr_ref.map.get_gap_coordinates())
+        other_seq = aln.named_seqs[other_name]
+        other_gaps = dict(other_seq.map.get_gap_coordinates())
+        diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
+        inject = _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data))
+        if inject:
+            m = gap_coords_to_map(inject, len(other_seq.data))
+            other_seq = Aligned(m, other_seq.data)
+
+        aligned.append(other_seq)
+    # default to ArrayAlign
+    return Alignment(aligned, moltype=moltype, info=info).to_type(
+        array_align=True, moltype=moltype
+    )
 
 
 class align_to_ref(ComposableSeq):
@@ -154,7 +405,6 @@ class align_to_ref(ComposableSeq):
             seqs = seqs.to_moltype(self._moltype)
 
         ref_seq = seqs.get_seq(self._ref_name)
-        ref_gaps = []
         kwargs = self._kwargs.copy()
         pwise = []
         for seq in seqs.seqs:
@@ -163,24 +413,8 @@ class align_to_ref(ComposableSeq):
 
             aln = global_pairwise(ref_seq, seq, **kwargs).to_type(array_align=False)
             pwise.append(((seq.name, aln)))
-            gap_pos, _ = _gap_insertion_data(aln.named_seqs[ref_seq.name])
-            ref_gaps = _merged_gaps(ref_gaps, gap_pos, function="max")
 
-        gap_pos, gap_lengths = list(zip(*ref_gaps)) if ref_gaps else ([], [])
-        m = _gap_pos_to_map(gap_pos, gap_lengths, len(ref_seq))
-        aligned = [Aligned(m, ref_seq)]
-        for other_name, aln in pwise:
-            curr_ref = aln.named_seqs[ref_seq.name]
-            other_seq = aln.named_seqs[other_name]
-            m = _map_ref_gaps_to_seq(aligned[0], curr_ref, other_seq)
-            aligned.append(
-                other_seq if m is other_seq.map else Aligned(m, other_seq.data)
-            )
-
-        # default to ArrayAlign
-        return Alignment(aligned, moltype=self._moltype, info=seqs.info).to_type(
-            array_align=True, moltype=self._moltype
-        )
+        return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
 
 
 class progressive_align(ComposableSeq):

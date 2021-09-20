@@ -9,18 +9,18 @@ from cogent3 import (
 )
 from cogent3.align.align import make_generic_scoring_dict
 from cogent3.app import align as align_app
-from cogent3.app.align import _map_ref_gaps_to_seq
-from cogent3.app.composable import NotCompleted
-from cogent3.core.alignment import Aligned, Alignment
-from cogent3.core.location import (
-    LostSpan,
-    Map,
-    Span,
-    _gap_insertion_data,
-    _gap_pos_to_map,
-    _interconvert_seq_aln_coords,
+from cogent3.app.align import (
+    _combined_refseq_gaps,
+    _gap_difference,
+    _gap_union,
+    _GapOffset,
+    _gaps_for_injection,
     _merged_gaps,
+    pairwise_to_multiple,
 )
+from cogent3.app.composable import NotCompleted
+from cogent3.core.alignment import Aligned
+from cogent3.core.location import gap_coords_to_map
 
 
 __author__ = "Gavin Huttley"
@@ -65,6 +65,27 @@ _codon_models = [
 ]
 
 
+def make_pairwise(data, refseq_name, moltype="dna", array_align=False):
+    """returns series of refseq, [(n, pwise aln),..]. All alignments are to ref_seq"""
+    aln = make_aligned_seqs(
+        data,
+        array_align=array_align,
+        moltype=moltype,
+    )
+    refseq = aln.get_seq(refseq_name)
+    pwise = [
+        (n, aln.take_seqs([refseq_name, n]).omit_gap_pos())
+        for n in aln.names
+        if n != refseq_name
+    ]
+    return refseq, pwise
+
+
+def make_aligned(gaps_lengths, seq, name="seq1"):
+    seq = seq.moltype.make_seq(seq, name=name)
+    return Aligned(gap_coords_to_map(gaps_lengths, len(seq)), seq)
+
+
 class RefalignmentTests(TestCase):
     seqs = make_unaligned_seqs(_seqs, moltype=DNA)
 
@@ -97,123 +118,15 @@ class RefalignmentTests(TestCase):
         got = aligner(self.seqs)
         self.assertEqual(got.moltype.label, "dna")
 
-    def test__gap_insertion_data(self):
-        """identifies gap locations and lengths"""
-        seq = DNA.make_seq("AACCCCCCGGG")
-        # no gaps
-        m = _gap_pos_to_map([], [], len(seq))
-        got = _gap_insertion_data(Aligned(m, seq))
-        expect = [], []
-        self.assertEqual(got, expect)
-        # one gap
-        gap_positions = [2]
-        gap_lengths = [3]
-        m = _gap_pos_to_map(gap_positions, gap_lengths, len(seq))
-        got = _gap_insertion_data(Aligned(m, seq))
-        expect = list(zip(gap_positions, gap_lengths)), [0]
-        self.assertEqual(got, expect)
-        # two gaps
-        gap_positions = [2, 8]
-        gap_lengths = [3, 1]
-        m = _gap_pos_to_map(gap_positions, gap_lengths, len(seq))
-        got = _gap_insertion_data(Aligned(m, seq))
-        expect = list(zip(gap_positions, gap_lengths)), [0, 3]
-        self.assertEqual(got, expect)
-
-    def test__merged_gaps(self):
+    def test_merged_gaps(self):
         """correctly merges gaps"""
-        with self.assertRaises(ValueError):
-            _merged_gaps([], [], function="blah")
-
-        a = [(2, 3), (4, 9)]
-        b = [(2, 6), (8, 5)]
+        a = dict([(2, 3), (4, 9)])
+        b = dict([(2, 6), (8, 5)])
         # omitting one just returns the other
-        self.assertIs(_merged_gaps(a, []), a)
-        self.assertIs(_merged_gaps([], b), b)
-        # specifying 'sum' means (2, 9)
-        got = _merged_gaps(a, b, function="sum")
-        self.assertEqual(got, [(2, 9), (4, 9), (8, 5)])
-        # specifying 'max' means (2, 6)
-        got = _merged_gaps(a, b, function="max")
+        self.assertIs(_merged_gaps(a, {}), a)
+        self.assertIs(_merged_gaps({}, b), b)
+        got = _merged_gaps(a, b)
         self.assertEqual(got, [(2, 6), (4, 9), (8, 5)])
-
-    def test__gap_pos_to_map(self):
-        """correctly converts a gap positions to a Map"""
-        gap_positions = [2, 9]
-        gap_lengths = [3, 1]
-        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
-        self.assertTrue(all(map.spans[i].lost for i in (1, 3)))
-        self.assertEqual(len(map), 24)
-        # no gaps
-        map = _gap_pos_to_map([], [], 20)
-        self.assertEqual(len(map), 20)
-        self.assertEqual(len(map.spans), 1)
-        # gap at start
-        gap_positions = [0]
-        gap_lengths = [3]
-        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
-        self.assertTrue(map.spans[0].lost and not map.spans[1].lost)
-        self.assertEqual(len(map), 23)
-        self.assertEqual(len(map.spans), 2)
-        # gap at end
-        gap_positions = [20]
-        gap_lengths = [3]
-        map = _gap_pos_to_map(gap_positions, gap_lengths, 20)
-        self.assertTrue(map.spans[-1].lost and not map.spans[0].lost)
-        self.assertEqual(len(map), 23)
-        self.assertEqual(len(map.spans), 2)
-        # fail if pos beyond sequence
-        with self.assertRaises(ValueError):
-            _gap_pos_to_map([40], [2], 20)
-
-    def test__map_ref_gaps_to_seq(self):
-        """correctly handle case where ref and curr ref are equal"""
-        aln = make_aligned_seqs(
-            {
-                "Ref": "CAG---GAGAACAGAAACCCAT--TACTCACT",
-                "Qu2": "CAGCATGAGAACAGAAACCCGT--TA---ACT",
-            },
-            array_align=False,
-            moltype="dna",
-        )
-        ref = aln.named_seqs["Ref"]
-        other = aln.named_seqs["Qu2"]
-        got = _map_ref_gaps_to_seq(ref, ref, other)
-        self.assertIs(got, other.map)
-
-    def test_seq_2_aln_coords(self):
-        """correctly converts sequence coordinates to alignment coordinates"""
-        got = _interconvert_seq_aln_coords([], [], 20, seq_pos=True)
-        assert got == 20
-
-        # aligned seq has one gap after
-        got = _interconvert_seq_aln_coords([(22, 3)], [0], 20, seq_pos=True)
-        assert got == 20
-
-        # aligned seq has one 2bp gap before
-        got = _interconvert_seq_aln_coords([(12, 2)], [0], 20, seq_pos=True)
-        assert got == 22
-
-        # aligned seq has two 2bp gap before
-        got = _interconvert_seq_aln_coords([(10, 2), (12, 2)], [0], 20, seq_pos=True)
-        assert got == 24
-
-    def test_aln_2_seq_coord(self):
-        """correctly converts alignment coordinates to sequence coordinates"""
-        got = _interconvert_seq_aln_coords([], [], 20, seq_pos=False)
-        assert got == 20
-
-        # query has one gap after
-        got = _interconvert_seq_aln_coords([(22, 3)], [0], 20, seq_pos=False)
-        assert got == 20
-
-        # query has one 2bp gap before
-        got = _interconvert_seq_aln_coords([(12, 2)], [0], 20, seq_pos=False)
-        assert got == 18
-
-        # query has two 2bp gap before
-        got = _interconvert_seq_aln_coords([(10, 2), (12, 2)], [0], 20, seq_pos=False)
-        assert got == 16
 
     def test_aln_to_ref_known(self):
         """correctly recapitulates known case"""
@@ -234,6 +147,175 @@ class RefalignmentTests(TestCase):
         aligner = align_app.align_to_ref(ref_seq="Ref")
         aln = aligner(orig.degap())
         self.assertEqual(aln.to_dict(), expect)
+
+    def test_gap_union(self):
+        """correctly identifies the union of all gaps"""
+        # fails if not all sequences same
+        seq = DNA.make_seq("AACCCGTT")
+        all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
+        final_seq = make_aligned(all_gaps, seq)
+        gap_sets = [
+            dict([(5, 1), (6, 3)]),
+            dict([(2, 1), (5, 3)]),
+            dict([(2, 1), (5, 1), (6, 2)]),
+            dict([(0, 3)]),
+        ]
+        seqs = [make_aligned(gaps, seq) for gaps in gap_sets]
+        got = _gap_union(seqs)
+        self.assertEqual(got, dict(all_gaps))
+
+        # must all be Aligned instances
+        with self.assertRaises(TypeError):
+            _gap_union(seqs + ["GGGGGGGG"])
+
+        # must all have the same name
+        with self.assertRaises(ValueError):
+            _gap_union(seqs + [make_aligned({}, seq, name="blah")])
+
+    def test_gap_difference(self):
+        """correctly identifies the difference in gaps"""
+        seq = DNA.make_seq("AACCCGTT")
+        all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
+        gap_sets = [
+            dict([(5, 1), (6, 3)]),
+            dict([(2, 1), (5, 3)]),
+            dict([(2, 1), (5, 1), (6, 2)]),
+            dict([(0, 3)]),
+        ]
+        seqs = [make_aligned(gaps, seq) for gaps in gap_sets]
+        union = _gap_union(seqs)
+        expects = [
+            [dict([(0, 3), (2, 1)]), dict([(5, 2)])],
+            [dict([(0, 3), (6, 3)]), {}],
+            [dict([(0, 3)]), dict([(5, 2), (6, 1)])],
+            [dict([(2, 1), (5, 3), (6, 3)]), {}],
+        ]
+        for seq, (plain, overlap) in zip(seqs, expects):
+            seq_gaps = dict(seq.map.get_gap_coordinates())
+            got_plain, got_overlap = _gap_difference(seq_gaps, union)
+            self.assertEqual(got_plain, dict(plain))
+            self.assertEqual(got_overlap, dict(overlap))
+
+    def test_merged_gaps(self):
+        """correctly handles gap values"""
+        a_gaps = {0: 2}
+        b_gaps = {2: 2}
+        self.assertEqual(_merged_gaps(a_gaps, {}), a_gaps)
+        self.assertEqual(_merged_gaps({}, b_gaps), b_gaps)
+
+    def test_combined_refseq_gaps(self):
+        union = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
+        gap_sets = [
+            [(5, 1), (6, 3)],
+            [(2, 1), (5, 3)],
+            [(2, 1), (5, 1), (6, 2)],
+            [(0, 3)],
+        ]
+        # for subset gaps, their alignment position is the
+        # offset + their position + their gap length
+        expects = [
+            dict([(6, 2), (0, 3), (2, 1)]),
+            dict([(0, 3), (10, 3)]),
+            dict([(0, 3), (5 + 1 + 1, 2), (6 + 2 + 2, 1)]),
+            dict([(2 + 3, 1), (5 + 3, 3), (6 + 3, 3)]),
+        ]
+        for i, gap_set in enumerate(gap_sets):
+            got = _combined_refseq_gaps(dict(gap_set), union)
+            self.assertEqual(got, expects[i])
+
+        # if union gaps equals ref gaps
+        got = _combined_refseq_gaps({2: 2}, {2: 2})
+        self.assertEqual(got, {})
+
+    def test_gaps_for_injection(self):
+        # for gaps before any otherseq gaps, alignment coord is otherseq coord
+        oseq_gaps = {2: 1, 6: 2}
+        rseq_gaps = {0: 3}
+        expect = {0: 3, 2: 1, 6: 2}
+        seqlen = 50
+        got = _gaps_for_injection(oseq_gaps, rseq_gaps, seqlen)
+        self.assertEqual(got, expect)
+        # for gaps after otherseq gaps seq coord is align coord minus gap
+        # length totals
+        got = _gaps_for_injection(oseq_gaps, {4: 3}, seqlen)
+        expect = {2: 1, 3: 3, 6: 2}
+        self.assertEqual(got, expect)
+        got = _gaps_for_injection(oseq_gaps, {11: 3}, seqlen)
+        expect = {2: 1, 6: 2, 8: 3}
+        self.assertEqual(got, expect)
+        # gaps beyond sequence length added to end of sequence
+        got = _gaps_for_injection({2: 1, 6: 2}, {11: 3, 8: 3}, 7)
+        expect = {2: 1, 6: 2, 7: 6}
+        self.assertEqual(got, expect)
+
+    def test_pairwise_to_multiple(self):
+        """the standalone function constructs a multiple alignment"""
+        expect = {
+            "Ref": "CAG---GAGAACAGAAACCCAT--TACTCACT",
+            "Qu1": "CAG---GAGAACAG---CCCGTGTTACTCACT",
+            "Qu2": "CAGCATGAGAACAGAAACCCGT--TA---ACT",
+            "Qu3": "CAGCATGAGAACAGAAACCCGT----CTCACT",
+            "Qu7": "CAG---GA--ACAGA--CCCGT--TA---ACT",
+            "Qu4": "CAGCATGAGAACAGAAACCCGTGTTACTCACT",
+            "Qu5": "CAG---GAGAACAG---CCCAT--TACTCACT",
+            "Qu6": "CAG---GA-AACAG---CCCAT--TACTCACT",
+        }
+        aln = make_aligned_seqs(expect, moltype="dna").omit_gap_pos()
+        expect = aln.to_dict()
+        for refseq_name in ["Qu3"]:
+            refseq, pwise = make_pairwise(expect, refseq_name)
+            got = pairwise_to_multiple(pwise, ref_seq=refseq, moltype=refseq.moltype)
+            self.assertEqual(len(got), len(aln))
+            orig = dict(pwise)
+            _, pwise = make_pairwise(got.to_dict(), refseq_name)
+            got = dict(pwise)
+            # should be able to recover the original pairwise alignments
+            for key, value in got.items():
+                self.assertEqual(value.to_dict(), orig[key].to_dict(), msg=refseq_name)
+
+            with self.assertRaises(TypeError):
+                pairwise_to_multiple(pwise, "ACGG", DNA)
+
+    def test_pairwise_to_multiple_2(self):
+        """correctly handle alignments with gaps beyond end of query"""
+        # cogent3.core.alignment.DataError: Not all sequences are the same length:
+        # max is 425, min is 419
+        def make_pwise(data, ref_name):
+            result = []
+            for n, seqs in data.items():
+                result.append(
+                    [n, make_aligned_seqs(data=seqs, moltype="dna", array_align=False)]
+                )
+            ref_seq = result[0][1].get_seq(ref_name)
+            return result, ref_seq
+
+        pwise = {
+            "Platypus": {
+                "Opossum": "-----------------GTGC------GAT-------------------------------CCAAAAACCTGTGTC--ACCGT--------GCC----CAGAGCCTCC----CTCAGGCCGCTCGGGGAG---TG-------GCCCCCCG--GC-GGAGGGCAGGGATGGGGAGT-AGGGGTGGCAGTC----GGAACTGGAAGAGCTT-TACAAACC---------GA--------------------GGCT-AGAGGGTC-TGCTTAC-------TTTTTACCTTGG------------GTTTG-CCAGGAGGTAG----------AGGATGA-----------------CTAC--ATCAAG----AGC------------TGGG-------------",
+                "Platypus": "CAGGATGACTACATCAAGAGCTGGGAAGATAACCAGCAAGGAGATGAAGCTCTGGACACTACCAAAGACCCCTGCCAGAACGTGAAGTGCAGCCGACACAAGGTCTGCATCGCTCAGGGCTACCAGAGAGCCATGTGTATCAGCCGCAAGAAGCTGGAGCACAGGATCAAGCAGCCAGCCCTGAAACTCCATGGAAACAGAGAGAGCTTCTGCAAGCCTTGTCACATGACCCAGCTGGCCTCTGTCTGCGGCTCGGACGGACACACTTACAGCTCCGTGTGCAAACTGGAGCAGCAGGCCTGTCTGACCAGCAAGCAGCTGACAGTCAAGTGTGAAGGCCAGTGCCCGTGCCCCACCGATCATGTTCCAGCCTCCACCGCTGATGGAAAACAAGAGACCT",
+            },
+            "Wombat": {
+                "Opossum": "GTGCGATCCAAAAACCTGTGTCACCGTGCCCAGAGCCTCCCTCAGGCCGCTCGG-GGAGTGGCCCCCCGGCGGAGGGCAGGGATGGGGAGTAGGGGTGGCAGTCGGAACTGGAAGAGCTTTACAAACCGAGGCTAGAGGGTCTGCTTACTTTTTACCTTGG------GTTT--GC-CAGGA---GGT----AGAGGATGACTACATCAAGAGCTGGG---------------------------",
+                "Wombat": "--------CA----------TCACCGC-CCCTGCACC---------CGGCTCGGCGGAGGGGGATTCTAA-GGGGGTCAAGGATGGCGAG-ACCCCTGGCAATTTCA--TGGAGGA------CGAGCAATGGCT-----GTC-GTCCATCTCCCAGTATAGCGGCAAGATCAAGCACTGGAACCGCTTCCGAGACGATGACTACATCAAGAGCTGGGAGGACAGTCAGCAAGGAGATGAAGCGC",
+            },
+        }
+        pwise, ref_seq = make_pwise(pwise, "Opossum")
+        aln = pairwise_to_multiple(pwise, ref_seq, ref_seq.moltype)
+        self.assertNotIsInstance(aln, NotCompleted)
+
+        pwise = {
+            "Platypus": {
+                "Opossum": "-----------------GTGC------GAT-------------------------------CCAAAAACCTGTGTC",
+                "Platypus": "CAGGATGACTACATCAAGAGCTGGGAAGATAACCAGCAAGGAGATGAAGCTCTGGACACTACCAAAGACCCCTGCC",
+            },
+            "Wombat": {
+                "Opossum": "GTGCGATCCAAAAACCTGTGTC",
+                "Wombat": "--------CA----------TC",
+            },
+        }
+        pwise, ref_seq = make_pwise(pwise, "Opossum")
+        aln = pairwise_to_multiple(pwise, ref_seq, ref_seq.moltype)
+        self.assertNotIsInstance(aln, NotCompleted)
 
 
 class ProgressiveAlignment(TestCase):
@@ -361,6 +443,46 @@ class ProgressiveAlignment(TestCase):
         )
         aln = aligner(seqs)
         self.assertEqual(len(aln), 14)
+
+
+class GapOffsetTests(TestCase):
+    def test_empty(self):
+        """create an empty offset"""
+        goff = _GapOffset({})
+        for i in range(4):
+            self.assertEqual(goff[i], 0)
+
+        goff = _GapOffset({}, invert=True)
+        for i in range(4):
+            self.assertEqual(goff[i], 0)
+
+    def test_repr_str(self):
+        """repr and str work"""
+        goff = _GapOffset({}, invert=True)
+        for func in (str, repr):
+            self.assertEqual(func(goff), "{}")
+
+    def test_gap_offset(self):
+        goff = _GapOffset({1: 2, 3: 4})
+        self.assertEqual(goff.min_pos, 1)
+        self.assertEqual(goff.max_pos, 3)
+        self.assertEqual(goff.total, 6)
+        self.assertEqual(goff[0], 0)
+        self.assertEqual(goff[1], 0)
+        self.assertEqual(goff[2], 2)
+        self.assertEqual(goff[3], 2)
+        self.assertEqual(goff[4], 6)
+
+    def test_gap_offset_invert(self):
+        aln2seq = _GapOffset({2: 1, 5: 2, 7: 2}, invert=True)
+        self.assertEqual(aln2seq._store, {3: 1, 2: 0, 8: 3, 6: 1, 12: 5, 10: 3})
+        self.assertEqual(aln2seq.max_pos, 12)
+        self.assertEqual(aln2seq.min_pos, 2)
+        self.assertEqual(aln2seq[11], 3)
+        seq2aln = _GapOffset({2: 1, 5: 2, 7: 2})
+        for seq_pos in range(20):
+            aln_pos = seq_pos + seq2aln[seq_pos]
+            self.assertEqual(aln_pos - aln2seq[aln_pos], seq_pos)
 
 
 if __name__ == "__main__":
