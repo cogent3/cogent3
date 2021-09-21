@@ -142,7 +142,7 @@ def ssGN(optimise_motif_probs=True, **kw):
 
 def K80(**kw):
     """Kimura 1980"""
-    required = dict(equal_motif_probs=True, optimise_motif_probs=False)
+    required = dict(name="K80", equal_motif_probs=True, optimise_motif_probs=False)
     kwargs = {}
     kwargs.update(kw)
     kwargs.update(required)
@@ -151,7 +151,7 @@ def K80(**kw):
 
 def JC69(**kw):
     """Jukes and Cantor's 1969 model"""
-    required = dict(equal_motif_probs=True, optimise_motif_probs=False)
+    required = dict(name="JC69", equal_motif_probs=True, optimise_motif_probs=False)
     kwargs = {}
     kwargs.update(kw)
     kwargs.update(required)
