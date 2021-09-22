@@ -95,5 +95,6 @@ def HKY85(**kw):
 def F81(**kw):
     """Felsenstein's 1981 model"""
     kw["recode_gaps"] = True
-    kw["name"] = "F81"
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "F81")
     return _solved_nucleotide([], **kw)
