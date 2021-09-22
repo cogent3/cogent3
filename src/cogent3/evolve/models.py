@@ -248,6 +248,7 @@ def GY94(**kw):
     kwargs.update(required)
     return Y98(**kwargs)
 
+
 def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
 
