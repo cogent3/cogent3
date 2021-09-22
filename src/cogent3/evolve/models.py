@@ -254,7 +254,7 @@ def Y98(**kw):
 
     Z Yang, 1998, Mol Biol Evol, 15(5):568-73"""
 
-    required = dict(predicates=[_kappa, _omega], mprob_model="tuple", model_gaps=False, name="Y98")
+    required = dict(predicates=[_kappa, _omega], mprob_model="tuple", model_gaps=False, name=kw.get("name", "Y98"))
     kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
