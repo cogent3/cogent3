@@ -104,10 +104,7 @@ class CannedModelsTest(TestCase):
         """name attribute matches model name"""
         for model_name in models:
             model = get_model(model_name)
-            if model.name is not model_name:
-                self.assertTrue(model.name.startswith(model_name))
-            else:
-                self.assertEqual(model.name, model_name)
+            self.assertTrue(model.name.startswith(model_name))
 
 
 def get_sample_model_types(mod_type=None):
