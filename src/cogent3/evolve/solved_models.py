@@ -88,7 +88,8 @@ def TN93(**kw):
 def HKY85(**kw):
     """Hasegawa, Kishino and Yano 1985 model"""
     kw["recode_gaps"] = True
-    kw["name"] = "HKY85"
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "HKY85")
     return _solved_nucleotide([kappa], **kw)
 
 
