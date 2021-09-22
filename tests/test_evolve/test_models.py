@@ -105,9 +105,9 @@ class CannedModelsTest(TestCase):
         for model_name in models:
             model = get_model(model_name)
             if model.name != model_name:
-                self.assertTrue(model.name.startswith(model_name))
+                self.assertTrue(model.name.startswith(model_name), msg=f"{model.name} not starts with {model_name}")
             else:
-                self.assertEqual(model.name, model_name)
+                self.assertEqual(model.name, model_name, msg=f"{model.name} != {model_name}")
 
 
 
