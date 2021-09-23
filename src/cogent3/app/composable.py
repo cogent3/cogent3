@@ -426,22 +426,24 @@ class Composable(ComposableType):
 
         start = time.time()
         loggable = hasattr(self, "data_store")
-        if not loggable:
+        if (
+            not loggable
+            or type(logger) != scitrack.CachingLogger
+            and type(logger) != str
+            and logger != True
+        ):
             LOGGER = None
         elif type(logger) == scitrack.CachingLogger:
             LOGGER = logger
         elif type(logger) == str:
             LOGGER = scitrack.CachingLogger
             LOGGER.log_file_path = logger
-        elif logger == True:
+        else:
             log_file_path = pathlib.Path(_make_logfile_name(self))
             src = pathlib.Path(self.data_store.source)
             log_file_path = src.parent / log_file_path
             LOGGER = scitrack.CachingLogger()
             LOGGER.log_file_path = str(log_file_path)
-        else:
-            LOGGER = None
-
         if LOGGER:
             LOGGER.log_message(str(self), label="composable function")
             LOGGER.log_versions(["cogent3"])
