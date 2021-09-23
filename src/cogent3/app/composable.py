@@ -709,7 +709,7 @@ class user_function(Composable):
         >>> ufunc(val) == foo(val, arg2val, kwarg1=True)
         """
         super(user_function, self).__init__(
-            input_types=input_types, output_types=output_types
+            input_types=input_types, output_types=output_types, data_types=data_types
         )
         self._user_func = func
         self._args = args
@@ -746,3 +746,47 @@ class user_function(Composable):
 
     def __repr__(self):
         return str(self)
+
+
+class appify:
+    """function decorator for generating user apps. Simplifies creation of
+    user_function() instancese, e.g.
+
+    >>> @appify(SEQUENCE_TYPE, SEQUENCE_TYPE, data_types="SequenceCollection")
+    ... def omit_seqs(seqs, quantile=None, gap_fraction=1, moltype="dna"):
+    ...     return seqs.omit_bad_seqs(quantile=quantile, gap_fraction=gap_fraction, moltype="dna")
+    ...
+
+    `omit_seqs()` is now an app factory, allowing creating variants of the app.
+
+    >>> omit_bad = omit_seqs(quantile=0.95)
+
+    omit_bad is now a composable user_function app. Calling with different
+    args/kwargs values returns a variant app, as per the behaviour of builtin
+    apps.
+    """
+
+    @extend_docstring_from(ComposableType.__init__)
+    def __init__(self, input_types, output_types, data_types=None) -> None:
+        self._it = input_types
+        self._ot = output_types
+        self._dt = data_types
+        self._func = None
+
+    def __call__(self, func):
+        # executed on use as decorator
+        self._func = func
+        # makes the returned reference have the name, docs etc.
+        # of original function
+        self._make_app.__func__.__doc__ = f"appify: {func.__doc__}"
+        self._make_app.__func__.__repr__ = lambda x: repr(func)
+        self._make_app.__func__.__name__ = func.__name__
+        self._make_app.__func__.__module__ = func.__module__
+
+        return self._make_app
+
+    def _make_app(self, *args, **kwargs):
+        # construct the user_function app
+        return user_function(
+            self._func, self._it, self._ot, *args, data_types=self._dt, **kwargs
+        )
