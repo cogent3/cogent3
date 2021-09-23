@@ -1,12 +1,12 @@
-Custom composable apps
-======================
+Turn your functions into composable apps
+========================================
 
-You can make a simple customised app using the ``user_function`` app. This is a wrapper class that takes a reference to your function and the input, output and data types. The resulting app can then become part of a composed function.
+This is super easy -- just use the ``appify`` decorator! This generates a ``user_function`` wrapper class that takes a reference to your function and the input, output and data types. The resulting app can then become part of a composed function.
 
-Defining a ``user_function`` requires you consider four things.
+You need four things.
 
 ``func``
-    A function you have written. This is required.
+    A function to decorate ... duh!
 
 ``input_types``
     A type, or collection of type that your function can handle. This setting dictates what other apps have an output that is a compatable input for your function.
@@ -20,42 +20,40 @@ Defining a ``user_function`` requires you consider four things.
 A simple example
 ----------------
 
-We make a very simple function ``first4``, that returns the first 4 elements of an alignment.
+Let's make an app that returns the elements of an alignment up to a specified index, with the index being a keyword argument. We now define a decorated function ``up_to()``
 
 .. jupyter-execute::
 
-    def first4(val):
-        return val[:4]
+    from cogent3.app.composable import ALIGNED_TYPE, appify
 
-Now we define a ``user_function`` instance that takes and returns an ``ALIGNED_TYPE``.
+    @appify(ALIGNED_TYPE, ALIGNED_TYPE, data_types="Alignment")
+    def up_to(val, index=4):
+        return val[:index]
 
-.. jupyter-execute::
-
-    from cogent3.app.composable import user_function, ALIGNED_TYPE
-
-    just4 = user_function(
-        first4,
-        input_types=ALIGNED_TYPE,
-        output_types=ALIGNED_TYPE,
-        data_types="Alignment",
-    )
-
+Now we define a ``user_function`` instance that takes and ret
 The ``repr()`` of your ``user_function`` instance indicates the wrapped function and the module it's in.
 
 .. jupyter-execute::
 
-    just4
+    up_to
 
-You use it like all composable apps which we demonstrate using a small sample alignment.
+We create an app instance for a specific value of ``index``
+
+.. jupyter-execute::
+
+    first4 = up_to(index=4)
+    first4
+
+You use ``first4()`` like all composable apps, e.g.
 
 .. jupyter-execute::
 
     from cogent3 import make_aligned_seqs
 
     aln = make_aligned_seqs(
-        data=dict(a="GCAAGCGTTTAT", b="GCTTTTGTCAAT"), array_align=False
+        data=dict(a="GCAAGCGTTTAT", b="GCTTTTGTCAAT"), array_align=False, moltype="dna"
     )
-    result = just4(aln)
+    result = first4(aln)
     result
 
 Renaming sequences
@@ -68,46 +66,40 @@ This time we wrap a method call on a ``SequenceCollection`` (and the alignment s
 .. jupyter-execute::
 
     from cogent3.app.composable import (
-        user_function,
         ALIGNED_TYPE,
         SEQUENCE_TYPE,
         SERIALISABLE_TYPE,
+        appify,
     )
 
-    def renamer(aln):
+    @appify((ALIGNED_TYPE, SEQUENCE_TYPE), SERIALISABLE_TYPE)
+    def rename_seqs(aln):
         """upper case names"""
         return aln.rename_seqs(lambda x: x.upper())
 
-    rename_seqs = user_function(
-        renamer,
-        input_types=(ALIGNED_TYPE, SEQUENCE_TYPE),
-        output_types=SERIALISABLE_TYPE,
-        data_types=("SequenceCollection", "Alignment", "ArrayAlignment"),
-    )
-    result = rename_seqs(aln)
-    result.names
+    renamer = rename_seqs()
+    result = renamer(aln)
+    result
 
-A user function for with a different output type
-------------------------------------------------
+A user app with a different output type
+---------------------------------------
 
 In this example, we make an function that returns ``DistanceMatrix`` of an alignment.
 
 .. jupyter-execute::
 
     from cogent3.app.composable import (
-        user_function,
         ALIGNED_TYPE,
         PAIRWISE_DISTANCE_TYPE,
+        appify,
     )
 
-    def _get_dist(aln):
-        return aln.distance_matrix(calc="hamming", show_progress=False)
+    @appify(ALIGNED_TYPE, PAIRWISE_DISTANCE_TYPE)
+    def get_dists(aln, calc="hamming"):
+        return aln.distance_matrix(calc=calc, show_progress=False)
 
-    get_dist = user_function(
-        _get_dist,
-        input_types=ALIGNED_TYPE,
-        output_types=PAIRWISE_DISTANCE_TYPE,
-        data_types=("Alignment", "ArrayAlignment"),
-    )
-    result = get_dist(aln)
+    percent_dist = get_dists(calc="percent")
+    result = percent_dist(aln)
     result
+
+.. note:: We omitted the ``data_types`` argument just for demonstration purposes.
