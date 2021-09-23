@@ -45,9 +45,7 @@ __status__ = "Alpha"
 def _make_logfile_name(process):
     text = str(process)
     text = re.split(r"\s+\+\s+", text)
-    parts = []
-    for part in text:
-        parts.append(part[: part.find("(")])
+    parts = [part[: part.find("(")] for part in text]
     result = "-".join(parts)
     pid = os.getpid()
     result = f"{result}-pid{pid}.log"
@@ -423,7 +421,7 @@ class Composable(ComposableType):
             dstore = [dstore]
 
         dstore = [e for e in dstore if e]
-        if len(dstore) == 0:
+        if not dstore:
             raise ValueError("dstore is empty")
 
         start = time.time()
@@ -448,8 +446,7 @@ class Composable(ComposableType):
             LOGGER.log_message(str(self), label="composable function")
             LOGGER.log_versions(["cogent3"])
         results = []
-        i = 0
-        process = self.input if self.input else self
+        process = self.input or self
         if self.input:
             # As we will be explicitly calling the input object, we disconnect
             # the two-way interaction between input and self. This means self
@@ -461,8 +458,10 @@ class Composable(ComposableType):
         # with a tinydb dstore, this also excludes data that failed to complete
         todo = [m for m in dstore if not self.job_done(m)]
 
-        for result in ui.imap(
-            process, todo, parallel=parallel, par_kw=par_kw, mininterval=mininterval
+        for i, result in enumerate(
+            ui.imap(
+                process, todo, parallel=parallel, par_kw=par_kw, mininterval=mininterval
+            )
         ):
             outcome = result if process is self else self(result)
             results.append(outcome)
@@ -496,8 +495,6 @@ class Composable(ComposableType):
                     LOGGER.log_message(
                         f"{outcome.origin} : {outcome.message}", label=outcome.type
                     )
-
-            i += 1
 
         finish = time.time()
         taken = finish - start
