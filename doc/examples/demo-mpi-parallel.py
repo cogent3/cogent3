@@ -4,6 +4,7 @@ import time
 
 from cogent3.util import parallel
 
+
 # the following environment variable is created by PBS on job execution
 PBS_NCPUS = os.environ.get("PBS_NCPUS", None)
 if PBS_NCPUS is None:

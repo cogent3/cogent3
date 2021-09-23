@@ -64,13 +64,13 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
         assert_allclose(P1, P2)
 
 
-def _solved_nucleotide(name, predicates, rate_matrix_required=True, **kw):
+def _solved_nucleotide(predicates, rate_matrix_required=True, **kw):
     if _solved_models is not None and not rate_matrix_required:
         klass = PredefinedNucleotide
     else:
         klass = TimeReversibleNucleotide
     kw["model_gaps"] = False
-    return klass(name=name, predicates=predicates, **kw)
+    return klass(predicates=predicates, **kw)
 
 
 kappa_y = MotifChange("T", "C").aliased("kappa_y")
@@ -81,16 +81,21 @@ kappa = (kappa_y | kappa_r).aliased("kappa")
 def TN93(**kw):
     """Tamura and Nei 1993 model"""
     kw["recode_gaps"] = True
-    return _solved_nucleotide("TN93", [kappa_y, kappa_r], **kw)
+    kw["name"] = "TN93"
+    return _solved_nucleotide([kappa_y, kappa_r], **kw)
 
 
 def HKY85(**kw):
     """Hasegawa, Kishino and Yano 1985 model"""
     kw["recode_gaps"] = True
-    return _solved_nucleotide("HKY85", [kappa], **kw)
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "HKY85")
+    return _solved_nucleotide([kappa], **kw)
 
 
 def F81(**kw):
     """Felsenstein's 1981 model"""
     kw["recode_gaps"] = True
-    return _solved_nucleotide("F81", [], **kw)
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "F81")
+    return _solved_nucleotide([], **kw)

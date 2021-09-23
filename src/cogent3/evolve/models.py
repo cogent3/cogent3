@@ -142,7 +142,7 @@ def ssGN(optimise_motif_probs=True, **kw):
 
 def K80(**kw):
     """Kimura 1980"""
-    required = dict(equal_motif_probs=True, optimise_motif_probs=False)
+    required = dict(name="K80", equal_motif_probs=True, optimise_motif_probs=False)
     kwargs = {}
     kwargs.update(kw)
     kwargs.update(required)
@@ -151,7 +151,7 @@ def K80(**kw):
 
 def JC69(**kw):
     """Jukes and Cantor's 1969 model"""
-    required = dict(equal_motif_probs=True, optimise_motif_probs=False)
+    required = dict(name="JC69", equal_motif_probs=True, optimise_motif_probs=False)
     kwargs = {}
     kwargs.update(kw)
     kwargs.update(required)
@@ -242,16 +242,19 @@ def GY94(**kw):
     """Goldman and Yang 1994 codon substitution model.
 
     N Goldman and Z Yang, 1994, Mol Biol Evol, 11(5):725-36."""
-    return Y98(**kw)
+    required = dict(name="GY94")
+    kwargs = {}
+    kwargs.update(kw)
+    kwargs.update(required)
+    return Y98(**kwargs)
 
 
 def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
 
     Z Yang, 1998, Mol Biol Evol, 15(5):568-73"""
-    required = dict(
-        name="Y98", predicates=[_kappa, _omega], mprob_model="tuple", model_gaps=False
-    )
+
+    required = dict(predicates=[_kappa, _omega], mprob_model="tuple", model_gaps=False, name=kw.get("name", "Y98"))
     kwargs = dict(recode_gaps=True, motif_probs=None)
     kwargs.update(kw)
     kwargs.update(required)
