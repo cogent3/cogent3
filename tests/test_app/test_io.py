@@ -122,6 +122,14 @@ class TestIo(TestCase):
         for result in results:
             self.assertIsInstance(result, ArrayAlignment)
 
+    def test_load_aligned_paml(self):
+        """should handle paml too"""
+        paml_paths = io_app.get_data_store(self.basedir, suffix="paml")
+        loader = io_app.load_aligned(format="paml")
+        results = [loader(m) for m in paml_paths]
+        for result in results:
+            self.assertIsInstance(result, ArrayAlignment)
+
     def test_load_aligned_from_zip(self):
         """correctly loads aligned seqs from a zip archive"""
 
