@@ -702,11 +702,11 @@ class user_function(Composable):
         If you create a function ``foo(arg1, arg2, kwarg1=False)``. You can
         turn this into a user function, e.g.
 
-        >>> ufunc = user_function(foo, in_types, out_types, arg2val, kwarg1=True)
+        >>> ufunc = user_function(foo, in_types, out_types, arg1val, kwarg1=True)
 
         Then
 
-        >>> ufunc(val) == foo(val, arg2val, kwarg1=True)
+        >>> ufunc(arg2val) == foo(arg1val, arg2val, kwarg1=True)
         """
         super(user_function, self).__init__(
             input_types=input_types, output_types=output_types, data_types=data_types

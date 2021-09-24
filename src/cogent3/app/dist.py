@@ -11,6 +11,7 @@ from .composable import (
     ALIGNED_TYPE,
     PAIRWISE_DISTANCE_TYPE,
     SERIALISABLE_TYPE,
+    TABULAR_TYPE,
     ComposableDistance,
 )
 
@@ -33,7 +34,7 @@ class fast_slow_dist(ComposableDistance):
     """
 
     _input_types = ALIGNED_TYPE
-    _output_types = (PAIRWISE_DISTANCE_TYPE, SERIALISABLE_TYPE)
+    _output_types = (PAIRWISE_DISTANCE_TYPE, TABULAR_TYPE, SERIALISABLE_TYPE)
     _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
@@ -121,6 +122,7 @@ class fast_slow_dist(ComposableDistance):
         else:
             empty = {p: 0 for p in itertools.product(aln.names, aln.names)}
             dists = DistanceMatrix(empty)
+        dists.source = aln.info.source
         if self._sm:
             for a in dists.template.names[0]:
                 for b in dists.template.names[1]:

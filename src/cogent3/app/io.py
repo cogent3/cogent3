@@ -21,6 +21,7 @@ from cogent3.util.table import Table
 from .composable import (
     ALIGNED_TYPE,
     IDENTIFIER_TYPE,
+    PAIRWISE_DISTANCE_TYPE,
     SEQUENCE_TYPE,
     SERIALISABLE_TYPE,
     TABULAR_RESULT_TYPE,
@@ -331,7 +332,7 @@ class load_tabular(ComposableTabular):
 class write_tabular(_checkpointable, ComposableTabular):
     """writes tabular data"""
 
-    _input_types = (TABULAR_RESULT_TYPE, TABULAR_TYPE)
+    _input_types = (TABULAR_RESULT_TYPE, TABULAR_TYPE, PAIRWISE_DISTANCE_TYPE)
     _output_types = IDENTIFIER_TYPE
     _data_types = ("Table", "DictArray", "DistanceMatrix")
 
