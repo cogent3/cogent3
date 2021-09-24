@@ -1,5 +1,6 @@
 import os
 
+from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
 from numpy.testing import assert_allclose
@@ -204,6 +205,13 @@ class FastSlowDistTests(TestCase):
         treestring = "(Human:0.2,Bandicoot:0.2)"
         aligner = align.progressive_align(model="WG01", guide_tree=treestring)
         _ = aligner(self.seqs5)
+
+    def test_composes_with_write_tabular(self):
+        """correctly links to tabular"""
+        with TemporaryDirectory(dir=".") as dirname:
+            writer = io.write_tabular(dirname)
+            dist_calc = dist_app.fast_slow_dist(distance="hamming", moltype="protein")
+            _ = dist_calc + writer
 
 
 if __name__ == "__main__":
