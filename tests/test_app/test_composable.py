@@ -11,6 +11,7 @@ from cogent3.app.composable import (
     SERIALISABLE_TYPE,
     ComposableSeq,
     NotCompleted,
+    appify,
     user_function,
 )
 from cogent3.app.sample import min_length, omit_degenerates
@@ -367,6 +368,23 @@ class TestUserFunction(TestCase):
         got_2 = u_function_2(aln_2)
         self.assertEqual(got_1.to_dict(), {"a": "GCAA", "b": "GCTT"})
         self.assertEqual(got_2, {("s1", "s2"): 2.0, ("s2", "s1"): 2.0})
+
+    def test_appify(self):
+        """acts like a decorator should!"""
+
+        @appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
+        def slicer(val, index=2):
+            """my docstring"""
+            return val[:index]
+
+        self.assertEqual(slicer.__doc__, "appify: my docstring")
+        self.assertEqual(slicer.__name__, "slicer")
+        app = slicer()
+        self.assertTrue(SERIALISABLE_TYPE in app._input_types)
+        self.assertTrue(SERIALISABLE_TYPE in app._output_types)
+        self.assertEqual(app(list(range(4))), [0, 1])
+        app2 = slicer(index=3)
+        self.assertEqual(app2(list(range(4))), [0, 1, 2])
 
     def test_user_function_repr(self):
         u_function_1 = user_function(self.foo, "aligned", "aligned")
