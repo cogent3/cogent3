@@ -213,6 +213,20 @@ class FastSlowDistTests(TestCase):
             dist_calc = dist_app.fast_slow_dist(distance="hamming", moltype="protein")
             _ = dist_calc + writer
 
+    def test_functions_as_composable(self):
+        """works as a composable app"""
+        from pathlib import Path
+
+        loader = io.load_aligned(moltype="dna", format="paml")
+        dist = dist_app.fast_slow_dist("hamming", moltype="dna")
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            writer = io.write_tabular(dirname)
+            proc = loader + dist + writer
+            _ = proc("data/brca1_5.250.paml")
+            output = dirname / "brca1_5.250.tsv"
+            self.assertTrue(output.exists())
+
 
 if __name__ == "__main__":
     main()

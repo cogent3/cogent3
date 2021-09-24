@@ -122,6 +122,7 @@ class fast_slow_dist(ComposableDistance):
         else:
             empty = {p: 0 for p in itertools.product(aln.names, aln.names)}
             dists = DistanceMatrix(empty)
+        dists.source = aln.info.source
         if self._sm:
             for a in dists.template.names[0]:
                 for b in dists.template.names[1]:
