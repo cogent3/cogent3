@@ -215,11 +215,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
         aln = load_aligned_seqs(filename, **kw)
         if test_write:
             suffix, cmpr = get_format_suffixes(filename)
-            if not cmpr:
-                cmpr = ""
-            else:
-                cmpr = f".{cmpr}"
-
+            cmpr = "" if not cmpr else f".{cmpr}"
             fn = tempfile.mktemp(suffix="." + suffix + cmpr)
             aln.write(filename=fn)
             os.remove(fn)
@@ -380,9 +376,7 @@ class AlignmentTestMethods(unittest.TestCase):
         alignment = make_aligned_seqs(
             data={"seq1": "ACGTACGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
         )
-        result = []
-        for bit in alignment.sliding_windows(5, 2):
-            result += [bit]
+        result = [bit for bit in alignment.sliding_windows(5, 2)]
         self.assertEqual(
             result[0].to_dict(), {"seq3": "ACGTA", "seq2": "ACGTA", "seq1": "ACGTA"}
         )
