@@ -289,8 +289,12 @@ class _Serialisable:
         return json.dumps(self.to_rich_dict())
 
 
+# https://pythonspeed.com/products/filmemoryprofiler/
+
+
 class _Feature(_Annotatable, _Serialisable):
     qualifier_names = ["type", "name"]
+    __slots__ = ["parent", "map", "original", "_serialisable", "base", "base_map"]
 
     def __init__(self, parent, map, original=None, **kw):
         d = locals()
