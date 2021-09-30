@@ -352,7 +352,7 @@ You can also specify column(s) are categories
 Get a table of counts as a contingency table
 ============================================
 
-If our table consists of counts data, the ``Table`` can convert it into a ``CategoryCount`` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the ``index`` argument.
+If our table consists of counts data, the ``Table`` can convert it into a ``CategoryCount`` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the ``index_name`` argument.
 
 .. jupyter-execute::
 
@@ -368,6 +368,13 @@ If our table consists of counts data, the ``Table`` can convert it into a ``Cate
 
     g_test = contingency.G_independence()
     g_test
+
+Alternatively, you could also specify the ``index_name`` of the category column as
+
+.. jupyter-execute::
+    
+    table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]})
+    contingency = table.to_categorical(["Ts", "Tv"], index_name="")
 
 Appending tables
 ================
@@ -770,39 +777,7 @@ Getting a table as html
     from cogent3 import load_table
 
     table = load_table("data/stats.tsv")
-    straight_html = table.to_rich_html(compact=True)
-
-We can provide customised formatting via a callback function.
-
-.. jupyter-execute::
-
-    def format_cell(value, row_num, col_num):
-        style = 'style="background: rgba(176, 245, 102, 0.25);"' if value else ""
-        return f"<td {style}>{value}</td>"
-
-    rich_html = table.to_rich_html(row_cell_func=format_cell, compact=False)
-
-Which produces the following...
-
-.. jupyter-execute::
-    :hide-code:
-
-    from IPython.core.display import HTML
-    HTML(rich_html)
-
-We could also use control html element format.
-
-.. jupyter-execute::
-
-    element_format = dict(thead=f'<thead style="background: rgba(0, 250, 0, 0.1);">')
-    rich_html = table.to_rich_html(element_formatters=element_format)
-
-Which produces the following...
-
-.. jupyter-execute::
-    :hide-code:
-
-    HTML(rich_html)
+    straight_html = table.to_html()
 
 What formats can be written?
 ============================

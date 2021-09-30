@@ -2115,7 +2115,7 @@ class Table:
         draw.layout |= default_layout
         return draw
 
-    def to_categorical(self, columns=None):
+    def to_categorical(self, columns=None, index_name=None):
         """construct object that can be used for statistical tests
 
         Parameters
@@ -2138,6 +2138,7 @@ class Table:
         from cogent3.maths.stats.contingency import CategoryCounts
         from cogent3.util.dict_array import DictArrayTemplate
 
+        self.index_name = index_name if index_name is not None else self.index_name
         if self.index_name is None:
             raise ValueError("requires index_name be set")
 

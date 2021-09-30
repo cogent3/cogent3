@@ -1927,10 +1927,10 @@ class TableTests(TestCase):
         data = {"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}
         table = make_table(header=["", "Ts", "Tv"], data=data)
         with self.assertRaises(ValueError):
+            # did not set an index_name
             table.to_categorical(columns=["Ts", "Tv"])
 
-        table.index_name = ""
-        got = table.to_categorical(columns=["Ts", "Tv"])
+        got = table.to_categorical(columns=["Ts", "Tv"], index_name="")
         assert_equal(got.observed, table[:, 1:].array)
 
         got = table.to_categorical(["Ts"])
