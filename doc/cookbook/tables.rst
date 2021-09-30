@@ -352,7 +352,7 @@ You can also specify column(s) are categories
 Get a table of counts as a contingency table
 ============================================
 
-If our table consists of counts data, the ``Table`` can convert it into a ``CategoryCount`` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the ``index`` argument.
+If our table consists of counts data, the ``Table`` can convert it into a ``CategoryCount`` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the ``index_name`` argument.
 
 .. jupyter-execute::
 

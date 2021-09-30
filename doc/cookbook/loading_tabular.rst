@@ -191,7 +191,7 @@ A ``Table`` can be indexed like a dict if you designate a column as the index (a
 
     table["NP_055852", "Region"]
 
-.. note:: The ``index`` argument also applies when using ``make_table()``.
+.. note:: The ``index_name`` argument also applies when using ``make_table()``.
 
 Create a table from a ``pandas.DataFrame``
 ==========================================
