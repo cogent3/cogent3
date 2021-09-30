@@ -3117,19 +3117,13 @@ class AlignmentI(object):
             column are ignored.
 
         """
-        seqs = [str(self.named_seqs[n]) for n in self.names]
-        seq1 = seqs[0]
-        positions = list(zip(*seqs[1:]))
+        gaps = set(self.moltype.gaps)
         result = []
-        for (position, (motif1, column)) in enumerate(zip(seq1, positions)):
-            for motif in column:
-                if motif != motif1:
-                    if include_gap_motif:
-                        result.append(position)
-                        break
-                    elif motif != "-" and motif1 != "-":
-                        result.append(position)
-                        break
+        for position, column in enumerate(self.iter_positions()):
+            column = set(column)
+            num_states = len(column) if include_gap_motif else len(column - gaps)
+            if num_states > 1:
+                result.append(position)
 
         return result
 

@@ -2181,9 +2181,14 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_variable_positions(self):
         """correctly identify variable positions"""
-        new_seqs = {"seq1": "ACGTACGT", "seq2": "ACCGACGT", "seq3": "ACGTACGT"}
+        new_seqs = {"A": "-CG-C", "B": "ACAA?", "C": "GCGAC"}
         aln = self.Class(data=new_seqs, moltype=DNA)
-        self.assertEqual(aln.variable_positions(), [2, 3])
+        self.assertEqual(aln.variable_positions(include_gap_motif=True), [0, 2, 3, 4])
+        self.assertEqual(aln.variable_positions(include_gap_motif=False), [0, 2])
+        new_seqs = {"A": "GCGAC", "B": "GCGAC", "C": "GCGAC"}
+        aln = self.Class(data=new_seqs, moltype=DNA)
+        self.assertEqual(aln.variable_positions(include_gap_motif=True), [])
+        self.assertEqual(aln.variable_positions(include_gap_motif=False), [])
 
     def test_to_type(self):
         """correctly interconvert between alignment types"""
