@@ -1728,7 +1728,9 @@ class _SequenceCollectionBase:
         from cogent3.draw.dotplot import Dotplot
         from cogent3.draw.drawable import AnnotatedDrawable
 
-        if name1 is None and name2 is None:
+        if len(self.names) == 1:
+            name1 = name2 = self.names[0]
+        elif name1 is None and name2 is None:
             name1, name2 = list(choice(self.names, size=2, replace=False))
         elif not (name1 and name2):
             names = list(set(self.names + [None]) ^ set([name1, name2]))
