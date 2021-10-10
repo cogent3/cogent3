@@ -3,7 +3,6 @@ import os
 import pathlib
 import shutil
 import sys
-import zipfile
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -21,7 +20,6 @@ from cogent3.app.data_store import (
     SingleReadDataStore,
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
-    WritableZippedDataStore,
     load_record_from_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
@@ -37,7 +35,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class DataStoreBaseTests:
+class DataStoreBaseReadTests:
     basedir = "data"
     ReadClass = None
     WriteClass = None
@@ -99,29 +97,6 @@ class DataStoreBaseTests:
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         self.assertEqual(len(dstore), len(dstore.members))
 
-    def test_make_identifier(self):
-        """correctly construct an identifier for a new member"""
-        with TemporaryDirectory(dir=".") as dirname:
-            if dirname.startswith("." + os.sep):
-                dirname = dirname[2:]
-
-            path = os.path.join(dirname, self.basedir)
-            base_path = path.replace(".zip", "")
-            dstore = self.WriteClass(path, suffix=".json", create=True)
-            name = "brca1.fasta"
-            got = dstore.make_absolute_identifier(name)
-            expect = os.path.join(base_path, name.replace("fasta", "json"))
-            self.assertEqual(got, expect)
-
-            # now using a DataStoreMember
-            member = DataStoreMember(
-                os.path.join("blah" + os.sep + "blah", f"2-{name}"), None
-            )
-            got = dstore.make_absolute_identifier(member)
-            expect = os.path.join(base_path, member.name.replace("fasta", "json"))
-            self.assertEqual(got, expect)
-            dstore.close()
-
     def test_read(self):
         """correctly read content"""
         with open("data" + os.sep + "brca1.fasta") as infile:
@@ -147,6 +122,42 @@ class DataStoreBaseTests:
         # this property also directly available on the member
         member = dstore.get_member(identifier)
         self.assertEqual(member.md5, md5)
+
+    def test_filter(self):
+        """filter method should return correctly matching members"""
+        dstore = self.ReadClass(self.basedir, suffix="*")
+        got = [m.name for m in dstore.filtered(callback=lambda x: "brca1" in str(x))]
+        self.assertTrue(len(set(got)), 2)
+        got = dstore.filtered(pattern="*brca1*")
+        expect = [
+            path
+            for path in os.listdir(self.basedir.replace(".zip", ""))
+            if "brca1" in path
+        ]
+        self.assertEqual(len(got), len(expect))
+
+    def test_pickleable_roundtrip(self):
+        """pickling of data stores should be reversible"""
+        from pickle import dumps, loads
+
+        dstore = self.ReadClass(self.basedir, suffix="*")
+        re_dstore = loads(dumps(dstore))
+        got = re_dstore[0].read()
+        self.assertEqual(str(dstore), str(re_dstore))
+        self.assertEqual(dstore[0].read(), re_dstore[0].read())
+
+    def test_pickleable_member_roundtrip(self):
+        """pickling of data store members should be reversible"""
+        from pickle import dumps, loads
+
+        dstore = self.ReadClass(self.basedir, suffix="*")
+        re_member = loads(dumps(dstore[0]))
+        data = re_member.read()
+        self.assertTrue(len(data) > 0)
+
+
+class DataStoreBaseWriteTests:
+    WriteClass = None
 
     def test_write(self):
         """correctly write content"""
@@ -229,38 +240,6 @@ class DataStoreBaseTests:
             self.assertEqual(got_b, expect_b)
             dstore.close()
 
-    def test_filter(self):
-        """filter method should return correctly matching members"""
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        got = [m.name for m in dstore.filtered(callback=lambda x: "brca1" in str(x))]
-        self.assertTrue(len(set(got)), 2)
-        got = dstore.filtered(pattern="*brca1*")
-        expect = [
-            path
-            for path in os.listdir(self.basedir.replace(".zip", ""))
-            if "brca1" in path
-        ]
-        self.assertEqual(len(got), len(expect))
-
-    def test_pickleable_roundtrip(self):
-        """pickling of data stores should be reversible"""
-        from pickle import dumps, loads
-
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        re_dstore = loads(dumps(dstore))
-        got = re_dstore[0].read()
-        self.assertEqual(str(dstore), str(re_dstore))
-        self.assertEqual(dstore[0].read(), re_dstore[0].read())
-
-    def test_pickleable_member_roundtrip(self):
-        """pickling of data store members should be reversible"""
-        from pickle import dumps, loads
-
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        re_member = loads(dumps(dstore[0]))
-        data = re_member.read()
-        self.assertTrue(len(data) > 0)
-
     def test_add_file(self):
         """correctly add an arbitrarily named file"""
         with open("data" + os.sep + "brca1.fasta") as infile:
@@ -292,8 +271,33 @@ class DataStoreBaseTests:
             self.assertFalse(os.path.exists(log_path))
             dstore.close()
 
+    def test_make_identifier(self):
+        """correctly construct an identifier for a new member"""
+        with TemporaryDirectory(dir=".") as dirname:
+            if dirname.startswith("." + os.sep):
+                dirname = dirname[2:]
 
-class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
+            path = os.path.join(dirname, self.basedir)
+            base_path = path.replace(".zip", "")
+            dstore = self.WriteClass(path, suffix=".json", create=True)
+            name = "brca1.fasta"
+            got = dstore.make_absolute_identifier(name)
+            expect = os.path.join(base_path, name.replace("fasta", "json"))
+            self.assertEqual(got, expect)
+
+            # now using a DataStoreMember
+            member = DataStoreMember(
+                os.path.join("blah" + os.sep + "blah", f"2-{name}"), None
+            )
+            got = dstore.make_absolute_identifier(member)
+            expect = os.path.join(base_path, member.name.replace("fasta", "json"))
+            self.assertEqual(got, expect)
+            dstore.close()
+
+
+class DirectoryDataStoreReadTests(
+    TestCase, DataStoreBaseReadTests, DataStoreBaseWriteTests
+):
     basedir = "data"
     ReadClass = ReadOnlyDirectoryDataStore
     WriteClass = WritableDirectoryDataStore
@@ -448,10 +452,9 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             _ = self.WriteClass(path, suffix=".json", create=True)
 
 
-class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
+class ZippedDataStoreReadTests(TestCase, DataStoreBaseReadTests):
     basedir = "data.zip"
     ReadClass = ReadOnlyZippedDataStore
-    WriteClass = WritableZippedDataStore
 
     def setUp(self):
         basedir = self.basedir.split(".")[0]
@@ -462,85 +465,12 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
     def tearDown(self):
         os.remove(self.basedir)
 
-    def test_write_no_parent(self):
-        """zipped data store handles archive with no parent dir"""
-        self.WriteClass("delme.zip", create=True, suffix="fa")
-
     def test_store_suffix(self):
         """data store adds file suffix if not provided"""
         source = self.basedir.split(".")[0]
         dstore = self.ReadClass(source, suffix="*")
         self.assertEqual(dstore.source, self.basedir)
         self.assertTrue(len(dstore) > 1)
-
-    def test_write_class_source_create_delete(self):
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, "delme_dir")
-            os.mkdir(path)
-
-            # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
-            test_case1_zip = "delme1.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case1_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.json")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            dstore = self.WriteClass(
-                os.path.join(path, test_case1_zip),
-                suffix=".json",
-                if_exists=OVERWRITE,
-                create=True,
-            )
-            self.assertEqual(len(dstore), 0)
-
-            # tests the case when the ZippedDataStore contains both files with the same suffix as self.suffix and log files
-            test_case2_zip = "delme2.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case2_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.json")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-                test_path = os.path.join(path, "dummyPrefix_.log")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            dstore = self.WriteClass(
-                os.path.join(path, test_case2_zip),
-                suffix=".json",
-                if_exists=OVERWRITE,
-                create=True,
-            )
-            self.assertEqual(len(dstore), 0)
-
-            # tests the case when the ZippedDataStore contains files with the different suffixes to self.suffix
-            test_case3_zip = "delme3.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case3_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.dummySuffix")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            with self.assertRaises(RuntimeError):
-                dstore = self.WriteClass(
-                    os.path.join(path, test_case3_zip),
-                    suffix=".json",
-                    if_exists=OVERWRITE,
-                    create=True,
-                )
-
-            # tests the case when the ZippedDataStore contains only log files
-            test_case4_zip = "delme4.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case4_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.log")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            dstore = self.WriteClass(
-                os.path.join(path, test_case4_zip),
-                suffix=".json",
-                if_exists=OVERWRITE,
-                create=True,
-            )
-            self.assertEqual(len(dstore), 0)
 
 
 class TinyDBDataStoreTests(TestCase):

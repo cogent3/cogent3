@@ -28,7 +28,6 @@ from .data_store import (
     DataStoreMember,
     SingleReadDataStore,
     WritableDirectoryDataStore,
-    WritableZippedDataStore,
 )
 
 
@@ -635,14 +634,7 @@ class _checkpointable(Composable):
         ), "invalid value for if_exists"
         self._if_exists = if_exists
 
-        if writer_class:
-            klass = writer_class
-        else:
-            klass = (
-                WritableZippedDataStore
-                if data_path.endswith(".zip")
-                else WritableDirectoryDataStore
-            )
+        klass = writer_class or WritableDirectoryDataStore
         self.data_store = klass(
             data_path, suffix=suffix, create=create, if_exists=if_exists
         )
