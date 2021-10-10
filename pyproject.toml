@@ -34,6 +34,7 @@ classifiers = [
 Documentation = "https://www.cogent3.org/"
 "Bug Tracker" = "https://github.com/cogent3/cogent3/issues"
 "Source Code" = "https://github.com/cogent3/cogent3"
+Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [tool.flit.sdist]
 include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
