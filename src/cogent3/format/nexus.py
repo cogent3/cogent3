@@ -8,7 +8,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def nexus_from_alignment(aln, seq_type, wrap=50, interleave_len=None):
+def nexus_from_alignment(aln, seq_type, wrap=50):
     """returns a nexus formatted string
 
     Parameters
@@ -17,16 +17,7 @@ def nexus_from_alignment(aln, seq_type, wrap=50, interleave_len=None):
         dna, rna, or protein
     wrap
         the line width
-    interleave_len
-        will be replaced by wrap in version 2021.6
-
     """
-    if interleave_len is not None:
-        import cogent3
-
-        cogent3.util.warning.deprecated("argument", "interleave_len", "wrap", "2021.6")
-        wrap = interleave_len if wrap == 50 else wrap
-
     if aln.is_ragged():
         raise ValueError(
             "Sequences in alignment are not all the same "

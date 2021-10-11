@@ -975,12 +975,6 @@ class SequenceTests(TestCase):
 
         self.assertTrue(seq_row in got)
 
-    def test_to_html_deprecation_warning(self):
-        """produce correct html formatted text"""
-        seq = DnaSequence("ACGGTGGGGGGGGG")
-        with self.assertWarns(DeprecationWarning):
-            seq.to_html(interleave_len=50)
-
     def test_repr_html(self):
         """correctly uses set_repr and the environment variable settings"""
         token = 'class="label"'
