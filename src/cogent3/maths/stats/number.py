@@ -182,7 +182,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         darr = DictArrayTemplate(*categories).wrap(numpy.zeros(shape, dtype=int))
         for comb in product(*categories):
             indices = [[categories[i].index(c)] for i, c in enumerate(comb)]
-            darr.array[indices] = self[comb]
+            darr.array[tuple(indices)] = self[comb]
 
         return darr
 
