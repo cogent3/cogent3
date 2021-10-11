@@ -33,8 +33,6 @@ from numpy import (
 )
 from numpy.random import permutation
 
-import cogent3
-
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
