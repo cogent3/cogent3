@@ -3565,7 +3565,7 @@ def aln_from_generic(data, array_type=None, alphabet=None):
 
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
-    result = array(list(map(alphabet.to_indices, data)))
+    result = array([alphabet.to_indices(v) for v in data], dtype=object).astype(int)
     names = []
     for d in data:
         if hasattr(d, "name"):
