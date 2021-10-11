@@ -1753,7 +1753,7 @@ class Table:
             return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
 
         if format == "html":
-            return self.to_rich_html(**kwargs)
+            return self.to_html(**kwargs)
 
         if format == "phylip":
             # need to eliminate row identifiers
@@ -1809,90 +1809,6 @@ class Table:
         return table_format.separator_format(
             header, formatted_table, title=title, legend=legend, sep="\t"
         )
-
-    def to_rich_html(
-        self,
-        row_cell_func=None,
-        header_cell_func=None,
-        element_formatters=None,
-        merge_identical=False,
-        compact=False,
-    ):  # pragma: no cover
-        """returns just the table as html.
-
-        Parameters
-        ----------
-        row_cell_func
-            callback function that formats the row values. Must
-            take the row value and coordinates (row index, column index).
-        header_cell_func
-            callback function that formats the column headings
-            must take the header label value and coordinate
-        element_formatters
-            a dictionary of specific callback funcs for
-            formatting individual html table elements.
-            e.g. {'table': lambda x: '<table border="1" class="docutils">'}
-        merge_identical
-            cells within a row are merged to one span.
-
-        """
-        deprecated("method", "to_rich_html", "to_html", "2021.10")
-
-        element_formatters = element_formatters or {}
-        formatted_table = self.array.tolist()
-        header, formatted_table = table_format.formatted_cells(
-            formatted_table,
-            self.header,
-            digits=self._digits,
-            column_templates=self._column_templates,
-            missing_data=self._missing_data,
-        )
-        subtables = table_format.get_continuation_tables(
-            header,
-            formatted_table,
-            identifiers=self.index_name,
-            max_width=self._max_width,
-        )
-        tables = []
-        title = self.title if self.title else ""
-        if title:
-            title = escape(title)
-        legend = self.legend if self.legend else ""
-        if legend:
-            legend = escape(legend)
-
-        for i, (h, t) in enumerate(subtables):
-            # but we strip the cell spacing
-            sh = [v.strip() for v in h]
-            t = [[c.strip() for c in r] for r in t]
-
-            if title and i == 0:
-                st = element_formatters.get(
-                    "caption", f'<span style="font-weight:bold">{title}</span>'
-                )
-            elif title:
-                st = element_formatters.get(
-                    "caption", '<span style="font-weight:bold">continuation</span>'
-                )
-            else:
-                st = None
-
-            if legend and i == 0:
-                title = f"{st} {legend}" if st else legend
-
-            caption = st if st else None
-            subtable = table_format.rich_html(
-                t,
-                row_cell_func=row_cell_func,
-                header=sh,
-                header_cell_func=header_cell_func,
-                element_formatters=element_formatters,
-                merge_identical=merge_identical,
-                compact=compact,
-                caption=caption,
-            )
-            tables.append(subtable)
-        return "\n".join(tables)
 
     def to_html(self, column_alignment=None):
         """construct html table
@@ -1959,11 +1875,11 @@ class Table:
                 for v in cols[c]
             ]
 
-        title = self.title if self.title else ""
+        title = self.title or ""
         if title and not table_format.is_html_markup(title):
             title = escape(title)
 
-        legend = self.legend if self.legend else ""
+        legend = self.legend or ""
         if legend and not table_format.is_html_markup(legend):
             legend = escape(legend)
 
@@ -1983,7 +1899,7 @@ class Table:
             caption = str(HtmlElement(st, "caption", newline=True)) if st else ""
             rows = []
             for i, row in enumerate(zip(*[cols[c] for c in header])):
-                txt = HtmlElement("".join([str(e) for e in row]), "tr")
+                txt = HtmlElement("".join(str(e) for e in row), "tr")
                 rows.append(str(txt))
 
             rows = str(HtmlElement("\n".join(rows), "tbody", newline=True))
@@ -1994,7 +1910,7 @@ class Table:
                     for c in header
                 ]
 
-            header = "".join([str(HtmlElement(c, "th")) for c in header])
+            header = "".join(str(HtmlElement(c, "th")) for c in header)
             header = str(
                 HtmlElement(header, "thead", css_classes=["head_cell"], newline=True)
             )

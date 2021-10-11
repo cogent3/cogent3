@@ -33,8 +33,6 @@ from numpy import (
 )
 from numpy.random import permutation
 
-import cogent3
-
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
@@ -665,17 +663,14 @@ class SequenceI(object):
         colors=None,
         font_size=12,
         font_family="Lucida Console",
-        interleave_len=None,
     ):
         """returns html with embedded styles for sequence colouring
 
         Parameters
         ----------
-        interleave_len
-            replaced by wrap in version 2021.6
         wrap
             maximum number of printed bases, defaults to
-            alignment length, old name is interleave_len
+            alignment length
         limit
             truncate alignment to this length
         colors
@@ -692,13 +687,6 @@ class SequenceI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
-        if interleave_len is not None:
-            cogent3.util.warning.deprecated(
-                "argument", "interleave_len", "wrap", "2021.6"
-            )
-            wrap = interleave_len if wrap == 60 else wrap
-
-        # todo refactor interleave_len to be wrap
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
         )

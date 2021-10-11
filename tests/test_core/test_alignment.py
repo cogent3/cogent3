@@ -2115,16 +2115,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         ]
         self.assertEqual(got, "\n".join(expect))
 
-    def test_to_pretty_deprecation_warning(self):
-        """produce correct pretty print formatted text"""
-        seqs = {"seq1": "ACGAANGA", "seq2": "-CGAACGA", "seq3": "ATGAACGA"}
-        expect = ["seq1    ACGAANGA", "seq2    -....C..", "seq3    .T...C.."]
-
-        aln = self.Class(data=seqs, moltype=DNA)
-        # should raise warning here
-        with self.assertWarns(DeprecationWarning):
-            aln.to_pretty(name_order=["seq1", "seq2", "seq3"], interleave_len=4)
-
     def test_to_html(self):
         """produce correct html formatted text"""
         seqs = {"seq1": "ACG", "seq2": "-CT"}
@@ -2168,16 +2158,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = aln.to_html(ref_name="seq2")
         # order now changes
         self.assertTrue(got.find(ref_row) < got.find(other_row))
-
-    def test_to_html_deprecation_warning(self):
-        """should raise warning using wrap and not interleave_len"""
-        seqs = {"seq1": "ACG", "seq2": "-CT"}
-
-        aln = self.Class(data=seqs, moltype=DNA)
-        # specify interleave_len in 2 cases, wrap specified and not specified
-        # both should raise warnings
-        with self.assertWarns(DeprecationWarning):
-            aln.to_html(ref_name="seq2", interleave_len=40)
 
     def test_variable_positions(self):
         """correctly identify variable positions"""

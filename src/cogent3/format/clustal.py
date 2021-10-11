@@ -17,7 +17,7 @@ __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
 
 
-def clustal_from_alignment(aln, interleave_len=None, wrap=None):
+def clustal_from_alignment(aln, wrap=None):
     """
     Parameters
     ----------
@@ -31,12 +31,6 @@ def clustal_from_alignment(aln, interleave_len=None, wrap=None):
     -------
     Returns a string in Clustal format
     """
-    if interleave_len is not None:
-        from cogent3.util.warning import deprecated
-
-        deprecated("argument", "interleave_len", "wrap", "2021.6")
-        wrap = interleave_len if wrap == 60 else wrap
-
     if not aln:
         return ""
 
