@@ -86,7 +86,7 @@ __credits__ = [
     "Greg Caporaso",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
