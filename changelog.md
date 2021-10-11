@@ -40,6 +40,9 @@
     ```bash
     $ flit install -s --python `which python`
     ```
+## DEP
+
+- removed WritableZippedDataStore, the zip archive format is inefficient for incremental inclusion of files. Use a tinydb instead.
 
 ## ENH
 
