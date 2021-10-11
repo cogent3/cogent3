@@ -888,8 +888,8 @@ class _SequenceCollectionBase:
         # per seq
         if mask_degen and not hasattr(self.moltype, "alphabets"):
             warnings.warn(
-                "in get_identical_sets, strict has no effect as moltype "
-                "has no degenerate characters",
+                "in get_identical_sets, mask_degen has no effect as moltype "
+                f"{self.moltype.label!r} has no degenerate characters",
                 UserWarning,
             )
             mask_degen = False
@@ -3565,7 +3565,7 @@ def aln_from_generic(data, array_type=None, alphabet=None):
 
     WARNING: Data type of return array is not guaranteed -- check in caller!
     """
-    result = array(list(map(alphabet.to_indices, data)))
+    result = array([alphabet.to_indices(v) for v in data], dtype=object).astype(int)
     names = []
     for d in data:
         if hasattr(d, "name"):
@@ -4235,12 +4235,11 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         ----------
         mask_degen
             if True, degenerate characters are ignored
-
         """
         if mask_degen and not hasattr(self.moltype, "alphabets"):
             warnings.warn(
-                "in get_identical_sets, strict has no effect as moltype "
-                "has no degenerate characters",
+                "in get_identical_sets, mask_degen has no effect as moltype "
+                f"{self.moltype.label!r} has no degenerate characters",
                 UserWarning,
             )
             mask_degen = False
@@ -4346,17 +4345,13 @@ def make_gap_filter(template, gap_fraction, gap_run):
         # check if gap runs bad
         if (
             b"\x01" * gap_run
-            in logical_and(seq_gaps, logical_not(template_gaps))
-            .astype(uint8)
-            .tostring()
+            in logical_and(seq_gaps, logical_not(template_gaps)).astype(uint8).tobytes()
         ):
             return False
         # check if insertion runs bad
         elif (
             b"\x01" * gap_run
-            in logical_and(template_gaps, logical_not(seq_gaps))
-            .astype(uint8)
-            .tostring()
+            in logical_and(template_gaps, logical_not(seq_gaps)).astype(uint8).tobytes()
         ):
             return False
         return True

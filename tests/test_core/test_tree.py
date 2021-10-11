@@ -3,14 +3,13 @@
 """
 import json
 import os
-import sys
-import unittest
 
 from copy import copy, deepcopy
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
-from numpy import arange, array
+from numpy import array
+from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
@@ -38,8 +37,6 @@ __version__ = "2021.5.7a"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_equal
 
 
 base_path = os.path.dirname(os.path.dirname(__file__))
@@ -1486,20 +1483,16 @@ class PhyloNodeTests(TestCase):
 
     def test_tip_to_tip_distances_endpoints(self):
         """Test getting specifc tip distances  with tip_to_tip_distances"""
-        nodes = [
+        exp_nodes = [
             self.t.get_node_matching_name("H"),
             self.t.get_node_matching_name("G"),
             self.t.get_node_matching_name("M"),
         ]
         names = ["H", "G", "M"]
-        exp = (array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]]), nodes)
-        obs = self.t.tip_to_tip_distances(endpoints=names)
-        assert_equal(obs[0], exp[0])
-        assert_equal(obs[1], exp[1])
-
-        obs = self.t.tip_to_tip_distances(endpoints=nodes)
-        assert_equal(obs[0], exp[0])
-        assert_equal(obs[1], exp[1])
+        exp_dists = array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]])
+        got_dists, got_nodes = self.t.tip_to_tip_distances(endpoints=names)
+        assert_equal(got_dists, exp_dists)
+        self.assertEqual(got_nodes, exp_nodes)
 
     def test_prune(self):
         """prune should reconstruct correct topology and Lengths of tree."""
