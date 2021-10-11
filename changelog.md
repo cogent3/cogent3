@@ -39,6 +39,7 @@
 
 - removed WritableZippedDataStore, the zip archive format is inefficient for incremental inclusion of files. Use a tinydb instead.
 - replaced interleave_len argument with wrap in sequence format writers
+- removed Table.to_rich_html() method, use Table.to_html() instead
  
 ## ENH
 
