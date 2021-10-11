@@ -16,7 +16,6 @@ from cogent3 import DNA
 from cogent3.app import align as align_app
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store import WritableZippedDataStore
 from cogent3.app.io import write_db
 from cogent3.app.result import generic_result
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
@@ -291,14 +290,6 @@ class TestIo(TestCase):
             result = load_table(outpath)
             self.assertIsInstance(result, NotCompleted)
 
-        with TemporaryDirectory(dir=".") as dirname:
-            outpath = join(dirname, "delme.zip")
-            dstore = WritableZippedDataStore(outpath, suffix="tsv", create=True)
-            dstore.write("sample1.tsv", table.to_string("tsv"))
-            new = load_table(dstore[0])
-            self.assertEqual(type(new[0, "B"]), type(table[0, "B"]))
-            self.assertEqual(type(new[0, "A"]), type(table[0, "A"]))
-
     def test_write_tabular_motif_counts_array(self):
         """correctly writes tabular data for MotifCountsArray"""
 
@@ -493,22 +484,6 @@ class TestIo(TestCase):
             got.deserialised_values()
             self.assertEqual(got["dna"], DNA)
 
-        # now with a zipped archive
-        with TemporaryDirectory(dir=".") as dirname:
-            outdir = join(dirname, "delme.zip")
-            obj = generic_result(source=join("blah", "delme.json"))
-            obj["dna"] = DNA
-            writer = io_app.write_json(outdir, create=True)
-            identifier = writer(obj)
-            reader = io_app.load_json()
-            got = reader(writer.data_store[0])
-            got.deserialised_values()
-            self.assertEqual(got["dna"], DNA)
-            expect = join(outdir.replace(".zip", ""), "delme.json")
-            if expect.startswith("." + os.sep):
-                expect = expect[2:]
-            self.assertEqual(identifier, expect)
-
     def test_write_json_no_info(self):
         """correctly writes an object with out an info attribute from json"""
         # create a mock object that pretends like it's been derived from
@@ -522,22 +497,6 @@ class TestIo(TestCase):
             got = reader(writer.data_store[0])
             got.deserialised_values()
             self.assertEqual(got["dna"], DNA)
-
-        # now with a zipped archive
-        with TemporaryDirectory(dir=".") as dirname:
-            outdir = join(dirname, "delme.zip")
-            gr = _get_generic_result(join("blah", "delme.json"))
-            writer = io_app.write_json(outdir, create=True)
-            identifier = writer(gr)
-            reader = io_app.load_json()
-            # checking loadable from a data store member too
-            got = reader(writer.data_store[0])
-            got.deserialised_values()
-            self.assertEqual(got["dna"], DNA)
-            expect = join(outdir.replace(".zip", ""), "delme.json")
-            if expect.startswith("." + os.sep):
-                expect = expect[2:]
-            self.assertEqual(identifier, expect)
 
     def test_restricted_usage_of_tinydb_suffix(self):
         """can only use tinydb in a load_db, write_db context"""
