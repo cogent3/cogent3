@@ -20,6 +20,7 @@
 - fast_slow_dist results can now be saved by write_tabular, a DistanceMatrix.source attribute is created on-the-fly by the fast_slow_dist calculator, enabling it be written
 - Alignment.variable_positions(), always report a position as variable if > 1 non-gap characters are present
 - SequenceCollection.dotplot() method defaults handle single sequence
+- app.evo.boostrap() can now be composed,
 
 ## DEV
 

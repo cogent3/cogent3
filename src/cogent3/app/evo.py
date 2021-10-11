@@ -386,7 +386,7 @@ class hypothesis(model_collection):
 class bootstrap(ComposableHypothesis):
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
-    _input_types = ALIGNED_TYPE
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
     _output_types = (RESULT_TYPE, BOOTSTRAP_RESULT_TYPE, SERIALISABLE_TYPE)
     _data_types = ("ArrayAlignment", "Alignment")
 
