@@ -1,4 +1,5 @@
 from os.path import dirname, join
+from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
@@ -6,6 +7,7 @@ from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
+from cogent3.app import io
 from cogent3.app.composable import NotCompleted
 from cogent3.app.result import (
     hypothesis_result,
@@ -799,6 +801,15 @@ class TestBootstrap(TestCase):
         strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
         result = strapper(aln)
         self.assertIsInstance(result, evo_app.bootstrap_result)
+
+    def test_bootstrap_composability(self):
+        """can be composed with load_db and write_db"""
+        m1 = evo_app.model("F81")
+        m2 = evo_app.model("HKY85")
+        hyp = evo_app.hypothesis(m1, m2)
+        with TemporaryDirectory(dir=".") as dirname:
+            path = join(dirname, "delme.tinydb")
+            _ = io.load_db() + evo_app.bootstrap(hyp, num_reps=2) + io.write_db(path)
 
 
 if __name__ == "__main__":
