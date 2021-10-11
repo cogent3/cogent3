@@ -4345,17 +4345,13 @@ def make_gap_filter(template, gap_fraction, gap_run):
         # check if gap runs bad
         if (
             b"\x01" * gap_run
-            in logical_and(seq_gaps, logical_not(template_gaps))
-            .astype(uint8)
-            .tostring()
+            in logical_and(seq_gaps, logical_not(template_gaps)).astype(uint8).tobytes()
         ):
             return False
         # check if insertion runs bad
         elif (
             b"\x01" * gap_run
-            in logical_and(template_gaps, logical_not(seq_gaps))
-            .astype(uint8)
-            .tostring()
+            in logical_and(template_gaps, logical_not(seq_gaps)).astype(uint8).tobytes()
         ):
             return False
         return True

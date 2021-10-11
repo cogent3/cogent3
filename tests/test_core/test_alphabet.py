@@ -221,7 +221,7 @@ class CharAlphabetTests(TestCase):
         """CharAlphabet init should make correct translation tables"""
         r = CharAlphabet("UCAG")
         i2c, c2i = r._indices_nums_to_chars, r._chars_to_indices
-        s = array([0, 0, 1, 0, 3, 2], "b").tostring()
+        s = array([0, 0, 1, 0, 3, 2], "b").tobytes()
         self.assertEqual(s.translate(i2c), b"UUCUGA")
         self.assertEqual("UUCUGA".translate(c2i), "\000\000\001\000\003\002")
 
