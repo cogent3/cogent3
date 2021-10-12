@@ -1,4 +1,5 @@
 from os.path import dirname, join
+from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
@@ -6,8 +7,13 @@ from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import evo as evo_app
+from cogent3.app import io
 from cogent3.app.composable import NotCompleted
-from cogent3.app.result import hypothesis_result, model_result
+from cogent3.app.result import (
+    hypothesis_result,
+    model_collection_result,
+    model_result,
+)
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
 
@@ -16,7 +22,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -31,7 +37,6 @@ class TestModel(TestCase):
         """correct str representation"""
         model = evo_app.model("HKY85", time_het="max")
         got = " ".join(str(model).splitlines())
-        print(got)
         expect = (
             "model(type='model', sm='HKY85', tree=None, unique_trees=False, "
             "name=None, sm_args=None, lf_args=None, "
@@ -79,6 +84,60 @@ class TestModel(TestCase):
         hyp = evo_app.hypothesis(model1, model2, init_alt=lambda x, y: x)
         result = hyp(aln)
         self.assertEqual(result.df, 1)
+
+    def test_hyp_init_sequential(self):
+        """uses preceding model to initialise function"""
+        opt_args = dict(max_evaluations=15, limit_action="ignore")
+        model1 = evo_app.model("F81", opt_args=opt_args)
+        model2 = evo_app.model("HKY85", opt_args=opt_args)
+        model3 = evo_app.model("GTR", opt_args=opt_args)
+        # defaults to initialise model3 from model 2 from model1
+        hyp = evo_app.hypothesis(model1, model2, model3, sequential=True)
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        result = hyp(aln)
+        self.assertTrue(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
+
+        # can be set to False, in which case all models start at defaults
+        hyp = evo_app.hypothesis(model1, model2, model3, sequential=False)
+        result = hyp(aln)
+        self.assertFalse(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
+
+    def test_model_collection_init_sequential(self):
+        """modelc collection uses preceding model to initialise function"""
+        opt_args = dict(max_evaluations=15, limit_action="ignore")
+        model1 = evo_app.model("F81", opt_args=opt_args)
+        model2 = evo_app.model("HKY85", opt_args=opt_args)
+        model3 = evo_app.model("GTR", opt_args=opt_args)
+        # defaults to initialise model3 from model 2 from model1
+        mod_coll = evo_app.model_collection(model1, model2, model3, sequential=True)
+        _data = {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        }
+        aln = make_aligned_seqs(data=_data, moltype="dna")
+        result = mod_coll(aln)
+        self.assertTrue(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
+
+        # can be set to False, in which case all models start at defaults
+        mod_coll = evo_app.hypothesis(model1, model2, model3, sequential=False)
+        result = mod_coll(aln)
+        self.assertFalse(
+            result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
+        )
+
+        self.assertIsInstance(result, model_collection_result)
 
     def test_model_time_het(self):
         """support lf time-het argument edge_sets"""
@@ -177,7 +236,7 @@ class TestModel(TestCase):
             "name='hky85-max-het', sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, opt_args=None,"
             " split_codons=False, show_progress=False, verbose=False),),"
-            " init_alt=None)"
+            " sequential=True, init_alt=None)"
         )
         self.assertEqual(got, expect)
 
@@ -330,22 +389,23 @@ def _make_getter(val):
 
 
 def _make_hyp(aic1, aic2, aic3, nfp1, nfp2, nfp3):
-    null = MagicMock()
-    null.name = "unrooted"
-    null.lf.get_aic = _make_getter(aic1)
-    null.nfp = nfp1
-    alt1 = MagicMock()
-    alt1.name = "alt1"
-    alt1.lf.get_aic = _make_getter(aic2)
-    alt1.nfp = nfp2
-    alt2 = MagicMock()
-    alt2.name = "alt2"
-    alt2.lf.get_aic = _make_getter(aic3)
-    alt2.nfp = nfp3
+    null = _make_mock_result("unrooted", aic1, nfp1)
+    alt1 = _make_mock_result("alt1", aic2, nfp2)
+    alt2 = _make_mock_result("alt2", aic3, nfp3)
+    # this is a really ugly hack to address type validation on result setitem!
+    hypothesis_result._item_types = ("model_result", "MagicMock")
     hyp = hypothesis_result("unrooted", source="something")
     for m in (null, alt1, alt2):
         hyp[m.name] = m
     return hyp
+
+
+def _make_mock_result(arg0, arg1, arg2):
+    result = MagicMock()
+    result.name = arg0
+    result.lf.get_aic = _make_getter(arg1)
+    result.nfp = arg2
+    return result
 
 
 class TestHypothesisResult(TestCase):
@@ -438,7 +498,6 @@ class TestHypothesisResult(TestCase):
         tree = "(Mouse,Human,Opossum)"
         m1 = evo_app.model("JTT92", tree=tree)
         r = m1(aln)
-        print(r)
         self.assertEqual(r.origin, "model")
 
 
@@ -742,6 +801,15 @@ class TestBootstrap(TestCase):
         strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
         result = strapper(aln)
         self.assertIsInstance(result, evo_app.bootstrap_result)
+
+    def test_bootstrap_composability(self):
+        """can be composed with load_db and write_db"""
+        m1 = evo_app.model("F81")
+        m2 = evo_app.model("HKY85")
+        hyp = evo_app.hypothesis(m1, m2)
+        with TemporaryDirectory(dir=".") as dirname:
+            path = join(dirname, "delme.tinydb")
+            _ = io.load_db() + evo_app.bootstrap(hyp, num_reps=2) + io.write_db(path)
 
 
 if __name__ == "__main__":

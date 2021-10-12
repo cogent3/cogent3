@@ -32,7 +32,7 @@ __author__ = "Rob Knight, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -221,7 +221,7 @@ class CharAlphabetTests(TestCase):
         """CharAlphabet init should make correct translation tables"""
         r = CharAlphabet("UCAG")
         i2c, c2i = r._indices_nums_to_chars, r._chars_to_indices
-        s = array([0, 0, 1, 0, 3, 2], "b").tostring()
+        s = array([0, 0, 1, 0, 3, 2], "b").tobytes()
         self.assertEqual(s.translate(i2c), b"UUCUGA")
         self.assertEqual("UUCUGA".translate(c2i), "\000\000\001\000\003\002")
 

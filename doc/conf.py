@@ -1,3 +1,4 @@
+import datetime
 import os
 import shutil
 import sys
@@ -63,10 +64,12 @@ exclude_patterns = [
 master_doc = "index"
 
 # General information about the project.
+today = datetime.date.today()
+year = today.strftime("%Y")
 project = "cogent3"
-copyright = "2020, cogent3 Team"
+copyright = f"2020-{year}, cogent3 Team"
 
-release = "2021.04.20a"
+release = "2021.10.12a1"
 
 version = ""
 
@@ -84,7 +87,10 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "navbar_title": "Docs",
     "navbar_site_name": "Sections",
-    "navbar_links": [("Install", "install"), ("Gallery", "draw/index.html", True),],
+    "navbar_links": [
+        ("Install", "install"),
+        ("Gallery", "draw/index.html", True),
+    ],
     "navbar_class": "navbar navbar-inverse",
     "navbar_fixed_top": "true",
     "source_link_position": "skipped",

@@ -8,9 +8,7 @@ from numpy import (
     multiply,
     pi,
     polyval,
-    power,
     sqrt,
-    sum,
     zeros,
 )
 
@@ -21,7 +19,7 @@ __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

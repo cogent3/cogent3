@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Parsers for the cigar format
 
 Cigar stands for Compact Idiosyncratic gapped Alignment Report and defines the sequence
@@ -19,14 +18,14 @@ the aligned sequence will be:
 import re
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.location import LostSpan, Map, Span, _LostSpan
+from cogent3.core.location import LostSpan, Map, Span
 
 
 __author__ = "Hua Ying"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Hua Ying"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"

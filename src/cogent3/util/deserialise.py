@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import json
-import os
 
 from importlib import import_module
 
@@ -16,7 +15,7 @@ __author__ = ["Gavin Huttley"]
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -176,8 +175,7 @@ def deserialise_seq(data, aligned=False):
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
     make_seq = data["moltype"].make_seq
-    type_ = data.pop("type")
-    klass = _get_class(type_)
+    _ = data.pop("type")
     if "-" in data["seq"]:
         aligned = True
 

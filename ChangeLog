@@ -1,8 +1,0 @@
-Change log
-==========
-
-The porting from PyCogent 1.9 to 3.0 has involved a massive number of changes!
-
-Please see the `wiki pages <https://github.com/cogent3/cogent3/wiki>`_ for a summary of the API changes.
-
-But the best way to see them is all to use mercurial.

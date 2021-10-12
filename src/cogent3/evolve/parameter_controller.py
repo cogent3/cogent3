@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This file defines a class for controlling the scope and heterogeneity of
 parameters involved in a maximum-likelihood based tree analysis.
@@ -24,7 +23,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley", "Helen Lindsay"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.ed.au"
 __status__ = "Production"
@@ -85,7 +84,7 @@ class _LikelihoodParameterController(_LF):
         self.motifs = self._motifs = model.get_motifs()
         self._mprob_motifs = list(model.get_mprob_alphabet())
         defn = self.make_likelihood_defn(**kw)
-        super(_LF, self).__init__(defn)
+        super(_LikelihoodParameterController, self).__init__(defn)
         self.set_default_param_rules()
         self.set_default_tree_parameter_rules()
         self.mprobs_from_alignment = motif_probs_from_align
@@ -201,7 +200,7 @@ class _LikelihoodParameterController(_LF):
         self.set_param_rule("expm", is_constant=True, value=expm)
 
     def make_calculator(self, **kw):
-        return super(_LF, self).make_calculator(**kw)
+        return super(_LikelihoodParameterController, self).make_calculator(**kw)
 
     def _process_scope_info(
         self,

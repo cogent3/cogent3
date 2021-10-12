@@ -17,7 +17,7 @@ Define the apps
 
     reader = io.load_aligned(format="fasta", moltype="dna")
     cpos3 = sample.take_codon_positions(3)
-    writer = io.write_seqs("path/to/write/thirdpos.zip", format="fasta")
+    writer = io.write_seqs("path/to/write/thirdpos", format="fasta")
 
 Using apps like functions
 -------------------------
@@ -28,7 +28,7 @@ Using apps like functions
     just3rd = cpos3(data)
     m = writer(just3rd, identifier="3rdpos_data.fasta")
 
-In the above, ``m`` is a ``DataStoreMember``. The result will be written into the zip archive specified in constructing the ``writer``.
+In the above, ``m`` is a ``DataStoreMember``. The result will be written into the directory specified in constructing the ``writer``.
 
 Composing a multi-step process from several apps
 ------------------------------------------------
@@ -51,7 +51,6 @@ We use a data store to identify all data files in a directory that we want to an
     r = process.apply_to(dstore)
 
 Here ``r`` is a list of all the ``DataStoreMember`` instances.
-
 
 Other important features
 ------------------------

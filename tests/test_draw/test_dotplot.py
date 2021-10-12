@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -105,7 +105,7 @@ class TestUtilFunctions(TestCase):
         aln = ArrayAlignment(
             {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
         )
-        aln_plot = aln.dotplot("seq1", "seq2")
+        aln_plot = aln.dotplot("seq1")
         self.assertNotEqual(aln_plot._aligned_coords, None)
 
     def test_dotplot_seqcoll(self):
@@ -117,6 +117,24 @@ class TestUtilFunctions(TestCase):
         self.assertNotEqual(dp._aligned_coords, None)
         self.assertEqual(len(dp.seq1), 4)
         self.assertEqual(len(dp.seq2), 3)
+
+    def test_dotplot_single(self):
+        """dotplot with single sequence should not fail"""
+        seqs = make_unaligned_seqs({"seq1": "ACGG"}, moltype="dna")
+        dp = seqs.dotplot()
+        self.assertEqual(dp.seq1, dp.seq2)
+
+    def test_dotplot_missing(self):
+        """fail if a sequence name not present"""
+        seqs = make_unaligned_seqs(
+            {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}, moltype="dna"
+        )
+        with self.assertRaises(ValueError):
+            _ = seqs.dotplot("seq1", "seq5")
+        with self.assertRaises(ValueError):
+            _ = seqs.dotplot("seq5", "seq1")
+        with self.assertRaises(ValueError):
+            _ = seqs.dotplot("seq5", "seq6")
 
     def test_dotplot_title(self):
         """setting empty string title works"""

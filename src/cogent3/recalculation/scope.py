@@ -17,7 +17,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -452,7 +452,7 @@ class SelectFromDimension(_Defn):
 
 class _NonLeafDefn(_Defn):
     def __init__(self, *args, **kw):
-        _Defn.__init__(self)
+        super(_NonLeafDefn, self).__init__()
         valid_dimensions = []
         for arg in args:
             assert isinstance(arg, _Defn), type(arg)
@@ -508,7 +508,7 @@ class _LeafDefn(_Defn):
     def __init__(
         self, name=None, extra_label=None, dimensions=None, independent_by_default=None
     ):
-        _Defn.__init__(self)
+        super(_LeafDefn, self).__init__()
         if dimensions is not None:
             assert type(dimensions) in [list, tuple], type(dimensions)
             self.valid_dimensions = tuple(dimensions)

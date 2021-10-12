@@ -11,13 +11,13 @@ __author__ = "Jeremy Widmann"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
 
 
-def clustal_from_alignment(aln, interleave_len=None, wrap=None):
+def clustal_from_alignment(aln, wrap=None):
     """
     Parameters
     ----------
@@ -31,12 +31,6 @@ def clustal_from_alignment(aln, interleave_len=None, wrap=None):
     -------
     Returns a string in Clustal format
     """
-    if interleave_len is not None:
-        from cogent3.util.warning import deprecated
-
-        deprecated("argument", "interleave_len", "wrap", "2021.6")
-        wrap = interleave_len if wrap == 60 else wrap
-
     if not aln:
         return ""
 

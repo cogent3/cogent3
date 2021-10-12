@@ -93,7 +93,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -2117,7 +2117,7 @@ class TestDistMatrixPermutationTest(TestCase):
         )
 
     def test_distance_matrix_permutation_test_return_scores(self):
-        """ return_scores=True functions as expected """
+        """return_scores=True functions as expected"""
         # use alt statistical test to make results simple
         def fake_stat_test(a, b, tails=None):
             return 42.0, 42.0

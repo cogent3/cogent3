@@ -2,17 +2,16 @@ from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
 from numpy.testing import assert_allclose
 
-from cogent3.format.table import formatted_cells, rich_html, simple_format
 from cogent3.maths.stats import chisqprob
-from cogent3.maths.stats.test import G_fit, G_ind
-from cogent3.util.dict_array import DictArray, DictArrayTemplate
+from cogent3.maths.stats.test import G_fit
+from cogent3.util.dict_array import DictArray
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"

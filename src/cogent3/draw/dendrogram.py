@@ -13,7 +13,7 @@ __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -376,7 +376,7 @@ class CircularTreeGeometry(TreeGeometryBase):
     @property
     def x(self):
         if self._x is None:
-            y = self.y  # triggers populating values
+            _ = self.y  # triggers populating values
         return self._x
 
     @property

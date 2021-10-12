@@ -30,3 +30,6 @@ draw_results
 coverage.xml
 __pycache__
 junit-*.xml
+doc/draw*
+dist/*
+working/*

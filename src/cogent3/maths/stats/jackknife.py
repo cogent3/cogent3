@@ -7,13 +7,35 @@ __author__ = "Anuj Pahwa, Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Anuj Pahwa", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
 def index_gen(length):
+    """returns a callable
+
+    Parameters
+    ----------
+    length : int
+        length of series of integers to generate
+
+    Returns
+    -------
+    callable
+
+    Notes
+    -----
+    When invoked with an int, returns all indices except that provided.
+    The result can be used with a numpy.take(data, indices).
+
+    >>> gen_series = index_gen(4)
+    >>> gen_series(0)
+    [1, 2, 3]
+    >>> gen_series(1)
+    [0, 2, 3]
+    """
     data = tuple(range(length))
 
     def gen(i):

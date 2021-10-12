@@ -1,14 +1,18 @@
 import json
 import os
+import pathlib
 import shutil
 import sys
-import zipfile
 
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
+from cogent3 import load_aligned_seqs
 from cogent3.app.data_store import (
+    IGNORE,
     OVERWRITE,
+    RAISE,
     DataStoreMember,
     ReadOnlyDirectoryDataStore,
     ReadOnlyTinyDbDataStore,
@@ -16,7 +20,6 @@ from cogent3.app.data_store import (
     SingleReadDataStore,
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
-    WritableZippedDataStore,
     load_record_from_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
@@ -26,13 +29,13 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class DataStoreBaseTests:
+class DataStoreBaseReadTests:
     basedir = "data"
     ReadClass = None
     WriteClass = None
@@ -94,29 +97,6 @@ class DataStoreBaseTests:
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         self.assertEqual(len(dstore), len(dstore.members))
 
-    def test_make_identifier(self):
-        """correctly construct an identifier for a new member"""
-        with TemporaryDirectory(dir=".") as dirname:
-            if dirname.startswith("." + os.sep):
-                dirname = dirname[2:]
-
-            path = os.path.join(dirname, self.basedir)
-            base_path = path.replace(".zip", "")
-            dstore = self.WriteClass(path, suffix=".json", create=True)
-            name = "brca1.fasta"
-            got = dstore.make_absolute_identifier(name)
-            expect = os.path.join(base_path, name.replace("fasta", "json"))
-            self.assertEqual(got, expect)
-
-            # now using a DataStoreMember
-            member = DataStoreMember(
-                os.path.join("blah" + os.sep + "blah", f"2-{name}"), None
-            )
-            got = dstore.make_absolute_identifier(member)
-            expect = os.path.join(base_path, member.name.replace("fasta", "json"))
-            self.assertEqual(got, expect)
-            dstore.close()
-
     def test_read(self):
         """correctly read content"""
         with open("data" + os.sep + "brca1.fasta") as infile:
@@ -143,6 +123,42 @@ class DataStoreBaseTests:
         member = dstore.get_member(identifier)
         self.assertEqual(member.md5, md5)
 
+    def test_filter(self):
+        """filter method should return correctly matching members"""
+        dstore = self.ReadClass(self.basedir, suffix="*")
+        got = [m.name for m in dstore.filtered(callback=lambda x: "brca1" in str(x))]
+        self.assertTrue(len(set(got)), 2)
+        got = dstore.filtered(pattern="*brca1*")
+        expect = [
+            path
+            for path in os.listdir(self.basedir.replace(".zip", ""))
+            if "brca1" in path
+        ]
+        self.assertEqual(len(got), len(expect))
+
+    def test_pickleable_roundtrip(self):
+        """pickling of data stores should be reversible"""
+        from pickle import dumps, loads
+
+        dstore = self.ReadClass(self.basedir, suffix="*")
+        re_dstore = loads(dumps(dstore))
+        got = re_dstore[0].read()
+        self.assertEqual(str(dstore), str(re_dstore))
+        self.assertEqual(dstore[0].read(), re_dstore[0].read())
+
+    def test_pickleable_member_roundtrip(self):
+        """pickling of data store members should be reversible"""
+        from pickle import dumps, loads
+
+        dstore = self.ReadClass(self.basedir, suffix="*")
+        re_member = loads(dumps(dstore[0]))
+        data = re_member.read()
+        self.assertTrue(len(data) > 0)
+
+
+class DataStoreBaseWriteTests:
+    WriteClass = None
+
     def test_write(self):
         """correctly write content"""
         with open("data" + os.sep + "brca1.fasta") as infile:
@@ -156,6 +172,20 @@ class DataStoreBaseTests:
             got = dstore.read(abs_id)
             self.assertEqual(got, expect)
             dstore.close()
+
+    def test_write_wout_suffix(self):
+        """appends suffix expected to records"""
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / f"{self.basedir}.tinydb"
+            dstore = self.WriteClass(path, suffix="fasta", create=True)
+            with self.assertRaises(ValueError):
+                dstore.write("1", str(dict(a=24, b="some text")))
+
+            dstore.write("1.fasta", str(dict(a=24, b="some text")))
+            dstore.close()
+            dstore = self.ReadClass(path, suffix="fasta")
+            self.assertEqual(len(dstore), 1)
 
     @skipIf(sys.platform.lower() != "darwin", "broken on linux")
     def test_md5_write(self):
@@ -210,38 +240,6 @@ class DataStoreBaseTests:
             self.assertEqual(got_b, expect_b)
             dstore.close()
 
-    def test_filter(self):
-        """filter method should return correctly matching members"""
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        got = [m.name for m in dstore.filtered(callback=lambda x: "brca1" in str(x))]
-        self.assertTrue(len(set(got)), 2)
-        got = dstore.filtered(pattern="*brca1*")
-        expect = [
-            path
-            for path in os.listdir(self.basedir.replace(".zip", ""))
-            if "brca1" in path
-        ]
-        self.assertEqual(len(got), len(expect))
-
-    def test_pickleable_roundtrip(self):
-        """pickling of data stores should be reversible"""
-        from pickle import dumps, loads
-
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        re_dstore = loads(dumps(dstore))
-        got = re_dstore[0].read()
-        self.assertEqual(str(dstore), str(re_dstore))
-        self.assertEqual(dstore[0].read(), re_dstore[0].read())
-
-    def test_pickleable_member_roundtrip(self):
-        """pickling of data store members should be reversible"""
-        from pickle import dumps, loads
-
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        re_member = loads(dumps(dstore[0]))
-        data = re_member.read()
-        self.assertTrue(len(data) > 0)
-
     def test_add_file(self):
         """correctly add an arbitrarily named file"""
         with open("data" + os.sep + "brca1.fasta") as infile:
@@ -273,11 +271,61 @@ class DataStoreBaseTests:
             self.assertFalse(os.path.exists(log_path))
             dstore.close()
 
+    def test_make_identifier(self):
+        """correctly construct an identifier for a new member"""
+        with TemporaryDirectory(dir=".") as dirname:
+            if dirname.startswith("." + os.sep):
+                dirname = dirname[2:]
 
-class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
+            path = os.path.join(dirname, self.basedir)
+            base_path = path.replace(".zip", "")
+            dstore = self.WriteClass(path, suffix=".json", create=True)
+            name = "brca1.fasta"
+            got = dstore.make_absolute_identifier(name)
+            expect = os.path.join(base_path, name.replace("fasta", "json"))
+            self.assertEqual(got, expect)
+
+            # now using a DataStoreMember
+            member = DataStoreMember(
+                os.path.join("blah" + os.sep + "blah", f"2-{name}"), None
+            )
+            got = dstore.make_absolute_identifier(member)
+            expect = os.path.join(base_path, member.name.replace("fasta", "json"))
+            self.assertEqual(got, expect)
+            dstore.close()
+
+
+class DirectoryDataStoreReadTests(
+    TestCase, DataStoreBaseReadTests, DataStoreBaseWriteTests
+):
     basedir = "data"
     ReadClass = ReadOnlyDirectoryDataStore
     WriteClass = WritableDirectoryDataStore
+
+    def setUp(self):
+        dstore = ReadOnlyDirectoryDataStore("data", suffix="fasta")
+        data = {m.name: m.read() for m in dstore}
+        self.data = data
+
+    def test_identifier_write_str_data(self):
+        """data must be string type"""
+        data = load_aligned_seqs("data/brca1_5.paml")
+        with TemporaryDirectory(dir=".") as dirname:
+            path = pathlib.Path(dirname) / "delme"
+            dstore = self.WriteClass(
+                path, suffix=".fasta", if_exists=OVERWRITE, create=True
+            )
+            # fails with not string
+            with self.assertRaises(TypeError):
+                dstore.write(data.info.source, data)
+
+            # even bytes
+            with self.assertRaises(TypeError):
+                dstore.write(f"{data.info.source}-2.fasta", str(data).encode("utf-8"))
+
+            # but works if data is str
+            dstore.write(f"{data.info.source}-1.fasta", str(data))
+            dstore.close()
 
     def test_write_class_source_create_delete(self):
         with TemporaryDirectory(dir=".") as dirname:
@@ -334,11 +382,79 @@ class DirectoryDataStoreTests(TestCase, DataStoreBaseTests):
             )
             self.assertEqual(len(dstore), 0)
 
+    def test_data_store_creation(self):
+        """overwrite, raise, ignore conditions"""
 
-class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
+        def create_data_store(path):
+            if path.exists():
+                shutil.rmtree(path, ignore_errors=True)
+
+            dstore = self.WriteClass(path, suffix=".json", create=True)
+            for k in self.data:
+                id_ = dstore.make_relative_identifier(k)
+                dstore.write(id_, self.data[k])
+
+            dstore.close()
+            dstore._members = []
+            return dstore
+
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / self.basedir
+            _ = create_data_store(path)
+
+            # if_exists=OVERWRITE, correctly overwrite existing directory
+            # data_store
+            dstore = self.WriteClass(
+                path, suffix=".json", create=True, if_exists=OVERWRITE
+            )
+            self.assertEqual(len(dstore), 0)
+            dstore.write("id.json", "some data")
+            self.assertEqual(len(dstore), 1)
+            self.assertTrue(path.exists())
+            dstore.close()
+
+            # if_exists=RAISE, correctly raises exception
+            created = create_data_store(path)
+            # created._members = []
+            with self.assertRaises(FileExistsError):
+                self.WriteClass(path, suffix=".json", create=True, if_exists=RAISE)
+
+            dstore = self.ReadClass(path, suffix=".json")
+            dstore._members = []
+            self.assertEqual(
+                len(dstore), len(created), msg=f"got {dstore}, original is {created}"
+            )
+
+            # if_exists=IGNORE, works
+            created = create_data_store(path)
+            # created._members = []
+            dstore = self.WriteClass(
+                path, suffix=".json", create=True, if_exists=IGNORE
+            )
+            self.assertEqual(
+                len(dstore), len(created), msg=f"got {dstore}, original is {created}"
+            )
+            dstore.write("id.json", "some data")
+            self.assertEqual(len(dstore), len(created) + 1)
+            dstore.close()
+
+    def test_data_store_creation2(self):
+        """handles create path argument"""
+        with TemporaryDirectory(dir=".") as dirname:
+            path = Path(dirname) / "subdir"
+            # raises FileNotFoundError when create is False and full path does
+            # not exist
+            with self.assertRaises(FileNotFoundError):
+                self.WriteClass(path, suffix=".json", create=False)
+
+            # correctly creates tinydb when full path does not exist
+            _ = self.WriteClass(path, suffix=".json", create=True)
+
+
+class ZippedDataStoreReadTests(TestCase, DataStoreBaseReadTests):
     basedir = "data.zip"
     ReadClass = ReadOnlyZippedDataStore
-    WriteClass = WritableZippedDataStore
 
     def setUp(self):
         basedir = self.basedir.split(".")[0]
@@ -349,10 +465,6 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
     def tearDown(self):
         os.remove(self.basedir)
 
-    def test_write_no_parent(self):
-        """zipped data store handles archive with no parent dir"""
-        self.WriteClass("delme.zip", create=True, suffix="fa")
-
     def test_store_suffix(self):
         """data store adds file suffix if not provided"""
         source = self.basedir.split(".")[0]
@@ -360,83 +472,15 @@ class ZippedDataStoreTests(TestCase, DataStoreBaseTests):
         self.assertEqual(dstore.source, self.basedir)
         self.assertTrue(len(dstore) > 1)
 
-    def test_write_class_source_create_delete(self):
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, "delme_dir")
-            os.mkdir(path)
-
-            # tests the case when the ZippedDataStore only contains files with the same suffix as self.suffix
-            test_case1_zip = "delme1.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case1_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.json")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            dstore = self.WriteClass(
-                os.path.join(path, test_case1_zip),
-                suffix=".json",
-                if_exists=OVERWRITE,
-                create=True,
-            )
-            self.assertEqual(len(dstore), 0)
-
-            # tests the case when the ZippedDataStore contains both files with the same suffix as self.suffix and log files
-            test_case2_zip = "delme2.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case2_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.json")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-                test_path = os.path.join(path, "dummyPrefix_.log")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            dstore = self.WriteClass(
-                os.path.join(path, test_case2_zip),
-                suffix=".json",
-                if_exists=OVERWRITE,
-                create=True,
-            )
-            self.assertEqual(len(dstore), 0)
-
-            # tests the case when the ZippedDataStore contains files with the different suffixes to self.suffix
-            test_case3_zip = "delme3.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case3_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.dummySuffix")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            with self.assertRaises(RuntimeError):
-                dstore = self.WriteClass(
-                    os.path.join(path, test_case3_zip),
-                    suffix=".json",
-                    if_exists=OVERWRITE,
-                    create=True,
-                )
-
-            # tests the case when the ZippedDataStore contains only log files
-            test_case4_zip = "delme4.zip"
-            with zipfile.ZipFile(os.path.join(path, test_case4_zip), "w") as myzip:
-                test_path = os.path.join(path, "dummyPrefix_.log")
-                with open(test_path, "w"):
-                    pass
-                myzip.write(test_path)
-            dstore = self.WriteClass(
-                os.path.join(path, test_case4_zip),
-                suffix=".json",
-                if_exists=OVERWRITE,
-                create=True,
-            )
-            self.assertEqual(len(dstore), 0)
-
 
 class TinyDBDataStoreTests(TestCase):
     basedir = "data"
     ReadClass = ReadOnlyTinyDbDataStore
     WriteClass = WritableTinyDbDataStore
+    suffix = ".json"
 
     def setUp(self):
-        dstore = ReadOnlyDirectoryDataStore(self.basedir, suffix="fasta")
+        dstore = ReadOnlyDirectoryDataStore("data", suffix="fasta")
         data = {m.name: m.read() for m in dstore}
         self.data = data
 
@@ -645,29 +689,30 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_dblock(self):
         """locking/unlocking of db"""
-        from pathlib import Path
 
         from cogent3.app.data_store import _db_lockid
 
         keys = list(self.data)
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
+            # creation automatically locks db to creating process id (pid)
             dstore = self.WriteClass(path, if_exists="overwrite")
             for k in keys:
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
             self.assertTrue(dstore.locked)
+
+            # unlocking
             dstore.unlock(force=True)
-            # now introduce an artificial lock, making sure lock flushed to disk
+            self.assertFalse(dstore.locked)
+
+            # introduce an artificial lock, making sure lock flushed to disk
             dstore.db.insert({"identifier": "LOCK", "pid": 123})
             dstore.db.storage.flush()
             self.assertTrue(dstore.locked)
+            # validate the PID of the lock
             self.assertEqual(_db_lockid(dstore.source), 123)
-            # now calling _source_create_delete with overwrite should have no
-            # effect
-            dstore._source_create_delete("overwrite", False)
             path = Path(dstore.source)
-            self.assertTrue(path.exists())
             # unlocking with wrong pid has no effect
             dstore.unlock()
             self.assertTrue(dstore.locked)
@@ -675,9 +720,90 @@ class TinyDBDataStoreTests(TestCase):
             dstore.unlock(force=True)
             self.assertFalse(dstore.locked)
             dstore.close()
-            # and now a call to _source_create_delete will delete
-            dstore._source_create_delete("overwrite", False)
-            self.assertFalse(path.exists())
+
+    def test_db_creation(self):
+        """overwrite, raise, ignore conditions"""
+
+        def create_tinydb(path, create, locked=False):
+            if path.exists():
+                path.unlink()
+
+            dstore = self.WriteClass(path, create=create)
+            for k in keys:
+                id_ = dstore.make_relative_identifier(k)
+                dstore.write(id_, self.data[k])
+
+            num_members = len(dstore)
+
+            if locked:
+                dstore.db.insert({"identifier": "LOCK", "pid": 123})
+                dstore.db.storage.flush()
+                dstore.db.storage.close()
+            else:
+                dstore.close()
+
+            return num_members
+
+        keys = list(self.data)
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / f"{self.basedir}.tinydb"
+            # correctly overwrite a tinydb irrespective of lock status
+            for locked in (False, True):
+                create_tinydb(path, create=True, locked=locked)
+                dstore = self.WriteClass(path, create=True, if_exists=OVERWRITE)
+                self.assertEqual(len(dstore), 0)
+                self.assertTrue(dstore.locked)
+                dstore.write("id.json", "some data")
+                dstore.close()
+                self.assertTrue(path.exists())
+
+            # correctly raises exception when RAISE irrespective of lock status
+            for locked in (False, True):
+                create_tinydb(path, create=True, locked=locked)
+                with self.assertRaises(FileExistsError):
+                    self.WriteClass(path, create=True, if_exists=RAISE)
+
+            # correctly warns if IGNORE, irrespective of lock status
+            for locked in (False, True):
+                num_members = create_tinydb(path, create=True, locked=locked)
+                dstore = self.WriteClass(path, create=True, if_exists=IGNORE)
+                self.assertEqual(len(dstore), num_members)
+                self.assertTrue(dstore.locked)
+                dstore.write("id.json", "some data")
+                self.assertEqual(len(dstore), num_members + 1)
+                dstore.close()
+                self.assertTrue(path.exists())
+
+    def test_db_creation2(self):
+        """handles create path argument"""
+
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname) / "subdir"
+            path = dirname / f"{self.basedir}.tinydb"
+
+            # raises FileNotFoundError when create is False and full path does
+            # not exist
+            with self.assertRaises(FileNotFoundError):
+                self.WriteClass(path, create=False)
+
+            # correctly creates tinydb when full path does not exist
+            dstore = self.WriteClass(path, create=True)
+            dstore.close()
+
+    def test_write_wout_suffix(self):
+        """appends suffix expected to records"""
+        with TemporaryDirectory(dir=".") as dirname:
+            dirname = Path(dirname)
+            path = dirname / f"{self.basedir}.tinydb"
+            dstore = self.WriteClass(path, create=True)
+            with self.assertRaises(ValueError):
+                dstore.write("1", dict(a=24, b="some text"))
+
+            dstore.write("1.json", dict(a=24, b="some text"))
+            dstore.close()
+            dstore = self.ReadClass(path)
+            self.assertEqual(len(dstore), 1)
             dstore.close()
 
 

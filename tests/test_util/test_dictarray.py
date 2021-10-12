@@ -1,3 +1,4 @@
+import json
 import os
 
 from tempfile import TemporaryDirectory
@@ -24,7 +25,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -230,6 +231,48 @@ class DictArrayTest(TestCase):
         self.assertEqual(b.array.tolist(), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         c = DictArrayTemplate("de", "DE").wrap([[b, b], [b, b]])
         self.assertTrue(isinstance(c.to_dict()["d"], dict))
+
+    def test_to_dict_values(self):
+        """values from to_dict should be python types"""
+        keys = "a", "b", "c", "d"
+        for data, _type in [
+            ([0, 35, 45, 3], int),
+            (["abc", "def", "jkl;", "aa"], str),
+            ([0.1, 0.2, 0.3, 0.4], float),
+        ]:
+            darr = DictArrayTemplate(keys).wrap(data)
+            got = {type(v) for v in darr.to_dict().values()}
+            self.assertEqual(got, {_type})
+
+        for data, _type in [
+            ([0, 35, 45, 3], int),
+            (["abc", "def", "jkl;", "aa"], str),
+            ([0.1, 0.2, 0.3, 0.4], float),
+        ]:
+            darr = DictArrayTemplate(keys[:2], keys[2:]).wrap([data[:2], data[2:]])
+            got = {type(v) for d in darr.to_dict().values() for v in d.values()}
+            self.assertEqual(got, {_type})
+
+    def test_to_dict_json(self):
+        """should be able to json.dumps result of to_dict"""
+        keys = "a", "b", "c", "d"
+        for data in [
+            [0, 35, 45, 3],
+            ["abc", "def", "jkl;", "aa"],
+            [0.1, 0.2, 0.3, 0.4],
+        ]:
+            darr = DictArrayTemplate(keys).wrap(data)
+            got = json.dumps(darr.to_dict())
+            self.assertIsInstance(got, str)
+
+        for data in [
+            [0, 35, 45, 3],
+            ["abc", "def", "jkl;", "aa"],
+            [0.1, 0.2, 0.3, 0.4],
+        ]:
+            darr = DictArrayTemplate(keys[:2], keys[2:]).wrap([data[:2], data[2:]])
+            got = json.dumps(darr.to_dict())
+            self.assertIsInstance(got, str)
 
     def test_to_dict_roundtrip(self):
         """roundtrip of DictArray.to_dict() should produce same order."""
@@ -447,6 +490,22 @@ class DictArrayTest(TestCase):
         )
         got = darr[[1, 2], [1, 2]]
         assert_allclose(got.array, numpy.array([[0.7, 0.1], [0.2, 0.6]]))
+
+    def test_add(self):
+        """can add compatible dict arrays"""
+        data = numpy.array([[7, 1], [1, 7]])
+        darr1 = DictArrayTemplate(list("AB"), list("CD")).wrap(data)
+        darr2 = DictArrayTemplate(list("AB"), list("CD")).wrap(data)
+        darr3 = darr1 + darr2
+        assert_allclose(darr3.array, 2 * data)
+        self.assertEqual(darr3.template.names, darr1.template.names)
+        # must be correct type
+        with self.assertRaises(TypeError):
+            darr1 + data
+
+        # must be equal dimensions
+        with self.assertRaises(ValueError):
+            darr1 + DictArrayTemplate(list("CD"), list("AB")).wrap(data)
 
 
 if __name__ == "__main__":

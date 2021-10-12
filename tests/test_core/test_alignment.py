@@ -73,7 +73,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -278,7 +278,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(git([]), "empty")
 
     def test_init_aln(self):
-        """ SequenceCollection should init from existing alignments"""
+        """SequenceCollection should init from existing alignments"""
         exp = self.Class(["AAA", "AAA"])
         x = self.Class(self.a)
         y = self.Class(self.b)
@@ -1663,7 +1663,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         )
 
     def test_filter_drop_remainder(self):
-        """filter allows dropping """
+        """filter allows dropping"""
         raw = {"a": "ACGACGACG", "b": "CCC---CCC", "c": "AAAA--AAA"}
         aln = self.Class(raw)
         func = _make_filter_func(aln)
@@ -2115,16 +2115,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         ]
         self.assertEqual(got, "\n".join(expect))
 
-    def test_to_pretty_deprecation_warning(self):
-        """produce correct pretty print formatted text"""
-        seqs = {"seq1": "ACGAANGA", "seq2": "-CGAACGA", "seq3": "ATGAACGA"}
-        expect = ["seq1    ACGAANGA", "seq2    -....C..", "seq3    .T...C.."]
-
-        aln = self.Class(data=seqs, moltype=DNA)
-        # should raise warning here
-        with self.assertWarns(DeprecationWarning):
-            aln.to_pretty(name_order=["seq1", "seq2", "seq3"], interleave_len=4)
-
     def test_to_html(self):
         """produce correct html formatted text"""
         seqs = {"seq1": "ACG", "seq2": "-CT"}
@@ -2169,21 +2159,16 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # order now changes
         self.assertTrue(got.find(ref_row) < got.find(other_row))
 
-    def test_to_html_deprecation_warning(self):
-        """ should raise warning using wrap and not interleave_len"""
-        seqs = {"seq1": "ACG", "seq2": "-CT"}
-
-        aln = self.Class(data=seqs, moltype=DNA)
-        # specify interleave_len in 2 cases, wrap specified and not specified
-        # both should raise warnings
-        with self.assertWarns(DeprecationWarning):
-            aln.to_html(ref_name="seq2", interleave_len=40)
-
     def test_variable_positions(self):
         """correctly identify variable positions"""
-        new_seqs = {"seq1": "ACGTACGT", "seq2": "ACCGACGT", "seq3": "ACGTACGT"}
+        new_seqs = {"A": "-CG-C", "B": "ACAA?", "C": "GCGAC"}
         aln = self.Class(data=new_seqs, moltype=DNA)
-        self.assertEqual(aln.variable_positions(), [2, 3])
+        self.assertEqual(aln.variable_positions(include_gap_motif=True), [0, 2, 3, 4])
+        self.assertEqual(aln.variable_positions(include_gap_motif=False), [0, 2])
+        new_seqs = {"A": "GCGAC", "B": "GCGAC", "C": "GCGAC"}
+        aln = self.Class(data=new_seqs, moltype=DNA)
+        self.assertEqual(aln.variable_positions(include_gap_motif=True), [])
+        self.assertEqual(aln.variable_positions(include_gap_motif=False), [])
 
     def test_to_type(self):
         """correctly interconvert between alignment types"""
@@ -2982,7 +2967,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(len(new_seq.data.annotations), 2)
 
     def test_deepcopy2(self):
-        """"Aligned.deepcopy correctly handles gapped sequences"""
+        """ "Aligned.deepcopy correctly handles gapped sequences"""
         seqs = self.Class(
             data={
                 "a": "CAGATTTGGCAGTT-",

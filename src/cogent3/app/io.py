@@ -21,6 +21,7 @@ from cogent3.util.table import Table
 from .composable import (
     ALIGNED_TYPE,
     IDENTIFIER_TYPE,
+    PAIRWISE_DISTANCE_TYPE,
     SEQUENCE_TYPE,
     SERIALISABLE_TYPE,
     TABULAR_RESULT_TYPE,
@@ -31,6 +32,7 @@ from .composable import (
     ComposableTabular,
     NotCompleted,
     _checkpointable,
+    _get_source,
 )
 from .data_store import (
     IGNORE,
@@ -51,7 +53,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -145,7 +147,7 @@ class _seq_loader:
         return seqs
 
 
-class load_aligned(_seq_loader, ComposableAligned):
+class load_aligned(ComposableAligned, _seq_loader):
     """Loads aligned sequences. Returns an Alignment object."""
 
     klass = ArrayAlignment
@@ -163,7 +165,7 @@ class load_aligned(_seq_loader, ComposableAligned):
         format : str
             sequence file format
         """
-        super(ComposableAligned, self).__init__(
+        super(load_aligned, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
@@ -194,7 +196,7 @@ class load_unaligned(ComposableSeq, _seq_loader):
         format : str
             sequence file format
         """
-        super(ComposableSeq, self).__init__(
+        super(load_unaligned, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
@@ -238,7 +240,7 @@ class load_tabular(ComposableTabular):
         strict
             all rows MUST have the same number of records
         """
-        super(ComposableTabular, self).__init__(
+        super(load_tabular, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
@@ -306,7 +308,7 @@ class load_tabular(ComposableTabular):
         try:
             header, data, title = self._parse(path)
         except Exception as err:
-            result = NotCompleted("ERROR", self, err.args[0], source=str(path))
+            return NotCompleted("ERROR", self, err.args[0], source=str(path))
 
         if self.as_type == "table":
             return Table(header=header, data=data, title=title)
@@ -330,7 +332,7 @@ class load_tabular(ComposableTabular):
 class write_tabular(_checkpointable, ComposableTabular):
     """writes tabular data"""
 
-    _input_types = (TABULAR_RESULT_TYPE, TABULAR_TYPE)
+    _input_types = (TABULAR_RESULT_TYPE, TABULAR_TYPE, PAIRWISE_DISTANCE_TYPE)
     _output_types = IDENTIFIER_TYPE
     _data_types = ("Table", "DictArray", "DistanceMatrix")
 
@@ -579,6 +581,25 @@ class write_db(_checkpointable):
         self._load_checkpoint = self
 
     def write(self, data, identifier=None):
+        """
+
+        Parameters
+        ----------
+        data
+            object that has a `to_json()` method, or can be json serialised
+        identifier : str
+            if not provided, taken from data.source or data.info.source
+
+        Returns
+        -------
+        identifier
+        """
+        data_source = _get_source(data)
+        if (data_source and identifier is not None) and str(data_source) != str(
+            identifier
+        ):
+            raise ValueError(f"identifier {identifier} != data source {data_source}")
+
         if identifier is None:
             identifier = self._make_output_identifier(data)
         # todo revisit this when we establish immutability behaviour of database

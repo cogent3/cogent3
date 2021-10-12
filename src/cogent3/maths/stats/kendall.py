@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -83,7 +83,6 @@ def kendalls_tau(x, y, return_p=True):
     """
     ranked = as_paired_ranks(x, y)
     n = len(ranked)
-    denom = n * (n - 1) / 2
     con = 0
     discor = 0
     x_tied = 0

@@ -13,7 +13,7 @@ __author__ = "Ben Kaehler"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
 __credits__ = ["Ben Kaehler", "Ananias Iliadis", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Ben Kaehler"
 __email__ = "benjamin.kaehler@anu.edu.au"
 __status__ = "Production"
@@ -22,14 +22,8 @@ from numpy.testing import assert_allclose
 
 
 class TestIntegratingExponentiator(TestCase):
-    def test_van_loan_integrating_exponentiator(self):
-        """VanLoanIntegratingExponentiator should reproduce Felsenstein
-        analytic result, should throw if we pass it a defected matrix and ask
-        it to use CheckedExponentiator, will work with a defective matrix (that
-        we can integrate by hand) if we use the default RobustExponentiator,
-        and should work for different choices of R and exponentiatior."""
-        # Result from Von Bing's R code
-        result = 0.7295333
+    def setUp(self) -> None:
+        self.result = 0.7295333
         q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.0
@@ -38,16 +32,24 @@ class TestIntegratingExponentiator(TestCase):
                     i,
                 ]
             )
-        p0 = array([0.2, 0.3, 0.3, 0.2])
+        self.q = q
+        self.p0 = array([0.2, 0.3, 0.3, 0.2])
 
-        I = expm.VanLoanIntegratingExponentiator(q, -diag(q))(1.0)
-        assert_allclose(dot(p0, I), result)
+    def test_van_loan_integrating_exponentiator(self):
+        """VanLoanIntegratingExponentiator should reproduce Felsenstein
+        analytic result, should throw if we pass it a defected matrix and ask
+        it to use CheckedExponentiator, will work with a defective matrix (that
+        we can integrate by hand) if we use the default RobustExponentiator,
+        and should work for different choices of R and exponentiatior."""
+        # Result from Von Bing's R code
+        I = expm.VanLoanIntegratingExponentiator(self.q, -diag(self.q))(1.0)
+        assert_allclose(dot(self.p0, I), self.result)
 
         self.assertRaises(
             ArithmeticError,
             expm.VanLoanIntegratingExponentiator,
-            q,
-            -diag(q),
+            self.q,
+            -diag(self.q),
             cmme.CheckedExponentiator,
         )
 
@@ -73,19 +75,8 @@ class TestIntegratingExponentiator(TestCase):
         should match results obtained from VanLoanIntegratingExponentiator for
         a diagonisable matrix."""
         # Result from Von Bing's R code.
-        result = 0.7295333
-        q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
-        for i in range(4):
-            q[i, i] = 0.0
-            q[i, i] = -sum(
-                q[
-                    i,
-                ]
-            )
-        p0 = array([0.2, 0.3, 0.3, 0.2])
-
-        I = expm.VonBingIntegratingExponentiator(q)(1.0)
-        assert_allclose(dot(dot(p0, I), -diag(q)), result)
+        I = expm.VonBingIntegratingExponentiator(self.q)(1.0)
+        assert_allclose(dot(dot(self.p0, I), -diag(self.q)), self.result)
 
         self.assertRaises(
             ArithmeticError,
@@ -114,6 +105,16 @@ class TestIntegratingExponentiator(TestCase):
                 p, exponentiator=cmme.FastExponentiator
             )(2.0),
         )
+
+    def test_repr(self):
+        """repr() works for the integrating exponentiators"""
+        for klass in (
+            expm.VanLoanIntegratingExponentiator,
+            expm.VonBingIntegratingExponentiator,
+        ):
+            i = klass(self.q)
+            g = repr(i)
+            self.assertIsInstance(g, str)
 
     def test_calc_number_subs(self):
         """correctly compute ENS"""

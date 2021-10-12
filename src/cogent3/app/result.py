@@ -15,7 +15,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -25,6 +25,7 @@ class generic_result(MutableMapping):
     """A dict style container for storing results."""
 
     _type = "generic_result"
+    _item_types = ()
 
     def __init__(self, source):
         self._store = {}
@@ -32,6 +33,23 @@ class generic_result(MutableMapping):
         self.source = source
 
     def __setitem__(self, key, val):
+        if isinstance(val, dict):
+            type_name = val.get("type", None)
+            type_name = type_name or ""
+        else:
+            type_name = val.__class__.__name__
+
+        for item_type in self._item_types:
+            if item_type in type_name:
+                break
+        else:
+            if self._item_types:
+                msg = f"{type_name} not in supported types {self._item_types}"
+                raise TypeError(msg)
+
+        if not hasattr(val, "to_json"):
+            json.dumps(val)
+
         self._store[key] = val
 
     def __getitem__(self, key):
@@ -49,7 +67,8 @@ class generic_result(MutableMapping):
     def __repr__(self):
         name = self.__class__.__name__
         num = len(self)
-        types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self.keys()[:4]]
+        types = [f"{repr(k)}: {self[k].__class__.__name__}" for k in self]
+        types = types[:3] + ["..."] if num > 5 else types
         types = ", ".join(types)
         return f"{num}x {name}({types})"
 
@@ -100,6 +119,7 @@ class model_result(generic_result):
 
     _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
+    _item_types = ("AlignmentLikelihoodFunction",)
 
     def __init__(
         self,
@@ -138,6 +158,9 @@ class model_result(generic_result):
         self._unique_Q = unique_Q
 
     def _get_repr_data_(self):
+        if len(self) == 0:
+            return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
+
         self.deserialised_values()  # making sure we're fully reloaded
         attrs = list(self._stat_attrs)
         header = ["key"] + attrs[:]
@@ -162,16 +185,6 @@ class model_result(generic_result):
         return repr(table)
 
     def __setitem__(self, key, lf):
-        if isinstance(lf, dict):
-            type_name = lf.get("type", None)
-            type_name = type_name or ""
-        else:
-            type_name = lf.__class__.__name__
-
-        if "AlignmentLikelihoodFunction" not in type_name:
-            msg = f"{type_name} not a supported type"
-            raise TypeError(msg)
-
         super(self.__class__, self).__setitem__(key, lf)
         self._init_stats()
 
@@ -377,6 +390,7 @@ class model_collection_result(generic_result):
     """Storage of a collection of model_result."""
 
     _type = "model_collection_result"
+    _item_types = ("model_result",)
 
     def __init__(self, name=None, source=None):
         """
@@ -407,6 +421,9 @@ class model_collection_result(generic_result):
         return table._repr_html_()
 
     def __repr__(self):
+        if len(self) == 0:
+            return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
+
         table = self._get_repr_data_()
         return str(table._get_repr_())
 
@@ -475,12 +492,28 @@ class model_collection_result(generic_result):
 
         return selected[0]
 
+    def get_hypothesis_result(self, name_null, name_alt):
+        """returns a hypothesis result with two models
+
+        Parameters
+        ----------
+        name_null : str
+            name of the null model
+        name_alt : str
+            name of the alternate model
+        """
+        result = hypothesis_result(name_of_null=name_null, source=self.source)
+        result[name_null] = self[name_null]
+        result[name_alt] = self[name_alt]
+        return result
+
 
 class hypothesis_result(model_collection_result):
     """Storage of a collection of model_result instances that are hierarchically
     related."""
 
     _type = "hypothesis_result"
+    _item_types = ("model_result",)
 
     @extend_docstring_from(model_collection_result.__init__, pre=True)
     def __init__(self, name_of_null, name=None, source=None):
@@ -509,9 +542,13 @@ class hypothesis_result(model_collection_result):
         table = table.sorted(columns="nfp")
         table.set_repr_policy(show_shape=False)
         stats = [[self.LR, self.df, self.pvalue]]
-        col_templates = {
-            "pvalue": "%.4f" if self.pvalue > 1e-3 else "%.2e",
-        }
+        col_templates = (
+            None
+            if self.pvalue is None
+            else {
+                "pvalue": "%.4f" if self.pvalue > 1e-3 else "%.2e",
+            }
+        )
         stats = Table(
             header=["LR", "df", "pvalue"],
             data=stats,
@@ -527,6 +564,9 @@ class hypothesis_result(model_collection_result):
         return "\n".join(result)
 
     def __repr__(self):
+        if len(self) == 0:
+            return f"{self.__class__.__name__}(name={self.name}, source={self.source})"
+
         stats, table = self._get_repr_data_()
         result = []
         for t in (stats, table):
@@ -572,6 +612,7 @@ class hypothesis_result(model_collection_result):
 
 class bootstrap_result(generic_result):
     _type = "bootstrap_result"
+    _item_types = ("hypothesis_result", "model_collection_result")
 
     def __init__(self, source=None):
         super(bootstrap_result, self).__init__(source)
@@ -598,10 +639,18 @@ class bootstrap_result(generic_result):
 
 
 class tabular_result(generic_result):
-    """stores one or multiple tabular data sets, keyed by a title"""
+    """stores one or multiple cogent3 Tables, DictArray"""
 
     _type = "tabular_result"
     _stat_attrs = ("header", "rows")
+    _item_types = (
+        "Table",
+        "DictArray",
+        "MotifCounts",
+        "MotifFreqs",
+        "PSSM",
+        "DistanceMatrix",
+    )
 
     def __init__(self, source=None):
         super(tabular_result, self).__init__(source)

@@ -8,7 +8,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -81,21 +81,16 @@ def calc_rows(
     MIN_FLOAT_VALUE = 1.0 / SCALE_STEP
 
     N = max(T.shape[0], T.shape[1])
-    row_count = plan.shape[0]
 
     dest_states = max(0, state_directions.shape[0])
-    d4 = max(4, state_directions.shape[1])
 
     row_count = x_index.shape[0]
     row_length = y_index.shape[0]
 
-    bin_count = match_scores.shape[0]
     max_x = match_scores.shape[1]
     max_y = match_scores.shape[2]
 
-    bin_count = max(xgap_scores.shape[0], bin_count)
     max_x = max(xgap_scores.shape[1], max_x)
-    bin_count = max(ygap_scores.shape[0], bin_count)
     max_y = max(ygap_scores.shape[1], max_y)
 
     for i in range(row_count):
@@ -106,12 +101,10 @@ def calc_rows(
 
     assert j_low >= 0 and j_high > j_low and j_high <= row_length
 
-    tmp_rows = mantissas.shape[0]
     row_length = max(mantissas.shape[1], row_length)
     N = max(mantissas.shape[2], N)
 
     if use_scaling:
-        tmp_rows = max(exponents.shape[0], tmp_rows)
         row_length = max(exponents.shape[1], row_length)
         N = max(exponents.shape[2], N)
 
@@ -121,8 +114,6 @@ def calc_rows(
         impossible = 0.0
 
     if viterbi and track is not None and track_enc is not None:
-        row_count = max(track.shape[0], row_count)
-        row_length = max(track.shape[1], row_length)
         N = max(track.shape[2], N)
         (tcode_x, tcode_y, tcode_s) = track_enc
     else:

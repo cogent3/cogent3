@@ -56,7 +56,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Prototype"
@@ -141,7 +141,7 @@ class SpanI(object):
         """Returns length of self."""
         raise NotImplementedError
 
-    def __lt__(self):
+    def __lt__(self, other):
         """Compares indices of self with indices of other."""
         raise NotImplementedError
 
@@ -551,7 +551,7 @@ class TerminalPadding(_LostSpan):
 
 
 class Map(object):
-    """A map holds a list of spans.  """
+    """A map holds a list of spans."""
 
     def __init__(
         self,
@@ -712,6 +712,18 @@ class Map(object):
         """Same location on reversed parent"""
         spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
         return Map(spans=spans, parent_length=self.parent_length)
+
+    def get_gap_coordinates(self):
+        """returns [(gap pos, gap length), ...]"""
+        gap_pos = []
+        for i, span in enumerate(self.spans):
+            if not span.lost:
+                continue
+
+            pos = self.spans[i - 1].end if i else 0
+            gap_pos.append((pos, len(span)))
+
+        return gap_pos
 
     def gaps(self):
         """The gaps (lost spans) in this map"""
@@ -1046,3 +1058,38 @@ def RangeFromString(string, delimiter=","):
         else:
             result.spans.append(Span(int(p)))
     return result
+
+
+def gap_coords_to_map(gaps_lengths: dict, seq_length: int) -> Map:
+    """
+    Parameters
+    ----------
+    gaps_lengths
+        {gap insertion pos: gap length, ...}
+    seq_length : int
+        length of unaligned sequence
+
+    Returns
+    -------
+    Map
+    """
+
+    if not gaps_lengths:
+        return Map([(0, seq_length)], parent_length=seq_length)
+
+    spans = []
+    last = pos = 0
+    for pos in sorted(gaps_lengths):
+        if pos > seq_length:
+            raise ValueError(
+                f"cannot have gap at position {pos} beyond seq_length= {seq_length}"
+            )
+
+        gap = LostSpan(length=gaps_lengths[pos])
+        spans.extend([gap] if pos == 0 else [Span(last, pos), gap])
+        last = pos
+
+    if pos < seq_length:
+        spans.append(Span(last, seq_length))
+
+    return Map(spans=spans, parent_length=seq_length)

@@ -1,6 +1,4 @@
-import os
-
-from tqdm import tqdm
+import warnings
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
@@ -23,6 +21,7 @@ from .composable import (
 from .result import (
     bootstrap_result,
     hypothesis_result,
+    model_collection_result,
     model_result,
     tabular_result,
 )
@@ -32,7 +31,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -259,15 +258,32 @@ class model(ComposableModel):
         return result
 
 
-class hypothesis(ComposableHypothesis):
-    """Specify a hypothesis through defining two models. Returns a
-    hypothesis_result."""
+class _InitFrom:
+    """holds a likelihood function that will be used to initialise others"""
+
+    def __init__(self, nested):
+        """nested: a model_result or a likelihood function"""
+        if hasattr(nested, "lf"):
+            nested = nested.lf
+        self.nested = nested
+
+    def __call__(self, other, *args, **kwargs):
+        try:
+            other.initialise_from_nested(self.nested)
+        except:
+            pass
+        return other
+
+
+class model_collection(ComposableHypothesis):
+    """Fits a collection of models. Returns a
+    model_collection_result."""
 
     _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
     _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
     _data_types = ("ArrayAlignment", "Alignment")
 
-    def __init__(self, null, *alternates, init_alt=None):
+    def __init__(self, null, *alternates, sequential=True, init_alt=None):
         """
         Parameters
         ----------
@@ -275,6 +291,10 @@ class hypothesis(ComposableHypothesis):
             The null model instance
         alternates : model or series of models
             The alternate model or a series of them
+        sequential : bool
+            initialise each likelihood function from the preceding model fit.
+            If False, and init_alt is not specified, each function is optimised
+            from default values.
         init_alt : callable
             A callback function for initialising the alternate model
             likelihood function prior to optimisation. It must take 2 input
@@ -286,12 +306,16 @@ class hypothesis(ComposableHypothesis):
         To stop the null MLEs from being used, provide a lambda function that
         just returns the likelihood function, e.g. init_alt=lambda lf, identifier: lf
         """
-        super(hypothesis, self).__init__(
+        super(model_collection, self).__init__(
             input_types=self._input_types,
             output_types=self._output_types,
             data_types=self._data_types,
         )
         self._formatted_params()
+        if sequential and init_alt:
+            warnings.warn("init_alt is specified, ignoring sequential")
+            sequential = False
+
         self.null = null
         names = {a.name for a in alternates}
         names.add(null.name)
@@ -302,30 +326,30 @@ class hypothesis(ComposableHypothesis):
         self._alts = alternates
         self.func = self.test_hypothesis
         self._init_alt = init_alt
+        self._sequential = sequential
 
-    def _initialised_alt_from_null(self, null, aln):
-        def init(alt, *args, **kwargs):
-            try:
-                alt.initialise_from_nested(null.lf)
-            except:
-                pass
-            return alt
+    def _make_result(self, aln):
+        return model_collection_result(source=aln.info)
 
+    def _initialised_alt(self, null, aln):
         if callable(self._init_alt):
             init_func = self._init_alt
-        else:
-            init_func = init
+        elif not self._sequential:
+            init_func = None
 
         results = []
         for alt in self._alts:
+            if self._sequential:
+                init_func = _InitFrom(null)
             result = alt(aln, initialise=init_func)
             results.append(result)
+            null = result
         return results
 
     def test_hypothesis(self, aln):
         try:
             null = self.null(aln)
-        except ValueError as err:
+        except ValueError:
             msg = f"Hypothesis null had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
@@ -333,8 +357,8 @@ class hypothesis(ComposableHypothesis):
             return null
 
         try:
-            alts = [alt for alt in self._initialised_alt_from_null(null, aln)]
-        except ValueError as err:
+            alts = [alt for alt in self._initialised_alt(null, aln)]
+        except ValueError:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
@@ -346,15 +370,23 @@ class hypothesis(ComposableHypothesis):
         results = {alt.name: alt for alt in alts}
         results.update({null.name: null})
 
-        result = hypothesis_result(name_of_null=null.name, source=aln.info.source)
+        result = self._make_result(aln)
         result.update(results)
         return result
+
+
+class hypothesis(model_collection):
+    """Specify a hypothesis through defining two models. Returns a
+    hypothesis_result."""
+
+    def _make_result(self, aln):
+        return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
 
 class bootstrap(ComposableHypothesis):
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
-    _input_types = ALIGNED_TYPE
+    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
     _output_types = (RESULT_TYPE, BOOTSTRAP_RESULT_TYPE, SERIALISABLE_TYPE)
     _data_types = ("ArrayAlignment", "Alignment")
 

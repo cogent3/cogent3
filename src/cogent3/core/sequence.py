@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Contains classes that represent biological sequence data. These
 provide generic biological sequence manipulation functions, plus functions
 that are critical for the EVOLVE calculations.
@@ -12,7 +11,6 @@ performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
 
-import copy
 import json
 import re
 import warnings
@@ -35,13 +33,11 @@ from numpy import (
 )
 from numpy.random import permutation
 
-import cogent3
-
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
-from cogent3.maths.stats.contingency import CategoryCounts, TestResult
+from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.parse import gff
 from cogent3.util.dict_array import DictArrayTemplate
@@ -51,12 +47,7 @@ from cogent3.util.misc import (
     get_object_provenance,
     get_setting_from_environ,
 )
-from cogent3.util.transform import (
-    KeepChars,
-    for_seq,
-    per_longest,
-    per_shortest,
-)
+from cogent3.util.transform import for_seq, per_shortest
 
 from .annotation import Map, _Annotatable
 
@@ -71,7 +62,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -342,7 +333,7 @@ class SequenceI(object):
 
     def degap(self):
         """Deletes all gap characters from sequence."""
-        return self.__class__(self.moltype.degap(self), info=self.info)
+        return self.__class__(self.moltype.degap(self), name=self.name, info=self.info)
 
     def gap_indices(self):
         """Returns list of indices of all gaps in the sequence, or []."""
@@ -641,7 +632,7 @@ class SequenceI(object):
                 last_nongap = i
         missing = self.moltype.missing
         if first_nongap is None:  # sequence was all gaps
-            result = self.__class__([missing for i in len(self)], info=self.info)
+            result = self.__class__([missing for _ in len(self)], info=self.info)
         else:
             prefix = missing * first_nongap
             mid = str(self[first_nongap : last_nongap + 1])
@@ -672,17 +663,14 @@ class SequenceI(object):
         colors=None,
         font_size=12,
         font_family="Lucida Console",
-        interleave_len=None,
     ):
         """returns html with embedded styles for sequence colouring
 
         Parameters
         ----------
-        interleave_len
-            replaced by wrap in version 2021.6
         wrap
             maximum number of printed bases, defaults to
-            alignment length, old name is interleave_len
+            alignment length
         limit
             truncate alignment to this length
         colors
@@ -699,13 +687,6 @@ class SequenceI(object):
             >>> from IPython.core.display import HTML
             >>> HTML(aln.to_html())
         """
-        if interleave_len is not None:
-            cogent3.util.warning.deprecated(
-                "argument", "interleave_len", "wrap", "2021.6"
-            )
-            wrap = interleave_len if wrap == 60 else wrap
-
-        # todo refactor interleave_len to be wrap
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
         )
@@ -1868,7 +1849,7 @@ class ArrayRnaSequence(ArrayNucleicAcidSequence):
         """Returns new ArrayRnaSequence, converting T -> U"""
         if hasattr(data, "upper"):
             data = data.upper().replace("T", "U")
-        return super(ArrayNucleicAcidSequence, self).__init__(data, *args, **kwargs)
+        return super(ArrayRnaSequence, self).__init__(data, *args, **kwargs)
 
 
 class ArrayDnaSequence(ArrayNucleicAcidSequence):
@@ -1879,7 +1860,7 @@ class ArrayDnaSequence(ArrayNucleicAcidSequence):
         """Returns new ArrayRnaSequence, converting U -> T"""
         if hasattr(data, "upper"):
             data = data.upper().replace("U", "T")
-        return super(ArrayNucleicAcidSequence, self).__init__(data, *args, **kwargs)
+        return super(ArrayDnaSequence, self).__init__(data, *args, **kwargs)
 
 
 class ArrayCodonSequence(ArraySequence):

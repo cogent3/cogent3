@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-
-
 from cogent3 import make_tree
-from cogent3.core.info import Info
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
@@ -12,7 +8,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

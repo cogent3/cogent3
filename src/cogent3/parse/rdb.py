@@ -6,7 +6,7 @@ Data in from the European rRNA database in distribution format.
 
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.info import Info
-from cogent3.core.sequence import RnaSequence, Sequence
+from cogent3.core.sequence import RnaSequence
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import DelimitedRecordFinder
 
@@ -15,7 +15,7 @@ __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"

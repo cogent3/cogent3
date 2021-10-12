@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import json
 import random
 
@@ -36,7 +34,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -292,7 +290,18 @@ class LikelihoodFunction(ParameterController):
         return result
 
     def get_psub_for_edge(self, name, **kw):
-        """returns the substitution probability matrix for the named edge"""
+        """returns the substitution probability matrix for the named edge
+
+        Parameters
+        ----------
+        name : str
+            name of the edge
+
+        Returns
+        -------
+        DictArray
+        """
+        # todo handle case of multiple loci
         try:
             # For PartialyDiscretePsubsDefn
             array = self.get_param_value("dpsubs", edge=name, **kw)
@@ -306,12 +315,19 @@ class LikelihoodFunction(ParameterController):
         Parameters
         ----------
         calibrated : bool
-            scales the rate matrix by branch length for each edge. If a rate
-            heterogeneity model, then the matrix is further scaled by rate
-            for a bin
+            If True, the rate matrix is scaled such that
+            ``sum(pi_i * Qii) == 1``. If False, the calibrated matrix is
+            multiplied by the length parameter (and the rate parameter for a
+            bin if it is a rate heterogeneity model).
+
         Returns
         -------
-        If a single rate matrix, the key is an empty tuple
+        {scope: DictArray, ...}
+
+        Notes
+        -----
+        If a single rate matrix (e.g. it's a time-homogeneous model), the key
+        is an empty tuple.
         """
         defn = self.defn_for["Q"]
 
@@ -359,8 +375,22 @@ class LikelihoodFunction(ParameterController):
     def get_rate_matrix_for_edge(self, name, calibrated=True, **kw):
         """returns the rate matrix (Q) for the named edge
 
-        If calibrated=False, expm(Q) will give the same result as
-        get_psub_for_edge(name)"""
+        Parameters
+        ----------
+        name : str
+            name of the edge
+        calibrated : bool
+            If True, the rate matrix is scaled such that
+            ``sum(pi_i * Qii) == 1``. If False, the calibrated matrix is
+            multiplied by the length parameter (and the rate parameter for a
+            bin if it is a rate heterogeneity model).
+
+        Notes
+        -----
+        If ``calibrated=False``, ``expm(Q)`` will give the same result as
+        ``self.get_psub_for_edge(name)``
+        """
+        # todo handle case of multiple loci
         try:
             array = self.get_param_value("Q", edge=name, **kw)
             array = array.copy()
@@ -399,14 +429,21 @@ class LikelihoodFunction(ParameterController):
         return root_lht.calc_G_statistic(root_lh, return_table)
 
     def reconstruct_ancestral_seqs(self, locus=None):
-        """returns a dict of DictArray objects containing probabilities
-        of each alphabet state for each node in the tree.
+        """computes the conditional probabilities of each state for each node
+        in the tree.
 
         Parameters
         ----------
         locus
             a named locus
 
+        Returns
+        -------
+        {node_name: DictArray, ...}
+
+        Notes
+        -----
+        Alignment columns are rows in the DictArray.
         """
         result = {}
         array_template = None
@@ -443,7 +480,7 @@ class LikelihoodFunction(ParameterController):
             )
         return result
 
-    def likely_ancestral_seqs(self, locus=None):
+    def likely_ancestral_seqs(self, locus=None) -> ArrayAlignment:
         """Returns the most likely reconstructed ancestral sequences as an
         alignment.
 
@@ -451,7 +488,6 @@ class LikelihoodFunction(ParameterController):
         ----------
         locus
             a named locus
-
         """
         prob_array = self.reconstruct_ancestral_seqs(locus=locus)
         seqs = []
@@ -500,16 +536,18 @@ class LikelihoodFunction(ParameterController):
 
     def _for_display(self):
         """processes statistics tables for display"""
-        title = self.name if self.name else "Likelihood function statistics"
+        title = self.name or "Likelihood function statistics"
         result = []
         result += self.get_statistics(with_motif_probs=True, with_titles=True)
-        for i, table in enumerate(result):
+        for i, table_ in enumerate(result):
             if (
-                "motif" in table.title and table.shape[1] == 2 and table.shape[0] >= 60
+                "motif" in table_.title
+                and table_.shape[1] == 2
+                and table_.shape[0] >= 60
             ):  # just sort codon motif probs, then truncate
-                table = table.sorted(columns="motif")
-                table.set_repr_policy(head=5, tail=5, show_shape=False)
-                result[i] = table
+                table_ = table_.sorted(columns="motif")
+                table_.set_repr_policy(head=5, tail=5, show_shape=False)
+                result[i] = table_
         return title, result
 
     def _repr_html_(self):
@@ -522,10 +560,10 @@ class LikelihoodFunction(ParameterController):
 
         nfp = "<p>number of free parameters = %d</p>" % self.get_num_free_params()
         title, results = self._for_display()
-        for i, table in enumerate(results):
-            table.title = table.title.capitalize()
-            table.set_repr_policy(show_shape=False)
-            results[i] = table._repr_html_()
+        for i, table_ in enumerate(results):
+            table_.title = table_.title.capitalize()
+            table_.set_repr_policy(show_shape=False)
+            results[i] = table_._repr_html_()
         results = ["<h4>%s</h4>" % title, lnL, nfp] + results
         return "\n".join(results)
 
@@ -542,14 +580,10 @@ class LikelihoodFunction(ParameterController):
             lnL = None
 
         nfp = "number of free parameters = %d" % self.get_num_free_params()
-        for table in results:
-            table.title = ""
+        for table_ in results:
+            table_.title = ""
 
-        if lnL:
-            results = [title, lnL, nfp] + results
-        else:
-            results = [title, nfp] + results
-
+        results = [title, lnL, nfp] + results if lnL else [title, nfp] + results
         return "\n".join(map(str, results))
 
     def get_annotated_tree(self, length_as=None):
@@ -1039,7 +1073,7 @@ class LikelihoodFunction(ParameterController):
                 sequence_length = len(lht.index)
             except AttributeError:
                 raise ValueError(
-                    f"Must provide sequence_length since no alignment set on self"
+                    "Must provide sequence_length since no alignment set on self"
                 )
 
             leaves = self.get_param_value("leaf_likelihoods", locus=locus)

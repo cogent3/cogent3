@@ -1,8 +1,4 @@
-#!/usr/bin/env python'
-from math import exp
-
 from .least_squares import WLS
-from .tree_collection import make_trees  # only for back compat.
 from .tree_collection import LogLikelihoodScoredTreeCollection
 from .tree_space import TreeEvaluator, ancestry2tree
 
@@ -11,7 +7,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

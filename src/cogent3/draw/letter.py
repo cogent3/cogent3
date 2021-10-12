@@ -15,11 +15,8 @@ The SVG paths for each character were generated via the following process:
   SVG path formatting and then into an array format for inclusion here.
 """
 
-import os
-
 import numpy
 
-from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 
@@ -27,7 +24,7 @@ __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Sheng Han Moses Koh", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"

@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """Local or Global-then-local optimisation with progress display
 """
 
@@ -21,7 +18,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -109,7 +106,7 @@ def bounds_exception_catching_function(f):
                 if not acceptable_inf(result):
                     warnings.warn("Non-finite f %s from %s" % (result, x))
                     raise ParameterOutOfBoundsError
-        except (ArithmeticError, ParameterOutOfBoundsError) as detail:
+        except (ArithmeticError, ParameterOutOfBoundsError):
             result = out_of_bounds_value
         return result
 
@@ -184,17 +181,7 @@ def maximise(
     try:
         # Global optimisation
         if do_global:
-            if 0 and not do_local:
-                warnings.warn(
-                    "local=False causes the post-global optimisation local "
-                    '"polishing" optimisation to be skipped entirely, which seems '
-                    "pointless, so its meaning may change to a simple boolean "
-                    "flag: local or global."
-                )
-                # It also needlessly complicates this function.
-                gend = 1.0
-            else:
-                gend = 0.9
+            gend = 0.9
             callback = unsteadyProgressIndicator(ui.display, "Global", 0.0, gend)
             gtol = [tolerance, global_tolerance][do_local]
             opt = GlobalOptimiser(filename=filename, interval=interval)

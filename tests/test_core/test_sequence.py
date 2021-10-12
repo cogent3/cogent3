@@ -43,7 +43,7 @@ __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -975,12 +975,6 @@ class SequenceTests(TestCase):
 
         self.assertTrue(seq_row in got)
 
-    def test_to_html_deprecation_warning(self):
-        """produce correct html formatted text"""
-        seq = DnaSequence("ACGGTGGGGGGGGG")
-        with self.assertWarns(DeprecationWarning):
-            seq.to_html(interleave_len=50)
-
     def test_repr_html(self):
         """correctly uses set_repr and the environment variable settings"""
         token = 'class="label"'
@@ -1107,6 +1101,14 @@ class DnaSequenceGapTests(TestCase):
         """gapped sequence regap() should return correct sequence"""
         sc = self.SequenceClass
         self.assertEqual(str(sc("TC").regap(sc("A---A-"))), "T---C-")
+
+    def test_degap_name(self):
+        """degap preserves name attribute"""
+        # todo this should work for any seq class, but is not
+        seq = DNA.make_seq("ACG---T", "blah")
+        got = seq.degap()
+        self.assertEqual(str(got), "ACGT")
+        self.assertEqual(got.name, "blah")
 
 
 class SequenceIntegrationTests(TestCase):

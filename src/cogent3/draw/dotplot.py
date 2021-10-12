@@ -8,7 +8,7 @@ __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -84,7 +84,6 @@ def get_dotplot_coords(
         acceptable_noise = min(len1, len2) / window
         threshold = suitable_threshold(window, acceptable_noise / universe)
 
-    key = (window, threshold, min_gap)
     fwd = dotplot(
         str(seq1),
         str(seq2),
@@ -195,7 +194,6 @@ class Dotplot(Drawable):
         show_progress : bool
             displays progress bar
         """
-        from cogent3.core.alignment import Aligned
 
         # we ensure sequences have gaps parsed and the calculate aspect ratio
         if hasattr(seq1, "moltype"):

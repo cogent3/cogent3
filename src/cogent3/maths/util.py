@@ -1,44 +1,8 @@
-#!/usr/bin/env python
 """Provides small utility functions for numpy arrays.
 """
-from operator import __getitem__ as getitem
-from operator import mul
-
 import numpy
 
-from numpy import (
-    arange,
-    argmin,
-    argsort,
-    array,
-    clip,
-    compress,
-    concatenate,
-    cumsum,
-    identity,
-    less,
-    log,
-    logical_not,
-    maximum,
-    min,
-    newaxis,
-    nonzero,
-    pi,
-    product,
-    put,
-    ravel,
-    repeat,
-    reshape,
-    searchsorted,
-    sort,
-    sqrt,
-    sum,
-    take,
-    trace,
-    where,
-    zeros,
-)
-from numpy.random import normal, randint
+from numpy import array, clip, cumsum, searchsorted, sort, sum
 
 
 numerictypes = numpy.core.numerictypes.sctype2char
@@ -50,7 +14,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Development"

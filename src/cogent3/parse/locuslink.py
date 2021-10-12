@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Parsers for the LL_tmpl file from LocusLink.
 
 Notes:
@@ -56,7 +55,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Development"
@@ -373,12 +372,3 @@ def LocusLinkParser(lines):
     for record in LLFinder(lines):
         curr = LinesToLocusLink(record)
         yield curr
-
-
-if __name__ == "__main__":
-    from sys import argv, stdout
-
-    filename = argv[1]
-    count = 0
-    for record in LocusLinkParser(open(filename)):
-        print(record)

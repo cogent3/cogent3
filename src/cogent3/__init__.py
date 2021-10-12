@@ -44,6 +44,7 @@ from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.misc import get_format_suffixes, open_
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
+from cogent3.util.warning import deprecated
 
 
 __author__ = ""
@@ -71,12 +72,10 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
-
-from cogent3.util.warning import deprecated, discontinued
 
 
 if sys.version_info < (3, 6):
@@ -368,7 +367,7 @@ def make_table(
 
     """
     if any(isinstance(a, str) for a in (header, data)):
-        raise TypeError(f"str type invalid, if its a path use load_table()")
+        raise TypeError("str type invalid, if it's a path use load_table()")
 
     if "index" in kwargs:
         deprecated("argument", "index", "index_name", "2021.11")

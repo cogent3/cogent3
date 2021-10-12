@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 moltype.py
 
@@ -16,7 +15,7 @@ __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -30,21 +29,6 @@ from random import choice
 from string import ascii_letters as letters
 
 import numpy
-
-from numpy import (
-    arange,
-    array,
-    asarray,
-    newaxis,
-    ravel,
-    remainder,
-    take,
-    transpose,
-    uint8,
-    uint16,
-    uint32,
-    zeros,
-)
 
 from cogent3.core.alignment import (
     Alignment,
@@ -131,9 +115,6 @@ IUPAC_DNA_ambiguities_complements = {
 }
 
 IUPAC_DNA_complements = {"A": "T", "C": "G", "G": "C", "T": "A", "-": "-"}
-
-IUPAC_DNA_complements = {"A": "T", "C": "G", "G": "C", "T": "A", "-": "-"}
-
 
 # note change in standard order from DNA
 IUPAC_RNA_chars = ["U", "C", "A", "G"]
@@ -490,12 +471,16 @@ class AlphabetGroup(CoreObjectGroup):
                 degens = "".join(degens)
             else:
                 constructor = Alphabet  # assume multi-char
-        self.base = constructor(chars, moltype=moltype)
-        self.degen = constructor(chars + degens, moltype=moltype)
-        self.gapped = constructor(chars + gap, gap, moltype=moltype)
-        self.degen_gapped = constructor(
-            chars + gap + degens + missing, gap, moltype=moltype
+
+        super(AlphabetGroup, self).__init__(
+            base=constructor(chars, moltype=moltype),
+            degen=constructor(chars + degens, moltype=moltype),
+            gapped=constructor(chars + gap, gap, moltype=moltype),
+            degen_gapped=constructor(
+                chars + gap + degens + missing, gap, moltype=moltype
+            ),
         )
+
         self._items = [self.base, self.degen, self.gapped, self.degen_gapped]
         self._set_relationships()
         # set complements if MolType was specified
@@ -616,7 +601,7 @@ class MolType(object):
             everything into the alphabet. Slated for deletion.
         preserve_existing_moltypes
             if True (default: False), does not
-            set the MolType of the things added in \*\*kwargs to self.
+            set the MolType of the things added in **kwargs to self.
         make_alphabet_group
             if True, makes an AlphabetGroup relating
             the various alphabets to one another.
@@ -874,7 +859,6 @@ class MolType(object):
         """
         all = {}
         for i in self.alphabet:
-            curr = str(i)
             all[i] = i
         for key, val in list(self.degenerates.items()):
             all[key] = val

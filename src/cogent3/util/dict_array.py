@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Wrapper for numpy arrays so that they can be indexed by name
 
     >>> a = numpy.identity(3, int)
@@ -34,7 +33,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -389,6 +388,17 @@ class DictArray(object):
     def to_array(self):
         return self.array
 
+    def __add__(self, other):
+        if not isinstance(other, type(self)):
+            raise TypeError(f"Incompatible types: {type(self)} and {type(other)}")
+
+        if other.template.names != self.template.names:
+            raise ValueError(
+                f"unequal dimension names {self.template.names} != {other.template.names}"
+            )
+
+        return self.template.wrap(self.array + other.array)
+
     def __array__(self, dtype=None):
         array = self.array
         if dtype is not None:
@@ -407,15 +417,20 @@ class DictArray(object):
         shape = self.shape
         result = {}
         if len(names) == 1:
-            result = {names[0][i]: self.array[i] for i in range(len(names[0]))}
+            result = {
+                names[0][i]: v.item() if hasattr(v, "item") else v
+                for i, v in enumerate(self.array)
+            }
         elif flatten:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
+                value = value.item() if hasattr(value, "item") else value
                 coord = tuple(n[i] for n, i in zip(names, indices))
                 result[coord] = value
         else:
             for indices in product(*[range(n) for n in shape]):
                 value = self.array[indices]
+                value = value.item() if hasattr(value, "item") else value
                 coord = tuple(n[i] for n, i in zip(names, indices))
                 current = result
                 nested = coord[0]
@@ -530,7 +545,7 @@ class DictArray(object):
     def row_sum(self):
         """returns DictArray summed across rows"""
         axis = 1 if len(self.shape) == 2 else 0
-        result = self.array.sum(axis=1)
+        result = self.array.sum(axis=axis)
         template = DictArrayTemplate(self.template.names[0])
         return template.wrap(result)
 

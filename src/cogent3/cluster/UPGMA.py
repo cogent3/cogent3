@@ -12,7 +12,7 @@ Both return a PhyloNode object of the UPGMA cluster
 
 import numpy
 
-from numpy import argmin, array, average, diag, ma, ravel, sum, take
+from numpy import argmin, average, diag, ravel, take
 
 from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray
@@ -22,7 +22,7 @@ __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"
@@ -150,7 +150,7 @@ def UPGMA_cluster(matrix, node_order, large_number):
         if index1 == index2:
             matrix[diag([True] * len(matrix))] = large_number
             smallest_index = find_smallest_index(matrix)
-        row_order = condense_node_order(matrix, smallest_index, node_order)
+        _ = condense_node_order(matrix, smallest_index, node_order)
         matrix = condense_matrix(matrix, smallest_index, large_number)
         tree = node_order[smallest_index[0]]
     return tree

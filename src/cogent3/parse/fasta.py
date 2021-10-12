@@ -17,7 +17,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Development"
@@ -154,7 +154,7 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
             try:
                 name, info = info_maker(label)  # will raise exception if bad
                 yield name, seq_maker(seq, name=name, info=info)
-            except Exception as e:
+            except Exception:
                 raise RecordError(
                     "Sequence construction failed on record with label %s" % label
                 )
@@ -163,7 +163,7 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
             try:
                 name, info = info_maker(label)
                 yield (name, seq_maker(seq, name=name, info=info))
-            except Exception as e:
+            except Exception:
                 continue
 
 

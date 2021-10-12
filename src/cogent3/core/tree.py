@@ -59,7 +59,7 @@ __credits__ = [
     "Justin Kuczynski",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -634,8 +634,9 @@ class TreeNode(object):
         tipnames = set(tipnames)
         tips = [tip for tip in self.tips() if tip.name in tipnames]
 
-        if len(tips) == 0:
-            return None
+        if len(tips) != len(tipnames):
+            missing = tipnames - set(self.get_tip_names())
+            raise ValueError(f"tipnames {missing} not present in self")
 
         # scrub tree
         if hasattr(self, "black"):
@@ -1863,8 +1864,6 @@ class PhyloNode(TreeNode):
 
         to_process = [(self, 0.0)]
         tips_to_save = []
-
-        curr_node, curr_dist = to_process[0]
 
         seen = set([id(self)])
         while to_process:

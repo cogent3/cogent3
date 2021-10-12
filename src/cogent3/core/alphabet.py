@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 alphabet.py
 
@@ -18,8 +17,6 @@ correct ambiguity for recoding -- will move to its own module.
 """
 
 import json
-import re
-import string
 
 from itertools import product
 
@@ -32,7 +29,6 @@ from numpy import (
     frombuffer,
     newaxis,
     ravel,
-    remainder,
     sum,
     take,
     transpose,
@@ -42,7 +38,7 @@ from numpy import (
     zeros,
 )
 
-from cogent3.util.misc import bytes_to_string, get_object_provenance
+from cogent3.util.misc import get_object_provenance
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -52,7 +48,7 @@ __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Andrew Butterfield"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -182,7 +178,6 @@ class Enumeration(tuple):
         accidentally use negative numbers as indices (this is very bad when
         doing indexed lookups).
         """
-        data = data or []
         self.moltype = moltype
 
         # check if motif lengths are homogeneous -- if so, set length
@@ -620,7 +615,6 @@ class Alphabet(Enumeration):
 
         Raises an AttributeError if MolType is not set.
         """
-        result = ""
         return self.moltype.make_seq("".join(self[i] for i in data))
 
     def get_matched_array(self, motifs, dtype=Float):
@@ -838,9 +832,9 @@ class CharAlphabet(Alphabet):
             return ""
         elif len(s) == 1:
             val = self.to_chars(data)
-            val = val.tostring().decode("utf-8")
+            val = val.tobytes().decode("utf-8")
             return val
         else:
             return delimiter.join(
-                [i.tostring().decode("utf-8") for i in self.to_chars(data)]
+                [i.tobytes().decode("utf-8") for i in self.to_chars(data)]
             )

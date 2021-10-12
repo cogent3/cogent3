@@ -5,15 +5,14 @@ import warnings
 import numpy
 
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
-
-from . import substitution_calculation
+from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -47,7 +46,7 @@ class MotifProbModel(object):
     def make_motif_probs_defn(self):
         """Makes the first part of a parameter controller definition for this
         model, the calculation of motif probabilities"""
-        return substitution_calculation.PartitionDefn(
+        return PartitionDefn(
             name="mprobs",
             default=None,
             dimensions=("locus", "edge"),
@@ -189,12 +188,10 @@ class MonomerProbModel(ComplexMotifProbModel):
 
     def make_motif_word_prob_defns(self):
         monomer_probs = self.make_motif_probs_defn()
-        word_probs = substitution_calculation.CalcDefn(
-            self.calc_word_probs, name="wprobs"
-        )(monomer_probs)
-        mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calc_word_weight_matrix, name="mprobs_matrix"
-        )(monomer_probs)
+        word_probs = CalcDefn(self.calc_word_probs, name="wprobs")(monomer_probs)
+        mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
+            monomer_probs
+        )
         return (monomer_probs, word_probs, mprobs_matrix)
 
     def adapt_motif_probs(self, motif_probs, auto=False):
@@ -231,21 +228,15 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         return result
 
     def calc_word_weight_matrix(self, monomer_probs):
-        positions = list(range(self.word_length))
         monomer_probs = numpy.array(monomer_probs)  # so [posn, motif]
         size = monomer_probs.shape[-1]
         # should be constant
         extended_indices = self.mutated_posn * size + self.mutant_motif
-        # print size, self.word_length
-        # for a in [extended_indices, self.mutated_posn, self.mutant_motif,
-        #        monomer_probs]:
-        #    print a.shape, a.max()
-
         result = monomer_probs.take(extended_indices) * self.mask
         return result
 
     def make_motif_word_prob_defns(self):
-        monomer_probs = substitution_calculation.PartitionDefn(
+        monomer_probs = PartitionDefn(
             name="psmprobs",
             default=None,
             dimensions=("locus", "position", "edge"),
@@ -254,15 +245,13 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         monomer_probs3 = monomer_probs.across_dimension(
             "position", [str(i) for i in range(self.word_length)]
         )
-        monomer_probs3 = substitution_calculation.CalcDefn(
-            lambda *x: numpy.array(x), name="mprobs"
-        )(*monomer_probs3)
-        word_probs = substitution_calculation.CalcDefn(
-            self.calc_word_probs, name="wprobs"
-        )(monomer_probs3)
-        mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calc_word_weight_matrix, name="mprobs_matrix"
-        )(monomer_probs3)
+        monomer_probs3 = CalcDefn(lambda *x: numpy.array(x), name="mprobs")(
+            *monomer_probs3
+        )
+        word_probs = CalcDefn(self.calc_word_probs, name="wprobs")(monomer_probs3)
+        mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
+            monomer_probs3
+        )
         return (monomer_probs, word_probs, mprobs_matrix)
 
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
@@ -295,7 +284,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
 
     def make_motif_word_prob_defns(self):
         mprobs = self.make_motif_probs_defn()
-        mprobs_matrix = substitution_calculation.CalcDefn(
-            self.calc_word_weight_matrix, name="mprobs_matrix"
-        )(mprobs)
+        mprobs_matrix = CalcDefn(self.calc_word_weight_matrix, name="mprobs_matrix")(
+            mprobs
+        )
         return (mprobs, mprobs, mprobs_matrix)

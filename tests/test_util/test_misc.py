@@ -69,7 +69,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -182,7 +182,7 @@ class UtilsTests(TestCase):
         self.assertEqual(not_list_tuple("34"), True)
 
     def test_list_flatten(self):
-        """list_flatten should remove all nesting, str is untouched """
+        """list_flatten should remove all nesting, str is untouched"""
         self.assertEqual(
             list_flatten(["aa", [8, "cc", "dd"], ["ee", ["ff", "gg"]]]),
             ["aa", 8, "cc", "dd", "ee", "ff", "gg"],
@@ -285,7 +285,7 @@ class UtilsTests(TestCase):
         self.assertRaises(KeyError, d, "b", 3)
 
     def test_remove_files(self):
-        """Remove files functions as expected """
+        """Remove files functions as expected"""
         # create list of temp file paths
         test_filepaths = [
             tempfile.NamedTemporaryFile(prefix="remove_files_test").name
@@ -671,7 +671,7 @@ class AtomicWriteTests(TestCase):
                 self.assertEqual(got, expect, msg=f"write failed for {suffix}")
 
     def test_rename(self):
-        """Renames file as expected """
+        """Renames file as expected"""
         # create temp file directory
         with tempfile.TemporaryDirectory(".") as dirname:
             # create temp filepath
@@ -752,12 +752,12 @@ class AtomicWriteTests(TestCase):
     def test_expanduser(self):
         """expands user correctly"""
         # create temp file directory
-        home = os.environ["HOME"]
+        home = pathlib.Path("~").expanduser()
         with tempfile.TemporaryDirectory(dir=home) as dirname:
             # create temp filepath
             dirname = pathlib.Path(dirname)
             test_filepath = dirname / "Atomic_write_test"
-            test_filepath = str(test_filepath).replace(home, "~")
+            test_filepath = str(test_filepath).replace(str(home), "~")
             with atomic_write(test_filepath, mode="w") as f:
                 f.write("abc")
 

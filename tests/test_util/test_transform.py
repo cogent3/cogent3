@@ -16,7 +16,7 @@ __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
@@ -200,7 +200,7 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(f("aBcDeF"), "aBc")
 
     def test_first_index_in_set(self):
-        """first_index_in_set should return index of first occurrence """
+        """first_index_in_set should return index of first occurrence"""
         vowels = "aeiou"
         s1 = "ebcua"
         s2 = "bcbae"

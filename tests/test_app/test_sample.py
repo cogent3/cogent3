@@ -10,7 +10,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -414,6 +414,42 @@ class TranslateTests(TestCase):
                 "seq4": "???TTT??",
             },
         )
+
+    def test_concat_handles_moltype(self):
+        """coerces to type"""
+        alns = [
+            make_aligned_seqs(data=d, moltype=DNA)
+            for d in [
+                {"seq1": "AAA", "seq2": "AAA", "seq3": "AAA"},
+                {"seq1": "TTT", "seq2": "TTT", "seq3": "TTT", "seq4": "TTT"},
+                {"seq1": "CC", "seq2": "CC", "seq3": "CC"},
+            ]
+        ]
+        ccat = sample.concat()
+        got = ccat(alns)
+        self.assertIsInstance(got.moltype, type(DNA))
+
+    def test_concat_validates_type(self):
+        """raises TypeError if not known alignment type"""
+        data = [
+            {"seq1": "AAA", "seq2": "AAA", "seq3": "AAA"},
+            make_aligned_seqs(
+                data={"seq1": "TTT", "seq2": "TTT", "seq3": "TTT", "seq4": "TTT"},
+                moltype=DNA,
+            ),
+        ]
+        ccat = sample.concat()
+        # triggered by first record
+        with self.assertRaises(TypeError):
+            ccat(data)
+
+        # triggered by second record
+        with self.assertRaises(TypeError):
+            ccat(data[::-1])
+
+        # triggered by no data
+        with self.assertRaises(ValueError):
+            ccat([])
 
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""

@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -31,7 +29,7 @@ def pog_traceback(pogs, aligned_positions):
 class POGBuilder(object):
     def __init__(self, children):
         self.children = children
-        self.remap = [{} for child in children]
+        self.remap = [{} for _ in children]
         self.started = [False, False]
         self.last = [None, None]
         self.result = [[]]

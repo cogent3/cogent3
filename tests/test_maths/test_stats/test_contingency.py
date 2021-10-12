@@ -12,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -98,8 +98,7 @@ class ContingencyTests(TestCase):
         got = table.G_fit()
         assert_allclose(got.G, 9.849234)
         table.expected = None
-        got = table.G_fit()
-        print(got)
+        _ = table.G_fit()
 
     def test_zero_observeds(self):
         """raises ValueError"""
@@ -157,8 +156,8 @@ class ContingencyTests(TestCase):
         exp = [5.2] * 5
         keys = ["Marl", "Chalk", "Sandstone", "Clay", "Limestone"]
         table = CategoryCounts(dict(zip(keys, obs)), expected=dict(zip(keys, exp)))
-        got = table._get_repr_()
-        got = table._get_repr_(html=True)
+        _ = table._get_repr_()
+        _ = table._get_repr_(html=True)
 
     def test_accessing_elements(self):
         """successfully access elements"""

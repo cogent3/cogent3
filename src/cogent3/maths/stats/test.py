@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Provides standard statistical tests. Tests produce statistic and P-value.
 """
 
@@ -69,7 +68,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -604,7 +603,7 @@ def t_two_sample(a, b, tails=None, exp_diff=0, none_on_zero_variance=True):
         AttributeError,
         TypeError,
         FloatingPointError,
-    ) as e:
+    ):
         # invalidate if the sample sizes are wrong, the values aren't numeric or
         # aren't present, etc.
         result = (None, None)
@@ -1172,7 +1171,6 @@ def regress(x, y):
     Sx = npsum(x)
     Sy = npsum(y)
     Sxx = npsum(x * x)
-    Syy = npsum(y * y)
     Sxy = npsum(x * y)
     det = Sxx * N - Sx * Sx
     return (Sxy * N - Sy * Sx) / det, (Sxx * Sy - Sx * Sxy) / det
@@ -1376,7 +1374,7 @@ def fisher(probs):
     """
     try:
         return chi_high(-2 * npsum(list(map(log, probs))), 2 * len(probs))
-    except OverflowError as e:
+    except OverflowError:
         return 0.0
 
 
@@ -1660,17 +1658,14 @@ def mw_test(x, y):
     combined.sort(order="stat")
     prev = None
     start = None
-    ties = False
     T = 0.0
     for index in range(combined.shape[0]):
         value = combined["stat"][index]
-        sample = combined["sample"][index]
         if value == prev and start is None:
             start = index
             continue
 
         if value != prev and start is not None:
-            ties = True
             ave_rank = _average_rank(start, index)
             num_tied = index - start + 1
             T += num_tied ** 3 - num_tied

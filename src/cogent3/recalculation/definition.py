@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """A recalculation engine, something like a spreadsheet.
 
 Goals:
@@ -64,13 +63,11 @@ Recycling:
   the one to be used next for recycling.
 """
 
-import warnings
 
 from collections import defaultdict
 
 import numpy
 
-from cogent3.maths.stats.distribution import chdtri
 from cogent3.maths.util import proportions_to_ratios, ratios_to_proportions
 from cogent3.util.dict_array import DictArrayTemplate
 
@@ -89,7 +86,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -192,11 +189,13 @@ class WeightedPartitionDefn(CalculationDefn):
     """Uses a PartitionDefn (ie: N-1 optimiser parameters) to make
     an array of floats with weighted average of 1.0"""
 
-    def __init__(self, weights, name):
+    def __init__(self, weights, name=None):
         N = len(weights.bin_names)
         partition = PartitionDefn(size=N, name=name + "_partition")
         partition.user_param = False
-        CalculationDefn.__init__(self, weights, partition, name=name + "_distrib")
+        super(WeightedPartitionDefn, self).__init__(
+            weights, partition, name=name + "_distrib"
+        )
 
     def calc(self, weights, values):
         scale = numpy.sum(weights * values)
@@ -498,7 +497,6 @@ class PartitionDefn(_InputDefn):
         # This was originally put in its own function so as to provide a
         # closure containing the value of sum(value), which is no longer
         # required since it is now always 1.0.
-        N = len(value)
         assert abs(sum(value) - 1.0) < 0.00001
         ratios = proportions_to_ratios(value)
         ratios = [LogOptPar(name + "_ratio", scope, (1e-6, r, 1e6)) for r in ratios]

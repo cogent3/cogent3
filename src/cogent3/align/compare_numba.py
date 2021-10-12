@@ -1,27 +1,16 @@
-import numba
 import numpy as np
-
-from numba import int64, njit
-from numba.core.types import List
-from numba.core.types.containers import Tuple
 
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
-# @njit(
-#     List(dtype=Tuple(types=(int64, int64)))(
-#         numba.typeof(b"seq"), numba.typeof(b"seq"), int64, int64, int64, int64
-#     ),
-#     cache=True,
-# )
 def segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length, diagonal):
     assert window < 100
     scores = np.zeros(window)

@@ -13,7 +13,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -147,18 +147,14 @@ class quick_tree(ComposableTree):
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists
         if dists is None or (dists.shape[0] != size and not self._drop_invalid):
-            msg = (
-                f"some pairwise distances could not be computed with"
-                " {self._distance}, pick a different distance"
-            )
-            raise ValueError(msg)
+            raise ValueError("invalid pairwise distances")
 
         # how many species do we have
-        species = dists.keys()
-        if len(species) == 2:
-            dist = list(dists.values())[0] / 2.0
-            treestring = "(%s:%.4f,%s:%.4f)" % (species[0], dist, species[1], dist)
-            tree = make_tree(treestring=treestring, underscore_unmunge=True)
+        if size == 2:
+            dist = dists.array[0, 1] / 2.0
+            newick = ",".join(f"{sp}:{dist:.4f}" for sp in dists.names)
+            newick = f"({newick})"
+            tree = make_tree(treestring=newick, underscore_unmunge=True)
         else:
             (result,) = gnj(dists.to_dict(), keep=1, show_progress=False)
             (score, tree) = result

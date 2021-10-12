@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # 4 implementations of P = exp(Q*t)
 # APIs along the lines of:
 #   exponentiator = WhateverExponenentiator(Q or Q derivative(s))
@@ -14,14 +13,14 @@ import warnings
 
 import numpy
 
-from numpy.linalg import LinAlgError, eig, inv, solve
+from numpy.linalg import eig, inv, solve
 
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

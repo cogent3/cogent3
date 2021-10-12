@@ -1,27 +1,21 @@
-#!/usr/bin/env python
-
 import concurrent.futures as concurrentfutures
-import math
 import multiprocessing
 import os
-import random
 import sys
-import threading
-import time
 import warnings
-
-import numpy
 
 from cogent3.util.misc import extend_docstring_from
 
 
-multiprocessing.set_start_method("fork")
+multiprocessing.set_start_method(
+    "fork" if sys.platform == "darwin" else "spawn", force=True
+)
 
 __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"

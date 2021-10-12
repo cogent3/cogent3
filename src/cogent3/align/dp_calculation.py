@@ -1,7 +1,3 @@
-#!/usr/bin/env/python
-
-import numpy
-
 from cogent3.align import indel_model, pairwise
 from cogent3.maths.markov import SiteClassTransitionMatrix
 from cogent3.recalculation.definition import (
@@ -9,7 +5,6 @@ from cogent3.recalculation.definition import (
     CalculationDefn,
     NonParamDefn,
     PartitionDefn,
-    PositiveParamDefn,
     ProbabilityParamDefn,
 )
 
@@ -18,7 +13,7 @@ __author__ = "Gavin Huttley and Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttleuy"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

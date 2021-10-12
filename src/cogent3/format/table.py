@@ -18,7 +18,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield", "Jeremy Widmann"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -60,7 +60,7 @@ css_c3table_template = "\n".join(
 
 
 def _merged_cell_text_wrap(text, max_line_length, space):
-    """ left justify wraps text into multiple rows"""
+    """left justify wraps text into multiple rows"""
     max_line_width = max_line_length - (2 * space)
     if len(text) < max_line_length:
         return [text]
@@ -157,7 +157,6 @@ def rich_html(
         data += [thead] + row + ["</thead>"]
 
     formatted_rows = []
-    td = formatted("td", "<td>")
     for ridx, row in enumerate(rows):
         new = [formatted("tr", "<tr>")]
         for cidx, cell in row_iterator(row):

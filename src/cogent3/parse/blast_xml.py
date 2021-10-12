@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Parsers for XML output of blast, psi-blast and blat.
 """
 
@@ -7,16 +6,14 @@ __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __contributors__ = ["Micah Hamady"]
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Kristian Rother"
 __email__ = "krother@rubor.de"
 __status__ = "Prototype"
 
 import xml.dom.minidom
 
-from operator import eq as _eq
 from operator import gt as _gt
-from operator import le as _le
 from operator import lt as _lt
 
 from cogent3.parse.blast import MinimalBlastParser9, MinimalPsiBlastParser9
@@ -261,19 +258,14 @@ class BlastXMLResult(dict):
         # code below copied from BlastResult, unchanged.
         mp = parser(data, True)
 
-        for props, rec_data in mp:
-
-            iteration = 1
-            if self.ITERATION in props:
-                iteration = int(props[self.ITERATION])
-
+        for _, rec_data in mp:
             hits = []
             # check if found any hits
             if len(rec_data) > 1:
                 for h in rec_data[1:]:
                     hits.append(dict(list(zip(rec_data[0], h))))
             else:
-                hits.append(dict(list(zip(rec_data[0], ["" for x in rec_data[0]]))))
+                hits.append(dict(list(zip(rec_data[0], ["" for _ in rec_data[0]]))))
 
             # get blast version of query id
             query_id = hits[0][self.QUERY_ID]

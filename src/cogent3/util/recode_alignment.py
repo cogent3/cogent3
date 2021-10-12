@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# Author: Greg Caporaso (gregcaporaso@gmail.com)
-# recode_alignment.py
-
 """This file contains functions for recoding alignment objects with
  reduced-state alphabets, and also defines some reduced-state alphabets.
 
@@ -38,12 +34,10 @@ Rob Knight. BMC Evolutionary Biology, 2008.
 
 """
 
-from optparse import OptionParser
 
 from numpy import array, take, zeros
 
-from cogent3 import PROTEIN
-from cogent3.core.alignment import Alignment, ArrayAlignment
+from cogent3.core.alignment import ArrayAlignment
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 
 
@@ -51,14 +45,14 @@ __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
 
 
 class RecodeError(Exception):
-    """ A generic error to be raised when errors occur in recoding """
+    """A generic error to be raised when errors occur in recoding"""
 
     pass
 

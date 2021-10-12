@@ -8,7 +8,7 @@ from itertools import combinations
 
 from numpy import allclose, argmin, array, diag, dot, exp, eye
 from numpy import inner as innerproduct
-from numpy import isclose, log, ones, pi, transpose, zeros
+from numpy import isclose, log, ones, pi, zeros
 from numpy.linalg import eig as eigenvectors
 from numpy.linalg import inv as inverse
 from numpy.linalg import norm
@@ -18,7 +18,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Von Bing Yap", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

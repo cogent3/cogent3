@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# Authors: Greg Caporaso (gregcaporaso@gmail.com), Brett Easton, Gavin Huttley
-# coevolution.py
-
 """ Description
 File created on 03 May 2007.
 
@@ -47,44 +43,31 @@ line.
 
 """
 
-from optparse import make_option
-from os.path import basename, exists, splitext
+from os.path import basename
 from pickle import Pickler, Unpickler
 from random import shuffle
-from sys import exit
 
 from numpy import (
-    abs,
     array,
     e,
-    exp,
     float,
-    float64,
     greater_equal,
     isnan,
     less_equal,
     log,
-    mean,
     nan,
     nonzero,
     ones,
-    put,
     ravel,
-    reshape,
-    sqrt,
-    take,
-    transpose,
-    tril,
     zeros,
 )
 from numpy.linalg import norm
 
 from cogent3 import PROTEIN, make_aligned_seqs
-from cogent3.core.alignment import ArrayAlignment, seqs_from_fasta
-from cogent3.core.alphabet import Alphabet, CharAlphabet
+from cogent3.core.alignment import ArrayAlignment
+from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.core.sequence import Sequence
-from cogent3.core.tree import TreeError
 from cogent3.evolve.substitution_model import (
     EmpiricalProteinMatrix,
     Parametric,
@@ -92,15 +75,6 @@ from cogent3.evolve.substitution_model import (
 from cogent3.maths.stats.distribution import binomial_exact
 from cogent3.maths.stats.number import CategoryCounter, CategoryFreqs
 from cogent3.maths.stats.special import ROUND_ERROR
-from cogent3.parse.newick import TreeParseError
-from cogent3.parse.record import FileFormatError, RecordError
-from cogent3.util.recode_alignment import (
-    alphabets,
-    recode_counts_and_freqs,
-    recode_dense_alignment,
-    recode_freq_vector,
-    square_matrix_to_dict,
-)
 
 
 __author__ = "Greg Caporaso"
@@ -113,7 +87,7 @@ __credits__ = [
     "Rob Knight",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
@@ -142,7 +116,7 @@ def mi(h1, h2, joint_h):
 
 
 def normalized_mi(h1, h2, joint_h):
-    """ MI normalized by joint entropy, as described in Martin 2005 """
+    """MI normalized by joint entropy, as described in Martin 2005"""
     return mi(h1, h2, joint_h) / joint_h
 
 
@@ -165,7 +139,7 @@ def join_positions(pos1, pos2):
 
 
 def joint_entropy(pos1, pos2):
-    """ Calculate the joint entroy of a pair of positions """
+    """Calculate the joint entroy of a pair of positions"""
     return CategoryCounter(join_positions(pos1, pos2)).entropy
 
 
@@ -226,7 +200,7 @@ def mi_pair(
             for exclude in excludes:
                 if exclude in states:
                     try:
-                        col = exclude_handler(col, excludes)
+                        _ = exclude_handler(col, excludes)
                         break
                     except TypeError:
                         return null_value
@@ -641,7 +615,7 @@ def get_positional_probabilities(pos_freqs, natural_probs, scaled_aln_size=100):
         # pos_freq as a float could be greater than scaled_aln_size.
         # In this case I cast it to an int. I don't like this alignment
         # scaling stuff though.
-        except ValueError as e:
+        except ValueError:
             results.append(binomial_exact(int(pos_freq), scaled_aln_size, natural_prob))
     return array(results)
 
@@ -787,8 +761,6 @@ def sca_pair(
             sca_pair(aln,10,20,0.85) != \
             sca_pair(aln.take_positions([10,20]),0,1,0.85)
     """
-    num_positions = len(alignment)
-    num_seqs = alignment.num_seqs
 
     # Calculate frequency distributions
     natural_probs = probs_from_dict(background_freqs, alphabet)
@@ -919,7 +891,6 @@ def sca_position(
      or a string.
 
     """
-    num_seqs = alignment.num_seqs
     natural_probs = probs_from_dict(background_freqs, alphabet)
     aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(aln_freqs, natural_probs, scaled_aln_size)
@@ -1008,7 +979,6 @@ def sca_alignment(
      or a string.
 
     """
-    num_seqs = alignment.num_seqs
     natural_probs = probs_from_dict(background_freqs, alphabet)
     aln_freqs = freqs_from_aln(alignment, alphabet, scaled_aln_size)
     aln_probs = get_positional_probabilities(aln_freqs, natural_probs, scaled_aln_size)
@@ -1171,7 +1141,7 @@ def resampled_mi_pair(
         for exclude in excludes:
             if exclude in states:
                 try:
-                    col = exclude_handler(col, excludes)
+                    _ = exclude_handler(col, excludes)
                     break
                 except TypeError:
                     return null_value
@@ -1307,7 +1277,7 @@ def ancestral_state_position(
 def ancestral_state_pair(
     aln, tree, pos1, pos2, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
 ):
-    """"""
+    """ """
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     ancestral_names_to_seqs = dict(
         list(zip(ancestral_seqs.names, ancestral_seqs.array_seqs))
@@ -1404,7 +1374,7 @@ method_abbrevs_to_names = {
 
 
 def sca_input_validation(alignment, **kwargs):
-    """SCA specific validations steps """
+    """SCA specific validations steps"""
 
     # check that all required parameters are present in kwargs
     required_parameters = ["cutoff"]
@@ -1449,7 +1419,7 @@ def validate_alphabet(alphabet, freqs):
 
 
 def ancestral_states_input_validation(alignment, **kwargs):
-    """Ancestral States (AS) specific validations steps """
+    """Ancestral States (AS) specific validations steps"""
     # check that all required parameters are present in kwargs
     required_parameters = ["tree"]
     for rp in required_parameters:
@@ -1497,7 +1467,7 @@ def validate_tree(alignment, tree):
 
 
 def validate_position(alignment, position):
-    """ValueError if position is outside the range of the alignment """
+    """ValueError if position is outside the range of the alignment"""
     if not 0 <= position < len(alignment):
         raise ValueError(
             "Position is outside the range of the alignment: " + str(position)
@@ -1635,7 +1605,7 @@ def merge_alignments(alignment1, alignment2):
             result[merged_name] = Sequence(
                 alignment1.get_gapped_seq(orig_name)
             ) + Sequence(alignment2.get_gapped_seq(aln2_name_map[merged_name]))
-    except KeyError as e:
+    except KeyError:
         raise KeyError(
             "A sequence identifier is in alignment2 "
             + "but not alignment1 -- did you filter out sequences identifiers"
@@ -2056,9 +2026,9 @@ def is_parsimony_informative(
         pass
     ignored = None if not ignored else list(set(ignored) & set(column_freqs.keys()))
     if ignored:
-        for e in ignored:
+        for e_ in ignored:
             try:
-                del column_freqs[e]
+                del column_freqs[e_]
             except KeyError:
                 pass
 
@@ -2324,7 +2294,7 @@ def aln_position_pairs_ge_threshold(
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
 ):
-    """wrapper function for aln_position_pairs_cmp_threshold """
+    """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix,
         threshold,
@@ -2340,7 +2310,7 @@ def aln_position_pairs_le_threshold(
     null_value=DEFAULT_NULL_VALUE,
     intermolecular_data_only=False,
 ):
-    """wrapper function for aln_position_pairs_cmp_threshold """
+    """wrapper function for aln_position_pairs_cmp_threshold"""
     return aln_position_pairs_cmp_threshold(
         coevolution_matrix, threshold, less_equal, null_value, intermolecular_data_only
     )
@@ -2403,7 +2373,7 @@ def count_cmp_threshold(
 def count_ge_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
 ):
-    """wrapper function for count_cmp_threshold """
+    """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, greater_equal, null_value, symmetric, ignore_diagonal
     )
@@ -2412,14 +2382,14 @@ def count_ge_threshold(
 def count_le_threshold(
     m, threshold, null_value=DEFAULT_NULL_VALUE, symmetric=False, ignore_diagonal=False
 ):
-    """wrapper function for count_cmp_threshold """
+    """wrapper function for count_cmp_threshold"""
     return count_cmp_threshold(
         m, threshold, less_equal, null_value, symmetric, ignore_diagonal
     )
 
 
 def ltm_to_symmetric(m):
-    """ Copies values from lower triangle to upper triangle"""
+    """Copies values from lower triangle to upper triangle"""
     assert (
         m.shape[0] == m.shape[1]
     ), "Making matrices symmetric only supported for square matrices"
@@ -2517,7 +2487,7 @@ def parse_coevolution_matrix_filepath(filepath):
         alignment_id = fields[0]
         alphabet_id = fields[1]
         method_id = fields[2]
-        extension = fields[3]
+        _ = fields[3]  # extension
     except IndexError:
         raise ValueError(
             "output filepath not in parsable format: %s. See doc string for format definition."

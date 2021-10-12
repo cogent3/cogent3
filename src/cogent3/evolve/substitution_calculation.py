@@ -1,28 +1,17 @@
 #!/usr/bin/env python
 import warnings
 
-import numpy
+from numpy.linalg import LinAlgError
 
 from cogent3.maths.matrix_exponentiation import (
     CheckedExponentiator,
     FastExponentiator,
-    LinAlgError,
     PadeExponentiator,
 )
 from cogent3.recalculation.definition import (
-    CalcDefn,
     CalculationDefn,
-    CallDefn,
-    ConstDefn,
-    GammaDefn,
-    MonotonicDefn,
-    NonParamDefn,
-    PartitionDefn,
     PositiveParamDefn,
-    ProductDefn,
     RatioParamDefn,
-    SelectForDimension,
-    WeightedPartitionDefn,
 )
 
 
@@ -30,7 +19,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"

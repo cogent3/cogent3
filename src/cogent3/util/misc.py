@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Generally useful utility classes and methods.
 """
 import os
@@ -14,7 +13,7 @@ from io import TextIOWrapper
 from os import path as os_path
 from os import remove
 from pathlib import Path
-from random import choice, randint
+from random import randint
 from tempfile import mkdtemp
 from warnings import warn
 from zipfile import ZipFile
@@ -22,7 +21,7 @@ from zipfile import ZipFile
 import numpy
 
 from chardet import detect
-from numpy import array, ceil, finfo, float64, floor, log10, logical_not, sum
+from numpy import array, finfo, float64
 
 
 __author__ = "Rob Knight"
@@ -38,7 +37,7 @@ __credits__ = [
     "Marcin Cieslik",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -404,7 +403,7 @@ def is_iterable(obj):
     """return True if obj is iterable"""
     try:
         iter(obj)
-    except TypeError as e:
+    except TypeError:
         return False
     else:
         return True
@@ -1158,7 +1157,6 @@ def get_merged_by_value_coords(spans_value, digits=None):
     starts, ends, vals = list(zip(*spans_value))
     indices_distinct_vals = get_run_start_indices(vals, digits=digits)
     data = []
-    i = 0
     for index, val in indices_distinct_vals:
         start = starts[index]
         end = ends[index]

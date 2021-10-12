@@ -10,7 +10,7 @@ __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -69,7 +69,7 @@ class _SciPyOptimiser(object):
         if tolerance is None:
             tolerance = 1e-6
 
-        fval_last = fval = numpy.inf
+        fval_last = numpy.inf
         if len(xopt) == 0:
             return function(xopt), xopt
 

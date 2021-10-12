@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """ matrix based distance metrics, and related coordinate transforms
 
 functions to compute distance matrices row by row from abundance matrices,
@@ -62,40 +61,17 @@ from numpy import (
     argsort,
     array,
     asarray,
-    geterr,
     isfinite,
     isnan,
     logical_and,
-    logical_not,
-    logical_or,
-    logical_xor,
     mean,
     min,
     multiply,
     nan_to_num,
-    nonzero,
-    ravel,
-    seterr,
-    shape,
-    sqrt,
-    square,
-    std,
-    sum,
-    take,
-    where,
-    zeros,
 )
+from numpy import ndim as rank
+from numpy import ravel, seterr, shape, sqrt, square, sum, take, where, zeros
 from numpy.linalg import norm
-
-
-try:
-    from numpy import ndim as rank
-except ImportError:
-    from numpy import rank
-
-# any, all from numpy override built in any, all, preventing:
-# ValueError: The truth value of an array with more than one element is
-# ambiguous. Use a.any() or a.all()
 
 
 __author__ = "Justin Kuczynski"
@@ -110,7 +86,7 @@ __credits__ = [
     "Greg Caporaso",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
@@ -357,7 +333,6 @@ def dist_canberra(datamtx, strict=True):
         r1 = datamtx[i]
         for j in range(i):
             r2 = datamtx[j]
-            dist = 0.0
             net = abs(r1 - r2) / (r1 + r2)
             num_nonzeros = 0
             for k in range(r1.size):
@@ -574,7 +549,6 @@ def dist_gower(datamtx, strict=True):
         r1 = datamtx[i]
         for j in range(i):
             r2 = datamtx[j]
-            rowdiff = r2 - r1
             dist = sum(abs(r1 - r2) / coldiffs)
             dists[i, j] = dists[j, i] = dist
 
@@ -923,10 +897,7 @@ def dist_pearson(datamtx, strict=True):
         return zeros((0, 0), "d")
 
     rowmeans = mean(datamtx, axis=1)
-    rowstds = std(datamtx, axis=1)
-
     dists = zeros((numrows, numrows), "d")
-    n = float(numrows)
 
     for i in range(numrows):
         r1 = datamtx[i, :]
@@ -1484,7 +1455,7 @@ def binary_dist_pearson(datamtx, strict=True):
 
 
 if __name__ == "__main__":
-    """ just a test run"""
+    """just a test run"""
     matrix1 = array(
         [
             [10, 8, 4, 1],

@@ -24,7 +24,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -99,6 +99,15 @@ class CannedModelsTest(TestCase):
         with self.assertRaises(ValueError):
             # unknown model raises exception
             _ = get_model("blah")
+
+    def test_model_names(self):
+        """name attribute matches model name"""
+        for model_name in models:
+            model = get_model(model_name)
+            self.assertTrue(
+                model.name.startswith(model_name),
+                msg=f"{model.name} does not start with {model_name}",
+            )
 
 
 def get_sample_model_types(mod_type=None):

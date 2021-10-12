@@ -19,7 +19,7 @@ __author__ = "Ben Kaehler"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
 __credits__ = ["Ben Kaehler", "Von Bing Yap", "Gavin Huttley", "Ananias Iliadis"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Ben Kaehler"
 __email__ = "benjamin.kaehler@anu.edu.au"
 __status__ = "Production"
@@ -48,7 +48,7 @@ class VanLoanIntegratingExponentiator(_Exponentiator):
         exponentiator -- Exponentiator used in Van Loan method. Defaults to
         RobustEstimator.
         """
-        self.Q = Q
+        super(VanLoanIntegratingExponentiator, self).__init__(Q)
         Qdim = len(Q)
         if R is None:
             self.R = identity(Qdim)
@@ -76,7 +76,7 @@ class VonBingIntegratingExponentiator(_Exponentiator):
         """
         Q -- a diagonisable matrix.
         """
-        self.Q = Q
+        super(VonBingIntegratingExponentiator, self).__init__(Q)
         self.roots, self.evT = eig(Q)
         self.evI = inv(self.evT.T)
         # Remove following check if performance is a concern

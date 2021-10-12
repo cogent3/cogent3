@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-
 import numpy
-
-from cogent3.evolve import substitution_model
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -12,7 +8,7 @@ __author__ = "Matthew Wakefield"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"

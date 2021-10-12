@@ -2,7 +2,6 @@
 
 import os
 import time
-import warnings
 
 import numpy
 
@@ -20,7 +19,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -213,8 +212,8 @@ class Calculator(object):
                 other_cells.append(cell)
         self._cells = self.opt_pars + other_cells
         data_sets = [[0], [0, 1]][self.with_undo]
-        self.cell_values = [[None] * len(self._cells) for switch in data_sets]
-        self.arg_ranks = [[] for cell in self._cells]
+        self.cell_values = [[None] * len(self._cells) for _ in data_sets]
+        self.arg_ranks = [[] for _ in self._cells]
         for (i, cell) in enumerate(self._cells):
             cell.rank = i
             cell.consequences = {}
@@ -236,7 +235,7 @@ class Calculator(object):
                     cell.prime(self.cell_values)
                 except KeyboardInterrupt:
                     raise
-                except Exception as detail:
+                except Exception:
                     print(("Failed initial calculation of %s" % cell.name))
                     raise
             else:
@@ -531,9 +530,9 @@ class Calculator(object):
             elapsed[cell.rank] = t1 - t0
 
         tds = []
-        for ((name, cells), width) in self._cellsGroupedForDisplay:
-            text = "".join([" +"[cell.rank in elapsed] for cell in cells])
-            elap = sum([elapsed.get(cell.rank, 0) for cell in cells])
+        for ((_, cells), width) in self._cellsGroupedForDisplay:
+            text = "".join(" +"[cell.rank in elapsed] for cell in cells)
+            elap = sum(elapsed.get(cell.rank, 0) for cell in cells)
             if len(text) > width - 4:
                 edge_width = min(len(text), (width - 4 - 3)) // 2
                 elipsis = ["   ", "..."][not not text.strip()]

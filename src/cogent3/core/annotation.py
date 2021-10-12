@@ -15,7 +15,7 @@ __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -80,7 +80,6 @@ class _Annotatable:
                 )
             for base in containers:
                 feature = feature.remapped_to(base, base.map)
-            index = map
         else:
             map = as_map(index, len(self))
         return map
@@ -290,8 +289,12 @@ class _Serialisable:
         return json.dumps(self.to_rich_dict())
 
 
+# https://pythonspeed.com/products/filmemoryprofiler/
+
+
 class _Feature(_Annotatable, _Serialisable):
     qualifier_names = ["type", "name"]
+    __slots__ = ["parent", "map", "original", "_serialisable", "base", "base_map"]
 
     def __init__(self, parent, map, original=None, **kw):
         d = locals()

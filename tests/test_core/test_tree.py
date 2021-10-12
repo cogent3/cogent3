@@ -3,14 +3,13 @@
 """
 import json
 import os
-import sys
-import unittest
 
 from copy import copy, deepcopy
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
-from numpy import arange, array
+from numpy import array
+from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
@@ -34,12 +33,10 @@ __credits__ = [
     "Jose Carlos Clemente Litran",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_equal
 
 
 base_path = os.path.dirname(os.path.dirname(__file__))
@@ -1070,8 +1067,19 @@ class TreeNodeTests(TestCase):
         self.assertEqual(obs_1, exp_1)
         self.assertEqual(obs_2, exp_2)
 
+    def test_lowest_common_ancestor_invalid_tips(self):
+        """fail if tips not present"""
+        t = DndParser("((a,(b,c)d)e,f,(g,h)i)j;")
+        # no tips present in tree should raise exception
+        with self.assertRaises(ValueError):
+            t.lowest_common_ancestor(["m", "n"])
+
+        # not all tips present in tree should raise exception
+        with self.assertRaises(ValueError):
+            t.lowest_common_ancestor(["a", "n"])
+
     def test_last_common_ancestor(self):
-        """TreeNode LastCommonAncestor should provide last common ancestor"""
+        """TreeNode last_common_ancestor should provide last common ancestor"""
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes["a"]
         b = nodes["b"]
@@ -1475,20 +1483,16 @@ class PhyloNodeTests(TestCase):
 
     def test_tip_to_tip_distances_endpoints(self):
         """Test getting specifc tip distances  with tip_to_tip_distances"""
-        nodes = [
+        exp_nodes = [
             self.t.get_node_matching_name("H"),
             self.t.get_node_matching_name("G"),
             self.t.get_node_matching_name("M"),
         ]
         names = ["H", "G", "M"]
-        exp = (array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]]), nodes)
-        obs = self.t.tip_to_tip_distances(endpoints=names)
-        assert_equal(obs[0], exp[0])
-        assert_equal(obs[1], exp[1])
-
-        obs = self.t.tip_to_tip_distances(endpoints=nodes)
-        assert_equal(obs[0], exp[0])
-        assert_equal(obs[1], exp[1])
+        exp_dists = array([[0, 2.0, 6.7], [2.0, 0, 6.7], [6.7, 6.7, 0.0]])
+        got_dists, got_nodes = self.t.tip_to_tip_distances(endpoints=names)
+        assert_equal(got_dists, exp_dists)
+        self.assertEqual(got_nodes, exp_nodes)
 
     def test_prune(self):
         """prune should reconstruct correct topology and Lengths of tree."""
@@ -1582,7 +1586,7 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(result.get_distances(), tree.get_distances())
 
     def test_root_at_midpoint3(self):
-        """ midpoint between nodes should behave correctly"""
+        """midpoint between nodes should behave correctly"""
         tree = DndParser("(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())

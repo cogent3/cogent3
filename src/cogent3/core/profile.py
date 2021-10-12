@@ -12,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -420,8 +420,7 @@ class MotifFreqsArray(_MotifNumberArray):
                 ylim=ylim,
                 colours=colours,
             )
-            xtick_vals = [j for j in range(0, segment.shape[0], 20)]
-            xtick_text = [f"{i + j}" for j in range(0, segment.shape[0], 20)]
+
             sublogo.layout[f"x{axis}"].showticklabels = False
             sublogo.layout[f"x{axis}"].domain = [0, segment.shape[0] / wrap]
 

@@ -3,7 +3,7 @@
 """
 import sys
 
-from pprint import pformat, pprint
+from pprint import pprint
 
 from cogent3.core.sequence import Sequence
 from cogent3.parse.record import FieldError, RecordError
@@ -11,9 +11,8 @@ from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
     TailedRecordFinder,
-    is_empty,
 )
-from cogent3.util.misc import NestedSplitter, curry, identity, list_flatten
+from cogent3.util.misc import NestedSplitter, curry, list_flatten
 
 
 __author__ = "Zongzhi Liu and Sandra Smit"
@@ -26,7 +25,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"
@@ -254,7 +253,7 @@ def join_split_dict_parser(
 
     try:
         dict(pairs)  # catch error for any not splitted pair.
-    except ValueError as e:  # dictionary update sequence element #1 has length 1;
+    except ValueError:  # dictionary update sequence element #1 has length 1;
         if strict:
             raise ValueError("e\nFailed to get a dict from pairs: %s" % pairs)
         else:
@@ -820,7 +819,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter="("):
     desc = description.rstrip(" )")
     try:
         mutation, comment = desc.split(mutation_comment_delimiter, 1)
-    except ValueError as e:  # too many values to unpack
+    except ValueError:  # too many values to unpack
         mutation, comment = desc, ""
 
     # split mutation into mut_from, mut_to
@@ -828,7 +827,7 @@ def ft_mutation_parser(description, mutation_comment_delimiter="("):
     mutation_delimiter = "->"
     try:
         mut_from, mut_to = list(map(strip, mutation.split(mutation_delimiter, 1)))
-    except ValueError as e:  # too many values to unpack
+    except ValueError:  # too many values to unpack
         mut_from, mut_to = mutation, ""
 
     # replace desc in fields with mut_from, mut_to and comment to get the
@@ -1501,7 +1500,6 @@ _parsers = {
     "KW": kw_parser,
     "FT": ft_parser,
     "SQ": sq_parser,
-    "XX": None,
     "PR": pr_parser,
     "XX": None,
     "FH": None,
@@ -1542,7 +1540,7 @@ def EbiParser(
             sequence = seq_constructor(sequence)
         try:
             header = header_constructor(header_dict, strict=strict)
-        except (RecordError, FieldError, ValueError) as e:
+        except (RecordError, FieldError, ValueError):
             if strict:
                 #!! just raise is better than raise RecordError
                 raise  # RecordError, str(e)

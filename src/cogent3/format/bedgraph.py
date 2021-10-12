@@ -5,7 +5,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "alpha"
@@ -57,7 +57,7 @@ valid_values = dict(
 
 
 def raise_invalid_vals(key, val):
-    """raises RuntimeError on invalid values for keys """
+    """raises RuntimeError on invalid values for keys"""
     if key not in valid_values:
         return True
     if not str(val) in valid_values[key]:

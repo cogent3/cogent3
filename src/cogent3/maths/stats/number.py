@@ -1,5 +1,5 @@
 from collections import Counter, defaultdict
-from collections.abc import Mapping, MutableMapping
+from collections.abc import MutableMapping
 
 import numpy
 
@@ -10,7 +10,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -182,7 +182,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
         darr = DictArrayTemplate(*categories).wrap(numpy.zeros(shape, dtype=int))
         for comb in product(*categories):
             indices = [[categories[i].index(c)] for i, c in enumerate(comb)]
-            darr.array[indices] = self[comb]
+            darr.array[tuple(indices)] = self[comb]
 
         return darr
 

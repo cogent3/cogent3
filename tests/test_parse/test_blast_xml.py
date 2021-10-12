@@ -8,7 +8,7 @@ __copyright__ = "Copyright 2007-2021, The Cogent Project"
 __contributors__ = ["Micah Hamady"]
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Kristian Rother"
 __email__ = "krother@rubor.de"
 __status__ = "Prototype"
@@ -230,7 +230,7 @@ class BlastXmlResultTests(TestCase):
         self.assertEqual(best_hit["ALIGNMENT_LENGTH"], "14")
 
     def test_best_hits_unique(self):
-        """The result should never contain identical hits """
+        """The result should never contain identical hits"""
         records = [h for _, h in self.result.best_hits_by_query(n=5)][0]
         self.assertEqual(len(records), 3)
         values = {tuple(h.values()) for h in records}

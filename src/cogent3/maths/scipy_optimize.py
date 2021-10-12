@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # We don't want to depend on the monolithic, fortranish,
 # Num-overlapping, mac-unfriendly SciPy.  But this
 # module is too good to pass up. It has been lightly customised for
@@ -23,13 +22,8 @@ import builtins
 
 import numpy
 
-from numpy import absolute, asarray, atleast_1d, eye, isinf, sqrt, squeeze
+from numpy import absolute, asarray, atleast_1d, eye, sqrt, squeeze
 
-
-try:
-    import linesearch  # from SciPy
-except ImportError:
-    linesearch = None
 
 # These have been copied from Numeric's MLab.py
 # I don't think they made the transition to scipy_core
@@ -56,7 +50,7 @@ abs = absolute
 
 pymin = builtins.min
 pymax = builtins.max
-__version__ = "2021.04.20a"
+__version__ = "2021.10.12a1"
 
 
 _epsilon = sqrt(numpy.finfo(float).eps)
@@ -154,8 +148,6 @@ class Brent:
             tol2 = 2.0 * tol1
             xmid = 0.5 * (a + b)
             if abs(x - xmid) < (tol2 - 0.5 * (b - a)):  # check for convergence
-                xmin = x
-                fval = fx
                 break
             infinities_present = [f for f in [fw, fv, fx] if numpy.isposinf(f)]
             if infinities_present or (abs(deltax) <= tol1):
