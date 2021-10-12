@@ -34,7 +34,7 @@ __credits__ = [
     "Helmut Simon",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a"
+__version__ = "2021.10.12a1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"

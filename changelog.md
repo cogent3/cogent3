@@ -1,3 +1,13 @@
+# Since release 2021.5.7a1
+
+## Contributors
+
+- GavinHuttley
+
+## DEV
+
+- added missing `dev` requires-extras to pyproject.toml for installing all packages required for development
+
 # Since release 2021.5.7a
 
 ## Contributors

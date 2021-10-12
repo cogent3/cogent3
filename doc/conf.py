@@ -69,7 +69,7 @@ year = today.strftime("%Y")
 project = "cogent3"
 copyright = f"2020-{year}, cogent3 Team"
 
-release = "2021.10.12a"
+release = "2021.10.12a1"
 
 version = ""
 
