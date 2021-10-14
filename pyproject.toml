@@ -100,10 +100,8 @@ dev = ["black",
        "sphinx",
        "sphinx-autobuild",
        "sphinx-gallery==0.7",
-       "sphinx>=1.6",
        "sphinx_bootstrap_theme",
        "sphinx_panels",
-       "sphinxcontrib-bibtex",
        "sphinxcontrib-bibtex<2.0.0",
        "tox"]
 

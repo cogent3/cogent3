@@ -274,16 +274,14 @@ class Dotplot(Drawable):
 
         self.layout |= dict(title=title)
         trace = UnionDict(
-            dict(
-                type="scatter",
-                x=fwd[0],
-                y=fwd[1],
-                name="+ strand",
-                mode="lines",
-                line=dict(color="blue"),
-                xaxis=xaxis,
-                yaxis=yaxis,
-            )
+            type="scatter",
+            x=fwd[0],
+            y=fwd[1],
+            name="+ strand",
+            mode="lines",
+            line=dict(color="blue"),
+            xaxis=xaxis,
+            yaxis=yaxis,
         )
         self.add_trace(trace)
 
