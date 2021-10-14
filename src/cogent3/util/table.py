@@ -1612,10 +1612,6 @@ class Table:
         ----------
         concat_title_legend : bool
             the table caption is formed by concatenating the table title and legend
-        rows
-            table data in row orientation
-        header
-            table header
         justify
             column justification, default is right aligned.
         label
