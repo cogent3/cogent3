@@ -1,7 +1,7 @@
 import csv
 import pathlib
 
-from cogent3.util.misc import open_
+from cogent3.util.io import open_
 from cogent3.util.warning import deprecated
 
 from .record_finder import is_empty

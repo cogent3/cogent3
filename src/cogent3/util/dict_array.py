@@ -26,7 +26,8 @@ from itertools import combinations, product
 
 import numpy
 
-from cogent3.util.misc import atomic_write, get_object_provenance
+from cogent3.util.io import atomic_write
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Peter Maxwell"

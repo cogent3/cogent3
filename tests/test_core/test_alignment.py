@@ -22,6 +22,7 @@ from cogent3 import (
     load_unaligned_seqs,
     make_aligned_seqs,
     make_seq,
+    open_,
 )
 from cogent3.core.alignment import (
     Aligned,
@@ -59,7 +60,7 @@ from cogent3.core.sequence import (
 )
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Rob Knight"

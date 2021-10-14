@@ -4,7 +4,8 @@ import json
 
 from cogent3.app.data_store import load_record_from_json
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.io import open_
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Gavin Huttley"

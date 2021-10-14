@@ -25,12 +25,8 @@ import numpy
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
-from cogent3.util.misc import (
-    atomic_write,
-    extend_docstring_from,
-    get_format_suffixes,
-    get_object_provenance,
-)
+from cogent3.util.io import atomic_write, get_format_suffixes
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.union_dict import UnionDict
 from cogent3.util.warning import deprecated
 

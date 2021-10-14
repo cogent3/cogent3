@@ -19,7 +19,7 @@ from cogent3.phylo.tree_collection import (
     WeightedTreeCollection,
     make_trees,
 )
-from cogent3.util.misc import remove_files
+from cogent3.util.io import remove_files
 
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")

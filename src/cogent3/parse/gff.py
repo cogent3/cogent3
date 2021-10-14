@@ -16,7 +16,7 @@ __status__ = "Production"
 
 from pathlib import Path
 
-from cogent3.util.misc import open_
+from cogent3.util.io import open_
 
 
 def gff_parser(f):

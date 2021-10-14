@@ -9,7 +9,7 @@ import re
 from collections import defaultdict
 
 from cogent3.parse.record import RecordError
-from cogent3.util.misc import open_
+from cogent3.util.io import open_
 
 
 __author__ = "Catherine Lozupone"

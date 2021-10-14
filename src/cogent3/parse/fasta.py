@@ -10,7 +10,7 @@ from cogent3.core.info import Info
 from cogent3.core.moltype import ASCII, BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
-from cogent3.util.misc import open_
+from cogent3.util.io import open_
 
 
 __author__ = "Rob Knight"

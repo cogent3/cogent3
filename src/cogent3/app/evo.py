@@ -1,5 +1,7 @@
 import warnings
 
+import cogent3.util.io
+
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
@@ -123,7 +125,7 @@ class model(ComposableModel):
         if len(sm.get_motifs()[0]) > 1:
             split_codons = False
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -561,7 +563,7 @@ class natsel_neutral(ComposableHypothesis):
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -697,7 +699,7 @@ class natsel_zhang(ComposableHypothesis):
         if not any([tip1, tip2]):
             raise ValueError("must provide at least a single tip name")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -877,7 +879,7 @@ class natsel_sitehet(ComposableHypothesis):
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -1063,7 +1065,7 @@ class natsel_timehet(ComposableHypothesis):
         if not any([tip1, tip2]):
             raise ValueError("must provide at least a single tip name")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)

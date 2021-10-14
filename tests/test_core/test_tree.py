@@ -11,11 +11,11 @@ from unittest import TestCase, main
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import load_tree, make_tree
+from cogent3 import load_tree, make_tree, open_
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Rob Knight"

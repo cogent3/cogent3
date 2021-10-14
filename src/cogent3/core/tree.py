@@ -37,11 +37,8 @@ from random import choice, shuffle
 from numpy import argsort, ceil, log, zeros
 
 from cogent3.maths.stats.test import correlation
-from cogent3.util.misc import (
-    atomic_write,
-    get_format_suffixes,
-    get_object_provenance,
-)
+from cogent3.util.io import atomic_write, get_format_suffixes
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"

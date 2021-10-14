@@ -17,14 +17,14 @@ import numpy
 from numpy import arange
 from numpy.testing import assert_equal
 
-from cogent3 import load_table, make_table
+from cogent3 import load_table, make_table, open_
 from cogent3.format.table import (
     formatted_array,
     get_continuation_tables_headers,
     is_html_markup,
 )
 from cogent3.parse.table import FilteringParser
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import (
     Table,
     cast_str_to_array,
