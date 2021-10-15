@@ -15,7 +15,7 @@ import numpy
 
 from cogent3 import DNA
 from cogent3.evolve import ns_substitution_model, substitution_model
-from cogent3.evolve.predicate import MotifChange, omega, replacement
+from cogent3.evolve.predicate import MotifChange, omega
 from cogent3.evolve.solved_models import F81, HKY85, TN93
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util.table import Table

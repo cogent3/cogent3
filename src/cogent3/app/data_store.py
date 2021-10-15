@@ -974,7 +974,6 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
 
     def write_incomplete(self, identifier, not_completed):
         """stores an incomplete result object"""
-        from .composable import NotCompleted
 
         matches = self.filtered(identifier)
         if matches:
