@@ -1,6 +1,5 @@
 import shutil
 import uuid
-import zipfile
 
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
@@ -195,7 +194,7 @@ class atomic_write:
         shutil.rmtree(src.parent)
 
     def _close_rename_zip(self, src):
-        with zipfile.ZipFile(self._in_zip, "a") as out:
+        with ZipFile(self._in_zip, "a") as out:
             out.write(str(src), arcname=self._path)
 
         shutil.rmtree(src.parent)
