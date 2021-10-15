@@ -3,7 +3,6 @@
 from unittest import TestCase, main
 
 from cogent3.parse.greengenes import (
-    DefaultDelimitedSplitter,
     MinimalGreengenesParser,
     SpecificGreengenesParser,
     make_ignore_f,

@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from cogent3 import DNA, load_aligned_seqs, make_unaligned_seqs
+from cogent3 import DNA, make_unaligned_seqs
 from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.draw.dotplot import (
     Dotplot,

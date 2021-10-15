@@ -3,27 +3,17 @@ import json
 import os
 import pathlib
 import re
-import sys
-import unittest
-import warnings
 
 from os import remove
 from tempfile import TemporaryDirectory, mktemp
 from unittest import TestCase, main
 
 import numpy
-import pytest
 
-from numpy import arange, array, log2, nan, transpose
+from numpy import array, log2, nan, transpose
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import (
-    load_aligned_seqs,
-    load_unaligned_seqs,
-    make_aligned_seqs,
-    make_seq,
-    open_,
-)
+from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq, open_
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -38,26 +28,19 @@ from cogent3.core.alignment import (
     aln_from_empty,
     aln_from_fasta,
     aln_from_generic,
-    coerce_to_string,
     make_gap_filter,
     seqs_from_aln,
     seqs_from_array,
     seqs_from_array_seqs,
-    seqs_from_dict,
     seqs_from_empty,
     seqs_from_fasta,
     seqs_from_generic,
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Feature, _Annotatable
+from cogent3.core.annotation import Feature
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
-from cogent3.core.sequence import (
-    ArraySequence,
-    RnaSequence,
-    Sequence,
-    frac_same,
-)
+from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
@@ -1336,7 +1319,7 @@ class SequenceCollectionBaseTests(object):
 
     def test_apply_pssm(self):
         """should successfully produce pssm scores"""
-        from cogent3.parse import cisbp, jaspar
+        from cogent3.parse import jaspar
 
         _, pwm = jaspar.read("data/sample.jaspar")
         data = {

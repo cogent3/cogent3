@@ -12,7 +12,6 @@ from cogent3.parse.record import (
     Grouper,
     LineOrientedConstructor,
     MappedRecord,
-    RecordError,
     StrictFieldWrapper,
     TypeSetter,
     bool_setter,
@@ -21,7 +20,6 @@ from cogent3.parse.record import (
     list_adder,
     list_extender,
     raise_unknown_field,
-    str_setter,
     string_and_strip,
 )
 

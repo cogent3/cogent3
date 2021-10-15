@@ -2,7 +2,6 @@
 
 """Unit tests for table.
 """
-import contextlib
 import json
 import os
 import pathlib

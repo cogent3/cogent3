@@ -4,8 +4,6 @@
 
 from unittest import TestCase, main
 
-from cogent3.core.info import Info
-from cogent3.core.sequence import Sequence
 from cogent3.parse.ebi import (
     EbiFinder,
     EbiParser,

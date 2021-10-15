@@ -29,7 +29,6 @@ from cogent3.evolve.fast_distance import (
     _fill_diversity_matrix,
     _hamming,
     _jc69_from_matrix,
-    _tn93_from_matrix,
     available_distances,
     get_distance_calculator,
     get_moltype_index_array,

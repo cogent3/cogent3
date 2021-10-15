@@ -3,19 +3,8 @@
 from math import sqrt
 from unittest import TestCase, main
 
-from numpy import (
-    all,
-    allclose,
-    arange,
-    array,
-    insert,
-    isclose,
-    mean,
-    ones,
-    sum,
-    take,
-)
-from numpy.linalg import inv, norm
+from numpy import allclose, arange, array, insert, isclose, sum, take
+from numpy.linalg import norm
 from numpy.random import choice, dirichlet
 from numpy.testing import assert_allclose, assert_equal
 
