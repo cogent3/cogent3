@@ -9,17 +9,7 @@ from warnings import filterwarnings
 
 import numpy
 
-from numpy import (
-    arange,
-    array,
-    ones,
-    ravel,
-    reshape,
-    sqrt,
-    trace,
-    transpose,
-    zeros,
-)
+from numpy import array, transpose
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.util import (

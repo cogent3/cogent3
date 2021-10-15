@@ -2,15 +2,15 @@
 import json
 import os
 import pathlib
-import re
 import tempfile
 import unittest
 
 from tempfile import TemporaryDirectory
 
-from cogent3 import DNA, PROTEIN, RNA
-from cogent3 import STANDARD_CODON as CODON
 from cogent3 import (
+    DNA,
+    PROTEIN,
+    RNA,
     get_format_suffixes,
     load_aligned_seqs,
     load_unaligned_seqs,

@@ -3,7 +3,7 @@
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.annotation import Feature, _Annotatable, _Feature
+from cogent3.core.annotation import Feature, _Feature
 from cogent3.core.location import Map, Span
 
 

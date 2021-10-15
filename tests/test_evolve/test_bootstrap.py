@@ -117,7 +117,6 @@ class BootstrapTests(unittest.TestCase):
 
     def test_prob(self):
         """testing estimation of probability."""
-        import sys
 
         alignobj = self.getalignmentobj()
         prob_bstrap = bootstrap.EstimateProbability(

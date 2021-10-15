@@ -3,11 +3,8 @@
 
 import os
 import sys
-import time
 
 from unittest import TestCase, main
-
-import numpy
 
 from cogent3.maths.optimisers import MaximumEvaluationsReached, maximise
 

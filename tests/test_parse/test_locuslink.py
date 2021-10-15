@@ -6,7 +6,6 @@ from unittest import TestCase, main
 from cogent3.parse.locuslink import (
     LinesToLocusLink,
     LLFinder,
-    LocusLink,
     _read_accession,
     _read_accnum,
     _read_cdd,
@@ -19,10 +18,6 @@ from cogent3.parse.locuslink import (
     _read_pmid,
     _read_rell,
     _read_sts,
-    commas,
-    first_pipe,
-    ll_start,
-    pipes,
 )
 
 

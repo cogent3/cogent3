@@ -3,9 +3,7 @@
 """
 from unittest import TestCase, main
 
-from cogent3.core.alignment import Alignment
 from cogent3.parse.clustal import (
-    LabelLineParser,
     MinimalClustalParser,
     delete_trailing_number,
     is_clustal_seq_line,

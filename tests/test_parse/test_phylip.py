@@ -6,7 +6,6 @@ from io import StringIO
 from unittest import TestCase, main
 
 from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
-from cogent3.parse.record import RecordError
 
 
 __author__ = "Micah Hamady"

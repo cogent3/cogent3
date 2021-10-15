@@ -12,11 +12,9 @@ from numpy import (
     isfinite,
     logical_and,
     ones,
-    ravel,
     reshape,
     testing,
     tril,
-    zeros,
 )
 
 from cogent3.maths.stats.number import NumberCounter

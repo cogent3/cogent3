@@ -581,7 +581,6 @@ class FeaturesTest(TestCase):
 
     def test_roundtrip_json(self):
         """features can roundtrip from json"""
-        from cogent3.util.deserialise import deserialise_seq
 
         seq = DNA.make_seq("AAAAATATTATTGGGT")
         seq.add_annotation(Feature, "exon", "myname", [(0, 5)])

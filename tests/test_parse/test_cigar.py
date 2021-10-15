@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import os
-import sys
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs

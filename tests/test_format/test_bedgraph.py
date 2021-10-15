@@ -2,7 +2,6 @@
 
 from unittest import TestCase, main
 
-from cogent3.format.bedgraph import get_header
 from cogent3.util.table import Table
 
 

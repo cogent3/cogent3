@@ -4,8 +4,6 @@
 from unittest import TestCase, main
 
 from cogent3.core.alignment import Alignment
-from cogent3.core.info import Info
-from cogent3.core.sequence import Sequence
 from cogent3.format.clustal import clustal_from_alignment
 
 

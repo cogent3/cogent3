@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import xml.dom.minidom
 
-from io import StringIO
 from unittest import TestCase, main
 
 from cogent3.parse.tinyseq import TinyseqParser

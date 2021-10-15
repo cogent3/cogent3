@@ -312,7 +312,7 @@ class TestPicklable(TestCase):
     def test_triggers_bugcatcher(self):
         """a composable that does not trap failures returns NotCompletedResult
         requesting bug report"""
-        from cogent3.app import align, evo, io, sample, translate, tree
+        from cogent3.app import io
 
         read = io.load_aligned(moltype="dna")
         read.func = lambda x: None
