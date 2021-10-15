@@ -3,7 +3,6 @@ import uuid
 
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
-from io import TextIOWrapper
 from os import path as os_path
 from os import remove
 from pathlib import Path
@@ -36,6 +35,10 @@ def open_zip(filename, mode="r", **kwargs):
 
     If mode="w", returns an atomic_write() instance.
     """
+    # import of standard library io module as some code quality tools
+    # confuse this with a circular import
+    from io import TextIOWrapper
+
     binary_mode = "b" in mode
     mode = mode[:1]
 
