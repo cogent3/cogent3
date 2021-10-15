@@ -10,13 +10,14 @@ from cogent3 import (
     load_tree,
     make_aligned_seqs,
     make_tree,
+    open_,
 )
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.fast_distance import DistanceMatrix
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Gavin Huttley"

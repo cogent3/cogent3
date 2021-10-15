@@ -66,11 +66,10 @@ from cogent3.maths.util import safe_log
 from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArrayTemplate
+from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
-    atomic_write,
     bytes_to_string,
     extend_docstring_from,
-    get_format_suffixes,
     get_object_provenance,
     get_setting_from_environ,
 )

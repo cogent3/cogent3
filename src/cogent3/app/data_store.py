@@ -21,12 +21,8 @@ from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
 from cogent3.util.deserialise import deserialise_not_completed
-from cogent3.util.misc import (
-    atomic_write,
-    extend_docstring_from,
-    get_format_suffixes,
-    open_,
-)
+from cogent3.util.io import atomic_write, get_format_suffixes, open_
+from cogent3.util.misc import extend_docstring_from
 from cogent3.util.parallel import is_master_process
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict

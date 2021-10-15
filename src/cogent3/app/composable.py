@@ -14,11 +14,8 @@ import scitrack
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import progress_display as UI
-from cogent3.util.misc import (
-    extend_docstring_from,
-    get_object_provenance,
-    open_,
-)
+from cogent3.util.io import open_
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 from .data_store import (
     IGNORE,

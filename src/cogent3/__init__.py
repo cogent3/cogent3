@@ -41,7 +41,7 @@ from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import FromFilenameParser
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.util.misc import get_format_suffixes, open_
+from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
 from cogent3.util.warning import deprecated

@@ -7,7 +7,7 @@ from cogent3.format.gde import alignment_to_gde
 from cogent3.format.paml import alignment_to_paml
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.parse.record import FileFormatError
-from cogent3.util.misc import atomic_write
+from cogent3.util.io import atomic_write
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"

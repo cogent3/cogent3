@@ -1,6 +1,6 @@
 from numpy import exp, log
 
-from cogent3.util.misc import atomic_write
+from cogent3.util.io import atomic_write
 
 from . import consensus
 

@@ -8,7 +8,7 @@ import cogent3
 from cogent3.core.alignment import Aligned
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import _CodonAlphabet, get_moltype
-from cogent3.util.misc import open_, path_exists
+from cogent3.util.io import open_, path_exists
 
 
 __author__ = ["Gavin Huttley"]
