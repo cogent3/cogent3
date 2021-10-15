@@ -48,13 +48,13 @@ class Test(TestCase):
         ]
         infile = open(fname)
         parser = MinimalPslParser(infile)
-        version = next(parser)
+        next(parser)
         header = next(parser)
         infile.close()
         self.assertEqual(header, expect)
 
     def test_psl_to_table(self):
-        table = PslToTable(fname)
+        PslToTable(fname)
 
     def test_getting_seq_coords(self):
         """get correct sequence coordinates to produce a trimmed sequence"""

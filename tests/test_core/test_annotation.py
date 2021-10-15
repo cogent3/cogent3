@@ -225,7 +225,6 @@ class TestMapSpans(unittest.TestCase):
     manipulation."""
 
     def test_span(self):
-        length = 100
         forward = Span(20, 30)
         reverse = Span(70, 80, reverse=True)
         assert forward.reversed_relative_to(100) == reverse

@@ -62,7 +62,7 @@ class TestModel(TestCase):
         model1 = evo_app.model("HKY85")
         model2 = evo_app.model("HKY85", time_het="max")
         with self.assertRaises(ValueError):
-            hyp = evo_app.hypothesis(model1, model2)
+            evo_app.hypothesis(model1, model2)
 
     def test_hyp_init(self):
         """uses user specified init_alt function, or not"""

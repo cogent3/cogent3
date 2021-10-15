@@ -108,7 +108,7 @@ class TestConstructorFunctions(unittest.TestCase):
     def test_load_unaligned_seqs_no_format(self):
         """test loading unaligned from file"""
         with self.assertRaises(ValueError):
-            got = load_unaligned_seqs("somepath")
+            load_unaligned_seqs("somepath")
 
     def test_load_aligned_seqs(self):
         """test loading aligned from file"""
@@ -126,7 +126,7 @@ class TestConstructorFunctions(unittest.TestCase):
     def test_load_aligned_seqs_no_format(self):
         """test loading unaligned from file"""
         with self.assertRaises(ValueError):
-            got = load_aligned_seqs("somepath")
+            load_aligned_seqs("somepath")
 
     def test_load_unaligned_seqs_from_json(self):
         """test loading an unaligned object from json file"""
@@ -290,7 +290,7 @@ class AlignmentTestMethods(unittest.TestCase):
         # in Py3 for reasons that are not clear. This needs to be looked
         # more closely
         dmp = pickle.dumps(aln, protocol=1)
-        aln2 = pickle.loads(dmp)
+        pickle.loads(dmp)
 
     def test_empty_seq(self):
         """test creation of an alignment from scratch, with one sequence pure gap"""
@@ -316,7 +316,6 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_get_sub_alignment(self):
         """test slicing otus, and return of new alignment"""
-        fullset = ["DogFaced", "Human", "HowlerMon", "Mouse", "NineBande"]
         subset = ["DogFaced", "Human", "HowlerMon", "Mouse"]
         subset.sort()
         sub_align = self.alignment.take_seqs(subset)
@@ -616,7 +615,7 @@ class AlignmentTestMethods(unittest.TestCase):
             data={"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"}
         )
         # effectively permute columns, preserving length
-        shuffled = alignment.sample()
+        alignment.sample()
         # ensure length correct
         sample = alignment.sample(10)
         self.assertEqual(len(sample), 10)
@@ -661,7 +660,7 @@ class AlignmentTestMethods(unittest.TestCase):
             # check for a failure when no moltype specified
             alignment = make_aligned_seqs(data=seqs)
             try:
-                peps = alignment.get_translation()
+                alignment.get_translation()
             except AttributeError:
                 pass
 

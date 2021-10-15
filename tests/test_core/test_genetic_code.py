@@ -176,8 +176,7 @@ class GeneticCodeTests(TestCase):
         obs_ile = sgc["I"]
         self.assertEqual(obs_ile, exp_ile)
 
-        exp_arg = ["AGA", "AGG", "CGT", "CGC", "CGA", "CGG"]
-        obs_arg = sgc["R"]
+        sgc["R"]
         self.assertEqual(obs_ile, exp_ile)
 
         exp_leu = ["TTA", "TTG", "CTT", "CTC", "CTA", "CTG"]

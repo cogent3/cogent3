@@ -55,8 +55,8 @@ class TestGenericResult(TestCase):
         data = {"type": "cogent3.core.moltype.MolType", "moltype": "dna"}
         result = generic_result(source="blah.json")
         result["key"] = data
-        r = repr(result)
-        s = str(result)
+        repr(result)
+        str(result)
 
     def test_keys(self):
         """it works"""
@@ -161,7 +161,7 @@ class TestModelResult(TestCase):
             opt_args=dict(max_evaluations=55, limit_action="ignore"),
         )
         result = mod(aln)
-        s = repr(result)
+        repr(result)
 
     def test_model_result_tree_split_pos_model(self):
         """returns tree from lf with split codon positions"""

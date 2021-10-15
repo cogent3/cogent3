@@ -153,7 +153,7 @@ class RefalignmentTests(TestCase):
         # fails if not all sequences same
         seq = DNA.make_seq("AACCCGTT")
         all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
-        final_seq = make_aligned(all_gaps, seq)
+        make_aligned(all_gaps, seq)
         gap_sets = [
             dict([(5, 1), (6, 3)]),
             dict([(2, 1), (5, 3)]),
@@ -175,7 +175,7 @@ class RefalignmentTests(TestCase):
     def test_gap_difference(self):
         """correctly identifies the difference in gaps"""
         seq = DNA.make_seq("AACCCGTT")
-        all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
+        dict([(0, 3), (2, 1), (5, 3), (6, 3)])
         gap_sets = [
             dict([(5, 1), (6, 3)]),
             dict([(2, 1), (5, 3)]),

@@ -1590,7 +1590,7 @@ class TableTests(TestCase):
         t = make_table(self.t2_header, data=self.t2_rows)
         t = t[:, 0]
         # the next line was previously failing
-        g = t._get_repr_()
+        t._get_repr_()
 
         table = Table(header=["a", "b"], data=[[1, 2]])
         table, _, unset_columns = table._get_repr_()

@@ -274,7 +274,7 @@ class NonStatMarkov(TestCase):
             "optimise_motif_probs": True,
             "recode_gaps": True,
         }
-        sm = StrandSymmetric(**kw)
+        StrandSymmetric(**kw)
 
     def test_nr_nucleotide(self):
         """This is exercising a NonReversibleNucleotide"""

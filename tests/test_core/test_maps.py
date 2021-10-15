@@ -61,8 +61,8 @@ class MapTest(unittest.TestCase):
     def test_maps_on_maps(self):
         seq = DNA.make_seq("ATCGATCGAT" * 5, name="base")
         feat1 = annotate(seq, 10, 20, "fake")
-        feat2 = annotate(feat1, 3, 5, "fake2")
-        feat3 = annotate(seq, 1, 3, "left")
+        annotate(feat1, 3, 5, "fake2")
+        annotate(seq, 1, 3, "left")
 
         seq2 = seq[5:]
         self.assertEqual(

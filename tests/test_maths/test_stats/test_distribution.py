@@ -1963,14 +1963,13 @@ class DistributionsTests(TestCase):
         expect = probability_points(4)
         got = theoretical_quantiles(4, dist="uniform")
         assert_almost_equal(got, expect)
-        dists = ["normal", "chisq", "t", "poisson", "binomial", "F", "gamma"]
         expect = (
             -1.049131397963971,
             -0.299306910465667,
             0.299306910465667,
             1.049131397963971,
         )
-        p = probability_points(4)
+        probability_points(4)
         got = theoretical_quantiles(len(expect), dist="normal")
         assert_almost_equal(got, expect)
 

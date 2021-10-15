@@ -210,7 +210,7 @@ class FastaParserTests(GenericFastaTest):
         def dnastrict(x, **kwargs):
             try:
                 return Dna(x, check=True, **kwargs)
-            except Exception as e:
+            except Exception:
                 raise RecordError("Could not convert sequence")
 
         self.assertRaises(RecordError, list, FastaParser(self.oneX, dnastrict))

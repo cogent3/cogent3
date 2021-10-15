@@ -81,7 +81,6 @@ class DataStoreBaseReadTests:
 
     def test_get_member(self):
         """returns a matching member"""
-        basedir = self.basedir.split(".")[0]
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         member = dstore.get_member("brca1.fasta")
         self.assertNotEqual(member, None)
@@ -142,7 +141,6 @@ class DataStoreBaseReadTests:
 
         dstore = self.ReadClass(self.basedir, suffix="*")
         re_dstore = loads(dumps(dstore))
-        got = re_dstore[0].read()
         self.assertEqual(str(dstore), str(re_dstore))
         self.assertEqual(dstore[0].read(), re_dstore[0].read())
 
@@ -523,7 +521,7 @@ class TinyDBDataStoreTests(TestCase):
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, if_exists="overwrite")
             identifier = dstore.make_relative_identifier(keys[0])
-            got = dstore.write(identifier, self.data[keys[0]])
+            dstore.write(identifier, self.data[keys[0]])
             path = dstore.add_file(log_path, keep_suffix=True, cleanup=False)
             self.assertTrue("some.log" in dstore)
             dstore.close()

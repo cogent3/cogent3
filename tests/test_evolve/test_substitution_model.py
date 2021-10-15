@@ -91,9 +91,9 @@ class NucleotideModelTestMethods(TestCase):
 
     def test_to_rich_dict(self):
         """returns complete dict of attributes"""
-        f81 = F81().to_rich_dict()
-        hky85 = HKY85().to_rich_dict()
-        gn = GN().to_rich_dict()
+        F81().to_rich_dict()
+        HKY85().to_rich_dict()
+        GN().to_rich_dict()
         # TODO need to assess ability to reconstruct from this
 
 
@@ -380,8 +380,8 @@ class CodonSubstModelTests(TestCase):
 
     def test_str_(self):
         """str() and repr() of a substitution model"""
-        s = str(self.standardcode)
-        r = repr(self.standardcode)
+        str(self.standardcode)
+        repr(self.standardcode)
 
 
 class ModelDataInteractionTestMethods(TestCase):
@@ -397,7 +397,7 @@ class ModelDataInteractionTestMethods(TestCase):
 
     def test_getMotifs(self):
         """testing return of motifs"""
-        model_motifs = substitution_model.TimeReversibleNucleotide().get_motifs()
+        substitution_model.TimeReversibleNucleotide().get_motifs()
 
     def test_get_param_list(self):
         """testing getting the parameter list"""

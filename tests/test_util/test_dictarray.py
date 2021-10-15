@@ -279,7 +279,6 @@ class DictArrayTest(TestCase):
         d1 = dict(a=dict(k=1, l=2, m=3), b=dict(k=4, l=5, m=6))
         darr1 = DictArray(d1)
         d2 = darr1.to_dict()
-        darr2 = DictArray(d2)
         self.assertEqual(d1, d2)
         d3 = DictArray(d2)
         self.assertEqual(d1, d3)
@@ -318,8 +317,9 @@ class DictArrayTest(TestCase):
             dict(a=0, b=35, c=45),
             b,
         )
+        # exercising construction
         for data in data_types:
-            g = DictArray(data)
+            _ = DictArray(data)
 
     def test_getitem(self):
         """correctly slices"""

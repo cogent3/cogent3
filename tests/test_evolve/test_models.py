@@ -76,8 +76,8 @@ class CannedModelsTest(TestCase):
 
     def test_bin_options(self):
         kwargs = dict(with_rate=True, distribution="gamma")
-        model = WG01(**kwargs)
-        model = GTR(**kwargs)
+        WG01(**kwargs)
+        GTR(**kwargs)
 
     def test_empirical_values_roundtrip(self):
         model = WG01()
