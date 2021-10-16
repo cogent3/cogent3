@@ -83,7 +83,7 @@ class TestAvailableApps(TestCase):
                 composable_application_tuple[0].disconnect()
                 composable_application_tuple[1].disconnect()
                 # Compose two composable applications, there should not be exceptions.
-                res = composable_application_tuple[0] + composable_application_tuple[1]
+                composable_application_tuple[0] + composable_application_tuple[1]
 
             for app in applications:
                 if hasattr(app, "data_store"):

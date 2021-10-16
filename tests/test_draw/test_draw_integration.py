@@ -24,11 +24,11 @@ def load_alignment(annotate1=False, annotate2=False):
     aln = load_aligned_seqs(path, array_align=False, moltype="dna")
     aln = aln.omit_gap_pos()
     if annotate1:
-        x1 = aln.get_seq(aln.names[0]).add_feature("gene", "abcde1", [(20, 50)])
-        x2 = aln.get_seq(aln.names[0]).add_feature("variation", "one", [(11, 12)])
+        aln.get_seq(aln.names[0]).add_feature("gene", "abcde1", [(20, 50)])
+        aln.get_seq(aln.names[0]).add_feature("variation", "one", [(11, 12)])
     if annotate2:
-        y1 = aln.get_seq(aln.names[1]).add_feature("gene", "abcde2", [(20, 50)])
-        y2 = aln.get_seq(aln.names[1]).add_feature("domain", "abcde2", [(10, 15)])
+        aln.get_seq(aln.names[1]).add_feature("gene", "abcde2", [(20, 50)])
+        aln.get_seq(aln.names[1]).add_feature("domain", "abcde2", [(10, 15)])
     return aln
 
 
@@ -366,7 +366,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         _ = aln.get_seq("b").add_feature("variation", "1", [(1, 5)])
         _ = aln.get_seq("b").add_feature("gene", "1", [(1, 5)])
         _ = aln.get_seq("b").add_feature("gene", "1", [(5, 1)])
-        drawable = aln.get_drawable()
+        aln.get_drawable()
 
 
 class TableDrawablesTest(BaseDrawablesTests):

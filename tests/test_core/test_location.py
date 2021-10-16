@@ -152,8 +152,6 @@ class SpanTests(TestCase):
             self.overlapping,
         )
 
-        n = Span(30, 36)
-
         expected_order = [s, e]
         first = expected_order[:]
         first.sort()

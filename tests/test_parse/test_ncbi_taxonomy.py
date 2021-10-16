@@ -102,7 +102,7 @@ class NcbiTaxonTests(TestCase):
         node = NcbiTaxon(good)
         self.assertEqual(str(node), good)
         root = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|"""
-        root_node = NcbiTaxon(root)
+        NcbiTaxon(root)
         self.assertEqual(str(root), root)
 
     def test_bad_input(self):

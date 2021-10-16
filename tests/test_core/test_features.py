@@ -255,7 +255,7 @@ class FeaturesTest(TestCase):
             data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False
         )
         seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
-        exon = seq.add_feature("exon", "A", [(5, 8)])
+        seq.add_feature("exon", "A", [(5, 8)])
         aln.get_seq("x").copy_annotations(seq)
         copied = list(aln.get_annotations_from_seq("x", "exon"))
         self.assertEqual(str(copied), '[exon "A" at [5:5, -4-]/5]')
@@ -271,7 +271,7 @@ class FeaturesTest(TestCase):
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
         )
         seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
-        match_exon = seq.add_feature("exon", "A", [(5, 8)])
+        seq.add_feature("exon", "A", [(5, 8)])
         aln.get_seq("y").copy_annotations(seq)
         copied = list(aln.get_annotations_from_seq("y", "exon"))
         self.assertEqual(str(copied), '[exon "A" at [7:10]/10]')
@@ -285,7 +285,7 @@ class FeaturesTest(TestCase):
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
         )
         diff_len_seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCCCCCCCCCC", "x")
-        nonmatch = diff_len_seq.add_feature("repeat", "A", [(12, 14)])
+        diff_len_seq.add_feature("repeat", "A", [(12, 14)])
         aln.get_seq("y").copy_annotations(diff_len_seq)
         copied = list(aln.get_annotations_from_seq("y", "repeat"))
         self.assertEqual(str(copied), '[repeat "A" at [10:10, -6-]/10]')
@@ -298,14 +298,14 @@ class FeaturesTest(TestCase):
         aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
         )
-        exon = aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
+        aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
         aln_exons = list(aln.get_annotations_from_seq("x", "exon"))
         self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
         self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--TTT\n")
         aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
         )
-        exon = aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
+        aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
         aln_exons = list(aln.get_annotations_from_seq("x", "exon"))
         self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--T--\n")
 
@@ -651,12 +651,12 @@ class FeaturesTest(TestCase):
         aln = make_aligned_seqs(
             data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
         )
-        of1 = aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
-        of2 = aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
+        aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
+        aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
         # at the alignment level
         sub_aln = aln[:-3]
         s = sub_aln.named_seqs["x"]
-        e2 = s.data.get_annotations_matching("exon", "E2")[0]
+        s.data.get_annotations_matching("exon", "E2")[0]
         d = s.data[:11]
         json = s.to_json()
         new = deserialise_object(json)
@@ -678,8 +678,8 @@ class FeaturesTest(TestCase):
             array_align=False,
             moltype="dna",
         )
-        of1 = aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
-        of2 = aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
+        aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
+        aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
 
         raln = aln.rc()
         json = raln.to_json()

@@ -593,7 +593,6 @@ class CoevolutionTests(TestCase):
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
         combined_aln = ArrayAlignment(data={"1": "ACEFW", "2": "AUEGY"})
         t = make_tree(treestring="(1:0.5,2:0.5);")
-        cutoff = 0.50
         # MI
         m = mi_alignment(combined_aln)
         expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])

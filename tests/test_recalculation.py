@@ -159,7 +159,7 @@ class RecalculationTest(TestCase):
         # For likelihood functions it is more convenient to provide 'p' rather than
         # 'dropoff', dropoff = chdtri(1, p) / 2.0.  Also in general you won't need ultra precise answers,
         # so don't use 'xtol=0.0', that's just to make the doctest work.
-        gz = pc.graphviz()
+        pc.graphviz()
 
 
 if __name__ == "__main__":

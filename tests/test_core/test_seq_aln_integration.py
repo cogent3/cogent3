@@ -95,7 +95,7 @@ class AllTests(TestCase):
 
     def test_seqFreqs(self):
         """seqFreqs should work the same on Alignment and ArrayAlignment"""
-        get_index = RNA.alphabets.degen_gapped.index
+        RNA.alphabets.degen_gapped.index
         # 'UCAGGG'
         # 'YCU-RG'
         # 'CAA-NR'

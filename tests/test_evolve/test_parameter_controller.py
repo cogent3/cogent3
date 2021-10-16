@@ -123,11 +123,11 @@ class test_parameter_controller(TestCase):
 
         for is_constant in [False, True]:
             lf.set_motif_probs(mprobs_a, is_constant=is_constant)
-            s = str(lf)
+            str(lf)
             lf.set_motif_probs(mprobs_b, locus="b")
             self.assertEqual(lf.get_motif_probs(locus="a"), mprobs_a)
             self.assertEqual(lf.get_motif_probs(locus="b"), mprobs_b)
-            s = str(lf)
+            str(lf)
             # lf.set_param_rule('mprobs', is_independent=False)
 
     def test_set_param_rules(self):

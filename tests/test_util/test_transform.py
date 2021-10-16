@@ -118,7 +118,6 @@ class SequenceFunctionsTests(TestCase):
         long_norm = lambda s, x, y: (s + 0.0) / max(len(x), len(y))
         times_two = lambda s, x, y: 2 * s
 
-        empty = []
         s1 = [1, 2, 3, 4, 5]
         s2 = [1, 3, 2, 4, 5]
         s3 = [1, 1, 1, 1, 1]

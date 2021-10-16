@@ -552,7 +552,6 @@ class LikelihoodTests(TestCase):
         equal = [0.25, 0.25, 0.25, 0.25]
         unequal = [0.5, 0.25, 0.125, 0.125]
         equal_answer = [1, 1, 1, 1]
-        unequal_answer = [2, 1, 0.5, 0.5]
         not_unity = [0.7, 0.7, 0.7, 0.7]
 
         for obs, exp in zip(likelihoods(equal, unequal), equal_answer):
@@ -930,7 +929,6 @@ class StatTests(TestsHelper):
     def test_mc_t_two_sample_no_mc(self):
         """Test no MC stats if initial t-test is bad."""
         x = array([1, 1, 1])
-        y = array([0, 0, 0])
         self.assertEqual(mc_t_two_sample(x, x), (None, None, [], None))
 
     def test_mc_t_two_sample_no_variance(self):

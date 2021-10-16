@@ -302,7 +302,7 @@ class TestPair(TestCase):
         aln = aln.get_translation()
         logdet_calc = LogDetPair(moltype=PROTEIN, alignment=aln)
         logdet_calc.run(use_tk_adjustment=True, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances()
+        logdet_calc.get_pairwise_distances()
 
     def test_logdet_missing_states(self):
         """should calculate logdet measurement with missing states"""
@@ -360,7 +360,7 @@ class TestPair(TestCase):
         var /= 16 * len(data[0][1])
 
         logdet_calc.run(use_tk_adjustment=False, show_progress=False)
-        dists = logdet_calc.get_pairwise_distances()
+        logdet_calc.get_pairwise_distances()
         assert_allclose(logdet_calc.variances[1, 1], var, atol=1e-3)
 
     def test_logdet_for_determinant_lte_zero(self):
@@ -390,7 +390,7 @@ class TestPair(TestCase):
         aln = aln.get_translation()
         paralinear_calc = ParalinearPair(moltype=PROTEIN, alignment=aln)
         paralinear_calc.run(show_progress=False)
-        dists = paralinear_calc.get_pairwise_distances()
+        paralinear_calc.get_pairwise_distances()
 
     def test_paralinear_distance(self):
         """calculate paralinear variance consistent with hand calculation"""
@@ -416,7 +416,7 @@ class TestPair(TestCase):
             if J[i, i] == 0:
                 J[i, i] += 0.5
         J /= J.sum()
-        M = numpy.linalg.inv(J)
+        numpy.linalg.inv(J)
         f = J.sum(1), J.sum(0)
         dist = -0.25 * numpy.log(
             numpy.linalg.det(J) / numpy.sqrt(f[0].prod() * f[1].prod())

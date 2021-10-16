@@ -620,7 +620,7 @@ class DelegatorTests(TestCase):
 
     def test_init(self):
         """Delegator should init OK when data supplied"""
-        ls = _list_and_string([1, 2, 3], "abc")
+        _list_and_string([1, 2, 3], "abc")
         self.assertRaises(TypeError, _list_and_string, [123])
 
     def test_getattr(self):

@@ -24,7 +24,7 @@ class TestPwmParsers(TestCase):
         mid, pwm = jaspar.read(path)
         assert mid == ["PSSMid", "HGNCsymbol"], "ID line wrong"
         # note state indices are ordered by moltype
-        base_order = list(get_moltype("dna"))
+        list(get_moltype("dna"))
         expect = [
             [35, 374, 30, 121, 6, 121, 33],
             [0, 10, 0, 0, 3, 2, 44],

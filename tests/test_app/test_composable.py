@@ -69,14 +69,14 @@ class TestComposableBase(TestCase):
         """composables can only be used in a single composition"""
         aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
         aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
-        comb = aseqfunc1 + aseqfunc2
+        aseqfunc1 + aseqfunc2
         with self.assertRaises(AssertionError):
             aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
-            comb2 = aseqfunc1 + aseqfunc3
+            aseqfunc1 + aseqfunc3
         # the other order
         with self.assertRaises(AssertionError):
             aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
-            comb2 = aseqfunc3 + aseqfunc2
+            aseqfunc3 + aseqfunc2
 
     def test_composable_to_self(self):
         """this should raise a ValueError"""
@@ -96,7 +96,7 @@ class TestComposableBase(TestCase):
         self.assertEqual(aseqfunc3.input, None)
         self.assertEqual(aseqfunc3.output, None)
         # should be able to compose a new one now
-        comb2 = aseqfunc1 + aseqfunc3
+        aseqfunc1 + aseqfunc3
 
     def test_apply_to(self):
         """correctly applies iteratively"""

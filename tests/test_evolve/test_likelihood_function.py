@@ -214,7 +214,7 @@ class LikelihoodCalcs(TestCase):
         obs = round(sum(values) / len(values), 6)
         self.assertEqual(obs, 1.0)
         self.assertEqual(len(values), 3)
-        shape = lf.get_param_value("rate_shape")
+        lf.get_param_value("rate_shape")
 
     def test_binned_gamma_ordered_param(self):
         """rate is gamma distributed omega follows"""
@@ -229,7 +229,7 @@ class LikelihoodCalcs(TestCase):
         values = list(lf.get_param_value_dict(["bin"])["omega_factor"].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
-        shape = lf.get_param_value("rate_shape")
+        lf.get_param_value("rate_shape")
 
     def test_binned_partition(self):
         submod = substitution_model.TimeReversibleCodon(
@@ -472,7 +472,7 @@ DogFaced   root      1.00  1.00
         """excercising the most likely ancestral sequences"""
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        result = likelihood_function.likely_ancestral_seqs()
+        likelihood_function.likely_ancestral_seqs()
 
     def test_simulate_alignment(self):
         "Simulate DNA alignment"
@@ -489,7 +489,7 @@ DogFaced   root      1.00  1.00
         lf = self.submodel.make_likelihood_function(self.tree, bins=["low", "high"])
         lf.set_param_rule("beta", bin="low", value=0.1)
         lf.set_param_rule("beta", bin="high", value=10.0)
-        simulated_alignment = lf.simulate_alignment(100)
+        lf.simulate_alignment(100)
 
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
@@ -498,7 +498,7 @@ DogFaced   root      1.00  1.00
         )
         lf.set_param_rule("beta", bin="low", value=0.1)
         lf.set_param_rule("beta", bin="high", value=10.0)
-        simulated_alignment = lf.simulate_alignment(100)
+        lf.simulate_alignment(100)
 
     def test_simulate_alignment1(self):
         "Simulate alignment when no alignment set"
@@ -737,7 +737,7 @@ DogFaced     root      1.0000    1.0000
         sm = get_model("BH")
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
-        psubs = lf.get_all_psubs()
+        lf.get_all_psubs()
 
     def test_get_all_rate_matrices(self):
         """return matrices when just a pair"""
@@ -782,7 +782,7 @@ DogFaced     root      1.0000    1.0000
         """lf ignores tree lengths if a discrete Markov model"""
         t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
         dm = ns_substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
-        lf = dm.make_likelihood_function(t)
+        dm.make_likelihood_function(t)
 
     def test_exercise_set_align(self):
         "lf.set_align should work for different models"

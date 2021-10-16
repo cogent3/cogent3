@@ -406,7 +406,7 @@ class SequenceCollectionBaseTests(object):
         s2_ORIG = ">x\nCA\n>b\nAA\n>>xx\nGG"
         s2 = ">aa\nAC\n>bb\nAA\n>c\nGG\n"
         d = ArrayAlignment(MinimalFastaParser(s2.splitlines()))
-        da = d.to_fasta()
+        d.to_fasta()
         self.assertEqual(d.to_fasta(), aln.to_fasta())
 
     def test_aln_from_fasta(self):
@@ -626,8 +626,8 @@ class SequenceCollectionBaseTests(object):
     def test_get_similar(self):
         """SequenceCollection get_similar should get all sequences close to target seq"""
         aln = self.many
-        x = RnaSequence("GGGGGGGGGG")
-        y = RnaSequence("----------")
+        RnaSequence("GGGGGGGGGG")
+        RnaSequence("----------")
         # test min and max similarity ranges
         result = aln.get_similar(
             aln.named_seqs["a"], min_similarity=0.4, max_similarity=0.7
@@ -1046,7 +1046,7 @@ class SequenceCollectionBaseTests(object):
             # check for a failure when no moltype specified
             alignment = self.Class(data=seqs)
             try:
-                peps = alignment.get_translation()
+                alignment.get_translation()
             except AttributeError:
                 pass
 
@@ -1204,7 +1204,7 @@ class SequenceCollectionBaseTests(object):
         # be gone too
         raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
         raw_ungapped = re.sub("[-?]", "", raw_seq)
-        raw_no_ambigs = re.sub("[N?]+", "", raw_seq)
+        re.sub("[N?]+", "", raw_seq)
         dna = DNA.make_seq(raw_seq)
 
         aln = self.Class(data=[("a", dna), ("b", dna)])
@@ -1510,7 +1510,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
         # no longer applicable in new implementation
         with self.assertRaises(ValueError):
-            r = align_rag.to_phylip()
+            align_rag.to_phylip()
 
     def test_pad_seqs_ragged(self):
         """SequenceCollection pad_seqs should work on ragged alignment."""
@@ -2619,11 +2619,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         logo = aln.seqlogo(wrap=20)
         # should work for protein too
         aa = aln.get_translation()
-        logo = aa.seqlogo()
+        aa.seqlogo()
 
         # without a defined moltype
         aln = self.Class(data)
-        logo = aln.seqlogo()
+        aln.seqlogo()
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
