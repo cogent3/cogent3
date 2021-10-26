@@ -234,6 +234,13 @@ class Drawable:
         self.layout.yaxis.title = ytitle
         return UnionDict(data=traces, layout=self.layout)
 
+    @property
+    def plotly_figure(self):
+        """returns a plotly graph object"""
+        from plotly.graph_objects import Figure
+
+        return Figure(**self.figure)
+
     @extend_docstring_from(_show_)
     def show(self, renderer=None, **kwargs):
         _show_(self, renderer, **kwargs)
