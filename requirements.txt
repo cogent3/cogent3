@@ -4,4 +4,5 @@ psutil==5.8.0
 scipy==1.6.1; python_version > '3.6'
 tox==3.23.1
 tox-gh-actions==2.5.0
+plotly
 .[dev]
