@@ -226,21 +226,20 @@ class Drawable:
         if not self.traces and hasattr(self, "_build_fig"):
             self._build_fig()
 
-        traces = self.traces if self.traces else [{}]
+        traces = self.traces or [{}]
 
-        if self.xtitle:
-            xtitle = self.xtitle
-        else:
-            xtitle = self.layout.xaxis.get("title", None)
-
-        if self.ytitle:
-            ytitle = self.ytitle
-        else:
-            ytitle = self.layout.yaxis.get("title", None)
-
+        xtitle = self.xtitle or self.layout.xaxis.get("title", None)
+        ytitle = self.ytitle or self.layout.yaxis.get("title", None)
         self.layout.xaxis.title = xtitle
         self.layout.yaxis.title = ytitle
         return UnionDict(data=traces, layout=self.layout)
+
+    @property
+    def plotly_figure(self):
+        """returns a plotly graph object"""
+        from plotly.graph_objects import Figure
+
+        return Figure(**self.figure)
 
     @extend_docstring_from(_show_)
     def show(self, renderer=None, **kwargs):

@@ -122,6 +122,15 @@ class DrawableObjectTests(unittest.TestCase):
         self.assertEqual(f.data, d.traces)
         self.assertEqual(f.layout, d.layout)
 
+    def test_plotly_figure(self):
+        """is a plotly graph object Figure instance"""
+        from plotly.graph_objects import Figure
+
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        layout = dict(title="layout", width=20)
+        d = Drawable(traces=[trace], layout=layout)
+        self.assertIsInstance(d.plotly_figure, Figure)
+
 
 class AnnotatedDrawableObjectTests(unittest.TestCase):
     """testing AnnotatedDrawable object methods and properties"""
@@ -141,6 +150,17 @@ class AnnotatedDrawableObjectTests(unittest.TestCase):
         ad = AnnotatedDrawable(cd, layout=layout)
         f = ad._build_fig()
         self.assertEqual(f["data"][0]["yaxis"], "y3")
+
+    def test_plotly_figure(self):
+        """is a plotly graph object Figure instance"""
+        from plotly.graph_objects import Figure
+
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1], xaxis="x", yaxis="y")
+        layout = dict(title="layout", width=20, yaxis2=dict(overlaying="free"))
+        cd = Drawable(traces=[trace])
+
+        ad = AnnotatedDrawable(cd, layout=layout)
+        self.assertIsInstance(ad.plotly_figure, Figure)
 
 
 class BaseDrawablesTests(unittest.TestCase):

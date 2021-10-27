@@ -254,9 +254,7 @@ class _LikelihoodParameterController(_LF):
         init=None,
         upper=None,
     ):
-        """modifes the scope of all submodel rate, aside from excluded params,
-        by constructing a list of parameter rules and using the
-        apply_param_rules method
+        """modifies the scope of substitution model rate params
 
         Parameters
         ----------
@@ -264,7 +262,7 @@ class _LikelihoodParameterController(_LF):
             name(s) of substitution model predicate(s) to be excluded
         edge_sets
             series of dicts with an 'edges' key. Can also specify
-            is_independent, is_contstant etc.. If those are not provided, the
+            is_independent, is_constant etc.. If those are not provided, the
             method argument values are applied
         is_independent : bool
             whether edges in all edge sets are to be considered independent.
