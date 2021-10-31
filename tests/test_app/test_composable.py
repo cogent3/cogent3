@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+from pickle import dumps, loads
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import Mock
@@ -276,7 +277,6 @@ class TestNotCompletedResult(TestCase):
 class TestPicklable(TestCase):
     def test_composite_pickleable(self):
         """composable functions should be pickleable"""
-        from pickle import dumps
 
         from cogent3.app import align, evo, io, sample, translate, tree
 
@@ -299,8 +299,6 @@ class TestPicklable(TestCase):
 
     def test_not_completed_result(self):
         """should survive roundtripping pickle"""
-        from pickle import dumps, loads
-
         err = NotCompleted("FAIL", "mytest", "can we roundtrip")
         p = dumps(err)
         new = loads(p)
@@ -323,6 +321,13 @@ class TestPicklable(TestCase):
 
 def _demo(ctx, expect):
     return ctx.frame_start == expect
+
+
+# for testing appify
+@appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
+def slicer(val, index=2):
+    """my docstring"""
+    return val[:index]
 
 
 class TestUserFunction(TestCase):
@@ -371,13 +376,7 @@ class TestUserFunction(TestCase):
 
     def test_appify(self):
         """acts like a decorator should!"""
-
-        @appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
-        def slicer(val, index=2):
-            """my docstring"""
-            return val[:index]
-
-        self.assertEqual(slicer.__doc__, "appify: my docstring")
+        self.assertEqual(slicer.__doc__, "my docstring")
         self.assertEqual(slicer.__name__, "slicer")
         app = slicer()
         self.assertTrue(SERIALISABLE_TYPE in app._input_types)
@@ -385,6 +384,13 @@ class TestUserFunction(TestCase):
         self.assertEqual(app(list(range(4))), [0, 1])
         app2 = slicer(index=3)
         self.assertEqual(app2(list(range(4))), [0, 1, 2])
+
+    def test_appify_pickle(self):
+        """appified function should be pickleable"""
+        app = slicer(index=6)
+        dumped = dumps(app)
+        loaded = loads(dumped)
+        self.assertEqual(loaded(list(range(10))), list(range(6)))
 
     def test_user_function_repr(self):
         u_function_1 = user_function(self.foo, "aligned", "aligned")

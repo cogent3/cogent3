@@ -8,6 +8,7 @@ import time
 import traceback
 
 from copy import deepcopy
+from functools import wraps
 
 import scitrack
 
@@ -721,7 +722,10 @@ class user_function(Composable):
         args = self._args + args
         kwargs_ = deepcopy(self._kwargs)
         kwargs_.update(kwargs)
-        return self._user_func(*args, **kwargs_)
+        # the following enables a decorated user function (via @appify())
+        # or directly passed user function
+        func = getattr(self._user_func, "__wrapped__", self._user_func)
+        return func(*args, **kwargs_)
 
     def __str__(self):
         txt = "" if not self.input else str(self.input)
@@ -737,45 +741,45 @@ class user_function(Composable):
         return str(self)
 
 
-class appify:
+@extend_docstring_from(ComposableType.__init__, pre=True)
+def appify(input_types, output_types, data_types=None):
     """function decorator for generating user apps. Simplifies creation of
-    user_function() instancese, e.g.
+    user_function() instances, e.g.
 
     >>> @appify(SEQUENCE_TYPE, SEQUENCE_TYPE, data_types="SequenceCollection")
     ... def omit_seqs(seqs, quantile=None, gap_fraction=1, moltype="dna"):
     ...     return seqs.omit_bad_seqs(quantile=quantile, gap_fraction=gap_fraction, moltype="dna")
     ...
 
-    `omit_seqs()` is now an app factory, allowing creating variants of the app.
+    ``omit_seqs()`` is now an app factory, allowing creating variants of the app.
 
     >>> omit_bad = omit_seqs(quantile=0.95)
 
-    omit_bad is now a composable user_function app. Calling with different
+    ``omit_bad`` is now a composable ``user_function`` app. Calling with different
     args/kwargs values returns a variant app, as per the behaviour of builtin
     apps.
+
     """
+    # the 3 nested functions are required to allow setting decorator arguments
+    # to allow using functools.wraps so the decorated function has the correct
+    # docstring, name etc... And, the final inner one gets to pass the
+    # reference to the wrapped function (wrapped_ref) to user_function. This
+    # latter is required to enable pickling of the user_function instance.
+    def enclosed(func):
+        @wraps(func)
+        def maker(*args, **kwargs):
+            # construct the user_function app
+            return user_function(
+                wrapped_ref,
+                input_types,
+                output_types,
+                *args,
+                data_types=data_types,
+                **kwargs,
+            )
 
-    @extend_docstring_from(ComposableType.__init__)
-    def __init__(self, input_types, output_types, data_types=None) -> None:
-        self._it = input_types
-        self._ot = output_types
-        self._dt = data_types
-        self._func = None
+        wrapped_ref = maker
 
-    def __call__(self, func):
-        # executed on use as decorator
-        self._func = func
-        # makes the returned reference have the name, docs etc.
-        # of original function
-        self._make_app.__func__.__doc__ = f"appify: {func.__doc__}"
-        self._make_app.__func__.__repr__ = lambda x: repr(func)
-        self._make_app.__func__.__name__ = func.__name__
-        self._make_app.__func__.__module__ = func.__module__
+        return maker
 
-        return self._make_app
-
-    def _make_app(self, *args, **kwargs):
-        # construct the user_function app
-        return user_function(
-            self._func, self._it, self._ot, *args, data_types=self._dt, **kwargs
-        )
+    return enclosed
