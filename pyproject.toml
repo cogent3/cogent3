@@ -70,7 +70,7 @@ doc  = ["click",
         "sphinx>=1.6",
         "sphinx_bootstrap_theme",
         "sphinx_panels",
-        "sphinxcontrib-bibtex<2.0.0"]
+        "sphinxcontrib-bibtex"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
 dev = ["black",
        "click",
