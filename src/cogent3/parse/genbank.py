@@ -445,12 +445,12 @@ class LocationList(list):
         """Extracts pieces of self from sequence."""
         result = []
         for i in self:
-            first, last = i.first(), i.last() + 1  # inclusive, not exclusive
+            first, last = i.first() - 1, i.last()  # inclusive, not exclusive
             # translate to 0-based indices and check if it wraps around
             if first < last:
-                curr = sequence[first - 1 : last - 1]
+                curr = sequence[first:last]
             else:
-                curr = sequence[first - 1 :] + sequence[: last - 1]
+                curr = sequence[first:] + sequence[:last]
             # reverse-complement if necessary
             if i.Strand == -1:
                 curr = curr.translate(trans_table)[::-1]
@@ -638,7 +638,7 @@ def RichGenbankParser(
 
     """
     info_excludes = info_excludes or []
-    moltype = get_moltype(moltype or "text")
+    moltype = get_moltype(moltype) if moltype else None
     for rec in MinimalGenbankParser(handle):
         info = Info()
         # populate the info object, excluding the sequence
@@ -647,11 +647,17 @@ def RichGenbankParser(
                 continue
             info[label] = value
 
-        if rec["mol_type"].lower() in ("dna", "rna", "protein"):
-            moltype = get_moltype(rec["mol_type"].lower())
+        if moltype is None:
+            rec_moltype = rec["mol_type"].lower()
+            rec_moltype = (
+                rec_moltype if rec_moltype in ("dna", "rna", "protein") else "text"
+            )
+            rec_moltype = get_moltype(rec_moltype)
+        else:
+            rec_moltype = moltype
 
         try:
-            seq = moltype.make_seq(
+            seq = rec_moltype.make_seq(
                 rec["sequence"].upper(), info=info, name=rec["locus"]
             )
         except KeyError:
