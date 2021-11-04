@@ -307,7 +307,7 @@ or by the ``format`` argument.
 
 .. jupyter-execute::
 
-    from cogent3.util.misc import remove_files
+    from cogent3.util.io import remove_files
 
     remove_files(["sample", "sample.fasta"], error_on_missing=False)
 

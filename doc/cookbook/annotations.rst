@@ -536,6 +536,6 @@ We first make a sequence and add some annotations.
 .. jupyter-execute::
     :hide-code:
 
-    from cogent3.util.misc import remove_files
+    from cogent3.util.io import remove_files
 
     remove_files(["annotated_%d.png" % i for i in range(1, 4)], error_on_missing=False)
