@@ -1768,20 +1768,23 @@ class TableTests(TestCase):
         r = cast_str_to_numeric(d)
         assert_equal(d, r)
 
-        for d_type in [numpy.int, numpy.complex, numpy.float64]:
-            d = d.astype(d_type)
-            r = cast_str_to_numeric(d)
-            self.assertIsInstance(r[0], type(d[0]))
+        with numpy.testing.suppress_warnings() as sup:
+            # we know that converting to real loses imaginary
+            sup.filter(numpy.ComplexWarning)
+            for d_type in [numpy.int64, numpy.complex128, numpy.float64]:
+                d = d.astype(d_type)
+                r = cast_str_to_numeric(d)
+                self.assertIsInstance(r[0], type(d[0]))
 
         d = d.astype(str)
         r = cast_str_to_numeric(d)
         self.assertIsInstance(r[0], numpy.float64)
         d = numpy.array(d, dtype="U")
         r = cast_str_to_numeric(d)
-        self.assertIsInstance(r[0], numpy.float)
+        self.assertIsInstance(r[0], numpy.float64)
         d = numpy.array(d, dtype="S")
         r = cast_str_to_numeric(d)
-        self.assertIsInstance(r[0], numpy.float)
+        self.assertIsInstance(r[0], numpy.float64)
 
     def test_cast_str_to_array(self):
         """handle processing string series"""
