@@ -69,28 +69,14 @@ _cg_k = (_cg & _kappa).aliased("G.K")
 
 
 def _make_gn_preds():
-    _general_preds = []
-    for f, t in permutations("ACTG", 2):
-        if f != "T" or t != "G":  # Match GTR's reference cell
-            _general_preds.append(MotifChange(f, t, forward_only=True))
-    return _general_preds
+    return [
+        MotifChange(f, t, forward_only=True)
+        for f, t in permutations("ACTG", 2)
+        if f != "T" or t != "G"
+    ]
 
 
 _general_preds = _make_gn_preds()
-
-
-def _make_symn_preds():
-    pair = {"A": "T", "T": "A", "G": "C", "C": "G"}
-    sym_preds = []
-    for f, t in "AG", "AT", "CG", "CT", "GT":
-        sym_preds.append(
-            MotifChange(f, t, forward_only=True)
-            | MotifChange(pair[f], pair[t], forward_only=True)
-        )
-    return sym_preds
-
-
-_sym_preds = _make_symn_preds()
 
 
 def BH(optimise_motif_probs=True, **kw):
@@ -134,10 +120,9 @@ def ssGN(optimise_motif_probs=True, **kw):
 
     Kaehler, 2017, Journal of Theoretical Biology 420: 144–51"""
     # note the StrandSymmetric class predefines the predicates and name
-    sm = ns_substitution_model.StrandSymmetric(
+    return ns_substitution_model.StrandSymmetric(
         optimise_motif_probs=optimise_motif_probs, name="ssGN", **kw
     )
-    return sm
 
 
 def K80(**kw):

@@ -25,14 +25,7 @@ def TreeAlign(
     ests_from_pairwise=True,
     param_vals=None,
 ):
-    """Returns a multiple alignment and tree.
-
-    Uses the provided substitution model and a tree for determining the
-    progressive order. If a tree is not provided a Neighbour Joining tree is
-    constructed from pairwise distances estimated from pairwise aligning the
-    sequences. If running in parallel, only the distance estimation is
-    parallelised and only the master CPU returns the alignment and tree, other
-    CPU's return None, None.
+    """Returns a multiple sequence alignment and tree.
 
     Parameters
     ----------
@@ -49,6 +42,14 @@ def TreeAlign(
         named key, value pairs for model parameters. These
         override ests_from_pairwise.
 
+    Notes
+    -----
+    Uses a tree for determining the progressive order. If a tree is not
+    provided, a Neighbour Joining tree is constructed from pairwise
+    distances estimated (using the provided substitution model) from pairwise
+    aligning the sequences.
+
+    Parameters and tree are added to ``<align>.info["align_params"]``.
     """
     from cogent3 import get_model
 
