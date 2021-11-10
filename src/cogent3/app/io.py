@@ -594,7 +594,7 @@ class write_db(_checkpointable):
         -------
         identifier
         """
-        data_source = _get_source(data)
+        data_source = _get_source(data)  # todo -- this is being ignored!
         if (data_source and identifier is not None) and str(data_source) != str(
             identifier
         ):

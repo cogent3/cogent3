@@ -2,7 +2,6 @@ import csv
 import pathlib
 
 from cogent3.util.io import open_
-from cogent3.util.warning import deprecated
 
 from .record_finder import is_empty
 
@@ -54,11 +53,7 @@ class FilteringParser:
         The line elements are strings.
         """
         self.with_header = with_header
-        columns = (
-            [columns]
-            if isinstance(columns, int) or isinstance(columns, str)
-            else columns
-        )
+        columns = [columns] if isinstance(columns, (int, str)) else columns
         if columns is not None and isinstance(columns[0], str) and not with_header:
             raise ValueError("with_header must be True for columns with str values")
 
@@ -95,7 +90,7 @@ class FilteringParser:
         Elements within a row are strings
         """
         input_from_path = False
-        if isinstance(lines, str) or isinstance(lines, pathlib.Path):
+        if isinstance(lines, (str, pathlib.Path)):
             path = pathlib.Path(lines).expanduser()
             input_from_path = path.exists()
 
@@ -139,10 +134,10 @@ def load_delimited(
     filename,
     header=True,
     sep=",",
-    delimiter=None,
     with_title=False,
     with_legend=False,
     limit=None,
+    **kwargs,
 ):
     """
     basic processing of tabular data
@@ -170,8 +165,10 @@ def load_delimited(
     -----
     All row values remain as strings.
     """
-    if delimiter:
-        sep = delimiter
+    if "delimiter" in kwargs:
+        from cogent3.util.warning import deprecated
+
+        sep = kwargs.pop("delimiter")
         deprecated("argument", "delimiter", "sep", "2022.1")
 
     if limit is not None and header:

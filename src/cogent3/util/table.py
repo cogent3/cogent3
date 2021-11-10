@@ -28,7 +28,6 @@ from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.union_dict import UnionDict
-from cogent3.util.warning import deprecated
 
 
 try:
@@ -487,10 +486,6 @@ class Table:
             for k, v in locals().items()
             if k not in ("self", "__class__", "data", "header", "kwargs")
         }
-
-        if "index" in kwargs:
-            deprecated("argument", "index", "index_name", "2021.11")
-            index_name = kwargs.pop("index", index_name)
 
         attrs.update(kwargs)
 

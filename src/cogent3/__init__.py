@@ -44,7 +44,6 @@ from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
-from cogent3.util.warning import deprecated
 
 
 __author__ = ""
@@ -369,10 +368,6 @@ def make_table(
     if any(isinstance(a, str) for a in (header, data)):
         raise TypeError("str type invalid, if it's a path use load_table()")
 
-    if "index" in kwargs:
-        deprecated("argument", "index", "index_name", "2021.11")
-        index_name = kwargs.pop("index", index_name)
-
     data = kwargs.get("rows", data)
     if data_frame is not None:
         from pandas import DataFrame
@@ -465,10 +460,6 @@ def load_table(
         raise TypeError(
             "filename must be string or Path, perhaps you want make_table()"
         )
-
-    if "index" in kwargs:
-        deprecated("argument", "index", "index_name", "2021.11")
-        index_name = kwargs.pop("index", index_name)
 
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)

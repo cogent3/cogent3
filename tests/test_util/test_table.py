@@ -1435,6 +1435,11 @@ class TableTests(TestCase):
             data = table.columns.to_dict()
         self.assertEqual(data, dict(a=[0, 1], b=[2, 3], c=["abc", "efg"]))
 
+    def test_load_table_limit(self):
+        """limit argument to function works"""
+        t = load_table("data/sample.tsv", limit=2)
+        self.assertEqual(t.shape[0], 2)
+
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""
         t = load_table("data/sample.tsv", sep="\t", static_column_types=False)

@@ -184,7 +184,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         self._test_aln({"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"})
 
     def test_progressive_est_tree(self):
-        """excercise progressive alignment without a guide tree"""
+        """exercise progressive alignment without a guide tree"""
         seqs = make_unaligned_seqs(
             data={
                 "A": "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
@@ -194,6 +194,20 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         )
         aln, tree = cogent3.align.progressive.TreeAlign(
             HKY85(), seqs, show_progress=False, param_vals={"kappa": 4.0}
+        )
+
+        expect = {
+            "A": "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA-------",
+            "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
+            "B": "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
+        }
+        self.assertEqual(aln.to_dict(), expect)
+
+        aln, tree = cogent3.align.progressive.TreeAlign(
+            HKY85(),
+            seqs,
+            show_progress=False,
+            ests_from_pairwise=True,
         )
 
         expect = {

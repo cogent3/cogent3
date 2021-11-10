@@ -18,9 +18,11 @@ from numpy import (
     isnan,
     log,
     mean,
+    nonzero,
+    ones,
+    ravel,
+    sqrt,
 )
-from numpy import median as _median
-from numpy import nonzero, ones, ravel, sqrt
 from numpy import std as _std
 from numpy import sum as npsum
 from numpy import take, tanh, trace, zeros
@@ -51,7 +53,6 @@ from cogent3.maths.stats.special import (
     log_one_minus,
     one_minus_exp,
 )
-from cogent3.util.warning import discontinued
 
 
 __author__ = "Rob Knight"
@@ -150,30 +151,6 @@ def std(x, axis=None):  # pragma: no cover
     except IndexError as e:  # just to avoid breaking the old test code
         raise IndexOrValueError(e)
     return sqrt(sample_variance)
-
-
-def median(m, axis=None):  # pragma: no cover
-    """Returns medians by axis (similiar to numpy.mean)
-
-    numpy.median does not except an axis parameter. Is safe for substition for
-    numpy.median
-    """
-    discontinued("function", "median", "2021.11")
-    median_vals = []
-    rows, cols = m.shape
-
-    if axis is None:
-        return _median(ravel(m))
-    elif axis == 0:
-        for col in range(cols):
-            median_vals.append(_median(m[:, col]))
-    elif axis == 1 or axis == -1:
-        for row in range(rows):
-            median_vals.append(_median(m[row, :]))
-    else:
-        raise ValueError("axis(=%s) out of bounds" % axis)
-
-    return array(median_vals)
 
 
 class ZeroExpectedError(ValueError):
