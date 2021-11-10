@@ -2,7 +2,6 @@ import csv
 import pathlib
 
 from cogent3.util.io import open_
-from cogent3.util.warning import deprecated
 
 from .record_finder import is_empty
 
@@ -139,10 +138,10 @@ def load_delimited(
     filename,
     header=True,
     sep=",",
-    delimiter=None,
     with_title=False,
     with_legend=False,
     limit=None,
+    **kwargs,
 ):
     """
     basic processing of tabular data
@@ -170,8 +169,10 @@ def load_delimited(
     -----
     All row values remain as strings.
     """
-    if delimiter:
-        sep = delimiter
+    if "delimiter" in kwargs:
+        from cogent3.util.warning import deprecated
+
+        sep = kwargs.pop("delimiter")
         deprecated("argument", "delimiter", "sep", "2022.1")
 
     if limit is not None and header:
