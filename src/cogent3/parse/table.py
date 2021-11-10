@@ -53,11 +53,7 @@ class FilteringParser:
         The line elements are strings.
         """
         self.with_header = with_header
-        columns = (
-            [columns]
-            if isinstance(columns, int) or isinstance(columns, str)
-            else columns
-        )
+        columns = [columns] if isinstance(columns, (int, str)) else columns
         if columns is not None and isinstance(columns[0], str) and not with_header:
             raise ValueError("with_header must be True for columns with str values")
 
@@ -94,7 +90,7 @@ class FilteringParser:
         Elements within a row are strings
         """
         input_from_path = False
-        if isinstance(lines, str) or isinstance(lines, pathlib.Path):
+        if isinstance(lines, (str, pathlib.Path)):
             path = pathlib.Path(lines).expanduser()
             input_from_path = path.exists()
 
