@@ -49,7 +49,6 @@ from cogent3.maths.stats.test import (
     mantel,
     mantel_test,
     mc_t_two_sample,
-    median,
     multiple_comparisons,
     multiple_inverse,
     multiple_n,
@@ -233,23 +232,6 @@ class TestsTests(TestCase):
         res = tuple(std(inp3d, ax) for ax in [None, 0, 1, 2])
         for obs, exp in zip(res, exp3d):
             testing.assert_almost_equal(obs, exp)
-
-    def test_median(self):
-        """_median should work similarly to numpy.mean (in terms of axis)"""
-        m = array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
-        expected = 6.5
-        observed = median(m, axis=None)
-        self.assertEqual(observed, expected)
-
-        expected = array([5.5, 6.5, 7.5])
-        observed = median(m, axis=0)
-        assert_equal(observed, expected)
-
-        expected = array([2.0, 5.0, 8.0, 11.0])
-        observed = median(m, axis=1)
-        assert_equal(observed, expected)
-
-        self.assertRaises(ValueError, median, m, 10)
 
     def test_tail(self):
         """tail should return x/2 if test is true; 1-(x/2) otherwise"""
