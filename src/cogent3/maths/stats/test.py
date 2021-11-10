@@ -18,9 +18,11 @@ from numpy import (
     isnan,
     log,
     mean,
+    nonzero,
+    ones,
+    ravel,
+    sqrt,
 )
-from numpy import median as _median
-from numpy import nonzero, ones, ravel, sqrt
 from numpy import std as _std
 from numpy import sum as npsum
 from numpy import take, tanh, trace, zeros
