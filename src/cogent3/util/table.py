@@ -488,10 +488,6 @@ class Table:
             if k not in ("self", "__class__", "data", "header", "kwargs")
         }
 
-        if "index" in kwargs:
-            deprecated("argument", "index", "index_name", "2021.11")
-            index_name = kwargs.pop("index", index_name)
-
         attrs.update(kwargs)
 
         self._persistent_attrs = attrs
