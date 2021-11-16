@@ -259,11 +259,11 @@ class TestPeriodStat(TestCase):
         hybrid_calc = Hybrid(150, llim=2, period=4)
         ipdft_calc = Ipdft(150, llim=2, period=4)
         autocorr_calc = AutoCorrelation(150, llim=2, period=4)
-        self.assertEqual(hybrid_calc.getNumStats(), 1)
-        self.assertEqual(ipdft_calc.getNumStats(), 1)
-        self.assertEqual(autocorr_calc.getNumStats(), 1)
+        self.assertEqual(hybrid_calc.get_num_stats(), 1)
+        self.assertEqual(ipdft_calc.get_num_stats(), 1)
+        self.assertEqual(autocorr_calc.get_num_stats(), 1)
         hybrid_calc = Hybrid(150, llim=2, period=4, return_all=True)
-        self.assertEqual(hybrid_calc.getNumStats(), 3)
+        self.assertEqual(hybrid_calc.get_num_stats(), 3)
 
     def test_permutation_skips(self):
         """permutation test correctly handles data without symbols"""
