@@ -30,7 +30,7 @@ __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"
 
-pattern = re.compile("([0-9]*)([DM])")
+_pattern = re.compile("([0-9]*)([DM])")
 
 
 def map_to_cigar(map):
@@ -43,10 +43,7 @@ def map_to_cigar(map):
         else:
             num_chars = span.length
             char = "D"
-        if num_chars == 1:
-            cigar += char
-        else:
-            cigar += str(num_chars) + char
+        cigar += char if num_chars == 1 else str(num_chars) + char
     return cigar
 
 
@@ -54,19 +51,14 @@ def cigar_to_map(cigar_text):
     """convert cigar string into Map"""
     assert "I" not in cigar_text
     spans, posn = [], 0
-    for n, c in pattern.findall(cigar_text):
-        if n:
-            n = int(n)
-        else:
-            n = 1
-
+    for n, c in _pattern.findall(cigar_text):
+        n = int(n) if n else 1
         if c == "M":
             spans.append(Span(posn, posn + n))
             posn += n
         else:
             spans.append(LostSpan(n))
-    map = Map(spans=spans, parent_length=posn)
-    return map
+    return Map(spans=spans, parent_length=posn)
 
 
 def aligned_from_cigar(cigar_text, seq, moltype=DNA):
@@ -79,10 +71,7 @@ def aligned_from_cigar(cigar_text, seq, moltype=DNA):
 
 def _slice_by_aln(map, left, right):
     slicemap = map[left:right]
-    if hasattr(slicemap, "start"):
-        location = [slicemap.start, slicemap.end]
-    else:
-        location = []
+    location = [slicemap.start, slicemap.end] if hasattr(slicemap, "start") else []
     return slicemap, location
 
 
@@ -101,14 +90,13 @@ def _remap(map):
         new_map.parent_length = map.end
     else:
         spans = []
+        length = None
         for span in map.spans:
-            if span.lost:
-                spans.append(span)
-            else:
+            if not span.lost:
                 span.start = span.start - start
                 span.end = span.end - start
                 length = span.end
-                spans.append(span)
+            spans.append(span)
         new_map = Map(spans=spans, parent_length=length)
     return new_map
 

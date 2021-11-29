@@ -147,8 +147,7 @@ def _get_param_mapping(rich, simple):
                 simple_to_rich[simple_param].add(rich_param)
                 rich_to_simple[rich_param].add(simple_param)
 
-    for rich_param in rich_to_simple:
-        simple_counterparts = rich_to_simple[rich_param]
+    for rich_param, simple_counterparts in rich_to_simple.items():
         if len(simple_counterparts) == 1:
             continue
 
@@ -164,7 +163,7 @@ def _get_param_mapping(rich, simple):
         _, chosen = sized_simple.pop(0)
         rich_to_simple[rich_param] = [chosen]
         for _, simple_param in sized_simple:
-            simple_to_rich[simple_param].pop(rich_param)
+            simple_to_rich[simple_param].remove(rich_param)
 
     return simple_to_rich
 
