@@ -1281,6 +1281,31 @@ DogFaced     root      1.0000    1.0000
         glf.initialise_from_nested(slf)
         assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
 
+    def test_initialise_from_nested_codon_scoped(self):
+        """scoped non-reversible likelihood initialised from nested scoped, non-reversible"""
+        simple = get_model("H04GK")
+        tree = make_tree(tip_names=["Human", "Mouse", "Opossum"])
+        slf = simple.make_likelihood_function(tree)
+        slf.set_alignment(_aln)
+        slf.set_time_heterogeneity(
+            edge_sets=[
+                dict(edges=["Opossum"], is_independent=True),
+            ],
+            exclude_params=["kappa", "omega"],
+        )
+        slf.optimise(max_evaluations=50, limit_action="ignore", show_progress=False)
+        glf = simple.make_likelihood_function(tree)
+        glf.set_alignment(_aln)
+        glf.set_time_heterogeneity(
+            edge_sets=[
+                dict(edges=["Opossum"], is_independent=True),
+                dict(edges=["Human", "Mouse"], is_independent=True),
+            ],
+            exclude_params=["kappa", "omega"],
+        )
+        glf.initialise_from_nested(slf)
+        assert_allclose(glf.lnL, slf.lnL)
+
     def test_get_lengths_as_ens_equal(self):
         """lengths equals ENS for a time-reversible model"""
         moprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
