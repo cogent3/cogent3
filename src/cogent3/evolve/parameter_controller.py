@@ -56,7 +56,7 @@ class _LikelihoodParameterController(_LF):
     For usage see the set_param_rule method.
     """
 
-    # Basically wrapper around the more generic recalulation.ParameterController
+    # Basically wrapper around the more generic recalculation.ParameterController
     # class, which doesn't know about trees.
 
     def __init__(
@@ -153,10 +153,7 @@ class _LikelihoodParameterController(_LF):
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
         if pseudocount is None:
-            if is_constant:
-                pseudocount = 0.0
-            else:
-                pseudocount = 0.5
+            pseudocount = 0.0 if is_constant else 0.5
         counts += pseudocount
         mprobs = counts / (1.0 * sum(counts))
         self.set_motif_probs(

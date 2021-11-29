@@ -172,6 +172,7 @@ class model(ComposableModel):
                 if self._verbose:
                     print(lf)
             if self._time_het == "max":
+                # todo the value for upper should not be hard-coded here
                 lf.set_time_heterogeneity(is_independent=True, upper=50)
             else:
                 lf.set_time_heterogeneity(edge_sets=self._time_het)

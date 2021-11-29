@@ -147,8 +147,7 @@ def _get_param_mapping(rich, simple):
                 simple_to_rich[simple_param].add(rich_param)
                 rich_to_simple[rich_param].add(simple_param)
 
-    for rich_param in rich_to_simple:
-        simple_counterparts = rich_to_simple[rich_param]
+    for rich_param, simple_counterparts in rich_to_simple.items():
         if len(simple_counterparts) == 1:
             continue
 
