@@ -26,6 +26,7 @@ from .data_store import (
     DataStoreMember,
     SingleReadDataStore,
     WritableDirectoryDataStore,
+    get_data_source,
 )
 
 
@@ -46,21 +47,6 @@ def _make_logfile_name(process):
     result = "-".join(parts)
     pid = os.getpid()
     result = f"{result}-pid{pid}.log"
-    return result
-
-
-def _get_source(source):
-    if isinstance(source, str):
-        return str(source)
-
-    # todo maybe a dict? see about getting keys
-    try:
-        result = source.source
-    except AttributeError:
-        try:
-            result = source.info.source
-        except AttributeError:
-            result = None
     return result
 
 
@@ -87,7 +73,7 @@ class NotCompleted(int):
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         origin = _get_origin(origin)
-        source = _get_source(source)
+        source = get_data_source(source)
         d = locals()
         d = {k: v for k, v in d.items() if k != "cls"}
         result = int.__new__(cls, False)
