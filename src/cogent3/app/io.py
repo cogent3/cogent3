@@ -32,7 +32,6 @@ from .composable import (
     ComposableTabular,
     NotCompleted,
     _checkpointable,
-    _get_source,
 )
 from .data_store import (
     IGNORE,
@@ -44,6 +43,7 @@ from .data_store import (
     ReadOnlyZippedDataStore,
     SingleReadDataStore,
     WritableTinyDbDataStore,
+    get_data_source,
     load_record_from_json,
     make_record_for_json,
 )
@@ -594,7 +594,7 @@ class write_db(_checkpointable):
         -------
         identifier
         """
-        data_source = _get_source(data)  # todo -- this is being ignored!
+        data_source = get_data_source(data)  # todo -- this is being ignored!
         if (data_source and identifier is not None) and str(data_source) != str(
             identifier
         ):

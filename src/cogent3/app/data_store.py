@@ -45,6 +45,29 @@ RAISE = "raise"
 IGNORE = "ignore"
 
 
+def get_data_source(data) -> str:
+    """identifies attribute of data named 'source'
+
+    Notes
+    -----
+    Alignment objects have a source element in their info dict
+    """
+    if isinstance(data, (str, pathlib.Path)):
+        return str(data)
+
+    if hasattr(data, "source"):
+        return str(data.source)
+
+    if hasattr(data, "info"):
+        return get_data_source(data.info)
+
+    if isinstance(data, dict):
+        value = data.get("source")
+        return str(value) if value else None
+
+    return None
+
+
 def make_record_for_json(identifier, data, completed):
     """returns a dict for storage as json"""
     try:
@@ -407,12 +430,11 @@ class WritableDataStoreBase:
 
     def make_relative_identifier(self, data):
         """returns identifier for a new member relative to source"""
-        from cogent3.app.composable import _get_source
 
         if isinstance(data, DataStoreMember):
             data = data.name
         elif type(data) != str:
-            data = _get_source(data)
+            data = get_data_source(data)
             if data is None:
                 raise ValueError(
                     "objects for storage require either a "

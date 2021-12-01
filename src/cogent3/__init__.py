@@ -150,7 +150,7 @@ def make_unaligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     assert isinstance(info, dict), "info must be a dict"
-    info["source"] = source or "unknown"
+    info["source"] = source or info.get("source", "unknown")
 
     return SequenceCollection(
         data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
@@ -193,7 +193,7 @@ def make_aligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     assert isinstance(info, dict), "info must be a dict"
-    info["source"] = source or "unknown"
+    info["source"] = source or info.get("source", "unknown")
     klass = ArrayAlignment if array_align else Alignment
     return klass(
         data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
@@ -467,9 +467,9 @@ def load_table(
     if file_format == "json":
         return load_from_json(filename, (_Table,))
     elif file_format in ("pickle", "pkl"):
-        f = open_(filename, mode="rb")
-        loaded_table = pickle.load(f)
-        f.close()
+        with open_(filename, mode="rb") as f:
+            loaded_table = pickle.load(f)
+
         r = _Table()
         r.__setstate__(loaded_table)
         return r

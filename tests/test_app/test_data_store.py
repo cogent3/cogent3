@@ -20,6 +20,7 @@ from cogent3.app.data_store import (
     SingleReadDataStore,
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
+    get_data_source,
     load_record_from_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
@@ -853,6 +854,53 @@ class TestFunctions(TestCase):
             self.assertEqual(Id, "some.json")
             self.assertEqual(data_, expected)
             self.assertEqual(compl, True)
+
+    def test_get_data_source_str_pathlib(self):
+        """handles case where input is string object or pathlib object"""
+        for val_klass in (str, pathlib.Path):
+            value = val_klass("some/path.txt")
+            got = get_data_source(value)
+            self.assertEqual(got, str(value))
+
+    def test_get_data_source_seqcoll(self):
+        """handles case where input is sequence collection object"""
+        from cogent3 import make_unaligned_seqs
+
+        for val_klass in (str, pathlib.Path):
+            value = val_klass("some/path.txt")
+            obj = make_unaligned_seqs(data=dict(seq1="ACGG"), info=dict(source=value))
+            got = get_data_source(obj)
+            self.assertEqual(got, str(value))
+
+    def test_get_data_source_attr(self):
+        """handles case where input has source attribute string object or pathlib object"""
+
+        class dummy:
+            source = None
+
+        for val_klass in (str, pathlib.Path):
+            obj = dummy()
+            value = val_klass("some/path.txt")
+            obj.source = value
+            got = get_data_source(obj)
+            self.assertEqual(got, str(value))
+
+    def test_get_data_source_dict(self):
+        """handles case where input is dict (sub)class instance with top level source key"""
+        from cogent3.util.union_dict import UnionDict
+
+        for klass in (dict, UnionDict):
+            for val_klass in (str, pathlib.Path):
+                value = val_klass("some/path.txt")
+                data = klass(source=value)
+                got = get_data_source(data)
+                self.assertEqual(got, str(value))
+
+    def test_get_data_source_none(self):
+        """handles case where input does not have a source attribute or key"""
+        for data in (None, dict(), set(), dict(info=dict())):
+            got = get_data_source(data)
+            self.assertIsNone(got)
 
 
 if __name__ == "__main__":
