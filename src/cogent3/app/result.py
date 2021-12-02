@@ -44,7 +44,11 @@ class generic_result(MutableMapping):
                 break
         else:
             if self._item_types:
-                msg = f"{type_name} not in supported types {self._item_types}"
+                class_name = self.__class__.__name__
+                msg = (
+                    f"{type_name!r} not a supported value type for {class_name!r}, "
+                    f"supported value types are {self._item_types}"
+                )
                 raise TypeError(msg)
 
         if not hasattr(val, "to_json"):
