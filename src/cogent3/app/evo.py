@@ -59,6 +59,7 @@ class model(ComposableModel):
         time_het=None,
         param_rules=None,
         opt_args=None,
+        upper=50,
         split_codons=False,
         show_progress=False,
         verbose=False,
@@ -98,6 +99,9 @@ class model(ComposableModel):
             arguments for the numerical optimiser, e.g.
             dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
             limit_action='ignore')
+        upper
+            Upper bound for all rate and length parameters. Overrides
+            values defined in ``time_het`` or ``param_rules``.
         split_codons : bool
             if True, incoming alignments are split into the 3 frames and each
             frame is fit separately
@@ -118,6 +122,7 @@ class model(ComposableModel):
             data_types=self._data_types,
         )
         self._verbose = verbose
+        self._upper = upper
         self._formatted_params()
         assert not (
             tree and unique_trees
@@ -155,7 +160,7 @@ class model(ComposableModel):
             for rule in param_rules:
                 if rule.get("is_constant"):
                     continue
-                rule["upper"] = rule.get("upper", 50)  # default upper bound
+                rule["upper"] = rule.get("upper", upper)  # default upper bound
         self._param_rules = param_rules
         self._time_het = time_het
         self._split_codons = split_codons
@@ -180,17 +185,19 @@ class model(ComposableModel):
                 if self._verbose:
                     print(lf)
             if self._time_het == "max":
-                # todo the value for upper should not be hard-coded here
-                lf.set_time_heterogeneity(is_independent=True, upper=50)
+                lf.set_time_heterogeneity(is_independent=True, upper=self._upper)
             else:
-                lf.set_time_heterogeneity(edge_sets=self._time_het, upper=50)
+                lf.set_time_heterogeneity(edge_sets=self._time_het, upper=self._upper)
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if rule["par_name"] not in ("mprobs", "psubs"):
-                    rule["upper"] = rule.get("upper", 50)
+                if rule["par_name"] in ("mprobs", "psubs", "bprobs") or rule.get(
+                    "is_constant"
+                ):
+                    continue
+                rule["upper"] = min(rule.get("upper") or self._upper + 1, self._upper)
 
-            lf.apply_param_rules([rule])
+            lf.apply_param_rules(rules)
 
         if initialise:
             lf = initialise(lf, identifier)
