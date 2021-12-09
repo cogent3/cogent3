@@ -3,9 +3,11 @@ import json
 from collections import OrderedDict
 from collections.abc import MutableMapping
 from functools import total_ordering
+from pathlib import Path
 
 import numpy
 
+from cogent3.app.data_store import get_data_source
 from cogent3.maths.stats import chisqprob
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.table import Table
@@ -28,6 +30,10 @@ class generic_result(MutableMapping):
     _item_types = ()
 
     def __init__(self, source):
+        source = get_data_source(source)
+        if not isinstance(source, (str, Path)):
+            raise ValueError(f"Cannot infer source from type {type(source)}")
+
         self._store = {}
         self._construction_kwargs = dict(source=source)
         self.source = source
@@ -142,12 +148,13 @@ class model_result(generic_result):
         if type(stat) == str:
             stat = eval(stat)
 
-        self._construction_kwargs = dict(
-            name=name,
-            stat=stat.__name__,
-            source=source,
-            elapsed_time=elapsed_time,
-            num_evaluations=num_evaluations,
+        self._construction_kwargs.update(
+            dict(
+                name=name,
+                stat=stat.__name__,
+                elapsed_time=elapsed_time,
+                num_evaluations=num_evaluations,
+            )
         )
         self._store = {}
         self._name = name
@@ -526,7 +533,7 @@ class hypothesis_result(model_collection_result):
             key for the null hypothesis
         """
         super(hypothesis_result, self).__init__(name=name, source=source)
-        self._construction_kwargs = dict(name_of_null=name_of_null, source=source)
+        self._construction_kwargs.update(dict(name_of_null=name_of_null))
 
         self._name_of_null = name_of_null
 
@@ -620,7 +627,6 @@ class bootstrap_result(generic_result):
 
     def __init__(self, source=None):
         super(bootstrap_result, self).__init__(source)
-        self._construction_kwargs = dict(source=source)
 
     @property
     def observed(self):

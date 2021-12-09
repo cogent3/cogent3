@@ -1,7 +1,10 @@
+import pathlib
+
 from unittest import TestCase, main
 
 from cogent3 import make_aligned_seqs, make_table
 from cogent3.app import evo as evo_app
+from cogent3.app.data_store import DataStoreMember
 from cogent3.app.result import (
     generic_result,
     hypothesis_result,
@@ -10,6 +13,7 @@ from cogent3.app.result import (
     tabular_result,
 )
 from cogent3.util.deserialise import deserialise_object
+from cogent3.util.dict_array import DictArray
 
 
 __author__ = "Gavin Huttley"
@@ -20,8 +24,6 @@ __version__ = "2021.10.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
-
-from cogent3.util.dict_array import DictArray
 
 
 class TestGenericResult(TestCase):
@@ -71,6 +73,30 @@ class TestGenericResult(TestCase):
         gr = generic_result("null")
         with self.assertRaises(TypeError):
             gr["null"] = {0, 23}
+
+    def test_infers_source(self):
+        """flexible handling of data source"""
+        # works for string
+        source = "path/blah.fasta"
+        aln = make_aligned_seqs(
+            {"A": "ACGT"}, info=dict(source=source, random_key=1234)
+        )
+        gr = generic_result(aln)
+        self.assertEqual(gr.source, "path/blah.fasta")
+
+        # or Path
+        aln.info.source = pathlib.Path(source)
+        gr = generic_result(aln)
+        self.assertEqual(str(gr.source), "path/blah.fasta")
+
+        # or DataStoreMember
+        aln.info.source = DataStoreMember(source)
+        gr = generic_result(aln)
+        self.assertEqual(str(gr.source), "path/blah.fasta")
+
+        aln.info = {}
+        with self.assertRaises(ValueError):
+            generic_result(aln)
 
 
 class TestModelResult(TestCase):
@@ -246,7 +272,7 @@ class TestModelResult(TestCase):
 
     def test_model_result_invalid_setitem(self):
         """model_result raise TypeError if trying to set incorrect item type"""
-        mr = model_result()
+        mr = model_result(source="blah")
         with self.assertRaises(TypeError):
             mr["null"] = 23
 
@@ -283,7 +309,7 @@ class TestModelCollectionResult(TestCase):
 
     def test_get_best_model(self):
         """should correctly identify the best model"""
-        coll = model_collection_result(None)
+        coll = model_collection_result(source="blah")
         coll.update(self._model_results)
         got = coll.get_best_model()
         # we ensure a model_result instance is returned from the possible set
@@ -292,7 +318,7 @@ class TestModelCollectionResult(TestCase):
     def test_select_model(self):
         """correctly select models"""
         # we ensure a series of model_result instances is returned
-        coll = model_collection_result(None)
+        coll = model_collection_result(source="blah")
         coll.update(self._model_results)
         got = coll.select_models()
         self.assertTrue(len(got) > 0)
@@ -302,8 +328,8 @@ class TestModelCollectionResult(TestCase):
 
     def test_model_collection_result_repr(self):
         """constructed result can do the different repr"""
-        result = model_collection_result(None)
-        coll = model_collection_result(None)
+        result = model_collection_result(source="blah")
+        coll = model_collection_result(source="blah")
         coll.update(self._model_results)
         got = result.__repr__()
         self.assertIsInstance(got, str)
@@ -342,7 +368,7 @@ class TestModelCollectionResult(TestCase):
 
     def test_model_collection_result_invalid_setitem(self):
         """model_collection_result raise TypeError if trying to set incorrect item type"""
-        mcr = model_collection_result()
+        mcr = model_collection_result(source="blah")
         with self.assertRaises(TypeError):
             mcr["null"] = 23
 
@@ -373,7 +399,7 @@ class TestHypothesisResult(TestCase):
 
     def test_invalid_setitem(self):
         """hypothesis_result raise TypeError if trying to set incorrect item type"""
-        hr = hypothesis_result("null")
+        hr = hypothesis_result(name_of_null="null", source="blah")
         with self.assertRaises(TypeError):
             hr["null"] = {0, 23}
 
