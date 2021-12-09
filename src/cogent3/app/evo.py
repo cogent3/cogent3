@@ -53,6 +53,7 @@ class model(ComposableModel):
         tree=None,
         unique_trees=False,
         name=None,
+        optimise_motif_probs=False,
         sm_args=None,
         lf_args=None,
         time_het=None,
@@ -71,14 +72,18 @@ class model(ComposableModel):
             if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
-        unique_trees: bool
+        unique_trees : bool
             whether to specify a unique tree per alignment. Only applies if
             number of sequences equals 3.
-        name
+        name : str
             name of the model
+        optimise_motif_probs : bool
+            whether the motif probabilities are free parameters. If False,
+            takes the average of frequencies from the alignment. Overrides
+            the setting of a sub model instance, or any value provided in
+            sm_args.
         sm_args : dict
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         lf_args : dict
             arguments to be passed to the likelihood function constructor
         time_het
@@ -105,7 +110,7 @@ class model(ComposableModel):
         -------
         Calling an instance with an alignment returns a model_result instance
         with the optimised likelihood function. In the case of split_codons,
-        the result object has a separate entry for each.
+        the result object has a separate entry for each codon position.
         """
         super(model, self).__init__(
             input_types=self._input_types,
@@ -119,8 +124,11 @@ class model(ComposableModel):
         ), "cannot provide a tree when unique_trees is True"
         self._unique_trees = unique_trees
         sm_args = sm_args or {}
+        sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
+        else:
+            sm._optimise_motif_probs = optimise_motif_probs
         self._sm = sm
         if len(sm.get_motifs()[0]) > 1:
             split_codons = False
@@ -175,7 +183,7 @@ class model(ComposableModel):
                 # todo the value for upper should not be hard-coded here
                 lf.set_time_heterogeneity(is_independent=True, upper=50)
             else:
-                lf.set_time_heterogeneity(edge_sets=self._time_het)
+                lf.set_time_heterogeneity(edge_sets=self._time_het, upper=50)
         else:
             rules = lf.get_param_rules()
             for rule in rules:
@@ -537,13 +545,12 @@ class natsel_neutral(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
             If True, motif probabilities are free parameters. If False (default)
-            they are estimated frokm the alignment.
+            they are estimated from the alignment.
         lf_args
             arguments to be passed to the likelihood function constructor
         opt_args
@@ -586,6 +593,7 @@ class natsel_neutral(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-null",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             opt_args=opt_args,
             show_progress=show_progress,
@@ -599,6 +607,7 @@ class natsel_neutral(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-alt",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             opt_args=opt_args,
             show_progress=show_progress,
@@ -651,13 +660,12 @@ class natsel_zhang(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
             If True, motif probabilities are free parameters. If False (default)
-            they are estimated frokm the alignment.
+            they are estimated from the alignment.
         tip1 : str
             name of tip 1
         tip2 : str
@@ -742,6 +750,7 @@ class natsel_zhang(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-null",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             param_rules=null_param_rules,
             lf_args=null_lf_args,
@@ -757,6 +766,7 @@ class natsel_zhang(ComposableHypothesis):
             sm=sm,
             tree=tree,
             name=f"{model_name}-alt",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             edges=edges,
             lf_args=alt_lf_args,
@@ -851,8 +861,7 @@ class natsel_sitehet(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
@@ -909,6 +918,7 @@ class natsel_sitehet(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-null",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             param_rules=null_param_rules,
             lf_args=null_lf_args,
@@ -924,6 +934,7 @@ class natsel_sitehet(ComposableHypothesis):
             sm=sm,
             tree=tree,
             name=f"{model_name}-alt",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             lf_args=alt_lf_args,
             opt_args=opt_args,
@@ -1018,8 +1029,7 @@ class natsel_timehet(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
@@ -1102,6 +1112,7 @@ class natsel_timehet(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-null",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             lf_args=null_lf_args,
             opt_args=opt_args,
@@ -1122,6 +1133,7 @@ class natsel_timehet(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-alt",
+            optimise_motif_probs=optimise_motif_probs,
             sm_args=sm_args,
             opt_args=opt_args,
             show_progress=show_progress,

@@ -150,7 +150,7 @@ class _SubstitutionModel(object):
         motif_probs
             Dictionary of probabilities.
         optimise_motif_probs: bool
-            Treat like other free parameters.  Any values set by the other
+            Treat like other free parameters. Any values set by the other
             motif_prob options will be used as initial values.
         equal_motif_probs: bool
             Flag to set alignment motif probs equal.

@@ -39,7 +39,7 @@ class TestModel(TestCase):
         got = " ".join(str(model).splitlines())
         expect = (
             "model(type='model', sm='HKY85', tree=None, unique_trees=False, "
-            "name=None, sm_args=None, lf_args=None, "
+            "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, "
             "opt_args=None, split_codons=False, "
             "show_progress=False, verbose=False)"
@@ -48,6 +48,24 @@ class TestModel(TestCase):
             got,
             expect,
         )
+
+    def test_model_opt_mprob_arg(self):
+        """argument controls optimisability of motif prob settings"""
+        for mn in ("HKY85", "GN", "CNFGTR"):
+            for value in (True, False):
+                # check setting via sm_args is overriden
+                model = evo_app.model(
+                    mn,
+                    optimise_motif_probs=value,
+                    sm_args=dict(optimise_motif_probs=not value),
+                )
+                self.assertEqual(model._sm._optimise_motif_probs, value)
+                # check picking a different value for constructor get's overriden
+                model = evo_app.model(
+                    get_model(mn, optimise_motif_probs=not value),
+                    optimise_motif_probs=value,
+                )
+                self.assertEqual(model._sm._optimise_motif_probs, value)
 
     def test_model_tree(self):
         """allows tree to be string, None or tree"""
@@ -149,6 +167,7 @@ class TestModel(TestCase):
         aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "GN",
+            optimise_motif_probs=True,
             time_het=[dict(edges=["Mouse", "Human"], is_independent=False)],
             opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
@@ -214,10 +233,14 @@ class TestModel(TestCase):
         aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
         aln = aln.take_seqs(["Human", "Rhesus", "Galago"])[2::3].omit_gap_pos()
         model1 = evo_app.model(
-            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "F81",
+            optimise_motif_probs=False,
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         model2 = evo_app.model(
-            "HKY85", opt_args=dict(max_evaluations=100, limit_action="ignore")
+            "HKY85",
+            optimise_motif_probs=False,
+            opt_args=dict(max_evaluations=100, limit_action="ignore"),
         )
         hyp = evo_app.hypothesis(model1, model2)
         result = hyp(aln)
@@ -233,7 +256,7 @@ class TestModel(TestCase):
         expect = (
             "hypothesis(type='hypothesis', null='HKY85', "
             "alternates=(model(type='model', sm='HKY85', tree=None, unique_trees=False, "
-            "name='hky85-max-het', sm_args=None, lf_args=None, "
+            "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, opt_args=None,"
             " split_codons=False, show_progress=False, verbose=False),),"
             " sequential=True, init_alt=None)"
@@ -465,8 +488,12 @@ class TestHypothesisResult(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         opt_args = dict(max_evaluations=10, limit_action="ignore")
-        m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
-        m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
+        m1 = evo_app.model(
+            "F81", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+        )
+        m2 = evo_app.model(
+            "GTR", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+        )
         hyp = evo_app.hypothesis(m1, m2)
         r = hyp(aln)
         bm = r.select_models()
