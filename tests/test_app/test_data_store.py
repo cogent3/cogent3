@@ -868,7 +868,9 @@ class TestFunctions(TestCase):
 
         for val_klass in (str, pathlib.Path):
             value = val_klass("some/path.txt")
-            obj = make_unaligned_seqs(data=dict(seq1="ACGG"), info=dict(source=value))
+            obj = make_unaligned_seqs(
+                data=dict(seq1="ACGG"), info=dict(source=value, random_key=1234)
+            )
             got = get_data_source(obj)
             self.assertEqual(got, str(value))
 
