@@ -233,7 +233,7 @@ class TestDeserialising(TestCase):
         edge_vals = zip(aln.names, (2, 3, 4))
         for edge, val in edge_vals:
             lf.set_param_rule("kappa", edge=edge, init=val)
-        result = model_result(name="test")
+        result = model_result(name="test", source="blah")
         result[1] = lf
         self.assertIs(result[1], lf)
         self.assertEqual(result.nfp, lf.nfp)
