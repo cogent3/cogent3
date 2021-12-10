@@ -87,7 +87,7 @@ class TestGenericResult(TestCase):
         # or Path
         aln.info.source = pathlib.Path(source)
         gr = generic_result(aln)
-        self.assertEqual(str(gr.source), "path/blah.fasta")
+        self.assertEqual(str(gr.source), str(pathlib.Path("path/blah.fasta")))
 
         # or DataStoreMember
         aln.info.source = DataStoreMember(source)
