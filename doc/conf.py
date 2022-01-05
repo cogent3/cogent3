@@ -13,11 +13,9 @@ sys.path.append("../src")
 
 def make_nbsphinx_thumbnails():
     """returns dict of {path: '_images/{path.stem}'"""
-    gallery = gallery = [
-        p for p in pathlib.Path("doc/draw").glob("**/*.rst") if p.stem != "README"
-    ]
+    gallery = [p for p in pathlib.Path("draw").glob("**/*.rst") if p.stem != "README"]
 
-    return {str(n).split(".")[0]: f"_images/{n.stem}" for n in gallery}
+    return {str(n).split(".")[0]: f"_images/{n.stem}.png" for n in gallery}
 
 
 # Allow autosummary to generate stub files
@@ -110,6 +108,7 @@ htmlhelp_basename = "cogent3doc"
 
 nbsphinx_requirejs_path = "require.js"
 nbsphinx_thumbnails = make_nbsphinx_thumbnails()
+
 
 # -- Options for LaTeX output --------------------------------------------------
 latex_documents = [
