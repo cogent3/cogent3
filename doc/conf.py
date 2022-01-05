@@ -9,7 +9,6 @@ import sphinx_bootstrap_theme
 
 from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
 
-
 sys.path.append("../src")
 
 # Allow autosummary to generate stub files
