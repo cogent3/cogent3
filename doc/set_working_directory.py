@@ -28,5 +28,12 @@ def get_data_dir():
     raise RuntimeError(f"could not find data dir from {current}")
 
 
+def get_thumbnail_dir():
+    """returns path to directory for writing html thumbnail images"""
+    thumbdir = pathlib.Path(__file__).parent / "_build" / "html" / "_images"
+    thumbdir.mkdir(exist_ok=True, parents=True)
+    return thumbdir
+
+
 data_dir = get_data_dir()
 os.chdir(data_dir)
