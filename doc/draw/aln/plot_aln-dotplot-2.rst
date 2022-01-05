@@ -6,7 +6,7 @@
 Dotplot with annotated sequences
 ================================
 
-If sequences in a dotplot have been annotated, the `dotplot()` method returns an `AnnotatedDrawable`.
+If sequences in a dotplot have been annotated, the ``dotplot()`` method returns an ``AnnotatedDrawable``.
 
 Reloading from json
 -------------------
@@ -27,7 +27,7 @@ The data file, ``tp53.json``, was created from a query of ensembl for one-to-one
 
     outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-dotplot-2.png"
 
-    fig.write(outpath)
+    dp.write(outpath)
 
 Removing annotation tracks
 --------------------------
@@ -41,3 +41,4 @@ Thus we could remove the left annotation track, for instance with
 .. jupyter-execute::
 
     dp.remove_track(left_track=True)
+    dp.show()

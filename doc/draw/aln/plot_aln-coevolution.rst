@@ -27,7 +27,7 @@ Display coevolution as a heatmap
 
     outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-coevolution.png"
 
-    fig.write(outpath)
+    coevo.drawable.write(outpath)
 
 Display coevolution scores as a Violin plot
 -------------------------------------------

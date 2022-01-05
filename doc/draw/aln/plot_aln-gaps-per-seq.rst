@@ -17,13 +17,6 @@ We have several different ways of counting sequence gaps, and of visualising the
     counts = aln.count_gaps_per_seq(unique=True)
     counts
 
-.. jupyter-execute::
-    :hide-code:
-
-    outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-gaps-per-seq.png"
-
-    fig.write(outpath)
-
 Plotting counts of unique gaps
 ------------------------------
 
@@ -36,6 +29,13 @@ Displaying unique gaps as a bar chart
 
     counts = aln.count_gaps_per_seq(unique=True, drawable="bar")
     counts.show(width=500)
+
+.. jupyter-execute::
+    :hide-code:
+
+    outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-gaps-per-seq.png"
+
+    counts.drawable.write(outpath)
 
 Displaying unique gaps as a violin plot
 ---------------------------------------

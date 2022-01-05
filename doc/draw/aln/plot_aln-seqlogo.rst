@@ -1,3 +1,8 @@
+.. jupyter-execute::
+    :hide-code:
+
+    import set_working_directory
+
 Draw sequence logos
 ===================
 
@@ -27,7 +32,7 @@ We use the TFBS for the TATA box binding protein.
 
     outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-seqlogo.png"
 
-    fig.write(outpath)
+    logo.write(outpath)
 
 Drawing a sequence logo from a multiple sequence alignment
 ----------------------------------------------------------

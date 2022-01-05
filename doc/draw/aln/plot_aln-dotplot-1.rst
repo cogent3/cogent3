@@ -25,7 +25,7 @@ The method returns a drawable, as demonstrated below between unaligned sequences
 
     outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-dotplot-1.png"
 
-    fig.write(outpath)
+    draw.write(outpath)
 
 If sequence names are not provided, two randomly chosen sequences are selected (see below). The plot title reflects the parameter values for defining a match. ``window`` is the size of the sequence segments being compared. ``threshold`` is the number of exact matches within ``window`` required for the two sequence segments to be considered a match. ``gap`` is the size of a gap between adjacent matches before merging.
 
@@ -62,4 +62,6 @@ I'll modify the title and figure width.
 All options
 -----------
 
-help(seqs.dotplot)
+.. jupyter-execute::
+
+    help(seqs.dotplot)

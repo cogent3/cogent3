@@ -35,7 +35,7 @@ With Contemporaneous Tips
 
     fig.contemporaneous = True
     fig.label_pad = 0.23
-    fig.show(width=550, height=500)
+    fig.show(width=650, height=600)
 
 .. jupyter-execute::
     :hide-code:
