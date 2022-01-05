@@ -39,7 +39,6 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx_gallery.load_style",
     "sphinx_panels",
-    "sphinxcontrib.bibtex",
     # "sphinxcontrib.spelling",
 ]
 
