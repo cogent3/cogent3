@@ -1,15 +1,24 @@
 import datetime
 import os
 import shutil
+import pathlib
 import sys
 
 from glob import glob
 
 import sphinx_bootstrap_theme
 
-from sphinx_gallery.sorting import ExplicitOrder, FileNameSortKey
-
 sys.path.append("../src")
+
+
+def make_nbsphinx_thumbnails():
+    """returns dict of {path: '_images/{path.stem}'"""
+    gallery = gallery = [
+        p for p in pathlib.Path("doc/draw").glob("**/*.rst") if p.stem != "README"
+    ]
+
+    return {str(n).split(".")[0]: f"_images/{n.stem}" for n in gallery}
+
 
 # Allow autosummary to generate stub files
 autosummary_generate = True
@@ -28,7 +37,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.mathjax",
     "sphinx.ext.todo",
-    "sphinx_gallery.gen_gallery",
+    "sphinx_gallery.load_style",
     "sphinx_panels",
     "sphinxcontrib.bibtex",
     # "sphinxcontrib.spelling",
@@ -50,8 +59,6 @@ exclude_patterns = [
     "**.ipynb_checkpoints",
     "cookbook/union_dict.rst",
     "cookbook/loading_tabular",
-    "draw/aln/README.rst",
-    "draw/tree/README.rst",
     "COGENT3_LICENSE.rst",
     "*tmp*",
 ]
@@ -100,9 +107,10 @@ html_static_path = ["_static"]
 
 htmlhelp_basename = "cogent3doc"
 
-# -- Options for Sphinx Gallery
+# -- Options for Gallery
 
 nbsphinx_requirejs_path = "require.js"
+nbsphinx_thumbnails = make_nbsphinx_thumbnails()
 
 # -- Options for LaTeX output --------------------------------------------------
 latex_documents = [
