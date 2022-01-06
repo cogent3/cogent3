@@ -13,7 +13,11 @@ sys.path.append("../src")
 
 def make_nbsphinx_thumbnails():
     """returns dict of {path: '_images/{path.stem}'"""
-    gallery = [p for p in pathlib.Path("draw").glob("**/*.rst") if p.stem != "README"]
+    gallery = sorted(
+        p
+        for p in pathlib.Path("draw").glob("**/*.rst")
+        if p.stem not in ("index", "README")
+    )
 
     return {str(n).split(".")[0]: f"_images/{n.stem}.png" for n in gallery}
 
