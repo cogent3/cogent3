@@ -53,45 +53,6 @@ def get_domain(total, element, is_y, space=0.01):
     return domains[element]
 
 
-def _customise_sphinx_gallery_renderer():
-    # this is an ugly hack to get around plotly's NOT robust handling of script path
-    # for automated file naming
-    import inspect
-
-    from plotly.io import _base_renderers as base_render
-    from plotly.io._renderers import renderers
-
-    class SphinxGalleryRenderer(base_render.ExternalRenderer):
-        def render(self, fig_dict):
-            # use the environment variable
-            # DOCUTILSCONFIG to get the location of the sphinx root doc dir
-            # and select the stack filename whose path is a sibling directory
-            # based on the maxinum number of matches to the root path
-            sphinx_root = pathlib.Path(os.environ.get("DOCUTILSCONFIG", "")).absolute()
-            sphinx_root = sphinx_root.resolve()
-            stack = inspect.stack()
-            max_match = 0
-            for level in stack:
-                # parent directory
-                path = pathlib.Path(level.filename).absolute().resolve()
-                for i, (a, b) in enumerate(zip(path.parts, sphinx_root.parts)):
-                    if a != b:
-                        break
-
-                if i > max_match:
-                    max_match = i
-                    filename = str(path)
-
-            filename_root, _ = os.path.splitext(filename)
-            filename_html = filename_root + ".html"
-            filename_png = filename_root + ".png"
-            figure = base_render.return_figure_from_figure_or_data(fig_dict, True)
-            _ = base_render.write_html(fig_dict, file=filename_html)
-            base_render.write_image(figure, filename_png)
-
-    renderers["sphinx_gallery"] = SphinxGalleryRenderer()
-
-
 def _show_(cls, renderer=None, **kwargs):
     """display figure
 
@@ -113,9 +74,6 @@ def _show_(cls, renderer=None, **kwargs):
         renderer = "notebook_connected+plotly_mimetype"
     elif renderer is None:
         renderer = PLOTLY_RENDERER
-
-    if renderer == "sphinx_gallery":
-        _customise_sphinx_gallery_renderer()
 
     kwargs["renderer"] = renderer
     drawable = getattr(cls, "drawable", None) or cls
