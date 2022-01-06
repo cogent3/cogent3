@@ -1,7 +1,7 @@
 Turn your functions into composable apps
 ========================================
 
-This is super easy -- just use the ``appify`` decorator! This generates a ``user_function`` wrapper class that takes a reference to your function and the input, output and data types. The resulting app can then become part of a composed function.
+This is super easy -- just use the ``appify`` decorator! This generates a ``user_function`` wrapper class that takes a reference to your function, its input, output, and data types. The resulting app can then become part of a composed function.
 
 You need four things.
 
@@ -30,7 +30,6 @@ Let's make an app that returns the elements of an alignment up to a specified in
     def up_to(val, index=4):
         return val[:index]
 
-Now we define a ``user_function`` instance that takes and ret
 The ``repr()`` of your ``user_function`` instance indicates the wrapped function and the module it's in.
 
 .. jupyter-execute::
