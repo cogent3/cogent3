@@ -15,7 +15,7 @@ We have several different ways of counting sequence gaps, and of visualising the
     aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
 
     counts = aln.count_gaps_per_seq(unique=True)
-    counts
+    counts[10: 20] # limiting the width of the displayed output
 
 Plotting counts of unique gaps
 ------------------------------
