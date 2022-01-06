@@ -20,7 +20,7 @@ We have several different ways of counting sequence gaps, and of visualising the
 Plotting counts of unique gaps
 ------------------------------
 
-There are three plot types supported. In all cases, placing the mouse pointer over a data point will show hover text with the sequence name.
+Using the ``drawable`` argument causes the returned object to have a ``drawable`` attribute (type ``Drawable`` which has ``show()`` and ``write()`` methods), for the corresponding plot type. The three plot types supported are shown below. In all cases, placing the mouse pointer over a data point will show hover text with the number of unique gaps and the sequence name.
 
 Displaying unique gaps as a bar chart
 -------------------------------------
@@ -28,7 +28,7 @@ Displaying unique gaps as a bar chart
 .. jupyter-execute::
 
     counts = aln.count_gaps_per_seq(unique=True, drawable="bar")
-    counts.show(width=500)
+    counts.drawable.show(width=500)
 
 .. jupyter-execute::
     :hide-code:
@@ -43,7 +43,7 @@ Displaying unique gaps as a violin plot
 .. jupyter-execute::
 
     counts = aln.count_gaps_per_seq(unique=True, drawable="violin")
-    counts.show(width=300, height=500)
+    counts.drawable.show(width=300, height=500)
 
 Displaying unique gaps as a box plot
 ------------------------------------
@@ -51,4 +51,4 @@ Displaying unique gaps as a box plot
 .. jupyter-execute::
 
     counts = aln.count_gaps_per_seq(unique=True, drawable="box")
-    counts.show(width=300, height=500)
+    counts.drawable.show(width=300, height=500)
