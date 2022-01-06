@@ -12,7 +12,6 @@ We use a tree saved in ``json`` format from a 100 replicate bootstrap resampling
 
     from cogent3.app import io
 
-
     reader = io.load_json()
 
     tree = reader("data/tree-with-support.json")

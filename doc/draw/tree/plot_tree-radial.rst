@@ -10,7 +10,6 @@ Radial Dendrogram Style
 
     from cogent3.app import io
 
-
     reader = io.load_json()
 
     ens_tree = reader("data/GN-tree.json")

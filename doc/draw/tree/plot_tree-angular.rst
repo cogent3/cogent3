@@ -3,7 +3,6 @@
 
     import set_working_directory
 
-
 Angular Dendrogram Style
 ========================
 
@@ -13,13 +12,11 @@ This is a left-right style. You'll note that there's overlap of edges at the bot
 
     from cogent3.app import io
 
-
     reader = io.load_json()
 
     ens_tree = reader("data/GN-tree.json")
     fig = ens_tree.get_figure(style="angular", width=600, height=600)
     fig.show()
-
 
 With Contemporaneous Tips
 -------------------------
