@@ -2619,10 +2619,9 @@ class AlignmentI(object):
         result = darr.wrap(result)
         if drawable:
             drawable = drawable.lower()
-            if self.info.source:
-                trace_name = os.path.basename(self.info.source)
-            else:
-                trace_name = None
+            trace_name = (
+                os.path.basename(self.info.source) if self.info.source else None
+            )
             draw = Drawable("Gaps Per Sequence", showlegend=False)
             draw.layout |= dict(yaxis=dict(title="Gap counts"))
             if drawable == "bar":
