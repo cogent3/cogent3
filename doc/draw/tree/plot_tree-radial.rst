@@ -3,8 +3,8 @@
 
     import set_working_directory
 
-Display a Phylogenetic Tree with a Radial Dendrogram Style
-==========================================================
+Radial Dendrogram Style
+=======================
 
 .. jupyter-execute::
 

@@ -3,8 +3,8 @@
 
     import set_working_directory
 
-Display a Phylogenetic Tree with a Square Dendrogram Style
-==========================================================
+Square Dendrogram Style
+=======================
 
 We use a tree saved in ``json`` format from a likelihood function analysis of a non-stationary model. The tree was derived such that the the branch lengths are now "ENS".
 

@@ -3,8 +3,9 @@
 
     import set_working_directory
 
-Display a Phylogenetic Tree with a Circular Dendrogram Style
-============================================================
+Circular Dendrogram Style
+=========================
+
 
 .. jupyter-execute::
 

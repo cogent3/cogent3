@@ -4,8 +4,8 @@
     import set_working_directory
 
 
-Display a Phylogenetic Tree with a Angular Dendrogram Style
-===========================================================
+Angular Dendrogram Style
+========================
 
 This is a left-right style. You'll note that there's overlap of edges at the bottom -- a known issue with this display style.
 

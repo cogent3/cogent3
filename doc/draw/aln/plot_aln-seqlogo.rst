@@ -3,8 +3,8 @@
 
     import set_working_directory
 
-Draw sequence logos
-===================
+Sequence logos
+==============
 
 Sequence logo's display sequence information. They're extensively applied to transcription factor binding site (TFBS) display. They can also be applied to sequence alignments more generally.
 

@@ -3,10 +3,12 @@
 
     import set_working_directory
 
-Evaluating coevolution
-======================
+Coevolution analysis
+====================
 
 A method on the alignment provides an interface to the simpler (and yet robust and fast) methods for estimating coevolution. The default measure is normalised mutual information (NMI).
+
+.. todo:: add citation for NMI
 
 Display coevolution as a heatmap
 --------------------------------

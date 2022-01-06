@@ -3,8 +3,8 @@
 
     import set_working_directory
 
-Display a Phylogenetic Tree Showing Bootstrap Support
-=====================================================
+Showing Bootstrap Support
+=========================
 
 We use a tree saved in ``json`` format from a 100 replicate bootstrap resamplings. The ``show_support=True`` argument controls whether or not to display support. The ``threshold=0.8`` argument indicates only nodes with a support level ≤0.8 will have support text displayed.
 

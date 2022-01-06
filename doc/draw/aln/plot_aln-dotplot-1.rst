@@ -3,10 +3,12 @@
 
     import set_working_directory
 
-Dotplot
-=======
+Dotplot basics
+==============
 
 A technique (`Gibbs and McIntyre <https://www.ncbi.nlm.nih.gov/pubmed/5456129>`_) for comparing sequences. All ``cogent3`` sequence collections classes (``SequenceCollection``, ``Alignment`` and ``ArrayAlignment``) have a dotplot method.
+
+.. todo:: Change dotplot ref to a citation
 
 The method returns a drawable, as demonstrated below between unaligned sequences.
 
@@ -58,10 +60,3 @@ I'll modify the title and figure width.
 
     draw = seqs.dotplot(name1="Human", name2="Mouse", rc=True, title="SCA1", width=400)
     draw.show()
-
-All options
------------
-
-.. jupyter-execute::
-
-    help(seqs.dotplot)
