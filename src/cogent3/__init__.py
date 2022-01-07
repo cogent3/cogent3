@@ -573,7 +573,8 @@ def load_tree(filename, format=None, underscore_unmunge=False):
     filename : str
         a file path containing a newick or xml formatted tree.
     format : str
-        either newick, xml or cogent3 json, default is newick
+        either xml or json, all other values default to newick. Overrides
+        file name suffix.
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name".
@@ -581,19 +582,19 @@ def load_tree(filename, format=None, underscore_unmunge=False):
     Notes
     -----
     Underscore unmunging is turned off by default, although it is part
-    of the Newick format.
+    of the Newick format. Only the cogent3 json and xml tree formats are
+    supported.
 
     Returns
     -------
     PhyloNode
     """
     file_format, _ = get_format_suffixes(filename)
-    if file_format == "json":
+    format = format or file_format
+    if format == "json":
         return load_from_json(filename, (TreeNode, PhyloNode))
 
     with open_(filename) as tfile:
         treestring = tfile.read()
-        if format is None and filename.endswith(".xml"):
-            format = "xml"
 
     return make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)

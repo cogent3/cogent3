@@ -1447,10 +1447,16 @@ class TreeNode(object):
         format
             default is newick, xml and json are alternate. Argument overrides
             the filename suffix. All attributes are saved in the xml format.
+            Value overrides the file name suffix.
+
+        Notes
+        -----
+        Only the cogent3 json and xml tree formats are supported.
 
         """
         file_format, _ = get_format_suffixes(filename)
-        if file_format == "json":
+        format = format or file_format
+        if format == "json":
             with atomic_write(filename, mode="wt") as f:
                 f.write(self.to_json())
             return

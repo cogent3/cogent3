@@ -3,6 +3,7 @@
 """
 import json
 import os
+import pathlib
 
 from copy import copy, deepcopy
 from tempfile import TemporaryDirectory
@@ -2199,6 +2200,28 @@ class TestTree(TestCase):
                 self.tree.get_newick(with_node_names=True),
             )
             self.assertEqual(got.get_node_names(), self.tree.get_node_names())
+            # now try using non json suffix
+            json_path = os.path.join(dirname, "tree.txt")
+            self.tree.write(json_path, format="json")
+            got = load_tree(json_path, format="json")
+            self.assertIsInstance(got, PhyloNode)
+
+    def test_load_tree(self):
+        """tests loading a newick formatted Tree"""
+        with TemporaryDirectory(dir=".") as dirname:
+            tree_path = os.path.join(dirname, "tree.tree")
+            self.tree.write(tree_path)
+            got = load_tree(tree_path)
+            self.assertIsInstance(got, PhyloNode)
+            self.assertEqual(
+                got.get_newick(),
+                self.tree.get_newick(),
+            )
+            self.assertEqual(got.get_node_names(), self.tree.get_node_names())
+            # now try specifying path as pathlib.Path
+            tree_path = pathlib.Path(tree_path)
+            got = load_tree(tree_path)
+            self.assertIsInstance(got, PhyloNode)
 
     def test_ascii(self):
         self.tree.ascii_art()
