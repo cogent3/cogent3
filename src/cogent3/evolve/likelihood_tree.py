@@ -251,7 +251,7 @@ def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
     except alphabet.AlphabetError as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
-        raise ValueError("%s at %s:%s not in alphabet" % (repr(motif), seq_name, posn))
+        raise ValueError(f"{repr(motif)} at {seq_name}:{posn} not in alphabet")
 
     return LikelihoodTreeLeaf(
         uniq_motifs, likelihoods, counts, index, seq_name, alphabet, sequence

@@ -299,7 +299,7 @@ if __name__ == "__main__":
     for filename in sys.argv[1:]:
         for tree in open(filename):
             trees.append(make_tree(treestring=tree))
-    print("Consensus of %s trees from %s" % (len(trees), sys.argv[1:]))
+    print(f"Consensus of {len(trees)} trees from {sys.argv[1:]}")
     outtrees = majority_rule(trees, strict=True)
     for tree in outtrees:
         print(tree.ascii_art(compact=True, show_internal=False))

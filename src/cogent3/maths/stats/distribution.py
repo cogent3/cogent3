@@ -96,9 +96,9 @@ def chi_low(x, df):
     """
     x = fix_rounding_error(x)
     if x < 0:
-        raise ValueError("chi_low: x must be >= 0 (got %s)." % x)
+        raise ValueError(f"chi_low: x must be >= 0 (got {x}).")
     if df < 1:
-        raise ValueError("chi_low: df must be >= 1 (got %s)." % df)
+        raise ValueError(f"chi_low: df must be >= 1 (got {df}).")
     return igam(df / 2, x / 2)
 
 
@@ -115,9 +115,9 @@ def chi_high(x, df):
     x = fix_rounding_error(x)
 
     if x < 0:
-        raise ValueError("chi_high: x must be >= 0 (got %s)." % x)
+        raise ValueError(f"chi_high: x must be >= 0 (got {x}).")
     if df < 1:
-        raise ValueError("chi_high: df must be >= 1 (got %s)." % df)
+        raise ValueError(f"chi_high: df must be >= 1 (got {df}).")
     return igamc(df / 2, x / 2)
 
 
@@ -132,7 +132,7 @@ def t_low(t, df):
     See Cephes docs for details.
     """
     if df < 1:
-        raise ValueError("t_low: df must be >= 1 (got %s)." % df)
+        raise ValueError(f"t_low: df must be >= 1 (got {df}).")
     return stdtr(df, t)
 
 
@@ -147,7 +147,7 @@ def t_high(t, df):
     See Cephes docs for details.
     """
     if df < 1:
-        raise ValueError("t_high: df must be >= 1 (got %s)." % df)
+        raise ValueError(f"t_high: df must be >= 1 (got {df}).")
     return stdtr(df, -t)  # distribution is symmetric
 
 
@@ -247,13 +247,13 @@ def fprob(dfn, dfd, F, side="right"):
         Use in case var(a) < var(b)
     """
     if F < 0:
-        raise ValueError("fprob: F must be >= 0 (got %s)." % F)
+        raise ValueError(f"fprob: F must be >= 0 (got {F}).")
     if side == "right":
         return 2 * f_high(dfn, dfd, F)
     elif side == "left":
         return 2 * f_low(dfn, dfd, F)
     else:
-        raise ValueError("Not a valid value for side %s" % (side))
+        raise ValueError(f"Not a valid value for side {side}")
 
 
 def stdtr(k, t):

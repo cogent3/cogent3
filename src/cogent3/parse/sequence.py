@@ -61,11 +61,11 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
         if doctype is None:
             doctype = str(dom.doctype.name).lower()
         if doctype not in XML_PARSERS:
-            raise FileFormatError("Unsupported XML doctype %s" % doctype)
+            raise FileFormatError(f"Unsupported XML doctype {doctype}")
         parser = XML_PARSERS[doctype]
     else:
         if format not in PARSERS:
-            raise FileFormatError("Unsupported file format %s" % format)
+            raise FileFormatError(f"Unsupported file format {format}")
         parser = PARSERS[format]
         source = f
     for (name, seq) in parser(source, **kw):

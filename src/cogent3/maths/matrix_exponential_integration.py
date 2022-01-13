@@ -30,7 +30,7 @@ class _Exponentiator(object):
         self.Q = Q
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, repr(self.Q))
+        return f"{self.__class__.__name__}({repr(self.Q)})"
 
 
 class VanLoanIntegratingExponentiator(_Exponentiator):

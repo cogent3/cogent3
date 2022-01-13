@@ -498,7 +498,7 @@ class DictArray(object):
 
     def __repr__(self):
         if self.array.ndim > 2:
-            return "%s dimensional %s" % (self.array.ndim, type(self).__name__)
+            return f"{self.array.ndim} dimensional {type(self).__name__}"
 
         t = self.to_table()
         t.set_repr_policy(show_shape=False)
@@ -558,7 +558,7 @@ class DictArray(object):
 
     def _repr_html_(self):
         if self.array.ndim > 2:
-            return "%s dimensional %s" % (self.array.ndim, type(self).__name__)
+            return f"{self.array.ndim} dimensional {type(self).__name__}"
 
         t = self.to_table()
         t.set_repr_policy(show_shape=False)

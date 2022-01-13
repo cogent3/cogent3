@@ -75,7 +75,7 @@ class ParametricBootstrapCore(object):
         elif pcs == 2:
             model_label = ["null", "alt "]
         else:
-            model_label = ["null"] + ["alt%s" % i for i in range(1, pcs)]
+            model_label = ["null"] + [f"alt{i}" for i in range(1, pcs)]
 
         @UI.display_wrap
         def each_model(alignment, ui):

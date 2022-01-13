@@ -655,7 +655,7 @@ class Dendrogram(Drawable):
         x = self.tree.min_x if "left" in self.scale_bar else self.tree.max_x
         y = self.tree.min_y if "bottom" in self.scale_bar else self.tree.max_y
         scale = 0.1 * self.tree.max_x
-        text = "{:.1e}".format(scale) if scale < 1e-2 else "{:.2f}".format(scale)
+        text = f"{scale:.1e}" if scale < 1e-2 else f"{scale:.2f}"
         shape = {
             "type": "line",
             "x0": x,

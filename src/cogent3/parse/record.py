@@ -51,7 +51,7 @@ class Grouper(object):
             assert num >= 1
         except:
             raise ValueError(
-                "Grouper.NumItems must be positive int, not %s" % (self.NumItems)
+                f"Grouper.NumItems must be positive int, not {self.NumItems}"
             )
         curr = []
         for i, item in enumerate(seq):
@@ -165,7 +165,7 @@ class GenericRecord(dict):
         Note: Fails silently if item absent.
         """
         if item in self.Required:
-            raise AttributeError("%s is a required item" % (item,))
+            raise AttributeError(f"{item} is a required item")
         try:
             super(GenericRecord, self).__delitem__(item)
         except KeyError:
@@ -277,7 +277,7 @@ class MappedRecord(GenericRecord):
         """Deletes attribute, converting name if necessary. Fails silently."""
         normal_attr = self.unalias(attr)
         if normal_attr in self.Required:
-            raise AttributeError("%s is a required attribute" % (attr,))
+            raise AttributeError(f"{attr} is a required attribute")
         else:
             try:
                 super(MappedRecord, self).__delattr__(normal_attr)
@@ -453,7 +453,7 @@ class LineOrientedConstructor(object):
                     field, mapper = new_field, fieldmap[new_field]
                 else:
                     if self.Strict:
-                        raise FieldError("Got unrecognized field %s" % (raw_field,))
+                        raise FieldError(f"Got unrecognized field {raw_field}")
                     else:
                         identity_setter(result, raw_field, val)
                     continue
@@ -463,7 +463,7 @@ class LineOrientedConstructor(object):
             except:  # Warning: this is a catchall for _any_ exception,
                 # and may mask what's actually going wrong.
                 if self.Strict:
-                    raise FieldError("Could not handle line %s" % (line,))
+                    raise FieldError(f"Could not handle line {line}")
         return result
 
 
@@ -520,8 +520,7 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
             items = splitter(line)
             if len(items) != len(fields):
                 raise FieldError(
-                    "Expected %s items but got %s: %s"
-                    % (len(fields), len(items), items)
+                    f"Expected {len(fields)} items but got {len(items)}: {items}"
                 )
             return constructor(dict(list(zip(fields, items))))
 
@@ -531,8 +530,7 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
             items = splitter(line)
             if len(items) != len(fields):
                 raise FieldError(
-                    "Expected %s items but got %s: %s"
-                    % (len(fields), len(items), items)
+                    f"Expected {len(fields)} items but got {len(items)}: {items}"
                 )
             return dict(list(zip(fields, items)))
 
@@ -541,7 +539,7 @@ def StrictFieldWrapper(fields, splitter=None, constructor=None):
 
 def raise_unknown_field(field, data):
     """Raises a FieldError, displaying the offending field and data."""
-    raise FieldError("Got unknown field %s with data %s" % (field, data))
+    raise FieldError(f"Got unknown field {field} with data {data}")
 
 
 class FieldMorpher(object):

@@ -703,7 +703,7 @@ class Table:
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         unset_columns = [c for c in self.header if not len(self.columns[c])]
         unset_columns = (
-            "unset columns: %s" % ", ".join(map(repr, unset_columns))
+            f"unset columns: {', '.join(map(repr, unset_columns))}"
             if unset_columns
             else None
         )
@@ -2077,9 +2077,9 @@ class Table:
             as the header. Defaults to the first column.
         """
         select_as_header = select_as_header or self.columns.order[0]
-        assert select_as_header in self.columns, (
-            '"%s" not in table header' % select_as_header
-        )
+        assert (
+            select_as_header in self.columns
+        ), f'"{select_as_header}" not in table header'
 
         if len(self.distinct_values(select_as_header)) != len(self):
             raise ValueError(f"not all '{select_as_header}' values unique")

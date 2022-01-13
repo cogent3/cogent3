@@ -110,9 +110,9 @@ class _UnaryPredicate(predicate):
 
     def __repr__(self):
         if hasattr(self, "_op_repr"):
-            return "%s(%s)" % (self._op_repr, self.subpredicate)
+            return f"{self._op_repr}({self.subpredicate})"
         else:
-            return "%s(%s)" % (self.__class__.__name__, self.subpredicate)
+            return f"{self.__class__.__name__}({self.subpredicate})"
 
 
 class _GenericPredicate(predicate):
@@ -206,7 +206,7 @@ class DirectedMotifChange(predicate):
             diff = "[%d]" % self.diff_at
         else:
             diff = ""
-        return "%s>%s%s" % (self.from_motif, self.to_motif, diff)
+        return f"{self.from_motif}>{self.to_motif}{diff}"
 
     def test_motif(self, motifs, query):
         """positions where motif pattern is found in query"""
@@ -262,7 +262,7 @@ class UndirectedMotifChange(DirectedMotifChange):
             diff = "[%d]" % self.diff_at
         else:
             diff = ""
-        return "%s/%s%s" % (self.from_motif, self.to_motif, diff)
+        return f"{self.from_motif}/{self.to_motif}{diff}"
 
     def test_motifs(self, from_motifs, to_motifs, x, y):
         preF = self.test_motif(from_motifs, x)

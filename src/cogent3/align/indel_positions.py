@@ -205,14 +205,14 @@ class POG(object):
         for (i, preds) in enumerate(pred_sets):
             # print i, preds
             for pred in preds:
-                print("  ", ("node%s -> node%s" % (pred, i)), file=dot)
+                print("  ", (f"node{pred} -> node{i}"), file=dot)
             if i == 0:
                 label = "START"
             elif i == len(pred_sets) - 1:
                 label = "END"
             else:
                 label = str(i)
-            print("  ", ("node%s" % i), '[label="%s"]' % label, file=dot)
+            print("  ", (f"node{i}"), f'[label="{label}"]', file=dot)
         print("}", file=dot)
         print("", file=dot)
 

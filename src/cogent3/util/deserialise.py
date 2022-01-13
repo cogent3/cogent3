@@ -333,6 +333,6 @@ def deserialise_object(data):
     elif "distancematrix" in type_.lower():
         func = deserialise_tabular
     else:
-        msg = "deserialising '%s' from json" % type_
+        msg = f"deserialising '{type_}' from json"
         raise NotImplementedError(msg)
     return func(data)

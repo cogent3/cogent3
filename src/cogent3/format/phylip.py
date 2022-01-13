@@ -69,6 +69,6 @@ class PhylipFormatter(_AlignmentFormatter):
                 else:
                     to = block + self.block_size
 
-                seqs.append("%s%s\n" % (prefix, seq[block:to]))
+                seqs.append(f"{prefix}{seq[block:to]}\n")
 
         return header + "".join(seqs)

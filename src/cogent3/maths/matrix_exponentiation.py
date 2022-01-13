@@ -28,7 +28,7 @@ __status__ = "Production"
 
 class _Exponentiator:
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, repr(self.Q))
+        return f"{self.__class__.__name__}({repr(self.Q)})"
 
 
 class EigenExponentiator(_Exponentiator):
@@ -93,7 +93,7 @@ class TaylorExponentiator(_Exponentiator):
             trm = numpy.dot(trm, A / float(k))
             eA += trm
         if k >= self.q:
-            warnings.warn("Taylor series lengthened from %s to %s" % (self.q, k + 1))
+            warnings.warn(f"Taylor series lengthened from {self.q} to {k + 1}")
             self.q = k + 1
         return eA
 

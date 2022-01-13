@@ -58,7 +58,7 @@ class General(Parametric):
         for (i, x) in enumerate(alphabet):
             for j in numpy.flatnonzero(mask[i]):
                 y = alphabet[j]
-                self.parameter_order.append("%s/%s" % (x, y))
+                self.parameter_order.append(f"{x}/{y}")
                 self.param_pick[i, j] = len(self.parameter_order)
         _ = self.parameter_order.pop()
         self.symmetric = False

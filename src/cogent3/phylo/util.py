@@ -46,7 +46,7 @@ def lookup_symmetric_dict(dists, a, b):
     elif v1 is None or v2 is None or v1 == v2:
         return v1 or v2
     else:
-        raise ValueError("d[%s,%s] != d[%s,%s]" % (a, b, b, a))
+        raise ValueError(f"d[{a},{b}] != d[{b},{a}]")
 
 
 def distance_dict_to_2D(dists):

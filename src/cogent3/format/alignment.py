@@ -49,7 +49,7 @@ def save_to_filename(alignment, filename, format, **kw):
 def write_alignment_to_file(f, alignment, format, **kw):
     format = format.lower()
     if format not in FORMATTERS:
-        raise FileFormatError("Unsupported file format %s" % format)
+        raise FileFormatError(f"Unsupported file format {format}")
     contents = FORMATTERS[format](alignment, **kw)
     f.write(contents)
     f.close()

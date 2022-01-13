@@ -1482,7 +1482,7 @@ def validate_alignment(alignment):
             bad_seqs.append(name)
     if bad_seqs:
         raise ValueError(
-            "Ambiguous characters in sequences: %s" % "; ".join(map(str, bad_seqs))
+            f"Ambiguous characters in sequences: {'; '.join(map(str, bad_seqs))}"
         )
 
 

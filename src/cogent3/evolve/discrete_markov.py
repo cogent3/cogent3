@@ -58,7 +58,7 @@ class PsubMatrixDefn(PartitionDefn):
         all_cells = []
         for (i, v) in enumerate(self.uniq):
             if v is None:
-                raise ValueError("input %s not set" % self.name)
+                raise ValueError(f"input {self.name} not set")
             assert hasattr(v, "get_default_value"), v
             value = v.get_default_value()
             assert hasattr(value, "shape"), value

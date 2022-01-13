@@ -71,7 +71,7 @@ class Var(Setting):
         ]:
             if bound is not None:
                 constraints.append(template % bound)
-        return "Var(%s)" % " ".join(constraints)
+        return f"Var({' '.join(constraints)})"
 
 
 class ConstVal(Setting):
@@ -88,7 +88,7 @@ class ConstVal(Setting):
         return repr(self.value)  # short as in table
 
     def __repr__(self):
-        return "ConstVal(%s)" % repr(self.value)
+        return f"ConstVal({repr(self.value)})"
 
     # indep useful sometimes!
     # def __eq__(self, other):

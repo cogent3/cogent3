@@ -67,7 +67,7 @@ class _EigenPade:
             return self.eigen(Q)
         except (ArithmeticError, LinAlgError) as detail:
             if not self.given_expm_warning:
-                warnings.warn("using slow exponentiator because '%s'" % str(detail))
+                warnings.warn(f"using slow exponentiator because '{str(detail)}'")
                 self.given_expm_warning = True
             return PadeExponentiator(Q)
 

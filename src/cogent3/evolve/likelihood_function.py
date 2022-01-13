@@ -154,10 +154,7 @@ def _get_param_mapping(rich, simple):
         sized_simple = [(len(simple[param]), param) for param in simple_counterparts]
         sized_simple.sort()
         if sized_simple[0][0] == sized_simple[1][0]:
-            msg = "%s and %s tied for matrix space" % (
-                sized_simple[0][1],
-                sized_simple[1][1],
-            )
+            msg = f"{sized_simple[0][1]} and {sized_simple[1][1]} tied for matrix space"
             raise ValueError(msg)
 
         _, chosen = sized_simple.pop(0)
@@ -552,7 +549,7 @@ class LikelihoodFunction(ParameterController):
     def _repr_html_(self):
         """for jupyter notebook display"""
         try:
-            lnL = "<p>log-likelihood = %.4f</p>" % self.get_log_likelihood()
+            lnL = f"<p>log-likelihood = {self.get_log_likelihood():.4f}</p>"
         except ValueError:
             # alignment probably not yet set
             lnL = ""
@@ -563,7 +560,7 @@ class LikelihoodFunction(ParameterController):
             table_.title = table_.title.capitalize()
             table_.set_repr_policy(show_shape=False)
             results[i] = table_._repr_html_()
-        results = ["<h4>%s</h4>" % title, lnL, nfp] + results
+        results = [f"<h4>{title}</h4>", lnL, nfp] + results
         return "\n".join(results)
 
     def __repr__(self):
@@ -573,7 +570,7 @@ class LikelihoodFunction(ParameterController):
         title, results = self._for_display()
 
         try:
-            lnL = "log-likelihood = %.4f" % self.get_log_likelihood()
+            lnL = f"log-likelihood = {self.get_log_likelihood():.4f}"
         except ValueError:
             # alignment probably not yet set
             lnL = None
@@ -853,7 +850,7 @@ class LikelihoodFunction(ParameterController):
                     row = [row[k] for k in heading_names]
                     list_table.append(row)
             if table_dims:
-                title = ["", "%s params" % " ".join(table_dims)][with_titles]
+                title = ["", f"{' '.join(table_dims)} params"][with_titles]
             else:
                 title = ["", "global params"][with_titles]
             row_ids = None

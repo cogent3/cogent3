@@ -730,14 +730,13 @@ class Alphabet(Enumeration):
         if hasattr(motif_probs, "keys"):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
-                raise ValueError("Can't find motif %s in alphabet" % sample)
+                raise ValueError(f"Can't find motif {sample} in alphabet")
             motif_probs = numpy.array([motif_probs[motif] for motif in self])
         else:
             if len(motif_probs) != len(self):
                 if len(motif_probs) != len(self):
                     raise ValueError(
-                        "Can't match %s probs to %s alphabet"
-                        % (len(motif_probs), len(self))
+                        f"Can't match {len(motif_probs)} probs to {len(self)} alphabet"
                     )
             motif_probs = numpy.asarray(motif_probs)
         assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs

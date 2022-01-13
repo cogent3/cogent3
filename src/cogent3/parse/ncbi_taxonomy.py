@@ -235,8 +235,7 @@ class NcbiTaxonomy(object):
                 except KeyError:  # found a child whose parent doesn't exist
                     if strict:
                         raise MissingParentError(
-                            "Node %s has parent %s, which isn't in taxa."
-                            % (t_id, t.ParentId)
+                            f"Node {t_id} has parent {t.ParentId}, which isn't in taxa."
                         )
                     else:
                         deadbeats[t.ParentId] = t

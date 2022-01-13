@@ -78,7 +78,7 @@ class BinData(object):
         self.rate = rate
 
     def __repr__(self):
-        return "Bin(Pi, Qd, %s, %s)" % (self.rate, vars(self.indel))
+        return f"Bin(Pi, Qd, {self.rate}, {vars(self.indel)})"
 
 
 class AnnotateFloatDefn(CalculationDefn):

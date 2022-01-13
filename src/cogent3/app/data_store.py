@@ -329,7 +329,7 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
     def members(self):
         if not self._members:
-            pattern = "%s/**/*.%s" % (self.source, self.suffix)
+            pattern = f"{self.source}/**/*.{self.suffix}"
             paths = glob.iglob(pattern, recursive=True)
             members = []
             for i, path in enumerate(paths):
@@ -376,7 +376,7 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     def members(self):
         if os.path.exists(self.source) and not self._members:
             source_path = self.source.replace(Path(self.source).suffix, "")
-            pattern = "*.%s" % self.suffix
+            pattern = f"*.{self.suffix}"
             members = []
             with zipfile.ZipFile(self.source) as archive:
                 names = archive.namelist()
@@ -792,7 +792,7 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
     def members(self):
         if not self._members:
             if self.suffix:
-                pattern = translate("*.%s" % self.suffix)
+                pattern = translate(f"*.{self.suffix}")
             else:
                 pattern = translate("*")
             members = []

@@ -156,4 +156,4 @@ if __name__ == "__main__":
         stdout.write(".")
         stdout.flush()
         count += 1
-    print("read %s records" % count)
+    print(f"read {count} records")

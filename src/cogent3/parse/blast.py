@@ -42,7 +42,7 @@ def _is_junk(line, t_strs):
         return True
     # blast info line
     for t_str in t_strs:
-        if line.startswith("# %s" % t_str):
+        if line.startswith(f"# {t_str}"):
             return True
     return False
 

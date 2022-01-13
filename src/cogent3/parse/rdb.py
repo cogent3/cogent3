@@ -87,7 +87,7 @@ def MinimalRdbParser(infile, strict=True):
         if not index:
             if strict:
                 raise RecordError(
-                    "Found Rdb record without seq label " + "line: %s" % rec[0]
+                    "Found Rdb record without seq label " + f"line: {rec[0]}"
                 )
             else:
                 continue
@@ -100,7 +100,7 @@ def MinimalRdbParser(infile, strict=True):
         # if there are no sequences throw error or skip
         if not sequence:
             if strict:
-                raise RecordError("Found Rdb record without sequences: %s" % rec[0])
+                raise RecordError(f"Found Rdb record without sequences: {rec[0]}")
             else:
                 continue
 

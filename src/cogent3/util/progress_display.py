@@ -37,7 +37,7 @@ class LogFileOutput:
 
     def refresh(self):
         if self.message:
-            delta = "+%s" % int(time.time() - self.t0)
+            delta = f"+{int(time.time() - self.t0)}"
             progress = int(100 * self.n + 0.5)
             print(
                 "%s %5s %3i%% %s" % (self.lpad, delta, progress, str(self.message)),
@@ -116,7 +116,7 @@ class ProgressContext:
         else:
             if noun:
                 noun += " "
-            template = "%s%%%sd/%s" % (noun, len(str(count)), count)
+            template = f"{noun}%{len(str(count))}d/{count}"
             labels = [template % (i + 1) for i in range(0, count)]
         for (i, item) in enumerate(items):
             self.display(msg=labels[i], progress=start + step * i)

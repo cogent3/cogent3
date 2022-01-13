@@ -2719,7 +2719,7 @@ def get_model(name, **kw):
         # already a substitution model
         return name
     if name not in models:
-        msg = 'Unknown model "%s". Model names are case sensitive!' % name
+        msg = f'Unknown model "{name}". Model names are case sensitive!'
         raise ValueError(msg)
 
     g = globals()

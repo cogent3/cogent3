@@ -48,7 +48,7 @@ class AnnealingSchedule(object):
             "step_cycles",
         ]:
             if getattr(self, attr) != getattr(other, attr):
-                raise ValueError("Checkpoint file ignored - %s different" % attr)
+                raise ValueError(f"Checkpoint file ignored - {attr} different")
 
     def roundsToReach(self, T):
         from math import log

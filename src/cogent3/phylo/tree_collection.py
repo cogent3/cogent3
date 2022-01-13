@@ -138,7 +138,7 @@ def make_trees(filename):
         line = line.split(None, 1)
         lnL = float(line[0])
         if lnL > 1:
-            raise ValueError("likelihoods expected, not %s" % lnL)
+            raise ValueError(f"likelihoods expected, not {lnL}")
         elif lnL > 0:
             assert klass in [list, WeightedTreeCollection]
             klass = WeightedTreeCollection
