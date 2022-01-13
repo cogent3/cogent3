@@ -280,17 +280,17 @@ class _SubstitutionModel(object):
         return []
 
     def __str__(self):
-        s = ["\n%s (" % self.__class__.__name__]
+        s = [f"\n{self.__class__.__name__} ("]
         s.append(
             "name = '%s'; type = '%s';"
             % (getattr(self, "name", None), getattr(self, "type", None))
         )
         if hasattr(self, "predicate_masks"):
             parlist = list(self.predicate_masks.keys())
-            s.append("params = %s;" % parlist)
+            s.append(f"params = {parlist};")
         motifs = self.get_motifs()
-        s.append("number of motifs = %s;" % len(motifs))
-        s.append("motifs = %s)\n" % motifs)
+        s.append(f"number of motifs = {len(motifs)};")
+        s.append(f"motifs = {motifs})\n")
         return " ".join(s)
 
     def get_alphabet(self):
@@ -505,7 +505,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         elif distribution in [None, "free"]:
             distribution = MonotonicDefn
         elif isinstance(distribution, str):
-            raise ValueError('Unknown distribution "%s"' % distribution)
+            raise ValueError(f'Unknown distribution "{distribution}"')
         self.distrib_class = distribution
 
         if not partitioned_params:
@@ -533,7 +533,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         for param in self.partitioned_params:
             if param not in self.parameter_order and param != "rate":
                 desc = ["partitioned", "ordered"][param == self.ordered_param]
-                raise ValueError('%s param "%s" unknown' % (desc, param))
+                raise ValueError(f'{desc} param "{param}" unknown')
 
     def _is_instantaneous(self, x, y):
         diffs = sum([X != Y for (X, Y) in zip(x, y)])
@@ -732,12 +732,12 @@ class Parametric(_ContinuousSubstitutionModel):
         # Give a clearer error in simple cases like always false or true.
         for (name, matrix) in list(predicate_masks.items()):
             if numpy.alltrue((matrix == 0).flat):
-                raise ValueError("Predicate %s is always false." % name)
+                raise ValueError(f"Predicate {name} is always false.")
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
         for (name, matrix) in list(predicate_masks.items()):
             if numpy.alltrue((matrix == self._instantaneous_mask).flat):
-                raise ValueError("Predicate %s is always true." % name)
+                raise ValueError(f"Predicate {name} is always true.")
         if redundancy_in_predicate_masks(predicate_masks):
             raise ValueError("Redundancy in predicates.")
         if redundancy_in_predicate_masks(predicates_plus_scale):
@@ -783,7 +783,7 @@ class Parametric(_ContinuousSubstitutionModel):
 
         labels.insert(0, r"From\To")
         if self.name:
-            title = "%s rate matrix" % self.name
+            title = f"{self.name} rate matrix"
         else:
             title = "rate matrix"
 
@@ -870,7 +870,7 @@ class Parametric(_ContinuousSubstitutionModel):
         for (key, pred) in rules:
             (label, mask) = self.adapt_predicate(pred, key)
             if label in predicate_masks:
-                raise KeyError('Duplicate predicate name "%s"' % label)
+                raise KeyError(f'Duplicate predicate name "{label}"')
             predicate_masks[label] = mask
             order.append(label)
         return predicate_masks, order

@@ -28,7 +28,7 @@ def make_model(mprob_model, tuple_alphabet, mask):
     elif mprob_model in ["word", "tuple", None]:
         return SimpleMotifProbModel(tuple_alphabet)
     else:
-        raise ValueError("Unknown mprob model '%s'" % str(mprob_model))
+        raise ValueError(f"Unknown mprob model '{str(mprob_model)}'")
 
 
 class MotifProbModel(object):

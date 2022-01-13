@@ -260,7 +260,7 @@ class TreeEvaluator(object):
             candidates = ui.imap(
                 grown_tree,
                 specs,
-                noun=("%s leaf tree" % n),
+                noun=f"{n} leaf tree",
                 start=work_done[n - 1] / total_work,
                 end=work_done[n] / total_work,
             )

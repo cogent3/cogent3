@@ -556,7 +556,7 @@ def fmin_powell(
     else:
         if disp:
             print("Optimization terminated successfully.")
-            print("         Current function value: %f" % fval)
+            print(f"         Current function value: {fval:f}")
             print("         Iterations: %d" % iter)
             print("         Function evaluations: %d" % fcalls[0])
 

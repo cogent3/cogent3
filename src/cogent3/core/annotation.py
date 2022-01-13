@@ -76,7 +76,7 @@ class _Annotatable:
                 base = base.parent
             if base is not self:
                 raise ValueError(
-                    "Can't map %s onto %s via %s" % (index, repr(self), containers)
+                    f"Can't map {index} onto {repr(self)} via {containers}"
                 )
             for base in containers:
                 feature = feature.remapped_to(base, base.map)
@@ -340,7 +340,7 @@ class _Feature(_Annotatable, _Serialisable):
         self.parent.detach_annotations([self])
 
     def _mapped(self, slicemap):
-        name = "%s of %s" % (repr(slicemap), self.name)
+        name = f"{repr(slicemap)} of {self.name}"
         return self.__class__(self, slicemap, type="slice", name=name)
 
     def get_slice(self, complete=True):
@@ -378,8 +378,8 @@ class _Feature(_Annotatable, _Serialisable):
     def __repr__(self):
         name = getattr(self, "name", "")
         if name:
-            name = ' "%s"' % name
-        return "%s%s at %s" % (self.type, name, self.map)
+            name = f' "{name}"'
+        return f"{self.type}{name} at {self.map}"
 
     def _projected_to_base(self, base):
         if self.parent == base:

@@ -260,7 +260,7 @@ class EstimateDistances(object):
 
         """
         pairwise_stats = {}
-        assert param in self._est_params + ["length"], "unrecognised param %s" % param
+        assert param in self._est_params + ["length"], f"unrecognised param {param}"
         if not self._param_ests:
             return None
 
@@ -355,7 +355,7 @@ class EstimateDistances(object):
         for comp_names, param_vals in list(self._param_ests.items()):
             tips = []
             for name in comp_names:
-                tips.append(repr(name) + ":%s" % param_vals[name])
+                tips.append(repr(name) + f":{param_vals[name]}")
             trees.append("(" + ",".join(tips) + ");")
 
         return trees

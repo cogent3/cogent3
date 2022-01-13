@@ -105,7 +105,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     right_count = data.count(")")
     if left_count != right_count:
         raise RecordError(
-            "Found %s left parens but %s right parens." % (left_count, right_count)
+            f"Found {left_count} left parens but {right_count} right parens."
         )
 
     tokens = DndTokenizer(data)
@@ -162,7 +162,7 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
         elif state == "PostColon":  # length data for the current node
             curr_node.length = float(t)
         else:  # can't think of a reason to get here
-            raise RecordError("Incorrect PhyloNode state? %s" % t)
+            raise RecordError(f"Incorrect PhyloNode state? {t}")
         state = "PreColon"  # get here for any non-colon token
         state1 = "PreClosed"
         last_token = t

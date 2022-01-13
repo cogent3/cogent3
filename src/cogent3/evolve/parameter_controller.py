@@ -31,11 +31,11 @@ __status__ = "Production"
 
 def _category_names(dimension, specified):
     if type(specified) is int:
-        cats = ["%s%s" % (dimension, i) for i in range(specified)]
+        cats = [f"{dimension}{i}" for i in range(specified)]
     else:
         cats = tuple(specified)
     assert len(cats) >= 1, cats
-    assert len(set(cats)) == len(cats), "%s names must be unique" % dimension
+    assert len(set(cats)) == len(cats), f"{dimension} names must be unique"
     return list(cats)
 
 
@@ -384,7 +384,7 @@ class _LikelihoodParameterController(_LF):
             if single in scope_info:
                 v = scope_info.pop(single)
                 if v:
-                    assert isinstance(v, str), "%s=, maybe?" % plural
+                    assert isinstance(v, str), f"{plural}=, maybe?"
                     assert plural not in scope_info
                     scopes[single] = [v]
             elif plural in scope_info:
@@ -509,7 +509,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         tip_names = set(self.tree.get_tip_names())
         for index, aln in enumerate(aligns):
             if len(aligns) > 1:
-                locus_name = "for locus '%s'" % self.locus_names[index]
+                locus_name = f"for locus '{self.locus_names[index]}'"
             else:
                 locus_name = ""
             assert not set(aln.names).symmetric_difference(

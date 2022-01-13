@@ -68,12 +68,12 @@ def MinimalFastaParser(
         # first line must be a label line
         if not rec[0][0] in label_characters:
             if strict:
-                raise RecordError("Found Fasta record without label line: %s" % rec)
+                raise RecordError(f"Found Fasta record without label line: {rec}")
             continue
         # record must have at least one sequence
         if len(rec) < 2:
             if strict:
-                raise RecordError("Found label line without sequences: %s" % rec)
+                raise RecordError(f"Found label line without sequences: {rec}")
             else:
                 continue
 
@@ -104,7 +104,7 @@ def xmfa_label_to_name(line):
         (lo, hi) = (hi, lo)
     else:
         assert strand == "+"
-    return "%s:%s:%s-%s" % (sp, contig, lo, hi)
+    return f"{sp}:{contig}:{lo}-{hi}"
 
 
 def is_xmfa_blank_or_comment(x):
@@ -156,7 +156,7 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
                 yield name, seq_maker(seq, name=name, info=info)
             except Exception:
                 raise RecordError(
-                    "Sequence construction failed on record with label %s" % label
+                    f"Sequence construction failed on record with label {label}"
                 )
         else:
             # not strict: just skip any record that raises an exception
@@ -181,7 +181,7 @@ def NcbiFastaLabelParser(line):
     try:
         ignore, gi, db, db_ref, description = list(map(strip, line.split("|", 4)))
     except ValueError:  # probably got wrong value
-        raise RecordError("Unable to parse label line %s" % line)
+        raise RecordError(f"Unable to parse label line {line}")
     info.GI = gi
     info[NcbiLabels[db]] = db_ref
     info.Description = description
@@ -239,8 +239,8 @@ def LabelParser(display_template, field_formatters, split_with=":", DEBUG=False)
     for index, field, converter in field_formatters:
         if field in display_template:
             indexed = True
-    assert indexed, "display_template [%s] does not use a field name" % display_template
-    sep = re.compile("[%s]" % split_with)
+    assert indexed, f"display_template [{display_template}] does not use a field name"
+    sep = re.compile(f"[{split_with}]")
 
     def call(label):
         label = [label, label[1:]][label[0] == ">"]

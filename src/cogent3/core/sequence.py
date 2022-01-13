@@ -192,8 +192,7 @@ class SequenceI(object):
         else:
             if len(data) % motif_length != 0:
                 warnings.warn(
-                    "%s length not divisible by %s, truncating"
-                    % (self.name, motif_length)
+                    f"{self.name} length not divisible by {motif_length}, truncating"
                 )
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
@@ -695,8 +694,8 @@ class SequenceI(object):
         seq = seq if limit is None else seq[:limit]
         gaps = "".join(self.moltype.gaps)
         seqlen = len(seq)
-        start_gap = re.search("^[%s]+" % gaps, "".join(seq))
-        end_gap = re.search("[%s]+$" % gaps, "".join(seq))
+        start_gap = re.search(f"^[{gaps}]+", "".join(seq))
+        end_gap = re.search(f"[{gaps}]+$", "".join(seq))
 
         start = 0 if start_gap is None else start_gap.end()
         end = len(seq) if end_gap is None else end_gap.start()
@@ -706,7 +705,7 @@ class SequenceI(object):
         for i in range(seqlen):
             char = seq[i]
             if i < start or i >= end:
-                style = "terminal_ambig_%s" % self.moltype.label
+                style = f"terminal_ambig_{self.moltype.label}"
             else:
                 style = styles[char]
 
@@ -724,7 +723,7 @@ class SequenceI(object):
             seqblock = seq[i : i + wrap].tolist()
             seqblock = "".join(seqblock)
             row = "".join([label_ % self.name, seq_ % seqblock])
-            table.append("<tr>%s</tr>" % row)
+            table.append(f"<tr>{row}</tr>")
         table.append("</table>")
         class_name = self.__class__.__name__
         if limit and limit < len(self):
@@ -744,7 +743,7 @@ class SequenceI(object):
             "</style>",
             '<div class="c3seq">',
             "\n".join(table),
-            "<p><i>%s</i></p>" % summary,
+            f"<p><i>{summary}</i></p>",
             "</div>",
         ]
         return "\n".join(text)
@@ -952,7 +951,7 @@ class Sequence(_Annotatable, SequenceI):
             ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
             ambigs.sort()
             mask_char = ambigs[-1][1]
-        assert mask_char in self.moltype, "Invalid mask_char %s" % mask_char
+        assert mask_char in self.moltype, f"Invalid mask_char {mask_char}"
 
         annotations = []
         annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
@@ -986,7 +985,7 @@ class Sequence(_Annotatable, SequenceI):
                     unknown = span.terminal or recode_gaps
                     seg = "-?"[unknown] * span.length
                 else:
-                    raise ValueError("gap(s) in map %s" % map)
+                    raise ValueError(f"gap(s) in map {map}")
             else:
                 seg = self._seq[span.start : span.end]
                 if span.reverse:
@@ -1019,7 +1018,7 @@ class Sequence(_Annotatable, SequenceI):
         if hasattr(other, "moltype"):
             if self.moltype != other.moltype:
                 raise ValueError(
-                    "MolTypes don't match: (%s,%s)" % (self.moltype, other.moltype)
+                    f"MolTypes don't match: ({self.moltype},{other.moltype})"
                 )
             other_seq = other._seq
         else:
@@ -1044,13 +1043,13 @@ class Sequence(_Annotatable, SequenceI):
         return new_seq
 
     def __repr__(self):
-        myclass = "%s" % self.__class__.__name__
+        myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = str(self._seq[:7]) + "... %s" % len(self)
+            seq = str(self._seq[:7]) + f"... {len(self)}"
         else:
             seq = str(self._seq)
-        return "%s(%s)" % (myclass, seq)
+        return f"{myclass}({seq})"
 
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
@@ -1115,7 +1114,7 @@ class Sequence(_Annotatable, SequenceI):
             remainder = length % motif_length
             if remainder and log_warnings:
                 warnings.warn(
-                    'Dropped remainder "%s" from end of sequence' % seq[-remainder:]
+                    f'Dropped remainder "{seq[-remainder:]}" from end of sequence'
                 )
             return [
                 seq[i : i + motif_length]
@@ -1125,7 +1124,7 @@ class Sequence(_Annotatable, SequenceI):
     def parse_out_gaps(self):
         gapless = []
         segments = []
-        nongap = re.compile("([^%s]+)" % re.escape("-"))
+        nongap = re.compile(f"([^{re.escape('-')}]+)")
         for match in nongap.finditer(self._seq):
             segments.append(match.span())
             gapless.append(match.group())

@@ -187,13 +187,13 @@ class Composable(ComposableType):
         # rules operating on result but not part of a chain
         self._checkpointable = False
         self._load_checkpoint = None
-        self._formatted = ["type='%s'" % self._type]
+        self._formatted = [f"type='{self._type}'"]
 
     def __str__(self):
         txt = "" if not self.input else str(self.input)
         if txt:
             txt += " + "
-        txt += "%s(%s)" % (self.__class__.__name__, ", ".join(self._formatted))
+        txt += f"{self.__class__.__name__}({', '.join(self._formatted)})"
         txt = textwrap.fill(
             txt, width=80, break_long_words=False, break_on_hyphens=False
         )
@@ -230,7 +230,7 @@ class Composable(ComposableType):
                     continue
             except NameError:
                 pass
-            formatted.append("%s=%r" % (p, v))
+            formatted.append(f"{p}={v!r}")
         self._formatted += formatted
 
     def __add__(self, other):
@@ -640,7 +640,7 @@ class _checkpointable(Composable):
         identifier = self._make_output_identifier(data)
         exists = identifier in self.data_store
         if exists and self._if_exists == RAISE:
-            msg = "'%s' already exists" % identifier
+            msg = f"'{identifier}' already exists"
             raise RuntimeError(msg)
 
         if self._if_exists == OVERWRITE:

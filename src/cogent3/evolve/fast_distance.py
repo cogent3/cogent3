@@ -395,7 +395,7 @@ class _PairwiseDistance(object):
                     continue
 
                 name_2 = names[j]
-                ui.display("%s vs %s" % (name_1, name_2), done / to_do)
+                ui.display(f"{name_1} vs {name_2}", done / to_do)
                 done += 1
                 matrix.fill(0)
                 s2 = self.indexed_seqs[j]
@@ -670,7 +670,7 @@ def get_distance_calculator(name, *args, **kwargs):
     if "moltype" in kwargs and kwargs.get("moltype") is None:
         kwargs.pop("moltype")
     if name not in _calculators:
-        raise ValueError('Unknown pairwise distance calculator "%s"' % name)
+        raise ValueError(f'Unknown pairwise distance calculator "{name}"')
 
     calc = _calculators[name]
     return calc(*args, **kwargs)

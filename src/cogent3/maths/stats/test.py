@@ -1027,11 +1027,11 @@ def correlation_test(
         corr_fn = spearman
     else:
         raise ValueError(
-            "Invalid method '%s'. Must be either 'pearson' or " "'spearman'." % method
+            f"Invalid method '{method}'. Must be either 'pearson' or 'spearman'."
         )
     if tails is not None and tails != "high" and tails != "low":
         raise ValueError(
-            "Invalid tail type '%s'. Must be either None, " "'high', or 'low'." % tails
+            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
         )
     if permutations < 0:
         raise ValueError(
@@ -1085,8 +1085,7 @@ def correlation_test(
             # don't want to return a p-value of 0 if someone passes in a bogus
             # tail type somehow.
             raise ValueError(
-                "Invalid tail type '%s'. Must be either None, "
-                "'high', or 'low'." % tails
+                f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
             )
     if permutations > 0:
         nonparametric_p_val = (better + 1) / (permutations + 1)
@@ -1544,7 +1543,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         elif alt == ALT_HIGH:
             stat = cumsum.max()
         else:
-            raise RuntimeError("Unknown alt: %s" % alt)
+            raise RuntimeError(f"Unknown alt: {alt}")
         if exact and alt == ALT_TWO_SIDED and not ties:
             Pval = 1 - psmirnov2x(stat, num_x, num_y)
     else:

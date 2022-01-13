@@ -66,21 +66,20 @@ def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
     min_stops, frame = stops_in_frame[0]
     # if min_stops > 1, cannot be translated
     if min_stops > 1:
-        raise ValueError("%s cannot be robustly translated" % seq.name)
+        raise ValueError(f"{seq.name!r} cannot be robustly translated")
     elif min_stops == 0 and require_stop:
         # find seq with 1 stop
         min_stops = 20  # nonsense value
-        for idx, (n, fr) in enumerate(stops_in_frame):
+        for n, fr in stops_in_frame:
             if n == 1:
                 min_stops, frame = n, fr
                 break
 
-    if 0 <= min_stops <= 1:
-        if min_stops == 1 and not translations[frame].endswith("*"):
-            raise ValueError("%s cannot be robustly translated" % seq.name)
-    else:
-        raise ValueError("%s cannot be robustly translated" % seq.name)
+    if not 0 <= min_stops <= 1:
+        raise ValueError(f"{seq.name!r} cannot be robustly translated")
 
+    if min_stops == 1 and not translations[frame].endswith("*"):
+        raise ValueError(f"{seq.name!r} cannot be robustly translated")
     frame += 1
     if allow_rc and frame > 3:
         frame = 3 - frame

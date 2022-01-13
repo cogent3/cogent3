@@ -74,7 +74,7 @@ def permutations(n, k):
     """
     # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
-        raise IndexError("Can't choose %s items from %s" % (k, n))
+        raise IndexError(f"Can't choose {k} items from {n}")
     elif k < 0:
         raise IndexError("Can't choose negative number of items")
     elif n < 0:
@@ -115,7 +115,7 @@ def combinations(n, k):
     """
     # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
-        raise IndexError("Can't choose %s items from %s" % (k, n))
+        raise IndexError(f"Can't choose {k} items from {n}")
     elif k < 0:
         raise IndexError("Can't choose negative number of items")
     elif n < 0:

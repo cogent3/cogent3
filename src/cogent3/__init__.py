@@ -77,16 +77,13 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-if sys.version_info < (3, 6):
+_min_version = (3, 7)
+if sys.version_info < _min_version:
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
+    _min_version = ".".join(_min_version)
     raise RuntimeError(
-        "Python-3.6 or greater is required, Python-%s used." % PY_VERSION
+        f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
     )
-
-NUMPY_VERSION = re.split(r"[^\d]", numpy.__version__)
-numpy_version_info = tuple([int(i) for i in NUMPY_VERSION if i.isdigit()])
-if numpy_version_info < (1, 3):
-    raise RuntimeError("Numpy-1.3 is required, %s found." % NUMPY_VERSION)
 
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])

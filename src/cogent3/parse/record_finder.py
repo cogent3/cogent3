@@ -79,7 +79,7 @@ def DelimitedRecordFinder(
                 curr.append(line)
         if curr:
             if strict:
-                raise RecordError("Found additional data after records: %s" % (curr))
+                raise RecordError(f"Found additional data after records: {curr}")
             else:
                 yield curr
 
@@ -206,6 +206,6 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
                 yield curr
                 curr = []
         if curr:
-            raise RecordError("Non-blank lines not even multiple of %s" % num)
+            raise RecordError(f"Non-blank lines not even multiple of {num}")
 
     return parser

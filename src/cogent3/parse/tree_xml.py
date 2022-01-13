@@ -70,7 +70,7 @@ class TreeHandler(xml.sax.ContentHandler):
         self.current += str(text)
 
     def endElement(self, name):
-        getattr(self, "process_%s" % name)(self.current, **self.data)
+        getattr(self, f"process_{name}")(self.current, **self.data)
         (self.data, self.in_clade, self.current) = self.stack.pop()
         self.parent = self.stack[-1][0]
 

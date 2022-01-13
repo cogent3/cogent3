@@ -253,7 +253,7 @@ class GeneticCode:
             key = key.replace("U", "T")
             return self.codons.get(key, "X")
         else:
-            raise InvalidCodonError("Codon or aa %s has wrong length" % item)
+            raise InvalidCodonError(f"Codon or aa {item} has wrong length")
 
     def translate(self, dna, start=0):
         """Translates DNA to protein with current GeneticCode.
@@ -279,7 +279,7 @@ class GeneticCode:
     def get_stop_indices(self, dna, start=0):
         """returns indexes for stop codons in the specified frame"""
         stops = self["*"]
-        stop_pattern = "(%s)" % "|".join(stops)
+        stop_pattern = f"({'|'.join(stops)})"
         stop_pattern = re.compile(stop_pattern)
         seq = str(dna)
         found = [hit.start() for hit in stop_pattern.finditer(seq)]
@@ -485,7 +485,7 @@ def get_code(code_id=1):
                 code = gc
 
     if code is None:
-        raise ValueError('No genetic code matching "%s"' % code_id)
+        raise ValueError(f'No genetic code matching "{code_id}"')
 
     return code
 

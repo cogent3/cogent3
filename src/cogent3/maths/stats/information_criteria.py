@@ -27,7 +27,7 @@ def aic(lnL, nfp, sample_size=None):
     if sample_size is None:
         correction = 1
     else:
-        assert sample_size > 0, "Invalid sample_size %s" % sample_size
+        assert sample_size > 0, f"Invalid sample_size {sample_size}"
         correction = sample_size / (sample_size - nfp - 1)
 
     return -2 * lnL + 2 * nfp * correction

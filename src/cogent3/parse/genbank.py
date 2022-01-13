@@ -351,9 +351,9 @@ class Location(object):
         if self.IsBetween:  # between two bases
             try:
                 first, last = self._data
-                curr = "%s^%s" % (first, last)
+                curr = f"{first}^{last}"
             except TypeError:  # only one base? must be this or the next
-                curr = "%s^%s" % (first, first + 1)
+                curr = f"{first}^{first + 1}"
         else:  # not self.IsBetween
             try:
                 data = int(self._data)
@@ -367,9 +367,9 @@ class Location(object):
                 # objects
                 first, last = self._data
                 if self.IsBounds:
-                    curr = "(%s%s%s)" % (first, ".", last)
+                    curr = f"({first}{'.'}{last})"
                 else:
-                    curr = "%s%s%s" % (first, "..", last)
+                    curr = f"{first}{'..'}{last}"
         # check if we need to add on the accession and database
         if self.Accession:
             curr = self.Accession + ":" + curr
@@ -378,7 +378,7 @@ class Location(object):
                 curr = self.Db + "::" + curr
         # check if it's complemented
         if self.Strand == -1:
-            curr = "complement(%s)" % curr
+            curr = f"complement({curr})"
         return curr
 
     def first(self):

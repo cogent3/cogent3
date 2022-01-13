@@ -182,7 +182,7 @@ class TrackBack(object):
 
     def __str__(self):
         return "".join(
-            "(%s,%s)%s" % (x, y, ".xym"[dx + 2 * dy])
+            f"({x},{y}){'.xym'[dx + 2 * dy]}"
             for (state, (x, y), (dx, dy)) in self.tlist
         )
 
@@ -474,7 +474,7 @@ class AlignablePOG(_Alignable):
         self.leaf = leaf
 
     def __repr__(self):
-        return "AlPOG(%s,%s)" % (self.pog.all_jumps, repr(self.leaf))
+        return f"AlPOG({self.pog.all_jumps},{repr(self.leaf)})"
 
     def get_alignment(self):
         from cogent3 import make_aligned_seqs
@@ -542,7 +542,7 @@ class AlignableSeq(_Alignable):
         self._pog = None
 
     def __repr__(self):
-        return "AlSeq(%s)" % (getattr(self, "seq", "?"))
+        return f"AlSeq({getattr(self, 'seq', '?')})"
 
     def get_pog(self):
         if self._pog is None:
@@ -825,7 +825,7 @@ class PairEmissionProbs(object):
             else:
                 msg = "dp"
             if memory > 500:
-                warnings.warn("%s will use > %sMb." % (msg, memory))
+                warnings.warn(f"{msg} will use > {memory}Mb.")
             track = encoder.get_empty_array(problem_dimensions)
         else:
             track = encoder = None
@@ -1024,7 +1024,7 @@ class DPFlags(object):
         )
 
     def __repr__(self):
-        return "%s(%s)" % (type(self).__name__, ", ".join(self.as_tuple))
+        return f"{type(self).__name__}({', '.join(self.as_tuple)})"
 
     def __hash__(self):
         return hash(self.as_tuple)

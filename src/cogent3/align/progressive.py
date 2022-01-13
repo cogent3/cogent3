@@ -100,7 +100,7 @@ def TreeAlign(
             numbers = dcalc.get_param_values(param)
             param_vals[param] = numbers.median
 
-    ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
+    ui.display(f"Doing {['progressive', 'pairwise'][two_seqs]} alignment")
     with LF.updates_postponed():
         for param, val in list(param_vals.items()):
             LF.set_param_rule(param, value=val, is_constant=True)

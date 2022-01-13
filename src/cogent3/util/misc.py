@@ -147,7 +147,7 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
     result sums to 1 within machine precision
 
     if 2D array, assumes row-order"""
-    assert 0 <= minprob < 1, "invalid minval %s" % minprob
+    assert 0 <= minprob < 1, f"invalid minval {minprob}"
     probs = array(probs, dtype=float64)
     if (probs > minprob).all():
         return probs
@@ -182,16 +182,12 @@ def adjusted_within_bounds(value, lower, upper, eps=1e-7, action="warn"):
     if lower <= value <= upper:
         return value
 
-    assert action in ("warn", "raise", "ignore"), "Unknown action %s" % repr(action)
+    assert action in ("warn", "raise", "ignore"), f"Unknown action {repr(action)}"
 
     value = float64(value)
     eps = float64(eps) + finfo(float64).eps
-    err_msg = "value[%s] not within lower[%s]/upper[%s] bounds" % (value, lower, upper)
-    wrn_msg = "value[%s] forced within lower[%s]/upper[%s] bounds" % (
-        value,
-        lower,
-        upper,
-    )
+    err_msg = f"value[{value}] not within lower[{lower}]/upper[{upper}] bounds"
+    wrn_msg = f"value[{value}] forced within lower[{lower}]/upper[{upper}] bounds"
 
     if value < lower and (lower - value) <= eps:
         value = lower
@@ -241,7 +237,7 @@ def curry(f, *a, **kw):
     if a:
         curry_params.extend([e for e in a])
     if kw:
-        curry_params.extend(["%s=%s" % (k, v) for k, v in list(kw.items())])
+        curry_params.extend([f"{k}={v}" for k, v in list(kw.items())])
     # str it to prevent error in join()
     curry_params = list(map(str, curry_params))
 
@@ -377,7 +373,7 @@ class ClassChecker(object):
         for c in Classes:
             if type(c) != type_type:
                 raise TypeError(
-                    "ClassChecker found non-type object '%s' in parameter list." % c
+                    f"ClassChecker found non-type object '{c}' in parameter list."
                 )
         self.Classes = list(Classes)
 
@@ -608,7 +604,7 @@ class ConstrainedContainer(object):
             self._constraint = constraint
         else:
             raise ConstraintError(
-                "Sequence '%s' incompatible with constraint '%s'" % (self, constraint)
+                f"Sequence '{self}' incompatible with constraint '{constraint}'"
             )
 
     constraint = property(_get_constraint, _set_constraint)
@@ -640,8 +636,7 @@ class ConstrainedList(ConstrainedContainer, list):
             return list.__iadd__(self, other)
         else:
             raise ConstraintError(
-                "Sequence '%s' has items not in constraint '%s'"
-                % (other, self.constraint)
+                f"Sequence '{other}' has items not in constraint '{self.constraint}'"
             )
 
     def __mul__(self, multiplier):
@@ -672,7 +667,7 @@ class ConstrainedList(ConstrainedContainer, list):
         else:
             if not self.item_is_valid(item):
                 raise ConstraintError(
-                    "Item '%s' not in constraint '%s'" % (item, self.constraint)
+                    f"Item '{item}' not in constraint '{self.constraint}'"
                 )
             item = self.mask(item)
         list.__setitem__(self, index, item)
@@ -683,15 +678,14 @@ class ConstrainedList(ConstrainedContainer, list):
             list.__setslice__(self, start, end, list(map(self.mask, sequence)))
         else:
             raise ConstraintError(
-                "Sequence '%s' has items not in constraint '%s'"
-                % (sequence, self.constraint)
+                f"Sequence '{sequence}' has items not in constraint '{self.constraint}'"
             )
 
     def append(self, item):
         """Appends item to self."""
         if not self.item_is_valid(item):
             raise ConstraintError(
-                "Item '%s' not in constraint '%s'" % (item, self.constraint)
+                f"Item '{item}' not in constraint '{self.constraint}'"
             )
         list.append(self, self.mask(item))
 
@@ -701,15 +695,14 @@ class ConstrainedList(ConstrainedContainer, list):
             list.extend(self, list(map(self.mask, sequence)))
         else:
             raise ConstraintError(
-                "Some items in '%s' not in constraint '%s'"
-                % (sequence, self.constraint)
+                f"Some items in '{sequence}' not in constraint '{self.constraint}'"
             )
 
     def insert(self, position, item):
         """Inserts item at position in self."""
         if not self.item_is_valid(item):
             raise ConstraintError(
-                "Item '%s' not in constraint '%s'" % (item, self.constraint)
+                f"Item '{item}' not in constraint '{self.constraint}'"
             )
         list.insert(self, position, self.mask(item))
 
@@ -787,9 +780,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
     def __setitem__(self, key, value):
         """Sets self[key] to value if value in constraint."""
         if not self.item_is_valid(key):
-            raise ConstraintError(
-                "Item '%s' not in constraint '%s'" % (key, self.constraint)
-            )
+            raise ConstraintError(f"Item '{key}' not in constraint '{self.constraint}'")
         key, value = self.mask(key), self.value_mask(value)
         dict.__setitem__(self, key, value)
 

@@ -72,7 +72,7 @@ class TransitionMatrix(object):
             if hasattr(label, "__len__") and not isinstance(label, str):
                 label = ",".join(str(z) for z in label)
             # Table needs unique labels
-            label = "%s (%s)" % (label, i)
+            label = f"{label} ({i})"
             labels.append(label)
         heading = [""] + labels
         a = [[name] + list(row) for (name, row) in zip(labels, self.Matrix)]
