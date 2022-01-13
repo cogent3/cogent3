@@ -85,11 +85,6 @@ if sys.version_info < _min_version:
         f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
     )
 
-NUMPY_VERSION = re.split(r"[^\d]", numpy.__version__)
-numpy_version_info = tuple([int(i) for i in NUMPY_VERSION if i.isdigit()])
-if numpy_version_info < (1, 3):
-    raise RuntimeError("Numpy-1.3 is required, %s found." % NUMPY_VERSION)
-
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
 
