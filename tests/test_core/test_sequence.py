@@ -2,6 +2,7 @@
 """Unit tests for Sequence class and its subclasses.
 """
 
+from cgi import test
 import json
 import os
 import re
@@ -991,6 +992,28 @@ class SequenceTests(TestCase):
         got_num = len(re.findall(r"\bA\b", got))
         self.assertEqual(got_num, 2)
         os.environ.pop(env_name, None)
+
+    def test_add(self):
+        """Test for the add method within sequence"""
+
+        even = "TCAGAT"
+        odd = even + "AAA"
+        original_sequence = self.SEQ(even, name="even")
+        duplicate_sequence = self.SEQ(even, name="even")
+        name_only_duplicate = self.SEQ(even, name="odd")
+        different_sequence = self.SEQ(odd, name="odd")
+
+        added_duplicates = original_sequence + duplicate_sequence
+        added_name_only_duplicate = original_sequence + name_only_duplicate
+        different_sequences = original_sequence + different_sequence
+
+        self.assertIsNone(different_sequences.name)
+        self.assertIsNotNone(added_duplicates.name)
+        self.assertIsNotNone(added_name_only_duplicate)
+
+        self.assertEquals(original_sequence.name, added_duplicates.name)
+        self.assertEquals(original_sequence.name, added_name_only_duplicate.name)
+        self.assertNotEquals(original_sequence.name, different_sequences.name)
 
 
 class SequenceSubclassTests(TestCase):
