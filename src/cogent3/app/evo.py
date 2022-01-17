@@ -1,5 +1,3 @@
-import warnings
-
 import cogent3.util.io
 
 from cogent3 import load_tree, make_tree
