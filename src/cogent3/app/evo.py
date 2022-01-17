@@ -317,7 +317,7 @@ class model_collection(ComposableHypothesis):
             A callback function for initialising the alternate model
             likelihood function prior to optimisation. It must take 2 input
             arguments and return the modified alternate likelihood function.
-            Default is to use MLEs from the null model.
+            Default is to use MLEs from the null model. Overrides sequential.
 
         Notes
         -----
@@ -331,7 +331,6 @@ class model_collection(ComposableHypothesis):
         )
         self._formatted_params()
         if sequential and init_alt:
-            warnings.warn("init_alt is specified, ignoring sequential")
             sequential = False
 
         self.null = null
