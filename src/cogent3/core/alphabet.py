@@ -11,9 +11,6 @@ will access them through the appropriate moltype. Until the moltype module
 has been imported, the alphabets will not know their MolType, which will
 cause problems. It is often useful to create alphabets
 and/or Enumerations on the fly, however.
-
-MolType provides services for resolving ambiguities, or providing the
-correct ambiguity for recoding -- will move to its own module.
 """
 
 import json

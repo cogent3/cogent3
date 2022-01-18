@@ -2636,7 +2636,7 @@ class AlignmentI(object):
         introduced gaps exceeding quantile
 
         Uses count_gaps_per_seq(unique=True) to obtain the counts of gaps
-        uniquely introduced by a sequence. The cutoff is the the quantile of
+        uniquely introduced by a sequence. The cutoff is the quantile of
         this distribution.
 
         Parameters
@@ -2646,7 +2646,7 @@ class AlignmentI(object):
             cutoff are excluded. The default quantile is (num_seqs - 1) / num_seqs
         """
         gap_counts = self.count_gaps_per_seq(unique=True)
-        quantile = quantile if quantile else (self.num_seqs - 1) / self.num_seqs
+        quantile = quantile or (self.num_seqs - 1) / self.num_seqs
         cutoff = numpy.quantile(gap_counts.array, quantile)
         names = [name for name, count in gap_counts.items() if count <= cutoff]
         return self.take_seqs(names)
@@ -2709,7 +2709,7 @@ class AlignmentI(object):
         return self.gapped_by_map(sample, info=self.info)
 
     def sliding_windows(self, window, step, start=None, end=None):
-        """Generator yielding new Alignments of given length and interval.
+        """Generator yielding new alignments of given length and interval.
 
         Parameters
         ----------
@@ -2722,7 +2722,6 @@ class AlignmentI(object):
             first window start position
         end
             last window start position
-
         """
         start = [start, 0][start is None]
         end = [end, len(self) - window + 1][end is None]

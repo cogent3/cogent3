@@ -811,10 +811,24 @@ class TestBootstrap(TestCase):
         strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=False)
         result = strapper(aln)
         nd = result.null_dist
-        self.assertTrue(set(type(v) for v in nd), {float})
+        self.assertTrue({type(v) for v in nd}, {float})
         json = result.to_json()
         got = deserialise_object(json)
         self.assertIsInstance(got, evo_app.bootstrap_result)
+
+    def test_bstrap_fail(self):
+        """invalid data returns meaningful error"""
+        aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
+        aln = aln.take_seqs(aln.names[:3])
+        opt_args = dict(max_evaluations=20, limit_action="ignore")
+        m1 = evo_app.model("F81", opt_args=opt_args)
+        # we've retained gaps, so this should fail at first call as incompatible with model
+        m2 = evo_app.model("GTR", opt_args=opt_args, sm_args=dict(recode_gaps=False))
+        hyp = evo_app.hypothesis(m1, m2)
+        strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=False)
+        result = strapper(aln)
+        # correct message being relayed
+        self.assertTrue("ValueError: '-' at" in result.message)
 
     def test_bstrap_parallel(self):
         """exercising bootstrap with parallel"""
