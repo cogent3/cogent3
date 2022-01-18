@@ -811,7 +811,7 @@ class TestBootstrap(TestCase):
         strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=False)
         result = strapper(aln)
         nd = result.null_dist
-        self.assertTrue(set(type(v) for v in nd), {float})
+        self.assertTrue({type(v) for v in nd}, {float})
         json = result.to_json()
         got = deserialise_object(json)
         self.assertIsInstance(got, evo_app.bootstrap_result)
