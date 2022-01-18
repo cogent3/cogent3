@@ -432,6 +432,8 @@ class bootstrap(ComposableHypothesis):
         result = bootstrap_result(aln.info.source)
         try:
             obs = self._hyp(aln)
+            if not obs:
+                return obs
         except ValueError as err:
             result = NotCompleted("ERROR", str(self._hyp), err.args[0])
             return result
