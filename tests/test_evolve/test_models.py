@@ -47,7 +47,7 @@ class CannedModelsTest(TestCase):
         """excercising nucleotide model construction"""
         self._make_model_cache()
         # just checking present
-        for name in ["JC69", "F81", "HKY85", "GTR", "GN", "ssGN"]:
+        for name in ["JC69", "F81", "HKY85", "GTR", "GN", "ssGN", "BH"]:
             self.assertIn(name, self._cached_models)
 
     def test_codon_models(self):

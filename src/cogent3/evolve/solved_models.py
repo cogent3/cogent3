@@ -6,7 +6,6 @@ import numpy
 
 from numpy.testing import assert_allclose
 
-from cogent3.evolve.predicate import MotifChange
 from cogent3.evolve.substitution_model import (
     CalcDefn,
     TimeReversibleNucleotide,
@@ -71,31 +70,3 @@ def _solved_nucleotide(predicates, rate_matrix_required=True, **kw):
         klass = TimeReversibleNucleotide
     kw["model_gaps"] = False
     return klass(predicates=predicates, **kw)
-
-
-kappa_y = MotifChange("T", "C").aliased("kappa_y")
-kappa_r = MotifChange("A", "G").aliased("kappa_r")
-kappa = (kappa_y | kappa_r).aliased("kappa")
-
-
-def TN93(**kw):
-    """Tamura and Nei 1993 model"""
-    kw["recode_gaps"] = True
-    kw["name"] = "TN93"
-    return _solved_nucleotide([kappa_y, kappa_r], **kw)
-
-
-def HKY85(**kw):
-    """Hasegawa, Kishino and Yano 1985 model"""
-    kw["recode_gaps"] = True
-    # this function called by others, so we don't overwrite name if it exists
-    kw["name"] = kw.get("name", "HKY85")
-    return _solved_nucleotide([kappa], **kw)
-
-
-def F81(**kw):
-    """Felsenstein's 1981 model"""
-    kw["recode_gaps"] = True
-    # this function called by others, so we don't overwrite name if it exists
-    kw["name"] = kw.get("name", "F81")
-    return _solved_nucleotide([], **kw)
