@@ -16,7 +16,7 @@ import numpy
 from cogent3 import DNA
 from cogent3.evolve import ns_substitution_model, substitution_model
 from cogent3.evolve.predicate import MotifChange, omega
-from cogent3.evolve.solved_models import F81, HKY85, TN93
+from cogent3.evolve.solved_models import _solved_nucleotide
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util.table import Table
 
@@ -62,8 +62,10 @@ models = nucleotide_models + codon_models + protein_models
 
 # Substitution model rate matrix predicates
 _gtr_preds = [MotifChange(x, y) for x, y in ["AC", "AG", "AT", "CG", "CT"]]
-_kappa = (~MotifChange("R", "Y")).aliased("kappa")
 _omega = omega
+_kappa_y = MotifChange("T", "C").aliased("kappa_y")
+_kappa_r = MotifChange("A", "G").aliased("kappa_r")
+_kappa = (_kappa_y | _kappa_r).aliased("kappa")
 _cg = MotifChange("CG").aliased("G")
 _cg_k = (_cg & _kappa).aliased("G.K")
 
@@ -152,6 +154,29 @@ def GTR(**kw):
     kwargs.update(kw)
     kwargs.update(required)
     return substitution_model.TimeReversibleNucleotide(**kwargs)
+
+
+def TN93(**kw):
+    """Tamura and Nei 1993 model"""
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
+    kw["name"] = "TN93"
+    return _solved_nucleotide([_kappa_y, _kappa_r], **kw)
+
+
+def HKY85(**kw):
+    """Hasegawa, Kishino and Yano 1985 model"""
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "HKY85")
+    return _solved_nucleotide([_kappa], **kw)
+
+
+def F81(**kw):
+    """Felsenstein's 1981 model"""
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "F81")
+    return _solved_nucleotide([], **kw)
 
 
 # Codon Models
