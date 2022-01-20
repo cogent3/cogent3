@@ -1023,11 +1023,9 @@ class Sequence(_Annotatable, SequenceI):
             other_seq = other._seq
         else:
             other_seq = other
-        new_seq = self.__class__(self._seq + other_seq)
         # If two sequences with the same name are being added together the name should not be None
-        if name := other._seq.name:
-            if name == self._seq.name:
-                new_seq.name = name
+        name = self.name if self.name == other.name else None
+        new_seq = self.__class__(self._seq + other_seq, name=name)
         # Annotations which extend past the right end of the left sequence
         # or past the left end of the right sequence are dropped because
         # otherwise they will annotate the wrong part of the constructed
