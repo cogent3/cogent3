@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from numpy import diag_indices, dot, finfo, float64
+from numpy import arange, array, diag_indices, dot, finfo, float64
 from numpy.random import random
 from numpy.testing import assert_allclose
 
@@ -237,6 +237,18 @@ class TestJensenShannon(TestCase):
         ]
         result = jsd(pi_0, pi_1)
         self.assertTrue(result >= 0)
+
+    def test_general_jsd(self):
+        """check correctness of JSD for > 2 distributions"""
+        freqs = (0.1, 0.2, 0.3, 0.4), (0.4, 0.3, 0.2, 0.1), (0.1, 0.4, 0.2, 0.3)
+        got = jsd(*freqs, validate=True)
+        # expected value from the R-package philentropy gJSD implementation
+        assert_allclose(got, 0.1374318, atol=1e-7)
+
+        # with invalid freqs
+        freqs = (0.1, 0.2, 0.3, 0.4), (0.4, 0.3, 0.1, 0.2), (0.1, 0.4, 0.4, 0.3)
+        with self.assertRaises(AssertionError):
+            jsd(*freqs, validate=True)
 
     def test_jsm(self):
         """evaluate jsm between identical, and non-identical distributions"""
