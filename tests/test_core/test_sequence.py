@@ -2,7 +2,6 @@
 """Unit tests for Sequence class and its subclasses.
 """
 
-from cgi import test
 import json
 import os
 import re
@@ -1012,7 +1011,7 @@ class SequenceTests(TestCase):
         self.assertIsNotNone(added_name_only_duplicate)
 
         self.assertEquals(original_sequence.name, added_duplicates.name)
-        self.assertEquals(original_sequence.name, added_name_only_duplicate.name)
+        self.assertNotEquals(original_sequence.name, added_name_only_duplicate.name)
         self.assertNotEquals(original_sequence.name, different_sequences.name)
 
 
