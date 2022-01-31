@@ -189,8 +189,15 @@ class model(ComposableModel):
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if rule["par_name"] in ("mprobs", "psubs", "bprobs") or rule.get(
-                    "is_constant"
+                if (
+                    rule["par_name"]
+                    in (
+                        "mprobs",
+                        "psubs",
+                        "bprobs",
+                        "dpsubs",
+                    )
+                    or rule.get("is_constant")
                 ):
                     continue
                 rule["upper"] = min(rule.get("upper") or self._upper + 1, self._upper)
