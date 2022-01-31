@@ -130,7 +130,7 @@ class TestModel(TestCase):
         )
 
     def test_model_collection_init_sequential(self):
-        """modelc collection uses preceding model to initialise function"""
+        """model collection uses preceding model to initialise function"""
         opt_args = dict(max_evaluations=15, limit_action="ignore")
         model1 = evo_app.model("F81", opt_args=opt_args)
         model2 = evo_app.model("HKY85", opt_args=opt_args)
@@ -155,6 +155,15 @@ class TestModel(TestCase):
             result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
         )
 
+        self.assertIsInstance(result, model_collection_result)
+
+        # now with a single discrete edge
+        lf_args = dict(discrete_edges=["Opossum"])
+        model2 = evo_app.model("HKY85", opt_args=opt_args, lf_args=lf_args)
+        model3 = evo_app.model("GTR", opt_args=opt_args, lf_args=lf_args)
+        # defaults to initialise model3 from model 2 from model1
+        mod_coll = evo_app.model_collection(model2, model3, sequential=True)
+        result = mod_coll(aln)
         self.assertIsInstance(result, model_collection_result)
 
     def test_model_time_het(self):
