@@ -764,24 +764,6 @@ class SequenceI(object):
             name = None
 
         new_seq = self.__class__(str(self) + other_seq, name=name)
-
-        # Annotations which extend past the right end of the left sequence
-        # or past the left end of the right sequence are dropped because
-        # otherwise they will annotate the wrong part of the constructed
-        # sequence.
-        if hasattr(self, "_shifted_annotations"):
-            left = [
-                a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
-            ]
-            if hasattr(other, "_shifted_annotations"):
-                right = [
-                    a
-                    for a in other._shifted_annotations(new_seq, len(self))
-                    if a.map.start >= len(self)
-                ]
-                new_seq.annotations = left + right
-            else:
-                new_seq.annotations = left
         return new_seq
 
 
@@ -1190,6 +1172,27 @@ class Sequence(_Annotatable, SequenceI):
             for i in range(num_match)
         ]
 
+    def __add__(self, other):
+        """Adds two sequences (other can be a string as well)"""
+        new_seq = super(Sequence, self).__add__(other)
+        # Annotations which extend past the right end of the left sequence
+        # or past the left end of the right sequence are dropped because
+        # otherwise they will annotate the wrong part of the constructed
+        # sequence.
+        left = [
+            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
+        ]
+        if hasattr(other, "_shifted_annotations"):
+            right = [
+                a
+                for a in other._shifted_annotations(new_seq, len(self))
+                if a.map.start >= len(self)
+            ]
+            new_seq.annotations = left + right
+        else:
+            new_seq.annotations = left
+
+        return new_seq
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""

@@ -1010,9 +1010,9 @@ class SequenceTests(TestCase):
         self.assertIsNotNone(added_duplicates.name)
         self.assertIsNotNone(added_name_only_duplicate)
 
-        self.assertEquals(original_sequence.name, added_duplicates.name)
-        self.assertNotEquals(original_sequence.name, added_name_only_duplicate.name)
-        self.assertNotEquals(original_sequence.name, different_sequences.name)
+        self.assertEqual(original_sequence.name, added_duplicates.name)
+        self.assertNotEqual(original_sequence.name, added_name_only_duplicate.name)
+        self.assertNotEqual(original_sequence.name, different_sequences.name)
 
 
 class SequenceSubclassTests(TestCase):
