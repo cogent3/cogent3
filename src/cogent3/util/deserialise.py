@@ -40,6 +40,8 @@ class register_deserialiser:
 
     def __init__(self, *args):
         for type_str in args:
+            if not isinstance(type_str, str):
+                raise TypeError(f"{type_str!r} is not a string")
             assert (
                 type_str not in _deserialise_func_map
             ), f"{type_str!r} already in {list(_deserialise_func_map)}"

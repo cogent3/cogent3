@@ -498,6 +498,13 @@ class TestDeserialising(TestCase):
         self.assertEqual(got, (1, 2, 3))
         self.assertIsInstance(got, tuple)
 
+        with self.assertRaises(TypeError):
+
+            @register_deserialiser
+            def astupled(data):
+                data.pop("type")
+                return tuple(data["data"])
+
 
 if __name__ == "__main__":
     main()
