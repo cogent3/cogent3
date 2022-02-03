@@ -483,6 +483,21 @@ class TestDeserialising(TestCase):
             str(got.defn_for["alignment"].assignments),
         )
 
+    def test_custom_deserialiser(self):
+        """correctly registers a function to inflate a custom object"""
+        from cogent3.util.deserialise import register_deserialiser
+
+        @register_deserialiser("myfunkydata")
+        def astuple(data):
+            data.pop("type")
+            return tuple(data["data"])
+
+        orig = {"type": "myfunkydata", "data": (1, 2, 3)}
+        txt = json.dumps(orig)
+        got = deserialise_object(txt)
+        self.assertEqual(got, (1, 2, 3))
+        self.assertIsInstance(got, tuple)
+
 
 if __name__ == "__main__":
     main()
