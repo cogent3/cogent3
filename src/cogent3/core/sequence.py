@@ -748,6 +748,24 @@ class SequenceI(object):
         ]
         return "\n".join(text)
 
+    def __add__(self, other):
+        """Adds two sequences (other can be a string as well)."""
+        if hasattr(other, "moltype"):
+            if self.moltype != other.moltype:
+                raise ValueError(
+                    f"MolTypes don't match: ({self.moltype},{other.moltype})"
+                )
+        other_seq = str(other)
+
+        # If two sequences with the same name are being added together the name should not be None
+        if type(other) == type(self):
+            name = self.name if self.name == other.name else None
+        else:
+            name = None
+
+        new_seq = self.__class__(str(self) + other_seq, name=name)
+        return new_seq
+
 
 @total_ordering
 class Sequence(_Annotatable, SequenceI):
@@ -1013,35 +1031,6 @@ class Sequence(_Annotatable, SequenceI):
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
         return self.__class__("".join(segments), self.name, info=self.info)
 
-    def __add__(self, other):
-        """Adds two sequences (other can be a string as well)."""
-        if hasattr(other, "moltype"):
-            if self.moltype != other.moltype:
-                raise ValueError(
-                    f"MolTypes don't match: ({self.moltype},{other.moltype})"
-                )
-            other_seq = other._seq
-        else:
-            other_seq = other
-        new_seq = self.__class__(self._seq + other_seq)
-        # Annotations which extend past the right end of the left sequence
-        # or past the left end of the right sequence are dropped because
-        # otherwise they will annotate the wrong part of the constructed
-        # sequence.
-        left = [
-            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
-        ]
-        if hasattr(other, "_shifted_annotations"):
-            right = [
-                a
-                for a in other._shifted_annotations(new_seq, len(self))
-                if a.map.start >= len(self)
-            ]
-            new_seq.annotations = left + right
-        else:
-            new_seq.annotations = left
-        return new_seq
-
     def __repr__(self):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
@@ -1183,6 +1172,27 @@ class Sequence(_Annotatable, SequenceI):
             for i in range(num_match)
         ]
 
+    def __add__(self, other):
+        """Adds two sequences (other can be a string as well)"""
+        new_seq = super(Sequence, self).__add__(other)
+        # Annotations which extend past the right end of the left sequence
+        # or past the left end of the right sequence are dropped because
+        # otherwise they will annotate the wrong part of the constructed
+        # sequence.
+        left = [
+            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
+        ]
+        if hasattr(other, "_shifted_annotations"):
+            right = [
+                a
+                for a in other._shifted_annotations(new_seq, len(self))
+                if a.map.start >= len(self)
+            ]
+            new_seq.annotations = left + right
+        else:
+            new_seq.annotations = left
+
+        return new_seq
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
