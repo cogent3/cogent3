@@ -1194,6 +1194,7 @@ class Sequence(_Annotatable, SequenceI):
 
         return new_seq
 
+
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
 

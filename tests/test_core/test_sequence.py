@@ -1014,6 +1014,32 @@ class SequenceTests(TestCase):
         self.assertNotEqual(original_sequence.name, added_name_only_duplicate.name)
         self.assertNotEqual(original_sequence.name, different_sequences.name)
 
+    def test_add2(self):
+        """name property correctly handled in sequence add"""
+        a1 = self.SEQ("AAA", name="1")
+        a2 = self.SEQ("CC", name="1")
+        a = a1 + a2
+        self.assertEqual(a.name, "1")
+        self.assertEqual(a, "AAACC")
+
+        b = self.SEQ("GGGG", name="2")
+        self._check_mix_add(a1, b)
+        c = self.SEQ("TT")
+        self._check_mix_add(a1, c)
+
+        e = "AA"
+        be = b + e
+        self.assertIsNone(be.name)
+        self.assertEqual(be, str(b) + e)
+
+    def _check_mix_add(self, s1, s2):
+        s1s2 = s1 + s2
+        s2s1 = s2 + s1
+        self.assertIsNone(s1s2.name)
+        self.assertIsNone(s2s1.name)
+        self.assertEqual(s1s2, str(s1) + str(s2))
+        self.assertEqual(s2s1, str(s2) + str(s1))
+
 
 class SequenceSubclassTests(TestCase):
     """Only one general set of tests, since the subclasses are very thin."""
