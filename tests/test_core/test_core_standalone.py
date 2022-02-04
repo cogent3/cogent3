@@ -68,8 +68,9 @@ class TestConstructorFunctions(unittest.TestCase):
             _ = make_unaligned_seqs(data, info=2)
 
         # source works
-        got = make_unaligned_seqs(data, source="somewhere")
-        self.assertEqual(got.info["source"], "somewhere")
+        for src in ("somewhere", pathlib.Path("somewhere")):
+            got = make_unaligned_seqs(data, source=src)
+            self.assertEqual(got.info["source"], str(src))
 
     def test_make_aligned_seqs(self):
         """test Alignment/ArrayAlignment constructor utility function"""
@@ -88,8 +89,9 @@ class TestConstructorFunctions(unittest.TestCase):
             _ = make_unaligned_seqs(data, info=2)
 
         # source works
-        got = make_aligned_seqs(data, source="somewhere")
-        self.assertEqual(got.info["source"], "somewhere")
+        for src in ("somewhere", pathlib.Path("somewhere")):
+            got = make_aligned_seqs(data, source=src)
+            self.assertEqual(got.info["source"], str(src))
 
         # array_align works
         got = make_aligned_seqs(data, array_align=False)

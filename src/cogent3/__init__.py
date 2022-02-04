@@ -134,7 +134,8 @@ def make_unaligned_seqs(
     info
         a dict from which to make an info object
     source
-        origins of this data, defaults to 'unknown'
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
     **kw
         other keyword arguments passed to SequenceCollection
     """
@@ -147,7 +148,8 @@ def make_unaligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     assert isinstance(info, dict), "info must be a dict"
-    info["source"] = source or info.get("source", "unknown")
+    source = source or info.get("source", "unknown")
+    info["source"] = str(source)
 
     return SequenceCollection(
         data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
@@ -178,9 +180,10 @@ def make_aligned_seqs(
     info
         a dict from which to make an info object
     source
-        origins of this data, defaults to 'unknown'
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
     **kw
-        other keyword arguments passed to SequenceCollection
+        other keyword arguments passed to alignment class
     """
     if moltype is not None:
         moltype = get_moltype(moltype)
@@ -190,7 +193,8 @@ def make_aligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     assert isinstance(info, dict), "info must be a dict"
-    info["source"] = source or info.get("source", "unknown")
+    source = source or info.get("source", "unknown")
+    info["source"] = str(source)
     klass = ArrayAlignment if array_align else Alignment
     return klass(
         data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
@@ -221,6 +225,10 @@ def load_unaligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+    info
+        a dict from which to make an info object
+    **kw
+        other keyword arguments passed to SequenceCollection
 
     Returns
     -------
