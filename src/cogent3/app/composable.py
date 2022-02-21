@@ -427,10 +427,10 @@ class Composable(ComposableType):
             log_file_path = None
 
         if LOGGER:
-            if not log_file_path:
+            if not log_file_path and not LOGGER.log_file_path:
                 src = pathlib.Path(self.data_store.source)
                 log_file_path = src.parent / _make_logfile_name(self)
-            LOGGER.log_file_path = str(log_file_path)
+                LOGGER.log_file_path = str(log_file_path)
             LOGGER.log_message(str(self), label="composable function")
             LOGGER.log_versions(["cogent3"])
 
