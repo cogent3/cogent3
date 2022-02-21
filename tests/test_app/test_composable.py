@@ -6,6 +6,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import Mock
 
+from scitrack import CachingLogger
+
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import (
@@ -166,6 +168,20 @@ class TestComposableBase(TestCase):
             writer = io_app.write_db(outpath)
             process = reader + min_length + writer
             r = process.apply_to(dstore, show_progress=False, logger=True)
+            self.assertEqual(len(process.data_store.logs), 1)
+            process.data_store.close()
+
+    def test_apply_to_logger(self):
+        """correctly uses user provided logger"""
+        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+        with TemporaryDirectory(dir=".") as dirname:
+            LOGGER = CachingLogger()
+            reader = io_app.load_aligned(format="fasta", moltype="dna")
+            min_length = sample_app.min_length(10)
+            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+            writer = io_app.write_db(outpath)
+            process = reader + min_length + writer
+            r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
             self.assertEqual(len(process.data_store.logs), 1)
             process.data_store.close()
 

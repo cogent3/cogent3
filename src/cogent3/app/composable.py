@@ -418,18 +418,22 @@ class Composable(ComposableType):
             LOGGER = None
         elif type(logger) == scitrack.CachingLogger:
             LOGGER = logger
+            log_file_path = LOGGER.log_file_path
         elif type(logger) == str:
-            LOGGER = scitrack.CachingLogger
-            LOGGER.log_file_path = logger
-        else:
-            log_file_path = pathlib.Path(_make_logfile_name(self))
-            src = pathlib.Path(self.data_store.source)
-            log_file_path = src.parent / log_file_path
             LOGGER = scitrack.CachingLogger()
-            LOGGER.log_file_path = str(log_file_path)
+            log_file_path = logger
+        else:
+            LOGGER = scitrack.CachingLogger()
+            log_file_path = None
+
         if LOGGER:
+            if not log_file_path and not LOGGER.log_file_path:
+                src = pathlib.Path(self.data_store.source)
+                log_file_path = src.parent / _make_logfile_name(self)
+                LOGGER.log_file_path = str(log_file_path)
             LOGGER.log_message(str(self), label="composable function")
             LOGGER.log_versions(["cogent3"])
+
         results = []
         process = self.input or self
         if self.input:
