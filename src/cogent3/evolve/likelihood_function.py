@@ -754,8 +754,7 @@ class LikelihoodFunction(ParameterController):
         """
         if motif_probs is None:
             motif_probs = self.get_motif_probs_by_node()
-        node_names = self.tree.get_node_names()
-        node_names.remove("root")
+        node_names = [n for n in self.tree.get_node_names() if n != "root"]
         lengths = {e: self.get_param_value("length", edge=e) for e in node_names}
         if not isinstance(self.model, substitution_model.Stationary):
             ens = {}

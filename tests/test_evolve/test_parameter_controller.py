@@ -146,9 +146,6 @@ class test_parameter_controller(TestCase):
                 (KeyError, TypeError, AssertionError, ValueError), do_rules, rule_set
             )
 
-    def test_set_local_clock(self):
-        pass
-
     def test_set_constant_lengths(self):
         t = make_tree(treestring="((a:1,b:2):3,(c:4,d:5):6,e:7);")
         lf = self.model.make_likelihood_function(t)  # self.tree)
