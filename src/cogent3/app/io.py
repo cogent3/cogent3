@@ -3,6 +3,8 @@ import os
 import pathlib
 import zipfile
 
+from typing import Union
+
 import numpy
 
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
@@ -80,12 +82,14 @@ def findall(base_path, suffix="fa", limit=None, verbose=False):
     return data_store.members
 
 
-def get_data_store(base_path, suffix=None, limit=None, verbose=False):
+def get_data_store(
+    base_path: Union[str, pathlib.Path], suffix=None, limit=None, verbose=False
+):
     """returns DataStore containing glob matches to suffix in base_path
 
     Parameters
     ----------
-    base_path : str
+    base_path : str or Path
         path to directory or zipped archive
     suffix : str
         suffix of filenames
@@ -594,6 +598,7 @@ class write_db(_checkpointable):
         -------
         identifier
         """
+        # todo skip next line if identifier provided
         data_source = get_data_source(data)  # todo -- this is being ignored!
         if (data_source and identifier is not None) and str(data_source) != str(
             identifier

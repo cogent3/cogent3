@@ -4,10 +4,13 @@ and phylo.
 """
 
 import os
+import pathlib
 import pickle
 import re
 import sys
 import warnings
+
+from typing import Union
 
 import numpy
 
@@ -202,7 +205,7 @@ def make_aligned_seqs(
 
 
 def load_unaligned_seqs(
-    filename,
+    filename: Union[str, pathlib.Path],
     format=None,
     moltype=None,
     label_to_name=None,
@@ -259,7 +262,7 @@ def load_unaligned_seqs(
 
 
 def load_aligned_seqs(
-    filename,
+    filename: Union[str, pathlib.Path],
     format=None,
     array_align=True,
     moltype=None,
@@ -400,7 +403,7 @@ def make_table(
 
 
 def load_table(
-    filename,
+    filename: Union[str, pathlib.Path],
     sep=None,
     reader=None,
     digits=4,
@@ -570,7 +573,9 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     return tree
 
 
-def load_tree(filename, format=None, underscore_unmunge=False):
+def load_tree(
+    filename: Union[str, pathlib.Path], format=None, underscore_unmunge=False
+):
     """Constructor for tree.
 
     Parameters
