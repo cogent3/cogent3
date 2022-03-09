@@ -109,7 +109,7 @@ class test_parameter_controller(TestCase):
         compare_mprobs(motif_probs, correct_probs)
         assert_allclose(sum(motif_probs.values()), 1.0)
 
-    def test_setMultiLocus(self):
+    def test_set_multilocus(self):
         """2 loci each with own mprobs"""
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             motif_probs=None
@@ -123,12 +123,9 @@ class test_parameter_controller(TestCase):
 
         for is_constant in [False, True]:
             lf.set_motif_probs(mprobs_a, is_constant=is_constant)
-            str(lf)
             lf.set_motif_probs(mprobs_b, locus="b")
             self.assertEqual(lf.get_motif_probs(locus="a"), mprobs_a)
             self.assertEqual(lf.get_motif_probs(locus="b"), mprobs_b)
-            str(lf)
-            # lf.set_param_rule('mprobs', is_independent=False)
 
     def test_set_param_rules(self):
         lf = self.model.make_likelihood_function(self.tree)

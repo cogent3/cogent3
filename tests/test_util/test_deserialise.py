@@ -461,7 +461,7 @@ class TestDeserialising(TestCase):
         loci_names = ["1st-half", "2nd-half"]
         loci = [aln1, aln2]
         tree = make_tree(tip_names=data.names)
-        model = get_model("HKY85")
+        model = get_model("HKY85", optimise_motif_probs=True)
         lf = model.make_likelihood_function(tree, loci=loci_names)
         lf.set_alignment(loci)
         lf_rich_dict = lf.to_rich_dict()
@@ -471,6 +471,10 @@ class TestDeserialising(TestCase):
             str(lf.defn_for["alignment"].assignments),
             str(got.defn_for["alignment"].assignments),
         )
+        # now constrain mprobs to be the same
+        lf.set_param_rule("mprobs", is_independent=False)
+        lf_rich_dict = lf.to_rich_dict()
+
         # tests single alignment
         model = get_model("HKY85")
         lf = model.make_likelihood_function(tree)
