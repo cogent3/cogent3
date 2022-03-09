@@ -7,6 +7,7 @@ from os import path as os_path
 from os import remove
 from pathlib import Path
 from tempfile import mkdtemp
+from typing import Union
 from zipfile import ZipFile
 
 from chardet import detect
@@ -24,7 +25,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def open_zip(filename, mode="r", **kwargs):
+def open_zip(filename: Union[str, Path], mode="r", **kwargs):
     """open a single member zip-compressed file
 
     Note
@@ -59,7 +60,7 @@ def open_zip(filename, mode="r", **kwargs):
         return TextIOWrapper(opened, encoding=encoding)
 
 
-def open_(filename, mode="rt", **kwargs):
+def open_(filename: Union[str, Path], mode="rt", **kwargs):
     """open that handles different compression"""
 
     filename = Path(filename).expanduser().absolute()
@@ -103,7 +104,9 @@ def _path_relative_to_zip_parent(zip_path, member_path):
 class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
-    def __init__(self, path, tmpdir=None, in_zip=None, mode="w", encoding=None):
+    def __init__(
+        self, path: Union[str, Path], tmpdir=None, in_zip=None, mode="w", encoding=None
+    ):
         """
 
         Parameters
@@ -221,7 +224,7 @@ class atomic_write:
         self.__exit__(None, None, None)
 
 
-def get_format_suffixes(filename):
+def get_format_suffixes(filename: Union[str, Path]):
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
