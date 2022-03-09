@@ -462,8 +462,6 @@ def load_table(
     skip_inconsistent
         skips rows that have different length to header row
     """
-    import pathlib
-
     if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
         raise TypeError(
             "filename must be string or Path, perhaps you want make_table()"
