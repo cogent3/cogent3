@@ -482,7 +482,7 @@ def load_table(
 
     if reader:
         with open_(filename, newline=None) as f:
-            data = [row for row in reader(f)]
+            data = list(reader(f))
             header = data[0]
             data = {column[0]: column[1:] for column in zip(*data)}
     else:
