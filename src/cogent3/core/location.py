@@ -272,7 +272,7 @@ class Span(SpanI):
             self.reverse = reverse
 
     def to_rich_dict(self):
-        attribs = self._serialisable.copy()
+        attribs = copy.deepcopy(self._serialisable)
         attribs["type"] = get_object_provenance(self)
         attribs["version"] = __version__
         return attribs
@@ -487,7 +487,7 @@ class _LostSpan(object):
         self.value = value
 
     def to_rich_dict(self):
-        attribs = self._serialisable.copy()
+        attribs = copy.deepcopy(self._serialisable)
         attribs["type"] = get_object_provenance(self)
         attribs["version"] = __version__
         return attribs
@@ -807,7 +807,7 @@ class Map(object):
     def to_rich_dict(self):
         """returns dicts for contained spans [dict(), ..]"""
         spans = [s.to_rich_dict() for s in self.spans]
-        data = self._serialisable.copy()
+        data = copy.deepcopy(self._serialisable)
         data.pop("locations")
         data["spans"] = spans
         data["type"] = get_object_provenance(self)

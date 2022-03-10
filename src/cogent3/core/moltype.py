@@ -25,6 +25,7 @@ import json
 import re
 
 from collections import defaultdict
+from copy import deepcopy
 from random import choice
 from string import ascii_letters as letters
 
@@ -715,7 +716,7 @@ class MolType(object):
         return (), data
 
     def to_rich_dict(self, for_pickle=False):
-        data = self._serialisable.copy()
+        data = deepcopy(self._serialisable)
         if not for_pickle:  # we rely on reconstruction from label
             data = dict(type=get_object_provenance(self), moltype=self.label)
             data["version"] = __version__

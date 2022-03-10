@@ -898,7 +898,7 @@ class LikelihoodFunction(ParameterController):
 
     def to_rich_dict(self):
         """returns detailed info on object, used by to_json"""
-        data = self._serialisable.copy()
+        data = deepcopy(self._serialisable)
         for key in ("model", "tree"):
             del data[key]
 
