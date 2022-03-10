@@ -263,7 +263,7 @@ class _Annotatable:
 class _Serialisable:
     def to_rich_dict(self):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
-        data = self._serialisable.copy()
+        data = copy.deepcopy(self._serialisable)
         # the first constructor argument will be the instance recreating
         # so we pop out the two possible keys
         data.pop("parent", None)

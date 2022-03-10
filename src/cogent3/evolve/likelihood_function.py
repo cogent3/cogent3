@@ -898,7 +898,7 @@ class LikelihoodFunction(ParameterController):
 
     def to_rich_dict(self):
         """returns detailed info on object, used by to_json"""
-        data = self._serialisable.copy()
+        data = deepcopy(self._serialisable)
         for key in ("model", "tree"):
             del data[key]
 
@@ -920,11 +920,19 @@ class LikelihoodFunction(ParameterController):
             alignment = self.get_param_value("alignment").to_rich_dict()
             mprobs = self.get_motif_probs().to_dict()
         else:
+            # this is a multi-locus likelihood function
             alignment = {a["locus"]: a["value"] for a in aln_defn.get_param_rules()}
-            mprobs = self.get_motif_probs()
             for k in alignment:
                 alignment[k] = alignment[k].to_rich_dict()
-                mprobs[k] = mprobs[k].to_dict()
+
+            mprobs = self.get_motif_probs()
+            if isinstance(mprobs, dict):
+                # separate mprobs per locus
+                for k in alignment:
+                    mprobs[k] = mprobs[k].to_dict()
+            else:
+                # motif probs are constrained to be the same between loci
+                mprobs = self.get_motif_probs().to_dict()
 
         DLC = self.all_psubs_DLC()
         try:

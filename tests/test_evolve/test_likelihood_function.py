@@ -823,6 +823,27 @@ DogFaced     root      1.0000    1.0000
         new_lnL = lf.get_log_likelihood()
         assert_allclose(new_lnL, lnL)
 
+    def test_get_param_rules_multilocus(self):
+        """correctly return rules from multilocus lf"""
+        data = load_aligned_seqs(
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+        )
+        half = len(data) // 2
+        aln1 = data[:half]
+        aln2 = data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        tree = make_tree(tip_names=data.names)
+        model = get_model("HKY85", optimise_motif_probs=True)
+        lf = model.make_likelihood_function(tree, loci=loci_names)
+        lf.set_alignment(loci)
+        lf.set_param_rule("mprobs", is_independent=False)
+        rules = lf.get_param_rules()
+        lf2 = model.make_likelihood_function(tree, loci=loci_names)
+        lf2.set_alignment(loci)
+        lf2.apply_param_rules(rules=rules)
+        assert_allclose(lf.lnL, lf2.lnL)
+
     def test_get_param_rules_discrete(self):
         """discrete time models produce valid rules"""
         sm = get_model("BH")

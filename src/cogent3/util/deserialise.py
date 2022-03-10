@@ -310,13 +310,19 @@ def deserialise_likelihood_function(data):
     lf = model.make_likelihood_function(tree, **constructor_args)
     lf.set_name(name)
     lf = model.make_likelihood_function(tree, **constructor_args)
+
     if isinstance(constructor_args["loci"], list):
+        locus_names = constructor_args["loci"]
         align = data["alignment"]
-        aln = [deserialise_seq_collections(align[k]) for k in align]
-        mprobs = [motif_probs[k] for k in motif_probs]
+        aln = [deserialise_seq_collections(align[k]) for k in locus_names]
+        if locus_names[0] in motif_probs:
+            mprobs = [motif_probs[k] for k in motif_probs]
+        else:
+            mprobs = [motif_probs]
     else:
         aln = deserialise_seq_collections(data.pop("alignment"))
         mprobs = [motif_probs]
+
     lf.set_alignment(aln)
     with lf.updates_postponed():
         for motif_probs in mprobs:

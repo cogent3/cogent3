@@ -34,6 +34,7 @@ import json
 import warnings
 
 from collections.abc import Callable
+from copy import deepcopy
 
 import numpy
 
@@ -254,7 +255,7 @@ class _SubstitutionModel(object):
         return (), data
 
     def to_rich_dict(self, for_pickle=False):
-        data = self._serialisable.copy()
+        data = deepcopy(self._serialisable)
         if not for_pickle:
             for key, value in data.items():
                 type_ = get_object_provenance(value)
