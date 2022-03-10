@@ -449,8 +449,26 @@ class TestDeserialising(TestCase):
         got = deserialise_object(jdata)
         self.assertEqual(got, data)
 
-    def test_deserialise_likelihood_function(self):
+    def test_deserialise_likelihood_function1(self):
         """correctly deserialise data into likelihood function"""
+        # tests single alignment
+        aln = load_aligned_seqs(
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+        )
+        tree = make_tree(tip_names=aln.names)
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        lf_rich_dict = lf.to_rich_dict()
+        got = deserialise_likelihood_function(lf_rich_dict)
+        self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
+        self.assertEqual(
+            str(lf.defn_for["alignment"].assignments),
+            str(got.defn_for["alignment"].assignments),
+        )
+
+    def test_deserialise_likelihood_function_multilocus(self):
+        """correctly deserialise data of multilocus likelihood function"""
         # tests multiple alignments
         data = load_aligned_seqs(
             filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
@@ -473,12 +491,6 @@ class TestDeserialising(TestCase):
         )
         # now constrain mprobs to be the same
         lf.set_param_rule("mprobs", is_independent=False)
-        lf_rich_dict = lf.to_rich_dict()
-
-        # tests single alignment
-        model = get_model("HKY85")
-        lf = model.make_likelihood_function(tree)
-        lf.set_alignment(aln1)
         lf_rich_dict = lf.to_rich_dict()
         got = deserialise_likelihood_function(lf_rich_dict)
         self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
