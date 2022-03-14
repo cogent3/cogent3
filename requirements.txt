@@ -1,5 +1,5 @@
 chardet==4.0.0
-pillow==9.0.0
+pillow==9.0.1
 psutil==5.9.0
 scipy==1.7.3
 tox==3.24.5
