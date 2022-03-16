@@ -980,6 +980,35 @@ DogFaced     root      1.0000    1.0000
         nfp2 = lf.nfp
         self.assertEqual(nfp2 - nfp1, 1)
 
+    def test_set_time_heterogeneity_multilocus(self):
+        """apply time heterogeneity for multilocus function"""
+        half = len(self.data) // 2
+        aln1 = self.data[:half]
+        aln2 = self.data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        model = get_model("GN", optimise_motif_probs=True)
+        # should not fail
+        lf = model.make_likelihood_function(self.tree, loci=loci_names)
+        assert lf.locus_names == loci_names
+        lf.set_alignment(loci)
+        edges = ["Human", "HowlerMon"]
+        lf = model.make_likelihood_function(
+            self.tree,
+            loci=loci_names,
+            discrete_edges=edges,
+        )
+        lf.set_time_heterogeneity(upper=100, is_independent=True)
+        lf.set_alignment(loci)
+        lf.optimise(max_evaluations=10, limit_action="ignore", show_progress=False)
+        stats = lf.get_statistics()
+        timehet_edge_names = set(
+            n for n in self.tree.get_node_names(includeself=False) if n not in edges
+        )
+        for t in stats:
+            if t.title == "edge locus params":
+                assert set(t.columns["edge"]) == timehet_edge_names
+
     def test_getting_pprobs(self):
         """posterior bin probs same length as aln for phylo-HMM model"""
         with open("data/site-het-param-rules.json") as infile:

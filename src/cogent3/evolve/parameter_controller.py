@@ -299,8 +299,19 @@ class _LikelihoodParameterController(_LF):
 
         if edge_sets is None:
             # this just makes the following algorithm consistent
+            # but we need to exclude any edges assigned to discrete psubs
+            dpsubs = self.defn_for.get("dpsubs", None)
+            exclude_edges = set()
+            if dpsubs:
+                dims = dpsubs.valid_dimensions
+                index = dims.index("edge")
+                for k in dpsubs.assignments:
+                    exclude_edges.add(k[index])
+
             edge_sets = [
-                dict(edges=[n]) for n in self.tree.get_node_names(includeself=False)
+                dict(edges=[n])
+                for n in self.tree.get_node_names(includeself=False)
+                if n not in exclude_edges
             ]
         elif type(edge_sets) == dict:
             edge_sets = [edge_sets]
