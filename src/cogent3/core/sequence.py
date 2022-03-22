@@ -15,6 +15,7 @@ import json
 import re
 import warnings
 
+from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
@@ -873,63 +874,49 @@ class Sequence(_Annotatable, SequenceI):
 
     def annotate_from_gff(self, f, pre_parsed=False):
         """annotates a Sequence from a gff file where each entry has the same SeqID"""
-        first_seqname = None
         # only features with parent features included in the 'features' dict
-        features = dict()
-        fake_id = 0
-        if pre_parsed:
-            gff_contents = f
-        else:
-            gff_contents = gff.gff_parser(f)
+        gff_contents = f if pre_parsed else gff.gff_parser(f)
+        top_level = defaultdict(list)
+        grouped = defaultdict(list)
         for gff_dict in gff_contents:
-            if first_seqname is None:
-                first_seqname = gff_dict["SeqID"]
-            else:
-                assert gff_dict["SeqID"] == first_seqname, (
-                    gff_dict["SeqID"],
-                    first_seqname,
-                )
-            # ensure the ID is unique
-            id_ = gff_dict["Attributes"]["ID"]
-            if id_ in features.keys():
-                id_ = f"{id_}:{gff_dict['Type']}:{gff_dict['Start']}-{gff_dict['End']}:{fake_id}"
-                fake_id = fake_id + 1
-            if "Parent" not in gff_dict["Attributes"].keys():
-                self.add_feature(
-                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                )
+            if gff_dict["SeqID"] != self.name:
+                # we can only handle features for this sequence
                 continue
-            features[id_] = gff_dict
-        if features:
-            parents = {}
-            for id_ in features.keys():
-                parents[id_] = features[id_]["Attributes"]["Parent"]
-            sorted_features = self._sort_parents(
-                parents, [], next(iter(features.keys()))
-            )
-            for id_ in sorted_features:
-                matches = []
-                for parent in features[id_]["Attributes"]["Parent"]:
-                    # If a feature has multiple parents, a separate instance is added to each parent
-                    matches.extend(
-                        self.get_annotations_matching(
-                            "*", name=parent, extend_query=True
-                        )
+
+            id_ = gff_dict["Attributes"]["ID"]
+            parents = gff_dict["Attributes"].get("Parent", None)
+            if parents is None:
+                assert id_ not in top_level, f"non-unique id {id_}"
+                top_level[id_].append(
+                    self.add_feature(
+                        gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
                     )
-                for parent in matches:
-                    # Start and end are relative to the parent's absolute starting position
-                    if parent.name not in features.keys():
-                        parent_min = 0
-                    else:
-                        parent_min = min(
-                            features[parent.name]["Start"], features[parent.name]["End"]
+                )
+            else:
+                for parent in parents:
+                    grouped[parent].append(gff_dict)
+
+        # we annotate the annotations
+        while grouped:
+            for key, features in top_level.items():
+                child_features = grouped.pop(key, [])
+                if child_features:
+                    break
+
+            for feature in features:
+                feature_start = feature.map.start
+                for gff_dict in child_features:
+                    top_level[gff_dict["Attributes"]["ID"]].append(
+                        feature.add_feature(
+                            gff_dict["Type"],
+                            id_,
+                            [
+                                (
+                                    gff_dict["Start"] - feature_start,
+                                    gff_dict["End"] - feature_start,
+                                )
+                            ],
                         )
-                    start = features[id_]["Start"] - parent_min
-                    end = features[id_]["End"] - parent_min
-                    parent.add_feature(
-                        features[id_]["Type"],
-                        features[id_]["Attributes"]["ID"],
-                        [(start, end)],
                     )
 
     def _sort_parents(self, parents, ordered, key):
