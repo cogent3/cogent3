@@ -775,9 +775,10 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         reprlib.aRepr.maxstring = 45
         for record in types:
             messages, sources = list(zip(*types[record]))
-            messages = list(set(messages))
-            messages = reprlib.repr(messages[0].splitlines()[-1])
-            sources = reprlib.repr(sources[0])
+            messages = reprlib.repr(
+                ", ".join(m.splitlines()[-1] for m in set(messages))
+            )
+            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
             row = list(record) + [
                 messages,
                 len(types[record]),
