@@ -761,18 +761,22 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
     @property
     def summary_incomplete(self):
         """returns a table summarising incomplete results"""
+        # detect last exception line
+        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
         types = defaultdict(list)
         indices = "type", "origin"
         for member in self.incomplete:
             record = member.read()
             record = deserialise_not_completed(record)
             key = tuple(getattr(record, k, None) for k in indices)
-            types[key].append([record.message, record.source])
+            match = err_pat.findall(record.message)
+            types[key].append([match[-1] if match else record.message, record.source])
 
         header = list(indices) + ["message", "num", "source"]
         rows = []
         maxtring = reprlib.aRepr.maxstring
         reprlib.aRepr.maxstring = 45
+
         for record in types:
             messages, sources = list(zip(*types[record]))
             messages = reprlib.repr(
