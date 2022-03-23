@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 import re
+import reprlib
 import shutil
 import weakref
 import zipfile
@@ -770,31 +771,28 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
 
         header = list(indices) + ["message", "num", "source"]
         rows = []
+        maxtring = reprlib.aRepr.maxstring
+        reprlib.aRepr.maxstring = 45
         for record in types:
             messages, sources = list(zip(*types[record]))
-            messages = list(sorted(set(messages)))
-            if len(messages) > 3:
-                messages = messages[:3] + ["..."]
-
-            if len(sources) > 3:
-                sources = sources[:3] + ("...",)
-
+            messages = list(set(messages))
+            messages = reprlib.repr(messages[0].splitlines()[-1])
+            sources = reprlib.repr(sources[0])
             row = list(record) + [
-                ", ".join(messages),
+                messages,
                 len(types[record]),
-                ", ".join(sources),
+                sources,
             ]
             rows.append(row)
+
+        reprlib.aRepr.maxstring = maxtring  # restoring original val
 
         return Table(header=header, data=rows, title="incomplete records")
 
     @property
     def members(self):
         if not self._members:
-            if self.suffix:
-                pattern = translate(f"*.{self.suffix}")
-            else:
-                pattern = translate("*")
+            pattern = translate(f"*.{self.suffix}") if self.suffix else translate("*")
             members = []
             query = Query()
             query = (query.identifier.matches(pattern)) & (query.completed == True)
