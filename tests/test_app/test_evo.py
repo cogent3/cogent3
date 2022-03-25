@@ -53,11 +53,16 @@ class TestModel(TestCase):
         """argument controls optimisability of motif prob settings"""
         for mn in ("HKY85", "GN", "CNFGTR"):
             for value in (True, False):
-                # check setting via sm_args is overriden
+                # check setting via sm_args is overridden
+                with self.assertRaises(ValueError):
+                    model = evo_app.model(
+                        mn,
+                        optimise_motif_probs=value,
+                        sm_args=dict(optimise_motif_probs=not value),
+                    )
                 model = evo_app.model(
                     mn,
                     optimise_motif_probs=value,
-                    sm_args=dict(optimise_motif_probs=not value),
                 )
                 self.assertEqual(model._sm._optimise_motif_probs, value)
                 # check picking a different value for constructor get's overriden

@@ -127,6 +127,11 @@ class model(ComposableModel):
         ), "cannot provide a tree when unique_trees is True"
         self._unique_trees = unique_trees
         sm_args = sm_args or {}
+        if "optimise_motif_probs" in sm_args:
+            raise ValueError(
+                "'optimise_motif_probs' value in sm_args is IGNORED, use explicit argument instead",
+            )
+
         sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
