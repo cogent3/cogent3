@@ -2,6 +2,7 @@
 
 import os
 import time
+import warnings
 
 import numpy
 
@@ -236,7 +237,10 @@ class Calculator(object):
                 except KeyboardInterrupt:
                     raise
                 except Exception:
-                    print(f"Failed initial calculation of {cell.name}")
+                    warnings.warn(
+                        f"Failed initial calculation of {cell.name}",
+                        category=UserWarning,
+                    )
                     raise
             else:
                 raise RuntimeError(f"Unexpected Cell type {type(cell)}")
