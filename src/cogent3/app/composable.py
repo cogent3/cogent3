@@ -461,21 +461,19 @@ class Composable(ComposableType):
                     member = SingleReadDataStore(member)[0]
 
                 mem_id = self.data_store.make_relative_identifier(member.name)
+                # src points the origins of the data, which can differ from
+                # the db identifier but share in common the name prefix.
+                # todo this is very fragile and needs to be thoroughly refactored
                 src = self.data_store.make_relative_identifier(result)
                 assert (
-                    src == mem_id
+                    src.split(".")[0] == mem_id.split(".")[0]
                 ), f"mismatched input data and result identifiers: {src} != {mem_id}"
 
                 LOGGER.log_message(member, label="input")
                 if member.md5:
                     LOGGER.log_message(member.md5, label="input md5sum")
 
-                if outcome:
-                    member = self.data_store.get_member(mem_id)
-                    LOGGER.log_message(member, label="output")
-                    LOGGER.log_message(member.md5, label="output md5sum")
-                else:
-                    # we have a NotCompletedResult
+                if isinstance(outcome, NotCompleted):
                     try:
                         # tinydb supports storage
                         self.data_store.write_incomplete(mem_id, outcome.to_rich_dict())
@@ -484,6 +482,18 @@ class Composable(ComposableType):
                     LOGGER.log_message(
                         f"{outcome.origin} : {outcome.message}", label=outcome.type
                     )
+                    continue
+
+                if (
+                    isinstance(outcome, DataStoreMember)
+                    and outcome.parent is self.data_store
+                ):
+                    member = outcome
+                else:
+                    member = self.data_store.get_member(mem_id)
+
+                LOGGER.log_message(member, label="output")
+                LOGGER.log_message(member.md5, label="output md5sum")
 
         finish = time.time()
         taken = finish - start
