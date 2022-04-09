@@ -122,6 +122,7 @@ class GeneralStationary(Stationary):
             row_total = numpy.dot(mprobs, R[j])
             col_total = numpy.dot(mprobs, R[:, j])
             required = row_total - col_total
+            required = abs(required) if numpy.allclose(required, 0.0) else required
             if required < 0.0:
                 raise ParameterOutOfBoundsError
             R[i, j] = required / mprobs[i]
