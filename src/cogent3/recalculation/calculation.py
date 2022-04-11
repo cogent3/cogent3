@@ -309,8 +309,20 @@ class Calculator(object):
 
     def optimise(self, **kw):
         x = self.get_value_array()
-        bounds = self.get_bounds_vectors()
-        maximise(self, x, bounds, **kw)
+        low, high = self.get_bounds_vectors()
+        # due to numerical precision, it occassionally happens that
+        # a value no longer lies within bounds. The following logic
+        # catches those cases.
+        x = numpy.array(x)
+        # NOTE: numpy.allclose([], []) == True
+        if numpy.allclose(x[low > x], low[low > x]):
+            x[low > x] = low[low > x]
+        if numpy.allclose(x[high < x], high[high < x]):
+            x[high < x] = high[high < x]
+
+        # We can still get ParameterOutOfBounds exceptions
+        # if values are further outside the bounds
+        maximise(self, x, (low, high), **kw)
         self.optimised = True
 
     def set_tracing(self, trace=False):
