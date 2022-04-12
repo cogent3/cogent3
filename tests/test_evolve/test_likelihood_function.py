@@ -608,6 +608,16 @@ DogFaced     root      4.0000
 ------------------------------------""",
         )
 
+    def test_set_param_rule_adjust_bounds(self):
+        """check behaviour when modify bound and reset param rule"""
+        lf = self._makeLikelihoodFunction()
+        lf.set_param_rule(
+            "beta", init=4.0, is_independent=True, edges=["DogFaced", "NineBande"]
+        )
+        lf.set_param_rule("beta", upper=2)
+        val = lf.get_param_value("beta", edge="DogFaced")
+        self.assertLess(val, 4)  # it will be the average of default and set values
+
     def test_get_motif_probs(self):
         likelihood_function = self._makeLikelihoodFunction()
         mprobs = likelihood_function.get_motif_probs()
