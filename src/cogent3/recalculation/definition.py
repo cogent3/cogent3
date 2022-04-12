@@ -68,6 +68,7 @@ from collections import defaultdict
 
 import numpy
 
+from cogent3.maths.optimisers import ParameterOutOfBoundsError
 from cogent3.maths.util import proportions_to_ratios, ratios_to_proportions
 from cogent3.util.dict_array import DictArrayTemplate
 
@@ -90,6 +91,7 @@ __version__ = "2021.10.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
+
 
 DIM_PLURALS = {
     "bin": "bins",
@@ -263,6 +265,21 @@ class _InputDefn(_LeafDefn):
     def update_from_calculator(self, calc):
         outputs = calc.get_current_cell_values_for_defn(self)
         for (output, setting) in zip(outputs, self.uniq):
+            # catch cases where parameters fall outside bounds due to precision
+            if setting.is_constant:
+                ...  # block trying other conditions
+            elif setting.lower and output < setting.lower:
+                if not numpy.allclose(output, setting.lower):
+                    raise ParameterOutOfBoundsError(
+                        f"calculator value {output} for {self.name!r} is < {setting.lower}"
+                    )
+                output = setting.lower
+            elif setting.upper and output > setting.upper:
+                if not numpy.allclose(output, setting.upper):
+                    raise ParameterOutOfBoundsError(
+                        f"calculator value {output} for {self.name!r} is > {setting.upper}"
+                    )
+                output = setting.upper
             setting.value = output
 
     def get_num_free_params(self):

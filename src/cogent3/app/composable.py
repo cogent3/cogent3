@@ -476,7 +476,7 @@ class Composable(ComposableType):
                 if isinstance(outcome, NotCompleted):
                     try:
                         # tinydb supports storage
-                        self.data_store.write_incomplete(mem_id, outcome.to_rich_dict())
+                        self.data_store.write_incomplete(mem_id, outcome)
                     except AttributeError:
                         pass
                     LOGGER.log_message(
