@@ -10,7 +10,7 @@ We employ codon models to test whether the mode of natural selection affecting h
 
 .. jupyter-execute::
 
-    from cogent3.app import io, evo
+    from cogent3.app import evo, io
 
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")

@@ -8,6 +8,7 @@ For this example we just create a simple model using a four taxon tree with diff
 .. jupyter-execute::
 
     import sys
+
     from cogent3 import make_tree
     from cogent3.evolve.models import get_model
 

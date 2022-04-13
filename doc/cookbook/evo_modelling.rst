@@ -93,7 +93,7 @@ You need to load an alignment and then provide it a likelihood function. I const
 
 .. jupyter-execute::
 
-    from cogent3 import make_tree, make_aligned_seqs
+    from cogent3 import make_aligned_seqs, make_tree
     from cogent3.evolve.models import get_model
 
     sub_mod = get_model("F81")
@@ -238,7 +238,7 @@ There are 2 types of optimiser: simulated annealing, a *global* optimiser; and P
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
@@ -275,7 +275,7 @@ We can monitor this situation using the ``limit_action`` argument to ``optimise`
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
@@ -302,7 +302,7 @@ In Jupyter, the likelihood function object presents a representation of the main
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     sm = get_model("GTR")
@@ -397,7 +397,7 @@ We test the molecular clock hypothesis for human and chimpanzee lineages. The nu
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
@@ -449,7 +449,7 @@ In general, however, this capability derives from the ability of any defined ``e
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
@@ -477,7 +477,7 @@ The profile method is used to calculate a confidence interval for a named parame
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")
@@ -500,7 +500,7 @@ To illustrate this, I create a very simple likelihood function. The ``json`` var
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     aln = make_aligned_seqs(data=dict(a="ACGG", b="ATAG", c="ATGG"))
@@ -527,7 +527,7 @@ We first fit a likelihood function.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
 
     tree = load_tree("data/primate_brca1.tree")

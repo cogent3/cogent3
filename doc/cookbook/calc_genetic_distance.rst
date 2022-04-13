@@ -37,7 +37,7 @@ Using the distance calculator directly
 
 .. jupyter-execute::
 
-    from cogent3 import load_aligned_seqs, get_distance_calculator
+    from cogent3 import get_distance_calculator, load_aligned_seqs
 
     aln = load_aligned_seqs("data/primate_brca1.fasta")
     dist_calc = get_distance_calculator("tn93", alignment=aln)
@@ -64,7 +64,7 @@ The following will use the F81 nucleotide substitution model and perform numeric
 
 .. jupyter-execute::
 
-    from cogent3 import load_aligned_seqs, get_model
+    from cogent3 import get_model, load_aligned_seqs
     from cogent3.evolve import distance
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")

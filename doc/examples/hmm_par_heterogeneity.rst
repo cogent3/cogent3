@@ -20,8 +20,11 @@ First import standard components necessary for all of the following calculations
 
 .. jupyter-execute::
 
-    from cogent3.evolve.substitution_model import TimeReversibleNucleotide, predicate
     from cogent3 import load_aligned_seqs, load_tree
+    from cogent3.evolve.substitution_model import (
+        TimeReversibleNucleotide,
+        predicate,
+    )
     from cogent3.maths.stats import chisqprob
 
 Load the alignment and tree.

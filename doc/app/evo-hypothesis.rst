@@ -10,7 +10,7 @@ We evaluate whether the GTR model is sufficient for a data set, compared with th
 
 .. jupyter-execute::
 
-    from cogent3.app import io, evo, sample
+    from cogent3.app import evo, io, sample
 
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")

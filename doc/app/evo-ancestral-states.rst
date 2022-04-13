@@ -12,7 +12,7 @@ We first fit a model to the sample data.
 
 .. jupyter-execute::
 
-    from cogent3.app import io, evo
+    from cogent3.app import evo, io
 
     reader = io.load_aligned(format="fasta")
     aln = reader("data/primate_brca1.fasta")

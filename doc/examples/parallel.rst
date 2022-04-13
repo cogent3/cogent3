@@ -90,4 +90,3 @@ The ``use_mpi`` argument invokes the correct back end, otherwise the interface i
 .. [1] On MPI, the main process has rank 0, all others have rank > 0.
 .. [2] This environment variable is created by the PBS system on executing the job script.
 .. [3] You can check your execution of the script is correct by validating you get all the ranks up to one minus the number of CPUs you requested.
-

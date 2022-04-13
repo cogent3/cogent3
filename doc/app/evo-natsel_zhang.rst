@@ -13,9 +13,10 @@ For this model class, there are groups of branches for which all positions are e
 .. jupyter-execute::
     :hide-code:
 
-    from numpy import array
-    from cogent3 import make_table
     from IPython.core.display import HTML
+    from numpy import array
+
+    from cogent3 import make_table
 
     header = ['Site Class', 'Proportion', 'Background Edges', 'Foreground Edges']
     data = {'Site Class': array(['0', '1', '2a', '2b'], dtype='<U2'), 'Proportion': array(['p0', 'p1', 'p2', 'p3'], dtype='<U2'), 'Background Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega0 < 1', 'omega1 = 1'],
@@ -29,7 +30,7 @@ For this model class, there are groups of branches for which all positions are e
 
 .. jupyter-execute::
 
-    from cogent3.app import io, evo
+    from cogent3.app import evo, io
 
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")

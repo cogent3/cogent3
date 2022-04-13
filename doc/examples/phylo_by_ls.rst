@@ -16,10 +16,11 @@ We will load some pre-computed pairwise distance data. To see how that data was 
     :hide-code:
 
     import pickle
+
     from cogent3 import load_aligned_seqs
     from cogent3.evolve import distance
-    from cogent3.evolve.models import HKY85
     from cogent3.evolve.fast_distance import DistanceMatrix
+    from cogent3.evolve.models import HKY85
 
     al = load_aligned_seqs("data/long_testseqs.fasta")
     d = distance.EstimateDistances(al, submodel=HKY85())
@@ -31,6 +32,7 @@ We will load some pre-computed pairwise distance data. To see how that data was 
 .. jupyter-execute::
 
     import pickle
+
     from cogent3.phylo import least_squares
 
 Now load the distance data.
