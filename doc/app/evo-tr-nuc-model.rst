@@ -26,7 +26,7 @@ We specify the general time-reversible model (`Lanave et al <https://www.ncbi.nl
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
     model = evo.model(
-        "GTR", tree="data/primate_brca1.tree", sm_args=dict(optimise_motif_probs=True)
+        "GTR", tree="data/primate_brca1.tree", optimise_motif_probs=True
     )
     result = model(aln)
     result
