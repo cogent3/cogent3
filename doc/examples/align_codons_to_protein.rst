@@ -7,7 +7,7 @@ Although Cogent3 provides a means for directly aligning codon sequences, you may
 
 .. jupyter-execute::
 
-    from cogent3 import make_unaligned_seqs, make_aligned_seqs
+    from cogent3 import make_aligned_seqs, make_unaligned_seqs
 
 First I'm going to construct an artificial example, using the seqs dict as a means to get the data into the Alignment object. The basic idea, however, is that you should already have a set of DNA sequences that are in frame (i.e. position 0 is the 1st codon position), you've translated those sequences and aligned these translated sequences. The result is an alignment of aa sequences and a set of unaligned DNA sequences from which the aa seqs were derived. If your sequences are not in frame you can adjust it by either slicing, or adding N's to the beginning of the raw string.
 

@@ -15,8 +15,8 @@ An example of how to calculate the pairwise distances for a set of sequences.
 .. jupyter-execute::
 
     from cogent3 import load_aligned_seqs
-    from cogent3.evolve import distance
     from cogent3.cluster.UPGMA import upgma
+    from cogent3.evolve import distance
 
 Import a substitution model (or create your own)
 

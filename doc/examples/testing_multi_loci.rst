@@ -12,10 +12,10 @@ We want to know whether an exchangeability parameter is different between alignm
 
 .. jupyter-execute::
 
-    from cogent3 import load_aligned_seqs, make_tree, make_table
+    from cogent3 import load_aligned_seqs, make_table, make_tree
     from cogent3.evolve.models import HKY85
-    from cogent3.recalculation.scope import EACH, ALL
     from cogent3.maths.stats import chisqprob
+    from cogent3.recalculation.scope import ALL, EACH
 
     aln = load_aligned_seqs("data/long_testseqs.fasta")
     half = len(aln) // 2

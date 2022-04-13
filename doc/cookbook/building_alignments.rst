@@ -68,8 +68,8 @@ We load some unaligned DNA sequences and show their translation.
 .. jupyter-execute::
 
     from cogent3 import make_unaligned_seqs
-    from cogent3.evolve.models import get_model
     from cogent3.align.progressive import TreeAlign
+    from cogent3.evolve.models import get_model
 
     seqs = [
         (

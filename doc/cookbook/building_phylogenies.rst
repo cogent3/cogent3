@@ -48,8 +48,8 @@ Explicitly via ``DistanceMatrix`` and ``cogent3.phylo.nj.nj()```
 
 .. jupyter-execute::
 
-    from cogent3.phylo import nj
     from cogent3 import load_aligned_seqs
+    from cogent3.phylo import nj
 
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dists = aln.distance_matrix(calc="TN93")
@@ -75,8 +75,8 @@ We illustrate the phylogeny reconstruction by least-squares using the F81 substi
 
 .. jupyter-execute::
 
-    from cogent3.util.deserialise import deserialise_object
     from cogent3.phylo.least_squares import WLS
+    from cogent3.util.deserialise import deserialise_object
 
     dists = deserialise_object("data/dists_for_phylo.json")
     ls = WLS(dists)
@@ -92,8 +92,8 @@ We illustrate the phylogeny reconstruction using maximum-likelihood using the F8
 .. jupyter-execute::
 
     from cogent3 import load_aligned_seqs
-    from cogent3.phylo.maximum_likelihood import ML
     from cogent3.evolve.models import F81
+    from cogent3.phylo.maximum_likelihood import ML
 
     aln = load_aligned_seqs("data/primate_brca1.fasta")
     ml = ML(F81(), aln)
