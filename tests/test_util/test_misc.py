@@ -44,7 +44,7 @@ from cogent3.util.misc import (
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Amanda Birmingham",

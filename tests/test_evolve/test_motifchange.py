@@ -7,7 +7,7 @@ from cogent3.evolve.predicate import MotifChange, parse
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Gavin Huttley",

@@ -13,7 +13,7 @@ from cogent3.util.table import Table
 
 
 __author__ = "Greg Caporaso and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

@@ -22,7 +22,7 @@ from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Andrew Butterfield",

@@ -21,7 +21,7 @@ from cogent3.util.io import open_
 
 
 __author__ = "Cath Lawrence"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Cath Lawrence",
     "Gavin Huttley",

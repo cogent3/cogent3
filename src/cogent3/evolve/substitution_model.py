@@ -67,7 +67,7 @@ from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __contributors__ = [
     "Gavin Huttley",
     "Andrew Butterfield",

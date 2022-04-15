@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Matthew Wakefield",

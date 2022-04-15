@@ -16,7 +16,7 @@ from .period_numba import autocorr_inner, goertzel_inner, ipdft_inner
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

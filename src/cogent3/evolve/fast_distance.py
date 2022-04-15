@@ -15,7 +15,7 @@ from .pairwise_distance_numba import fill_diversity_matrix
 
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

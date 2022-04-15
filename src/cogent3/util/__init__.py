@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Rob Knight",

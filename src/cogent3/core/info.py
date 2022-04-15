@@ -10,7 +10,7 @@ from cogent3.util.misc import ConstrainedDict, Delegator, FunctionWrapper
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

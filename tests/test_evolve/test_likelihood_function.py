@@ -52,7 +52,7 @@ TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Gavin Huttley",

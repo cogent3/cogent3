@@ -7,7 +7,7 @@ from cogent3.parse.gbseq import GbSeqXmlParser
 
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Matthew Wakefield"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

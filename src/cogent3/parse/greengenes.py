@@ -11,7 +11,7 @@ from cogent3.parse.record_finder import DelimitedRecordFinder
 
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

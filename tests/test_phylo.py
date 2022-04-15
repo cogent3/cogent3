@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Gavin Huttley",

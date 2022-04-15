@@ -10,7 +10,7 @@ from cogent3.parse.greengenes import (
 
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"  # consider project name
+__copyright__ = "Copyright 2007-2022, The Cogent Project"  # consider project name
 # remember to add yourself if you make changes
 __credits__ = ["Daniel McDonald"]
 __license__ = "BSD-3"

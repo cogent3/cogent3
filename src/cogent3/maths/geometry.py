@@ -24,7 +24,7 @@ from numpy import (
 
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Sandra Smit",
     "Gavin Huttley",

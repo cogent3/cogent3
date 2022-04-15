@@ -4,7 +4,7 @@
 #
 
 __author__ = "Kristian Rother"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __contributors__ = ["Micah Hamady"]
 __credits__ = ["Rob Knight"]
 __license__ = "BSD-3"

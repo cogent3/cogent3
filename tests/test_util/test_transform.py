@@ -13,7 +13,7 @@ from cogent3.util.transform import (
 
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Zongzhi Liu"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

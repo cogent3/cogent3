@@ -50,7 +50,7 @@ from cogent3.util.table import cast_str_to_array
 
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Rob Knight",

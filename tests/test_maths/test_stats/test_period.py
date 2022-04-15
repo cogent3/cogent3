@@ -15,7 +15,7 @@ from cogent3.maths.stats.period import (
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

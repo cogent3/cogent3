@@ -54,7 +54,7 @@ from .annotation import Map, _Annotatable
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Peter Maxwell",

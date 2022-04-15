@@ -12,7 +12,7 @@ types and the MolType can be made after the objects are created.
 """
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

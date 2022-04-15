@@ -6,7 +6,7 @@ from numpy import exp, floor, log, sin, sqrt
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit", "Daniel McDonald"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

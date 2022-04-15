@@ -47,7 +47,7 @@ from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Jeremy Widmann",
     "Catherine Lozuopone",

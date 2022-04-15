@@ -17,7 +17,7 @@ from numpy.linalg import eig, inv, solve
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Zongzhi Liu"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

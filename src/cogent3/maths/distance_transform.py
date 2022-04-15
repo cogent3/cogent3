@@ -75,7 +75,7 @@ from numpy.linalg import norm
 
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Micah Hamady",

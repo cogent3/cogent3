@@ -7,7 +7,7 @@ from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley, Anuj Pahwa"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley", "Anuj Pahwa"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

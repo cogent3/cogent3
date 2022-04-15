@@ -31,7 +31,7 @@ from cogent3.data.molecular_weight import DnaMW, RnaMW
 
 
 __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

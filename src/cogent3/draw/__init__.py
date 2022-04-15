@@ -2,7 +2,7 @@
 
 __all__ = ["dendrogram", "dotplot", "drawable", "letter", "logo"]
 
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __contributors__ = [
     "Peter Maxwell",
     "Gavin Huttley",

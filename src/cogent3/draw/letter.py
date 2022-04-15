@@ -21,7 +21,7 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Sheng Han Moses Koh"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Sheng Han Moses Koh", "Gavin Huttley"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

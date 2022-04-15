@@ -16,7 +16,7 @@ from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
 #    return parse_string(data, constructor)
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Daniel McDonald"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"

@@ -15,7 +15,7 @@ import numpy
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield", "Jeremy Widmann"]
 __license__ = "BSD-3"
 __version__ = "2022.4.15a1"
