@@ -52,7 +52,7 @@ TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -62,7 +62,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -214,7 +214,7 @@ class LikelihoodCalcs(TestCase):
         obs = round(sum(values) / len(values), 6)
         self.assertEqual(obs, 1.0)
         self.assertEqual(len(values), 3)
-        shape = lf.get_param_value("rate_shape")
+        lf.get_param_value("rate_shape")
 
     def test_binned_gamma_ordered_param(self):
         """rate is gamma distributed omega follows"""
@@ -229,7 +229,7 @@ class LikelihoodCalcs(TestCase):
         values = list(lf.get_param_value_dict(["bin"])["omega_factor"].values())
         self.assertEqual(round(sum(values) / len(values), 6), 1.0)
         self.assertEqual(len(values), 3)
-        shape = lf.get_param_value("rate_shape")
+        lf.get_param_value("rate_shape")
 
     def test_binned_partition(self):
         submod = substitution_model.TimeReversibleCodon(
@@ -472,7 +472,7 @@ DogFaced   root      1.00  1.00
         """excercising the most likely ancestral sequences"""
         likelihood_function = self._makeLikelihoodFunction()
         self._setLengthsAndBetas(likelihood_function)
-        result = likelihood_function.likely_ancestral_seqs()
+        likelihood_function.likely_ancestral_seqs()
 
     def test_simulate_alignment(self):
         "Simulate DNA alignment"
@@ -489,7 +489,7 @@ DogFaced   root      1.00  1.00
         lf = self.submodel.make_likelihood_function(self.tree, bins=["low", "high"])
         lf.set_param_rule("beta", bin="low", value=0.1)
         lf.set_param_rule("beta", bin="high", value=10.0)
-        simulated_alignment = lf.simulate_alignment(100)
+        lf.simulate_alignment(100)
 
     def test_simulatePatchyHetergeneousAlignment(self):
         "Simulate patchy substitution-heterogeneous DNA alignment"
@@ -498,7 +498,7 @@ DogFaced   root      1.00  1.00
         )
         lf.set_param_rule("beta", bin="low", value=0.1)
         lf.set_param_rule("beta", bin="high", value=10.0)
-        simulated_alignment = lf.simulate_alignment(100)
+        lf.simulate_alignment(100)
 
     def test_simulate_alignment1(self):
         "Simulate alignment when no alignment set"
@@ -607,6 +607,16 @@ DogFaced     root      4.0000
 0.2500    0.2500    0.2500    0.2500
 ------------------------------------""",
         )
+
+    def test_set_param_rule_adjust_bounds(self):
+        """check behaviour when modify bound and reset param rule"""
+        lf = self._makeLikelihoodFunction()
+        lf.set_param_rule(
+            "beta", init=4.0, is_independent=True, edges=["DogFaced", "NineBande"]
+        )
+        lf.set_param_rule("beta", upper=2)
+        val = lf.get_param_value("beta", edge="DogFaced")
+        self.assertLess(val, 4)  # it will be the average of default and set values
 
     def test_get_motif_probs(self):
         likelihood_function = self._makeLikelihoodFunction()
@@ -737,7 +747,7 @@ DogFaced     root      1.0000    1.0000
         sm = get_model("BH")
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(self.data)
-        psubs = lf.get_all_psubs()
+        lf.get_all_psubs()
 
     def test_get_all_rate_matrices(self):
         """return matrices when just a pair"""
@@ -782,7 +792,7 @@ DogFaced     root      1.0000    1.0000
         """lf ignores tree lengths if a discrete Markov model"""
         t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
         dm = ns_substitution_model.DiscreteSubstitutionModel(DNA.alphabet)
-        lf = dm.make_likelihood_function(t)
+        dm.make_likelihood_function(t)
 
     def test_exercise_set_align(self):
         "lf.set_align should work for different models"
@@ -822,6 +832,27 @@ DogFaced     root      1.0000    1.0000
                 lf.set_param_rule(**rule)
         new_lnL = lf.get_log_likelihood()
         assert_allclose(new_lnL, lnL)
+
+    def test_get_param_rules_multilocus(self):
+        """correctly return rules from multilocus lf"""
+        data = load_aligned_seqs(
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+        )
+        half = len(data) // 2
+        aln1 = data[:half]
+        aln2 = data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        tree = make_tree(tip_names=data.names)
+        model = get_model("HKY85", optimise_motif_probs=True)
+        lf = model.make_likelihood_function(tree, loci=loci_names)
+        lf.set_alignment(loci)
+        lf.set_param_rule("mprobs", is_independent=False)
+        rules = lf.get_param_rules()
+        lf2 = model.make_likelihood_function(tree, loci=loci_names)
+        lf2.set_alignment(loci)
+        lf2.apply_param_rules(rules=rules)
+        assert_allclose(lf.lnL, lf2.lnL)
 
     def test_get_param_rules_discrete(self):
         """discrete time models produce valid rules"""
@@ -958,6 +989,35 @@ DogFaced     root      1.0000    1.0000
         lf.set_time_heterogeneity(edge_sets=edge_sets, is_independent=True)
         nfp2 = lf.nfp
         self.assertEqual(nfp2 - nfp1, 1)
+
+    def test_set_time_heterogeneity_multilocus(self):
+        """apply time heterogeneity for multilocus function"""
+        half = len(self.data) // 2
+        aln1 = self.data[:half]
+        aln2 = self.data[half:]
+        loci_names = ["1st-half", "2nd-half"]
+        loci = [aln1, aln2]
+        model = get_model("GN", optimise_motif_probs=True)
+        # should not fail
+        lf = model.make_likelihood_function(self.tree, loci=loci_names)
+        assert lf.locus_names == loci_names
+        lf.set_alignment(loci)
+        edges = ["Human", "HowlerMon"]
+        lf = model.make_likelihood_function(
+            self.tree,
+            loci=loci_names,
+            discrete_edges=edges,
+        )
+        lf.set_time_heterogeneity(upper=100, is_independent=True)
+        lf.set_alignment(loci)
+        lf.optimise(max_evaluations=10, limit_action="ignore", show_progress=False)
+        stats = lf.get_statistics()
+        timehet_edge_names = set(
+            n for n in self.tree.get_node_names(includeself=False) if n not in edges
+        )
+        for t in stats:
+            if t.title == "edge locus params":
+                assert set(t.columns["edge"]) == timehet_edge_names
 
     def test_getting_pprobs(self):
         """posterior bin probs same length as aln for phylo-HMM model"""
@@ -1280,6 +1340,31 @@ DogFaced     root      1.0000    1.0000
         glf.set_name("GN")
         glf.initialise_from_nested(slf)
         assert_allclose(glf.get_log_likelihood(), slf.get_log_likelihood())
+
+    def test_initialise_from_nested_codon_scoped(self):
+        """scoped non-reversible likelihood initialised from nested scoped, non-reversible"""
+        simple = get_model("H04GK")
+        tree = make_tree(tip_names=["Human", "Mouse", "Opossum"])
+        slf = simple.make_likelihood_function(tree)
+        slf.set_alignment(_aln)
+        slf.set_time_heterogeneity(
+            edge_sets=[
+                dict(edges=["Opossum"], is_independent=True),
+            ],
+            exclude_params=["kappa", "omega"],
+        )
+        slf.optimise(max_evaluations=50, limit_action="ignore", show_progress=False)
+        glf = simple.make_likelihood_function(tree)
+        glf.set_alignment(_aln)
+        glf.set_time_heterogeneity(
+            edge_sets=[
+                dict(edges=["Opossum"], is_independent=True),
+                dict(edges=["Human", "Mouse"], is_independent=True),
+            ],
+            exclude_params=["kappa", "omega"],
+        )
+        glf.initialise_from_nested(slf)
+        assert_allclose(glf.lnL, slf.lnL)
 
     def test_get_lengths_as_ens_equal(self):
         """lengths equals ENS for a time-reversible model"""

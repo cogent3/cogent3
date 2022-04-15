@@ -9,7 +9,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -28,7 +28,7 @@ class LogoTests(TestCase):
             [0.6, 0.15, 0.05, 0.2],
         ]
         data = DictArrayTemplate(5, "ACGT").wrap(data)
-        d = get_logo(data)
+        get_logo(data)
 
     def test_get_logo_missing(self):
         """copes with positions with no values"""
@@ -40,7 +40,7 @@ class LogoTests(TestCase):
             [0.6, 0.15, 0.05, 0.2],
         ]
         data = DictArrayTemplate(5, "ACGT").wrap(data)
-        d = get_logo(data)
+        get_logo(data)
 
     def test_get_logo_alt_input_type(self):
         """copes with positions with no values"""
@@ -51,10 +51,10 @@ class LogoTests(TestCase):
             {"A": 0.7, "C": 0.1, "G": 0.1, "T": 0.1},
             {"A": 0.6, "C": 0.15, "G": 0.05, "T": 0.2},
         ]
-        d = get_logo(data)
+        get_logo(data)
 
         data[-2] = {}
-        d = get_logo(data)
+        get_logo(data)
 
     def test_letter_methods(self):
         """exercising some Letter methods"""

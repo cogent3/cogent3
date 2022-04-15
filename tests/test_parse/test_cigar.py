@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import os
-import sys
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
@@ -14,10 +12,10 @@ from cogent3.parse.cigar import (
 
 
 __author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Hua Ying"
 __email__ = "hua.ying@anu.edu.au"
 __status__ = "Production"

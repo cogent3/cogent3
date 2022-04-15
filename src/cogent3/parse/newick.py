@@ -22,10 +22,10 @@ from cogent3.parse.record import FileFormatError
 EOT = None
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Andrew Butterfield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -55,7 +55,7 @@ class _Tokeniser(object):
 
     def error(self, detail=""):
         if self.token:
-            msg = 'Unexpected "%s" at ' % self.token
+            msg = f'Unexpected "{self.token}" at '
         else:
             msg = "At "
         (line, column) = self.posn
@@ -63,9 +63,9 @@ class _Tokeniser(object):
         if column > 30:
             sample = "..." + sample[-20:]
         if line > 0:
-            msg += 'line %s:%s "%s"' % (line + 1, column, sample)
+            msg += f'line {line + 1}:{column} "{sample}"'
         else:
-            msg += 'char %s "%s"' % (column, sample)
+            msg += f'char {column} "{sample}"'
         return TreeParseError(msg + ". " + detail)
 
     def tokens(self):
@@ -147,7 +147,7 @@ def parse_string(text, constructor, **kw):
     """
     if "(" not in text and ";" not in text and text.strip():
         # otherwise "filename" is a valid (if small) tree
-        raise TreeParseError('Not a Newick tree: "%s"' % text[:10])
+        raise TreeParseError(f'Not a Newick tree: "{text[:10]}"')
     sentinals = [";", EOT]
     stack = []
     nodes = []
@@ -160,7 +160,7 @@ def parse_string(text, constructor, **kw):
             try:
                 attributes[attr_name] = attr_cast(token)
             except ValueError:
-                raise tokeniser.error("Can't convert %s '%s'" % (attr_name, token))
+                raise tokeniser.error(f"Can't convert {attr_name} '{token}'")
             expected_attribute = None
         elif token == "(":
             if children is not None:
@@ -192,7 +192,7 @@ def parse_string(text, constructor, **kw):
                 )
         else:
             if name is not None:
-                raise tokeniser.error("Already have a name '%s' for this node." % name)
+                raise tokeniser.error(f"Already have a name '{name}' for this node.")
             elif attributes:
                 raise tokeniser.error("name should come before length.")
             name = token

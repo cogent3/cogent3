@@ -1,9 +1,12 @@
 import os
 import pathlib
 
+from pickle import dumps, loads
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import Mock
+
+from scitrack import CachingLogger
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
@@ -21,10 +24,10 @@ from cogent3.core.alignment import ArrayAlignment
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -69,14 +72,14 @@ class TestComposableBase(TestCase):
         """composables can only be used in a single composition"""
         aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
         aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
-        comb = aseqfunc1 + aseqfunc2
+        aseqfunc1 + aseqfunc2
         with self.assertRaises(AssertionError):
             aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
-            comb2 = aseqfunc1 + aseqfunc3
+            aseqfunc1 + aseqfunc3
         # the other order
         with self.assertRaises(AssertionError):
             aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
-            comb2 = aseqfunc3 + aseqfunc2
+            aseqfunc3 + aseqfunc2
 
     def test_composable_to_self(self):
         """this should raise a ValueError"""
@@ -96,7 +99,7 @@ class TestComposableBase(TestCase):
         self.assertEqual(aseqfunc3.input, None)
         self.assertEqual(aseqfunc3.output, None)
         # should be able to compose a new one now
-        comb2 = aseqfunc1 + aseqfunc3
+        aseqfunc1 + aseqfunc3
 
     def test_apply_to(self):
         """correctly applies iteratively"""
@@ -165,6 +168,20 @@ class TestComposableBase(TestCase):
             writer = io_app.write_db(outpath)
             process = reader + min_length + writer
             r = process.apply_to(dstore, show_progress=False, logger=True)
+            self.assertEqual(len(process.data_store.logs), 1)
+            process.data_store.close()
+
+    def test_apply_to_logger(self):
+        """correctly uses user provided logger"""
+        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+        with TemporaryDirectory(dir=".") as dirname:
+            LOGGER = CachingLogger()
+            reader = io_app.load_aligned(format="fasta", moltype="dna")
+            min_length = sample_app.min_length(10)
+            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+            writer = io_app.write_db(outpath)
+            process = reader + min_length + writer
+            r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
             self.assertEqual(len(process.data_store.logs), 1)
             process.data_store.close()
 
@@ -276,7 +293,6 @@ class TestNotCompletedResult(TestCase):
 class TestPicklable(TestCase):
     def test_composite_pickleable(self):
         """composable functions should be pickleable"""
-        from pickle import dumps
 
         from cogent3.app import align, evo, io, sample, translate, tree
 
@@ -299,8 +315,6 @@ class TestPicklable(TestCase):
 
     def test_not_completed_result(self):
         """should survive roundtripping pickle"""
-        from pickle import dumps, loads
-
         err = NotCompleted("FAIL", "mytest", "can we roundtrip")
         p = dumps(err)
         new = loads(p)
@@ -312,7 +326,7 @@ class TestPicklable(TestCase):
     def test_triggers_bugcatcher(self):
         """a composable that does not trap failures returns NotCompletedResult
         requesting bug report"""
-        from cogent3.app import align, evo, io, sample, translate, tree
+        from cogent3.app import io
 
         read = io.load_aligned(moltype="dna")
         read.func = lambda x: None
@@ -323,6 +337,13 @@ class TestPicklable(TestCase):
 
 def _demo(ctx, expect):
     return ctx.frame_start == expect
+
+
+# for testing appify
+@appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
+def slicer(val, index=2):
+    """my docstring"""
+    return val[:index]
 
 
 class TestUserFunction(TestCase):
@@ -371,13 +392,7 @@ class TestUserFunction(TestCase):
 
     def test_appify(self):
         """acts like a decorator should!"""
-
-        @appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
-        def slicer(val, index=2):
-            """my docstring"""
-            return val[:index]
-
-        self.assertEqual(slicer.__doc__, "appify: my docstring")
+        self.assertEqual(slicer.__doc__, "my docstring")
         self.assertEqual(slicer.__name__, "slicer")
         app = slicer()
         self.assertTrue(SERIALISABLE_TYPE in app._input_types)
@@ -385,6 +400,13 @@ class TestUserFunction(TestCase):
         self.assertEqual(app(list(range(4))), [0, 1])
         app2 = slicer(index=3)
         self.assertEqual(app2(list(range(4))), [0, 1, 2])
+
+    def test_appify_pickle(self):
+        """appified function should be pickleable"""
+        app = slicer(index=6)
+        dumped = dumps(app)
+        loaded = loads(dumped)
+        self.assertEqual(loaded(list(range(10))), list(range(6)))
 
     def test_user_function_repr(self):
         u_function_1 = user_function(self.foo, "aligned", "aligned")

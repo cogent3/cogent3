@@ -11,10 +11,10 @@ from cogent3.core.sequence import ArraySequence, RnaSequence
 
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
@@ -95,7 +95,7 @@ class AllTests(TestCase):
 
     def test_seqFreqs(self):
         """seqFreqs should work the same on Alignment and ArrayAlignment"""
-        get_index = RNA.alphabets.degen_gapped.index
+        RNA.alphabets.degen_gapped.index
         # 'UCAGGG'
         # 'YCU-RG'
         # 'CAA-NR'

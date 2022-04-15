@@ -4,8 +4,6 @@
 
 from unittest import TestCase, main
 
-from cogent3.core.info import Info
-from cogent3.core.sequence import Sequence
 from cogent3.parse.ebi import (
     EbiFinder,
     EbiParser,
@@ -63,10 +61,10 @@ from cogent3.parse.ebi import (
 
 
 __author__ = "Zongzhi Liu"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Zongzhi Liu", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"

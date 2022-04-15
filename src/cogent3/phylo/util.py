@@ -9,10 +9,10 @@ Float = numpy.core.numerictypes.sctype2char(float)
 # reconstruction algorithms.
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "pm67nz@gmail.com"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -46,7 +46,7 @@ def lookup_symmetric_dict(dists, a, b):
     elif v1 is None or v2 is None or v1 == v2:
         return v1 or v2
     else:
-        raise ValueError("d[%s,%s] != d[%s,%s]" % (a, b, b, a))
+        raise ValueError(f"d[{a},{b}] != d[{b},{a}]")
 
 
 def distance_dict_to_2D(dists):

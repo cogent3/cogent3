@@ -3,15 +3,15 @@
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.annotation import Feature, _Annotatable, _Feature
+from cogent3.core.annotation import Feature, _Feature
 from cogent3.core.location import Map, Span
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -61,8 +61,8 @@ class MapTest(unittest.TestCase):
     def test_maps_on_maps(self):
         seq = DNA.make_seq("ATCGATCGAT" * 5, name="base")
         feat1 = annotate(seq, 10, 20, "fake")
-        feat2 = annotate(feat1, 3, 5, "fake2")
-        feat3 = annotate(seq, 1, 3, "left")
+        annotate(feat1, 3, 5, "fake2")
+        annotate(seq, 1, 3, "left")
 
         seq2 = seq[5:]
         self.assertEqual(

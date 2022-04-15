@@ -11,9 +11,6 @@ will access them through the appropriate moltype. Until the moltype module
 has been imported, the alphabets will not know their MolType, which will
 cause problems. It is often useful to create alphabets
 and/or Enumerations on the fly, however.
-
-MolType provides services for resolving ambiguities, or providing the
-correct ambiguity for recoding -- will move to its own module.
 """
 
 import json
@@ -45,10 +42,10 @@ Float = numpy.core.numerictypes.sctype2char(float)
 Int = numpy.core.numerictypes.sctype2char(int)
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Andrew Butterfield"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -730,14 +727,13 @@ class Alphabet(Enumeration):
         if hasattr(motif_probs, "keys"):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
-                raise ValueError("Can't find motif %s in alphabet" % sample)
+                raise ValueError(f"Can't find motif {sample} in alphabet")
             motif_probs = numpy.array([motif_probs[motif] for motif in self])
         else:
             if len(motif_probs) != len(self):
                 if len(motif_probs) != len(self):
                     raise ValueError(
-                        "Can't match %s probs to %s alphabet"
-                        % (len(motif_probs), len(self))
+                        f"Can't match {len(motif_probs)} probs to {len(self)} alphabet"
                     )
             motif_probs = numpy.asarray(motif_probs)
         assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs

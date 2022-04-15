@@ -19,10 +19,10 @@ from cogent3.util.deserialise import deserialise_object
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -39,15 +39,38 @@ class TestModel(TestCase):
         got = " ".join(str(model).splitlines())
         expect = (
             "model(type='model', sm='HKY85', tree=None, unique_trees=False, "
-            "name=None, sm_args=None, lf_args=None, "
+            "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, "
-            "opt_args=None, split_codons=False, "
+            "opt_args=None, upper=50, split_codons=False, "
             "show_progress=False, verbose=False)"
         )
         self.assertEqual(
             got,
             expect,
         )
+
+    def test_model_opt_mprob_arg(self):
+        """argument controls optimisability of motif prob settings"""
+        for mn in ("HKY85", "GN", "CNFGTR"):
+            for value in (True, False):
+                # check setting via sm_args is overridden
+                with self.assertRaises(ValueError):
+                    model = evo_app.model(
+                        mn,
+                        optimise_motif_probs=value,
+                        sm_args=dict(optimise_motif_probs=not value),
+                    )
+                model = evo_app.model(
+                    mn,
+                    optimise_motif_probs=value,
+                )
+                self.assertEqual(model._sm._optimise_motif_probs, value)
+                # check picking a different value for constructor get's overriden
+                model = evo_app.model(
+                    get_model(mn, optimise_motif_probs=not value),
+                    optimise_motif_probs=value,
+                )
+                self.assertEqual(model._sm._optimise_motif_probs, value)
 
     def test_model_tree(self):
         """allows tree to be string, None or tree"""
@@ -62,7 +85,7 @@ class TestModel(TestCase):
         model1 = evo_app.model("HKY85")
         model2 = evo_app.model("HKY85", time_het="max")
         with self.assertRaises(ValueError):
-            hyp = evo_app.hypothesis(model1, model2)
+            evo_app.hypothesis(model1, model2)
 
     def test_hyp_init(self):
         """uses user specified init_alt function, or not"""
@@ -112,7 +135,7 @@ class TestModel(TestCase):
         )
 
     def test_model_collection_init_sequential(self):
-        """modelc collection uses preceding model to initialise function"""
+        """model collection uses preceding model to initialise function"""
         opt_args = dict(max_evaluations=15, limit_action="ignore")
         model1 = evo_app.model("F81", opt_args=opt_args)
         model2 = evo_app.model("HKY85", opt_args=opt_args)
@@ -139,6 +162,15 @@ class TestModel(TestCase):
 
         self.assertIsInstance(result, model_collection_result)
 
+        # now with a single discrete edge
+        lf_args = dict(discrete_edges=["Opossum"])
+        model2 = evo_app.model("HKY85", opt_args=opt_args, lf_args=lf_args)
+        model3 = evo_app.model("GTR", opt_args=opt_args, lf_args=lf_args)
+        # defaults to initialise model3 from model 2 from model1
+        mod_coll = evo_app.model_collection(model2, model3, sequential=True)
+        result = mod_coll(aln)
+        self.assertIsInstance(result, model_collection_result)
+
     def test_model_time_het(self):
         """support lf time-het argument edge_sets"""
         _data = {
@@ -149,6 +181,7 @@ class TestModel(TestCase):
         aln = make_aligned_seqs(data=_data, moltype="dna")
         mod = evo_app.model(
             "GN",
+            optimise_motif_probs=True,
             time_het=[dict(edges=["Mouse", "Human"], is_independent=False)],
             opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
@@ -214,10 +247,14 @@ class TestModel(TestCase):
         aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
         aln = aln.take_seqs(["Human", "Rhesus", "Galago"])[2::3].omit_gap_pos()
         model1 = evo_app.model(
-            "F81", opt_args=dict(max_evaluations=25, limit_action="ignore")
+            "F81",
+            optimise_motif_probs=False,
+            opt_args=dict(max_evaluations=25, limit_action="ignore"),
         )
         model2 = evo_app.model(
-            "HKY85", opt_args=dict(max_evaluations=100, limit_action="ignore")
+            "HKY85",
+            optimise_motif_probs=False,
+            opt_args=dict(max_evaluations=100, limit_action="ignore"),
         )
         hyp = evo_app.hypothesis(model1, model2)
         result = hyp(aln)
@@ -233,8 +270,8 @@ class TestModel(TestCase):
         expect = (
             "hypothesis(type='hypothesis', null='HKY85', "
             "alternates=(model(type='model', sm='HKY85', tree=None, unique_trees=False, "
-            "name='hky85-max-het', sm_args=None, lf_args=None, "
-            "time_het='max', param_rules=None, opt_args=None,"
+            "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
+            "time_het='max', param_rules=None, opt_args=None, upper=50,"
             " split_codons=False, show_progress=False, verbose=False),),"
             " sequential=True, init_alt=None)"
         )
@@ -465,8 +502,12 @@ class TestHypothesisResult(TestCase):
         }
         aln = make_aligned_seqs(data=_data, moltype="dna")
         opt_args = dict(max_evaluations=10, limit_action="ignore")
-        m1 = evo_app.model("F81", split_codons=True, opt_args=opt_args)
-        m2 = evo_app.model("GTR", split_codons=True, opt_args=opt_args)
+        m1 = evo_app.model(
+            "F81", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+        )
+        m2 = evo_app.model(
+            "GTR", optimise_motif_probs=False, split_codons=True, opt_args=opt_args
+        )
         hyp = evo_app.hypothesis(m1, m2)
         r = hyp(aln)
         bm = r.select_models()
@@ -784,10 +825,24 @@ class TestBootstrap(TestCase):
         strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=False)
         result = strapper(aln)
         nd = result.null_dist
-        self.assertTrue(set(type(v) for v in nd), {float})
+        self.assertTrue({type(v) for v in nd}, {float})
         json = result.to_json()
         got = deserialise_object(json)
         self.assertIsInstance(got, evo_app.bootstrap_result)
+
+    def test_bstrap_fail(self):
+        """invalid data returns meaningful error"""
+        aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
+        aln = aln.take_seqs(aln.names[:3])
+        opt_args = dict(max_evaluations=20, limit_action="ignore")
+        m1 = evo_app.model("F81", opt_args=opt_args)
+        # we've retained gaps, so this should fail at first call as incompatible with model
+        m2 = evo_app.model("GTR", opt_args=opt_args, sm_args=dict(recode_gaps=False))
+        hyp = evo_app.hypothesis(m1, m2)
+        strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=False)
+        result = strapper(aln)
+        # correct message being relayed
+        self.assertTrue("ValueError: '-' at" in result.message)
 
     def test_bstrap_parallel(self):
         """exercising bootstrap with parallel"""

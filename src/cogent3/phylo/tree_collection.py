@@ -1,15 +1,15 @@
 from numpy import exp, log
 
-from cogent3.util.misc import atomic_write
+from cogent3.util.io import atomic_write
 
 from . import consensus
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 
@@ -138,7 +138,7 @@ def make_trees(filename):
         line = line.split(None, 1)
         lnL = float(line[0])
         if lnL > 1:
-            raise ValueError("likelihoods expected, not %s" % lnL)
+            raise ValueError(f"likelihoods expected, not {lnL}")
         elif lnL > 0:
             assert klass in [list, WeightedTreeCollection]
             klass = WeightedTreeCollection

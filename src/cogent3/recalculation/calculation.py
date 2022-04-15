@@ -2,6 +2,7 @@
 
 import os
 import time
+import warnings
 
 import numpy
 
@@ -16,10 +17,10 @@ TRACE_DEFAULT = "COGENT3_TRACE" in os.environ
 TRACE_SCALE = 100000
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -84,7 +85,7 @@ class OptPar(object):
         return self.order != other.order
 
     def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.label)
+        return f"{self.__class__.__name__}({self.label})"
 
     def get_optimiser_bounds(self):
         lower = self.transform_to_optimiser(self.lower)
@@ -110,7 +111,7 @@ class LogOptPar(OptPar):
         try:
             return numpy.log(value)
         except OverflowError:
-            raise OverflowError("log(%s)" % value)
+            raise OverflowError(f"log({value})")
 
 
 class EvaluatedCell(object):
@@ -175,7 +176,7 @@ class EvaluatedCell(object):
         if self.failure_count < 2:
             print("%s inputs were:", len(self.arg_ranks))
             for (i, arg) in enumerate(self.arg_ranks):
-                print("%s: " % i + repr(data[arg]))
+                print(f"{i}: " + repr(data[arg]))
 
 
 class ConstCell(object):
@@ -236,10 +237,13 @@ class Calculator(object):
                 except KeyboardInterrupt:
                     raise
                 except Exception:
-                    print(("Failed initial calculation of %s" % cell.name))
+                    warnings.warn(
+                        f"Failed initial calculation of {cell.name}",
+                        category=UserWarning,
+                    )
                     raise
             else:
-                raise RuntimeError("Unexpected Cell type %s" % type(cell))
+                raise RuntimeError(f"Unexpected Cell type {type(cell)}")
 
         self._switch = 0
         self.recycled_cells = [cell.rank for cell in self._cells if cell.recycled]
@@ -279,8 +283,7 @@ class Calculator(object):
                 for arg in cell.args:
                     if arg is not cell:
                         edges.append(
-                            '"%s":%s -> "%s":%s'
-                            % (arg.name, arg.rank, cell.name, cell.rank)
+                            f'"{arg.name}":{arg.rank} -> "{cell.name}":{cell.rank}'
                         )
         for name in evs:
             all_const = True
@@ -289,27 +292,37 @@ class Calculator(object):
             for cell in nodes[name]:
                 value = self._get_current_cell_value(cell)
                 if isinstance(value, float):
-                    label = "%5.2e" % value
+                    label = f"{value:5.2e}"
                 else:
                     label = "[]"
-                label = "<%s> %s" % (cell.rank, label)
+                label = f"<{cell.rank}> {label}"
                 enodes.append(label)
                 all_const = all_const and cell.is_constant
                 some_const = some_const or cell.is_constant
             enodes = "|".join(enodes)
             colour = ["", " fillcolor=gray90, style=filled,"][some_const]
             colour = [colour, " fillcolor=gray, style=filled,"][all_const]
-            lines.append(
-                '"%s" [shape = "record",%s label="%s"];' % (name, colour, enodes)
-            )
+            lines.append(f'"{name}" [shape = "record",{colour} label="{enodes}"];')
         lines.extend(edges)
         lines.append("}")
         return "\n".join(lines).replace("edge", "egde").replace("QQQ", "edge")
 
     def optimise(self, **kw):
         x = self.get_value_array()
-        bounds = self.get_bounds_vectors()
-        maximise(self, x, bounds, **kw)
+        low, high = self.get_bounds_vectors()
+        # due to numerical precision, it occassionally happens that
+        # a value no longer lies within bounds. The following logic
+        # catches those cases.
+        x = numpy.array(x)
+        # NOTE: numpy.allclose([], []) == True
+        if numpy.allclose(x[low > x], low[low > x]):
+            x[low > x] = low[low > x]
+        if numpy.allclose(x[high < x], high[high < x]):
+            x[high < x] = high[high < x]
+
+        # We can still get ParameterOutOfBounds exceptions
+        # if values are further outside the bounds
+        maximise(self, x, (low, high), **kw)
         self.optimised = True
 
     def set_tracing(self, trace=False):
@@ -323,7 +336,7 @@ class Calculator(object):
             n_cells = len([c for c in self._cells if not c.is_constant])
             print(n_opars, "OptPars and", n_cells - n_opars, "derived values")
             print("OptPars: ", ", ".join([par.name for par in self.opt_pars]))
-            print("Times in 1/%sths of a second" % TRACE_SCALE)
+            print(f"Times in 1/{TRACE_SCALE}ths of a second")
 
             groups = []
             groupd = {}
@@ -543,9 +556,9 @@ class Calculator(object):
         for (i, v) in changes:
             cell = self._cells[i]
             if isinstance(cell, OptPar):
-                par_descs.append("%s=%8.6f" % (cell.name, v))
+                par_descs.append(f"{cell.name}={v:8.6f}")
             else:
-                par_descs.append("%s=?" % cell.name)
+                par_descs.append(f"{cell.name}=?")
         par_descs = ", ".join(par_descs)[:22].ljust(22)
         print(" | ".join(tds + [""]), end=" ")
         if exception:

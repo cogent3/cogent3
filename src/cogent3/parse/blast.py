@@ -8,10 +8,10 @@ from cogent3.parse.record_finder import (
 
 
 __author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Micah Hamady", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"
@@ -42,7 +42,7 @@ def _is_junk(line, t_strs):
         return True
     # blast info line
     for t_str in t_strs:
-        if line.startswith("# %s" % t_str):
+        if line.startswith(f"# {t_str}"):
             return True
     return False
 

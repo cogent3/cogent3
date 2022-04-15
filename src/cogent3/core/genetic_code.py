@@ -13,10 +13,10 @@ from cogent3.util.table import Table
 
 
 __author__ = "Greg Caporaso and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -253,7 +253,7 @@ class GeneticCode:
             key = key.replace("U", "T")
             return self.codons.get(key, "X")
         else:
-            raise InvalidCodonError("Codon or aa %s has wrong length" % item)
+            raise InvalidCodonError(f"Codon or aa {item} has wrong length")
 
     def translate(self, dna, start=0):
         """Translates DNA to protein with current GeneticCode.
@@ -279,7 +279,7 @@ class GeneticCode:
     def get_stop_indices(self, dna, start=0):
         """returns indexes for stop codons in the specified frame"""
         stops = self["*"]
-        stop_pattern = "(%s)" % "|".join(stops)
+        stop_pattern = f"({'|'.join(stops)})"
         stop_pattern = re.compile(stop_pattern)
         seq = str(dna)
         found = [hit.start() for hit in stop_pattern.finditer(seq)]
@@ -485,7 +485,7 @@ def get_code(code_id=1):
                 code = gc
 
     if code is None:
-        raise ValueError('No genetic code matching "%s"' % code_id)
+        raise ValueError(f'No genetic code matching "{code_id}"')
 
     return code
 

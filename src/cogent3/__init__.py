@@ -4,10 +4,13 @@ and phylo.
 """
 
 import os
+import pathlib
 import pickle
 import re
 import sys
 import warnings
+
+from typing import Union
 
 import numpy
 
@@ -41,14 +44,13 @@ from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.parse.sequence import FromFilenameParser
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
-from cogent3.util.misc import get_format_suffixes, open_
+from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
-from cogent3.util.warning import deprecated
 
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Rob Knight",
@@ -72,22 +74,19 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-if sys.version_info < (3, 6):
+_min_version = (3, 7)
+if sys.version_info < _min_version:
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
+    _min_version = ".".join(_min_version)
     raise RuntimeError(
-        "Python-3.6 or greater is required, Python-%s used." % PY_VERSION
+        f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
     )
-
-NUMPY_VERSION = re.split(r"[^\d]", numpy.__version__)
-numpy_version_info = tuple([int(i) for i in NUMPY_VERSION if i.isdigit()])
-if numpy_version_info < (1, 3):
-    raise RuntimeError("Numpy-1.3 is required, %s found." % NUMPY_VERSION)
 
 version = __version__
 version_info = tuple([int(v) for v in version.split(".") if v.isdigit()])
@@ -138,7 +137,8 @@ def make_unaligned_seqs(
     info
         a dict from which to make an info object
     source
-        origins of this data, defaults to 'unknown'
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
     **kw
         other keyword arguments passed to SequenceCollection
     """
@@ -151,7 +151,8 @@ def make_unaligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     assert isinstance(info, dict), "info must be a dict"
-    info["source"] = source or "unknown"
+    source = source or info.get("source", "unknown")
+    info["source"] = str(source)
 
     return SequenceCollection(
         data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
@@ -182,9 +183,10 @@ def make_aligned_seqs(
     info
         a dict from which to make an info object
     source
-        origins of this data, defaults to 'unknown'
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
     **kw
-        other keyword arguments passed to SequenceCollection
+        other keyword arguments passed to alignment class
     """
     if moltype is not None:
         moltype = get_moltype(moltype)
@@ -194,7 +196,8 @@ def make_aligned_seqs(
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     assert isinstance(info, dict), "info must be a dict"
-    info["source"] = source or "unknown"
+    source = source or info.get("source", "unknown")
+    info["source"] = str(source)
     klass = ArrayAlignment if array_align else Alignment
     return klass(
         data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
@@ -202,7 +205,7 @@ def make_aligned_seqs(
 
 
 def load_unaligned_seqs(
-    filename,
+    filename: Union[str, pathlib.Path],
     format=None,
     moltype=None,
     label_to_name=None,
@@ -225,6 +228,10 @@ def load_unaligned_seqs(
         function for converting original name into another name.
     parser_kw : dict
         optional arguments for the parser
+    info
+        a dict from which to make an info object
+    **kw
+        other keyword arguments passed to SequenceCollection
 
     Returns
     -------
@@ -255,7 +262,7 @@ def load_unaligned_seqs(
 
 
 def load_aligned_seqs(
-    filename,
+    filename: Union[str, pathlib.Path],
     format=None,
     array_align=True,
     moltype=None,
@@ -369,10 +376,6 @@ def make_table(
     if any(isinstance(a, str) for a in (header, data)):
         raise TypeError("str type invalid, if it's a path use load_table()")
 
-    if "index" in kwargs:
-        deprecated("argument", "index", "index_name", "2021.11")
-        index_name = kwargs.pop("index", index_name)
-
     data = kwargs.get("rows", data)
     if data_frame is not None:
         from pandas import DataFrame
@@ -400,7 +403,7 @@ def make_table(
 
 
 def load_table(
-    filename,
+    filename: Union[str, pathlib.Path],
     sep=None,
     reader=None,
     digits=4,
@@ -459,16 +462,10 @@ def load_table(
     skip_inconsistent
         skips rows that have different length to header row
     """
-    import pathlib
-
     if not any(isinstance(filename, t) for t in (str, pathlib.PurePath)):
         raise TypeError(
             "filename must be string or Path, perhaps you want make_table()"
         )
-
-    if "index" in kwargs:
-        deprecated("argument", "index", "index_name", "2021.11")
-        index_name = kwargs.pop("index", index_name)
 
     sep = sep or kwargs.pop("delimiter", None)
     file_format, compress_format = get_format_suffixes(filename)
@@ -476,16 +473,16 @@ def load_table(
     if file_format == "json":
         return load_from_json(filename, (_Table,))
     elif file_format in ("pickle", "pkl"):
-        f = open_(filename, mode="rb")
-        loaded_table = pickle.load(f)
-        f.close()
+        with open_(filename, mode="rb") as f:
+            loaded_table = pickle.load(f)
+
         r = _Table()
         r.__setstate__(loaded_table)
         return r
 
     if reader:
         with open_(filename, newline=None) as f:
-            data = [row for row in reader(f)]
+            data = list(reader(f))
             header = data[0]
             data = {column[0]: column[1:] for column in zip(*data)}
     else:
@@ -574,7 +571,9 @@ def make_tree(treestring=None, tip_names=None, format=None, underscore_unmunge=F
     return tree
 
 
-def load_tree(filename, format=None, underscore_unmunge=False):
+def load_tree(
+    filename: Union[str, pathlib.Path], format=None, underscore_unmunge=False
+):
     """Constructor for tree.
 
     Parameters
@@ -582,7 +581,8 @@ def load_tree(filename, format=None, underscore_unmunge=False):
     filename : str
         a file path containing a newick or xml formatted tree.
     format : str
-        either newick, xml or cogent3 json, default is newick
+        either xml or json, all other values default to newick. Overrides
+        file name suffix.
     underscore_unmunge : bool
         replace underscores with spaces in all names read, i.e. "sp_name"
         becomes "sp name".
@@ -590,19 +590,19 @@ def load_tree(filename, format=None, underscore_unmunge=False):
     Notes
     -----
     Underscore unmunging is turned off by default, although it is part
-    of the Newick format.
+    of the Newick format. Only the cogent3 json and xml tree formats are
+    supported.
 
     Returns
     -------
     PhyloNode
     """
     file_format, _ = get_format_suffixes(filename)
-    if file_format == "json":
+    format = format or file_format
+    if format == "json":
         return load_from_json(filename, (TreeNode, PhyloNode))
 
     with open_(filename) as tfile:
         treestring = tfile.read()
-        if format is None and filename.endswith(".xml"):
-            format = "xml"
 
     return make_tree(treestring, format=format, underscore_unmunge=underscore_unmunge)

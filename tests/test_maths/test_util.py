@@ -9,17 +9,7 @@ from warnings import filterwarnings
 
 import numpy
 
-from numpy import (
-    arange,
-    array,
-    ones,
-    ravel,
-    reshape,
-    sqrt,
-    trace,
-    transpose,
-    zeros,
-)
+from numpy import array, transpose
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.util import (
@@ -38,10 +28,10 @@ filterwarnings("ignore", "invalid value encountered in", category=RuntimeWarning
 Float = numpy.core.numerictypes.sctype2char(float)
 
 __author__ = "Rob Knight and Jeremy Widmann"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Rob Knight", "Sandra Smit"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

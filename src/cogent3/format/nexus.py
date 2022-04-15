@@ -1,8 +1,8 @@
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -30,14 +30,14 @@ def nexus_from_alignment(aln, seq_type, wrap=50):
     nexus_out = ["#NEXUS\n\nbegin data;"]
     nexus_out.append("    dimensions ntax=%d nchar=%d;" % (num_seq, aln_len))
     nexus_out.append(
-        "    format datatype=%s interleave=yes missing=? " % seq_type + "gap=-;"
+        f"    format datatype={seq_type} interleave=yes missing=? " + "gap=-;"
     )
     nexus_out.append("    matrix")
     cur_ix = 0
     names_seqs = sorted(aln.named_seqs.items())
     while cur_ix < aln_len:
         nexus_out.extend(
-            ["    %s    %s" % (x, y[cur_ix : cur_ix + wrap]) for x, y in names_seqs]
+            [f"    {x}    {y[cur_ix:cur_ix + wrap]}" for x, y in names_seqs]
         )
         nexus_out.append("")
         cur_ix += wrap

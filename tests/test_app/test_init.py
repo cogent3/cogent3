@@ -9,10 +9,10 @@ from cogent3.app import align, dist, evo, io, sample, translate, tree
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -83,7 +83,7 @@ class TestAvailableApps(TestCase):
                 composable_application_tuple[0].disconnect()
                 composable_application_tuple[1].disconnect()
                 # Compose two composable applications, there should not be exceptions.
-                res = composable_application_tuple[0] + composable_application_tuple[1]
+                composable_application_tuple[0] + composable_application_tuple[1]
 
             for app in applications:
                 if hasattr(app, "data_store"):

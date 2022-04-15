@@ -32,10 +32,10 @@ import xml.sax
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -70,7 +70,7 @@ class TreeHandler(xml.sax.ContentHandler):
         self.current += str(text)
 
     def endElement(self, name):
-        getattr(self, "process_%s" % name)(self.current, **self.data)
+        getattr(self, f"process_{name}")(self.current, **self.data)
         (self.data, self.in_clade, self.current) = self.stack.pop()
         self.parent = self.stack[-1][0]
 

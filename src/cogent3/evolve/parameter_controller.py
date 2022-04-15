@@ -20,10 +20,10 @@ from cogent3.util.misc import adjusted_gt_minprob
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley", "Helen Lindsay"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.ed.au"
 __status__ = "Production"
@@ -31,11 +31,11 @@ __status__ = "Production"
 
 def _category_names(dimension, specified):
     if type(specified) is int:
-        cats = ["%s%s" % (dimension, i) for i in range(specified)]
+        cats = [f"{dimension}{i}" for i in range(specified)]
     else:
         cats = tuple(specified)
     assert len(cats) >= 1, cats
-    assert len(set(cats)) == len(cats), "%s names must be unique" % dimension
+    assert len(set(cats)) == len(cats), f"{dimension} names must be unique"
     return list(cats)
 
 
@@ -56,7 +56,7 @@ class _LikelihoodParameterController(_LF):
     For usage see the set_param_rule method.
     """
 
-    # Basically wrapper around the more generic recalulation.ParameterController
+    # Basically wrapper around the more generic recalculation.ParameterController
     # class, which doesn't know about trees.
 
     def __init__(
@@ -153,10 +153,7 @@ class _LikelihoodParameterController(_LF):
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
         if pseudocount is None:
-            if is_constant:
-                pseudocount = 0.0
-            else:
-                pseudocount = 0.5
+            pseudocount = 0.0 if is_constant else 0.5
         counts += pseudocount
         mprobs = counts / (1.0 * sum(counts))
         self.set_motif_probs(
@@ -254,9 +251,7 @@ class _LikelihoodParameterController(_LF):
         init=None,
         upper=None,
     ):
-        """modifes the scope of all submodel rate, aside from excluded params,
-        by constructing a list of parameter rules and using the
-        apply_param_rules method
+        """modifies the scope of substitution model rate params
 
         Parameters
         ----------
@@ -264,7 +259,7 @@ class _LikelihoodParameterController(_LF):
             name(s) of substitution model predicate(s) to be excluded
         edge_sets
             series of dicts with an 'edges' key. Can also specify
-            is_independent, is_contstant etc.. If those are not provided, the
+            is_independent, is_constant etc.. If those are not provided, the
             method argument values are applied
         is_independent : bool
             whether edges in all edge sets are to be considered independent.
@@ -304,8 +299,19 @@ class _LikelihoodParameterController(_LF):
 
         if edge_sets is None:
             # this just makes the following algorithm consistent
+            # but we need to exclude any edges assigned to discrete psubs
+            dpsubs = self.defn_for.get("dpsubs", None)
+            exclude_edges = set()
+            if dpsubs:
+                dims = dpsubs.valid_dimensions
+                index = dims.index("edge")
+                for k in dpsubs.assignments:
+                    exclude_edges.add(k[index])
+
             edge_sets = [
-                dict(edges=[n]) for n in self.tree.get_node_names(includeself=False)
+                dict(edges=[n])
+                for n in self.tree.get_node_names(includeself=False)
+                if n not in exclude_edges
             ]
         elif type(edge_sets) == dict:
             edge_sets = [edge_sets]
@@ -389,7 +395,7 @@ class _LikelihoodParameterController(_LF):
             if single in scope_info:
                 v = scope_info.pop(single)
                 if v:
-                    assert isinstance(v, str), "%s=, maybe?" % plural
+                    assert isinstance(v, str), f"{plural}=, maybe?"
                     assert plural not in scope_info
                     scopes[single] = [v]
             elif plural in scope_info:
@@ -514,7 +520,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
         tip_names = set(self.tree.get_tip_names())
         for index, aln in enumerate(aligns):
             if len(aligns) > 1:
-                locus_name = "for locus '%s'" % self.locus_names[index]
+                locus_name = f"for locus '{self.locus_names[index]}'"
             else:
                 locus_name = ""
             assert not set(aln.names).symmetric_difference(

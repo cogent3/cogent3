@@ -22,10 +22,10 @@ dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -184,7 +184,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         self._test_aln({"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"})
 
     def test_progressive_est_tree(self):
-        """excercise progressive alignment without a guide tree"""
+        """exercise progressive alignment without a guide tree"""
         seqs = make_unaligned_seqs(
             data={
                 "A": "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA",
@@ -194,6 +194,20 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         )
         aln, tree = cogent3.align.progressive.TreeAlign(
             HKY85(), seqs, show_progress=False, param_vals={"kappa": 4.0}
+        )
+
+        expect = {
+            "A": "TGTGGCACAAATGCTCATGCCAGCTCTTTACAGCATGAGAACA-------",
+            "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
+            "B": "TGTGGCACAGATACTCATGCCAGCTCATTACAGCATGAGAACAGCAGTTT",
+        }
+        self.assertEqual(aln.to_dict(), expect)
+
+        aln, tree = cogent3.align.progressive.TreeAlign(
+            HKY85(),
+            seqs,
+            show_progress=False,
+            ests_from_pairwise=True,
         )
 
         expect = {

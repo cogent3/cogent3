@@ -24,10 +24,10 @@ from cogent3.core.location import gap_coords_to_map
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -153,7 +153,7 @@ class RefalignmentTests(TestCase):
         # fails if not all sequences same
         seq = DNA.make_seq("AACCCGTT")
         all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
-        final_seq = make_aligned(all_gaps, seq)
+        make_aligned(all_gaps, seq)
         gap_sets = [
             dict([(5, 1), (6, 3)]),
             dict([(2, 1), (5, 3)]),
@@ -175,7 +175,7 @@ class RefalignmentTests(TestCase):
     def test_gap_difference(self):
         """correctly identifies the difference in gaps"""
         seq = DNA.make_seq("AACCCGTT")
-        all_gaps = dict([(0, 3), (2, 1), (5, 3), (6, 3)])
+        dict([(0, 3), (2, 1), (5, 3), (6, 3)])
         gap_sets = [
             dict([(5, 1), (6, 3)]),
             dict([(2, 1), (5, 3)]),

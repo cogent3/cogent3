@@ -78,7 +78,7 @@ from cogent3.maths.stats.special import ROUND_ERROR
 
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Greg Caporaso",
     "Gavin Huttley",
@@ -87,7 +87,7 @@ __credits__ = [
     "Rob Knight",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
@@ -1482,7 +1482,7 @@ def validate_alignment(alignment):
             bad_seqs.append(name)
     if bad_seqs:
         raise ValueError(
-            "Ambiguous characters in sequences: %s" % "; ".join(map(str, bad_seqs))
+            f"Ambiguous characters in sequences: {'; '.join(map(str, bad_seqs))}"
         )
 
 

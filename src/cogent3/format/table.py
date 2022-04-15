@@ -15,10 +15,10 @@ import numpy
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield", "Jeremy Widmann"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -68,7 +68,7 @@ def _merged_cell_text_wrap(text, max_line_length, space):
     wrapped = textwrap.wrap(
         text, width=max_line_width, initial_indent=buffer, subsequent_indent=buffer
     )
-    wrapped = ["%s" % line.ljust(max_line_width + 2 * space) for line in wrapped]
+    wrapped = [f"{line.ljust(max_line_width + 2 * space)}" for line in wrapped]
     return wrapped
 
 
@@ -139,12 +139,12 @@ def rich_html(
     if row_cell_func is None:
 
         def row_cell_func(v, r, c):
-            return "<td>%s</td>" % v
+            return f"<td>{v}</td>"
 
     if header_cell_func is None:
 
         def header_cell_func(v, c):
-            return "<th>%s</th>" % v
+            return f"<th>{v}</th>"
 
     if merge_identical:
         row_iterator = _merge_cells
@@ -216,7 +216,7 @@ def latex(
     justify = "{ %s }" % " ".join(list(justify))
     if header:
         header = "%s \\\\" % " & ".join([r"\bf{%s}" % head.strip() for head in header])
-    rows = ["%s \\\\" % " & ".join(row) for row in rows]
+    rows = [f"{' & '.join(row)} \\\\" for row in rows]
     position = position or "htp!"
     table_format = [
         r"\begin{table}[%s]" % position,
@@ -442,16 +442,16 @@ def markdown(header, formatted_table, space=1, justify=None):
         for i in range(len(divider)):
             d = divider[i]
             if justify[i] == "c":
-                d = ":%s:" % d[:-2]
+                d = f":{d[:-2]}:"
             elif justify[i] == "r":
-                d = "%s:" % d[:-1]
+                d = f"{d[:-1]}:"
             elif justify[i] == "l":
-                d = ":%s" % d[:-1]
+                d = f":{d[:-1]}"
             else:
-                raise ValueError("invalid justfication character '%s'" % justify[i])
+                raise ValueError(f"invalid justfication character '{justify[i]}'")
             divider[i] = d
 
-    divider = "|%s|" % "|".join(divider)
+    divider = f"|{'|'.join(divider)}|"
     rows = [row_template % sep.join(header), divider] + [
         row_template % sep.join(r) for r in formatted_table
     ]
@@ -602,7 +602,7 @@ def separator_format(header, formatted_table, title=None, legend=None, sep=None)
     for row in formatted_table:
         for cdex, cell in enumerate(row):
             if sep in cell:
-                row[cdex] = '"%s"' % cell
+                row[cdex] = f'"{cell}"'
 
     new_table += [sep.join(row) for row in formatted_table]
 
@@ -663,7 +663,7 @@ def separator_formatter(formatter=None, ignore=None, sep=","):
         header_done = None
         for line in lines:
             if has_header and not header_done:
-                formatted = sep.join(["%s" % field for field in line])
+                formatted = sep.join([f"{field}" for field in line])
                 header_done = True
             else:
                 formatted = sep.join(formatter(line))
@@ -711,14 +711,14 @@ def formatted_cells(
             try:
                 entry = row[cdex]
             except IndexError:
-                entry = "%s" % missing_data
+                entry = f"{missing_data}"
             else:
                 not_missing = True if isinstance(entry, numpy.ndarray) else entry
                 if not not_missing:
                     try:
                         float(entry)  # could numerically be 0, so not missing
                     except (ValueError, TypeError):
-                        entry = "%s" % missing_data
+                        entry = f"{missing_data}"
 
             # attempt formatting
             if col_head in column_templates:
@@ -729,7 +729,7 @@ def formatted_cells(
             elif isinstance(entry, float):
                 entry = float_template.format(float(entry))
             else:  # for any other python object
-                entry = "%s" % str(entry)
+                entry = f"{str(entry)}"
 
             formatted.append(entry)
             col_widths[cdex] = max(col_widths[cdex], len(entry))
@@ -761,19 +761,19 @@ def phylip_matrix(rows, names):
         # int as its end portion
         num = len(names)
         max_num_digits = len(str(num))
-        assert max_num_digits < 10, "can't create a unique name for %s" % oldname
+        assert max_num_digits < 10, f"can't create a unique name for {oldname}"
         name_base = oldname[: 10 - max_num_digits]
         newname = None
         for i in range(max_num_digits):
-            trial_name = "%s%s" % (name_base, i)
+            trial_name = f"{name_base}{i}"
             if trial_name not in names:
                 newname = trial_name
                 break
 
         if not newname:
-            raise RuntimeError("Can't create a unique name for %s" % oldname)
+            raise RuntimeError(f"Can't create a unique name for {oldname}")
         else:
-            print("WARN: Seqname %s changed to %s" % (oldname, newname))
+            print(f"WARN: Seqname {oldname} changed to {newname}")
         return newname
 
     def append_species(name, formatted_dists, mat_breaks):
@@ -790,9 +790,9 @@ def phylip_matrix(rows, names):
             except IndexError:
                 end = len(formatted_dists)
             prefix = ["", "  "][i > 0]
-            rows.append("%s%s" % (prefix, "  ".join(formatted_dists[start:end])))
+            rows.append(f"{prefix}{'  '.join(formatted_dists[start:end])}")
         # mod first row of formatted_dists
-        rows[0] = "%s%s" % (name.ljust(12), rows[0])
+        rows[0] = f"{name.ljust(12)}{rows[0]}"
         return rows
 
     # number of seqs

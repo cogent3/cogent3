@@ -8,10 +8,10 @@ from cogent3.recalculation.scope import (
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -159,7 +159,7 @@ class RecalculationTest(TestCase):
         # For likelihood functions it is more convenient to provide 'p' rather than
         # 'dropoff', dropoff = chdtri(1, p) / 2.0.  Also in general you won't need ultra precise answers,
         # so don't use 'xtol=0.0', that's just to make the doctest work.
-        gz = pc.graphviz()
+        pc.graphviz()
 
 
 if __name__ == "__main__":

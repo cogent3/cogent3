@@ -1,4 +1,3 @@
-import os
 import pathlib
 import unittest
 
@@ -13,7 +12,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -25,11 +24,11 @@ def load_alignment(annotate1=False, annotate2=False):
     aln = load_aligned_seqs(path, array_align=False, moltype="dna")
     aln = aln.omit_gap_pos()
     if annotate1:
-        x1 = aln.get_seq(aln.names[0]).add_feature("gene", "abcde1", [(20, 50)])
-        x2 = aln.get_seq(aln.names[0]).add_feature("variation", "one", [(11, 12)])
+        aln.get_seq(aln.names[0]).add_feature("gene", "abcde1", [(20, 50)])
+        aln.get_seq(aln.names[0]).add_feature("variation", "one", [(11, 12)])
     if annotate2:
-        y1 = aln.get_seq(aln.names[1]).add_feature("gene", "abcde2", [(20, 50)])
-        y2 = aln.get_seq(aln.names[1]).add_feature("domain", "abcde2", [(10, 15)])
+        aln.get_seq(aln.names[1]).add_feature("gene", "abcde2", [(20, 50)])
+        aln.get_seq(aln.names[1]).add_feature("domain", "abcde2", [(10, 15)])
     return aln
 
 
@@ -123,6 +122,15 @@ class DrawableObjectTests(unittest.TestCase):
         self.assertEqual(f.data, d.traces)
         self.assertEqual(f.layout, d.layout)
 
+    def test_plotly_figure(self):
+        """is a plotly graph object Figure instance"""
+        from plotly.graph_objects import Figure
+
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1])
+        layout = dict(title="layout", width=20)
+        d = Drawable(traces=[trace], layout=layout)
+        self.assertIsInstance(d.plotly_figure, Figure)
+
 
 class AnnotatedDrawableObjectTests(unittest.TestCase):
     """testing AnnotatedDrawable object methods and properties"""
@@ -142,6 +150,17 @@ class AnnotatedDrawableObjectTests(unittest.TestCase):
         ad = AnnotatedDrawable(cd, layout=layout)
         f = ad._build_fig()
         self.assertEqual(f["data"][0]["yaxis"], "y3")
+
+    def test_plotly_figure(self):
+        """is a plotly graph object Figure instance"""
+        from plotly.graph_objects import Figure
+
+        trace = dict(type="scatter", x=[0, 1], y=[0, 1], xaxis="x", yaxis="y")
+        layout = dict(title="layout", width=20, yaxis2=dict(overlaying="free"))
+        cd = Drawable(traces=[trace])
+
+        ad = AnnotatedDrawable(cd, layout=layout)
+        self.assertIsInstance(ad.plotly_figure, Figure)
 
 
 class BaseDrawablesTests(unittest.TestCase):
@@ -367,7 +386,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         _ = aln.get_seq("b").add_feature("variation", "1", [(1, 5)])
         _ = aln.get_seq("b").add_feature("gene", "1", [(1, 5)])
         _ = aln.get_seq("b").add_feature("gene", "1", [(5, 1)])
-        drawable = aln.get_drawable()
+        aln.get_drawable()
 
 
 class TableDrawablesTest(BaseDrawablesTests):

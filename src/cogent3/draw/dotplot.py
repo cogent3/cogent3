@@ -5,10 +5,10 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -274,16 +274,14 @@ class Dotplot(Drawable):
 
         self.layout |= dict(title=title)
         trace = UnionDict(
-            dict(
-                type="scatter",
-                x=fwd[0],
-                y=fwd[1],
-                name="+ strand",
-                mode="lines",
-                line=dict(color="blue"),
-                xaxis=xaxis,
-                yaxis=yaxis,
-            )
+            type="scatter",
+            x=fwd[0],
+            y=fwd[1],
+            name="+ strand",
+            mode="lines",
+            line=dict(color="blue"),
+            xaxis=xaxis,
+            yaxis=yaxis,
         )
         self.add_trace(trace)
 

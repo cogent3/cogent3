@@ -3,6 +3,7 @@
 """
 import json
 import os
+import pathlib
 
 from copy import copy, deepcopy
 from tempfile import TemporaryDirectory
@@ -11,15 +12,15 @@ from unittest import TestCase, main
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import load_tree, make_tree
+from cogent3 import load_tree, make_tree, open_
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Catherine Lozupone",
@@ -33,7 +34,7 @@ __credits__ = [
     "Jose Carlos Clemente Litran",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -319,7 +320,7 @@ class TreeNodeTests(TestCase):
 
         # can't break up easily... sorry 80char
         exp_str = "((a:1.0,(b:2.0,c:3.0):0.0)d:4.0,((e:5.0,(f:6.0,g:7.0):0.0)h:8.0,(i:9.0,(j:10.0,k:11.0):0.0)l:12.0):0.0)m:14.0;"
-        obs = t.bifurcating()
+        t.bifurcating()
 
     def test_eq(self):
         """TreeNode comparison should compare using id"""
@@ -1127,7 +1128,6 @@ class TreeNodeTests(TestCase):
         b = nodes["b"]
         c = nodes["c"]
         d = nodes["d"]
-        e = nodes["e"]
         f = nodes["f"]
         g = nodes["g"]
         h = nodes["h"]
@@ -1176,7 +1176,7 @@ class TreeNodeTests(TestCase):
         self.assertTrue(tree.name not in names)
         names = tree.get_node_names(includeself=True, tipsonly=False)
         self.assertTrue(tree.name in names)
-        a = tree.get_node_matching_name("a")
+        tree.get_node_matching_name("a")
 
     def test_reassign_names(self):
         """reassign_names should rename node names based on dict mapping"""
@@ -1505,12 +1505,8 @@ class PhyloNodeTests(TestCase):
         """PhyloNode str should give expected results"""
         nodes, tree = self.TreeNode, self.TreeRoot
         a = nodes["a"]
-        b = nodes["b"]
         c = nodes["c"]
-        d = nodes["d"]
-        e = nodes["e"]
         f = nodes["f"]
-        g = nodes["g"]
         h = nodes["h"]
 
         self.assertEqual(str(h), "h:2;")
@@ -1590,8 +1586,8 @@ class PhyloNodeTests(TestCase):
         tree = DndParser("(a:1,((c:1,d:2.5)n3:1,b:1)n2:1)rt;")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
-        tipnames = tree.get_tip_names()
-        nontipnames = [t.name for t in tree.nontips()]
+        tree.get_tip_names()
+        [t.name for t in tree.nontips()]
         self.assertTrue(tmid.is_root())
         self.assertEqual(tmid.distance(tmid.get_node_matching_name("d")), 2.75)
 
@@ -1600,8 +1596,8 @@ class PhyloNodeTests(TestCase):
         tree = DndParser("(a:1,((c:1,d:3)n3:1,b:1)n2:1)rt;")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
-        tipnames = tree.get_tip_names()
-        nontipnames = [t.name for t in tree.nontips()]
+        tree.get_tip_names()
+        [t.name for t in tree.nontips()]
         # for tipname in tipnames:
         #     tmid_tip = tmid.get_node_matching_name(tipname)
         #     orig_tip = tree.get_node_matching_name(tipname)
@@ -1620,8 +1616,8 @@ class PhyloNodeTests(TestCase):
         tree = DndParser("""(BLO_1:0.649351,BLO_2:0.649351):0.0;""")
         tmid = tree.root_at_midpoint()
         self.assertEqual(tmid.get_distances(), tree.get_distances())
-        tipnames = tree.get_tip_names()
-        nontipnames = [t.name for t in tree.nontips()]
+        tree.get_tip_names()
+        [t.name for t in tree.nontips()]
 
         self.assertTrue(tmid.is_root())
         assert_allclose(tmid.distance(tmid.get_node_matching_name("BLO_2")), 0.649351)
@@ -2047,7 +2043,7 @@ class TestTree(TestCase):
         )  # note c,j is len 0 node
         orig_dists = t1.get_distances()
         subtree = t1.get_sub_tree(set(["a", "b", "d", "e", "c"]))
-        sub_dists = subtree.get_distances()
+        subtree.get_distances()
         # for pair, dist in sub_dists.items():
         # self.assertEqual((pair,dist), (pair,orig_dists[pair]))
         t2 = DndParser(
@@ -2204,6 +2200,28 @@ class TestTree(TestCase):
                 self.tree.get_newick(with_node_names=True),
             )
             self.assertEqual(got.get_node_names(), self.tree.get_node_names())
+            # now try using non json suffix
+            json_path = os.path.join(dirname, "tree.txt")
+            self.tree.write(json_path, format="json")
+            got = load_tree(json_path, format="json")
+            self.assertIsInstance(got, PhyloNode)
+
+    def test_load_tree(self):
+        """tests loading a newick formatted Tree"""
+        with TemporaryDirectory(dir=".") as dirname:
+            tree_path = os.path.join(dirname, "tree.tree")
+            self.tree.write(tree_path)
+            got = load_tree(tree_path)
+            self.assertIsInstance(got, PhyloNode)
+            self.assertEqual(
+                got.get_newick(),
+                self.tree.get_newick(),
+            )
+            self.assertEqual(got.get_node_names(), self.tree.get_node_names())
+            # now try specifying path as pathlib.Path
+            tree_path = pathlib.Path(tree_path)
+            got = load_tree(tree_path)
+            self.assertIsInstance(got, PhyloNode)
 
     def test_ascii(self):
         self.tree.ascii_art()
@@ -2257,7 +2275,7 @@ class BigTreeSingleTests(TestTree):
         # Fell over on small tree because "stem descended from root
         # joiner was a tip"
         a, b = self.otu_names[:2]
-        clade = self.tree.get_edge_names(a, b, True, False)
+        self.tree.get_edge_names(a, b, True, False)
 
     def test_get_tip_names(self):
         """testing (well, exercising at least), get_tip_names"""

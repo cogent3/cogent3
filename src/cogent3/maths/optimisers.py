@@ -15,10 +15,10 @@ GlobalOptimiser = SimulatedAnnealing
 LocalOptimiser = Powell
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -104,7 +104,7 @@ def bounds_exception_catching_function(f):
             result = f(x, **kw)
             if not numpy.isfinite(result):
                 if not acceptable_inf(result):
-                    warnings.warn("Non-finite f %s from %s" % (result, x))
+                    warnings.warn(f"Non-finite f {result} from {x}")
                     raise ParameterOutOfBoundsError
         except (ArithmeticError, ParameterOutOfBoundsError):
             result = out_of_bounds_value
@@ -167,13 +167,10 @@ def maximise(
     try:
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
-        raise ValueError(
-            "Initial parameter values must be valid %s" % repr(detail.args)
-        )
+        raise ValueError(f"Initial parameter values must be valid {repr(detail.args)}")
     if not numpy.isfinite(fval):
         raise ValueError(
-            "Initial parameter values must evaluate to a finite value, not %s. %s"
-            % (fval, x)
+            f"Initial parameter values must evaluate to a finite value, not {fval}. {x}"
         )
 
     f = bounds_exception_catching_function(f)

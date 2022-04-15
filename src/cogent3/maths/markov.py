@@ -8,10 +8,10 @@ import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -72,7 +72,7 @@ class TransitionMatrix(object):
             if hasattr(label, "__len__") and not isinstance(label, str):
                 label = ",".join(str(z) for z in label)
             # Table needs unique labels
-            label = "%s (%s)" % (label, i)
+            label = f"{label} ({i})"
             labels.append(label)
         heading = [""] + labels
         a = [[name] + list(row) for (name, row) in zip(labels, self.Matrix)]

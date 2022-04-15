@@ -37,7 +37,10 @@ Perform a coevolutionary analysis on a pair of positions in the alignment using 
 
 .. jupyter-execute::
 
-    from cogent3.evolve.coevolution import coevolve_pair_functions, coevolve_pair
+    from cogent3.evolve.coevolution import (
+        coevolve_pair,
+        coevolve_pair_functions,
+    )
 
     coevolve_pair(coevolve_pair_functions["mi"], aln, pos1=1, pos2=2)
 
@@ -45,7 +48,10 @@ Perform a coevolutionary analysis on a pair of positions in the alignment using 
 
 .. jupyter-execute::
 
-    from cogent3.evolve.coevolution import coevolve_pair_functions, coevolve_pair
+    from cogent3.evolve.coevolution import (
+        coevolve_pair,
+        coevolve_pair_functions,
+    )
 
     coevolve_pair(coevolve_pair_functions["sca"], aln, pos1=1, pos2=2, cutoff=0.5)
 
@@ -54,8 +60,8 @@ Perform a coevolutionary analysis on one position and all other positions in the
 .. jupyter-execute::
 
     from cogent3.evolve.coevolution import (
-        coevolve_position_functions,
         coevolve_position,
+        coevolve_position_functions,
     )
 
     coevolve_position(coevolve_position_functions["mi"], aln, position=1)
@@ -65,8 +71,8 @@ Perform a coevolutionary analysis on all pairs of positions in the alignment usi
 .. jupyter-execute::
 
     from cogent3.evolve.coevolution import (
-        coevolve_alignment_functions,
         coevolve_alignment,
+        coevolve_alignment_functions,
     )
 
     coevolve_alignment(coevolve_alignment_functions["mi"], aln)

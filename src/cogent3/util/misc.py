@@ -2,30 +2,18 @@
 """
 import os
 import re
-import shutil
-import uuid
 import warnings
-import zipfile
 
-from bz2 import open as bzip_open
-from gzip import open as gzip_open
-from io import TextIOWrapper
-from os import path as os_path
-from os import remove
-from pathlib import Path
 from random import randint
-from tempfile import mkdtemp
 from warnings import warn
-from zipfile import ZipFile
 
 import numpy
 
-from chardet import detect
 from numpy import array, finfo, float64
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Peter Maxwell",
@@ -37,10 +25,101 @@ __credits__ = [
     "Marcin Cieslik",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+# deprecated functions
+def open_zip(*args, **kwargs):
+    from cogent3.util.io import open_zip
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.util.misc.open_zip",
+        "cogent3.util.io.open_zip",
+        "2022.4",
+    )
+    return open_zip(*args, **kwargs)
+
+
+def open_(*args, **kwargs):
+    from cogent3.util.io import open_
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.util.misc.open_",
+        "cogent3.util.io.open_",
+        "2022.4",
+    )
+    return open_(*args, **kwargs)
+
+
+def _path_relative_to_zip_parent(*args, **kwargs):
+    from cogent3.util.io import _path_relative_to_zip_parent
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.util.misc._path_relative_to_zip_parent",
+        "cogent3.util.io._path_relative_to_zip_parent",
+        "2022.4",
+    )
+    return _path_relative_to_zip_parent(*args, **kwargs)
+
+
+def atomic_write(*args, **kwargs):
+    from cogent3.util.io import atomic_write
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "class",
+        "cogent3.util.misc.atomic_write",
+        "cogent3.util.io.atomic_write",
+        "2022.4",
+    )
+    return atomic_write(*args, **kwargs)
+
+
+def get_format_suffixes(*args, **kwargs):
+    from cogent3.util.io import get_format_suffixes
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.util.misc.get_format_suffixes",
+        "cogent3.util.io.get_format_suffixes",
+        "2022.4",
+    )
+    return get_format_suffixes(*args, **kwargs)
+
+
+def remove_files(*args, **kwargs):
+    from cogent3.util.io import remove_files
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.util.misc.remove_files",
+        "cogent3.util.io.remove_files",
+        "2022.4",
+    )
+    return remove_files(*args, **kwargs)
+
+
+def path_exists(*args, **kwargs):
+    from cogent3.util.io import path_exists
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.util.misc.path_exists",
+        "cogent3.util.io.path_exists",
+        "2022.4",
+    )
+    return path_exists(*args, **kwargs)
 
 
 def _adjusted_gt_minprob_vector(probs, minprob):
@@ -68,7 +147,7 @@ def adjusted_gt_minprob(probs, minprob=1e-6):
     result sums to 1 within machine precision
 
     if 2D array, assumes row-order"""
-    assert 0 <= minprob < 1, "invalid minval %s" % minprob
+    assert 0 <= minprob < 1, f"invalid minval {minprob}"
     probs = array(probs, dtype=float64)
     if (probs > minprob).all():
         return probs
@@ -103,16 +182,12 @@ def adjusted_within_bounds(value, lower, upper, eps=1e-7, action="warn"):
     if lower <= value <= upper:
         return value
 
-    assert action in ("warn", "raise", "ignore"), "Unknown action %s" % repr(action)
+    assert action in ("warn", "raise", "ignore"), f"Unknown action {repr(action)}"
 
     value = float64(value)
     eps = float64(eps) + finfo(float64).eps
-    err_msg = "value[%s] not within lower[%s]/upper[%s] bounds" % (value, lower, upper)
-    wrn_msg = "value[%s] forced within lower[%s]/upper[%s] bounds" % (
-        value,
-        lower,
-        upper,
-    )
+    err_msg = f"value[{value}] not within lower[{lower}]/upper[{upper}] bounds"
+    wrn_msg = f"value[{value}] forced within lower[{lower}]/upper[{upper}] bounds"
 
     if value < lower and (lower - value) <= eps:
         value = lower
@@ -134,222 +209,7 @@ def bytes_to_string(data):
     return data
 
 
-def open_zip(filename, mode="r", **kwargs):
-    """open a single member zip-compressed file
-
-    Note
-    ----
-    If mode="r". The function raises ValueError if zip has > 1 record.
-    The returned object is wrapped by TextIOWrapper with latin encoding
-    (so it's not a bytes string).
-
-    If mode="w", returns an atomic_write() instance.
-    """
-    binary_mode = "b" in mode
-    mode = mode[:1]
-
-    encoding = kwargs.pop("encoding") if "encoding" in kwargs else "latin-1"
-    if mode.startswith("w"):
-        return atomic_write(filename, mode=mode, in_zip=True)
-
-    mode = mode.strip("t")
-    with ZipFile(filename) as zf:
-        if len(zf.namelist()) != 1:
-            raise ValueError("Archive is supposed to have only one record.")
-
-        opened = zf.open(zf.namelist()[0], mode=mode, **kwargs)
-
-        if binary_mode:
-            return opened
-
-        return TextIOWrapper(opened, encoding=encoding)
-
-
-def open_(filename, mode="rt", **kwargs):
-    """open that handles different compression"""
-
-    filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
-        filename.suffix, open
-    )
-
-    encoding = kwargs.pop("encoding", None)
-    need_encoding = mode.startswith("r") and "b" not in mode
-    if need_encoding:
-        if "encoding" not in kwargs:
-            with op(filename, mode="rb") as infile:
-                data = infile.read(100)
-
-            encoding = detect(data)
-            encoding = encoding["encoding"]
-
-    return op(filename, mode, encoding=encoding, **kwargs)
-
-
-def _path_relative_to_zip_parent(zip_path, member_path):
-    """returns member_path relative to zip_path
-
-    Parameters
-    ----------
-    zip_path: Path
-    member_path: Path
-
-    Notes
-    -----
-    with zip_path = "parentdir/named.zip", then member_path="named/member.tsv"
-    or path="member.tsv" will return "named/member.tsv"
-    """
-    zip_name = zip_path.name.replace(".zip", "")
-    if zip_name not in member_path.parts:
-        return Path(zip_name) / member_path
-
-    return Path(*member_path.parts[member_path.parts.index(zip_name) :])
-
-
-class atomic_write:
-    """performs atomic write operations, cleans up if fails"""
-
-    def __init__(self, path, tmpdir=None, in_zip=None, mode="w", encoding=None):
-        """
-
-        Parameters
-        ----------
-        path
-            path to file, or relative to directory specified by in_zip
-        tmpdir
-            directory where temporary file will be created
-        in_zip
-            path to the zip archive containing path,
-            e.g. if in_zip="path/to/data.zip", then path="data/seqs.tsv"
-            Decompressing the archive will produce the "data/seqs.tsv"
-        mode
-            file writing mode
-        encoding
-            text encoding
-        """
-        path = Path(path).expanduser()
-        in_zip = Path(in_zip) if isinstance(in_zip, str) else in_zip
-        _, cmp = get_format_suffixes(path)
-        if in_zip and cmp == "zip":
-            in_zip = path if isinstance(in_zip, bool) else in_zip
-            path = Path(str(path)[: str(path).rfind(".zip")])
-
-        if in_zip:
-            path = _path_relative_to_zip_parent(in_zip, path)
-
-        self._path = path
-        self._cmp = cmp
-        self._mode = mode
-        self._file = None
-        self._encoding = encoding
-        self._in_zip = in_zip
-        self._tmppath = self._make_tmppath(tmpdir)
-
-        self.succeeded = None
-        self._close_func = (
-            self._close_rename_zip if in_zip else self._close_rename_standard
-        )
-
-    def _make_tmppath(self, tmpdir):
-        """returns path of temporary file
-
-        Parameters
-        ----------
-        tmpdir: Path
-            to directory
-
-        Returns
-        -------
-        full path to a temporary file
-
-        Notes
-        -----
-        Uses a random uuid as the file name, adds suffixes from path
-        """
-        suffixes = (
-            "".join(self._path.suffixes)
-            if not self._in_zip
-            else "".join(self._path.suffixes[:-1])
-        )
-        parent = self._in_zip.parent if self._in_zip else self._path.parent
-        name = f"{uuid.uuid4()}{suffixes}"
-        tmpdir = Path(mkdtemp(dir=parent)) if tmpdir is None else Path(tmpdir)
-
-        if not tmpdir.exists():
-            raise FileNotFoundError(f"{tmpdir} directory does not exist")
-
-        tmp_path = tmpdir / name
-        return tmp_path
-
-    def _get_fileobj(self):
-        """returns file to be written to"""
-        if self._file is None:
-            self._file = open_(self._tmppath, self._mode, encoding=self._encoding)
-
-        return self._file
-
-    def __enter__(self):
-        return self._get_fileobj()
-
-    def _close_rename_standard(self, src):
-        dest = Path(self._path)
-        try:
-            dest.unlink()
-        except FileNotFoundError:
-            pass
-        finally:
-            src.rename(dest)
-
-        shutil.rmtree(src.parent)
-
-    def _close_rename_zip(self, src):
-        with zipfile.ZipFile(self._in_zip, "a") as out:
-            out.write(str(src), arcname=self._path)
-
-        shutil.rmtree(src.parent)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._file.close()
-        if exc_type is None:
-            self._close_func(self._tmppath)
-            self.succeeded = True
-        else:
-            self.succeeded = False
-            shutil.rmtree(self._tmppath.parent)
-
-    def write(self, text):
-        """writes text to file"""
-        fileobj = self._get_fileobj()
-        fileobj.write(text)
-
-    def close(self):
-        """closes file"""
-        self.__exit__(None, None, None)
-
-
 _wout_period = re.compile(r"^\.")
-
-
-def get_format_suffixes(filename):
-    """returns file, compression suffixes"""
-    filename = Path(filename)
-    if not filename.suffix:
-        return None, None
-
-    compression_suffixes = ("bz2", "gz", "zip")
-    suffixes = [_wout_period.sub("", sfx).lower() for sfx in filename.suffixes[-2:]]
-    if suffixes[-1] in compression_suffixes:
-        cmp_suffix = suffixes[-1]
-    else:
-        cmp_suffix = None
-
-    if len(suffixes) == 2 and cmp_suffix is not None:
-        suffix = suffixes[0]
-    elif cmp_suffix is None:
-        suffix = suffixes[-1]
-    else:
-        suffix = None
-    return suffix, cmp_suffix
 
 
 def iterable(item):
@@ -377,7 +237,7 @@ def curry(f, *a, **kw):
     if a:
         curry_params.extend([e for e in a])
     if kw:
-        curry_params.extend(["%s=%s" % (k, v) for k, v in list(kw.items())])
+        curry_params.extend([f"{k}={v}" for k, v in list(kw.items())])
     # str it to prevent error in join()
     curry_params = list(map(str, curry_params))
 
@@ -513,7 +373,7 @@ class ClassChecker(object):
         for c in Classes:
             if type(c) != type_type:
                 raise TypeError(
-                    "ClassChecker found non-type object '%s' in parameter list." % c
+                    f"ClassChecker found non-type object '{c}' in parameter list."
                 )
         self.Classes = list(Classes)
 
@@ -744,7 +604,7 @@ class ConstrainedContainer(object):
             self._constraint = constraint
         else:
             raise ConstraintError(
-                "Sequence '%s' incompatible with constraint '%s'" % (self, constraint)
+                f"Sequence '{self}' incompatible with constraint '{constraint}'"
             )
 
     constraint = property(_get_constraint, _set_constraint)
@@ -776,8 +636,7 @@ class ConstrainedList(ConstrainedContainer, list):
             return list.__iadd__(self, other)
         else:
             raise ConstraintError(
-                "Sequence '%s' has items not in constraint '%s'"
-                % (other, self.constraint)
+                f"Sequence '{other}' has items not in constraint '{self.constraint}'"
             )
 
     def __mul__(self, multiplier):
@@ -808,7 +667,7 @@ class ConstrainedList(ConstrainedContainer, list):
         else:
             if not self.item_is_valid(item):
                 raise ConstraintError(
-                    "Item '%s' not in constraint '%s'" % (item, self.constraint)
+                    f"Item '{item}' not in constraint '{self.constraint}'"
                 )
             item = self.mask(item)
         list.__setitem__(self, index, item)
@@ -819,15 +678,14 @@ class ConstrainedList(ConstrainedContainer, list):
             list.__setslice__(self, start, end, list(map(self.mask, sequence)))
         else:
             raise ConstraintError(
-                "Sequence '%s' has items not in constraint '%s'"
-                % (sequence, self.constraint)
+                f"Sequence '{sequence}' has items not in constraint '{self.constraint}'"
             )
 
     def append(self, item):
         """Appends item to self."""
         if not self.item_is_valid(item):
             raise ConstraintError(
-                "Item '%s' not in constraint '%s'" % (item, self.constraint)
+                f"Item '{item}' not in constraint '{self.constraint}'"
             )
         list.append(self, self.mask(item))
 
@@ -837,15 +695,14 @@ class ConstrainedList(ConstrainedContainer, list):
             list.extend(self, list(map(self.mask, sequence)))
         else:
             raise ConstraintError(
-                "Some items in '%s' not in constraint '%s'"
-                % (sequence, self.constraint)
+                f"Some items in '{sequence}' not in constraint '{self.constraint}'"
             )
 
     def insert(self, position, item):
         """Inserts item at position in self."""
         if not self.item_is_valid(item):
             raise ConstraintError(
-                "Item '%s' not in constraint '%s'" % (item, self.constraint)
+                f"Item '{item}' not in constraint '{self.constraint}'"
             )
         list.insert(self, position, self.mask(item))
 
@@ -923,9 +780,7 @@ class ConstrainedDict(ConstrainedContainer, dict):
     def __setitem__(self, key, value):
         """Sets self[key] to value if value in constraint."""
         if not self.item_is_valid(key):
-            raise ConstraintError(
-                "Item '%s' not in constraint '%s'" % (key, self.constraint)
-            )
+            raise ConstraintError(f"Item '{key}' not in constraint '{self.constraint}'")
         key, value = self.mask(key), self.value_mask(value)
         dict.__setitem__(self, key, value)
 
@@ -1048,19 +903,6 @@ def NestedSplitter(
 
     # parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
-
-
-def remove_files(list_of_filepaths, error_on_missing=True):
-    """Remove list of filepaths, optionally raising an error if any are missing"""
-    missing = []
-    for fp in list_of_filepaths:
-        try:
-            remove(fp)
-        except OSError:
-            missing.append(fp)
-
-    if error_on_missing and missing:
-        raise OSError("Some filepaths were not accessible: %s" % "\t".join(missing))
 
 
 def get_independent_coords(spans, random_tie_breaker=False):
@@ -1191,17 +1033,6 @@ def get_object_provenance(obj):
     else:
         result = ".".join([mod, name])
     return result
-
-
-def path_exists(path):
-    """whether path is a valid path and it exists"""
-    if not (isinstance(path, str) or isinstance(path, Path)):
-        return False
-    try:
-        is_path = os_path.exists(str(path))
-    except (ValueError, TypeError):
-        is_path = False
-    return is_path
 
 
 def extend_docstring_from(source, pre=False):

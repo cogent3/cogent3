@@ -4,10 +4,10 @@ from unittest import TestCase, main
 
 import numpy
 
-from numpy import array, dot, empty, ones
+from numpy import array, dot, empty
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, get_model, make_aligned_seqs, make_tree
+from cogent3 import DNA, make_aligned_seqs, make_tree
 from cogent3.evolve.ns_substitution_model import (
     DiscreteSubstitutionModel,
     General,
@@ -28,10 +28,10 @@ warnings.filterwarnings("ignore", "Model not reversible")
 
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Ananias Iliadis"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -274,7 +274,7 @@ class NonStatMarkov(TestCase):
             "optimise_motif_probs": True,
             "recode_gaps": True,
         }
-        sm = StrandSymmetric(**kw)
+        StrandSymmetric(**kw)
 
     def test_nr_nucleotide(self):
         """This is exercising a NonReversibleNucleotide"""

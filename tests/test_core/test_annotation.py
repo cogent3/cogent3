@@ -3,16 +3,16 @@
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.annotation import Feature, Variable, _Feature
+from cogent3.core.annotation import Feature, _Feature
 from cogent3.core.location import Map, Span, as_map
 from cogent3.core.sequence import DnaSequence, RnaSequence
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -225,7 +225,6 @@ class TestMapSpans(unittest.TestCase):
     manipulation."""
 
     def test_span(self):
-        length = 100
         forward = Span(20, 30)
         reverse = Span(70, 80, reverse=True)
         assert forward.reversed_relative_to(100) == reverse

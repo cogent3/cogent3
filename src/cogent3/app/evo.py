@@ -1,9 +1,11 @@
-import warnings
+from copy import deepcopy
+
+import cogent3.util.io
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
-from cogent3.util import misc, parallel
+from cogent3.util import parallel
 
 from .composable import (
     ALIGNED_TYPE,
@@ -28,10 +30,10 @@ from .result import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -51,11 +53,13 @@ class model(ComposableModel):
         tree=None,
         unique_trees=False,
         name=None,
+        optimise_motif_probs=False,
         sm_args=None,
         lf_args=None,
         time_het=None,
         param_rules=None,
         opt_args=None,
+        upper=50,
         split_codons=False,
         show_progress=False,
         verbose=False,
@@ -69,14 +73,18 @@ class model(ComposableModel):
             if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
-        unique_trees: bool
+        unique_trees : bool
             whether to specify a unique tree per alignment. Only applies if
             number of sequences equals 3.
-        name
+        name : str
             name of the model
+        optimise_motif_probs : bool
+            whether the motif probabilities are free parameters. If False,
+            takes the average of frequencies from the alignment. Overrides
+            the setting of a sub model instance, or any value provided in
+            sm_args.
         sm_args : dict
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         lf_args : dict
             arguments to be passed to the likelihood function constructor
         time_het
@@ -84,13 +92,16 @@ class model(ComposableModel):
             [dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)].
             Passed to the likelihood function .set_time_heterogeneity()
             method.
-        param_rules
+        param_rules : list
             other parameter rules, passed to the likelihood function
             set_param_rule() method
         opt_args : dict
             arguments for the numerical optimiser, e.g.
             dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
             limit_action='ignore')
+        upper
+            Upper bound for all rate and length parameters. Overrides
+            values defined in ``time_het`` or ``param_rules``.
         split_codons : bool
             if True, incoming alignments are split into the 3 frames and each
             frame is fit separately
@@ -103,7 +114,7 @@ class model(ComposableModel):
         -------
         Calling an instance with an alignment returns a model_result instance
         with the optimised likelihood function. In the case of split_codons,
-        the result object has a separate entry for each.
+        the result object has a separate entry for each codon position.
         """
         super(model, self).__init__(
             input_types=self._input_types,
@@ -111,19 +122,28 @@ class model(ComposableModel):
             data_types=self._data_types,
         )
         self._verbose = verbose
+        self._upper = upper
         self._formatted_params()
         assert not (
             tree and unique_trees
         ), "cannot provide a tree when unique_trees is True"
         self._unique_trees = unique_trees
-        sm_args = sm_args or {}
+        sm_args = deepcopy(sm_args or {})
+        if "optimise_motif_probs" in sm_args:
+            raise ValueError(
+                "'optimise_motif_probs' value in sm_args is IGNORED, use explicit argument instead",
+            )
+
+        sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
+        else:
+            sm._optimise_motif_probs = optimise_motif_probs
         self._sm = sm
         if len(sm.get_motifs()[0]) > 1:
             split_codons = False
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -132,22 +152,24 @@ class model(ComposableModel):
             raise TypeError(f"invalid tree type {type(tree)}")
 
         self._tree = tree
-        self._lf_args = lf_args or {}
+        self._lf_args = deepcopy(lf_args or {})
         if not name:
             name = sm.name or "unnamed model"
         self.name = name
-        self._opt_args = opt_args or dict(max_restarts=5, show_progress=show_progress)
+        self._opt_args = deepcopy(
+            opt_args or dict(max_restarts=5, show_progress=show_progress)
+        )
         self._opt_args["show_progress"] = self._opt_args.get(
             "show_progress", show_progress
         )
-        param_rules = param_rules or {}
+        param_rules = deepcopy(param_rules or [])
         if param_rules:
             for rule in param_rules:
                 if rule.get("is_constant"):
                     continue
-                rule["upper"] = rule.get("upper", 50)  # default upper bound
+                rule["upper"] = rule.get("upper", upper)  # default upper bound
         self._param_rules = param_rules
-        self._time_het = time_het
+        self._time_het = deepcopy(time_het)
         self._split_codons = split_codons
         self.func = self.fit
 
@@ -170,16 +192,26 @@ class model(ComposableModel):
                 if self._verbose:
                     print(lf)
             if self._time_het == "max":
-                lf.set_time_heterogeneity(is_independent=True, upper=50)
+                lf.set_time_heterogeneity(is_independent=True, upper=self._upper)
             else:
-                lf.set_time_heterogeneity(edge_sets=self._time_het)
+                lf.set_time_heterogeneity(edge_sets=self._time_het, upper=self._upper)
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if rule["par_name"] not in ("mprobs", "psubs"):
-                    rule["upper"] = rule.get("upper", 50)
+                if (
+                    rule["par_name"]
+                    in (
+                        "mprobs",
+                        "psubs",
+                        "bprobs",
+                        "dpsubs",
+                    )
+                    or rule.get("is_constant")
+                ):
+                    continue
+                rule["upper"] = min(rule.get("upper") or self._upper + 1, self._upper)
 
-            lf.apply_param_rules([rule])
+            lf.apply_param_rules(rules)
 
         if initialise:
             lf = initialise(lf, identifier)
@@ -299,7 +331,7 @@ class model_collection(ComposableHypothesis):
             A callback function for initialising the alternate model
             likelihood function prior to optimisation. It must take 2 input
             arguments and return the modified alternate likelihood function.
-            Default is to use MLEs from the null model.
+            Default is to use MLEs from the null model. Overrides sequential.
 
         Notes
         -----
@@ -313,7 +345,6 @@ class model_collection(ComposableHypothesis):
         )
         self._formatted_params()
         if sequential and init_alt:
-            warnings.warn("init_alt is specified, ignoring sequential")
             sequential = False
 
         self.null = null
@@ -357,7 +388,7 @@ class model_collection(ComposableHypothesis):
             return null
 
         try:
-            alts = [alt for alt in self._initialised_alt(null, aln)]
+            alts = list(self._initialised_alt(null, aln))
         except ValueError:
             msg = f"Hypothesis alt had bounds error {aln.info.source}"
             return NotCompleted("ERROR", self, msg, source=aln)
@@ -368,7 +399,7 @@ class model_collection(ComposableHypothesis):
                 return alt
 
         results = {alt.name: alt for alt in alts}
-        results.update({null.name: null})
+        results[null.name] = null
 
         result = self._make_result(aln)
         result.update(results)
@@ -417,6 +448,8 @@ class bootstrap(ComposableHypothesis):
         result = bootstrap_result(aln.info.source)
         try:
             obs = self._hyp(aln)
+            if not obs:
+                return obs
         except ValueError as err:
             result = NotCompleted("ERROR", str(self._hyp), err.args[0])
             return result
@@ -424,7 +457,7 @@ class bootstrap(ComposableHypothesis):
         self._null = obs.null
         self._inpath = aln.info.source
 
-        map_fun = map if not self._parallel else parallel.imap
+        map_fun = parallel.imap if self._parallel else map
         sym_results = [r for r in map_fun(self._fit_sim, range(self._num_reps)) if r]
         for sym_result in sym_results:
             if not sym_result:
@@ -534,13 +567,12 @@ class natsel_neutral(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
             If True, motif probabilities are free parameters. If False (default)
-            they are estimated frokm the alignment.
+            they are estimated from the alignment.
         lf_args
             arguments to be passed to the likelihood function constructor
         opt_args
@@ -561,7 +593,7 @@ class natsel_neutral(ComposableHypothesis):
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -572,7 +604,6 @@ class natsel_neutral(ComposableHypothesis):
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
         sm_args["gc"] = sm_args.get("gc", gc)
-        sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
 
@@ -583,11 +614,12 @@ class natsel_neutral(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-null",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             opt_args=opt_args,
             show_progress=show_progress,
             param_rules=[dict(par_name="omega", is_constant=True, value=1.0)],
-            lf_args=lf_args,
+            lf_args=deepcopy(lf_args),
             verbose=verbose,
         )
 
@@ -596,10 +628,11 @@ class natsel_neutral(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-alt",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             opt_args=opt_args,
             show_progress=show_progress,
-            lf_args=lf_args,
+            lf_args=deepcopy(lf_args),
             verbose=verbose,
         )
         hyp = hypothesis(null, alt)
@@ -648,13 +681,12 @@ class natsel_zhang(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
             If True, motif probabilities are free parameters. If False (default)
-            they are estimated frokm the alignment.
+            they are estimated from the alignment.
         tip1 : str
             name of tip 1
         tip2 : str
@@ -697,7 +729,7 @@ class natsel_zhang(ComposableHypothesis):
         if not any([tip1, tip2]):
             raise ValueError("must provide at least a single tip name")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -721,7 +753,6 @@ class natsel_zhang(ComposableHypothesis):
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
         sm_args["gc"] = sm_args.get("gc", gc)
-        sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
 
@@ -733,13 +764,14 @@ class natsel_zhang(ComposableHypothesis):
             dict(par_name="omega", bins="1", is_constant=True, value=1.0),
         ]
         lf_args = lf_args or {}
-        null_lf_args = lf_args.copy()
+        null_lf_args = deepcopy(lf_args)
         null_lf_args.update(dict(bins=("0", "1")))
         self.null = model(
             sm,
             tree,
             name=f"{model_name}-null",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             param_rules=null_param_rules,
             lf_args=null_lf_args,
             opt_args=opt_args,
@@ -748,13 +780,14 @@ class natsel_zhang(ComposableHypothesis):
         )
 
         # defining the alternate model, param rules to be completed each call
-        alt_lf_args = lf_args.copy()
+        alt_lf_args = lf_args
         alt_lf_args.update(dict(bins=("0", "1", "2a", "2b")))
         self.alt_args = dict(
             sm=sm,
             tree=tree,
             name=f"{model_name}-alt",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             edges=edges,
             lf_args=alt_lf_args,
             opt_args=opt_args,
@@ -782,7 +815,7 @@ class natsel_zhang(ComposableHypothesis):
                 r["bins"] = [bin_id, "2a"] if bin_id == "0" else [bin_id, "2b"]
 
         # set the starting values for 2a/b
-        alt_args = self.alt_args.copy()
+        alt_args = deepcopy(self.alt_args)
         edges = alt_args.pop("edges")
         upper_omega = alt_args.pop("upper_omega")
         rules.append(
@@ -848,8 +881,7 @@ class natsel_sitehet(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
@@ -877,7 +909,7 @@ class natsel_sitehet(ComposableHypothesis):
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -888,7 +920,6 @@ class natsel_sitehet(ComposableHypothesis):
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
         sm_args["gc"] = sm_args.get("gc", gc)
-        sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
 
@@ -900,13 +931,14 @@ class natsel_sitehet(ComposableHypothesis):
             dict(par_name="omega", bins="neutral", is_constant=True, value=1.0),
         ]
         lf_args = lf_args or {}
-        null_lf_args = lf_args.copy()
+        null_lf_args = deepcopy(lf_args)
         null_lf_args.update(dict(bins=("-ve", "neutral")))
         self.null = model(
             sm,
             tree,
             name=f"{model_name}-null",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             param_rules=null_param_rules,
             lf_args=null_lf_args,
             opt_args=opt_args,
@@ -915,13 +947,14 @@ class natsel_sitehet(ComposableHypothesis):
         )
 
         # defining the alternate model, param rules to be completed each call
-        alt_lf_args = lf_args.copy()
+        alt_lf_args = deepcopy(lf_args)
         alt_lf_args.update(dict(bins=("-ve", "neutral", "+ve")))
         self.alt_args = dict(
             sm=sm,
             tree=tree,
             name=f"{model_name}-alt",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             lf_args=alt_lf_args,
             opt_args=opt_args,
             show_progress=show_progress,
@@ -943,7 +976,7 @@ class natsel_sitehet(ComposableHypothesis):
                 break
 
         # set the starting value for +ve bin
-        alt_args = self.alt_args.copy()
+        alt_args = deepcopy(self.alt_args)
         upper_omega = alt_args.pop("upper_omega")
         rules.append(
             dict(
@@ -1015,8 +1048,7 @@ class natsel_timehet(ComposableHypothesis):
             newick formatted tree, a path to a file containing one, or a Tree
             instance.
         sm_args
-            arguments to be passed to the substitution model constructor, e.g.
-            dict(optimise_motif_probs=True)
+            arguments to be passed to the substitution model constructor
         gc
             genetic code, either name or number (see cogent3.available_codes)
         optimise_motif_probs : bool
@@ -1063,7 +1095,7 @@ class natsel_timehet(ComposableHypothesis):
         if not any([tip1, tip2]):
             raise ValueError("must provide at least a single tip name")
 
-        if misc.path_exists(tree):
+        if cogent3.util.io.path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -1087,19 +1119,19 @@ class natsel_timehet(ComposableHypothesis):
         # instantiate model, ensuring genetic code setting passed on
         sm_args = sm_args or {}
         sm_args["gc"] = sm_args.get("gc", gc)
-        sm_args["optimise_motif_probs"] = optimise_motif_probs
         if type(sm) == str:
             sm = get_model(sm, **sm_args)
 
         model_name = sm.name
         # defining the null model
         lf_args = lf_args or {}
-        null_lf_args = lf_args.copy()
+        null_lf_args = deepcopy(lf_args)
         null = model(
             sm,
             tree,
             name=f"{model_name}-null",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             lf_args=null_lf_args,
             opt_args=opt_args,
             show_progress=show_progress,
@@ -1119,11 +1151,12 @@ class natsel_timehet(ComposableHypothesis):
             sm,
             tree,
             name=f"{model_name}-alt",
-            sm_args=sm_args,
+            optimise_motif_probs=optimise_motif_probs,
+            sm_args=deepcopy(sm_args),
             opt_args=opt_args,
             show_progress=show_progress,
             param_rules=param_rules,
-            lf_args=lf_args,
+            lf_args=deepcopy(lf_args),
             verbose=verbose,
         )
         hyp = hypothesis(null, alt)

@@ -20,16 +20,17 @@ from cogent3.app.data_store import (
     SingleReadDataStore,
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
+    get_data_source,
     load_record_from_json,
 )
 from cogent3.parse.fasta import MinimalFastaParser
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -81,7 +82,6 @@ class DataStoreBaseReadTests:
 
     def test_get_member(self):
         """returns a matching member"""
-        basedir = self.basedir.split(".")[0]
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         member = dstore.get_member("brca1.fasta")
         self.assertNotEqual(member, None)
@@ -142,7 +142,6 @@ class DataStoreBaseReadTests:
 
         dstore = self.ReadClass(self.basedir, suffix="*")
         re_dstore = loads(dumps(dstore))
-        got = re_dstore[0].read()
         self.assertEqual(str(dstore), str(re_dstore))
         self.assertEqual(dstore[0].read(), re_dstore[0].read())
 
@@ -523,7 +522,7 @@ class TinyDBDataStoreTests(TestCase):
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, if_exists="overwrite")
             identifier = dstore.make_relative_identifier(keys[0])
-            got = dstore.write(identifier, self.data[keys[0]])
+            dstore.write(identifier, self.data[keys[0]])
             path = dstore.add_file(log_path, keep_suffix=True, cleanup=False)
             self.assertTrue("some.log" in dstore)
             dstore.close()
@@ -855,6 +854,55 @@ class TestFunctions(TestCase):
             self.assertEqual(Id, "some.json")
             self.assertEqual(data_, expected)
             self.assertEqual(compl, True)
+
+    def test_get_data_source_str_pathlib(self):
+        """handles case where input is string object or pathlib object"""
+        for val_klass in (str, pathlib.Path):
+            value = val_klass("some/path.txt")
+            got = get_data_source(value)
+            self.assertEqual(got, str(value))
+
+    def test_get_data_source_seqcoll(self):
+        """handles case where input is sequence collection object"""
+        from cogent3 import make_unaligned_seqs
+
+        for val_klass in (str, pathlib.Path):
+            value = val_klass("some/path.txt")
+            obj = make_unaligned_seqs(
+                data=dict(seq1="ACGG"), info=dict(source=value, random_key=1234)
+            )
+            got = get_data_source(obj)
+            self.assertEqual(got, str(value))
+
+    def test_get_data_source_attr(self):
+        """handles case where input has source attribute string object or pathlib object"""
+
+        class dummy:
+            source = None
+
+        for val_klass in (str, pathlib.Path):
+            obj = dummy()
+            value = val_klass("some/path.txt")
+            obj.source = value
+            got = get_data_source(obj)
+            self.assertEqual(got, str(value))
+
+    def test_get_data_source_dict(self):
+        """handles case where input is dict (sub)class instance with top level source key"""
+        from cogent3.util.union_dict import UnionDict
+
+        for klass in (dict, UnionDict):
+            for val_klass in (str, pathlib.Path):
+                value = val_klass("some/path.txt")
+                data = klass(source=value)
+                got = get_data_source(data)
+                self.assertEqual(got, str(value))
+
+    def test_get_data_source_none(self):
+        """handles case where input does not have a source attribute or key"""
+        for data in (None, dict(), set(), dict(info=dict())):
+            got = get_data_source(data)
+            self.assertIsNone(got)
 
 
 if __name__ == "__main__":

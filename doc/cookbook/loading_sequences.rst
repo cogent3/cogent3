@@ -172,7 +172,7 @@ The FASTA label field is frequently overloaded, with different information field
 
 .. jupyter-execute::
 
-    from cogent3.parse.fasta import MinimalFastaParser, LabelParser
+    from cogent3.parse.fasta import LabelParser, MinimalFastaParser
 
     fasta_data = [
         ">gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]",

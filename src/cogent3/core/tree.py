@@ -37,15 +37,12 @@ from random import choice, shuffle
 from numpy import argsort, ceil, log, zeros
 
 from cogent3.maths.stats.test import correlation
-from cogent3.util.misc import (
-    atomic_write,
-    get_format_suffixes,
-    get_object_provenance,
-)
+from cogent3.util.io import atomic_write, get_format_suffixes
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Peter Maxwell",
@@ -59,7 +56,7 @@ __credits__ = [
     "Justin Kuczynski",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -119,7 +116,7 @@ class TreeNode(object):
 
         WARNING: Does not currently set the class to the right type.
         """
-        return 'Tree("%s")' % self.get_newick()
+        return f'Tree("{self.get_newick()}")'
 
     def __str__(self):
         """Returns Newick-format string representation of tree."""
@@ -880,7 +877,7 @@ class TreeNode(object):
             subtrees.append(nwk)
 
         if subtrees:
-            newick.append("(%s)" % ",".join(subtrees))
+            newick.append(f"({','.join(subtrees)})")
 
         if self.name_loaded or with_node_names:
             if self.name is None or with_node_names and self.is_root():
@@ -896,7 +893,7 @@ class TreeNode(object):
 
         if isinstance(self, PhyloNode):
             if with_distances and self.length is not None:
-                newick.append(":%s" % self.length)
+                newick.append(f":{self.length}")
 
         if semicolon:
             newick.append(";")
@@ -967,7 +964,7 @@ class TreeNode(object):
                 if isinstance(self, PhyloNode):
                     if with_distances and top_node.length is not None:
                         # result.append(":%s" % top_node.length)
-                        result[-1] = "%s:%s" % (result[-1], top_node.length)
+                        result[-1] = f"{result[-1]}:{top_node.length}"
 
                 result.append(",")
 
@@ -979,7 +976,7 @@ class TreeNode(object):
                 return ""
         elif len_result == 3:  # single node with name
             if semicolon:
-                return "%s;" % result[1]
+                return f"{result[1]};"
             else:
                 return result[1]
         else:
@@ -1039,7 +1036,7 @@ class TreeNode(object):
         if outgroup_name is not None:
             outgroup = self.get_node_matching_name(outgroup_name)
             if outgroup.children:
-                raise TreeError("Outgroup (%s) must be a tip" % outgroup_name)
+                raise TreeError(f"Outgroup ({outgroup_name!r}) must be a tip")
             self = outgroup.unrooted_deepcopy()
 
         join_edge = self.get_connecting_node(tip1name, tip2name)
@@ -1049,7 +1046,7 @@ class TreeNode(object):
         if stem:
             if join_edge.isroot():
                 raise TreeError(
-                    "LCA(%s,%s) is the root and so has no stem" % (tip1name, tip2name)
+                    f"LCA({tip1name},{tip2name}) is the root and so has no stem"
                 )
             else:
                 edge_names.append(join_edge.name)
@@ -1283,7 +1280,7 @@ class TreeNode(object):
             # this may take a long time
             for name in name_list:
                 if name not in edge_names:
-                    raise ValueError("edge %s not found in tree" % name)
+                    raise ValueError(f"edge {name!r} not found in tree")
 
         new_tree = self._get_sub_tree(name_list, keep_root=keep_root, tipsonly=tipsonly)
         if new_tree is None:
@@ -1418,15 +1415,13 @@ class TreeNode(object):
         if parent_params is not None:
             params.update(parent_params)
         pad = "  " * indent
-        xml = ["%s<clade>" % pad]
+        xml = [f"{pad}<clade>"]
         if self.name_loaded:
-            xml.append("%s   <name>%s</name>" % (pad, self.name))
+            xml.append(f"{pad}   <name>{self.name}</name>")
         for (n, v) in list(self.params.items()):
             if v == params.get(n, None):
                 continue
-            xml.append(
-                "%s   <param><name>%s</name><value>%s</value></param>" % (pad, n, v)
-            )
+            xml.append(f"{pad}   <param><name>{n}</name><value>{v}</value></param>")
             params[n] = v
         for child in self.children:
             xml.extend(child._getXmlLines(indent + 1, params))
@@ -1450,10 +1445,16 @@ class TreeNode(object):
         format
             default is newick, xml and json are alternate. Argument overrides
             the filename suffix. All attributes are saved in the xml format.
+            Value overrides the file name suffix.
+
+        Notes
+        -----
+        Only the cogent3 json and xml tree formats are supported.
 
         """
         file_format, _ = get_format_suffixes(filename)
-        if file_format == "json":
+        format = format or file_format
+        if format == "json":
             with atomic_write(filename, mode="wt") as f:
                 f.write(self.to_json())
             return
@@ -1516,7 +1517,7 @@ class TreeNode(object):
     def get_node_matching_name(self, name):
         node = self._get_node_matching_name(name)
         if node is None:
-            raise TreeError("No node named '%s' in %s" % (name, self.get_tip_names()))
+            raise TreeError(f"No node named '{name}' in {self.get_tip_names()}")
         return node
 
     def get_connecting_node(self, name1, name2):
@@ -1525,7 +1526,7 @@ class TreeNode(object):
         edge2 = self.get_node_matching_name(name2)
         lca = edge1.last_common_ancestor(edge2)
         if lca is None:
-            raise TreeError("No LCA found for %s and %s" % (name1, name2))
+            raise TreeError(f"No LCA found for {name1} and {name2}")
         return lca
 
     def get_connecting_edges(self, name1, name2):
@@ -2017,7 +2018,7 @@ class PhyloNode(TreeNode):
         """
         newroot = self.get_node_matching_name(edge_name)
         if not newroot.children:
-            raise TreeError("Can't use a tip (%s) as the root" % repr(edge_name))
+            raise TreeError(f"Can't use a tip ({repr(edge_name)}) as the root")
         return newroot.unrooted_deepcopy()
 
     def rooted_with_tip(self, outgroup_name):

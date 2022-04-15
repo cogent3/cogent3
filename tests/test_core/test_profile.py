@@ -11,10 +11,10 @@ from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -28,7 +28,7 @@ class MotifCountsArrayTests(TestCase):
         states = "ACGT"
         rows = [CategoryCounter([b] * 20) for b in "ACGT"]
         rows = [r.tolist(states) for r in rows]
-        pwm = MotifCountsArray(rows, states)
+        MotifCountsArray(rows, states)
 
         data = [[2, 4], [3, 5], [4, 8]]
         got = MotifCountsArray(array(data), "AB")
@@ -42,22 +42,22 @@ class MotifCountsArrayTests(TestCase):
         # can't use a string
         data = [["A", "A"], ["A", "A"], ["A", "A"]]
         with self.assertRaises(ValueError):
-            got = MotifCountsArray(data, "AB")
+            MotifCountsArray(data, "AB")
 
         # or a float
         data = [[1.1, 2.1], [0.0, 2.1], [3.0, 4.5]]
         with self.assertRaises(ValueError):
-            got = MotifCountsArray(data, "AB")
+            MotifCountsArray(data, "AB")
         # or be empty
         with self.assertRaises(ValueError):
-            got = MotifCountsArray([], "AB")
+            MotifCountsArray([], "AB")
 
         with self.assertRaises(ValueError):
-            got = MotifCountsArray([[], []], "AB")
+            MotifCountsArray([[], []], "AB")
 
         data = [[2, 4], [3, 5], [4, 8]]
         with self.assertRaises(ValueError):
-            pssm = PSSM(data, "ACGT")
+            PSSM(data, "ACGT")
 
     def test_str_repr(self):
         """exercise str and repr"""
@@ -168,7 +168,6 @@ class MotifCountsArrayTests(TestCase):
             ]
         )
         marr = MotifCountsArray(array(data), "ACGT")
-        adj = data + 1
         got = marr.to_pssm(pseudocount=1)
         freqs = marr._to_freqs(pseudocount=1)
         expect = log2(freqs / 0.25)
@@ -222,30 +221,30 @@ class MotifFreqsArrayTests(TestCase):
     def test_construct_succeeds(self):
         """construct from float array or list"""
         data = [[2 / 6, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]
-        got = MotifFreqsArray(array(data), "AB")
+        MotifFreqsArray(array(data), "AB")
         data = [[2 / 6, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]
-        got = MotifFreqsArray(data, "AB")
+        MotifFreqsArray(data, "AB")
 
     def test_construct_fails(self):
         """valid freqs only"""
         # no negatives
         data = [[-2 / 6, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]
         with self.assertRaises(ValueError):
-            got = MotifFreqsArray(data, "AB")
+            MotifFreqsArray(data, "AB")
 
         # must sum to 1 on axis=1
         data = [[2 / 5, 4 / 6], [3 / 8, 5 / 8], [4 / 12, 8 / 12]]
         with self.assertRaises(ValueError):
-            got = MotifFreqsArray(data, "AB")
+            MotifFreqsArray(data, "AB")
 
         data = [["A", "A"], ["A", "A"], ["A", "A"]]
         with self.assertRaises(ValueError):
-            got = MotifFreqsArray(data, "AB")
+            MotifFreqsArray(data, "AB")
 
         # int's not allowed
         data = [[2, 4], [3, 5], [4, 8]]
         with self.assertRaises(ValueError):
-            got = MotifFreqsArray(data, "AB")
+            MotifFreqsArray(data, "AB")
 
     def test_entropy_terms(self):
         """Checks entropy_terms works correctly"""
@@ -473,7 +472,7 @@ class PSSMTests(TestCase):
             [0.0, 0.0, 0.0, 0.0],
         ]
         with self.assertRaises(ValueError):
-            pssm = PSSM(data_all_zero, "ACTG")
+            PSSM(data_all_zero, "ACTG")
 
         # fails for numpy.nan
         data_nan = [
@@ -483,7 +482,7 @@ class PSSMTests(TestCase):
             [-1.263, -0.737, -2.322, -0.322],
         ]
         with self.assertRaises(ValueError):
-            pssm = PSSM(data_nan, "ACTG")
+            PSSM(data_nan, "ACTG")
 
         # fails for entries all negative numbers
         data = [
@@ -493,7 +492,7 @@ class PSSMTests(TestCase):
             [-1.263, -0.737, -2.322, -0.322],
         ]
         with self.assertRaises(ValueError):
-            pssm = PSSM(data, "ACTG")
+            PSSM(data, "ACTG")
 
     def test_score_indices(self):
         """produce correct score from indexed seq"""

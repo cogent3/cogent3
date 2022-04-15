@@ -8,10 +8,10 @@ from cogent3.core.alignment import SequenceCollection
 
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"
@@ -67,12 +67,7 @@ def clustal_from_alignment(aln, wrap=None):
         while curr_ix < aln_len:
             clustal_list.extend(
                 [
-                    "%s%s%s"
-                    % (
-                        x,
-                        " " * (max_spaces - len(x)),
-                        y[curr_ix : curr_ix + wrap],
-                    )
+                    f"{x}{' ' * (max_spaces - len(x))}{y[curr_ix:curr_ix + wrap]}"
                     for x, y in zip(order, ordered_seqs)
                 ]
             )
@@ -81,7 +76,7 @@ def clustal_from_alignment(aln, wrap=None):
     else:
         clustal_list.extend(
             [
-                "%s%s%s" % (x, " " * (max_spaces - len(x)), y)
+                f"{x}{' ' * (max_spaces - len(x))}{y}"
                 for x, y in zip(order, ordered_seqs)
             ]
         )

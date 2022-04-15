@@ -12,10 +12,10 @@ from .location import Map, as_map
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -76,7 +76,7 @@ class _Annotatable:
                 base = base.parent
             if base is not self:
                 raise ValueError(
-                    "Can't map %s onto %s via %s" % (index, repr(self), containers)
+                    f"Can't map {index} onto {repr(self)} via {containers}"
                 )
             for base in containers:
                 feature = feature.remapped_to(base, base.map)
@@ -263,7 +263,7 @@ class _Annotatable:
 class _Serialisable:
     def to_rich_dict(self):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
-        data = self._serialisable.copy()
+        data = copy.deepcopy(self._serialisable)
         # the first constructor argument will be the instance recreating
         # so we pop out the two possible keys
         data.pop("parent", None)
@@ -340,7 +340,7 @@ class _Feature(_Annotatable, _Serialisable):
         self.parent.detach_annotations([self])
 
     def _mapped(self, slicemap):
-        name = "%s of %s" % (repr(slicemap), self.name)
+        name = f"{repr(slicemap)} of {self.name}"
         return self.__class__(self, slicemap, type="slice", name=name)
 
     def get_slice(self, complete=True):
@@ -378,8 +378,8 @@ class _Feature(_Annotatable, _Serialisable):
     def __repr__(self):
         name = getattr(self, "name", "")
         if name:
-            name = ' "%s"' % name
-        return "%s%s at %s" % (self.type, name, self.map)
+            name = f' "{name}"'
+        return f"{self.type}{name} at {self.map}"
 
     def _projected_to_base(self, base):
         if self.parent == base:

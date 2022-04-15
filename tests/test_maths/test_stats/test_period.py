@@ -15,10 +15,10 @@ from cogent3.maths.stats.period import (
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -259,11 +259,11 @@ class TestPeriodStat(TestCase):
         hybrid_calc = Hybrid(150, llim=2, period=4)
         ipdft_calc = Ipdft(150, llim=2, period=4)
         autocorr_calc = AutoCorrelation(150, llim=2, period=4)
-        self.assertEqual(hybrid_calc.getNumStats(), 1)
-        self.assertEqual(ipdft_calc.getNumStats(), 1)
-        self.assertEqual(autocorr_calc.getNumStats(), 1)
+        self.assertEqual(hybrid_calc.get_num_stats(), 1)
+        self.assertEqual(ipdft_calc.get_num_stats(), 1)
+        self.assertEqual(autocorr_calc.get_num_stats(), 1)
         hybrid_calc = Hybrid(150, llim=2, period=4, return_all=True)
-        self.assertEqual(hybrid_calc.getNumStats(), 3)
+        self.assertEqual(hybrid_calc.get_num_stats(), 3)
 
     def test_permutation_skips(self):
         """permutation test correctly handles data without symbols"""

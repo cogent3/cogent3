@@ -1,29 +1,20 @@
-import json
 import os
 
-from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
-from cogent3 import (
-    DNA,
-    load_aligned_seqs,
-    load_tree,
-    make_aligned_seqs,
-    make_tree,
-)
+from cogent3 import DNA, load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.fast_distance import DistanceMatrix
-from cogent3.util.misc import get_object_provenance, open_
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"

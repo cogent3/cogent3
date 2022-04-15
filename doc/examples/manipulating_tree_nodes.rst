@@ -7,8 +7,8 @@ Examples of how to initialize and manipulate various tree node objects.
 
 .. jupyter-execute::
 
-    from cogent3.core.tree import PhyloNode
     from cogent3 import load_tree, make_tree
+    from cogent3.core.tree import PhyloNode
     from cogent3.parse.tree import DndParser
 
 The general method to initialize a tree is ``load_tree``, however, for exceptionally large trees or if one needs to specify the node objects (``TreeNode``, ``PhyloNode``, or ``RangeNode``), ``DndParser`` should be used.  ``load_tree`` uses ``PhyloNode`` objects by default.

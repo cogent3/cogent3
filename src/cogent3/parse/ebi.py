@@ -16,7 +16,7 @@ from cogent3.util.misc import NestedSplitter, curry, list_flatten
 
 
 __author__ = "Zongzhi Liu and Sandra Smit"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Zongzhi Liu",
     "Sandra Smit",
@@ -25,7 +25,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Zongzhi Liu"
 __email__ = "zongzhi.liu@gmail.com"
 __status__ = "Development"
@@ -159,14 +159,14 @@ def pairs_to_dict(
             if handler:
                 value = handler(raw_value)
             else:  # no handler found for key
-                raise ValueError("No handler found for %s" % key)
+                raise ValueError(f"No handler found for {key}")
             return key, value
 
     # build the result dict.
     result = {}
     for key, raw_value in key_values:
         if all_keys and key not in all_keys:
-            raise ValueError("key: %s not in all_keys: %s" % (repr(key), all_keys))
+            raise ValueError(f"key: {repr(key)} not in all_keys: {all_keys}")
         key, value = handle_value(key, raw_value)
         add_item(result, key, value)
     return result
@@ -255,7 +255,7 @@ def join_split_dict_parser(
         dict(pairs)  # catch error for any not splitted pair.
     except ValueError:  # dictionary update sequence element #1 has length 1;
         if strict:
-            raise ValueError("e\nFailed to get a dict from pairs: %s" % pairs)
+            raise ValueError(f"e\nFailed to get a dict from pairs: {pairs}")
         else:
             # return the splitted list without constucting
             return pairs
@@ -978,7 +978,7 @@ def cc_parser(lines, strict=False):
     if strict:
         for topic in result:
             if topic not in all_cc_topics:
-                raise FieldError("Invalid topic: %s" % topic)
+                raise FieldError(f"Invalid topic: {topic}")
 
     return result
 
@@ -1030,7 +1030,7 @@ def cc_itemfinder(lines):
         if lines[-1] == license_border:
             lines.pop()
         else:
-            raise FieldError("No bottom line for license: %s" % lines)
+            raise FieldError(f"No bottom line for license: {lines}")
 
         # normalize license lines to the format of topic lines
         license_idx = lines.index(license_border)
@@ -1201,9 +1201,7 @@ def single_ref_parser(lines, strict=False):
             labels["RA/RG"] = True
         for rlabel in required_ref_labels:
             if rlabel not in labels:
-                raise RecordError(
-                    "The reference block lacks required label: " "%s" % rlabel
-                )
+                raise RecordError(f"The reference block lacks required label: {rlabel}")
 
     # parse each field with relevant parser
     parsed_dict = pairs_to_dict(list(raw_dict.items()), handlers=ref_parsers)
@@ -1443,7 +1441,7 @@ def MinimalEbiParser(lines, strict=True, selected_labels=None):
         if strict:
             for rlabel in required_labels:
                 if rlabel not in raw_dict:
-                    raise RecordError("The record lacks required label: " "%s" % rlabel)
+                    raise RecordError(f"The record lacks required label: {rlabel}")
 
         # no sequence found
         if "" not in raw_dict:
@@ -1574,7 +1572,7 @@ Examples:
         lines = open(args[0])
         print("Parsing the file")
         for i, rec in enumerate(EbiParser(lines, strict=True)):
-            print("\r %s: %s" % (i, rec[1]["ID"]["EntryName"]), end=" ")
+            print(f"\r {i}: {rec[1]['ID']['EntryName']}", end=" ")
     else:
         lines = """\
 ID   Q9U9C5_CAEEL   PRELIMINARY;      PRT;   218 AA.

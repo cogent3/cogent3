@@ -19,10 +19,10 @@ from cogent3.util import checkpointing
 
 
 __author__ = "Andrew Butterfield and Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -48,7 +48,7 @@ class AnnealingSchedule(object):
             "step_cycles",
         ]:
             if getattr(self, attr) != getattr(other, attr):
-                raise ValueError("Checkpoint file ignored - %s different" % attr)
+                raise ValueError(f"Checkpoint file ignored - {attr} different")
 
     def roundsToReach(self, T):
         from math import log

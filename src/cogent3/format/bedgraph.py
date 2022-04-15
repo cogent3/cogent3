@@ -2,10 +2,10 @@ from cogent3.util.misc import get_merged_by_value_coords
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "alpha"
@@ -63,7 +63,7 @@ def raise_invalid_vals(key, val):
     if not str(val) in valid_values[key]:
         raise AssertionError(
             "Invalid bedgraph key/val pair: "
-            + "got %s=%s; valid values are %s" % (key, val, valid_values[key])
+            + f"got {key}={val}; valid values are {valid_values[key]}"
         )
 
 
@@ -93,7 +93,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
         if not set(kwargs) <= set(bedgraph_fields):
             not_allowed = set(kwargs) - set(bedgraph_fields)
             raise RuntimeError(
-                "incorrect arguments provided to bedgraph %s" % str(list(not_allowed))
+                f"incorrect arguments provided to bedgraph {str(list(not_allowed))}"
             )
 
         if "altColor" in kwargs:
@@ -105,7 +105,7 @@ def get_header(name=None, description=None, color=None, **kwargs):
                 kwargs[key] = booleans(key, kwargs[key])
 
             raise_invalid_vals(key, kwargs[key])
-            header_suffix.append("%s=%s" % (key, kwargs[key]))
+            header_suffix.append(f"{key}={kwargs[key]}")
 
         header += header_suffix
 
@@ -136,9 +136,7 @@ def bedgraph(
 
     header = get_header(name=name, description=description, color=color, **kwargs)
 
-    make_data_row = lambda x: "\t".join(
-        list(map(str, x[:3])) + ["{0:.2f}".format(x[-1])]
-    )
+    make_data_row = lambda x: "\t".join(list(map(str, x[:3])) + [f"{x[-1]:.2f}"])
     # get independent spans for each chromosome
     bedgraph_data = []
     data = []

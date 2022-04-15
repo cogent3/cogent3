@@ -13,10 +13,10 @@ numpy.seterr(all="ignore")
 numerictypes = numpy.core.numerictypes.sctype2char
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -251,7 +251,7 @@ def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
     except alphabet.AlphabetError as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
-        raise ValueError("%s at %s:%s not in alphabet" % (repr(motif), seq_name, posn))
+        raise ValueError(f"{motif!r} at {seq_name!r}:{posn} not in alphabet")
 
     return LikelihoodTreeLeaf(
         uniq_motifs, likelihoods, counts, index, seq_name, alphabet, sequence

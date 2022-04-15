@@ -9,14 +9,14 @@ import re
 from collections import defaultdict
 
 from cogent3.parse.record import RecordError
-from cogent3.util.misc import open_
+from cogent3.util.io import open_
 
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Catherine Lozuopone", "Rob Knight", "Micah Hamady", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"

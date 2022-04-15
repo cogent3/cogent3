@@ -22,10 +22,10 @@ from cogent3.parse.record import DelimitedSplitter, RecordError
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Development"
@@ -49,7 +49,7 @@ def LabelLineParser(record, splitter, strict=True):
             key, val = splitter(line.rstrip())
         except:
             if strict:
-                raise RecordError("Failed to extract key and value from line %s" % line)
+                raise RecordError(f"Failed to extract key and value from line {line}")
             else:
                 continue  # just skip the line if not strict
 

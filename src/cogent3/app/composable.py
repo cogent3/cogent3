@@ -8,17 +8,15 @@ import time
 import traceback
 
 from copy import deepcopy
+from functools import wraps
 
 import scitrack
 
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import progress_display as UI
-from cogent3.util.misc import (
-    extend_docstring_from,
-    get_object_provenance,
-    open_,
-)
+from cogent3.util.io import open_
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 from .data_store import (
     IGNORE,
@@ -28,14 +26,15 @@ from .data_store import (
     DataStoreMember,
     SingleReadDataStore,
     WritableDirectoryDataStore,
+    get_data_source,
 )
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -48,21 +47,6 @@ def _make_logfile_name(process):
     result = "-".join(parts)
     pid = os.getpid()
     result = f"{result}-pid{pid}.log"
-    return result
-
-
-def _get_source(source):
-    if isinstance(source, str):
-        return str(source)
-
-    # todo maybe a dict? see about getting keys
-    try:
-        result = source.source
-    except AttributeError:
-        try:
-            result = source.info.source
-        except AttributeError:
-            result = None
     return result
 
 
@@ -89,7 +73,7 @@ class NotCompleted(int):
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         origin = _get_origin(origin)
-        source = _get_source(source)
+        source = get_data_source(source)
         d = locals()
         d = {k: v for k, v in d.items() if k != "cls"}
         result = int.__new__(cls, False)
@@ -203,13 +187,13 @@ class Composable(ComposableType):
         # rules operating on result but not part of a chain
         self._checkpointable = False
         self._load_checkpoint = None
-        self._formatted = ["type='%s'" % self._type]
+        self._formatted = [f"type='{self._type}'"]
 
     def __str__(self):
         txt = "" if not self.input else str(self.input)
         if txt:
             txt += " + "
-        txt += "%s(%s)" % (self.__class__.__name__, ", ".join(self._formatted))
+        txt += f"{self.__class__.__name__}({', '.join(self._formatted)})"
         txt = textwrap.fill(
             txt, width=80, break_long_words=False, break_on_hyphens=False
         )
@@ -246,7 +230,7 @@ class Composable(ComposableType):
                     continue
             except NameError:
                 pass
-            formatted.append("%s=%r" % (p, v))
+            formatted.append(f"{p}={v!r}")
         self._formatted += formatted
 
     def __add__(self, other):
@@ -434,18 +418,22 @@ class Composable(ComposableType):
             LOGGER = None
         elif type(logger) == scitrack.CachingLogger:
             LOGGER = logger
+            log_file_path = LOGGER.log_file_path
         elif type(logger) == str:
-            LOGGER = scitrack.CachingLogger
-            LOGGER.log_file_path = logger
-        else:
-            log_file_path = pathlib.Path(_make_logfile_name(self))
-            src = pathlib.Path(self.data_store.source)
-            log_file_path = src.parent / log_file_path
             LOGGER = scitrack.CachingLogger()
-            LOGGER.log_file_path = str(log_file_path)
+            log_file_path = logger
+        else:
+            LOGGER = scitrack.CachingLogger()
+            log_file_path = None
+
         if LOGGER:
+            if not log_file_path and not LOGGER.log_file_path:
+                src = pathlib.Path(self.data_store.source)
+                log_file_path = src.parent / _make_logfile_name(self)
+                LOGGER.log_file_path = str(log_file_path)
             LOGGER.log_message(str(self), label="composable function")
             LOGGER.log_versions(["cogent3"])
+
         results = []
         process = self.input or self
         if self.input:
@@ -473,29 +461,39 @@ class Composable(ComposableType):
                     member = SingleReadDataStore(member)[0]
 
                 mem_id = self.data_store.make_relative_identifier(member.name)
+                # src points the origins of the data, which can differ from
+                # the db identifier but share in common the name prefix.
+                # todo this is very fragile and needs to be thoroughly refactored
                 src = self.data_store.make_relative_identifier(result)
                 assert (
-                    src == mem_id
+                    src.split(".")[0] == mem_id.split(".")[0]
                 ), f"mismatched input data and result identifiers: {src} != {mem_id}"
 
                 LOGGER.log_message(member, label="input")
                 if member.md5:
                     LOGGER.log_message(member.md5, label="input md5sum")
 
-                if outcome:
-                    member = self.data_store.get_member(mem_id)
-                    LOGGER.log_message(member, label="output")
-                    LOGGER.log_message(member.md5, label="output md5sum")
-                else:
-                    # we have a NotCompletedResult
+                if isinstance(outcome, NotCompleted):
                     try:
                         # tinydb supports storage
-                        self.data_store.write_incomplete(mem_id, outcome.to_rich_dict())
+                        self.data_store.write_incomplete(mem_id, outcome)
                     except AttributeError:
                         pass
                     LOGGER.log_message(
                         f"{outcome.origin} : {outcome.message}", label=outcome.type
                     )
+                    continue
+
+                if (
+                    isinstance(outcome, DataStoreMember)
+                    and outcome.parent is self.data_store
+                ):
+                    member = outcome
+                else:
+                    member = self.data_store.get_member(mem_id)
+
+                LOGGER.log_message(member, label="output")
+                LOGGER.log_message(member.md5, label="output md5sum")
 
         finish = time.time()
         taken = finish - start
@@ -656,7 +654,7 @@ class _checkpointable(Composable):
         identifier = self._make_output_identifier(data)
         exists = identifier in self.data_store
         if exists and self._if_exists == RAISE:
-            msg = "'%s' already exists" % identifier
+            msg = f"'{identifier}' already exists"
             raise RuntimeError(msg)
 
         if self._if_exists == OVERWRITE:
@@ -724,7 +722,10 @@ class user_function(Composable):
         args = self._args + args
         kwargs_ = deepcopy(self._kwargs)
         kwargs_.update(kwargs)
-        return self._user_func(*args, **kwargs_)
+        # the following enables a decorated user function (via @appify())
+        # or directly passed user function
+        func = getattr(self._user_func, "__wrapped__", self._user_func)
+        return func(*args, **kwargs_)
 
     def __str__(self):
         txt = "" if not self.input else str(self.input)
@@ -740,45 +741,45 @@ class user_function(Composable):
         return str(self)
 
 
-class appify:
+@extend_docstring_from(ComposableType.__init__, pre=True)
+def appify(input_types, output_types, data_types=None):
     """function decorator for generating user apps. Simplifies creation of
-    user_function() instancese, e.g.
+    user_function() instances, e.g.
 
     >>> @appify(SEQUENCE_TYPE, SEQUENCE_TYPE, data_types="SequenceCollection")
     ... def omit_seqs(seqs, quantile=None, gap_fraction=1, moltype="dna"):
     ...     return seqs.omit_bad_seqs(quantile=quantile, gap_fraction=gap_fraction, moltype="dna")
     ...
 
-    `omit_seqs()` is now an app factory, allowing creating variants of the app.
+    ``omit_seqs()`` is now an app factory, allowing creating variants of the app.
 
     >>> omit_bad = omit_seqs(quantile=0.95)
 
-    omit_bad is now a composable user_function app. Calling with different
+    ``omit_bad`` is now a composable ``user_function`` app. Calling with different
     args/kwargs values returns a variant app, as per the behaviour of builtin
     apps.
+
     """
+    # the 3 nested functions are required to allow setting decorator arguments
+    # to allow using functools.wraps so the decorated function has the correct
+    # docstring, name etc... And, the final inner one gets to pass the
+    # reference to the wrapped function (wrapped_ref) to user_function. This
+    # latter is required to enable pickling of the user_function instance.
+    def enclosed(func):
+        @wraps(func)
+        def maker(*args, **kwargs):
+            # construct the user_function app
+            return user_function(
+                wrapped_ref,
+                input_types,
+                output_types,
+                *args,
+                data_types=data_types,
+                **kwargs,
+            )
 
-    @extend_docstring_from(ComposableType.__init__)
-    def __init__(self, input_types, output_types, data_types=None) -> None:
-        self._it = input_types
-        self._ot = output_types
-        self._dt = data_types
-        self._func = None
+        wrapped_ref = maker
 
-    def __call__(self, func):
-        # executed on use as decorator
-        self._func = func
-        # makes the returned reference have the name, docs etc.
-        # of original function
-        self._make_app.__func__.__doc__ = f"appify: {func.__doc__}"
-        self._make_app.__func__.__repr__ = lambda x: repr(func)
-        self._make_app.__func__.__name__ = func.__name__
-        self._make_app.__func__.__module__ = func.__module__
+        return maker
 
-        return self._make_app
-
-    def _make_app(self, *args, **kwargs):
-        # construct the user_function app
-        return user_function(
-            self._func, self._it, self._ot, *args, data_types=self._dt, **kwargs
-        )
+    return enclosed

@@ -15,10 +15,10 @@ from .pairwise_distance_numba import fill_diversity_matrix
 
 
 __author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"  # pending addition of protein distance metrics
@@ -395,7 +395,7 @@ class _PairwiseDistance(object):
                     continue
 
                 name_2 = names[j]
-                ui.display("%s vs %s" % (name_1, name_2), done / to_do)
+                ui.display(f"{name_1} vs {name_2}", done / to_do)
                 done += 1
                 matrix.fill(0)
                 s2 = self.indexed_seqs[j]
@@ -670,7 +670,7 @@ def get_distance_calculator(name, *args, **kwargs):
     if "moltype" in kwargs and kwargs.get("moltype") is None:
         kwargs.pop("moltype")
     if name not in _calculators:
-        raise ValueError('Unknown pairwise distance calculator "%s"' % name)
+        raise ValueError(f'Unknown pairwise distance calculator "{name}"')
 
     calc = _calculators[name]
     return calc(*args, **kwargs)

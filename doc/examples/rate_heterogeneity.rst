@@ -14,8 +14,8 @@ A simple example for analyses involving rate heterogeneity among sites. In this 
 
 .. jupyter-execute::
 
-    from cogent3.evolve.substitution_model import TimeReversibleNucleotide
     from cogent3 import load_tree
+    from cogent3.evolve.substitution_model import TimeReversibleNucleotide
 
 Make an alignment with equal split between rates 0.6 and 0.2, and then concatenate them to create a new alignment.
 

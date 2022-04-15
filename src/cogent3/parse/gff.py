@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Peter Maxwell",
     "Matthew Wakefield",
@@ -9,14 +9,14 @@ __credits__ = [
     "Christopher Bradley",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 from pathlib import Path
 
-from cogent3.util.misc import open_
+from cogent3.util.io import open_
 
 
 def gff_parser(f):

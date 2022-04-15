@@ -10,11 +10,12 @@ home-page = "https://cogent3.org"
 keywords = "biology, genomics, statistics, phylogeny, evolution, bioinformatics"
 description-file = "README.md"
 license = "BSD-3"
-requires-python = ">=3.7"
+requires-python = ">=3.7,<3.11"
 requires = ["chardet",
         "numpy",
         "numba>0.48.0;python_version<'3.9'",
         "numba>0.53; python_version>='3.9'",
+        "numba>0.54; python_version>='3.10'",
         "scitrack",
         "tqdm",
         "tinydb"]
@@ -28,6 +29,7 @@ classifiers = [
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ]
 
 [tool.flit.metadata.urls]
@@ -57,8 +59,7 @@ doc  = ["click",
         "jupytext",
         "kaleido",
         "matplotlib",
-        "nbconvert",
-        "nbconvert!=5.4",
+        "nbconvert>5.4",
         "nbformat",
         "nbsphinx",
         "numpydoc",
@@ -67,11 +68,11 @@ doc  = ["click",
         "psutil",
         "sphinx",
         "sphinx-autobuild",
-        "sphinx-gallery==0.7",
+        "sphinx-gallery",
         "sphinx>=1.6",
         "sphinx_bootstrap_theme",
         "sphinx_panels",
-        "sphinxcontrib-bibtex<2.0.0"]
+        "sphinxcontrib-bibtex"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
 dev = ["black",
        "click",
@@ -86,8 +87,7 @@ dev = ["black",
        "jupytext",
        "kaleido",
        "matplotlib",
-       "nbconvert",
-       "nbconvert!=5.4",
+       "nbconvert>5.4",
        "nbformat",
        "nbsphinx",
        "numpydoc",
@@ -99,12 +99,10 @@ dev = ["black",
        "pytest-cov",
        "sphinx",
        "sphinx-autobuild",
-       "sphinx-gallery==0.7",
-       "sphinx>=1.6",
+       "sphinx-gallery",
        "sphinx_bootstrap_theme",
        "sphinx_panels",
        "sphinxcontrib-bibtex",
-       "sphinxcontrib-bibtex<2.0.0",
        "tox"]
 
 [tool.pytest.ini_options]
@@ -114,7 +112,7 @@ testpaths = [
 
 [tool.black]
 line-length = 88
-target-version = ['py37', 'py38', 'py39']
+target-version = ['py37', 'py38', 'py39', 'py310']
 exclude = '''
 /(
     \.eggs

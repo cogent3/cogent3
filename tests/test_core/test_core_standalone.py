@@ -2,15 +2,15 @@
 import json
 import os
 import pathlib
-import re
 import tempfile
 import unittest
 
 from tempfile import TemporaryDirectory
 
-from cogent3 import DNA, PROTEIN, RNA
-from cogent3 import STANDARD_CODON as CODON
 from cogent3 import (
+    DNA,
+    PROTEIN,
+    RNA,
     get_format_suffixes,
     load_aligned_seqs,
     load_unaligned_seqs,
@@ -29,10 +29,10 @@ from cogent3.parse.record import FileFormatError
 
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -68,8 +68,9 @@ class TestConstructorFunctions(unittest.TestCase):
             _ = make_unaligned_seqs(data, info=2)
 
         # source works
-        got = make_unaligned_seqs(data, source="somewhere")
-        self.assertEqual(got.info["source"], "somewhere")
+        for src in ("somewhere", pathlib.Path("somewhere")):
+            got = make_unaligned_seqs(data, source=src)
+            self.assertEqual(got.info["source"], str(src))
 
     def test_make_aligned_seqs(self):
         """test Alignment/ArrayAlignment constructor utility function"""
@@ -88,8 +89,9 @@ class TestConstructorFunctions(unittest.TestCase):
             _ = make_unaligned_seqs(data, info=2)
 
         # source works
-        got = make_aligned_seqs(data, source="somewhere")
-        self.assertEqual(got.info["source"], "somewhere")
+        for src in ("somewhere", pathlib.Path("somewhere")):
+            got = make_aligned_seqs(data, source=src)
+            self.assertEqual(got.info["source"], str(src))
 
         # array_align works
         got = make_aligned_seqs(data, array_align=False)
@@ -108,7 +110,7 @@ class TestConstructorFunctions(unittest.TestCase):
     def test_load_unaligned_seqs_no_format(self):
         """test loading unaligned from file"""
         with self.assertRaises(ValueError):
-            got = load_unaligned_seqs("somepath")
+            load_unaligned_seqs("somepath")
 
     def test_load_aligned_seqs(self):
         """test loading aligned from file"""
@@ -126,7 +128,7 @@ class TestConstructorFunctions(unittest.TestCase):
     def test_load_aligned_seqs_no_format(self):
         """test loading unaligned from file"""
         with self.assertRaises(ValueError):
-            got = load_aligned_seqs("somepath")
+            load_aligned_seqs("somepath")
 
     def test_load_unaligned_seqs_from_json(self):
         """test loading an unaligned object from json file"""
@@ -290,7 +292,7 @@ class AlignmentTestMethods(unittest.TestCase):
         # in Py3 for reasons that are not clear. This needs to be looked
         # more closely
         dmp = pickle.dumps(aln, protocol=1)
-        aln2 = pickle.loads(dmp)
+        pickle.loads(dmp)
 
     def test_empty_seq(self):
         """test creation of an alignment from scratch, with one sequence pure gap"""
@@ -316,7 +318,6 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def test_get_sub_alignment(self):
         """test slicing otus, and return of new alignment"""
-        fullset = ["DogFaced", "Human", "HowlerMon", "Mouse", "NineBande"]
         subset = ["DogFaced", "Human", "HowlerMon", "Mouse"]
         subset.sort()
         sub_align = self.alignment.take_seqs(subset)
@@ -616,7 +617,7 @@ class AlignmentTestMethods(unittest.TestCase):
             data={"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"}
         )
         # effectively permute columns, preserving length
-        shuffled = alignment.sample()
+        alignment.sample()
         # ensure length correct
         sample = alignment.sample(10)
         self.assertEqual(len(sample), 10)
@@ -661,7 +662,7 @@ class AlignmentTestMethods(unittest.TestCase):
             # check for a failure when no moltype specified
             alignment = make_aligned_seqs(data=seqs)
             try:
-                peps = alignment.get_translation()
+                alignment.get_translation()
             except AttributeError:
                 pass
 

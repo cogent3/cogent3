@@ -10,10 +10,10 @@ from cogent3 import make_aligned_seqs, make_tree
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -109,7 +109,7 @@ class test_parameter_controller(TestCase):
         compare_mprobs(motif_probs, correct_probs)
         assert_allclose(sum(motif_probs.values()), 1.0)
 
-    def test_setMultiLocus(self):
+    def test_set_multilocus(self):
         """2 loci each with own mprobs"""
         model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
             motif_probs=None
@@ -123,12 +123,9 @@ class test_parameter_controller(TestCase):
 
         for is_constant in [False, True]:
             lf.set_motif_probs(mprobs_a, is_constant=is_constant)
-            s = str(lf)
             lf.set_motif_probs(mprobs_b, locus="b")
             self.assertEqual(lf.get_motif_probs(locus="a"), mprobs_a)
             self.assertEqual(lf.get_motif_probs(locus="b"), mprobs_b)
-            s = str(lf)
-            # lf.set_param_rule('mprobs', is_independent=False)
 
     def test_set_param_rules(self):
         lf = self.model.make_likelihood_function(self.tree)
@@ -145,9 +142,6 @@ class test_parameter_controller(TestCase):
             self.assertRaises(
                 (KeyError, TypeError, AssertionError, ValueError), do_rules, rule_set
             )
-
-    def test_set_local_clock(self):
-        pass
 
     def test_set_constant_lengths(self):
         t = make_tree(treestring="((a:1,b:2):3,(c:4,d:5):6,e:7);")

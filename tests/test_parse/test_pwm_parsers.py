@@ -11,7 +11,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -24,7 +24,7 @@ class TestPwmParsers(TestCase):
         mid, pwm = jaspar.read(path)
         assert mid == ["PSSMid", "HGNCsymbol"], "ID line wrong"
         # note state indices are ordered by moltype
-        base_order = list(get_moltype("dna"))
+        list(get_moltype("dna"))
         expect = [
             [35, 374, 30, 121, 6, 121, 33],
             [0, 10, 0, 0, 3, 2, 44],

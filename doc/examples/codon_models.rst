@@ -212,9 +212,10 @@ The following implements a modification of the approach of Zhang, Nielsen and Ya
 .. jupyter-execute::
     :hide-code:
 
-    from numpy import array
-    from cogent3 import make_table
     from IPython.core.display import HTML
+    from numpy import array
+
+    from cogent3 import make_table
 
     header = ['Site Class', 'Proportion', 'Background Edges', 'Foreground Edges']
     data = {'Site Class': array(['0', '1', '2a', '2b'], dtype='<U2'), 'Proportion': array(['p0', 'p1', 'p2', 'p3'], dtype='<U2'), 'Background Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega0 < 1', 'omega1 = 1'],

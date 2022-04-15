@@ -14,10 +14,10 @@ from .setting import ConstVal, Var
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -54,7 +54,7 @@ class _ExistentialQualifier(object):
         if self.cats is None:
             return self.__class__.__name__
         else:
-            return "%s(%s)" % (self.__class__.__name__, self.cats)
+            return f"{self.__class__.__name__}({self.cats})"
 
 
 class EACH(_ExistentialQualifier):
@@ -95,7 +95,7 @@ def _fmtrow(width, values, maxwidth):
         if len(s) > maxwidth:
             s = s[: maxwidth - 4] + "..."
     else:
-        template = "%%%ss" % width
+        template = f"%{width}s"
         s = "".join([(template % (v,)).replace("\n", " ")[:width] for v in values])
     return s
 
@@ -108,7 +108,7 @@ class Undefined(object):
         self.name = name
 
     def __repr__(self):
-        return "Undef(%s)" % self.name
+        return f"Undef({self.name})"
 
 
 def nullor(name, f, recycled=False):
@@ -177,7 +177,7 @@ class _Defn(object):
         # Defn needs from an input Defn with `arg_dimensions`
         if not self.activated:
             assert not self.clients, self.clients
-            raise RuntimeError('Value at "%s" step never used' % self.name)
+            raise RuntimeError(f'Value at "{self.name}" step never used')
         if self.assignments:
             result = []
             for scope_t in self.assignments:
@@ -227,16 +227,16 @@ class _Defn(object):
         for scope_t in self.interpret_scope(**scope):
             posns.add(self.index[scope_t])
         if len(posns) == 0:
-            raise InvalidScopeError("no value for %s at %s" % (self.name, scope))
+            raise InvalidScopeError(f"no value for {self.name} at {scope}")
         if len(posns) > 1:
             raise IncompleteScopeError(
-                "%s distinct values of %s within %s" % (len(posns), self.name, scope)
+                f"{len(posns)} distinct values of {self.name} within {scope}"
             )
         return the_one_item_in(posns)
 
     def wrap_value(self, value):
         if isinstance(value, Undefined):
-            raise ValueError('Input "%s" is not defined' % value.name)
+            raise ValueError(f'Input "{value.name}" is not defined')
         if getattr(self, "array_template", None) is not None:
             value = self.array_template.wrap(value)
         return value
@@ -379,9 +379,9 @@ class _Defn(object):
                 (d, key) = (d[key], key2)
 
             if key in d and value != d[key]:
-                msg = "Multiple values for %s" % self.name
+                msg = f"Multiple values for {self.name}"
                 if scope:
-                    msg += " within scope %s" % "/".join(scope)
+                    msg += f" within scope {'/'.join(scope)}"
                 raise IncompleteScopeError(msg)
             d[key] = value
 
@@ -560,7 +560,7 @@ class _LeafDefn(_Defn):
             elif not self.numeric:
                 if lower is not None or upper is not None:
                     raise ValueError(
-                        "Non-scalar input '%s' doesn't support bounds" % self.name
+                        f"Non-scalar input '{self.name}' doesn't support bounds"
                     )
                 setting = Var((None, s_value, None))
             else:
@@ -575,13 +575,13 @@ class _LeafDefn(_Defn):
                 elif (s_lower is not None) and s_value < s_lower:
                     s_value = s_lower
                     warnings.warn(
-                        "Value of %s increased to keep within bounds" % self.name,
+                        f"Value of {self.name} increased to keep within bounds",
                         stacklevel=3,
                     )
                 elif (s_upper is not None) and s_value > s_upper:
                     s_value = s_upper
                     warnings.warn(
-                        "Value of %s decreased to keep within bounds" % self.name,
+                        f"Value of {self.name} decreased to keep within bounds",
                         stacklevel=3,
                     )
                 setting = Var((s_lower, s_value, s_upper))
@@ -602,7 +602,7 @@ class _LeafDefn(_Defn):
             for value in values:
                 if not numpy.isclose(value, s_value).all():
                     warnings.warn(
-                        "Used mean of %s %s values" % (len(values), self.name),
+                        f"Used mean of {len(values)} {self.name} values",
                         stacklevel=4,
                     )
                     break
@@ -631,7 +631,7 @@ class _LeafDefn(_Defn):
         )
 
     def _local_repr(self, col_width, max_width):
-        template = "%%%s.%sf" % (col_width, (col_width - 1) // 2)
+        template = f"%{col_width}.{(col_width - 1) // 2}f"
         assignments = []
         for (i, a) in list(self.assignments.items()):
             if a is None:
@@ -808,8 +808,8 @@ class ParameterController(object):
     def assign_all(self, par_name, *args, **kw):
         defn = self.defn_for[par_name]
         if not isinstance(defn, _LeafDefn):
-            args = " and ".join(['"%s"' % a.name for a in defn.args])
-            msg = '"%s" is not settable as it is derived from %s.' % (par_name, args)
+            args = " and ".join([f'"{a.name}"' for a in defn.args])
+            msg = f'"{par_name}" is not settable as it is derived from {args}.'
             raise ValueError(msg)
         defn.assign_all(*args, **kw)
         self.update_intermediate_values([defn])
@@ -880,7 +880,7 @@ class ParameterController(object):
             lc.optimise(**kw)
         except MaximumEvaluationsReached as detail:
             evals = detail.args[0]
-            err_msg = "FORCED EXIT from optimiser after %s evaluations" % evals
+            err_msg = f"FORCED EXIT from optimiser after {evals} evaluations"
             if limit_action == "ignore":
                 pass
             elif limit_action == "warn":

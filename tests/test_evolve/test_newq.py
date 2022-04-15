@@ -31,10 +31,10 @@ warnings.filterwarnings("ignore", "Model not reversible")
 
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -133,7 +133,7 @@ class NewQ(TestCase):
             di = TimeReversibleNucleotide(motif_length=2, mprob_model=model)
             di.adapt_motif_probs(self.cond_root_probs, auto=True)
             lf = di.make_likelihood_function(self.tree)
-            s = str(lf)
+            str(lf)
 
     def test_get_statistics(self):
         """get statistics should correctly apply arguments"""
@@ -173,7 +173,7 @@ class NewQ(TestCase):
             lf = di.make_likelihood_function(self.tree)
             lf.set_param_rule("length", is_independent=False, init=0.4)
             lf.set_alignment(self.aln)
-            sim = lf.simulate_alignment()
+            lf.simulate_alignment()
 
     def test_reconstruct_ancestor(self):
         """should be able to reconstruct ancestral sequences under all
@@ -184,7 +184,7 @@ class NewQ(TestCase):
             lf = di.make_likelihood_function(self.tree)
             lf.set_param_rule("length", is_independent=False, init=0.4)
             lf.set_alignment(self.aln)
-            ancestor = lf.reconstruct_ancestral_seqs()
+            lf.reconstruct_ancestral_seqs()
 
     def test_results_different(self):
         for (i, (mprobs, dummy)) in enumerate(self.ordered_by_complexity):
@@ -240,7 +240,7 @@ class NewQ(TestCase):
         sm = TimeReversibleNucleotide(motif_length=2, mprob_model="monomers")
         lf = sm.make_likelihood_function(self.tree)
         lf.set_alignment(self.aln)
-        mprobs = lf.get_motif_probs()
+        lf.get_motif_probs()
         posn12_lnL = lf.get_log_likelihood()
         assert_allclose(posn12_lnL, expect_lnL, rtol=1e-4)
 

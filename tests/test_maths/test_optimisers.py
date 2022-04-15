@@ -3,20 +3,17 @@
 
 import os
 import sys
-import time
 
 from unittest import TestCase, main
-
-import numpy
 
 from cogent3.maths.optimisers import MaximumEvaluationsReached, maximise
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -64,9 +61,6 @@ def MakeF():
 class OptimiserTestCase(TestCase):
     def _test_optimisation(self, target=-4, xinit=1.0, bounds=None, **kw):
         bounds = bounds or ([-10, 10])
-        local = kw.get("local", None)
-        max_evaluations = kw.get("max_evaluations", None)
-
         f, last, evals = MakeF()
 
         x = quiet(maximise, f, [xinit], bounds, **kw)

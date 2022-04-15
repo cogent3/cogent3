@@ -22,10 +22,10 @@ from cogent3.util.dict_array import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -279,7 +279,6 @@ class DictArrayTest(TestCase):
         d1 = dict(a=dict(k=1, l=2, m=3), b=dict(k=4, l=5, m=6))
         darr1 = DictArray(d1)
         d2 = darr1.to_dict()
-        darr2 = DictArray(d2)
         self.assertEqual(d1, d2)
         d3 = DictArray(d2)
         self.assertEqual(d1, d3)
@@ -318,8 +317,9 @@ class DictArrayTest(TestCase):
             dict(a=0, b=35, c=45),
             b,
         )
+        # exercising construction
         for data in data_types:
-            g = DictArray(data)
+            _ = DictArray(data)
 
     def test_getitem(self):
         """correctly slices"""

@@ -17,10 +17,10 @@ from cogent3.parse.ncbi_taxonomy import (
 
 
 __author__ = "Jason Carnes"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -102,7 +102,7 @@ class NcbiTaxonTests(TestCase):
         node = NcbiTaxon(good)
         self.assertEqual(str(node), good)
         root = """1\t|\t1\t|\tno rank\t|\t\t|\t8\t|\t0\t|\t1\t|\t0\t|\t0\t|\t0\t|\t0\t|\t0\t|\t\t|"""
-        root_node = NcbiTaxon(root)
+        NcbiTaxon(root)
         self.assertEqual(str(root), root)
 
     def test_bad_input(self):

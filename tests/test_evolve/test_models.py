@@ -21,10 +21,10 @@ from cogent3.evolve.models import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -47,7 +47,7 @@ class CannedModelsTest(TestCase):
         """excercising nucleotide model construction"""
         self._make_model_cache()
         # just checking present
-        for name in ["JC69", "F81", "HKY85", "GTR", "GN", "ssGN"]:
+        for name in ["JC69", "F81", "HKY85", "GTR", "GN", "ssGN", "BH"]:
             self.assertIn(name, self._cached_models)
 
     def test_codon_models(self):
@@ -76,8 +76,8 @@ class CannedModelsTest(TestCase):
 
     def test_bin_options(self):
         kwargs = dict(with_rate=True, distribution="gamma")
-        model = WG01(**kwargs)
-        model = GTR(**kwargs)
+        WG01(**kwargs)
+        GTR(**kwargs)
 
     def test_empirical_values_roundtrip(self):
         model = WG01()

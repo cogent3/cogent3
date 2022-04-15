@@ -10,10 +10,10 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -655,7 +655,7 @@ class Dendrogram(Drawable):
         x = self.tree.min_x if "left" in self.scale_bar else self.tree.max_x
         y = self.tree.min_y if "bottom" in self.scale_bar else self.tree.max_y
         scale = 0.1 * self.tree.max_x
-        text = "{:.1e}".format(scale) if scale < 1e-2 else "{:.2f}".format(scale)
+        text = f"{scale:.1e}" if scale < 1e-2 else f"{scale:.2f}"
         shape = {
             "type": "line",
             "x0": x,

@@ -12,10 +12,10 @@ types and the MolType can be made after the objects are created.
 """
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -25,6 +25,7 @@ import json
 import re
 
 from collections import defaultdict
+from copy import deepcopy
 from random import choice
 from string import ascii_letters as letters
 
@@ -708,14 +709,14 @@ class MolType(object):
         WARNING: This doesn't allow you to reconstruct the object in its present
         incarnation.
         """
-        return "MolType(%s)" % (self.alphabet,)
+        return f"MolType({self.alphabet})"
 
     def __getnewargs_ex__(self, *args, **kw):
         data = self.to_rich_dict(for_pickle=True)
         return (), data
 
     def to_rich_dict(self, for_pickle=False):
-        data = self._serialisable.copy()
+        data = deepcopy(self._serialisable)
         if not for_pickle:  # we rely on reconstruction from label
             data = dict(type=get_object_provenance(self), moltype=self.label)
             data["version"] = __version__
@@ -783,7 +784,7 @@ class MolType(object):
         if wildcards_allowed:
             alpha = alpha.union(self.missing)
         try:
-            nonalpha = re.compile("[^%s]" % re.escape("".join(alpha)))
+            nonalpha = re.compile(f"[^{re.escape(''.join(alpha))}]")
             badchar = nonalpha.search(seq)
             if badchar:
                 motif = badchar.group()
@@ -1036,7 +1037,7 @@ class MolType(object):
             else:
                 return sequence.__class__(result)
         else:
-            raise NotImplementedError("Got unknown method %s" % method)
+            raise NotImplementedError(f"Got unknown method {method}")
 
     def degap(self, sequence):
         """Deletes all gap characters from sequence."""
@@ -1259,7 +1260,7 @@ class MolType(object):
             return inv_degens[lengths[sorted[0]]]
 
         # if we got here, nothing worked
-        raise TypeError("Cannot find degenerate char for symbols: %s" % symbols)
+        raise TypeError(f"Cannot find degenerate char for symbols: {symbols}")
 
     def get_css_style(self, colors=None, font_size=12, font_family="Lucida Console"):
         """returns string of CSS classes and {character: <CSS class name>, ...}
@@ -1365,7 +1366,7 @@ BYTES = MolType(
 # the None value catches cases where a moltype has no label attribute
 _style_defaults = {
     getattr(mt, "label", ""): defaultdict(
-        _DefaultValue("ambig_%s" % getattr(mt, "label", ""))
+        _DefaultValue(f"ambig_{getattr(mt, 'label', '')}")
     )
     for mt in (ASCII, BYTES, DNA, RNA, PROTEIN, PROTEIN_WITH_STOP, None)
 }
@@ -1469,7 +1470,7 @@ def get_moltype(name):
         return name
     name = name.lower()
     if name not in moltypes:
-        raise ValueError('unknown moltype "%s"' % name)
+        raise ValueError(f"unknown moltype {name!r}")
     return moltypes[name]
 
 

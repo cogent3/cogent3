@@ -9,10 +9,10 @@ from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -28,7 +28,7 @@ def make_model(mprob_model, tuple_alphabet, mask):
     elif mprob_model in ["word", "tuple", None]:
         return SimpleMotifProbModel(tuple_alphabet)
     else:
-        raise ValueError("Unknown mprob model '%s'" % str(mprob_model))
+        raise ValueError(f"Unknown mprob model '{str(mprob_model)}'")
 
 
 class MotifProbModel(object):

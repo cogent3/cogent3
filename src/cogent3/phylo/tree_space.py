@@ -11,10 +11,10 @@ from cogent3.util import progress_display as UI
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -260,7 +260,7 @@ class TreeEvaluator(object):
             candidates = ui.imap(
                 grown_tree,
                 specs,
-                noun=("%s leaf tree" % n),
+                noun=f"{n} leaf tree",
                 start=work_done[n - 1] / total_work,
                 end=work_done[n] / total_work,
             )

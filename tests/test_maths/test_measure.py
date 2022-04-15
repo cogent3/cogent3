@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from numpy import diag_indices, dot, finfo, float64
+from numpy import arange, array, diag_indices, dot, finfo, float64
 from numpy.random import random
 from numpy.testing import assert_allclose
 
@@ -15,10 +15,10 @@ from cogent3.maths.measure import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Stephen Ka-Wah Ma"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -237,6 +237,18 @@ class TestJensenShannon(TestCase):
         ]
         result = jsd(pi_0, pi_1)
         self.assertTrue(result >= 0)
+
+    def test_general_jsd(self):
+        """check correctness of JSD for > 2 distributions"""
+        freqs = (0.1, 0.2, 0.3, 0.4), (0.4, 0.3, 0.2, 0.1), (0.1, 0.4, 0.2, 0.3)
+        got = jsd(*freqs, validate=True)
+        # expected value from the R-package philentropy gJSD implementation
+        assert_allclose(got, 0.1374318, atol=1e-7)
+
+        # with invalid freqs
+        freqs = (0.1, 0.2, 0.3, 0.4), (0.4, 0.3, 0.1, 0.2), (0.1, 0.4, 0.4, 0.3)
+        with self.assertRaises(AssertionError):
+            jsd(*freqs, validate=True)
 
     def test_jsm(self):
         """evaluate jsm between identical, and non-identical distributions"""

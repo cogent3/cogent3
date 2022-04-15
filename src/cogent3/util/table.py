@@ -25,14 +25,9 @@ import numpy
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
-from cogent3.util.misc import (
-    atomic_write,
-    extend_docstring_from,
-    get_format_suffixes,
-    get_object_provenance,
-)
+from cogent3.util.io import atomic_write, get_format_suffixes
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.union_dict import UnionDict
-from cogent3.util.warning import deprecated
 
 
 try:
@@ -41,10 +36,10 @@ except ImportError:
     display = lambda x: print(repr(x))
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Felix Schill", "Sheng Koh"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -492,10 +487,6 @@ class Table:
             if k not in ("self", "__class__", "data", "header", "kwargs")
         }
 
-        if "index" in kwargs:
-            deprecated("argument", "index", "index_name", "2021.11")
-            index_name = kwargs.pop("index", index_name)
-
         attrs.update(kwargs)
 
         self._persistent_attrs = attrs
@@ -712,7 +703,7 @@ class Table:
         shape_info += f"\n{self.shape[0]:,} rows x {self.shape[1]:,} columns"
         unset_columns = [c for c in self.header if not len(self.columns[c])]
         unset_columns = (
-            "unset columns: %s" % ", ".join(map(repr, unset_columns))
+            f"unset columns: {', '.join(map(repr, unset_columns))}"
             if unset_columns
             else None
         )
@@ -1612,10 +1603,6 @@ class Table:
         ----------
         concat_title_legend : bool
             the table caption is formed by concatenating the table title and legend
-        rows
-            table data in row orientation
-        header
-            table header
         justify
             column justification, default is right aligned.
         label
@@ -2090,9 +2077,9 @@ class Table:
             as the header. Defaults to the first column.
         """
         select_as_header = select_as_header or self.columns.order[0]
-        assert select_as_header in self.columns, (
-            '"%s" not in table header' % select_as_header
-        )
+        assert (
+            select_as_header in self.columns
+        ), f'"{select_as_header}" not in table header'
 
         if len(self.distinct_values(select_as_header)) != len(self):
             raise ValueError(f"not all '{select_as_header}' values unique")

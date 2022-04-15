@@ -1,8 +1,8 @@
 chardet==4.0.0
-pillow>=8.3.2
-psutil==5.8.0
-scipy==1.5.4; python_version < '3.7'
-scipy==1.6.1; python_version > '3.6'
-tox==3.23.1
-tox-gh-actions==2.5.0
+pillow==9.0.1
+psutil==5.9.0
+scipy==1.7.3
+tox==3.24.5
+tox-gh-actions==2.8.1
+plotly==5.5.0
 .[dev]

@@ -40,10 +40,10 @@ from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -991,6 +991,54 @@ class SequenceTests(TestCase):
         got_num = len(re.findall(r"\bA\b", got))
         self.assertEqual(got_num, 2)
         os.environ.pop(env_name, None)
+
+    def test_add(self):
+        """Test for the add method within sequence"""
+
+        even = "TCAGAT"
+        odd = even + "AAA"
+        original_sequence = self.SEQ(even, name="even")
+        duplicate_sequence = self.SEQ(even, name="even")
+        name_only_duplicate = self.SEQ(even, name="odd")
+        different_sequence = self.SEQ(odd, name="odd")
+
+        added_duplicates = original_sequence + duplicate_sequence
+        added_name_only_duplicate = original_sequence + name_only_duplicate
+        different_sequences = original_sequence + different_sequence
+
+        self.assertIsNone(different_sequences.name)
+        self.assertIsNotNone(added_duplicates.name)
+        self.assertIsNotNone(added_name_only_duplicate)
+
+        self.assertEqual(original_sequence.name, added_duplicates.name)
+        self.assertNotEqual(original_sequence.name, added_name_only_duplicate.name)
+        self.assertNotEqual(original_sequence.name, different_sequences.name)
+
+    def test_add2(self):
+        """name property correctly handled in sequence add"""
+        a1 = self.SEQ("AAA", name="1")
+        a2 = self.SEQ("CC", name="1")
+        a = a1 + a2
+        self.assertEqual(a.name, "1")
+        self.assertEqual(a, "AAACC")
+
+        b = self.SEQ("GGGG", name="2")
+        self._check_mix_add(a1, b)
+        c = self.SEQ("TT")
+        self._check_mix_add(a1, c)
+
+        e = "AA"
+        be = b + e
+        self.assertIsNone(be.name)
+        self.assertEqual(be, str(b) + e)
+
+    def _check_mix_add(self, s1, s2):
+        s1s2 = s1 + s2
+        s2s1 = s2 + s1
+        self.assertIsNone(s1s2.name)
+        self.assertIsNone(s2s1.name)
+        self.assertEqual(s1s2, str(s1) + str(s2))
+        self.assertEqual(s2s1, str(s2) + str(s1))
 
 
 class SequenceSubclassTests(TestCase):

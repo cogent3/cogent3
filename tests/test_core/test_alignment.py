@@ -3,26 +3,17 @@ import json
 import os
 import pathlib
 import re
-import sys
-import unittest
-import warnings
 
 from os import remove
 from tempfile import TemporaryDirectory, mktemp
 from unittest import TestCase, main
 
 import numpy
-import pytest
 
-from numpy import arange, array, log2, nan, transpose
+from numpy import array, log2, nan, transpose
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import (
-    load_aligned_seqs,
-    load_unaligned_seqs,
-    make_aligned_seqs,
-    make_seq,
-)
+from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq, open_
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -37,33 +28,26 @@ from cogent3.core.alignment import (
     aln_from_empty,
     aln_from_fasta,
     aln_from_generic,
-    coerce_to_string,
     make_gap_filter,
     seqs_from_aln,
     seqs_from_array,
     seqs_from_array_seqs,
-    seqs_from_dict,
     seqs_from_empty,
     seqs_from_fasta,
     seqs_from_generic,
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Feature, _Annotatable
+from cogent3.core.annotation import Feature
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
-from cogent3.core.sequence import (
-    ArraySequence,
-    RnaSequence,
-    Sequence,
-    frac_same,
-)
+from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Jeremy Widmann",
     "Catherine Lozuopone",
@@ -73,7 +57,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -422,7 +406,7 @@ class SequenceCollectionBaseTests(object):
         s2_ORIG = ">x\nCA\n>b\nAA\n>>xx\nGG"
         s2 = ">aa\nAC\n>bb\nAA\n>c\nGG\n"
         d = ArrayAlignment(MinimalFastaParser(s2.splitlines()))
-        da = d.to_fasta()
+        d.to_fasta()
         self.assertEqual(d.to_fasta(), aln.to_fasta())
 
     def test_aln_from_fasta(self):
@@ -642,8 +626,8 @@ class SequenceCollectionBaseTests(object):
     def test_get_similar(self):
         """SequenceCollection get_similar should get all sequences close to target seq"""
         aln = self.many
-        x = RnaSequence("GGGGGGGGGG")
-        y = RnaSequence("----------")
+        RnaSequence("GGGGGGGGGG")
+        RnaSequence("----------")
         # test min and max similarity ranges
         result = aln.get_similar(
             aln.named_seqs["a"], min_similarity=0.4, max_similarity=0.7
@@ -1062,7 +1046,7 @@ class SequenceCollectionBaseTests(object):
             # check for a failure when no moltype specified
             alignment = self.Class(data=seqs)
             try:
-                peps = alignment.get_translation()
+                alignment.get_translation()
             except AttributeError:
                 pass
 
@@ -1220,7 +1204,7 @@ class SequenceCollectionBaseTests(object):
         # be gone too
         raw_seq = "---??-??TC-GGCG-GCA-G-GC-?-C-TAN-GCGC-CCTC-AGGA?-???-??--"
         raw_ungapped = re.sub("[-?]", "", raw_seq)
-        raw_no_ambigs = re.sub("[N?]+", "", raw_seq)
+        re.sub("[N?]+", "", raw_seq)
         dna = DNA.make_seq(raw_seq)
 
         aln = self.Class(data=[("a", dna), ("b", dna)])
@@ -1335,7 +1319,7 @@ class SequenceCollectionBaseTests(object):
 
     def test_apply_pssm(self):
         """should successfully produce pssm scores"""
-        from cogent3.parse import cisbp, jaspar
+        from cogent3.parse import jaspar
 
         _, pwm = jaspar.read("data/sample.jaspar")
         data = {
@@ -1526,7 +1510,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
         # no longer applicable in new implementation
         with self.assertRaises(ValueError):
-            r = align_rag.to_phylip()
+            align_rag.to_phylip()
 
     def test_pad_seqs_ragged(self):
         """SequenceCollection pad_seqs should work on ragged alignment."""
@@ -2635,11 +2619,11 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         logo = aln.seqlogo(wrap=20)
         # should work for protein too
         aa = aln.get_translation()
-        logo = aa.seqlogo()
+        aa.seqlogo()
 
         # without a defined moltype
         aln = self.Class(data)
-        logo = aln.seqlogo()
+        aln.seqlogo()
 
 
 class ArrayAlignmentTests(AlignmentBaseTests, TestCase):

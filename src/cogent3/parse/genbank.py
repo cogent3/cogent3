@@ -11,10 +11,10 @@ from cogent3.parse.record_finder import (
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -351,9 +351,9 @@ class Location(object):
         if self.IsBetween:  # between two bases
             try:
                 first, last = self._data
-                curr = "%s^%s" % (first, last)
+                curr = f"{first}^{last}"
             except TypeError:  # only one base? must be this or the next
-                curr = "%s^%s" % (first, first + 1)
+                curr = f"{first}^{first + 1}"
         else:  # not self.IsBetween
             try:
                 data = int(self._data)
@@ -367,9 +367,9 @@ class Location(object):
                 # objects
                 first, last = self._data
                 if self.IsBounds:
-                    curr = "(%s%s%s)" % (first, ".", last)
+                    curr = f"({first}{'.'}{last})"
                 else:
-                    curr = "%s%s%s" % (first, "..", last)
+                    curr = f"{first}{'..'}{last}"
         # check if we need to add on the accession and database
         if self.Accession:
             curr = self.Accession + ":" + curr
@@ -378,7 +378,7 @@ class Location(object):
                 curr = self.Db + "::" + curr
         # check if it's complemented
         if self.Strand == -1:
-            curr = "complement(%s)" % curr
+            curr = f"complement({curr})"
         return curr
 
     def first(self):
@@ -445,12 +445,12 @@ class LocationList(list):
         """Extracts pieces of self from sequence."""
         result = []
         for i in self:
-            first, last = i.first(), i.last() + 1  # inclusive, not exclusive
+            first, last = i.first() - 1, i.last()  # inclusive, not exclusive
             # translate to 0-based indices and check if it wraps around
             if first < last:
-                curr = sequence[first - 1 : last - 1]
+                curr = sequence[first:last]
             else:
-                curr = sequence[first - 1 :] + sequence[: last - 1]
+                curr = sequence[first:] + sequence[:last]
             # reverse-complement if necessary
             if i.Strand == -1:
                 curr = curr.translate(trans_table)[::-1]
@@ -638,7 +638,7 @@ def RichGenbankParser(
 
     """
     info_excludes = info_excludes or []
-    moltype = get_moltype(moltype or "text")
+    moltype = get_moltype(moltype) if moltype else None
     for rec in MinimalGenbankParser(handle):
         info = Info()
         # populate the info object, excluding the sequence
@@ -647,11 +647,17 @@ def RichGenbankParser(
                 continue
             info[label] = value
 
-        if rec["mol_type"].lower() in ("dna", "rna", "protein"):
-            moltype = get_moltype(rec["mol_type"].lower())
+        if moltype is None:
+            rec_moltype = rec["mol_type"].lower()
+            rec_moltype = (
+                rec_moltype if rec_moltype in ("dna", "rna", "protein") else "text"
+            )
+            rec_moltype = get_moltype(rec_moltype)
+        else:
+            rec_moltype = moltype
 
         try:
-            seq = moltype.make_seq(
+            seq = rec_moltype.make_seq(
                 rec["sequence"].upper(), info=info, name=rec["locus"]
             )
         except KeyError:

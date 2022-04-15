@@ -15,10 +15,10 @@ from .substitution_model import (
 
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Peter Maxwell", "Ben Kaeheler", "Ananias Iliadis"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -58,7 +58,7 @@ class General(Parametric):
         for (i, x) in enumerate(alphabet):
             for j in numpy.flatnonzero(mask[i]):
                 y = alphabet[j]
-                self.parameter_order.append("%s/%s" % (x, y))
+                self.parameter_order.append(f"{x}/{y}")
                 self.param_pick[i, j] = len(self.parameter_order)
         _ = self.parameter_order.pop()
         self.symmetric = False
@@ -122,6 +122,7 @@ class GeneralStationary(Stationary):
             row_total = numpy.dot(mprobs, R[j])
             col_total = numpy.dot(mprobs, R[:, j])
             required = row_total - col_total
+            required = abs(required) if numpy.allclose(required, 0.0) else required
             if required < 0.0:
                 raise ParameterOutOfBoundsError
             R[i, j] = required / mprobs[i]

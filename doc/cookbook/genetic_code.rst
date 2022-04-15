@@ -15,7 +15,7 @@ Translate all six frames
 
 .. jupyter-execute::
 
-    from cogent3 import make_seq, get_code
+    from cogent3 import get_code, make_seq
 
     standard_code = get_code(1)
     seq = make_seq("ATGCTAACATAAA", moltype="dna")
@@ -27,7 +27,7 @@ Find out how many stops in a frame
 
 .. jupyter-execute::
 
-    from cogent3 import make_seq, get_code
+    from cogent3 import get_code, make_seq
 
     standard_code = get_code(1)
     seq = make_seq("ATGCTAACATAAA", moltype="dna")
@@ -41,7 +41,7 @@ Translate a codon
 
 .. jupyter-execute::
 
-    from cogent3 import make_seq, get_code
+    from cogent3 import get_code, make_seq
 
     standard_code = get_code(1)
     standard_code["TTT"]

@@ -178,7 +178,7 @@ The usual approach is to access a ``SequenceCollection`` or ``Alignment`` object
 
 .. jupyter-execute::
 
-    from cogent3 import load_unaligned_seqs, load_aligned_seqs
+    from cogent3 import load_aligned_seqs, load_unaligned_seqs
 
     fn = "data/long_testseqs.fasta"
     seqs = load_unaligned_seqs(fn, moltype="dna")
@@ -307,7 +307,7 @@ or by the ``format`` argument.
 
 .. jupyter-execute::
 
-    from cogent3.util.misc import remove_files
+    from cogent3.util.io import remove_files
 
     remove_files(["sample", "sample.fasta"], error_on_missing=False)
 
@@ -654,7 +654,7 @@ For dinucleotides or longer, we need to pass in an ``Alphabet`` with the appropr
 
 .. jupyter-execute::
 
-    from cogent3 import load_aligned_seqs, DNA
+    from cogent3 import DNA, load_aligned_seqs
 
     trinuc_alphabet = DNA.alphabet.get_word_alphabet(3)
     aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")

@@ -5,10 +5,10 @@ from cogent3.util import progress_display as UI
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -25,14 +25,7 @@ def TreeAlign(
     ests_from_pairwise=True,
     param_vals=None,
 ):
-    """Returns a multiple alignment and tree.
-
-    Uses the provided substitution model and a tree for determining the
-    progressive order. If a tree is not provided a Neighbour Joining tree is
-    constructed from pairwise distances estimated from pairwise aligning the
-    sequences. If running in parallel, only the distance estimation is
-    parallelised and only the master CPU returns the alignment and tree, other
-    CPU's return None, None.
+    """Returns a multiple sequence alignment and tree.
 
     Parameters
     ----------
@@ -49,6 +42,14 @@ def TreeAlign(
         named key, value pairs for model parameters. These
         override ests_from_pairwise.
 
+    Notes
+    -----
+    Uses a tree for determining the progressive order. If a tree is not
+    provided, a Neighbour Joining tree is constructed from pairwise
+    distances estimated (using the provided substitution model) from pairwise
+    aligning the sequences.
+
+    Parameters and tree are added to ``<align>.info["align_params"]``.
     """
     from cogent3 import get_model
 
@@ -99,7 +100,7 @@ def TreeAlign(
             numbers = dcalc.get_param_values(param)
             param_vals[param] = numbers.median
 
-    ui.display("Doing %s alignment" % ["progressive", "pairwise"][two_seqs])
+    ui.display(f"Doing {['progressive', 'pairwise'][two_seqs]} alignment")
     with LF.updates_postponed():
         for param, val in list(param_vals.items()):
             LF.set_param_rule(param, value=val, is_constant=True)

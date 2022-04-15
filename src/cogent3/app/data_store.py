@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 import re
+import reprlib
 import shutil
 import weakref
 import zipfile
@@ -21,22 +22,18 @@ from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
 from cogent3.util.deserialise import deserialise_not_completed
-from cogent3.util.misc import (
-    atomic_write,
-    extend_docstring_from,
-    get_format_suffixes,
-    open_,
-)
+from cogent3.util.io import atomic_write, get_format_suffixes, open_
+from cogent3.util.misc import extend_docstring_from
 from cogent3.util.parallel import is_master_process
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -47,6 +44,29 @@ SKIP = "skip"
 OVERWRITE = "overwrite"
 RAISE = "raise"
 IGNORE = "ignore"
+
+
+def get_data_source(data) -> str:
+    """identifies attribute of data named 'source'
+
+    Notes
+    -----
+    Alignment objects have a source element in their info dict
+    """
+    if isinstance(data, (str, pathlib.Path)):
+        return str(data)
+
+    if hasattr(data, "source"):
+        return str(data.source)
+
+    if hasattr(data, "info"):
+        return get_data_source(data.info)
+
+    if isinstance(data, dict):
+        value = data.get("source")
+        return str(value) if value else None
+
+    return None
 
 
 def make_record_for_json(identifier, data, completed):
@@ -310,7 +330,7 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
     def members(self):
         if not self._members:
-            pattern = "%s/**/*.%s" % (self.source, self.suffix)
+            pattern = f"{self.source}/**/*.{self.suffix}"
             paths = glob.iglob(pattern, recursive=True)
             members = []
             for i, path in enumerate(paths):
@@ -357,7 +377,7 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
     def members(self):
         if os.path.exists(self.source) and not self._members:
             source_path = self.source.replace(Path(self.source).suffix, "")
-            pattern = "*.%s" % self.suffix
+            pattern = f"*.{self.suffix}"
             members = []
             with zipfile.ZipFile(self.source) as archive:
                 names = archive.namelist()
@@ -411,12 +431,11 @@ class WritableDataStoreBase:
 
     def make_relative_identifier(self, data):
         """returns identifier for a new member relative to source"""
-        from cogent3.app.composable import _get_source
 
         if isinstance(data, DataStoreMember):
             data = data.name
         elif type(data) != str:
-            data = _get_source(data)
+            data = get_data_source(data)
             if data is None:
                 raise ValueError(
                     "objects for storage require either a "
@@ -742,41 +761,43 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
     @property
     def summary_incomplete(self):
         """returns a table summarising incomplete results"""
+        # detect last exception line
+        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
         types = defaultdict(list)
         indices = "type", "origin"
         for member in self.incomplete:
             record = member.read()
             record = deserialise_not_completed(record)
             key = tuple(getattr(record, k, None) for k in indices)
-            types[key].append([record.message, record.source])
+            match = err_pat.findall(record.message)
+            types[key].append([match[-1] if match else record.message, record.source])
 
         header = list(indices) + ["message", "num", "source"]
         rows = []
+        maxtring = reprlib.aRepr.maxstring
+        reprlib.aRepr.maxstring = 45
+
         for record in types:
             messages, sources = list(zip(*types[record]))
-            messages = list(sorted(set(messages)))
-            if len(messages) > 3:
-                messages = messages[:3] + ["..."]
-
-            if len(sources) > 3:
-                sources = sources[:3] + ("...",)
-
+            messages = reprlib.repr(
+                ", ".join(m.splitlines()[-1] for m in set(messages))
+            )
+            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
             row = list(record) + [
-                ", ".join(messages),
+                messages,
                 len(types[record]),
-                ", ".join(sources),
+                sources,
             ]
             rows.append(row)
+
+        reprlib.aRepr.maxstring = maxtring  # restoring original val
 
         return Table(header=header, data=rows, title="incomplete records")
 
     @property
     def members(self):
         if not self._members:
-            if self.suffix:
-                pattern = translate("*.%s" % self.suffix)
-            else:
-                pattern = translate("*")
+            pattern = translate(f"*.{self.suffix}") if self.suffix else translate("*")
             members = []
             query = Query()
             query = (query.identifier.matches(pattern)) & (query.completed == True)
@@ -978,7 +999,6 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
 
     def write_incomplete(self, identifier, not_completed):
         """stores an incomplete result object"""
-        from .composable import NotCompleted
 
         matches = self.filtered(identifier)
         if matches:

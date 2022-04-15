@@ -22,7 +22,7 @@ from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Andrew Butterfield",
@@ -34,7 +34,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -147,24 +147,20 @@ def _get_param_mapping(rich, simple):
                 simple_to_rich[simple_param].add(rich_param)
                 rich_to_simple[rich_param].add(simple_param)
 
-    for rich_param in rich_to_simple:
-        simple_counterparts = rich_to_simple[rich_param]
+    for rich_param, simple_counterparts in rich_to_simple.items():
         if len(simple_counterparts) == 1:
             continue
 
         sized_simple = [(len(simple[param]), param) for param in simple_counterparts]
         sized_simple.sort()
         if sized_simple[0][0] == sized_simple[1][0]:
-            msg = "%s and %s tied for matrix space" % (
-                sized_simple[0][1],
-                sized_simple[1][1],
-            )
+            msg = f"{sized_simple[0][1]} and {sized_simple[1][1]} tied for matrix space"
             raise ValueError(msg)
 
         _, chosen = sized_simple.pop(0)
         rich_to_simple[rich_param] = [chosen]
         for _, simple_param in sized_simple:
-            simple_to_rich[simple_param].pop(rich_param)
+            simple_to_rich[simple_param].remove(rich_param)
 
     return simple_to_rich
 
@@ -553,7 +549,7 @@ class LikelihoodFunction(ParameterController):
     def _repr_html_(self):
         """for jupyter notebook display"""
         try:
-            lnL = "<p>log-likelihood = %.4f</p>" % self.get_log_likelihood()
+            lnL = f"<p>log-likelihood = {self.get_log_likelihood():.4f}</p>"
         except ValueError:
             # alignment probably not yet set
             lnL = ""
@@ -564,7 +560,7 @@ class LikelihoodFunction(ParameterController):
             table_.title = table_.title.capitalize()
             table_.set_repr_policy(show_shape=False)
             results[i] = table_._repr_html_()
-        results = ["<h4>%s</h4>" % title, lnL, nfp] + results
+        results = [f"<h4>{title}</h4>", lnL, nfp] + results
         return "\n".join(results)
 
     def __repr__(self):
@@ -574,7 +570,7 @@ class LikelihoodFunction(ParameterController):
         title, results = self._for_display()
 
         try:
-            lnL = "log-likelihood = %.4f" % self.get_log_likelihood()
+            lnL = f"log-likelihood = {self.get_log_likelihood():.4f}"
         except ValueError:
             # alignment probably not yet set
             lnL = None
@@ -758,8 +754,7 @@ class LikelihoodFunction(ParameterController):
         """
         if motif_probs is None:
             motif_probs = self.get_motif_probs_by_node()
-        node_names = self.tree.get_node_names()
-        node_names.remove("root")
+        node_names = [n for n in self.tree.get_node_names() if n != "root"]
         lengths = {e: self.get_param_value("length", edge=e) for e in node_names}
         if not isinstance(self.model, substitution_model.Stationary):
             ens = {}
@@ -854,7 +849,7 @@ class LikelihoodFunction(ParameterController):
                     row = [row[k] for k in heading_names]
                     list_table.append(row)
             if table_dims:
-                title = ["", "%s params" % " ".join(table_dims)][with_titles]
+                title = ["", f"{' '.join(table_dims)} params"][with_titles]
             else:
                 title = ["", "global params"][with_titles]
             row_ids = None
@@ -903,7 +898,7 @@ class LikelihoodFunction(ParameterController):
 
     def to_rich_dict(self):
         """returns detailed info on object, used by to_json"""
-        data = self._serialisable.copy()
+        data = deepcopy(self._serialisable)
         for key in ("model", "tree"):
             del data[key]
 
@@ -925,11 +920,19 @@ class LikelihoodFunction(ParameterController):
             alignment = self.get_param_value("alignment").to_rich_dict()
             mprobs = self.get_motif_probs().to_dict()
         else:
+            # this is a multi-locus likelihood function
             alignment = {a["locus"]: a["value"] for a in aln_defn.get_param_rules()}
-            mprobs = self.get_motif_probs()
             for k in alignment:
                 alignment[k] = alignment[k].to_rich_dict()
-                mprobs[k] = mprobs[k].to_dict()
+
+            mprobs = self.get_motif_probs()
+            if isinstance(mprobs, dict):
+                # separate mprobs per locus
+                for k in alignment:
+                    mprobs[k] = mprobs[k].to_dict()
+            else:
+                # motif probs are constrained to be the same between loci
+                mprobs = self.get_motif_probs().to_dict()
 
         DLC = self.all_psubs_DLC()
         try:

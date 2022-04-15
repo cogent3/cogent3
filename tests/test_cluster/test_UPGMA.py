@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from collections import defaultdict
 from unittest import TestCase, main
 
 import numpy
@@ -17,17 +16,17 @@ from cogent3.cluster.UPGMA import (
     upgma,
 )
 from cogent3.core.tree import PhyloNode
-from cogent3.util.dict_array import DictArray, DictArrayTemplate, convert2DDict
+from cogent3.util.dict_array import DictArray
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

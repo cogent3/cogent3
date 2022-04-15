@@ -9,10 +9,10 @@ from cogent3.parse.psl import MinimalPslParser, PslToTable
 
 
 __author__ = "Gavin Huttley, Anuj Pahwa"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley", "Anuj Pahwa"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Development"
@@ -48,13 +48,13 @@ class Test(TestCase):
         ]
         infile = open(fname)
         parser = MinimalPslParser(infile)
-        version = next(parser)
+        next(parser)
         header = next(parser)
         infile.close()
         self.assertEqual(header, expect)
 
     def test_psl_to_table(self):
-        table = PslToTable(fname)
+        PslToTable(fname)
 
     def test_getting_seq_coords(self):
         """get correct sequence coordinates to produce a trimmed sequence"""

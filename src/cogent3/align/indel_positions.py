@@ -1,8 +1,8 @@
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -205,14 +205,14 @@ class POG(object):
         for (i, preds) in enumerate(pred_sets):
             # print i, preds
             for pred in preds:
-                print("  ", ("node%s -> node%s" % (pred, i)), file=dot)
+                print("  ", (f"node{pred} -> node{i}"), file=dot)
             if i == 0:
                 label = "START"
             elif i == len(pred_sets) - 1:
                 label = "END"
             else:
                 label = str(i)
-            print("  ", ("node%s" % i), '[label="%s"]' % label, file=dot)
+            print("  ", (f"node{i}"), f'[label="{label}"]', file=dot)
         print("}", file=dot)
         print("", file=dot)
 

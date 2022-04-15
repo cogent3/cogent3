@@ -10,10 +10,10 @@ from cogent3.recalculation.definition import (
 
 
 __author__ = "Gavin Huttley and Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttleuy"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -78,7 +78,7 @@ class BinData(object):
         self.rate = rate
 
     def __repr__(self):
-        return "Bin(Pi, Qd, %s, %s)" % (self.rate, vars(self.indel))
+        return f"Bin(Pi, Qd, {self.rate}, {vars(self.indel)})"
 
 
 class AnnotateFloatDefn(CalculationDefn):

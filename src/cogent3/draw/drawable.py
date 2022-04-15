@@ -8,10 +8,10 @@ from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Rahul Ghangas and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rahul Ghangas", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -53,45 +53,6 @@ def get_domain(total, element, is_y, space=0.01):
     return domains[element]
 
 
-def _customise_sphinx_gallery_renderer():
-    # this is an ugly hack to get around plotly's NOT robust handling of script path
-    # for automated file naming
-    import inspect
-
-    from plotly.io import _base_renderers as base_render
-    from plotly.io._renderers import renderers
-
-    class SphinxGalleryRenderer(base_render.ExternalRenderer):
-        def render(self, fig_dict):
-            # use the environment variable
-            # DOCUTILSCONFIG to get the location of the sphinx root doc dir
-            # and select the stack filename whose path is a sibling directory
-            # based on the maxinum number of matches to the root path
-            sphinx_root = pathlib.Path(os.environ.get("DOCUTILSCONFIG", "")).absolute()
-            sphinx_root = sphinx_root.resolve()
-            stack = inspect.stack()
-            max_match = 0
-            for level in stack:
-                # parent directory
-                path = pathlib.Path(level.filename).absolute().resolve()
-                for i, (a, b) in enumerate(zip(path.parts, sphinx_root.parts)):
-                    if a != b:
-                        break
-
-                if i > max_match:
-                    max_match = i
-                    filename = str(path)
-
-            filename_root, _ = os.path.splitext(filename)
-            filename_html = filename_root + ".html"
-            filename_png = filename_root + ".png"
-            figure = base_render.return_figure_from_figure_or_data(fig_dict, True)
-            _ = base_render.write_html(fig_dict, file=filename_html)
-            base_render.write_image(figure, filename_png)
-
-    renderers["sphinx_gallery"] = SphinxGalleryRenderer()
-
-
 def _show_(cls, renderer=None, **kwargs):
     """display figure
 
@@ -113,9 +74,6 @@ def _show_(cls, renderer=None, **kwargs):
         renderer = "notebook_connected+plotly_mimetype"
     elif renderer is None:
         renderer = PLOTLY_RENDERER
-
-    if renderer == "sphinx_gallery":
-        _customise_sphinx_gallery_renderer()
 
     kwargs["renderer"] = renderer
     drawable = getattr(cls, "drawable", None) or cls
@@ -226,21 +184,20 @@ class Drawable:
         if not self.traces and hasattr(self, "_build_fig"):
             self._build_fig()
 
-        traces = self.traces if self.traces else [{}]
+        traces = self.traces or [{}]
 
-        if self.xtitle:
-            xtitle = self.xtitle
-        else:
-            xtitle = self.layout.xaxis.get("title", None)
-
-        if self.ytitle:
-            ytitle = self.ytitle
-        else:
-            ytitle = self.layout.yaxis.get("title", None)
-
+        xtitle = self.xtitle or self.layout.xaxis.get("title", None)
+        ytitle = self.ytitle or self.layout.yaxis.get("title", None)
         self.layout.xaxis.title = xtitle
         self.layout.yaxis.title = ytitle
         return UnionDict(data=traces, layout=self.layout)
+
+    @property
+    def plotly_figure(self):
+        """returns a plotly graph object"""
+        from plotly.graph_objects import Figure
+
+        return Figure(**self.figure)
 
     @extend_docstring_from(_show_)
     def show(self, renderer=None, **kwargs):

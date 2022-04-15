@@ -6,10 +6,10 @@ from numpy import exp, floor, log, sin, sqrt
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -74,7 +74,7 @@ def permutations(n, k):
     """
     # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
-        raise IndexError("Can't choose %s items from %s" % (k, n))
+        raise IndexError(f"Can't choose {k} items from {n}")
     elif k < 0:
         raise IndexError("Can't choose negative number of items")
     elif n < 0:
@@ -115,7 +115,7 @@ def combinations(n, k):
     """
     # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
-        raise IndexError("Can't choose %s items from %s" % (k, n))
+        raise IndexError(f"Can't choose {k} items from {n}")
     elif k < 0:
         raise IndexError("Can't choose negative number of items")
     elif n < 0:

@@ -31,7 +31,7 @@ We then import the minimise function and use it to minimise the function, obtain
 
 .. jupyter-execute::
 
-    from cogent3.maths.optimisers import minimise, maximise
+    from cogent3.maths.optimisers import maximise, minimise
 
     S = minimise(
         f,  # the function
@@ -176,8 +176,9 @@ Automatically construct a distance matrix lookup function. This is useful for ma
 
 .. jupyter-execute::
 
-    from cogent3.util.misc import DistanceFromMatrix
     from numpy import array
+
+    from cogent3.util.misc import DistanceFromMatrix
 
     m = array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     f = DistanceFromMatrix(m)

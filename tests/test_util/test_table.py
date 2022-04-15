@@ -2,7 +2,6 @@
 
 """Unit tests for table.
 """
-import contextlib
 import json
 import os
 import pathlib
@@ -17,14 +16,14 @@ import numpy
 from numpy import arange
 from numpy.testing import assert_equal
 
-from cogent3 import load_table, make_table
+from cogent3 import load_table, make_table, open_
 from cogent3.format.table import (
     formatted_array,
     get_continuation_tables_headers,
     is_html_markup,
 )
 from cogent3.parse.table import FilteringParser
-from cogent3.util.misc import get_object_provenance, open_
+from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import (
     Table,
     cast_str_to_array,
@@ -41,10 +40,10 @@ except ImportError:
 TEST_ROOT = pathlib.Path(__file__).parent.parent
 
 __author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La", "Christopher Bradley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -1436,6 +1435,11 @@ class TableTests(TestCase):
             data = table.columns.to_dict()
         self.assertEqual(data, dict(a=[0, 1], b=[2, 3], c=["abc", "efg"]))
 
+    def test_load_table_limit(self):
+        """limit argument to function works"""
+        t = load_table("data/sample.tsv", limit=2)
+        self.assertEqual(t.shape[0], 2)
+
     def test_load_table_returns_static_columns(self):
         """for static data, load_table gives same dtypes for static_columns_type=True/False"""
         t = load_table("data/sample.tsv", sep="\t", static_column_types=False)
@@ -1591,7 +1595,7 @@ class TableTests(TestCase):
         t = make_table(self.t2_header, data=self.t2_rows)
         t = t[:, 0]
         # the next line was previously failing
-        g = t._get_repr_()
+        t._get_repr_()
 
         table = Table(header=["a", "b"], data=[[1, 2]])
         table, _, unset_columns = table._get_repr_()
@@ -1769,20 +1773,23 @@ class TableTests(TestCase):
         r = cast_str_to_numeric(d)
         assert_equal(d, r)
 
-        for d_type in [numpy.int, numpy.complex, numpy.float64]:
-            d = d.astype(d_type)
-            r = cast_str_to_numeric(d)
-            self.assertIsInstance(r[0], type(d[0]))
+        with numpy.testing.suppress_warnings() as sup:
+            # we know that converting to real loses imaginary
+            sup.filter(numpy.ComplexWarning)
+            for d_type in [numpy.int64, numpy.complex128, numpy.float64]:
+                d = d.astype(d_type)
+                r = cast_str_to_numeric(d)
+                self.assertIsInstance(r[0], type(d[0]))
 
         d = d.astype(str)
         r = cast_str_to_numeric(d)
         self.assertIsInstance(r[0], numpy.float64)
         d = numpy.array(d, dtype="U")
         r = cast_str_to_numeric(d)
-        self.assertIsInstance(r[0], numpy.float)
+        self.assertIsInstance(r[0], numpy.float64)
         d = numpy.array(d, dtype="S")
         r = cast_str_to_numeric(d)
-        self.assertIsInstance(r[0], numpy.float)
+        self.assertIsInstance(r[0], numpy.float64)
 
     def test_cast_str_to_array(self):
         """handle processing string series"""

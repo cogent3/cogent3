@@ -25,10 +25,10 @@ from cogent3.util.deserialise import (
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -233,7 +233,7 @@ class TestDeserialising(TestCase):
         edge_vals = zip(aln.names, (2, 3, 4))
         for edge, val in edge_vals:
             lf.set_param_rule("kappa", edge=edge, init=val)
-        result = model_result(name="test")
+        result = model_result(name="test", source="blah")
         result[1] = lf
         self.assertIs(result[1], lf)
         self.assertEqual(result.nfp, lf.nfp)
@@ -449,8 +449,26 @@ class TestDeserialising(TestCase):
         got = deserialise_object(jdata)
         self.assertEqual(got, data)
 
-    def test_deserialise_likelihood_function(self):
+    def test_deserialise_likelihood_function1(self):
         """correctly deserialise data into likelihood function"""
+        # tests single alignment
+        aln = load_aligned_seqs(
+            filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
+        )
+        tree = make_tree(tip_names=aln.names)
+        model = get_model("HKY85")
+        lf = model.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        lf_rich_dict = lf.to_rich_dict()
+        got = deserialise_likelihood_function(lf_rich_dict)
+        self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
+        self.assertEqual(
+            str(lf.defn_for["alignment"].assignments),
+            str(got.defn_for["alignment"].assignments),
+        )
+
+    def test_deserialise_likelihood_function_multilocus(self):
+        """correctly deserialise data of multilocus likelihood function"""
         # tests multiple alignments
         data = load_aligned_seqs(
             filename=os.path.join(os.getcwd(), "data", "brca1_5.paml")
@@ -461,7 +479,7 @@ class TestDeserialising(TestCase):
         loci_names = ["1st-half", "2nd-half"]
         loci = [aln1, aln2]
         tree = make_tree(tip_names=data.names)
-        model = get_model("HKY85")
+        model = get_model("HKY85", optimise_motif_probs=True)
         lf = model.make_likelihood_function(tree, loci=loci_names)
         lf.set_alignment(loci)
         lf_rich_dict = lf.to_rich_dict()
@@ -471,10 +489,8 @@ class TestDeserialising(TestCase):
             str(lf.defn_for["alignment"].assignments),
             str(got.defn_for["alignment"].assignments),
         )
-        # tests single alignment
-        model = get_model("HKY85")
-        lf = model.make_likelihood_function(tree)
-        lf.set_alignment(aln1)
+        # now constrain mprobs to be the same
+        lf.set_param_rule("mprobs", is_independent=False)
         lf_rich_dict = lf.to_rich_dict()
         got = deserialise_likelihood_function(lf_rich_dict)
         self.assertEqual(str(lf.defn_for["mprobs"]), str(got.defn_for["mprobs"]))
@@ -482,6 +498,28 @@ class TestDeserialising(TestCase):
             str(lf.defn_for["alignment"].assignments),
             str(got.defn_for["alignment"].assignments),
         )
+
+    def test_custom_deserialiser(self):
+        """correctly registers a function to inflate a custom object"""
+        from cogent3.util.deserialise import register_deserialiser
+
+        @register_deserialiser("myfunkydata")
+        def astuple(data):
+            data.pop("type")
+            return tuple(data["data"])
+
+        orig = {"type": "myfunkydata", "data": (1, 2, 3)}
+        txt = json.dumps(orig)
+        got = deserialise_object(txt)
+        self.assertEqual(got, (1, 2, 3))
+        self.assertIsInstance(got, tuple)
+
+        with self.assertRaises(TypeError):
+
+            @register_deserialiser
+            def astupled(data):
+                data.pop("type")
+                return tuple(data["data"])
 
 
 if __name__ == "__main__":

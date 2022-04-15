@@ -21,14 +21,14 @@ The CNFGTR model (`Yap et al <https://www.ncbi.nlm.nih.gov/pubmed/19815689>`__) 
 
 .. jupyter-execute::
 
-    from cogent3.app import io, evo
+    from cogent3.app import evo, io
 
     loader = io.load_aligned(format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
     model = evo.model(
         "CNFGTR",
         tree="data/primate_brca1.tree",
-        sm_args=dict(optimise_motif_probs=True),
+        optimise_motif_probs=True,
     )
     result = model(aln)
     result

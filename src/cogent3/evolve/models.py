@@ -15,84 +15,88 @@ import numpy
 
 from cogent3 import DNA
 from cogent3.evolve import ns_substitution_model, substitution_model
-from cogent3.evolve.predicate import MotifChange, omega, replacement
-from cogent3.evolve.solved_models import F81, HKY85, TN93
+from cogent3.evolve.predicate import MotifChange, omega
+from cogent3.evolve.solved_models import _solved_nucleotide
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util.table import Table
 
 
 __author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "James Kondilios"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
 
-nucleotide_models = [
-    "JC69",
-    "K80",
-    "F81",
-    "HKY85",
-    "TN93",
-    "GTR",
-    "ssGN",
-    "GN",
-    "BH",
-    "DT",
-]
 
-codon_models = [
-    "CNFGTR",
-    "CNFHKY",
-    "MG94HKY",
-    "MG94GTR",
-    "GY94",
-    "Y98",
-    "H04G",
-    "H04GK",
-    "H04GGK",
-    "GNC",
-]
+nucleotide_models = []
+codon_models = []
+protein_models = []
+models = []
 
-protein_models = ["DSO78", "AH96", "AH96_mtmammals", "JTT92", "WG01"]
 
-models = nucleotide_models + codon_models + protein_models
+_model_types = {
+    "nucleotide": nucleotide_models,
+    "codon": codon_models,
+    "protein": protein_models,
+}
+_all_models = {}
+
+
+class register_model:
+    """
+    decorator for registering functions that construct substitution models.
+
+    The name of the wrapped function becomes the model abbreviation used
+    for selecting the model with ``get_models()``
+
+    Parameters
+    ----------
+    model_type: str
+        valid values are 'codon', 'nucleotide', 'protein'
+    """
+
+    def __init__(self, model_type: str):
+        assert model_type in _model_types, f"{model_type!r} not in {list(_model_types)}"
+        self._model_type = model_type
+
+    def __call__(self, func):
+        series = _model_types[self._model_type]
+        name = func.__name__
+        if name in models:
+            raise ValueError(f"{name!r} already in models")
+
+        series.append(name)
+        models.append(name)
+        _all_models[name] = func
+        return func
+
 
 # Substitution model rate matrix predicates
+
 _gtr_preds = [MotifChange(x, y) for x, y in ["AC", "AG", "AT", "CG", "CT"]]
-_kappa = (~MotifChange("R", "Y")).aliased("kappa")
 _omega = omega
+_kappa_y = MotifChange("T", "C").aliased("kappa_y")
+_kappa_r = MotifChange("A", "G").aliased("kappa_r")
+_kappa = (_kappa_y | _kappa_r).aliased("kappa")
 _cg = MotifChange("CG").aliased("G")
 _cg_k = (_cg & _kappa).aliased("G.K")
 
 
 def _make_gn_preds():
-    _general_preds = []
-    for f, t in permutations("ACTG", 2):
-        if f != "T" or t != "G":  # Match GTR's reference cell
-            _general_preds.append(MotifChange(f, t, forward_only=True))
-    return _general_preds
+    return [
+        MotifChange(f, t, forward_only=True)
+        for f, t in permutations("ACTG", 2)
+        if f != "T" or t != "G"
+    ]
 
 
 _general_preds = _make_gn_preds()
 
 
-def _make_symn_preds():
-    pair = {"A": "T", "T": "A", "G": "C", "C": "G"}
-    sym_preds = []
-    for f, t in "AG", "AT", "CG", "CT", "GT":
-        sym_preds.append(
-            MotifChange(f, t, forward_only=True)
-            | MotifChange(pair[f], pair[t], forward_only=True)
-        )
-    return sym_preds
-
-
-_sym_preds = _make_symn_preds()
-
-
+@register_model("nucleotide")
 def BH(optimise_motif_probs=True, **kw):
     """Barry and Hartigan Discrete Time substitution model
 
@@ -103,6 +107,7 @@ def BH(optimise_motif_probs=True, **kw):
     )
 
 
+@register_model("nucleotide")
 def DT(optimise_motif_probs=True, motif_length=1, **kw):
     """
     Discrete Time substitution model (non-stationary, non-reversible).
@@ -116,6 +121,7 @@ def DT(optimise_motif_probs=True, motif_length=1, **kw):
     return ns_substitution_model.DiscreteSubstitutionModel(alpha, **kw)
 
 
+@register_model("nucleotide")
 def GN(optimise_motif_probs=True, **kw):
     """General Markov Nucleotide (non-stationary, non-reversible).
 
@@ -129,35 +135,40 @@ def GN(optimise_motif_probs=True, **kw):
     return ns_substitution_model.NonReversibleNucleotide(**kwargs)
 
 
+@register_model("nucleotide")
 def ssGN(optimise_motif_probs=True, **kw):
     """strand-symmetric general Markov nucleotide (non-stationary, non-reversible).
 
     Kaehler, 2017, Journal of Theoretical Biology 420: 144–51"""
     # note the StrandSymmetric class predefines the predicates and name
-    sm = ns_substitution_model.StrandSymmetric(
+    return ns_substitution_model.StrandSymmetric(
         optimise_motif_probs=optimise_motif_probs, name="ssGN", **kw
     )
-    return sm
 
 
+@register_model("nucleotide")
 def K80(**kw):
     """Kimura 1980"""
     required = dict(name="K80", equal_motif_probs=True, optimise_motif_probs=False)
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
     kwargs = {}
     kwargs.update(kw)
     kwargs.update(required)
     return HKY85(**kwargs)
 
 
+@register_model("nucleotide")
 def JC69(**kw):
     """Jukes and Cantor's 1969 model"""
     required = dict(name="JC69", equal_motif_probs=True, optimise_motif_probs=False)
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
     kwargs = {}
     kwargs.update(kw)
     kwargs.update(required)
     return F81(**kwargs)
 
 
+@register_model("nucleotide")
 def GTR(**kw):
     """General Time Reversible nucleotide substitution model."""
     required = dict(
@@ -169,7 +180,34 @@ def GTR(**kw):
     return substitution_model.TimeReversibleNucleotide(**kwargs)
 
 
+@register_model("nucleotide")
+def TN93(**kw):
+    """Tamura and Nei 1993 model"""
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
+    kw["name"] = "TN93"
+    return _solved_nucleotide([_kappa_y, _kappa_r], **kw)
+
+
+@register_model("nucleotide")
+def HKY85(**kw):
+    """Hasegawa, Kishino and Yano 1985 model"""
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "HKY85")
+    return _solved_nucleotide([_kappa], **kw)
+
+
+@register_model("nucleotide")
+def F81(**kw):
+    """Felsenstein's 1981 model"""
+    kw["recode_gaps"] = kw.get("recode_gaps", True)
+    # this function called by others, so we don't overwrite name if it exists
+    kw["name"] = kw.get("name", "F81")
+    return _solved_nucleotide([], **kw)
+
+
 # Codon Models
+@register_model("codon")
 def CNFGTR(**kw):
     """Conditional nucleotide frequency codon substitution model, GTR variant
     (with params analagous to the nucleotide GTR model).
@@ -187,6 +225,7 @@ def CNFGTR(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def CNFHKY(**kw):
     """Conditional nucleotide frequency codon substitution model, HKY variant
     (with kappa, the ratio of transitions to transversions)
@@ -204,6 +243,7 @@ def CNFHKY(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def MG94HKY(**kw):
     """Muse and Gaut 1994 codon substitution model, HKY variant (with kappa,
     the ratio of transitions to transversions)
@@ -221,6 +261,7 @@ def MG94HKY(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def MG94GTR(**kw):
     """Muse and Gaut 1994 codon substitution model, GTR variant (with params
     analagous to the nucleotide GTR model)
@@ -238,6 +279,7 @@ def MG94GTR(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def GY94(**kw):
     """Goldman and Yang 1994 codon substitution model.
 
@@ -249,6 +291,7 @@ def GY94(**kw):
     return Y98(**kwargs)
 
 
+@register_model("codon")
 def Y98(**kw):
     """Yang's 1998 substitution model, a derivative of the GY94.
 
@@ -266,6 +309,7 @@ def Y98(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def H04G(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for substitutions
     to or from CpG's.
@@ -283,6 +327,7 @@ def H04G(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def H04GK(**kw):
     """Huttley 2004 CpG substitution model. Includes a term for transition
     substitutions to or from CpG's.
@@ -300,6 +345,7 @@ def H04GK(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def H04GGK(**kw):
     """Huttley 2004 CpG substitution model. Includes a general term for
     substitutions to or from CpG's and an adjustment for CpG transitions.
@@ -317,6 +363,7 @@ def H04GGK(**kw):
     return substitution_model.TimeReversibleCodon(**kwargs)
 
 
+@register_model("codon")
 def GNC(optimise_motif_probs=True, **kw):
     """General Nucleotide Codon, a non-reversible codon model.
 
@@ -2679,6 +2726,7 @@ WG01_freqs = {
 }
 
 
+@register_model("protein")
 def DSO78(**kw):
     """Dayhoff et al 1978 empirical protein model
     Dayhoff, MO, Schwartz RM, and Orcutt, BC. 1978
@@ -2691,6 +2739,7 @@ def DSO78(**kw):
     )
 
 
+@register_model("protein")
 def JTT92(**kw):
     """Jones, Taylor and Thornton 1992 empirical protein model
     Jones DT, Taylor WR, Thornton JM.
@@ -2702,6 +2751,7 @@ def JTT92(**kw):
     )
 
 
+@register_model("protein")
 def AH96(**kw):
     """Adachi and Hasegawa 1996 empirical model for mitochondrial proteins.
     Adachi J, Hasegawa M.
@@ -2734,17 +2784,17 @@ def get_model(name, **kw):
         # already a substitution model
         return name
     if name not in models:
-        msg = 'Unknown model "%s". Model names are case sensitive!' % name
+        msg = f'Unknown model "{name}". Model names are case sensitive!'
         raise ValueError(msg)
 
-    g = globals()
-    return g[name](**kw)
+    return _all_models[name](**kw)
 
 
 def mtREV(**kw):
     return AH96(**kw)
 
 
+@register_model("protein")
 def AH96_mtmammals(**kw):
     """Adachi and Hasegawa 1996 empirical model for mammalian mitochondrial
     proteins.
@@ -2761,6 +2811,7 @@ def mtmam(**kw):
     return AH96_mtmammals(**kw)
 
 
+@register_model("protein")
 def WG01(**kw):
     """Whelan and Goldman 2001 empirical model for globular proteins.
     Whelan S, Goldman N.
@@ -2776,11 +2827,6 @@ def WG01(**kw):
 def available_models(model_types=None):
     """returns Table listing the pre-defined substitution models"""
     column_headings = ["Model Type", "Abbreviation", "Description"]
-    _model_types = {
-        "nucleotide": nucleotide_models,
-        "codon": codon_models,
-        "protein": protein_models,
-    }
     if model_types is not None:
         model_types = model_types if not isinstance(model_types, str) else [model_types]
     else:
@@ -2788,12 +2834,12 @@ def available_models(model_types=None):
 
     rows = []
     for mod_type in model_types:
-        for abbreviation in _model_types[mod_type]:
-            if eval(abbreviation).__doc__:
-                description = " ".join(eval(abbreviation).__doc__.split())
+        for abbrev in _model_types[mod_type]:
+            if _all_models[abbrev].__doc__:
+                description = " ".join(_all_models[abbrev].__doc__.split())
             else:
                 description = ""
-            rows.append([mod_type, abbreviation, description])
+            rows.append([mod_type, abbrev, description])
 
     return Table(
         header=column_headings,

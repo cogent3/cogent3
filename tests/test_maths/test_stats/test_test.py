@@ -12,11 +12,9 @@ from numpy import (
     isfinite,
     logical_and,
     ones,
-    ravel,
     reshape,
     testing,
     tril,
-    zeros,
 )
 
 from cogent3.maths.stats.number import NumberCounter
@@ -51,7 +49,6 @@ from cogent3.maths.stats.test import (
     mantel,
     mantel_test,
     mc_t_two_sample,
-    median,
     multiple_comparisons,
     multiple_inverse,
     multiple_n,
@@ -82,7 +79,7 @@ from cogent3.maths.stats.test import (
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Catherine Lozupone",
@@ -93,7 +90,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -235,23 +232,6 @@ class TestsTests(TestCase):
         res = tuple(std(inp3d, ax) for ax in [None, 0, 1, 2])
         for obs, exp in zip(res, exp3d):
             testing.assert_almost_equal(obs, exp)
-
-    def test_median(self):
-        """_median should work similarly to numpy.mean (in terms of axis)"""
-        m = array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
-        expected = 6.5
-        observed = median(m, axis=None)
-        self.assertEqual(observed, expected)
-
-        expected = array([5.5, 6.5, 7.5])
-        observed = median(m, axis=0)
-        assert_equal(observed, expected)
-
-        expected = array([2.0, 5.0, 8.0, 11.0])
-        observed = median(m, axis=1)
-        assert_equal(observed, expected)
-
-        self.assertRaises(ValueError, median, m, 10)
 
     def test_tail(self):
         """tail should return x/2 if test is true; 1-(x/2) otherwise"""
@@ -554,7 +534,6 @@ class LikelihoodTests(TestCase):
         equal = [0.25, 0.25, 0.25, 0.25]
         unequal = [0.5, 0.25, 0.125, 0.125]
         equal_answer = [1, 1, 1, 1]
-        unequal_answer = [2, 1, 0.5, 0.5]
         not_unity = [0.7, 0.7, 0.7, 0.7]
 
         for obs, exp in zip(likelihoods(equal, unequal), equal_answer):
@@ -932,7 +911,6 @@ class StatTests(TestsHelper):
     def test_mc_t_two_sample_no_mc(self):
         """Test no MC stats if initial t-test is bad."""
         x = array([1, 1, 1])
-        y = array([0, 0, 0])
         self.assertEqual(mc_t_two_sample(x, x), (None, None, [], None))
 
     def test_mc_t_two_sample_no_variance(self):

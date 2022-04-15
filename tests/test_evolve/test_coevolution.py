@@ -94,10 +94,10 @@ from cogent3.maths.stats.number import CategoryCounter
 
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
@@ -593,7 +593,6 @@ class CoevolutionTests(TestCase):
         aln2 = ArrayAlignment(data={"1": "EFW", "2": "EGY"}, moltype=PROTEIN)
         combined_aln = ArrayAlignment(data={"1": "ACEFW", "2": "AUEGY"})
         t = make_tree(treestring="(1:0.5,2:0.5);")
-        cutoff = 0.50
         # MI
         m = mi_alignment(combined_aln)
         expected = array([[m[2, 0], m[2, 1]], [m[3, 0], m[3, 1]], [m[4, 0], m[4, 1]]])

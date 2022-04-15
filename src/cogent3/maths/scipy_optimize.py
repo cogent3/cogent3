@@ -50,7 +50,7 @@ abs = absolute
 
 pymin = builtins.min
 pymax = builtins.max
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 
 
 _epsilon = sqrt(numpy.finfo(float).eps)
@@ -556,7 +556,7 @@ def fmin_powell(
     else:
         if disp:
             print("Optimization terminated successfully.")
-            print("         Current function value: %f" % fval)
+            print(f"         Current function value: {fval:f}")
             print("         Iterations: %d" % iter)
             print("         Function evaluations: %d" % fcalls[0])
 

@@ -12,8 +12,8 @@ We use a canned nucleotide substitution model (the ``HKY85`` model) on just thre
 
 .. jupyter-execute::
 
-    from cogent3.evolve.models import get_model
     from cogent3 import load_aligned_seqs, make_tree
+    from cogent3.evolve.models import get_model
 
     model = get_model("HKY85")
     aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta")

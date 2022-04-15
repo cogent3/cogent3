@@ -18,9 +18,11 @@ from numpy import (
     isnan,
     log,
     mean,
+    nonzero,
+    ones,
+    ravel,
+    sqrt,
 )
-from numpy import median as _median
-from numpy import nonzero, ones, ravel, sqrt
 from numpy import std as _std
 from numpy import sum as npsum
 from numpy import take, tanh, trace, zeros
@@ -51,11 +53,10 @@ from cogent3.maths.stats.special import (
     log_one_minus,
     one_minus_exp,
 )
-from cogent3.util.warning import discontinued
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Rob Knight",
@@ -68,7 +69,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -150,30 +151,6 @@ def std(x, axis=None):  # pragma: no cover
     except IndexError as e:  # just to avoid breaking the old test code
         raise IndexOrValueError(e)
     return sqrt(sample_variance)
-
-
-def median(m, axis=None):  # pragma: no cover
-    """Returns medians by axis (similiar to numpy.mean)
-
-    numpy.median does not except an axis parameter. Is safe for substition for
-    numpy.median
-    """
-    discontinued("function", "median", "2021.11")
-    median_vals = []
-    rows, cols = m.shape
-
-    if axis is None:
-        return _median(ravel(m))
-    elif axis == 0:
-        for col in range(cols):
-            median_vals.append(_median(m[:, col]))
-    elif axis == 1 or axis == -1:
-        for row in range(rows):
-            median_vals.append(_median(m[row, :]))
-    else:
-        raise ValueError("axis(=%s) out of bounds" % axis)
-
-    return array(median_vals)
 
 
 class ZeroExpectedError(ValueError):
@@ -1050,11 +1027,11 @@ def correlation_test(
         corr_fn = spearman
     else:
         raise ValueError(
-            "Invalid method '%s'. Must be either 'pearson' or " "'spearman'." % method
+            f"Invalid method '{method}'. Must be either 'pearson' or 'spearman'."
         )
     if tails is not None and tails != "high" and tails != "low":
         raise ValueError(
-            "Invalid tail type '%s'. Must be either None, " "'high', or 'low'." % tails
+            f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
         )
     if permutations < 0:
         raise ValueError(
@@ -1108,8 +1085,7 @@ def correlation_test(
             # don't want to return a p-value of 0 if someone passes in a bogus
             # tail type somehow.
             raise ValueError(
-                "Invalid tail type '%s'. Must be either None, "
-                "'high', or 'low'." % tails
+                f"Invalid tail type '{tails}'. Must be either None, 'high', or 'low'."
             )
     if permutations > 0:
         nonparametric_p_val = (better + 1) / (permutations + 1)
@@ -1567,7 +1543,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         elif alt == ALT_HIGH:
             stat = cumsum.max()
         else:
-            raise RuntimeError("Unknown alt: %s" % alt)
+            raise RuntimeError(f"Unknown alt: {alt}")
         if exact and alt == ALT_TWO_SIDED and not ties:
             Pval = 1 - psmirnov2x(stat, num_x, num_y)
     else:

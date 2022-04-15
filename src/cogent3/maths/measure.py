@@ -10,10 +10,10 @@ from cogent3.maths.util import safe_p_log_p, validate_freqs_array
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -87,43 +87,39 @@ def paralinear_continuous_time(P, pi, Q, validate=False):
     return pl
 
 
-def jsd(freqs1, freqs2, validate=False):
-    """calculate Jensen–Shannon divergence between two probability distributions
+def jsd(*vectors, validate=False):
+    """calculate Jensen–Shannon divergence between two or more probability distributions
 
     Parameters
     ----------
-    freqs1 : one dimensional array
-        row vector frequencies, sum to 1
-    freqs2 : one dimensional array
-        row vector frequencies, sum to 1
+    *vectors
+        >= 2 frequency vectors, each vector must sum to 1
     validate : bool
-
+        check the consistency of the provided vectors, namely they're
+        all 1D, have the same number of elements and sum to 1
     """
     # Convert input arrays into numpy arrays
-    freqs1 = array(freqs1)
-    freqs2 = array(freqs2)
-
+    vectors = [array(v) for v in vectors]
+    num_vectors = len(vectors)
     if validate:
-        assert_equal(
-            freqs1.shape, freqs2.shape, err_msg="freqs1/freqs2 mismatched shape"
-        )
-        assert freqs1.ndim == 1, "freqs1 has incorrect dimension"
-        assert freqs2.ndim == 1, "freqs2 has incorrect dimension"
+        assert len({f.shape for f in vectors}) == 1, "mismatched shape"
+        dims = {v.ndim for v in vectors}
+        assert dims == {1}, "incorrect dimension"
         try:
-            validate_freqs_array(freqs1)
-            validate_freqs_array(freqs2)
+            for v in vectors:
+                validate_freqs_array(v)
         except ValueError as err:
             raise AssertionError("freqs not valid") from err
 
-    H_mn = fsum(safe_p_log_p(freqs1 / 2 + freqs2 / 2))
-    mn_H = fsum([fsum(i) for i in map(safe_p_log_p, [freqs1, freqs2])]) / 2
+    H_mn = fsum(safe_p_log_p(array(vectors).mean(axis=0)))
+    mn_H = fsum([fsum(i) for i in map(safe_p_log_p, vectors)]) / num_vectors
     jsd_ = H_mn - mn_H
-    if jsd_ < 0 and isclose(jsd_, 0, atol=1e-10):
+    if jsd_ < 0:
+        if not isclose(jsd_, 0, atol=1e-10):
+            raise ArithmeticError(
+                f"{jsd_} is negative and below defined precision threshold"
+            )
         jsd_ = 0
-    elif jsd_ < 0:
-        raise ArithmeticError(
-            f"{jsd_} is negative and below defined precision threshold"
-        )
 
     return jsd_
 

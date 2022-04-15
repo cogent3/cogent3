@@ -8,17 +8,49 @@ import cogent3
 from cogent3.core.alignment import Aligned
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import _CodonAlphabet, get_moltype
-from cogent3.util.misc import open_, path_exists
+from cogent3.util.io import open_, path_exists
 
 
 __author__ = ["Gavin Huttley"]
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+_deserialise_func_map = {}
+
+
+class register_deserialiser:
+    """
+    registration decorator for functions to inflate objects that were
+    serialised using json.
+
+    Functions are added to a dict which is used by the deserialise_object()
+    function. The type string(s) must uniquely identify the appropriate
+    value for the dict 'type' entry, e.g. 'cogent3.util.table.Table'.
+
+    Parameters
+    ----------
+    args: str or sequence of str
+        must be unique
+    """
+
+    def __init__(self, *args):
+        for type_str in args:
+            if not isinstance(type_str, str):
+                raise TypeError(f"{type_str!r} is not a string")
+            assert (
+                type_str not in _deserialise_func_map
+            ), f"{type_str!r} already in {list(_deserialise_func_map)}"
+        self._type_str = args
+
+    def __call__(self, func):
+        for type_str in self._type_str:
+            _deserialise_func_map[type_str] = func
+        return func
 
 
 def _get_class(provenance):
@@ -32,6 +64,11 @@ def _get_class(provenance):
     return klass
 
 
+@register_deserialiser(
+    "cogent3.util.table.Table",
+    "cogent3.util.dict_array.DictArray",
+    "cogent3.evolve.fast_distance.DistanceMatrix",
+)
 def deserialise_tabular(data):
     """deserialising DictArray, Table instances"""
     data.pop("version", None)
@@ -61,6 +98,7 @@ def deserialise_tabular(data):
     return result
 
 
+@register_deserialiser("cogent3.app.composable.NotCompleted")
 def deserialise_not_completed(data):
     """deserialising NotCompletedResult"""
     data.pop("version", None)
@@ -100,17 +138,14 @@ def deserialise_annotation(data, parent):
     parent.annotations += tuple(annots)
 
 
+@register_deserialiser("cogent3.app.result")
 def deserialise_result(data):
     """returns a result object"""
     data.pop("version", None)
     klass = _get_class(data.pop("type"))
     kwargs = data.pop("result_construction")
     result = klass(**kwargs)
-    if "items" in data:
-        items = data.pop("items")
-    else:
-        # retain support for the old style result serialisation
-        items = data.items()
+    items = data.pop("items") if "items" in data else data.items()
     for key, value in items:
         # only deserialise the result object, other attributes loaded as
         # required
@@ -123,6 +158,7 @@ def deserialise_result(data):
     return result
 
 
+@register_deserialiser("cogent3.core.moltype")
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
     data.pop("version", None)
@@ -139,6 +175,7 @@ def deserialise_moltype(data):
     return result
 
 
+@register_deserialiser("cogent3.core.alphabet")
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
     data.pop("version", None)
@@ -155,6 +192,7 @@ def deserialise_alphabet(data):
     return result
 
 
+@register_deserialiser("cogent3.core.sequence")
 def deserialise_seq(data, aligned=False):
     """deserialises sequence and any annotations
 
@@ -193,6 +231,7 @@ def deserialise_seq(data, aligned=False):
     return result
 
 
+@register_deserialiser("cogent3.core.alignment")
 def deserialise_seq_collections(data):
     """returns a cogent3 sequence/collection/alignment instance"""
     # We first try to load moltype/alphabet using get_moltype
@@ -219,6 +258,7 @@ def deserialise_seq_collections(data):
     return result
 
 
+@register_deserialiser("cogent3.core.tree")
 def deserialise_tree(data):
     """returns a cogent3 PhyloNode instance"""
     data.pop("version", None)
@@ -232,6 +272,9 @@ def deserialise_tree(data):
     return tree
 
 
+@register_deserialiser(
+    "cogent3.evolve.substitution_model", "cogent3.evolve.ns_substitution_model"
+)
 def deserialise_substitution_model(data):
     """returns a cogent3 substitution model instance"""
     from cogent3.evolve.models import get_model
@@ -254,6 +297,7 @@ def deserialise_substitution_model(data):
     return sm
 
 
+@register_deserialiser("cogent3.evolve.parameter_controller")
 def deserialise_likelihood_function(data):
     """returns a cogent3 likelihood function instance"""
     data.pop("version", None)
@@ -266,13 +310,19 @@ def deserialise_likelihood_function(data):
     lf = model.make_likelihood_function(tree, **constructor_args)
     lf.set_name(name)
     lf = model.make_likelihood_function(tree, **constructor_args)
+
     if isinstance(constructor_args["loci"], list):
+        locus_names = constructor_args["loci"]
         align = data["alignment"]
-        aln = [deserialise_seq_collections(align[k]) for k in align]
-        mprobs = [motif_probs[k] for k in motif_probs]
+        aln = [deserialise_seq_collections(align[k]) for k in locus_names]
+        if locus_names[0] in motif_probs:
+            mprobs = [motif_probs[k] for k in motif_probs]
+        else:
+            mprobs = [motif_probs]
     else:
         aln = deserialise_seq_collections(data.pop("alignment"))
         mprobs = [motif_probs]
+
     lf.set_alignment(aln)
     with lf.updates_postponed():
         for motif_probs in mprobs:
@@ -294,6 +344,11 @@ def deserialise_object(data):
     -------
     If the dict from json.loads does not contain a "type" key, the object will
     be returned as is. Otherwise, it will be deserialised to a cogent3 object.
+
+    Notes
+    -----
+    The value of the "type" key is used to identify the specific function for recreating
+    the original instance.
     """
     if path_exists(data):
         with open_(data) as infile:
@@ -306,33 +361,11 @@ def deserialise_object(data):
     if type_ is None:
         return data
 
-    if "core.sequence" in type_:
-        func = deserialise_seq
-    elif "core.alignment" in type_:
-        func = deserialise_seq_collections
-    elif "core.tree" in type_:
-        func = deserialise_tree
-    elif (
-        "evolve.substitution_model" in type_ or "evolve.ns_substitution_model" in type_
-    ):
-        func = deserialise_substitution_model
-    elif "evolve.parameter_controller" in type_:
-        func = deserialise_likelihood_function
-    elif "core.moltype" in type_:
-        func = deserialise_moltype
-    elif "core.alphabet" in type_:
-        func = deserialise_alphabet
-    elif "app.result" in type_:
-        func = deserialise_result
-    elif "notcompleted" in type_.lower():
-        func = deserialise_not_completed
-    elif type_.lower().endswith("table"):
-        func = deserialise_tabular
-    elif "dictarray" in type_.lower():
-        func = deserialise_tabular
-    elif "distancematrix" in type_.lower():
-        func = deserialise_tabular
+    for type_str, func in _deserialise_func_map.items():
+        if type_str in type_:
+            break
     else:
-        msg = "deserialising '%s' from json" % type_
+        msg = f"deserialising '{type_}' from json"
         raise NotImplementedError(msg)
+
     return func(data)

@@ -4,10 +4,10 @@ from cogent3.util.table import Table
 
 
 __author__ = "Anuj Pahwa, Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Anuj Pahwa", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -146,7 +146,7 @@ class JackknifeStats(object):
         try:
             num_datasets = len(subset_stats)
             for i in range(num_datasets):
-                header.append("Stat_%s-i" % i)
+                header.append(f"Stat_{i}-i")
         except TypeError:
             header.append("Stat-i")
 
@@ -179,7 +179,7 @@ class JackknifeStats(object):
         try:
             num_datasets = len(pseudovalues)
             for i in range(num_datasets):
-                header.append("Pseudovalue_%s-i" % i)
+                header.append(f"Pseudovalue_{i}-i")
         except TypeError:
             header.append("Pseudovalue-i")
 

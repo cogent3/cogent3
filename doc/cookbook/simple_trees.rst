@@ -348,7 +348,7 @@ One way to do it
 .. jupyter-execute::
     :hide-code:
 
-    from cogent3.util.misc import remove_files
+    from cogent3.util.io import remove_files
 
     remove_files(["data/temp.tree", "data/temp.pdf"], error_on_missing=False)
 

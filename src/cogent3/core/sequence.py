@@ -15,6 +15,7 @@ import json
 import re
 import warnings
 
+from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
@@ -53,7 +54,7 @@ from .annotation import Map, _Annotatable
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Rob Knight",
     "Peter Maxwell",
@@ -62,7 +63,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -192,8 +193,7 @@ class SequenceI(object):
         else:
             if len(data) % motif_length != 0:
                 warnings.warn(
-                    "%s length not divisible by %s, truncating"
-                    % (self.name, motif_length)
+                    f"{self.name} length not divisible by {motif_length}, truncating"
                 )
             limit = (len(data) // motif_length) * motif_length
             data = data[:limit]
@@ -695,8 +695,8 @@ class SequenceI(object):
         seq = seq if limit is None else seq[:limit]
         gaps = "".join(self.moltype.gaps)
         seqlen = len(seq)
-        start_gap = re.search("^[%s]+" % gaps, "".join(seq))
-        end_gap = re.search("[%s]+$" % gaps, "".join(seq))
+        start_gap = re.search(f"^[{gaps}]+", "".join(seq))
+        end_gap = re.search(f"[{gaps}]+$", "".join(seq))
 
         start = 0 if start_gap is None else start_gap.end()
         end = len(seq) if end_gap is None else end_gap.start()
@@ -706,7 +706,7 @@ class SequenceI(object):
         for i in range(seqlen):
             char = seq[i]
             if i < start or i >= end:
-                style = "terminal_ambig_%s" % self.moltype.label
+                style = f"terminal_ambig_{self.moltype.label}"
             else:
                 style = styles[char]
 
@@ -724,7 +724,7 @@ class SequenceI(object):
             seqblock = seq[i : i + wrap].tolist()
             seqblock = "".join(seqblock)
             row = "".join([label_ % self.name, seq_ % seqblock])
-            table.append("<tr>%s</tr>" % row)
+            table.append(f"<tr>{row}</tr>")
         table.append("</table>")
         class_name = self.__class__.__name__
         if limit and limit < len(self):
@@ -744,10 +744,28 @@ class SequenceI(object):
             "</style>",
             '<div class="c3seq">',
             "\n".join(table),
-            "<p><i>%s</i></p>" % summary,
+            f"<p><i>{summary}</i></p>",
             "</div>",
         ]
         return "\n".join(text)
+
+    def __add__(self, other):
+        """Adds two sequences (other can be a string as well)."""
+        if hasattr(other, "moltype"):
+            if self.moltype != other.moltype:
+                raise ValueError(
+                    f"MolTypes don't match: ({self.moltype},{other.moltype})"
+                )
+        other_seq = str(other)
+
+        # If two sequences with the same name are being added together the name should not be None
+        if type(other) == type(self):
+            name = self.name if self.name == other.name else None
+        else:
+            name = None
+
+        new_seq = self.__class__(str(self) + other_seq, name=name)
+        return new_seq
 
 
 @total_ordering
@@ -856,63 +874,49 @@ class Sequence(_Annotatable, SequenceI):
 
     def annotate_from_gff(self, f, pre_parsed=False):
         """annotates a Sequence from a gff file where each entry has the same SeqID"""
-        first_seqname = None
         # only features with parent features included in the 'features' dict
-        features = dict()
-        fake_id = 0
-        if pre_parsed:
-            gff_contents = f
-        else:
-            gff_contents = gff.gff_parser(f)
+        gff_contents = f if pre_parsed else gff.gff_parser(f)
+        top_level = defaultdict(list)
+        grouped = defaultdict(list)
         for gff_dict in gff_contents:
-            if first_seqname is None:
-                first_seqname = gff_dict["SeqID"]
-            else:
-                assert gff_dict["SeqID"] == first_seqname, (
-                    gff_dict["SeqID"],
-                    first_seqname,
-                )
-            # ensure the ID is unique
-            id_ = gff_dict["Attributes"]["ID"]
-            if id_ in features.keys():
-                id_ = f"{id_}:{gff_dict['Type']}:{gff_dict['Start']}-{gff_dict['End']}:{fake_id}"
-                fake_id = fake_id + 1
-            if "Parent" not in gff_dict["Attributes"].keys():
-                self.add_feature(
-                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                )
+            if gff_dict["SeqID"] != self.name:
+                # we can only handle features for this sequence
                 continue
-            features[id_] = gff_dict
-        if features:
-            parents = {}
-            for id_ in features.keys():
-                parents[id_] = features[id_]["Attributes"]["Parent"]
-            sorted_features = self._sort_parents(
-                parents, [], next(iter(features.keys()))
-            )
-            for id_ in sorted_features:
-                matches = []
-                for parent in features[id_]["Attributes"]["Parent"]:
-                    # If a feature has multiple parents, a separate instance is added to each parent
-                    matches.extend(
-                        self.get_annotations_matching(
-                            "*", name=parent, extend_query=True
-                        )
+
+            id_ = gff_dict["Attributes"]["ID"]
+            parents = gff_dict["Attributes"].get("Parent", None)
+            if parents is None:
+                assert id_ not in top_level, f"non-unique id {id_}"
+                top_level[id_].append(
+                    self.add_feature(
+                        gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
                     )
-                for parent in matches:
-                    # Start and end are relative to the parent's absolute starting position
-                    if parent.name not in features.keys():
-                        parent_min = 0
-                    else:
-                        parent_min = min(
-                            features[parent.name]["Start"], features[parent.name]["End"]
+                )
+            else:
+                for parent in parents:
+                    grouped[parent].append(gff_dict)
+
+        # we annotate the annotations
+        while grouped:
+            for key, features in top_level.items():
+                child_features = grouped.pop(key, [])
+                if child_features:
+                    break
+
+            for feature in features:
+                feature_start = feature.map.start
+                for gff_dict in child_features:
+                    top_level[gff_dict["Attributes"]["ID"]].append(
+                        feature.add_feature(
+                            gff_dict["Type"],
+                            id_,
+                            [
+                                (
+                                    gff_dict["Start"] - feature_start,
+                                    gff_dict["End"] - feature_start,
+                                )
+                            ],
                         )
-                    start = features[id_]["Start"] - parent_min
-                    end = features[id_]["End"] - parent_min
-                    parent.add_feature(
-                        features[id_]["Type"],
-                        features[id_]["Attributes"]["ID"],
-                        [(start, end)],
                     )
 
     def _sort_parents(self, parents, ordered, key):
@@ -952,7 +956,7 @@ class Sequence(_Annotatable, SequenceI):
             ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
             ambigs.sort()
             mask_char = ambigs[-1][1]
-        assert mask_char in self.moltype, "Invalid mask_char %s" % mask_char
+        assert mask_char in self.moltype, f"Invalid mask_char {mask_char}"
 
         annotations = []
         annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
@@ -986,7 +990,7 @@ class Sequence(_Annotatable, SequenceI):
                     unknown = span.terminal or recode_gaps
                     seg = "-?"[unknown] * span.length
                 else:
-                    raise ValueError("gap(s) in map %s" % map)
+                    raise ValueError(f"gap(s) in map {map}")
             else:
                 seg = self._seq[span.start : span.end]
                 if span.reverse:
@@ -1014,43 +1018,14 @@ class Sequence(_Annotatable, SequenceI):
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
         return self.__class__("".join(segments), self.name, info=self.info)
 
-    def __add__(self, other):
-        """Adds two sequences (other can be a string as well)."""
-        if hasattr(other, "moltype"):
-            if self.moltype != other.moltype:
-                raise ValueError(
-                    "MolTypes don't match: (%s,%s)" % (self.moltype, other.moltype)
-                )
-            other_seq = other._seq
-        else:
-            other_seq = other
-        new_seq = self.__class__(self._seq + other_seq)
-        # Annotations which extend past the right end of the left sequence
-        # or past the left end of the right sequence are dropped because
-        # otherwise they will annotate the wrong part of the constructed
-        # sequence.
-        left = [
-            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
-        ]
-        if hasattr(other, "_shifted_annotations"):
-            right = [
-                a
-                for a in other._shifted_annotations(new_seq, len(self))
-                if a.map.start >= len(self)
-            ]
-            new_seq.annotations = left + right
-        else:
-            new_seq.annotations = left
-        return new_seq
-
     def __repr__(self):
-        myclass = "%s" % self.__class__.__name__
+        myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = str(self._seq[:7]) + "... %s" % len(self)
+            seq = str(self._seq[:7]) + f"... {len(self)}"
         else:
             seq = str(self._seq)
-        return "%s(%s)" % (myclass, seq)
+        return f"{myclass}({seq})"
 
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
@@ -1115,7 +1090,7 @@ class Sequence(_Annotatable, SequenceI):
             remainder = length % motif_length
             if remainder and log_warnings:
                 warnings.warn(
-                    'Dropped remainder "%s" from end of sequence' % seq[-remainder:]
+                    f'Dropped remainder "{seq[-remainder:]}" from end of sequence'
                 )
             return [
                 seq[i : i + motif_length]
@@ -1125,7 +1100,7 @@ class Sequence(_Annotatable, SequenceI):
     def parse_out_gaps(self):
         gapless = []
         segments = []
-        nongap = re.compile("([^%s]+)" % re.escape("-"))
+        nongap = re.compile(f"([^{re.escape('-')}]+)")
         for match in nongap.finditer(self._seq):
             segments.append(match.span())
             gapless.append(match.group())
@@ -1183,6 +1158,28 @@ class Sequence(_Annotatable, SequenceI):
             )
             for i in range(num_match)
         ]
+
+    def __add__(self, other):
+        """Adds two sequences (other can be a string as well)"""
+        new_seq = super(Sequence, self).__add__(other)
+        # Annotations which extend past the right end of the left sequence
+        # or past the left end of the right sequence are dropped because
+        # otherwise they will annotate the wrong part of the constructed
+        # sequence.
+        left = [
+            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
+        ]
+        if hasattr(other, "_shifted_annotations"):
+            right = [
+                a
+                for a in other._shifted_annotations(new_seq, len(self))
+                if a.map.start >= len(self)
+            ]
+            new_seq.annotations = left + right
+        else:
+            new_seq.annotations = left
+
+        return new_seq
 
 
 class ProteinSequence(Sequence):

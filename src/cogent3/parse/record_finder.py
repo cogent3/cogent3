@@ -16,10 +16,10 @@ from cogent3.parse.record import RecordError
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -79,7 +79,7 @@ def DelimitedRecordFinder(
                 curr.append(line)
         if curr:
             if strict:
-                raise RecordError("Found additional data after records: %s" % (curr))
+                raise RecordError(f"Found additional data after records: {curr}")
             else:
                 yield curr
 
@@ -206,6 +206,6 @@ def LineGrouper(num, constructor=strip, ignore=is_empty):
                 yield curr
                 curr = []
         if curr:
-            raise RecordError("Non-blank lines not even multiple of %s" % num)
+            raise RecordError(f"Non-blank lines not even multiple of {num}")
 
     return parser

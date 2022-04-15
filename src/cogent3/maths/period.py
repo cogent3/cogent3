@@ -16,10 +16,10 @@ from .period_numba import autocorr_inner, goertzel_inner, ipdft_inner
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -87,20 +87,42 @@ class _PeriodEstimator(object):
 
         self.period = period
 
-    def getNumStats(self):
+    def get_num_stats(self):
         """returns the number of statistics computed by this calculator"""
         return 1
 
+    def getNumStats(self):
+        """returns the number of statistics computed by this calculator"""
+        from cogent3.util.warning import deprecated
+
+        deprecated("method", "getNumStats", "get_num_stats", version="2022.5")
+        return self.get_num_stats()
+
 
 class AutoCorrelation(_PeriodEstimator):
-    def __init__(self, length, llim=None, ulim=None, period=None):
-        """class for repetitive calculation of autocorrelation for series of
-        fixed length
+    """class for repetitive calculation of autocorrelation for series of
+    fixed length"""
 
-        e.g. if x = [1,1,1,1], xc = [1,2,3,4,3,2,1]
+    def __init__(self, length, llim=None, ulim=None, period=None):
+        """
+        Parameters
+        ----------
+        length : int
+            the signal length
+        llim : int
+            lower limit
+        ulim : int
+            upper limit
+        period : int
+            a specific period to return the IPDFT power for
+
+        Notes
+        -----
+        If ``x = [1,1,1,1]`, ``xc = [1,2,3,4,3,2,1]``
+
         The middle element of xc corresponds to a lag (period) of 0
-        xc is always symmetric for real x
-        N is the length of x"""
+        ``xc`` is always symmetric for real ``x``
+        """
         super(AutoCorrelation, self).__init__(length, llim, ulim, period)
 
         periods = list(range(-length + 1, length))
@@ -110,7 +132,7 @@ class AutoCorrelation(_PeriodEstimator):
         self.periods = array(periods[self.min_idx : self.max_idx + 1])
         self.xc = zeros(2 * self.length - 1)
 
-    def evaluate(self, x):
+    def __call__(self, x):
         x = array(x, float64)
         self.xc.fill(0.0)
         autocorr_inner(x, self.xc, self.length)
@@ -119,8 +141,6 @@ class AutoCorrelation(_PeriodEstimator):
             return xc[self.period - self.llim]
 
         return xc, self.periods
-
-    __call__ = evaluate
 
 
 def auto_corr(x, llim=None, ulim=None):
@@ -139,12 +159,18 @@ class Ipdft(_PeriodEstimator):
         """factory function for computing the integer period discrete Fourier
         transform for repeated application to signals of the same length.
 
-        Argument:
-            - length: the signal length
-            - llim: lower limit
-            - ulim: upper limit
-            - period: a specific period to return the IPDFT power for
-            - abs_ft_sig: if True, returns absolute value of signal
+        Parameters
+        ----------
+        length : int
+            the signal length
+        llim : int
+            lower limit
+        ulim : int
+            upper limit
+        period : int
+            a specific period to return the IPDFT power for
+        abs_ft_sig : bool
+            if True, returns absolute value of signal
         """
         if period is not None:
             llim = period
@@ -155,7 +181,7 @@ class Ipdft(_PeriodEstimator):
         self.X = array([0 + 0j] * self.length)
         self.abs_ft_sig = abs_ft_sig
 
-    def evaluate(self, x):
+    def __call__(self, x):
         x = array(x, float64)
         self.X.fill(0 + 0j)
         self.X = ipdft_inner(x, self.X, self.W, self.ulim, self.length)
@@ -169,21 +195,17 @@ class Ipdft(_PeriodEstimator):
 
         return array(pwr), self.periods
 
-    __call__ = evaluate
-
 
 class Goertzel(_PeriodEstimator):
     """Computes the power of a signal for a specific period"""
 
-    def __init__(self, length=None, llim=None, ulim=None, period=None, abs_ft_sig=True):
+    def __init__(self, length=None, period=None, **kwargs):
         assert period is not None, "Goertzel requires a period"
         super(Goertzel, self).__init__(length=length, period=period)
 
-    def evaluate(self, x):
+    def __call__(self, x):
         x = array(x, float64)
         return goertzel_inner(x, self.length, self.period)
-
-    __call__ = evaluate
 
 
 class Hybrid(_PeriodEstimator):
@@ -200,23 +222,33 @@ class Hybrid(_PeriodEstimator):
         abs_ft_sig=True,
         return_all=False,
     ):
-        """Arguments:
-        - length: the length of signals to be encountered
-        - period: specified period at which to return the signal
-        - llim, ulim: the smallest, largest periods to evaluate
-        - return_all: whether to return the hybrid, ipdft, autocorr
-          statistics as a numpy array, or just the hybrid statistic
+        """
+        Parameters
+        ----------
+        length : int
+            the signal length
+        llim : int
+            lower limit
+        ulim : int
+            upper limit
+        period : int
+            a specific period to return the IPDFT power for
+        abs_ft_sig : bool
+            if True, returns absolute value of signal
+        return_all : bool
+            whether to return the hybrid, ipdft, autocorr statistics as
+            a numpy array, or just the hybrid statistic
         """
         super(Hybrid, self).__init__(length, llim, ulim, period)
         self.ipdft = Ipdft(length, llim, ulim, period, abs_ft_sig)
         self.auto = AutoCorrelation(length, llim, ulim, period)
         self._return_all = return_all
 
-    def getNumStats(self):
+    def get_num_stats(self):
         """the number of stats computed by this calculator"""
         return [1, 3][self._return_all]
 
-    def evaluate(self, x):
+    def __call__(self, x):
         if self.period is None:
             auto_sig, auto_periods = self.auto(x)
             ft_sig, ft_periods = self.ipdft(x)
@@ -227,7 +259,7 @@ class Hybrid(_PeriodEstimator):
                 result = hybrid, ft_periods
         else:
             auto_sig = self.auto(x)
-            # ft_sig = goertzel(x, period) # performance slower than ipdft!
+            # note that goertzel(x, period) performance is slower than ipdft!
             ft_sig = self.ipdft(x)
             hybrid = auto_sig * ft_sig
             if self._return_all:
@@ -235,8 +267,6 @@ class Hybrid(_PeriodEstimator):
             else:
                 result = abs(hybrid)
         return result
-
-    __call__ = evaluate
 
 
 def ipdft(x, llim=None, ulim=None, period=None):
@@ -246,11 +276,12 @@ def ipdft(x, llim=None, ulim=None, period=None):
     ----------
     x
         series of symbols
-    llim
+    llim : int
         lower limit
-    ulim
+    ulim : int
         upper limit
-
+    period : int
+        a specific period to return the IPDFT power for
     """
     x = array(x, float64)
     ipdft_calc = Ipdft(len(x), llim, ulim, period)
@@ -263,9 +294,17 @@ def hybrid(x, llim=None, ulim=None, period=None, return_all=False):
 
     Parameters
     ----------
-    return_all
-        whether to return the hybrid, ipdft, autocorr
-        statistics as a numpy array, or just the hybrid statistic
+    x
+        series of symbols
+    llim : int
+        lower limit
+    ulim : int
+        upper limit
+    period : int
+        a specific period to return the IPDFT power for
+    return_all : bool
+        whether to return the hybrid, ipdft, autocorr statistics as
+        a numpy array, or just the hybrid statistic
 
     See Epps. EURASIP Journal on Bioinformatics and Systems Biology, 2009, 9
     """
@@ -287,12 +326,3 @@ def dft(x, **kwargs):
     pwr.reverse()
     periods.reverse()
     return array(pwr), array(periods)
-
-
-if __name__ == "__main__":
-    from numpy import sin
-
-    x = sin(2 * pi / 5 * arange(1, 9))
-    print(x)
-    print(goertzel(x, 4))
-    print(goertzel(x, 8))

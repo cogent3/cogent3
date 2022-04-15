@@ -9,10 +9,10 @@ from cogent3.recalculation.definition import (
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -58,7 +58,7 @@ class PsubMatrixDefn(PartitionDefn):
         all_cells = []
         for (i, v) in enumerate(self.uniq):
             if v is None:
-                raise ValueError("input %s not set" % self.name)
+                raise ValueError(f"input {self.name} not set")
             assert hasattr(v, "get_default_value"), v
             value = v.get_default_value()
             assert hasattr(value, "shape"), value

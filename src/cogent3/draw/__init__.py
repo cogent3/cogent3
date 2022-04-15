@@ -2,7 +2,7 @@
 
 __all__ = ["dendrogram", "dotplot", "drawable", "letter", "logo"]
 
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __contributors__ = [
     "Peter Maxwell",
     "Gavin Huttley",
@@ -14,5 +14,5 @@ __contributors__ = [
     "Sheng Han Moses Koh",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __status__ = "Production"

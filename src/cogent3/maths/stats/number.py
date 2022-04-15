@@ -7,10 +7,10 @@ from numpy.testing import assert_allclose
 
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -19,10 +19,7 @@ __status__ = "Alpha"
 class SummaryStatBase:
     @property
     def mean(self):
-        stat = 0
-        if len(self) > 0:
-            stat = numpy.mean(self.expanded_values())
-        return stat
+        return numpy.mean(self.expanded_values()) if len(self) > 0 else 0
 
     @property
     def std(self):
@@ -33,23 +30,14 @@ class SummaryStatBase:
 
     @property
     def var(self):
-        stat = 0
-        if len(self) > 0:
-            stat = numpy.var(self.expanded_values(), ddof=1)
-        return stat
+        return numpy.var(self.expanded_values(), ddof=1) if len(self) > 0 else 0
 
     def quantile(self, q):
-        stat = 0
-        if len(self) > 0:
-            stat = numpy.quantile(self.expanded_values(), q=q)
-        return stat
+        return numpy.quantile(self.expanded_values(), q=q) if len(self) > 0 else 0
 
     @property
     def median(self):
-        stat = 0
-        if len(self) > 0:
-            stat = numpy.median(self.expanded_values())
-        return stat
+        return numpy.median(self.expanded_values()) if len(self) > 0 else 0
 
     @property
     def mode(self):
@@ -58,10 +46,7 @@ class SummaryStatBase:
 
     @property
     def sum(self):
-        stat = 0
-        if len(self) > 0:
-            stat = numpy.sum(self.expanded_values())
-        return stat
+        return numpy.sum(self.expanded_values()) if len(self) > 0 else 0
 
 
 class CategoryCounter(MutableMapping, SummaryStatBase):
@@ -234,8 +219,7 @@ class CategoryCounter(MutableMapping, SummaryStatBase):
                     arr[i] = data[key][i]
                 data[key] = arr
         else:
-            for key in self:
-                break
+            key = next(iter(self))
             assert len(key) == len(column_names), "mismatched dimensions"
             data = defaultdict(list)
             for key, count in self.items():
@@ -409,6 +393,7 @@ class NumberCounter(CategoryCounter):
 
     @property
     def var(self):
+        """unbiased estimate of the variance"""
         # we scale the variance contribution of a number by its occurrence
         mean = self.mean
         var = sum(self[k] * (k - mean) ** 2 for k in self)
@@ -416,8 +401,7 @@ class NumberCounter(CategoryCounter):
 
     @property
     def std(self):
-        var = self.var
-        return numpy.sqrt(var)
+        return numpy.sqrt(self.var)
 
     def update_from_counts(self, data):
         """updates values of self using counts dict"""

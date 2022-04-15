@@ -28,7 +28,7 @@ from cogent3.util import progress_display as UI
 
 
 __author__ = "Gavin Huttley, Andrew Butterfield and Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = [
     "Gavin Huttley",
     "Andrew Butterfield",
@@ -37,7 +37,7 @@ __credits__ = [
     "Peter Maxwell",
 ]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -75,7 +75,7 @@ class ParametricBootstrapCore(object):
         elif pcs == 2:
             model_label = ["null", "alt "]
         else:
-            model_label = ["null"] + ["alt%s" % i for i in range(1, pcs)]
+            model_label = ["null"] + [f"alt{i}" for i in range(1, pcs)]
 
         @UI.display_wrap
         def each_model(alignment, ui):

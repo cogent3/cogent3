@@ -13,7 +13,7 @@ In this example, we load the and display our sample primate tree, highlighting t
 .. jupyter-execute::
 
     from cogent3 import load_tree
-    from cogent3.app import io, evo
+    from cogent3.app import evo, io
 
     tree = load_tree("data/primate_brca1.tree")
     fig = tree.get_figure(contemporaneous=True)

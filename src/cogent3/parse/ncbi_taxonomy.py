@@ -7,10 +7,10 @@ from cogent3.core.tree import TreeNode
 
 
 __author__ = "Jason Carnes"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Jason Carnes", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Jason Carnes"
 __email__ = "jason.carnes@sbri.org"
 __status__ = "Development"
@@ -235,8 +235,7 @@ class NcbiTaxonomy(object):
                 except KeyError:  # found a child whose parent doesn't exist
                     if strict:
                         raise MissingParentError(
-                            "Node %s has parent %s, which isn't in taxa."
-                            % (t_id, t.ParentId)
+                            f"Node {t_id} has parent {t.ParentId}, which isn't in taxa."
                         )
                     else:
                         deadbeats[t.ParentId] = t

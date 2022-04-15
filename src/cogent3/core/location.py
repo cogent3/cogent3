@@ -53,10 +53,10 @@ from cogent3.util.misc import (
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Prototype"
@@ -135,7 +135,7 @@ class SpanI(object):
 
     def __str__(self):
         """Returns string representation of self."""
-        return "(%s,%s)" % (self.start, self.end)
+        return f"({self.start},{self.end})"
 
     def __len__(self):
         """Returns length of self."""
@@ -272,7 +272,7 @@ class Span(SpanI):
             self.reverse = reverse
 
     def to_rich_dict(self):
-        attribs = self._serialisable.copy()
+        attribs = copy.deepcopy(self._serialisable)
         attribs["type"] = get_object_provenance(self)
         attribs["version"] = __version__
         return attribs
@@ -294,7 +294,7 @@ class Span(SpanI):
         (start, end) = (self.start, self.end)
         if self.reverse:
             (end, start) = (start, end)
-        return "%s:%s" % (start, end)
+        return f"{start}:{end}"
 
     def reversed(self):
         return self.__class__(
@@ -444,7 +444,7 @@ class Span(SpanI):
 
     def __str__(self):
         """Returns string representation of self."""
-        return "(%s,%s,%s)" % (self.start, self.end, bool(self.reverse))
+        return f"({self.start},{self.end},{bool(self.reverse)})"
 
     def __len__(self):
         """Returns length of self."""
@@ -487,7 +487,7 @@ class _LostSpan(object):
         self.value = value
 
     def to_rich_dict(self):
-        attribs = self._serialisable.copy()
+        attribs = copy.deepcopy(self._serialisable)
         attribs["type"] = get_object_provenance(self)
         attribs["version"] = __version__
         return attribs
@@ -502,7 +502,7 @@ class _LostSpan(object):
         return (self.length, self.value)
 
     def __repr__(self):
-        return "-%s-" % (self.length)
+        return f"-{self.length}-"
 
     def where(self, index):
         return None
@@ -547,7 +547,7 @@ class TerminalPadding(_LostSpan):
     terminal = True
 
     def __repr__(self):
-        return "?%s?" % (self.length)
+        return f"?{self.length}?"
 
 
 class Map(object):
@@ -573,8 +573,7 @@ class Map(object):
                 reverse = start > end
                 if max(start, end) < 0 or min(start, end) > parent_length:
                     raise RuntimeError(
-                        "located outside sequence: %s"
-                        % str((start, end, parent_length))
+                        f"located outside sequence: {str((start, end, parent_length))}"
                     )
                 elif max(start, end) < 0:
                     diff = min(start, end)
@@ -628,7 +627,7 @@ class Map(object):
         return self.length
 
     def __repr__(self):
-        return repr(self.spans) + "/%s" % self.parent_length
+        return repr(self.spans) + f"/{self.parent_length}"
 
     def __getitem__(self, slice):
         # A possible shorter map at the same level
@@ -781,7 +780,7 @@ class Map(object):
             if lo > last_hi:
                 new_spans.append(LostSpan(lo - last_hi))
             elif lo < last_hi:
-                raise ValueError("Uninvertable. Overlap: %s < %s" % (lo, last_hi))
+                raise ValueError(f"Uninvertable. Overlap: {lo} < {last_hi}")
             new_spans.append(Span(start, end, reverse=start > end))
             last_hi = hi
         if self.parent_length > last_hi:
@@ -808,7 +807,7 @@ class Map(object):
     def to_rich_dict(self):
         """returns dicts for contained spans [dict(), ..]"""
         spans = [s.to_rich_dict() for s in self.spans]
-        data = self._serialisable.copy()
+        data = copy.deepcopy(self._serialisable)
         data.pop("locations")
         data["spans"] = spans
         data["type"] = get_object_provenance(self)
@@ -872,7 +871,7 @@ class Range(SpanI):
 
     def __str__(self):
         """Returns string representation of self."""
-        return "(%s)" % ",".join(map(str, self.spans))
+        return f"({','.join(map(str, self.spans))})"
 
     def __len__(self):
         """Returns sum of span lengths.

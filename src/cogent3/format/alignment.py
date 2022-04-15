@@ -7,14 +7,14 @@ from cogent3.format.gde import alignment_to_gde
 from cogent3.format.paml import alignment_to_paml
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.parse.record import FileFormatError
-from cogent3.util.misc import atomic_write
+from cogent3.util.io import atomic_write
 
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -49,7 +49,7 @@ def save_to_filename(alignment, filename, format, **kw):
 def write_alignment_to_file(f, alignment, format, **kw):
     format = format.lower()
     if format not in FORMATTERS:
-        raise FileFormatError("Unsupported file format %s" % format)
+        raise FileFormatError(f"Unsupported file format {format}")
     contents = FORMATTERS[format](alignment, **kw)
     f.write(contents)
     f.close()

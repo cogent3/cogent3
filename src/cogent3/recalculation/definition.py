@@ -68,6 +68,7 @@ from collections import defaultdict
 
 import numpy
 
+from cogent3.maths.optimisers import ParameterOutOfBoundsError
 from cogent3.maths.util import proportions_to_ratios, ratios_to_proportions
 from cogent3.util.dict_array import DictArrayTemplate
 
@@ -83,13 +84,14 @@ from .setting import ConstVal, Var
 
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
+
 
 DIM_PLURALS = {
     "bin": "bins",
@@ -263,6 +265,21 @@ class _InputDefn(_LeafDefn):
     def update_from_calculator(self, calc):
         outputs = calc.get_current_cell_values_for_defn(self)
         for (output, setting) in zip(outputs, self.uniq):
+            # catch cases where parameters fall outside bounds due to precision
+            if setting.is_constant:
+                ...  # block trying other conditions
+            elif setting.lower and output < setting.lower:
+                if not numpy.allclose(output, setting.lower):
+                    raise ParameterOutOfBoundsError(
+                        f"calculator value {output} for {self.name!r} is < {setting.lower}"
+                    )
+                output = setting.lower
+            elif setting.upper and output > setting.upper:
+                if not numpy.allclose(output, setting.upper):
+                    raise ParameterOutOfBoundsError(
+                        f"calculator value {output} for {self.name!r} is > {setting.upper}"
+                    )
+                output = setting.upper
             setting.value = output
 
     def get_num_free_params(self):
@@ -393,7 +410,7 @@ class NonScalarDefn(_InputDefn):
 
     def check_setting_is_valid(self, setting):
         if not isinstance(setting, ConstVal):
-            raise ValueError("%s can only be constant" % self.name)
+            raise ValueError(f"{self.name} can only be constant")
 
     def make_cells(self, input_soup=None, variable=None):
         input_soup = input_soup or {}
@@ -475,22 +492,18 @@ class PartitionDefn(_InputDefn):
             )
         for part in value:
             if part < 0:
-                raise ValueError("Negative probability in %s" % self.name)
+                raise ValueError(f"Negative probability in {self.name}")
             if part > 1:
-                raise ValueError("Probability > 1 in %s" % self.name)
+                raise ValueError(f"Probability > 1 in {self.name}")
             if not is_constant:
                 # 0 or 1 leads to log(0) or log(inf) in optimiser code
                 if part == 0:
-                    raise ValueError(
-                        "Zeros allowed in %s only when constant" % self.name
-                    )
+                    raise ValueError(f"Zeros allowed in {self.name} only when constant")
                 if part == 1:
-                    raise ValueError(
-                        "Ones allowed in %s only when constant" % self.name
-                    )
+                    raise ValueError(f"Ones allowed in {self.name} only when constant")
         if abs(sum(value) - 1.0) > 0.00001:
             raise ValueError(
-                "Elements of %s must sum to 1.0, not %s" % (self.name, sum(value))
+                f"Elements of {self.name} must sum to 1.0, not {sum(value)}"
             )
 
     def _make_partition_cell(self, name, scope, value):
@@ -510,7 +523,7 @@ class PartitionDefn(_InputDefn):
         all_cells = []
         for (i, v) in enumerate(self.uniq):
             if v is None:
-                raise ValueError("input %s not set" % self.name)
+                raise ValueError(f"input {self.name} not set")
             assert hasattr(v, "get_default_value"), v
             value = v.get_default_value()
             assert hasattr(value, "shape"), value
@@ -541,7 +554,7 @@ class ConstDefn(NonScalarDefn):
 
     def check_setting_is_valid(self, setting):
         if setting is not None and setting.value is not self.default:
-            raise ValueError("%s is constant" % self.name)
+            raise ValueError(f"{self.name} is constant")
 
 
 class SelectForDimension(_Defn):

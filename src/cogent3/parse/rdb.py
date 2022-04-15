@@ -12,10 +12,10 @@ from cogent3.parse.record_finder import DelimitedRecordFinder
 
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"
@@ -87,7 +87,7 @@ def MinimalRdbParser(infile, strict=True):
         if not index:
             if strict:
                 raise RecordError(
-                    "Found Rdb record without seq label " + "line: %s" % rec[0]
+                    "Found Rdb record without seq label " + f"line: {rec[0]}"
                 )
             else:
                 continue
@@ -100,7 +100,7 @@ def MinimalRdbParser(infile, strict=True):
         # if there are no sequences throw error or skip
         if not sequence:
             if strict:
-                raise RecordError("Found Rdb record without sequences: %s" % rec[0])
+                raise RecordError(f"Found Rdb record without sequences: {rec[0]}")
             else:
                 continue
 

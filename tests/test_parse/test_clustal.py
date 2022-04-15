@@ -3,9 +3,7 @@
 """
 from unittest import TestCase, main
 
-from cogent3.core.alignment import Alignment
 from cogent3.parse.clustal import (
-    LabelLineParser,
     MinimalClustalParser,
     delete_trailing_number,
     is_clustal_seq_line,
@@ -15,10 +13,10 @@ from cogent3.parse.record import RecordError
 
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

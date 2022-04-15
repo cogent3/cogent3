@@ -13,10 +13,10 @@ from cogent3.util.transform import (
 
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Zongzhi Liu"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"
@@ -118,7 +118,6 @@ class SequenceFunctionsTests(TestCase):
         long_norm = lambda s, x, y: (s + 0.0) / max(len(x), len(y))
         times_two = lambda s, x, y: 2 * s
 
-        empty = []
         s1 = [1, 2, 3, 4, 5]
         s2 = [1, 3, 2, 4, 5]
         s3 = [1, 1, 1, 1, 1]
