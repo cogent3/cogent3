@@ -14,10 +14,10 @@ except ImportError:  # python version < 2.6
 
 
 __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

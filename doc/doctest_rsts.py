@@ -14,7 +14,7 @@ from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 from cogent3.util.io import atomic_write
 
 __author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
 __version__ = "2020.2.7a"

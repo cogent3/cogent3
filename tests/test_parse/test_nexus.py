@@ -19,10 +19,10 @@ from cogent3.parse.nexus import (
 
 
 __author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Catherine Lozupone", "Rob Knight", "Micah Hamady"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Catherine Lozupone"
 __email__ = "lozupone@colorado.edu"
 __status__ = "Production"

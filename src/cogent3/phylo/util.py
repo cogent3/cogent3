@@ -9,10 +9,10 @@ Float = numpy.core.numerictypes.sctype2char(float)
 # reconstruction algorithms.
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "pm67nz@gmail.com"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

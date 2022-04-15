@@ -40,10 +40,10 @@ except ImportError:
 TEST_ROOT = pathlib.Path(__file__).parent.parent
 
 __author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La", "Christopher Bradley"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

@@ -42,10 +42,10 @@ from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2021, The Cogent Project"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "BSD-3"
-__version__ = "2021.10.12a1"
+__version__ = "2022.4.15a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
