@@ -78,11 +78,16 @@ __status__ = "Production"
 
 
 _min_version = (3, 7)
-if sys.version_info < _min_version:
+if (sys.version_info.major, sys.version_info.minor) < _min_version:
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
-    _min_version = ".".join(_min_version)
+    _min_version = ".".join(str(e) for e in _min_version)
     raise RuntimeError(
         f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
+    )
+elif (sys.version_info.major, sys.version_info.minor) == (3, 7):
+    warnings.warn(
+        "The minimum supported python version will change to 3.8 at 2022.10",
+        category=DeprecationWarning,
     )
 
 version = __version__

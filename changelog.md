@@ -1,3 +1,10 @@
+# Changes since release 2022.4.15a1
+
+## DEP
+
+- Added warning that we will drop support for python 3.7 by 2022.10. This means the developer version will switch to python 3.8 from 2022.6.
+- 
+
 # Changes since release 2021.10.12a1
 
 ## Contributors
