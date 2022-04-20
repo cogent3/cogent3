@@ -6,13 +6,10 @@ and phylo.
 import os
 import pathlib
 import pickle
-import re
 import sys
 import warnings
 
 from typing import Union
-
-import numpy
 
 from cogent3.app import available_apps
 from cogent3.core.alignment import (
@@ -81,11 +78,16 @@ __status__ = "Production"
 
 
 _min_version = (3, 7)
-if sys.version_info < _min_version:
+if (sys.version_info.major, sys.version_info.minor) < _min_version:
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
-    _min_version = ".".join(_min_version)
+    _min_version = ".".join(str(e) for e in _min_version)
     raise RuntimeError(
         f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
+    )
+elif (sys.version_info.major, sys.version_info.minor) == (3, 7):
+    warnings.warn(
+        "The minimum supported python version will change to 3.8 at 2022.10",
+        category=DeprecationWarning,
     )
 
 version = __version__
@@ -121,6 +123,26 @@ def make_seq(seq, name=None, moltype=None):
     return seq
 
 
+def _make_seq_container(
+    klass, data, moltype=None, label_to_name=None, info=None, source=None, **kw
+):
+    """utility function for creating the different sequence collection/alignment instances"""
+    if moltype is not None:
+        moltype = get_moltype(moltype)
+
+    info = info or {}
+    for other_kw in ("constructor_kw", "kw"):
+        other_kw = kw.pop(other_kw, None) or {}
+        kw.update(other_kw)
+    assert isinstance(info, dict), "info must be a dict"
+    source = source or info.get("source", "unknown")
+    info["source"] = str(source)
+
+    return klass(
+        data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
+    )
+
+
 def make_unaligned_seqs(
     data, moltype=None, label_to_name=None, info=None, source=None, **kw
 ):
@@ -143,19 +165,14 @@ def make_unaligned_seqs(
         other keyword arguments passed to SequenceCollection
     """
 
-    if moltype is not None:
-        moltype = get_moltype(moltype)
-
-    info = info or {}
-    for other_kw in ("constructor_kw", "kw"):
-        other_kw = kw.pop(other_kw, None) or {}
-        kw.update(other_kw)
-    assert isinstance(info, dict), "info must be a dict"
-    source = source or info.get("source", "unknown")
-    info["source"] = str(source)
-
-    return SequenceCollection(
-        data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
+    return _make_seq_container(
+        SequenceCollection,
+        data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        source=source,
+        **kw,
     )
 
 
@@ -188,20 +205,29 @@ def make_aligned_seqs(
     **kw
         other keyword arguments passed to alignment class
     """
-    if moltype is not None:
-        moltype = get_moltype(moltype)
+    klass = ArrayAlignment if array_align else Alignment
+    return _make_seq_container(
+        klass,
+        data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        source=source,
+        **kw,
+    )
 
-    info = info or {}
+
+def _load_seqs(file_format, filename, fmt, kw, parser_kw):
+    """utility function for loading sequences"""
+    fmt = fmt or file_format
+    if not fmt:
+        msg = "could not determined file format, set using the format argument"
+        raise ValueError(msg)
+    parser_kw = parser_kw or {}
     for other_kw in ("constructor_kw", "kw"):
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
-    assert isinstance(info, dict), "info must be a dict"
-    source = source or info.get("source", "unknown")
-    info["source"] = str(source)
-    klass = ArrayAlignment if array_align else Alignment
-    return klass(
-        data=data, moltype=moltype, label_to_name=label_to_name, info=info, **kw
-    )
+    return list(FromFilenameParser(filename, fmt, **parser_kw))
 
 
 def load_unaligned_seqs(
@@ -241,16 +267,7 @@ def load_unaligned_seqs(
     if file_format == "json":
         return load_from_json(filename, (SequenceCollection,))
 
-    format = format or file_format
-    if not format:
-        msg = "could not determined file format, set using the format argument"
-        raise ValueError(msg)
-
-    parser_kw = parser_kw or {}
-    for other_kw in ("constructor_kw", "kw"):
-        other_kw = kw.pop(other_kw, None) or {}
-        kw.update(other_kw)
-    data = list(FromFilenameParser(filename, format, **parser_kw))
+    data = _load_seqs(file_format, filename, format, kw, parser_kw)
     return make_unaligned_seqs(
         data,
         label_to_name=label_to_name,
@@ -297,16 +314,7 @@ def load_aligned_seqs(
     if file_format == "json":
         return load_from_json(filename, (Alignment, ArrayAlignment))
 
-    format = format or file_format
-    if not format:
-        msg = "could not determined file format, set using the format argument"
-        raise ValueError(msg)
-
-    parser_kw = parser_kw or {}
-    for other_kw in ("constructor_kw", "kw"):
-        other_kw = kw.pop(other_kw, None) or {}
-        kw.update(other_kw)
-    data = list(FromFilenameParser(filename, format, **parser_kw))
+    data = _load_seqs(file_format, filename, format, kw, parser_kw)
     return make_aligned_seqs(
         data,
         array_align=array_align,
