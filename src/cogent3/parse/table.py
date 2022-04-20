@@ -165,12 +165,6 @@ def load_delimited(
     -----
     All row values remain as strings.
     """
-    if "delimiter" in kwargs:
-        from cogent3.util.warning import deprecated
-
-        sep = kwargs.pop("delimiter")
-        deprecated("argument", "delimiter", "sep", "2022.1")
-
     if limit is not None and header:
         limit += 1  # don't count header line
 
