@@ -6,13 +6,10 @@ and phylo.
 import os
 import pathlib
 import pickle
-import re
 import sys
 import warnings
 
 from typing import Union
-
-import numpy
 
 from cogent3.app import available_apps
 from cogent3.core.alignment import (
