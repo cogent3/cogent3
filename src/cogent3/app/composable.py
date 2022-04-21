@@ -10,7 +10,7 @@ import traceback
 from copy import deepcopy
 from functools import wraps
 
-import scitrack
+from scitrack import CachingLogger
 
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
@@ -362,7 +362,7 @@ class Composable(ComposableType):
         parallel=False,
         mininterval=2,
         par_kw=None,
-        logger=True,
+        logger=None,
         cleanup=False,
         ui=None,
     ):
@@ -381,15 +381,12 @@ class Composable(ComposableType):
         par_kw
             dict of values for configuring parallel execution.
         logger
-            Argument ignored if not an io.writer. A scitrack logger, a logfile
-            name or True. If True, a scitrack logger is created with a name that
-            defaults to the composable function names and the process ID,
-            e.g. load_unaligned-progressive_align-write_seqs-pid6962.log.
-            If string, that name is used as the logfile name. Otherwise the
-            logger is used as is.
+            Argument ignored if not an io.writer. If a scitrack logger not provided,
+            one is created with a name that defaults to the composable function names
+            and the process ID.
         cleanup : bool
-            after copying of log files into the data store, they are deleted
-            from their original location
+            after copying of log files into the data store, it is deleted
+            from the original location
 
         Returns
         -------
@@ -407,32 +404,27 @@ class Composable(ComposableType):
         if not dstore:
             raise ValueError("dstore is empty")
 
-        start = time.time()
-        loggable = hasattr(self, "data_store")
-        if (
-            not loggable
-            or type(logger) != scitrack.CachingLogger
-            and type(logger) != str
-            and logger != True
-        ):
-            LOGGER = None
-        elif type(logger) == scitrack.CachingLogger:
-            LOGGER = logger
-            log_file_path = LOGGER.log_file_path
-        elif type(logger) == str:
-            LOGGER = scitrack.CachingLogger()
-            log_file_path = logger
-        else:
-            LOGGER = scitrack.CachingLogger()
-            log_file_path = None
+        am_writer = hasattr(self, "data_store")
+        if am_writer:
+            start = time.time()
+            if isinstance(logger, CachingLogger):
+                LOGGER = logger
+            elif logger is None:
+                LOGGER = CachingLogger()
+            else:
+                raise TypeError(
+                    f"logger must be scitrack.CachingLogger, not {type(logger)}"
+                )
 
-        if LOGGER:
-            if not log_file_path and not LOGGER.log_file_path:
+            if not LOGGER.log_file_path:
                 src = pathlib.Path(self.data_store.source)
-                log_file_path = src.parent / _make_logfile_name(self)
-                LOGGER.log_file_path = str(log_file_path)
+                LOGGER.log_file_path = str(src.parent / _make_logfile_name(self))
+
+            log_file_path = str(LOGGER.log_file_path)
             LOGGER.log_message(str(self), label="composable function")
             LOGGER.log_versions(["cogent3"])
+        else:
+            LOGGER = None
 
         results = []
         process = self.input or self
@@ -445,62 +437,80 @@ class Composable(ComposableType):
             self.input = None
 
         # with a tinydb dstore, this also excludes data that failed to complete
-        todo = [m for m in dstore if not self.job_done(m)]
-
-        for i, result in enumerate(
-            ui.imap(
-                process, todo, parallel=parallel, par_kw=par_kw, mininterval=mininterval
+        # todo update to consider different database backends
+        # we want a dict mapping input member names to their md5 sums so these can
+        # be logged
+        inputs = {}
+        for m in dstore:
+            input_id = pathlib.Path(
+                m if isinstance(m, DataStoreMember) else get_data_source(m)
             )
+            suffixes = input_id.suffixes
+            input_id = input_id.name.replace("".join(suffixes), "")
+            inputs[input_id] = m
+
+        if len(inputs) < len(dstore):
+            diff = len(dstore) - len(inputs)
+            raise ValueError(
+                f"could not construct unique identifiers for {diff} records, "
+                "avoid using '.' as a delimiter in names."
+            )
+
+        for result in ui.imap(
+            process,
+            inputs.values(),
+            parallel=parallel,
+            par_kw=par_kw,
+            mininterval=mininterval,
         ):
-            outcome = result if process is self else self(result)
+            if process is not self and am_writer:
+                outcome = self.write(data=result)
+                assert isinstance(outcome, DataStoreMember)
+                # if result is NotCompleted, it will be written as such if
+                # supported by data store backend and the outcome is just the
+                # associated db identifier for tracking steps below we need to
+                # know it's NotCompleted
+                if result:
+                    input_id = outcome.name
+                else:
+                    input_id = get_data_source(result)
+                    outcome = result
+                input_id = pathlib.Path(pathlib.Path(input_id))
+                suffixes = input_id.suffixes
+                input_id = input_id.name.replace("".join(suffixes), "")
+            else:
+                outcome = result
+
             results.append(outcome)
-            if LOGGER:
-                member = todo[i]
-                # ensure member is a DataStoreMember instance
-                if not isinstance(member, DataStoreMember):
-                    member = SingleReadDataStore(member)[0]
 
-                mem_id = self.data_store.make_relative_identifier(member.name)
-                # src points the origins of the data, which can differ from
-                # the db identifier but share in common the name prefix.
-                # todo this is very fragile and needs to be thoroughly refactored
-                src = self.data_store.make_relative_identifier(result)
-                assert (
-                    src.split(".")[0] == mem_id.split(".")[0]
-                ), f"mismatched input data and result identifiers: {src} != {mem_id}"
-
-                LOGGER.log_message(member, label="input")
-                if member.md5:
-                    LOGGER.log_message(member.md5, label="input md5sum")
+            if am_writer:
+                # now need to search for the source member
+                m = inputs[input_id]
+                input_md5 = getattr(m, "md5", None)
+                LOGGER.log_message(input_id, label="input")
+                if input_md5:
+                    LOGGER.log_message(input_md5, label="input md5sum")
 
                 if isinstance(outcome, NotCompleted):
-                    try:
-                        # tinydb supports storage
-                        self.data_store.write_incomplete(mem_id, outcome)
-                    except AttributeError:
-                        pass
+                    # log error/fail details
                     LOGGER.log_message(
                         f"{outcome.origin} : {outcome.message}", label=outcome.type
                     )
                     continue
+                elif not outcome:
+                    # other cases where outcome is Falsy (e.g. None)
+                    LOGGER.log_message(f"unexpected value {outcome!r}", label="FAIL")
+                    continue
 
-                if (
-                    isinstance(outcome, DataStoreMember)
-                    and outcome.parent is self.data_store
-                ):
-                    member = outcome
-                else:
-                    member = self.data_store.get_member(mem_id)
+                LOGGER.log_message(outcome, label="output")
+                LOGGER.log_message(outcome.md5, label="output md5sum")
 
-                LOGGER.log_message(member, label="output")
-                LOGGER.log_message(member.md5, label="output md5sum")
+        if am_writer:
+            finish = time.time()
+            taken = finish - start
 
-        finish = time.time()
-        taken = finish - start
-        if LOGGER:
             LOGGER.log_message(f"{taken}", label="TIME TAKEN")
             LOGGER.shutdown()
-            log_file_path = str(log_file_path)
             self.data_store.add_file(log_file_path, cleanup=cleanup, keep_suffix=True)
             self.data_store.close()
 
