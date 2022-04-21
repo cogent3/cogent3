@@ -18,7 +18,11 @@ from cogent3.core.alignment import SequenceCollection
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.io import open_
-from cogent3.util.misc import extend_docstring_from, get_object_provenance
+from cogent3.util.misc import (
+    extend_docstring_from,
+    get_object_provenance,
+    in_jupyter,
+)
 
 from .data_store import (
     IGNORE,
@@ -228,12 +232,10 @@ class Composable(ComposableType):
                 v = v.name
             except AttributeError:
                 pass
-            try:
-                get_ipython()
+
+            if in_jupyter():
                 if p == "kwargs" and v == {"store_history": True, "silent": False}:
                     continue
-            except NameError:
-                pass
             formatted.append(f"{p}={v!r}")
         self._formatted += formatted
 
