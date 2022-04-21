@@ -35,7 +35,6 @@ class MPITests(TestCase):
 
             r = process.apply_to(
                 members,
-                logger=False,
                 show_progress=False,
                 parallel=True,
                 par_kw=dict(use_mpi=True),

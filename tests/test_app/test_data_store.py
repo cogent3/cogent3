@@ -447,8 +447,18 @@ class DirectoryDataStoreReadTests(
             with self.assertRaises(FileNotFoundError):
                 self.WriteClass(path, suffix=".json", create=False)
 
-            # correctly creates tinydb when full path does not exist
-            _ = self.WriteClass(path, suffix=".json", create=True)
+    def test_write_not_completed(self):
+        """directory data store ignores"""
+        with TemporaryDirectory(dir=".") as dirname:
+            # tests the case when the directory has the file with the same suffix to self.suffix
+            from cogent3.app.composable import NotCompleted
+
+            with TemporaryDirectory(dir=".") as dirname:
+                path = Path(dirname) / "subdir"
+                writer = self.WriteClass(path, suffix=".fasta", create=True)
+                nc = NotCompleted("FAIL", "test", "dummy fail", source="blah.json")
+                got = writer.write(nc.source, nc)
+                assert got is nc
 
 
 class ZippedDataStoreReadTests(TestCase, DataStoreBaseReadTests):
@@ -635,7 +645,7 @@ class TinyDBDataStoreTests(TestCase):
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, if_exists="overwrite")
             id_ = dstore.make_relative_identifier(incomplete[0])
-            dstore.write_incomplete(id_, incomplete[1])
+            dstore.write(id_, incomplete[1])
             for k in keys:
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])

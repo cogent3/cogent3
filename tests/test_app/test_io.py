@@ -239,16 +239,6 @@ class TestIo(TestCase):
             dstore.close()
             self.assertEqual(got, data)
 
-    def test_write_db_invalid(self):
-        """value error if identifier does not match data.info.source"""
-        with TemporaryDirectory(dir=".") as dirname:
-            outpath = join(dirname, "delme")
-            writer = write_db(outpath, create=True, if_exists="ignore")
-            data = UnionDict(a=[1, 2], b="string", source="delme2.json")
-            got = writer(data, identifier=join("blah", "delme.json"))
-            self.assertTrue("ValueError" in got.message)
-            writer.data_store.db.close()
-
     def test_load_db_failure_json_file(self):
         """informative load_db error message when given a json file path"""
         # todo this test has a trapped exception about being unable to delete
@@ -522,7 +512,7 @@ class TestIo(TestCase):
         writer = write_db("delme.tinydb", create=True, if_exists="overwrite")
         process = reader + aligner + writer
 
-        r = process.apply_to(members, logger=False, show_progress=False, parallel=True)
+        r = process.apply_to(members, show_progress=False, parallel=True)
 
         expect = [str(m) for m in process.data_store]
         process.data_store.close()

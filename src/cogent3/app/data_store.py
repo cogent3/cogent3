@@ -615,6 +615,9 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        if not data:
+            return data
+
         super().write(identifier, data)
         id_suffix = identifier.split(".")[-1]
         if id_suffix not in (self.suffix, "log"):
@@ -976,6 +979,11 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
     def write(self, identifier, data):
         # writing into a tinydb has its own logic for conversion to json
         #  so we don't validate data is a string for this case
+        from cogent3.app.composable import NotCompleted
+
+        if isinstance(data, NotCompleted):
+            return self.write_incomplete(identifier, data)
+
         super().write(identifier, "")
         id_suffix = identifier.split(".")[-1]
         if id_suffix not in (self.suffix, "log"):

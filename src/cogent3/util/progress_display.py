@@ -18,6 +18,8 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
 
+from cogent3.util.misc import in_jupyter
+
 
 class LogFileOutput:
     """A fake progress bar for when progress bars are impossible"""
@@ -124,7 +126,7 @@ class ProgressContext:
         self.display(progress=end)
 
     def write(self, *args, **kw):
-        if self.progress_bar_type and len(kw) < 3 and not using_notebook():
+        if self.progress_bar_type and len(kw) < 3 and not in_jupyter():
             self.progress_bar_type.write(*args, **kw)
         else:
             print(*args, **kw)
@@ -163,14 +165,6 @@ CURRENT = threading.local()
 CURRENT.context = None
 
 
-def using_notebook():
-    try:
-        get_ipython()
-        return True
-    except NameError:
-        return False
-
-
 def display_wrap(slow_function):
     """Decorator which give the function its own UI context.
     The function will receive an extra argument, 'ui',
@@ -181,7 +175,7 @@ def display_wrap(slow_function):
         if getattr(CURRENT, "context", None) is None:
             if sys.stdout.isatty():
                 klass = tqdm
-            elif using_notebook():
+            elif in_jupyter():
                 klass = notebook.tqdm
             elif isinstance(sys.stdout, io.FileIO):
                 klass = LogFileOutput

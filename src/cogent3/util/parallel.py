@@ -86,7 +86,7 @@ class PicklableAndCallable:
         return self.func(*args, **kw)
 
 
-def set_default_chunksize(s, max_workers):
+def get_default_chunksize(s, max_workers):
     chunksize, remainder = divmod(len(s), max_workers * 4)
     if remainder:
         chunksize += 1
@@ -110,12 +110,13 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         values are 'raise', 'ignore', 'warn'. Defaults to 'raise'.
     chunksize : int or None
         Size of data chunks executed by worker processes. Defaults to None
-        where stable chunksize is determined by set_default_chunksize()
+        where stable chunksize is determined by get_default_chunksize()
 
     Returns
     -------
-    imap is a generator yielding result of f(s[i]), map returns the result
-    series
+    imap and as_completed are generators yielding result of f(s[i]), map returns the result
+    series. imap and map return results in the same order as s, as_completed returns results
+    in the order completed (which can differ from the order in s).
 
     Notes
     -----
@@ -135,15 +136,16 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         if not USING_MPI:
             raise RuntimeError("Cannot use MPI")
 
-        err_msg = (
-            "Execution in serial. For parallel MPI execution, use:\n"
-            " $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <executable script>"
-        )
+        if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1:
+            err_msg = (
+                "Execution in serial. For parallel MPI execution, use:\n"
+                " $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <executable script>"
+            )
 
-        if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == "raise":
-            raise RuntimeError(err_msg)
-        elif COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1 and if_serial == "warn":
-            warnings.warn(err_msg, UserWarning)
+            if if_serial == "raise":
+                raise RuntimeError(err_msg)
+            elif if_serial == "warn":
+                warnings.warn(err_msg, UserWarning)
 
         max_workers = max_workers or 1
 
@@ -154,26 +156,85 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
 
         max_workers = min(max_workers, COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1)
         if not chunksize:
-            chunksize = set_default_chunksize(s, max_workers)
+            chunksize = get_default_chunksize(s, max_workers)
 
         with MPIfutures.MPIPoolExecutor(max_workers=max_workers) as executor:
-            for result in executor.map(f, s, chunksize=chunksize):
-                yield result
+            yield from executor.map(f, s, chunksize=chunksize)
     else:
         if not max_workers:
             max_workers = multiprocessing.cpu_count() - 1
         assert max_workers < multiprocessing.cpu_count()
 
         if not chunksize:
-            chunksize = set_default_chunksize(s, max_workers)
+            chunksize = get_default_chunksize(s, max_workers)
 
         f = PicklableAndCallable(f)
 
         with concurrentfutures.ProcessPoolExecutor(max_workers) as executor:
-            for result in executor.map(f, s, chunksize=chunksize):
-                yield result
+            yield from executor.map(f, s, chunksize=chunksize)
 
 
 @extend_docstring_from(imap)
 def map(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None):
     return list(imap(f, s, max_workers, use_mpi, if_serial, chunksize))
+
+
+def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
+    """MPI version of as_completed"""
+    if not USING_MPI:
+        raise RuntimeError("Cannot use MPI")
+
+    if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1:
+        err_msg = (
+            "Execution in serial. For parallel MPI execution, use:\n"
+            " $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <executable script>"
+        )
+
+        if if_serial == "raise":
+            raise RuntimeError(err_msg)
+        elif if_serial == "warn":
+            warnings.warn(err_msg, UserWarning)
+
+    max_workers = max_workers or 1
+
+    f = PicklableAndCallable(f)
+
+    if max_workers > COMM.Get_attr(MPI.UNIVERSE_SIZE):
+        warnings.warn("max_workers too large, reducing to UNIVERSE_SIZE-1", UserWarning)
+
+    max_workers = min(max_workers, COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1)
+    if not chunksize:
+        chunksize = get_default_chunksize(s, max_workers)
+
+    with MPIfutures.MPIPoolExecutor(
+        max_workers=max_workers, chunksize=chunksize
+    ) as executor:
+        to_do = [executor.submit(f, e) for e in s]
+        for result in concurrentfutures.as_completed(to_do):
+            yield result.result()
+
+
+def _as_completed_mproc(f, s, max_workers):
+    """multiprocess version of as_completed"""
+    if not max_workers:
+        max_workers = multiprocessing.cpu_count() - 1
+    assert max_workers < multiprocessing.cpu_count()
+
+    f = PicklableAndCallable(f)
+
+    with concurrentfutures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        to_do = [executor.submit(f, e) for e in s]
+        for result in concurrentfutures.as_completed(to_do):
+            yield result.result()
+
+
+@extend_docstring_from(imap, pre=True)
+def as_completed(
+    f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=None
+):
+    if_serial = if_serial.lower()
+    assert if_serial in ("ignore", "raise", "warn"), f"invalid choice '{if_serial}'"
+    if use_mpi:
+        yield from _as_completed_mpi(f, s, max_workers, if_serial, chunksize)
+    else:
+        yield from _as_completed_mproc(f, s, max_workers)

@@ -428,8 +428,13 @@ class write_tabular(_checkpointable, ComposableTabular):
         self._format = format
 
     def write(self, data, identifier=None):
+        if not data:
+            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
+            raise NotImplementedError(msg)
+
         if identifier is None:
             identifier = self._make_output_identifier(data)
+
         output = data.to_string(format=self._format)
         self.data_store.write(identifier, output)
         return identifier
@@ -490,8 +495,13 @@ class write_seqs(_checkpointable):
         self._load_checkpoint = loader
 
     def write(self, data, identifier=None):
+        if not data:
+            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
+            raise NotImplementedError(msg)
+
         if identifier is None:
             identifier = self._make_output_identifier(data)
+
         data.info.stored = self.data_store.write(identifier, data.to_fasta())
         return identifier
 
@@ -557,8 +567,18 @@ class write_json(_checkpointable):
         self._load_checkpoint = self
 
     def write(self, data, identifier=None):
+        from cogent3.app.composable import NotCompleted
+
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_incomplete(identifier, data)
+
+        if not data:
+            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
+            raise NotImplementedError(msg)
+
         if identifier is None:
             identifier = self._make_output_identifier(data)
+
         out = make_record_for_json(os.path.basename(identifier), data, True)
         out = json.dumps(out)
         stored = self.data_store.write(identifier, out)
@@ -652,22 +672,27 @@ class write_db(_checkpointable):
         -------
         identifier
         """
-        # todo skip next line if identifier provided
-        data_source = get_data_source(data)  # todo -- this is being ignored!
-        if (data_source and identifier is not None) and str(data_source) != str(
-            identifier
-        ):
-            raise ValueError(f"identifier {identifier} != data source {data_source}")
+        from cogent3.app.composable import NotCompleted
 
-        if identifier is None:
-            identifier = self._make_output_identifier(data)
+        identifier = identifier or get_data_source(data)
+        identifier = self._make_output_identifier(identifier)
+
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_incomplete(identifier, data)
+
+        if not data:
+            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
+            raise NotImplementedError(msg)
+
+        identifier = identifier or get_data_source(data)
+        identifier = self._make_output_identifier(identifier)
         # todo revisit this when we establish immutability behaviour of database
         try:
             out = data.to_json()
         except AttributeError:
             out = json.dumps(data)
         stored = self.data_store.write(identifier, out)
-        # todo is anything actually using this stored attriubte? if not, delete this
+        # todo is anything actually using this stored attribute? if not, delete this
         #  code and all other cases
         if hasattr(data, "info"):
             data.info["stored"] = stored
@@ -676,4 +701,4 @@ class write_db(_checkpointable):
                 data.stored = stored
             except AttributeError:
                 pass
-        return identifier
+        return stored
