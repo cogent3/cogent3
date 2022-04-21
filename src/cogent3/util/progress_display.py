@@ -164,11 +164,7 @@ CURRENT.context = None
 
 
 def using_notebook():
-    try:
-        get_ipython()
-        return True
-    except NameError:
-        return False
+    return callable(globals().get("get_ipython"))
 
 
 def display_wrap(slow_function):

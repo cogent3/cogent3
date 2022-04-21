@@ -9,11 +9,13 @@ import traceback
 
 from copy import deepcopy
 from functools import wraps
+from itertools import count
 
 from scitrack import CachingLogger
 
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
+from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.io import open_
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -38,6 +40,8 @@ __version__ = "2022.4.20a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+from ..util.warning import discontinued
 
 
 def _make_logfile_name(process):
@@ -360,11 +364,11 @@ class Composable(ComposableType):
         self,
         dstore,
         parallel=False,
-        mininterval=2,
         par_kw=None,
         logger=None,
         cleanup=False,
         ui=None,
+        **kwargs,
     ):
         """invokes self composable function on the provided data store
 
@@ -397,6 +401,9 @@ class Composable(ComposableType):
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
+        if "mininterval" in kwargs:
+            discontinued("argument", "mininterval", "2022.10", stack_level=1)
+
         if isinstance(dstore, str):
             dstore = [dstore]
 
@@ -456,13 +463,13 @@ class Composable(ComposableType):
                 "avoid using '.' as a delimiter in names."
             )
 
-        for result in ui.imap(
-            process,
-            inputs.values(),
-            parallel=parallel,
-            par_kw=par_kw,
-            mininterval=mininterval,
-        ):
+        if parallel:
+            par_kw = par_kw or {}
+            to_do = PAR.as_completed(process, inputs.values(), **par_kw)
+        else:
+            to_do = map(process, inputs.values())
+
+        for result in ui.series(to_do, count=len(inputs)):
             if process is not self and am_writer:
                 outcome = self.write(data=result)
                 assert isinstance(outcome, DataStoreMember)
