@@ -9,7 +9,6 @@ import traceback
 
 from copy import deepcopy
 from functools import wraps
-from itertools import count
 
 from scitrack import CachingLogger
 
@@ -30,7 +29,6 @@ from .data_store import (
     RAISE,
     SKIP,
     DataStoreMember,
-    SingleReadDataStore,
     WritableDirectoryDataStore,
     get_data_source,
 )
@@ -416,24 +414,20 @@ class Composable(ComposableType):
         am_writer = hasattr(self, "data_store")
         if am_writer:
             start = time.time()
-            if isinstance(logger, CachingLogger):
-                LOGGER = logger
-            elif logger is None:
-                LOGGER = CachingLogger()
-            else:
+            if logger is None:
+                logger = CachingLogger()
+            elif not isinstance(logger, CachingLogger):
                 raise TypeError(
                     f"logger must be scitrack.CachingLogger, not {type(logger)}"
                 )
 
-            if not LOGGER.log_file_path:
+            if not logger.log_file_path:
                 src = pathlib.Path(self.data_store.source)
-                LOGGER.log_file_path = str(src.parent / _make_logfile_name(self))
+                logger.log_file_path = str(src.parent / _make_logfile_name(self))
 
-            log_file_path = str(LOGGER.log_file_path)
-            LOGGER.log_message(str(self), label="composable function")
-            LOGGER.log_versions(["cogent3"])
-        else:
-            LOGGER = None
+            log_file_path = str(logger.log_file_path)
+            logger.log_message(str(self), label="composable function")
+            logger.log_versions(["cogent3"])
 
         results = []
         process = self.input or self
@@ -496,30 +490,30 @@ class Composable(ComposableType):
                 # now need to search for the source member
                 m = inputs[input_id]
                 input_md5 = getattr(m, "md5", None)
-                LOGGER.log_message(input_id, label="input")
+                logger.log_message(input_id, label="input")
                 if input_md5:
-                    LOGGER.log_message(input_md5, label="input md5sum")
+                    logger.log_message(input_md5, label="input md5sum")
 
                 if isinstance(outcome, NotCompleted):
                     # log error/fail details
-                    LOGGER.log_message(
+                    logger.log_message(
                         f"{outcome.origin} : {outcome.message}", label=outcome.type
                     )
                     continue
                 elif not outcome:
                     # other cases where outcome is Falsy (e.g. None)
-                    LOGGER.log_message(f"unexpected value {outcome!r}", label="FAIL")
+                    logger.log_message(f"unexpected value {outcome!r}", label="FAIL")
                     continue
 
-                LOGGER.log_message(outcome, label="output")
-                LOGGER.log_message(outcome.md5, label="output md5sum")
+                logger.log_message(outcome, label="output")
+                logger.log_message(outcome.md5, label="output md5sum")
 
         if am_writer:
             finish = time.time()
             taken = finish - start
 
-            LOGGER.log_message(f"{taken}", label="TIME TAKEN")
-            LOGGER.shutdown()
+            logger.log_message(f"{taken}", label="TIME TAKEN")
+            logger.shutdown()
             self.data_store.add_file(log_file_path, cleanup=cleanup, keep_suffix=True)
             self.data_store.close()
 
