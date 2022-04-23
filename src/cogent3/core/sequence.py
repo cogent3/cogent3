@@ -79,7 +79,7 @@ def _get_feature_start(instance, feature):
     """identifies feature offset relative to parent feature"""
     start = feature.map.start
     offset = 0
-    while feature.parent is not instance:
+    while feature.parent is not instance:  # lgtm [py/comparison-using-is]
         feature = feature.parent
         if feature.map.start - start:
             offset += feature.map.start
