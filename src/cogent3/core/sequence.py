@@ -75,6 +75,18 @@ frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
 
+def _get_feature_start(instance, feature):
+    """identifies feature offset relative to parent feature"""
+    start = feature.map.start
+    offset = 0
+    while feature.parent is not instance:
+        feature = feature.parent
+        if feature.map.start - start:
+            offset += feature.map.start
+
+    return offset + start
+
+
 @total_ordering
 class SequenceI(object):
     """Abstract class containing Sequence interface.
@@ -878,6 +890,7 @@ class Sequence(_Annotatable, SequenceI):
         gff_contents = f if pre_parsed else gff.gff_parser(f)
         top_level = defaultdict(list)
         grouped = defaultdict(list)
+        num_no_id = 0
         for gff_dict in gff_contents:
             if gff_dict["SeqID"] != self.name:
                 # we can only handle features for this sequence
@@ -885,12 +898,18 @@ class Sequence(_Annotatable, SequenceI):
 
             id_ = gff_dict["Attributes"]["ID"]
             parents = gff_dict["Attributes"].get("Parent", None)
-            if parents is None:
+            if parents is None and id_:
                 assert id_ not in top_level, f"non-unique id {id_}"
                 top_level[id_].append(
                     self.add_feature(
                         gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
                     )
+                )
+            elif parents is None and not id_:
+                id_ = f"no-id-{num_no_id}"
+                num_no_id += 1
+                self.add_feature(
+                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
                 )
             else:
                 for parent in parents:
@@ -904,20 +923,18 @@ class Sequence(_Annotatable, SequenceI):
                     break
 
             for feature in features:
-                feature_start = feature.map.start
+                feature_start = _get_feature_start(self, feature)
                 for gff_dict in child_features:
-                    top_level[gff_dict["Attributes"]["ID"]].append(
-                        feature.add_feature(
-                            gff_dict["Type"],
-                            id_,
-                            [
-                                (
-                                    gff_dict["Start"] - feature_start,
-                                    gff_dict["End"] - feature_start,
-                                )
-                            ],
-                        )
+                    id_ = gff_dict["Attributes"]["ID"]
+                    b = gff_dict["Start"]
+                    e = gff_dict["End"]
+                    type_ = gff_dict["Type"]
+                    sub_feat = feature.add_feature(
+                        type_,
+                        id_,
+                        [(b - feature_start, e - feature_start)],
                     )
+                    top_level[gff_dict["Attributes"]["ID"]].append(sub_feat)
 
     def _sort_parents(self, parents, ordered, key):
         """returns a list of feature id's with parents before children"""
