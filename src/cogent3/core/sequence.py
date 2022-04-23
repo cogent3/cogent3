@@ -75,18 +75,6 @@ frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
 
 
-def _get_feature_start(instance, feature):
-    """identifies feature offset relative to parent feature"""
-    start = feature.map.start
-    offset = 0
-    while feature.parent is not instance:  # lgtm [py/comparison-using-is]
-        feature = feature.parent
-        if feature.map.start - start:
-            offset += feature.map.start
-
-    return offset + start
-
-
 @total_ordering
 class SequenceI(object):
     """Abstract class containing Sequence interface.
@@ -884,6 +872,17 @@ class Sequence(_Annotatable, SequenceI):
                 annot.copy_annotations_to(new)
         return new
 
+    def _get_feature_start(self, feature):
+        """returns feature offset relative to parent feature(s)"""
+        start = feature.map.start
+        offset = 0
+        while feature.parent is not self:
+            feature = feature.parent
+            if feature.map.start - start:
+                offset += feature.map.start
+
+        return offset + start
+
     def annotate_from_gff(self, f, pre_parsed=False):
         """annotates a Sequence from a gff file where each entry has the same SeqID"""
         # only features with parent features included in the 'features' dict
@@ -923,7 +922,7 @@ class Sequence(_Annotatable, SequenceI):
                     break
 
             for feature in features:
-                feature_start = _get_feature_start(self, feature)
+                feature_start = self._get_feature_start(feature)
                 for gff_dict in child_features:
                     id_ = gff_dict["Attributes"]["ID"]
                     b = gff_dict["Start"]
