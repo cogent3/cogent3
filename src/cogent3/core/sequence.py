@@ -905,7 +905,7 @@ class Sequence(_Annotatable, SequenceI):
                         gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
                     )
                 )
-            elif parents is None and not id_:
+            elif parents is None:
                 id_ = f"no-id-{num_no_id}"
                 num_no_id += 1
                 self.add_feature(
@@ -935,19 +935,6 @@ class Sequence(_Annotatable, SequenceI):
                         [(b - feature_start, e - feature_start)],
                     )
                     top_level[gff_dict["Attributes"]["ID"]].append(sub_feat)
-
-    def _sort_parents(self, parents, ordered, key):
-        """returns a list of feature id's with parents before children"""
-        keys = parents.keys()
-        if key in keys:
-            for parent in parents[key]:
-                if parent in keys:
-                    return self._sort_parents(parents, ordered, parent)
-        ordered.append(key)
-        parents.pop(key)
-        if not parents:
-            return ordered
-        return self._sort_parents(parents, ordered, next(iter(keys)))
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False
@@ -989,8 +976,7 @@ class Sequence(_Annotatable, SequenceI):
         i = 0
         segments = []
         for b, e in region.get_coordinates():
-            segments.append(self._seq[i:b])
-            segments.append(mask_char * (e - b))
+            segments.extend((self._seq[i:b], mask_char * (e - b)))
             i = e
         segments.append(self._seq[i:])
 
@@ -1018,8 +1004,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def gapped_by_map_motif_iter(self, map):
         for segment in self.gapped_by_map_segment_iter(map):
-            for motif in segment:
-                yield motif
+            yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
@@ -1039,14 +1024,13 @@ class Sequence(_Annotatable, SequenceI):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = str(self._seq[:7]) + f"... {len(self)}"
+            seq = f"{str(self._seq[:7])}... {len(self)}"
         else:
             seq = str(self._seq)
         return f"{myclass}({seq})"
 
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
-
         return self.name
 
     def __len__(self):
@@ -1102,17 +1086,17 @@ class Sequence(_Annotatable, SequenceI):
         seq = self._seq
         if motif_length == 1:
             return seq
-        else:
-            length = len(seq)
-            remainder = length % motif_length
-            if remainder and log_warnings:
-                warnings.warn(
-                    f'Dropped remainder "{seq[-remainder:]}" from end of sequence'
-                )
-            return [
-                seq[i : i + motif_length]
-                for i in range(0, length - remainder, motif_length)
-            ]
+
+        length = len(seq)
+        remainder = length % motif_length
+        if remainder and log_warnings:
+            warnings.warn(
+                f'Dropped remainder "{seq[-remainder:]}" from end of sequence'
+            )
+        return [
+            seq[i : i + motif_length]
+            for i in range(0, length - remainder, motif_length)
+        ]
 
     def parse_out_gaps(self):
         gapless = []
