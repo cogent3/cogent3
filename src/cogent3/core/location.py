@@ -575,10 +575,6 @@ class Map(object):
                     raise RuntimeError(
                         f"located outside sequence: {str((start, end, parent_length))}"
                     )
-                elif max(start, end) < 0:
-                    diff = min(start, end)
-                    start = [start, 0][start < 0]
-                    end = [end, 0][end < 0]
                 elif min(start, end) > parent_length:
                     diff = max(start, end) - parent_length
                     start = [start, parent_length][start > parent_length]
