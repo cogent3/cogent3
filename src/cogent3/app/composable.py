@@ -467,12 +467,14 @@ class Composable(ComposableType):
 
         for result in ui.series(to_do, count=len(inputs)):
             if process is not self and am_writer:
+                # if result is NotCompleted, it will be written as incomplete
+                # by data store backend. The outcome is just the
+                # associated db identifier for tracking steps below we need to
+                # know it's NotCompleted.
+                # Note: we directly call .write() so NotCompleted's don't
+                # get blocked from being written by __call__()
                 outcome = self.write(data=result)
                 assert isinstance(outcome, DataStoreMember)
-                # if result is NotCompleted, it will be written as such if
-                # supported by data store backend and the outcome is just the
-                # associated db identifier for tracking steps below we need to
-                # know it's NotCompleted
                 if result:
                     input_id = outcome.name
                 else:
@@ -481,6 +483,8 @@ class Composable(ComposableType):
                 input_id = pathlib.Path(pathlib.Path(input_id))
                 suffixes = input_id.suffixes
                 input_id = input_id.name.replace("".join(suffixes), "")
+            elif process is not self:
+                outcome = self(result)
             else:
                 outcome = result
 
