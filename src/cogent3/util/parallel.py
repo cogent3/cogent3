@@ -8,7 +8,7 @@ from cogent3.util.misc import extend_docstring_from
 
 
 multiprocessing.set_start_method(
-    "fork" if sys.platform == "darwin" else "spawn", force=True
+    "forkserver" if sys.platform == "darwin" else "spawn", force=True
 )
 
 __author__ = "Sheng Han Moses Koh"
@@ -71,7 +71,7 @@ def is_master_process():
             return False
     elif sys.version_info[1] >= 7:
         process_name = multiprocessing.current_process().name
-        if "ForkProcess" in process_name or "SpawnProcess" in process_name:
+        if "Fork" in process_name or "Spawn" in process_name:
             return False
     else:
         raise RuntimeError("is_master_process() requires Python 3.7 or greater")
