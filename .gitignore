@@ -25,6 +25,7 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage*
 .tox
+.nox
 coverage.xml
 junit-*.xml
 nosetests.xml
@@ -42,6 +43,7 @@ tests/draw_results
 __pycache__
 *.code-workspace
 *.wpu
+.vscode/*
 
 # vi
 .*.swp

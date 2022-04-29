@@ -30,14 +30,11 @@ jobs:
         run: |
           python --version
           pip install --upgrade pip wheel setuptools flit
-          pip install --upgrade tox tox-gh-actions
-          pip install -r requirements.txt
+          pip install --upgrade nox
 
-      - name: "Run tox targets for ${{ matrix.python-version }}"
-        run: tox
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        
+      - name: "Run nox for ${{ matrix.python-version }}"
+        run: "nox -s test-${{ matrix.python-version }}"
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
