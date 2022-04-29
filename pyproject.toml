@@ -48,7 +48,7 @@ test = [
     "isort",
     "pytest",
     "pytest-cov",
-    "tox"]
+    "nox"]
 doc  = ["click",
         "ipykernel",
         "ipython",
@@ -90,6 +90,7 @@ dev = ["black",
        "nbconvert>5.4",
        "nbformat",
        "nbsphinx",
+       "nox",
        "numpydoc",
        "pandas",
        "pillow",
@@ -102,8 +103,7 @@ dev = ["black",
        "sphinx-gallery",
        "sphinx_bootstrap_theme",
        "sphinx_panels",
-       "sphinxcontrib-bibtex",
-       "tox"]
+       "sphinxcontrib-bibtex"]
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -119,7 +119,7 @@ exclude = '''
   | \.git
   | \.hg
   | \.mypy_cache
-  | \.tox
+  | \.nox
   | \.venv
   | _build
   | build

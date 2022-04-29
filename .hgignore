@@ -25,6 +25,7 @@ draw_results
 *.patch
 *.pytest_cache
 *.tox
+*.nox
 *.vscode
 *.code-workspace
 coverage.xml
