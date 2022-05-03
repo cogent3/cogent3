@@ -428,6 +428,11 @@ class write_tabular(_checkpointable, ComposableTabular):
         self._format = format
 
     def write(self, data, identifier=None):
+        from cogent3.app.composable import NotCompleted
+
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_incomplete(identifier, data)
+
         if not data:
             msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
             raise NotImplementedError(msg)
@@ -495,6 +500,11 @@ class write_seqs(_checkpointable):
         self._load_checkpoint = loader
 
     def write(self, data, identifier=None):
+        from cogent3.app.composable import NotCompleted
+
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_incomplete(identifier, data)
+
         if not data:
             msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
             raise NotImplementedError(msg)
@@ -590,7 +600,7 @@ class write_json(_checkpointable):
         out = make_record_for_json(os.path.basename(identifier), data, True)
         out = json.dumps(out)
         stored = self.data_store.write(identifier, out)
-        # todo is anything actually using this stored attriubte? if not, delete this
+        # todo is anything actually using this stored attribute? if not, delete this
         #  code and all other cases
         if hasattr(data, "info"):
             data.info["stored"] = stored
