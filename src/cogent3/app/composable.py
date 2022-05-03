@@ -678,7 +678,7 @@ class _checkpointable(Composable):
             exists = False
         return exists
 
-    def write(self, data):
+    def write(self, data) -> DataStoreMember:
         # over-ride in subclass
         raise NotImplementedError
 
