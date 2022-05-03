@@ -16,6 +16,7 @@ from cogent3 import DNA
 from cogent3.app import align as align_app
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted
+from cogent3.app.data_store import DataStoreMember
 from cogent3.app.io import write_db
 from cogent3.app.result import generic_result
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
@@ -23,7 +24,6 @@ from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.util.table import Table
-from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
@@ -174,6 +174,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_seqs(dirname, if_exists="ignore")
             wrote = list(map(writer, alns))
+            self.assertIsInstance(wrote[0], DataStoreMember)
             written = list(io_app.findall(dirname, suffix="fasta"))
             for i, wrote in enumerate(written):
                 self.assertEqual(alns[i].info.stored, join(dirname, wrote))
@@ -216,6 +217,7 @@ class TestIo(TestCase):
             writer = write_db(outpath, create=True, if_exists="ignore")
             gr = _get_generic_result(join("blah", "delme.json"))
             got = writer(gr)
+            self.assertIsInstance(got, DataStoreMember)
             writer.data_store.db.close()
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
@@ -289,7 +291,8 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(mca, identifier=outpath)
+            got = writer.write(mca, identifier=outpath)
+            self.assertIsInstance(got, DataStoreMember)
             new = loader(outpath)
             # when written to file in tabular form
             # the loaded table will have dim-1 dim-2 as column labels
@@ -468,7 +471,8 @@ class TestIo(TestCase):
             obj = generic_result(source=join("blah", "delme.json"))
             obj["dna"] = DNA
             writer = io_app.write_json(outdir, create=True)
-            _ = writer(obj)
+            got = writer(obj)
+            self.assertIsInstance(got, DataStoreMember)
             reader = io_app.load_json()
             got = reader(join(outdir, "delme.json"))
             got.deserialised_values()

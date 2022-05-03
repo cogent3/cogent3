@@ -524,7 +524,7 @@ class WritableDataStoreBase:
 
         record = make_record_for_json(identifier, not_completed, False)
         record = json.dumps(record)
-        self.write(identifier, record)
+        return self.write(identifier, record)
 
     def write(self, identifier, data, *args, **kwargs) -> DataStoreMember:
         """

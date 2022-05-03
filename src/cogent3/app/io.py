@@ -436,8 +436,8 @@ class write_tabular(_checkpointable, ComposableTabular):
             identifier = self._make_output_identifier(data)
 
         output = data.to_string(format=self._format)
-        self.data_store.write(identifier, output)
-        return identifier
+        stored = self.data_store.write(identifier, output)
+        return stored
 
 
 class write_seqs(_checkpointable):
@@ -502,8 +502,16 @@ class write_seqs(_checkpointable):
         if identifier is None:
             identifier = self._make_output_identifier(data)
 
-        data.info.stored = self.data_store.write(identifier, data.to_fasta())
-        return identifier
+        stored = self.data_store.write(identifier, self._formatter(data.to_dict()))
+        if hasattr(data, "info"):
+            data.info["stored"] = stored
+        else:
+            try:
+                data.stored = stored
+            except AttributeError:
+                pass
+
+        return stored
 
 
 class load_json(Composable):
@@ -591,7 +599,7 @@ class write_json(_checkpointable):
                 data.stored = stored
             except AttributeError:
                 pass
-        return identifier
+        return stored
 
 
 class load_db(Composable):
