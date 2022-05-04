@@ -645,7 +645,8 @@ class TinyDBDataStoreTests(TestCase):
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, if_exists="overwrite")
             id_ = dstore.make_relative_identifier(incomplete[0])
-            dstore.write(id_, incomplete[1])
+            got = dstore.write(id_, incomplete[1])
+            self.assertIsInstance(got, DataStoreMember)
             for k in keys:
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
@@ -807,7 +808,9 @@ class TinyDBDataStoreTests(TestCase):
             path = dirname / f"{self.basedir}.tinydb"
             dstore = self.WriteClass(path, create=True)
             with self.assertRaises(ValueError):
-                dstore.write("1", dict(a=24, b="some text"))
+                got = dstore.write("1", dict(a=24, b="some text"))
+                # validate return type
+                self.assertIsInstance(got, DataStoreMember)
 
             dstore.write("1.json", dict(a=24, b="some text"))
             dstore.close()

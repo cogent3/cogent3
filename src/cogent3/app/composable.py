@@ -474,8 +474,7 @@ class Composable(ComposableType):
                 # Note: we directly call .write() so NotCompleted's don't
                 # get blocked from being written by __call__()
                 outcome = self.write(data=result)
-                assert isinstance(outcome, DataStoreMember)
-                if result:
+                if result and isinstance(outcome, DataStoreMember):
                     input_id = outcome.name
                 else:
                     input_id = get_data_source(result)
@@ -678,7 +677,7 @@ class _checkpointable(Composable):
             exists = False
         return exists
 
-    def write(self, data):
+    def write(self, data) -> DataStoreMember:
         # over-ride in subclass
         raise NotImplementedError
 
