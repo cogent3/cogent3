@@ -46,7 +46,7 @@ class TestCheckpoint(TestCase):
 
             read_write = reader + writer
             got = read_write(path)  # should skip reading and return path
-            self.assertEqual(got, outpath)
+            self.assertTrue(got.endswith(outpath))
             read_write.disconnect()  # allows us to reuse bits
             read_write_degen = reader + writer + omit_degens
             # should return an alignment instance
