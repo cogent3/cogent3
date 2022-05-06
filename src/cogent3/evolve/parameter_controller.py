@@ -148,12 +148,11 @@ class _LikelihoodParameterController(_LF):
         pseudocount=None,
         **kwargs,
     ):
-
         counts = self.model.count_motifs(align, include_ambiguity=include_ambiguity)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
-        if pseudocount is None:
-            pseudocount = 0.0 if is_constant else 0.5
+
+        pseudocount = 0.0 if is_constant or (counts != 0).all() else pseudocount or 0.5
         counts += pseudocount
         mprobs = counts / (1.0 * sum(counts))
         self.set_motif_probs(
