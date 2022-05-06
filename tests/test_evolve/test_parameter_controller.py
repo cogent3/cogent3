@@ -66,6 +66,28 @@ class test_parameter_controller(TestCase):
         lf.set_param_rule(par_name="kappa", is_independent=True, edges=["b", "d"])
         self.assertEqual(null + 2, lf.get_num_free_params())
 
+    def test_set_get_motif_probs_nstat(self):
+        from cogent3 import get_model
+
+        aln = make_aligned_seqs(
+            data=dict(
+                a="AACGAAGCAGAGTCACGGCA",
+                b="ACGGAAGTTGAGTCACCCCA",
+                c="TGCATCGAAAAGTCACGCTG",
+            ),
+            moltype="dna",
+        )
+        bases = "ACGT"
+        expect = aln.get_motif_probs()
+        expect = [expect[b] for b in bases]
+        tree = make_tree("(a,b,c)")
+        gn = get_model("GN")
+        lf = gn.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        got = lf.get_motif_probs().to_dict()
+        got = [got[b] for b in bases]
+        assert_allclose(got, expect)
+
     def test_set_motif_probs(self):
         """Mprobs supplied to the parameter controller"""
 
