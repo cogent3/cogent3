@@ -9,12 +9,13 @@ import pickle
 import sys
 import warnings
 
-from typing import Union
+from typing import Callable, Optional, Union
 
 from cogent3.app import available_apps
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,
+    Sequence,
     SequenceCollection,
 )
 from cogent3.core.genetic_code import available_codes, get_code
@@ -228,6 +229,60 @@ def _load_seqs(file_format, filename, fmt, kw, parser_kw):
         other_kw = kw.pop(other_kw, None) or {}
         kw.update(other_kw)
     return list(FromFilenameParser(filename, fmt, **parser_kw))
+
+
+def load_seq(
+    filename: Union[str, pathlib.Path],
+    format: Optional[str] = None,
+    moltype: Optional[str] = None,
+    label_to_name: Optional[Callable] = None,
+    parser_kw: dict = None,
+    info: dict = None,
+    **kw,
+) -> Sequence:
+    """
+    loads unaligned sequences from file
+
+    Parameters
+    ----------
+    filename : str
+        path to sequence file
+    format : str
+        sequence file format, if not specified tries to guess from the path suffix
+    moltype : str
+        the moltype, eg DNA, PROTEIN, 'dna', 'protein'
+    label_to_name : callable
+        function for converting original name into another name.
+    parser_kw : dict
+        optional arguments for the parser
+    info : dict
+        a dict from which to make an info object
+    **kw
+        other keyword arguments passed to SequenceCollection
+
+    Notes
+    -----
+    Returns **one** sequence from a file. Use load_aligned_seqs or
+    load_unaligned_seqs to get a collection.
+
+    Returns
+    -------
+    ``Sequence``
+    """
+    info = info or {}
+    info["source"] = str(filename)
+    file_format, _ = get_format_suffixes(filename)
+    if file_format == "json":
+        seq = load_from_json(filename, (Sequence,))
+        seq.name = label_to_name(seq.name) if label_to_name else seq.name
+        return seq
+
+    data = _load_seqs(file_format, filename, format, kw, parser_kw)
+    name, seq = data[0]
+    name = label_to_name(name) if label_to_name else name
+    result = make_seq(seq, name, moltype=moltype)
+    result.info.update(info)
+    return result
 
 
 def load_unaligned_seqs(

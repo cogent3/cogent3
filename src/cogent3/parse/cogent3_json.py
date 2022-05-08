@@ -23,9 +23,10 @@ def load_from_json(filename, classes):
 
     Parameters
     ----------
-    filename: name of the json file
-    classes: A series of the Cogent3 types, for example: (Alignment, ArrayAlignment)
-
+    filename : Union[str,Path]
+        name of the json file
+    classes : Sequence[type]
+        A series of the Cogent3 types, for example: (Alignment, ArrayAlignment)
     """
     assert all(
         (isinstance(klass, type) for klass in classes)
