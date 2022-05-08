@@ -13,6 +13,7 @@ from cogent3 import (
     RNA,
     get_format_suffixes,
     load_aligned_seqs,
+    load_seq,
     load_unaligned_seqs,
     make_aligned_seqs,
     make_seq,
@@ -98,6 +99,32 @@ class TestConstructorFunctions(unittest.TestCase):
         self.assertIsInstance(got, Alignment)
         self.assertEqual(got.to_dict(), data)
         self.assertEqual(got.info["source"], "unknown")
+
+    def test_load_seq(self):
+        """load single sequence"""
+        from cogent3 import Sequence
+
+        paths = (
+            "c_elegans_WS199_dna_shortened.fasta",
+            "annotated_seq.gb",
+            "brca1_5.250.paml",
+        )
+        seq_names = ("I", "AE017341", "NineBande")
+        data_dir = pathlib.Path(data_path)
+        for i, path in enumerate(paths):
+            got = load_seq(data_dir / path)
+            assert isinstance(got, Sequence)
+            assert got.info.source == str(data_dir / path)
+            assert got.name == seq_names[i]
+
+        # try json
+        seq = got
+        with TemporaryDirectory(dir=".") as dirname:
+            outpath = pathlib.Path(dirname) / "seq.json"
+            outpath.write_text(seq.to_json())
+            got = load_seq(outpath)
+            assert str(got) == str(seq)
+            assert got.name == seq.name
 
     def test_load_unaligned_seqs(self):
         """test loading unaligned from file"""
