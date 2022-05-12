@@ -280,19 +280,18 @@ class _SubstitutionModel(object):
     def get_param_list(self):
         return []
 
-    def __str__(self):
-        s = [f"\n{self.__class__.__name__} ("]
+    def __repr__(self):
+        s = []
         s.append(
-            "name = '%s'; type = '%s';"
-            % (getattr(self, "name", None), getattr(self, "type", None))
+            f"name={getattr(self, 'name', None)!r};"
         )
         if hasattr(self, "predicate_masks"):
             parlist = list(self.predicate_masks.keys())
-            s.append(f"params = {parlist};")
+            s.append(f"params={parlist};")
         motifs = self.get_motifs()
-        s.append(f"number of motifs = {len(motifs)};")
-        s.append(f"motifs = {motifs})\n")
-        return " ".join(s)
+        s.append(f"num_motifs={len(motifs)};")
+        s.append(f"motifs={motifs})")
+        return f"{self.__class__.__name__}({' '.join(s)})"
 
     def get_alphabet(self):
         return self.alphabet

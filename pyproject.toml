@@ -106,9 +106,8 @@ dev = ["black",
        "sphinxcontrib-bibtex"]
 
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
+addopts = ["--strict-config", "-ra"]
+testpaths = "tests"
 
 [tool.black]
 line-length = 88
