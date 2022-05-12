@@ -283,7 +283,7 @@ class _SubstitutionModel(object):
     def __repr__(self):
         s = []
         s.append(
-            f"name={getattr(self, 'name', None)!r}; type={getattr(self, 'type', None)};"
+            f"name={getattr(self, 'name', None)!r};"
         )
         if hasattr(self, "predicate_masks"):
             parlist = list(self.predicate_masks.keys())
