@@ -310,7 +310,7 @@ class Calculator(object):
     def optimise(self, **kw):
         x = self.get_value_array()
         low, high = self.get_bounds_vectors()
-        # due to numerical precision, it occassionally happens that
+        # due to numerical precision, it occasionally happens that
         # a value no longer lies within bounds. The following logic
         # catches those cases.
         x = numpy.array(x)
