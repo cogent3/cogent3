@@ -1,5 +1,5 @@
-"""A mature library for genomic sequence analysis that provides
-a first-class experience within Jupyter notebooks plus supports parallel
+"""COmparative GENomics Toolkit 3: providing a first-class genomic sequence
+analysis experience within Jupyter notebooks plus supporting parallel
 execution on compute systems with 1000s of CPUs."""
 
 import os
