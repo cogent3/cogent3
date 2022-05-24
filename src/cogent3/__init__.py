@@ -1,7 +1,6 @@
-"""The most commonly used constructors are available from this toplevel module.
-The rest are in the subpackages: core, draw, evolve, format, maths, parse
-and phylo.
-"""
+"""A mature library for genomic sequence analysis that provides
+a first-class experience within Jupyter notebooks plus supports parallel
+execution on compute systems with 1000s of CPUs."""
 
 import os
 import pathlib
