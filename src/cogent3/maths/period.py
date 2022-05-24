@@ -91,13 +91,6 @@ class _PeriodEstimator(object):
         """returns the number of statistics computed by this calculator"""
         return 1
 
-    def getNumStats(self):
-        """returns the number of statistics computed by this calculator"""
-        from cogent3.util.warning import deprecated
-
-        deprecated("method", "getNumStats", "get_num_stats", version="2022.5")
-        return self.get_num_stats()
-
 
 class AutoCorrelation(_PeriodEstimator):
     """class for repetitive calculation of autocorrelation for series of
