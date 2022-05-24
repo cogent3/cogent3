@@ -4,9 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "cogent3"
-description = """COmparative GENomics Toolkit 3: providing a first-class genomic sequence
-analysis experience within Jupyter notebooks plus supporting parallel
-execution on compute systems with 1000s of CPUs."""
+description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
 dynamic = ["version"]
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
