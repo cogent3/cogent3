@@ -1,17 +1,19 @@
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "cogent3"
-author = "Gavin Huttley"
-author-email = "Gavin.Huttley@anu.edu.au"
-home-page = "https://cogent3.org"
-keywords = "biology, genomics, statistics, phylogeny, evolution, bioinformatics"
-description-file = "README.md"
-license = "BSD-3"
+[project]
+name = "cogent3"
+description = "a library for analysis of genomic data"
+dynamic = ["version"]
+authors = [
+    { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
+]
+keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioinformatics"]
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.7,<3.11"
-requires = ["chardet",
+dependencies = ["chardet",
         "numpy",
         "numba>0.48.0;python_version<'3.9'",
         "numba>0.53; python_version>='3.9'",
@@ -32,17 +34,13 @@ classifiers = [
         "Programming Language :: Python :: 3.10",
     ]
 
-[tool.flit.metadata.urls]
+[project.urls]
 Documentation = "https://www.cogent3.org/"
 "Bug Tracker" = "https://github.com/cogent3/cogent3/issues"
 "Source Code" = "https://github.com/cogent3/cogent3"
 Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
-[tool.flit.sdist]
-include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
-exclude = ["doc/*.html"]
-
-[tool.flit.metadata.requires-extra]
+[project.optional-dependencies]
 test = [
     "black",
     "isort",
@@ -105,13 +103,17 @@ dev = ["black",
        "sphinx_panels",
        "sphinxcontrib-bibtex"]
 
+[tool.flit.sdist]
+include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
+exclude = ["doc/*.html"]
+
 [tool.pytest.ini_options]
 addopts = ["--strict-config", "-ra"]
 testpaths = "tests"
 
 [tool.black]
 line-length = 88
-target-version = ['py37', 'py38', 'py39', 'py310']
+target-version = ["py37", "py38", "py39", "py310"]
 exclude = '''
 /(
     \.eggs
