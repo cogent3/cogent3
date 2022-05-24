@@ -33,7 +33,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -503,7 +503,7 @@ class WritableDataStoreBase:
 
         return relativeid
 
-    def write_incomplete(self, identifier, not_completed):
+    def write_incomplete(self, identifier, not_completed) -> DataStoreMember:
         """
 
         Parameters
@@ -524,9 +524,9 @@ class WritableDataStoreBase:
 
         record = make_record_for_json(identifier, not_completed, False)
         record = json.dumps(record)
-        self.write(identifier, record)
+        return self.write(identifier, record)
 
-    def write(self, identifier, data, *args, **kwargs):
+    def write(self, identifier, data, *args, **kwargs) -> DataStoreMember:
         """
         Parameters
         ----------
@@ -615,6 +615,9 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
 
     @extend_docstring_from(WritableDataStoreBase.write)
     def write(self, identifier, data):
+        if not data:
+            return data
+
         super().write(identifier, data)
         id_suffix = identifier.split(".")[-1]
         if id_suffix not in (self.suffix, "log"):
@@ -976,6 +979,11 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
     def write(self, identifier, data):
         # writing into a tinydb has its own logic for conversion to json
         #  so we don't validate data is a string for this case
+        from cogent3.app.composable import NotCompleted
+
+        if isinstance(data, NotCompleted):
+            return self.write_incomplete(identifier, data)
+
         super().write(identifier, "")
         id_suffix = identifier.split(".")[-1]
         if id_suffix not in (self.suffix, "log"):

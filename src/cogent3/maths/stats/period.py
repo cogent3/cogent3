@@ -17,7 +17,7 @@ __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -118,13 +118,6 @@ class SeqToSymbols(object):
         """sets a result array for length"""
         self.working = numpy.zeros(length, numpy.uint8)
         self.length = length
-
-    def setResultArray(self, length):
-        """deprecated, use set_result_array()"""
-        from cogent3.util.warning import deprecated
-
-        deprecated("method", "setResultArray", "set_result_array", version="2022.5")
-        return self.set_result_array(length)
 
     def __call__(self, seq, result=None):
         if result is None and self.working is None:

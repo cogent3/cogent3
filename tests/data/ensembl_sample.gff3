@@ -1,0 +1,17 @@
+##gff-version 3
+##sequence-region   22 1 40
+#!genome-build Genome Reference Consortium GRCh38.p13
+#!genome-version GRCh38
+#!genome-date 2013-12
+#!genome-build-accession GCA_000001405.28
+#!genebuild-last-updated 2021-11
+22	GRCh38	chromosome	1	40	.	.	.	ID=chromosome:22;Alias=CM000684.2,chr22,NC_000022.11
+###
+22	.	biological_region	37	38	2.94e+03	.	.	external_name=oe %3D 0.82;logic_name=cpg
+22	.	biological_region	39	39	0.999	-	.	logic_name=eponine
+###
+22	.	biological_region	2	5	2.94e+03	.	.	external_name=oe %3D 0.82;logic_name=cpg
+22	ensembl_havana	gene	6	36	.	+	.	ID=gene:ENSG00000215568;Name=GAB4;biotype=protein_coding;description=GRB2 associated binding protein family member 4 [Source:HGNC Symbol%3BAcc:HGNC:18325];gene_id=ENSG00000215568;logic_name=ensembl_havana_gene_homo_sapiens;version=9
+22	havana	mRNA	8	30	.	+	.	ID=transcript:ENST00000651146;Parent=gene:ENSG00000215568;Name=GAB4-206;biotype=nonsense_mediated_decay;transcript_id=ENST00000651146;version=1
+22	havana	exon	12	20	.	+	.	Parent=transcript:ENST00000651146;Name=ENSE00003848117;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003848117;rank=9;version=1
+22	havana	exon	23	27	.	+	.	Parent=transcript:ENST00000651146;Name=ENSE00003513343;constitutive=0;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSE00003513343;rank=8;version=1

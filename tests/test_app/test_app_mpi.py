@@ -12,7 +12,7 @@ __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Sheng Han Moses Koh"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -35,7 +35,6 @@ class MPITests(TestCase):
 
             r = process.apply_to(
                 members,
-                logger=False,
                 show_progress=False,
                 parallel=True,
                 par_kw=dict(use_mpi=True),

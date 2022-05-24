@@ -43,7 +43,7 @@ __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -247,6 +247,48 @@ class SequenceTests(TestCase):
         matches = [m for m in sequence.get_annotations_matching("*", extend_query=True)]
         # 13 features with one having 2 parents, so 14 instances should be found
         self.assertEqual(len(matches), 14)
+
+    def test_annotate_gff_nested_features(self):
+        """correctly annotate a sequence with nested features"""
+        # the synthetic example
+        #          1111111111222222222333333333334
+        # 1234567890123456789012345678901234567890
+        #  **** biological_region
+        #                                     ** biological_region
+        #                                       * biological_region
+        #      *******************************  gene
+        #         *********************   mRNA
+        #            *********            exon
+        #                       *****     exon
+        # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
+        seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+        gff3_path = os.path.join("data/ensembl_sample.gff3")
+        seq.annotate_from_gff(gff3_path)
+        # we have 1 "full chromosome" annotation, 3 generic regions and 1 gene
+        self.assertEqual(len(seq.annotations), 5)
+
+        # get the gene and check it has a single annotation and that
+        # its slice is correct
+        ann = seq.get_annotations_matching("gene")
+        self.assertEqual(len(ann), 1)
+        self.assertEqual(len(ann[0].annotations), 1)
+        seq = ann[0].get_slice()
+        self.assertEqual(str(seq), "GGAAAATTTTTTTTTAAGGGGGAAAAAAAAA")
+
+        # the gene has 1 transcript
+        ann = seq.get_annotations_matching("mRNA", extend_query=True)
+        self.assertEqual(len(ann), 1)
+        self.assertEqual(len(ann[0].annotations), 2)  # 2 exons
+        seq = ann[0].get_slice()
+        self.assertEqual(str(seq), "AAAATTTTTTTTTAAGGGGGAAA")
+
+        # the transcript has 2 exons
+        ann = seq.get_annotations_matching("exon", extend_query=True)
+        self.assertEqual(len(ann), 2)
+        exon_seqs = ("TTTTTTTTT", "GGGGG")
+        for x in ann:
+            self.assertEqual(len(x.annotations), 0)
+            self.assertTrue(str(x.get_slice()) in exon_seqs, msg=x.get_slice())
 
     def test_strip_degenerate(self):
         """Sequence strip_degenerate should remove any degenerate bases"""

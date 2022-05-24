@@ -19,7 +19,7 @@ __author__ = "Hua Ying, Julien Epps and Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -90,13 +90,6 @@ class _PeriodEstimator(object):
     def get_num_stats(self):
         """returns the number of statistics computed by this calculator"""
         return 1
-
-    def getNumStats(self):
-        """returns the number of statistics computed by this calculator"""
-        from cogent3.util.warning import deprecated
-
-        deprecated("method", "getNumStats", "get_num_stats", version="2022.5")
-        return self.get_num_stats()
 
 
 class AutoCorrelation(_PeriodEstimator):

@@ -56,7 +56,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Prototype"
@@ -575,10 +575,6 @@ class Map(object):
                     raise RuntimeError(
                         f"located outside sequence: {str((start, end, parent_length))}"
                     )
-                elif max(start, end) < 0:
-                    diff = min(start, end)
-                    start = [start, 0][start < 0]
-                    end = [end, 0][end < 0]
                 elif min(start, end) > parent_length:
                     diff = max(start, end) - parent_length
                     start = [start, parent_length][start > parent_length]

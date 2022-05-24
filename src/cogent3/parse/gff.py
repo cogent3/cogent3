@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from pathlib import Path
+
+from cogent3.util.io import open_
+
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
@@ -9,14 +13,10 @@ __credits__ = [
     "Christopher Bradley",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
-
-from pathlib import Path
-
-from cogent3.util.io import open_
 
 
 def gff_parser(f):
@@ -51,6 +51,11 @@ def _gff_parser(f):
         gff3 = gff3_header in f.readline()
         f.seek(0)
 
+    if gff3:
+        attribute_parser = parse_attributes_gff3
+    else:
+        attribute_parser = parse_attributes_gff2
+
     for line in f:
         # comments and blank lines
         if "#" in line:
@@ -66,10 +71,10 @@ def _gff_parser(f):
         if len(cols) == 8:
             cols.append("")
         assert len(cols) == 9, len(line)
-        (seqid, source, type_, start, end, score, strand, phase, attributes) = cols
+        seqid, source, type_, start, end, score, strand, phase, attributes = cols
 
         # adjust for 0-based indexing
-        (start, end) = (int(start) - 1, int(end))
+        start, end = int(start) - 1, int(end)
         # start is always meant to be less than end in GFF
         # features that extend beyond sequence have negative indices
         if start < 0 or end < 0:
@@ -81,10 +86,6 @@ def _gff_parser(f):
             (start, end) = (end, start)
 
         # all attributes have an "ID" but this may not be unique
-        if gff3:
-            attribute_parser = parse_attributes_gff3
-        else:
-            attribute_parser = parse_attributes_gff2
         attributes = attribute_parser(attributes, (start, end))
 
         rtn = {
@@ -114,16 +115,12 @@ def parse_attributes_gff3(attributes, span):
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")
     attributes = attributes.split(";")
-    if attributes[0]:
-        attributes = dict(t.split("=") for t in attributes)
-    else:
-        attributes = {}
-    if "Parent" in attributes.keys():
+    attributes = dict(t.split("=") for t in attributes) if attributes[0] else {}
+    if "Parent" in attributes:
         # There may be multiple parents
         if "," in attributes["Parent"]:
             attributes["Parent"] = attributes["Parent"].split(",")
         else:
             attributes["Parent"] = [attributes["Parent"]]
-    if "ID" not in attributes.keys():
-        attributes["ID"] = ""
+    attributes["ID"] = attributes.get("ID", "")
     return attributes

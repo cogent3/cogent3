@@ -13,7 +13,7 @@ __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Sheng Han Moses Koh"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -38,7 +38,7 @@ class ParallelTests(TestCase):
     def test_create_processes(self):
         """Procressor pool should create multiple distingue processes"""
         max_worker_count = multiprocessing.cpu_count() - 1
-        index = [index for index in range(max_worker_count)]
+        index = list(range(max_worker_count))
         result = parallel.map(get_process_value, index, max_workers=None, use_mpi=False)
         result_processes = [v[0] for v in result]
         result_values = [v[1] for v in result]
@@ -70,14 +70,6 @@ class ParallelTests(TestCase):
             if result:
                 master_processes += 1
         self.assertEqual(master_processes, 0)
-
-    @skipIf(sys.version_info[1] >= 7, "exception test for Python 3.6")
-    def test_is_master_process_version_exception(self):
-        """
-        is_master_process() should throw an exception
-        for Python versions below 3.7
-        """
-        self.assertRaises(RuntimeError, parallel.is_master_process)
 
 
 if __name__ == "__main__":

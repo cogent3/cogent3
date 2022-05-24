@@ -24,7 +24,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -204,18 +204,6 @@ class UtilsTests(TestCase):
         # ... and the existing file was removed
         self.assertFalse(exists(test_filepaths[2]))
 
-    def test_remove_files_depr(self):
-        """deprecation warning in place for old location"""
-        from cogent3.util.misc import remove_files
-
-        test_filepaths = [
-            tempfile.NamedTemporaryFile(prefix="remove_files_test").name
-            for i in range(5)
-        ]
-
-        with self.assertWarns(DeprecationWarning):
-            remove_files(test_filepaths, error_on_missing=False)
-
     def test_get_format_suffixes_returns_lower_case(self):
         """should always return lower case"""
         a, b = get_format_suffixes("suffixes.GZ")
@@ -256,13 +244,6 @@ class UtilsTests(TestCase):
         a, b = get_format_suffixes(Path("suffixes.zip"))
         self.assertTrue(a == None and b == "zip")
 
-    def test_get_format_suffixes_depr(self):
-        """deprecation warning in place for old get_format_suffixes location"""
-        from cogent3.util.misc import get_format_suffixes
-
-        with self.assertWarns(DeprecationWarning):
-            _ = get_format_suffixes("suffixes.GZ")
-
     def test_path_exists(self):
         """robustly identifies whether an object is a valid path and exists"""
         self.assertFalse(path_exists({}))
@@ -274,13 +255,6 @@ class UtilsTests(TestCase):
         self.assertTrue(path_exists(p))
         # or string instance
         self.assertTrue(path_exists(__file__))
-
-    def test_path_exists_depr(self):
-        """deprecation warning in place for old path_exists location"""
-        from cogent3.util.misc import path_exists
-
-        with self.assertWarns(DeprecationWarning):
-            _ = path_exists("(a,b,(c,d))")
 
     def test_open_reads_zip(self):
         """correctly reads a zip compressed file"""
@@ -295,23 +269,6 @@ class UtilsTests(TestCase):
 
             with open_(zip_path) as got:
                 self.assertEqual(got.readline(), "any str")
-
-    def test_open_zip_depr(self):
-        """deprecation warning in place for old open_zip location"""
-        from cogent3.util.misc import open_zip
-
-        with TemporaryDirectory(dir=".") as dirname:
-            text_path = os.path.join(dirname, "foo.txt")
-            with open(text_path, "w") as f:
-                f.write("any str")
-
-            zip_path = os.path.join(dirname, "foo.zip")
-            with zipfile.ZipFile(zip_path, "w") as zip:
-                zip.write(text_path)
-
-            with self.assertWarns(DeprecationWarning):
-                with open_zip(zip_path) as got:
-                    _ = got.readline()
 
     def test_open_writes_zip(self):
         """correctly writes a zip compressed file"""

@@ -18,8 +18,9 @@ These are all top level imports. For example,
 .. toctree::
     :maxdepth: 1
 
-    __init__/cogent3.__init__.load_unaligned_seqs
+    __init__/cogent3.__init__.load_seq
     __init__/cogent3.__init__.load_aligned_seqs
+    __init__/cogent3.__init__.load_unaligned_seqs
     __init__/cogent3.__init__.load_delimited
     __init__/cogent3.__init__.load_table
     __init__/cogent3.__init__.load_tree
@@ -36,9 +37,9 @@ These are all top level imports. For example,
 .. toctree::
     :maxdepth: 1
 
+    __init__/cogent3.__init__.make_seq
     __init__/cogent3.__init__.make_aligned_seqs
     __init__/cogent3.__init__.make_unaligned_seqs
-    __init__/cogent3.__init__.make_seq
     __init__/cogent3.__init__.make_table
     __init__/cogent3.__init__.make_tree
 

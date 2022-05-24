@@ -20,7 +20,7 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -310,7 +310,7 @@ class Calculator(object):
     def optimise(self, **kw):
         x = self.get_value_array()
         low, high = self.get_bounds_vectors()
-        # due to numerical precision, it occassionally happens that
+        # due to numerical precision, it occasionally happens that
         # a value no longer lies within bounds. The following logic
         # catches those cases.
         x = numpy.array(x)

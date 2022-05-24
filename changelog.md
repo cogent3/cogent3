@@ -1,3 +1,28 @@
+# Changes since release 2022.4.20a1
+
+## Contributors
+
+- Gavin Huttley
+
+## ENH
+
+- new `cogent3.util.parallel.as_completed()` generator function
+    - `as_completed()` wraps MPI or `concurrent.futures` executors and delivers results as they are completed. In contrast, `parallel.imap()` / `parallel.map()` deliver results in the same order as the input series. The advantage of `as_completed()` is the interval of result arrival at the parent process is better distributed.
+- new function `cogent3.load_seq()` loads a single sequence from a file
+- convert substitution model `__str__` to `__repr__`; more useful since `__repr__` is called also by str().
+
+## BUG
+
+- fixes to `annotation_from_gff()` method on annotatable sequence / alignment objects
+    - method would break if GFF records had no ID. This situation is quite common in some Ensembl gff3 files. We generate a "no-id-#" identifier in those cases.
+    - we now add features are added to their parent feature.
+- improve consistency in setting motif_probs on likelihood function
+    - only apply a pseudocount if optimising motif probs and at least one state has zero frequency, default pseudocount is 0.5. Thanks to StephenRogers1 for finding this issue!
+
+## DOC
+
+- document the API of the new `load_seq()` function
+
 # Changes since release 2022.4.15a1
 
 ## DEP

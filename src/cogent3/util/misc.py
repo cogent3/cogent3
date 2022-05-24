@@ -25,101 +25,10 @@ __credits__ = [
     "Marcin Cieslik",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
-
-# deprecated functions
-def open_zip(*args, **kwargs):
-    from cogent3.util.io import open_zip
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "cogent3.util.misc.open_zip",
-        "cogent3.util.io.open_zip",
-        "2022.4",
-    )
-    return open_zip(*args, **kwargs)
-
-
-def open_(*args, **kwargs):
-    from cogent3.util.io import open_
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "cogent3.util.misc.open_",
-        "cogent3.util.io.open_",
-        "2022.4",
-    )
-    return open_(*args, **kwargs)
-
-
-def _path_relative_to_zip_parent(*args, **kwargs):
-    from cogent3.util.io import _path_relative_to_zip_parent
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "cogent3.util.misc._path_relative_to_zip_parent",
-        "cogent3.util.io._path_relative_to_zip_parent",
-        "2022.4",
-    )
-    return _path_relative_to_zip_parent(*args, **kwargs)
-
-
-def atomic_write(*args, **kwargs):
-    from cogent3.util.io import atomic_write
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "class",
-        "cogent3.util.misc.atomic_write",
-        "cogent3.util.io.atomic_write",
-        "2022.4",
-    )
-    return atomic_write(*args, **kwargs)
-
-
-def get_format_suffixes(*args, **kwargs):
-    from cogent3.util.io import get_format_suffixes
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "cogent3.util.misc.get_format_suffixes",
-        "cogent3.util.io.get_format_suffixes",
-        "2022.4",
-    )
-    return get_format_suffixes(*args, **kwargs)
-
-
-def remove_files(*args, **kwargs):
-    from cogent3.util.io import remove_files
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "cogent3.util.misc.remove_files",
-        "cogent3.util.io.remove_files",
-        "2022.4",
-    )
-    return remove_files(*args, **kwargs)
-
-
-def path_exists(*args, **kwargs):
-    from cogent3.util.io import path_exists
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "cogent3.util.misc.path_exists",
-        "cogent3.util.io.path_exists",
-        "2022.4",
-    )
-    return path_exists(*args, **kwargs)
 
 
 def _adjusted_gt_minprob_vector(probs, minprob):
@@ -1101,3 +1010,8 @@ def get_setting_from_environ(environ_var, params_types):
             )
 
     return result
+
+
+def in_jupyter() -> bool:
+    """whether code is being executed within a jupyter notebook"""
+    return callable(globals().get("get_ipython"))

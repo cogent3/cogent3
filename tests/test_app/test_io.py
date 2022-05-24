@@ -16,6 +16,7 @@ from cogent3 import DNA
 from cogent3.app import align as align_app
 from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted
+from cogent3.app.data_store import DataStoreMember
 from cogent3.app.io import write_db
 from cogent3.app.result import generic_result
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
@@ -23,14 +24,13 @@ from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.util.table import Table
-from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.4.20a1"
+__version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -174,6 +174,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_seqs(dirname, if_exists="ignore")
             wrote = list(map(writer, alns))
+            self.assertIsInstance(wrote[0], DataStoreMember)
             written = list(io_app.findall(dirname, suffix="fasta"))
             for i, wrote in enumerate(written):
                 self.assertEqual(alns[i].info.stored, join(dirname, wrote))
@@ -216,6 +217,7 @@ class TestIo(TestCase):
             writer = write_db(outpath, create=True, if_exists="ignore")
             gr = _get_generic_result(join("blah", "delme.json"))
             got = writer(gr)
+            self.assertIsInstance(got, DataStoreMember)
             writer.data_store.db.close()
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
@@ -238,16 +240,6 @@ class TestIo(TestCase):
             got = reader(dstore[0])
             dstore.close()
             self.assertEqual(got, data)
-
-    def test_write_db_invalid(self):
-        """value error if identifier does not match data.info.source"""
-        with TemporaryDirectory(dir=".") as dirname:
-            outpath = join(dirname, "delme")
-            writer = write_db(outpath, create=True, if_exists="ignore")
-            data = UnionDict(a=[1, 2], b="string", source="delme2.json")
-            got = writer(data, identifier=join("blah", "delme.json"))
-            self.assertTrue("ValueError" in got.message)
-            writer.data_store.db.close()
 
     def test_load_db_failure_json_file(self):
         """informative load_db error message when given a json file path"""
@@ -299,7 +291,8 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(mca, identifier=outpath)
+            got = writer.write(mca, identifier=outpath)
+            self.assertIsInstance(got, DataStoreMember)
             new = loader(outpath)
             # when written to file in tabular form
             # the loaded table will have dim-1 dim-2 as column labels
@@ -478,7 +471,8 @@ class TestIo(TestCase):
             obj = generic_result(source=join("blah", "delme.json"))
             obj["dna"] = DNA
             writer = io_app.write_json(outdir, create=True)
-            _ = writer(obj)
+            got = writer(obj)
+            self.assertIsInstance(got, DataStoreMember)
             reader = io_app.load_json()
             got = reader(join(outdir, "delme.json"))
             got.deserialised_values()
@@ -522,7 +516,7 @@ class TestIo(TestCase):
         writer = write_db("delme.tinydb", create=True, if_exists="overwrite")
         process = reader + aligner + writer
 
-        r = process.apply_to(members, logger=False, show_progress=False, parallel=True)
+        r = process.apply_to(members, show_progress=False, parallel=True)
 
         expect = [str(m) for m in process.data_store]
         process.data_store.close()
