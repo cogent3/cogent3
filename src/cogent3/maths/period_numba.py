@@ -13,9 +13,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+# turn off code coverage as njit-ted code not accessible to coverage
+
 
 @njit(numba.float64(numba.float64[:], numba.int64, numba.int64), cache=True)
-def goertzel_inner(x, N, period):
+def goertzel_inner(x, N, period):  # pragma: no cover
     """returns the power from series x for period"""
     coeff = 2.0 * numpy.cos(2 * numpy.pi / period)
     s_prev = 0.0
@@ -39,7 +41,7 @@ def goertzel_inner(x, N, period):
     ),
     cache=True,
 )
-def ipdft_inner(x, X, W, ulim, N):
+def ipdft_inner(x, X, W, ulim, N):  # pragma: no cover
     for p in range(ulim):
         w = 1.0
         for n in range(N):
@@ -50,7 +52,7 @@ def ipdft_inner(x, X, W, ulim, N):
 
 
 @njit(numba.void(numba.float64[:], numba.float64[:], numba.int64), cache=True)
-def autocorr_inner(x, xc, N):
+def autocorr_inner(x, xc, N):  # pragma: no cover
     for m in range(-N + 1, N):
         for n in range(N):
             if 0 <= n - m < N:

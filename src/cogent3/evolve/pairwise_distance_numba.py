@@ -10,10 +10,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
 
+# turn off code coverage as njit-ted code not accessible to coverage
 
 # fills in a diversity matrix from sequences of integers
 @njit(cache=True)
-def fill_diversity_matrix(matrix, seq1, seq2):
+def fill_diversity_matrix(matrix, seq1, seq2):  # pragma: no cover
     """fills the diversity matrix for valid positions.
 
     Assumes the provided sequences have been converted to indices with
