@@ -14,9 +14,11 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+# turn off code coverage as njit-ted code not accessible to coverage
+
 
 @njit(cache=True)
-def calc_TN93_P(mprobs, time, alpha1, alpha2, result):
+def calc_TN93_P(mprobs, time, alpha1, alpha2, result):  # pragma: no cover
 
     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
         raise ValueError("all array dimensions must equal 4")

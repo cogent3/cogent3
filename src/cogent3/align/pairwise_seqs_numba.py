@@ -13,6 +13,8 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+# turn off code coverage as njit-ted code not accessible to coverage
+
 
 @njit(
     Tuple(types=(Tuple(types=(int64, int64)), int64, float64,))(
@@ -70,7 +72,7 @@ def calc_rows(
     local=False,
     use_scaling=False,
     use_logs=False,
-):
+):  # pragma: no cover
     assert not (use_logs and not viterbi)
     assert not (use_logs and use_scaling)
     assert not (local and not viterbi)
