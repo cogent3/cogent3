@@ -894,8 +894,7 @@ class _SequenceCollectionBase:
             mask_degen = False
 
         def reduced(seq, indices):
-            s = "".join(seq[i] for i in range(len(seq)) if i not in indices)
-            return s
+            return "".join(seq[i] for i in range(len(seq)) if i not in indices)
 
         identical_sets = []
         mask_posns = {}
