@@ -509,24 +509,30 @@ class TestIo(TestCase):
 
     def test_write_db_parallel(self):
         """writing with overwrite in parallel should reset db"""
-        dstore = io_app.get_data_store(self.basedir, suffix="fasta")
-        members = dstore.filtered(callback=lambda x: "brca1.fasta" not in x.split("/"))
-        reader = io_app.load_unaligned()
-        aligner = align_app.align_to_ref()
-        writer = write_db("delme.tinydb", create=True, if_exists="overwrite")
-        process = reader + aligner + writer
+        with TemporaryDirectory(dir=".") as dirname:
+            outdir = join(dirname, "delme.tinydb")
+            dstore = io_app.get_data_store(self.basedir, suffix="fasta")
+            members = dstore.filtered(
+                callback=lambda x: "brca1.fasta" not in x.split("/")
+            )
+            reader = io_app.load_unaligned()
+            aligner = align_app.align_to_ref()
+            writer = write_db(outdir, create=True, if_exists="overwrite")
+            process = reader + aligner + writer
 
-        r = process.apply_to(members, show_progress=False, parallel=True)
+            r = process.apply_to(
+                members, show_progress=False, parallel=True, cleanup=True
+            )
 
-        expect = [str(m) for m in process.data_store]
-        process.data_store.close()
+            expect = [str(m) for m in process.data_store]
+            process.data_store.close()
 
-        # now get read only and check what's in there
-        result = io_app.get_data_store("delme.tinydb")
-        got = [str(m) for m in result]
-        result.close()
+            # now get read only and check what's in there
+            result = io_app.get_data_store(outdir)
+            got = [str(m) for m in result]
+            result.close()
 
-        self.assertEqual(got, expect)
+            self.assertEqual(got, expect)
 
 
 if __name__ == "__main__":

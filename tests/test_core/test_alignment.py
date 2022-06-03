@@ -558,6 +558,8 @@ class SequenceCollectionBaseTests(object):
 
     def test_get_identical_sets(self):
         """correctly identify sets of identical sequences"""
+        from warnings import catch_warnings, filterwarnings
+
         # for DNA
         data = {
             "a": "ACGG",
@@ -619,7 +621,10 @@ class SequenceCollectionBaseTests(object):
         expect = frozenset(frozenset(s) for s in expect)
         self.assertEqual(got, expect)
 
-        got = seqs.get_identical_sets(mask_degen=True)
+        with catch_warnings():
+            filterwarnings("ignore", category=UserWarning)
+            got = seqs.get_identical_sets(mask_degen=True)
+
         got = frozenset(frozenset(s) for s in got)
         self.assertEqual(got, expect)
 
