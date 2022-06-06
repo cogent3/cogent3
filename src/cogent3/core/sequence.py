@@ -358,7 +358,7 @@ class SequenceI(object):
     def possibilities(self):
         """Counts number of possible sequences matching the sequence.
 
-        Uses self.degenerates to decide how many possibilites there are at
+        Uses self.degenerates to decide how many possibilities there are at
         each position in the sequence.
         """
         return self.moltype.possibilities(self)
