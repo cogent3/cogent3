@@ -110,6 +110,11 @@ exclude = ["doc/*.html"]
 [tool.pytest.ini_options]
 addopts = ["--strict-config", "-ra"]
 testpaths = "tests"
+filterwarnings = [
+    'ignore:FORCED EXIT from optimiser',
+    'ignore:Motif probs overspecified',
+    'ignore:Model not reversible',
+]
 
 [tool.black]
 line-length = 88

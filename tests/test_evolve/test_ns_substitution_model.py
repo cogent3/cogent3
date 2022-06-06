@@ -1,5 +1,3 @@
-import warnings
-
 from unittest import TestCase, main
 
 import numpy
@@ -21,10 +19,6 @@ from cogent3.evolve.ns_substitution_model import (
 )
 from cogent3.evolve.predicate import MotifChange
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide
-
-
-warnings.filterwarnings("ignore", "Motif probs overspecified")
-warnings.filterwarnings("ignore", "Model not reversible")
 
 
 __author__ = "Peter Maxwell and  Gavin Huttley"
