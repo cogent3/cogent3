@@ -1,3 +1,5 @@
+import warnings
+
 from unittest import TestCase, main
 
 import numpy
