@@ -10,7 +10,6 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
-
 import json
 import re
 import warnings
@@ -19,6 +18,7 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
+from typing import Generator, List, Tuple
 
 from numpy import (
     arange,
@@ -35,6 +35,7 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
+from cogent3.core.annotation import Map, _Annotatable
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
@@ -49,8 +50,7 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-
-from .annotation import Map, _Annotatable
+from cogent3.util.warning import deprecated
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -67,6 +67,7 @@ __version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
 
 ARRAY_TYPE = type(array(1))
 
@@ -358,7 +359,7 @@ class SequenceI(object):
     def possibilities(self):
         """Counts number of possible sequences matching the sequence.
 
-        Uses self.degenerates to decide how many possibilites there are at
+        Uses self.degenerates to decide how many possibilities there are at
         each position in the sequence.
         """
         return self.moltype.possibilities(self)
@@ -1038,14 +1039,45 @@ class Sequence(_Annotatable, SequenceI):
     def __iter__(self):
         return iter(self._seq)
 
-    def gettype(self):
+    def gettype(self):  # pragma: no cover
         """Return the sequence type."""
+        deprecated("method", "gettype", "get_type", "2023.6", "pep8", stack_level=1)
+        return self.get_type()
+
+    def get_type(self):
+        """Return the sequence type as moltype label."""
         return self.moltype.label
 
-    def resolveambiguities(self):
+    def resolveambiguities(self):  # pragma: no cover
         """Returns a list of tuples of strings."""
-        ambigs = self.moltype.resolve_ambiguity
-        return [ambigs(motif) for motif in self._seq]
+        deprecated(
+            "method",
+            "resolveambiguities",
+            "resolved_ambiguities",
+            "2023.6",
+            "pep8",
+            stack_level=1,
+        )
+        return self.resolved_ambiguities()
+
+    def resolved_ambiguities(self) -> List[Tuple[str]]:
+        """Returns a list of tuples of strings."""
+        ambigs = self.moltype.ambiguities
+        return [ambigs[motif] for motif in self._seq]
+
+    def iter_kmers(self, k: int) -> Generator[str, None, None]:
+        """generates all overlapping k-mers"""
+        if k <= 0:
+            raise ValueError(f"k must be an int > 0, not {k}")
+
+        if not isinstance(k, int):
+            raise ValueError(f"k must be an int, not {k}")
+
+        yield from (str(self[i : i + k]) for i in range(len(self) - k + 1))
+
+    def get_kmers(self, k: int) -> List[str]:
+        """return all overlapping k-mers"""
+        return list(self.iter_kmers(k))
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator function that yield new sequence objects
