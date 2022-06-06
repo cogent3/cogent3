@@ -19,6 +19,7 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
+from typing import Generator
 
 from numpy import (
     arange,
@@ -1065,6 +1066,19 @@ class Sequence(_Annotatable, SequenceI):
         ambigs = self.moltype.ambiguities
         return [ambigs[motif] for motif in self._seq]
 
+    def iter_kmers(self, k: int) -> Generator[str, None, None]:
+        """generates all overlapping k-mers"""
+        if k <= 0:
+            raise ValueError(f"k must be an int > 0, not {k}")
+
+        if not isinstance(k, int):
+            raise ValueError(f"k must be an int, not {k}")
+
+        yield from (str(self[i : i + k]) for i in range(len(self) - k + 1))
+
+    def get_kmers(self, k: int) -> list[str]:
+        """return all overlapping k-mers"""
+        return list(self.iter_kmers(k))
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator function that yield new sequence objects
