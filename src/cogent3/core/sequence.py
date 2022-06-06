@@ -10,7 +10,6 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
-
 import json
 import re
 import warnings
@@ -19,7 +18,7 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator
+from typing import Generator, List, Tuple
 
 from numpy import (
     arange,
@@ -1061,7 +1060,7 @@ class Sequence(_Annotatable, SequenceI):
         )
         return self.resolved_ambiguities()
 
-    def resolved_ambiguities(self) -> list[tuple[str], ...]:
+    def resolved_ambiguities(self) -> List[Tuple[str]]:
         """Returns a list of tuples of strings."""
         ambigs = self.moltype.ambiguities
         return [ambigs[motif] for motif in self._seq]
@@ -1076,7 +1075,7 @@ class Sequence(_Annotatable, SequenceI):
 
         yield from (str(self[i : i + k]) for i in range(len(self) - k + 1))
 
-    def get_kmers(self, k: int) -> list[str]:
+    def get_kmers(self, k: int) -> List[str]:
         """return all overlapping k-mers"""
         return list(self.iter_kmers(k))
 
