@@ -1099,6 +1099,21 @@ class SequenceSubclassTests(TestCase):
         self.assertRaises(AlphabetError, x.__add__, "z")
         self.assertEqual(DnaSequence("TTTAc").rc(), "GTAAA")
 
+    def test_get_type(self):
+        """returns moltype label"""
+        for moltype in ("text", "dna", "bytes"):
+            seq = get_moltype(moltype).make_seq("ARCGT")
+            self.assertEqual(seq.get_type(), moltype)
+
+    def test_resolved_ambiguities(self):
+        seq = get_moltype("dna").make_seq("ARC")
+        got = seq.resolved_ambiguities()
+        self.assertEqual(got, [("A",), ("A", "G"), ("C",)])
+
+        seq = get_moltype("dna").make_seq("AGC")
+        got = seq.resolved_ambiguities()
+        self.assertEqual(got, [("A",), ("G",), ("C",)])
+
 
 # TODO move methods of this class onto the single class that inherits from it!
 class ModelSequenceTests(object):

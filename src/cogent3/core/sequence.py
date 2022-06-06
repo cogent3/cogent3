@@ -50,6 +50,7 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
+from cogent3.util.warning import deprecated
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -1038,14 +1039,32 @@ class Sequence(_Annotatable, SequenceI):
     def __iter__(self):
         return iter(self._seq)
 
-    def gettype(self):
+    def gettype(self):  # pragma: no cover
         """Return the sequence type."""
+        deprecated("method", "gettype", "get_type", "2023.6", "pep8", stack_level=1)
+        return self.get_type()
+
+    def get_type(self):
+        """Return the sequence type as moltype label."""
         return self.moltype.label
 
-    def resolveambiguities(self):
+    def resolveambiguities(self):  # pragma: no cover
         """Returns a list of tuples of strings."""
-        ambigs = self.moltype.resolve_ambiguity
-        return [ambigs(motif) for motif in self._seq]
+        deprecated(
+            "method",
+            "resolveambiguities",
+            "resolved_ambiguities",
+            "2023.6",
+            "pep8",
+            stack_level=1,
+        )
+        return self.resolved_ambiguities()
+
+    def resolved_ambiguities(self) -> list[tuple[str], ...]:
+        """Returns a list of tuples of strings."""
+        ambigs = self.moltype.ambiguities
+        return [ambigs[motif] for motif in self._seq]
+
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator function that yield new sequence objects
