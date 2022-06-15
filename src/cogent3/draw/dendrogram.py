@@ -652,8 +652,14 @@ class Dendrogram(Drawable):
         if not self.scale_bar or self.contemporaneous:
             return None, None
 
+        # place scale bar above / below dendrogram area
+        y_shift = (self.tree.max_y - self.tree.min_y) / 11
         x = self.tree.min_x if "left" in self.scale_bar else self.tree.max_x
-        y = self.tree.min_y if "bottom" in self.scale_bar else self.tree.max_y
+        y = (
+            self.tree.min_y - y_shift
+            if "bottom" in self.scale_bar
+            else self.tree.max_y + y_shift
+        )
         scale = 0.1 * self.tree.max_x
         text = f"{scale:.1e}" if scale < 1e-2 else f"{scale:.2f}"
         shape = {
@@ -663,6 +669,7 @@ class Dendrogram(Drawable):
             "x1": x + scale,
             "y1": y,
             "line": {"color": self._line_color, "width": self._line_width},
+            "name": "scale_bar",
         }
         annotation = UnionDict(
             x=x + (0.5 * scale),
