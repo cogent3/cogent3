@@ -178,6 +178,28 @@ class TestDendro(TestCase):
         dnd.tip_font.color = "red"
         self.assertEqual(dnd.tip_font["color"], "red")
 
+    def test_scale_bar_place(self):
+        """outside rectangle containing dendrogram"""
+        from itertools import product
+
+        tree = make_tree(
+            "((a:0.1,b:0.25):0.1,(c:0.02,(e:0.035,f:0.04):0.15):0.3,g:0.3)"
+        )
+        styles = ["square", "circular", "angular", "radial"]
+        for style in styles:
+            dnd = tree.get_figure(style=style)
+            for vert, horizontal in product(["top", "bottom"], ["left", "right"]):
+                dnd.scale_bar = f"{vert} {horizontal}"
+                for s in dnd.figure.layout.shapes:
+                    if s.get("name") == "scale_bar":
+                        scale_y = s["y0"]
+                min_y, max_y = dnd.tree.min_y, dnd.tree.max_y
+                self.assertFalse(min_y <= scale_y <= max_y)
+
+        # if we set scale_bar None, there should be shapes
+        dnd.scale_bar = None
+        self.assertIsNone(dnd.figure.layout.get("shapes"))
+
 
 if __name__ == "__main__":
     main()
