@@ -1293,7 +1293,9 @@ class SequenceCollectionBaseTests(object):
     def test_dotplot(self):
         """exercising dotplot method"""
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
-        _ = seqs.dotplot(show_progress=False)
+        _ = seqs.dotplot()
+        with self.assertRaises(AssertionError):
+            seqs.dotplot(window=5, k=11)
 
     def test_dotplot_annotated(self):
         """exercising dotplot method with annotated sequences"""
