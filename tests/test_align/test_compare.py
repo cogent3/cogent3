@@ -60,15 +60,6 @@ def smallseq():
     return "ACCGGTT"
 
 
-def _get_slice(x, y, s1, s2):
-    return s1[x.start : x.end], s2[y.start : y.end]
-
-
-def _diffs(a, b):
-    assert len(a) == len(b)
-    return sum(i == j for i, j in zip(a, b))
-
-
 def test_find_matched_k_eq_1():
     s1 = make_seq("TGATGTAAGGTAGTT", name="1")
     s2 = make_seq("CTGGAAGGGT", name="2")
@@ -313,7 +304,7 @@ def test_bruteforce(aseq1, aseq2):
 
 def test_find_matched_paths_2seq(aseq1, aseq2):
     expect = _brute_force(aseq1, aseq2, 3, 3)
-    sk = SeqKmers(aseq1, k=3, canonical="ACGT")
+    sk = SeqKmers(aseq1, k=3, canonical=set("ACGT"))
     got = find_matched_paths(
         sk,
         aseq1,
@@ -394,13 +385,13 @@ def test_find_matched_with_rc():
 def test_find_matched_1seq(w, t):
     s = make_seq("CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
     expect = _brute_force(s, s, w, t)
-    sk = SeqKmers(s, k=w, canonical="ACGT")
+    sk = SeqKmers(s, k=w, canonical=set("ACGT"))
     got = find_matched_paths(sk, s, window=w, threshold=t)
     assert got.paths == expect.paths
 
 
-def test_plotly_fig(aseq1, aseq2):
-    sk = SeqKmers(aseq1, k=3, canonical="ACGT")
+def test_plotly_trace(aseq1, aseq2):
+    sk = SeqKmers(aseq1, k=3, canonical=set("ACGT"))
     got = find_matched_paths(
         sk,
         aseq1,
@@ -408,6 +399,10 @@ def test_plotly_fig(aseq1, aseq2):
         window=3,
         threshold=3,
     )
+    trace = got.plotly_trace()
+    assert isinstance(trace, dict)
+    assert trace["type"] == "scatter"
+    assert len(trace["x"]) == len(trace["y"]) and len(trace["x"]) > 0
 
 
 def _construct_matches(s1, s2, window):
@@ -457,7 +452,7 @@ def test_extend_left_truncated(left_limit):
     # cannot be beyond the start of a sequence
     window, threshold = 4, 3
     # preceeding base is mismatch, start shifted left by 1 due to
-    #          |  * mismatch end of window
+    #        |  * mismatch end of window
     s1 = "TTACGTTGCA"
     s2 = "TTTCCCGTCGCA"
     #          |
