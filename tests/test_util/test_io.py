@@ -4,6 +4,7 @@ import os
 import pathlib
 import tempfile
 import zipfile
+import pytest
 
 from os import remove, rmdir
 from os.path import exists
@@ -17,12 +18,13 @@ from cogent3.util.io import (
     open_,
     path_exists,
     remove_files,
+    open_url,
 )
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
@@ -301,6 +303,150 @@ class UtilsTests(TestCase):
 
             with self.assertRaises(ValueError):
                 open_(zip_path)
+
+    def test_open_url(self):
+        from urllib.parse import urlparse
+
+        # Test 1: compare read file from local and https adresses with r mode with string url
+            # open a local file to read in text mode
+        path_data = "./data/c_elegans_WS199_dna_shortened.fasta"
+        file_local = open(path_data, mode="r")
+        file_content = file_local.read()
+        file_local.close()
+
+            # open a file from a url to read in text mode
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/c_elegans_WS199_dna_shortened.fasta"
+        file_url = open_url(url_data, mode="r")
+        url_content = file_url.read()
+        file_url.close()
+
+        self.assertEqual(file_content,url_content)
+        
+        # Test 2: comapre read file from local and https addresses with r mode with parsed url
+            # open a file from a url to read in text mode with parsed url
+        parsed_url = urlparse(url_data)
+        file_url = open_url(parsed_url, mode="r")
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 3: compare read second file from local and https addresses with r mode with string url
+            # open a local file to read in text mode
+        path_data = "./data/gff2_test.gff"
+        file_local = open(path_data, mode="r")
+        file_content = file_local.read()
+        file_local.close()
+
+            # open a file from a url to read in text mode
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        file_url = open_url(url_data, mode="r")
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+        
+        # Test 4: comapre read second file from local and https adresses with r mode with parsed url
+            # open a file from a url to read in text mode with parsed url
+        parsed_url = urlparse(url_data)
+        file_url = open_url(parsed_url, mode="r")
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 5: comapre read file from local and https adresses with rb mode with string url
+            # open a local file to read in binary mode
+        path_data = "./data/c_elegans_WS199_dna_shortened.fasta"
+        file_local = open(path_data, mode="rb")
+        file_content = file_local.read()
+        file_local.close()
+
+            # open a file from a url to read in binary mode
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/c_elegans_WS199_dna_shortened.fasta"
+        file_url = open_url(url_data, mode="rb")
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 6: comapre read second file from local and https adresses with rb mode with string url
+            # open a local file to read in binary mode
+        path_data = "./data/gff2_test.gff"
+        file_local = open(path_data, mode="rb")
+        file_content = file_local.read()
+        file_local.close()
+        
+            # open a file from a url to read in binary mode
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        file_url = open_url(url_data, mode="rb")
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 7: comapre read file from local and https adresses with rt mode with string url
+            # open a local file to read in text mode
+        path_data = "./data/c_elegans_WS199_dna_shortened.fasta"
+        file_local = open(path_data, mode="r")
+        file_content = file_local.read()
+        file_local.close()
+
+            # open a file from a url to read in rt mode
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/c_elegans_WS199_dna_shortened.fasta"
+        file_url = open_url(url_data, mode="rt")
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 8: comapre read second file from local and https adresses with rt mode with string url
+            # open a local file to read in text mode
+        path_data = "./data/gff2_test.gff"
+        file_local = open(path_data, mode="r")
+        file_content = file_local.read()
+        file_local.close()
+
+            # open a file from a url to read in rt mode
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        file_url = open_url(url_data, mode="rt")
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 9: comapre read file from local and https adresses without mode with string url
+            # open a local file to read in binary mode
+        path_data = "./data/c_elegans_WS199_dna_shortened.fasta"
+        file_local = open(path_data, mode='rb')
+        file_content = file_local.read()
+        file_local.close()
+
+            # open a file from a url to read without mode (should be default binary)
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/c_elegans_WS199_dna_shortened.fasta"
+        file_url = open_url(url_data)
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 10: comapre read second file from local and https adresses without mode with string url
+            # open a local file to read in binary mode
+        path_data = "./data/gff2_test.gff"
+        file_local = open(path_data, mode="rb")
+        file_content = file_local.read()
+        file_local.close()
+
+            # open a file from a url to read without mode (should be default binary)
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        file_url = open_url(url_data)
+        url_content = file_url.read()
+        file_url.close()
+        self.assertEqual(file_content,url_content)
+
+        # Test 11: comapre read file from local and https adresses with w mode with string url
+            # open a file from a url to read in w mode (should raise Exception)
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        with pytest.raises(Exception):
+            file_url = open_url(url_data, mode="w")
+
+        # Test 12: comapre read file from local and ftp with w mode with string url
+            # open a file from a url which is not http or https (should raise Exception)
+        url_data= "ftp://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        with pytest.raises(Exception):
+            file_url = open_url(url_data, mode="r")
 
 
 if __name__ == "__main__":
