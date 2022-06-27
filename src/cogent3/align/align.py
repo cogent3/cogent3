@@ -4,6 +4,7 @@ import numpy
 
 from cogent3.align import indel_model, pairwise, pycompare
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
+from cogent3.util.warning import discontinued
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -19,10 +20,14 @@ __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 
-def dotplot(seq1, seq2, window, threshold, min_gap_length=0, band=None, **kw):
-    # warnings.warn("cogent3.align.align.dotplot moved to cogent3.align.compare.dotplot",
-    #    DeprecationWarning)
-    return pycompare.dotplot(seq1, seq2, window, threshold, min_gap_length, band, **kw)
+def dotplot(seq1, seq2, window, threshold, **kw):
+    discontinued(
+        "function",
+        "dotplot",
+        "2023.5",
+        "replaced by much faster cogent3.align.compare.find_matched_paths",
+    )
+    return pycompare.dotplot(seq1, seq2, window, threshold, **kw)
 
 
 def make_dna_scoring_dict(match, transition, transversion):

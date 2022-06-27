@@ -894,8 +894,7 @@ class _SequenceCollectionBase:
             mask_degen = False
 
         def reduced(seq, indices):
-            s = "".join(seq[i] for i in range(len(seq)) if i not in indices)
-            return s
+            return "".join(seq[i] for i in range(len(seq)) if i not in indices)
 
         identical_sets = []
         mask_posns = {}
@@ -1680,6 +1679,7 @@ class _SequenceCollectionBase:
         name2=None,
         window=20,
         threshold=None,
+        k=None,
         min_gap=0,
         width=500,
         title=None,
@@ -1697,6 +1697,10 @@ class _SequenceCollectionBase:
             k-mer size for comparison between sequences
         threshold : int
             windows where the sequences are identical >= threshold are a match
+        k : int
+            size of k-mer to break sequences into. Larger values increase
+            speed but reduce resolution. If not specified, is computed as the
+            maximum of (window-threshold), (window % k) * k <= threshold.
         min_gap : int
             permitted gap for joining adjacent line segments, default is no gap
             joining
@@ -1716,12 +1720,15 @@ class _SequenceCollectionBase:
         from cogent3.draw.dotplot import Dotplot
         from cogent3.draw.drawable import AnnotatedDrawable
 
+        if k is not None:
+            assert 0 < k < window, "k must be smaller than window size"
+
         if len(self.names) == 1:
             name1 = name2 = self.names[0]
         elif name1 is None and name2 is None:
             name1, name2 = list(choice(self.names, size=2, replace=False))
         elif not (name1 and name2):
-            names = list(set(self.names + [None]) ^ set([name1, name2]))
+            names = list(set(self.names + [None]) ^ {name1, name2})
             name = list(choice(names, size=1))[0]
             name1 = name1 or name
             name2 = name2 or name
@@ -3741,7 +3748,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self.array_seqs = transpose(self.array_positions)
         self.seq_data = self.array_seqs
         self.seq_len = len(self.array_positions)
-        self._type = self.moltype.gettype()
+        self._type = self.moltype.get_type()
 
     def _force_same_data(self, data, names):
         """Forces array that was passed in to be used as selfarray_positions"""
@@ -4357,7 +4364,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         names = self.names
 
         self._motif_probs = {}
-        self._type = self.moltype.gettype()
+        self._type = self.moltype.get_type()
         lengths = list(map(len, self.seq_data))
         if lengths and (max(lengths) != min(lengths)):
             raise DataError(

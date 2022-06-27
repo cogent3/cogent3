@@ -252,8 +252,6 @@ class MultipleAlignmentTestCase(unittest.TestCase):
 
     def test_difficult_end_gaps(self):
         self._test_aln({"A": "--cctc", "B": "--cctc", "C": "gacctc", "D": "ga----"})
-        return
-
         self._test_aln(
             {
                 "A": "gcctcgg------",

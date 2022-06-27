@@ -69,6 +69,7 @@ from cogent3.util.misc import (
     iterable,
 )
 from cogent3.util.transform import KeepChars, first_index_in_set
+from cogent3.util.warning import deprecated
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -739,8 +740,13 @@ class MolType(object):
             seq[index] = f"[{''.join(expanded)}]"
         return "".join(seq)
 
-    def gettype(self):
-        """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
+    def gettype(self):  # pragma: no cover
+        """Return the moltype label."""
+        deprecated("method", "gettype", "get_type", "2023.6", "pep8", stack_level=1)
+        return self.label
+
+    def get_type(self):  # pragma: no cover
+        """Return the moltype label"""
         return self.label
 
     def make_seq(self, seq, name=None, **kwargs):

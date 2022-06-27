@@ -558,6 +558,8 @@ class SequenceCollectionBaseTests(object):
 
     def test_get_identical_sets(self):
         """correctly identify sets of identical sequences"""
+        from warnings import catch_warnings, filterwarnings
+
         # for DNA
         data = {
             "a": "ACGG",
@@ -619,7 +621,10 @@ class SequenceCollectionBaseTests(object):
         expect = frozenset(frozenset(s) for s in expect)
         self.assertEqual(got, expect)
 
-        got = seqs.get_identical_sets(mask_degen=True)
+        with catch_warnings():
+            filterwarnings("ignore", category=UserWarning)
+            got = seqs.get_identical_sets(mask_degen=True)
+
         got = frozenset(frozenset(s) for s in got)
         self.assertEqual(got, expect)
 
@@ -1288,7 +1293,9 @@ class SequenceCollectionBaseTests(object):
     def test_dotplot(self):
         """exercising dotplot method"""
         seqs = self.Class(data=self.brca1_data, moltype=DNA)
-        _ = seqs.dotplot(show_progress=False)
+        _ = seqs.dotplot()
+        with self.assertRaises(AssertionError):
+            seqs.dotplot(window=5, k=11)
 
     def test_dotplot_annotated(self):
         """exercising dotplot method with annotated sequences"""

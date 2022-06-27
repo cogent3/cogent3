@@ -11,7 +11,18 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length, diagonal):
+def segments_from_diagonal(
+    seq1, seq2, window, threshold, min_gap_length, diagonal
+):  # pragma: no cover
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function",
+        "segments_from_diagonal",
+        "2023.5",
+        "replaced by much faster code in cogent3.align.compare",
+    )
+
     assert window < 100
     scores = np.zeros(window)
 

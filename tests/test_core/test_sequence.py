@@ -1084,7 +1084,7 @@ class SequenceTests(TestCase):
 
 
 class SequenceSubclassTests(TestCase):
-    """Only one general set of tests, since the subclasses are very thin."""
+    SequenceClass = Sequence
 
     def test_DnaSequence(self):
         """DnaSequence should behave as expected"""
@@ -1098,6 +1098,58 @@ class SequenceSubclassTests(TestCase):
         assert x.moltype is DNA
         self.assertRaises(AlphabetError, x.__add__, "z")
         self.assertEqual(DnaSequence("TTTAc").rc(), "GTAAA")
+
+    def test_get_type(self):
+        """returns moltype label"""
+        for moltype in ("text", "dna", "bytes"):
+            seq = get_moltype(moltype).make_seq("ARCGT")
+            self.assertEqual(seq.get_type(), moltype)
+
+    def test_resolved_ambiguities(self):
+        seq = get_moltype("dna").make_seq("ARC")
+        got = seq.resolved_ambiguities()
+        self.assertEqual(got, [("A",), ("A", "G"), ("C",)])
+
+        seq = get_moltype("dna").make_seq("AGC")
+        got = seq.resolved_ambiguities()
+        self.assertEqual(got, [("A",), ("G",), ("C",)])
+
+    def test_iter_kmers(self):
+        """correctly yield all k-mers"""
+        from typing import Generator
+
+        orig = "TCAGGA"
+        r = self.SequenceClass(orig)
+        self.assertIsInstance(r.iter_kmers(k=1), Generator)
+
+        for k in range(1, 7):
+            expect = [str(orig[i : i + k]) for i in range(len(orig) - k + 1)]
+            got = list(r.iter_kmers(k))
+            self.assertEqual(got, expect)
+
+        orig = ""
+        r = self.SequenceClass(orig)
+        self.assertIsInstance(r.iter_kmers(k=1), Generator)
+        got = list(r.iter_kmers(k=1))
+        self.assertEqual(got, [])
+
+    def test_iter_kmers_handles_invalid(self):
+        """raise exceptions on invalid input to iter_kmers"""
+        orig = "TCAGGA"
+        r = self.SequenceClass(orig)
+        for k in (0, -1, 1.1):
+            with self.assertRaises(ValueError):
+                _ = list(r.iter_kmers(k))
+
+    def test_get_kmers(self):
+        """returns a list of k-mers"""
+        orig = "TCAGGA"
+        r = self.SequenceClass(orig)
+
+        for k in range(1, 7):
+            expect = [str(orig[i : i + k]) for i in range(len(orig) - k + 1)]
+            got = r.get_kmers(k)
+            self.assertEqual(got, expect)
 
 
 # TODO move methods of this class onto the single class that inherits from it!
