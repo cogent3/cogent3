@@ -100,7 +100,7 @@ def open_url(url: Union[str, ParseResult], mode="rb", **kwargs):
     If mode="b" or "rb" (binary read), the function returns file object to read
     else returns TextIOWrapper to read text with specified encoding in the URL
     """
-    
+
     url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
     if "r" not in mode:
@@ -116,8 +116,6 @@ def open_url(url: Union[str, ParseResult], mode="rb", **kwargs):
         if "b" in mode
         else TextIOWrapper(response, encoding=response.headers.get_content_charset())
     )
-
-
 
 
 def _path_relative_to_zip_parent(zip_path, member_path):
