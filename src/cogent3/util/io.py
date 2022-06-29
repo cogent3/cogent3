@@ -3,16 +3,15 @@ import uuid
 
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
+from io import TextIOWrapper
 from os import path as os_path
 from os import remove
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Union
-from zipfile import ZipFile
-from urllib.parse import ParseResult
-from io import TextIOWrapper
+from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
-from urllib.parse import urlparse
+from zipfile import ZipFile
 
 from chardet import detect
 
@@ -42,8 +41,7 @@ def open_zip(filename: Union[str, Path], mode="r", **kwargs):
     """
     # import of standard library io module as some code quality tools
     # confuse this with a circular import
-    from io import TextIOWrapper
-
+    mode = mode or "r"
     binary_mode = "b" in mode
     mode = mode[:1]
 
@@ -66,7 +64,7 @@ def open_zip(filename: Union[str, Path], mode="r", **kwargs):
 
 def open_(filename: Union[str, Path], mode="rt", **kwargs):
     """open that handles different compression"""
-
+    mode = mode or "rt"
     filename = Path(filename).expanduser().absolute()
     op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
         filename.suffix, open
@@ -85,7 +83,7 @@ def open_(filename: Union[str, Path], mode="rt", **kwargs):
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: Union[str, ParseResult], mode="rb", **kwargs):
+def open_url(url: Union[str, ParseResult], mode="r", **kwargs):
     """open a url
 
     Parameters
@@ -93,18 +91,22 @@ def open_url(url: Union[str, ParseResult], mode="rb", **kwargs):
     url : urllib.parse.ParseResult or str
         A url of file in http or https web address
     mode : str
-        mode of reading file, {"rb", "rt", "r"}
+        mode of reading file, 'rb', 'rt', 'r'
+
+    Raises
+    ------
+    If not http(s).
 
     Notes
     -----
-    If mode="b" or "rb" (binary read), the function returns file object to read
+    If mode='b' or 'rb' (binary read), the function returns file object to read
     else returns TextIOWrapper to read text with specified encoding in the URL
     """
-
+    mode = mode or "r"
     url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
     if "r" not in mode:
-        raise ValueError("openning a url only allowed in read mode")
+        raise ValueError("opening a url only allowed in read mode")
 
     if url_parsed.scheme not in "https":
         raise ValueError("URL scheme must be http or https.")
