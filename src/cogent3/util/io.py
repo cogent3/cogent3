@@ -9,6 +9,10 @@ from pathlib import Path
 from tempfile import mkdtemp
 from typing import Union
 from zipfile import ZipFile
+from urllib.parse import ParseResult
+from io import TextIOWrapper
+from urllib.request import urlopen
+from urllib.parse import urlparse
 
 from chardet import detect
 
@@ -17,7 +21,7 @@ from cogent3.util.misc import _wout_period
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
@@ -79,6 +83,39 @@ def open_(filename: Union[str, Path], mode="rt", **kwargs):
             encoding = encoding["encoding"]
 
     return op(filename, mode, encoding=encoding, **kwargs)
+
+
+def open_url(url: Union[str, ParseResult], mode="rb", **kwargs):
+    """open a url
+
+    Parameters
+    ----------
+    url : urllib.parse.ParseResult or str
+        A url of file in http or https web address
+    mode : str
+        mode of reading file, {"rb", "rt", "r"}
+
+    Notes
+    -----
+    If mode="b" or "rb" (binary read), the function returns file object to read
+    else returns TextIOWrapper to read text with specified encoding in the URL
+    """
+
+    url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
+
+    if "r" not in mode:
+        raise ValueError("openning a url only allowed in read mode")
+
+    if url_parsed.scheme not in "https":
+        raise ValueError("URL scheme must be http or https.")
+
+    response = urlopen(url_parsed.geturl(), timeout=10)
+
+    return (
+        response
+        if "b" in mode
+        else TextIOWrapper(response, encoding=response.headers.get_content_charset())
+    )
 
 
 def _path_relative_to_zip_parent(zip_path, member_path):

@@ -4,6 +4,7 @@ import os
 import pathlib
 import tempfile
 import zipfile
+import pytest
 
 from os import remove, rmdir
 from os.path import exists
@@ -17,12 +18,13 @@ from cogent3.util.io import (
     open_,
     path_exists,
     remove_files,
+    open_url,
 )
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.5.25a1"
 __maintainer__ = "Gavin Huttley"
@@ -301,6 +303,43 @@ class UtilsTests(TestCase):
 
             with self.assertRaises(ValueError):
                 open_(zip_path)
+
+    def test_open_url(self):
+        from urllib.parse import urlparse
+
+        local_root = pathlib.Path("data")
+        remote_root = (
+            "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
+        )
+        for file_name in ("c_elegans_WS199_dna_shortened.fasta", "gff2_test.gff"):
+            for mode in ("r", "rb", "rt"):
+                with open_(local_root / file_name, mode=mode) as infile:
+                    local_data = infile.read()
+                with open_url(remote_root.format(file_name), mode=mode) as infile:
+                    remote_data = infile.read()
+                self.assertEqual(remote_data.splitlines(), local_data.splitlines())
+
+                # Test ParseResult for url
+                with open_url(
+                    urlparse(remote_root.format(file_name)), mode=mode
+                ) as infile:
+                    remote_data = infile.read()
+                self.assertEqual(remote_data.splitlines(), local_data.splitlines())
+
+                if "b" in mode:  # Test no value for mode, use default "rb" mode
+                    with open_url(remote_root.format(file_name)) as infile:
+                        remote_data = infile.read()
+                    self.assertEqual(remote_data.splitlines(), local_data.splitlines())
+
+        # Test "w" mode (should raise Exception)
+        url_data = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        with pytest.raises(Exception):
+            file_url = open_url(url_data, mode="w")
+
+        # Test  non-http(s) address for url (should raise Exception)
+        url_data = "ftp://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff"
+        with pytest.raises(Exception):
+            file_url = open_url(url_data, mode="r")
 
 
 if __name__ == "__main__":
