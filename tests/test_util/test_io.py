@@ -308,28 +308,26 @@ class UtilsTests(TestCase):
         from urllib.parse import urlparse
 
         local_root = pathlib.Path("data")
-        remote_root = pathlib.Path(
-            "raw.githubusercontent.com/cogent3/cogent3/develop/tests/data"
+        remote_root = (
+            "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
         )
         for file_name in ("c_elegans_WS199_dna_shortened.fasta", "gff2_test.gff"):
             for mode in ("r", "rb", "rt"):
                 with open_(local_root / file_name, mode=mode) as infile:
                     local_data = infile.read()
-                with open_url(
-                    f"https://{remote_root / file_name}", mode=mode
-                ) as infile:
+                with open_url(remote_root.format(file_name), mode=mode) as infile:
                     remote_data = infile.read()
                 self.assertEqual(remote_data.splitlines(), local_data.splitlines())
 
                 # Test ParseResult for url
                 with open_url(
-                    urlparse(f"https://{remote_root / file_name}"), mode=mode
+                    urlparse(remote_root.format(file_name)), mode=mode
                 ) as infile:
                     remote_data = infile.read()
                 self.assertEqual(remote_data.splitlines(), local_data.splitlines())
 
                 if "b" in mode:  # Test no value for mode, use default "rb" mode
-                    with open_url(f"https://{remote_root / file_name}") as infile:
+                    with open_url(remote_root.format(file_name)) as infile:
                         remote_data = infile.read()
                     self.assertEqual(remote_data.splitlines(), local_data.splitlines())
 
