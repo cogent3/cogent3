@@ -326,9 +326,8 @@ def test_open_url_local():
     with open_(local_path) as infile:
         local_data = infile.read()
 
-    # make absolute path but trim extra "/" at start
-    url = "/".join(local_path.absolute().parts)[1:]
-    with open_url(f"file://{url}") as infile:
+    # make absolute path
+    with open_url(local_path.absolute().as_uri()) as infile:
         remote_data = infile.read()
 
     assert remote_data.splitlines() == local_data.splitlines()
