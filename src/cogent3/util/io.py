@@ -7,8 +7,9 @@ from io import TextIOWrapper
 from os import path as os_path
 from os import remove
 from pathlib import Path
+from re import compile
 from tempfile import mkdtemp
-from typing import Union
+from typing import IO, Callable, Union
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -27,8 +28,33 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+# support prefixes for urls
+_urls = compile("^(http[s]*|file)")
 
-def open_zip(filename: Union[str, Path], mode="r", **kwargs):
+
+def _get_compression_open(
+    path: Union[str, Path] = None, compression: Union[str] = None
+) -> Union[Callable]:
+    """returns function for opening compression formats
+
+    Parameters
+    ----------
+    path
+        file path or url
+    compression
+        file compression suffix
+
+    Returns
+    -------
+    function for opening compressed files or None if unknown compression
+    """
+    assert path or compression
+    if compression is None:
+        _, compression = get_format_suffixes(path)
+    return {"gz": gzip_open, "bz2": bzip_open, "zip": open_zip}.get(compression, None)
+
+
+def open_zip(filename: Union[str, Path], mode: str = "r", **kwargs) -> IO:
     """open a single member zip-compressed file
 
     Note
@@ -62,28 +88,44 @@ def open_zip(filename: Union[str, Path], mode="r", **kwargs):
         return TextIOWrapper(opened, encoding=encoding)
 
 
-def open_(filename: Union[str, Path], mode="rt", **kwargs):
-    """open that handles different compression"""
+def open_(filename: Union[str, Path], mode="rt", **kwargs) -> IO:
+    """open that handles different compression
+
+    Parameters
+    ----------
+    filename
+        path or url, if a url delegates processing to open_url
+    mode
+        standard file opening mode
+    kwargs
+        passed to open functions
+
+    Returns
+    -------
+    an object compatible with the file protocol
+    """
+    if not filename:
+        raise ValueError(f"{filename} not a valid file name or url")
+
+    if _urls.search(str(filename)):
+        return open_url(filename, mode=mode, **kwargs)
+
     mode = mode or "rt"
-    filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
-        filename.suffix, open
-    )
+    op = _get_compression_open(filename) or open
 
     encoding = kwargs.pop("encoding", None)
     need_encoding = mode.startswith("r") and "b" not in mode
-    if need_encoding:
-        if "encoding" not in kwargs:
-            with op(filename, mode="rb") as infile:
-                data = infile.read(100)
+    if need_encoding and "encoding" not in kwargs:
+        with op(filename, mode="rb") as infile:
+            data = infile.read(100)
 
-            encoding = detect(data)
-            encoding = encoding["encoding"]
+        encoding = detect(data)
+        encoding = encoding["encoding"]
 
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: Union[str, ParseResult], mode="r", **kwargs):
+def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
     """open a url
 
     Parameters
@@ -102,22 +144,28 @@ def open_url(url: Union[str, ParseResult], mode="r", **kwargs):
     If mode='b' or 'rb' (binary read), the function returns file object to read
     else returns TextIOWrapper to read text with specified encoding in the URL
     """
-    mode = mode or "r"
+    _, compression = get_format_suffixes(
+        getattr(url, "path", url)
+    )  # handling possibility of ParseResult
+    mode = "rb" if compression else mode or "r"
+
     url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
 
     if "r" not in mode:
         raise ValueError("opening a url only allowed in read mode")
 
-    if url_parsed.scheme not in "https":
-        raise ValueError("URL scheme must be http or https.")
+    if not _urls.search(url_parsed.scheme):
+        raise ValueError(
+            f"URL scheme must be http, https or file, not {url_parsed.scheme}"
+        )
 
     response = urlopen(url_parsed.geturl(), timeout=10)
+    encoding = response.headers.get_content_charset()
+    if compression:
+        response = _get_compression_open(compression=compression)(response)
+        mode = "r"  # wrap it as text
 
-    return (
-        response
-        if "b" in mode
-        else TextIOWrapper(response, encoding=response.headers.get_content_charset())
-    )
+    return response if "b" in mode else TextIOWrapper(response, encoding=encoding)
 
 
 def _path_relative_to_zip_parent(zip_path, member_path):
@@ -224,7 +272,7 @@ class atomic_write:
 
         return self._file
 
-    def __enter__(self):
+    def __enter__(self) -> IO:
         return self._get_fileobj()
 
     def _close_rename_standard(self, src):
