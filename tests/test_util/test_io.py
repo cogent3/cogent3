@@ -295,22 +295,17 @@ def test_open_zip_multi(tmp_dir):
 
 
 @pytest.mark.parametrize(
-    "file_name,mode",
-    list(
-        product(
-            ("c_elegans_WS199_dna_shortened.fasta", "gff2_test.gff"),
-            ("r", "rb", "rt", None),
-        )
-    ),
+    "mode",
+    ("r", "rb", "rt", None),
 )
-def test_open_url(file_name, mode):
+def test_open_url(mode):
     # None value for open_url mode defaults to "rb"
-    local_root = pathlib.Path("data")
+    file_name = "gff2_test.gff"
     remote_root = (
         "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
     )
 
-    with open_(local_root / file_name, mode=mode) as infile:
+    with open_(DATADIR / file_name, mode=mode) as infile:
         local_data = infile.read()
 
     with open_url(remote_root.format(file_name), mode=mode) as infile:
@@ -320,6 +315,38 @@ def test_open_url(file_name, mode):
     # Test using a ParseResult for url
     with open_url(urlparse(remote_root.format(file_name)), mode=mode) as infile:
         remote_data = infile.read()
+    assert remote_data.splitlines() == local_data.splitlines()
+
+
+def test_open_url_local():
+    """using file:///"""
+    # None value for open_url mode defaults to "rb"
+    file_name = "gff2_test.gff"
+    local_path = DATADIR / file_name
+    with open_(local_path) as infile:
+        local_data = infile.read()
+
+    # make absolute path
+    with open_url(local_path.absolute().as_uri()) as infile:
+        remote_data = infile.read()
+
+    assert remote_data.splitlines() == local_data.splitlines()
+
+
+def test_open_url_compressed():
+    """uses local compressed file to check"""
+    # None value for open_url mode defaults to "rb"
+    file_name = "formattest.fasta.gz"
+    remote_root = (
+        "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
+    )
+
+    with open_(DATADIR / file_name) as infile:
+        local_data = infile.read()
+
+    with open_url(remote_root.format(file_name)) as infile:
+        remote_data = infile.read()
+
     assert remote_data.splitlines() == local_data.splitlines()
 
 
