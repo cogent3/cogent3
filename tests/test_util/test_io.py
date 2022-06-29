@@ -322,10 +322,13 @@ def test_open_url_local():
     """using file:///"""
     # None value for open_url mode defaults to "rb"
     file_name = "gff2_test.gff"
-    with open_(DATADIR / file_name) as infile:
+    local_path = DATADIR / file_name
+    with open_(local_path) as infile:
         local_data = infile.read()
 
-    with open_url(f"file://{DATADIR}/{file_name}") as infile:
+    # make absolute path but trim extra "/" at start
+    url = "/".join(local_path.absolute().parts)[1:]
+    with open_url(f"file://{url}") as infile:
         remote_data = infile.read()
 
     assert remote_data.splitlines() == local_data.splitlines()
@@ -342,7 +345,6 @@ def test_open_url_compressed():
     with open_(DATADIR / file_name) as infile:
         local_data = infile.read()
 
-    print(remote_root.format(file_name))
     with open_url(remote_root.format(file_name)) as infile:
         remote_data = infile.read()
 
