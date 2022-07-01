@@ -4,7 +4,6 @@ import pathlib
 import tempfile
 import zipfile
 
-from itertools import product
 from urllib.parse import urlparse
 
 import pytest
@@ -299,7 +298,8 @@ def test_open_zip_multi(tmp_dir):
     ("r", "rb", "rt", None),
 )
 def test_open_url(mode):
-    # None value for open_url mode defaults to "rb"
+    """different open mode's all work"""
+    # None value for open_url mode defaults to "r"
     file_name = "gff2_test.gff"
     remote_root = (
         "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
@@ -310,6 +310,7 @@ def test_open_url(mode):
 
     with open_url(remote_root.format(file_name), mode=mode) as infile:
         remote_data = infile.read()
+
     assert remote_data.splitlines() == local_data.splitlines()
 
     # Test using a ParseResult for url
@@ -320,7 +321,6 @@ def test_open_url(mode):
 
 def test_open_url_local():
     """using file:///"""
-    # None value for open_url mode defaults to "rb"
     file_name = "gff2_test.gff"
     local_path = DATADIR / file_name
     with open_(local_path) as infile:
@@ -334,8 +334,7 @@ def test_open_url_local():
 
 
 def test_open_url_compressed():
-    """uses local compressed file to check"""
-    # None value for open_url mode defaults to "rb"
+    """comparing compressed file handling"""
     file_name = "formattest.fasta.gz"
     remote_root = (
         "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
