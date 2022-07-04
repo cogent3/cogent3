@@ -36,6 +36,18 @@ def tmp_dir(tmpdir_factory):
     return pathlib.Path(tmpdir_factory.mktemp("test_io"))
 
 
+@pytest.mark.parametrize("transform", (str, pathlib.Path))
+def test_open_home(transform):
+    """expands tilde for opening / writing to home"""
+    HOME = pathlib.Path("~")
+    rel_path = DATADIR.relative_to(HOME.expanduser())
+    data_path = HOME / rel_path / "sample.tsv"
+    expect = data_path.expanduser().read_text()
+    with open_(transform(data_path)) as infile:
+        got = infile.read()
+        assert got == expect
+
+
 def test_does_not_write_if_exception(tmp_dir):
     """file does not exist if an exception raised before closing"""
     test_filepath = tmp_dir / "Atomic_write_test"

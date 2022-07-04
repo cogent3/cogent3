@@ -111,6 +111,7 @@ def open_(filename: Union[str, Path], mode="rt", **kwargs) -> IO:
         return open_url(filename, mode=mode, **kwargs)
 
     mode = mode or "rt"
+    filename = Path(filename).expanduser()
     op = _get_compression_open(filename) or open
 
     encoding = kwargs.pop("encoding", None)
