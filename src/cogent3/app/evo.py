@@ -173,7 +173,7 @@ class model(ComposableModel):
         self._param_rules = param_rules
         self._time_het = deepcopy(time_het)
         self._split_codons = split_codons
-        self.func = self.fit
+        self.main = self.fit
 
     def _configure_lf(self, aln, identifier, initialise=None):
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
@@ -357,7 +357,7 @@ class model_collection(ComposableHypothesis):
             raise ValueError(msg)
 
         self._alts = alternates
-        self.func = self.test_hypothesis
+        self.main = self.test_hypothesis
         self._init_alt = init_alt
         self._sequential = sequential
 
@@ -434,7 +434,7 @@ class bootstrap(ComposableHypothesis):
         self._num_reps = num_reps
         self._verbose = verbose
         self._parallel = parallel
-        self.func = self.run
+        self.main = self.run
 
     def _fit_sim(self, rep_num):
         sim_aln = self._null.simulate_alignment()
@@ -485,7 +485,7 @@ class ancestral_states(ComposableTabular):
             data_types=self._data_types,
         )
         self._formatted_params()
-        self.func = self.recon_ancestor
+        self.main = self.recon_ancestor
 
     def recon_ancestor(self, result):
         """returns a tabular_result of posterior probabilities of ancestral states"""
@@ -516,7 +516,7 @@ class tabulate_stats(ComposableTabular):
             data_types=self._data_types,
         )
         self._formatted_params()
-        self.func = self.extract_stats
+        self.main = self.extract_stats
 
     def extract_stats(self, result):
         """returns Table for all statistics returned by likelihood function
@@ -639,7 +639,7 @@ class natsel_neutral(ComposableHypothesis):
         )
         hyp = hypothesis(null, alt)
 
-        self.func = hyp
+        self.main = hyp
 
 
 class natsel_zhang(ComposableHypothesis):
@@ -798,7 +798,7 @@ class natsel_zhang(ComposableHypothesis):
             upper_omega=upper_omega,
         )
 
-        self.func = self.test_hypothesis
+        self.main = self.test_hypothesis
 
     def _get_alt_from_null(self, null):
         rules = null.lf.get_param_rules()
@@ -964,7 +964,7 @@ class natsel_sitehet(ComposableHypothesis):
             upper_omega=upper_omega,
         )
 
-        self.func = self.test_hypothesis
+        self.main = self.test_hypothesis
 
     def _get_alt_from_null(self, null):
         rules = null.lf.get_param_rules()
@@ -1163,4 +1163,4 @@ class natsel_timehet(ComposableHypothesis):
         )
         hyp = hypothesis(null, alt)
 
-        self.func = hyp
+        self.main = hyp

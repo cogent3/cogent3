@@ -376,9 +376,9 @@ class align_to_ref(ComposableSeq):
             S=S, d=insertion_penalty, e=extension_penalty, return_score=False
         )
         if ref_seq.lower() == "longest":
-            self.func = self.align_to_longest
+            self.main = self.align_to_longest
         else:
-            self.func = self.align_to_named_seq
+            self.main = self.align_to_named_seq
             self._ref_name = ref_seq
 
         self._gap_state = None  # can be character or int, depends on aligner
@@ -515,7 +515,7 @@ class progressive_align(ComposableSeq):
             show_progress=False,
         )
 
-        self.func = self.multiple_align
+        self.main = self.multiple_align
 
     def _build_guide(self, seqs):
         tree = self._make_tree(seqs)
