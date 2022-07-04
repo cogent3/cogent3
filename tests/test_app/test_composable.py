@@ -11,7 +11,6 @@ from scitrack import CachingLogger
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import (
-    SERIALISABLE_TYPE,
     ComposableSeq,
     NotCompleted,
     appify,
@@ -20,6 +19,7 @@ from cogent3.app.composable import (
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
+from cogent3.app.typing import SERIALISABLE_TYPE
 from cogent3.core.alignment import ArrayAlignment
 
 

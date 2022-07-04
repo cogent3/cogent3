@@ -4,12 +4,8 @@ from cogent3.core.alignment import SequenceCollection
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import (
-    ALIGNED_TYPE,
-    SEQUENCE_TYPE,
-    ComposableSeq,
-    NotCompleted,
-)
+from .composable import ComposableSeq, NotCompleted
+from .typing import ALIGNED_TYPE, SEQUENCE_TYPE
 
 
 __author__ = "Gavin Huttley"
