@@ -55,7 +55,7 @@ class scale_branches(ComposableTree):
 
         self._scalar = scalar
         self._min_length = min_length
-        self.func = self._scale_lengths
+        self.main = self._scale_lengths
 
     def _scale_lengths(self, tree):
         scalar = self._scalar
@@ -97,7 +97,7 @@ class uniformize_tree(ComposableTree):
         self._formatted_params()
         self._root_at = root_at
         self._ordered_names = ordered_names
-        self.func = self._uniformize
+        self.main = self._uniformize
 
     def _uniformize(self, tree):
         if self._root_at == "midpoint":
@@ -135,7 +135,7 @@ class quick_tree(ComposableTree):
             data_types=self._data_types,
         )
         self._formatted_params()
-        self.func = self.quick_tree
+        self.main = self.quick_tree
         self._drop_invalid = drop_invalid
 
     def quick_tree(self, dists):
