@@ -15,14 +15,9 @@ from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model
 
-from .composable import (
-    ALIGNED_TYPE,
-    SEQUENCE_TYPE,
-    SERIALISABLE_TYPE,
-    ComposableSeq,
-    NotCompleted,
-)
+from .composable import ComposableSeq, NotCompleted
 from .tree import quick_tree, scale_branches
+from .typing import ALIGNED_TYPE, SEQUENCE_TYPE, SERIALISABLE_TYPE
 
 
 __author__ = "Gavin Huttley"

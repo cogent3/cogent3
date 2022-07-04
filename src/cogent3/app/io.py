@@ -21,13 +21,6 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
 from .composable import (
-    ALIGNED_TYPE,
-    IDENTIFIER_TYPE,
-    PAIRWISE_DISTANCE_TYPE,
-    SEQUENCE_TYPE,
-    SERIALISABLE_TYPE,
-    TABULAR_RESULT_TYPE,
-    TABULAR_TYPE,
     Composable,
     ComposableAligned,
     ComposableSeq,
@@ -48,6 +41,15 @@ from .data_store import (
     get_data_source,
     load_record_from_json,
     make_record_for_json,
+)
+from .typing import (
+    ALIGNED_TYPE,
+    IDENTIFIER_TYPE,
+    PAIRWISE_DISTANCE_TYPE,
+    SEQUENCE_TYPE,
+    SERIALISABLE_TYPE,
+    TABULAR_RESULT_TYPE,
+    TABULAR_TYPE,
 )
 
 
