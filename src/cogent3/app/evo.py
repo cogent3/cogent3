@@ -8,13 +8,6 @@ from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
 from .composable import (
-    ALIGNED_TYPE,
-    BOOTSTRAP_RESULT_TYPE,
-    HYPOTHESIS_RESULT_TYPE,
-    MODEL_RESULT_TYPE,
-    RESULT_TYPE,
-    SERIALISABLE_TYPE,
-    TABULAR_RESULT_TYPE,
     ComposableHypothesis,
     ComposableModel,
     ComposableTabular,
@@ -26,6 +19,15 @@ from .result import (
     model_collection_result,
     model_result,
     tabular_result,
+)
+from .typing import (
+    ALIGNED_TYPE,
+    BOOTSTRAP_RESULT_TYPE,
+    HYPOTHESIS_RESULT_TYPE,
+    MODEL_RESULT_TYPE,
+    RESULT_TYPE,
+    SERIALISABLE_TYPE,
+    TABULAR_RESULT_TYPE,
 )
 
 

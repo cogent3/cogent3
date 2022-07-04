@@ -7,15 +7,9 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import (
-    ALIGNED_TYPE,
-    SEQUENCE_TYPE,
-    SERIALISABLE_TYPE,
-    ComposableAligned,
-    ComposableSeq,
-    NotCompleted,
-)
+from .composable import ComposableAligned, ComposableSeq, NotCompleted
 from .translate import get_fourfold_degenerate_sets
+from .typing import ALIGNED_TYPE, SEQUENCE_TYPE, SERIALISABLE_TYPE
 
 
 __author__ = "Gavin Huttley"

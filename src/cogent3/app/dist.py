@@ -7,12 +7,12 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import get_model
 
-from .composable import (
+from .composable import ComposableDistance
+from .typing import (
     ALIGNED_TYPE,
     PAIRWISE_DISTANCE_TYPE,
     SERIALISABLE_TYPE,
     TABULAR_TYPE,
-    ComposableDistance,
 )
 
 
