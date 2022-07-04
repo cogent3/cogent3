@@ -139,7 +139,7 @@ class omit_degenerates(ComposableAligned):
         self._no_degen = omit_degenerates
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
-        self.func = self.filter_degenerates
+        self.main = self.filter_degenerates
 
     def filter_degenerates(self, aln):
         if self.moltype and aln.moltype != self.moltype:
@@ -190,7 +190,7 @@ class omit_gap_pos(ComposableAligned):
         self.moltype = moltype
         self._allowed_frac = allowed_frac
         self._motif_length = motif_length
-        self.func = self.omit
+        self.main = self.omit
 
     def omit(self, aln):
         if self.moltype and aln.moltype != self.moltype:
@@ -259,7 +259,7 @@ class take_codon_positions(ComposableAligned):
                 gc, alphabet=moltype.alphabet, as_indices=True
             )
             self._fourfold_degen_sets = sets
-            self.func = self.take_fourfold_positions
+            self.main = self.take_fourfold_positions
             return
 
         assert (
@@ -269,10 +269,10 @@ class take_codon_positions(ComposableAligned):
         by_index = True if len(positions) == 1 else False
         if by_index:
             positions = positions[0] - 1
-            self.func = self.take_codon_position
+            self.main = self.take_codon_position
         else:
             positions = tuple(p - 1 for p in sorted(positions))
-            self.func = self.take_codon_positions
+            self.main = self.take_codon_positions
 
         self._positions = positions
 
@@ -331,7 +331,7 @@ class take_named_seqs(ComposableSeq):
         self._formatted_params()
         self._names = names
         self._negate = negate
-        self.func = self.take_seqs
+        self.main = self.take_seqs
 
     def take_seqs(self, data):
         try:
@@ -387,7 +387,7 @@ class take_n_seqs(ComposableSeq):
         self._number = number
         self._random = random
         self._fixed_choice = fixed_choice
-        self.func = self.take_seqs
+        self.main = self.take_seqs
 
     def _set_names(self, data):
         """set the names attribute"""
@@ -444,7 +444,7 @@ class min_length(ComposableSeq):
             length = length // motif_length
         self._min_length = length
         self._motif_length = motif_length
-        self.func = self.if_long_enough
+        self.main = self.if_long_enough
         self._subtract_degen = subtract_degen
         if moltype:
             moltype = get_moltype(moltype)
@@ -552,7 +552,7 @@ class fixed_length(ComposableAligned):
         if seed:
             np_random.seed(seed)
 
-        self.func = {False: self.truncated}.get(random, self.sample_positions)
+        self.main = {False: self.truncated}.get(random, self.sample_positions)
 
     def truncated(self, aln):
         if self._moltype and self._moltype != aln.moltype:
@@ -631,7 +631,7 @@ class omit_bad_seqs(ComposableAligned):
         self._quantile = quantile
         self._gap_fraction = gap_fraction
         self._moltype = moltype
-        self.func = self.drop_bad_seqs
+        self.main = self.drop_bad_seqs
 
     def drop_bad_seqs(self, aln):
         if self._moltype and self._moltype != aln.moltype:
@@ -686,11 +686,11 @@ class omit_duplicated(ComposableSeq):
 
         self._mask_degen = mask_degen
         if choose == "longest":
-            self.func = self.choose_longest
+            self.main = self.choose_longest
         elif choose == "random":
-            self.func = self.choose_random
+            self.main = self.choose_random
         else:
-            self.func = self.take_unique
+            self.main = self.take_unique
 
     def choose_longest(self, seqs):
         if self._moltype and self._moltype != seqs.moltype:
@@ -761,7 +761,7 @@ class trim_stop_codons(ComposableSeq):
         )
         self._formatted_params()
         self._gc = gc
-        self.func = self.trim_stops
+        self.main = self.trim_stops
 
     def trim_stops(self, data):
         data = data.trim_stop_codons(gc=self._gc)

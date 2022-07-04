@@ -100,7 +100,7 @@ class fast_slow_dist(ComposableDistance):
         elif slow_calc:
             self._moltype = slow_calc.moltype
         self._sm = slow_calc
-        self.func = self.calc_distance
+        self.main = self.calc_distance
 
     def _est_dist_pair_slow(self, aln):
         """returns distance between seq pairs in aln"""

@@ -181,7 +181,7 @@ def get_data_store(
 
 class _seq_loader:
     def __init__(self):
-        self.func = self.load
+        self.main = self.load
 
     def load(self, path):
         """returns alignment"""
@@ -310,7 +310,7 @@ class load_tabular(ComposableTabular):
         self._with_title = with_title
         self._with_header = with_header
         self._limit = limit
-        self.func = self.load
+        self.main = self.load
         self.strict = strict
         self.as_type = as_type
 
@@ -539,7 +539,7 @@ class load_json(Composable):
         super(load_json, self).__init__(
             input_types=self._input_types, output_types=self._output_types
         )
-        self.func = self.read
+        self.main = self.read
 
     def read(self, path):
         """returns object deserialised from json at path"""
@@ -581,7 +581,7 @@ class write_json(_checkpointable):
             if_exists=if_exists,
             suffix=suffix,
         )
-        self.func = self.write
+        self.main = self.write
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
@@ -627,7 +627,7 @@ class load_db(Composable):
         super(load_db, self).__init__(
             input_types=self._input_types, output_types=self._output_types
         )
-        self.func = self.read
+        self.main = self.read
 
     def read(self, identifier):
         """returns object deserialised from a TinyDb"""
@@ -673,7 +673,7 @@ class write_db(_checkpointable):
             suffix=suffix,
             writer_class=WritableTinyDbDataStore,
         )
-        self.func = self.write
+        self.main = self.write
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self

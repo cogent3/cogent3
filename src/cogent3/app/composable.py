@@ -191,7 +191,7 @@ class ComposableType:
 class Composable(ComposableType):
     def __init__(self, **kwargs):
         super(Composable, self).__init__(**kwargs)
-        # self.func = None  # over-ride in subclass
+        # self.main = None  # over-ride in subclass
         self._in = None  # input rules
         self._out = None  # rules receiving output
         # rules operating on result but not part of a chain
@@ -321,7 +321,7 @@ class Composable(ComposableType):
 
         if not val:
             return val
-        result = self._trapped_call(self.func, val, *args, **kwargs)
+        result = self._trapped_call(self.main, val, *args, **kwargs)
         if not result and type(result) != NotCompleted:
             msg = (
                 f"The value {result} equates to False. "
@@ -657,7 +657,7 @@ class _checkpointable(Composable):
             data_path, suffix=suffix, create=create, if_exists=if_exists
         )
         self._callback = name_callback
-        self.func = self.write
+        self.main = self.write
 
         # override the following in subclasses
         self._format = None
@@ -725,7 +725,7 @@ class user_function(Composable):
         self._args = args
         self._kwargs = kwargs
 
-    def func(self, *args, **kwargs):
+    def main(self, *args, **kwargs):
         """
         Parameters
         ----------

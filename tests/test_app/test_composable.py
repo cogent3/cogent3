@@ -346,7 +346,7 @@ class TestPicklable(TestCase):
         from cogent3.app import io
 
         read = io.load_aligned(moltype="dna")
-        read.func = lambda x: None
+        read.main = lambda x: None
         got = read("somepath.fasta")
         self.assertIsInstance(got, NotCompleted)
         self.assertEqual(got.type, "BUG")
