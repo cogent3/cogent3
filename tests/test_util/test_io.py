@@ -40,7 +40,7 @@ def tmp_dir(tmpdir_factory):
 def test_open_home(transform):
     """expands tilde for opening / writing to home"""
     HOME = pathlib.Path("~")
-    rel_path = DATADIR.relative_to(HOME.expanduser())
+    rel_path = DATADIR.absolute().relative_to(HOME.expanduser().absolute())
     data_path = HOME / rel_path / "sample.tsv"
     expect = data_path.expanduser().read_text()
     with open_(transform(data_path)) as infile:
