@@ -32,8 +32,32 @@ DATADIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 @pytest.fixture
-def tmp_dir(tmpdir_factory):
-    return pathlib.Path(tmpdir_factory.mktemp("test_io"))
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("test_io")
+
+
+@pytest.fixture
+def home_file() -> str:
+    """makes a temporary directory with file"""
+    import tempfile
+
+    HOME = pathlib.Path("~")
+    fn = "sample.tsv"
+    contents = (DATADIR / fn).read_text()
+    with tempfile.TemporaryDirectory(dir=HOME.expanduser()) as dn:
+        outpath = HOME / pathlib.Path(dn).name / fn
+        outpath.expanduser().write_text(contents)
+        yield str(outpath)
+
+
+@pytest.mark.parametrize("transform", (str, pathlib.Path))
+def test_open_home(home_file, transform):
+    """expands tilde for opening / writing to home"""
+    data_path = DATADIR / "sample.tsv"
+    expect = data_path.read_text()
+    with open_(transform(home_file)) as infile:
+        got = infile.read()
+        assert got == expect
 
 
 def test_does_not_write_if_exception(tmp_dir):
