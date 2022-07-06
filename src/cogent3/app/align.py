@@ -376,9 +376,9 @@ class align_to_ref(ComposableSeq):
             S=S, d=insertion_penalty, e=extension_penalty, return_score=False
         )
         if ref_seq.lower() == "longest":
-            self.main = self.align_to_longest
+            self._func = self.align_to_longest
         else:
-            self.main = self.align_to_named_seq
+            self._func = self.align_to_named_seq
             self._ref_name = ref_seq
 
         self._gap_state = None  # can be character or int, depends on aligner
@@ -410,6 +410,10 @@ class align_to_ref(ComposableSeq):
             pwise.append(((seq.name, aln)))
 
         return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
+
+    def main(self, seqs):
+        """return aligned sequences"""
+        return self._func(seqs)
 
 
 class progressive_align(ComposableSeq):
@@ -515,8 +519,6 @@ class progressive_align(ComposableSeq):
             show_progress=False,
         )
 
-        self.main = self.multiple_align
-
     def _build_guide(self, seqs):
         tree = self._make_tree(seqs)
         if self._scalar != 1:
@@ -524,7 +526,8 @@ class progressive_align(ComposableSeq):
             tree = scaler(tree)
         return tree
 
-    def multiple_align(self, seqs):
+    def main(self, seqs):
+        """returned progressively aligned sequences"""
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
 
@@ -534,7 +537,7 @@ class progressive_align(ComposableSeq):
             diff = set(self._guide_tree.get_tip_names()) ^ set(seqs.names)
             if diff:
                 numtips = len(set(self._guide_tree.get_tip_names()))
-                print(f"numseqs={len(seqs.names)} not equal " f"to numtips={numtips}")
+                print(f"numseqs={len(seqs.names)} not equal to numtips={numtips}")
                 print(f"These were different: {diff}")
                 seqs = seqs.take_seqs(self._guide_tree.get_tip_names())
 

@@ -180,10 +180,7 @@ def get_data_store(
 
 
 class _seq_loader:
-    def __init__(self):
-        self.main = self.load
-
-    def load(self, path):
+    def main(self, path):
         """returns alignment"""
         # if we get a seq object, we try getting abs_path from that now
         try:
@@ -230,7 +227,6 @@ class load_aligned(ComposableAligned, _seq_loader):
             output_types=self._output_types,
             data_types=self._data_types,
         )
-        _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
@@ -261,7 +257,6 @@ class load_unaligned(ComposableSeq, _seq_loader):
             output_types=self._output_types,
             data_types=self._data_types,
         )
-        _seq_loader.__init__(self)
         self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
@@ -310,7 +305,6 @@ class load_tabular(ComposableTabular):
         self._with_title = with_title
         self._with_header = with_header
         self._limit = limit
-        self.main = self.load
         self.strict = strict
         self.as_type = as_type
 
@@ -360,7 +354,7 @@ class load_tabular(ComposableTabular):
         records = numpy.array(records, dtype="O").T
         return header, records, title
 
-    def load(self, path):
+    def main(self, path):
         if type(path) == str:
             # we use a data store as it's read() handles compression
             path = SingleReadDataStore(path)[0]
@@ -429,7 +423,7 @@ class write_tabular(_checkpointable, ComposableTabular):
         self._formatted_params()
         self._format = format
 
-    def write(self, data, identifier=None):
+    def main(self, data, identifier=None):
         from cogent3.app.composable import NotCompleted
 
         if isinstance(data, NotCompleted):
@@ -501,7 +495,7 @@ class write_seqs(_checkpointable):
         loader = loader(format=self._format)
         self._load_checkpoint = loader
 
-    def write(self, data, identifier=None):
+    def main(self, data, identifier=None):
         from cogent3.app.composable import NotCompleted
 
         if isinstance(data, NotCompleted):
@@ -539,9 +533,8 @@ class load_json(Composable):
         super(load_json, self).__init__(
             input_types=self._input_types, output_types=self._output_types
         )
-        self.main = self.read
 
-    def read(self, path):
+    def main(self, path):
         """returns object deserialised from json at path"""
         if type(path) == str:
             path = SingleReadDataStore(path)[0]
@@ -581,12 +574,11 @@ class write_json(_checkpointable):
             if_exists=if_exists,
             suffix=suffix,
         )
-        self.main = self.write
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def write(self, data, identifier=None):
+    def main(self, data, identifier=None):
         from cogent3.app.composable import NotCompleted
 
         if isinstance(data, NotCompleted):
@@ -627,9 +619,8 @@ class load_db(Composable):
         super(load_db, self).__init__(
             input_types=self._input_types, output_types=self._output_types
         )
-        self.main = self.read
 
-    def read(self, identifier):
+    def main(self, identifier):
         """returns object deserialised from a TinyDb"""
         id_ = getattr(identifier, "id", None)
         if id_ is None:
@@ -673,12 +664,11 @@ class write_db(_checkpointable):
             suffix=suffix,
             writer_class=WritableTinyDbDataStore,
         )
-        self.main = self.write
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def write(self, data, identifier=None):
+    def main(self, data, identifier=None):
         """
 
         Parameters
