@@ -193,9 +193,8 @@ class select_translatable(ComposableSeq):
         self._gc = get_code(gc)
         self._allow_rc = allow_rc
         self._trim_terminal_stop = trim_terminal_stop
-        self.main = self.get_translatable
 
-    def get_translatable(self, seqs):
+    def main(self, seqs):
         """returns the translatable sequences from seqs.
 
         translation errors are stroed in the info object"""
@@ -272,9 +271,8 @@ class translate_seqs(ComposableSeq):
         self._moltype = moltype
         self._gc = get_code(gc)
         self._trim_terminal_stop = trim_terminal_stop
-        self.main = self.get_translated
 
-    def get_translated(self, seqs):
+    def main(self, seqs):
         """returns translated sequences"""
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)

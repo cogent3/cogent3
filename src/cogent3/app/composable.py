@@ -172,7 +172,6 @@ class ComposableType:
 class Composable(ComposableType):
     def __init__(self, **kwargs):
         super(Composable, self).__init__(**kwargs)
-        # self.main = None  # over-ride in subclass
         self._in = None  # input rules
         self._out = None  # rules receiving output
         # rules operating on result but not part of a chain
@@ -458,7 +457,7 @@ class Composable(ComposableType):
                 # know it's NotCompleted.
                 # Note: we directly call .write() so NotCompleted's don't
                 # get blocked from being written by __call__()
-                outcome = self.write(data=result)
+                outcome = self.main(data=result)
                 if result and isinstance(outcome, DataStoreMember):
                     input_id = outcome.name
                 else:
@@ -638,7 +637,6 @@ class _checkpointable(Composable):
             data_path, suffix=suffix, create=create, if_exists=if_exists
         )
         self._callback = name_callback
-        self.main = self.write
 
         # override the following in subclasses
         self._format = None
@@ -662,7 +660,7 @@ class _checkpointable(Composable):
             exists = False
         return exists
 
-    def write(self, data) -> DataStoreMember:
+    def main(self, data) -> DataStoreMember:
         # over-ride in subclass
         raise NotImplementedError
 
