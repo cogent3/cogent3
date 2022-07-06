@@ -55,9 +55,8 @@ class scale_branches(ComposableTree):
 
         self._scalar = scalar
         self._min_length = min_length
-        self.main = self._scale_lengths
 
-    def _scale_lengths(self, tree):
+    def main(self, tree):
         scalar = self._scalar
         min_length = self._min_length
         tree = tree.deepcopy()
@@ -97,9 +96,8 @@ class uniformize_tree(ComposableTree):
         self._formatted_params()
         self._root_at = root_at
         self._ordered_names = ordered_names
-        self.main = self._uniformize
 
-    def _uniformize(self, tree):
+    def main(self, tree):
         if self._root_at == "midpoint":
             new = tree.root_at_midpoint()
         else:
@@ -135,10 +133,9 @@ class quick_tree(ComposableTree):
             data_types=self._data_types,
         )
         self._formatted_params()
-        self.main = self.quick_tree
         self._drop_invalid = drop_invalid
 
-    def quick_tree(self, dists):
+    def main(self, dists):
         """estimates a neighbor joining tree"""
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists
