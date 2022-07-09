@@ -123,7 +123,6 @@ class NotCompleted(int):
 
 
 class ComposableType:
-    _type = None
 
     def __init__(self, input_types=None, output_types=None, data_types=None):
         """
@@ -177,7 +176,7 @@ class Composable(ComposableType):
         # rules operating on result but not part of a chain
         self._checkpointable = False
         self._load_checkpoint = None
-        self._formatted = [f"type='{self._type}'"]
+        self._formatted = []
 
     def __str__(self):
         txt = "" if not self.input else str(self.input)
@@ -512,7 +511,6 @@ class Composable(ComposableType):
 
 
 class ComposableTabular(Composable):
-    _type = "tabular"
 
     def __init__(self, **kwargs):
         super(ComposableTabular, self).__init__(**kwargs)
@@ -520,42 +518,36 @@ class ComposableTabular(Composable):
 
 class ComposableSeq(Composable):
 
-    _type = "sequences"
 
     def __init__(self, **kwargs):
         super(ComposableSeq, self).__init__(**kwargs)
 
 
 class ComposableAligned(Composable):
-    _type = "aligned"
 
     def __init__(self, **kwargs):
         super(ComposableAligned, self).__init__(**kwargs)
 
 
 class ComposableTree(Composable):
-    _type = "tree"
 
     def __init__(self, **kwargs):
         super(ComposableTree, self).__init__(**kwargs)
 
 
 class ComposableModel(Composable):
-    _type = "model"
 
     def __init__(self, **kwargs):
         super(ComposableModel, self).__init__(**kwargs)
 
 
 class ComposableHypothesis(Composable):
-    _type = "hypothesis"
 
     def __init__(self, **kwargs):
         super(ComposableHypothesis, self).__init__(**kwargs)
 
 
 class ComposableDistance(Composable):
-    _type = "distance"
 
     def __init__(self, **kwargs):
         super(ComposableDistance, self).__init__(**kwargs)
@@ -667,8 +659,6 @@ class _checkpointable(Composable):
 
 class user_function(Composable):
     """wrapper class for user specified function"""
-
-    _type = "function"
 
     @extend_docstring_from(ComposableType.__init__, pre=False)
     def __init__(
