@@ -38,7 +38,7 @@ class TestModel(TestCase):
         model = evo_app.model("HKY85", time_het="max")
         got = " ".join(str(model).splitlines())
         expect = (
-            "model(type='model', sm='HKY85', tree=None, unique_trees=False, "
+            "model(sm='HKY85', tree=None, unique_trees=False, "
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, "
             "opt_args=None, upper=50, split_codons=False, "
@@ -268,8 +268,8 @@ class TestModel(TestCase):
         hyp = evo_app.hypothesis(model1, model2)
         got = " ".join(str(hyp).splitlines())
         expect = (
-            "hypothesis(type='hypothesis', null='HKY85', "
-            "alternates=(model(type='model', sm='HKY85', tree=None, unique_trees=False, "
+            "hypothesis(null='HKY85', "
+            "alternates=(model(sm='HKY85', tree=None, unique_trees=False, "
             "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, opt_args=None, upper=50,"
             " split_codons=False, show_progress=False, verbose=False),),"

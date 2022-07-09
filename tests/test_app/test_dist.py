@@ -125,7 +125,6 @@ class FastSlowDistTests(TestCase):
             # Compose two composable applications, there should not be exceptions.
             got = app + fast_slow_dist
             self.assertIsInstance(got, dist_app.fast_slow_dist)
-            self.assertEqual(got._type, "distance")
             self.assertIs(got.input, app)
             self.assertIs(got.output, None)
             self.assertIsInstance(got._input_types, frozenset)
