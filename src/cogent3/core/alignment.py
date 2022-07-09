@@ -3748,7 +3748,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self.array_seqs = transpose(self.array_positions)
         self.seq_data = self.array_seqs
         self.seq_len = len(self.array_positions)
-        self._type = self.moltype.get_type()
 
     def _force_same_data(self, data, names):
         """Forces array that was passed in to be used as selfarray_positions"""
@@ -4364,7 +4363,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         names = self.names
 
         self._motif_probs = {}
-        self._type = self.moltype.get_type()
         lengths = list(map(len, self.seq_data))
         if lengths and (max(lengths) != min(lengths)):
             raise DataError(

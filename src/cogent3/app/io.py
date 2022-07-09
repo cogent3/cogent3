@@ -524,8 +524,6 @@ class load_json(Composable):
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
-    _type = "output"
-
     _input_types = None
     _output_types = SERIALISABLE_TYPE
 
@@ -556,8 +554,6 @@ class load_json(Composable):
 
 class write_json(_checkpointable):
     """Writes json serialised objects to individual json files."""
-
-    _type = "output"
 
     _input_types = SERIALISABLE_TYPE
     _output_types = (IDENTIFIER_TYPE, SERIALISABLE_TYPE)
@@ -610,8 +606,6 @@ class load_db(Composable):
     """Loads json serialised cogent3 objects from a TinyDB file.
     Returns whatever object type was stored."""
 
-    _type = "output"
-
     _input_types = None
     _output_types = SERIALISABLE_TYPE
 
@@ -645,8 +639,6 @@ class load_db(Composable):
 
 class write_db(_checkpointable):
     """Writes json serialised objects to a TinyDB instance."""
-
-    _type = "output"
 
     _input_types = SERIALISABLE_TYPE
     _output_types = (IDENTIFIER_TYPE, SERIALISABLE_TYPE)
