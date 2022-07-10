@@ -82,11 +82,9 @@ class TestTree(TestCase):
         )
         self.assertIsInstance(proc, tree_app.quick_tree)
         self.assertIsInstance(proc.input, dist.fast_slow_dist)
-        self.assertIs(proc.output, None)
         self.assertIsInstance(proc._input_types, frozenset)
         self.assertIsInstance(proc._output_types, frozenset)
         self.assertIsInstance(proc._in, dist.fast_slow_dist)
-        self.assertIs(proc._out, None)
 
         tree1 = proc(aln1)
         self.assertIsInstance(tree1, PhyloNode)

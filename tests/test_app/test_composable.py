@@ -40,7 +40,7 @@ class TestCheckpoint(TestCase):
         omit_degens = sample_app.omit_degenerates(moltype="dna")
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_seqs(dirname)
-            path = "data" + os.sep + "brca1.fasta"
+            path = f"data{os.sep}brca1.fasta"
             aln = reader(path)
             outpath = writer(aln)
 
@@ -95,9 +95,7 @@ class TestComposableBase(TestCase):
         comb = aseqfunc1 + aseqfunc2 + aseqfunc3
         comb.disconnect()
         self.assertEqual(aseqfunc1.input, None)
-        self.assertEqual(aseqfunc1.output, None)
         self.assertEqual(aseqfunc3.input, None)
-        self.assertEqual(aseqfunc3.output, None)
         # should be able to compose a new one now
         aseqfunc1 + aseqfunc3
 
