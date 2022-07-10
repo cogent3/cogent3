@@ -64,7 +64,7 @@ class TestComposableBase(TestCase):
         aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
         aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
         comb = aseqfunc1 + aseqfunc2
-        expect = "ComposableSeq(type='sequences') + " "ComposableSeq(type='sequences')"
+        expect = "ComposableSeq() + " "ComposableSeq()"
         got = str(comb)
         self.assertEqual(got, expect)
 
@@ -273,7 +273,7 @@ class TestNotCompletedResult(TestCase):
         got = str(func)
         self.assertEqual(
             got,
-            "select_translatable(type='sequences', "
+            "select_translatable("
             "moltype='dna', gc=1, "
             "allow_rc=False,\ntrim_terminal_stop=True)",
         )
@@ -282,29 +282,29 @@ class TestNotCompletedResult(TestCase):
         got = str(func)
         self.assertEqual(
             got,
-            "select_translatable(type='sequences', "
+            "select_translatable("
             "moltype='dna', gc=1, "
-            "allow_rc=True,\ntrim_terminal_stop=True)",
+            "allow_rc=True, trim_terminal_stop=True)",
         )
 
         nodegen = omit_degenerates()
         got = str(nodegen)
         self.assertEqual(
             got,
-            "omit_degenerates(type='aligned', moltype=None, "
-            "gap_is_degen=True,\nmotif_length=1)",
+            "omit_degenerates(moltype=None, "
+            "gap_is_degen=True, motif_length=1)",
         )
         ml = min_length(100)
         got = str(ml)
         self.assertEqual(
             got,
-            "min_length(type='sequences', length=100, "
-            "motif_length=1, subtract_degen=True,\n"
+            "min_length(length=100, "
+            "motif_length=1, subtract_degen=True, "
             "moltype=None)",
         )
 
         qt = quick_tree()
-        self.assertEqual(str(qt), "quick_tree(type='tree', drop_invalid=False)")
+        self.assertEqual(str(qt), "quick_tree(drop_invalid=False)")
 
 
 class TestPicklable(TestCase):
