@@ -126,11 +126,9 @@ class FastSlowDistTests(TestCase):
             got = app + fast_slow_dist
             self.assertIsInstance(got, dist_app.fast_slow_dist)
             self.assertIs(got.input, app)
-            self.assertIs(got.output, None)
             self.assertIsInstance(got._input_types, frozenset)
             self.assertIsInstance(got._output_types, frozenset)
             self.assertIs(got._in, app)
-            self.assertIs(got._out, None)
             app.disconnect()
             fast_slow_dist.disconnect()
 

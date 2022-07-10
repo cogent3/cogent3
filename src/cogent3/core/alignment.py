@@ -3878,7 +3878,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)} x {self.seq_len} {self._type} alignment: {seqs}"
+        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     def iupac_consensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment."""
@@ -4407,7 +4407,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)} x {self.seq_len} {self._type} alignment: {seqs}"
+        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     def _mapped(self, slicemap):
         align = []
