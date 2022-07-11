@@ -22,9 +22,6 @@ from cogent3.util.table import Table
 
 from .composable import (
     Composable,
-    ComposableAligned,
-    ComposableSeq,
-    ComposableTabular,
     NotCompleted,
     _checkpointable,
 )
@@ -194,7 +191,7 @@ def _load_seqs(path, klass, parser, moltype):
     return seqs
 
 
-class load_aligned(ComposableAligned):
+class load_aligned(Composable):
     """Loads aligned sequences. Returns an Alignment object."""
 
     klass = ArrayAlignment
@@ -228,7 +225,7 @@ class load_aligned(ComposableAligned):
         return _load_seqs(path, self.klass, self._parser, self.moltype)
 
 
-class load_unaligned(ComposableSeq):
+class load_unaligned(Composable):
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
     klass = SequenceCollection
@@ -263,7 +260,7 @@ class load_unaligned(ComposableSeq):
         return seqs.degap()
 
 
-class load_tabular(ComposableTabular):
+class load_tabular(Composable):
     """Loads delimited data. Returns a Table."""
 
     _input_types = None

@@ -8,9 +8,7 @@ from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
 from .composable import (
-    ComposableHypothesis,
-    ComposableModel,
-    ComposableTabular,
+    Composable,
     NotCompleted,
 )
 from .result import (
@@ -41,7 +39,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class model(ComposableModel):
+class model(Composable):
     """Define a substitution model + tree for maximum likelihood evaluation.
     Returns model_result."""
 
@@ -199,16 +197,12 @@ class model(ComposableModel):
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if (
-                    rule["par_name"]
-                    in (
-                        "mprobs",
-                        "psubs",
-                        "bprobs",
-                        "dpsubs",
-                    )
-                    or rule.get("is_constant")
-                ):
+                if rule["par_name"] in (
+                    "mprobs",
+                    "psubs",
+                    "bprobs",
+                    "dpsubs",
+                ) or rule.get("is_constant"):
                     continue
                 rule["upper"] = min(rule.get("upper") or self._upper + 1, self._upper)
 
@@ -308,7 +302,7 @@ class _InitFrom:
         return other
 
 
-class model_collection(ComposableHypothesis):
+class model_collection(Composable):
     """Fits a collection of models. Returns a
     model_collection_result."""
 
@@ -414,7 +408,7 @@ class hypothesis(model_collection):
         return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
 
-class bootstrap(ComposableHypothesis):
+class bootstrap(Composable):
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
     _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
@@ -467,7 +461,7 @@ class bootstrap(ComposableHypothesis):
         return result
 
 
-class ancestral_states(ComposableTabular):
+class ancestral_states(Composable):
     """Computes ancestral state probabilities from a model result. Returns a dict
     with a DictArray for each node."""
 
@@ -498,7 +492,7 @@ class ancestral_states(ComposableTabular):
         return tab
 
 
-class tabulate_stats(ComposableTabular):
+class tabulate_stats(Composable):
     """Extracts all model statistics from model_result as Table."""
 
     _input_types = (MODEL_RESULT_TYPE, SERIALISABLE_TYPE)
@@ -532,7 +526,7 @@ def is_codon_model(sm):
     return isinstance(sm, _Codon)
 
 
-class natsel_neutral(ComposableHypothesis):
+class natsel_neutral(Composable):
     """Test of selective neutrality by assessing whether omega equals 1.
     Under the alternate, there is one omega for all branches and all sites.
     """
@@ -638,7 +632,7 @@ class natsel_neutral(ComposableHypothesis):
         return self._hyp(data)
 
 
-class natsel_zhang(ComposableHypothesis):
+class natsel_zhang(Composable):
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
 
@@ -844,7 +838,7 @@ class natsel_zhang(ComposableHypothesis):
         return result
 
 
-class natsel_sitehet(ComposableHypothesis):
+class natsel_sitehet(Composable):
     """Test for site-heterogeneity in omega. Under null, there are 2 site-classes,
     omega < 1 and omega = 1. Under the alternate, an additional site-class of
     omega > 1 is added."""
@@ -1001,7 +995,7 @@ class natsel_sitehet(ComposableHypothesis):
         return result
 
 
-class natsel_timehet(ComposableHypothesis):
+class natsel_timehet(Composable):
     """The branch heterogeneity hypothesis test for natural selection.
     Tests for whether a single omega for all branches is sufficient against the
     alternate that a user specified subset of branches have a distinct value
