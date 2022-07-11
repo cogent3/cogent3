@@ -12,7 +12,7 @@ from scitrack import CachingLogger
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import (
-    ComposableSeq,
+    Composable,
     NotCompleted,
     appify,
     user_function,
@@ -57,44 +57,44 @@ class TestCheckpoint(TestCase):
             self.assertTrue(len(got) > 1000)
 
 
-ComposableSeq._input_types = ComposableSeq._output_types = {None}
+Composable._input_types = Composable._output_types = {None}
 
 
 class TestComposableBase(TestCase):
     def test_composable(self):
         """correctly form string"""
-        aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
-        aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
+        aseqfunc1 = Composable(input_types="sequences", output_types="sequences")
+        aseqfunc2 = Composable(input_types="sequences", output_types="sequences")
         comb = aseqfunc1 + aseqfunc2
-        expect = "ComposableSeq() + " "ComposableSeq()"
+        expect = "Composable() + " "Composable()"
         got = str(comb)
         self.assertEqual(got, expect)
 
     @pytest.mark.xfail
     def test_composables_once(self):
         """composables can only be used in a single composition"""
-        aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
-        aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
+        aseqfunc1 = Composable(input_types="sequences", output_types="sequences")
+        aseqfunc2 = Composable(input_types="sequences", output_types="sequences")
         aseqfunc1 + aseqfunc2
         with self.assertRaises(AssertionError):
-            aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
+            aseqfunc3 = Composable(input_types="sequences", output_types="sequences")
             aseqfunc1 + aseqfunc3
         # the other order
         with self.assertRaises(AssertionError):
-            aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
+            aseqfunc3 = Composable(input_types="sequences", output_types="sequences")
             aseqfunc3 + aseqfunc2
 
     def test_composable_to_self(self):
         """this should raise a ValueError"""
-        app1 = ComposableSeq(input_types="sequences", output_types="sequences")
+        app1 = Composable(input_types="sequences", output_types="sequences")
         with self.assertRaises(ValueError):
             _ = app1 + app1
 
     def test_disconnect(self):
         """disconnect breaks all connections and allows parts to be reused"""
-        aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
-        aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
-        aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
+        aseqfunc1 = Composable(input_types="sequences", output_types="sequences")
+        aseqfunc2 = Composable(input_types="sequences", output_types="sequences")
+        aseqfunc3 = Composable(input_types="sequences", output_types="sequences")
         comb = aseqfunc1 + aseqfunc2 + aseqfunc3
         comb.disconnect()
         self.assertEqual(aseqfunc1.input, None)

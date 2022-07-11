@@ -15,7 +15,7 @@ from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model
 
-from .composable import ComposableSeq, NotCompleted
+from .composable import Composable, NotCompleted
 from .tree import quick_tree, scale_branches
 from .typing import ALIGNED_TYPE, SEQUENCE_TYPE, SERIALISABLE_TYPE
 
@@ -320,7 +320,7 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     )
 
 
-class align_to_ref(ComposableSeq):
+class align_to_ref(Composable):
     """Aligns sequences to a nominated reference in the unaligned collection.
     This is much faster, and requires much less memory, than progressive_align
     but the quality will likely be lower. Alignment quality will be strongly
@@ -416,7 +416,7 @@ class align_to_ref(ComposableSeq):
         return self._func(seqs)
 
 
-class progressive_align(ComposableSeq):
+class progressive_align(Composable):
     """Progressive multiple sequence alignment via any cogent3 model.
     Returns an Alignment object."""
 
