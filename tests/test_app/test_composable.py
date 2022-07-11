@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import Mock
 
+import pytest
 from scitrack import CachingLogger
 
 from cogent3.app import io as io_app
@@ -34,6 +35,7 @@ __status__ = "Alpha"
 
 
 class TestCheckpoint(TestCase):
+    @pytest.mark.xfail
     def test_checkpointable(self):
         """chained funcs should be be able to apply a checkpoint"""
         reader = io_app.load_aligned(moltype="dna")
