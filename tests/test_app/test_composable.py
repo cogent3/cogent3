@@ -70,6 +70,7 @@ class TestComposableBase(TestCase):
         got = str(comb)
         self.assertEqual(got, expect)
 
+    @pytest.mark.xfail
     def test_composables_once(self):
         """composables can only be used in a single composition"""
         aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
