@@ -196,6 +196,7 @@ def _load_seqs(path, klass, parser, moltype):
 
 class load_aligned(ComposableAligned):
     """Loads aligned sequences. Returns an Alignment object."""
+
     klass = ArrayAlignment
 
     _input_types = None

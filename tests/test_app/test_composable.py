@@ -7,6 +7,7 @@ from unittest import TestCase, main
 from unittest.mock import Mock
 
 import pytest
+
 from scitrack import CachingLogger
 
 from cogent3.app import io as io_app
@@ -292,8 +293,7 @@ class TestNotCompletedResult(TestCase):
         got = str(nodegen)
         self.assertEqual(
             got,
-            "omit_degenerates(moltype=None, "
-            "gap_is_degen=True, motif_length=1)",
+            "omit_degenerates(moltype=None, " "gap_is_degen=True, motif_length=1)",
         )
         ml = min_length(100)
         got = str(ml)

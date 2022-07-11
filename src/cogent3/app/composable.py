@@ -123,7 +123,6 @@ class NotCompleted(int):
 
 
 class ComposableType:
-
     def __init__(self, input_types=None, output_types=None, data_types=None):
         """
         Parameters
@@ -506,44 +505,36 @@ class Composable(ComposableType):
 
 
 class ComposableTabular(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableTabular, self).__init__(**kwargs)
 
 
 class ComposableSeq(Composable):
-
-
     def __init__(self, **kwargs):
         super(ComposableSeq, self).__init__(**kwargs)
 
 
 class ComposableAligned(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableAligned, self).__init__(**kwargs)
 
 
 class ComposableTree(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableTree, self).__init__(**kwargs)
 
 
 class ComposableModel(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableModel, self).__init__(**kwargs)
 
 
 class ComposableHypothesis(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableHypothesis, self).__init__(**kwargs)
 
 
 class ComposableDistance(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableDistance, self).__init__(**kwargs)
 
