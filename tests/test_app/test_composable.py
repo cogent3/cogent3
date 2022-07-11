@@ -292,8 +292,7 @@ class TestNotCompletedResult(TestCase):
         got = str(nodegen)
         self.assertEqual(
             got,
-            "omit_degenerates(moltype=None, "
-            "gap_is_degen=True, motif_length=1)",
+            "omit_degenerates(moltype=None, " "gap_is_degen=True, motif_length=1)",
         )
         ml = min_length(100)
         got = str(ml)
