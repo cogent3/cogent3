@@ -35,29 +35,6 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class TestCheckpoint(TestCase):
-    @pytest.mark.xfail
-    def test_checkpointable(self):
-        """chained funcs should be be able to apply a checkpoint"""
-        reader = io_app.load_aligned(moltype="dna")
-        omit_degens = sample_app.omit_degenerates(moltype="dna")
-        with TemporaryDirectory(dir=".") as dirname:
-            writer = io_app.write_seqs(dirname)
-            path = f"data{os.sep}brca1.fasta"
-            aln = reader(path)
-            outpath = writer(aln)
-
-            read_write = reader + writer
-            got = read_write(path)  # should skip reading and return path
-            self.assertTrue(got.endswith(outpath))
-            read_write.disconnect()  # allows us to reuse bits
-            read_write_degen = reader + writer + omit_degens
-            # should return an alignment instance
-            got = read_write_degen(path)
-            self.assertIsInstance(got, ArrayAlignment)
-            self.assertTrue(len(got) > 1000)
-
-
 ComposableSeq._input_types = ComposableSeq._output_types = {None}
 
 
@@ -71,19 +48,14 @@ class TestComposableBase(TestCase):
         got = str(comb)
         self.assertEqual(got, expect)
 
-    @pytest.mark.xfail
     def test_composables_once(self):
         """composables can only be used in a single composition"""
-        aseqfunc1 = ComposableSeq(input_types="sequences", output_types="sequences")
-        aseqfunc2 = ComposableSeq(input_types="sequences", output_types="sequences")
-        aseqfunc1 + aseqfunc2
+        one = ComposableSeq(input_types="sequences", output_types="sequences")
+        two = ComposableSeq(input_types="sequences", output_types="sequences")
+        three = ComposableSeq(input_types="sequences", output_types="sequences")
+        one + three
         with self.assertRaises(AssertionError):
-            aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
-            aseqfunc1 + aseqfunc3
-        # the other order
-        with self.assertRaises(AssertionError):
-            aseqfunc3 = ComposableSeq(input_types="sequences", output_types="sequences")
-            aseqfunc3 + aseqfunc2
+            two + three  # three already has an input
 
     def test_composable_to_self(self):
         """this should raise a ValueError"""
