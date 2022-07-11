@@ -7,7 +7,7 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import ComposableAligned, ComposableSeq, NotCompleted
+from .composable import Composable, NotCompleted
 from .translate import get_fourfold_degenerate_sets
 from .typing import ALIGNED_TYPE, SEQUENCE_TYPE, SERIALISABLE_TYPE
 
@@ -103,7 +103,7 @@ class concat:
     __call__ = concat
 
 
-class omit_degenerates(ComposableAligned):
+class omit_degenerates(Composable):
     """Excludes alignment columns with degenerate conditions. Can accomodate
     reading frame. Returns modified Alignment."""
 
@@ -156,7 +156,7 @@ class omit_degenerates(ComposableAligned):
         return result
 
 
-class omit_gap_pos(ComposableAligned):
+class omit_gap_pos(Composable):
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame. Returns modified Alignment."""
 
@@ -206,7 +206,7 @@ class omit_gap_pos(ComposableAligned):
         return result
 
 
-class take_codon_positions(ComposableAligned):
+class take_codon_positions(Composable):
     """Extracts the specified codon position(s) from an alignment.
     Returns an Alignment."""
 
@@ -308,7 +308,7 @@ class take_codon_positions(ComposableAligned):
         return self._func(aln)
 
 
-class take_named_seqs(ComposableSeq):
+class take_named_seqs(Composable):
     """Extracts (or everything but) named sequences. Returns a filtered
     sequences, alignment that satisified the condition, NotCompleted otherwise."""
 
@@ -343,7 +343,7 @@ class take_named_seqs(ComposableSeq):
         return data
 
 
-class take_n_seqs(ComposableSeq):
+class take_n_seqs(Composable):
     """Selects n sequences from a collection. Chooses first n sequences, or selects randomly if specified.
 
     Returns original object type with the selected sequences, NotCompleted object otherwise.
@@ -413,7 +413,7 @@ class take_n_seqs(ComposableSeq):
         return data
 
 
-class min_length(ComposableSeq):
+class min_length(Composable):
     """Filters sequence collections / alignments by length. Returns the
     data if it satisfies the condition, NotCompleted otherwise."""
 
@@ -491,7 +491,7 @@ class _GetStart:
         return self.func(length)
 
 
-class fixed_length(ComposableAligned):
+class fixed_length(Composable):
     """Sample an alignment to a fixed length. Returns an Alignment of the
     specified length, or NotCompleted if alignment too short."""
 
@@ -595,7 +595,7 @@ class fixed_length(ComposableAligned):
         return self._func(data)
 
 
-class omit_bad_seqs(ComposableAligned):
+class omit_bad_seqs(Composable):
     """Eliminates sequences from Alignment based on gap fraction, unique gaps.
     Returns modified alignment."""
 
@@ -648,7 +648,7 @@ class omit_bad_seqs(ComposableAligned):
         return result
 
 
-class omit_duplicated(ComposableSeq):
+class omit_duplicated(Composable):
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped. Returns sequence collection with only unique sequences."""
 
@@ -738,7 +738,7 @@ class omit_duplicated(ComposableSeq):
         return self._func(seqs)
 
 
-class trim_stop_codons(ComposableSeq):
+class trim_stop_codons(Composable):
     """Removes terminal stop codons. Returns sequences / alignment."""
 
     _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)

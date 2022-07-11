@@ -4,7 +4,7 @@ from cogent3.core.alignment import SequenceCollection
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import ComposableSeq, NotCompleted
+from .composable import Composable, NotCompleted
 from .typing import ALIGNED_TYPE, SEQUENCE_TYPE
 
 
@@ -148,7 +148,7 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
     return four_fold
 
 
-class select_translatable(ComposableSeq):
+class select_translatable(Composable):
     """Identifies most likely reading frame. Returns modified sequences / alignment,
     if it could be resolved, NotCompleted otherwise."""
 
@@ -234,7 +234,7 @@ class select_translatable(ComposableSeq):
         return translatable
 
 
-class translate_seqs(ComposableSeq):
+class translate_seqs(Composable):
     """Translates sequences, assumes in correct reading frame."""
 
     _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)

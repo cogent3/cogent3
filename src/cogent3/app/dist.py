@@ -7,7 +7,7 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import get_model
 
-from .composable import ComposableDistance
+from .composable import Composable
 from .typing import (
     ALIGNED_TYPE,
     PAIRWISE_DISTANCE_TYPE,
@@ -26,7 +26,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class fast_slow_dist(ComposableDistance):
+class fast_slow_dist(Composable):
     """Pairwise distance calculation for aligned sequences.
 
     Uses fast (but less numerically robust) approach where possible, slow (robust)
