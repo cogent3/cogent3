@@ -4,4 +4,5 @@ psutil==5.9.0
 scipy==1.7.3
 nox==2022.1.7
 plotly==5.5.0
+typing_extensions>=3.7
 .[dev]
