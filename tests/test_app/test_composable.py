@@ -7,6 +7,7 @@ from unittest import TestCase, main
 from unittest.mock import Mock
 
 import pytest
+
 from scitrack import CachingLogger
 
 from cogent3.app import io as io_app
