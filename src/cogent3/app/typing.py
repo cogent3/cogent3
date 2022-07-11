@@ -1,5 +1,6 @@
 """defined type hints for app composability"""
 # todo write more extensive docstring explaining limited use of these types
+from __future__ import annotations
 from typing import (
     ForwardRef,
     Iterable,
