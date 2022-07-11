@@ -123,7 +123,6 @@ class NotCompleted(int):
 
 
 class ComposableType:
-
     def __init__(self, input_types=None, output_types=None, data_types=None):
         """
         Parameters
@@ -487,50 +486,80 @@ class Composable(ComposableType):
 
 
 class ComposableTabular(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableTabular, self).__init__(**kwargs)
-        discontinued("class", "ComposableTabular", "2023.1", "see developer docs for new class hierarchy")
+        discontinued(
+            "class",
+            "ComposableTabular",
+            "2023.1",
+            "see developer docs for new class hierarchy",
+        )
+
 
 class ComposableSeq(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableSeq, self).__init__(**kwargs)
-        discontinued("class", "ComposableSeq", "2023.1", "see developer docs for new class hierarchy")
+        discontinued(
+            "class",
+            "ComposableSeq",
+            "2023.1",
+            "see developer docs for new class hierarchy",
+        )
+
 
 class ComposableAligned(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableAligned, self).__init__(**kwargs)
-        discontinued("class", "ComposableAligned", "2023.1", "see developer docs for new class hierarchy")
+        discontinued(
+            "class",
+            "ComposableAligned",
+            "2023.1",
+            "see developer docs for new class hierarchy",
+        )
 
 
 class ComposableTree(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableTree, self).__init__(**kwargs)
-        discontinued("class", "ComposableTree", "2023.1", "see developer docs for new class hierarchy")
+        discontinued(
+            "class",
+            "ComposableTree",
+            "2023.1",
+            "see developer docs for new class hierarchy",
+        )
 
 
 class ComposableModel(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableModel, self).__init__(**kwargs)
-        discontinued("class", "ComposableModel", "2023.1", "see developer docs for new class hierarchy")
+        discontinued(
+            "class",
+            "ComposableModel",
+            "2023.1",
+            "see developer docs for new class hierarchy",
+        )
 
 
 class ComposableHypothesis(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableHypothesis, self).__init__(**kwargs)
-        discontinued("class", "ComposableHypothesis", "2023.1", "see developer docs for new class hierarchy")
+        discontinued(
+            "class",
+            "ComposableHypothesis",
+            "2023.1",
+            "see developer docs for new class hierarchy",
+        )
 
 
 class ComposableDistance(Composable):
-
     def __init__(self, **kwargs):
         super(ComposableDistance, self).__init__(**kwargs)
-        discontinued("class", "ComposableDistance", "2023.1", "see developer docs for new class hierarchy")
+        discontinued(
+            "class",
+            "ComposableDistance",
+            "2023.1",
+            "see developer docs for new class hierarchy",
+        )
 
 
 class _seq_loader:
