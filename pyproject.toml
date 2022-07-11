@@ -20,7 +20,8 @@ dependencies = ["chardet",
         "numba>0.54; python_version>='3.10'",
         "scitrack",
         "tqdm",
-        "tinydb"]
+        "tinydb",
+        "typing_extensions"]
 classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",

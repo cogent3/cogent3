@@ -15,6 +15,7 @@ dependencies = (
     "pandas",
     "plotly",
     "pytest-cov",
+    "typing_extensions",
 )
 
 _py_versions = range(7, 11)
