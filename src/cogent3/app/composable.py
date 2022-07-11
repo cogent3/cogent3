@@ -172,7 +172,6 @@ class Composable(ComposableType):
     def __init__(self, **kwargs):
         super(Composable, self).__init__(**kwargs)
         self._in = None  # input rules
-        self._out = None  # rules receiving output
         # rules operating on result but not part of a chain
         self._checkpointable = False
         self._load_checkpoint = None
@@ -224,19 +223,10 @@ class Composable(ComposableType):
         if other is self:
             raise ValueError("cannot add an app to itself")
 
-        if self.output or other.input:
+        if other.input:
             # can only be part of a single composable function
-            self_name = self.__class__.__name__
             other_name = other.__class__.__name__
-            if self.output and other.input:
-                msg = (
-                    f"{self_name} and {other_name} are already part of a"
-                    " composed function"
-                )
-            elif self.output:
-                msg = f"{self_name} already part of composed function"
-            else:
-                msg = f"{other_name} already part of composed function"
+            msg = f"{other_name} already part of composed function"
             raise AssertionError(f"{msg}, use disconnect() to free them up")
 
         if not other.compatible_input(self):
@@ -245,9 +235,8 @@ class Composable(ComposableType):
             my_output = self._output_types
             their_name = other.__class__.__name__
             their_input = other._input_types
-            msg = msg % (their_name, their_input, my_name, my_output)
+            msg %= (their_name, their_input, my_name, my_output)
             raise TypeError(msg)
-        self.output = other
         other.input = self
         return other
 
@@ -287,12 +276,8 @@ class Composable(ComposableType):
 
         if self.checkpointable:
             job_done = self.job_done(refobj)
-            if job_done and self.output:
-                result = self._load_checkpoint(refobj)
-            elif job_done:
-                result = self._make_output_identifier(refobj)
-
             if job_done:
+                result = self._make_output_identifier(refobj)
                 return result
 
         if self.input:
@@ -320,15 +305,6 @@ class Composable(ComposableType):
     @input.setter
     def input(self, other):
         self._in = other
-
-    @property
-    def output(self):
-        return self._out
-
-    @output.setter
-    def output(self, other):
-        self._out = other
-        self._set_checkpoint_loader()
 
     def disconnect(self):
         """resets input and output to None

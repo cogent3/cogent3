@@ -50,6 +50,9 @@ from .typing import (
     SERIALISABLE_TYPE,
     TABULAR_RESULT_TYPE,
     TABULAR_TYPE,
+    AlignedSeqsType,
+    IdentifierType,
+    UnalignedSeqsType,
 )
 
 
@@ -179,34 +182,20 @@ def get_data_store(
     return klass(base_path, suffix=suffix, limit=limit)
 
 
-class _seq_loader:
-    def main(self, path):
-        """returns alignment"""
-        # if we get a seq object, we try getting abs_path from that now
-        try:
-            abs_path = path.info.source
-        except AttributeError:
-            abs_path = str(path)
-
-        if type(path) == str:
-            # we use a data store as it's read() handles compression
-            path = SingleReadDataStore(path)[0]
-
-        data = path.read().splitlines()
-        data = dict(record for record in self._parser(data))
-        seqs = self.klass(data=data, moltype=self.moltype)
-        seqs.info.source = abs_path
-
-        if self._output_types & {SEQUENCE_TYPE}:
-            seqs = seqs.degap()
-            seqs.info.source = abs_path
-
-        return seqs
+def _load_seqs(path, klass, parser, moltype):
+    abs_path = str(path)
+    if type(path) == str:
+        # we use a DataStoreMember as it's read() handles zipped compression
+        path = SingleReadDataStore(path)[0]
+    data = path.read().splitlines()
+    data = dict(iter(parser(data)))
+    seqs = klass(data=data, moltype=moltype)
+    seqs.info.source = abs_path
+    return seqs
 
 
-class load_aligned(ComposableAligned, _seq_loader):
+class load_aligned(ComposableAligned):
     """Loads aligned sequences. Returns an Alignment object."""
-
     klass = ArrayAlignment
 
     _input_types = None
@@ -233,8 +222,12 @@ class load_aligned(ComposableAligned, _seq_loader):
         self.moltype = moltype
         self._parser = PARSERS[format.lower()]
 
+    def main(self, path: IdentifierType) -> AlignedSeqsType:
+        """returns alignment"""
+        return _load_seqs(path, self.klass, self._parser, self.moltype)
 
-class load_unaligned(ComposableSeq, _seq_loader):
+
+class load_unaligned(ComposableSeq):
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
     klass = SequenceCollection
@@ -262,6 +255,11 @@ class load_unaligned(ComposableSeq, _seq_loader):
             moltype = get_moltype(moltype)
         self.moltype = moltype
         self._parser = PARSERS[format.lower()]
+
+    def main(self, path: IdentifierType) -> UnalignedSeqsType:
+        """returns sequence collection"""
+        seqs = _load_seqs(path, self.klass, self._parser, self.moltype)
+        return seqs.degap()
 
 
 class load_tabular(ComposableTabular):
@@ -383,7 +381,7 @@ class load_tabular(ComposableTabular):
         return None
 
 
-class write_tabular(_checkpointable, ComposableTabular):
+class write_tabular(_checkpointable):
     """writes tabular data"""
 
     _input_types = (TABULAR_RESULT_TYPE, TABULAR_TYPE, PAIRWISE_DISTANCE_TYPE)
