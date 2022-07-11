@@ -56,7 +56,7 @@ class TestComposableBase(TestCase):
         one + three
         with self.assertRaises(AssertionError):
             two + three  # three already has an input
-            
+
     def test_composable_to_self(self):
         """this should raise a ValueError"""
         app1 = Composable(input_types="sequences", output_types="sequences")
