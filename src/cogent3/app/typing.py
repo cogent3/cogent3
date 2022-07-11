@@ -1,15 +1,10 @@
 """defined type hints for app composability"""
 # todo write more extensive docstring explaining limited use of these types
 from __future__ import annotations
-from typing import (
-    ForwardRef,
-    Iterable,
-    TypeVar,
-    Union,
-    get_args,
-    get_origin,
-    get_type_hints,
-)
+
+from typing import ForwardRef, Iterable, TypeVar, Union
+
+from typing_extensions import get_args, get_origin
 
 
 __author__ = "Gavin Huttley"
