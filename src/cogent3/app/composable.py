@@ -562,32 +562,6 @@ class ComposableDistance(Composable):
         )
 
 
-class _seq_loader:
-    def load(self, data):
-        """returns sequences
-
-        Parameters
-        ----------
-        data
-            file path or cogent3 sequence collection / alignment
-        """
-        if type(data) == str:
-            with open_(data) as infile:
-                data = dict(record for record in self._parser(infile))
-            seqs = self.klass(data=data, moltype=self.moltype)
-            seqs.info.path = data
-        elif not isinstance(data, SequenceCollection):
-            if self.aligned:
-                seqs = make_aligned_seqs(data, moltype=self.moltype)
-            else:
-                seqs = make_unaligned_seqs(data, moltype=self.moltype)
-
-        if not (self._output_types & {"aligned"}):
-            seqs = seqs.degap()
-
-        return seqs
-
-
 class _checkpointable(Composable):
     def __init__(
         self,
