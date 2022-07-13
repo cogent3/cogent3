@@ -16,7 +16,6 @@ from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
-from cogent3.util.io import open_
 from cogent3.util.misc import (
     extend_docstring_from,
     get_object_provenance,
@@ -560,32 +559,6 @@ class ComposableDistance(Composable):
             "2023.1",
             "see developer docs for new class hierarchy",
         )
-
-
-class _seq_loader:
-    def load(self, data):
-        """returns sequences
-
-        Parameters
-        ----------
-        data
-            file path or cogent3 sequence collection / alignment
-        """
-        if type(data) == str:
-            with open_(data) as infile:
-                data = dict(record for record in self._parser(infile))
-            seqs = self.klass(data=data, moltype=self.moltype)
-            seqs.info.path = data
-        elif not isinstance(data, SequenceCollection):
-            if self.aligned:
-                seqs = make_aligned_seqs(data, moltype=self.moltype)
-            else:
-                seqs = make_unaligned_seqs(data, moltype=self.moltype)
-
-        if not (self._output_types & {"aligned"}):
-            seqs = seqs.degap()
-
-        return seqs
 
 
 class _checkpointable(Composable):
