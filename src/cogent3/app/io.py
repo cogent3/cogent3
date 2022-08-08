@@ -20,11 +20,7 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
-from .composable import (
-    Composable,
-    NotCompleted,
-    _checkpointable,
-)
+from .composable import Composable, NotCompleted, _checkpointable
 from .data_store import (
     IGNORE,
     OVERWRITE,

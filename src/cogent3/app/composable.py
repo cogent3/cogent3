@@ -8,11 +8,14 @@ import time
 import traceback
 
 from copy import deepcopy
+from enum import Enum
 from functools import wraps
+from typing import Tuple
 
 from scitrack import CachingLogger
 
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
+from cogent3.app.typing import get_constraint_names
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
@@ -773,3 +776,435 @@ def appify(input_types, output_types, data_types=None):
         return maker
 
     return enclosed
+
+
+class AppType(Enum):
+    LOADER = "loader"
+    WRITER = "writer"
+    GENERIC = "generic"
+
+
+### Aliases to use Enum easily
+LOADER = AppType.LOADER
+WRITER = AppType.WRITER
+GENERIC = AppType.GENERIC
+
+
+def _get_main_hints(klass) -> Tuple[set, set]:
+    """return type hints for main method
+    Returns
+    -------
+    {arg1hints}, {return type hint}
+    """
+    # Check klass.main exists and is type method
+    main_func = getattr(klass, "main", None)
+    if (
+        main_func is None
+        or not inspect.isclass(klass)
+        or not inspect.isfunction(main_func)
+    ):
+        raise ValueError(f"must define a callable main() method in {klass.__name__!r}")
+
+    _no_value = inspect.Parameter.empty
+
+    params = inspect.signature(main_func)
+    if len(params.parameters) < 2:
+        raise ValueError("main() method must have at least 1 input parameter")
+    # list of annotation of all parameters other than self, params.parameters is orderedDict
+    # annotation for first parameter other than self
+    first_param_type = [p.annotation for p in params.parameters.values()][1]
+    return_type = params.return_annotation
+    ## Is TypeError correct?
+    if return_type is _no_value:
+        raise TypeError("main() method must have valid type hint for return type")
+    if first_param_type is _no_value:
+        raise TypeError("main() method must have valid type hint for first parameter")
+
+    if first_param_type is None:
+        raise TypeError("main() method must not have NoneType first parameter")
+    if return_type is None:
+        raise TypeError("main() method must not have NoneType return value")
+
+    return frozenset([first_param_type]), frozenset([return_type])
+
+
+class _ser:
+    __slots__ = ("kwargs",)
+
+    def __call__(self):
+        return self.kwargs
+
+
+def _add(self, other):
+    ## Check order
+    if self.app_type is not LOADER:
+        raise TypeError("Left hand side of add operator must be of type loader")
+    if other.app_type is LOADER:
+        raise TypeError("Left hand side of add operator must not be of type loader")
+
+    ## validate that self._return_types & other._input_types is a non-empty set.
+    if not self._return_types:
+        raise TypeError(
+            "Left hand side of add operator must have non-empty return types"
+        )
+    if not other._data_types:  ## I am not sure about this
+        raise TypeError(
+            "right hand side of add operator must have non-empty input types"
+        )
+
+    ### Check if self._return_types & other._input_types is incompatible.
+    if self._return_types != other._data_types:
+        raise TypeError("two apps does not have compatible types")
+
+    other.input = self
+    return other
+
+
+def _repr(self):
+    val = f"{self.input!r} + " if self.input else ""
+    data = ", ".join(f"{k}={v!r}" for k, v in self._serialisable().items())
+    data = f"{self.__class__.__name__}({val}{data})"
+    data = textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
+    return data
+
+
+def _new(klass, *args, **kwargs):
+    obj = object.__new__(klass)
+
+    init_sig = inspect.signature(klass.__init__)
+    no_default = inspect.Parameter.empty
+    arg_order = list(init_sig.parameters)[1:]  # exclude "self"
+
+    kw_args = {
+        k: p.default
+        for k, p in init_sig.parameters.items()
+        if k != "self" and (p.default is not no_default)
+    }
+
+    init_vals = {}
+    if arg_order:  ### this line is new, for empty args
+        for i, v in enumerate(args):
+            k, v = arg_order[i], v
+            init_vals[k] = v
+
+    init_vals |= kw_args | kwargs
+    obj._serialisable.kwargs = init_vals
+    return obj
+
+
+def _call(self, val, *args, **kwargs):
+    # logic for trapping call to main
+
+    if val is None:
+        ## new message in place of traceback
+        return NotCompleted("ERROR", self, "unexpected input value None", source=val)
+
+    if not val:
+        return val
+
+    if self.app_type is not LOADER and self.input:  # passing to connected app
+        val = self.input(val, *args, **kwargs)
+        if not val:  ### moved this if into above if
+            return val
+
+    type_checked = self._validate_data_type(val)
+    if not type_checked:
+        return type_checked
+
+    try:
+        result = self.main(val, *args, **kwargs)
+    except Exception:
+        result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
+
+    if not result and not isinstance(result, NotCompleted):
+        msg = (
+            f"The value {result!r} equates to False. "
+            "If unexpected, please post this error message along"
+            f" with the code and data {val!r} as an Issue on the"
+            " github project page."
+        )
+        result = NotCompleted("BUG", f"{self.__class__.__name__}", msg, source=val)
+
+    return result
+
+
+def _getstate(self):
+    data = self._serialisable()
+    return deepcopy(data)
+
+
+def _setstate(self, data):
+    return _new(self.__class__, **data)
+
+
+def _validate_data_type(self, data):
+    """checks data class name matches defined compatible types"""
+    # if not self._data_types:
+    #     # not defined
+    #     return True
+    class_name = data.__class__.__name__
+    data_types = get_constraint_names(next(iter(self._data_types)))
+    valid = class_name in data_types
+    if not valid:
+        msg = f"invalid data type, '{class_name}' not in {', '.join([p.__name__ for p in self._data_types])}"
+        valid = NotCompleted("ERROR", self, message=msg, source=data)
+    return valid
+
+
+class _connected:
+    def __init__(self):
+        self.storage = {}
+
+    def __get__(self, instance, owner):
+        if instance.app_type is LOADER:
+            raise TypeError("Looking for input value for Loader app is not permitted.")
+        return self.storage.get(id(instance), None)
+
+    def __set__(self, instance, value):
+        if instance.app_type is WRITER:
+            raise TypeError("Assigning input value for Writer app is not permitted.")
+        self.storage[id(instance)] = value
+
+
+def composable(klass=None, *, app_type: AppType = GENERIC):
+    app_type = AppType(app_type)
+
+    def wrapped(klass):
+        if not inspect.isclass(klass):
+            raise ValueError(f"{klass} is not a class")
+
+        # check if user defined these functions
+        method_list = [
+            "__call__",
+            "__add__",
+            "input",
+            "__repr__",
+            "__str__",
+            "__new__",
+            "disconnect",
+            "apply_to",
+        ]
+        for meth in method_list:
+            if inspect.isfunction(getattr(klass, meth, None)):
+                raise TypeError(
+                    f"remove {meth!r} method in {klass.__name__!r}, this functionality provided by composable"
+                )
+        if getattr(klass, "input", None):
+            raise TypeError(
+                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by composable"
+            )
+
+        _mapping = {
+            "__new__": _new,
+            "__add__": _add,
+            "__call__": _call,
+            "__repr__": _repr,  # str(obj) calls __repr__ if __str__ missing
+            "__getstate__": _getstate,
+            "__setstate__": _setstate,
+            "_serialisable": _ser(),
+            "_validate_data_type": _validate_data_type,
+            "apply_to": _apply_to,
+        }
+
+        for meth, func in _mapping.items():
+            # check if the developer implements a __getstate__ or
+            # __setstate__ don't introduce our own.
+            if (
+                meth in ["__getstate__", "__setstate__"]
+                and hasattr(klass, meth)
+                and inspect.isfunction(meth)
+            ):
+                continue
+
+            if inspect.isfunction(func):
+                func.__name__ = meth
+            else:
+                func.__class__.__name__ = meth
+            setattr(klass, meth, func)
+
+        # Get and type hints of main function in klass
+        arg_hints, return_hint = _get_main_hints(klass)
+        setattr(klass, "_data_types", arg_hints)
+        setattr(klass, "_return_types", return_hint)
+        setattr(klass, "app_type", app_type)
+
+        slot_attrs = ["_data_types", "_return_types", "input"]
+        if app_type == LOADER:
+            slot_attrs.remove("input")
+        else:
+            setattr(klass, "input", _connected())
+        # If a developer has defined slots, we should extend them with our own
+        # instance variables.
+        if hasattr(klass, "__slots__"):
+            klass.__slots__ += tuple(slot_attrs)
+
+        return klass
+
+    return wrapped(klass) if klass else wrapped
+
+
+def _apply_to(
+    self,
+    dstore,
+    parallel=False,
+    par_kw=None,
+    logger=None,
+    cleanup=False,
+    ui=None,
+    **kwargs,
+):
+    """invokes self composable function on the provided data store
+
+    Parameters
+    ----------
+    dstore
+        a path, list of paths, or DataStore to which the process will be
+        applied.
+    parallel : bool
+        run in parallel, according to arguments in par_kwargs. If True,
+        the last step of the composable function serves as the master
+        process, with earlier steps being executed in parallel for each
+        member of dstore.
+    par_kw
+        dict of values for configuring parallel execution.
+    logger
+        Argument ignored if not an io.writer. If a scitrack logger not provided,
+        one is created with a name that defaults to the composable function names
+        and the process ID.
+    cleanup : bool
+        after copying of log files into the data store, it is deleted
+        from the original location
+
+    Returns
+    -------
+    Result of the process as a list
+
+    Notes
+    -----
+    If run in parallel, this instance serves as the master object and
+    aggregates results.
+    """
+    if "mininterval" in kwargs:
+        discontinued("argument", "mininterval", "2022.10", stack_level=1)
+
+    if isinstance(dstore, str):
+        dstore = [dstore]
+
+    dstore = [e for e in dstore if e]
+    if not dstore:
+        raise ValueError("dstore is empty")
+
+    am_writer = hasattr(self, "data_store")
+    if am_writer:
+        start = time.time()
+        if logger is None:
+            logger = CachingLogger()
+        elif not isinstance(logger, CachingLogger):
+            raise TypeError(
+                f"logger must be scitrack.CachingLogger, not {type(logger)}"
+            )
+
+        if not logger.log_file_path:
+            src = pathlib.Path(self.data_store.source)
+            logger.log_file_path = str(src.parent / _make_logfile_name(self))
+
+        log_file_path = str(logger.log_file_path)
+        logger.log_message(str(self), label="composable function")
+        logger.log_versions(["cogent3"])
+
+    results = []
+    process = self.input or self
+    if self.input:
+        # As we will be explicitly calling the input object, we disconnect
+        # the two-way interaction between input and self. This means self
+        # is not called twice, and self is not unecessarily pickled during
+        # parallel execution.
+        process.output = None
+        self.input = None
+
+    # with a tinydb dstore, this also excludes data that failed to complete
+    # todo update to consider different database backends
+    # we want a dict mapping input member names to their md5 sums so these can
+    # be logged
+    inputs = {}
+    for m in dstore:
+        input_id = pathlib.Path(
+            m if isinstance(m, DataStoreMember) else get_data_source(m)
+        )
+        suffixes = input_id.suffixes
+        input_id = input_id.name.replace("".join(suffixes), "")
+        inputs[input_id] = m
+
+    if len(inputs) < len(dstore):
+        diff = len(dstore) - len(inputs)
+        raise ValueError(
+            f"could not construct unique identifiers for {diff} records, "
+            "avoid using '.' as a delimiter in names."
+        )
+
+    if parallel:
+        par_kw = par_kw or {}
+        to_do = PAR.as_completed(process, inputs.values(), **par_kw)
+    else:
+        to_do = map(process, inputs.values())
+
+    for result in ui.series(to_do, count=len(inputs)):
+        if process is not self and am_writer:
+            # if result is NotCompleted, it will be written as incomplete
+            # by data store backend. The outcome is just the
+            # associated db identifier for tracking steps below we need to
+            # know it's NotCompleted.
+            # Note: we directly call .write() so NotCompleted's don't
+            # get blocked from being written by __call__()
+            outcome = self.main(data=result)
+            if result and isinstance(outcome, DataStoreMember):
+                input_id = outcome.name
+            else:
+                input_id = get_data_source(result)
+                outcome = result
+            input_id = pathlib.Path(pathlib.Path(input_id))
+            suffixes = input_id.suffixes
+            input_id = input_id.name.replace("".join(suffixes), "")
+        elif process is not self:
+            outcome = self(result)
+        else:
+            outcome = result
+
+        results.append(outcome)
+
+        if am_writer:
+            # now need to search for the source member
+            m = inputs[input_id]
+            input_md5 = getattr(m, "md5", None)
+            logger.log_message(input_id, label="input")
+            if input_md5:
+                logger.log_message(input_md5, label="input md5sum")
+
+            if isinstance(outcome, NotCompleted):
+                # log error/fail details
+                logger.log_message(
+                    f"{outcome.origin} : {outcome.message}", label=outcome.type
+                )
+                continue
+            elif not outcome:
+                # other cases where outcome is Falsy (e.g. None)
+                logger.log_message(f"unexpected value {outcome!r}", label="FAIL")
+                continue
+
+            logger.log_message(outcome, label="output")
+            logger.log_message(outcome.md5, label="output md5sum")
+
+    if am_writer:
+        finish = time.time()
+        taken = finish - start
+
+        logger.log_message(f"{taken}", label="TIME TAKEN")
+        logger.shutdown()
+        self.data_store.add_file(log_file_path, cleanup=cleanup, keep_suffix=True)
+        self.data_store.close()
+
+    # now reconnect input
+    if process is not self:
+        self = process + self
+
+    return results
