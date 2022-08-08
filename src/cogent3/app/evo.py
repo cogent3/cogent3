@@ -7,10 +7,7 @@ from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
-from .composable import (
-    Composable,
-    NotCompleted,
-)
+from .composable import Composable, NotCompleted
 from .result import (
     bootstrap_result,
     hypothesis_result,
@@ -197,12 +194,16 @@ class model(Composable):
         else:
             rules = lf.get_param_rules()
             for rule in rules:
-                if rule["par_name"] in (
-                    "mprobs",
-                    "psubs",
-                    "bprobs",
-                    "dpsubs",
-                ) or rule.get("is_constant"):
+                if (
+                    rule["par_name"]
+                    in (
+                        "mprobs",
+                        "psubs",
+                        "bprobs",
+                        "dpsubs",
+                    )
+                    or rule.get("is_constant")
+                ):
                     continue
                 rule["upper"] = min(rule.get("upper") or self._upper + 1, self._upper)
 
