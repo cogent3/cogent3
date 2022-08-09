@@ -837,10 +837,10 @@ class _ser:
 
 def _add(self, other):
     ## Check order
-    if self.app_type is not LOADER:
-        raise TypeError("Left hand side of add operator must be of type loader")
+    if self.app_type is WRITER:
+        raise TypeError("Left hand side of add operator must not be of type writer")
     if other.app_type is LOADER:
-        raise TypeError("Left hand side of add operator must not be of type loader")
+        raise TypeError("Right hand side of add operator must not be of type loader")
 
     ## validate that self._return_types & other._input_types is a non-empty set.
     if not self._return_types:
