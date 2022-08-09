@@ -315,13 +315,10 @@ class take_codon_positions(Composable):
         return self._func(aln)
 
 
-class take_named_seqs(Composable):
+@composable
+class take_named_seqs:
     """Extracts (or everything but) named sequences. Returns a filtered
     sequences, alignment that satisified the condition, NotCompleted otherwise."""
-
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
     def __init__(self, *names, negate=False):
         """selects named sequences from a collection
@@ -331,16 +328,12 @@ class take_named_seqs(Composable):
         A new sequence collection, or False if not all the named sequences are
         in the collection.
         """
-        super(take_named_seqs, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         self._names = names
         self._negate = negate
 
-    def main(self, data):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, data: T) -> T:
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
