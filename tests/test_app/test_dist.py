@@ -3,6 +3,8 @@ import os
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
+import pytest
+
 from numpy.testing import assert_allclose
 
 from cogent3 import DNA, PROTEIN, make_unaligned_seqs
@@ -117,6 +119,7 @@ class FastSlowDistTests(TestCase):
         with self.assertRaises(ValueError):
             fast_slow_dist = dist_app.fast_slow_dist(fast_calc="GTR")
 
+    @pytest.mark.xfail
     def test_composable_apps(self):
         """tests two composable apps"""
         composable_apps = _get_all_composable_apps()
