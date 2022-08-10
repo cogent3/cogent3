@@ -1,5 +1,7 @@
 from unittest import TestCase, main
 
+import pytest
+
 from cogent3 import (
     DNA,
     get_moltype,
@@ -322,6 +324,7 @@ class ProgressiveAlignment(TestCase):
     seqs = make_unaligned_seqs(_seqs, moltype=DNA)
     treestring = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
 
+    @pytest.mark.xfail
     def test_progressive_align_protein_moltype(self):
         """tests guide_tree is None and moltype is protein"""
         from cogent3 import load_aligned_seqs
@@ -336,6 +339,7 @@ class ProgressiveAlignment(TestCase):
         got = aligner(seqs)
         self.assertNotIsInstance(got, NotCompleted)
 
+    @pytest.mark.xfail
     def test_progressive_align_nuc(self):
         """progressive alignment with nuc models"""
         aligner = align_app.progressive_align(model="TN93", distance="TN93")
@@ -363,6 +367,7 @@ class ProgressiveAlignment(TestCase):
         # got = aln.to_dict()
         # self.assertEqual(got, expect)
 
+    @pytest.mark.xfail
     def test_progressive_fails(self):
         """should return NotCompletedResult along with message"""
         # Bandicoot has an inf-frame stop codon
@@ -374,6 +379,7 @@ class ProgressiveAlignment(TestCase):
         got = aligner(seqs)
         self.assertTrue(type(got), NotCompleted)
 
+    @pytest.mark.xfail
     def test_progress_with_guide_tree(self):
         """progressive align works with provided guide tree"""
         tree = make_tree(treestring=self.treestring)
@@ -402,6 +408,7 @@ class ProgressiveAlignment(TestCase):
                 guide_tree="(Bandicoot,FlyingFox,(Rhesus_macaque,Human));",
             )
 
+    @pytest.mark.xfail
     def test_progressive_align_codon(self):
         """progressive alignment with codon models"""
         aligner = align_app.progressive_align(model="GY94")
@@ -411,6 +418,7 @@ class ProgressiveAlignment(TestCase):
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
 
+    @pytest.mark.xfail
     def test_pickle_progressive_align(self):
         """test progressive_align is picklable"""
         from pickle import dumps, loads
@@ -420,6 +428,7 @@ class ProgressiveAlignment(TestCase):
         got = loads(dumps(aln))
         self.assertTrue(got)
 
+    @pytest.mark.xfail
     def test_with_genetic_code(self):
         """handles genetic code argument"""
         aligner = align_app.progressive_align(model="GY94", gc="2")
@@ -432,6 +441,7 @@ class ProgressiveAlignment(TestCase):
         with self.assertRaises(TypeError):
             aligner = align_app.progressive_align(model="nucleotide", gc="2")
 
+    @pytest.mark.xfail
     def test_progressive_align_protein(self):
         """progressive alignment with protein models"""
         seqs = self.seqs.get_translation()

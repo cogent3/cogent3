@@ -1,5 +1,7 @@
 import itertools
 
+from typing import Union
+
 from cogent3 import get_moltype, make_tree
 from cogent3.evolve.fast_distance import (
     DistanceMatrix,
@@ -7,13 +9,8 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import get_model
 
-from .composable import Composable
-from .typing import (
-    ALIGNED_TYPE,
-    PAIRWISE_DISTANCE_TYPE,
-    SERIALISABLE_TYPE,
-    TABULAR_TYPE,
-)
+from .composable import composable
+from .typing import AlignedSeqsType, SerialisableType
 
 
 __author__ = "Gavin Huttley"
@@ -26,16 +23,13 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class fast_slow_dist(Composable):
+@composable
+class fast_slow_dist:
     """Pairwise distance calculation for aligned sequences.
 
     Uses fast (but less numerically robust) approach where possible, slow (robust)
     approach when not. Returns a DistanceMatrix.
     """
-
-    _input_types = ALIGNED_TYPE
-    _output_types = (PAIRWISE_DISTANCE_TYPE, TABULAR_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
         """
@@ -54,12 +48,6 @@ class fast_slow_dist(Composable):
         -----
         If you provide fast_calc or slow_calc, you must specify the moltype.
         """
-        super(fast_slow_dist, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         self._moltype = moltype if moltype is None else get_moltype(moltype)
         self._sm = None
 
@@ -111,7 +99,9 @@ class fast_slow_dist(Composable):
         lf.optimise(max_restarts=0, show_progress=False)
         return 2 * lf.get_param_value("length", edge=aln.names[0])
 
-    def main(self, aln):
+    T = Union[SerialisableType, AlignedSeqsType]
+
+    def main(self, aln: T) -> T:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
