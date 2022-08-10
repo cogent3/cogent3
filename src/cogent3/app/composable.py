@@ -825,17 +825,15 @@ def _add(self, other):
 
     ## validate that self._return_types & other._input_types is a non-empty set.
     if not self._return_types:
-        raise TypeError(
-            "Left hand side of add operator must have non-empty return types"
-        )
-    if not other._data_types:  ## I am not sure about this
-        raise TypeError(
-            "right hand side of add operator must have non-empty input types"
-        )
+        raise TypeError(f"return type not defined for {self.__class__.__name__!r}")
+    if not other._data_types:
+        raise TypeError(f"input type not defined for {other.__class__.__name__!r}")
 
     ### Check if self._return_types & other._input_types is incompatible.
     if self._return_types != other._data_types:
-        raise TypeError("two apps does not have compatible types")
+        raise TypeError(
+            "{self.__class__.__name__!r} return_type incompatible with {other.__class__.__name__!r} input type"
+        )
 
     other.input = self
     return other
