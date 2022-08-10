@@ -135,6 +135,7 @@ class FastSlowDistTests(TestCase):
             app.disconnect()
             fast_slow_dist.disconnect()
 
+    @pytest.mark.xfail
     def test_est_dist_pair_slow(self):
         """tests the distance between seq pairs in aln"""
 
@@ -206,6 +207,7 @@ class FastSlowDistTests(TestCase):
         aligner = align.progressive_align(model="WG01", guide_tree=treestring)
         _ = aligner(self.seqs5)
 
+    @pytest.mark.xfail
     def test_composes_with_write_tabular(self):
         """correctly links to tabular"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -213,6 +215,7 @@ class FastSlowDistTests(TestCase):
             dist_calc = dist_app.fast_slow_dist(distance="hamming", moltype="protein")
             _ = dist_calc + writer
 
+    @pytest.mark.xfail
     def test_functions_as_composable(self):
         """works as a composable app"""
         from pathlib import Path

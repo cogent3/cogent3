@@ -1127,52 +1127,51 @@ def _apply_to(
     else:
         to_do = map(process, inputs.values())
 
-    if ui is not None:  ## This line is new condition
-        for result in ui.series(to_do, count=len(inputs)):
-            if process is not self and am_writer:
-                # if result is NotCompleted, it will be written as incomplete
-                # by data store backend. The outcome is just the
-                # associated db identifier for tracking steps below we need to
-                # know it's NotCompleted.
-                # Note: we directly call .write() so NotCompleted's don't
-                # get blocked from being written by __call__()
-                outcome = self.main(data=result)
-                if result and isinstance(outcome, DataStoreMember):
-                    input_id = outcome.name
-                else:
-                    input_id = get_data_source(result)
-                    outcome = result
-                input_id = pathlib.Path(pathlib.Path(input_id))
-                suffixes = input_id.suffixes
-                input_id = input_id.name.replace("".join(suffixes), "")
-            elif process is not self:
-                outcome = self(result)
+    for result in ui.series(to_do, count=len(inputs)):
+        if process is not self and am_writer:
+            # if result is NotCompleted, it will be written as incomplete
+            # by data store backend. The outcome is just the
+            # associated db identifier for tracking steps below we need to
+            # know it's NotCompleted.
+            # Note: we directly call .write() so NotCompleted's don't
+            # get blocked from being written by __call__()
+            outcome = self.main(data=result)
+            if result and isinstance(outcome, DataStoreMember):
+                input_id = outcome.name
             else:
+                input_id = get_data_source(result)
                 outcome = result
+            input_id = pathlib.Path(pathlib.Path(input_id))
+            suffixes = input_id.suffixes
+            input_id = input_id.name.replace("".join(suffixes), "")
+        elif process is not self:
+            outcome = self(result)
+        else:
+            outcome = result
 
-            results.append(outcome)
+        results.append(outcome)
 
-            if am_writer:
-                # now need to search for the source member
-                m = inputs[input_id]
-                input_md5 = getattr(m, "md5", None)
-                logger.log_message(input_id, label="input")
-                if input_md5:
-                    logger.log_message(input_md5, label="input md5sum")
+        if am_writer:
+            # now need to search for the source member
+            m = inputs[input_id]
+            input_md5 = getattr(m, "md5", None)
+            logger.log_message(input_id, label="input")
+            if input_md5:
+                logger.log_message(input_md5, label="input md5sum")
 
-                if isinstance(outcome, NotCompleted):
-                    # log error/fail details
-                    logger.log_message(
-                        f"{outcome.origin} : {outcome.message}", label=outcome.type
-                    )
-                    continue
-                elif not outcome:
-                    # other cases where outcome is Falsy (e.g. None)
-                    logger.log_message(f"unexpected value {outcome!r}", label="FAIL")
-                    continue
+            if isinstance(outcome, NotCompleted):
+                # log error/fail details
+                logger.log_message(
+                    f"{outcome.origin} : {outcome.message}", label=outcome.type
+                )
+                continue
+            elif not outcome:
+                # other cases where outcome is Falsy (e.g. None)
+                logger.log_message(f"unexpected value {outcome!r}", label="FAIL")
+                continue
 
-                logger.log_message(outcome, label="output")
-                logger.log_message(outcome.md5, label="output md5sum")
+            logger.log_message(outcome, label="output")
+            logger.log_message(outcome.md5, label="output md5sum")
 
     if am_writer:
         finish = time.time()

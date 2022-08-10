@@ -18,8 +18,7 @@ from cogent3.evolve.models import get_model
 
 from .composable import NotCompleted, composable
 from .tree import quick_tree, scale_branches
-from .typing import SeqsCollectionType, SerialisableType
-
+from .typing import SeqsCollectionType, SerialisableType, AlignedSeqsType, UnalignedSeqsType
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
@@ -403,9 +402,9 @@ class align_to_ref:
 
         return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
 
-    T = Union[SerialisableType, SeqsCollectionType]
+    T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, seqs: T) -> T:
+    def main(self, seqs: UnalignedSeqsType) -> T:
         """return aligned sequences"""
         return self._func(seqs)
 
@@ -510,9 +509,9 @@ class progressive_align:
             tree = scaler(tree)
         return tree
 
-    T = Union[SerialisableType, SeqsCollectionType]
+    T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, seqs: T) -> T:
+    def main(self, seqs: UnalignedSeqsType) -> T:
         """returned progressively aligned sequences"""
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
