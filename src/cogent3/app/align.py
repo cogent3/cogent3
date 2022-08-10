@@ -1,6 +1,7 @@
 import warnings
 
 from bisect import bisect_left
+from typing import Union
 
 from cogent3 import make_tree
 from cogent3.align import (
@@ -15,9 +16,9 @@ from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model
 
-from .composable import Composable, NotCompleted
+from .composable import NotCompleted, composable
 from .tree import quick_tree, scale_branches
-from .typing import ALIGNED_TYPE, SEQUENCE_TYPE, SERIALISABLE_TYPE
+from .typing import SeqsCollectionType, SerialisableType
 
 
 __author__ = "Gavin Huttley"
@@ -320,7 +321,8 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     )
 
 
-class align_to_ref(Composable):
+@composable
+class align_to_ref:
     """Aligns sequences to a nominated reference in the unaligned collection.
     This is much faster, and requires much less memory, than progressive_align
     but the quality will likely be lower. Alignment quality will be strongly
@@ -330,10 +332,6 @@ class align_to_ref(Composable):
     -------
     ArrayAlignment.
     """
-
-    _input_types = SEQUENCE_TYPE
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = "SequenceCollection"
 
     def __init__(
         self,
@@ -358,12 +356,6 @@ class align_to_ref(Composable):
         moltype : str
             molecular type
         """
-        super(align_to_ref, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         assert moltype
         moltype = get_moltype(moltype)
         self._moltype = moltype
@@ -411,18 +403,17 @@ class align_to_ref(Composable):
 
         return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
 
-    def main(self, seqs):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, seqs: T) -> T:
         """return aligned sequences"""
         return self._func(seqs)
 
 
-class progressive_align(Composable):
+@composable
+class progressive_align:
     """Progressive multiple sequence alignment via any cogent3 model.
     Returns an Alignment object."""
-
-    _input_types = SEQUENCE_TYPE
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = "SequenceCollection"
 
     def __init__(
         self,
@@ -467,12 +458,6 @@ class progressive_align(Composable):
             and sequences with very high percent identity. For more diverged
             sequences we recommend 'paralinear'.
         """
-        super(progressive_align, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-
         self._param_vals = {
             "codon": dict(omega=0.4, kappa=3),
             "nucleotide": dict(kappa=3),
@@ -480,7 +465,6 @@ class progressive_align(Composable):
         sm = {"codon": "MG94HKY", "nucleotide": "HKY85", "protein": "JTT92"}.get(
             model, model
         )
-        self._formatted_params()
         kwargs = {} if gc is None else dict(gc=gc)
         sm = get_model(sm, **kwargs)
         moltype = sm.alphabet.moltype
@@ -526,7 +510,9 @@ class progressive_align(Composable):
             tree = scaler(tree)
         return tree
 
-    def main(self, seqs):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, seqs: T) -> T:
         """returned progressively aligned sequences"""
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
