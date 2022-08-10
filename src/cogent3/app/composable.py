@@ -885,7 +885,7 @@ def _new(klass, *args, **kwargs):
             k, v = arg_order[i], v
             init_vals[k] = v
 
-    init_vals |= kw_args | kwargs
+    init_vals = {**init_vals, **kw_args, **kwargs}
     obj._serialisable.kwargs = init_vals
     return obj
 
