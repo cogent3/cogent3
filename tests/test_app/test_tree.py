@@ -59,6 +59,7 @@ class TestTree(TestCase):
         expect = {"a": 3.0, "b": 6.0, "c": 66.0}
         self.assertEqual(got, expect)
 
+    @pytest.mark.xfail
     def test_quick_tree(self):
         """correctly calc a nj tree"""
         path = os.path.join(data_path, "brca1_5.paml")
@@ -102,6 +103,7 @@ class TestTree(TestCase):
         tree2 = proc(aln2)
         self.assertIsInstance(tree2, NotCompleted)
 
+    @pytest.mark.xfail
     def test_quick_tree_taking_distance_matrix(self):
         """quick_tree should take a distance matrix"""
         quick_tree = tree_app.quick_tree()
