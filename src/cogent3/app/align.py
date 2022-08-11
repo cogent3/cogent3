@@ -18,7 +18,13 @@ from cogent3.evolve.models import get_model
 
 from .composable import NotCompleted, composable
 from .tree import quick_tree, scale_branches
-from .typing import SeqsCollectionType, SerialisableType, AlignedSeqsType, UnalignedSeqsType
+from .typing import (
+    AlignedSeqsType,
+    SeqsCollectionType,
+    SerialisableType,
+    UnalignedSeqsType,
+)
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"

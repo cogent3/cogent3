@@ -221,9 +221,9 @@ class model:
 
         return lf
 
-    T = Union[SerialisableType, AlignedSeqsType]
-
-    def main(self, aln: T, initialise=None, construct=True, **opt_args) -> T:
+    def main(
+        self, aln: AlignedSeqsType, initialise=None, construct=True, **opt_args
+    ) -> Union[SerialisableType, AlignedSeqsType]:
         moltypes = {aln.moltype.label, self._sm.moltype.label}
         if moltypes in [{"protein", "dna"}, {"protein", "rna"}]:
             msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"
@@ -380,7 +380,7 @@ class model_collection:
 class hypothesis(model_collection):
     """Specify a hypothesis through defining two models. Returns a
     hypothesis_result."""
-    
+
     def _make_result(self, aln):
         return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
