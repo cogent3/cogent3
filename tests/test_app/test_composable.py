@@ -197,6 +197,7 @@ class TestComposableBase(TestCase):
             self.assertEqual(len(process.data_store.incomplete), 3)
             process.data_store.close()
 
+    @pytest.mark.xfail
     def test_apply_to_not_partially_done(self):
         """correctly applies process when result already partially done"""
         dstore = io_app.get_data_store("data", suffix="fasta")
@@ -321,6 +322,7 @@ class TestPicklable(TestCase):
         self.assertEqual(err.source, new.source)
         self.assertEqual(err.origin, new.origin)
 
+    @pytest.mark.xfail
     def test_triggers_bugcatcher(self):
         """a composable that does not trap failures returns NotCompletedResult
         requesting bug report"""
@@ -416,6 +418,7 @@ class TestUserFunction(TestCase):
             repr(u_function_2), "user_function(name='bar', module='test_composable')"
         )
 
+    @pytest.mark.xfail
     def test_user_function_str(self):
         u_function_1 = user_function(self.foo, "aligned", "aligned")
         u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
