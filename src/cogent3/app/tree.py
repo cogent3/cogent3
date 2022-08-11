@@ -11,6 +11,7 @@ from .typing import (
     PairwiseDistanceType,
     SerialisableType,
     TreeType,
+    AlignedSeqsType,
 )
 
 
@@ -117,7 +118,9 @@ class quick_tree:
         """
         self._drop_invalid = drop_invalid
 
-    def main(self, dists: PairwiseDistanceType) -> Union[SerialisableType, TreeType]:
+    T = Union[SerialisableType, AlignedSeqsType]
+
+    def main(self, dists: T) -> Union[SerialisableType, TreeType]:
         """estimates a neighbor joining tree"""
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists
