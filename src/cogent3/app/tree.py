@@ -101,13 +101,15 @@ class uniformize_tree:
         return new
 
 
-@composable
-class quick_tree:
+class quick_tree(Composable):
     """Neighbour Joining tree based on pairwise distances."""
+
+    _input_types = PAIRWISE_DISTANCE_TYPE
+    _output_types = (TREE_TYPE, SERIALISABLE_TYPE)
+    _data_types = "DistanceMatrix"
 
     def __init__(self, drop_invalid=False):
         """computes a neighbour joining tree from an alignment
-
         Parameters
         ----------
         drop_invalid : bool
@@ -116,11 +118,15 @@ class quick_tree:
             calculated are excluded, the resulting tree will be for the subset of labels with strictly valid distances
             if False, an ArithmeticError is raised if a distance could not be computed on observed data.
         """
+        super(quick_tree, self).__init__(
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
+        )
+        self._formatted_params()
         self._drop_invalid = drop_invalid
 
-    T = Union[SerialisableType, AlignedSeqsType]
-
-    def main(self, dists: T) -> Union[SerialisableType, TreeType]:
+    def main(self, dists):
         """estimates a neighbor joining tree"""
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists

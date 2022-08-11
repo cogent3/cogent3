@@ -20,7 +20,7 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
-from .composable import NotCompleted, composable
+from .composable import NotCompleted, _checkpointable, composable
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -37,11 +37,11 @@ from .data_store import (
 )
 from .typing import (
     IDENTIFIER_TYPE,
-    SERIALISABLE_TYPE,
+    SEQUENCE_TYPE, 
+    ALIGNED_TYPE,
     TABULAR_TYPE,
     AlignedSeqsType,
     IdentifierType,
-    SeqsCollectionType,
     SerialisableType,
     UnalignedSeqsType,
 )
@@ -391,9 +391,12 @@ class write_tabular:
         return self.data_store.write(identifier, output)
 
 
-@composable
-class write_seqs:
+class write_seqs(_checkpointable):
     """Writes sequences to text files in standard format."""
+
+    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
+    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, IDENTIFIER_TYPE)
+    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
     def __init__(
         self,
@@ -423,6 +426,17 @@ class write_seqs:
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
+        super(write_seqs, self).__init__(
+            input_types=self._input_types,
+            output_types=self._output_types,
+            data_types=self._data_types,
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix=suffix,
+        )
+        self._formatted_params()
         self._format = format
         self._formatter = FORMATTERS[format]
 
@@ -431,9 +445,9 @@ class write_seqs:
         loader = loader(format=self._format)
         self._load_checkpoint = loader
 
-    T = Union[SerialisableType, SeqsCollectionType]
+    def main(self, data, identifier=None):
+        from cogent3.app.composable import NotCompleted
 
-    def main(self, data: T, identifier=None) -> T:
         if isinstance(data, NotCompleted):
             return self.data_store.write_incomplete(identifier, data)
 
@@ -464,7 +478,7 @@ class load_json:
     def __init__(self):
         pass
 
-    def main(self, path: SerialisableType) -> SerialisableType:
+    def main(self, path: IdentifierType) -> SerialisableType:
         """returns object deserialised from json at path"""
         if type(path) == str:
             path = SingleReadDataStore(path)[0]
