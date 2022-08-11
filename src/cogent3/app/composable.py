@@ -832,7 +832,7 @@ def _add(self, other):
     ### Check if self._return_types & other._input_types is incompatible.
     if self._return_types != other._data_types:
         raise TypeError(
-            "{self.__class__.__name__!r} return_type incompatible with {other.__class__.__name__!r} input type"
+            f"{self.__class__.__name__!r} return_type incompatible with {other.__class__.__name__!r} input type"
         )
 
     other.input = self
