@@ -2,7 +2,9 @@ from os.path import dirname, join
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import MagicMock
+
 import pytest
+
 from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
