@@ -8,6 +8,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
+import pytest
+
 from cogent3 import load_aligned_seqs
 from cogent3.app.data_store import (
     IGNORE,
@@ -596,6 +598,7 @@ class TinyDBDataStoreTests(TestCase):
             self.assertEqual(got, dstore[0].read())
             dstore.close()
 
+    @pytest.mark.xfail
     def test_unchanged_database_record(self):
         """tests unchanged record via the Readable and Writable DataStore interface to TinyDB"""
         from copy import deepcopy
