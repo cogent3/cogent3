@@ -20,7 +20,7 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
-from .composable import Composable, NotCompleted, _checkpointable
+from .composable import NotCompleted, composable
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -36,15 +36,13 @@ from .data_store import (
     make_record_for_json,
 )
 from .typing import (
-    ALIGNED_TYPE,
     IDENTIFIER_TYPE,
-    PAIRWISE_DISTANCE_TYPE,
-    SEQUENCE_TYPE,
     SERIALISABLE_TYPE,
-    TABULAR_RESULT_TYPE,
     TABULAR_TYPE,
     AlignedSeqsType,
     IdentifierType,
+    SeqsCollectionType,
+    SerialisableType,
     UnalignedSeqsType,
 )
 
@@ -187,15 +185,12 @@ def _load_seqs(path, klass, parser, moltype):
     return seqs
 
 
-class load_aligned(Composable):
+@composable
+class load_aligned:
     """Loads aligned sequences. Returns an Alignment object."""
 
     klass = ArrayAlignment
 
-    _input_types = None
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("DataStoreMember", "str", "Path")
-
     def __init__(self, moltype=None, format="fasta"):
         """
         Parameters
@@ -205,30 +200,23 @@ class load_aligned(Composable):
         format : str
             sequence file format
         """
-        super(load_aligned, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
         self.moltype = moltype
         self._parser = PARSERS[format.lower()]
 
-    def main(self, path: IdentifierType) -> AlignedSeqsType:
+    T = Union[SerialisableType, AlignedSeqsType]
+
+    def main(self, path: IdentifierType) -> T:
         """returns alignment"""
         return _load_seqs(path, self.klass, self._parser, self.moltype)
 
 
-class load_unaligned(Composable):
+@composable
+class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
     klass = SequenceCollection
-
-    _input_types = None
-    _output_types = (SEQUENCE_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("DataStoreMember", "str", "Path")
 
     def __init__(self, moltype=None, format="fasta"):
         """
@@ -239,29 +227,22 @@ class load_unaligned(Composable):
         format : str
             sequence file format
         """
-        super(load_unaligned, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
         self.moltype = moltype
         self._parser = PARSERS[format.lower()]
 
-    def main(self, path: IdentifierType) -> UnalignedSeqsType:
+    T = Union[SerialisableType, UnalignedSeqsType]
+
+    def main(self, path: IdentifierType) -> T:
         """returns sequence collection"""
         seqs = _load_seqs(path, self.klass, self._parser, self.moltype)
         return seqs.degap()
 
 
-class load_tabular(Composable):
+@composable
+class load_tabular:
     """Loads delimited data. Returns a Table."""
-
-    _input_types = None
-    _output_types = (TABULAR_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("DataStoreMember", "str", "Path")
 
     def __init__(
         self,
@@ -273,7 +254,6 @@ class load_tabular(Composable):
         as_type="table",
     ):
         """
-
         Parameters
         ----------
         with_title
@@ -287,12 +267,6 @@ class load_tabular(Composable):
         strict
             all rows MUST have the same number of records
         """
-        super(load_tabular, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         self._sep = sep
         self._with_title = with_title
         self._with_header = with_header
@@ -328,8 +302,9 @@ class load_tabular(Composable):
                 num_records = len(line)
             if strict and len(line) != num_records:
                 read.close()
-                msg = f"Inconsistent number of fields: {len(line)} " "!= {num_records}"
-                raise AssertionError(msg)
+                raise AssertionError(
+                    f"Inconsistent number of fields: {len(line)} != {num_records}"
+                )
             rows.append(line)
         data.close()
         records = []
@@ -346,7 +321,7 @@ class load_tabular(Composable):
         records = numpy.array(records, dtype="O").T
         return header, records, title
 
-    def main(self, path):
+    def main(self, path: IdentifierType) -> TABULAR_TYPE:
         if type(path) == str:
             # we use a data store as it's read() handles compression
             path = SingleReadDataStore(path)[0]
@@ -375,12 +350,9 @@ class load_tabular(Composable):
         return None
 
 
-class write_tabular(_checkpointable):
+@composable
+class write_tabular:
     """writes tabular data"""
-
-    _input_types = (TABULAR_RESULT_TYPE, TABULAR_TYPE, PAIRWISE_DISTANCE_TYPE)
-    _output_types = IDENTIFIER_TYPE
-    _data_types = ("Table", "DictArray", "DistanceMatrix")
 
     def __init__(
         self, data_path, format="tsv", name_callback=None, create=False, if_exists=SKIP
@@ -402,22 +374,9 @@ class write_tabular(_checkpointable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
-        super(write_tabular, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix=format,
-        )
-        self._formatted_params()
         self._format = format
 
-    def main(self, data, identifier=None):
-        from cogent3.app.composable import NotCompleted
-
+    def main(self, data: TABULAR_TYPE, identifier=None) -> IdentifierType:
         if isinstance(data, NotCompleted):
             return self.data_store.write_incomplete(identifier, data)
 
@@ -429,16 +388,12 @@ class write_tabular(_checkpointable):
             identifier = self._make_output_identifier(data)
 
         output = data.to_string(format=self._format)
-        stored = self.data_store.write(identifier, output)
-        return stored
+        return self.data_store.write(identifier, output)
 
 
-class write_seqs(_checkpointable):
+@composable
+class write_seqs:
     """Writes sequences to text files in standard format."""
-
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, IDENTIFIER_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
     def __init__(
         self,
@@ -468,17 +423,6 @@ class write_seqs(_checkpointable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
-        super(write_seqs, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix=suffix,
-        )
-        self._formatted_params()
         self._format = format
         self._formatter = FORMATTERS[format]
 
@@ -487,9 +431,9 @@ class write_seqs(_checkpointable):
         loader = loader(format=self._format)
         self._load_checkpoint = loader
 
-    def main(self, data, identifier=None):
-        from cogent3.app.composable import NotCompleted
+    T = Union[SerialisableType, SeqsCollectionType]
 
+    def main(self, data: T, identifier=None) -> T:
         if isinstance(data, NotCompleted):
             return self.data_store.write_incomplete(identifier, data)
 
@@ -512,19 +456,15 @@ class write_seqs(_checkpointable):
         return stored
 
 
-class load_json(Composable):
+@composable
+class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
-    _input_types = None
-    _output_types = SERIALISABLE_TYPE
-
     def __init__(self):
-        super(load_json, self).__init__(
-            input_types=self._input_types, output_types=self._output_types
-        )
+        pass
 
-    def main(self, path):
+    def main(self, path: SerialisableType) -> SerialisableType:
         """returns object deserialised from json at path"""
         if type(path) == str:
             path = SingleReadDataStore(path)[0]
@@ -544,31 +484,21 @@ class load_json(Composable):
         return result
 
 
-class write_json(_checkpointable):
+@composable
+class write_json:
     """Writes json serialised objects to individual json files."""
-
-    _input_types = SERIALISABLE_TYPE
-    _output_types = (IDENTIFIER_TYPE, SERIALISABLE_TYPE)
 
     def __init__(
         self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
     ):
-        super(write_json, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix=suffix,
-        )
+        pass
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def main(self, data, identifier=None):
-        from cogent3.app.composable import NotCompleted
+    T = Union[SerialisableType, IdentifierType]
 
+    def main(self, data: SerialisableType, identifier=None) -> T:
         if isinstance(data, NotCompleted):
             return self.data_store.write_incomplete(identifier, data)
 
@@ -594,27 +524,21 @@ class write_json(_checkpointable):
         return stored
 
 
-class load_db(Composable):
+@composable
+class load_db:
     """Loads json serialised cogent3 objects from a TinyDB file.
     Returns whatever object type was stored."""
 
-    _input_types = None
-    _output_types = SERIALISABLE_TYPE
-
     def __init__(self):
-        super(load_db, self).__init__(
-            input_types=self._input_types, output_types=self._output_types
-        )
+        pass
 
-    def main(self, identifier):
+    def main(self, identifier: IdentifierType) -> SerialisableType:
         """returns object deserialised from a TinyDb"""
         id_ = getattr(identifier, "id", None)
         if id_ is None:
-            msg = (
-                f"{identifier} not connected to a TinyDB. "
-                "If a json file path, use io.load_json()"
+            raise TypeError(
+                f"{identifier} not connected to a TinyDB. If a json file path, use io.load_json()"
             )
-            raise TypeError(msg)
         data = identifier.read()
 
         result = deserialise_object(data)
@@ -629,32 +553,22 @@ class load_db(Composable):
         return result
 
 
-class write_db(_checkpointable):
+@composable
+class write_db:
     """Writes json serialised objects to a TinyDB instance."""
-
-    _input_types = SERIALISABLE_TYPE
-    _output_types = (IDENTIFIER_TYPE, SERIALISABLE_TYPE)
 
     def __init__(
         self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
     ):
-        super(write_db, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix=suffix,
-            writer_class=WritableTinyDbDataStore,
-        )
+        pass
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    def main(self, data, identifier=None):
-        """
+    T = Union[SerialisableType, IdentifierType]
 
+    def main(self, data: SerialisableType, identifier=None) -> T:
+        """
         Parameters
         ----------
         data
@@ -666,8 +580,6 @@ class write_db(_checkpointable):
         -------
         identifier
         """
-        from cogent3.app.composable import NotCompleted
-
         identifier = identifier or get_data_source(data)
         identifier = self._make_output_identifier(identifier)
 
