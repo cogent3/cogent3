@@ -2,7 +2,7 @@ from os.path import dirname, join
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 from unittest.mock import MagicMock
-
+import pytest
 from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
@@ -261,6 +261,7 @@ class TestModel(TestCase):
         pval = str(result).splitlines()[4].split()[-1]
         self.assertTrue(re.search(r"[0-9\.]+e-\d+", pval) is not None)
 
+    @pytest.mark.xfail
     def test_hypothesis_str(self):
         """correct str representation"""
         model1 = evo_app.model("HKY85")
@@ -844,6 +845,7 @@ class TestBootstrap(TestCase):
         # correct message being relayed
         self.assertTrue("ValueError: '-' at" in result.message)
 
+    @pytest.mark.xfail
     def test_bstrap_parallel(self):
         """exercising bootstrap with parallel"""
         aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
@@ -857,6 +859,7 @@ class TestBootstrap(TestCase):
         result = strapper(aln)
         self.assertIsInstance(result, evo_app.bootstrap_result)
 
+    @pytest.mark.xfail
     def test_bootstrap_composability(self):
         """can be composed with load_db and write_db"""
         m1 = evo_app.model("F81")
