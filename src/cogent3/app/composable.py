@@ -765,7 +765,7 @@ class AppType(Enum):
     GENERIC = "generic"
 
 
-### Aliases to use Enum easily
+# Aliases to use Enum easily
 LOADER = AppType.LOADER
 WRITER = AppType.WRITER
 GENERIC = AppType.GENERIC
@@ -791,11 +791,9 @@ def _get_main_hints(klass) -> Tuple[set, set]:
     params = inspect.signature(main_func)
     if len(params.parameters) < 2:
         raise ValueError("main() method must have at least 1 input parameter")
-    # list of annotation of all parameters other than self, params.parameters is orderedDict
-    # annotation for first parameter other than self
+    # annotation for first parameter other than self, params.parameters is an orderedDict
     first_param_type = [p.annotation for p in params.parameters.values()][1]
     return_type = params.return_annotation
-    ## Is TypeError correct?
     if return_type is _no_value:
         raise TypeError("main() method must have valid type hint for return type")
     if first_param_type is _no_value:
@@ -816,25 +814,35 @@ def _ser(self):
     return self._init_vals
 
 
+# Added new function to decorator, doesn't have function body yet
+def _disconnect(self):
+    """resets input to None
+    Breaks all connections among members of a composed function."""
+    if self.app_type is LOADER:
+        return
+    if self.input:
+        self.input.disconnect()
+
+    self.input = None
+
+
 def _add(self, other):
-    ## Check order
+    # Check order
     if self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
-    if other.app_type is LOADER:
+    elif other.app_type is LOADER:
         raise TypeError("Right hand side of add operator must not be of type loader")
-
-    ## validate that self._return_types & other._input_types is a non-empty set.
-    if not self._return_types:
+    # validate that self._return_types ia a non-empty set.
+    elif not self._return_types:
         raise TypeError(f"return type not defined for {self.__class__.__name__!r}")
-    if not other._data_types:
+    # validate that other._data_types a non-empty set.
+    elif not other._data_types:
         raise TypeError(f"input type not defined for {other.__class__.__name__!r}")
-
-    ### Check if self._return_types & other._input_types is incompatible.
-    if not (self._return_types & other._data_types):
+    # Check if self._return_types & other._data_types is incompatible.
+    elif not (self._return_types & other._data_types):
         raise TypeError(
             f"{self.__class__.__name__!r} return_type {self._return_types} incompatible with {other.__class__.__name__!r} input type {other._data_types}"
         )
-
     other.input = self
     return other
 
@@ -861,7 +869,7 @@ def _new(klass, *args, **kwargs):
     }
 
     obj._init_vals = {}
-    if arg_order:  ### this line is new, for empty args
+    if arg_order:
         for i, v in enumerate(args):
             k, v = arg_order[i], v
             obj._init_vals[k] = v
@@ -874,7 +882,7 @@ def _call(self, val, *args, **kwargs):
     # logic for trapping call to main
 
     if val is None:
-        ## new message in place of traceback
+        # new message in place of traceback
         return NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
     if not val:
@@ -882,7 +890,7 @@ def _call(self, val, *args, **kwargs):
 
     if self.app_type is not LOADER and self.input:  # passing to connected app
         val = self.input(val, *args, **kwargs)
-        if not val:  ### moved this if into above if
+        if not val:
             return val
 
     type_checked = self._validate_data_type(val)
@@ -917,6 +925,9 @@ def _setstate(self, data):
 
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
+    if not self._data_types:
+        return True
+
     class_name = data.__class__.__name__
     valid = class_name in self._data_types
     if not valid:
@@ -977,6 +988,7 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
             "__setstate__": _setstate,
             "_serialisable": _ser,
             "_validate_data_type": _validate_data_type,
+            "disconnect": _disconnect,
             "apply_to": _apply_to,
         }
 
@@ -1003,8 +1015,7 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
             slot_attrs.remove("input")
         else:
             setattr(klass, "input", _connected())
-        # If a developer has defined slots, we should extend them with our own
-        # instance variables.
+        # If a developer has defined slots, we should extend them with our own instance variables.
         if hasattr(klass, "__slots__"):
             klass.__slots__ += tuple(slot_attrs)
 
