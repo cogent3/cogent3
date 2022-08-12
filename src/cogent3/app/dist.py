@@ -10,7 +10,7 @@ from cogent3.evolve.fast_distance import (
 from cogent3.evolve.models import get_model
 
 from .composable import composable
-from .typing import AlignedSeqsType, SerialisableType
+from .typing import AlignedSeqsType, PairwiseDistanceType, SerialisableType
 
 
 __author__ = "Gavin Huttley"
@@ -99,9 +99,8 @@ class fast_slow_dist:
         lf.optimise(max_restarts=0, show_progress=False)
         return 2 * lf.get_param_value("length", edge=aln.names[0])
 
-    T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> Union[SerialisableType, PairwiseDistanceType]:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
