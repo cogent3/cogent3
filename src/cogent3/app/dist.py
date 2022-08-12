@@ -99,8 +99,9 @@ class fast_slow_dist:
         lf.optimise(max_restarts=0, show_progress=False)
         return 2 * lf.get_param_value("length", edge=aln.names[0])
 
-
-    def main(self, aln: AlignedSeqsType) -> Union[SerialisableType, PairwiseDistanceType]:
+    def main(
+        self, aln: AlignedSeqsType
+    ) -> Union[SerialisableType, PairwiseDistanceType]:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
