@@ -806,14 +806,14 @@ def _get_main_hints(klass) -> Tuple[set, set]:
     if return_type is None:
         raise TypeError("main() method must not have NoneType return value")
 
-    return frozenset([first_param_type]), frozenset([return_type])
+    first_param_type = get_constraint_names(first_param_type)
+    return_type = get_constraint_names(return_type)
+
+    return frozenset(first_param_type), frozenset(return_type)
 
 
-class _ser:
-    __slots__ = ("kwargs",)
-
-    def __call__(self):
-        return self.kwargs
+def _ser(self):
+    return self._init_vals
 
 
 def _add(self, other):
@@ -830,9 +830,9 @@ def _add(self, other):
         raise TypeError(f"input type not defined for {other.__class__.__name__!r}")
 
     ### Check if self._return_types & other._input_types is incompatible.
-    if self._return_types != other._data_types:
+    if not (self._return_types & other._data_types):
         raise TypeError(
-            f"{self.__class__.__name__!r} return_type incompatible with {other.__class__.__name__!r} input type"
+            f"{self.__class__.__name__!r} return_type {self._return_types} incompatible with {other.__class__.__name__!r} input type {other._data_types}"
         )
 
     other.input = self
@@ -841,7 +841,7 @@ def _add(self, other):
 
 def _repr(self):
     val = f"{self.input!r} + " if self.input else ""
-    data = ", ".join(f"{k}={v!r}" for k, v in self._serialisable().items())
+    data = ", ".join(f"{k}={v!r}" for k, v in self._init_vals.items())
     data = f"{self.__class__.__name__}({val}{data})"
     data = textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
     return data
@@ -860,14 +860,13 @@ def _new(klass, *args, **kwargs):
         if k != "self" and (p.default is not no_default)
     }
 
-    init_vals = {}
+    obj._init_vals = {}
     if arg_order:  ### this line is new, for empty args
         for i, v in enumerate(args):
             k, v = arg_order[i], v
-            init_vals[k] = v
+            obj._init_vals[k] = v
 
-    init_vals = {**init_vals, **kw_args, **kwargs}
-    obj._serialisable.kwargs = init_vals
+    obj._init_vals = {**obj._init_vals, **kw_args, **kwargs}
     return obj
 
 
@@ -918,14 +917,10 @@ def _setstate(self, data):
 
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
-    # if not self._data_types:
-    #     # not defined
-    #     return True
     class_name = data.__class__.__name__
-    data_types = get_constraint_names(next(iter(self._data_types)))
-    valid = class_name in data_types
+    valid = class_name in self._data_types
     if not valid:
-        msg = f"invalid data type, '{class_name}' not in {', '.join([p.__name__ for p in self._data_types])}"
+        msg = f"invalid data type, '{class_name}' not in {', '.join(list(self._data_types))}"
         valid = NotCompleted("ERROR", self, message=msg, source=data)
     return valid
 
@@ -980,7 +975,7 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
             "__repr__": _repr,  # str(obj) calls __repr__ if __str__ missing
             "__getstate__": _getstate,
             "__setstate__": _setstate,
-            "_serialisable": _ser(),
+            "_serialisable": _ser,
             "_validate_data_type": _validate_data_type,
             "apply_to": _apply_to,
         }
@@ -994,11 +989,7 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
                 and inspect.isfunction(meth)
             ):
                 continue
-
-            if inspect.isfunction(func):
-                func.__name__ = meth
-            else:
-                func.__class__.__name__ = meth
+            func.__name__ = meth
             setattr(klass, meth, func)
 
         # Get and type hints of main function in klass
@@ -1007,7 +998,7 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
 
-        slot_attrs = ["_data_types", "_return_types", "input"]
+        slot_attrs = ["_data_types", "_return_types", "input", "_init_vals"]
         if app_type == LOADER:
             slot_attrs.remove("input")
         else:

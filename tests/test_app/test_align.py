@@ -418,7 +418,6 @@ class ProgressiveAlignment(TestCase):
         aln = aligner(self.seqs)
         self.assertEqual(len(aln), 42)
 
-    @pytest.mark.xfail
     def test_pickle_progressive_align(self):
         """test progressive_align is picklable"""
         from pickle import dumps, loads

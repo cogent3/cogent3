@@ -36,9 +36,9 @@ from .data_store import (
     make_record_for_json,
 )
 from .typing import (
-    IDENTIFIER_TYPE,
-    SEQUENCE_TYPE, 
     ALIGNED_TYPE,
+    IDENTIFIER_TYPE,
+    SEQUENCE_TYPE,
     TABULAR_TYPE,
     AlignedSeqsType,
     IdentifierType,
