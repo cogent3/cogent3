@@ -598,7 +598,6 @@ class TinyDBDataStoreTests(TestCase):
             self.assertEqual(got, dstore[0].read())
             dstore.close()
 
-    @pytest.mark.xfail
     def test_unchanged_database_record(self):
         """tests unchanged record via the Readable and Writable DataStore interface to TinyDB"""
         from copy import deepcopy

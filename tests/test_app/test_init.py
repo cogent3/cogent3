@@ -56,7 +56,6 @@ def _get_all_composables(tmp_dir_name):
 
 
 class TestAvailableApps(TestCase):
-    @pytest.mark.xfail
     def test_available_apps(self):
         """available_apps returns a table"""
         from cogent3.util.table import Table
@@ -65,7 +64,6 @@ class TestAvailableApps(TestCase):
         self.assertIsInstance(apps, Table)
         self.assertTrue(apps.shape[0] > 10)
 
-    @pytest.mark.xfail
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
         from cogent3.app.composable import Composable
@@ -73,14 +71,15 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
-            for app in applications:
-                self.assertIsInstance(app, Composable)
+            # in the new decorator function, this test is irrelevant
+            # for app in applications:
+            #    self.assertIsInstance(app, Composable)
 
             composable_application_tuples = [
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and app1._output_types & app2._input_types != set()
+                if hasattr(app1, "app_type") and app1._check_apps(app2, False)
             ]
 
             for composable_application_tuple in composable_application_tuples:
@@ -93,7 +92,6 @@ class TestAvailableApps(TestCase):
                 if hasattr(app, "data_store"):
                     app.data_store.close()
 
-    @pytest.mark.xfail
     def test_incompatible_pairwise_applications(self):
         """Properly identify two incompatible applications"""
         from cogent3.app.composable import Composable
@@ -101,14 +99,15 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
-            for app in applications:
-                self.assertIsInstance(app, Composable)
+            # in the new decorator function, this test is irrelevant
+            # for app in applications:
+            #    self.assertIsInstance(app, Composable)
 
             incompatible_application_tuples = [
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and app1._output_types & app2._input_types == set()
+                if hasattr(app1, "app_type") and not app1._check_apps(app2, False)
             ]
 
             for incompatible_application_tuple in incompatible_application_tuples:

@@ -129,13 +129,12 @@ class FastSlowDistTests(TestCase):
             got = app + fast_slow_dist
             self.assertIsInstance(got, dist_app.fast_slow_dist)
             self.assertIs(got.input, app)
-            self.assertIsInstance(got._input_types, frozenset)
-            self.assertIsInstance(got._output_types, frozenset)
-            self.assertIs(got._in, app)
+            self.assertIsInstance(got._data_types, frozenset)
+            self.assertIsInstance(got._return_types, frozenset)
+            self.assertIs(got.input, app)
             app.disconnect()
             fast_slow_dist.disconnect()
 
-    @pytest.mark.xfail
     def test_est_dist_pair_slow(self):
         """tests the distance between seq pairs in aln"""
 
