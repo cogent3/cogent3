@@ -289,7 +289,6 @@ class TestNotCompletedResult(TestCase):
 
 
 class TestPicklable(TestCase):
-    @pytest.mark.xfail
     def test_composite_pickleable(self):
         """composable functions should be pickleable"""
 
