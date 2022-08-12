@@ -123,7 +123,6 @@ class TestComposableBase(TestCase):
             self.assertEqual(len(process.data_store.logs), 1)
             process.data_store.close()
 
-    @pytest.mark.xfail
     def test_apply_to_non_unique_identifiers(self):
         """should fail if non-unique names"""
         dstore = [
@@ -321,7 +320,6 @@ class TestPicklable(TestCase):
         self.assertEqual(err.source, new.source)
         self.assertEqual(err.origin, new.origin)
 
-    @pytest.mark.xfail
     def test_triggers_bugcatcher(self):
         """a composable that does not trap failures returns NotCompletedResult
         requesting bug report"""
