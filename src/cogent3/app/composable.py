@@ -970,6 +970,9 @@ class _connected:
         self.storage[id(instance)] = value
 
 
+__app_registry = {}
+
+
 def composable(klass=None, *, app_type: AppType = GENERIC):
     app_type = AppType(app_type)
 
@@ -1038,6 +1041,8 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
         if hasattr(klass, "__slots__"):
             klass.__slots__ += tuple(slot_attrs)
 
+        # register this app
+        __app_registry[get_object_provenance(klass)] = klass.__name__
         return klass
 
     return wrapped(klass) if klass else wrapped
