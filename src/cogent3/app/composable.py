@@ -1048,6 +1048,11 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
     return wrapped(klass) if klass else wrapped
 
 
+def is_composable(obj):
+    """checks whether obj has been registered by the composable decorator"""
+    return get_object_provenance(obj) in __app_registry
+
+
 def _apply_to(
     self,
     dstore,
