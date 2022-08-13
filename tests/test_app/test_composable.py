@@ -480,13 +480,38 @@ def test_app_registry():
     """correctly registers apps"""
 
     @composable
-    class foo:
+    class foo_1:
         def main(self, data: int) -> int:
             return data
 
     from cogent3.app.composable import __app_registry
 
-    assert __app_registry["test_composable.foo"] == "foo"
+    assert __app_registry["test_composable.foo_1"] == "foo_1"
+
+
+def test_app_is_composable():
+    """check is_composable for composable apps"""
+
+    from cogent3.app.composable import is_composable
+
+    @composable
+    class foo_2:
+        def main(self, data: int) -> int:
+            return data
+
+    assert is_composable(foo_2)
+
+
+def test_app_is_not_composable():
+    """check is_composable for non-composable apps"""
+
+    from cogent3.app.composable import is_composable
+
+    class foo_3:
+        def main(self, data: int) -> int:
+            return data
+
+    assert not is_composable(foo_3)
 
 
 if __name__ == "__main__":
