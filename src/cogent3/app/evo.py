@@ -8,7 +8,7 @@ from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
-from .composable import NotCompleted, composable
+from .composable import NotCompleted, define_app
 from .result import (
     bootstrap_result,
     hypothesis_result,
@@ -29,7 +29,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@composable
+@define_app
 class model:
     """Define a substitution model + tree for maximum likelihood evaluation.
     Returns model_result."""
@@ -286,7 +286,7 @@ class _InitFrom:
         return other
 
 
-@composable
+@define_app
 class model_collection:
     """Fits a collection of models. Returns a
     model_collection_result."""
@@ -385,7 +385,7 @@ class hypothesis(model_collection):
         return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
 
-@composable
+@define_app
 class bootstrap:
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
@@ -431,7 +431,7 @@ class bootstrap:
         return result
 
 
-@composable
+@define_app
 class ancestral_states:
     """Computes ancestral state probabilities from a model result. Returns a dict
     with a DictArray for each node."""
@@ -458,7 +458,7 @@ class ancestral_states:
         return tab
 
 
-@composable
+@define_app
 class tabulate_stats:
     """Extracts all model statistics from model_result as Table."""
 
@@ -486,7 +486,7 @@ def is_codon_model(sm):
     return isinstance(sm, _Codon)
 
 
-@composable
+@define_app
 class natsel_neutral:
     """Test of selective neutrality by assessing whether omega equals 1.
     Under the alternate, there is one omega for all branches and all sites.
@@ -585,7 +585,7 @@ class natsel_neutral:
         return self._hyp(data)
 
 
-@composable
+@define_app
 class natsel_zhang:
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
@@ -784,7 +784,7 @@ class natsel_zhang:
         return result
 
 
-@composable
+@define_app
 class natsel_sitehet:
     """Test for site-heterogeneity in omega. Under null, there are 2 site-classes,
     omega < 1 and omega = 1. Under the alternate, an additional site-class of
@@ -934,7 +934,7 @@ class natsel_sitehet:
         return result
 
 
-@composable
+@define_app
 class natsel_timehet:
     """The branch heterogeneity hypothesis test for natural selection.
     Tests for whether a single omega for all branches is sufficient against the

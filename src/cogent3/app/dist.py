@@ -9,7 +9,7 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import get_model
 
-from .composable import composable
+from .composable import define_app
 from .typing import AlignedSeqsType, PairwiseDistanceType, SerialisableType
 
 
@@ -23,7 +23,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@composable
+@define_app
 class fast_slow_dist:
     """Pairwise distance calculation for aligned sequences.
 

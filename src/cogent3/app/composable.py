@@ -973,7 +973,7 @@ class _connected:
 __app_registry = {}
 
 
-def composable(klass=None, *, app_type: AppType = GENERIC):
+def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = True):
     app_type = AppType(app_type)
 
     def wrapped(klass):
@@ -983,38 +983,24 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
         # check if user defined these functions
         method_list = [
             "__call__",
-            "__add__",
-            "input",
             "__repr__",
             "__str__",
             "__new__",
-            "disconnect",
-            "apply_to",
         ]
+        if composable:
+            method_list.extend(("__add__", "input", "disconnect", "apply_to"))
+
         for meth in method_list:
-            if inspect.isfunction(getattr(klass, meth, None)):
+            if composable and inspect.isfunction(getattr(klass, meth, None)):
                 raise TypeError(
                     f"remove {meth!r} method in {klass.__name__!r}, this functionality provided by composable"
                 )
-        if getattr(klass, "input", None):
+        if composable and getattr(klass, "input", None):
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by composable"
             )
 
-        _mapping = {
-            "__new__": _new,
-            "__add__": _add,
-            "__call__": _call,
-            "__repr__": _repr,  # str(obj) calls __repr__ if __str__ missing
-            "__getstate__": _getstate,
-            "__setstate__": _setstate,
-            "_serialisable": _ser,
-            "_validate_data_type": _validate_data_type,
-            "disconnect": _disconnect,
-            "apply_to": _apply_to,
-        }
-
-        for meth, func in _mapping.items():
+        for meth, func in __mapping.items():
             # check if the developer implements a __getstate__ or
             # __setstate__ don't introduce our own.
             if (
@@ -1027,7 +1013,10 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
             setattr(klass, meth, func)
 
         # Get and type hints of main function in klass
-        arg_hints, return_hint = _get_main_hints(klass)
+        if composable:
+            arg_hints, return_hint = _get_main_hints(klass)
+        else:
+            arg_hints, return_hint = set(), set()
         setattr(klass, "_data_types", arg_hints)
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
@@ -1042,7 +1031,8 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
             klass.__slots__ += tuple(slot_attrs)
 
         # register this app
-        __app_registry[get_object_provenance(klass)] = klass.__name__
+        __app_registry[get_object_provenance(klass)] = composable
+
         return klass
 
     return wrapped(klass) if klass else wrapped
@@ -1050,7 +1040,7 @@ def composable(klass=None, *, app_type: AppType = GENERIC):
 
 def is_composable(obj):
     """checks whether obj has been registered by the composable decorator"""
-    return get_object_provenance(obj) in __app_registry
+    return __app_registry.get(get_object_provenance(obj)) or False
 
 
 def _apply_to(
@@ -1218,3 +1208,17 @@ def _apply_to(
         self = process + self
 
     return results
+
+
+__mapping = {
+    "__new__": _new,
+    "__add__": _add,
+    "__call__": _call,
+    "__repr__": _repr,  # str(obj) calls __repr__ if __str__ missing
+    "__getstate__": _getstate,
+    "__setstate__": _setstate,
+    "_serialisable": _ser,
+    "_validate_data_type": _validate_data_type,
+    "disconnect": _disconnect,
+    "apply_to": _apply_to,
+}

@@ -514,7 +514,7 @@ class Table:
                     f"different number of elements in header {hlen} and data row 0 {dcols}"
                 )
 
-            data = {c: v for c, v in zip(header, zip(*data))}
+            data = dict(zip(header, zip(*data)))
 
         if header is None:
             header = list(data) if isinstance(data, dict) else []
