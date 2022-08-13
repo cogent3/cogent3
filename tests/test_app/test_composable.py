@@ -16,6 +16,7 @@ from cogent3.app.composable import (
     Composable,
     NotCompleted,
     appify,
+    composable,
     user_function,
 )
 from cogent3.app.sample import min_length, omit_degenerates
@@ -473,6 +474,19 @@ class TestUserFunction(TestCase):
             product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, 2, take_log=True
         )
         self.assertEqual(ufunc(2), log(4))
+
+
+def test_app_registry():
+    """correctly registers apps"""
+
+    @composable
+    class foo:
+        def main(self, data: int) -> int:
+            return data
+
+    from cogent3.app.composable import __app_registry
+
+    assert __app_registry["test_composable.foo"] == "foo"
 
 
 if __name__ == "__main__":
