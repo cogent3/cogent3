@@ -221,6 +221,7 @@ class TestModel(TestCase):
         r = mod(aln)
         self.assertNotIsInstance(r, NotCompleted)
 
+    @pytest.mark.xfail
     def test_model_hypothesis_result_repr(self):
         """result objects __repr__ and _repr_html_ methods work correctly"""
         import re

@@ -56,7 +56,6 @@ def _get_all_composables(tmp_dir_name):
 
 
 class TestAvailableApps(TestCase):
-    @pytest.mark.xfail
     def test_available_apps(self):
         """available_apps returns a table"""
         from cogent3.util.table import Table
@@ -74,7 +73,7 @@ class TestAvailableApps(TestCase):
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
             for app in applications:
-                self.assertIsInstance(app, Composable)
+               self.assertIsInstance(app, Composable)
 
             composable_application_tuples = [
                 (app1, app2)
@@ -102,7 +101,7 @@ class TestAvailableApps(TestCase):
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
             for app in applications:
-                self.assertIsInstance(app, Composable)
+               self.assertIsInstance(app, Composable)
 
             incompatible_application_tuples = [
                 (app1, app2)

@@ -100,7 +100,6 @@ class TestIo(TestCase):
         with self.assertRaises(ValueError):
             _ = io_app.get_data_store(self.basedir, 1)
 
-    @pytest.mark.xfail
     def test_load_aligned(self):
         """correctly loads aligned seqs"""
 
@@ -115,7 +114,6 @@ class TestIo(TestCase):
         fasta_loader = io_app.load_aligned(format="fasta")
         validate(fasta_paths, fasta_loader)
 
-    @pytest.mark.xfail
     def test_load_aligned_nexus(self):
         """should handle nexus too"""
         nexus_paths = io_app.get_data_store(self.basedir, suffix="nex")
@@ -124,7 +122,6 @@ class TestIo(TestCase):
         for result in results:
             self.assertIsInstance(result, ArrayAlignment)
 
-    @pytest.mark.xfail
     def test_load_aligned_paml(self):
         """should handle paml too"""
         paml_paths = io_app.get_data_store(self.basedir, suffix="paml")
@@ -133,7 +130,6 @@ class TestIo(TestCase):
         for result in results:
             self.assertIsInstance(result, ArrayAlignment)
 
-    @pytest.mark.xfail
     def test_load_aligned_from_zip(self):
         """correctly loads aligned seqs from a zip archive"""
 
@@ -152,12 +148,11 @@ class TestIo(TestCase):
             shutil.make_archive(
                 base_name=zip_path, root_dir=".", format="zip", base_dir=self.basedir
             )
-            zip_path = zip_path + ".zip"  # because shutil adds the suffix
+            zip_path += ".zip"  # because shutil adds the suffix
             fasta_paths = list(io_app.findall(zip_path, suffix=".fasta", limit=2))
             fasta_loader = io_app.load_aligned(format="fasta")
             validate(fasta_paths, fasta_loader)
 
-    @pytest.mark.xfail
     def test_load_unaligned(self):
         """load_unaligned returns degapped sequence collections"""
         fasta_paths = io_app.get_data_store(self.basedir, suffix=".fasta", limit=2)
@@ -172,7 +167,6 @@ class TestIo(TestCase):
         got = fasta_loader(seqs)
         self.assertIsInstance(got, NotCompleted)
 
-    @pytest.mark.xfail
     def test_write_seqs(self):
         """correctly writes sequences out"""
         fasta_paths = list(io_app.findall(self.basedir, suffix=".fasta", limit=2))
@@ -186,7 +180,6 @@ class TestIo(TestCase):
             for i, wrote in enumerate(written):
                 self.assertEqual(alns[i].info.stored, join(dirname, wrote))
 
-    @pytest.mark.xfail
     def test_load_json(self):
         """correctly loads an object from json"""
         from cogent3.app.data_store import make_record_for_json
@@ -272,7 +265,6 @@ class TestIo(TestCase):
             self.assertIsInstance(got, NotCompleted)
             self.assertTrue("json" in got.message)
 
-    @pytest.mark.xfail
     def test_load_tabular(self):
         """correctly loads tabular data"""
         rows = [[1, 2], [3, 4], [5, 6.5]]
