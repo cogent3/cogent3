@@ -39,10 +39,10 @@ from .typing import (
     ALIGNED_TYPE,
     IDENTIFIER_TYPE,
     SEQUENCE_TYPE,
-    TABULAR_TYPE,
     AlignedSeqsType,
     IdentifierType,
     SerialisableType,
+    TabularType,
     UnalignedSeqsType,
 )
 
@@ -321,7 +321,7 @@ class load_tabular:
         records = numpy.array(records, dtype="O").T
         return header, records, title
 
-    def main(self, path: IdentifierType) -> TABULAR_TYPE:
+    def main(self, path: IdentifierType) -> TabularType:
         if type(path) == str:
             # we use a data store as it's read() handles compression
             path = SingleReadDataStore(path)[0]
@@ -376,7 +376,7 @@ class write_tabular:
         """
         self._format = format
 
-    def main(self, data: TABULAR_TYPE, identifier=None) -> IdentifierType:
+    def main(self, data: TabularType, identifier=None) -> IdentifierType:
         if isinstance(data, NotCompleted):
             return self.data_store.write_incomplete(identifier, data)
 

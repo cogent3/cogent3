@@ -206,7 +206,6 @@ class FastSlowDistTests(TestCase):
         aligner = align.progressive_align(model="WG01", guide_tree=treestring)
         _ = aligner(self.seqs5)
 
-    @pytest.mark.xfail
     def test_composes_with_write_tabular(self):
         """correctly links to tabular"""
         with TemporaryDirectory(dir=".") as dirname:
