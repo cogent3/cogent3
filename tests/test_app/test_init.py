@@ -73,7 +73,7 @@ class TestAvailableApps(TestCase):
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
             for app in applications:
-               self.assertIsInstance(app, Composable)
+                self.assertIsInstance(app, Composable)
 
             composable_application_tuples = [
                 (app1, app2)
@@ -101,7 +101,7 @@ class TestAvailableApps(TestCase):
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
             for app in applications:
-               self.assertIsInstance(app, Composable)
+                self.assertIsInstance(app, Composable)
 
             incompatible_application_tuples = [
                 (app1, app2)
