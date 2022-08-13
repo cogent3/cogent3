@@ -8,7 +8,7 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import NotCompleted, composable
+from .composable import NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
@@ -40,6 +40,7 @@ def union(groups):
     return union
 
 
+@define_app(composable=False)
 class concat:
     """Creates a concatenated alignment from a series. Returns an Alignment."""
 
@@ -61,7 +62,7 @@ class concat:
         self._moltype = moltype
         self._join_seq = join_seq
 
-    def concat(self, data):
+    def main(self, data: AlignedSeqsType) -> Union[SerialisableType, AlignedSeqsType]:
         """returns an alignment
 
         Parameters
@@ -101,10 +102,8 @@ class concat:
         aln = ArrayAlignment(data=combined, moltype=self._moltype)
         return aln
 
-    __call__ = concat
 
-
-@composable
+@define_app
 class omit_degenerates:
     """Excludes alignment columns with degenerate conditions. Can accomodate
     reading frame. Returns modified Alignment."""
@@ -144,7 +143,7 @@ class omit_degenerates:
         ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
 
 
-@composable
+@define_app
 class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame. Returns modified Alignment."""
@@ -183,7 +182,7 @@ class omit_gap_pos:
         )
 
 
-@composable
+@define_app
 class take_codon_positions:
     """Extracts the specified codon position(s) from an alignment.
     Returns an Alignment."""
@@ -278,7 +277,7 @@ class take_codon_positions:
         return self._func(aln)
 
 
-@composable
+@define_app
 class take_named_seqs:
     """Extracts (or everything but) named sequences. Returns a filtered
     sequences, alignment that satisified the condition, NotCompleted otherwise."""
@@ -306,7 +305,7 @@ class take_named_seqs:
         return data
 
 
-@composable
+@define_app
 class take_n_seqs:
     """Selects n sequences from a collection. Chooses first n sequences, or selects randomly if specified.
 
@@ -368,7 +367,7 @@ class take_n_seqs:
         return data
 
 
-@composable
+@define_app
 class min_length:
     """Filters sequence collections / alignments by length. Returns the
     data if it satisfies the condition, NotCompleted otherwise."""
@@ -437,7 +436,7 @@ class _GetStart:
         return self.func(length)
 
 
-@composable
+@define_app
 class fixed_length:
     """Sample an alignment to a fixed length. Returns an Alignment of the
     specified length, or NotCompleted if alignment too short."""
@@ -532,7 +531,7 @@ class fixed_length:
         return self._func(data)
 
 
-@composable
+@define_app
 class omit_bad_seqs:
     """Eliminates sequences from Alignment based on gap fraction, unique gaps.
     Returns modified alignment."""
@@ -578,7 +577,7 @@ class omit_bad_seqs:
         return result
 
 
-@composable
+@define_app
 class omit_duplicated:
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped. Returns sequence collection with only unique sequences."""
@@ -660,7 +659,7 @@ class omit_duplicated:
         return self._func(seqs)
 
 
-@composable
+@define_app
 class trim_stop_codons:
     """Removes terminal stop codons. Returns sequences / alignment."""
 

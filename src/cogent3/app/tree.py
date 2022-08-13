@@ -3,7 +3,7 @@ from typing import Union
 from cogent3 import make_tree
 from cogent3.phylo.nj import gnj
 
-from .composable import Composable, composable
+from .composable import Composable, define_app
 from .typing import (
     PAIRWISE_DISTANCE_TYPE,
     SERIALISABLE_TYPE,
@@ -25,7 +25,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@composable
+@define_app
 class scale_branches:
     """Transforms tree branch lengths from nucleotide to codon, or the converse.
     Returns a Tree."""
@@ -71,7 +71,7 @@ class scale_branches:
         return tree
 
 
-@composable
+@define_app
 class uniformize_tree:
     """Standardises the orientation of unrooted trees. Returns a Tree."""
 
@@ -101,7 +101,7 @@ class uniformize_tree:
         return new
 
 
-@composable
+@define_app
 class quick_tree:
     """Neighbour Joining tree based on pairwise distances."""
 
