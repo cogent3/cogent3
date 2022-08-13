@@ -16,7 +16,7 @@ from cogent3.app.composable import (
     Composable,
     NotCompleted,
     appify,
-    composable,
+    define_app,
     user_function,
 )
 from cogent3.app.sample import min_length, omit_degenerates
@@ -479,14 +479,14 @@ class TestUserFunction(TestCase):
 def test_app_registry():
     """correctly registers apps"""
 
-    @composable
+    @define_app
     class foo_1:
         def main(self, data: int) -> int:
             return data
 
     from cogent3.app.composable import __app_registry
 
-    assert __app_registry["test_composable.foo_1"] == "foo_1"
+    assert __app_registry["test_composable.foo_1"]
 
 
 def test_app_is_composable():
@@ -494,7 +494,7 @@ def test_app_is_composable():
 
     from cogent3.app.composable import is_composable
 
-    @composable
+    @define_app
     class foo_2:
         def main(self, data: int) -> int:
             return data

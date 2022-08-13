@@ -440,16 +440,17 @@ class TranslateTests(TestCase):
         ]
         ccat = sample.concat()
         # triggered by first record
-        with self.assertRaises(TypeError):
-            ccat(data)
+        got = ccat(data)
+        self.assertIsInstance(got, composable.NotCompleted)
 
         # triggered by second record
-        with self.assertRaises(TypeError):
-            ccat(data[::-1])
+        got = ccat(data[::-1])
+        self.assertIsInstance(got, composable.NotCompleted)
 
         # triggered by no data
-        with self.assertRaises(ValueError):
-            ccat([])
+        got = ccat([])
+        expected = []
+        self.assertEqual(got, expected)
 
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
