@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Union
+from typing import List, Union
 
 from numpy import array
 from numpy import random as np_random
@@ -62,7 +62,9 @@ class concat:
         self._moltype = moltype
         self._join_seq = join_seq
 
-    def main(self, data: AlignedSeqsType) -> Union[SerialisableType, AlignedSeqsType]:
+    def main(
+        self, data: List[AlignedSeqsType]
+    ) -> Union[SerialisableType, AlignedSeqsType]:
         """returns an alignment
 
         Parameters

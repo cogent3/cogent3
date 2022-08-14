@@ -994,10 +994,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
             setattr(klass, meth, func)
 
         # Get and type hints of main function in klass
-        if composable:
-            arg_hints, return_hint = _get_main_hints(klass)
-        else:
-            arg_hints, return_hint = set(), set()
+        arg_hints, return_hint = _get_main_hints(klass)
         setattr(klass, "_data_types", arg_hints)
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
@@ -1021,7 +1018,10 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
 
 def is_composable(obj):
     """checks whether obj has been registered by the composable decorator"""
-    return __app_registry.get(get_object_provenance(obj)) or False
+    return any(
+        __app_registry.get(get_object_provenance(klass), False)
+        for klass in [obj, *type(obj).__bases__]
+    )
 
 
 def _apply_to(

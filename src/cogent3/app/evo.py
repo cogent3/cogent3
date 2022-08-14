@@ -16,7 +16,13 @@ from .result import (
     model_result,
     tabular_result,
 )
-from .typing import AlignedSeqsType, ModelResultType, SerialisableType
+from .typing import (
+    AlignedSeqsType,
+    BootstrapResultType,
+    ModelResultType,
+    SerialisableType,
+    TabularResultType,
+)
 
 
 __author__ = "Gavin Huttley"
@@ -223,7 +229,7 @@ class model:
 
     def main(
         self, aln: AlignedSeqsType, initialise=None, construct=True, **opt_args
-    ) -> Union[SerialisableType, AlignedSeqsType]:
+    ) -> Union[SerialisableType, ModelResultType]:
         moltypes = {aln.moltype.label, self._sm.moltype.label}
         if moltypes in [{"protein", "dna"}, {"protein", "rna"}]:
             msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"
@@ -405,7 +411,7 @@ class bootstrap:
             sym_result = None
         return sym_result
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, BootstrapResultType]
 
     def main(self, aln: AlignedSeqsType) -> T:
         result = bootstrap_result(aln.info.source)
@@ -465,7 +471,7 @@ class tabulate_stats:
     def __init__(self):
         pass
 
-    T = Union[SerialisableType, ModelResultType]
+    T = Union[SerialisableType, TabularResultType]
 
     def main(self, result: ModelResultType) -> T:
         """returns Table for all statistics returned by likelihood function
@@ -915,7 +921,7 @@ class natsel_sitehet:
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, ModelResultType]
 
     def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
