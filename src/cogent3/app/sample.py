@@ -133,7 +133,7 @@ class omit_degenerates:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
@@ -170,7 +170,7 @@ class omit_gap_pos:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
@@ -273,7 +273,7 @@ class take_codon_positions:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         return self._func(aln)
 
 
@@ -295,7 +295,7 @@ class take_named_seqs:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
@@ -350,7 +350,7 @@ class take_n_seqs:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         """returns data with n sequences"""
         if len(data.names) < self._number:
             return NotCompleted("FALSE", self.main, "not enough sequences")
@@ -396,7 +396,7 @@ class min_length:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         if self._moltype and self._moltype != data.moltype:
             data = data.to_moltype(self._moltype)
 
@@ -526,7 +526,7 @@ class fixed_length:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: AlignedSeqsType) -> T:
         """return a fixed length alignment"""
         return self._func(data)
 
@@ -564,7 +564,7 @@ class omit_bad_seqs:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
@@ -655,7 +655,7 @@ class omit_duplicated:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, seqs: T) -> T:
+    def main(self, seqs: SeqsCollectionType) -> T:
         return self._func(seqs)
 
 
@@ -681,6 +681,6 @@ class trim_stop_codons:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         data = data.trim_stop_codons(gc=self._gc)
         return data
