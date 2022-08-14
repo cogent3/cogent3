@@ -14,18 +14,12 @@ __status__ = "Alpha"
 __all__ = ["align", "composable", "dist", "evo", "io", "sample", "translate", "tree"]
 
 
-def _get_app_attr(name):
+def _get_app_attr(name, is_composable):
     """returns app details for display"""
-    from .composable import Composable, is_composable, user_function
 
     modname, name = name.rsplit(".", maxsplit=1)
     mod = importlib.import_module(modname)
     obj = getattr(mod, name)
-    iscomposable = (
-        issubclass(user_function, Composable)
-        if name == "user_function"
-        else is_composable(f"{obj.__module__}.{name}")
-    )
 
     _types = {"_data_types": [], "_return_types": []}
 
@@ -37,7 +31,7 @@ def _get_app_attr(name):
     return [
         mod.__name__,
         name,
-        iscomposable,
+        is_composable,
         obj.__doc__,
         _types["_data_types"],
         _types["_return_types"],
@@ -48,19 +42,15 @@ def available_apps():
     """returns Table listing the available apps"""
     from cogent3.util.table import Table
 
-    # excluding composable, find all class
-    rows = []
-    for m in __all__:
-        if m == "composable":
-            continue
-        mod = importlib.import_module(f"{__name__}.{m}")
-        rows.extend(
-            _get_app_attr(f"{obj.__module__}.{name}")
-            for name, obj in inspect.getmembers(mod, inspect.isclass)
-            if not name.startswith("_") and obj.__module__ == mod.__name__
-        )
+    from .composable import Composable, __app_registry, user_function
+
+    rows = [_get_app_attr(app, True) for app in __app_registry]
 
     mod = importlib.import_module(f"{__name__}.composable")
-    rows.append(_get_app_attr(f"{mod.__name__}.user_function"))
+    rows.append(
+        _get_app_attr(
+            f"{mod.__name__}.user_function", issubclass(user_function, Composable)
+        )
+    )
     header = ["module", "name", "composable", "doc", "outputs", "data type"]
     return Table(header, rows)
