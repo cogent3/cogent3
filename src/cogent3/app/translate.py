@@ -187,7 +187,7 @@ class select_translatable:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, seqs: T) -> T:
+    def main(self, seqs: SeqsCollectionType) -> T:
         """returns the translatable sequences from seqs.
 
         translation errors are stroed in the info object"""
@@ -257,7 +257,7 @@ class translate_seqs:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, seqs: T) -> T:
+    def main(self, seqs: SeqsCollectionType) -> T:
         """returns translated sequences"""
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)

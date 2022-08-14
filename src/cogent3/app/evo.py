@@ -348,7 +348,7 @@ class model_collection:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         try:
             null = self.null(aln)
         except ValueError:
@@ -407,7 +407,7 @@ class bootstrap:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         result = bootstrap_result(aln.info.source)
         try:
             obs = self._hyp(aln)
@@ -443,7 +443,7 @@ class ancestral_states:
 
     T = Union[SerialisableType, ModelResultType]
 
-    def main(self, result: T) -> T:
+    def main(self, result: ModelResultType) -> T:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
@@ -467,7 +467,7 @@ class tabulate_stats:
 
     T = Union[SerialisableType, ModelResultType]
 
-    def main(self, result: T) -> T:
+    def main(self, result: ModelResultType) -> T:
         """returns Table for all statistics returned by likelihood function
         get_statistics"""
         stats = result.lf.get_statistics(with_titles=True, with_motif_probs=True)
@@ -581,7 +581,7 @@ class natsel_neutral:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: AlignedSeqsType) -> T:
         return self._hyp(data)
 
 
@@ -767,7 +767,7 @@ class natsel_zhang:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T, *args, **kwargs) -> T:
+    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -917,7 +917,7 @@ class natsel_sitehet:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T, *args, **kwargs) -> T:
+    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -1081,5 +1081,5 @@ class natsel_timehet:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: AlignedSeqsType) -> T:
         return self._hyp(data)
