@@ -1018,10 +1018,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
 
 def is_composable(obj):
     """checks whether obj has been registered by the composable decorator"""
-    return any(
-        __app_registry.get(get_object_provenance(klass), False)
-        for klass in [obj, *type(obj).__bases__]
-    )
+    return __app_registry.get(get_object_provenance(obj), False)
 
 
 def _apply_to(
