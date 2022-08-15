@@ -20,6 +20,7 @@ from .typing import (
     AlignedSeqsType,
     BootstrapResultType,
     HypothesisResultType,
+    ModelCollectionResultType,
     ModelResultType,
     SerialisableType,
     TabularResultType,
@@ -293,10 +294,8 @@ class _InitFrom:
         return other
 
 
-@define_app
-class model_collection:
-    """Fits a collection of models. Returns a
-    model_collection_result."""
+class _ModelCollectionBase:
+    """Base class for fitting collections of models."""
 
     def __init__(self, null, *alternates, sequential=True, init_alt=None):
         """
@@ -335,9 +334,6 @@ class model_collection:
         self._init_alt = init_alt
         self._sequential = sequential
 
-    def _make_result(self, aln):
-        return model_collection_result(source=aln.info)
-
     def _initialised_alt(self, null, aln):
         if callable(self._init_alt):
             init_func = self._init_alt
@@ -353,7 +349,7 @@ class model_collection:
             null = result
         return results
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, ModelCollectionResultType, HypothesisResultType]
 
     def main(self, aln: AlignedSeqsType) -> T:
         try:
@@ -384,11 +380,21 @@ class model_collection:
         return result
 
 
-class hypothesis(model_collection):
+@define_app
+class model_collection(_ModelCollectionBase):
+    """Fits a collection of models. Returns a
+    model_collection_result."""
+
+    def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
+        return model_collection_result(source=aln.info)
+
+
+@define_app
+class hypothesis(_ModelCollectionBase):
     """Specify a hypothesis through defining two models. Returns a
     hypothesis_result."""
 
-    def _make_result(self, aln):
+    def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
         return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
 
@@ -443,8 +449,9 @@ class ancestral_states:
     """Computes ancestral state probabilities from a model result. Returns a dict
     with a DictArray for each node."""
 
-
-    def main(self, result: ModelResultType) -> Union[SerialisableType, TabularResultType]:
+    def main(
+        self, result: ModelResultType
+    ) -> Union[SerialisableType, TabularResultType]:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
