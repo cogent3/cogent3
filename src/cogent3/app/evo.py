@@ -8,7 +8,7 @@ from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
-from .composable import NotCompleted, composable
+from .composable import NotCompleted, define_app
 from .result import (
     bootstrap_result,
     hypothesis_result,
@@ -16,7 +16,13 @@ from .result import (
     model_result,
     tabular_result,
 )
-from .typing import AlignedSeqsType, ModelResultType, SerialisableType
+from .typing import (
+    AlignedSeqsType,
+    BootstrapResultType,
+    ModelResultType,
+    SerialisableType,
+    TabularResultType,
+)
 
 
 __author__ = "Gavin Huttley"
@@ -29,7 +35,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@composable
+@define_app
 class model:
     """Define a substitution model + tree for maximum likelihood evaluation.
     Returns model_result."""
@@ -223,7 +229,7 @@ class model:
 
     def main(
         self, aln: AlignedSeqsType, initialise=None, construct=True, **opt_args
-    ) -> Union[SerialisableType, AlignedSeqsType]:
+    ) -> Union[SerialisableType, ModelResultType]:
         moltypes = {aln.moltype.label, self._sm.moltype.label}
         if moltypes in [{"protein", "dna"}, {"protein", "rna"}]:
             msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"
@@ -286,7 +292,7 @@ class _InitFrom:
         return other
 
 
-@composable
+@define_app
 class model_collection:
     """Fits a collection of models. Returns a
     model_collection_result."""
@@ -348,7 +354,7 @@ class model_collection:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         try:
             null = self.null(aln)
         except ValueError:
@@ -385,7 +391,7 @@ class hypothesis(model_collection):
         return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
 
-@composable
+@define_app
 class bootstrap:
     """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
 
@@ -405,9 +411,9 @@ class bootstrap:
             sym_result = None
         return sym_result
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, BootstrapResultType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         result = bootstrap_result(aln.info.source)
         try:
             obs = self._hyp(aln)
@@ -431,7 +437,7 @@ class bootstrap:
         return result
 
 
-@composable
+@define_app
 class ancestral_states:
     """Computes ancestral state probabilities from a model result. Returns a dict
     with a DictArray for each node."""
@@ -443,7 +449,7 @@ class ancestral_states:
 
     T = Union[SerialisableType, ModelResultType]
 
-    def main(self, result: T) -> T:
+    def main(self, result: ModelResultType) -> T:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
@@ -458,16 +464,13 @@ class ancestral_states:
         return tab
 
 
-@composable
+@define_app
 class tabulate_stats:
     """Extracts all model statistics from model_result as Table."""
 
-    def __init__(self):
-        pass
-
-    T = Union[SerialisableType, ModelResultType]
-
-    def main(self, result: T) -> T:
+    def main(
+        self, result: ModelResultType
+    ) -> Union[SerialisableType, TabularResultType]:
         """returns Table for all statistics returned by likelihood function
         get_statistics"""
         stats = result.lf.get_statistics(with_titles=True, with_motif_probs=True)
@@ -486,7 +489,7 @@ def is_codon_model(sm):
     return isinstance(sm, _Codon)
 
 
-@composable
+@define_app
 class natsel_neutral:
     """Test of selective neutrality by assessing whether omega equals 1.
     Under the alternate, there is one omega for all branches and all sites.
@@ -581,11 +584,11 @@ class natsel_neutral:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: AlignedSeqsType) -> T:
         return self._hyp(data)
 
 
-@composable
+@define_app
 class natsel_zhang:
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
@@ -767,7 +770,7 @@ class natsel_zhang:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T, *args, **kwargs) -> T:
+    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -784,7 +787,7 @@ class natsel_zhang:
         return result
 
 
-@composable
+@define_app
 class natsel_sitehet:
     """Test for site-heterogeneity in omega. Under null, there are 2 site-classes,
     omega < 1 and omega = 1. Under the alternate, an additional site-class of
@@ -915,9 +918,9 @@ class natsel_sitehet:
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, ModelResultType]
 
-    def main(self, aln: T, *args, **kwargs) -> T:
+    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -934,7 +937,7 @@ class natsel_sitehet:
         return result
 
 
-@composable
+@define_app
 class natsel_timehet:
     """The branch heterogeneity hypothesis test for natural selection.
     Tests for whether a single omega for all branches is sufficient against the
@@ -1081,5 +1084,5 @@ class natsel_timehet:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: AlignedSeqsType) -> T:
         return self._hyp(data)

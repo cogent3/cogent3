@@ -67,13 +67,13 @@ class TestAvailableApps(TestCase):
     @pytest.mark.xfail
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
-        from cogent3.app.composable import Composable
+        from cogent3.app.composable import is_composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
             for app in applications:
-                self.assertIsInstance(app, Composable)
+                self.assertTrue(is_composable(app))
 
             composable_application_tuples = [
                 (app1, app2)
@@ -95,13 +95,13 @@ class TestAvailableApps(TestCase):
     @pytest.mark.xfail
     def test_incompatible_pairwise_applications(self):
         """Properly identify two incompatible applications"""
-        from cogent3.app.composable import Composable
+        from cogent3.app.composable import is_composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
             for app in applications:
-                self.assertIsInstance(app, Composable)
+                self.assertTrue(is_composable(app))
 
             incompatible_application_tuples = [
                 (app1, app2)

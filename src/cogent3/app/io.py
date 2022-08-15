@@ -20,7 +20,7 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
-from .composable import NotCompleted, _checkpointable, composable
+from .composable import NotCompleted, _checkpointable, define_app
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -39,10 +39,10 @@ from .typing import (
     ALIGNED_TYPE,
     IDENTIFIER_TYPE,
     SEQUENCE_TYPE,
-    TABULAR_TYPE,
     AlignedSeqsType,
     IdentifierType,
     SerialisableType,
+    TabularType,
     UnalignedSeqsType,
 )
 
@@ -185,7 +185,7 @@ def _load_seqs(path, klass, parser, moltype):
     return seqs
 
 
-@composable
+@define_app
 class load_aligned:
     """Loads aligned sequences. Returns an Alignment object."""
 
@@ -212,7 +212,7 @@ class load_aligned:
         return _load_seqs(path, self.klass, self._parser, self.moltype)
 
 
-@composable
+@define_app
 class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
@@ -240,7 +240,7 @@ class load_unaligned:
         return seqs.degap()
 
 
-@composable
+@define_app
 class load_tabular:
     """Loads delimited data. Returns a Table."""
 
@@ -321,7 +321,7 @@ class load_tabular:
         records = numpy.array(records, dtype="O").T
         return header, records, title
 
-    def main(self, path: IdentifierType) -> TABULAR_TYPE:
+    def main(self, path: IdentifierType) -> TabularType:
         if type(path) == str:
             # we use a data store as it's read() handles compression
             path = SingleReadDataStore(path)[0]
@@ -350,7 +350,7 @@ class load_tabular:
         return None
 
 
-@composable
+@define_app
 class write_tabular:
     """writes tabular data"""
 
@@ -376,7 +376,7 @@ class write_tabular:
         """
         self._format = format
 
-    def main(self, data: TABULAR_TYPE, identifier=None) -> IdentifierType:
+    def main(self, data: TabularType, identifier=None) -> IdentifierType:
         if isinstance(data, NotCompleted):
             return self.data_store.write_incomplete(identifier, data)
 
@@ -470,7 +470,7 @@ class write_seqs(_checkpointable):
         return stored
 
 
-@composable
+@define_app
 class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
@@ -498,7 +498,7 @@ class load_json:
         return result
 
 
-@composable
+@define_app
 class write_json:
     """Writes json serialised objects to individual json files."""
 
@@ -538,7 +538,7 @@ class write_json:
         return stored
 
 
-@composable
+@define_app
 class load_db:
     """Loads json serialised cogent3 objects from a TinyDB file.
     Returns whatever object type was stored."""
@@ -567,7 +567,7 @@ class load_db:
         return result
 
 
-@composable
+@define_app
 class write_db:
     """Writes json serialised objects to a TinyDB instance."""
 

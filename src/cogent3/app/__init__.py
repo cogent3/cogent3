@@ -14,52 +14,43 @@ __status__ = "Alpha"
 __all__ = ["align", "composable", "dist", "evo", "io", "sample", "translate", "tree"]
 
 
-def _get_app_attr(name, obj, mod, is_composable):
+def _get_app_attr(name, is_composable):
     """returns app details for display"""
 
-    _types = {"_input_types": [], "_output_types": [], "_data_types": []}
+    modname, name = name.rsplit(".", maxsplit=1)
+    mod = importlib.import_module(modname)
+    obj = getattr(mod, name)
 
-    for tys in _types.keys():
+    _types = {"_data_types": [], "_return_types": []}
+
+    for tys in _types:
         types = getattr(obj, tys, None) or []
         types = [types] if type(types) == str else types
         _types[tys] = [{None: ""}.get(e, e) for e in types]
 
-    row = [
+    return [
         mod.__name__,
         name,
         is_composable,
         obj.__doc__,
-        ", ".join(_types["_input_types"]),
-        ", ".join(_types["_output_types"]),
-        ", ".join(_types["_data_types"]),
+        _types["_data_types"],
+        _types["_return_types"],
     ]
-    return row
 
 
 def available_apps():
     """returns Table listing the available apps"""
     from cogent3.util.table import Table
 
-    from .composable import Composable, user_function
+    from .composable import Composable, __app_registry, user_function
 
-    # excluding composable, find all class
-    rows = []
-    for m in __all__:
-        if m == "composable":
-            continue
-        mod = importlib.import_module(f"{__name__}.{m}")
-        for name, obj in inspect.getmembers(mod, inspect.isclass):
-            if name.startswith("_"):
-                continue
-            if obj.__module__ == mod.__name__:
-                is_composable = issubclass(obj, Composable)
-                rows.append(_get_app_attr(name, obj, mod, is_composable))
+    rows = [_get_app_attr(app, True) for app in __app_registry]
 
     mod = importlib.import_module(f"{__name__}.composable")
     rows.append(
         _get_app_attr(
-            "user_function", user_function, mod, issubclass(user_function, Composable)
+            f"{mod.__name__}.user_function", issubclass(user_function, Composable)
         )
     )
-    header = ["module", "name", "composable", "doc", "inputs", "outputs", "data type"]
+    header = ["module", "name", "composable", "doc", "outputs", "data type"]
     return Table(header, rows)

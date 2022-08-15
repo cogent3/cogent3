@@ -71,3 +71,6 @@ def test_hints_from_strings_invalid():
 def test_hints_from_strings():
     got = hints_from_strings("serialisable", "aligned")
     assert got == [SerialisableType, AlignedSeqsType]
+
+
+test_get_constraint_names_no_constraint()

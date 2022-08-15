@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Union
+from typing import List, Union
 
 from numpy import array
 from numpy import random as np_random
@@ -8,7 +8,7 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import NotCompleted, composable
+from .composable import NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
@@ -40,6 +40,7 @@ def union(groups):
     return union
 
 
+@define_app(composable=False)
 class concat:
     """Creates a concatenated alignment from a series. Returns an Alignment."""
 
@@ -61,7 +62,9 @@ class concat:
         self._moltype = moltype
         self._join_seq = join_seq
 
-    def concat(self, data):
+    def main(
+        self, data: List[AlignedSeqsType]
+    ) -> Union[SerialisableType, AlignedSeqsType]:
         """returns an alignment
 
         Parameters
@@ -101,10 +104,8 @@ class concat:
         aln = ArrayAlignment(data=combined, moltype=self._moltype)
         return aln
 
-    __call__ = concat
 
-
-@composable
+@define_app
 class omit_degenerates:
     """Excludes alignment columns with degenerate conditions. Can accomodate
     reading frame. Returns modified Alignment."""
@@ -134,7 +135,7 @@ class omit_degenerates:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
@@ -144,7 +145,7 @@ class omit_degenerates:
         ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
 
 
-@composable
+@define_app
 class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame. Returns modified Alignment."""
@@ -171,7 +172,7 @@ class omit_gap_pos:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
@@ -183,7 +184,7 @@ class omit_gap_pos:
         )
 
 
-@composable
+@define_app
 class take_codon_positions:
     """Extracts the specified codon position(s) from an alignment.
     Returns an Alignment."""
@@ -274,11 +275,11 @@ class take_codon_positions:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         return self._func(aln)
 
 
-@composable
+@define_app
 class take_named_seqs:
     """Extracts (or everything but) named sequences. Returns a filtered
     sequences, alignment that satisified the condition, NotCompleted otherwise."""
@@ -296,7 +297,7 @@ class take_named_seqs:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
@@ -306,7 +307,7 @@ class take_named_seqs:
         return data
 
 
-@composable
+@define_app
 class take_n_seqs:
     """Selects n sequences from a collection. Chooses first n sequences, or selects randomly if specified.
 
@@ -351,7 +352,7 @@ class take_n_seqs:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         """returns data with n sequences"""
         if len(data.names) < self._number:
             return NotCompleted("FALSE", self.main, "not enough sequences")
@@ -368,7 +369,7 @@ class take_n_seqs:
         return data
 
 
-@composable
+@define_app
 class min_length:
     """Filters sequence collections / alignments by length. Returns the
     data if it satisfies the condition, NotCompleted otherwise."""
@@ -397,7 +398,7 @@ class min_length:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         if self._moltype and self._moltype != data.moltype:
             data = data.to_moltype(self._moltype)
 
@@ -437,7 +438,7 @@ class _GetStart:
         return self.func(length)
 
 
-@composable
+@define_app
 class fixed_length:
     """Sample an alignment to a fixed length. Returns an Alignment of the
     specified length, or NotCompleted if alignment too short."""
@@ -527,12 +528,12 @@ class fixed_length:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: AlignedSeqsType) -> T:
         """return a fixed length alignment"""
         return self._func(data)
 
 
-@composable
+@define_app
 class omit_bad_seqs:
     """Eliminates sequences from Alignment based on gap fraction, unique gaps.
     Returns modified alignment."""
@@ -565,7 +566,7 @@ class omit_bad_seqs:
 
     T = Union[SerialisableType, AlignedSeqsType]
 
-    def main(self, aln: T) -> T:
+    def main(self, aln: AlignedSeqsType) -> T:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
@@ -578,7 +579,7 @@ class omit_bad_seqs:
         return result
 
 
-@composable
+@define_app
 class omit_duplicated:
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped. Returns sequence collection with only unique sequences."""
@@ -656,11 +657,11 @@ class omit_duplicated:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, seqs: T) -> T:
+    def main(self, seqs: SeqsCollectionType) -> T:
         return self._func(seqs)
 
 
-@composable
+@define_app
 class trim_stop_codons:
     """Removes terminal stop codons. Returns sequences / alignment."""
 
@@ -682,6 +683,6 @@ class trim_stop_codons:
 
     T = Union[SerialisableType, SeqsCollectionType]
 
-    def main(self, data: T) -> T:
+    def main(self, data: SeqsCollectionType) -> T:
         data = data.trim_stop_codons(gc=self._gc)
         return data
