@@ -468,12 +468,9 @@ class ancestral_states:
 class tabulate_stats:
     """Extracts all model statistics from model_result as Table."""
 
-    def __init__(self):
-        pass
-
-    T = Union[SerialisableType, TabularResultType]
-
-    def main(self, result: ModelResultType) -> T:
+    def main(
+        self, result: ModelResultType
+    ) -> Union[SerialisableType, TabularResultType]:
         """returns Table for all statistics returned by likelihood function
         get_statistics"""
         stats = result.lf.get_statistics(with_titles=True, with_motif_probs=True)
