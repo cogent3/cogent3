@@ -443,14 +443,8 @@ class ancestral_states:
     """Computes ancestral state probabilities from a model result. Returns a dict
     with a DictArray for each node."""
 
-    _data_types = "model_result"
 
-    def __init__(self):
-        pass
-
-    T = Union[SerialisableType, ModelResultType]
-
-    def main(self, result: ModelResultType) -> T:
+    def main(self, result: ModelResultType) -> Union[SerialisableType, TabularResultType]:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
