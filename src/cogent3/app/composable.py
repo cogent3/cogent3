@@ -1092,13 +1092,12 @@ def _apply_to(
         logger.log_versions(["cogent3"])
 
     results = []
-    process = self.input or self
-    if self.input:
+    process = self.input or self if self.app_type != LOADER else self
+    if self.app_type != LOADER and self.input:
         # As we will be explicitly calling the input object, we disconnect
         # the two-way interaction between input and self. This means self
         # is not called twice, and self is not unecessarily pickled during
         # parallel execution.
-        process.output = None
         self.input = None
 
     # with a tinydb dstore, this also excludes data that failed to complete

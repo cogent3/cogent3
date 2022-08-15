@@ -20,7 +20,7 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
-from .composable import NotCompleted, _checkpointable, define_app
+from .composable import LOADER, NotCompleted, _checkpointable, define_app
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -185,7 +185,7 @@ def _load_seqs(path, klass, parser, moltype):
     return seqs
 
 
-@define_app
+@define_app(app_type=LOADER)
 class load_aligned:
     """Loads aligned sequences. Returns an Alignment object."""
 
@@ -212,7 +212,7 @@ class load_aligned:
         return _load_seqs(path, self.klass, self._parser, self.moltype)
 
 
-@define_app
+@define_app(app_type=LOADER)
 class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
@@ -240,7 +240,7 @@ class load_unaligned:
         return seqs.degap()
 
 
-@define_app
+@define_app(app_type=LOADER)
 class load_tabular:
     """Loads delimited data. Returns a Table."""
 
@@ -470,7 +470,7 @@ class write_seqs(_checkpointable):
         return stored
 
 
-@define_app
+@define_app(app_type=LOADER)
 class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
@@ -538,7 +538,7 @@ class write_json:
         return stored
 
 
-@define_app
+@define_app(app_type=LOADER)
 class load_db:
     """Loads json serialised cogent3 objects from a TinyDB file.
     Returns whatever object type was stored."""
