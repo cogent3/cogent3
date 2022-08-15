@@ -19,6 +19,7 @@ from .result import (
 from .typing import (
     AlignedSeqsType,
     BootstrapResultType,
+    HypothesisResultType,
     ModelResultType,
     SerialisableType,
     TabularResultType,
@@ -582,7 +583,7 @@ class natsel_neutral:
         )
         self._hyp = hypothesis(null, alt)
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, HypothesisResultType]
 
     def main(self, data: AlignedSeqsType) -> T:
         return self._hyp(data)
@@ -768,7 +769,7 @@ class natsel_zhang:
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, HypothesisResultType]
 
     def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
@@ -918,7 +919,7 @@ class natsel_sitehet:
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    T = Union[SerialisableType, ModelResultType]
+    T = Union[SerialisableType, HypothesisResultType]
 
     def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
@@ -1082,7 +1083,7 @@ class natsel_timehet:
         )
         self._hyp = hypothesis(null, alt)
 
-    T = Union[SerialisableType, AlignedSeqsType]
+    T = Union[SerialisableType, HypothesisResultType]
 
     def main(self, data: AlignedSeqsType) -> T:
         return self._hyp(data)
