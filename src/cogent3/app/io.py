@@ -20,7 +20,7 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
-from .composable import LOADER, NotCompleted, _checkpointable, define_app
+from .composable import LOADER, WRITER, NotCompleted, _checkpointable, define_app
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -350,7 +350,7 @@ class load_tabular:
         return None
 
 
-@define_app
+@define_app(app_type=WRITER)
 class write_tabular:
     """writes tabular data"""
 
@@ -498,7 +498,7 @@ class load_json:
         return result
 
 
-@define_app
+@define_app(app_type=WRITER)
 class write_json:
     """Writes json serialised objects to individual json files."""
 
@@ -567,7 +567,7 @@ class load_db:
         return result
 
 
-@define_app
+@define_app(app_type=WRITER)
 class write_db:
     """Writes json serialised objects to a TinyDB instance."""
 
