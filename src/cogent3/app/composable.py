@@ -1021,6 +1021,7 @@ def is_composable(obj):
     return __app_registry.get(get_object_provenance(obj), False)
 
 
+@UI.display_wrap
 def _apply_to(
     self,
     dstore,

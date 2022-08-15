@@ -76,7 +76,6 @@ class TestComposableBase(TestCase):
         # should be able to compose a new one now
         aseqfunc1 + aseqfunc3
 
-    @pytest.mark.xfail
     def test_apply_to(self):
         """correctly applies iteratively"""
         from cogent3.core.alignment import SequenceCollection

@@ -26,6 +26,9 @@ TreeType = TypeVar("TreeType", "TreeNode", "PhyloNode")
 SerialisableType = TypeVar("SerialisableType")
 BootstrapResultType = TypeVar("BootstrapResultType", bound="bootstrap_result")
 HypothesisResultType = TypeVar("HypothesisResultType", bound="hypothesis_result")
+ModelCollectionResultType = TypeVar(
+    "ModelCollectionResultType", bound="model_collection_result"
+)
 ModelResultType = TypeVar("ModelResultType", bound="model_result")
 TabularResultType = TypeVar("TabularResultType", bound="tabular_result")
 GenericResultType = TypeVar("GenericResultType", bound="generic_result")
