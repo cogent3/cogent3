@@ -941,13 +941,9 @@ class _connected:
         self.storage = {}
 
     def __get__(self, instance, owner):
-        if instance.app_type is LOADER:
-            raise TypeError("Looking for input value for Loader app is not permitted.")
         return self.storage.get(id(instance), None)
 
     def __set__(self, instance, value):
-        if instance.app_type is WRITER:
-            raise TypeError("Assigning input value for Writer app is not permitted.")
         self.storage[id(instance)] = value
 
 
