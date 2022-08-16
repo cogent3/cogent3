@@ -73,9 +73,9 @@ class TestTree(TestCase):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
         path = os.path.join(data_path, "brca1_5.paml")
         aln1 = load_aligned_seqs(path, moltype=DNA)
-        fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
+        calc_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
-        proc = fast_slow_dist + quick
+        proc = calc_dist + quick
         self.assertEqual(
             str(proc),
             "fast_slow_dist(distance=None, moltype='dna', "
