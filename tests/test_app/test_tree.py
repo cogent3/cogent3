@@ -69,14 +69,13 @@ class TestTree(TestCase):
         tree1 = quick1(dist_matrix)
         self.assertEqual(set(tree1.get_tip_names()), set(aln.names))
 
-    @pytest.mark.xfail
     def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
         path = os.path.join(data_path, "brca1_5.paml")
         aln1 = load_aligned_seqs(path, moltype=DNA)
-        fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
+        calc_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
-        proc = fast_slow_dist + quick
+        proc = calc_dist + quick
         self.assertEqual(
             str(proc),
             "fast_slow_dist(distance=None, moltype='dna', "
@@ -85,9 +84,6 @@ class TestTree(TestCase):
         )
         self.assertIsInstance(proc, tree_app.quick_tree)
         self.assertIsInstance(proc.input, dist.fast_slow_dist)
-        self.assertIsInstance(proc._input_types, frozenset)
-        self.assertIsInstance(proc._output_types, frozenset)
-        self.assertIsInstance(proc._in, dist.fast_slow_dist)
 
         tree1 = proc(aln1)
         self.assertIsInstance(tree1, PhyloNode)
