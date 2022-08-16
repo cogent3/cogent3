@@ -970,11 +970,11 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         for meth in method_list:
             if composable and inspect.isfunction(getattr(klass, meth, None)):
                 raise TypeError(
-                    f"remove {meth!r} method in {klass.__name__!r}, this functionality provided by composable"
+                    f"remove {meth!r} method in {klass.__name__!r}, this functionality provided by define_app"
                 )
         if composable and getattr(klass, "input", None):
             raise TypeError(
-                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by composable"
+                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
 
         for meth, func in __mapping.items():
