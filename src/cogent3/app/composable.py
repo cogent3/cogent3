@@ -14,9 +14,11 @@ from typing import Tuple
 
 from scitrack import CachingLogger
 
-from cogent3 import make_aligned_seqs, make_unaligned_seqs
-from cogent3.app.typing import get_constraint_names
-from cogent3.core.alignment import SequenceCollection
+from cogent3.app.typing import (
+    IdentifierType,
+    SerialisableType,
+    get_constraint_names,
+)
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import (
@@ -564,7 +566,7 @@ class ComposableDistance(Composable):
         )
 
 
-class _checkpointable(Composable):
+class _checkpointable:
     def __init__(
         self,
         data_path,
@@ -591,15 +593,11 @@ class _checkpointable(Composable):
         writer_class : type
             constructor for writer
         """
-        super(_checkpointable, self).__init__(**kwargs)
-        self._formatted_params()
-
         data_path = str(data_path)
 
         if data_path.endswith(".tinydb") and not self.__class__.__name__.endswith("db"):
             raise ValueError("tinydb suffix reserved for write_db")
 
-        self._checkpointable = True
         if_exists = if_exists.lower()
         assert if_exists in (
             SKIP,
@@ -848,7 +846,7 @@ def _add(self, other):
 
 
 def _repr(self):
-    val = f"{self.input!r} + " if self.input else ""
+    val = f"{self.input!r} + " if self.app_type is not LOADER and self.input else ""
     data = ", ".join(f"{k}={v!r}" for k, v in self._init_vals.items())
     data = f"{val}{self.__class__.__name__}({data})"
     data = textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
@@ -925,7 +923,8 @@ def _setstate(self, data):
 
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
-    if not self._data_types:
+    # todo when move to python 3.8 define protocol checks for the two singular types
+    if not self._data_types or self._data_types <= {SerialisableType, IdentifierType}:
         return True
 
     class_name = data.__class__.__name__
@@ -934,17 +933,6 @@ def _validate_data_type(self, data):
         msg = f"invalid data type, '{class_name}' not in {', '.join(list(self._data_types))}"
         valid = NotCompleted("ERROR", self, message=msg, source=data)
     return valid
-
-
-class _connected:
-    def __init__(self):
-        self.storage = {}
-
-    def __get__(self, instance, owner):
-        return self.storage.get(id(instance), None)
-
-    def __set__(self, instance, value):
-        self.storage[id(instance)] = value
 
 
 __app_registry = {}
@@ -970,22 +958,14 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         for meth in method_list:
             if composable and inspect.isfunction(getattr(klass, meth, None)):
                 raise TypeError(
-                    f"remove {meth!r} method in {klass.__name__!r}, this functionality provided by composable"
+                    f"remove {meth!r} method in {klass.__name__!r}, this functionality provided by define_app"
                 )
         if composable and getattr(klass, "input", None):
             raise TypeError(
-                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by composable"
+                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
 
         for meth, func in __mapping.items():
-            # check if the developer implements a __getstate__ or
-            # __setstate__ don't introduce our own.
-            if (
-                meth in ["__getstate__", "__setstate__"]
-                and hasattr(klass, meth)
-                and inspect.isfunction(meth)
-            ):
-                continue
             func.__name__ = meth
             setattr(klass, meth, func)
 
@@ -995,11 +975,11 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
 
-        slot_attrs = ["_data_types", "_return_types", "input", "_init_vals"]
+        slot_attrs = ["_data_types", "_return_types", "input", "_init_vals", "__dict__"]
         if app_type == LOADER:
             slot_attrs.remove("input")
         else:
-            setattr(klass, "input", _connected())
+            setattr(klass, "input", None)
         # If a developer has defined slots, we should extend them with our own instance variables.
         if hasattr(klass, "__slots__"):
             klass.__slots__ += tuple(slot_attrs)
@@ -1189,8 +1169,6 @@ __mapping = {
     "__add__": _add,
     "__call__": _call,
     "__repr__": _repr,  # str(obj) calls __repr__ if __str__ missing
-    "__getstate__": _getstate,
-    "__setstate__": _setstate,
     "_serialisable": _ser,
     "_validate_data_type": _validate_data_type,
     "disconnect": _disconnect,

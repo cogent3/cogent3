@@ -1,5 +1,6 @@
 import os
 import pathlib
+import pickle
 
 from pickle import dumps, loads
 from tempfile import TemporaryDirectory
@@ -107,7 +108,6 @@ class TestComposableBase(TestCase):
         with self.assertRaises(ValueError):
             proc.apply_to(["", ""])
 
-    @pytest.mark.xfail
     def test_apply_to_strings(self):
         """apply_to handles strings as paths"""
         dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -136,7 +136,6 @@ class TestComposableBase(TestCase):
             with self.assertRaises(ValueError):
                 process.apply_to(dstore)
 
-    @pytest.mark.xfail
     def test_apply_to_logging(self):
         """correctly creates log file"""
         dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -151,7 +150,6 @@ class TestComposableBase(TestCase):
             self.assertEqual(len(process.data_store.logs), 1)
             process.data_store.close()
 
-    @pytest.mark.xfail
     def test_apply_to_logger(self):
         """correctly uses user provided logger"""
         dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -166,7 +164,6 @@ class TestComposableBase(TestCase):
             self.assertEqual(len(process.data_store.logs), 1)
             process.data_store.close()
 
-    @pytest.mark.xfail
     def test_apply_to_invalid_logger(self):
         """incorrect logger value raises TypeError"""
         dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -181,7 +178,6 @@ class TestComposableBase(TestCase):
                     process.apply_to(dstore, show_progress=False, logger=logger_val)
                 process.data_store.close()
 
-    @pytest.mark.xfail
     def test_apply_to_not_completed(self):
         """correctly creates notcompleted"""
         dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -196,7 +192,6 @@ class TestComposableBase(TestCase):
             self.assertEqual(len(process.data_store.incomplete), 3)
             process.data_store.close()
 
-    @pytest.mark.xfail
     def test_apply_to_not_partially_done(self):
         """correctly applies process when result already partially done"""
         dstore = io_app.get_data_store("data", suffix="fasta")
@@ -517,6 +512,17 @@ def test_app_is_not_composable():
             return data
 
     assert not is_composable(foo)
+
+
+def test_composed_func_pickleable():
+    from cogent3.app.sample import min_length, omit_degenerates
+
+    ml = min_length(100)
+    no_degen = omit_degenerates(moltype="dna")
+    app = ml + no_degen
+
+    unpickled = pickle.loads(pickle.dumps((app)))
+    assert unpickled.input is not None
 
 
 if __name__ == "__main__":

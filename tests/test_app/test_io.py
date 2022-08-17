@@ -210,7 +210,6 @@ class TestIo(TestCase):
             self.assertIsInstance(got, DNA.__class__)
             self.assertEqual(got, DNA)
 
-    @pytest.mark.xfail
     def test_write_db_load_db(self):
         """correctly write/load from tinydb"""
         # straight directory
@@ -229,7 +228,6 @@ class TestIo(TestCase):
             self.assertIsInstance(got["dna"], DNA.__class__)
             self.assertEqual(got["dna"], DNA)
 
-    @pytest.mark.xfail
     def test_write_db_load_db2(self):
         """correctly write/load built-in python from tinydb"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -244,7 +242,6 @@ class TestIo(TestCase):
             dstore.close()
             self.assertEqual(got, data)
 
-    @pytest.mark.xfail
     def test_load_db_failure_json_file(self):
         """informative load_db error message when given a json file path"""
         # todo this test has a trapped exception about being unable to delete
@@ -286,7 +283,6 @@ class TestIo(TestCase):
             result = load_table(outpath)
             self.assertIsInstance(result, NotCompleted)
 
-    @pytest.mark.xfail
     def test_write_tabular_motif_counts_array(self):
         """correctly writes tabular data for MotifCountsArray"""
 
@@ -312,7 +308,6 @@ class TestIo(TestCase):
             }
             self.assertEqual(expected, new.to_dict())
 
-    @pytest.mark.xfail
     def test_write_tabular_motif_freqs_array(self):
         """correctly writes tabular data for MotifFreqsArray"""
 
@@ -337,7 +332,6 @@ class TestIo(TestCase):
             }
             self.assertEqual(expected, new.to_dict())
 
-    @pytest.mark.xfail
     def test_write_tabular_pssm(self):
         """correctly writes tabular data for PSSM"""
 
@@ -365,7 +359,6 @@ class TestIo(TestCase):
                     numpy.isclose(new.array[i][2], expected[j][i - j], atol=0.0001)
                 )
 
-    @pytest.mark.xfail
     def test_write_tabular_distance_matrix(self):
         """correctly writes tabular data for DistanceMatrix"""
         data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
@@ -385,7 +378,6 @@ class TestIo(TestCase):
             }
             self.assertEqual(expected, new.to_dict())
 
-    @pytest.mark.xfail
     def test_write_tabular_table(self):
         """correctly writes tabular data"""
         rows = [[1, 2], [3, 4], [5, 6.5]]
@@ -398,7 +390,6 @@ class TestIo(TestCase):
             new = loader(outpath)
             self.assertEqual(table.to_dict(), new.to_dict())
 
-    @pytest.mark.xfail
     def test_load_tabular_motif_counts_array(self):
         """correctly loads tabular data for MotifCountsArray"""
 
@@ -412,7 +403,6 @@ class TestIo(TestCase):
             new = loader(outpath)
             self.assertEqual(mca.to_dict(), new.to_dict())
 
-    @pytest.mark.xfail
     def test_load_tabular_motif_freqs_array(self):
         """correctly loads tabular data for MotifFreqsArray"""
 
@@ -426,7 +416,6 @@ class TestIo(TestCase):
             new = loader(outpath)
             self.assertEqual(mfa.to_dict(), new.to_dict())
 
-    @pytest.mark.xfail
     def test_load_tabular_pssm(self):
         """correctly loads tabular data for PSSM"""
 
@@ -447,7 +436,6 @@ class TestIo(TestCase):
             new = loader(outpath)
             assert_allclose(pssm.array, new.array, atol=0.0001)
 
-    @pytest.mark.xfail
     def test_load_tabular_distance_matrix(self):
         """correctly loads tabular data for DistanceMatrix"""
         data = {(0, 0): 0, (0, 1): 4, (1, 0): 4, (1, 1): 0}
@@ -460,7 +448,6 @@ class TestIo(TestCase):
             new = loader(outpath)
             self.assertEqual(matrix.to_dict(), new.to_dict())
 
-    @pytest.mark.xfail
     def test_load_tabular_table(self):
         """correctly loads tabular data"""
         rows = [[1, 2], [3, 4], [5, 6.5]]
@@ -473,7 +460,6 @@ class TestIo(TestCase):
             new = loader(outpath)
             self.assertEqual(table.to_dict(), new.to_dict())
 
-    @pytest.mark.xfail
     def test_write_json_with_info(self):
         """correctly writes an object with info attribute from json"""
         # create a mock object that pretends like it's been derived from
@@ -493,7 +479,6 @@ class TestIo(TestCase):
             got.deserialised_values()
             self.assertEqual(got["dna"], DNA)
 
-    @pytest.mark.xfail
     def test_write_json_no_info(self):
         """correctly writes an object with out an info attribute from json"""
         # create a mock object that pretends like it's been derived from
@@ -508,7 +493,6 @@ class TestIo(TestCase):
             got.deserialised_values()
             self.assertEqual(got["dna"], DNA)
 
-    @pytest.mark.xfail
     def test_restricted_usage_of_tinydb_suffix(self):
         """can only use tinydb in a load_db, write_db context"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -524,7 +508,6 @@ class TestIo(TestCase):
             w = io_app.write_db(outdir, create=True, if_exists="skip")
             w.data_store.close()
 
-    @pytest.mark.xfail
     def test_write_db_parallel(self):
         """writing with overwrite in parallel should reset db"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -541,15 +524,14 @@ class TestIo(TestCase):
             r = process.apply_to(
                 members, show_progress=False, parallel=True, cleanup=True
             )
-
             expect = [str(m) for m in process.data_store]
             process.data_store.close()
 
             # now get read only and check what's in there
             result = io_app.get_data_store(outdir)
             got = [str(m) for m in result]
+            self.assertNotEqual(got, [])
             result.close()
-
             self.assertEqual(got, expect)
 
 
