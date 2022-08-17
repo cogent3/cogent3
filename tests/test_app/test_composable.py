@@ -1,5 +1,6 @@
 import os
 import pathlib
+import pickle
 
 from pickle import dumps, loads
 from tempfile import TemporaryDirectory
@@ -517,6 +518,17 @@ def test_app_is_not_composable():
             return data
 
     assert not is_composable(foo)
+
+
+def test_composed_func_pickleable():
+    from cogent3.app.sample import min_length, omit_degenerates
+
+    ml = min_length(100)
+    no_degen = omit_degenerates(moltype="dna")
+    app = ml + no_degen
+
+    unpickled = pickle.loads(pickle.dumps((app)))
+    assert unpickled.input is not None
 
 
 if __name__ == "__main__":
