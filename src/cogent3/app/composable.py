@@ -14,13 +14,11 @@ from typing import Tuple
 
 from scitrack import CachingLogger
 
-from cogent3 import make_aligned_seqs, make_unaligned_seqs
 from cogent3.app.typing import (
     IdentifierType,
     SerialisableType,
     get_constraint_names,
 )
-from cogent3.core.alignment import SequenceCollection
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import (
@@ -925,6 +923,7 @@ def _setstate(self, data):
 
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
+    # todo when move to python 3.8 define protocol checks for the two singular types
     if not self._data_types or self._data_types <= {SerialisableType, IdentifierType}:
         return True
 
