@@ -75,7 +75,7 @@ def get_constraint_names(*hints) -> set[str, ...]:
     all_hints = set()
     for hint in hints:
         if hint in (SerialisableType, IdentifierType):
-            all_hints.add(hint)
+            all_hints.add(hint.__name__)
             continue
 
         if getattr(hint, "__bound__", None):
