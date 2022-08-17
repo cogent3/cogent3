@@ -40,7 +40,7 @@ ResultType = Union[
     TabularResultType,
 ]
 
-# todo the following should have bound values of an abstract base class
+# todo when move to python 3.8 define protocols for IdentifierType and SerialisableType
 IdentifierType = TypeVar("IdentifierType")
 
 # the following constants are deprecated
@@ -74,6 +74,10 @@ def get_constraint_names(*hints) -> set[str, ...]:
     """returns the set of named constraints of a type hint"""
     all_hints = set()
     for hint in hints:
+        if hint in (SerialisableType, IdentifierType):
+            all_hints.add(hint)
+            continue
+
         if getattr(hint, "__bound__", None):
             all_hints.add(hint.__bound__)
             continue
