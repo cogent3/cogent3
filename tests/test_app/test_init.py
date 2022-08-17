@@ -73,13 +73,13 @@ class TestAvailableApps(TestCase):
             applications = _get_all_composables(os.path.join(dirname, "delme"))
 
             for app in applications:
-                self.assertTrue(is_composable(app))
+                self.assertTrue(is_composable(app), msg=app)
 
             composable_application_tuples = [
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and app1._output_types & app2._input_types != set()
+                if app1 != app2 and (app1._return_types & app2._data_types != set())
             ]
 
             for composable_application_tuple in composable_application_tuples:
