@@ -20,7 +20,13 @@ from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
-from .composable import LOADER, WRITER, NotCompleted, _checkpointable, define_app
+from .composable import (
+    LOADER,
+    WRITER,
+    NotCompleted,
+    _checkpointable,
+    define_app,
+)
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -41,6 +47,7 @@ from .typing import (
     SEQUENCE_TYPE,
     AlignedSeqsType,
     IdentifierType,
+    SeqsCollectionType,
     SerialisableType,
     TabularType,
     UnalignedSeqsType,
@@ -351,7 +358,7 @@ class load_tabular:
 
 
 @define_app(app_type=WRITER)
-class write_tabular:
+class write_tabular(_checkpointable):
     """writes tabular data"""
 
     def __init__(
@@ -374,6 +381,13 @@ class write_tabular:
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
+        super().__init__(
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix=format,
+        )
         self._format = format
 
     def main(self, data: TabularType, identifier=None) -> IdentifierType:
@@ -391,12 +405,9 @@ class write_tabular:
         return self.data_store.write(identifier, output)
 
 
+@define_app(app_type=WRITER)
 class write_seqs(_checkpointable):
     """Writes sequences to text files in standard format."""
-
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, IDENTIFIER_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
 
     def __init__(
         self,
@@ -426,17 +437,13 @@ class write_seqs(_checkpointable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
-        super(write_seqs, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
+        super().__init__(
             data_path=data_path,
             name_callback=name_callback,
             create=create,
             if_exists=if_exists,
             suffix=suffix,
         )
-        self._formatted_params()
         self._format = format
         self._formatter = FORMATTERS[format]
 
@@ -445,7 +452,7 @@ class write_seqs(_checkpointable):
         loader = loader(format=self._format)
         self._load_checkpoint = loader
 
-    def main(self, data, identifier=None):
+    def main(self, data: SeqsCollectionType, identifier=None) -> IdentifierType:
         from cogent3.app.composable import NotCompleted
 
         if isinstance(data, NotCompleted):
@@ -499,20 +506,38 @@ class load_json:
 
 
 @define_app(app_type=WRITER)
-class write_json:
+class write_json(_checkpointable):
     """Writes json serialised objects to individual json files."""
 
-    def __init__(
-        self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
-    ):
-        pass
+    def __init__(self, data_path, name_callback=None, create=False, if_exists=SKIP):
+        """
+        Parameters
+        ----------
+        data_path
+            path to write output, if ends with .zip will be a compressed zip
+            archive
+        name_callback
+            function that takes the data object and returns a base
+            file name
+        create : bool
+            whether to create the output directory
+        if_exists : str
+            behaviour if output exists. Either 'skip', 'raise' (raises an
+            exception), 'overwrite'
+        """
+        super().__init__(
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix="json",
+        )
+        self._format = "json"
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
 
-    T = Union[SerialisableType, IdentifierType]
-
-    def main(self, data: SerialisableType, identifier=None) -> T:
+    def main(self, data: SerialisableType, identifier=None) -> IdentifierType:
         if isinstance(data, NotCompleted):
             return self.data_store.write_incomplete(identifier, data)
 
@@ -568,13 +593,18 @@ class load_db:
 
 
 @define_app(app_type=WRITER)
-class write_db:
+class write_db(_checkpointable):
     """Writes json serialised objects to a TinyDB instance."""
 
-    def __init__(
-        self, data_path, name_callback=None, create=False, if_exists=SKIP, suffix="json"
-    ):
-        pass
+    def __init__(self, data_path, name_callback=None, create=False, if_exists=SKIP):
+        super().__init__(
+            data_path=data_path,
+            name_callback=name_callback,
+            create=create,
+            if_exists=if_exists,
+            suffix="json",
+            writer_class=WritableTinyDbDataStore,
+        )
 
     def _set_checkpoint_loader(self):
         self._load_checkpoint = self
