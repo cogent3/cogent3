@@ -15,7 +15,11 @@ from typing import Tuple
 from scitrack import CachingLogger
 
 from cogent3 import make_aligned_seqs, make_unaligned_seqs
-from cogent3.app.typing import get_constraint_names
+from cogent3.app.typing import (
+    IdentifierType,
+    SerialisableType,
+    get_constraint_names,
+)
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
@@ -932,17 +936,6 @@ def _validate_data_type(self, data):
     return valid
 
 
-class _connected:
-    def __init__(self):
-        self.storage = {}
-
-    def __get__(self, instance, owner):
-        return self.storage.get(id(instance), None)
-
-    def __set__(self, instance, value):
-        self.storage[id(instance)] = value
-
-
 __app_registry = {}
 
 
@@ -974,14 +967,6 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
             )
 
         for meth, func in __mapping.items():
-            # check if the developer implements a __getstate__ or
-            # __setstate__ don't introduce our own.
-            if (
-                meth in ["__getstate__", "__setstate__"]
-                and hasattr(klass, meth)
-                and inspect.isfunction(meth)
-            ):
-                continue
             func.__name__ = meth
             setattr(klass, meth, func)
 
@@ -991,11 +976,11 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
 
-        slot_attrs = ["_data_types", "_return_types", "input", "_init_vals"]
+        slot_attrs = ["_data_types", "_return_types", "input", "_init_vals", "__dict__"]
         if app_type == LOADER:
             slot_attrs.remove("input")
         else:
-            setattr(klass, "input", _connected())
+            setattr(klass, "input", None)
         # If a developer has defined slots, we should extend them with our own instance variables.
         if hasattr(klass, "__slots__"):
             klass.__slots__ += tuple(slot_attrs)
@@ -1185,8 +1170,6 @@ __mapping = {
     "__add__": _add,
     "__call__": _call,
     "__repr__": _repr,  # str(obj) calls __repr__ if __str__ missing
-    "__getstate__": _getstate,
-    "__setstate__": _setstate,
     "_serialisable": _ser,
     "_validate_data_type": _validate_data_type,
     "disconnect": _disconnect,
