@@ -863,7 +863,7 @@ def _add(self, other):
 
 
 def _repr(self):
-    val = f"{self.input!r} + " if self.input else ""
+    val = f"{self.input!r} + " if self.app_type is not LOADER and self.input else ""
     data = ", ".join(f"{k}={v!r}" for k, v in self._init_vals.items())
     data = f"{val}{self.__class__.__name__}({data})"
     data = textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
