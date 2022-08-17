@@ -11,6 +11,7 @@ from cogent3 import DNA, PROTEIN, make_unaligned_seqs
 from cogent3.app import align
 from cogent3.app import dist as dist_app
 from cogent3.app import io, sample
+from cogent3.app.composable import WRITER
 from cogent3.evolve.fast_distance import HammingPair, TN93Pair
 
 
@@ -119,21 +120,23 @@ class FastSlowDistTests(TestCase):
         with self.assertRaises(ValueError):
             fast_slow_dist = dist_app.fast_slow_dist(fast_calc="GTR")
 
-    @pytest.mark.xfail
     def test_composable_apps(self):
         """tests two composable apps"""
         composable_apps = _get_all_composable_apps()
-        fast_slow_dist = dist_app.fast_slow_dist(fast_calc="hamming", moltype="dna")
+        calc_dist = dist_app.fast_slow_dist(fast_calc="hamming", moltype="dna")
         for app in composable_apps:
+            if app.app_type == WRITER:
+                # cannot have a WRITER before a GENERIC
+                continue
             # Compose two composable applications, there should not be exceptions.
-            got = app + fast_slow_dist
+            got = app + calc_dist
             self.assertIsInstance(got, dist_app.fast_slow_dist)
             self.assertIs(got.input, app)
             self.assertIsInstance(got._data_types, frozenset)
             self.assertIsInstance(got._return_types, frozenset)
             self.assertIs(got.input, app)
             app.disconnect()
-            fast_slow_dist.disconnect()
+            calc_dist.disconnect()
 
     def test_est_dist_pair_slow(self):
         """tests the distance between seq pairs in aln"""
@@ -213,7 +216,6 @@ class FastSlowDistTests(TestCase):
             dist_calc = dist_app.fast_slow_dist(distance="hamming", moltype="protein")
             _ = dist_calc + writer
 
-    @pytest.mark.xfail
     def test_functions_as_composable(self):
         """works as a composable app"""
         from pathlib import Path
