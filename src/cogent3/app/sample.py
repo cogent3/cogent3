@@ -129,7 +129,6 @@ class omit_degenerates:
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self.moltype = moltype
-        self._no_degen = omit_degenerates
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
 
