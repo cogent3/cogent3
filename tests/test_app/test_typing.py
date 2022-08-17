@@ -55,11 +55,11 @@ def test_get_constraint_names_builtins():
     assert got == {"str", "bytes"}
 
 
-def test_get_constraint_names_no_constraint():
+def test_get_constraint_names_serilisable():
     """SerialisableType does not define any compatible types"""
 
     got = get_constraint_names(SerialisableType)
-    assert got == set()
+    assert got == {SerialisableType}
 
 
 def test_hints_from_strings_invalid():
@@ -71,6 +71,3 @@ def test_hints_from_strings_invalid():
 def test_hints_from_strings():
     got = hints_from_strings("serialisable", "aligned")
     assert got == [SerialisableType, AlignedSeqsType]
-
-
-test_get_constraint_names_no_constraint()
