@@ -8,6 +8,7 @@ import pytest
 
 from cogent3 import available_apps
 from cogent3.app import align, dist, evo, io, sample, translate, tree
+from cogent3.app.composable import LOADER, WRITER
 
 
 __author__ = "Gavin Huttley"
@@ -64,7 +65,6 @@ class TestAvailableApps(TestCase):
         self.assertIsInstance(apps, Table)
         self.assertTrue(apps.shape[0] > 10)
 
-    @pytest.mark.xfail
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
         from cogent3.app.composable import is_composable
@@ -79,7 +79,7 @@ class TestAvailableApps(TestCase):
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and (app1._return_types & app2._data_types != set())
+                if app1 != app2 and (app1._return_types & app2._data_types != set()) and app1.app_type is not WRITER and app2.app_type is not LOADER
             ]
 
             for composable_application_tuple in composable_application_tuples:
@@ -92,7 +92,6 @@ class TestAvailableApps(TestCase):
                 if hasattr(app, "data_store"):
                     app.data_store.close()
 
-    @pytest.mark.xfail
     def test_incompatible_pairwise_applications(self):
         """Properly identify two incompatible applications"""
         from cogent3.app.composable import is_composable
@@ -107,7 +106,7 @@ class TestAvailableApps(TestCase):
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and app1._output_types & app2._input_types == set()
+                if app1 != app2 and ( (app1._return_types & app2._data_types == set() ) or app1.app_type is WRITER or app2.app_type is LOADER )
             ]
 
             for incompatible_application_tuple in incompatible_application_tuples:
