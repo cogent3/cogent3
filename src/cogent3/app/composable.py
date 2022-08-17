@@ -583,7 +583,7 @@ class ComposableDistance(Composable):
         )
 
 
-class _checkpointable(Composable):
+class _checkpointable:
     def __init__(
         self,
         data_path,
@@ -610,15 +610,11 @@ class _checkpointable(Composable):
         writer_class : type
             constructor for writer
         """
-        super(_checkpointable, self).__init__(**kwargs)
-        self._formatted_params()
-
         data_path = str(data_path)
 
         if data_path.endswith(".tinydb") and not self.__class__.__name__.endswith("db"):
             raise ValueError("tinydb suffix reserved for write_db")
 
-        self._checkpointable = True
         if_exists = if_exists.lower()
         assert if_exists in (
             SKIP,
