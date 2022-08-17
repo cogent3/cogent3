@@ -14,11 +14,7 @@ from typing import Tuple
 
 from scitrack import CachingLogger
 
-from cogent3.app.typing import (
-    IdentifierType,
-    SerialisableType,
-    get_constraint_names,
-)
+from cogent3.app.typing import get_constraint_names
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import (

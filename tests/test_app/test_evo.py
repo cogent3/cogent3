@@ -862,7 +862,6 @@ class TestBootstrap(TestCase):
         result = strapper(aln)
         self.assertIsInstance(result, evo_app.bootstrap_result)
 
-    @pytest.mark.xfail
     def test_bootstrap_composability(self):
         """can be composed with load_db and write_db"""
         m1 = evo_app.model("F81")
