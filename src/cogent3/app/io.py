@@ -482,9 +482,6 @@ class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
-    def __init__(self):
-        pass
-
     def main(self, path: IdentifierType) -> SerialisableType:
         """returns object deserialised from json at path"""
         if type(path) == str:
