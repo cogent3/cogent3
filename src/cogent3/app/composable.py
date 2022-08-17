@@ -925,7 +925,7 @@ def _setstate(self, data):
 
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
-    if not self._data_types:
+    if not self._data_types or self._data_types <= {SerialisableType, IdentifierType}:
         return True
 
     class_name = data.__class__.__name__
