@@ -849,7 +849,6 @@ class TestBootstrap(TestCase):
         # correct message being relayed
         self.assertTrue("ValueError: '-' at" in result.message)
 
-    @pytest.mark.xfail
     def test_bstrap_parallel(self):
         """exercising bootstrap with parallel"""
         aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
