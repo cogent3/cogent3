@@ -508,7 +508,6 @@ class TestIo(TestCase):
             w = io_app.write_db(outdir, create=True, if_exists="skip")
             w.data_store.close()
 
-    @pytest.mark.xfail
     def test_write_db_parallel(self):
         """writing with overwrite in parallel should reset db"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -525,15 +524,14 @@ class TestIo(TestCase):
             r = process.apply_to(
                 members, show_progress=False, parallel=True, cleanup=True
             )
-
             expect = [str(m) for m in process.data_store]
             process.data_store.close()
 
             # now get read only and check what's in there
             result = io_app.get_data_store(outdir)
             got = [str(m) for m in result]
+            self.assertNotEqual(got, [])
             result.close()
-
             self.assertEqual(got, expect)
 
 
