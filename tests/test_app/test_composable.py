@@ -513,6 +513,13 @@ def test_app_is_not_composable():
     assert not is_composable(foo)
 
 
+def test_concat_not_composable():
+    from cogent3.app.composable import is_composable
+    from cogent3.app.sample import concat
+
+    assert not is_composable(concat)
+
+
 def test_composed_func_pickleable():
     from cogent3.app.sample import min_length, omit_degenerates
 
