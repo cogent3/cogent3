@@ -410,7 +410,6 @@ class TestUserFunction(TestCase):
             repr(u_function_2), "user_function(name='bar', module='test_composable')"
         )
 
-    @pytest.mark.xfail
     def test_user_function_str(self):
         u_function_1 = user_function(self.foo, "aligned", "aligned")
         u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")

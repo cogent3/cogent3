@@ -2,6 +2,7 @@ import pytest
 
 from cogent3.app.typing import (
     AlignedSeqsType,
+    IdentifierType,
     SeqsCollectionType,
     SerialisableType,
     TabularType,
@@ -59,7 +60,22 @@ def test_get_constraint_names_serilisable():
     """SerialisableType does not define any compatible types"""
 
     got = get_constraint_names(SerialisableType)
-    assert got == {SerialisableType}
+    assert got == {"SerialisableType"}
+
+
+def test_get_constraint_names_identifiertype():
+    """IdentifierType does not define any compatible types"""
+
+    got = get_constraint_names(IdentifierType)
+    assert got == {"IdentifierType"}
+
+
+def test_get_constraint_names_mixed_serilisable_identifiertype():
+    """SerialisableType does not define any compatible types"""
+    from typing import Union
+
+    got = get_constraint_names(Union[SerialisableType, IdentifierType, AlignedSeqsType])
+    assert got == {"SerialisableType", "IdentifierType", "Alignment", "ArrayAlignment"}
 
 
 def test_hints_from_strings_invalid():

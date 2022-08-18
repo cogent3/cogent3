@@ -79,7 +79,13 @@ class TestAvailableApps(TestCase):
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and (app1._return_types & app2._data_types != set()) and app1.app_type is not WRITER and app2.app_type is not LOADER
+                if app1 != app2
+                and (
+                    app1._return_types & app2._data_types
+                    or app1._return_types & {"SerialisableType", "IdentifierType"}
+                )
+                and app1.app_type is not WRITER
+                and app2.app_type is not LOADER
             ]
 
             for composable_application_tuple in composable_application_tuples:
@@ -106,7 +112,11 @@ class TestAvailableApps(TestCase):
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and ( (app1._return_types & app2._data_types == set() ) or app1.app_type is WRITER or app2.app_type is LOADER )
+                if app1.app_type is WRITER
+                or app2.app_type is LOADER
+                or app1 != app2
+                and not app1._return_types & app2._data_types
+                and not app1._return_types & {"SerialisableType", "IdentifierType"}
             ]
 
             for incompatible_application_tuple in incompatible_application_tuples:

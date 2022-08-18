@@ -14,11 +14,7 @@ from typing import Tuple
 
 from scitrack import CachingLogger
 
-from cogent3.app.typing import (
-    IdentifierType,
-    SerialisableType,
-    get_constraint_names,
-)
+from cogent3.app.typing import get_constraint_names
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import (
@@ -826,10 +822,14 @@ def _disconnect(self):
 
 def _add(self, other):
     # Check order
-    if self.app_type is WRITER:
+    if isinstance(self, user_function) or isinstance(other, user_function):
+        pass
+    elif self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
     elif other.app_type is LOADER:
         raise TypeError("Right hand side of add operator must not be of type loader")
+    if self._return_types & {"SerialisableType", "IdentifierType"}:
+        pass
     # validate that self._return_types ia a non-empty set.
     elif not self._return_types:
         raise TypeError(f"return type not defined for {self.__class__.__name__!r}")
@@ -924,7 +924,10 @@ def _setstate(self, data):
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
     # todo when move to python 3.8 define protocol checks for the two singular types
-    if not self._data_types or self._data_types <= {SerialisableType, IdentifierType}:
+    if not self._data_types or self._data_types & {
+        "SerialisableType",
+        "IdentifierType",
+    }:
         return True
 
     class_name = data.__class__.__name__
