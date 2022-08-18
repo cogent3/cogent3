@@ -40,8 +40,6 @@ def _get_app_attr(name, is_composable):
 
 def available_apps():
     """returns Table listing the available apps"""
-    import cogent3.app as apps
-
     from cogent3.util.table import Table
 
     from .composable import Composable, __app_registry, user_function
