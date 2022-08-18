@@ -52,5 +52,5 @@ def available_apps():
             f"{mod.__name__}.user_function", issubclass(user_function, Composable)
         )
     )
-    header = ["module", "name", "composable", "doc", "outputs", "data type"]
     return Table(header, rows)
+    header = ["module", "name", "composable", "doc", "input type", "output type"]
