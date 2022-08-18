@@ -50,6 +50,6 @@ def available_apps():
     for name in __all__:
         importlib.import_module(f"cogent3.app.{name}")
 
-    rows = [_get_app_attr(app, __app_registry.get(app)) for app in __app_registry]
+    rows = [_get_app_attr(app, is_comp) for app, is_comp in __app_registry.items()]
     header = ["module", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
