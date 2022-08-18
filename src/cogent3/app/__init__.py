@@ -33,8 +33,8 @@ def _get_app_attr(name, is_composable):
         name,
         is_composable,
         obj.__doc__,
-        _types["_data_types"],
-        _types["_return_types"],
+        ", ".join(sorted(_types["_data_types"])),
+        ", ".join(sorted(_types["_return_types"])),
     ]
 
 
@@ -44,13 +44,10 @@ def available_apps():
 
     from .composable import Composable, __app_registry, user_function
 
-    rows = [_get_app_attr(app, True) for app in __app_registry]
+    # registration of apps does not happen until their modules are imported
+    for name in __all__:
+        importlib.import_module(f"cogent3.app.{name}")
 
-    mod = importlib.import_module(f"{__name__}.composable")
-    rows.append(
-        _get_app_attr(
-            f"{mod.__name__}.user_function", issubclass(user_function, Composable)
-        )
-    )
-    header = ["module", "name", "composable", "doc", "outputs", "data type"]
-    return Table(header, rows)
+    rows = [_get_app_attr(app, is_comp) for app, is_comp in __app_registry.items()]
+    header = ["module", "name", "composable", "doc", "input type", "output type"]
+    return Table(header=header, data=rows)
