@@ -534,6 +534,8 @@ def test_composed_func_pickleable():
 def test_composable_new1():
     """correctly associate argument vals with their names when have variable
     positional args"""
+    from cogent3.app.composable import __app_registry
+    from cogent3.util.misc import get_object_provenance
 
     @define_app
     class pos_var_pos1:
@@ -548,10 +550,15 @@ def test_composable_new1():
     instance = pos_var_pos1(2, 3, 4, 5, 6)
     assert instance._init_vals == {"a": 2, "b": 3, "args": (4, 5, 6)}
 
+    p = get_object_provenance(pos_var_pos1)
+    __app_registry.pop(p)
+
 
 def test_composable_new2():
     """correctly associate argument vals with their names when have variable
     positional args and kwargs"""
+    from cogent3.app.composable import __app_registry
+    from cogent3.util.misc import get_object_provenance
 
     @define_app
     class pos_var_pos_kw2:
@@ -565,6 +572,8 @@ def test_composable_new2():
 
     instance = pos_var_pos_kw2(2, 3, 4, 5, 6, c=True)
     assert instance._init_vals == {"a": 2, "args": (3, 4, 5, 6), "c": True}
+    p = get_object_provenance(pos_var_pos_kw2)
+    __app_registry.pop(p)
 
 
 if __name__ == "__main__":
