@@ -123,6 +123,11 @@ class TranslateTests(TestCase):
         with self.assertRaises(AssertionError):
             _ = sample.take_codon_positions(moltype=None)
 
+    def test_take_named_3(self):
+        """3 named seqs"""
+        select = sample.take_named_seqs("a", "b", "c")
+        assert select._init_vals == {"names": tuple("abc"), "negate": False}
+
     def test_take_named(self):
         """returns collections containing named seqs"""
         select = sample.take_named_seqs("a", "b")

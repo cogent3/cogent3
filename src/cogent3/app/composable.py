@@ -857,22 +857,12 @@ def _new(klass, *args, **kwargs):
     obj = object.__new__(klass)
 
     init_sig = inspect.signature(klass.__init__)
-    no_default = inspect.Parameter.empty
-    arg_order = list(init_sig.parameters)[1:]  # exclude "self"
+    bargs = init_sig.bind_partial(klass, *args, **kwargs)
+    bargs.apply_defaults()
+    init_vals = bargs.arguments
+    init_vals.pop("self")
 
-    kw_args = {
-        k: p.default
-        for k, p in init_sig.parameters.items()
-        if k != "self" and (p.default is not no_default)
-    }
-
-    obj._init_vals = {}
-    if arg_order:
-        for i, v in enumerate(args):
-            k, v = arg_order[i], v
-            obj._init_vals[k] = v
-
-    obj._init_vals = {**obj._init_vals, **kw_args, **kwargs}
+    obj._init_vals = init_vals
     return obj
 
 

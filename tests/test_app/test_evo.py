@@ -274,10 +274,10 @@ class TestModel(TestCase):
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het=None, param_rules=None, opt_args=None, upper=50, "
             "split_codons=False, show_progress=False, verbose=False), "
-            "alternates=model(sm='HKY85', tree=None, unique_trees=False, "
+            "alternates=(model(sm='HKY85', tree=None, unique_trees=False, "
             "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, opt_args=None, upper=50,"
-            " split_codons=False, show_progress=False, verbose=False),"
+            " split_codons=False, show_progress=False, verbose=False),),"
             " sequential=True, init_alt=None)"
         )
         self.assertEqual(got, expect)

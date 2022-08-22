@@ -531,5 +531,50 @@ def test_composed_func_pickleable():
     assert unpickled.input is not None
 
 
+def test_composable_new1():
+    """correctly associate argument vals with their names when have variable
+    positional args"""
+    from cogent3.app.composable import __app_registry
+    from cogent3.util.misc import get_object_provenance
+
+    @define_app
+    class pos_var_pos1:
+        def __init__(self, a, b, *args):
+            self.a = a
+            self.b = b
+            self.args = args
+
+        def main(self, val: int) -> int:
+            return val
+
+    instance = pos_var_pos1(2, 3, 4, 5, 6)
+    assert instance._init_vals == {"a": 2, "b": 3, "args": (4, 5, 6)}
+
+    p = get_object_provenance(pos_var_pos1)
+    __app_registry.pop(p)
+
+
+def test_composable_new2():
+    """correctly associate argument vals with their names when have variable
+    positional args and kwargs"""
+    from cogent3.app.composable import __app_registry
+    from cogent3.util.misc import get_object_provenance
+
+    @define_app
+    class pos_var_pos_kw2:
+        def __init__(self, a, *args, c=False):
+            self.a = a
+            self.c = c
+            self.args = args
+
+        def main(self, val: int) -> int:
+            return val
+
+    instance = pos_var_pos_kw2(2, 3, 4, 5, 6, c=True)
+    assert instance._init_vals == {"a": 2, "args": (3, 4, 5, 6), "c": True}
+    p = get_object_provenance(pos_var_pos_kw2)
+    __app_registry.pop(p)
+
+
 if __name__ == "__main__":
     main()
