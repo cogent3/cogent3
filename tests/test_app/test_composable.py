@@ -536,7 +536,7 @@ def test_composable_new1():
     positional args"""
 
     @define_app
-    class pos_var_pos:
+    class pos_var_pos1:
         def __init__(self, a, b, *args):
             self.a = a
             self.b = b
@@ -545,7 +545,7 @@ def test_composable_new1():
         def main(self, val: int) -> int:
             return val
 
-    instance = pos_var_pos(2, 3, 4, 5, 6)
+    instance = pos_var_pos1(2, 3, 4, 5, 6)
     assert instance._init_vals == {"a": 2, "b": 3, "args": (4, 5, 6)}
 
 
@@ -554,7 +554,7 @@ def test_composable_new2():
     positional args and kwargs"""
 
     @define_app
-    class pos_var_pos_kw:
+    class pos_var_pos_kw2:
         def __init__(self, a, *args, c=False):
             self.a = a
             self.c = c
@@ -563,7 +563,7 @@ def test_composable_new2():
         def main(self, val: int) -> int:
             return val
 
-    instance = pos_var_pos_kw(2, 3, 4, 5, 6, c=True)
+    instance = pos_var_pos_kw2(2, 3, 4, 5, 6, c=True)
     assert instance._init_vals == {"a": 2, "args": (3, 4, 5, 6), "c": True}
 
 
