@@ -100,6 +100,14 @@ if warn_env in os.environ:
     warnings.simplefilter(os.environ[warn_env])
 
 
+import logging
+
+
+# suppress numba warnings
+__numba_logger = logging.getLogger("numba")
+__numba_logger.setLevel(logging.WARNING)
+
+
 def make_seq(seq, name=None, moltype=None):
     """
     Parameters
