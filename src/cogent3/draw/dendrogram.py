@@ -13,7 +13,7 @@ __author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -652,8 +652,14 @@ class Dendrogram(Drawable):
         if not self.scale_bar or self.contemporaneous:
             return None, None
 
+        # place scale bar above / below dendrogram area
+        y_shift = (self.tree.max_y - self.tree.min_y) / 11
         x = self.tree.min_x if "left" in self.scale_bar else self.tree.max_x
-        y = self.tree.min_y if "bottom" in self.scale_bar else self.tree.max_y
+        y = (
+            self.tree.min_y - y_shift
+            if "bottom" in self.scale_bar
+            else self.tree.max_y + y_shift
+        )
         scale = 0.1 * self.tree.max_x
         text = f"{scale:.1e}" if scale < 1e-2 else f"{scale:.2f}"
         shape = {
@@ -663,6 +669,7 @@ class Dendrogram(Drawable):
             "x1": x + scale,
             "y1": y,
             "line": {"color": self._line_color, "width": self._line_width},
+            "name": "scale_bar",
         }
         annotation = UnionDict(
             x=x + (0.5 * scale),

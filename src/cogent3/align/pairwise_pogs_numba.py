@@ -8,10 +8,12 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+# turn off code coverage as njit-ted code not accessible to coverage
 
 
 @njit(
@@ -70,7 +72,7 @@ def calc_rows(
     local=False,
     use_scaling=False,
     use_logs=False,
-):
+):  # pragma: no cover
     assert not (use_logs and not viterbi)
     assert not (use_logs and use_scaling)
     assert not (local and not viterbi)

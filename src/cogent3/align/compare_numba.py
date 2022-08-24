@@ -5,13 +5,24 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def segments_from_diagonal(seq1, seq2, window, threshold, min_gap_length, diagonal):
+def segments_from_diagonal(
+    seq1, seq2, window, threshold, min_gap_length, diagonal
+):  # pragma: no cover
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function",
+        "segments_from_diagonal",
+        "2023.5",
+        "replaced by much faster code in cogent3.align.compare",
+    )
+
     assert window < 100
     scores = np.zeros(window)
 

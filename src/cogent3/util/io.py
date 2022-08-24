@@ -3,11 +3,15 @@ import uuid
 
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
+from io import TextIOWrapper
 from os import path as os_path
 from os import remove
 from pathlib import Path
+from re import compile
 from tempfile import mkdtemp
-from typing import Union
+from typing import IO, Callable, Union
+from urllib.parse import ParseResult, urlparse
+from urllib.request import urlopen
 from zipfile import ZipFile
 
 from chardet import detect
@@ -17,15 +21,40 @@ from cogent3.util.misc import _wout_period
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+# support prefixes for urls
+_urls = compile("^(http[s]*|file)")
 
-def open_zip(filename: Union[str, Path], mode="r", **kwargs):
+
+def _get_compression_open(
+    path: Union[str, Path] = None, compression: Union[str] = None
+) -> Union[Callable]:
+    """returns function for opening compression formats
+
+    Parameters
+    ----------
+    path
+        file path or url
+    compression
+        file compression suffix
+
+    Returns
+    -------
+    function for opening compressed files or None if unknown compression
+    """
+    assert path or compression
+    if compression is None:
+        _, compression = get_format_suffixes(path)
+    return {"gz": gzip_open, "bz2": bzip_open, "zip": open_zip}.get(compression, None)
+
+
+def open_zip(filename: Union[str, Path], mode: str = "r", **kwargs) -> IO:
     """open a single member zip-compressed file
 
     Note
@@ -38,8 +67,7 @@ def open_zip(filename: Union[str, Path], mode="r", **kwargs):
     """
     # import of standard library io module as some code quality tools
     # confuse this with a circular import
-    from io import TextIOWrapper
-
+    mode = mode or "r"
     binary_mode = "b" in mode
     mode = mode[:1]
 
@@ -60,25 +88,85 @@ def open_zip(filename: Union[str, Path], mode="r", **kwargs):
         return TextIOWrapper(opened, encoding=encoding)
 
 
-def open_(filename: Union[str, Path], mode="rt", **kwargs):
-    """open that handles different compression"""
+def open_(filename: Union[str, Path], mode="rt", **kwargs) -> IO:
+    """open that handles different compression
 
-    filename = Path(filename).expanduser().absolute()
-    op = {".gz": gzip_open, ".bz2": bzip_open, ".zip": open_zip}.get(
-        filename.suffix, open
-    )
+    Parameters
+    ----------
+    filename
+        path or url, if a url delegates processing to open_url
+    mode
+        standard file opening mode
+    kwargs
+        passed to open functions
+
+    Returns
+    -------
+    an object compatible with the file protocol
+    """
+    if not filename:
+        raise ValueError(f"{filename} not a valid file name or url")
+
+    if _urls.search(str(filename)):
+        return open_url(filename, mode=mode, **kwargs)
+
+    mode = mode or "rt"
+    filename = Path(filename).expanduser()
+    op = _get_compression_open(filename) or open
 
     encoding = kwargs.pop("encoding", None)
     need_encoding = mode.startswith("r") and "b" not in mode
-    if need_encoding:
-        if "encoding" not in kwargs:
-            with op(filename, mode="rb") as infile:
-                data = infile.read(100)
+    if need_encoding and "encoding" not in kwargs:
+        with op(filename, mode="rb") as infile:
+            data = infile.read(100)
 
-            encoding = detect(data)
-            encoding = encoding["encoding"]
+        encoding = detect(data)
+        encoding = encoding["encoding"]
 
     return op(filename, mode, encoding=encoding, **kwargs)
+
+
+def open_url(url: Union[str, ParseResult], mode="r", **kwargs) -> IO:
+    """open a url
+
+    Parameters
+    ----------
+    url : urllib.parse.ParseResult or str
+        A url of file in http or https web address
+    mode : str
+        mode of reading file, 'rb', 'rt', 'r'
+
+    Raises
+    ------
+    If not http(s).
+
+    Notes
+    -----
+    If mode='b' or 'rb' (binary read), the function returns file object to read
+    else returns TextIOWrapper to read text with specified encoding in the URL
+    """
+    _, compression = get_format_suffixes(
+        getattr(url, "path", url)
+    )  # handling possibility of ParseResult
+    mode = "rb" if compression else mode or "r"
+
+    url_parsed = url if isinstance(url, ParseResult) else urlparse(url)
+
+    if "r" not in mode:
+        raise ValueError("opening a url only allowed in read mode")
+
+    if not _urls.search(url_parsed.scheme):
+        raise ValueError(
+            f"URL scheme must be http, https or file, not {url_parsed.scheme}"
+        )
+
+    response = urlopen(url_parsed.geturl(), timeout=10)
+    encoding = response.headers.get_content_charset()
+    if compression:
+        response = _get_compression_open(compression=compression)(response)
+        mode = "r"  # wrap it as text
+
+    return response if "b" in mode else TextIOWrapper(response, encoding=encoding)
 
 
 def _path_relative_to_zip_parent(zip_path, member_path):
@@ -185,7 +273,7 @@ class atomic_write:
 
         return self._file
 
-    def __enter__(self):
+    def __enter__(self) -> IO:
         return self._get_fileobj()
 
     def _close_rename_standard(self, src):

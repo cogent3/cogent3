@@ -1,3 +1,28 @@
+# Changes since release 2022.5.25a1
+
+## Contributors
+
+- Gavin Huttley
+- Nick Shahmaras
+
+## Notice of upcoming major changes
+
+The definition of composable apps by inheritance from the `Composable` app base class will no longer be supported from 2022.11. This is to be replaced by a decorator which greatly simplifies constructing new composable apps. Guidance on how to port existing code will be [posted to a dedicated cogent3 wiki page](https://github.com/cogent3/cogent3/wiki/composable-functions). The `cogent3` composable apps will continue to be available and to work as per usual.
+
+We will drop support for python 3.7 by release 2022.10.
+
+## API
+
+- The following method names are marked for deprecation. `Sequence.gettype` for `Sequence.get_type`, `Sequence.resolveambiguities` for `Sequence.resolved_ambiguities`.
+
+## ENH
+
+- Refactor dotplot, fixes #1060. This is a major performance improvement in dotplot code, making it much faster for long DNA sequences. I've implemented a seed-and-extend algorithm which identifies matching k-mers between sequences and only works on extending those. The key interfaces are `find_matched_paths()` which takes a `SeqKmers()` instance, the two sequences to be compared and returns a `MatchedSeqPaths()` instance.
+- Added Sequence methods to compute all k-mers, fixes #1012
+- `Sequence.iter_kmers()`, generator yielding all overlapping k-mers
+- Enhanced placement of dendrogram scale bars
+- `cogent3.open_` now handles urls too! This enables files to be downloaded from the web using the convenience functions, e.g. `load_aligned_seqs("https://path/to/somefile.fasta")` will now work. Many thanks to Nick Shahmaras for assistance in doing this!
+
 # Changes since release 2022.4.20a1
 
 ## Contributors

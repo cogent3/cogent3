@@ -17,7 +17,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Development"
@@ -61,16 +61,15 @@ def MinimalFastaParser(
     try:
         infile = open_(infile)
         close_at_end = True
-    except (TypeError, AttributeError):
+    except (ValueError, TypeError, AttributeError):
         close_at_end = False
 
     for rec in finder(infile):
         # first line must be a label line
-        if not rec[0][0] in label_characters:
+        if rec[0][0] not in label_characters:
             if strict:
                 raise RecordError(f"Found Fasta record without label line: {rec}")
             continue
-        # record must have at least one sequence
         if len(rec) < 2:
             if strict:
                 raise RecordError(f"Found label line without sequences: {rec}")

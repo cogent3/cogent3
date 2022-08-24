@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley and Rahul Ghangas"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rahul Ghangas"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -177,6 +177,28 @@ class TestDendro(TestCase):
         self.assertEqual(dnd.tip_font.size, 10)
         dnd.tip_font.color = "red"
         self.assertEqual(dnd.tip_font["color"], "red")
+
+    def test_scale_bar_place(self):
+        """outside rectangle containing dendrogram"""
+        from itertools import product
+
+        tree = make_tree(
+            "((a:0.1,b:0.25):0.1,(c:0.02,(e:0.035,f:0.04):0.15):0.3,g:0.3)"
+        )
+        styles = ["square", "circular", "angular", "radial"]
+        for style in styles:
+            dnd = tree.get_figure(style=style)
+            for vert, horizontal in product(["top", "bottom"], ["left", "right"]):
+                dnd.scale_bar = f"{vert} {horizontal}"
+                for s in dnd.figure.layout.shapes:
+                    if s.get("name") == "scale_bar":
+                        scale_y = s["y0"]
+                min_y, max_y = dnd.tree.min_y, dnd.tree.max_y
+                self.assertFalse(min_y <= scale_y <= max_y)
+
+        # if we set scale_bar None, there should be shapes
+        dnd.scale_bar = None
+        self.assertIsNone(dnd.figure.layout.get("shapes"))
 
 
 if __name__ == "__main__":

@@ -7,14 +7,16 @@ __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2019, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley", "Stephen Ma"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
+# turn off code coverage as njit-ted code not accessible to coverage
+
 
 @njit(cache=True)
-def sum_input_likelihoods(child_indexes, result, likelihoods):
+def sum_input_likelihoods(child_indexes, result, likelihoods):  # pragma: no cover
     C = child_indexes.shape[0]
     for child in range(C):
         index = child_indexes[child]
@@ -35,7 +37,7 @@ def sum_input_likelihoods(child_indexes, result, likelihoods):
 
 
 @njit(cache=True)
-def inner_product(input_likelihoods, mprobs):
+def inner_product(input_likelihoods, mprobs):  # pragma: no cover
     res = 0.0
     for i in range(len(mprobs)):
         res += input_likelihoods[i] * mprobs[i]
@@ -43,7 +45,7 @@ def inner_product(input_likelihoods, mprobs):
 
 
 @njit(cache=True)
-def get_log_sum_across_sites(lhs, counts):
+def get_log_sum_across_sites(lhs, counts):  # pragma: no cover
     log_lhs = numpy.log(lhs)
     res = 0.0
     for i in range(len(counts)):

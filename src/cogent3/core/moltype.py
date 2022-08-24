@@ -15,7 +15,7 @@ __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -69,6 +69,7 @@ from cogent3.util.misc import (
     iterable,
 )
 from cogent3.util.transform import KeepChars, first_index_in_set
+from cogent3.util.warning import deprecated
 
 
 Float = numpy.core.numerictypes.sctype2char(float)
@@ -739,8 +740,13 @@ class MolType(object):
             seq[index] = f"[{''.join(expanded)}]"
         return "".join(seq)
 
-    def gettype(self):
-        """Returns type, e.g. 'dna', 'rna', 'protein'. Delete?"""
+    def gettype(self):  # pragma: no cover
+        """Return the moltype label."""
+        deprecated("method", "gettype", "get_type", "2023.6", "pep8", stack_level=1)
+        return self.label
+
+    def get_type(self):  # pragma: no cover
+        """Return the moltype label"""
         return self.label
 
     def make_seq(self, seq, name=None, **kwargs):
