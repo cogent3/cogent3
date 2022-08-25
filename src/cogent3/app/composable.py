@@ -6,6 +6,7 @@ import re
 import textwrap
 import time
 import traceback
+import types
 
 from copy import deepcopy
 from enum import Enum
@@ -784,6 +785,29 @@ WRITER = AppType.WRITER
 GENERIC = AppType.GENERIC
 
 
+def _get_raw_hints(main_func, min_params):
+    _no_value = inspect.Parameter.empty
+    params = inspect.signature(main_func)
+    if len(params.parameters) < min_params:
+        raise ValueError(
+            f"{main_func.__name__!r} must have at least {min_params} input parameters"
+        )
+    # annotation for first parameter other than self, params.parameters is an orderedDict
+    first_param_type = [p.annotation for p in params.parameters.values()][1]
+    return_type = params.return_annotation
+    if return_type is _no_value:
+        raise TypeError("must specify type hint for return type")
+    if first_param_type is _no_value:
+        raise TypeError("must specify type hint for first parameter")
+
+    if first_param_type is None:
+        raise TypeError("NoneType invalid type for first parameter")
+    if return_type is None:
+        raise TypeError("NoneType invalid type for return value")
+
+    return first_param_type, return_type
+
+
 def _get_main_hints(klass) -> Tuple[set, set]:
     """return type hints for main method
     Returns
@@ -799,28 +823,18 @@ def _get_main_hints(klass) -> Tuple[set, set]:
     ):
         raise ValueError(f"must define a callable main() method in {klass.__name__!r}")
 
-    _no_value = inspect.Parameter.empty
-
-    params = inspect.signature(main_func)
-    if len(params.parameters) < 2:
-        raise ValueError("main() method must have at least 1 input parameter")
-    # annotation for first parameter other than self, params.parameters is an orderedDict
-    first_param_type = [p.annotation for p in params.parameters.values()][1]
-    return_type = params.return_annotation
-    if return_type is _no_value:
-        raise TypeError("main() method must have valid type hint for return type")
-    if first_param_type is _no_value:
-        raise TypeError("main() method must have valid type hint for first parameter")
-
-    if first_param_type is None:
-        raise TypeError("main() method must not have NoneType first parameter")
-    if return_type is None:
-        raise TypeError("main() method must not have NoneType return value")
-
+    first_param_type, return_type = _get_raw_hints(main_func, 2)
     first_param_type = get_constraint_names(first_param_type)
     return_type = get_constraint_names(return_type)
 
     return frozenset(first_param_type), frozenset(return_type)
+
+
+def _set_hints(main_meth, first_param_type, return_type):
+    """adds type hints to main"""
+    main_meth.__annotations__["arg"] = first_param_type
+    main_meth.__annotations__["return"] = return_type
+    return main_meth
 
 
 # Added new function to decorator, doesn't have function body yet
@@ -854,7 +868,9 @@ def _add(self, other):
     # Check if self._return_types & other._data_types is incompatible.
     elif not (self._return_types & other._data_types):
         raise TypeError(
-            f"{self.__class__.__name__!r} return_type {self._return_types} incompatible with {other.__class__.__name__!r} input type {other._data_types}"
+            f"{self.__class__.__name__!r} return_type {self._return_types} "
+            f"incompatible with {other.__class__.__name__!r} input "
+            f"type {other._data_types}"
         )
     other.input = self
     return other
@@ -937,6 +953,46 @@ def _validate_data_type(self, data):
 __app_registry = {}
 
 
+def _class_from_func(func):
+    """make a class based on func
+
+    Notes
+    -----
+    produces a class consistent with the necessary properties for
+    the define_app class decorator.
+
+    func becomes a static method on the class
+    """
+    # these methods MUST be in function scope so that separate instances are
+    # created for each decorated function
+    def _init(self, *args, **kwargs):
+        self._args = args
+        self._kwargs = kwargs
+
+    def _main(self, arg, **kwargs):
+        kw_args = deepcopy(self._kwargs)
+        kw_args = {**kw_args, **kwargs}
+        args = (arg,) + deepcopy(self._args)
+        bound = self._func_sig.bind(*args, **kw_args)
+        return self._user_func(**bound.arguments)
+
+    module = func.__module__  # to be assigned to the generated class
+    sig = inspect.signature(func)
+    class_name = func.__name__
+    _main = _set_hints(_main, *_get_raw_hints(func, 1))
+
+    _class_dict = {"__init__": _init, "main": _main, "_user_func": staticmethod(func)}
+
+    for method_name, method in _class_dict.items():
+        method.__name__ = method_name
+        method.__qualname__ = f"{class_name}.{method_name}"
+
+    result = types.new_class(class_name, (), exec_body=lambda x: x.update(_class_dict))
+    result.__module__ = module  # necessary for pickle support
+    result._func_sig = sig
+    return result
+
+
 def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = True):
 
     if hasattr(klass, "app_type"):
@@ -945,6 +1001,9 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         )
 
     app_type = AppType(app_type)
+
+    if inspect.isfunction(klass):
+        klass = _class_from_func(klass)
 
     def wrapped(klass):
         if not inspect.isclass(klass):
