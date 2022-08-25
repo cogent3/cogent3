@@ -938,6 +938,12 @@ __app_registry = {}
 
 
 def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = True):
+
+    if hasattr(klass, "app_type"):
+        raise TypeError(
+            f"The class {klass.__name__!r} is already decorated, avoid using inheritance from a decorated class."
+        )
+
     app_type = AppType(app_type)
 
     def wrapped(klass):

@@ -16,8 +16,11 @@ from cogent3.app import sample as sample_app
 from cogent3.app.composable import (
     Composable,
     NotCompleted,
+    __app_registry,
     appify,
     define_app,
+    get_object_provenance,
+    is_composable,
     user_function,
 )
 from cogent3.app.sample import min_length, omit_degenerates
@@ -29,7 +32,7 @@ from cogent3.core.alignment import ArrayAlignment
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -473,48 +476,41 @@ def test_app_registry():
     """correctly registers apps"""
 
     @define_app
-    class foo:
+    class app_test_registry1:
         def main(self, data: int) -> int:
             return data
 
-    from cogent3.app.composable import __app_registry
-
-    assert __app_registry["test_composable.foo"]
+    assert __app_registry["test_composable.app_test_registry1"]
 
     # delete it to not include in app available apps
-    del __app_registry["test_composable.foo"]
+    __app_registry.pop("test_composable.app_test_registry1")
 
 
 def test_app_is_composable():
     """check is_composable for composable apps"""
 
-    from cogent3.app.composable import __app_registry, is_composable
-
     @define_app
-    class foo:
+    class app_test_iscomposable1:
         def main(self, data: int) -> int:
             return data
 
-    assert is_composable(foo)
+    assert is_composable(app_test_iscomposable1)
 
     # delete it to not include in app available apps
-    del __app_registry["test_composable.foo"]
+    __app_registry.pop("test_composable.app_test_iscomposable1")
 
 
 def test_app_is_not_composable():
     """check is_composable for non-composable apps"""
 
-    from cogent3.app.composable import is_composable
-
-    class foo:
+    class app_not_composable1:
         def main(self, data: int) -> int:
             return data
 
-    assert not is_composable(foo)
+    assert not is_composable(app_not_composable1)
 
 
 def test_concat_not_composable():
-    from cogent3.app.composable import is_composable
     from cogent3.app.sample import concat
 
     assert not is_composable(concat)
@@ -534,8 +530,6 @@ def test_composed_func_pickleable():
 def test_composable_new1():
     """correctly associate argument vals with their names when have variable
     positional args"""
-    from cogent3.app.composable import __app_registry
-    from cogent3.util.misc import get_object_provenance
 
     @define_app
     class pos_var_pos1:
@@ -557,8 +551,6 @@ def test_composable_new1():
 def test_composable_new2():
     """correctly associate argument vals with their names when have variable
     positional args and kwargs"""
-    from cogent3.app.composable import __app_registry
-    from cogent3.util.misc import get_object_provenance
 
     @define_app
     class pos_var_pos_kw2:
@@ -572,15 +564,14 @@ def test_composable_new2():
 
     instance = pos_var_pos_kw2(2, 3, 4, 5, 6, c=True)
     assert instance._init_vals == {"a": 2, "args": (3, 4, 5, 6), "c": True}
-    p = get_object_provenance(pos_var_pos_kw2)
-    __app_registry.pop(p)
+    __app_registry.pop(get_object_provenance(pos_var_pos_kw2))
 
 
 def test_app_decoration_fails_with_slots():
     with pytest.raises(NotImplementedError):
 
         @define_app
-        class not_supported:
+        class app_not_supported_slots1:
             __slots__ = ("a",)
 
             def __init__(self, a):
@@ -588,6 +579,59 @@ def test_app_decoration_fails_with_slots():
 
             def main(self, val: int) -> int:
                 return val
+
+
+def test_repeated_decoration():
+    @define_app
+    class app_decorated_repeated1:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            return val
+
+    with pytest.raises(TypeError):
+        define_app(app_decorated_repeated1)
+
+    __app_registry.pop(get_object_provenance(app_decorated_repeated1))
+
+
+def test_recursive_decoration():
+    @define_app
+    class app_docorated_recursive1:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            define_app(app_docorated_recursive1)
+            return val
+
+    with pytest.raises(TypeError):
+        app_docorated_recursive1().main(1)
+
+    __app_registry.pop(get_object_provenance(app_docorated_recursive1))
+
+
+def test_inheritance_from_decorated_class():
+    @define_app
+    class app_decorated_first1:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            return val
+
+    with pytest.raises(TypeError):
+
+        @define_app
+        class app_inherits_decorated1(app_decorated_first1):
+            def __init__(self, a):
+                self.a = a
+
+            def main(self, val: int) -> int:
+                return val
+
+    __app_registry.pop(get_object_provenance(app_decorated_first1))
 
 
 if __name__ == "__main__":
