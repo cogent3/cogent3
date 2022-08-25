@@ -992,9 +992,10 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
             slot_attrs.remove("input")
         else:
             setattr(klass, "input", None)
-        # If a developer has defined slots, we should extend them with our own instance variables.
+
         if hasattr(klass, "__slots__"):
-            klass.__slots__ += tuple(slot_attrs)
+            # not supporting this yet
+            raise NotImplementedError("slots are not currently supported")
 
         # register this app
         __app_registry[get_object_provenance(klass)] = composable

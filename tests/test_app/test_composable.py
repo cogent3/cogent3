@@ -576,5 +576,19 @@ def test_composable_new2():
     __app_registry.pop(p)
 
 
+def test_app_decoration_fails_with_slots():
+    with pytest.raises(NotImplementedError):
+
+        @define_app
+        class not_supported:
+            __slots__ = ("a",)
+
+            def __init__(self, a):
+                self.a = a
+
+            def main(self, val: int) -> int:
+                return val
+
+
 if __name__ == "__main__":
     main()
