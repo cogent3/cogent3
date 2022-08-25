@@ -38,7 +38,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -134,6 +134,8 @@ class ComposableType:
         data_types : str or collection of str
             Allowed data types
         """
+        from cogent3.util.misc import get_object_provenance
+
         input_types = [] if input_types is None else input_types
         output_types = [] if output_types is None else output_types
         data_types = [] if data_types is None else data_types
@@ -148,6 +150,23 @@ class ComposableType:
         self._input_types = frozenset(input_types)
         self._output_types = frozenset(output_types)
         self._data_types = frozenset(data_types)
+        prov = get_object_provenance(self)
+        if not prov.startswith("cogent3"):
+            from warnings import catch_warnings, simplefilter
+            from warnings import warn as _warn
+
+            # we have a 3rd party composable
+            msg = (
+                "Defining composable apps by inheriting from Composable is "
+                "deprecated and will be removed in release 2022.11. This "
+                "will be a backwards incompatible change! We are moving to a"
+                " decorator for defining composable apps. For instructions "
+                f" on porting {prov!r} see"
+                " https://github.com/cogent3/cogent3/wiki/composable-functions"
+            )
+            with catch_warnings():
+                simplefilter("always")
+                _warn(msg, DeprecationWarning, 1)
 
     def compatible_input(self, other):
         result = other._output_types & self._input_types
