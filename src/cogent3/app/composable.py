@@ -823,10 +823,6 @@ def _get_main_hints(klass) -> Tuple[set, set]:
     return frozenset(first_param_type), frozenset(return_type)
 
 
-def _ser(self):
-    return self._init_vals
-
-
 # Added new function to decorator, doesn't have function body yet
 def _disconnect(self):
     """resets input to None
@@ -921,15 +917,6 @@ def _call(self, val, *args, **kwargs):
     return result
 
 
-def _getstate(self):
-    data = self._serialisable()
-    return deepcopy(data)
-
-
-def _setstate(self, data):
-    return _new(self.__class__, **data)
-
-
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
     # todo when move to python 3.8 define protocol checks for the two singular types
@@ -987,10 +974,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
 
-        slot_attrs = ["_data_types", "_return_types", "input", "_init_vals", "__dict__"]
-        if app_type == LOADER:
-            slot_attrs.remove("input")
-        else:
+        if app_type != LOADER:
             setattr(klass, "input", None)
 
         if hasattr(klass, "__slots__"):
@@ -1182,7 +1166,6 @@ __mapping = {
     "__add__": _add,
     "__call__": _call,
     "__repr__": _repr,  # str(obj) calls __repr__ if __str__ missing
-    "_serialisable": _ser,
     "_validate_data_type": _validate_data_type,
     "disconnect": _disconnect,
     "apply_to": _apply_to,
