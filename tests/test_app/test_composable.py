@@ -27,7 +27,6 @@ from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
 from cogent3.app.typing import SERIALISABLE_TYPE
-from cogent3.core.alignment import ArrayAlignment
 
 
 __author__ = "Gavin Huttley"
@@ -632,6 +631,35 @@ def test_inheritance_from_decorated_class():
                 return val
 
     __app_registry.pop(get_object_provenance(app_decorated_first1))
+
+
+# have to define this at module level for pickling to work
+@define_app
+def func2app(arg1: int, exponent: int) -> float:
+    return arg1 ** exponent
+
+
+def test_decorate_app_function():
+    """works on functions now"""
+    import inspect
+
+    sqd = func2app(exponent=2)
+    assert sqd(3) == 9
+    assert inspect.isclass(func2app)
+    p = get_object_provenance(func2app)
+    __app_registry.pop(p, None)
+
+
+def test_roundtrip_decorated_function():
+    """decorated function can be pickled/unpickled"""
+    import pickle
+
+    sqd = func2app(exponent=2)
+    u = pickle.loads(pickle.dumps(sqd))
+    assert u(4) == 16
+
+    p = get_object_provenance(func2app)
+    __app_registry.pop(p, None)
 
 
 if __name__ == "__main__":
