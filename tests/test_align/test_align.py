@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import itertools
 import unittest
 
 import cogent3.align.progressive
@@ -260,6 +261,37 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 "D": "-------aaacgt",
             }
         )
+
+    def test_tree_align_handles_zero_lengths(self):
+        seqs = make_unaligned_seqs(
+            data={
+                "A": "TTAATTTTAGTAGTGCTATCCCC",
+                "B": "TTAATTTTAGTAGTGCTATCCCA",
+                "C": "TTAATTTTAGTAGTGCTATCC",
+            },
+            moltype="dna"
+        )
+
+        expected = {
+            "A": "TTAATTTTAGTAGTGCTATCCCC",
+            "B": "TTAATTTTAGTAGTGCTATCCCA",
+            "C": "TTAATTTTAGTAGTGCTATCC--",
+        }
+
+        tree_mapping = [
+            "A: 0.0225400070648391",
+            "B: 0.0225400070648391",
+            "C: 0.0",
+        ]
+        tree_variants = itertools.permutations(tree_mapping, r=3)
+
+        for tree_encoding in tree_variants:
+            aln, _ = cogent3.align.progressive.TreeAlign(
+                model="F81",
+                seqs=seqs,
+                tree=cogent3.make_tree("({},{},{})".format(*tree_encoding))
+            )
+            self.assertEqual(aln.to_dict(), expected)
 
 
 class HirschbergTestCase(MultipleAlignmentTestCase):
