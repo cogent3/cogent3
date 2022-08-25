@@ -979,7 +979,7 @@ def _class_from_func(func):
     module = func.__module__  # to be assigned to the generated class
     sig = inspect.signature(func)
     class_name = func.__name__
-    _main = _set_hints(_main, *_get_raw_hints(func, 2))
+    _main = _set_hints(_main, *_get_raw_hints(func, 1))
 
     _class_dict = {"__init__": _init, "main": _main, "_user_func": staticmethod(func)}
 
