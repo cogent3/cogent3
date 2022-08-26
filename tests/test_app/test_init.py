@@ -114,7 +114,7 @@ class TestAvailableApps(TestCase):
                 for app2 in applications
                 if app1.app_type is WRITER
                 or app2.app_type is LOADER
-                or app1 != app2
+                and app1 != app2
                 and not app1._return_types & app2._data_types
                 and not app1._return_types & {"SerialisableType", "IdentifierType"}
             ]
