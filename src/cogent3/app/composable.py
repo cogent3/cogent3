@@ -886,7 +886,16 @@ def _add(self, other):
 
 def _repr(self):
     val = f"{self.input!r} + " if self.app_type is not LOADER and self.input else ""
-    data = ", ".join(f"{k}={v!r}" for k, v in self._init_vals.items())
+    all_args = deepcopy(self._init_vals)
+    args_items = all_args.get("args")
+    data = ", ".join(f"{k}={v!r}" for k, v in args_items.items()) if args_items else ""
+    all_args.pop("args", None)
+    kwargs_items = all_args.get("kwargs")
+    data += (
+        ", ".join(f"{k}={v!r}" for k, v in kwargs_items.items()) if kwargs_items else ""
+    )
+    all_args.pop("kwargs", None)
+    data += ", ".join(f"{k}={v!r}" for k, v in all_args.items())
     data = f"{val}{self.__class__.__name__}({data})"
     data = textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
     return data

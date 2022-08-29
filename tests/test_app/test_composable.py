@@ -495,19 +495,16 @@ def test_appify_pickle():
     assert loaded(list(range(10))) == list(range(6))
 
 
-@pytest.mark.xfail
 def test_user_function_repr():
     got = repr(bar(num=3))
     assert got == "bar(num=3)"
 
 
-@pytest.mark.xfail
 def test_user_function_str():
     got = str(bar(num=3))
     assert got == "bar(num=3)"
 
 
-@pytest.mark.xfail
 def test_user_function_with_args_kwargs():
     """correctly handles definition with args, kwargs"""
     from math import log
