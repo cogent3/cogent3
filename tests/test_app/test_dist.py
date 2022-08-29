@@ -3,8 +3,6 @@ import os
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
-import pytest
-
 from numpy.testing import assert_allclose
 
 from cogent3 import DNA, PROTEIN, make_unaligned_seqs

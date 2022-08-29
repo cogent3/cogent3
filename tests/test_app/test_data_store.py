@@ -8,8 +8,6 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
-import pytest
-
 from cogent3 import load_aligned_seqs
 from cogent3.app.data_store import (
     IGNORE,
@@ -30,7 +28,7 @@ from cogent3.parse.fasta import MinimalFastaParser
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"

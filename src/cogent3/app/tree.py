@@ -3,16 +3,8 @@ from typing import Union
 from cogent3 import make_tree
 from cogent3.phylo.nj import gnj
 
-from .composable import Composable, define_app
-from .typing import (
-    PAIRWISE_DISTANCE_TYPE,
-    SERIALISABLE_TYPE,
-    TREE_TYPE,
-    AlignedSeqsType,
-    PairwiseDistanceType,
-    SerialisableType,
-    TreeType,
-)
+from .composable import define_app
+from .typing import PairwiseDistanceType, SerialisableType, TreeType
 
 
 __author__ = "Gavin Huttley"

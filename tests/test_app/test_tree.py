@@ -2,8 +2,6 @@ import os
 
 from unittest import TestCase, main
 
-import pytest
-
 from cogent3 import DNA, load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
