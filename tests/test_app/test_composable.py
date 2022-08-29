@@ -4,7 +4,7 @@ import pickle
 
 from pickle import dumps, loads
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import main
 from unittest.mock import Mock
 
 import pytest

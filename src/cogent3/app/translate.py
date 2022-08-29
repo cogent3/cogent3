@@ -6,7 +6,7 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
 from .composable import NotCompleted, define_app
-from .typing import SeqsCollectionType, SerialisableType, UnalignedSeqsType
+from .typing import SeqsCollectionType, SerialisableType
 
 
 __author__ = "Gavin Huttley"

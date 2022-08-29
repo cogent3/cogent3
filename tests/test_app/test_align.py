@@ -1,7 +1,5 @@
 from unittest import TestCase, main
 
-import pytest
-
 from cogent3 import (
     DNA,
     get_moltype,

@@ -18,12 +18,7 @@ from cogent3.evolve.models import get_model
 
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
-from .typing import (
-    AlignedSeqsType,
-    SeqsCollectionType,
-    SerialisableType,
-    UnalignedSeqsType,
-)
+from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
 
 
 __author__ = "Gavin Huttley"

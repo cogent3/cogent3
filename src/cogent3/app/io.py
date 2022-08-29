@@ -42,9 +42,6 @@ from .data_store import (
     make_record_for_json,
 )
 from .typing import (
-    ALIGNED_TYPE,
-    IDENTIFIER_TYPE,
-    SEQUENCE_TYPE,
     AlignedSeqsType,
     IdentifierType,
     SeqsCollectionType,

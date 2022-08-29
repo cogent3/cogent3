@@ -9,7 +9,6 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
 import numpy
-import pytest
 
 from numpy.testing import assert_allclose
 
@@ -68,7 +67,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             zip_path = join(dirname, "new")
             shutil.make_archive(zip_path, "zip", self.basedir)
-            zip_path = zip_path + ".zip"  # because shutil adds the suffix
+            zip_path += ".zip"  # because shutil adds the suffix
             found = list(io_app.findall(zip_path, suffix="fasta"))
             self.assertTrue(len(found) > 1)
             found = list(io_app.findall(zip_path, suffix="fasta", limit=2))
