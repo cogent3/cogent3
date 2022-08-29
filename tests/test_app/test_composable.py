@@ -436,7 +436,7 @@ def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
 
 
 @define_app
-def bar(val: AlignedSeqsType, *args, **kwargs) -> PairwiseDistanceType:
+def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
 
@@ -495,25 +495,19 @@ def test_appify_pickle():
     assert loaded(list(range(10))) == list(range(6))
 
 
+@pytest.mark.xfail
 def test_user_function_repr():
-    u_function_1 = user_function(foo, "aligned", "aligned")
-    u_function_2 = user_function(bar, "aligned", "pairwise_distances")
-    assert repr(u_function_1) == "user_function(name='foo', module='test_composable')"
-    assert repr(u_function_2) == "user_function(name='bar', module='test_composable')"
+    got = repr(bar(num=3))
+    assert got == "bar(num=3)"
 
 
+@pytest.mark.xfail
 def test_user_function_str():
-    u_function_1 = user_function(foo, "aligned", "aligned")
-    u_function_2 = user_function(bar, "aligned", "pairwise_distances")
-    assert str(u_function_1) == "user_function(name='foo', module='test_composable')"
-    assert str(u_function_2) == "user_function(name='bar', module='test_composable')"
-    # added into a composable func
-    loader = io_app.load_aligned()
-    proc = loader + u_function_1
-    got = str(proc)
-    assert got.startswith("load_aligned")
+    got = str(bar(num=3))
+    assert got == "bar(num=3)"
 
 
+@pytest.mark.xfail
 def test_user_function_with_args_kwargs():
     """correctly handles definition with args, kwargs"""
     from math import log
