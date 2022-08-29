@@ -860,12 +860,11 @@ def _add(self, other):
         raise ValueError("cannot add an app to itself")
 
     # Check order
-    elif isinstance(self, user_function) or isinstance(other, user_function):
-        pass
-    elif self.app_type is WRITER:
+    if self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
     elif other.app_type is LOADER:
         raise TypeError("Right hand side of add operator must not be of type loader")
+
     if self._return_types & {"SerialisableType", "IdentifierType"}:
         pass
     # validate that self._return_types ia a non-empty set.
