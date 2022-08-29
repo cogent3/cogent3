@@ -14,7 +14,6 @@ from scitrack import CachingLogger
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import (
-    Composable,
     NotCompleted,
     __app_registry,
     appify,
@@ -26,7 +25,11 @@ from cogent3.app.composable import (
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
-from cogent3.app.typing import SERIALISABLE_TYPE
+from cogent3.app.typing import (
+    SERIALISABLE_TYPE,
+    AlignedSeqsType,
+    PairwiseDistanceType,
+)
 
 
 __author__ = "Gavin Huttley"
@@ -39,294 +42,383 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-Composable._input_types = Composable._output_types = {None}
+def test_composable():
+    """correctly form string"""
+
+    class app_dummyclass_1:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            return val
+
+    class app_dummyclass_2:
+        def __init__(self, b):
+            self.b = b
+
+        def main(self, val: int) -> int:
+            return val
+
+    define_app(app_dummyclass_1)
+    define_app(app_dummyclass_2)
+    aseqfunc1 = app_dummyclass_1(1)
+    aseqfunc2 = app_dummyclass_2(2)
+    comb = aseqfunc1 + aseqfunc2
+    expect = "app_dummyclass_1(a=1) + " "app_dummyclass_2(b=2)"
+    got = str(comb)
+    assert got == expect
+    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
+    __app_registry.pop(get_object_provenance(app_dummyclass_2), None)
 
 
-class TestComposableBase(TestCase):
-    def test_composable(self):
-        """correctly form string"""
-        aseqfunc1 = Composable(input_types="sequences", output_types="sequences")
-        aseqfunc2 = Composable(input_types="sequences", output_types="sequences")
-        comb = aseqfunc1 + aseqfunc2
-        expect = "Composable() + " "Composable()"
-        got = str(comb)
-        self.assertEqual(got, expect)
+def test_composables_once():
+    """composables can only be used in a single composition"""
 
-    def test_composables_once(self):
-        """composables can only be used in a single composition"""
-        one = Composable(input_types="sequences", output_types="sequences")
-        two = Composable(input_types="sequences", output_types="sequences")
-        three = Composable(input_types="sequences", output_types="sequences")
-        one + three
-        with self.assertRaises(AssertionError):
-            two + three  # three already has an input
+    class app_dummyclass_1:
+        def __init__(self, a):
+            self.a = a
 
-    def test_composable_to_self(self):
-        """this should raise a ValueError"""
-        app1 = Composable(input_types="sequences", output_types="sequences")
-        with self.assertRaises(ValueError):
-            _ = app1 + app1
+        def main(self, val: int) -> int:
+            return val
 
-    def test_disconnect(self):
-        """disconnect breaks all connections and allows parts to be reused"""
-        aseqfunc1 = Composable(input_types="sequences", output_types="sequences")
-        aseqfunc2 = Composable(input_types="sequences", output_types="sequences")
-        aseqfunc3 = Composable(input_types="sequences", output_types="sequences")
-        comb = aseqfunc1 + aseqfunc2 + aseqfunc3
-        comb.disconnect()
-        self.assertEqual(aseqfunc1.input, None)
-        self.assertEqual(aseqfunc3.input, None)
-        # should be able to compose a new one now
-        aseqfunc1 + aseqfunc3
+    class app_dummyclass_2:
+        def __init__(self, b):
+            self.b = b
 
-    def test_apply_to(self):
-        """correctly applies iteratively"""
-        from cogent3.core.alignment import SequenceCollection
+        def main(self, val: int) -> int:
+            return val
 
-        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-        reader = io_app.load_unaligned(format="fasta", moltype="dna")
-        got = reader.apply_to(dstore, show_progress=False)
-        self.assertEqual(len(got), len(dstore))
-        # should also be able to apply the results to another composable func
+    class app_dummyclass_3:
+        def __init__(self, c):
+            self.c = c
+
+        def main(self, val: int) -> int:
+            return val
+
+    define_app(app_dummyclass_1)
+    define_app(app_dummyclass_2)
+    define_app(app_dummyclass_3)
+
+    one = app_dummyclass_1(1)
+    two = app_dummyclass_2(2)
+    three = app_dummyclass_3(3)
+    one + three
+    with pytest.raises(TypeError):
+        two + three  # three already has an input
+
+    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
+    __app_registry.pop(get_object_provenance(app_dummyclass_2), None)
+    __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
+
+
+def test_composable_to_self():
+    """this should raise a ValueError"""
+
+    class app_dummyclass_1:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            return val
+
+    define_app(app_dummyclass_1)
+    app1 = app_dummyclass_1(1)
+    with pytest.raises(TypeError):
+        _ = app1 + app1
+
+    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
+
+
+def test_disconnect():
+    """disconnect breaks all connections and allows parts to be reused"""
+
+    class app_dummyclass_1:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            return val
+
+    class app_dummyclass_2:
+        def __init__(self, b):
+            self.b = b
+
+        def main(self, val: int) -> int:
+            return val
+
+    class app_dummyclass_3:
+        def __init__(self, c):
+            self.c = c
+
+        def main(self, val: int) -> int:
+            return val
+
+    define_app(app_dummyclass_1)
+    define_app(app_dummyclass_2)
+    define_app(app_dummyclass_3)
+
+    aseqfunc1 = app_dummyclass_1(1)
+    aseqfunc2 = app_dummyclass_2(2)
+    aseqfunc3 = app_dummyclass_3(3)
+    comb = aseqfunc1 + aseqfunc2 + aseqfunc3
+    comb.disconnect()
+    assert aseqfunc1.input is None
+    assert aseqfunc3.input is None
+    # should be able to compose a new one now
+    aseqfunc1 + aseqfunc3
+
+    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
+    __app_registry.pop(get_object_provenance(app_dummyclass_2), None)
+    __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
+
+
+def test_apply_to():
+    """correctly applies iteratively"""
+    from cogent3.core.alignment import SequenceCollection
+
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    reader = io_app.load_unaligned(format="fasta", moltype="dna")
+    got = reader.apply_to(dstore, show_progress=False)
+    assert len(got) == len(dstore)
+    # should also be able to apply the results to another composable func
+    min_length = sample_app.min_length(10)
+    got = min_length.apply_to(got, show_progress=False)
+    assert len(got) == len(dstore)
+    # should work on a chained function
+    proc = reader + min_length
+    got = proc.apply_to(dstore, show_progress=False)
+    assert len(got) == len(dstore)
+    # and works on a list of just strings
+    got = proc.apply_to([str(m) for m in dstore], show_progress=False)
+    assert len(got) == len(dstore)
+    # or a single string
+    got = proc.apply_to(str(dstore[0]), show_progress=False)
+    assert len(got) == 1
+    assert isinstance(got[0], SequenceCollection)
+    # raises ValueError if empty list
+    with pytest.raises(ValueError):
+        proc.apply_to([])
+
+    # raises ValueError if list with empty string
+    with pytest.raises(ValueError):
+        proc.apply_to(["", ""])
+
+
+def test_apply_to_strings():
+    """apply_to handles strings as paths"""
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = [str(m) for m in dstore]
+    with TemporaryDirectory(dir=".") as dirname:
+        reader = io_app.load_aligned(format="fasta", moltype="dna")
         min_length = sample_app.min_length(10)
-        got = min_length.apply_to(got, show_progress=False)
-        self.assertEqual(len(got), len(dstore))
-        # should work on a chained function
-        proc = reader + min_length
-        got = proc.apply_to(dstore, show_progress=False)
-        self.assertEqual(len(got), len(dstore))
-        # and works on a list of just strings
-        got = proc.apply_to([str(m) for m in dstore], show_progress=False)
-        self.assertEqual(len(got), len(dstore))
-        # or a single string
-        got = proc.apply_to(str(dstore[0]), show_progress=False)
-        self.assertEqual(len(got), 1)
-        self.assertIsInstance(got[0], SequenceCollection)
-        # raises ValueError if empty list
-        with self.assertRaises(ValueError):
-            proc.apply_to([])
+        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+        writer = io_app.write_db(outpath)
+        process = reader + min_length + writer
+        # create paths as strings
+        r = process.apply_to(dstore, show_progress=False)
+        assert len(process.data_store.logs) == 1
+        process.data_store.close()
 
-        # raises ValueError if list with empty string
-        with self.assertRaises(ValueError):
-            proc.apply_to(["", ""])
 
-    def test_apply_to_strings(self):
-        """apply_to handles strings as paths"""
-        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-        dstore = [str(m) for m in dstore]
+def test_apply_to_non_unique_identifiers():
+    """should fail if non-unique names"""
+    dstore = [
+        "brca1.bats.fasta",
+        "brca1.apes.fasta",
+    ]
+    with TemporaryDirectory(dir=".") as dirname:
+        reader = io_app.load_aligned(format="fasta", moltype="dna")
+        min_length = sample_app.min_length(10)
+        process = reader + min_length
+        with pytest.raises(ValueError):
+            process.apply_to(dstore)
+
+
+def test_apply_to_logging():
+    """correctly creates log file"""
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    with TemporaryDirectory(dir=".") as dirname:
+        reader = io_app.load_aligned(format="fasta", moltype="dna")
+        min_length = sample_app.min_length(10)
+        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+        writer = io_app.write_db(outpath)
+        process = reader + min_length + writer
+        r = process.apply_to(dstore, show_progress=False)
+        # always creates a log
+        assert len(process.data_store.logs) == 1
+        process.data_store.close()
+
+
+def test_apply_to_logger():
+    """correctly uses user provided logger"""
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    with TemporaryDirectory(dir=".") as dirname:
+        LOGGER = CachingLogger()
+        reader = io_app.load_aligned(format="fasta", moltype="dna")
+        min_length = sample_app.min_length(10)
+        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+        writer = io_app.write_db(outpath)
+        process = reader + min_length + writer
+        r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
+        assert len(process.data_store.logs) == 1
+        process.data_store.close()
+
+
+def test_apply_to_invalid_logger():
+    """incorrect logger value raises TypeError"""
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    for logger_val in (True, "somepath.log"):
         with TemporaryDirectory(dir=".") as dirname:
             reader = io_app.load_aligned(format="fasta", moltype="dna")
             min_length = sample_app.min_length(10)
             outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
             writer = io_app.write_db(outpath)
             process = reader + min_length + writer
-            # create paths as strings
-            r = process.apply_to(dstore, show_progress=False)
-            self.assertEqual(len(process.data_store.logs), 1)
+            with pytest.raises(TypeError):
+                process.apply_to(dstore, show_progress=False, logger=logger_val)
             process.data_store.close()
 
-    def test_apply_to_non_unique_identifiers(self):
-        """should fail if non-unique names"""
-        dstore = [
-            "brca1.bats.fasta",
-            "brca1.apes.fasta",
-        ]
-        with TemporaryDirectory(dir=".") as dirname:
-            reader = io_app.load_aligned(format="fasta", moltype="dna")
-            min_length = sample_app.min_length(10)
-            process = reader + min_length
-            with self.assertRaises(ValueError):
-                process.apply_to(dstore)
 
-    def test_apply_to_logging(self):
-        """correctly creates log file"""
-        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-        with TemporaryDirectory(dir=".") as dirname:
-            reader = io_app.load_aligned(format="fasta", moltype="dna")
-            min_length = sample_app.min_length(10)
-            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-            writer = io_app.write_db(outpath)
-            process = reader + min_length + writer
-            r = process.apply_to(dstore, show_progress=False)
-            # always creates a log
-            self.assertEqual(len(process.data_store.logs), 1)
-            process.data_store.close()
-
-    def test_apply_to_logger(self):
-        """correctly uses user provided logger"""
-        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-        with TemporaryDirectory(dir=".") as dirname:
-            LOGGER = CachingLogger()
-            reader = io_app.load_aligned(format="fasta", moltype="dna")
-            min_length = sample_app.min_length(10)
-            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-            writer = io_app.write_db(outpath)
-            process = reader + min_length + writer
-            r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
-            self.assertEqual(len(process.data_store.logs), 1)
-            process.data_store.close()
-
-    def test_apply_to_invalid_logger(self):
-        """incorrect logger value raises TypeError"""
-        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-        for logger_val in (True, "somepath.log"):
-            with TemporaryDirectory(dir=".") as dirname:
-                reader = io_app.load_aligned(format="fasta", moltype="dna")
-                min_length = sample_app.min_length(10)
-                outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-                writer = io_app.write_db(outpath)
-                process = reader + min_length + writer
-                with self.assertRaises(TypeError):
-                    process.apply_to(dstore, show_progress=False, logger=logger_val)
-                process.data_store.close()
-
-    def test_apply_to_not_completed(self):
-        """correctly creates notcompleted"""
-        dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-        with TemporaryDirectory(dir=".") as dirname:
-            reader = io_app.load_aligned(format="fasta", moltype="dna")
-            # trigger creation of notcompleted
-            min_length = sample_app.min_length(3000)
-            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-            writer = io_app.write_db(outpath)
-            process = reader + min_length + writer
-            r = process.apply_to(dstore, show_progress=False)
-            self.assertEqual(len(process.data_store.incomplete), 3)
-            process.data_store.close()
-
-    def test_apply_to_not_partially_done(self):
-        """correctly applies process when result already partially done"""
-        dstore = io_app.get_data_store("data", suffix="fasta")
-        num_records = len(dstore)
-        with TemporaryDirectory(dir=".") as dirname:
-            dirname = pathlib.Path(dirname)
-            reader = io_app.load_aligned(format="fasta", moltype="dna")
-            outpath = dirname / "delme.tinydb"
-            writer = io_app.write_db(outpath)
-            _ = writer(reader(dstore[0]))
-            writer.data_store.close()
-
-            writer = io_app.write_db(outpath, if_exists="ignore")
-            process = reader + writer
-            _ = process.apply_to(dstore, show_progress=False)
-            writer.data_store.close()
-            dstore = io_app.get_data_store(outpath)
-            self.assertEqual(len(dstore), num_records)
-            dstore.close()
+def test_apply_to_not_completed():
+    """correctly creates notcompleted"""
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    with TemporaryDirectory(dir=".") as dirname:
+        reader = io_app.load_aligned(format="fasta", moltype="dna")
+        # trigger creation of notcompleted
+        min_length = sample_app.min_length(3000)
+        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+        writer = io_app.write_db(outpath)
+        process = reader + min_length + writer
+        r = process.apply_to(dstore, show_progress=False)
+        assert len(process.data_store.incomplete) == 3
+        process.data_store.close()
 
 
-class TestNotCompletedResult(TestCase):
-    def test_err_result(self):
-        """excercise creation of NotCompletedResult"""
-        result = NotCompleted("SKIP", "this", "some obj")
-        self.assertFalse(result)
-        self.assertEqual(result.origin, "this")
-        self.assertEqual(result.message, "some obj")
-        self.assertIs(result.source, None)
+def test_apply_to_not_partially_done():
+    """correctly applies process when result already partially done"""
+    dstore = io_app.get_data_store("data", suffix="fasta")
+    num_records = len(dstore)
+    with TemporaryDirectory(dir=".") as dirname:
+        dirname = pathlib.Path(dirname)
+        reader = io_app.load_aligned(format="fasta", moltype="dna")
+        outpath = dirname / "delme.tinydb"
+        writer = io_app.write_db(outpath)
+        _ = writer(reader(dstore[0]))
+        writer.data_store.close()
 
-        # check source correctly deduced from provided object
-        fake_source = Mock()
-        fake_source.source = "blah"
-        del fake_source.info
-        result = NotCompleted("SKIP", "this", "err", source=fake_source)
-        self.assertIs(result.source, "blah")
-
-        fake_source = Mock()
-        del fake_source.source
-        fake_source.info.source = "blah"
-        result = NotCompleted("SKIP", "this", "err", source=fake_source)
-        self.assertIs(result.source, "blah")
-
-        try:
-            _ = 0
-            raise ValueError("error message")
-        except ValueError as err:
-            result = NotCompleted("SKIP", "this", err.args[0])
-
-        self.assertEqual(result.message, "error message")
-
-    def test_str(self):
-        """str representation correctly represents parameterisations"""
-        func = select_translatable()
-        got = str(func)
-        self.assertEqual(
-            got,
-            "select_translatable("
-            "moltype='dna', gc=1, "
-            "allow_rc=False,\ntrim_terminal_stop=True)",
-        )
-
-        func = select_translatable(allow_rc=True)
-        got = str(func)
-        self.assertEqual(
-            got,
-            "select_translatable("
-            "moltype='dna', gc=1, "
-            "allow_rc=True, trim_terminal_stop=True)",
-        )
-
-        nodegen = omit_degenerates()
-        got = str(nodegen)
-        self.assertEqual(
-            got,
-            "omit_degenerates(moltype=None, " "gap_is_degen=True, motif_length=1)",
-        )
-        ml = min_length(100)
-        got = str(ml)
-        self.assertEqual(
-            got,
-            "min_length(length=100, "
-            "motif_length=1, subtract_degen=True, "
-            "moltype=None)",
-        )
-
-        qt = quick_tree()
-        self.assertEqual(str(qt), "quick_tree(drop_invalid=False)")
+        writer = io_app.write_db(outpath, if_exists="ignore")
+        process = reader + writer
+        _ = process.apply_to(dstore, show_progress=False)
+        writer.data_store.close()
+        dstore = io_app.get_data_store(outpath)
+        assert len(dstore) == num_records
+        dstore.close()
 
 
-class TestPicklable(TestCase):
-    def test_composite_pickleable(self):
-        """composable functions should be pickleable"""
+def test_err_result():
+    """excercise creation of NotCompletedResult"""
+    result = NotCompleted("SKIP", "this", "some obj")
+    assert not result
+    assert result.origin == "this"
+    assert result.message == "some obj"
+    assert result.source is None
 
-        from cogent3.app import align, evo, io, sample, translate, tree
+    # check source correctly deduced from provided object
+    fake_source = Mock()
+    fake_source.source = "blah"
+    del fake_source.info
+    result = NotCompleted("SKIP", "this", "err", source=fake_source)
+    assert result.source == "blah"
 
-        read = io.load_aligned(moltype="dna")
-        dumps(read)
-        trans = translate.select_translatable()
-        dumps(trans)
-        aln = align.progressive_align("nucleotide")
-        dumps(aln)
-        just_nucs = sample.omit_degenerates(moltype="dna")
-        dumps(just_nucs)
-        limit = sample.fixed_length(1000, random=True)
-        dumps(limit)
-        mod = evo.model("HKY85")
-        dumps(mod)
-        qt = tree.quick_tree()
-        dumps(qt)
-        proc = read + trans + aln + just_nucs + limit + mod
-        dumps(proc)
+    fake_source = Mock()
+    del fake_source.source
+    fake_source.info.source = "blah"
+    result = NotCompleted("SKIP", "this", "err", source=fake_source)
+    assert result.source == "blah"
 
-    def test_not_completed_result(self):
-        """should survive roundtripping pickle"""
-        err = NotCompleted("FAIL", "mytest", "can we roundtrip")
-        p = dumps(err)
-        new = loads(p)
-        self.assertEqual(err.type, new.type)
-        self.assertEqual(err.message, new.message)
-        self.assertEqual(err.source, new.source)
-        self.assertEqual(err.origin, new.origin)
+    try:
+        _ = 0
+        raise ValueError("error message")
+    except ValueError as err:
+        result = NotCompleted("SKIP", "this", err.args[0])
 
-    def test_triggers_bugcatcher(self):
-        """a composable that does not trap failures returns NotCompletedResult
-        requesting bug report"""
-        from cogent3.app import io
+    assert result.message == "error message"
 
-        read = io.load_aligned(moltype="dna")
-        read.main = lambda x: None
-        got = read("somepath.fasta")
-        self.assertIsInstance(got, NotCompleted)
-        self.assertEqual(got.type, "BUG")
+
+def test_str():
+    """str representation correctly represents parameterisations"""
+    func = select_translatable()
+    got = str(func)
+    assert (
+        got
+        == "select_translatable(moltype='dna', gc=1, allow_rc=False,\ntrim_terminal_stop=True)"
+    )
+
+    func = select_translatable(allow_rc=True)
+    got = str(func)
+    assert (
+        got
+        == "select_translatable(moltype='dna', gc=1, allow_rc=True, trim_terminal_stop=True)"
+    )
+
+    nodegen = omit_degenerates()
+    got = str(nodegen)
+    assert got == "omit_degenerates(moltype=None, gap_is_degen=True, motif_length=1)"
+    ml = min_length(100)
+    got = str(ml)
+    assert (
+        got
+        == "min_length(length=100, motif_length=1, subtract_degen=True, moltype=None)"
+    )
+
+    qt = quick_tree()
+    assert str(qt) == "quick_tree(drop_invalid=False)"
+
+
+def test_composite_pickleable():
+    """composable functions should be pickleable"""
+
+    from cogent3.app import align, evo, io, sample, translate, tree
+
+    read = io.load_aligned(moltype="dna")
+    dumps(read)
+    trans = translate.select_translatable()
+    dumps(trans)
+    aln = align.progressive_align("nucleotide")
+    dumps(aln)
+    just_nucs = sample.omit_degenerates(moltype="dna")
+    dumps(just_nucs)
+    limit = sample.fixed_length(1000, random=True)
+    dumps(limit)
+    mod = evo.model("HKY85")
+    dumps(mod)
+    qt = tree.quick_tree()
+    dumps(qt)
+    proc = read + trans + aln + just_nucs + limit + mod
+    dumps(proc)
+
+
+def test_not_completed_result():
+    """should survive roundtripping pickle"""
+    err = NotCompleted("FAIL", "mytest", "can we roundtrip")
+    p = dumps(err)
+    new = loads(p)
+    assert err.type == new.type
+    assert err.message == new.message
+    assert err.source == new.source
+    assert err.origin == new.origin
+
+
+def test_triggers_bugcatcher():
+    """a composable that does not trap failures returns NotCompletedResult
+    requesting bug report"""
+    from cogent3.app import io
+
+    read = io.load_aligned(moltype="dna")
+    read.main = lambda x: None
+    got = read("somepath.fasta")
+    assert isinstance(got, NotCompleted)
+    assert got.type == "BUG"
 
 
 def _demo(ctx, expect):
@@ -340,135 +432,128 @@ def slicer(val, index=2):
     return val[:index]
 
 
-class TestUserFunction(TestCase):
-    def foo(self, val, *args, **kwargs):
-        return val[:4]
+def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
+    return val[:4]
 
-    def bar(self, val, *args, **kwargs):
-        return val.distance_matrix(calc="hamming", show_progress=False)
 
-    def test_user_function_custom_variables(self):
-        # not sure what this is meant to be testing
-        demo = user_function(
-            _demo, ("aligned", "serialisable"), ("aligned", "serialisable")
-        )
-        frame_start = 2
-        demo.frame_start = frame_start
-        self.assertTrue(demo(demo, 2))
+def bar(val: AlignedSeqsType, *args, **kwargs) -> PairwiseDistanceType:
+    return val.distance_matrix(calc="hamming", show_progress=False)
 
-    def test_user_function(self):
-        """composable functions should be user definable"""
-        from cogent3 import make_aligned_seqs
 
-        u_function = user_function(self.foo, "aligned", "aligned")
+def test_user_function():
+    """composable functions should be user definable"""
+    from cogent3 import make_aligned_seqs
 
-        aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
-        got = u_function(aln)
+    u_function = define_app(foo)()
 
-        self.assertEqual(got.to_dict(), {"a": "GCAA", "b": "GCTT"})
+    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    got = u_function(aln)
 
-    def test_user_function_multiple(self):
-        """user defined composable functions should not interfere with each other"""
-        from cogent3 import make_aligned_seqs
-        from cogent3.core.alignment import Alignment
+    assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
 
-        u_function_1 = user_function(self.foo, "aligned", "aligned")
-        u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
+    __app_registry.pop(get_object_provenance(foo), None)
 
-        aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
-        data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
-        aln_2 = Alignment(data=data, moltype="dna")
 
-        got_1 = u_function_1(aln_1)
-        got_2 = u_function_2(aln_2)
-        self.assertEqual(got_1.to_dict(), {"a": "GCAA", "b": "GCTT"})
-        self.assertEqual(got_2, {("s1", "s2"): 2.0, ("s2", "s1"): 2.0})
+def test_user_function_multiple():
+    """user defined composable functions should not interfere with each other"""
+    from cogent3 import make_aligned_seqs
+    from cogent3.core.alignment import Alignment
 
-    def test_appify(self):
-        """acts like a decorator should!"""
-        self.assertEqual(slicer.__doc__, "my docstring")
-        self.assertEqual(slicer.__name__, "slicer")
-        app = slicer()
-        self.assertTrue(SERIALISABLE_TYPE in app._input_types)
-        self.assertTrue(SERIALISABLE_TYPE in app._output_types)
-        self.assertEqual(app(list(range(4))), [0, 1])
-        app2 = slicer(index=3)
-        self.assertEqual(app2(list(range(4))), [0, 1, 2])
+    u_function_1 = define_app(foo)()
+    u_function_2 = define_app(bar)()
 
-    def test_appify_pickle(self):
-        """appified function should be pickleable"""
-        app = slicer(index=6)
-        dumped = dumps(app)
-        loaded = loads(dumped)
-        self.assertEqual(loaded(list(range(10))), list(range(6)))
+    aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
+    aln_2 = Alignment(data=data, moltype="dna")
 
-    def test_user_function_repr(self):
-        u_function_1 = user_function(self.foo, "aligned", "aligned")
-        u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
-        self.assertEqual(
-            repr(u_function_1), "user_function(name='foo', module='test_composable')"
-        )
-        self.assertEqual(
-            repr(u_function_2), "user_function(name='bar', module='test_composable')"
-        )
+    got_1 = u_function_1(aln_1)
+    got_2 = u_function_2(aln_2)
+    assert got_1.to_dict() == {"a": "GCAA", "b": "GCTT"}
+    assert got_2 == {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
 
-    def test_user_function_str(self):
-        u_function_1 = user_function(self.foo, "aligned", "aligned")
-        u_function_2 = user_function(self.bar, "aligned", "pairwise_distances")
-        self.assertEqual(
-            str(u_function_1), "user_function(name='foo', module='test_composable')"
-        )
-        self.assertEqual(
-            str(u_function_2), "user_function(name='bar', module='test_composable')"
-        )
-        # added into a composable func
-        loader = io_app.load_aligned()
-        proc = loader + u_function_1
-        got = str(proc)
-        self.assertTrue(got.startswith("load_aligned"))
+    __app_registry.pop(get_object_provenance(foo), None)
+    __app_registry.pop(get_object_provenance(bar), None)
 
-    def test_user_function_with_args_kwargs(self):
-        """correctly handles definition with args, kwargs"""
-        from math import log
 
-        def product(val, multiplier, take_log=False):
-            result = val * multiplier
-            if take_log:
-                result = log(result)
+def test_appify():
+    """acts like a decorator should!"""
+    assert slicer.__doc__ == "my docstring"
+    assert slicer.__name__ == "slicer"
+    app = slicer()
+    assert SERIALISABLE_TYPE in app._input_types
+    assert SERIALISABLE_TYPE in app._output_types
+    assert app(list(range(4))) == [0, 1]
+    app2 = slicer(index=3)
+    assert app2(list(range(4))) == [0, 1, 2]
 
-            return result
 
-        # without defining any args, kwargs
-        ufunc = user_function(
-            product,
-            SERIALISABLE_TYPE,
-            SERIALISABLE_TYPE,
-        )
-        self.assertEqual(ufunc(2, 2), 4)
-        self.assertEqual(ufunc(2, 2, take_log=True), log(4))
+def test_appify_pickle():
+    """appified function should be pickleable"""
+    app = slicer(index=6)
+    dumped = dumps(app)
+    loaded = loads(dumped)
+    assert loaded(list(range(10))) == list(range(6))
 
-        # defining default arg2
-        ufunc = user_function(
-            product,
-            SERIALISABLE_TYPE,
-            SERIALISABLE_TYPE,
-            2,
-        )
-        self.assertEqual(ufunc(2), 4)
-        self.assertEqual(ufunc(2, take_log=True), log(4))
 
-        # defining default kwarg only
-        ufunc = user_function(
-            product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, take_log=True
-        )
-        self.assertEqual(ufunc(2, 2), log(4))
-        self.assertEqual(ufunc(2, 2, take_log=False), 4)
+def test_user_function_repr():
+    u_function_1 = user_function(foo, "aligned", "aligned")
+    u_function_2 = user_function(bar, "aligned", "pairwise_distances")
+    assert repr(u_function_1) == "user_function(name='foo', module='test_composable')"
+    assert repr(u_function_2) == "user_function(name='bar', module='test_composable')"
 
-        # defining default arg and kwarg
-        ufunc = user_function(
-            product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, 2, take_log=True
-        )
-        self.assertEqual(ufunc(2), log(4))
+
+def test_user_function_str():
+    u_function_1 = user_function(foo, "aligned", "aligned")
+    u_function_2 = user_function(bar, "aligned", "pairwise_distances")
+    assert str(u_function_1) == "user_function(name='foo', module='test_composable')"
+    assert str(u_function_2) == "user_function(name='bar', module='test_composable')"
+    # added into a composable func
+    loader = io_app.load_aligned()
+    proc = loader + u_function_1
+    got = str(proc)
+    assert got.startswith("load_aligned")
+
+
+def test_user_function_with_args_kwargs():
+    """correctly handles definition with args, kwargs"""
+    from math import log
+
+    def product(val, multiplier, take_log=False):
+        result = val * multiplier
+        if take_log:
+            result = log(result)
+
+        return result
+
+    # without defining any args, kwargs
+    ufunc = user_function(
+        product,
+        SERIALISABLE_TYPE,
+        SERIALISABLE_TYPE,
+    )
+    assert ufunc(2, 2) == 4
+    assert ufunc(2, 2, take_log=True) == log(4)
+
+    # defining default arg2
+    ufunc = user_function(
+        product,
+        SERIALISABLE_TYPE,
+        SERIALISABLE_TYPE,
+        2,
+    )
+    assert ufunc(2) == 4
+    assert ufunc(2, take_log=True) == log(4)
+
+    # defining default kwarg only
+    ufunc = user_function(product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, take_log=True)
+    assert ufunc(2, 2) == log(4)
+    assert ufunc(2, 2, take_log=False) == 4
+
+    # defining default arg and kwarg
+    ufunc = user_function(
+        product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, 2, take_log=True
+    )
+    assert ufunc(2) == log(4)
 
 
 def test_app_registry():
@@ -482,7 +567,7 @@ def test_app_registry():
     assert __app_registry["test_composable.app_test_registry1"]
 
     # delete it to not include in app available apps
-    __app_registry.pop("test_composable.app_test_registry1")
+    __app_registry.pop(get_object_provenance(app_test_registry1), None)
 
 
 def test_app_is_composable():
@@ -496,7 +581,7 @@ def test_app_is_composable():
     assert is_composable(app_test_iscomposable1)
 
     # delete it to not include in app available apps
-    __app_registry.pop("test_composable.app_test_iscomposable1")
+    __app_registry.pop(get_object_provenance(app_test_iscomposable1), None)
 
 
 def test_app_is_not_composable():
@@ -543,8 +628,7 @@ def test_composable_new1():
     instance = pos_var_pos1(2, 3, 4, 5, 6)
     assert instance._init_vals == {"a": 2, "b": 3, "args": (4, 5, 6)}
 
-    p = get_object_provenance(pos_var_pos1)
-    __app_registry.pop(p)
+    __app_registry.pop(get_object_provenance(pos_var_pos1), None)
 
 
 def test_composable_new2():
@@ -563,7 +647,8 @@ def test_composable_new2():
 
     instance = pos_var_pos_kw2(2, 3, 4, 5, 6, c=True)
     assert instance._init_vals == {"a": 2, "args": (3, 4, 5, 6), "c": True}
-    __app_registry.pop(get_object_provenance(pos_var_pos_kw2))
+
+    __app_registry.pop(get_object_provenance(pos_var_pos_kw2), None)
 
 
 def test_app_decoration_fails_with_slots():
@@ -592,7 +677,7 @@ def test_repeated_decoration():
     with pytest.raises(TypeError):
         define_app(app_decorated_repeated1)
 
-    __app_registry.pop(get_object_provenance(app_decorated_repeated1))
+    __app_registry.pop(get_object_provenance(app_decorated_repeated1), None)
 
 
 def test_recursive_decoration():
@@ -608,7 +693,7 @@ def test_recursive_decoration():
     with pytest.raises(TypeError):
         app_docorated_recursive1().main(1)
 
-    __app_registry.pop(get_object_provenance(app_docorated_recursive1))
+    __app_registry.pop(get_object_provenance(app_docorated_recursive1), None)
 
 
 def test_inheritance_from_decorated_class():
@@ -630,36 +715,41 @@ def test_inheritance_from_decorated_class():
             def main(self, val: int) -> int:
                 return val
 
-    __app_registry.pop(get_object_provenance(app_decorated_first1))
-
-
-# have to define this at module level for pickling to work
-@define_app
-def func2app(arg1: int, exponent: int) -> float:
-    return arg1 ** exponent
+    __app_registry.pop(get_object_provenance(app_decorated_first1), None)
 
 
 def test_decorate_app_function():
     """works on functions now"""
     import inspect
 
+    # have to define this at module level for pickling to work
+    def func2app(arg1: int, exponent: int) -> float:
+        return arg1 ** exponent
+
+    func2app = define_app(func2app)
+
     sqd = func2app(exponent=2)
     assert sqd(3) == 9
     assert inspect.isclass(func2app)
-    p = get_object_provenance(func2app)
-    __app_registry.pop(p, None)
+
+    __app_registry.pop(get_object_provenance(func2app), None)
+
+
+# have to define this at module level for pickling to work
+@define_app
+def func3app(arg1: int, exponent: int) -> float:
+    return arg1 ** exponent
 
 
 def test_roundtrip_decorated_function():
     """decorated function can be pickled/unpickled"""
     import pickle
 
-    sqd = func2app(exponent=2)
+    sqd = func3app(exponent=2)
     u = pickle.loads(pickle.dumps(sqd))
     assert u(4) == 16
 
-    p = get_object_provenance(func2app)
-    __app_registry.pop(p, None)
+    __app_registry.pop(get_object_provenance(func3app), None)
 
 
 if __name__ == "__main__":

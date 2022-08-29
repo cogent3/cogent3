@@ -793,7 +793,9 @@ def _get_raw_hints(main_func, min_params):
             f"{main_func.__name__!r} must have at least {min_params} input parameters"
         )
     # annotation for first parameter other than self, params.parameters is an orderedDict
-    first_param_type = [p.annotation for p in params.parameters.values()][1]
+    first_param_type = [p.annotation for p in params.parameters.values()][
+        min_params - 1
+    ]
     return_type = params.return_annotation
     if return_type is _no_value:
         raise TypeError("must specify type hint for return type")
@@ -850,8 +852,14 @@ def _disconnect(self):
 
 
 def _add(self, other):
+    if other.input is not None:
+        raise TypeError(
+            f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
+        )
+    elif other is self:
+        raise TypeError("cannot add an app to itself")
     # Check order
-    if isinstance(self, user_function) or isinstance(other, user_function):
+    elif isinstance(self, user_function) or isinstance(other, user_function):
         pass
     elif self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
@@ -1006,9 +1014,11 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         klass = _class_from_func(klass)
 
     def wrapped(klass):
+        if inspect.isfunction(klass):
+            klass = _class_from_func(klass)
+
         if not inspect.isclass(klass):
             raise ValueError(f"{klass} is not a class")
-
         # check if user defined these functions
         method_list = [
             "__call__",
