@@ -853,11 +853,12 @@ def _disconnect(self):
 
 def _add(self, other):
     if other.input is not None:
-        raise TypeError(
+        raise ValueError(
             f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
         )
-    elif other is self:
-        raise TypeError("cannot add an app to itself")
+    if other is self:
+        raise ValueError("cannot add an app to itself")
+
     # Check order
     elif isinstance(self, user_function) or isinstance(other, user_function):
         pass
