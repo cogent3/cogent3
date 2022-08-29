@@ -45,6 +45,7 @@ __status__ = "Alpha"
 def test_composable():
     """correctly form string"""
 
+    @define_app
     class app_dummyclass_1:
         def __init__(self, a):
             self.a = a
@@ -52,6 +53,7 @@ def test_composable():
         def main(self, val: int) -> int:
             return val
 
+    @define_app
     class app_dummyclass_2:
         def __init__(self, b):
             self.b = b
@@ -59,8 +61,6 @@ def test_composable():
         def main(self, val: int) -> int:
             return val
 
-    define_app(app_dummyclass_1)
-    define_app(app_dummyclass_2)
     aseqfunc1 = app_dummyclass_1(1)
     aseqfunc2 = app_dummyclass_2(2)
     comb = aseqfunc1 + aseqfunc2
@@ -74,6 +74,7 @@ def test_composable():
 def test_composables_once():
     """composables can only be used in a single composition"""
 
+    @define_app
     class app_dummyclass_1:
         def __init__(self, a):
             self.a = a
@@ -81,6 +82,7 @@ def test_composables_once():
         def main(self, val: int) -> int:
             return val
 
+    @define_app
     class app_dummyclass_2:
         def __init__(self, b):
             self.b = b
@@ -88,16 +90,13 @@ def test_composables_once():
         def main(self, val: int) -> int:
             return val
 
+    @define_app
     class app_dummyclass_3:
         def __init__(self, c):
             self.c = c
 
         def main(self, val: int) -> int:
             return val
-
-    define_app(app_dummyclass_1)
-    define_app(app_dummyclass_2)
-    define_app(app_dummyclass_3)
 
     one = app_dummyclass_1(1)
     two = app_dummyclass_2(2)
@@ -114,6 +113,7 @@ def test_composables_once():
 def test_composable_to_self():
     """this should raise a ValueError"""
 
+    @define_app
     class app_dummyclass_1:
         def __init__(self, a):
             self.a = a
@@ -121,7 +121,6 @@ def test_composable_to_self():
         def main(self, val: int) -> int:
             return val
 
-    define_app(app_dummyclass_1)
     app1 = app_dummyclass_1(1)
     with pytest.raises(TypeError):
         _ = app1 + app1
@@ -132,6 +131,7 @@ def test_composable_to_self():
 def test_disconnect():
     """disconnect breaks all connections and allows parts to be reused"""
 
+    @define_app
     class app_dummyclass_1:
         def __init__(self, a):
             self.a = a
@@ -139,6 +139,7 @@ def test_disconnect():
         def main(self, val: int) -> int:
             return val
 
+    @define_app
     class app_dummyclass_2:
         def __init__(self, b):
             self.b = b
@@ -146,16 +147,13 @@ def test_disconnect():
         def main(self, val: int) -> int:
             return val
 
+    @define_app
     class app_dummyclass_3:
         def __init__(self, c):
             self.c = c
 
         def main(self, val: int) -> int:
             return val
-
-    define_app(app_dummyclass_1)
-    define_app(app_dummyclass_2)
-    define_app(app_dummyclass_3)
 
     aseqfunc1 = app_dummyclass_1(1)
     aseqfunc2 = app_dummyclass_2(2)
@@ -432,10 +430,12 @@ def slicer(val, index=2):
     return val[:index]
 
 
+@define_app
 def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
     return val[:4]
 
 
+@define_app
 def bar(val: AlignedSeqsType, *args, **kwargs) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
@@ -444,7 +444,7 @@ def test_user_function():
     """composable functions should be user definable"""
     from cogent3 import make_aligned_seqs
 
-    u_function = define_app(foo)()
+    u_function = foo()
 
     aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
     got = u_function(aln)
@@ -459,8 +459,8 @@ def test_user_function_multiple():
     from cogent3 import make_aligned_seqs
     from cogent3.core.alignment import Alignment
 
-    u_function_1 = define_app(foo)()
-    u_function_2 = define_app(bar)()
+    u_function_1 = foo()
+    u_function_2 = bar()
 
     aln_1 = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
     data = dict([("s1", "ACGTACGTA"), ("s2", "GTGTACGTA")])
@@ -718,15 +718,15 @@ def test_inheritance_from_decorated_class():
     __app_registry.pop(get_object_provenance(app_decorated_first1), None)
 
 
+# have to define this at module level for pickling to work
+@define_app
+def func2app(arg1: int, exponent: int) -> float:
+    return arg1 ** exponent
+
+
 def test_decorate_app_function():
     """works on functions now"""
     import inspect
-
-    # have to define this at module level for pickling to work
-    def func2app(arg1: int, exponent: int) -> float:
-        return arg1 ** exponent
-
-    func2app = define_app(func2app)
 
     sqd = func2app(exponent=2)
     assert sqd(3) == 9
@@ -735,21 +735,15 @@ def test_decorate_app_function():
     __app_registry.pop(get_object_provenance(func2app), None)
 
 
-# have to define this at module level for pickling to work
-@define_app
-def func3app(arg1: int, exponent: int) -> float:
-    return arg1 ** exponent
-
-
 def test_roundtrip_decorated_function():
     """decorated function can be pickled/unpickled"""
     import pickle
 
-    sqd = func3app(exponent=2)
+    sqd = func2app(exponent=2)
     u = pickle.loads(pickle.dumps(sqd))
     assert u(4) == 16
 
-    __app_registry.pop(get_object_provenance(func3app), None)
+    __app_registry.pop(get_object_provenance(func2app), None)
 
 
 if __name__ == "__main__":
