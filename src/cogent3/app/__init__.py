@@ -43,7 +43,7 @@ def _get_app_attr(name, is_composable):
         mod.__name__,
         name,
         is_composable,
-        _doc_summary(obj.__doc__),
+        _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
     ]
