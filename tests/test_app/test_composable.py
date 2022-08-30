@@ -736,5 +736,16 @@ def test_roundtrip_decorated_function():
     __app_registry.pop(get_object_provenance(func2app), None)
 
 
+def test_decorated_func_optional():
+    @define_app(composable=False)
+    def power(val: int, pow: int = 1) -> int:
+        return val ** pow
+
+    sqd = power(2)
+    assert sqd(3) == 9
+
+    __app_registry.pop(get_object_provenance(power), None)
+
+
 if __name__ == "__main__":
     main()
