@@ -1,7 +1,7 @@
 Turn your functions into composable apps
 ========================================
 
-This is super easy -- just use the ``define_app`` decorator! This generates a wrapper class that has a reference to your functionand can then become part of a composed function.
+This is super easy -- just use the ``define_app`` decorator! This generates a wrapper class that has a reference to your function and can then become part of a composed function.
 
 You need two things, your function and type hints on the first argument and the function return type.
 
@@ -68,7 +68,7 @@ This time we wrap a method call on a ``SequenceCollection`` (and the alignment s
 A user app with a different output type
 ---------------------------------------
 
-In this example, we make an function that returns a ``DistanceMatrix`` from an alignment.
+In this example, we make a function that returns a ``DistanceMatrix`` from an alignment.
 
 .. jupyter-execute::
 
