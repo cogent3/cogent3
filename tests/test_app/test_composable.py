@@ -747,5 +747,16 @@ def test_decorated_func_optional():
     __app_registry.pop(get_object_provenance(power), None)
 
 
+def test_decorated_func_just_args():
+    @define_app(composable=False)
+    def power(val: int, pow: int) -> int:
+        return val ** pow
+
+    sqd = power()
+    assert sqd(3, 3) == 27
+
+    __app_registry.pop(get_object_provenance(power), None)
+
+
 if __name__ == "__main__":
     main()

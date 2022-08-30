@@ -983,10 +983,10 @@ def _class_from_func(func):
         self._args = args
         self._kwargs = kwargs
 
-    def _main(self, arg, **kwargs):
+    def _main(self, arg, *args, **kwargs):
         kw_args = deepcopy(self._kwargs)
         kw_args = {**kw_args, **kwargs}
-        args = (arg,) + deepcopy(self._args)
+        args = (arg,) + args + deepcopy(self._args)
         bound = self._func_sig.bind(*args, **kw_args)
         return self._user_func(**bound.arguments)
 
