@@ -102,7 +102,7 @@ def test_composables_once():
     two = app_dummyclass_2(2)
     three = app_dummyclass_3(3)
     one + three
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         two + three  # three already has an input
 
     __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
@@ -122,7 +122,7 @@ def test_composable_to_self():
             return val
 
     app1 = app_dummyclass_1(1)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         _ = app1 + app1
 
     __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
@@ -440,6 +440,10 @@ def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
 
+for _app_ in (foo, bar):
+    __app_registry.pop(get_object_provenance(_app_), None)
+
+
 def test_user_function():
     """composable functions should be user definable"""
     from cogent3 import make_aligned_seqs
@@ -450,8 +454,6 @@ def test_user_function():
     got = u_function(aln)
 
     assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
-
-    __app_registry.pop(get_object_provenance(foo), None)
 
 
 def test_user_function_multiple():
@@ -470,9 +472,6 @@ def test_user_function_multiple():
     got_2 = u_function_2(aln_2)
     assert got_1.to_dict() == {"a": "GCAA", "b": "GCTT"}
     assert got_2 == {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
-
-    __app_registry.pop(get_object_provenance(foo), None)
-    __app_registry.pop(get_object_provenance(bar), None)
 
 
 def test_appify():

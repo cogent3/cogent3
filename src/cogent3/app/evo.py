@@ -39,8 +39,7 @@ __status__ = "Alpha"
 
 @define_app
 class model:
-    """Define a substitution model + tree for maximum likelihood evaluation.
-    Returns model_result."""
+    """Define a substitution model + tree for maximum likelihood evaluation."""
 
     def __init__(
         self,
@@ -382,8 +381,7 @@ class _ModelCollectionBase:
 
 @define_app
 class model_collection(_ModelCollectionBase):
-    """Fits a collection of models. Returns a
-    model_collection_result."""
+    """Fits a collection of models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
         return model_collection_result(source=aln.info)
@@ -391,8 +389,7 @@ class model_collection(_ModelCollectionBase):
 
 @define_app
 class hypothesis(_ModelCollectionBase):
-    """Specify a hypothesis through defining two models. Returns a
-    hypothesis_result."""
+    """Specify a hypothesis through defining two models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
         return hypothesis_result(name_of_null=self.null.name, source=aln.info)
@@ -400,7 +397,7 @@ class hypothesis(_ModelCollectionBase):
 
 @define_app
 class bootstrap:
-    """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
+    """Parametric bootstrap for a provided hypothesis."""
 
     def __init__(self, hyp, num_reps, parallel=False, verbose=False):
         self._hyp = hyp
@@ -446,8 +443,7 @@ class bootstrap:
 
 @define_app
 class ancestral_states:
-    """Computes ancestral state probabilities from a model result. Returns a dict
-    with a DictArray for each node."""
+    """Computes ancestral state probabilities from a model result."""
 
     def main(
         self, result: ModelResultType
@@ -943,7 +939,7 @@ class natsel_sitehet:
 class natsel_timehet:
     """The branch heterogeneity hypothesis test for natural selection.
     Tests for whether a single omega for all branches is sufficient against the
-    alternate that a user specified subset of branches have a distinct value
+    alternate that a user specified subset of branches has a distinct value
     (or values) of omega.
     """
 

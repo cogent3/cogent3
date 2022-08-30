@@ -123,7 +123,7 @@ class NotCompleted(int):
         return json.dumps(self.to_rich_dict())
 
 
-class ComposableType:
+class ComposableType:  # pragma: no cover
     def __init__(self, input_types=None, output_types=None, data_types=None):
         """
         Parameters
@@ -187,7 +187,7 @@ class ComposableType:
         return valid
 
 
-class Composable(ComposableType):
+class Composable(ComposableType):  # pragma: no cover
     def __init__(self, **kwargs):
         super(Composable, self).__init__(**kwargs)
         self._in = None  # input rules
@@ -505,7 +505,7 @@ class Composable(ComposableType):
         return results
 
 
-class ComposableTabular(Composable):
+class ComposableTabular(Composable):  # pragma: no cover
     def __init__(self, **kwargs):
         super(ComposableTabular, self).__init__(**kwargs)
         discontinued(
@@ -516,7 +516,7 @@ class ComposableTabular(Composable):
         )
 
 
-class ComposableSeq(Composable):
+class ComposableSeq(Composable):  # pragma: no cover
     def __init__(self, **kwargs):
         super(ComposableSeq, self).__init__(**kwargs)
         discontinued(
@@ -527,7 +527,7 @@ class ComposableSeq(Composable):
         )
 
 
-class ComposableAligned(Composable):
+class ComposableAligned(Composable):  # pragma: no cover
     def __init__(self, **kwargs):
         super(ComposableAligned, self).__init__(**kwargs)
         discontinued(
@@ -538,7 +538,7 @@ class ComposableAligned(Composable):
         )
 
 
-class ComposableTree(Composable):
+class ComposableTree(Composable):  # pragma: no cover
     def __init__(self, **kwargs):
         super(ComposableTree, self).__init__(**kwargs)
         discontinued(
@@ -549,7 +549,7 @@ class ComposableTree(Composable):
         )
 
 
-class ComposableModel(Composable):
+class ComposableModel(Composable):  # pragma: no cover
     def __init__(self, **kwargs):
         super(ComposableModel, self).__init__(**kwargs)
         discontinued(
@@ -560,7 +560,7 @@ class ComposableModel(Composable):
         )
 
 
-class ComposableHypothesis(Composable):
+class ComposableHypothesis(Composable):  # pragma: no cover
     def __init__(self, **kwargs):
         super(ComposableHypothesis, self).__init__(**kwargs)
         discontinued(
@@ -571,7 +571,7 @@ class ComposableHypothesis(Composable):
         )
 
 
-class ComposableDistance(Composable):
+class ComposableDistance(Composable):  # pragma: no cover
     def __init__(self, **kwargs):
         super(ComposableDistance, self).__init__(**kwargs)
         discontinued(
@@ -656,7 +656,7 @@ class _checkpointable:
         raise NotImplementedError
 
 
-class user_function(Composable):
+class user_function(Composable):  # pragma: no cover
     """wrapper class for user specified function"""
 
     @extend_docstring_from(ComposableType.__init__, pre=False)
@@ -730,7 +730,7 @@ class user_function(Composable):
 
 
 @extend_docstring_from(ComposableType.__init__, pre=True)
-def appify(input_types, output_types, data_types=None):
+def appify(input_types, output_types, data_types=None):  # pragma: no cover
     """function decorator for generating user apps. Simplifies creation of
     user_function() instances, e.g.
 
@@ -853,18 +853,18 @@ def _disconnect(self):
 
 def _add(self, other):
     if other.input is not None:
-        raise TypeError(
+        raise ValueError(
             f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
         )
-    elif other is self:
-        raise TypeError("cannot add an app to itself")
+    if other is self:
+        raise ValueError("cannot add an app to itself")
+
     # Check order
-    elif isinstance(self, user_function) or isinstance(other, user_function):
-        pass
-    elif self.app_type is WRITER:
+    if self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
     elif other.app_type is LOADER:
         raise TypeError("Right hand side of add operator must not be of type loader")
+
     if self._return_types & {"SerialisableType", "IdentifierType"}:
         pass
     # validate that self._return_types ia a non-empty set.
@@ -958,6 +958,9 @@ def _validate_data_type(self, data):
         "IdentifierType",
     }:
         return True
+
+    if isinstance(data, (tuple, list)):
+        data = data[0]
 
     class_name = data.__class__.__name__
     valid = class_name in self._data_types

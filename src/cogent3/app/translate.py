@@ -151,8 +151,7 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
 
 @define_app
 class select_translatable:
-    """Identifies most likely reading frame. Returns modified sequences / alignment,
-    if it could be resolved, NotCompleted otherwise."""
+    """Identifies most likely reading frame."""
 
     def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
         """selects translatable sequences

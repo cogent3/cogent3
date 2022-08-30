@@ -19,8 +19,7 @@ __status__ = "Alpha"
 
 @define_app
 class scale_branches:
-    """Transforms tree branch lengths from nucleotide to codon, or the converse.
-    Returns a Tree."""
+    """Transforms tree branch lengths from nucleotide to codon, or the converse."""
 
     def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
         """returns a new tree with lengths divided by scalar
@@ -65,7 +64,7 @@ class scale_branches:
 
 @define_app
 class uniformize_tree:
-    """Standardises the orientation of unrooted trees. Returns a Tree."""
+    """Standardises the orientation of unrooted trees."""
 
     def __init__(self, root_at="midpoint", ordered_names=None):
         """returns a new tree with standardised orientation

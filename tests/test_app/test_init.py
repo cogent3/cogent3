@@ -117,16 +117,14 @@ class TestAvailableApps(TestCase):
                 and not app1._return_types & {"SerialisableType", "IdentifierType"}
             ]
 
-            for incompatible_application_tuple in incompatible_application_tuples:
-                incompatible_application_tuple[0].disconnect()
-                incompatible_application_tuple[1].disconnect()
+            for app_a, app_b in incompatible_application_tuples:
+                err_type = ValueError if app_a is app_b else TypeError
+                app_a.disconnect()
+                app_b.disconnect()
 
                 # Compose two incompatible applications, there should be exceptions.
-                with self.assertRaises(TypeError):
-                    res = (
-                        incompatible_application_tuple[0]
-                        + incompatible_application_tuple[1]
-                    )
+                with self.assertRaises(err_type):
+                    app_a + app_b
 
             for app in applications:
                 if hasattr(app, "data_store"):

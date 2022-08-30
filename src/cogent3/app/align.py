@@ -324,13 +324,10 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
 @define_app
 class align_to_ref:
     """Aligns sequences to a nominated reference in the unaligned collection.
+
     This is much faster, and requires much less memory, than progressive_align
     but the quality will likely be lower. Alignment quality will be strongly
     affected by choice of reference.
-
-    Returns
-    -------
-    ArrayAlignment.
     """
 
     def __init__(
@@ -412,8 +409,7 @@ class align_to_ref:
 
 @define_app
 class progressive_align:
-    """Progressive multiple sequence alignment via any cogent3 model.
-    Returns an Alignment object."""
+    """Progressive multiple sequence alignment via any cogent3 model."""
 
     def __init__(
         self,
