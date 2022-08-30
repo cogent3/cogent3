@@ -14,6 +14,17 @@ __status__ = "Alpha"
 __all__ = ["align", "composable", "dist", "evo", "io", "sample", "translate", "tree"]
 
 
+def _doc_summary(doc):
+    """return first para of docstring"""
+    result = []
+    for line in doc.splitlines():
+        line = line.strip()
+        if not line:
+            break
+        result.append(line)
+    return " ".join(result)
+
+
 def _get_app_attr(name, is_composable):
     """returns app details for display"""
 
@@ -32,7 +43,7 @@ def _get_app_attr(name, is_composable):
         mod.__name__,
         name,
         is_composable,
-        obj.__doc__,
+        _doc_summary(obj.__doc__),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
     ]

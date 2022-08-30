@@ -42,7 +42,7 @@ def union(groups):
 
 @define_app(composable=False)
 class concat:
-    """Creates a concatenated alignment from a series. Returns an Alignment."""
+    """Creates a concatenated alignment from a series."""
 
     def __init__(self, join_seq="", intersect=True, moltype=None):
         """concatenate sequences from a series of alignments
@@ -108,7 +108,7 @@ class concat:
 @define_app
 class omit_degenerates:
     """Excludes alignment columns with degenerate conditions. Can accomodate
-    reading frame. Returns modified Alignment."""
+    reading frame."""
 
     def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
         """excludes degenerate characters from alignment
@@ -147,7 +147,7 @@ class omit_degenerates:
 @define_app
 class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
-    reading frame. Returns modified Alignment."""
+    reading frame."""
 
     def __init__(self, allowed_frac=0.99, motif_length=1, moltype=None):
         """
@@ -185,8 +185,7 @@ class omit_gap_pos:
 
 @define_app
 class take_codon_positions:
-    """Extracts the specified codon position(s) from an alignment.
-    Returns an Alignment."""
+    """Extracts the specified codon position(s) from an alignment."""
 
     def __init__(
         self,
@@ -280,8 +279,7 @@ class take_codon_positions:
 
 @define_app
 class take_named_seqs:
-    """Extracts (or everything but) named sequences. Returns a filtered
-    sequences, alignment that satisified the condition, NotCompleted otherwise."""
+    """Extracts named sequences."""
 
     def __init__(self, *names, negate=False):
         """selects named sequences from a collection
@@ -308,10 +306,8 @@ class take_named_seqs:
 
 @define_app
 class take_n_seqs:
-    """Selects n sequences from a collection. Chooses first n sequences, or selects randomly if specified.
-
-    Returns original object type with the selected sequences, NotCompleted object otherwise.
-    """
+    """Selects n sequences from a collection. Chooses first n sequences, or
+    selects randomly if specified."""
 
     def __init__(self, number, random=False, seed=None, fixed_choice=True):
         """
@@ -370,8 +366,7 @@ class take_n_seqs:
 
 @define_app
 class min_length:
-    """Filters sequence collections / alignments by length. Returns the
-    data if it satisfies the condition, NotCompleted otherwise."""
+    """Filters sequence collections / alignments by length."""
 
     def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
         """
@@ -439,8 +434,7 @@ class _GetStart:
 
 @define_app
 class fixed_length:
-    """Sample an alignment to a fixed length. Returns an Alignment of the
-    specified length, or NotCompleted if alignment too short."""
+    """Sample an alignment to a fixed length."""
 
     def __init__(
         self, length, start=0, random=False, seed=None, motif_length=1, moltype=None
@@ -534,8 +528,7 @@ class fixed_length:
 
 @define_app
 class omit_bad_seqs:
-    """Eliminates sequences from Alignment based on gap fraction, unique gaps.
-    Returns modified alignment."""
+    """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
         """Returns an alignment without the sequences responsible for
@@ -581,7 +574,7 @@ class omit_bad_seqs:
 @define_app
 class omit_duplicated:
     """Removes redundant sequences, recording dropped sequences in
-    seqs.info.dropped. Returns sequence collection with only unique sequences."""
+    seqs.info.dropped."""
 
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
         """Returns unique sequences, adds 'dropped' key to seqs.info
@@ -662,7 +655,7 @@ class omit_duplicated:
 
 @define_app
 class trim_stop_codons:
-    """Removes terminal stop codons. Returns sequences / alignment."""
+    """Removes terminal stop codons."""
 
     def __init__(self, gc=1):
         """selects named sequences from a collection

@@ -28,7 +28,7 @@ class fast_slow_dist:
     """Pairwise distance calculation for aligned sequences.
 
     Uses fast (but less numerically robust) approach where possible, slow (robust)
-    approach when not. Returns a DistanceMatrix.
+    approach when not.
     """
 
     def __init__(self, distance=None, moltype=None, fast_calc=None, slow_calc=None):
