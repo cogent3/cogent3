@@ -959,6 +959,9 @@ def _validate_data_type(self, data):
     }:
         return True
 
+    if isinstance(data, (tuple, list)):
+        data = data[0]
+
     class_name = data.__class__.__name__
     valid = class_name in self._data_types
     if not valid:
