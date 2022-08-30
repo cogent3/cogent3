@@ -1008,6 +1008,109 @@ def _class_from_func(func):
 
 
 def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = True):
+    """decorator for building callable apps
+
+    Parameters
+    ----------
+    klass
+        either a class or a function. If a function, it is converted to a
+        class with the function bound as a static method.
+    app_type
+        what type of app, typically you just want GENERIC.
+    composable
+        whether the resulting app can be composed with others or not
+
+    Notes
+    -----
+
+    Instances of ``cogent3`` apps are callable. If an exception occurs,
+    the app returns a ``NotCompleted`` instance with logging information.
+    Apps defined with ``composable=True`` can be "composed" (summed together)
+    to produce a single callable that sequentially invokes the composed
+    apps. For example, the independent usage of app instances
+    ``app1`` and ``app2`` as
+
+    >>> app2(app1(data))
+
+    is equivalent to
+
+    >>> combined = app1 + app2
+    >>> combined(data)
+
+    The ``app_type`` attribute is used to constrain how apps can be composed.
+    ``LOADER`` and ``WRITER`` are special cases. If included, a ``LOADER``
+    must always be first, e.g.
+
+    >>> app = a_loader + a_generic
+
+    If included, a ``WRITER`` must always be last, e.g.
+
+    >>> app = a_generic + a_writer
+
+    Changing the order for either of the above will result in a ``TypeError``.
+
+    There are no constraints on ordering of ``GENERIC`` aside from compatability of
+    their input and return types (see below).
+
+    In order to be decorated with ``@define_app`` a class **must**
+
+    - implement a method called ``main``
+    - type hint the first argument of ``main``
+    - type hint the return type for ``main``
+
+    Overlap between the return type hint and first argument hint is required
+    for two apps to be composed together.
+
+    An example app definition.
+
+    >>> from cogent3.app.composable import define_app
+    >>> from cogent3.app.typing import AlignedSeqsType, SerialisableType
+    ...
+    ... @define_app
+    ... class drop_bad:
+    ...     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
+    ...         self.quantile = quantile
+    ...         self.gap_fraction = gap_fraction
+    ...         self.moltype = moltype
+    ...
+    ...     T = Union[AlignedSeqsType, SerialisableType]
+    ...
+    ...     def main(self, aln: AlignedSeqsType) -> T:
+    ...         return aln.omit_bad_seqs(
+    ...                                 quantile=self.quantile,
+    ...                                 gap_fraction=self.gap_fraction,
+    ...                                 moltype=self.moltype
+    ...                                 )
+
+    ``drop_bad`` is a composable app with ``app_type=GENERIC``. The input
+    data must be a sequence alignment instance. It returns the same type,
+    which is also serialisable.  (If invalid input data is provided a
+    ``NoteCompleted`` instance is returned.)
+
+    You can also decorate functions. In that case, they will be converted into
+    a class with the same name as the original function. The function itself is
+    bound to this new class as a ``staticmethod``, e.g.
+
+    >>> from cogent3.app.composable import define_app
+    >>> from cogent3.app.typing import AlignedSeqsType, SerialisableType
+    >>>
+    >>> T = Union[AlignedSeqsType, SerialisableType]
+    >>>
+    >>> @define_app
+    ... def omit_seqs(aln: AlignedSeqsType, quantile=None, gap_fraction=1, moltype="dna") -> T:
+    ...         return aln.omit_bad_seqs(
+    ...                                 quantile=quantile,
+    ...                                 gap_fraction=gap_fraction,
+    ...                                 moltype=moltype
+    ...                                 )
+
+    ``omit_seqs`` is now an app, allowing creating different variants which
+    can be composed as per ones defined via a class
+
+    >>> omit_bad = omit_seqs(quantile=0.95)
+
+    and ``omit_bad`` is an instance of that app.
+    """
 
     if hasattr(klass, "app_type"):
         raise TypeError(
