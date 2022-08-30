@@ -14,14 +14,16 @@ from scitrack import CachingLogger
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import (
+    GENERIC,
     NON_COMPOSABLE,
     NotCompleted,
     __app_registry,
+    _add,
+    _get_raw_hints,
     appify,
     define_app,
     get_object_provenance,
     is_composable,
-    _get_raw_hints,
     user_function,
 )
 from cogent3.app.sample import min_length, omit_degenerates
@@ -629,7 +631,7 @@ def test_composable_minimum_parameters():
 
     def test_func1(arg1) -> int:
         return 1
-    
+
     with pytest.raises(ValueError):
         _, _ = _get_raw_hints(test_func1, 2)
 
@@ -640,7 +642,7 @@ def test_composable_return_type_hint():
 
     def test_func1(arg1):
         return 1
-    
+
     with pytest.raises(TypeError):
         _, _ = _get_raw_hints(test_func1, 1)
 
@@ -649,9 +651,9 @@ def test_composable_firstparam_type_hint():
     """correctly associate argument vals with their names when have variable
     positional args and kwargs"""
 
-    def test_func1(arg1)->int:
+    def test_func1(arg1) -> int:
         return 1
-    
+
     with pytest.raises(TypeError):
         _, _ = _get_raw_hints(test_func1, 1)
 
@@ -660,9 +662,9 @@ def test_composable_firstparam_type_is_None():
     """correctly associate argument vals with their names when have variable
     positional args and kwargs"""
 
-    def test_func1(arg1:None)->int:
+    def test_func1(arg1: None) -> int:
         return 1
-    
+
     with pytest.raises(TypeError):
         _, _ = _get_raw_hints(test_func1, 1)
 
@@ -671,12 +673,11 @@ def test_composable_return_type_is_None():
     """correctly associate argument vals with their names when have variable
     positional args and kwargs"""
 
-    def test_func1(arg1:int)->None:
+    def test_func1(arg1: int) -> None:
         return
-    
+
     with pytest.raises(TypeError):
         _, _ = _get_raw_hints(test_func1, 1)
-
 
 
 def test_composable_variable_positional_args_and_kwargs():
@@ -814,6 +815,83 @@ def test_decorated_func_just_args():
     assert sqd(3, 3) == 27
 
     __app_registry.pop(get_object_provenance(power), None)
+
+
+@pytest.mark.parametrize(
+    "meth",
+    [
+        "__call__",
+        "__repr__",
+        "__str__",
+        "__new__",
+        "__add__",
+        "disconnect",
+        "input",
+        "apply_to",
+        "_validate_data_type",
+    ],
+)
+def test_forbidden_methods_composable_app(meth):
+    class app_forbidden_methods1:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            return val
+
+    def function1():
+        pass
+
+    setattr(app_forbidden_methods1, meth, function1)
+    with pytest.raises(TypeError):
+        define_app(app_type=GENERIC)(app_forbidden_methods1)
+
+
+@pytest.mark.parametrize(
+    "meth", ["__call__", "__repr__", "__str__", "__new__", "_validate_data_type"]
+)
+def test_forbidden_methods_non_composable_app(meth):
+    class app_forbidden_methods2:
+        def __init__(self, a):
+            self.a = a
+
+        def main(self, val: int) -> int:
+            return val
+
+    def function1():
+        pass
+
+    setattr(app_forbidden_methods2, meth, function1)
+    with pytest.raises(TypeError):
+        define_app(app_type=NON_COMPOSABLE)(app_forbidden_methods2)
+
+
+def test_aadd_non_composable_apps():
+    @define_app(app_type=NON_COMPOSABLE)
+    class app_non_composable1:
+        def __init__(self):
+            pass
+
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(app_type=NON_COMPOSABLE)
+    class app_non_composable2:
+        def __init__(self):
+            pass
+
+        def main(self, val: int) -> int:
+            return val
+
+    setattr(app_non_composable1, "__add__", _add)
+    setattr(app_non_composable2, "__add__", _add)
+    app1 = app_non_composable1()
+    app2 = app_non_composable2()
+    with pytest.raises(TypeError):
+        app1 + app2
+
+    __app_registry.pop(get_object_provenance(app_non_composable1), None)
+    __app_registry.pop(get_object_provenance(app_non_composable2), None)
 
 
 if __name__ == "__main__":
