@@ -102,11 +102,7 @@ class NotCompleted(int):
     def __str__(self):
         name = self.__class__.__name__
         source = self.source or "Unknown"
-        val = (
-            f"{name}(type={self.type}, origin={self.origin}, "
-            f'source="{source}", message="{self.message}")'
-        )
-        return val
+        return f'{name}(type={self.type}, origin={self.origin}, source="{source}", message="{self.message}")'
 
     def to_rich_dict(self):
         """returns components for to_json"""
@@ -197,7 +193,7 @@ class Composable(ComposableType):  # pragma: no cover
         self._formatted = []
 
     def __str__(self):
-        txt = "" if not self.input else str(self.input)
+        txt = str(self.input) if self.input else ""
         if txt:
             txt += " + "
         txt += f"{self.__class__.__name__}({', '.join(self._formatted)})"
@@ -716,7 +712,7 @@ class user_function(Composable):  # pragma: no cover
         return func(*args, **kwargs_)
 
     def __str__(self):
-        txt = "" if not self.input else str(self.input)
+        txt = str(self.input) if self.input else ""
         if txt:
             txt += " + "
         txt += f"user_function(name='{self._user_func.__name__}', module='{self._user_func.__module__}')"
@@ -887,14 +883,12 @@ def _add(self, other):
 def _repr(self):
     val = f"{self.input!r} + " if self.app_type is not LOADER and self.input else ""
     all_args = deepcopy(self._init_vals)
-    args_items = all_args.get("args")
+    args_items = all_args.pop("args", None)
     data = ", ".join(f"{k}={v!r}" for k, v in args_items.items()) if args_items else ""
-    all_args.pop("args", None)
-    kwargs_items = all_args.get("kwargs")
+    kwargs_items = all_args.pop("kwargs", None)
     data += (
         ", ".join(f"{k}={v!r}" for k, v in kwargs_items.items()) if kwargs_items else ""
     )
-    all_args.pop("kwargs", None)
     data += ", ".join(f"{k}={v!r}" for k, v in all_args.items())
     data = f"{val}{self.__class__.__name__}({data})"
     data = textwrap.fill(data, width=80, break_long_words=False, break_on_hyphens=False)
@@ -1021,9 +1015,6 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         )
 
     app_type = AppType(app_type)
-
-    if inspect.isfunction(klass):
-        klass = _class_from_func(klass)
 
     def wrapped(klass):
         if inspect.isfunction(klass):
