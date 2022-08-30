@@ -14,12 +14,14 @@ from scitrack import CachingLogger
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import (
+    NON_COMPOSABLE,
     NotCompleted,
     __app_registry,
     appify,
     define_app,
     get_object_provenance,
     is_composable,
+    _get_raw_hints,
     user_function,
 )
 from cogent3.app.sample import min_length, omit_degenerates
@@ -601,7 +603,7 @@ def test_composed_func_pickleable():
     assert unpickled.input is not None
 
 
-def test_composable_new1():
+def test_composable_variable_positional_args():
     """correctly associate argument vals with their names when have variable
     positional args"""
 
@@ -621,7 +623,63 @@ def test_composable_new1():
     __app_registry.pop(get_object_provenance(pos_var_pos1), None)
 
 
-def test_composable_new2():
+def test_composable_minimum_parameters():
+    """correctly associate argument vals with their names when have variable
+    positional args and kwargs"""
+
+    def test_func1(arg1) -> int:
+        return 1
+    
+    with pytest.raises(ValueError):
+        _, _ = _get_raw_hints(test_func1, 2)
+
+
+def test_composable_return_type_hint():
+    """correctly associate argument vals with their names when have variable
+    positional args and kwargs"""
+
+    def test_func1(arg1):
+        return 1
+    
+    with pytest.raises(TypeError):
+        _, _ = _get_raw_hints(test_func1, 1)
+
+
+def test_composable_firstparam_type_hint():
+    """correctly associate argument vals with their names when have variable
+    positional args and kwargs"""
+
+    def test_func1(arg1)->int:
+        return 1
+    
+    with pytest.raises(TypeError):
+        _, _ = _get_raw_hints(test_func1, 1)
+
+
+def test_composable_firstparam_type_is_None():
+    """correctly associate argument vals with their names when have variable
+    positional args and kwargs"""
+
+    def test_func1(arg1:None)->int:
+        return 1
+    
+    with pytest.raises(TypeError):
+        _, _ = _get_raw_hints(test_func1, 1)
+
+
+def test_composable_return_type_is_None():
+    """correctly associate argument vals with their names when have variable
+    positional args and kwargs"""
+
+    def test_func1(arg1:int)->None:
+        return
+    
+    with pytest.raises(TypeError):
+        _, _ = _get_raw_hints(test_func1, 1)
+
+
+
+def test_composable_variable_positional_args_and_kwargs():
     """correctly associate argument vals with their names when have variable
     positional args and kwargs"""
 
@@ -737,7 +795,7 @@ def test_roundtrip_decorated_function():
 
 
 def test_decorated_func_optional():
-    @define_app(composable=False)
+    @define_app(app_type=NON_COMPOSABLE)
     def power(val: int, pow: int = 1) -> int:
         return val ** pow
 
@@ -748,7 +806,7 @@ def test_decorated_func_optional():
 
 
 def test_decorated_func_just_args():
-    @define_app(composable=False)
+    @define_app(app_type=NON_COMPOSABLE)
     def power(val: int, pow: int) -> int:
         return val ** pow
 

@@ -15,7 +15,7 @@ from cogent3.evolve.fast_distance import HammingPair, TN93Pair
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Stephen Ma"]
+__credits__ = ["Gavin Huttley", "Stephen Ma", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -123,7 +123,7 @@ class FastSlowDistTests(TestCase):
         composable_apps = _get_all_composable_apps()
         calc_dist = dist_app.fast_slow_dist(fast_calc="hamming", moltype="dna")
         for app in composable_apps:
-            if app.app_type == WRITER:
+            if app.app_type is WRITER:
                 # cannot have a WRITER before a GENERIC
                 continue
             # Compose two composable applications, there should not be exceptions.
