@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import pytest
 
 from cogent3.app.typing import (
@@ -87,3 +89,9 @@ def test_hints_from_strings_invalid():
 def test_hints_from_strings():
     got = hints_from_strings("serialisable", "aligned")
     assert got == [SerialisableType, AlignedSeqsType]
+
+
+@pytest.mark.parametrize("container", (List, Tuple))
+def test_hints_from_container_type(container):
+    got = get_constraint_names(container[AlignedSeqsType])
+    assert got == {"Alignment", "ArrayAlignment"}

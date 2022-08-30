@@ -86,7 +86,7 @@ def get_constraint_names(*hints) -> set[str, ...]:
             all_hints.update(hint.__constraints__)
             continue
 
-        if get_origin(hint) == Union:
+        if get_origin(hint) in (Union, list, tuple):
             all_hints.update(get_constraint_names(*get_args(hint)))
 
         if type(hint) == type:
