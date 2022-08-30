@@ -1134,8 +1134,9 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
             "__repr__",
             "__str__",
             "__new__",
+            "_validate_data_type",
         ]
-        excludes = ["__add__", "disconnect", "input", "apply_to"]
+        excludes = ["__add__", "disconnect", "apply_to"]
         if app_type is not NON_COMPOSABLE and getattr(klass, "input", None):
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
@@ -1143,13 +1144,13 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
         elif app_type is not NON_COMPOSABLE:
             method_list.extend(excludes)
 
-        for meth, func in __mapping.items():
+        for meth in method_list:
             # make sure method not defined by user before adding
-            if meth in method_list and inspect.isfunction(getattr(klass, meth, None)):
+            if inspect.isfunction(getattr(klass, meth, None)):
                 raise TypeError(
                     f"remove {meth!r} in {klass.__name__!r}, this functionality provided by define_app"
                 )
-
+            func = __mapping["__repr__"] if meth == "__str__" else __mapping[meth]
             func.__name__ = meth
             setattr(klass, meth, func)
 
