@@ -6,7 +6,7 @@ from unittest import TestCase, main
 
 from cogent3 import available_apps
 from cogent3.app import align, dist, evo, io, sample, translate, tree
-from cogent3.app.composable import LOADER, WRITER
+from cogent3.app.composable import LOADER, WRITER, is_composable
 
 
 __author__ = "Gavin Huttley"
@@ -64,11 +64,9 @@ class TestAvailableApps(TestCase):
 
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
-        from cogent3.app.composable import is_composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
-
             for app in applications:
                 self.assertTrue(is_composable(app), msg=app)
 
@@ -97,11 +95,9 @@ class TestAvailableApps(TestCase):
 
     def test_incompatible_pairwise_applications(self):
         """Properly identify two incompatible applications"""
-        from cogent3.app.composable import is_composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
-
             for app in applications:
                 self.assertTrue(is_composable(app))
 

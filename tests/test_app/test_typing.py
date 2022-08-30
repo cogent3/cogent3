@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import pytest
 
@@ -39,20 +39,16 @@ def test_get_constraint_names():
     assert got == {obj.__name__ for obj in (Alignment, ArrayAlignment)}
     got = get_constraint_names(UnalignedSeqsType)
     assert got == {SequenceCollection.__name__}
-
     got = get_constraint_names(SeqsCollectionType)
     assert got == {
         obj.__name__ for obj in (Alignment, ArrayAlignment, SequenceCollection)
     }
-
     got = get_constraint_names(TabularType)
-
     assert got == {obj.__name__ for obj in (Table, DictArray, DistanceMatrix)}
 
 
 def test_get_constraint_names_builtins():
     """handles built-in types"""
-    from typing import Union
 
     got = get_constraint_names(Union[str, bytes])
     assert got == {"str", "bytes"}
@@ -74,7 +70,6 @@ def test_get_constraint_names_identifiertype():
 
 def test_get_constraint_names_mixed_serilisable_identifiertype():
     """SerialisableType does not define any compatible types"""
-    from typing import Union
 
     got = get_constraint_names(Union[SerialisableType, IdentifierType, AlignedSeqsType])
     assert got == {"SerialisableType", "IdentifierType", "Alignment", "ArrayAlignment"}

@@ -49,7 +49,7 @@ _seqs5 = {"Human": "ASSLQHENSSLLLT", "Bandicoot": "XSLMLETSSLLSN"}
 
 
 def _get_all_composable_apps():
-    applications = [
+    return [
         align.align_to_ref(),
         align.progressive_align(model="GY94"),
         sample.fixed_length(100),
@@ -61,7 +61,6 @@ def _get_all_composable_apps():
         sample.take_named_seqs(),
         sample.trim_stop_codons(gc=1),
     ]
-    return applications
 
 
 class FastSlowDistTests(TestCase):

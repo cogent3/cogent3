@@ -1,3 +1,4 @@
+import inspect
 import os
 import pathlib
 import pickle
@@ -11,8 +12,11 @@ import pytest
 
 from scitrack import CachingLogger
 
+from cogent3 import make_aligned_seqs
+from cogent3.app import align, evo
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
+from cogent3.app import translate, tree
 from cogent3.app.composable import (
     GENERIC,
     NON_COMPOSABLE,
@@ -34,6 +38,7 @@ from cogent3.app.typing import (
     AlignedSeqsType,
     PairwiseDistanceType,
 )
+from cogent3.core.alignment import Alignment, SequenceCollection
 
 
 __author__ = "Gavin Huttley"
@@ -176,7 +181,6 @@ def test_disconnect():
 
 def test_apply_to():
     """correctly applies iteratively"""
-    from cogent3.core.alignment import SequenceCollection
 
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
     reader = io_app.load_unaligned(format="fasta", moltype="dna")
@@ -380,17 +384,15 @@ def test_str():
 def test_composite_pickleable():
     """composable functions should be pickleable"""
 
-    from cogent3.app import align, evo, io, sample, translate, tree
-
-    read = io.load_aligned(moltype="dna")
+    read = io_app.load_aligned(moltype="dna")
     dumps(read)
     trans = translate.select_translatable()
     dumps(trans)
     aln = align.progressive_align("nucleotide")
     dumps(aln)
-    just_nucs = sample.omit_degenerates(moltype="dna")
+    just_nucs = sample_app.omit_degenerates(moltype="dna")
     dumps(just_nucs)
-    limit = sample.fixed_length(1000, random=True)
+    limit = sample_app.fixed_length(1000, random=True)
     dumps(limit)
     mod = evo.model("HKY85")
     dumps(mod)
@@ -414,9 +416,8 @@ def test_not_completed_result():
 def test_triggers_bugcatcher():
     """a composable that does not trap failures returns NotCompletedResult
     requesting bug report"""
-    from cogent3.app import io
 
-    read = io.load_aligned(moltype="dna")
+    read = io_app.load_aligned(moltype="dna")
     read.main = lambda x: None
     got = read("somepath.fasta")
     assert isinstance(got, NotCompleted)
@@ -450,7 +451,6 @@ for _app_ in (foo, bar):
 
 def test_user_function():
     """composable functions should be user definable"""
-    from cogent3 import make_aligned_seqs
 
     u_function = foo()
 
@@ -462,9 +462,6 @@ def test_user_function():
 
 def test_user_function_multiple():
     """user defined composable functions should not interfere with each other"""
-    from cogent3 import make_aligned_seqs
-    from cogent3.core.alignment import Alignment
-
     u_function_1 = foo()
     u_function_2 = bar()
 
@@ -595,7 +592,6 @@ def test_concat_not_composable():
 
 
 def test_composed_func_pickleable():
-    from cogent3.app.sample import min_length, omit_degenerates
 
     ml = min_length(100)
     no_degen = omit_degenerates(moltype="dna")
@@ -775,7 +771,6 @@ def func2app(arg1: int, exponent: int) -> float:
 
 def test_decorate_app_function():
     """works on functions now"""
-    import inspect
 
     sqd = func2app(exponent=2)
     assert sqd(3) == 9
@@ -786,7 +781,6 @@ def test_decorate_app_function():
 
 def test_roundtrip_decorated_function():
     """decorated function can be pickled/unpickled"""
-    import pickle
 
     sqd = func2app(exponent=2)
     u = pickle.loads(pickle.dumps(sqd))
