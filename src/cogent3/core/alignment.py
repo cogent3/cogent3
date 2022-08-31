@@ -3748,7 +3748,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self.array_seqs = transpose(self.array_positions)
         self.seq_data = self.array_seqs
         self.seq_len = len(self.array_positions)
-        self._type = self.moltype.get_type()
 
     def _force_same_data(self, data, names):
         """Forces array that was passed in to be used as selfarray_positions"""
@@ -3879,7 +3878,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)} x {self.seq_len} {self._type} alignment: {seqs}"
+        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     def iupac_consensus(self, alphabet=None):
         """Returns string containing IUPAC consensus sequence of the alignment."""
@@ -4364,7 +4363,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         names = self.names
 
         self._motif_probs = {}
-        self._type = self.moltype.get_type()
         lengths = list(map(len, self.seq_data))
         if lengths and (max(lengths) != min(lengths)):
             raise DataError(
@@ -4409,7 +4407,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)} x {self.seq_len} {self._type} alignment: {seqs}"
+        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     def _mapped(self, slicemap):
         align = []

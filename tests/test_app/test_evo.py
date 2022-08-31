@@ -20,7 +20,7 @@ from cogent3.util.deserialise import deserialise_object
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -38,7 +38,7 @@ class TestModel(TestCase):
         model = evo_app.model("HKY85", time_het="max")
         got = " ".join(str(model).splitlines())
         expect = (
-            "model(type='model', sm='HKY85', tree=None, unique_trees=False, "
+            "model(sm='HKY85', tree=None, unique_trees=False, "
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, "
             "opt_args=None, upper=50, split_codons=False, "
@@ -55,7 +55,7 @@ class TestModel(TestCase):
             for value in (True, False):
                 # check setting via sm_args is overridden
                 with self.assertRaises(ValueError):
-                    model = evo_app.model(
+                    _ = evo_app.model(
                         mn,
                         optimise_motif_probs=value,
                         sm_args=dict(optimise_motif_probs=not value),
@@ -268,8 +268,11 @@ class TestModel(TestCase):
         hyp = evo_app.hypothesis(model1, model2)
         got = " ".join(str(hyp).splitlines())
         expect = (
-            "hypothesis(type='hypothesis', null='HKY85', "
-            "alternates=(model(type='model', sm='HKY85', tree=None, unique_trees=False, "
+            "hypothesis(null=model(sm='HKY85', tree=None, unique_trees=False, "
+            "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
+            "time_het=None, param_rules=None, opt_args=None, upper=50, "
+            "split_codons=False, show_progress=False, verbose=False), "
+            "alternates=(model(sm='HKY85', tree=None, unique_trees=False, "
             "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, opt_args=None, upper=50,"
             " split_codons=False, show_progress=False, verbose=False),),"
@@ -384,7 +387,7 @@ class TestModel(TestCase):
     def test_model_tree_unique_trees(self):
         """handles case of using unique trees for each alignment"""
         with self.assertRaises(AssertionError):
-            model1 = evo_app.model("GN", tree="(a,b,c)", unique_trees=True)
+            _ = evo_app.model("GN", tree="(a,b,c)", unique_trees=True)
         _data1 = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
