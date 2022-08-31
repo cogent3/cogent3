@@ -800,6 +800,41 @@ def test_decorated_func_optional():
     __app_registry.pop(get_object_provenance(power), None)
 
 
+def test_decorated_func_repr():
+    def kw(val: int = 1) -> int:
+        return val ** val
+
+    def kw_kw(val: int = 1, pow: int = 1) -> int:
+        return val ** pow
+
+    def pos(val: int) -> int:
+        return val ** val
+
+    def pos_pos(val: int, pow: int) -> int:
+        return val ** pow
+
+    def pos_kw(val: int, pow: int = 1) -> int:
+        return val ** pow
+
+    fns = {fn: func for fn, func in locals().items() if callable(func)}
+    args = {"pos": 4, "kw": dict(pow=3)}
+    for name, func in fns.items():
+        app = define_app(func)
+        if len(name.split("_")) == 1:
+            instance = app()
+            expect = f"{name}()"
+        elif name.endswith("kw"):
+            instance = app(**args["kw"])
+            expect = f"{name}(pow={args['kw']['pow']})"
+        else:
+            instance = app(args["pos"])
+            expect = f"{name}(pow={args['pos']})"
+
+        assert repr(instance) == expect, name
+
+        __app_registry.pop(get_object_provenance(instance), None)
+
+
 def test_decorated_func_just_args():
     @define_app(app_type=NON_COMPOSABLE)
     def power(val: int, pow: int) -> int:
