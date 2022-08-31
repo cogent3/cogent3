@@ -850,10 +850,10 @@ def _disconnect(self):
 
 
 def _add(self, other):
-    
+
     if getattr(other, "app_type", None) not in {WRITER, LOADER, GENERIC}:
         raise TypeError(f"{other!r} is not composable")
-    
+
     if other.input is not None:
         raise ValueError(
             f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
@@ -891,7 +891,7 @@ def _repr(self):
     val = f"{self.input!r} + " if self.app_type is not LOADER and self.input else ""
     all_args = deepcopy(self._init_vals)
     args_items = all_args.pop("args", None)
-    data = ", ".join(f"{k}={v!r}" for k, v in args_items.items()) if args_items else ""
+    data = ", ".join(f"{v!r}" for v in args_items) if args_items else ""
     kwargs_items = all_args.pop("kwargs", None)
     data += (
         ", ".join(f"{k}={v!r}" for k, v in kwargs_items.items()) if kwargs_items else ""
@@ -905,11 +905,18 @@ def _repr(self):
 def _new(klass, *args, **kwargs):
     obj = object.__new__(klass)
 
-    init_sig = inspect.signature(klass.__init__)
-    bargs = init_sig.bind_partial(klass, *args, **kwargs)
+    if hasattr(klass, "_func_sig"):
+        # we have a decorated function, the first parameter in the signature
+        # is not given to constructor, so we create a new signature excluding that one
+        params = klass._func_sig.parameters
+        init_sig = inspect.Signature(parameters=list(params.values())[1:])
+        bargs = init_sig.bind_partial(*args, **kwargs)
+    else:
+        init_sig = inspect.signature(klass.__init__)
+        bargs = init_sig.bind_partial(klass, *args, **kwargs)
     bargs.apply_defaults()
     init_vals = bargs.arguments
-    init_vals.pop("self")
+    init_vals.pop("self", None)
 
     obj._init_vals = init_vals
     return obj

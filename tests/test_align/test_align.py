@@ -269,7 +269,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 "B": "TTAATTTTAGTAGTGCTATCCCA",
                 "C": "TTAATTTTAGTAGTGCTATCC",
             },
-            moltype="dna"
+            moltype="dna",
         )
 
         expected = {
@@ -289,7 +289,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             aln, _ = cogent3.align.progressive.TreeAlign(
                 model="F81",
                 seqs=seqs,
-                tree=cogent3.make_tree("({},{},{})".format(*tree_encoding))
+                tree=cogent3.make_tree("({},{},{})".format(*tree_encoding)),
             )
             self.assertEqual(aln.to_dict(), expected)
 
