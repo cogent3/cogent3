@@ -28,7 +28,7 @@ from cogent3.util.table import Table
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -233,7 +233,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme")
             writer = write_db(outpath, create=True, if_exists="ignore")
             data = dict(a=[1, 2], b="string")
-            m = writer(data, identifier=join("blah", "delme.json"))
+            _ = writer(data, identifier=join("blah", "delme.json"))
             writer.data_store.db.close()
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
@@ -251,7 +251,6 @@ class TestIo(TestCase):
             gr = _get_generic_result(join("blah", "delme.json"))
             got = writer(gr)
             writer.data_store.db.close()
-            dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
             outpath = join(dirname, "dummy.json")
             with open(outpath, mode="w") as outfile:
@@ -467,7 +466,6 @@ class TestIo(TestCase):
 
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme")
-
             obj = generic_result(source=join("blah", "delme.json"))
             obj["dna"] = DNA
             writer = io_app.write_json(outdir, create=True)
@@ -520,7 +518,7 @@ class TestIo(TestCase):
             writer = write_db(outdir, create=True, if_exists="overwrite")
             process = reader + aligner + writer
 
-            r = process.apply_to(
+            _ = process.apply_to(
                 members, show_progress=False, parallel=True, cleanup=True
             )
             expect = [str(m) for m in process.data_store]

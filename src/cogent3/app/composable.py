@@ -773,12 +773,14 @@ class AppType(Enum):
     LOADER = "loader"
     WRITER = "writer"
     GENERIC = "generic"
+    NON_COMPOSABLE = "non_composable"
 
 
 # Aliases to use Enum easily
 LOADER = AppType.LOADER
 WRITER = AppType.WRITER
 GENERIC = AppType.GENERIC
+NON_COMPOSABLE = AppType.NON_COMPOSABLE
 
 
 def _get_raw_hints(main_func, min_params):
@@ -848,7 +850,7 @@ def _disconnect(self):
 
 
 def _add(self, other):
-    if other.input is not None:
+    if hasattr(other, "input") and other.input is not None:
         raise ValueError(
             f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
         )
@@ -856,7 +858,9 @@ def _add(self, other):
         raise ValueError("cannot add an app to itself")
 
     # Check order
-    if self.app_type is WRITER:
+    if self.app_type is NON_COMPOSABLE or other.app_type is NON_COMPOSABLE:
+        raise TypeError("Both composed apps must be of composable type")
+    elif self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
     elif other.app_type is LOADER:
         raise TypeError("Right hand side of add operator must not be of type loader")
@@ -1007,7 +1011,7 @@ def _class_from_func(func):
     return result
 
 
-def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = True):
+def define_app(klass=None, *, app_type: AppType = GENERIC):
     """decorator for building callable apps
 
     Parameters
@@ -1017,15 +1021,13 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         class with the function bound as a static method.
     app_type
         what type of app, typically you just want GENERIC.
-    composable
-        whether the resulting app can be composed with others or not
 
     Notes
     -----
 
     Instances of ``cogent3`` apps are callable. If an exception occurs,
     the app returns a ``NotCompleted`` instance with logging information.
-    Apps defined with ``composable=True`` can be "composed" (summed together)
+    Apps defined with app_type LOADER, GENERIC or WRITER can be "composed" (summed together)
     to produce a single callable that sequentially invokes the composed
     apps. For example, the independent usage of app instances
     ``app1`` and ``app2`` as
@@ -1125,27 +1127,30 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
 
         if not inspect.isclass(klass):
             raise ValueError(f"{klass} is not a class")
-        # check if user defined these functions
+
+        # check if user defined these methods
         method_list = [
             "__call__",
             "__repr__",
             "__str__",
             "__new__",
+            "_validate_data_type",
         ]
-        if composable:
-            method_list.extend(("__add__", "input", "disconnect", "apply_to"))
-
-        for meth in method_list:
-            if composable and inspect.isfunction(getattr(klass, meth, None)):
-                raise TypeError(
-                    f"remove {meth!r} method in {klass.__name__!r}, this functionality provided by define_app"
-                )
-        if composable and getattr(klass, "input", None):
+        excludes = ["__add__", "disconnect", "apply_to"]
+        if app_type is not NON_COMPOSABLE and getattr(klass, "input", None):
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
+        elif app_type is not NON_COMPOSABLE:
+            method_list.extend(excludes)
 
-        for meth, func in __mapping.items():
+        for meth in method_list:
+            # make sure method not defined by user before adding
+            if inspect.isfunction(getattr(klass, meth, None)):
+                raise TypeError(
+                    f"remove {meth!r} in {klass.__name__!r}, this functionality provided by define_app"
+                )
+            func = __mapping["__repr__"] if meth == "__str__" else __mapping[meth]
             func.__name__ = meth
             setattr(klass, meth, func)
 
@@ -1155,7 +1160,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
 
-        if app_type != LOADER:
+        if app_type is not LOADER:
             setattr(klass, "input", None)
 
         if hasattr(klass, "__slots__"):
@@ -1163,7 +1168,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC, composable: bool = Tr
             raise NotImplementedError("slots are not currently supported")
 
         # register this app
-        __app_registry[get_object_provenance(klass)] = composable
+        __app_registry[get_object_provenance(klass)] = app_type is not NON_COMPOSABLE
 
         return klass
 
@@ -1246,8 +1251,8 @@ def _apply_to(
         logger.log_versions(["cogent3"])
 
     results = []
-    process = self.input or self if self.app_type != LOADER else self
-    if self.app_type != LOADER and self.input:
+    process = self.input or self if self.app_type is not LOADER else self
+    if self.app_type is not LOADER and self.input:
         # As we will be explicitly calling the input object, we disconnect
         # the two-way interaction between input and self. This means self
         # is not called twice, and self is not unecessarily pickled during

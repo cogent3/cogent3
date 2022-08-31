@@ -6,7 +6,7 @@ from unittest import TestCase, main
 
 from cogent3 import available_apps
 from cogent3.app import align, dist, evo, io, sample, translate, tree
-from cogent3.app.composable import LOADER, WRITER
+from cogent3.app.composable import LOADER, WRITER, is_composable
 
 
 __author__ = "Gavin Huttley"
@@ -25,7 +25,7 @@ def _get_all_composables(tmp_dir_name):
     test_hyp = evo.hypothesis(test_model1, test_model2)
     test_num_reps = 100
 
-    applications = [
+    return [
         align.align_to_ref(),
         align.progressive_align(model="GY94"),
         dist.fast_slow_dist(moltype="dna", fast_calc="hamming"),
@@ -51,7 +51,6 @@ def _get_all_composables(tmp_dir_name):
         tree.scale_branches(),
         tree.uniformize_tree(),
     ]
-    return applications
 
 
 class TestAvailableApps(TestCase):
@@ -65,11 +64,9 @@ class TestAvailableApps(TestCase):
 
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
-        from cogent3.app.composable import is_composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
-
             for app in applications:
                 self.assertTrue(is_composable(app), msg=app)
 
@@ -86,11 +83,11 @@ class TestAvailableApps(TestCase):
                 and app2.app_type is not LOADER
             ]
 
-            for composable_application_tuple in composable_application_tuples:
-                composable_application_tuple[0].disconnect()
-                composable_application_tuple[1].disconnect()
+            for app_a, app_b in composable_application_tuples:
+                app_a.disconnect()
+                app_b.disconnect()
                 # Compose two composable applications, there should not be exceptions.
-                composable_application_tuple[0] + composable_application_tuple[1]
+                app_a + app_b
 
             for app in applications:
                 if hasattr(app, "data_store"):
@@ -98,11 +95,9 @@ class TestAvailableApps(TestCase):
 
     def test_incompatible_pairwise_applications(self):
         """Properly identify two incompatible applications"""
-        from cogent3.app.composable import is_composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
-
             for app in applications:
                 self.assertTrue(is_composable(app))
 

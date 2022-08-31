@@ -184,7 +184,7 @@ class TestTree(TestCase):
         }
 
         darr = DistanceMatrix(data)
-        # must explicitly call main() method to avoid error trapping by Composable
+        # must explicitly call main() method to avoid error trapping by decorator
         with self.assertRaises(KeyError):
             quick_tree.main(darr)
         # when distance_matrix is None after dropping invalid

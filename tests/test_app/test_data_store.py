@@ -4,11 +4,14 @@ import pathlib
 import shutil
 import sys
 
+from copy import deepcopy
 from pathlib import Path
+from pickle import dumps, loads
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
-from cogent3 import load_aligned_seqs
+from cogent3 import load_aligned_seqs, make_unaligned_seqs
+from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import (
     IGNORE,
     OVERWRITE,
@@ -20,10 +23,13 @@ from cogent3.app.data_store import (
     SingleReadDataStore,
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
+    _db_lockid,
     get_data_source,
     load_record_from_json,
 )
+from cogent3.app.io import load_db
 from cogent3.parse.fasta import MinimalFastaParser
+from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
@@ -138,7 +144,6 @@ class DataStoreBaseReadTests:
 
     def test_pickleable_roundtrip(self):
         """pickling of data stores should be reversible"""
-        from pickle import dumps, loads
 
         dstore = self.ReadClass(self.basedir, suffix="*")
         re_dstore = loads(dumps(dstore))
@@ -147,7 +152,6 @@ class DataStoreBaseReadTests:
 
     def test_pickleable_member_roundtrip(self):
         """pickling of data store members should be reversible"""
-        from pickle import dumps, loads
 
         dstore = self.ReadClass(self.basedir, suffix="*")
         re_member = loads(dumps(dstore[0]))
@@ -442,7 +446,6 @@ class DirectoryDataStoreReadTests(
         """directory data store ignores"""
         with TemporaryDirectory(dir=".") as dirname:
             # tests the case when the directory has the file with the same suffix to self.suffix
-            from cogent3.app.composable import NotCompleted
 
             with TemporaryDirectory(dir=".") as dirname:
                 path = Path(dirname) / "subdir"
@@ -569,7 +572,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_pickleable_roundtrip(self):
         """pickling of data stores should be reversible"""
-        from pickle import dumps, loads
 
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, "data")
@@ -589,10 +591,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_unchanged_database_record(self):
         """tests unchanged record via the Readable and Writable DataStore interface to TinyDB"""
-        from copy import deepcopy
-
-        from cogent3.app.io import load_db
-
         loader = load_db()
         data = self.data
         original_record = deepcopy(data)
@@ -625,8 +623,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_tiny_write_incomplete(self):
         """write an incomplete result to tinydb"""
-        from cogent3.app.composable import NotCompleted
-
         keys = list(self.data)
         incomplete = [
             keys.pop(0),
@@ -660,8 +656,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_summary_methods(self):
         """produce a table"""
-        from cogent3.app.composable import NotCompleted
-
         keys = list(self.data)
         incomplete = [
             keys.pop(0),
@@ -690,9 +684,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_dblock(self):
         """locking/unlocking of db"""
-
-        from cogent3.app.data_store import _db_lockid
-
         keys = list(self.data)
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
@@ -868,8 +859,6 @@ class TestFunctions(TestCase):
 
     def test_get_data_source_seqcoll(self):
         """handles case where input is sequence collection object"""
-        from cogent3 import make_unaligned_seqs
-
         for val_klass in (str, pathlib.Path):
             value = val_klass("some/path.txt")
             obj = make_unaligned_seqs(
@@ -893,8 +882,6 @@ class TestFunctions(TestCase):
 
     def test_get_data_source_dict(self):
         """handles case where input is dict (sub)class instance with top level source key"""
-        from cogent3.util.union_dict import UnionDict
-
         for klass in (dict, UnionDict):
             for val_klass in (str, pathlib.Path):
                 value = val_klass("some/path.txt")
