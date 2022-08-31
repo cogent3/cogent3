@@ -6,11 +6,12 @@ from unittest import TestCase, main
 
 from cogent3 import available_apps
 from cogent3.app import align, dist, evo, io, sample, translate, tree
+from cogent3.app.composable import LOADER, WRITER, is_composable
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -24,7 +25,7 @@ def _get_all_composables(tmp_dir_name):
     test_hyp = evo.hypothesis(test_model1, test_model2)
     test_num_reps = 100
 
-    applications = [
+    return [
         align.align_to_ref(),
         align.progressive_align(model="GY94"),
         dist.fast_slow_dist(moltype="dna", fast_calc="hamming"),
@@ -50,7 +51,6 @@ def _get_all_composables(tmp_dir_name):
         tree.scale_branches(),
         tree.uniformize_tree(),
     ]
-    return applications
 
 
 class TestAvailableApps(TestCase):
@@ -64,26 +64,30 @@ class TestAvailableApps(TestCase):
 
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
-        from cogent3.app.composable import Composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
-
             for app in applications:
-                self.assertIsInstance(app, Composable)
+                self.assertTrue(is_composable(app), msg=app)
 
             composable_application_tuples = [
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and app1._output_types & app2._input_types != set()
+                if app1 != app2
+                and (
+                    app1._return_types & app2._data_types
+                    or app1._return_types & {"SerialisableType", "IdentifierType"}
+                )
+                and app1.app_type is not WRITER
+                and app2.app_type is not LOADER
             ]
 
-            for composable_application_tuple in composable_application_tuples:
-                composable_application_tuple[0].disconnect()
-                composable_application_tuple[1].disconnect()
+            for app_a, app_b in composable_application_tuples:
+                app_a.disconnect()
+                app_b.disconnect()
                 # Compose two composable applications, there should not be exceptions.
-                composable_application_tuple[0] + composable_application_tuple[1]
+                app_a + app_b
 
             for app in applications:
                 if hasattr(app, "data_store"):
@@ -91,31 +95,31 @@ class TestAvailableApps(TestCase):
 
     def test_incompatible_pairwise_applications(self):
         """Properly identify two incompatible applications"""
-        from cogent3.app.composable import Composable
 
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
-
             for app in applications:
-                self.assertIsInstance(app, Composable)
+                self.assertTrue(is_composable(app))
 
             incompatible_application_tuples = [
                 (app1, app2)
                 for app1 in applications
                 for app2 in applications
-                if app1 != app2 and app1._output_types & app2._input_types == set()
+                if app1.app_type is WRITER
+                or app2.app_type is LOADER
+                and app1 != app2
+                and not app1._return_types & app2._data_types
+                and not app1._return_types & {"SerialisableType", "IdentifierType"}
             ]
 
-            for incompatible_application_tuple in incompatible_application_tuples:
-                incompatible_application_tuple[0].disconnect()
-                incompatible_application_tuple[1].disconnect()
+            for app_a, app_b in incompatible_application_tuples:
+                err_type = ValueError if app_a is app_b else TypeError
+                app_a.disconnect()
+                app_b.disconnect()
 
                 # Compose two incompatible applications, there should be exceptions.
-                with self.assertRaises(TypeError):
-                    res = (
-                        incompatible_application_tuple[0]
-                        + incompatible_application_tuple[1]
-                    )
+                with self.assertRaises(err_type):
+                    app_a + app_b
 
             for app in applications:
                 if hasattr(app, "data_store"):

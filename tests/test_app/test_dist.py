@@ -9,12 +9,13 @@ from cogent3 import DNA, PROTEIN, make_unaligned_seqs
 from cogent3.app import align
 from cogent3.app import dist as dist_app
 from cogent3.app import io, sample
+from cogent3.app.composable import WRITER
 from cogent3.evolve.fast_distance import HammingPair, TN93Pair
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Stephen Ma"]
+__credits__ = ["Gavin Huttley", "Stephen Ma", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -48,7 +49,7 @@ _seqs5 = {"Human": "ASSLQHENSSLLLT", "Bandicoot": "XSLMLETSSLLSN"}
 
 
 def _get_all_composable_apps():
-    applications = [
+    return [
         align.align_to_ref(),
         align.progressive_align(model="GY94"),
         sample.fixed_length(100),
@@ -60,7 +61,6 @@ def _get_all_composable_apps():
         sample.take_named_seqs(),
         sample.trim_stop_codons(gc=1),
     ]
-    return applications
 
 
 class FastSlowDistTests(TestCase):
@@ -120,20 +120,20 @@ class FastSlowDistTests(TestCase):
     def test_composable_apps(self):
         """tests two composable apps"""
         composable_apps = _get_all_composable_apps()
-        fast_slow_dist = dist_app.fast_slow_dist(fast_calc="hamming", moltype="dna")
+        calc_dist = dist_app.fast_slow_dist(fast_calc="hamming", moltype="dna")
         for app in composable_apps:
+            if app.app_type is WRITER:
+                # cannot have a WRITER before a GENERIC
+                continue
             # Compose two composable applications, there should not be exceptions.
-            got = app + fast_slow_dist
+            got = app + calc_dist
             self.assertIsInstance(got, dist_app.fast_slow_dist)
-            self.assertEqual(got._type, "distance")
             self.assertIs(got.input, app)
-            self.assertIs(got.output, None)
-            self.assertIsInstance(got._input_types, frozenset)
-            self.assertIsInstance(got._output_types, frozenset)
-            self.assertIs(got._in, app)
-            self.assertIs(got._out, None)
+            self.assertIsInstance(got._data_types, frozenset)
+            self.assertIsInstance(got._return_types, frozenset)
+            self.assertIs(got.input, app)
             app.disconnect()
-            fast_slow_dist.disconnect()
+            calc_dist.disconnect()
 
     def test_est_dist_pair_slow(self):
         """tests the distance between seq pairs in aln"""

@@ -75,10 +75,10 @@ These apps all employ codon models to evaluate different types of hypotheses reg
     evo-natsel_zhang
 
 
-The ``user_function`` Apps
-==========================
+Write your own Apps
+===================
 
-These apps are capable to wrap another user specified function
+You can write your own apps.
 
 .. toctree::
     :maxdepth: 1

@@ -1,12 +1,10 @@
+from typing import Union
+
 from cogent3 import make_tree
 from cogent3.phylo.nj import gnj
 
-from .composable import (
-    PAIRWISE_DISTANCE_TYPE,
-    SERIALISABLE_TYPE,
-    TREE_TYPE,
-    ComposableTree,
-)
+from .composable import define_app
+from .typing import PairwiseDistanceType, SerialisableType, TreeType
 
 
 __author__ = "Gavin Huttley"
@@ -19,22 +17,13 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class scale_branches(ComposableTree):
-    """Transforms tree branch lengths from nucleotide to codon, or the converse.
-    Returns a Tree."""
-
-    _input_types = TREE_TYPE
-    _output_types = (TREE_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("PhyloNode", "TreeNode")
+@define_app
+class scale_branches:
+    """Transforms tree branch lengths from nucleotide to codon, or the converse."""
 
     def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
-        super(scale_branches, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
         """returns a new tree with lengths divided by scalar
-    
+
         Parameters
         ----------
         nuc_to_codon : bool
@@ -48,7 +37,6 @@ class scale_branches(ComposableTree):
             set branch length to this value if it's not defined,
             or <= zero
         """
-        self._formatted_params()
         assert not all([nuc_to_codon, codon_to_nuc])
         if nuc_to_codon:
             scalar = 3
@@ -59,9 +47,8 @@ class scale_branches(ComposableTree):
 
         self._scalar = scalar
         self._min_length = min_length
-        self.func = self._scale_lengths
 
-    def _scale_lengths(self, tree):
+    def main(self, tree: TreeType) -> Union[SerialisableType, TreeType]:
         scalar = self._scalar
         min_length = self._min_length
         tree = tree.deepcopy()
@@ -75,21 +62,13 @@ class scale_branches(ComposableTree):
         return tree
 
 
-class uniformize_tree(ComposableTree):
-    """Standardises the orientation of unrooted trees. Returns a Tree."""
-
-    _input_types = TREE_TYPE
-    _output_types = (TREE_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("PhyloNode", "TreeNode")
+@define_app
+class uniformize_tree:
+    """Standardises the orientation of unrooted trees."""
 
     def __init__(self, root_at="midpoint", ordered_names=None):
-        super(uniformize_tree, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
         """returns a new tree with standardised orientation
-        
+
         Parameters
         ----------
         root_at
@@ -98,12 +77,10 @@ class uniformize_tree(ComposableTree):
             ordering of names, if not provided, taken from first
             tree
         """
-        self._formatted_params()
         self._root_at = root_at
         self._ordered_names = ordered_names
-        self.func = self._uniformize
 
-    def _uniformize(self, tree):
+    def main(self, tree: TreeType) -> Union[SerialisableType, TreeType]:
         if self._root_at == "midpoint":
             new = tree.root_at_midpoint()
         else:
@@ -115,16 +92,12 @@ class uniformize_tree(ComposableTree):
         return new
 
 
-class quick_tree(ComposableTree):
+@define_app
+class quick_tree:
     """Neighbour Joining tree based on pairwise distances."""
-
-    _input_types = PAIRWISE_DISTANCE_TYPE
-    _output_types = (TREE_TYPE, SERIALISABLE_TYPE)
-    _data_types = "DistanceMatrix"
 
     def __init__(self, drop_invalid=False):
         """computes a neighbour joining tree from an alignment
-
         Parameters
         ----------
         drop_invalid : bool
@@ -133,16 +106,9 @@ class quick_tree(ComposableTree):
             calculated are excluded, the resulting tree will be for the subset of labels with strictly valid distances
             if False, an ArithmeticError is raised if a distance could not be computed on observed data.
         """
-        super(quick_tree, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
-        self.func = self.quick_tree
         self._drop_invalid = drop_invalid
 
-    def quick_tree(self, dists):
+    def main(self, dists: PairwiseDistanceType) -> Union[SerialisableType, TreeType]:
         """estimates a neighbor joining tree"""
         size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists

@@ -4,11 +4,14 @@ import pathlib
 import shutil
 import sys
 
+from copy import deepcopy
 from pathlib import Path
+from pickle import dumps, loads
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
-from cogent3 import load_aligned_seqs
+from cogent3 import load_aligned_seqs, make_unaligned_seqs
+from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import (
     IGNORE,
     OVERWRITE,
@@ -20,15 +23,18 @@ from cogent3.app.data_store import (
     SingleReadDataStore,
     WritableDirectoryDataStore,
     WritableTinyDbDataStore,
+    _db_lockid,
     get_data_source,
     load_record_from_json,
 )
+from cogent3.app.io import load_db
 from cogent3.parse.fasta import MinimalFastaParser
+from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -89,7 +95,7 @@ class DataStoreBaseReadTests:
     def test_iter(self):
         """DataStore objects allow iteration over members"""
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
-        members = [m for m in dstore]
+        members = list(dstore)
         self.assertEqual(members, dstore.members)
 
     def test_len(self):
@@ -99,14 +105,14 @@ class DataStoreBaseReadTests:
 
     def test_read(self):
         """correctly read content"""
-        with open("data" + os.sep + "brca1.fasta") as infile:
-            expect = {l: s for l, s in MinimalFastaParser(infile)}
+        with open(f"data{os.sep}brca1.fasta") as infile:
+            expect = dict(MinimalFastaParser(infile))
 
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         basedir = self.basedir.replace(".zip", "")
         data = dstore.read(os.path.join(basedir, "brca1.fasta"))
         data = data.splitlines()
-        got = {l: s for l, s in MinimalFastaParser(data)}
+        got = dict(MinimalFastaParser(data))
         self.assertEqual(got, expect)
 
     # todo not really broken, but something to do with line-feeds I
@@ -138,7 +144,6 @@ class DataStoreBaseReadTests:
 
     def test_pickleable_roundtrip(self):
         """pickling of data stores should be reversible"""
-        from pickle import dumps, loads
 
         dstore = self.ReadClass(self.basedir, suffix="*")
         re_dstore = loads(dumps(dstore))
@@ -147,7 +152,6 @@ class DataStoreBaseReadTests:
 
     def test_pickleable_member_roundtrip(self):
         """pickling of data store members should be reversible"""
-        from pickle import dumps, loads
 
         dstore = self.ReadClass(self.basedir, suffix="*")
         re_member = loads(dumps(dstore[0]))
@@ -160,9 +164,7 @@ class DataStoreBaseWriteTests:
 
     def test_write(self):
         """correctly write content"""
-        with open("data" + os.sep + "brca1.fasta") as infile:
-            expect = infile.read()
-
+        expect = Path(f"data{os.sep}brca1.fasta").read_text()
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, suffix=".fa", create=True)
@@ -189,9 +191,7 @@ class DataStoreBaseWriteTests:
     @skipIf(sys.platform.lower() != "darwin", "broken on linux")
     def test_md5_write(self):
         """tracks md5 sums of written data"""
-        with open("data" + os.sep + "brca1.fasta") as infile:
-            expect = infile.read()
-
+        expect = Path(f"data{os.sep}brca1.fasta").read_text()
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, suffix=".fa", create=True)
@@ -219,12 +219,8 @@ class DataStoreBaseWriteTests:
 
     def test_multi_write(self):
         """correctly write multiple files to data store"""
-        with open("data" + os.sep + "brca1.fasta") as infile:
-            expect_a = infile.read()
-
-        with open("data" + os.sep + "primates_brca1.fasta") as infile:
-            expect_b = infile.read()
-
+        expect_a = Path(f"data{os.sep}brca1.fasta").read_text()
+        expect_b = Path(f"data{os.sep}primates_brca1.fasta").read_text()
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, suffix=".fa", create=True)
@@ -241,8 +237,7 @@ class DataStoreBaseWriteTests:
 
     def test_add_file(self):
         """correctly add an arbitrarily named file"""
-        with open("data" + os.sep + "brca1.fasta") as infile:
-            data = infile.read()
+        data = Path(f"data{os.sep}brca1.fasta").read_text()
 
         with TemporaryDirectory(dir=".") as dirname:
             log_path = os.path.join(dirname, "some.log")
@@ -273,7 +268,7 @@ class DataStoreBaseWriteTests:
     def test_make_identifier(self):
         """correctly construct an identifier for a new member"""
         with TemporaryDirectory(dir=".") as dirname:
-            if dirname.startswith("." + os.sep):
+            if dirname.startswith(f".{os.sep}"):
                 dirname = dirname[2:]
 
             path = os.path.join(dirname, self.basedir)
@@ -286,7 +281,7 @@ class DataStoreBaseWriteTests:
 
             # now using a DataStoreMember
             member = DataStoreMember(
-                os.path.join("blah" + os.sep + "blah", f"2-{name}"), None
+                os.path.join(f"blah{os.sep}blah", f"2-{name}"), None
             )
             got = dstore.make_absolute_identifier(member)
             expect = os.path.join(base_path, member.name.replace("fasta", "json"))
@@ -451,7 +446,6 @@ class DirectoryDataStoreReadTests(
         """directory data store ignores"""
         with TemporaryDirectory(dir=".") as dirname:
             # tests the case when the directory has the file with the same suffix to self.suffix
-            from cogent3.app.composable import NotCompleted
 
             with TemporaryDirectory(dir=".") as dirname:
                 path = Path(dirname) / "subdir"
@@ -528,7 +522,7 @@ class TinyDBDataStoreTests(TestCase):
             with open(log_path, "w") as out:
                 out.write("some text")
 
-            keys = [k for k in self.data.keys()]
+            keys = list(self.data.keys())
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, if_exists="overwrite")
             identifier = dstore.make_relative_identifier(keys[0])
@@ -540,7 +534,7 @@ class TinyDBDataStoreTests(TestCase):
     def test_tiny_get_member(self):
         """get member works on TinyDbDataStore"""
         with TemporaryDirectory(dir=".") as dirname:
-            keys = [k for k in self.data.keys()]
+            keys = list(self.data.keys())
             path = os.path.join(dirname, self.basedir)
             dstore = self.WriteClass(path, if_exists="overwrite")
             identifier = dstore.make_relative_identifier(keys[0])
@@ -560,7 +554,7 @@ class TinyDBDataStoreTests(TestCase):
                 identifier = dstore.make_relative_identifier(id_)
                 dstore.write(identifier, data)
 
-            members = [m for m in dstore]
+            members = list(dstore)
             self.assertEqual(members, dstore.members)
             dstore.close()
 
@@ -578,7 +572,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_pickleable_roundtrip(self):
         """pickling of data stores should be reversible"""
-        from pickle import dumps, loads
 
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, "data")
@@ -598,10 +591,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_unchanged_database_record(self):
         """tests unchanged record via the Readable and Writable DataStore interface to TinyDB"""
-        from copy import deepcopy
-
-        from cogent3.app.io import load_db
-
         loader = load_db()
         data = self.data
         original_record = deepcopy(data)
@@ -634,8 +623,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_tiny_write_incomplete(self):
         """write an incomplete result to tinydb"""
-        from cogent3.app.composable import NotCompleted
-
         keys = list(self.data)
         incomplete = [
             keys.pop(0),
@@ -669,8 +656,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_summary_methods(self):
         """produce a table"""
-        from cogent3.app.composable import NotCompleted
-
         keys = list(self.data)
         incomplete = [
             keys.pop(0),
@@ -685,7 +670,7 @@ class TinyDBDataStoreTests(TestCase):
                 id_ = dstore.make_relative_identifier(k)
                 dstore.write(id_, self.data[k])
             # now add a log file
-            dstore.add_file("data" + os.sep + "scitrack.log", cleanup=False)
+            dstore.add_file(f"data{os.sep}scitrack.log", cleanup=False)
             got = dstore.describe
             # table has rows for completed, incomplete and log
             self.assertEqual(got.shape, (3, 2))
@@ -699,9 +684,6 @@ class TinyDBDataStoreTests(TestCase):
 
     def test_dblock(self):
         """locking/unlocking of db"""
-
-        from cogent3.app.data_store import _db_lockid
-
         keys = list(self.data)
         with TemporaryDirectory(dir=".") as dirname:
             path = os.path.join(dirname, self.basedir)
@@ -842,13 +824,13 @@ class SingleReadStoreTests(TestCase):
 
     def test_read(self):
         """correctly read content"""
-        with open("data" + os.sep + "brca1.fasta") as infile:
-            expect = {l: s for l, s in MinimalFastaParser(infile)}
+        with open(f"data{os.sep}brca1.fasta") as infile:
+            expect = dict(MinimalFastaParser(infile))
 
         dstore = self.Class(self.basedir, suffix=".fasta")
         data = dstore.read(self.basedir)
         data = data.splitlines()
-        got = {l: s for l, s in MinimalFastaParser(data)}
+        got = dict(MinimalFastaParser(data))
         self.assertEqual(got, expect)
 
 
@@ -877,8 +859,6 @@ class TestFunctions(TestCase):
 
     def test_get_data_source_seqcoll(self):
         """handles case where input is sequence collection object"""
-        from cogent3 import make_unaligned_seqs
-
         for val_klass in (str, pathlib.Path):
             value = val_klass("some/path.txt")
             obj = make_unaligned_seqs(
@@ -902,8 +882,6 @@ class TestFunctions(TestCase):
 
     def test_get_data_source_dict(self):
         """handles case where input is dict (sub)class instance with top level source key"""
-        from cogent3.util.union_dict import UnionDict
-
         for klass in (dict, UnionDict):
             for val_klass in (str, pathlib.Path):
                 value = val_klass("some/path.txt")

@@ -28,7 +28,7 @@ from cogent3.util.table import Table
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -67,7 +67,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             zip_path = join(dirname, "new")
             shutil.make_archive(zip_path, "zip", self.basedir)
-            zip_path = zip_path + ".zip"  # because shutil adds the suffix
+            zip_path += ".zip"  # because shutil adds the suffix
             found = list(io_app.findall(zip_path, suffix="fasta"))
             self.assertTrue(len(found) > 1)
             found = list(io_app.findall(zip_path, suffix="fasta", limit=2))
@@ -147,7 +147,7 @@ class TestIo(TestCase):
             shutil.make_archive(
                 base_name=zip_path, root_dir=".", format="zip", base_dir=self.basedir
             )
-            zip_path = zip_path + ".zip"  # because shutil adds the suffix
+            zip_path += ".zip"  # because shutil adds the suffix
             fasta_paths = list(io_app.findall(zip_path, suffix=".fasta", limit=2))
             fasta_loader = io_app.load_aligned(format="fasta")
             validate(fasta_paths, fasta_loader)
@@ -233,7 +233,7 @@ class TestIo(TestCase):
             outpath = join(dirname, "delme")
             writer = write_db(outpath, create=True, if_exists="ignore")
             data = dict(a=[1, 2], b="string")
-            m = writer(data, identifier=join("blah", "delme.json"))
+            _ = writer(data, identifier=join("blah", "delme.json"))
             writer.data_store.db.close()
             dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
@@ -251,7 +251,6 @@ class TestIo(TestCase):
             gr = _get_generic_result(join("blah", "delme.json"))
             got = writer(gr)
             writer.data_store.db.close()
-            dstore = io_app.get_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
             outpath = join(dirname, "dummy.json")
             with open(outpath, mode="w") as outfile:
@@ -291,7 +290,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            got = writer.write(mca, identifier=outpath)
+            got = writer.main(mca, identifier=outpath)
             self.assertIsInstance(got, DataStoreMember)
             new = loader(outpath)
             # when written to file in tabular form
@@ -316,7 +315,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(mfa, identifier=outpath)
+            writer.main(mfa, identifier=outpath)
             new = loader(outpath)
             # when written to file in tabular form
             # the loaded table will have dim-1 dim-2 as column labels
@@ -349,7 +348,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(pssm, identifier=outpath)
+            writer.main(pssm, identifier=outpath)
             new = loader(outpath)
             expected = safe_log(data) - safe_log(numpy.array([0.25, 0.25, 0.25, 0.25]))
             for i in range(len(expected)):
@@ -366,7 +365,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(matrix, identifier=outpath)
+            writer.main(matrix, identifier=outpath)
             new = loader(outpath)
             # when written to file in tabular form
             # the loaded table will have dim-1 dim-2 as column labels
@@ -385,7 +384,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(table, identifier=outpath)
+            writer.main(table, identifier=outpath)
             new = loader(outpath)
             self.assertEqual(table.to_dict(), new.to_dict())
 
@@ -398,7 +397,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(mca, identifier=outpath)
+            writer.main(mca, identifier=outpath)
             new = loader(outpath)
             self.assertEqual(mca.to_dict(), new.to_dict())
 
@@ -411,7 +410,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(mfa, identifier=outpath)
+            writer.main(mfa, identifier=outpath)
             new = loader(outpath)
             self.assertEqual(mfa.to_dict(), new.to_dict())
 
@@ -431,7 +430,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(pssm, identifier=outpath)
+            writer.main(pssm, identifier=outpath)
             new = loader(outpath)
             assert_allclose(pssm.array, new.array, atol=0.0001)
 
@@ -443,7 +442,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(matrix, identifier=outpath)
+            writer.main(matrix, identifier=outpath)
             new = loader(outpath)
             self.assertEqual(matrix.to_dict(), new.to_dict())
 
@@ -455,7 +454,7 @@ class TestIo(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             writer = io_app.write_tabular(data_path=dirname, format="tsv")
             outpath = join(dirname, "delme.tsv")
-            writer.write(table, identifier=outpath)
+            writer.main(table, identifier=outpath)
             new = loader(outpath)
             self.assertEqual(table.to_dict(), new.to_dict())
 
@@ -467,7 +466,6 @@ class TestIo(TestCase):
 
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme")
-
             obj = generic_result(source=join("blah", "delme.json"))
             obj["dna"] = DNA
             writer = io_app.write_json(outdir, create=True)
@@ -520,18 +518,17 @@ class TestIo(TestCase):
             writer = write_db(outdir, create=True, if_exists="overwrite")
             process = reader + aligner + writer
 
-            r = process.apply_to(
+            _ = process.apply_to(
                 members, show_progress=False, parallel=True, cleanup=True
             )
-
             expect = [str(m) for m in process.data_store]
             process.data_store.close()
 
             # now get read only and check what's in there
             result = io_app.get_data_store(outdir)
             got = [str(m) for m in result]
+            self.assertNotEqual(got, [])
             result.close()
-
             self.assertEqual(got, expect)
 
 

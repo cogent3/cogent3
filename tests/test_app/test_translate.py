@@ -127,7 +127,7 @@ class TestFourFoldDegen(TestCase):
         # using straight characters
         expect = set()
         for di in "GC", "GG", "CT", "CC", "TC", "CG", "AC", "GT":
-            expect.update([frozenset([di + n for n in "ACGT"])])
+            expect.update([frozenset(di + n for n in "ACGT")])
 
         for i in range(1, 3):
             got = get_fourfold_degenerate_sets(get_code(i), as_indices=False)

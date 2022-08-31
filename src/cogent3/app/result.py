@@ -26,7 +26,6 @@ __status__ = "Alpha"
 class generic_result(MutableMapping):
     """A dict style container for storing results."""
 
-    _type = "generic_result"
     _item_types = ()
 
     def __init__(self, source):
@@ -127,7 +126,6 @@ class generic_result(MutableMapping):
 class model_result(generic_result):
     """Storage of model results."""
 
-    _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
     _item_types = ("AlignmentLikelihoodFunction",)
 
@@ -400,7 +398,6 @@ class model_result(generic_result):
 class model_collection_result(generic_result):
     """Storage of a collection of model_result."""
 
-    _type = "model_collection_result"
     _item_types = ("model_result",)
 
     def __init__(self, name=None, source=None):
@@ -523,7 +520,6 @@ class hypothesis_result(model_collection_result):
     """Storage of a collection of model_result instances that are hierarchically
     related."""
 
-    _type = "hypothesis_result"
     _item_types = ("model_result",)
 
     @extend_docstring_from(model_collection_result.__init__, pre=True)
@@ -622,7 +618,6 @@ class hypothesis_result(model_collection_result):
 
 
 class bootstrap_result(generic_result):
-    _type = "bootstrap_result"
     _item_types = ("hypothesis_result", "model_collection_result")
 
     def __init__(self, source=None):
@@ -651,7 +646,6 @@ class bootstrap_result(generic_result):
 class tabular_result(generic_result):
     """stores one or multiple cogent3 Tables, DictArray"""
 
-    _type = "tabular_result"
     _stat_attrs = ("header", "rows")
     _item_types = (
         "Table",
