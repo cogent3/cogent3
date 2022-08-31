@@ -904,9 +904,6 @@ def _repr(self):
 
 def _new(klass, *args, **kwargs):
     obj = object.__new__(klass)
-    if not args and not kwargs:
-        obj._init_vals = {}
-        return obj
 
     if hasattr(klass, "_func_sig"):
         # we have a decorated function, the first parameter in the signature
