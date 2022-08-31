@@ -96,6 +96,7 @@ def TreeAlign(
                 1e-9, edge.length or 0
             )  # catch case where edge has no length
 
+
     LF = model.make_likelihood_function(
         tree.bifurcating(name_unnamed=True), aligned=False
     )
