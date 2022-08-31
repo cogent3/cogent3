@@ -850,17 +850,20 @@ def _disconnect(self):
 
 
 def _add(self, other):
-    if hasattr(other, "input") and other.input is not None:
+    
+    if getattr(other, "app_type", None) not in {WRITER, LOADER, GENERIC}:
+        raise TypeError(f"{other!r} is not composable")
+    
+    if other.input is not None:
         raise ValueError(
             f"{other.__class__.__name__} already part of composed function, use disconnect() to free them up"
         )
+
     if other is self:
         raise ValueError("cannot add an app to itself")
 
     # Check order
-    if self.app_type is NON_COMPOSABLE or other.app_type is NON_COMPOSABLE:
-        raise TypeError("Both composed apps must be of composable type")
-    elif self.app_type is WRITER:
+    if self.app_type is WRITER:
         raise TypeError("Left hand side of add operator must not be of type writer")
     elif other.app_type is LOADER:
         raise TypeError("Right hand side of add operator must not be of type loader")
@@ -1120,6 +1123,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
         )
 
     app_type = AppType(app_type)
+    composable = app_type is not NON_COMPOSABLE
 
     def wrapped(klass):
         if inspect.isfunction(klass):
@@ -1137,11 +1141,11 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
             "_validate_data_type",
         ]
         excludes = ["__add__", "disconnect", "apply_to"]
-        if app_type is not NON_COMPOSABLE and getattr(klass, "input", None):
+        if composable and getattr(klass, "input", None):
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
-        elif app_type is not NON_COMPOSABLE:
+        elif composable:
             method_list.extend(excludes)
 
         for meth in method_list:
@@ -1168,7 +1172,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
             raise NotImplementedError("slots are not currently supported")
 
         # register this app
-        __app_registry[get_object_provenance(klass)] = app_type is not NON_COMPOSABLE
+        __app_registry[get_object_provenance(klass)] = composable
 
         return klass
 
