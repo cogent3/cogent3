@@ -19,7 +19,15 @@ __status__ = "Alpha"
 AlignedSeqsType = TypeVar("AlignedSeqsType", "Alignment", "ArrayAlignment")
 UnalignedSeqsType = TypeVar("UnalignedSeqsType", bound="SequenceCollection")
 SeqsCollectionType = Union[AlignedSeqsType, UnalignedSeqsType]
-SeqType = TypeVar("SeqType", bound="Sequence")
+SeqType = TypeVar(
+    "SeqType",
+    "Sequence",
+    "DnaSequence",
+    "RnaSequence",
+    "ByteSequence",
+    "ProteinSequence",
+    "ProteinWithStopSequence",
+)
 PairwiseDistanceType = TypeVar("PairwiseDistanceType", bound="DistanceMatrix")
 TabularType = TypeVar("TabularType", "Table", "DictArray", "DistanceMatrix")
 TreeType = TypeVar("TreeType", "TreeNode", "PhyloNode")
@@ -91,6 +99,10 @@ def get_constraint_names(*hints) -> set[str, ...]:
 
         if type(hint) == type:
             all_hints.add(hint.__name__)
+        elif type(hint) == ForwardRef:
+            all_hints.add(hint.__forward_arg__)
+        elif type(hint) == str:
+            all_hints.add(hint)
 
     all_hints = {h.__forward_arg__ if type(h) == ForwardRef else h for h in all_hints}
     return all_hints
