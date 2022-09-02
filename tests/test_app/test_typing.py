@@ -86,6 +86,13 @@ def test_hints_from_strings():
     assert got == [SerialisableType, AlignedSeqsType]
 
 
+def test_hints_resolved_from_str():
+    got = get_constraint_names("DnaSequence")
+    assert got == {"DnaSequence"}
+    got = get_constraint_names(Union[SerialisableType, "DnaSequence"])
+    assert got == {"SerialisableType", "DnaSequence"}
+
+
 @pytest.mark.parametrize("container", (List, Tuple))
 def test_hints_from_container_type(container):
     got = get_constraint_names(container[AlignedSeqsType])
