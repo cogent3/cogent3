@@ -90,15 +90,14 @@ def TreeAlign(
         dists = dcalc.get_pairwise_distances().to_dict()
         tree = NJ.nj(dists)
 
+    tree = tree.bifurcating(name_unnamed=True)
     for edge in tree.postorder():
         if edge.name != "root":
             edge.length = max(
-                1e-9, edge.length or 0
+                1e-6, edge.length or 0
             )  # catch case where edge has no length
 
-    LF = model.make_likelihood_function(
-        tree.bifurcating(name_unnamed=True), aligned=False
-    )
+    LF = model.make_likelihood_function(tree, aligned=False)
     if ests_from_pairwise and not param_vals:
         # we use the median to avoid the influence of outlier pairs
         param_vals = {}
