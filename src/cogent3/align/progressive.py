@@ -115,7 +115,27 @@ def TreeAlign(
         LF.set_sequences(seqs)
     lnL = LF.get_log_likelihood()
     edge = lnL.edge
-    align = edge.get_viterbi_path().get_alignment()
+
+    try:
+        align = edge.get_viterbi_path().get_alignment()
+    except ArithmeticError:
+        # trying to narrow done conditions for difficult to reproduce exception
+        print(
+            "###" * 30,
+            "",
+            tree.get_newick(with_distances=True),
+            "",
+            "#" * 20,
+            "",
+            str(LF),
+            "",
+            "#" * 20,
+            "",
+            seqs.to_fasta(),
+            sep="\n",
+        )
+        raise
+
     align = align.to_moltype(model.moltype)
     param_vals.update(
         dict(

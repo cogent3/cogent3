@@ -29,6 +29,7 @@ def test(session):
     session.chdir("tests")
     session.run(
         "pytest",
+        "-s",
         "-x",
         "--junitxml",
         f"junit-{py_version}.xml",
