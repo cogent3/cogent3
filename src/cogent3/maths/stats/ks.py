@@ -20,8 +20,7 @@ from numpy import (
     sum,
     zeros,
 )
-
-from cogent3.maths.stats.special import combinations
+from scipy.special import binom
 
 
 __author__ = "Gavin Huttley"
@@ -57,7 +56,7 @@ def pkolmogorov1x(statistic, n):
         return 1.0
     to = floor(n * (1 - statistic)) + 1
     j = arange(0, to)
-    coeffs = asarray([log(combinations(n, i)) for i in j])
+    coeffs = asarray([log(binom(n, i)) for i in j])
     p = sum(
         exp(
             coeffs
