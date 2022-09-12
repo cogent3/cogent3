@@ -31,7 +31,7 @@ def test(session):
     session.run(
         "pytest",
         "-s",
-        # "-x",
+        "-x",
         "--junitxml",
         f"junit-{py_version}.xml",
         "--cov-report",
