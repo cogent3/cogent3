@@ -7,6 +7,7 @@ dependencies = (
     "numba>0.54",
     "chardet",
     "numpy",
+    "scipy",
     "tinydb",
     "tqdm",
     "click",
@@ -29,6 +30,7 @@ def test(session):
     session.chdir("tests")
     session.run(
         "pytest",
+        "-s",
         "-x",
         "--junitxml",
         f"junit-{py_version}.xml",

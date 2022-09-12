@@ -599,9 +599,9 @@ class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBa
         elif path.exists() and if_exists == OVERWRITE:
             if self._has_other_suffixes(self.source, self.suffix):
                 raise RuntimeError(
-                    f"Unsafe to delete {self.source} as it contains ",
+                    f"Unsafe to delete {self.source!r} as it contains "
                     f"files other than .{self.suffix} or .log files."
-                    " You will need to remove this directly yourself.",
+                    " You will need to remove this directly yourself."
                 )
             try:
                 shutil.rmtree(self.source)

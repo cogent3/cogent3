@@ -418,9 +418,9 @@ class GTests(TestCase):
 
     def test_G_2_by_2_2tailed_equal(self):
         """G_2_by_2 should return 0 if all cell counts are equal"""
-        assert_allclose(0, G_2_by_2(1, 1, 1, 1, False, False)[0])
-        assert_allclose(0, G_2_by_2(100, 100, 100, 100, False, False)[0])
-        assert_allclose(0, G_2_by_2(100, 100, 100, 100, True, False)[0])
+        assert_allclose(0, G_2_by_2(1, 1, 1, 1, False, False)[0], atol=1e-12)
+        assert_allclose(0, G_2_by_2(100, 100, 100, 100, False, False)[0], atol=1e-12)
+        assert_allclose(0, G_2_by_2(100, 100, 100, 100, True, False)[0], atol=1e-12)
 
     def test_G_2_by_2_bad_data(self):
         """G_2_by_2 should raise ValueError if any counts are negative"""
