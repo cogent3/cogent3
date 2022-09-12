@@ -7,6 +7,7 @@ dependencies = (
     "numba>0.54",
     "chardet",
     "numpy",
+    "scipy",
     "tinydb",
     "tqdm",
     "click",
