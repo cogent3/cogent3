@@ -20,6 +20,7 @@ from cogent3.core.alphabet import (
     uint8,
     uint16,
     uint32,
+    uint64,
 )
 from cogent3.core.moltype import RNA, get_moltype
 
@@ -73,6 +74,12 @@ class get_array_type_tests(TestCase):
         self.assertEqual(get_array_type(10000), uint16)
         self.assertEqual(get_array_type(65536), uint16)
         self.assertEqual(get_array_type(65537), uint32)
+        self.assertEqual(get_array_type(1 + 2 ** 32), uint64)
+
+    def test_get_array_type(self):
+        """get_array_type should return unsigned type that fits elements."""
+        with self.assertRaises(NotImplementedError):
+            self.assertEqual(get_array_type(1 + 2 ** 64), uint64)
 
 
 class EnumerationTests(TestCase):
