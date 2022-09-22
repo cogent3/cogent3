@@ -97,3 +97,13 @@ def test_hints_resolved_from_str():
 def test_hints_from_container_type(container):
     got = get_constraint_names(container[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
+
+
+def test_hint_inherited_class():
+    from collections.abc import MutableSequence
+
+    class dummy(MutableSequence):
+        ...
+
+    got = get_constraint_names(dummy)
+    assert got == frozenset(["dummy"])
