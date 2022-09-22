@@ -60,13 +60,13 @@ def get_array_type(num_elements):
     """Returns the smallest numpy integer dtype that can contain elements
     within num_elements.
     """
-    if num_elements <= 256:
+    if num_elements < 2 ** 8:
         dtype = uint8
-    elif num_elements <= 2 ** 16:
+    elif num_elements < 2 ** 16:
         dtype = uint16
-    elif num_elements <= 2 ** 32:
+    elif num_elements < 2 ** 32:
         dtype = uint32
-    elif num_elements <= 2 ** 64:
+    elif num_elements < 2 ** 64:
         dtype = uint64
     else:
         raise NotImplementedError(f"{num_elements} is too big for 64-bit integer")
