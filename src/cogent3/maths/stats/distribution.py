@@ -102,7 +102,7 @@ def chi_low(x, df):
     return igam(df / 2, x / 2)
 
 
-def chi_high(x, df):
+def chi_high(x, df):  # pragma: no cover
     """Returns right-hand tail of chi-square distribution (x to infinity).
 
     df, the degrees of freedom, ranges from 1 to infinity (assume integers).
@@ -112,6 +112,13 @@ def chi_high(x, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function", "chi_high", "2022.12", "use scipy.stats.distributions.chi2.sf"
+    )
+
     x = fix_rounding_error(x)
 
     if x < 0:

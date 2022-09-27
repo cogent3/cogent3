@@ -92,7 +92,7 @@ These two lnL's are now used to calculate the likelihood ratio statistic it's de
 
     LR = 2 * (lf.get_log_likelihood() - null_lnL)
     df = lf.get_num_free_params() - null_nfp
-    P = stats.chisqprob(LR, df)
+    P = stats.chi2.sf(LR, df)
 
 Print this and look up a :math:`\chi^2` with number of edges - 1 degrees of freedom.
 

@@ -433,11 +433,11 @@ We import the function for computing the probability of a chi-square test statis
 
 .. jupyter-execute::
 
-    from cogent3.maths.stats import chisqprob
+    from scipy.stats.distributions import chi2
 
     LR = 2 * (alt_lnL - null_lnL)  # the likelihood ratio statistic
     df = alt_nfp - null_nfp  # the test degrees of freedom
-    p = chisqprob(LR, df)
+    p = chi2.sf(LR, df)
     print(f"LR={LR:.4f} ; df={df}; p={df:.4f}")
 
 Testing Hypotheses - By parametric bootstrapping

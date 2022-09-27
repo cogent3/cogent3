@@ -103,11 +103,11 @@ We then conduct a likelihood ratio test whether the MLE of omega significantly i
 
 .. jupyter-execute::
 
-    from cogent3.maths.stats import chisqprob
+    from scipy.stats.distributions import chi2
 
     LR = 2 * (non_neutral_lnL - neutral_lnL)
     df = non_neutral_nfp - neutral_nfp
-    print(chisqprob(LR, df))
+    print(chi2.sf(LR, df))
 
 Not surprisingly, this is significant. We then ask whether the Human and Chimpanzee edges have a value of omega that is significantly different from the rest of the tree.
 
@@ -125,7 +125,7 @@ Not surprisingly, this is significant. We then ask whether the Human and Chimpan
 
     LR = 2 * (chimp_human_clade_lnL - non_neutral_lnL)
     df = chimp_human_clade_nfp - non_neutral_nfp
-    print(chisqprob(LR, df))
+    print(chi2.sf(LR, df))
 
 This is basically a replication of the original Huttley et al (2000) result for *BRCA1*.
 
@@ -194,7 +194,7 @@ The above statement essentially assigns a probability of nearly 1 to the 'neutra
 
 .. jupyter-execute::
 
-    print(chisqprob(LR, df))
+    print(chi2.sf(LR, df))
 
 We can get the posterior probabilities of site-classifications out of this model as
 
