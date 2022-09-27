@@ -431,8 +431,13 @@ def gdtrc(a, b, x):
 # note: ndtri for the normal distribution is already imported
 
 
-def chdtri(df, y):
+def chdtri(df, y):  # pragma: no cover
     """Returns inverse of chi-squared distribution."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "chdtri", "2022.12", "use scipy.stats.distributions.chi2.isf")
+
     y = fix_rounding_error(y)
     if y < 0.0 or y > 1.0 or df < 1.0:
         raise ZeroDivisionError("y must be between 0 and 1; df >= 1")
