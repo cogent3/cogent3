@@ -29,6 +29,7 @@ from numpy import take, tanh, trace, zeros
 from numpy.random import permutation, randint
 
 from scipy.stats.distributions import chi2
+from scipy.stats import norm
 
 from cogent3.maths.stats.distribution import (
     binomial_high,
@@ -40,7 +41,6 @@ from cogent3.maths.stats.distribution import (
     t_high,
     t_low,
     tprob,
-    z_high,
     z_low,
     zprob,
 )
@@ -1266,7 +1266,7 @@ def z_test(a, popmean=0, popstdev=1, tails=None):
 def z_tailed_prob(z, tails):
     """Returns appropriate p-value for given z, depending on tails."""
     if tails == "high":
-        return z_high(z)
+        return norm.sf(z)
     elif tails == "low":
         return z_low(z)
     else:

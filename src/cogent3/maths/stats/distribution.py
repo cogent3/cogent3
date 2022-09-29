@@ -6,6 +6,8 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
 
+from scipy.stats import norm
+
 from cogent3.maths.stats.special import (
     MACHEP,
     MAXNUM,
@@ -60,12 +62,17 @@ def z_low(x):
             return 0.5 * erfc(z)
 
 
-def z_high(x):
+def z_high(x):  # pragma: no cover
     """Returns right-hand tail of z distribution (0 to x).
 
     x ranges from -infinity to +infinity; result ranges from 0 to 1
 
     See Cephes docs for details."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "z_high", "2022.12", "use scipy.stats.norm.sf")
+
     y = x * SQRTH
     z = abs(y)
     if z < SQRTH:
@@ -79,7 +86,7 @@ def z_high(x):
 
 def zprob(x):
     """Returns both tails of z distribution (-inf to -x, inf to x)."""
-    return 2 * z_high(abs(x))
+    return 2 * norm.sf(abs(x))
 
 
 def chi_low(x, df):
@@ -436,7 +443,9 @@ def chdtri(df, y):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "chdtri", "2022.12", "use scipy.stats.distributions.chi2.isf")
+    discontinued(
+        "function", "chdtri", "2022.12", "use scipy.stats.distributions.chi2.isf"
+    )
 
     y = fix_rounding_error(y)
     if y < 0.0 or y > 1.0 or df < 1.0:
