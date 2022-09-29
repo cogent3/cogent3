@@ -6,7 +6,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
 
-from scipy.stats import norm
+from scipy.stats import norm, f
 
 from cogent3.maths.stats.special import (
     MACHEP,
@@ -249,7 +249,7 @@ def binomial_exact(successes, trials, prob):
     return exp(ln_binomial(successes, trials, prob))
 
 
-def f_low(df1, df2, x):
+def f_low(df1, df2, x):  # pragma: no cover
     """Returns left-hand tail of f distribution (0 to x).
 
     x ranges from 0 to infinity.
@@ -258,16 +258,26 @@ def f_low(df1, df2, x):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "f_low", "2022.12", "use scipy.stats.f.cdf(x, df1, df2)")
+
     return fdtr(df1, df2, x)
 
 
-def f_high(df1, df2, x):
+def f_high(df1, df2, x):  # pragma: no cover
     """Returns right-hand tail of f distribution (x to infinity).
 
     Result ranges from 0 to 1.
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "f_high", "2022.12", "use scipy.stats.f.sf(x, df1, df2)")
+
     return fdtrc(df1, df2, x)
 
 
@@ -285,7 +295,7 @@ def fprob(dfn, dfd, F, side="right"):
     if F < 0:
         raise ValueError(f"fprob: F must be >= 0 (got {F}).")
     if side == "right":
-        return 2 * f_high(dfn, dfd, F)
+        return 2 * f.sf(F, dfn, dfd)
     elif side == "left":
         return 2 * f_low(dfn, dfd, F)
     else:
@@ -416,11 +426,16 @@ def pdtrc(k, m):
     return igam(k + 1, m)
 
 
-def fdtr(a, b, x):
+def fdtr(a, b, x):  # pragma: no cover
     """Returns left tail of F distribution, 0 to x.
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "fdtr", "2022.12", "use scipy.stats.f.cdf(x, df1, df2)")
+
     if min(a, b) < 1:
         raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
     if x < 0:
@@ -430,11 +445,16 @@ def fdtr(a, b, x):
     return betai(0.5 * a, 0.5 * b, w)
 
 
-def fdtrc(a, b, x):
+def fdtrc(a, b, x):  # pragma: no cover
     """Returns right tail of F distribution, x to infinity.
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "fdtrc", "2022.12", "use scipy.stats.f.sf(x, df1, df2)")
+
     if min(a, b) < 1:
         raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
     if x < 0:

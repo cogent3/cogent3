@@ -29,11 +29,9 @@ from numpy import take, tanh, trace, zeros
 from numpy.random import permutation, randint
 
 from scipy.stats.distributions import chi2
-from scipy.stats import norm, binom
+from scipy.stats import norm, binom, f
 
 from cogent3.maths.stats.distribution import (
-    f_high,
-    f_low,
     fprob,
     ndtri,
     t_high,
@@ -1393,9 +1391,9 @@ def f_two_sample(a, b, tails=None):
 
     dfn, dfd, F = f_value(a, b)
     if tails == ALT_LOW:
-        return dfn, dfd, F, f_low(dfn, dfd, F)
+        return dfn, dfd, F, f.cdf(dfn, dfd, F)
     elif tails == ALT_HIGH:
-        return dfn, dfd, F, f_high(dfn, dfd, F)
+        return dfn, dfd, F, f.sf(F, dfn, dfd)
     else:
         if var(a) >= var(b):
             side = "right"
@@ -1440,7 +1438,7 @@ def ANOVA_one_way(a):
     dfn = len(group_means) - 1
     between_MS = between_MS / dfn
     F = between_MS / within_MS
-    return dfn, dfd, F, between_MS, within_MS, group_means, f_high(dfn, dfd, F)
+    return dfn, dfd, F, between_MS, within_MS, group_means, f.sf(F, dfn, dfd)
 
 
 def MonteCarloP(value, rand_values, tail="high"):
