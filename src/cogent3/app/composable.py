@@ -13,6 +13,7 @@ from enum import Enum
 from functools import wraps
 from typing import Tuple
 
+from numpy import ndarray
 from scitrack import CachingLogger
 
 from cogent3.app.typing import get_constraint_names
@@ -929,7 +930,9 @@ def _call(self, val, *args, **kwargs):
         # new message in place of traceback
         return NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
-    if not val:
+    is_np_array = isinstance(val, ndarray)
+
+    if not is_np_array and not val:
         return val
 
     if self.app_type is not LOADER and self.input:  # passing to connected app
@@ -946,7 +949,8 @@ def _call(self, val, *args, **kwargs):
     except Exception:
         result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
 
-    if not result and not isinstance(result, NotCompleted):
+    # an empty numpy array may be valid
+    if not is_np_array and not result and not isinstance(result, NotCompleted):
         msg = (
             f"The value {result!r} equates to False. "
             "If unexpected, please post this error message along"

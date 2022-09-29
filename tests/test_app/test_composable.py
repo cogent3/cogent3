@@ -895,7 +895,7 @@ def test_forbidden_methods_non_composable_app(meth):
         define_app(app_type=NON_COMPOSABLE)(app_forbidden_methods2)
 
 
-def test_aadd_non_composable_apps():
+def test_add_non_composable_apps():
     @define_app(app_type=NON_COMPOSABLE)
     class app_non_composable1:
         def __init__(self):
@@ -921,6 +921,21 @@ def test_aadd_non_composable_apps():
 
     __app_registry.pop(get_object_provenance(app_non_composable1), None)
     __app_registry.pop(get_object_provenance(app_non_composable2), None)
+
+
+def test_handles_numpy_array_types():
+    """apps correctly handle numpy return types"""
+    from numpy import array, ndarray
+
+    @define_app
+    def power(val: ndarray, pow: int) -> int:
+        return val ** pow
+
+    sqd = power(pow=2)
+    d = array([3, 3])
+    assert (sqd(d) == array([9, 9])).all()
+
+    __app_registry.pop(get_object_provenance(power), None)
 
 
 if __name__ == "__main__":
