@@ -94,7 +94,7 @@ def zprob(x):
     return 2 * norm.sf(abs(x))
 
 
-def chi_low(x, df):
+def chi_low(x, df):  # pragma: no cover
     """Returns left-hand tail of chi-square distribution (0 to x), given df.
 
     x ranges from 0 to infinity.
@@ -106,6 +106,13 @@ def chi_low(x, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function", "chi_low", "2022.12", "use scipy.stats.distributions.chi2.cdf"
+    )
+
     x = fix_rounding_error(x)
     if x < 0:
         raise ValueError(f"chi_low: x must be >= 0 (got {x}).")
