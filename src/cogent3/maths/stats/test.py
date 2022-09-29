@@ -41,7 +41,6 @@ from cogent3.maths.stats.distribution import (
     t_high,
     t_low,
     tprob,
-    z_low,
     zprob,
 )
 from cogent3.maths.stats.kendall import kendalls_tau, pkendall
@@ -1268,7 +1267,7 @@ def z_tailed_prob(z, tails):
     if tails == "high":
         return norm.sf(z)
     elif tails == "low":
-        return z_low(z)
+        return norm.cdf(z)
     else:
         return zprob(z)
 

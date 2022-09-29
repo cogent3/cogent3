@@ -45,12 +45,17 @@ incbet = betai  # shouldn't have renamed it...
 # Probability integrals: low gives left-hand tail, high gives right-hand tail.
 
 
-def z_low(x):
+def z_low(x):  # pragma: no cover
     """Returns left-hand tail of z distribution (0 to x).
 
     x ranges from -infinity to +infinity; result ranges from 0 to 1
 
     See Cephes docs for details."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "z_low", "2022.12", "use scipy.stats.norm.cdf")
+
     y = x * SQRTH
     z = abs(y)  # distribution is symmetric
     if z < SQRTH:
