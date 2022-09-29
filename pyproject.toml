@@ -46,6 +46,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 test = [
     "black",
     "isort",
+    "kaleido",
+    "plotly",
+    "psutil",
     "pytest",
     "pytest-cov",
     "pytest-xdist",

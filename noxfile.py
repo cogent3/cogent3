@@ -3,30 +3,13 @@ import pathlib
 import nox
 
 
-dependencies = (
-    "numba>0.54",
-    "chardet",
-    "numpy",
-    "scipy",
-    "tinydb",
-    "tqdm",
-    "click",
-    "pytest",
-    "scitrack",
-    "pandas",
-    "plotly",
-    "pytest-cov",
-    "typing_extensions",
-)
-
 _py_versions = range(7, 11)
 
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test(session):
     py_version = session.python.replace(".", "")
-    session.install(*dependencies)
-    session.install(".")
+    session.install(".[test]")
     session.chdir("tests")
     session.run(
         "pytest",
@@ -45,9 +28,9 @@ def test(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def testmpi(session):
-    session.install(*dependencies + ("mpi4py",))
+    session.install(".[test]")
+    session.install("mpi4py")
     py = pathlib.Path(session.bin_paths[0]) / "python"
-    session.install(".")
     session.chdir("tests")
     session.run(
         "mpiexec",
