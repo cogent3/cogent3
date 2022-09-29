@@ -297,7 +297,7 @@ def fprob(dfn, dfd, F, side="right"):
     if side == "right":
         return 2 * f.sf(F, dfn, dfd)
     elif side == "left":
-        return 2 * f_low(dfn, dfd, F)
+        return 2 * f.cdf(F, dfn, dfd)
     else:
         raise ValueError(f"Not a valid value for side {side}")
 

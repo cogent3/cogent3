@@ -1391,7 +1391,7 @@ def f_two_sample(a, b, tails=None):
 
     dfn, dfd, F = f_value(a, b)
     if tails == ALT_LOW:
-        return dfn, dfd, F, f.cdf(dfn, dfd, F)
+        return dfn, dfd, F, f.cdf(F, dfn, dfd)
     elif tails == ALT_HIGH:
         return dfn, dfd, F, f.sf(F, dfn, dfd)
     else:
