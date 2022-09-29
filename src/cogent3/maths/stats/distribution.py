@@ -211,15 +211,25 @@ def poisson_exact(successes, mean):
         return pdtrc(successes - 1, mean) - pdtrc(successes, mean)
 
 
-def binomial_high(successes, trials, prob):
+def binomial_high(successes, trials, prob):  # pragma: no cover
     """Returns right-hand binomial tail (X > successes) given prob(success)."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "binomial_high", "2022.12", "use scipy.stats.binom.sf")
+
     if -1 <= successes < 0:
         return 1
     return bdtrc(successes, trials, prob)
 
 
-def binomial_low(successes, trials, prob):
+def binomial_low(successes, trials, prob):  # pragma: no cover
     """Returns left-hand binomial tail (X <= successes) given prob(success)."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "binomial_low", "2022.12", "use scipy.stats.binom.cdf")
+
     return bdtr(successes, trials, prob)
 
 

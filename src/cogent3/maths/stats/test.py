@@ -29,11 +29,9 @@ from numpy import take, tanh, trace, zeros
 from numpy.random import permutation, randint
 
 from scipy.stats.distributions import chi2
-from scipy.stats import norm
+from scipy.stats import norm, binom
 
 from cogent3.maths.stats.distribution import (
-    binomial_high,
-    binomial_low,
     f_high,
     f_low,
     fprob,
@@ -1490,14 +1488,14 @@ def sign_test(success, trials, alt="two sided"):
     """
     alt = _get_alternate(str(alt))
     if alt == ALT_LOW:
-        p = binomial_low(success, trials, 0.5)
+        p = binom.cdf(success, trials, 0.5)
     elif alt == ALT_HIGH:
         success -= 1
-        p = binomial_high(success, trials, 0.5)
+        p = binom.sf(success, trials, 0.5)
     else:
         success = min(success, trials - success)
-        hi = 1 - binomial_high(success, trials, 0.5)
-        lo = binomial_low(success, trials, 0.5)
+        hi = 1 - binom.sf(success, trials, 0.5)
+        lo = binom.cdf(success, trials, 0.5)
         p = hi + lo
 
     return p
