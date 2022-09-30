@@ -10,6 +10,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from numpy import array, ndarray
 from scitrack import CachingLogger
 
 from cogent3 import make_aligned_seqs
@@ -923,19 +924,62 @@ def test_add_non_composable_apps():
     __app_registry.pop(get_object_provenance(app_non_composable2), None)
 
 
-def test_handles_numpy_array_types():
-    """apps correctly handle numpy return types"""
-    from numpy import array, ndarray
+_types_null = (list, []), (dict, {})
+
+
+@pytest.mark.parametrize("in_type,input", _types_null)
+def test_handles_null_series_input(in_type, input):
+    """apps correctly handle null output"""
 
     @define_app
-    def power(val: ndarray, pow: int) -> int:
-        return val ** pow
+    def null_in(val: in_type, pow: int) -> int:
+        return 2
 
-    sqd = power(pow=2)
+    app = null_in(pow=2)
+    got = app(input)
+    assert isinstance(got, NotCompleted)
+
+    __app_registry.pop(get_object_provenance(null_in), None)
+
+
+@pytest.mark.parametrize("ret_type", (0, array([]), [], {}))
+def test_handles_null_output(ret_type):
+    """apps correctly handle null output"""
+
+    @define_app
+    def null_out(val: ndarray, pow: int) -> int:
+        return ret_type
+
+    app = null_out(pow=2)
     d = array([3, 3])
-    assert (sqd(d) == array([9, 9])).all()
+    got = app(d)
+    assert isinstance(got, type(ret_type))
 
-    __app_registry.pop(get_object_provenance(power), None)
+    __app_registry.pop(get_object_provenance(null_out), None)
+
+
+def test_handles_None():
+    """apps correctly handle null output"""
+
+    @define_app
+    def none_out(val: ndarray, pow: int) -> int:
+        return None
+
+    @define_app
+    def take_int(val: int) -> int:
+        return val
+
+    app = none_out(pow=2)
+    d = array([3, 3])
+    got = app(d)
+    assert isinstance(got, NotCompleted)
+
+    app = none_out(pow=2) + take_int()
+    d = array([3, 3])
+    got = app(d)
+    assert isinstance(got, NotCompleted)
+
+    __app_registry.pop(get_object_provenance(none_out), None)
 
 
 if __name__ == "__main__":
