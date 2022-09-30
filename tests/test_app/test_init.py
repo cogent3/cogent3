@@ -6,7 +6,15 @@ from unittest import TestCase, main
 
 from cogent3 import available_apps
 from cogent3.app import align, dist, evo, io, sample, translate, tree
-from cogent3.app.composable import LOADER, WRITER, is_composable
+from cogent3.app.composable import (
+    LOADER,
+    WRITER,
+    __app_registry,
+    define_app,
+    is_composable,
+)
+from cogent3.util.misc import get_object_provenance
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
@@ -124,6 +132,18 @@ class TestAvailableApps(TestCase):
             for app in applications:
                 if hasattr(app, "data_store"):
                     app.data_store.close()
+
+
+def test_available_apps_local():
+    """available_apps robust to local scope apps"""
+
+    @define_app
+    def dummy(val: int) -> int:
+        return val
+
+    apps = available_apps()
+    assert isinstance(apps, Table)
+    __app_registry.pop(get_object_provenance(dummy), None)
 
 
 if __name__ == "__main__":
