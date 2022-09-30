@@ -924,7 +924,7 @@ def test_add_non_composable_apps():
     __app_registry.pop(get_object_provenance(app_non_composable2), None)
 
 
-_types_null = (list, []), (dict, {})
+_types_null = (list, []), (tuple, ())
 
 
 @pytest.mark.parametrize("in_type,input", _types_null)
