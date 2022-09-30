@@ -454,8 +454,7 @@ class TranslateTests(TestCase):
 
         # triggered by no data
         got = ccat([])
-        expected = []
-        self.assertEqual(got, expected)
+        self.assertIsInstance(got, composable.NotCompleted)
 
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""

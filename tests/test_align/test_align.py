@@ -290,6 +290,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 model="F81",
                 seqs=seqs,
                 tree=cogent3.make_tree("({},{},{})".format(*tree_encoding)),
+                show_progress=False,
             )
             self.assertEqual(aln.to_dict(), expected)
 

@@ -13,6 +13,7 @@ from enum import Enum
 from functools import wraps
 from typing import Tuple
 
+from numpy import ndarray
 from scitrack import CachingLogger
 
 from cogent3.app.typing import get_constraint_names
@@ -926,16 +927,15 @@ def _call(self, val, *args, **kwargs):
     # logic for trapping call to main
 
     if val is None:
-        # new message in place of traceback
-        return NotCompleted("ERROR", self, "unexpected input value None", source=val)
+        val = NotCompleted("BUG", self, "unexpected input value None", source="unknown")
 
-    if not val:
+    if isinstance(val, NotCompleted):
         return val
+
+    # todo we should get the source information from val here
 
     if self.app_type is not LOADER and self.input:  # passing to connected app
         val = self.input(val, *args, **kwargs)
-        if not val:
-            return val
 
     type_checked = self._validate_data_type(val)
     if not type_checked:
@@ -946,14 +946,10 @@ def _call(self, val, *args, **kwargs):
     except Exception:
         result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
 
-    if not result and not isinstance(result, NotCompleted):
-        msg = (
-            f"The value {result!r} equates to False. "
-            "If unexpected, please post this error message along"
-            f" with the code and data {val!r} as an Issue on the"
-            " github project page."
+    if result is None:
+        result = NotCompleted(
+            "BUG", self, "unexpected output value None", source="unknown"
         )
-        result = NotCompleted("BUG", f"{self.__class__.__name__}", msg, source=val)
 
     return result
 
@@ -967,8 +963,10 @@ def _validate_data_type(self, data):
     }:
         return True
 
-    if isinstance(data, (tuple, list)):
+    if isinstance(data, (list, tuple)) and len(data):
         data = data[0]
+    elif isinstance(data, (list, tuple)):
+        return NotCompleted("ERROR", self, message=f"empty data", source=data)
 
     class_name = data.__class__.__name__
     valid = class_name in self._data_types

@@ -90,15 +90,14 @@ def TreeAlign(
         dists = dcalc.get_pairwise_distances().to_dict()
         tree = NJ.nj(dists)
 
+    tree = tree.bifurcating(name_unnamed=True)
     for edge in tree.postorder():
         if edge.name != "root":
             edge.length = max(
-                1e-9, edge.length or 0
+                1e-6, edge.length or 0
             )  # catch case where edge has no length
 
-    LF = model.make_likelihood_function(
-        tree.bifurcating(name_unnamed=True), aligned=False
-    )
+    LF = model.make_likelihood_function(tree, aligned=False)
     if ests_from_pairwise and not param_vals:
         # we use the median to avoid the influence of outlier pairs
         param_vals = {}
@@ -115,7 +114,27 @@ def TreeAlign(
         LF.set_sequences(seqs)
     lnL = LF.get_log_likelihood()
     edge = lnL.edge
-    align = edge.get_viterbi_path().get_alignment()
+
+    try:
+        align = edge.get_viterbi_path().get_alignment()
+    except ArithmeticError:
+        # trying to narrow done conditions for difficult to reproduce exception
+        print(
+            "###" * 30,
+            "",
+            tree.get_newick(with_distances=True),
+            "",
+            "#" * 20,
+            "",
+            str(LF),
+            "",
+            "#" * 20,
+            "",
+            seqs.to_fasta(),
+            sep="\n",
+        )
+        raise
+
     align = align.to_moltype(model.moltype)
     param_vals.update(
         dict(

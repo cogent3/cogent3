@@ -2,6 +2,8 @@
 # todo write more extensive docstring explaining limited use of these types
 from __future__ import annotations
 
+import inspect
+
 from typing import ForwardRef, Iterable, TypeVar, Union
 
 from typing_extensions import get_args, get_origin
@@ -82,7 +84,7 @@ def get_constraint_names(*hints) -> set[str, ...]:
     """returns the set of named constraints of a type hint"""
     all_hints = set()
     for hint in hints:
-        if hint in (SerialisableType, IdentifierType):
+        if hint in (SerialisableType, IdentifierType) or inspect.isclass(hint):
             all_hints.add(hint.__name__)
             continue
 

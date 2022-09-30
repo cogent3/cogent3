@@ -99,7 +99,7 @@ class BootstrapTests(unittest.TestCase):
         )
         bstrap.set_num_replicates(REPLICATES)
         bstrap.set_seed(1984)
-        bstrap.run(local=True)
+        bstrap.run(local=True, show_progress=False)
         samplelnL = bstrap.get_sample_lnL()
         for lnL in samplelnL:
             assert lnL < 0.0, lnL
@@ -126,7 +126,7 @@ class BootstrapTests(unittest.TestCase):
         )
         prob_bstrap.set_num_replicates(REPLICATES)
         prob_bstrap.set_seed(1984)
-        prob_bstrap.run(local=True)
+        prob_bstrap.run(local=True, show_progress=False)
 
         self.assertEqual(len(prob_bstrap.get_sample_LR_list()), REPLICATES)
 

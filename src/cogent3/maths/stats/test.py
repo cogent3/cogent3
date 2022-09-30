@@ -1307,10 +1307,17 @@ def tail(prob, test):
         return 1 - prob
 
 
-# todo delete, now from itertools.combinations
-def combinations(n, k):
+def combinations(n, k):  # pragma: no cover
     """Returns the number of ways of choosing k items from n."""
-    return exp(lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1))
+    from scipy.special import binom
+
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function", "combinations", "2022.11", "use scipy.special.binom instead"
+    )
+
+    return binom(n, k)
 
 
 def multiple_comparisons(p, n):
