@@ -123,6 +123,11 @@ class DataStoreABC(ABC):
 
     @property
     @abstractmethod
+    def completed(self) -> list[DataMemberABC]:
+        ...
+
+    @property
+    @abstractmethod
     def not_completed(self) -> list[DataMemberABC]:
         ...
 
@@ -253,6 +258,15 @@ class DataStoreDirectory(DataStoreABC):
         return (
             [DataMember(self, Path(_LOG_TABLE) / m.name) for m in log_dir.glob("*")]
             if log_dir.exists()
+            else []
+        )
+
+    @property
+    def completed(self) -> list[DataMember]:
+        path = Path(self.source)
+        return (
+            [DataMember(self, path / m.name) for m in path.glob(f"*.{self.suffix}")]
+            if path.exists()
             else []
         )
 
