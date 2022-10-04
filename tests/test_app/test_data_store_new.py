@@ -1,5 +1,3 @@
-import os
-
 from pathlib import Path
 from pickle import dumps, loads
 
@@ -7,20 +5,14 @@ import pytest
 
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
-    _INCOMPLETE_TABLE,
     _LOG_TABLE,
+    _NOT_COMPLETED_TABLE,
     OVERWRITE,
-    RAISE,
     READONLY,
-    SKIP,
-    DataMember,
     DataStoreDirectory,
 )
-from cogent3.parse.fasta import MinimalFastaParser
-
 
 DATA_DIR = Path(__file__).parent.parent / "data"
-
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
@@ -64,7 +56,7 @@ def ic_dir(tmp_dir):
         dest = ic_dir / fn.name
         dest.write_text(fn.read_text())
     logs_dir = ic_dir / _LOG_TABLE
-    nc_dir = ic_dir / _INCOMPLETE_TABLE
+    nc_dir = ic_dir / _NOT_COMPLETED_TABLE
     logs_dir.mkdir(exist_ok=True)
     nc_dir.mkdir(exist_ok=True)
     (logs_dir / "scitrack.log").write_text((DATA_DIR / "scitrack.log").read_text())
@@ -150,8 +142,8 @@ def test_no_logs(ro_dstore):
     assert len(ro_dstore.logs) == 0
 
 
-def test_no_incompleted(ro_dstore):
-    assert len(ro_dstore.incomplete) == 0
+def test_no_not_completed(ro_dstore):
+    assert len(ro_dstore.not_completed) == 0
 
 
 def test_logs(ic_dstore):
@@ -160,9 +152,9 @@ def test_logs(ic_dstore):
     assert isinstance(log, str)
 
 
-def test_incompleted(ic_dstore):
-    assert len(ic_dstore.incomplete) == 1
-    nc = ic_dstore.incomplete[0].read()
+def test_not_completed(ic_dstore):
+    assert len(ic_dstore.not_completed) == 1
+    nc = ic_dstore.not_completed[0].read()
     assert isinstance(nc, str)
 
 
@@ -283,8 +275,7 @@ def test_make_identifier():
 def test_summary_logs():
     ...
 
-def test_summary_incomplete():
+def test_summary_not_completed():
    ...
-
 
 '''
