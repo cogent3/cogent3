@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import re
 import shutil
@@ -9,6 +11,7 @@ from pathlib import Path
 
 from scitrack import get_text_hexdigest
 
+from cogent3.app.typing import TabularType
 from cogent3.util.io import open_
 from cogent3.util.parallel import is_master_process
 
@@ -22,7 +25,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-_INCOMPLETE_TABLE = "incomplete"
+_NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"
 
@@ -49,24 +52,11 @@ class DataMemberABC(ABC):
     def unique_id(self):
         ...
 
-    def read(self) -> str:
+    def read(self) -> str | bytes:
         return self.data_store.read(self.unique_id)
 
     def write(self, data: str) -> None:
         self.data_store.write(self.unique_id, data)
-
-
-class DataMember(DataMemberABC):
-    def __init__(self, data_store: "DataStoreDirectory" = None, unique_id: str = None):
-        super().__init__(data_store)
-        self._unique_id = unique_id
-
-    def __repr__(self):
-        return self._unique_id
-
-    @property
-    def unique_id(self):
-        return self._unique_id
 
 
 class DataStoreABC(ABC):
@@ -94,37 +84,33 @@ class DataStoreABC(ABC):
         return any(identifier == m.unique_id for m in self)
 
     @abstractmethod
-    def read(self, unique_id: str) -> str:
+    def read(self, unique_id: str) -> str | bytes:
         ...
 
     @abstractmethod
-    def write(self, unique_id: str, data: str) -> None:
+    def write(self, unique_id: str, data: str | bytes) -> None:
         if self._if_dest_exists is READONLY:
             raise IOError("datastore is readonly")
         if self._if_member_exists is RAISE and unique_id in self:
             raise IOError("member exists")
 
     @abstractmethod
-    def write_incomplete(self, unique_id: str, data):
+    def write_not_completed(self, unique_id: str, data: str | bytes) -> None:
         if self.if_member_exists is RAISE and unique_id in self:
             raise IOError("member exists")
 
     @abstractmethod
-    def write_log(self, unique_id: str, data):
+    def write_log(self, unique_id: str, data: str | bytes) -> None:
         if self.if_member_exists is RAISE and unique_id in self:
             raise IOError("member exists")
 
     @abstractmethod
-    def describe(self):
+    def describe(self) -> TabularType:
         ...
 
     @property
     @abstractmethod
-    def members(self):
-        ...
-
-    @abstractmethod
-    def open(self, member):
+    def members(self) -> list[DataMemberABC]:
         ...
 
     def __iter__(self):
@@ -132,28 +118,39 @@ class DataStoreABC(ABC):
 
     @property
     @abstractmethod
-    def logs(self):
+    def logs(self) -> list[DataMemberABC]:
         ...
 
     @property
     @abstractmethod
-    def incomplete(self):
+    def not_completed(self) -> list[DataMemberABC]:
         ...
 
     @property
     @abstractmethod
-    def summary_logs(self):
+    def summary_logs(self) -> TabularType:
         ...
 
     @property
     @abstractmethod
-    def summary_incomplete(self):
+    def summary_not_completed(self) -> TabularType:
         ...
+
+
+class DataMember(DataMemberABC):
+    def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
+        super().__init__(data_store)
+        self._unique_id = unique_id
+
+    def __repr__(self):
+        return self._unique_id
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
 
 class DataStoreDirectory(DataStoreABC):
-    store_suffix = None
-
     def __init__(
         self,
         source,
@@ -169,10 +166,8 @@ class DataStoreDirectory(DataStoreABC):
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
         source = Path(source)
+        self.source = source.expanduser()
         self.suffix = suffix
-        if self.store_suffix and not source.name.endswith(self.store_suffix):
-            raise ValueError(f"{source.name} doesn't match {self.store_suffix}")
-        self.source = Path(source).expanduser()
         self._members = []
         self._limit = limit
         self._verbose = verbose
@@ -184,7 +179,7 @@ class DataStoreDirectory(DataStoreABC):
         if not is_master_process():
             return
 
-        sub_dirs = [_INCOMPLETE_TABLE, _LOG_TABLE, _MD5_TABLE]
+        sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
 
         if if_dest_exists is READONLY and not self.source.exists():
             raise IOError("must exist")
@@ -218,7 +213,7 @@ class DataStoreDirectory(DataStoreABC):
 
         return data
 
-    def md5(self, unique_id: str, force=True):
+    def md5(self, unique_id: str, force=True) -> str:
         """
         Parameters
         ----------
@@ -240,7 +235,7 @@ class DataStoreDirectory(DataStoreABC):
         return self._checksums.get(unique_id, None)
 
     @property
-    def members(self):
+    def members(self) -> list[DataMember]:
         if not self._members:  # members in completed and incomplete
             pattern = f"{self.source}/**/*.{self.suffix}"
             paths = list(glob.iglob(pattern, recursive=True))
@@ -253,7 +248,7 @@ class DataStoreDirectory(DataStoreABC):
         return self._members
 
     @property
-    def logs(self):
+    def logs(self) -> list[DataMember]:
         log_dir = self.source / _LOG_TABLE
         return (
             [DataMember(self, Path(_LOG_TABLE) / m.name) for m in log_dir.glob("*")]
@@ -262,11 +257,11 @@ class DataStoreDirectory(DataStoreABC):
         )
 
     @property
-    def incomplete(self):
-        ic_dir = self.source / _INCOMPLETE_TABLE
+    def not_completed(self) -> list[DataMember]:
+        ic_dir = self.source / _NOT_COMPLETED_TABLE
         return (
             [
-                DataMember(self, Path(_INCOMPLETE_TABLE) / m.name)
+                DataMember(self, Path(_NOT_COMPLETED_TABLE) / m.name)
                 for m in ic_dir.glob("*.json")
             ]
             if ic_dir.exists()
@@ -280,9 +275,9 @@ class DataStoreDirectory(DataStoreABC):
             if self._md5 and isinstance(data, str):
                 self._checksums[unique_id] = get_text_hexdigest(data)
 
-    def write_incomplete(self, unique_id: str, data: str) -> None:
+    def write_not_completed(self, unique_id: str, data: str) -> None:
         super().write(unique_id, data)
-        with open_(self.source / _INCOMPLETE_TABLE / unique_id, mode="w") as out:
+        with open_(self.source / _NOT_COMPLETED_TABLE / unique_id, mode="w") as out:
             out.write(data)
 
     def write_log(self, unique_id: str, data: str) -> None:
@@ -290,29 +285,26 @@ class DataStoreDirectory(DataStoreABC):
         with open_(self.source / _LOG_TABLE / unique_id, mode="w") as out:
             out.write(data)
 
-    def describe(self):
-        ...
-
-    def open(self, member):
-        return open_(self.source / member.unique_id, mode="r")
-
-    @property
-    def summary_logs(self):
+    def describe(self) -> TabularType:
         ...
 
     @property
-    def summary_incomplete(self):
+    def summary_logs(self) -> TabularType:
+        ...
+
+    @property
+    def summary_not_completed(self) -> TabularType:
         ...
 
     def __repr__(self):
-        incomplete_path = Path(self.source / _INCOMPLETE_TABLE)
-        if not incomplete_path.exists():
+        notcompleted_path = Path(self.source / _NOT_COMPLETED_TABLE)
+        if not notcompleted_path.exists():
             return "This isn't a results directory"
         num_completed += len(self)
-        num_incomplete = len(list(incomplete_path.glob("*")))
+        num_not_completed = len(list(notcompleted_path.glob("*")))
         name = self.__class__.__name__
         sample = f"{str(list(self[:3]))[:-1]}..." if num_completed > 3 else list(self)
-        return f"{num_completed+num_incomplete}x member {name}(source='{self.source}', members={sample})"
+        return f"{num_completed+num_not_completed}x member {name}(source='{self.source}', members={sample})"
 
 
 @singledispatch
