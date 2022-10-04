@@ -31,7 +31,6 @@ __status__ = "Alpha"
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
-
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("datastore")
