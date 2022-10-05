@@ -12,7 +12,9 @@ from cogent3.app.data_store_new import (
     DataStoreDirectory,
 )
 
+
 DATA_DIR = Path(__file__).parent.parent / "data"
+
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
@@ -47,22 +49,26 @@ def write_dir(tmp_dir):
 
 
 @pytest.fixture(scope="session")
-def ic_dir(tmp_dir):
+def nc_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
-    ic_dir = tmp_dir / "ic_dir"
-    ic_dir.mkdir(parents=True, exist_ok=True)
+    nc_dir = tmp_dir / "nc_dir"
+    nc_dir.mkdir(parents=True, exist_ok=True)
     for fn in filenames:
-        dest = ic_dir / fn.name
+        dest = nc_dir / fn.name
         dest.write_text(fn.read_text())
-    logs_dir = ic_dir / _LOG_TABLE
-    nc_dir = ic_dir / _NOT_COMPLETED_TABLE
+    logs_dir = nc_dir / _LOG_TABLE
+    not_dir = nc_dir / _NOT_COMPLETED_TABLE
     logs_dir.mkdir(exist_ok=True)
-    nc_dir.mkdir(exist_ok=True)
+    not_dir.mkdir(exist_ok=True)
     (logs_dir / "scitrack.log").write_text((DATA_DIR / "scitrack.log").read_text())
-    nc = NotCompleted("FAIL", "dummy", "dummy_message", source="dummy_source")
-    (nc_dir / "nc.json").write_text(nc.to_json())
-    return ic_dir
+    nc1 = NotCompleted("FAIL", "dummy1", "dummy_message1", source="dummy_source1")
+    nc2 = NotCompleted("FAIL", "dummy2", "dummy_message2", source="dummy_source2")
+    nc3 = NotCompleted("FAIL", "dummy3", "dummy_message3", source="dummy_source3")
+    (not_dir / "nc1.json").write_text(nc1.to_json())
+    (not_dir / "nc2.json").write_text(nc2.to_json())
+    (not_dir / "nc3.json").write_text(nc3.to_json())
+    return nc_dir
 
 
 @pytest.fixture(scope="session")
@@ -76,8 +82,8 @@ def w_dstore(write_dir):
 
 
 @pytest.fixture(scope="session")
-def ic_dstore(ic_dir):
-    return DataStoreDirectory(ic_dir, suffix=".fasta")
+def nc_dstore(nc_dir):
+    return DataStoreDirectory(nc_dir, suffix=".fasta")
 
 
 def test_contains(ro_dstore):
@@ -146,15 +152,15 @@ def test_no_not_completed(ro_dstore):
     assert len(ro_dstore.not_completed) == 0
 
 
-def test_logs(ic_dstore):
-    assert len(ic_dstore.logs) == 1
-    log = ic_dstore.logs[0].read()
+def test_logs(nc_dstore):
+    assert len(nc_dstore.logs) == 1
+    log = nc_dstore.logs[0].read()
     assert isinstance(log, str)
 
 
-def test_not_completed(ic_dstore):
-    assert len(ic_dstore.not_completed) == 1
-    nc = ic_dstore.not_completed[0].read()
+def test_not_completed(nc_dstore):
+    assert len(nc_dstore.not_completed) == 3
+    nc = nc_dstore.not_completed[0].read()
     assert isinstance(nc, str)
 
 
@@ -181,8 +187,8 @@ def test_multi_write(fasta_dir, w_dstore):
     """correctly write multiple files to data store"""
     expect_a = Path(fasta_dir / "brca1.fasta").read_text()
     expect_b = Path(fasta_dir / "primates_brca1.fasta").read_text()
-    identifier_a = "brca1.fasta"
-    identifier_b = "primates_brca1.fasta"
+    identifier_a = "brca2.fasta"
+    identifier_b = "primates_brca2.fasta"
     w_dstore.write(identifier_a, expect_a)
     w_dstore.write(identifier_b, expect_b)
     got_a = w_dstore.read(identifier_a)
@@ -190,6 +196,31 @@ def test_multi_write(fasta_dir, w_dstore):
     # check that both bits of data match
     assert got_a == expect_a
     assert got_b == expect_b
+
+
+def test_append(w_dstore):
+    """correctly write content"""
+    identifier = "test1.fasta"
+    data = "test data"
+    w_dstore.write(identifier, data)
+    got = w_dstore.read(identifier)
+    assert got == data
+
+
+def test_notcompleted(nc_dir, nc_dstore):
+    len_not_completed = len(nc_dstore.not_completed)
+    assert len_not_completed == 3
+    nc_dstore.drop_not_completed()
+    len_not_completed = len(nc_dstore.not_completed)
+    assert len_not_completed == 0
+    nc1 = NotCompleted("FAIL", "dummy1", "dummy_message1", source="dummy_source1")
+    nc2 = NotCompleted("FAIL", "dummy2", "dummy_message2", source="dummy_source2")
+    nc3 = NotCompleted("FAIL", "dummy3", "dummy_message3", source="dummy_source3")
+    (nc_dir / _NOT_COMPLETED_TABLE / "nc1.json").write_text(nc1.to_json())
+    (nc_dir / _NOT_COMPLETED_TABLE / "nc2.json").write_text(nc2.to_json())
+    (nc_dir / _NOT_COMPLETED_TABLE / "nc3.json").write_text(nc3.to_json())
+    len_not_completed = len(nc_dstore.not_completed)
+    assert len_not_completed == 3
 
 
 '''
@@ -279,3 +310,6 @@ def test_summary_not_completed():
    ...
 
 '''
+
+# todo: check combinations of args to constructor
+# todo: new tests for describe and summary
