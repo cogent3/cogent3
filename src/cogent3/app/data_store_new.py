@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import glob
 import re
+import reprlib
 import shutil
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
@@ -12,13 +14,15 @@ from pathlib import Path
 from scitrack import get_text_hexdigest
 
 from cogent3.app.typing import TabularType
-from cogent3.util.io import open_
+from cogent3.util.deserialise import deserialise_not_completed
+from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -93,6 +97,8 @@ class DataStoreABC(ABC):
             raise IOError("datastore is readonly")
         if self._if_member_exists is RAISE and unique_id in self:
             raise IOError("member exists")
+        if self._if_member_exists is READONLY and unique_id in self:
+            raise IOError("member exists")
 
     @abstractmethod
     def write_not_completed(self, unique_id: str, data: str | bytes) -> None:
@@ -139,6 +145,10 @@ class DataStoreABC(ABC):
     @property
     @abstractmethod
     def summary_not_completed(self) -> TabularType:
+        ...
+
+    @abstractmethod
+    def drop_not_completed(self):
         ...
 
 
@@ -206,7 +216,7 @@ class DataStoreDirectory(DataStoreABC):
             path.mkdir(parents=True, exist_ok=True)
 
         for sub_dir in sub_dirs:
-            (self.source.parent / sub_dir).mkdir(parents=True, exist_ok=True)
+            (self.source / sub_dir).mkdir(parents=True, exist_ok=True)
 
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
@@ -239,9 +249,14 @@ class DataStoreDirectory(DataStoreABC):
         self._md5 = md5_setting
         return self._checksums.get(unique_id, None)
 
+    def drop_not_completed(self):
+        nc_dir = self.source / _NOT_COMPLETED_TABLE
+        for file in list(nc_dir.glob("*.json")):
+            file.unlink()
+
     @property
     def members(self) -> list[DataMember]:
-        if not self._members:  # members in completed and incomplete
+        if not self._members:  # members in completed and notcompleted
             pattern = f"{self.source}/**/*.{self.suffix}"
             paths = list(glob.iglob(pattern, recursive=True))
             self._members = []
@@ -272,50 +287,150 @@ class DataStoreDirectory(DataStoreABC):
 
     @property
     def not_completed(self) -> list[DataMember]:
-        ic_dir = self.source / _NOT_COMPLETED_TABLE
+        nc_dir = self.source / _NOT_COMPLETED_TABLE
         return (
             [
                 DataMember(self, Path(_NOT_COMPLETED_TABLE) / m.name)
-                for m in ic_dir.glob("*.json")
+                for m in nc_dir.glob("*.json")
             ]
-            if ic_dir.exists()
+            if nc_dir.exists()
             else []
         )
 
     def write(self, unique_id: str, data: str) -> None:
         super().write(unique_id, data)
+        # check suffix compatible with this datastore
+        suf, cmp = get_format_suffixes(unique_id)
+        self.suffix = self.suffix or suf
+        if suf != self.suffix:
+            unique_id = f"{unique_id}.{self.suffix}"
         with open_(self.source / unique_id, mode="w") as out:
             out.write(data)
-            if self._md5 and isinstance(data, str):
-                self._checksums[unique_id] = get_text_hexdigest(data)
+        md5 = get_text_hexdigest(data)
+        unique_id = unique_id.replace(self.suffix, "txt")
+        unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+        with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
+            out.write(md5)
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
         super().write(unique_id, data)
+        # check suffix compatible with this datastore
+        suf, cmp = get_format_suffixes(unique_id)
+        self.suffix = self.suffix or suf
+        if suf != self.suffix:
+            unique_id = f"{unique_id}.{self.suffix}"
         with open_(self.source / _NOT_COMPLETED_TABLE / unique_id, mode="w") as out:
             out.write(data)
+        md5 = get_text_hexdigest(data)
+        unique_id = unique_id.replace(self.suffix, "txt")
+        unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+        with open_(self.source / _NOT_COMPLETED_TABLE / unique_id, mode="w") as out:
+            out.write(md5)
 
     def write_log(self, unique_id: str, data: str) -> None:
         super().write(unique_id, data)
+        # check suffix compatible with this datastore
+        suf, cmp = get_format_suffixes(unique_id)
+        self.suffix = self.suffix or suf
+        if suf != self.suffix:
+            unique_id = f"{unique_id}.{self.suffix}"
         with open_(self.source / _LOG_TABLE / unique_id, mode="w") as out:
             out.write(data)
+        md5 = get_text_hexdigest(data)
+        unique_id = unique_id.replace(self.suffix, "txt")
+        unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+        with open_(self.source / _LOG_TABLE / unique_id, mode="w") as out:
+            out.write(md5)
 
     def describe(self) -> TabularType:
-        ...
+        num_notcompleted = len(self.not_completed)
+        num_completed = len(self.completed)
+        num_logs = len(self.logs)
+        return Table(
+            header=["record type", "number"],
+            data=[
+                ["completed", num_completed],
+                ["incomplete", num_notcompleted],
+                ["logs", num_logs],
+            ],
+        )
 
     @property
     def summary_logs(self) -> TabularType:
-        ...
+        """returns a table summarising log files"""
+        rows = []
+        for record in self.logs:
+            data = record.read().splitlines()
+            first = data.pop(0).split("\t")
+            row = [first[0], record.name]
+            key = None
+            mapped = {}
+            for line in data:
+                line = line.split("\t")[-1].split(" : ", maxsplit=1)
+                if len(line) == 1:
+                    mapped[key] += line[0]
+                    continue
+
+                key = line[0]
+                mapped[key] = line[1]
+
+            data = mapped
+            row.extend(
+                [
+                    data["python"],
+                    data["user"],
+                    data["command_string"],
+                    data["composable function"],
+                ]
+            )
+            rows.append(row)
+        return Table(
+            header=["time", "name", "python version", "who", "command", "composable"],
+            data=rows,
+            title="summary of log files",
+        )
 
     @property
     def summary_not_completed(self) -> TabularType:
-        ...
+        """returns a table summarising not completed results"""
+        # detect last exception line
+        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
+        types = defaultdict(list)
+        indices = "type", "origin"
+        for member in self.not_completed:
+            record = member.read()
+            record = deserialise_not_completed(record)
+            key = tuple(getattr(record, k, None) for k in indices)
+            match = err_pat.findall(record.message)
+            types[key].append([match[-1] if match else record.message, record.source])
+
+        header = list(indices) + ["message", "num", "source"]
+        rows = []
+        maxtring = reprlib.aRepr.maxstring
+        reprlib.aRepr.maxstring = 45
+
+        for record in types:
+            messages, sources = list(zip(*types[record]))
+            messages = reprlib.repr(
+                ", ".join(m.splitlines()[-1] for m in set(messages))
+            )
+            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
+            row = list(record) + [
+                messages,
+                len(types[record]),
+                sources,
+            ]
+            rows.append(row)
+
+        reprlib.aRepr.maxstring = maxtring  # restoring original val
+        return Table(header=header, data=rows, title="not completed records")
 
     def __repr__(self):
         notcompleted_path = Path(self.source / _NOT_COMPLETED_TABLE)
         if not notcompleted_path.exists():
             return "This isn't a results directory"
-        num_completed += len(self)
-        num_not_completed = len(list(notcompleted_path.glob("*")))
+        num_completed = len(self)
+        num_not_completed = len(self.not_completed)
         name = self.__class__.__name__
         sample = f"{str(list(self[:3]))[:-1]}..." if num_completed > 3 else list(self)
         return f"{num_completed+num_not_completed}x member {name}(source='{self.source}', members={sample})"
