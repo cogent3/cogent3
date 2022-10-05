@@ -208,108 +208,30 @@ def test_append(w_dstore):
 
 
 def test_notcompleted(nc_dir, nc_dstore):
-    len_not_completed = len(nc_dstore.not_completed)
-    assert len_not_completed == 3
+    assert len(nc_dstore.not_completed) == 3
     nc_dstore.drop_not_completed()
-    len_not_completed = len(nc_dstore.not_completed)
-    assert len_not_completed == 0
+    assert len(nc_dstore.not_completed) == 0
     nc1 = NotCompleted("FAIL", "dummy1", "dummy_message1", source="dummy_source1")
     nc2 = NotCompleted("FAIL", "dummy2", "dummy_message2", source="dummy_source2")
     nc3 = NotCompleted("FAIL", "dummy3", "dummy_message3", source="dummy_source3")
     (nc_dir / _NOT_COMPLETED_TABLE / "nc1.json").write_text(nc1.to_json())
     (nc_dir / _NOT_COMPLETED_TABLE / "nc2.json").write_text(nc2.to_json())
     (nc_dir / _NOT_COMPLETED_TABLE / "nc3.json").write_text(nc3.to_json())
-    len_not_completed = len(nc_dstore.not_completed)
-    assert len_not_completed == 3
+    assert len(nc_dstore.not_completed) == 3
 
 
-'''
-def test_write_wout_suffix(w_dstore):
-    """appends suffix expected to records"""
-    with pytest.raises(ValueError):
-        w_dstore.write("1", str(dict(a=24, b="some text")))
-
-    w_dstore.write("1.fasta", str(dict(a=24, b="some text")))
-    assert len(w_dstore)== 1
-
-@skipIf(sys.platform.lower() != "darwin", "broken on linux")
-def test_md5_write(write__dir, w_dstore):
-    """tracks md5 sums of written data"""
-    expect = Path( write_dir / "brca1.fasta").read_text()
-
-    identifier = make_identifier(w_dstore, "brca1.fasta", absolute=True)
-    abs_id = w_dstore.write(identifier, expect)
-    md5 = "05a7302479c55c0b5890b50f617c5642"
-    assert w_dstore.md5(abs_id) == md5
-    assert w_dstore[0].md5 == md5
-
-    # does not have md5 if not set
-    identifier = make_identifier(w_dstore, "brca1.fasta", absolute=True)
-    abs_id = w_dstore.write(identifier, expect)
-    got = w_dstore.md5(abs_id, force=False)
-    assert got is None
-    # but if you set force=True, you get it
-    md5 = "05a7302479c55c0b5890b50f617c5642"
-    got = w_dstore.md5(abs_id, force=True)
-    assert got == md5
-
-
-def test_add_file():
-    """correctly add an arbitrarily named file"""
-    data = Path(f"data{os.sep}brca1.fasta").read_text()
-
-    log_path = os.path.join(dirname, "some.log")
-    with open(log_path, "w") as out:
-        out.write("some text")
-
-    path = os.path.join(dirname, basedir)
-    dstore = DataStoreDirectory(path, suffix=".fa", create=True)
-    _ = dstore.write("brca1.fa", data)
-    dstore.add_file(log_path)
-    assert "some.log" in dstore
-    assert os.path.exists(log_path)
-
-    log_path = os.path.join(dirname, "some.log")
-    with open(log_path, "w") as out:
-        out.write("some text")
-
-    path = os.path.join(dirname, basedir)
-    dstore = DataStoreDirectory(path, suffix=".fa", create=True)
-    _ = dstore.write("brca1.fa", data)
-    dstore.add_file(log_path, cleanup=True)
-    assert "some.log" in dstore
-    assert not os.path.exists(log_path)
-
-def test_make_identifier():
-    """correctly construct an identifier for a new member"""
-
-    if dirname.startswith(f".{os.sep}"):
-        dirname = dirname[2:]
-
-    path = os.path.join(dirname, basedir)
-    base_path = path.replace(".zip", "")
-    dstore = DataStoreDirectory(path, suffix=".json", create=True)
-    name = "brca1.fasta"
-    got = make_identifier(dstore, name, absolute = True)
-    expect = os.path.join(base_path, name.replace("fasta", "json"))
-    assert got == expect
-
-    # now using a DataMember
-    member = DataMember(
-        os.path.join(f"blah{os.sep}blah", f"2-{name}"), None
-    )
-    got = make_identifier(dstore, member, absolute=True)
-    expect = os.path.join(base_path, member.name.replace("fasta", "json"))
-    assert got == expect
-
-
-def test_summary_logs():
-    ...
-
-def test_summary_not_completed():
-   ...
-
-'''
-
-# todo: check combinations of args to constructor
-# todo: new tests for describe and summary
+def test_no_not_completed_subdir(nc_dir, nc_dstore):
+    nc_dstore.drop_not_completed()
+    Path(nc_dstore.source / _NOT_COMPLETED_TABLE).rmdir()
+    assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
+    expect = f"6x member DataStoreDirectory(source='{nc_dir}', members=[brca1.fasta, long_testseqs.fasta, formattest.fasta...)"
+    assert repr(nc_dstore) == expect
+    not_dir = nc_dir / _NOT_COMPLETED_TABLE
+    not_dir.mkdir(exist_ok=True)
+    nc1 = NotCompleted("FAIL", "dummy1", "dummy_message1", source="dummy_source1")
+    nc2 = NotCompleted("FAIL", "dummy2", "dummy_message2", source="dummy_source2")
+    nc3 = NotCompleted("FAIL", "dummy3", "dummy_message3", source="dummy_source3")
+    (nc_dir / _NOT_COMPLETED_TABLE / "nc1.json").write_text(nc1.to_json())
+    (nc_dir / _NOT_COMPLETED_TABLE / "nc2.json").write_text(nc2.to_json())
+    (nc_dir / _NOT_COMPLETED_TABLE / "nc3.json").write_text(nc3.to_json())
+    assert len(nc_dstore.not_completed) == 3

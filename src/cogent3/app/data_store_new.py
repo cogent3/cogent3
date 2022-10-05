@@ -95,10 +95,10 @@ class DataStoreABC(ABC):
     def write(self, unique_id: str, data: str | bytes) -> None:
         if self._if_dest_exists is READONLY:
             raise IOError("datastore is readonly")
-        if self._if_member_exists is RAISE and unique_id in self:
-            raise IOError("member exists")
-        if self._if_member_exists is READONLY and unique_id in self:
-            raise IOError("member exists")
+        if self._if_member_exists in (READONLY, RAISE) and unique_id in self:
+            raise IOError(
+                f"DataStore member_exists is {self._if_member_exists!r} and {unique_id!r} exists"
+            )
 
     @abstractmethod
     def write_not_completed(self, unique_id: str, data: str | bytes) -> None:
@@ -426,14 +426,11 @@ class DataStoreDirectory(DataStoreABC):
         return Table(header=header, data=rows, title="not completed records")
 
     def __repr__(self):
-        notcompleted_path = Path(self.source / _NOT_COMPLETED_TABLE)
-        if not notcompleted_path.exists():
-            return "This isn't a results directory"
         num_completed = len(self)
         num_not_completed = len(self.not_completed)
         name = self.__class__.__name__
         sample = f"{str(list(self[:3]))[:-1]}..." if num_completed > 3 else list(self)
-        return f"{num_completed+num_not_completed}x member {name}(source='{self.source}', members={sample})"
+        return f"{num_completed + num_not_completed}x member {name}(source='{self.source}', members={sample})"
 
 
 @singledispatch
