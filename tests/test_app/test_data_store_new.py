@@ -6,14 +6,32 @@ import pytest
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
+    _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
     OVERWRITE,
+    RAISE,
     READONLY,
+    SKIP,
     DataStoreDirectory,
 )
 
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
+
+def retain_nc_dstore(dstore):
+    # retain nc_dstore to the previous state
+    ncdir = dstore.source
+    nc = [
+        NotCompleted(
+            "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
+        )
+        for i in range(3)
+    ]
+    for i, item in enumerate(nc):
+        dstore.write_not_completed(f"nc{i+1}", item.to_json())
+    assert 3 == len(dstore.not_completed)
+    assert 3 == len(list((ncdir / _MD5_TABLE).glob("*.txt")))
 
 
 @pytest.fixture(scope="session")
@@ -62,28 +80,24 @@ def nc_dir(tmp_dir):
     logs_dir.mkdir(exist_ok=True)
     not_dir.mkdir(exist_ok=True)
     (logs_dir / "scitrack.log").write_text((DATA_DIR / "scitrack.log").read_text())
-    nc1 = NotCompleted("FAIL", "dummy1", "dummy_message1", source="dummy_source1")
-    nc2 = NotCompleted("FAIL", "dummy2", "dummy_message2", source="dummy_source2")
-    nc3 = NotCompleted("FAIL", "dummy3", "dummy_message3", source="dummy_source3")
-    (not_dir / "nc1.json").write_text(nc1.to_json())
-    (not_dir / "nc2.json").write_text(nc2.to_json())
-    (not_dir / "nc3.json").write_text(nc3.to_json())
     return nc_dir
 
 
 @pytest.fixture(scope="session")
 def ro_dstore(fasta_dir):
-    return DataStoreDirectory(fasta_dir, suffix=".fasta", if_dest_exists=READONLY)
+    return DataStoreDirectory(fasta_dir, suffix="fasta", if_dest_exists=READONLY)
 
 
 @pytest.fixture(scope="session")
 def w_dstore(write_dir):
-    return DataStoreDirectory(write_dir, if_dest_exists=OVERWRITE)
+    return DataStoreDirectory(write_dir, suffix="fasta", if_dest_exists=OVERWRITE)
 
 
 @pytest.fixture(scope="session")
 def nc_dstore(nc_dir):
-    return DataStoreDirectory(nc_dir, suffix=".fasta")
+    dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
+    retain_nc_dstore(dstore)
+    return dstore
 
 
 def test_contains(ro_dstore):
@@ -97,9 +111,9 @@ def test_iter(ro_dstore):
     assert members == ro_dstore.members
 
 
-def test_len(fasta_dir, ro_dstore):
+def test_len(ro_dstore):
     """DataStore returns correct len"""
-    expect = len(list(fasta_dir.glob("*.fasta")))
+    expect = len(list(ro_dstore.source.glob("*.fasta")))
     assert expect == len(ro_dstore) == len(ro_dstore.members)
 
 
@@ -112,15 +126,15 @@ def test_getitem(ro_dstore):
     assert last.unique_id != first.unique_id
 
 
-def test_iterall(fasta_dir, ro_dstore):
-    expect = {fn.name for fn in fasta_dir.glob("*.fasta")}
+def test_iterall(ro_dstore):
+    expect = {fn.name for fn in ro_dstore.source.glob("*.fasta")}
     got = {m.unique_id for m in ro_dstore}
     assert expect == got
 
 
-def test_read(fasta_dir, ro_dstore):
+def test_read(ro_dstore):
     """correctly read content"""
-    expect = (fasta_dir / "brca1.fasta").read_text()
+    expect = (ro_dstore.source / "brca1.fasta").read_text()
     got = ro_dstore.read("brca1.fasta")
     assert got == expect
 
@@ -207,31 +221,33 @@ def test_append(w_dstore):
     assert got == data
 
 
-def test_notcompleted(nc_dir, nc_dstore):
+def test_notcompleted(nc_dstore):
     assert len(nc_dstore.not_completed) == 3
     nc_dstore.drop_not_completed()
     assert len(nc_dstore.not_completed) == 0
-    nc1 = NotCompleted("FAIL", "dummy1", "dummy_message1", source="dummy_source1")
-    nc2 = NotCompleted("FAIL", "dummy2", "dummy_message2", source="dummy_source2")
-    nc3 = NotCompleted("FAIL", "dummy3", "dummy_message3", source="dummy_source3")
-    (nc_dir / _NOT_COMPLETED_TABLE / "nc1.json").write_text(nc1.to_json())
-    (nc_dir / _NOT_COMPLETED_TABLE / "nc2.json").write_text(nc2.to_json())
-    (nc_dir / _NOT_COMPLETED_TABLE / "nc3.json").write_text(nc3.to_json())
-    assert len(nc_dstore.not_completed) == 3
+    # retain nc_dstore to the previous state
+    retain_nc_dstore(nc_dstore)
 
 
-def test_no_not_completed_subdir(nc_dir, nc_dstore):
+def test_no_not_completed_subdir(nc_dstore):
+    # first remove not_completed directory
     nc_dstore.drop_not_completed()
     Path(nc_dstore.source / _NOT_COMPLETED_TABLE).rmdir()
+    # test repr work without not_completed directory
     assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
-    expect = f"6x member DataStoreDirectory(source='{nc_dir}', members=[brca1.fasta, long_testseqs.fasta, formattest.fasta...)"
-    assert repr(nc_dstore) == expect
-    not_dir = nc_dir / _NOT_COMPLETED_TABLE
+    expect = "6x member"
+    assert repr(nc_dstore).startswith(expect)
+    # retain nc_dstore to the previous state
+    not_dir = nc_dstore.source / _NOT_COMPLETED_TABLE
     not_dir.mkdir(exist_ok=True)
-    nc1 = NotCompleted("FAIL", "dummy1", "dummy_message1", source="dummy_source1")
-    nc2 = NotCompleted("FAIL", "dummy2", "dummy_message2", source="dummy_source2")
-    nc3 = NotCompleted("FAIL", "dummy3", "dummy_message3", source="dummy_source3")
-    (nc_dir / _NOT_COMPLETED_TABLE / "nc1.json").write_text(nc1.to_json())
-    (nc_dir / _NOT_COMPLETED_TABLE / "nc2.json").write_text(nc2.to_json())
-    (nc_dir / _NOT_COMPLETED_TABLE / "nc3.json").write_text(nc3.to_json())
+    retain_nc_dstore(nc_dstore)
+
+
+def test_drop_not_completed(nc_dstore):
     assert len(nc_dstore.not_completed) == 3
+    assert 3 == len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore.not_completed) == 0
+    assert 0 == len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    # retain nc_dstore to the previous state
+    retain_nc_dstore(nc_dstore)
