@@ -13,6 +13,7 @@ from cogent3.app.data_store_new import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
     OVERWRITE,
+    RAISE,
     READONLY,
     SKIP,
     DataStoreDirectory,
@@ -60,6 +61,21 @@ __status__ = "Alpha"
 
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
+
+def retain_nc_dstore(dstore):
+    # retain nc_dstore to the previous state
+    ncdir = dstore.source
+    nc = [
+        NotCompleted(
+            "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
+        )
+        for i in range(3)
+    ]
+    for i, item in enumerate(nc):
+        dstore.write_not_completed(f"nc{i+1}", item.to_json())
+    assert 3 == len(dstore.not_completed)
+    assert 3 == len(list((ncdir / _MD5_TABLE).glob("*.txt")))
 
 
 @pytest.fixture(scope="session")
