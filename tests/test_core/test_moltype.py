@@ -1130,7 +1130,7 @@ class TestCodonAlphabet(_AlphabetTestCase):
     def test_constructing_from_func(self):
         """the CodonAlphabet function should support genetic code names as well"""
         alpha_int = CodonAlphabet(1)
-        alpha_name = CodonAlphabet("Standard Nuclear")
+        alpha_name = CodonAlphabet("Standard")
         self.assertEqual(alpha_int, alpha_name)
         alpha_int = CodonAlphabet(2)
         alpha_name = CodonAlphabet("Vertebrate Mitochondrial")
