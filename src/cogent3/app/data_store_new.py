@@ -253,6 +253,9 @@ class DataStoreDirectory(DataStoreABC):
         nc_dir = self.source / _NOT_COMPLETED_TABLE
         for file in list(nc_dir.glob("*.json")):
             file.unlink()
+        md5_dir = self.source / _MD5_TABLE
+        for file in list(md5_dir.glob("*.txt")):
+            file.unlink()
 
     @property
     def members(self) -> list[DataMember]:
@@ -297,50 +300,37 @@ class DataStoreDirectory(DataStoreABC):
             else []
         )
 
-    def write(self, unique_id: str, data: str) -> None:
+    def _write(
+        self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
+    ) -> None:
         super().write(unique_id, data)
         # check suffix compatible with this datastore
-        suf, cmp = get_format_suffixes(unique_id)
-        self.suffix = self.suffix or suf
-        if suf != self.suffix:
-            unique_id = f"{unique_id}.{self.suffix}"
-        with open_(self.source / unique_id, mode="w") as out:
+        sfx, cmp = get_format_suffixes(unique_id)
+        suffix = suffix or sfx
+        if sfx != suffix:
+            unique_id = f"{unique_id}.{suffix}"
+        unique_id = (
+            unique_id.replace(self.suffix, suffix)
+            if self.suffix
+            else f"{unique_id}.{suffix}"
+        )
+        with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
-        md5 = get_text_hexdigest(data)
-        unique_id = unique_id.replace(self.suffix, "txt")
-        unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
-        with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
-            out.write(md5)
+        if md5:
+            md5 = get_text_hexdigest(data)
+            unique_id = unique_id.replace(suffix, "txt")
+            unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+            with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
+                out.write(md5)
+
+    def write(self, unique_id: str, data: str) -> None:
+        self._write("", unique_id, self.suffix, data, True)
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
-        super().write(unique_id, data)
-        # check suffix compatible with this datastore
-        suf, cmp = get_format_suffixes(unique_id)
-        self.suffix = self.suffix or suf
-        if suf != self.suffix:
-            unique_id = f"{unique_id}.{self.suffix}"
-        with open_(self.source / _NOT_COMPLETED_TABLE / unique_id, mode="w") as out:
-            out.write(data)
-        md5 = get_text_hexdigest(data)
-        unique_id = unique_id.replace(self.suffix, "txt")
-        unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
-        with open_(self.source / _NOT_COMPLETED_TABLE / unique_id, mode="w") as out:
-            out.write(md5)
+        self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
 
     def write_log(self, unique_id: str, data: str) -> None:
-        super().write(unique_id, data)
-        # check suffix compatible with this datastore
-        suf, cmp = get_format_suffixes(unique_id)
-        self.suffix = self.suffix or suf
-        if suf != self.suffix:
-            unique_id = f"{unique_id}.{self.suffix}"
-        with open_(self.source / _LOG_TABLE / unique_id, mode="w") as out:
-            out.write(data)
-        md5 = get_text_hexdigest(data)
-        unique_id = unique_id.replace(self.suffix, "txt")
-        unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
-        with open_(self.source / _LOG_TABLE / unique_id, mode="w") as out:
-            out.write(md5)
+        self._write(_LOG_TABLE, unique_id, "log", data, False)
 
     def describe(self) -> TabularType:
         num_notcompleted = len(self.not_completed)
@@ -350,7 +340,7 @@ class DataStoreDirectory(DataStoreABC):
             header=["record type", "number"],
             data=[
                 ["completed", num_completed],
-                ["incomplete", num_notcompleted],
+                ["not_completed", num_notcompleted],
                 ["logs", num_logs],
             ],
         )
@@ -429,7 +419,7 @@ class DataStoreDirectory(DataStoreABC):
         num_completed = len(self)
         num_not_completed = len(self.not_completed)
         name = self.__class__.__name__
-        sample = f"{str(list(self[:3]))[:-1]}..." if num_completed > 3 else list(self)
+        sample = f"{list(self[:2])}..." if num_completed > 2 else list(self)
         return f"{num_completed + num_not_completed}x member {name}(source='{self.source}', members={sample})"
 
 
