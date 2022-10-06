@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "develop", "composable_refactor" ]
+    branches: [ "develop", "data_store_refactor" ]
   pull_request:
-    branches: [ "develop", "composable_refactor" ]
+    branches: [ "develop", "data_store_refactor" ]
 
 jobs:
   tests:
