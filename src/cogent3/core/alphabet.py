@@ -547,14 +547,9 @@ class Alphabet(Enumeration):
         Note that the result is not a JointEnumeration object, and cannot
         unpack its indices. However, the items in the result _are_ all strings.
         """
-        crossproduct = [""]
-        for a in range(word_length):
-            n = []
-            for c in crossproduct:
-                for m in self:
-                    n.append(m + c)
-            crossproduct = n
-        return Alphabet(crossproduct, moltype=self.moltype)
+        states = (list(self),) * word_length
+        cross_product = ["".join(combo) for combo in product(*states)]
+        return Alphabet(cross_product, moltype=self.moltype)
 
     def from_seq_to_array(self, sequence):
         """Returns an array of indices corresponding to items in sequence.
