@@ -7,6 +7,7 @@ import pickle
 
 from unittest import TestCase, main
 
+from numpy import unravel_index
 from numpy.testing import assert_equal
 
 from cogent3.core.alphabet import (
@@ -239,6 +240,14 @@ class CharAlphabetTests(TestCase):
         got = pickle.loads(pkl)
         self.assertIsInstance(got, type(r))
         self.assertEqual(got.get_word_alphabet(2), wa)
+
+    def test_word_alphabet_order(self):
+        bases = "TCAG"
+        r = CharAlphabet(bases)
+        indices = [unravel_index(i, shape=(4, 4, 4)) for i in range(64)]
+        expect = tuple("".join([bases[b] for b in coord]) for coord in indices)
+        got = tuple(r.get_word_alphabet(3))
+        assert got == expect
 
     def test_from_string(self):
         """CharAlphabet from_string should return correct array"""
