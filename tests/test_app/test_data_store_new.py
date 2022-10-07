@@ -54,8 +54,8 @@ def retain_nc_dstore(dstore):
     ]
     for i, item in enumerate(nc):
         dstore.write_not_completed(f"nc{i+1}", item.to_json())
-    assert 3 == len(dstore.not_completed)
-    assert 3 == len(list((ncdir / _MD5_TABLE).glob("*.txt")))
+    assert len(dstore.not_completed) == 3
+    assert len(list((ncdir / _MD5_TABLE).glob("*.txt"))) == 3 + len(dstore)
 
 
 @pytest.fixture(scope="session")
