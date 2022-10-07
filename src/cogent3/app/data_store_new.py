@@ -251,11 +251,11 @@ class DataStoreDirectory(DataStoreABC):
 
     def drop_not_completed(self):
         nc_dir = self.source / _NOT_COMPLETED_TABLE
+        md5_dir = self.source / _MD5_TABLE
         for file in list(nc_dir.glob("*.json")):
             file.unlink()
-        md5_dir = self.source / _MD5_TABLE
-        for file in list(md5_dir.glob("*.txt")):
-            file.unlink()
+            md5_file = md5_dir / f"{file.stem}.txt"
+            md5_file.unlink()
 
     @property
     def members(self) -> list[DataMember]:
@@ -304,15 +304,15 @@ class DataStoreDirectory(DataStoreABC):
         self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
     ) -> None:
         super().write(unique_id, data)
+        assert suffix, "Must provide suffix"
         # check suffix compatible with this datastore
         sfx, cmp = get_format_suffixes(unique_id)
-        suffix = suffix or sfx
         if sfx != suffix:
             unique_id = f"{unique_id}.{suffix}"
         unique_id = (
             unique_id.replace(self.suffix, suffix)
-            if self.suffix
-            else f"{unique_id}.{suffix}"
+            if self.suffix and self.suffix != suffix
+            else unique_id
         )
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
