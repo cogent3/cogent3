@@ -30,8 +30,8 @@ def retain_nc_dstore(dstore):
     ]
     for i, item in enumerate(nc):
         dstore.write_not_completed(f"nc{i+1}", item.to_json())
-    assert 3 == len(dstore.not_completed)
-    assert 3 == len(list((ncdir / _MD5_TABLE).glob("*.txt")))
+    assert len(dstore.not_completed) == 3
+    assert len(list((ncdir / _MD5_TABLE).glob("*.txt"))) == 3 + len(dstore)
 
 
 @pytest.fixture(scope="session")
@@ -69,12 +69,8 @@ def write_dir(tmp_dir):
 @pytest.fixture(scope="session")
 def nc_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
-    filenames = DATA_DIR.glob("*.fasta")
     nc_dir = tmp_dir / "nc_dir"
     nc_dir.mkdir(parents=True, exist_ok=True)
-    for fn in filenames:
-        dest = nc_dir / fn.name
-        dest.write_text(fn.read_text())
     logs_dir = nc_dir / _LOG_TABLE
     not_dir = nc_dir / _NOT_COMPLETED_TABLE
     logs_dir.mkdir(exist_ok=True)
@@ -97,6 +93,11 @@ def w_dstore(write_dir):
 def nc_dstore(nc_dir):
     dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
     retain_nc_dstore(dstore)
+    filenames = DATA_DIR.glob("*.fasta")
+    for fn in filenames:
+        identifier = fn.name
+        dstore.write(identifier, fn.read_text())
+    dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
     return dstore
 
 
@@ -244,10 +245,15 @@ def test_no_not_completed_subdir(nc_dstore):
 
 
 def test_drop_not_completed(nc_dstore):
-    assert len(nc_dstore.not_completed) == 3
-    assert 3 == len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    num_completed = len(nc_dstore.completed)
+    num_not_completed = len(nc_dstore.not_completed)
+    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    assert num_not_completed == 3
+    assert len(nc_dstore) == 6
+    assert num_md5 == num_completed + num_not_completed
     nc_dstore.drop_not_completed()
     assert len(nc_dstore.not_completed) == 0
-    assert 0 == len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    assert num_md5 == num_completed
     # retain nc_dstore to the previous state
     retain_nc_dstore(nc_dstore)
