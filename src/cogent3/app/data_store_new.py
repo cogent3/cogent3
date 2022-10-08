@@ -257,7 +257,7 @@ class DataStoreDirectory(DataStoreABC):
 
     @property
     def members(self) -> list[DataMember]:
-        if not self._members:  # members in completed
+        if not self._members:  # members in completed and not_completed
             self._members = []
             for path in list(self.source.glob(f"*.{self.suffix}")) + list(
                 (self.source / _NOT_COMPLETED_TABLE).glob("*.json")
