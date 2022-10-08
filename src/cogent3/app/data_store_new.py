@@ -193,9 +193,7 @@ class DataStoreDirectory(DataStoreABC):
     def _source_check_create(self, if_dest_exists):
         if not is_master_process():
             return
-
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
-
         if if_dest_exists is READONLY and not self.source.exists():
             raise IOError("must exist")
         elif if_dest_exists is RAISE and self.source.exists():
@@ -259,7 +257,7 @@ class DataStoreDirectory(DataStoreABC):
 
     @property
     def members(self) -> list[DataMember]:
-        if not self._members:  # members in completed and notcompleted
+        if not self._members:  # members in completed
             pattern = f"{self.source}/**/*.{self.suffix}"
             paths = list(glob.iglob(pattern, recursive=True))
             self._members = []
@@ -325,6 +323,8 @@ class DataStoreDirectory(DataStoreABC):
 
     def write(self, unique_id: str, data: str) -> None:
         self._write("", unique_id, self.suffix, data, True)
+        if not self._limit or len(self) < self._limit:
+            self._members.append(DataMember(self, unique_id))
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
         self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
