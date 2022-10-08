@@ -14,6 +14,7 @@ from cogent3.app.data_store_new import (
     DataStoreDirectory,
 )
 
+
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 
@@ -101,7 +102,7 @@ def nc_dstore(nc_dir):
     for i, item in enumerate(nc):
         dstore.write_not_completed(f"nc{i + 1}", item.to_json())
     assert len(dstore.not_completed) == 3
-    assert len(list((nc_dir / _MD5_TABLE).glob("*.txt"))) == 3 + len(dstore)
+    assert len(list((nc_dir / _MD5_TABLE).glob("*.txt"))) == len(dstore)
     filenames = DATA_DIR.glob("*.fasta")
     for fn in filenames:
         identifier = fn.name
@@ -242,7 +243,7 @@ def test_no_not_completed_subdir(nc_dstore):
     Path(nc_dstore.source / _NOT_COMPLETED_TABLE).rmdir()
     # test repr work without not_completed directory
     assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
-    expect = "6x member"
+    expect = "9x member"
     assert repr(nc_dstore).startswith(expect)
     not_dir = nc_dstore.source / _NOT_COMPLETED_TABLE
     not_dir.mkdir(exist_ok=True)
@@ -253,7 +254,8 @@ def test_drop_not_completed(nc_dstore):
     num_not_completed = len(nc_dstore.not_completed)
     num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
     assert num_not_completed == 3
-    assert len(nc_dstore) == 6
+    assert num_completed == 6
+    assert len(nc_dstore) == 9
     assert num_md5 == num_completed + num_not_completed
     nc_dstore.drop_not_completed()
     assert len(nc_dstore.not_completed) == 0
