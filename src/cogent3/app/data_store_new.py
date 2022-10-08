@@ -258,11 +258,11 @@ class DataStoreDirectory(DataStoreABC):
     @property
     def members(self) -> list[DataMember]:
         if not self._members:  # members in completed
-            pattern = f"{self.source}/**/*.{self.suffix}"
-            paths = list(glob.iglob(pattern, recursive=True))
             self._members = []
-            for i, path in enumerate(paths):
-                if self._limit and i >= self._limit:
+            for path in list(self.source.glob(f"*.{self.suffix}")) + list(
+                (self.source / _NOT_COMPLETED_TABLE).glob("*.json")
+            ):
+                if self._limit and len(self._members) >= self._limit:
                     break
                 self._members.append(DataMember(self, Path(path).name))
 
@@ -314,6 +314,8 @@ class DataStoreDirectory(DataStoreABC):
         )
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
+        if suffix != "log" and not self._limit or len(self) < self._limit:
+            self._members.append(DataMember(self, unique_id))
         if md5:
             md5 = get_text_hexdigest(data)
             unique_id = unique_id.replace(suffix, "txt")
@@ -323,8 +325,6 @@ class DataStoreDirectory(DataStoreABC):
 
     def write(self, unique_id: str, data: str) -> None:
         self._write("", unique_id, self.suffix, data, True)
-        if not self._limit or len(self) < self._limit:
-            self._members.append(DataMember(self, unique_id))
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
         self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
