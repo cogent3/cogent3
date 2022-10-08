@@ -9,29 +9,12 @@ from cogent3.app.data_store_new import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
     OVERWRITE,
-    RAISE,
     READONLY,
     SKIP,
     DataStoreDirectory,
 )
 
-
 DATA_DIR = Path(__file__).parent.parent / "data"
-
-
-def retain_nc_dstore(dstore):
-    # retain nc_dstore to the previous state
-    ncdir = dstore.source
-    nc = [
-        NotCompleted(
-            "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
-        )
-        for i in range(3)
-    ]
-    for i, item in enumerate(nc):
-        dstore.write_not_completed(f"nc{i+1}", item.to_json())
-    assert len(dstore.not_completed) == 3
-    assert len(list((ncdir / _MD5_TABLE).glob("*.txt"))) == 3 + len(dstore)
 
 
 @pytest.fixture(scope="session")
@@ -66,13 +49,30 @@ def write_dir(tmp_dir):
     return write_dir
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def nc_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     nc_dir = tmp_dir / "nc_dir"
-    nc_dir.mkdir(parents=True, exist_ok=True)
     logs_dir = nc_dir / _LOG_TABLE
     not_dir = nc_dir / _NOT_COMPLETED_TABLE
+    md5_dir = nc_dir / _MD5_TABLE
+    if (logs_dir / "scitrack.log").exists():
+        (logs_dir / "scitrack.log").unlink()
+    for fn in list(not_dir.glob("*.json")):
+        fn.unlink()
+    for fn in list(md5_dir.glob("*.txt")):
+        fn.unlink()
+    for fn in list(nc_dir.glob("*.*")):
+        fn.unlink()
+    if Path(logs_dir).exists():
+        Path(logs_dir).rmdir()
+    if Path(not_dir).exists():
+        Path(not_dir).rmdir()
+    if Path(md5_dir).exists():
+        Path(md5_dir).rmdir()
+    if Path(nc_dir).exists():
+        Path(nc_dir).rmdir()
+    nc_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(exist_ok=True)
     not_dir.mkdir(exist_ok=True)
     (logs_dir / "scitrack.log").write_text((DATA_DIR / "scitrack.log").read_text())
@@ -89,15 +89,23 @@ def w_dstore(write_dir):
     return DataStoreDirectory(write_dir, suffix="fasta", if_dest_exists=OVERWRITE)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def nc_dstore(nc_dir):
     dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
-    retain_nc_dstore(dstore)
+    nc = [
+        NotCompleted(
+            "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
+        )
+        for i in range(3)
+    ]
+    for i, item in enumerate(nc):
+        dstore.write_not_completed(f"nc{i + 1}", item.to_json())
+    assert len(dstore.not_completed) == 3
+    assert len(list((nc_dir / _MD5_TABLE).glob("*.txt"))) == 3 + len(dstore)
     filenames = DATA_DIR.glob("*.fasta")
     for fn in filenames:
         identifier = fn.name
         dstore.write(identifier, fn.read_text())
-    dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
     return dstore
 
 
@@ -226,8 +234,6 @@ def test_notcompleted(nc_dstore):
     assert len(nc_dstore.not_completed) == 3
     nc_dstore.drop_not_completed()
     assert len(nc_dstore.not_completed) == 0
-    # retain nc_dstore to the previous state
-    retain_nc_dstore(nc_dstore)
 
 
 def test_no_not_completed_subdir(nc_dstore):
@@ -238,10 +244,8 @@ def test_no_not_completed_subdir(nc_dstore):
     assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
     expect = "6x member"
     assert repr(nc_dstore).startswith(expect)
-    # retain nc_dstore to the previous state
     not_dir = nc_dstore.source / _NOT_COMPLETED_TABLE
     not_dir.mkdir(exist_ok=True)
-    retain_nc_dstore(nc_dstore)
 
 
 def test_drop_not_completed(nc_dstore):
@@ -255,5 +259,3 @@ def test_drop_not_completed(nc_dstore):
     assert len(nc_dstore.not_completed) == 0
     num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
     assert num_md5 == num_completed
-    # retain nc_dstore to the previous state
-    retain_nc_dstore(nc_dstore)
