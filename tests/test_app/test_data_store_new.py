@@ -57,8 +57,8 @@ def nc_dir(tmp_dir):
     logs_dir = nc_dir / _LOG_TABLE
     not_dir = nc_dir / _NOT_COMPLETED_TABLE
     md5_dir = nc_dir / _MD5_TABLE
-    if (logs_dir / "scitrack.log").exists():
-        (logs_dir / "scitrack.log").unlink()
+    for fn in list(logs_dir.glob("*.log")):
+        fn.unlink()
     for fn in list(not_dir.glob("*.json")):
         fn.unlink()
     for fn in list(md5_dir.glob("*.txt")):
