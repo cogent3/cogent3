@@ -1,3 +1,5 @@
+import shutil
+
 from pathlib import Path
 from pickle import dumps, loads
 
@@ -14,6 +16,7 @@ from cogent3.app.data_store_new import (
     DataStoreDirectory,
 )
 
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
@@ -25,6 +28,7 @@ __status__ = "Alpha"
 
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
@@ -65,27 +69,12 @@ def nc_dir(tmp_dir):
     logs_dir = nc_dir / _LOG_TABLE
     not_dir = nc_dir / _NOT_COMPLETED_TABLE
     md5_dir = nc_dir / _MD5_TABLE
-    for fn in list(logs_dir.glob("*.log")):
-        fn.unlink()
-    for fn in list(not_dir.glob("*.json")):
-        fn.unlink()
-    for fn in list(md5_dir.glob("*.txt")):
-        fn.unlink()
-    for fn in list(nc_dir.glob("*.*")):
-        fn.unlink()
-    if Path(logs_dir).exists():
-        Path(logs_dir).rmdir()
-    if Path(not_dir).exists():
-        Path(not_dir).rmdir()
-    if Path(md5_dir).exists():
-        Path(md5_dir).rmdir()
-    if Path(nc_dir).exists():
-        Path(nc_dir).rmdir()
     nc_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(exist_ok=True)
     not_dir.mkdir(exist_ok=True)
     (logs_dir / "scitrack.log").write_text((DATA_DIR / "scitrack.log").read_text())
-    return nc_dir
+    yield nc_dir
+    shutil.rmtree(nc_dir)
 
 
 @pytest.fixture(scope="session")
