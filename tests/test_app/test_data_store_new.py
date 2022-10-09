@@ -18,6 +18,7 @@ from cogent3.app.data_store_new import (
     DataStoreDirectory,
 )
 
+
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
@@ -59,6 +60,7 @@ __status__ = "Alpha"
 
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
