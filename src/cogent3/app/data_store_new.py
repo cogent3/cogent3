@@ -249,7 +249,7 @@ class DataStoreDirectory(DataStoreABC):
     def drop_not_completed(self):
         nc_dir = self.source / _NOT_COMPLETED_TABLE
         md5_dir = self.source / _MD5_TABLE
-        for file in list(nc_dir.glob("*.json")):
+        for file in nc_dir.glob("*.json"):
             file.unlink()
             md5_file = md5_dir / f"{file.stem}.txt"
             md5_file.unlink()
