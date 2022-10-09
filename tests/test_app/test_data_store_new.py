@@ -6,11 +6,23 @@ import pytest
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
+    _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
     OVERWRITE,
     READONLY,
+    SKIP,
     DataStoreDirectory,
 )
+
+__author__ = "Gavin Huttley"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
+__license__ = "BSD-3"
+__version__ = "2022.8.24a1"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
+__status__ = "Alpha"
+
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -46,38 +58,64 @@ def write_dir(tmp_dir):
     return write_dir
 
 
-@pytest.fixture(scope="session")
-def ic_dir(tmp_dir):
+@pytest.fixture(scope="function")
+def nc_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
-    filenames = DATA_DIR.glob("*.fasta")
-    ic_dir = tmp_dir / "ic_dir"
-    ic_dir.mkdir(parents=True, exist_ok=True)
-    for fn in filenames:
-        dest = ic_dir / fn.name
-        dest.write_text(fn.read_text())
-    logs_dir = ic_dir / _LOG_TABLE
-    nc_dir = ic_dir / _NOT_COMPLETED_TABLE
+    nc_dir = tmp_dir / "nc_dir"
+    logs_dir = nc_dir / _LOG_TABLE
+    not_dir = nc_dir / _NOT_COMPLETED_TABLE
+    md5_dir = nc_dir / _MD5_TABLE
+    for fn in list(logs_dir.glob("*.log")):
+        fn.unlink()
+    for fn in list(not_dir.glob("*.json")):
+        fn.unlink()
+    for fn in list(md5_dir.glob("*.txt")):
+        fn.unlink()
+    for fn in list(nc_dir.glob("*.*")):
+        fn.unlink()
+    if Path(logs_dir).exists():
+        Path(logs_dir).rmdir()
+    if Path(not_dir).exists():
+        Path(not_dir).rmdir()
+    if Path(md5_dir).exists():
+        Path(md5_dir).rmdir()
+    if Path(nc_dir).exists():
+        Path(nc_dir).rmdir()
+    nc_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(exist_ok=True)
-    nc_dir.mkdir(exist_ok=True)
+    not_dir.mkdir(exist_ok=True)
     (logs_dir / "scitrack.log").write_text((DATA_DIR / "scitrack.log").read_text())
-    nc = NotCompleted("FAIL", "dummy", "dummy_message", source="dummy_source")
-    (nc_dir / "nc.json").write_text(nc.to_json())
-    return ic_dir
+    return nc_dir
 
 
 @pytest.fixture(scope="session")
 def ro_dstore(fasta_dir):
-    return DataStoreDirectory(fasta_dir, suffix=".fasta", if_dest_exists=READONLY)
+    return DataStoreDirectory(fasta_dir, suffix="fasta", if_dest_exists=READONLY)
 
 
 @pytest.fixture(scope="session")
 def w_dstore(write_dir):
-    return DataStoreDirectory(write_dir, if_dest_exists=OVERWRITE)
+    return DataStoreDirectory(write_dir, suffix="fasta", if_dest_exists=OVERWRITE)
 
 
-@pytest.fixture(scope="session")
-def ic_dstore(ic_dir):
-    return DataStoreDirectory(ic_dir, suffix=".fasta")
+@pytest.fixture(scope="function")
+def nc_dstore(nc_dir):
+    dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
+    nc = [
+        NotCompleted(
+            "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
+        )
+        for i in range(3)
+    ]
+    for i, item in enumerate(nc):
+        dstore.write_not_completed(f"nc{i + 1}", item.to_json())
+    assert len(dstore.not_completed) == 3
+    assert len(list((nc_dir / _MD5_TABLE).glob("*.txt"))) == len(dstore)
+    filenames = DATA_DIR.glob("*.fasta")
+    for fn in filenames:
+        identifier = fn.name
+        dstore.write(identifier, fn.read_text())
+    return dstore
 
 
 def test_contains(ro_dstore):
@@ -91,9 +129,9 @@ def test_iter(ro_dstore):
     assert members == ro_dstore.members
 
 
-def test_len(fasta_dir, ro_dstore):
+def test_len(ro_dstore):
     """DataStore returns correct len"""
-    expect = len(list(fasta_dir.glob("*.fasta")))
+    expect = len(list(ro_dstore.source.glob("*.fasta")))
     assert expect == len(ro_dstore) == len(ro_dstore.members)
 
 
@@ -106,15 +144,15 @@ def test_getitem(ro_dstore):
     assert last.unique_id != first.unique_id
 
 
-def test_iterall(fasta_dir, ro_dstore):
-    expect = {fn.name for fn in fasta_dir.glob("*.fasta")}
+def test_iterall(ro_dstore):
+    expect = {fn.name for fn in ro_dstore.source.glob("*.fasta")}
     got = {m.unique_id for m in ro_dstore}
     assert expect == got
 
 
-def test_read(fasta_dir, ro_dstore):
+def test_read(ro_dstore):
     """correctly read content"""
-    expect = (fasta_dir / "brca1.fasta").read_text()
+    expect = (ro_dstore.source / "brca1.fasta").read_text()
     got = ro_dstore.read("brca1.fasta")
     assert got == expect
 
@@ -146,15 +184,15 @@ def test_no_not_completed(ro_dstore):
     assert len(ro_dstore.not_completed) == 0
 
 
-def test_logs(ic_dstore):
-    assert len(ic_dstore.logs) == 1
-    log = ic_dstore.logs[0].read()
+def test_logs(nc_dstore):
+    assert len(nc_dstore.logs) == 1
+    log = nc_dstore.logs[0].read()
     assert isinstance(log, str)
 
 
-def test_not_completed(ic_dstore):
-    assert len(ic_dstore.not_completed) == 1
-    nc = ic_dstore.not_completed[0].read()
+def test_not_completed(nc_dstore):
+    assert len(nc_dstore.not_completed) == 3
+    nc = nc_dstore.not_completed[0].read()
     assert isinstance(nc, str)
 
 
@@ -181,8 +219,8 @@ def test_multi_write(fasta_dir, w_dstore):
     """correctly write multiple files to data store"""
     expect_a = Path(fasta_dir / "brca1.fasta").read_text()
     expect_b = Path(fasta_dir / "primates_brca1.fasta").read_text()
-    identifier_a = "brca1.fasta"
-    identifier_b = "primates_brca1.fasta"
+    identifier_a = "brca2.fasta"
+    identifier_b = "primates_brca2.fasta"
     w_dstore.write(identifier_a, expect_a)
     w_dstore.write(identifier_b, expect_b)
     got_a = w_dstore.read(identifier_a)
@@ -192,90 +230,42 @@ def test_multi_write(fasta_dir, w_dstore):
     assert got_b == expect_b
 
 
-'''
-def test_write_wout_suffix(w_dstore):
-    """appends suffix expected to records"""
-    with pytest.raises(ValueError):
-        w_dstore.write("1", str(dict(a=24, b="some text")))
-
-    w_dstore.write("1.fasta", str(dict(a=24, b="some text")))
-    assert len(w_dstore)== 1
-
-@skipIf(sys.platform.lower() != "darwin", "broken on linux")
-def test_md5_write(write__dir, w_dstore):
-    """tracks md5 sums of written data"""
-    expect = Path( write_dir / "brca1.fasta").read_text()
-
-    identifier = make_identifier(w_dstore, "brca1.fasta", absolute=True)
-    abs_id = w_dstore.write(identifier, expect)
-    md5 = "05a7302479c55c0b5890b50f617c5642"
-    assert w_dstore.md5(abs_id) == md5
-    assert w_dstore[0].md5 == md5
-
-    # does not have md5 if not set
-    identifier = make_identifier(w_dstore, "brca1.fasta", absolute=True)
-    abs_id = w_dstore.write(identifier, expect)
-    got = w_dstore.md5(abs_id, force=False)
-    assert got is None
-    # but if you set force=True, you get it
-    md5 = "05a7302479c55c0b5890b50f617c5642"
-    got = w_dstore.md5(abs_id, force=True)
-    assert got == md5
+def test_append(w_dstore):
+    """correctly write content"""
+    identifier = "test1.fasta"
+    data = "test data"
+    w_dstore.write(identifier, data)
+    got = w_dstore.read(identifier)
+    assert got == data
 
 
-def test_add_file():
-    """correctly add an arbitrarily named file"""
-    data = Path(f"data{os.sep}brca1.fasta").read_text()
-
-    log_path = os.path.join(dirname, "some.log")
-    with open(log_path, "w") as out:
-        out.write("some text")
-
-    path = os.path.join(dirname, basedir)
-    dstore = DataStoreDirectory(path, suffix=".fa", create=True)
-    _ = dstore.write("brca1.fa", data)
-    dstore.add_file(log_path)
-    assert "some.log" in dstore
-    assert os.path.exists(log_path)
-
-    log_path = os.path.join(dirname, "some.log")
-    with open(log_path, "w") as out:
-        out.write("some text")
-
-    path = os.path.join(dirname, basedir)
-    dstore = DataStoreDirectory(path, suffix=".fa", create=True)
-    _ = dstore.write("brca1.fa", data)
-    dstore.add_file(log_path, cleanup=True)
-    assert "some.log" in dstore
-    assert not os.path.exists(log_path)
-
-def test_make_identifier():
-    """correctly construct an identifier for a new member"""
-
-    if dirname.startswith(f".{os.sep}"):
-        dirname = dirname[2:]
-
-    path = os.path.join(dirname, basedir)
-    base_path = path.replace(".zip", "")
-    dstore = DataStoreDirectory(path, suffix=".json", create=True)
-    name = "brca1.fasta"
-    got = make_identifier(dstore, name, absolute = True)
-    expect = os.path.join(base_path, name.replace("fasta", "json"))
-    assert got == expect
-
-    # now using a DataMember
-    member = DataMember(
-        os.path.join(f"blah{os.sep}blah", f"2-{name}"), None
-    )
-    got = make_identifier(dstore, member, absolute=True)
-    expect = os.path.join(base_path, member.name.replace("fasta", "json"))
-    assert got == expect
+def test_notcompleted(nc_dstore):
+    assert len(nc_dstore.not_completed) == 3
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore.not_completed) == 0
 
 
-def test_summary_logs():
-    ...
+def test_no_not_completed_subdir(nc_dstore):
+    # first remove not_completed directory
+    nc_dstore.drop_not_completed()
+    Path(nc_dstore.source / _NOT_COMPLETED_TABLE).rmdir()
+    # test repr work without not_completed directory
+    assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
+    expect = "9x member"
+    assert repr(nc_dstore).startswith(expect)
+    not_dir = nc_dstore.source / _NOT_COMPLETED_TABLE
+    not_dir.mkdir(exist_ok=True)
 
-def test_summary_not_completed():
-   ...
 
-'''
+def test_drop_not_completed(nc_dstore):
+    num_completed = len(nc_dstore.completed)
+    num_not_completed = len(nc_dstore.not_completed)
+    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    assert num_not_completed == 3
+    assert num_completed == 6
+    assert len(nc_dstore) == 9
+    assert num_md5 == num_completed + num_not_completed
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore.not_completed) == 0
+    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    assert num_md5 == num_completed

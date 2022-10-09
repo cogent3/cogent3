@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import glob
 import re
+import reprlib
 import shutil
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
@@ -12,13 +13,15 @@ from pathlib import Path
 from scitrack import get_text_hexdigest
 
 from cogent3.app.typing import TabularType
-from cogent3.util.io import open_
+from cogent3.util.deserialise import deserialise_not_completed
+from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
 __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
@@ -91,8 +94,10 @@ class DataStoreABC(ABC):
     def write(self, unique_id: str, data: str | bytes) -> None:
         if self._if_dest_exists is READONLY:
             raise IOError("datastore is readonly")
-        if self._if_member_exists is RAISE and unique_id in self:
-            raise IOError("member exists")
+        if self._if_member_exists in (READONLY, RAISE) and unique_id in self:
+            raise IOError(
+                f"DataStore member_exists is {self._if_member_exists!r} and {unique_id!r} exists"
+            )
 
     @abstractmethod
     def write_not_completed(self, unique_id: str, data: str | bytes) -> None:
@@ -141,6 +146,10 @@ class DataStoreABC(ABC):
     def summary_not_completed(self) -> TabularType:
         ...
 
+    @abstractmethod
+    def drop_not_completed(self):
+        ...
+
 
 class DataMember(DataMemberABC):
     def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
@@ -183,9 +192,7 @@ class DataStoreDirectory(DataStoreABC):
     def _source_check_create(self, if_dest_exists):
         if not is_master_process():
             return
-
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
-
         if if_dest_exists is READONLY and not self.source.exists():
             raise IOError("must exist")
         elif if_dest_exists is RAISE and self.source.exists():
@@ -206,7 +213,7 @@ class DataStoreDirectory(DataStoreABC):
             path.mkdir(parents=True, exist_ok=True)
 
         for sub_dir in sub_dirs:
-            (self.source.parent / sub_dir).mkdir(parents=True, exist_ok=True)
+            (self.source / sub_dir).mkdir(parents=True, exist_ok=True)
 
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
@@ -239,14 +246,22 @@ class DataStoreDirectory(DataStoreABC):
         self._md5 = md5_setting
         return self._checksums.get(unique_id, None)
 
+    def drop_not_completed(self):
+        nc_dir = self.source / _NOT_COMPLETED_TABLE
+        md5_dir = self.source / _MD5_TABLE
+        for file in list(nc_dir.glob("*.json")):
+            file.unlink()
+            md5_file = md5_dir / f"{file.stem}.txt"
+            md5_file.unlink()
+
     @property
     def members(self) -> list[DataMember]:
-        if not self._members:  # members in completed and incomplete
-            pattern = f"{self.source}/**/*.{self.suffix}"
-            paths = list(glob.iglob(pattern, recursive=True))
+        if not self._members:  # members in completed and not_completed
             self._members = []
-            for i, path in enumerate(paths):
-                if self._limit and i >= self._limit:
+            for path in list(self.source.glob(f"*.{self.suffix}")) + list(
+                (self.source / _NOT_COMPLETED_TABLE).glob("*.json")
+            ):
+                if self._limit and len(self._members) >= self._limit:
                     break
                 self._members.append(DataMember(self, Path(path).name))
 
@@ -272,53 +287,139 @@ class DataStoreDirectory(DataStoreABC):
 
     @property
     def not_completed(self) -> list[DataMember]:
-        ic_dir = self.source / _NOT_COMPLETED_TABLE
+        nc_dir = self.source / _NOT_COMPLETED_TABLE
         return (
             [
                 DataMember(self, Path(_NOT_COMPLETED_TABLE) / m.name)
-                for m in ic_dir.glob("*.json")
+                for m in nc_dir.glob("*.json")
             ]
-            if ic_dir.exists()
+            if nc_dir.exists()
             else []
         )
 
-    def write(self, unique_id: str, data: str) -> None:
+    def _write(
+        self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
+    ) -> None:
         super().write(unique_id, data)
-        with open_(self.source / unique_id, mode="w") as out:
+        assert suffix, "Must provide suffix"
+        # check suffix compatible with this datastore
+        sfx, cmp = get_format_suffixes(unique_id)
+        if sfx != suffix:
+            unique_id = f"{unique_id}.{suffix}"
+        unique_id = (
+            unique_id.replace(self.suffix, suffix)
+            if self.suffix and self.suffix != suffix
+            else unique_id
+        )
+        with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
-            if self._md5 and isinstance(data, str):
-                self._checksums[unique_id] = get_text_hexdigest(data)
+        if suffix != "log" and not self._limit or len(self) < self._limit:
+            self._members.append(DataMember(self, unique_id))
+        if md5:
+            md5 = get_text_hexdigest(data)
+            unique_id = unique_id.replace(suffix, "txt")
+            unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+            with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
+                out.write(md5)
+
+    def write(self, unique_id: str, data: str) -> None:
+        self._write("", unique_id, self.suffix, data, True)
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
-        super().write(unique_id, data)
-        with open_(self.source / _NOT_COMPLETED_TABLE / unique_id, mode="w") as out:
-            out.write(data)
+        self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
 
     def write_log(self, unique_id: str, data: str) -> None:
-        super().write(unique_id, data)
-        with open_(self.source / _LOG_TABLE / unique_id, mode="w") as out:
-            out.write(data)
+        self._write(_LOG_TABLE, unique_id, "log", data, False)
 
     def describe(self) -> TabularType:
-        ...
+        num_notcompleted = len(self.not_completed)
+        num_completed = len(self.completed)
+        num_logs = len(self.logs)
+        return Table(
+            header=["record type", "number"],
+            data=[
+                ["completed", num_completed],
+                ["not_completed", num_notcompleted],
+                ["logs", num_logs],
+            ],
+        )
 
     @property
     def summary_logs(self) -> TabularType:
-        ...
+        """returns a table summarising log files"""
+        rows = []
+        for record in self.logs:
+            data = record.read().splitlines()
+            first = data.pop(0).split("\t")
+            row = [first[0], record.name]
+            key = None
+            mapped = {}
+            for line in data:
+                line = line.split("\t")[-1].split(" : ", maxsplit=1)
+                if len(line) == 1:
+                    mapped[key] += line[0]
+                    continue
+
+                key = line[0]
+                mapped[key] = line[1]
+
+            data = mapped
+            row.extend(
+                [
+                    data["python"],
+                    data["user"],
+                    data["command_string"],
+                    data["composable function"],
+                ]
+            )
+            rows.append(row)
+        return Table(
+            header=["time", "name", "python version", "who", "command", "composable"],
+            data=rows,
+            title="summary of log files",
+        )
 
     @property
     def summary_not_completed(self) -> TabularType:
-        ...
+        """returns a table summarising not completed results"""
+        # detect last exception line
+        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
+        types = defaultdict(list)
+        indices = "type", "origin"
+        for member in self.not_completed:
+            record = member.read()
+            record = deserialise_not_completed(record)
+            key = tuple(getattr(record, k, None) for k in indices)
+            match = err_pat.findall(record.message)
+            types[key].append([match[-1] if match else record.message, record.source])
+
+        header = list(indices) + ["message", "num", "source"]
+        rows = []
+        maxtring = reprlib.aRepr.maxstring
+        reprlib.aRepr.maxstring = 45
+
+        for record in types:
+            messages, sources = list(zip(*types[record]))
+            messages = reprlib.repr(
+                ", ".join(m.splitlines()[-1] for m in set(messages))
+            )
+            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
+            row = list(record) + [
+                messages,
+                len(types[record]),
+                sources,
+            ]
+            rows.append(row)
+
+        reprlib.aRepr.maxstring = maxtring  # restoring original val
+        return Table(header=header, data=rows, title="not completed records")
 
     def __repr__(self):
-        notcompleted_path = Path(self.source / _NOT_COMPLETED_TABLE)
-        if not notcompleted_path.exists():
-            return "This isn't a results directory"
-        num_completed += len(self)
-        num_not_completed = len(list(notcompleted_path.glob("*")))
+        num_completed = len(self)
+        num_not_completed = len(self.not_completed)
         name = self.__class__.__name__
-        sample = f"{str(list(self[:3]))[:-1]}..." if num_completed > 3 else list(self)
-        return f"{num_completed+num_not_completed}x member {name}(source='{self.source}', members={sample})"
+        sample = f"{list(self[:2])}..." if num_completed > 2 else list(self)
+        return f"{num_completed + num_not_completed}x member {name}(source='{self.source}', members={sample})"
 
 
 @singledispatch
