@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
-from itertools import chain
 from pathlib import Path
 
 from scitrack import get_text_hexdigest
