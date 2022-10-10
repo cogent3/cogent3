@@ -333,7 +333,6 @@ class DataStoreDirectory(DataStoreABC):
         sfx, cmp = get_format_suffixes(unique_id)
         if sfx != suffix:
             unique_id = f"{Path(unique_id).stem}.{suffix}"
-
         unique_id = (
             unique_id.replace(self.suffix, suffix)
             if self.suffix and self.suffix != suffix
@@ -357,6 +356,8 @@ class DataStoreDirectory(DataStoreABC):
             md5 = get_text_hexdigest(data)
             unique_id = unique_id.replace(suffix, "txt")
             unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+            if not (self.source / _MD5_TABLE).exists():
+                (self.source / _MD5_TABLE).mkdir(parents=True, exist_ok=True)
             with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
                 out.write(md5)
 
