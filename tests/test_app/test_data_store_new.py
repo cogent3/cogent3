@@ -235,13 +235,17 @@ def test_notcompleted(nc_dstore):
 
 
 def test_no_not_completed_subdir(nc_dstore):
+    expect = f"{len(nc_dstore.completed)+len(nc_dstore.not_completed)}x member"
+    assert repr(nc_dstore).startswith(expect)
     # first remove not_completed directory
     nc_dstore.drop_not_completed()
-    Path(nc_dstore.source / _NOT_COMPLETED_TABLE).rmdir()
     # test repr work without not_completed directory
     assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
-    expect = "9x member"
+    expect = f"{len(nc_dstore.completed)}x member"
     assert repr(nc_dstore).startswith(expect)
+    expect = f"{len(nc_dstore)}x member"
+    assert repr(nc_dstore).startswith(expect)
+    assert len(nc_dstore) == len(nc_dstore.completed)
     not_dir = nc_dstore.source / _NOT_COMPLETED_TABLE
     not_dir.mkdir(exist_ok=True)
 
@@ -267,3 +271,13 @@ def test_limit_datastore(fasta_dir, w_dstore):
         w_dstore.write(f"brca{i+1}.fasta", expect)
     with pytest.raises(IOError):
         w_dstore.write(f"brca{w_dstore._limit}.fasta", expect)
+
+
+def test_limit_remove_and_rewrite_datastore(fasta_dir, w_dstore):
+    expect = Path(fasta_dir / "brca1.fasta").read_text()
+    w_dstore._limit = 3
+    for i in range(w_dstore._limit):
+        w_dstore.write_not_completed(f"brca{i+1}.fasta", expect)
+    w_dstore.drop_not_completed()
+    for i in range(w_dstore._limit):
+        w_dstore.write_not_completed(f"brca{i+1}.fasta", expect)

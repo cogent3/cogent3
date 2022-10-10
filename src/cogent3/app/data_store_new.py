@@ -254,6 +254,10 @@ class DataStoreDirectory(DataStoreABC):
             file.unlink()
             md5_file = md5_dir / f"{file.stem}.txt"
             md5_file.unlink()
+        Path(self.source / _NOT_COMPLETED_TABLE).rmdir()
+        # reset _members list to force members function to make it again
+        self._members = []
+
 
     @property
     def members(self) -> list[DataMember]:
@@ -309,7 +313,7 @@ class DataStoreDirectory(DataStoreABC):
         # check suffix compatible with this datastore
         sfx, cmp = get_format_suffixes(unique_id)
         if sfx != suffix:
-            unique_id = f"{unique_id}.{suffix}"
+            unique_id = f"{Path(unique_id).stem}.{suffix}"
         unique_id = (
             unique_id.replace(self.suffix, suffix)
             if self.suffix and self.suffix != suffix
@@ -325,6 +329,8 @@ class DataStoreDirectory(DataStoreABC):
             md5 = get_text_hexdigest(data)
             unique_id = unique_id.replace(suffix, "txt")
             unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+            if not (self.source / _MD5_TABLE).exists():
+                (self.source / _MD5_TABLE).mkdir(parents=True, exist_ok=True)
             with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
                 out.write(md5)
 
@@ -332,6 +338,8 @@ class DataStoreDirectory(DataStoreABC):
         self._write("", unique_id, self.suffix, data, True)
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
+        if not (self.source / _NOT_COMPLETED_TABLE).exists():
+            (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
 
     def write_log(self, unique_id: str, data: str) -> None:
@@ -421,7 +429,7 @@ class DataStoreDirectory(DataStoreABC):
         return Table(header=header, data=rows, title="not completed records")
 
     def __repr__(self):
-        num_completed = len(self)
+        num_completed = len(self.completed)
         num_not_completed = len(self.not_completed)
         name = self.__class__.__name__
         sample = f"{list(self[:2])}..." if num_completed > 2 else list(self)
