@@ -264,20 +264,9 @@ def test_drop_not_completed(nc_dstore):
     assert num_md5 == num_completed
 
 
-def test_limit_datastore(fasta_dir, w_dstore):
-    expect = Path(fasta_dir / "brca1.fasta").read_text()
-    w_dstore._limit = 3
-    for i in range(w_dstore._limit):
-        w_dstore.write(f"brca{i+1}.fasta", expect)
-    with pytest.raises(IOError):
-        w_dstore.write(f"brca{w_dstore._limit}.fasta", expect)
-
-
-def test_limit_remove_and_rewrite_datastore(fasta_dir, w_dstore):
-    expect = Path(fasta_dir / "brca1.fasta").read_text()
-    w_dstore._limit = 3
-    for i in range(w_dstore._limit):
-        w_dstore.write_not_completed(f"brca{i+1}.fasta", expect)
-    w_dstore.drop_not_completed()
-    for i in range(w_dstore._limit):
-        w_dstore.write_not_completed(f"brca{i+1}.fasta", expect)
+def test_limit_datastore(nc_dstore):
+    assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
+    nc_dstore._limit = len(nc_dstore.completed)
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore) == nc_dstore._limit
+    assert len(nc_dstore) == len(nc_dstore.completed)
