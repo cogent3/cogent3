@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
+from itertools import chain
 from pathlib import Path
 
 from scitrack import get_text_hexdigest
@@ -258,8 +259,9 @@ class DataStoreDirectory(DataStoreABC):
     def members(self) -> list[DataMember]:
         if not self._members:  # members in completed and not_completed
             self._members = []
-            for path in list(self.source.glob(f"*.{self.suffix}")) + list(
-                (self.source / _NOT_COMPLETED_TABLE).glob("*.json")
+            for path in chain(
+                self.source.glob(f"*.{self.suffix}"),
+                (self.source / _NOT_COMPLETED_TABLE).glob("*.json"),
             ):
                 if self._limit and len(self._members) >= self._limit:
                     break
@@ -300,6 +302,8 @@ class DataStoreDirectory(DataStoreABC):
     def _write(
         self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
     ) -> None:
+        if self._limit and len(self) >= self._limit:
+            raise IOError(f"DataStore members limited to {self._limit}.")
         super().write(unique_id, data)
         assert suffix, "Must provide suffix"
         # check suffix compatible with this datastore
@@ -311,9 +315,11 @@ class DataStoreDirectory(DataStoreABC):
             if self.suffix and self.suffix != suffix
             else unique_id
         )
+        if suffix != "log" and unique_id in self:
+            return
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
-        if suffix != "log" and not self._limit or len(self) < self._limit:
+        if suffix != "log":
             self._members.append(DataMember(self, unique_id))
         if md5:
             md5 = get_text_hexdigest(data)
