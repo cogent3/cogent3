@@ -18,6 +18,11 @@ from cogent3 import (
 from cogent3.app.result import model_collection_result, model_result
 from cogent3.core import alignment, moltype
 from cogent3.evolve.models import get_model
+from cogent3.evolve.ns_substitution_model import (
+    NonReversibleDinucleotide,
+    NonReversibleTrinucleotide,
+    _sym_preds,
+)
 from cogent3.util.deserialise import (
     deserialise_likelihood_function,
     deserialise_object,
@@ -123,6 +128,18 @@ class TestDeserialising(TestCase):
         got = deserialise_object(data)
         self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
         sm = get_model("CNFGTR")
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+        sm = get_model("GNC")
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+        sm = NonReversibleDinucleotide(_sym_preds)
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+        sm = NonReversibleTrinucleotide(_sym_preds)
         data = sm.to_json()
         got = deserialise_object(data)
         self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
