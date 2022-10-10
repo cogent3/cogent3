@@ -432,7 +432,7 @@ class DataStoreDirectory(DataStoreABC):
         num_completed = len(self.completed)
         num_not_completed = len(self.not_completed)
         name = self.__class__.__name__
-        sample = f"{list(self[:2])}..." if num_completed > 2 else list(self)
+        sample = f"{list(self[:2])}..." if num_completed+num_not_completed > 2 else list(self)
         return f"{num_completed + num_not_completed}x member {name}(source='{self.source}', members={sample})"
 
 
