@@ -258,7 +258,6 @@ class DataStoreDirectory(DataStoreABC):
         # reset _members list to force members function to make it again
         self._members = []
 
-
     @property
     def members(self) -> list[DataMember]:
         if not self._members:  # members in completed and not_completed
@@ -306,8 +305,6 @@ class DataStoreDirectory(DataStoreABC):
     def _write(
         self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
     ) -> None:
-        if self._limit and len(self) >= self._limit:
-            raise IOError(f"DataStore members limited to {self._limit}.")
         super().write(unique_id, data)
         assert suffix, "Must provide suffix"
         # check suffix compatible with this datastore
@@ -429,11 +426,10 @@ class DataStoreDirectory(DataStoreABC):
         return Table(header=header, data=rows, title="not completed records")
 
     def __repr__(self):
-        num_completed = len(self.completed)
-        num_not_completed = len(self.not_completed)
+        num = len(self.members)
         name = self.__class__.__name__
-        sample = f"{list(self[:2])}..." if num_completed+num_not_completed > 2 else list(self)
-        return f"{num_completed + num_not_completed}x member {name}(source='{self.source}', members={sample})"
+        sample = f"{list(self[:2])}..." if num > 2 else list(self)
+        return f"{num}x member {name}(source='{self.source}', members={sample})"
 
 
 @singledispatch
