@@ -183,7 +183,8 @@ class DataStoreDirectory(DataStoreABC):
         source = Path(source)
         self.source = source.expanduser()
         self.suffix = suffix
-        self._members = []
+        self._completed = []
+        self._not_completed = []
         self._limit = limit
         self._verbose = verbose
         self._checksums = {}
@@ -255,22 +256,8 @@ class DataStoreDirectory(DataStoreABC):
             md5_file = md5_dir / f"{file.stem}.txt"
             md5_file.unlink()
         Path(self.source / _NOT_COMPLETED_TABLE).rmdir()
-        # reset _members list to force members function to make it again
-        self._members = []
-
-    @property
-    def members(self) -> list[DataMember]:
-        if not self._members:  # members in completed and not_completed
-            self._members = []
-            for path in chain(
-                self.source.glob(f"*.{self.suffix}"),
-                (self.source / _NOT_COMPLETED_TABLE).glob("*.json"),
-            ):
-                if self._limit and len(self._members) >= self._limit:
-                    break
-                self._members.append(DataMember(self, Path(path).name))
-
-        return self._members
+        # reset _not_completed list to force not_completed function to make it again
+        self._not_completed = []
 
     @property
     def logs(self) -> list[DataMember]:
@@ -283,24 +270,31 @@ class DataStoreDirectory(DataStoreABC):
 
     @property
     def completed(self) -> list[DataMember]:
-        path = Path(self.source)
-        return (
-            [DataMember(self, path / m.name) for m in path.glob(f"*.{self.suffix}")]
-            if path.exists()
-            else []
-        )
+        if not self._completed:
+            self._completed = []
+            for i, m in enumerate(self.source.glob(f"*.{self.suffix}")):
+                if self._limit and i == self._limit:
+                    break
+                self._completed.append(DataMember(self, m.name))
+        return self._completed
 
     @property
     def not_completed(self) -> list[DataMember]:
-        nc_dir = self.source / _NOT_COMPLETED_TABLE
-        return (
-            [
-                DataMember(self, Path(_NOT_COMPLETED_TABLE) / m.name)
-                for m in nc_dir.glob("*.json")
-            ]
-            if nc_dir.exists()
-            else []
-        )
+        if not self._not_completed:
+            self._not_completed = []
+            for i, m in enumerate((self.source / _NOT_COMPLETED_TABLE).glob(f"*.json")):
+                if self._limit and i == self._limit:
+                    break
+                self._not_completed.append(
+                    DataMember(self, Path(_NOT_COMPLETED_TABLE) / m.name)
+                )
+        return self._not_completed
+
+    @property
+    def members(self) -> list[DataMember]:
+        return self.completed + self.not_completed
+
+    # need to update write methods to append to _completed and _not_completed
 
     def _write(
         self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
@@ -318,10 +312,16 @@ class DataStoreDirectory(DataStoreABC):
         )
         if suffix != "log" and unique_id in self:
             return
+        if not (self.source / subdir).exists():
+            (self.source / subdir).mkdir(parents=True, exist_ok=True)
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
-        if suffix != "log":
-            self._members.append(DataMember(self, unique_id))
+        if subdir == _NOT_COMPLETED_TABLE:
+            self._not_completed.append(
+                DataMember(self, Path(_NOT_COMPLETED_TABLE) / unique_id)
+            )
+        elif subdir == "":
+            self._completed.append(DataMember(self, unique_id))
         if md5:
             md5 = get_text_hexdigest(data)
             unique_id = unique_id.replace(suffix, "txt")
@@ -335,8 +335,6 @@ class DataStoreDirectory(DataStoreABC):
         self._write("", unique_id, self.suffix, data, True)
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
-        if not (self.source / _NOT_COMPLETED_TABLE).exists():
-            (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
 
     def write_log(self, unique_id: str, data: str) -> None:
