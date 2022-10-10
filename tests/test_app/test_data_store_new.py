@@ -262,13 +262,8 @@ def test_drop_not_completed(nc_dstore):
 
 def test_limit_datastore(fasta_dir, w_dstore):
     expect = Path(fasta_dir / "brca1.fasta").read_text()
-    identifier1 = "brca1.fasta"
-    identifier2 = "brca2.fasta"
-    identifier3 = "brca3.fasta"
-    identifier4 = "brca4.fasta"
     w_dstore._limit = 3
-    w_dstore.write(identifier1, expect)
-    w_dstore.write(identifier2, expect)
-    w_dstore.write(identifier3, expect)
+    for i in range(w_dstore._limit):
+        w_dstore.write(f"brca{i+1}.fasta", expect)
     with pytest.raises(IOError):
-        w_dstore.write(identifier4, expect)
+        w_dstore.write(f"brca{w_dstore._limit}.fasta", expect)
