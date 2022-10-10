@@ -54,25 +54,20 @@ def fasta_dir(tmp_dir):
     return fasta_dir
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def write_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     write_dir = tmp_dir / "write"
     write_dir.mkdir(parents=True, exist_ok=True)
-    return write_dir
+    yield write_dir
+    shutil.rmtree(write_dir)
 
 
 @pytest.fixture(scope="function")
 def nc_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     nc_dir = tmp_dir / "nc_dir"
-    logs_dir = nc_dir / _LOG_TABLE
-    not_dir = nc_dir / _NOT_COMPLETED_TABLE
-    md5_dir = nc_dir / _MD5_TABLE
     nc_dir.mkdir(parents=True, exist_ok=True)
-    logs_dir.mkdir(exist_ok=True)
-    not_dir.mkdir(exist_ok=True)
-    (logs_dir / "scitrack.log").write_text((DATA_DIR / "scitrack.log").read_text())
     yield nc_dir
     shutil.rmtree(nc_dir)
 
@@ -82,7 +77,7 @@ def ro_dstore(fasta_dir):
     return DataStoreDirectory(fasta_dir, suffix="fasta", if_dest_exists=READONLY)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def w_dstore(write_dir):
     return DataStoreDirectory(write_dir, suffix="fasta", if_dest_exists=OVERWRITE)
 
@@ -90,6 +85,10 @@ def w_dstore(write_dir):
 @pytest.fixture(scope="function")
 def nc_dstore(nc_dir):
     dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
+    # write one log file
+    log_filename = "scitrack.log"
+    dstore.write_log(log_filename, (DATA_DIR / log_filename).read_text())
+    # write three not_completed file
     nc = [
         NotCompleted(
             "FAIL", f"dummy{i}", f"dummy_message{i}", source=f"dummy_source{i}"
@@ -101,6 +100,7 @@ def nc_dstore(nc_dir):
     assert len(dstore.not_completed) == 3
     assert len(list((nc_dir / _MD5_TABLE).glob("*.txt"))) == len(dstore)
     filenames = DATA_DIR.glob("*.fasta")
+    # write six fasta file
     for fn in filenames:
         identifier = fn.name
         dstore.write(identifier, fn.read_text())
@@ -235,13 +235,17 @@ def test_notcompleted(nc_dstore):
 
 
 def test_no_not_completed_subdir(nc_dstore):
+    expect = f"{len(nc_dstore.completed)+len(nc_dstore.not_completed)}x member"
+    assert repr(nc_dstore).startswith(expect)
     # first remove not_completed directory
     nc_dstore.drop_not_completed()
-    Path(nc_dstore.source / _NOT_COMPLETED_TABLE).rmdir()
     # test repr work without not_completed directory
     assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
-    expect = "9x member"
+    expect = f"{len(nc_dstore.completed)}x member"
     assert repr(nc_dstore).startswith(expect)
+    expect = f"{len(nc_dstore)}x member"
+    assert repr(nc_dstore).startswith(expect)
+    assert len(nc_dstore) == len(nc_dstore.completed)
     not_dir = nc_dstore.source / _NOT_COMPLETED_TABLE
     not_dir.mkdir(exist_ok=True)
 
@@ -258,3 +262,11 @@ def test_drop_not_completed(nc_dstore):
     assert len(nc_dstore.not_completed) == 0
     num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
     assert num_md5 == num_completed
+
+
+def test_limit_datastore(nc_dstore):
+    assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
+    nc_dstore._limit = len(nc_dstore.completed)
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore) == nc_dstore._limit
+    assert len(nc_dstore) == len(nc_dstore.completed)
