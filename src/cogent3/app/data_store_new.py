@@ -66,7 +66,7 @@ class DataMemberABC(ABC):
 class DataStoreABC(ABC):
     def __init__(
         self,
-        source,
+        source: str | Path,
         if_dest_exists: IfExist = READONLY,
         if_member_exists: IfExist = RAISE,
     ):
