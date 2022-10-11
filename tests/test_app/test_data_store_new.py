@@ -5,6 +5,8 @@ from pickle import dumps, loads
 
 import pytest
 
+from scitrack import get_text_hexdigest
+
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
@@ -270,3 +272,10 @@ def test_limit_datastore(nc_dstore):
     nc_dstore.drop_not_completed()
     assert len(nc_dstore) == nc_dstore._limit
     assert len(nc_dstore) == len(nc_dstore.completed)
+
+
+def test_md5_sum(nc_dstore):
+    for m in nc_dstore.members:
+        data = m.read()
+        md5 = nc_dstore.md5(m.unique_id)
+        assert md5 == get_text_hexdigest(data)
