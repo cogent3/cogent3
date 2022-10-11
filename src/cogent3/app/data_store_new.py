@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import re
 import reprlib
 import shutil
@@ -65,12 +66,12 @@ class DataMemberABC(ABC):
 class DataStoreABC(ABC):
     def __init__(
         self,
-        source,
+        source: str | Path,
         if_dest_exists: IfExist = READONLY,
         if_member_exists: IfExist = RAISE,
     ):
-        self._if_dest_exists = if_dest_exists
-        self._if_member_exists = if_member_exists
+        self._if_dest_exists = IfExist(if_dest_exists)
+        self._if_member_exists = IfExist(if_member_exists)
 
     @abstractmethod
     def __repr__(self):
@@ -90,8 +91,7 @@ class DataStoreABC(ABC):
     def read(self, unique_id: str) -> str | bytes:
         ...
 
-    @abstractmethod
-    def write(self, unique_id: str, data: str | bytes) -> None:
+    def _check_writable(self, unique_id: str):
         if self._if_dest_exists is READONLY:
             raise IOError("datastore is readonly")
         if self._if_member_exists in (READONLY, RAISE) and unique_id in self:
@@ -100,14 +100,16 @@ class DataStoreABC(ABC):
             )
 
     @abstractmethod
+    def write(self, unique_id: str, data: str | bytes) -> None:
+        self._check_writable(unique_id)
+
+    @abstractmethod
     def write_not_completed(self, unique_id: str, data: str | bytes) -> None:
-        if self.if_member_exists is RAISE and unique_id in self:
-            raise IOError("member exists")
+        self._check_writable(unique_id)
 
     @abstractmethod
     def write_log(self, unique_id: str, data: str | bytes) -> None:
-        if self.if_member_exists is RAISE and unique_id in self:
-            raise IOError("member exists")
+        self._check_writable(unique_id)
 
     @abstractmethod
     def describe(self) -> TabularType:
@@ -154,7 +156,7 @@ class DataStoreABC(ABC):
 class DataMember(DataMemberABC):
     def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
         super().__init__(data_store)
-        self._unique_id = unique_id
+        self._unique_id = str(unique_id)
 
     def __repr__(self):
         return self._unique_id
@@ -186,66 +188,57 @@ class DataStoreDirectory(DataStoreABC):
         self._not_completed = []
         self._limit = limit
         self._verbose = verbose
-        self._checksums = {}
         self._md5 = md5
         self._source_check_create(if_dest_exists)
 
     def _source_check_create(self, if_dest_exists):
         if not is_master_process():
             return
+
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
-        if if_dest_exists is READONLY and not self.source.exists():
-            raise IOError("must exist")
-        elif if_dest_exists is RAISE and self.source.exists():
-            raise IOError("must not exist")
+        source = self.source
+        if if_dest_exists is READONLY and not source.exists():
+            raise IOError(f"'{source}' does not exist")
+        elif if_dest_exists is RAISE and source.exists():
+            raise IOError(f"'{source}' exists")
         elif if_dest_exists is READONLY:
             return
 
-        path = Path(self.source)
-        if path.exists() and if_dest_exists == RAISE:
-            raise FileExistsError(f"'{self.source}' exists")
-        elif path.exists() and if_dest_exists == OVERWRITE:
+        if source.exists() and if_dest_exists is OVERWRITE:
             for sub_dir in sub_dirs:
-                try:
-                    shutil.rmtree(self.source / sub_dir)
-                except:
-                    pass
-        elif not path.exists():
-            path.mkdir(parents=True, exist_ok=True)
+                with contextlib.suppress((FileNotFoundError, NotADirectoryError)):
+                    shutil.rmtree(source / sub_dir)
+        elif not source.exists():
+            source.mkdir(parents=True, exist_ok=True)
 
         for sub_dir in sub_dirs:
-            (self.source / sub_dir).mkdir(parents=True, exist_ok=True)
+            (source / sub_dir).mkdir(parents=True, exist_ok=True)
 
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
-        # before open should make absolute path
-        with open_(self.source / unique_id) as input:
-            data = input.read()
-            if self._md5 and isinstance(data, str):
-                self._checksums[unique_id] = get_text_hexdigest(data)
+        with open_(self.source / unique_id) as infile:
+            data = infile.read()
 
         return data
 
-    def md5(self, unique_id: str, force=True) -> str:
+    def md5(self, unique_id: str) -> str:
         """
         Parameters
         ----------
-        identifier
+        unique_id
             name of data store member
-        force : bool
-            forces reading of data if not already done
 
         Returns
         -------
         md5 checksum for the member, if available, None otherwise
         """
-        md5_setting = self._md5  # for restoring automatic md5 calc setting
-        if force and unique_id not in self._checksums:
-            self._md5 = True
-            _ = self.read(unique_id)
+        unique_id = Path(unique_id)
+        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
+        path = self.source / _MD5_TABLE / unique_id
+        if not path.exists():
+            return None
 
-        self._md5 = md5_setting
-        return self._checksums.get(unique_id, None)
+        return path.read_text() if path.exists() else None
 
     def drop_not_completed(self):
         nc_dir = self.source / _NOT_COMPLETED_TABLE
@@ -297,13 +290,14 @@ class DataStoreDirectory(DataStoreABC):
 
     def _write(
         self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
-    ) -> None:
+    ) -> DataMember:
         super().write(unique_id, data)
         assert suffix, "Must provide suffix"
         # check suffix compatible with this datastore
         sfx, cmp = get_format_suffixes(unique_id)
         if sfx != suffix:
             unique_id = f"{Path(unique_id).stem}.{suffix}"
+
         unique_id = (
             unique_id.replace(self.suffix, suffix)
             if self.suffix and self.suffix != suffix
@@ -311,33 +305,39 @@ class DataStoreDirectory(DataStoreABC):
         )
         if suffix != "log" and unique_id in self:
             return
-        if not (self.source / subdir).exists():
-            (self.source / subdir).mkdir(parents=True, exist_ok=True)
+
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
+
         if subdir == _NOT_COMPLETED_TABLE:
-            self._not_completed.append(
-                DataMember(self, Path(_NOT_COMPLETED_TABLE) / unique_id)
-            )
-        elif subdir == "":
-            self._completed.append(DataMember(self, unique_id))
+            member = DataMember(self, Path(_NOT_COMPLETED_TABLE) / unique_id)
+        elif not subdir:
+            member = DataMember(self, unique_id)
+        else:
+            assert subdir == _LOG_TABLE
+            member = None
+
         if md5:
             md5 = get_text_hexdigest(data)
             unique_id = unique_id.replace(suffix, "txt")
             unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
-            if not (self.source / _MD5_TABLE).exists():
-                (self.source / _MD5_TABLE).mkdir(parents=True, exist_ok=True)
             with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
                 out.write(md5)
 
+        return member
+
     def write(self, unique_id: str, data: str) -> None:
-        self._write("", unique_id, self.suffix, data, True)
+        member = self._write("", unique_id, self.suffix, data, True)
+        if member is not None:
+            self._completed.append(member)
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
-        self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
+        member = self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
+        if member is not None:
+            self._not_completed.append(member)
 
     def write_log(self, unique_id: str, data: str) -> None:
-        self._write(_LOG_TABLE, unique_id, "log", data, False)
+        _ = self._write(_LOG_TABLE, unique_id, "log", data, False)
 
     def describe(self) -> TabularType:
         num_notcompleted = len(self.not_completed)
