@@ -295,13 +295,14 @@ class DataStoreDirectory(DataStoreABC):
 
     def _write(
         self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
-    ) -> None:
+    ) -> DataMember:
         super().write(unique_id, data)
         assert suffix, "Must provide suffix"
         # check suffix compatible with this datastore
         sfx, cmp = get_format_suffixes(unique_id)
         if sfx != suffix:
             unique_id = f"{Path(unique_id).stem}.{suffix}"
+
         unique_id = (
             unique_id.replace(self.suffix, suffix)
             if self.suffix and self.suffix != suffix
@@ -309,33 +310,39 @@ class DataStoreDirectory(DataStoreABC):
         )
         if suffix != "log" and unique_id in self:
             return
-        if not (self.source / subdir).exists():
-            (self.source / subdir).mkdir(parents=True, exist_ok=True)
+
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
+
         if subdir == _NOT_COMPLETED_TABLE:
-            self._not_completed.append(
-                DataMember(self, Path(_NOT_COMPLETED_TABLE) / unique_id)
-            )
-        elif subdir == "":
-            self._completed.append(DataMember(self, unique_id))
+            member = DataMember(self, Path(_NOT_COMPLETED_TABLE) / unique_id)
+        elif not subdir:
+            member = DataMember(self, unique_id)
+        else:
+            assert subdir == _LOG_TABLE
+            member = None
+
         if md5:
             md5 = get_text_hexdigest(data)
             unique_id = unique_id.replace(suffix, "txt")
             unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
-            if not (self.source / _MD5_TABLE).exists():
-                (self.source / _MD5_TABLE).mkdir(parents=True, exist_ok=True)
             with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
                 out.write(md5)
 
+        return member
+
     def write(self, unique_id: str, data: str) -> None:
-        self._write("", unique_id, self.suffix, data, True)
+        member = self._write("", unique_id, self.suffix, data, True)
+        if member is not None:
+            self._completed.append(member)
 
     def write_not_completed(self, unique_id: str, data: str) -> None:
-        self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
+        member = self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
+        if member is not None:
+            self._not_completed.append(member)
 
     def write_log(self, unique_id: str, data: str) -> None:
-        self._write(_LOG_TABLE, unique_id, "log", data, False)
+        _ = self._write(_LOG_TABLE, unique_id, "log", data, False)
 
     def describe(self) -> TabularType:
         num_notcompleted = len(self.not_completed)
