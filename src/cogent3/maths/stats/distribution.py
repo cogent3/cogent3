@@ -6,7 +6,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
 
-from scipy.stats import norm, f
+from scipy.stats import norm, f, t
 
 from cogent3.maths.stats.special import (
     MACHEP,
@@ -147,7 +147,7 @@ def chi_high(x, df):  # pragma: no cover
     return igamc(df / 2, x / 2)
 
 
-def t_low(t, df):
+def t_low(t, df):  # pragma: no cover
     """Returns left-hand tail of Student's t distribution (-infinity to x).
 
     df, the degrees of freedom, ranges from 1 to infinity.
@@ -157,12 +157,17 @@ def t_low(t, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "t_low", "2022.12", "use scipy.stats.t.cdf")
+
     if df < 1:
         raise ValueError(f"t_low: df must be >= 1 (got {df}).")
     return stdtr(df, t)
 
 
-def t_high(t, df):
+def t_high(t, df):  # pragma: no cover
     """Returns right-hand tail of Student's t distribution (x to infinity).
 
     df, the degrees of freedom, ranges from 1 to infinity.
@@ -172,14 +177,19 @@ def t_high(t, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "t_high", "2022.12", "use scipy.stats.t.sf")
+
     if df < 1:
         raise ValueError(f"t_high: df must be >= 1 (got {df}).")
     return stdtr(df, -t)  # distribution is symmetric
 
 
-def tprob(t, df):
+def tprob(x, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
-    return 2 * t_high(abs(t), df)
+    return 2 * t.sf(abs(x), df)
 
 
 def poisson_high(successes, mean):
