@@ -219,6 +219,7 @@ class DataStoreDirectory(DataStoreABC):
     def _source_check_create(self, if_dest_exists):
         if not is_master_process():
             return
+
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
         source = self.source
         if if_dest_exists is READONLY and not source.exists():
