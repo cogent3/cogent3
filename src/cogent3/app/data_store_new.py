@@ -91,8 +91,7 @@ class DataStoreABC(ABC):
     def read(self, unique_id: str) -> str | bytes:
         ...
 
-    @abstractmethod
-    def write(self, unique_id: str, data: str | bytes) -> None:
+    def _check_writable(self, unique_id: str):
         if self._if_dest_exists is READONLY:
             raise IOError("datastore is readonly")
         if self._if_member_exists in (READONLY, RAISE) and unique_id in self:
@@ -101,14 +100,16 @@ class DataStoreABC(ABC):
             )
 
     @abstractmethod
+    def write(self, unique_id: str, data: str | bytes) -> None:
+        self._check_writable(unique_id)
+
+    @abstractmethod
     def write_not_completed(self, unique_id: str, data: str | bytes) -> None:
-        if self.if_member_exists is RAISE and unique_id in self:
-            raise IOError("member exists")
+        self._check_writable(unique_id)
 
     @abstractmethod
     def write_log(self, unique_id: str, data: str | bytes) -> None:
-        if self.if_member_exists is RAISE and unique_id in self:
-            raise IOError("member exists")
+        self._check_writable(unique_id)
 
     @abstractmethod
     def describe(self) -> TabularType:
