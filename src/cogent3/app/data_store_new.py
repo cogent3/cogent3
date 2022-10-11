@@ -156,7 +156,7 @@ class DataStoreABC(ABC):
 class DataMember(DataMemberABC):
     def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
         super().__init__(data_store)
-        self._unique_id = unique_id
+        self._unique_id = str(unique_id)
 
     def __repr__(self):
         return self._unique_id
@@ -221,14 +221,12 @@ class DataStoreDirectory(DataStoreABC):
 
         return data
 
-    def md5(self, unique_id: str, force=True) -> str:
+    def md5(self, unique_id: str) -> str:
         """
         Parameters
         ----------
-        identifier
+        unique_id
             name of data store member
-        force : bool
-            forces reading of data if not already done
 
         Returns
         -------
