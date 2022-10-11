@@ -70,8 +70,8 @@ class DataStoreABC(ABC):
         if_dest_exists: IfExist = READONLY,
         if_member_exists: IfExist = RAISE,
     ):
-        self._if_dest_exists = if_dest_exists
-        self._if_member_exists = if_member_exists
+        self._if_dest_exists = IfExist(if_dest_exists)
+        self._if_member_exists = IfExist(if_member_exists)
 
     @abstractmethod
     def __repr__(self):
