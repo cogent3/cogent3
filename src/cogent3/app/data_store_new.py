@@ -188,13 +188,13 @@ class DataStoreDirectory(DataStoreABC):
         self._not_completed = []
         self._limit = limit
         self._verbose = verbose
-        self._checksums = {}
         self._md5 = md5
         self._source_check_create(if_dest_exists)
 
     def _source_check_create(self, if_dest_exists):
         if not is_master_process():
             return
+
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
         source = self.source
         if if_dest_exists is READONLY and not source.exists():
@@ -216,11 +216,8 @@ class DataStoreDirectory(DataStoreABC):
 
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
-        # before open should make absolute path
-        with open_(self.source / unique_id) as input:
-            data = input.read()
-            if self._md5 and isinstance(data, str):
-                self._checksums[unique_id] = get_text_hexdigest(data)
+        with open_(self.source / unique_id) as infile:
+            data = infile.read()
 
         return data
 
@@ -237,13 +234,13 @@ class DataStoreDirectory(DataStoreABC):
         -------
         md5 checksum for the member, if available, None otherwise
         """
-        md5_setting = self._md5  # for restoring automatic md5 calc setting
-        if force and unique_id not in self._checksums:
-            self._md5 = True
-            _ = self.read(unique_id)
+        unique_id = Path(unique_id)
+        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
+        path = self.source / _MD5_TABLE / unique_id
+        if not path.exists():
+            return None
 
-        self._md5 = md5_setting
-        return self._checksums.get(unique_id, None)
+        return path.read_text() if path.exists() else None
 
     def drop_not_completed(self):
         nc_dir = self.source / _NOT_COMPLETED_TABLE
