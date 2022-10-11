@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import re
 import reprlib
 import shutil
@@ -194,27 +195,23 @@ class DataStoreDirectory(DataStoreABC):
         if not is_master_process():
             return
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
-        if if_dest_exists is READONLY and not self.source.exists():
-            raise IOError("must exist")
-        elif if_dest_exists is RAISE and self.source.exists():
-            raise IOError("must not exist")
+        source = self.source
+        if if_dest_exists is READONLY and not source.exists():
+            raise IOError(f"'{source}' does not exist")
+        elif if_dest_exists is RAISE and source.exists():
+            raise IOError(f"'{source}' exists")
         elif if_dest_exists is READONLY:
             return
 
-        path = Path(self.source)
-        if path.exists() and if_dest_exists == RAISE:
-            raise FileExistsError(f"'{self.source}' exists")
-        elif path.exists() and if_dest_exists == OVERWRITE:
+        if source.exists() and if_dest_exists is OVERWRITE:
             for sub_dir in sub_dirs:
-                try:
-                    shutil.rmtree(self.source / sub_dir)
-                except:
-                    pass
-        elif not path.exists():
-            path.mkdir(parents=True, exist_ok=True)
+                with contextlib.suppress((FileNotFoundError, NotADirectoryError)):
+                    shutil.rmtree(source / sub_dir)
+        elif not source.exists():
+            source.mkdir(parents=True, exist_ok=True)
 
         for sub_dir in sub_dirs:
-            (self.source / sub_dir).mkdir(parents=True, exist_ok=True)
+            (source / sub_dir).mkdir(parents=True, exist_ok=True)
 
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
