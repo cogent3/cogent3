@@ -90,7 +90,7 @@ The lnL's from the two models are now used to calculate the likelihood ratio sta
 
     LR = 2 * (lf.get_log_likelihood() - null_lnL)
     df = lf.get_num_free_params() - null_nfp
-    P = stats.chisqprob(LR, df)
+    P = stats.chi2.sf(LR, df)
 
 Print this and look up a chi-sq with number of edges - 1 degrees of freedom.
 
