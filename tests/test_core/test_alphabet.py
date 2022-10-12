@@ -7,6 +7,7 @@ import pickle
 
 from unittest import TestCase, main
 
+from numpy import unravel_index
 from numpy.testing import assert_equal
 
 from cogent3.core.alphabet import (
@@ -20,6 +21,7 @@ from cogent3.core.alphabet import (
     uint8,
     uint16,
     uint32,
+    uint64,
 )
 from cogent3.core.moltype import RNA, get_moltype
 
@@ -68,11 +70,17 @@ class get_array_type_tests(TestCase):
         """get_array_type should return unsigned type that fits elements."""
         self.assertEqual(get_array_type(0), uint8)
         self.assertEqual(get_array_type(100), uint8)
-        self.assertEqual(get_array_type(256), uint8)  # boundary case
+        self.assertEqual(get_array_type(255), uint8)  # boundary case
         self.assertEqual(get_array_type(257), uint16)  # boundary case
         self.assertEqual(get_array_type(10000), uint16)
-        self.assertEqual(get_array_type(65536), uint16)
+        self.assertEqual(get_array_type(65535), uint16)
         self.assertEqual(get_array_type(65537), uint32)
+        self.assertEqual(get_array_type(1 + 2 ** 32), uint64)
+
+    def test_get_array_type_fail(self):
+        """get_array_type should return unsigned type that fits elements."""
+        with self.assertRaises(NotImplementedError):
+            self.assertEqual(get_array_type(2 ** 64), uint64)
 
 
 class EnumerationTests(TestCase):
@@ -232,6 +240,14 @@ class CharAlphabetTests(TestCase):
         got = pickle.loads(pkl)
         self.assertIsInstance(got, type(r))
         self.assertEqual(got.get_word_alphabet(2), wa)
+
+    def test_word_alphabet_order(self):
+        bases = "TCAG"
+        r = CharAlphabet(bases)
+        indices = [unravel_index(i, shape=(4, 4, 4)) for i in range(64)]
+        expect = tuple("".join([bases[b] for b in coord]) for coord in indices)
+        got = tuple(r.get_word_alphabet(3))
+        assert got == expect
 
     def test_from_string(self):
         """CharAlphabet from_string should return correct array"""

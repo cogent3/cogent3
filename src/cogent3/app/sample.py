@@ -191,7 +191,7 @@ class take_codon_positions:
         self,
         *positions,
         fourfold_degenerate=False,
-        gc="Standard Nuclear",
+        gc="Standard",
         moltype="dna",
     ):
         """selects the indicated codon positions from an alignment

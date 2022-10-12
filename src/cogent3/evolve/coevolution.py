@@ -50,7 +50,6 @@ from random import shuffle
 from numpy import (
     array,
     e,
-    float,
     greater_equal,
     isnan,
     less_equal,

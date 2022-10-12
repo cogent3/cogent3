@@ -1886,7 +1886,7 @@ class ArrayDnaSequence(ArrayNucleicAcidSequence):
     alphabet = None  # set to DNA.alphabets.degen_gapped in moltype.py
 
     def __init__(self, data="", *args, **kwargs):
-        """Returns new ArrayRnaSequence, converting U -> T"""
+        """Returns new ArrayDnaSequence, converting U -> T"""
         if hasattr(data, "upper"):
             data = data.upper().replace("U", "T")
         return super(ArrayDnaSequence, self).__init__(data, *args, **kwargs)

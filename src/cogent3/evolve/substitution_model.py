@@ -256,6 +256,10 @@ class _SubstitutionModel(object):
 
     def to_rich_dict(self, for_pickle=False):
         data = deepcopy(self._serialisable)
+        # make sure kw matching higher level kw removed
+        for key in data.keys() - set(["kw"]):
+            data.get("kw", {}).pop(key, None)
+
         if not for_pickle:
             for key, value in data.items():
                 type_ = get_object_provenance(value)
@@ -266,7 +270,7 @@ class _SubstitutionModel(object):
                         pass
                     finally:
                         data[key] = value
-            if "predicates" in data and data["predicates"]:
+            if data.get("predicates", None):
                 data["predicates"] = [str(p) for p in data["predicates"]]
             data["type"] = get_object_provenance(self)
             data["version"] = __version__
@@ -927,25 +931,26 @@ class TimeReversibleNucleotide(_TimeReversibleNucleotide):
     """A nucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        _TimeReversibleNucleotide.__init__(self, moltype.DNA.alphabet, *args, **kw)
+        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
 
 class TimeReversibleDinucleotide(_TimeReversibleNucleotide):
     """A dinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        _TimeReversibleNucleotide.__init__(
-            self, moltype.DNA.alphabet, motif_length=2, *args, **kw
-        )
+        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        kw["motif_length"] = 2
+        _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
 
 class TimeReversibleTrinucleotide(_TimeReversibleNucleotide):
     """A trinucleotide substitution model."""
 
     def __init__(self, *args, **kw):
-        _TimeReversibleNucleotide.__init__(
-            self, moltype.DNA.alphabet, motif_length=3, *args, **kw
-        )
+        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        kw["motif_length"] = 3
+        _TimeReversibleNucleotide.__init__(self, *args, **kw)
 
 
 class TimeReversibleProtein(TimeReversible):
@@ -955,7 +960,9 @@ class TimeReversibleProtein(TimeReversible):
         alph = moltype.PROTEIN.alphabet
         if not with_selenocysteine:
             alph = alph.get_subset("U", excluded=True)
-        TimeReversible.__init__(self, alph, *args, **kw)
+
+        kw["alphabet"] = alph
+        TimeReversible.__init__(self, *args, **kw)
 
 
 def EmpiricalProteinMatrix(
@@ -1025,5 +1032,5 @@ class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
     def __init__(self, alphabet=None, gc=None, **kw):
         if gc is not None:
             alphabet = moltype.CodonAlphabet(gc=gc)
-        alphabet = alphabet or moltype.STANDARD_CODON
-        _TimeReversibleNucleotide.__init__(self, alphabet, **kw)
+        kw["alphabet"] = alphabet or moltype.STANDARD_CODON
+        _TimeReversibleNucleotide.__init__(self, **kw)

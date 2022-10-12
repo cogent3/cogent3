@@ -32,6 +32,7 @@ from numpy import (
     uint8,
     uint16,
     uint32,
+    uint64,
     zeros,
 )
 
@@ -56,38 +57,21 @@ class AlphabetError(Exception):
 
 
 def get_array_type(num_elements):
-    """Returns smallest array type that can contain sequence on num_elements.
-
-    Used to figure out how large a data type is needed for the array in which
-    elements are indices from an alphabet. If the data type is too small
-    (e.g. you allocated an uint8 array, with 256 possible states (0-255), but
-    your data actually have more than 256 states, e.g. tripeptide data with
-    20*20*20 = 8000 states), when you assign a state larger than the data type
-    can hold you'll get an unexpected result. For example, assigning state
-    800 in an array that can only hold 256 different states will actually
-    give you the result mod 256:
-
-    >>> a = array(range(10), uint8)
-    >>> a
-    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9],'B')
-    >>> a[0] = 800
-    >>> a
-    array([32,  1,  2,  3,  4,  5,  6,  7,  8,  9],'B')
-           ^^
-           NOTE: element 1 is _not_ 800, but instead 32 -- nasty surprise!
-
-    Getting the size of the necessary array from the alphabet is a good
-    solution to this problem.
-
-    WARNING: Will not overflow if somehow you manage to feed it an alphabet
-    with more than 2**32 elements, but it seems unlikely that this will
-    happen very often in practice...
+    """Returns the smallest numpy integer dtype that can contain elements
+    within num_elements.
     """
-    if num_elements <= 256:
-        return uint8
-    elif num_elements <= 2 ** 16:
-        return uint16
-    return uint32
+    if num_elements < 2 ** 8:
+        dtype = uint8
+    elif num_elements < 2 ** 16:
+        dtype = uint16
+    elif num_elements < 2 ** 32:
+        dtype = uint32
+    elif num_elements < 2 ** 64:
+        dtype = uint64
+    else:
+        raise NotImplementedError(f"{num_elements} is too big for 64-bit integer")
+
+    return dtype
 
 
 def _make_translation_tables(a):
@@ -563,14 +547,9 @@ class Alphabet(Enumeration):
         Note that the result is not a JointEnumeration object, and cannot
         unpack its indices. However, the items in the result _are_ all strings.
         """
-        crossproduct = [""]
-        for a in range(word_length):
-            n = []
-            for c in crossproduct:
-                for m in self:
-                    n.append(m + c)
-            crossproduct = n
-        return Alphabet(crossproduct, moltype=self.moltype)
+        states = (list(self),) * word_length
+        cross_product = ["".join(combo) for combo in product(*states)]
+        return Alphabet(cross_product, moltype=self.moltype)
 
     def from_seq_to_array(self, sequence):
         """Returns an array of indices corresponding to items in sequence.
