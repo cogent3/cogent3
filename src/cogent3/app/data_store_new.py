@@ -482,11 +482,9 @@ def get_data_source(data) -> str:
 def _(data: SequenceCollection):
     return get_data_source(data.info.source)
 
-
 @get_data_source.register
 def _(data: str):
     return get_data_source(Path(data))
-
 
 @get_data_source.register
 def _(data: Path):
