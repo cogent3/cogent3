@@ -440,6 +440,10 @@ def slicer(val, index=2):
 def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
     return val[:4]
 
+@define_app
+def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
+    return val[:4]
+
 
 @define_app
 def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
