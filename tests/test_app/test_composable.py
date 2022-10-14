@@ -440,13 +440,17 @@ def slicer(val, index=2):
 def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
     return val[:4]
 
+@define_app
+def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
+    return val[:4]
+
 
 @define_app
 def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
 
-for _app_ in (foo, bar):
+for _app_ in (foo, bar, foo_without_arg_kwargs):
     __app_registry.pop(get_object_provenance(_app_), None)
 
 
@@ -454,6 +458,17 @@ def test_user_function():
     """composable functions should be user definable"""
 
     u_function = foo()
+
+    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    got = u_function(aln)
+
+    assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
+
+
+def test_user_function_without_arg_kwargs():
+    """composable functions should be user definable"""
+
+    u_function = foo_without_arg_kwargs()
 
     aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
     got = u_function(aln)
