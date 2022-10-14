@@ -179,9 +179,9 @@ def get_data_store(
 
 def _load_seqs(path, klass, parser, moltype):
     abs_path = str(path)
-    if type(path) == str:
+    if not hasattr(path, "read"):
         # we use a DataStoreMember as it's read() handles zipped compression
-        path = SingleReadDataStore(path)[0]
+        path = SingleReadDataStore(str(path))[0]
     data = path.read().splitlines()
     data = dict(iter(parser(data)))
     seqs = klass(data=data, moltype=moltype)
