@@ -1,15 +1,13 @@
-import shutil
-import pytest
-import typing
 from pathlib import Path
-from os.path import join
-from tempfile import TemporaryDirectory
-from cogent3.app import io as io_app
+
+import pytest
+
 from cogent3.app import io_new as io_app_new
-from cogent3.app.composable import source_proxy
-from cogent3.app.data_store import DataStoreMember
-from cogent3.parse.sequence import PARSERS
-from cogent3.core.alignment import ArrayAlignment
+from cogent3.app.composable_new import (
+    _as_completed,
+    _source_wrapped,
+    source_proxy,
+)
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
     _MD5_TABLE,
@@ -17,9 +15,11 @@ from cogent3.app.data_store_new import (
     OVERWRITE,
     READONLY,
     SKIP,
-    DataStoreDirectory,
     DataMember,
+    DataStoreDirectory,
 )
+from cogent3.core.alignment import ArrayAlignment
+from cogent3.parse.sequence import PARSERS
 
 
 __author__ = "Gavin Huttley"
@@ -32,6 +32,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
@@ -57,23 +58,22 @@ def fasta_dir(tmp_dir):
     return fasta_dir
 
 
-
 def test_write_seqs(fasta_dir, tmp_dir):
     """correctly writes sequences out"""
-    datastore = DataStoreDirectory(fasta_dir, suffix='fasta')
+    datastore = DataStoreDirectory(fasta_dir, suffix="fasta")
     datamember = datastore[0]
     data = datamember.read().splitlines()
     data = dict(iter(PARSERS["fasta".lower()](data)))
     seqs = ArrayAlignment(data=data, moltype=None)
     seqs.info.source = datastore.source
-    writer = io_app_new.WriteSeqs(tmp_dir/"write", if_dest_exists=SKIP)
+    writer = io_app_new.WriteSeqs(tmp_dir / "write", if_dest_exists=SKIP)
     wrote = writer(seqs[0], datamember.unique_id)
     assert isinstance(wrote, DataMember)
 
 
 def test_source_proxy_simple(fasta_dir):
     """correctly writes sequences out"""
-    datastore = DataStoreDirectory(fasta_dir, suffix='fasta')
+    datastore = DataStoreDirectory(fasta_dir, suffix="fasta")
     datamember = datastore[0]
     reader = io_app_new.get_bytes()
     path = datamember.data_store.source / datamember.unique_id
@@ -87,5 +87,3 @@ def test_source_proxy_simple(fasta_dir):
     # also return source_proxy
     got = list(reader.as_completed([path]))
     assert isinstance(got[0], source_proxy)
-
-

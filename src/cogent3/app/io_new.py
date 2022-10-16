@@ -1,10 +1,10 @@
 from pathlib import Path
-from .composable import WRITER, define_app, NotCompleted
-from .data_store_new import DataStoreDirectory, SKIP
-from .typing import (
-    IdentifierType,
-    SeqsCollectionType,
-)
+
+from .composable import WRITER, NotCompleted, define_app
+from .composable_new import define_app2
+from .data_store_new import SKIP, DataStoreDirectory
+from .typing import IdentifierType, SeqsCollectionType
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
@@ -16,11 +16,15 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@define_app(app_type=WRITER)
+@define_app2(app_type=WRITER)
 class WriteSeqs:
     def __init__(self, data_path, if_dest_exists=SKIP, if_member_exists=SKIP):
-        self.data_store = DataStoreDirectory(data_path, if_dest_exists, if_member_exists, suffix='fasta')
-        self.data_store = DataStoreDirectory(data_path, if_dest_exists, if_member_exists, suffix='fasta')
+        self.data_store = DataStoreDirectory(
+            data_path, if_dest_exists, if_member_exists, suffix="fasta"
+        )
+        self.data_store = DataStoreDirectory(
+            data_path, if_dest_exists, if_member_exists, suffix="fasta"
+        )
 
     def main(self, data: SeqsCollectionType, identifier=None) -> IdentifierType:
         if isinstance(data, NotCompleted):
@@ -29,8 +33,7 @@ class WriteSeqs:
         return self.data_store.write(identifier, data.to_fasta())
 
 
-@define_app
+@define_app2
 def get_bytes(path: IdentifierType) -> bytes:
     path = Path(path)
     return path.read_bytes()
-

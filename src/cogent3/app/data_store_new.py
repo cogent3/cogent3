@@ -169,6 +169,7 @@ class DataMember(DataMemberABC):
     def source(self):
         return self.unique_id
 
+
 class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
@@ -438,13 +439,16 @@ class DataStoreDirectory(DataStoreABC):
 def get_data_source(data) -> str:
     raise NotImplementedError(f"Cannot resolve a unique identifier from {type(data)}")
 
+
 @get_data_source.register
 def get_str_source(data: str):
     return data
 
+
 @get_data_source.register
 def get_str_source(data: Path):
     return str(data)
+
 
 @get_data_source.register
 def get_str_source(data: dict):
@@ -453,6 +457,7 @@ def get_str_source(data: dict):
     except KeyError:
         source = data.get("source", None)
     return get_data_source(source)
+
 
 @get_data_source.register
 def get_str_source(data: DataMemberABC):
