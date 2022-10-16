@@ -1,20 +1,9 @@
 import inspect
-import json
-import os
 import pathlib
-import re
-import textwrap
 import time
 import traceback
-import types
-
-from copy import deepcopy
-from enum import Enum
-from functools import wraps
-from typing import Any, Generator, Tuple
+from typing import Any, Generator
 from uuid import uuid4
-
-from scitrack import CachingLogger
 
 from cogent3.app.composable import (
     GENERIC,
@@ -39,15 +28,12 @@ from cogent3.app.data_store import (
     WritableDirectoryDataStore,
     get_data_source,
 )
-from cogent3.app.typing import get_constraint_names
 from cogent3.util import parallel as PAR
-from cogent3.util import progress_display as UI
 from cogent3.util.misc import (
     extend_docstring_from,
     get_object_provenance,
     in_jupyter,
 )
-from cogent3.util.warning import discontinued
 
 
 __author__ = "Gavin Huttley"
