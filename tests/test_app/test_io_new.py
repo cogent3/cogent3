@@ -4,16 +4,10 @@ import pytest
 
 from cogent3.app import io_new as io_app_new
 from cogent3.app.composable_new import (
-    _as_completed,
     _source_wrapped,
     source_proxy,
 )
 from cogent3.app.data_store_new import (
-    _LOG_TABLE,
-    _MD5_TABLE,
-    _NOT_COMPLETED_TABLE,
-    OVERWRITE,
-    READONLY,
     SKIP,
     DataMember,
     DataStoreDirectory,
