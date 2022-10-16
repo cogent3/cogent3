@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .composable import WRITER, NotCompleted, define_app
+from .composable import WRITER, NotCompleted
 from .composable_new import define_app2
 from .data_store_new import SKIP, DataStoreDirectory
 from .typing import IdentifierType, SeqsCollectionType
