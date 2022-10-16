@@ -16,24 +16,11 @@ from cogent3.app.composable import (
     _class_from_func,
     _disconnect,
     _get_main_hints,
-    _make_logfile_name,
     _repr,
 )
-from cogent3.app.data_store import (
-    IGNORE,
-    OVERWRITE,
-    RAISE,
-    SKIP,
-    DataStoreMember,
-    WritableDirectoryDataStore,
-    get_data_source,
-)
+from cogent3.app.data_store import get_data_source
 from cogent3.util import parallel as PAR
-from cogent3.util.misc import (
-    extend_docstring_from,
-    get_object_provenance,
-    in_jupyter,
-)
+from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Gavin Huttley"
