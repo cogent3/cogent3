@@ -436,7 +436,7 @@ class DataStoreDirectory(DataStoreABC):
 
 @singledispatch
 def get_data_source(data) -> str:
-    raise NotImplementedError("Cannot resolve a unique identifier from data")
+    raise NotImplementedError(f"Cannot resolve a unique identifier from {type(data)}")
 
 @get_data_source.register
 def get_str_source(data: str):
