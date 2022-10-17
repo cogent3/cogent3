@@ -25,6 +25,7 @@ from cogent3.util.misc import (
     in_jupyter,
 )
 
+from ..util.warning import discontinued
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -44,8 +45,6 @@ __version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
-
-from ..util.warning import discontinued
 
 
 def _make_logfile_name(process):
