@@ -1397,14 +1397,11 @@ def _apply_to(
 
     inputs = _proxy_input(dstore)
 
-    app = self.input
-    self.input = None
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
         member = self(data=result.obj)  # which means writers must return DataMember
         logger.log_message(member, label="output")
         logger.log_message(member.md5, label="output md5sum")
 
-    self.input = app
     taken = time.time() - start
 
     logger.log_message(f"{taken}", label="TIME TAKEN")
