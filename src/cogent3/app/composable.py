@@ -977,9 +977,8 @@ class source_proxy:
 
 
 def _call(self, val, *args, **kwargs):
-    source = get_data_source(val) or val
     if val is None:
-        val = NotCompleted("ERROR", self, "unexpected input value None", source=source)
+        val = NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
     if isinstance(val, NotCompleted):
         return val
@@ -995,12 +994,10 @@ def _call(self, val, *args, **kwargs):
     try:
         result = self.main(val, *args, **kwargs)
     except Exception:
-        result = NotCompleted("ERROR", self, traceback.format_exc(), source=source)
+        result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
 
     if result is None:
-        result = NotCompleted(
-            "BUG", self, "unexpected output value None", source=source
-        )
+        result = NotCompleted("BUG", self, "unexpected output value None", source=val)
     return result
 
 
