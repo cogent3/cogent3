@@ -3,15 +3,8 @@ from pathlib import Path
 import pytest
 
 from cogent3.app import io_new as io_app_new
-from cogent3.app.composable_new import (
-    _source_wrapped,
-    source_proxy,
-)
-from cogent3.app.data_store_new import (
-    SKIP,
-    DataMember,
-    DataStoreDirectory,
-)
+from cogent3.app.composable import _source_wrapped, source_proxy
+from cogent3.app.data_store_new import SKIP, DataMember, DataStoreDirectory
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.parse.sequence import PARSERS
 

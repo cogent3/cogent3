@@ -11,9 +11,9 @@ import types
 from copy import deepcopy
 from enum import Enum
 from functools import wraps
-from typing import Tuple
+from typing import Any, Generator, Tuple
+from uuid import uuid4
 
-from numpy import ndarray
 from scitrack import CachingLogger
 
 from cogent3.app.typing import get_constraint_names
@@ -920,17 +920,69 @@ def _new(klass, *args, **kwargs):
     return obj
 
 
-def _call(self, val, *args, **kwargs):
-    # logic for trapping call to main
+class source_proxy:
+    __slots__ = ("_obj", "_src", "_uuid")
 
+    def __init__(self, obj: Any = None) -> None:
+        self._obj = obj
+        self._src = obj
+        self._uuid = uuid4()
+
+    def __hash__(self):
+        return hash(self._uuid)
+
+    @property
+    def obj(self):
+        return self._obj
+
+    def set_obj(self, obj):
+        self._obj = obj
+
+    @property
+    def source(self):
+        """origin of this object, defaults to a random uuid"""
+        return self._src
+
+    @source.setter
+    def source(self, src: Any):
+        # need to check whether src is hashable, how to cope if it isn't?
+        # might need to make this instance hashable perhaps using a uuid?
+        self._src = src
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._obj, name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name.startswith("_"):
+            super().__setattr__(name, value)
+        else:
+            setattr(self._obj, name, value)
+
+    def __bool__(self):
+        return bool(self._obj)
+
+    def __repr__(self):
+        return self.obj.__repr__()
+
+    def __str__(self):
+        return self.obj.__str__()
+
+    def __eq__(self, other):
+        return self.obj.__eq__(other)
+
+    def __len__(self):
+        return self.obj.__len__()
+
+
+def _call(self, val, *args, **kwargs):
+    source = get_data_source(val) or val
     if val is None:
-        val = NotCompleted("BUG", self, "unexpected input value None", source="unknown")
+        val = NotCompleted("ERROR", self, "unexpected input value None", source=source)
 
     if isinstance(val, NotCompleted):
         return val
 
     # todo we should get the source information from val here
-
     if self.app_type is not LOADER and self.input:  # passing to connected app
         val = self.input(val, *args, **kwargs)
 
@@ -941,13 +993,12 @@ def _call(self, val, *args, **kwargs):
     try:
         result = self.main(val, *args, **kwargs)
     except Exception:
-        result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
+        result = NotCompleted("ERROR", self, traceback.format_exc(), source=source)
 
     if result is None:
         result = NotCompleted(
-            "BUG", self, "unexpected output value None", source="unknown"
+            "BUG", self, "unexpected output value None", source=source
         )
-
     return result
 
 
@@ -959,6 +1010,9 @@ def _validate_data_type(self, data):
         "IdentifierType",
     }:
         return True
+
+    if isinstance(data, source_proxy):
+        data = data.obj
 
     if isinstance(data, (list, tuple)) and len(data):
         data = data[0]
@@ -1121,7 +1175,8 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
 
     if hasattr(klass, "app_type"):
         raise TypeError(
-            f"The class {klass.__name__!r} is already decorated, avoid using inheritance from a decorated class."
+            f"The class {klass.__name__!r} is already decorated, avoid using "
+            "inheritance from a decorated class."
         )
 
     app_type = AppType(app_type)
@@ -1135,14 +1190,21 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
             raise ValueError(f"{klass} is not a class")
 
         # check if user defined these methods
+        # todo derive from __mapping
         method_list = [
             "__call__",
             "__repr__",
             "__str__",
             "__new__",
             "_validate_data_type",
+            "as_completed",
+            "_source_wrapped",
         ]
-        excludes = ["__add__", "disconnect", "apply_to"]
+        excludes = ["__add__", "disconnect"]
+        if app_type is WRITER:
+            # only writers get the apply_to method
+            excludes.extend(["apply_to", "set_logger"])
+
         if composable and getattr(klass, "input", None):
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
@@ -1175,10 +1237,85 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
 
         # register this app
         __app_registry[get_object_provenance(klass)] = composable
-
         return klass
 
     return wrapped(klass) if klass else wrapped
+
+
+def _proxy_input(dstore):
+    inputs = []
+    for e in dstore:
+        if not isinstance(e, source_proxy):
+            e = source_proxy(e)
+        inputs.append(e)
+
+        # source = get_data_source(e)
+        # if source:
+        #     s = pathlib.Path(source)
+        #     suffixes = "".join(s.suffixes)
+        #     source = s.name.replace(suffixes, "")
+        #
+        # key = f"{source}.{suffix}" if suffix else source
+        # proxied = source_proxy(e)
+        # inputs[proxied] = proxied
+    return inputs
+
+
+def _source_wrapped(self, value: source_proxy) -> source_proxy:
+    # result = result if hasattr(result, "source") else source_proxy(result)
+    value.set_obj(self(value.obj))
+    return value
+
+
+def _as_completed(
+    self,
+    dstore,
+    parallel=False,
+    par_kw=None,
+    # show_progress?
+) -> Generator:
+    """invokes self composable function on the provided data store
+
+    Parameters
+    ----------
+    dstore
+        a path, list of paths, or DataStore to which the process will be
+        applied.
+    parallel : bool
+        run in parallel, according to arguments in par_kwargs. If True,
+        the last step of the composable function serves as the master
+        process, with earlier steps being executed in parallel for each
+        member of dstore.
+    par_kw
+        dict of values for configuring parallel execution.
+
+    Returns
+    -------
+    Result of the process as a list.
+
+    Notes
+    -----
+    If run in parallel, this instance serves as the master object and
+    aggregates results. If run in serial, results are returned in the
+    same order as provided.
+    """
+    app = self.input if self.app_type is WRITER else self
+
+    if isinstance(dstore, str):
+        dstore = [dstore]
+
+    mapped = _proxy_input(dstore)
+
+    if not mapped:
+        raise ValueError("dstore is empty")
+
+    if parallel:
+        par_kw = par_kw or {}
+        to_do = PAR.as_completed(app._source_wrapped, mapped, **par_kw)
+    else:
+        to_do = map(app._source_wrapped, mapped)
+
+    yield from to_do
 
 
 def is_composable(obj):
@@ -1186,16 +1323,15 @@ def is_composable(obj):
     return __app_registry.get(get_object_provenance(obj), False)
 
 
-@UI.display_wrap
 def _apply_to(
     self,
     dstore,
+    get_data_source: callable = get_data_source,
     parallel=False,
     par_kw=None,
     logger=None,
     cleanup=False,
-    ui=None,
-    **kwargs,
+    show_progress=False,
 ):
     """invokes self composable function on the provided data store
 
@@ -1228,52 +1364,29 @@ def _apply_to(
     If run in parallel, this instance serves as the master object and
     aggregates results.
     """
-    if isinstance(dstore, str):
+    if not self.input:
+        raise RuntimeError(f"{self!r} is not part of a composed function")
+
+    if isinstance(dstore, (str, pathlib.Path)):  # one filename
         dstore = [dstore]
 
-    dstore = [e for e in dstore if e]
-    if not dstore:
+    # todo run check on dstore to make sure we have identifiers for writing output
+    # our default function should fail if a source cannot be determined, i.e. does not return None
+
+    # todo this should fail if somebody provides data that cannot produce a unique_id
+    # skip records already in data_store
+    dstore = [e for e in dstore if get_data_source(e) not in self.data_store]
+    if not dstore:  # this should just return datastore, because if all jobs are done!
         raise ValueError("dstore is empty")
 
-    am_writer = hasattr(self, "data_store")
-    if am_writer:
-        start = time.time()
-        if logger is None:
-            logger = CachingLogger()
-        elif not isinstance(logger, CachingLogger):
-            raise TypeError(
-                f"logger must be scitrack.CachingLogger, not {type(logger)}"
-            )
+    start = time.time()
+    self.set_logger(logger)
+    logger = self.logger
+    log_file_path = str(logger.log_file_path)
+    logger.log_message(str(self), label="composable function")
+    logger.log_versions(["cogent3"])
 
-        if not logger.log_file_path:
-            src = pathlib.Path(self.data_store.source)
-            logger.log_file_path = str(src.parent / _make_logfile_name(self))
-
-        log_file_path = str(logger.log_file_path)
-        logger.log_message(str(self), label="composable function")
-        logger.log_versions(["cogent3"])
-
-    results = []
-    process = self.input or self if self.app_type is not LOADER else self
-    if self.app_type is not LOADER and self.input:
-        # As we will be explicitly calling the input object, we disconnect
-        # the two-way interaction between input and self. This means self
-        # is not called twice, and self is not unecessarily pickled during
-        # parallel execution.
-        self.input = None
-
-    # with a tinydb dstore, this also excludes data that failed to complete
-    # todo update to consider different database backends
-    # we want a dict mapping input member names to their md5 sums so these can
-    # be logged
-    inputs = {}
-    for m in dstore:
-        input_id = pathlib.Path(
-            m if isinstance(m, DataStoreMember) else get_data_source(m)
-        )
-        suffixes = input_id.suffixes
-        input_id = input_id.name.replace("".join(suffixes), "")
-        inputs[input_id] = m
+    inputs = _proxy_input(dstore)
 
     if len(inputs) < len(dstore):
         diff = len(dstore) - len(inputs)
@@ -1281,73 +1394,33 @@ def _apply_to(
             f"could not construct unique identifiers for {diff} records, "
             "avoid using '.' as a delimiter in names."
         )
+    app = self.input
+    self.input = None
+    for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
+        member = self(data=result.obj)  # which means writers must return DataMember
+        logger.log_message(member, label="output")
+        logger.log_message(member.md5, label="output md5sum")
 
-    if parallel:
-        par_kw = par_kw or {}
-        to_do = PAR.as_completed(process, inputs.values(), **par_kw)
-    else:
-        to_do = map(process, inputs.values())
+    self.input = app
+    taken = time.time() - start
 
-    for result in ui.series(to_do, count=len(inputs)):
-        if process is not self and am_writer:
-            # if result is NotCompleted, it will be written as incomplete
-            # by data store backend. The outcome is just the
-            # associated db identifier for tracking steps below we need to
-            # know it's NotCompleted.
-            # Note: we directly call .write() so NotCompleted's don't
-            # get blocked from being written by __call__()
-            outcome = self.main(data=result)
-            if result and isinstance(outcome, DataStoreMember):
-                input_id = outcome.name
-            else:
-                input_id = get_data_source(result)
-                outcome = result
-            input_id = pathlib.Path(pathlib.Path(input_id))
-            suffixes = input_id.suffixes
-            input_id = input_id.name.replace("".join(suffixes), "")
-        elif process is not self:
-            outcome = self(result)
-        else:
-            outcome = result
+    logger.log_message(f"{taken}", label="TIME TAKEN")
+    logger.shutdown()
+    log_file_path = pathlib.Path(log_file_path)
+    self.data_store.write_log(log_file_path, log_file_path.read_text())
+    if cleanup:
+        log_file_path.unlink(missing_ok=True)
 
-        results.append(outcome)
+    return self.data_store
 
-        if am_writer:
-            # now need to search for the source member
-            m = inputs[input_id]
-            input_md5 = getattr(m, "md5", None)
-            logger.log_message(input_id, label="input")
-            if input_md5:
-                logger.log_message(input_md5, label="input md5sum")
 
-            if isinstance(outcome, NotCompleted):
-                # log error/fail details
-                logger.log_message(
-                    f"{outcome.origin} : {outcome.message}", label=outcome.type
-                )
-                continue
-            elif not outcome:
-                # other cases where outcome is Falsy (e.g. None)
-                logger.log_message(f"unexpected value {outcome!r}", label="FAIL")
-                continue
-
-            logger.log_message(outcome, label="output")
-            logger.log_message(outcome.md5, label="output md5sum")
-
-    if am_writer:
-        finish = time.time()
-        taken = finish - start
-
-        logger.log_message(f"{taken}", label="TIME TAKEN")
-        logger.shutdown()
-        self.data_store.add_file(log_file_path, cleanup=cleanup, keep_suffix=True)
-        self.data_store.close()
-
-    # now reconnect input
-    if process is not self:
-        self = process + self
-
-    return results
+def _set_logger(self, logger=None):
+    if logger is None:
+        logger = CachingLogger(create_dir=True)
+    if not logger.log_file_path:
+        src = pathlib.Path(self.data_store.source).parent
+        logger.log_file_path = str(src / _make_logfile_name(self))
+    self.logger = logger
 
 
 __mapping = {
@@ -1358,4 +1431,7 @@ __mapping = {
     "_validate_data_type": _validate_data_type,
     "disconnect": _disconnect,
     "apply_to": _apply_to,
+    "_source_wrapped": _source_wrapped,
+    "as_completed": _as_completed,
+    "set_logger": _set_logger,
 }
