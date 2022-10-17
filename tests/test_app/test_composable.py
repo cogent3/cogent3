@@ -346,12 +346,6 @@ def test_err_result():
     result = NotCompleted("SKIP", "this", "err", source=fake_source)
     assert result.source == "blah"
 
-    fake_source = Mock()
-    del fake_source.source
-    fake_source.info.source = "blah"
-    result = NotCompleted("SKIP", "this", "err", source=fake_source)
-    assert result.source == "blah"
-
     try:
         _ = 0
         raise ValueError("error message")
