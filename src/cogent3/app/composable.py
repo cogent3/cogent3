@@ -33,8 +33,8 @@ from .data_store import (
     SKIP,
     DataStoreMember,
     WritableDirectoryDataStore,
-    get_data_source,
 )
+from .data_store_new import get_data_source
 
 
 __author__ = "Gavin Huttley"
@@ -80,7 +80,10 @@ class NotCompleted(int):
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         origin = _get_origin(origin)
-        source = get_data_source(source)
+        try:
+            source = get_data_source(source)
+        except Exception:
+            source = None
         d = locals()
         d = {k: v for k, v in d.items() if k != "cls"}
         result = int.__new__(cls, False)
