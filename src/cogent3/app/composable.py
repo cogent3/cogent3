@@ -1018,7 +1018,7 @@ def _call(self, val, *args, **kwargs):
     try:
         result = self.main(val, *args, **kwargs)
     except Exception:
-        result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
+        result = NotCompleted("ERROR", self, traceback.format_exc(), source=source)
 
     if result is None:
         result = NotCompleted("BUG", self, "unexpected output value None", source=val)
