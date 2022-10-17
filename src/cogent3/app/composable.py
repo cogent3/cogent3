@@ -1382,12 +1382,20 @@ def _apply_to(
     inputs = _proxy_input(dstore)
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
         member = self.main(
+<<<<<<< HEAD
             data=result.obj, identifier=id_from_source(result.source)
         )  # writers must return DataMember
         md5 = member.md5
         logger.log_message(str(member), label="output")
         if md5:
             logger.log_message(md5, label="output md5sum")
+=======
+            data=result.obj, identifier=get_data_source(result.source)
+        )  # writers must return DataMember
+        md5 = self.data_store.md5(member.unique_id)
+        logger.log_message(str(member), label="output")
+        logger.log_message(md5, label="output md5sum")
+>>>>>>> b534feadb (ENH: new apply_to now works for new style data stores)
 
     taken = time.time() - start
     logger.log_message(f"{taken}", label="TIME TAKEN")
