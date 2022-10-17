@@ -1,7 +1,6 @@
 from pathlib import Path
 
-from .composable import WRITER, NotCompleted
-from .composable_new import define_app2
+from .composable import WRITER, NotCompleted, define_app
 from .data_store_new import SKIP, DataStoreDirectory
 from .typing import IdentifierType, SeqsCollectionType
 
@@ -16,7 +15,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@define_app2(app_type=WRITER)
+@define_app(app_type=WRITER)
 class WriteSeqs:
     def __init__(self, data_path, if_dest_exists=SKIP, if_member_exists=SKIP):
         self.data_store = DataStoreDirectory(
@@ -33,7 +32,7 @@ class WriteSeqs:
         return self.data_store.write(identifier, data.to_fasta())
 
 
-@define_app2
+@define_app
 def get_bytes(path: IdentifierType) -> bytes:
     path = Path(path)
     return path.read_bytes()
