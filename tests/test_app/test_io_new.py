@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from cogent3.app import io_new as io_app_new
+from cogent3.app import io as io_app
 from cogent3.app.composable import _source_wrapped, source_proxy
 from cogent3.app.data_store_new import SKIP, DataMember, DataStoreDirectory
 from cogent3.core.alignment import ArrayAlignment
@@ -60,9 +60,17 @@ def test_write_seqs(fasta_dir, tmp_dir):
 
 def test_source_proxy_simple(fasta_dir):
     """correctly writes sequences out"""
+    from cogent3.app.composable import define_app
+    from cogent3.app.typing import IdentifierType
+
+    @define_app
+    def get_bytes(path: IdentifierType) -> bytes:
+        path = Path(path)
+        return path.read_bytes()
+
     datastore = DataStoreDirectory(fasta_dir, suffix="fasta")
     datamember = datastore[0]
-    reader = io_app_new.get_bytes()
+    reader = get_bytes()
     path = datamember.data_store.source / datamember.unique_id
     data = reader(path)
     # direct call gives you back the annotated type
