@@ -403,6 +403,33 @@ class write_tabular(_checkpointable):
 
 
 @define_app(app_type=WRITER)
+class write_seqs_new:
+    def __init__(
+        self,
+        data_store,
+        format="fasta",
+    ):
+        self.data_store = data_store
+        self._formatter = FORMATTERS[format]
+
+    def _make_outname(self, obj) -> str:
+        try:
+            identifier = obj.info.source
+        except AttributeError:
+            identifier = obj.source
+
+        return identifier
+
+    def main(self, data: SeqsCollectionType, identifier=None) -> IdentifierType:
+        identifier = identifier or self._make_outname(data)
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_not_completed(data.source, data.to_json())
+
+        data = self._formatter(data.to_dict())
+        return self.data_store.write(identifier, data)
+
+
+@define_app(app_type=WRITER)
 class write_seqs(_checkpointable):
     """Writes sequences to text files in standard format."""
 
