@@ -1269,20 +1269,10 @@ def _proxy_input(dstore):
             e = source_proxy(e)
         inputs.append(e)
 
-        # source = get_data_source(e)
-        # if source:
-        #     s = pathlib.Path(source)
-        #     suffixes = "".join(s.suffixes)
-        #     source = s.name.replace(suffixes, "")
-        #
-        # key = f"{source}.{suffix}" if suffix else source
-        # proxied = source_proxy(e)
-        # inputs[proxied] = proxied
     return inputs
 
 
 def _source_wrapped(self, value: source_proxy) -> source_proxy:
-    # result = result if hasattr(result, "source") else source_proxy(result)
     value.set_obj(self(value.obj))
     return value
 
@@ -1402,7 +1392,6 @@ def _apply_to(
     start = time.time()
     self.set_logger(logger)
     logger = self.logger
-    log_file_path = str(logger.log_file_path)
     logger.log_message(str(self), label="composable function")
     logger.log_versions(["cogent3"])
 
