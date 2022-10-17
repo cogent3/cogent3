@@ -452,17 +452,22 @@ def _(data: SequenceCollection):
 
 
 @get_data_source.register
-def get_str_source(data: str):
-    return data
+def _(data: PhyloNode):
+    return get_data_source(data.source)
 
 
 @get_data_source.register
-def get_str_source(data: Path):
-    return str(data)
+def _(data: str):
+    return get_data_source(Path(data))
 
 
 @get_data_source.register
-def get_str_source(data: dict):
+def _(data: Path):
+    return str(data.name)
+
+
+@get_data_source.register
+def _(data: dict):
     try:
         source = data["info"]["source"]
     except KeyError:
@@ -471,5 +476,5 @@ def get_str_source(data: dict):
 
 
 @get_data_source.register
-def get_str_source(data: DataMemberABC):
+def _(data: DataMemberABC):
     return str(data.unique_id)
