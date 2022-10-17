@@ -1398,16 +1398,19 @@ def _apply_to(
     inputs = _proxy_input(dstore)
 
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
-        member = self(data=result.obj)  # which means writers must return DataMember
-        logger.log_message(member, label="output")
-        logger.log_message(member.md5, label="output md5sum")
+        member = self.main(
+            data=result.obj, identifier=get_data_source(result.source)
+        )  # writers must return DataMember
+        md5 = self.data_store.md5(member.unique_id)
+        logger.log_message(str(member), label="output")
+        logger.log_message(md5, label="output md5sum")
 
     taken = time.time() - start
 
     logger.log_message(f"{taken}", label="TIME TAKEN")
+    log_file_path = pathlib.Path(logger.log_file_path)
     logger.shutdown()
-    log_file_path = pathlib.Path(log_file_path)
-    self.data_store.write_log(log_file_path, log_file_path.read_text())
+    self.data_store.write_log(log_file_path.name, log_file_path.read_text())
     if cleanup:
         log_file_path.unlink(missing_ok=True)
 
