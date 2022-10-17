@@ -455,11 +455,6 @@ def _(data: SequenceCollection):
 
 
 @get_data_source.register
-def _(data: PhyloNode):
-    return get_data_source(data.source)
-
-
-@get_data_source.register
 def _(data: str):
     return get_data_source(Path(data))
 
