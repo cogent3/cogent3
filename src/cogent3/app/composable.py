@@ -1376,12 +1376,6 @@ def _apply_to(
 
     inputs = _proxy_input(dstore)
 
-    if len(inputs) < len(dstore):
-        diff = len(dstore) - len(inputs)
-        raise ValueError(
-            f"could not construct unique identifiers for {diff} records, "
-            "avoid using '.' as a delimiter in names."
-        )
     app = self.input
     self.input = None
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
