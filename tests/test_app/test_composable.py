@@ -31,6 +31,7 @@ from cogent3.app.composable import (
     is_composable,
     user_function,
 )
+from cogent3.app.data_store_new import DataStoreDirectory, get_data_source
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
@@ -50,6 +51,11 @@ __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+@pytest.fixture(scope="session")
+def tmp_dir(tmpdir_factory):
+    return tmpdir_factory.mktemp("datastore")
 
 
 def test_composable():
@@ -212,21 +218,21 @@ def test_apply_to():
         proc.apply_to(["", ""])
 
 
-@pytest.mark.xfail
-def test_apply_to_strings():
+@pytest.mark.parametrize("klass", (DataStoreDirectory,))
+def test_apply_to_strings(tmp_dir, klass):
     """apply_to handles strings as paths"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
     dstore = [str(m) for m in dstore]
-    with TemporaryDirectory(dir=".") as dirname:
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        # create paths as strings
-        r = process.apply_to(dstore, show_progress=False)
-        assert len(process.data_store.logs) == 1
-        process.data_store.close()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    outpath = tmp_dir / "test_apply_to_strings"
+    writer = io_app.write_seqs_new(
+        klass(outpath, if_dest_exists="overwrite", suffix="fasta")
+    )
+    process = reader + min_length + writer
+    # create paths as strings
+    _ = process.apply_to(dstore, get_data_source=get_data_source)
+    assert len(process.data_store.logs) == 1
 
 
 @pytest.mark.xfail
