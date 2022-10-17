@@ -52,6 +52,9 @@ class DataMemberABC(ABC):
     def __init__(self, data_store: "DataStoreABC" = None):
         self.data_store = data_store
 
+    def __str__(self):
+        return self.unique_id
+
     @property
     @abstractmethod
     def unique_id(self):
