@@ -26,6 +26,7 @@ from cogent3.util.misc import (
 )
 from cogent3.util.warning import discontinued
 
+from ..util.warning import discontinued
 from .data_store import (
     IGNORE,
     OVERWRITE,
