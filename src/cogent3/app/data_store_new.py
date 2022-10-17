@@ -14,6 +14,7 @@ from pathlib import Path
 from scitrack import get_text_hexdigest
 
 from cogent3.app.typing import TabularType
+from cogent3.core.alignment import SequenceCollection
 from cogent3.util.deserialise import deserialise_not_completed
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
@@ -437,7 +438,17 @@ class DataStoreDirectory(DataStoreABC):
 
 @singledispatch
 def get_data_source(data) -> str:
-    raise NotImplementedError(f"Cannot resolve a unique identifier from {type(data)}")
+    source = getattr(data, "source", None)
+    if source is None:
+        raise NotImplementedError(
+            f"Cannot resolve a unique identifier from {type(data)}"
+        )
+    return source
+
+
+@get_data_source.register
+def _(data: SequenceCollection):
+    return get_data_source(data.info.source)
 
 
 @get_data_source.register
