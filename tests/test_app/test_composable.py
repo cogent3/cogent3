@@ -181,6 +181,7 @@ def test_disconnect():
     __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
 
 
+@pytest.mark.xfail
 def test_apply_to():
     """correctly applies iteratively"""
 
@@ -212,6 +213,7 @@ def test_apply_to():
         proc.apply_to(["", ""])
 
 
+@pytest.mark.xfail
 def test_apply_to_strings():
     """apply_to handles strings as paths"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -228,6 +230,7 @@ def test_apply_to_strings():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_non_unique_identifiers():
     """should fail if non-unique names"""
     dstore = [
@@ -242,6 +245,7 @@ def test_apply_to_non_unique_identifiers():
             process.apply_to(dstore)
 
 
+@pytest.mark.xfail
 def test_apply_to_logging():
     """correctly creates log file"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -257,6 +261,7 @@ def test_apply_to_logging():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_logger():
     """correctly uses user provided logger"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -272,6 +277,7 @@ def test_apply_to_logger():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_invalid_logger():
     """incorrect logger value raises TypeError"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -287,6 +293,7 @@ def test_apply_to_invalid_logger():
             process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_not_completed():
     """correctly creates notcompleted"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -302,6 +309,7 @@ def test_apply_to_not_completed():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_not_partially_done():
     """correctly applies process when result already partially done"""
     dstore = io_app.get_data_store("data", suffix="fasta")
@@ -864,6 +872,7 @@ def test_decorated_func_just_args():
     __app_registry.pop(get_object_provenance(power), None)
 
 
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "meth",
     [
