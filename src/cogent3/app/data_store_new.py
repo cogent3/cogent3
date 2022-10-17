@@ -165,6 +165,10 @@ class DataMember(DataMemberABC):
     def unique_id(self):
         return self._unique_id
 
+    @property
+    def source(self):
+        return self.unique_id
+
 
 class DataStoreDirectory(DataStoreABC):
     def __init__(
@@ -326,15 +330,17 @@ class DataStoreDirectory(DataStoreABC):
 
         return member
 
-    def write(self, unique_id: str, data: str) -> None:
+    def write(self, unique_id: str, data: str) -> DataMember:
         member = self._write("", unique_id, self.suffix, data, True)
         if member is not None:
             self._completed.append(member)
+        return member
 
-    def write_not_completed(self, unique_id: str, data: str) -> None:
+    def write_not_completed(self, unique_id: str, data: str) -> DataMember:
         member = self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
         if member is not None:
             self._not_completed.append(member)
+        return member
 
     def write_log(self, unique_id: str, data: str) -> None:
         _ = self._write(_LOG_TABLE, unique_id, "log", data, False)
@@ -431,7 +437,7 @@ class DataStoreDirectory(DataStoreABC):
 
 @singledispatch
 def get_data_source(data) -> str:
-    ...
+    raise NotImplementedError(f"Cannot resolve a unique identifier from {type(data)}")
 
 
 @get_data_source.register
@@ -446,7 +452,11 @@ def get_str_source(data: Path):
 
 @get_data_source.register
 def get_str_source(data: dict):
-    return str(data.get("source", None))
+    try:
+        source = data["info"]["source"]
+    except KeyError:
+        source = data.get("source", None)
+    return get_data_source(source)
 
 
 @get_data_source.register

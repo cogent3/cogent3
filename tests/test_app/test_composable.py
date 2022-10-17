@@ -180,6 +180,7 @@ def test_disconnect():
     __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
 
 
+@pytest.mark.xfail
 def test_apply_to():
     """correctly applies iteratively"""
 
@@ -211,6 +212,7 @@ def test_apply_to():
         proc.apply_to(["", ""])
 
 
+@pytest.mark.xfail
 def test_apply_to_strings():
     """apply_to handles strings as paths"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -227,6 +229,7 @@ def test_apply_to_strings():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_non_unique_identifiers():
     """should fail if non-unique names"""
     dstore = [
@@ -241,6 +244,7 @@ def test_apply_to_non_unique_identifiers():
             process.apply_to(dstore)
 
 
+@pytest.mark.xfail
 def test_apply_to_logging():
     """correctly creates log file"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -256,6 +260,7 @@ def test_apply_to_logging():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_logger():
     """correctly uses user provided logger"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -271,6 +276,7 @@ def test_apply_to_logger():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_invalid_logger():
     """incorrect logger value raises TypeError"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -286,6 +292,7 @@ def test_apply_to_invalid_logger():
             process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_not_completed():
     """correctly creates notcompleted"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -301,6 +308,7 @@ def test_apply_to_not_completed():
         process.data_store.close()
 
 
+@pytest.mark.xfail
 def test_apply_to_not_partially_done():
     """correctly applies process when result already partially done"""
     dstore = io_app.get_data_store("data", suffix="fasta")
@@ -442,11 +450,16 @@ def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
 
 
 @define_app
+def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
+    return val[:4]
+
+
+@define_app
 def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
 
-for _app_ in (foo, bar):
+for _app_ in (foo, bar, foo_without_arg_kwargs):
     __app_registry.pop(get_object_provenance(_app_), None)
 
 
@@ -454,6 +467,17 @@ def test_user_function():
     """composable functions should be user definable"""
 
     u_function = foo()
+
+    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    got = u_function(aln)
+
+    assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
+
+
+def test_user_function_without_arg_kwargs():
+    """composable functions should be user definable"""
+
+    u_function = foo_without_arg_kwargs()
 
     aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
     got = u_function(aln)
@@ -847,6 +871,7 @@ def test_decorated_func_just_args():
     __app_registry.pop(get_object_provenance(power), None)
 
 
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "meth",
     [
