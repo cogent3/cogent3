@@ -1206,7 +1206,9 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
         method_list = [item for item in __mapping if item not in excludes] + ["__str__"]
         # check if user defined input for composable
         if composable and getattr(klass, "input", None):
-            raise TypeError(f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app")
+            raise TypeError(
+                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
+            )
 
         for meth in method_list:
             # make sure method not defined by user before adding
@@ -1285,7 +1287,9 @@ def _as_completed(
     aggregates results. If run in serial, results are returned in the
     same order as provided.
     """
-    app = self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
+    app = (
+        self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
+    )
 
     if isinstance(dstore, str):
         dstore = [dstore]
