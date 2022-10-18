@@ -325,6 +325,9 @@ class ReadOnlyDataStoreBase:
         self._md5 = md5_setting
         return result
 
+    def write_log(self, unique_id: str, data: str) -> None:
+        _ = self.write(unique_id, data)
+
 
 class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
     @property
