@@ -978,6 +978,14 @@ class source_proxy:
     def __len__(self):
         return self.obj.__len__()
 
+    # pickling induces infinite recursion on python 3.9/3.10
+    # only on Windows, so implementing the following methods explicitly
+    def __getstate__(self):
+        return self._obj, self._src, self._uuid
+
+    def __setstate__(self, state):
+        self._obj, self._src, self._uuid = state
+
 
 def _call(self, val, *args, **kwargs):
     if val is None:
