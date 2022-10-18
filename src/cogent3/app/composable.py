@@ -1391,17 +1391,13 @@ def _apply_to(
     logger.log_versions(["cogent3"])
 
     inputs = _proxy_input(dstore)
-
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
         member = self.main(
             data=result.obj, identifier=get_data_source(result.source)
         )  # writers must return DataMember
-    md5 = member.md5
-    logger.log_message(str(member), label="output")
-    logger.log_message(md5, label="output md5sum")
+        member.write_to_logger(logger)
 
     taken = time.time() - start
-
     logger.log_message(f"{taken}", label="TIME TAKEN")
     log_file_path = pathlib.Path(logger.log_file_path)
     logger.shutdown()
