@@ -14,6 +14,7 @@ from pathlib import Path
 from scitrack import get_text_hexdigest
 
 from cogent3.app.typing import TabularType
+from cogent3.core.alignment import SequenceCollection
 from cogent3.util.deserialise import deserialise_not_completed
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
@@ -50,6 +51,9 @@ READONLY = IfExist.READONLY
 class DataMemberABC(ABC):
     def __init__(self, data_store: "DataStoreABC" = None):
         self.data_store = data_store
+
+    def __str__(self):
+        return self.unique_id
 
     @property
     @abstractmethod
@@ -437,21 +441,31 @@ class DataStoreDirectory(DataStoreABC):
 
 @singledispatch
 def get_data_source(data) -> str:
-    raise NotImplementedError(f"Cannot resolve a unique identifier from {type(data)}")
+    source = getattr(data, "source", None)
+    if source is None:
+        raise NotImplementedError(
+            f"Cannot resolve a unique identifier from {type(data)}"
+        )
+    return source
 
 
 @get_data_source.register
-def get_str_source(data: str):
-    return data
+def _(data: SequenceCollection):
+    return get_data_source(data.info.source)
 
 
 @get_data_source.register
-def get_str_source(data: Path):
-    return str(data)
+def _(data: str):
+    return get_data_source(Path(data))
 
 
 @get_data_source.register
-def get_str_source(data: dict):
+def _(data: Path):
+    return str(data.name)
+
+
+@get_data_source.register
+def _(data: dict):
     try:
         source = data["info"]["source"]
     except KeyError:
@@ -460,5 +474,5 @@ def get_str_source(data: dict):
 
 
 @get_data_source.register
-def get_str_source(data: DataMemberABC):
+def _(data: DataMemberABC):
     return str(data.unique_id)

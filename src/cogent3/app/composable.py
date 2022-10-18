@@ -25,6 +25,7 @@ from cogent3.util.misc import (
     in_jupyter,
 )
 
+from ..util.warning import discontinued
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -32,8 +33,8 @@ from .data_store import (
     SKIP,
     DataStoreMember,
     WritableDirectoryDataStore,
-    get_data_source,
 )
+from .data_store_new import get_data_source
 
 
 __author__ = "Gavin Huttley"
@@ -44,8 +45,6 @@ __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
-
-from ..util.warning import discontinued
 
 
 def _make_logfile_name(process):
@@ -81,7 +80,10 @@ class NotCompleted(int):
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         origin = _get_origin(origin)
-        source = get_data_source(source)
+        try:
+            source = get_data_source(source)
+        except Exception:
+            source = None
         d = locals()
         d = {k: v for k, v in d.items() if k != "cls"}
         result = int.__new__(cls, False)
@@ -976,11 +978,18 @@ class source_proxy:
     def __len__(self):
         return self.obj.__len__()
 
+    # pickling induces infinite recursion on python 3.9/3.10
+    # only on Windows, so implementing the following methods explicitly
+    def __getstate__(self):
+        return self._obj, self._src, self._uuid
+
+    def __setstate__(self, state):
+        self._obj, self._src, self._uuid = state
+
 
 def _call(self, val, *args, **kwargs):
-    source = get_data_source(val) or val
     if val is None:
-        val = NotCompleted("ERROR", self, "unexpected input value None", source=source)
+        val = NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
     if isinstance(val, NotCompleted):
         return val
@@ -996,12 +1005,10 @@ def _call(self, val, *args, **kwargs):
     try:
         result = self.main(val, *args, **kwargs)
     except Exception:
-        result = NotCompleted("ERROR", self, traceback.format_exc(), source=source)
+        result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
 
     if result is None:
-        result = NotCompleted(
-            "BUG", self, "unexpected output value None", source=source
-        )
+        result = NotCompleted("BUG", self, "unexpected output value None", source=val)
     return result
 
 
@@ -1252,20 +1259,10 @@ def _proxy_input(dstore):
             e = source_proxy(e)
         inputs.append(e)
 
-        # source = get_data_source(e)
-        # if source:
-        #     s = pathlib.Path(source)
-        #     suffixes = "".join(s.suffixes)
-        #     source = s.name.replace(suffixes, "")
-        #
-        # key = f"{source}.{suffix}" if suffix else source
-        # proxied = source_proxy(e)
-        # inputs[proxied] = proxied
     return inputs
 
 
 def _source_wrapped(self, value: source_proxy) -> source_proxy:
-    # result = result if hasattr(result, "source") else source_proxy(result)
     value.set_obj(self(value.obj))
     return value
 
@@ -1385,32 +1382,25 @@ def _apply_to(
     start = time.time()
     self.set_logger(logger)
     logger = self.logger
-    log_file_path = str(logger.log_file_path)
     logger.log_message(str(self), label="composable function")
     logger.log_versions(["cogent3"])
 
     inputs = _proxy_input(dstore)
 
-    if len(inputs) < len(dstore):
-        diff = len(dstore) - len(inputs)
-        raise ValueError(
-            f"could not construct unique identifiers for {diff} records, "
-            "avoid using '.' as a delimiter in names."
-        )
-    app = self.input
-    self.input = None
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
-        member = self(data=result.obj)  # which means writers must return DataMember
-        logger.log_message(member, label="output")
-        logger.log_message(member.md5, label="output md5sum")
+        member = self.main(
+            data=result.obj, identifier=get_data_source(result.source)
+        )  # writers must return DataMember
+        md5 = self.data_store.md5(member.unique_id)
+        logger.log_message(str(member), label="output")
+        logger.log_message(md5, label="output md5sum")
 
-    self.input = app
     taken = time.time() - start
 
     logger.log_message(f"{taken}", label="TIME TAKEN")
+    log_file_path = pathlib.Path(logger.log_file_path)
     logger.shutdown()
-    log_file_path = pathlib.Path(log_file_path)
-    self.data_store.write_log(log_file_path, log_file_path.read_text())
+    self.data_store.write_log(log_file_path.name, log_file_path.read_text())
     if cleanup:
         log_file_path.unlink(missing_ok=True)
 
