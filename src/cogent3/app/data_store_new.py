@@ -173,6 +173,10 @@ class DataMember(DataMemberABC):
     def source(self):
         return self.unique_id
 
+    @property
+    def md5(self):
+        return self.data_store.md5(self.unique_id)
+
 
 class DataStoreDirectory(DataStoreABC):
     def __init__(
@@ -243,8 +247,6 @@ class DataStoreDirectory(DataStoreABC):
         unique_id = Path(unique_id)
         unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
         path = self.source / _MD5_TABLE / unique_id
-        if not path.exists():
-            return None
 
         return path.read_text() if path.exists() else None
 

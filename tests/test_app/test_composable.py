@@ -54,7 +54,7 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def tmp_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("datastore")
 
@@ -251,36 +251,32 @@ def test_apply_to_non_unique_identifiers():
             process.apply_to(dstore)
 
 
-@pytest.mark.xfail
-def test_apply_to_logging():
+def test_apply_to_logging(tmp_dir):
     """correctly creates log file"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    with TemporaryDirectory(dir=".") as dirname:
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        r = process.apply_to(dstore, show_progress=False)
-        # always creates a log
-        assert len(process.data_store.logs) == 1
-        process.data_store.close()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
+    writer = io_app.write_db(outpath)
+    process = reader + min_length + writer
+    r = process.apply_to(dstore, show_progress=False)
+    # always creates a log
+    assert len(process.data_store.logs) == 1
+    process.data_store.close()
 
 
-@pytest.mark.xfail
-def test_apply_to_logger():
+def test_apply_to_logger(tmp_dir):
     """correctly uses user provided logger"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    with TemporaryDirectory(dir=".") as dirname:
-        LOGGER = CachingLogger()
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
-        assert len(process.data_store.logs) == 1
-        process.data_store.close()
+    LOGGER = CachingLogger()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
+    writer = io_app.write_db(outpath)
+    process = reader + min_length + writer
+    r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
+    assert len(process.data_store.logs) == 1
+    process.data_store.close()
 
 
 @pytest.mark.xfail
