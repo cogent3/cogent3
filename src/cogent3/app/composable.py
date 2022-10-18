@@ -1195,32 +1195,18 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
     def wrapped(klass):
         if inspect.isfunction(klass):
             klass = _class_from_func(klass)
-
         if not inspect.isclass(klass):
             raise ValueError(f"{klass} is not a class")
 
-        # check if user defined these methods
-        # todo derive from __mapping
-        method_list = [
-            "__call__",
-            "__repr__",
-            "__str__",
-            "__new__",
-            "_validate_data_type",
-            "as_completed",
-            "_source_wrapped",
-        ]
-        excludes = ["__add__", "disconnect"]
-        if app_type is WRITER:
-            # only writers get the apply_to method
+        excludes = []
+        if not composable:
+            excludes = ["__add__", "disconnect"]
+        if app_type is not WRITER:
             excludes.extend(["apply_to", "set_logger"])
-
+        method_list = [item for item in __mapping if item not in excludes] + ["__str__"]
+        # check if user defined input for composable
         if composable and getattr(klass, "input", None):
-            raise TypeError(
-                f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
-            )
-        elif composable:
-            method_list.extend(excludes)
+            raise TypeError(f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app")
 
         for meth in method_list:
             # make sure method not defined by user before adding
@@ -1299,23 +1285,20 @@ def _as_completed(
     aggregates results. If run in serial, results are returned in the
     same order as provided.
     """
-    app = self.input if self.app_type is WRITER else self
+    app = self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
 
     if isinstance(dstore, str):
         dstore = [dstore]
-
     mapped = _proxy_input(dstore)
-
     if not mapped:
         raise ValueError("dstore is empty")
 
     if parallel:
         par_kw = par_kw or {}
-        to_do = PAR.as_completed(app._source_wrapped, mapped, **par_kw)
+        to_do = PAR.as_completed(app, mapped, **par_kw)
     else:
-        to_do = map(app._source_wrapped, mapped)
-
-    yield from to_do
+        to_do = map(app, mapped)
+    return to_do
 
 
 def is_composable(obj):
@@ -1391,9 +1374,9 @@ def _apply_to(
         member = self.main(
             data=result.obj, identifier=get_data_source(result.source)
         )  # writers must return DataMember
-        md5 = self.data_store.md5(member.unique_id)
-        logger.log_message(str(member), label="output")
-        logger.log_message(md5, label="output md5sum")
+    md5 = member.md5
+    logger.log_message(str(member), label="output")
+    logger.log_message(md5, label="output md5sum")
 
     taken = time.time() - start
 
