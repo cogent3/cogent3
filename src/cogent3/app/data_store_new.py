@@ -177,6 +177,10 @@ class DataMember(DataMemberABC):
     def md5(self):
         return self.data_store.md5(self.unique_id)
 
+    def write_to_logger(self, logger):
+        md5 = self.md5
+        logger.log_message(str(self), label="output")
+        logger.log_message(md5, label="output md5sum")
 
 class DataMember(DataMemberABC):
     def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
