@@ -1395,7 +1395,9 @@ def _apply_to(
         member = self.main(
             data=result.obj, identifier=get_data_source(result.source)
         )  # writers must return DataMember
-        member.write_to_logger(logger)
+        md5 = member.md5
+        logger.log_message(str(member), label="output")
+        logger.log_message(md5, label="output md5sum")
 
     taken = time.time() - start
     logger.log_message(f"{taken}", label="TIME TAKEN")
