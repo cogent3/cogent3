@@ -1373,6 +1373,18 @@ def _apply_to(
     if not dstore:  # this should just return datastore, because if all jobs are done!
         raise ValueError("dstore is empty")
 
+    inputs = {}
+    for m in dstore:
+        input_id = Path(m if isinstance(m, DataStoreMember) else get_data_source(m))
+        suffixes = input_id.suffixes
+        input_id = input_id.name.replace("".join(suffixes), "")
+        inputs[input_id] = m
+    if len(inputs) < len(dstore):
+        diff = len(dstore) - len(inputs)
+        raise ValueError(
+                f"could not construct unique identifiers for {diff} records, "
+                "avoid using '.' as a delimiter in names.")
+
     start = time.time()
     self.set_logger(logger)
     logger = self.logger
