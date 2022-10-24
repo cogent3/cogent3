@@ -235,19 +235,21 @@ def test_apply_to_strings(tmp_dir, klass):
     assert len(process.data_store.logs) == 1
 
 
-@pytest.mark.xfail
-def test_apply_to_non_unique_identifiers():
+def test_apply_to_non_unique_identifiers(tmp_dir):
     """should fail if non-unique names"""
     dstore = [
         "brca1.bats.fasta",
         "brca1.apes.fasta",
     ]
-    with TemporaryDirectory(dir=".") as dirname:
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        process = reader + min_length
-        with pytest.raises(ValueError):
-            process.apply_to(dstore)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
+    writer = io_app.write_seqs_new(
+        DataStoreDirectory(outpath, if_dest_exists="overwrite", suffix="fasta")
+    )
+    process = reader + min_length + writer
+    with pytest.raises(ValueError):
+        process.apply_to(dstore)
 
 
 def test_apply_to_logging(tmp_dir):
