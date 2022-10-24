@@ -1415,8 +1415,9 @@ def _apply_to(
     if len(inputs) < len(dstore):
         diff = len(dstore) - len(inputs)
         raise ValueError(
-                f"could not construct unique identifiers for {diff} records, "
-                "avoid using '.' as a delimiter in names.")
+            f"could not construct unique identifiers for {diff} records, "
+            "avoid using '.' as a delimiter in names."
+        )
 
     start = time.time()
     self.set_logger(logger)
