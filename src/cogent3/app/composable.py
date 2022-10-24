@@ -1,7 +1,6 @@
 import inspect
 import json
 import os
-from pathlib import Path
 import re
 import textwrap
 import time
@@ -11,6 +10,7 @@ import types
 from copy import deepcopy
 from enum import Enum
 from functools import wraps
+from pathlib import Path
 from typing import Any, Generator, Tuple
 from uuid import uuid4
 
@@ -1391,8 +1391,9 @@ def _apply_to(
     if len(inputs) < len(dstore):
         diff = len(dstore) - len(inputs)
         raise ValueError(
-                f"could not construct unique identifiers for {diff} records, "
-                "avoid using '.' as a delimiter in names.")
+            f"could not construct unique identifiers for {diff} records, "
+            "avoid using '.' as a delimiter in names."
+        )
 
     start = time.time()
     self.set_logger(logger)
