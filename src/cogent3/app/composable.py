@@ -1,7 +1,7 @@
 import inspect
 import json
 import os
-import pathlib
+from pathlib import Path
 import re
 import textwrap
 import time
@@ -400,7 +400,7 @@ class Composable(ComposableType):  # pragma: no cover
                 )
 
             if not logger.log_file_path:
-                src = pathlib.Path(self.data_store.source)
+                src = Path(self.data_store.source)
                 logger.log_file_path = str(src.parent / _make_logfile_name(self))
 
             log_file_path = str(logger.log_file_path)
@@ -423,9 +423,7 @@ class Composable(ComposableType):  # pragma: no cover
         # be logged
         inputs = {}
         for m in dstore:
-            input_id = pathlib.Path(
-                m if isinstance(m, DataStoreMember) else get_data_source(m)
-            )
+            input_id = Path(m if isinstance(m, DataStoreMember) else get_data_source(m))
             suffixes = input_id.suffixes
             input_id = input_id.name.replace("".join(suffixes), "")
             inputs[input_id] = m
@@ -457,7 +455,7 @@ class Composable(ComposableType):  # pragma: no cover
                 else:
                     input_id = get_data_source(result)
                     outcome = result
-                input_id = pathlib.Path(pathlib.Path(input_id))
+                input_id = Path(input_id)
                 suffixes = input_id.suffixes
                 input_id = input_id.name.replace("".join(suffixes), "")
             elif process is not self:
@@ -1372,7 +1370,7 @@ def _apply_to(
     if not self.input:
         raise RuntimeError(f"{self!r} is not part of a composed function")
 
-    if isinstance(dstore, (str, pathlib.Path)):  # one filename
+    if isinstance(dstore, (str, Path)):  # one filename
         dstore = [dstore]
 
     # todo run check on dstore to make sure we have identifiers for writing output
@@ -1383,6 +1381,18 @@ def _apply_to(
     dstore = [e for e in dstore if get_data_source(e) not in self.data_store]
     if not dstore:  # this should just return datastore, because if all jobs are done!
         raise ValueError("dstore is empty")
+
+    inputs = {}
+    for m in dstore:
+        input_id = Path(m if isinstance(m, DataStoreMember) else get_data_source(m))
+        suffixes = input_id.suffixes
+        input_id = input_id.name.replace("".join(suffixes), "")
+        inputs[input_id] = m
+    if len(inputs) < len(dstore):
+        diff = len(dstore) - len(inputs)
+        raise ValueError(
+                f"could not construct unique identifiers for {diff} records, "
+                "avoid using '.' as a delimiter in names.")
 
     start = time.time()
     self.set_logger(logger)
@@ -1401,7 +1411,7 @@ def _apply_to(
 
     taken = time.time() - start
     logger.log_message(f"{taken}", label="TIME TAKEN")
-    log_file_path = pathlib.Path(logger.log_file_path)
+    log_file_path = Path(logger.log_file_path)
     logger.shutdown()
     self.data_store.write_log(log_file_path.name, log_file_path.read_text())
     if cleanup:
@@ -1414,7 +1424,7 @@ def _set_logger(self, logger=None):
     if logger is None:
         logger = CachingLogger(create_dir=True)
     if not logger.log_file_path:
-        src = pathlib.Path(self.data_store.source).parent
+        src = Path(self.data_store.source).parent
         logger.log_file_path = str(src / _make_logfile_name(self))
     self.logger = logger
 
