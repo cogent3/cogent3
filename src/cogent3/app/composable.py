@@ -1356,23 +1356,17 @@ def _apply_to(
     # our default function should fail if a source cannot be determined, i.e. does not return None
 
     # todo this should fail if somebody provides data that cannot produce a unique_id
-    # skip records already in data_store
-    dstore = [e for e in dstore if get_data_source(e) not in self.data_store]
-    if not dstore:  # this should just return datastore, because if all jobs are done!
-        raise ValueError("dstore is empty")
-
     inputs = {}
     for m in dstore:
         input_id = Path(m if isinstance(m, DataStoreMember) else get_data_source(m))
         suffixes = input_id.suffixes
         input_id = input_id.name.replace("".join(suffixes), "")
-        inputs[input_id] = m
-    if len(inputs) < len(dstore):
-        diff = len(dstore) - len(inputs)
-        raise ValueError(
-            f"could not construct unique identifiers for {diff} records, "
-            "avoid using '.' as a delimiter in names."
-        )
+        if input_id in inputs:
+            raise ValueError("non-unique identifier detected in data")
+        inputs[input_id] = input_id
+
+    if not dstore:  # this should just return datastore, because if all jobs are done!
+        raise ValueError("dstore is empty")
 
     start = time.time()
     self.set_logger(logger)
