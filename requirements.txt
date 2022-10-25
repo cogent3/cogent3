@@ -1,6 +1,6 @@
 chardet==5.0.0
 pillow==9.2.0
-psutil==5.9.2
+psutil==5.9.3
 scipy==1.9.3
 nox==2022.8.7
 plotly==5.10.0
