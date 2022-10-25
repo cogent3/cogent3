@@ -1308,7 +1308,7 @@ def is_composable(obj):
 def _apply_to(
     self,
     dstore,
-    get_data_source: callable = get_data_source,
+    id_from_source: callable = get_data_source,
     parallel=False,
     par_kw=None,
     logger=None,
@@ -1322,6 +1322,9 @@ def _apply_to(
     dstore
         a path, list of paths, or DataStore to which the process will be
         applied.
+    id_from_source : callable
+        makes the unique identifier from elements of dstore that will be
+        used for writing results
     parallel : bool
         run in parallel, according to arguments in par_kwargs. If True,
         the last step of the composable function serves as the master
@@ -1358,7 +1361,7 @@ def _apply_to(
     # todo this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
     for m in dstore:
-        input_id = Path(m if isinstance(m, DataStoreMember) else get_data_source(m))
+        input_id = Path(m if isinstance(m, DataStoreMember) else id_from_source(m))
         suffixes = input_id.suffixes
         input_id = input_id.name.replace("".join(suffixes), "")
         if input_id in inputs:
@@ -1377,7 +1380,7 @@ def _apply_to(
     inputs = _proxy_input(dstore)
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
         member = self.main(
-            data=result.obj, identifier=get_data_source(result.source)
+            data=result.obj, identifier=id_from_source(result.source)
         )  # writers must return DataMember
         md5 = member.md5
         logger.log_message(str(member), label="output")

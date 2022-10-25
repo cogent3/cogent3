@@ -231,7 +231,7 @@ def test_apply_to_strings(tmp_dir, klass):
     )
     process = reader + min_length + writer
     # create paths as strings
-    _ = process.apply_to(dstore, get_data_source=get_data_source)
+    _ = process.apply_to(dstore, id_from_source=get_data_source)
     assert len(process.data_store.logs) == 1
 
 
