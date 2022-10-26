@@ -22,6 +22,7 @@ from cogent3.app import translate, tree
 from cogent3.app.composable import (
     GENERIC,
     NON_COMPOSABLE,
+    WRITER,
     NotCompleted,
     __app_registry,
     _add,
@@ -862,7 +863,6 @@ def test_decorated_func_just_args():
     __app_registry.pop(get_object_provenance(power), None)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "meth",
     [
@@ -890,7 +890,7 @@ def test_forbidden_methods_composable_app(meth):
 
     setattr(app_forbidden_methods1, meth, function1)
     with pytest.raises(TypeError):
-        define_app(app_type=GENERIC)(app_forbidden_methods1)
+        define_app(app_type=WRITER)(app_forbidden_methods1)
 
 
 @pytest.mark.parametrize(
