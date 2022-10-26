@@ -6,6 +6,8 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
 
+from scipy.stats import norm, f, t
+
 from cogent3.maths.stats.special import (
     MACHEP,
     MAXNUM,
@@ -43,12 +45,17 @@ incbet = betai  # shouldn't have renamed it...
 # Probability integrals: low gives left-hand tail, high gives right-hand tail.
 
 
-def z_low(x):
+def z_low(x):  # pragma: no cover
     """Returns left-hand tail of z distribution (0 to x).
 
     x ranges from -infinity to +infinity; result ranges from 0 to 1
 
     See Cephes docs for details."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "z_low", "2022.12", "use scipy.stats.norm.cdf")
+
     y = x * SQRTH
     z = abs(y)  # distribution is symmetric
     if z < SQRTH:
@@ -60,12 +67,17 @@ def z_low(x):
             return 0.5 * erfc(z)
 
 
-def z_high(x):
+def z_high(x):  # pragma: no cover
     """Returns right-hand tail of z distribution (0 to x).
 
     x ranges from -infinity to +infinity; result ranges from 0 to 1
 
     See Cephes docs for details."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "z_high", "2022.12", "use scipy.stats.norm.sf")
+
     y = x * SQRTH
     z = abs(y)
     if z < SQRTH:
@@ -79,10 +91,10 @@ def z_high(x):
 
 def zprob(x):
     """Returns both tails of z distribution (-inf to -x, inf to x)."""
-    return 2 * z_high(abs(x))
+    return 2 * norm.sf(abs(x))
 
 
-def chi_low(x, df):
+def chi_low(x, df):  # pragma: no cover
     """Returns left-hand tail of chi-square distribution (0 to x), given df.
 
     x ranges from 0 to infinity.
@@ -94,6 +106,13 @@ def chi_low(x, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function", "chi_low", "2022.12", "use scipy.stats.distributions.chi2.cdf"
+    )
+
     x = fix_rounding_error(x)
     if x < 0:
         raise ValueError(f"chi_low: x must be >= 0 (got {x}).")
@@ -102,7 +121,7 @@ def chi_low(x, df):
     return igam(df / 2, x / 2)
 
 
-def chi_high(x, df):
+def chi_high(x, df):  # pragma: no cover
     """Returns right-hand tail of chi-square distribution (x to infinity).
 
     df, the degrees of freedom, ranges from 1 to infinity (assume integers).
@@ -112,6 +131,13 @@ def chi_high(x, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function", "chi_high", "2022.12", "use scipy.stats.distributions.chi2.sf"
+    )
+
     x = fix_rounding_error(x)
 
     if x < 0:
@@ -121,7 +147,7 @@ def chi_high(x, df):
     return igamc(df / 2, x / 2)
 
 
-def t_low(t, df):
+def t_low(t, df):  # pragma: no cover
     """Returns left-hand tail of Student's t distribution (-infinity to x).
 
     df, the degrees of freedom, ranges from 1 to infinity.
@@ -131,12 +157,17 @@ def t_low(t, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "t_low", "2022.12", "use scipy.stats.t.cdf")
+
     if df < 1:
         raise ValueError(f"t_low: df must be >= 1 (got {df}).")
     return stdtr(df, t)
 
 
-def t_high(t, df):
+def t_high(t, df):  # pragma: no cover
     """Returns right-hand tail of Student's t distribution (x to infinity).
 
     df, the degrees of freedom, ranges from 1 to infinity.
@@ -146,14 +177,19 @@ def t_high(t, df):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "t_high", "2022.12", "use scipy.stats.t.sf")
+
     if df < 1:
         raise ValueError(f"t_high: df must be >= 1 (got {df}).")
     return stdtr(df, -t)  # distribution is symmetric
 
 
-def tprob(t, df):
+def tprob(x, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
-    return 2 * t_high(abs(t), df)
+    return 2 * t.sf(abs(x), df)
 
 
 def poisson_high(successes, mean):
@@ -185,15 +221,25 @@ def poisson_exact(successes, mean):
         return pdtrc(successes - 1, mean) - pdtrc(successes, mean)
 
 
-def binomial_high(successes, trials, prob):
+def binomial_high(successes, trials, prob):  # pragma: no cover
     """Returns right-hand binomial tail (X > successes) given prob(success)."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "binomial_high", "2022.12", "use scipy.stats.binom.sf")
+
     if -1 <= successes < 0:
         return 1
     return bdtrc(successes, trials, prob)
 
 
-def binomial_low(successes, trials, prob):
+def binomial_low(successes, trials, prob):  # pragma: no cover
     """Returns left-hand binomial tail (X <= successes) given prob(success)."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "binomial_low", "2022.12", "use scipy.stats.binom.cdf")
+
     return bdtr(successes, trials, prob)
 
 
@@ -213,7 +259,7 @@ def binomial_exact(successes, trials, prob):
     return exp(ln_binomial(successes, trials, prob))
 
 
-def f_low(df1, df2, x):
+def f_low(df1, df2, x):  # pragma: no cover
     """Returns left-hand tail of f distribution (0 to x).
 
     x ranges from 0 to infinity.
@@ -222,16 +268,26 @@ def f_low(df1, df2, x):
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "f_low", "2022.12", "use scipy.stats.f.cdf(x, df1, df2)")
+
     return fdtr(df1, df2, x)
 
 
-def f_high(df1, df2, x):
+def f_high(df1, df2, x):  # pragma: no cover
     """Returns right-hand tail of f distribution (x to infinity).
 
     Result ranges from 0 to 1.
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "f_high", "2022.12", "use scipy.stats.f.sf(x, df1, df2)")
+
     return fdtrc(df1, df2, x)
 
 
@@ -249,9 +305,9 @@ def fprob(dfn, dfd, F, side="right"):
     if F < 0:
         raise ValueError(f"fprob: F must be >= 0 (got {F}).")
     if side == "right":
-        return 2 * f_high(dfn, dfd, F)
+        return 2 * f.sf(F, dfn, dfd)
     elif side == "left":
-        return 2 * f_low(dfn, dfd, F)
+        return 2 * f.cdf(F, dfn, dfd)
     else:
         raise ValueError(f"Not a valid value for side {side}")
 
@@ -380,11 +436,16 @@ def pdtrc(k, m):
     return igam(k + 1, m)
 
 
-def fdtr(a, b, x):
+def fdtr(a, b, x):  # pragma: no cover
     """Returns left tail of F distribution, 0 to x.
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "fdtr", "2022.12", "use scipy.stats.f.cdf(x, df1, df2)")
+
     if min(a, b) < 1:
         raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
     if x < 0:
@@ -394,11 +455,16 @@ def fdtr(a, b, x):
     return betai(0.5 * a, 0.5 * b, w)
 
 
-def fdtrc(a, b, x):
+def fdtrc(a, b, x):  # pragma: no cover
     """Returns right tail of F distribution, x to infinity.
 
     See Cephes docs for details.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued("function", "fdtrc", "2022.12", "use scipy.stats.f.sf(x, df1, df2)")
+
     if min(a, b) < 1:
         raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
     if x < 0:
@@ -424,8 +490,15 @@ def gdtrc(a, b, x):
 # note: ndtri for the normal distribution is already imported
 
 
-def chdtri(df, y):
+def chdtri(df, y):  # pragma: no cover
     """Returns inverse of chi-squared distribution."""
+
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function", "chdtri", "2022.12", "use scipy.stats.distributions.chi2.isf"
+    )
+
     y = fix_rounding_error(y)
     if y < 0.0 or y > 1.0 or df < 1.0:
         raise ZeroDivisionError("y must be between 0 and 1; df >= 1")

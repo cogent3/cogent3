@@ -6,8 +6,9 @@ from contextlib import contextmanager
 
 import numpy
 
+from scipy.stats.distributions import chi2
+
 from cogent3.maths.optimisers import MaximumEvaluationsReached
-from cogent3.maths.stats.distribution import chdtri
 
 from .calculation import Calculator
 from .setting import ConstVal, Var
@@ -728,7 +729,7 @@ class ParameterController(object):
     def get_param_interval(self, par_name, *args, **kw):
         """Confidence interval for 'par_name' found by adjusting the
         single parameter until the final result falls by 'dropoff', which
-        can be specified directly or via 'p' as chdtri(1, p).  Additional
+        can be specified directly or via 'p' as chi2.isf(1, p).  Additional
         arguments are taken to specify the scope."""
         dropoff = kw.pop("dropoff", None)
         p = kw.pop("p", None)
@@ -763,7 +764,7 @@ class ParameterController(object):
         """Make a setting -> value function"""
         if p is not None:
             assert dropoff is None, (p, dropoff)
-            dropoff = chdtri(1, p) / 2.0
+            dropoff = chi2.isf(1, p) / 2.0
         if dropoff is None:
 
             def callback(defn, posn):
