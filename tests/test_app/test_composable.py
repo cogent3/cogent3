@@ -868,7 +868,6 @@ def test_decorated_func_just_args():
     __app_registry.pop(get_object_provenance(power), None)
 
 
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "meth",
     [
