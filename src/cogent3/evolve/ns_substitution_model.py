@@ -153,39 +153,47 @@ class DiscreteSubstitutionModel(_SubstitutionModel):
         )
 
 
+# todo inheritance hierarchy and constructor signatures
+# should match that of the stationary models
 class NonReversibleNucleotide(Parametric):
     """Base non-reversible nucleotide substitution model."""
 
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, *args, **kw):
-        Parametric.__init__(self, moltype.DNA.alphabet, *args, **kw)
+    def __init__(self, predicates=None, *args, **kw):
+        kw["alphabet"] = kw.get("alphabet", moltype.DNA.alphabet)
+        kw["predicates"] = predicates
+        Parametric.__init__(self, *args, **kw)
 
 
-class NonReversibleDinucleotide(Parametric):
+class NonReversibleDinucleotide(NonReversibleNucleotide):
     """Base non-reversible dinucleotide substitution model."""
 
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, *args, **kw):
-        Parametric.__init__(self, moltype.DNA.alphabet, motif_length=2, *args, **kw)
+    def __init__(self, predicates=None, *args, **kw):
+        kw["predicates"] = predicates
+        kw["motif_length"] = 2
+        NonReversibleNucleotide.__init__(self, *args, **kw)
 
 
-class NonReversibleTrinucleotide(Parametric):
+class NonReversibleTrinucleotide(NonReversibleNucleotide):
     """Base non-reversible trinucleotide substitution model."""
 
     @extend_docstring_from(Parametric.__init__)
-    def __init__(self, *args, **kw):
-        Parametric.__init__(self, moltype.DNA.alphabet, motif_length=3, *args, **kw)
+    def __init__(self, predicates=None, *args, **kw):
+        kw["predicates"] = predicates
+        kw["motif_length"] = 3
+        NonReversibleNucleotide.__init__(self, *args, **kw)
 
 
-class NonReversibleCodon(_Codon, Parametric):
+class NonReversibleCodon(_Codon, NonReversibleNucleotide):
     """Base non-reversible codon substitution model."""
 
     @extend_docstring_from(Parametric.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
         if gc is not None:
             alphabet = moltype.CodonAlphabet(gc=gc)
-        alphabet = alphabet or moltype.STANDARD_CODON
-        Parametric.__init__(self, alphabet, **kw)
+        kw["alphabet"] = alphabet or moltype.STANDARD_CODON
+        NonReversibleNucleotide.__init__(self, **kw)
 
 
 class StrandSymmetric(NonReversibleNucleotide):
