@@ -187,36 +187,34 @@ def test_disconnect():
     __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
 
 
-@pytest.mark.xfail
-def test_apply_to():
+def test_as_completed():
     """correctly applies iteratively"""
-
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
     reader = io_app.load_unaligned(format="fasta", moltype="dna")
-    got = reader.apply_to(dstore, show_progress=False)
+    got = list(reader.as_completed(dstore))
     assert len(got) == len(dstore)
     # should also be able to apply the results to another composable func
     min_length = sample_app.min_length(10)
-    got = min_length.apply_to(got, show_progress=False)
+    got = list(min_length.as_completed(got))
     assert len(got) == len(dstore)
     # should work on a chained function
     proc = reader + min_length
-    got = proc.apply_to(dstore, show_progress=False)
+    got = list(proc.as_completed(dstore))
     assert len(got) == len(dstore)
     # and works on a list of just strings
-    got = proc.apply_to([str(m) for m in dstore], show_progress=False)
+    got = list(proc.as_completed([str(m) for m in dstore]))
     assert len(got) == len(dstore)
     # or a single string
-    got = proc.apply_to(str(dstore[0]), show_progress=False)
+    got = list(proc.as_completed(str(dstore[0])))
     assert len(got) == 1
-    assert isinstance(got[0], SequenceCollection)
+    assert isinstance(got[0].obj, SequenceCollection)
     # raises ValueError if empty list
     with pytest.raises(ValueError):
-        proc.apply_to([])
+        proc.as_completed([])
 
     # raises ValueError if list with empty string
     with pytest.raises(ValueError):
-        proc.apply_to(["", ""])
+        list(proc.as_completed(["", ""]))
 
 
 @pytest.mark.parametrize("klass", (DataStoreDirectory,))
@@ -281,58 +279,52 @@ def test_apply_to_logger(tmp_dir):
     process.data_store.close()
 
 
-@pytest.mark.xfail
-def test_apply_to_invalid_logger():
+def test_apply_to_invalid_logger(tmp_dir):
     """incorrect logger value raises TypeError"""
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
     for logger_val in (True, "somepath.log"):
-        with TemporaryDirectory(dir=".") as dirname:
-            reader = io_app.load_aligned(format="fasta", moltype="dna")
-            min_length = sample_app.min_length(10)
-            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-            writer = io_app.write_db(outpath)
-            process = reader + min_length + writer
-            with pytest.raises(TypeError):
-                process.apply_to(dstore, show_progress=False, logger=logger_val)
-            process.data_store.close()
-
-
-@pytest.mark.xfail
-def test_apply_to_not_completed():
-    """correctly creates notcompleted"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    with TemporaryDirectory(dir=".") as dirname:
         reader = io_app.load_aligned(format="fasta", moltype="dna")
-        # trigger creation of notcompleted
-        min_length = sample_app.min_length(3000)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
+        min_length = sample_app.min_length(10)
+        outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
         writer = io_app.write_db(outpath)
         process = reader + min_length + writer
-        r = process.apply_to(dstore, show_progress=False)
-        assert len(process.data_store.incomplete) == 3
+        with pytest.raises(TypeError):
+            process.apply_to(dstore, show_progress=False, logger=logger_val)
         process.data_store.close()
 
 
-@pytest.mark.xfail
-def test_apply_to_not_partially_done():
+def test_apply_to_not_completed(tmp_dir):
+    """correctly creates notcompleted"""
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    # trigger creation of notcompleted
+    min_length = sample_app.min_length(3000)
+    outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
+    writer = io_app.write_db(outpath)
+    process = reader + min_length + writer
+    r = process.apply_to(dstore, show_progress=False)
+    assert len(process.data_store.incomplete) == 3
+    process.data_store.close()
+
+
+def test_apply_to_not_partially_done(tmp_dir):
     """correctly applies process when result already partially done"""
     dstore = io_app.get_data_store("data", suffix="fasta")
     num_records = len(dstore)
-    with TemporaryDirectory(dir=".") as dirname:
-        dirname = pathlib.Path(dirname)
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        outpath = dirname / "delme.tinydb"
-        writer = io_app.write_db(outpath)
-        _ = writer(reader(dstore[0]))
-        writer.data_store.close()
+    dirname = pathlib.Path(tmp_dir)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    outpath = dirname / "delme.tinydb"
+    writer = io_app.write_db(outpath)
+    _ = writer(reader(dstore[0]))
+    writer.data_store.close()
 
-        writer = io_app.write_db(outpath, if_exists="ignore")
-        process = reader + writer
-        _ = process.apply_to(dstore, show_progress=False)
-        writer.data_store.close()
-        dstore = io_app.get_data_store(outpath)
-        assert len(dstore) == num_records
-        dstore.close()
+    writer = io_app.write_db(outpath, if_exists="ignore")
+    process = reader + writer
+    _ = process.apply_to(dstore, show_progress=False)
+    writer.data_store.close()
+    dstore = io_app.get_data_store(outpath)
+    assert len(dstore) == num_records
+    dstore.close()
 
 
 def test_err_result():
