@@ -1241,6 +1241,8 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
 def _proxy_input(dstore):
     inputs = []
     for e in dstore:
+        if not e:
+            continue
         if not isinstance(e, source_proxy):
             e = source_proxy(e)
         inputs.append(e)
@@ -1387,7 +1389,8 @@ def _apply_to(
         )  # writers must return DataMember
         md5 = member.md5
         logger.log_message(str(member), label="output")
-        logger.log_message(md5, label="output md5sum")
+        if md5:
+            logger.log_message(md5, label="output md5sum")
 
     taken = time.time() - start
     logger.log_message(f"{taken}", label="TIME TAKEN")
@@ -1401,8 +1404,11 @@ def _apply_to(
 
 
 def _set_logger(self, logger=None):
+
     if logger is None:
         logger = CachingLogger(create_dir=True)
+    if not isinstance(logger, CachingLogger):
+        raise TypeError(f"logger must be of type CachingLogger not {type(logger)}")
     if not logger.log_file_path:
         src = Path(self.data_store.source).parent
         logger.log_file_path = str(src / _make_logfile_name(self))
