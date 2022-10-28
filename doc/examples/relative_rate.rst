@@ -14,7 +14,7 @@ From ``cogent3`` import all the components we need
 
     from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
-    from cogent3.maths import stats
+    from scipy.stats.distributions import chi2
 
 Get your alignment and tree.
 
@@ -92,7 +92,7 @@ These two lnL's are now used to calculate the likelihood ratio statistic it's de
 
     LR = 2 * (lf.get_log_likelihood() - null_lnL)
     df = lf.get_num_free_params() - null_nfp
-    P = stats.chi2.sf(LR, df)
+    P = chi2.sf(LR, df)
 
 Print this and look up a :math:`\chi^2` with number of edges - 1 degrees of freedom.
 
