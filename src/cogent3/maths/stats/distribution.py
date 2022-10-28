@@ -5,8 +5,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
-
-from scipy.stats import norm, f, t
+from scipy.stats import f, norm, t
 
 from cogent3.maths.stats.special import (
     MACHEP,

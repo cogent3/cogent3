@@ -1,7 +1,6 @@
 from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
 from numpy.testing import assert_allclose
-
 from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.test import G_fit

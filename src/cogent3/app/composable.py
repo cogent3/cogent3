@@ -376,9 +376,6 @@ class Composable(ComposableType):  # pragma: no cover
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
-        if "mininterval" in kwargs:
-            discontinued("argument", "mininterval", "2022.10", stack_level=1)
-
         if isinstance(dstore, str):
             dstore = [dstore]
 
@@ -1231,9 +1228,6 @@ def _apply_to(
     If run in parallel, this instance serves as the master object and
     aggregates results.
     """
-    if "mininterval" in kwargs:
-        discontinued("argument", "mininterval", "2022.10", stack_level=1)
-
     if isinstance(dstore, str):
         dstore = [dstore]
 
