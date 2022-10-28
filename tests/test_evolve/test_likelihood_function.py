@@ -326,6 +326,19 @@ class LikelihoodCalcs(TestCase):
         evolve_lnL = likelihood_function.get_log_likelihood()
         assert_allclose(evolve_lnL, -91.35162044257062)
 
+    def test_get_param_interval(self):
+        """get param interval succeeds"""
+        tree = load_tree("data/primate_brca1.tree")
+        aln = load_aligned_seqs("data/primate_brca1.fasta")
+        sm = get_model("HKY85")
+        lf = sm.make_likelihood_function(tree)
+        lf.set_alignment(aln)
+        lf.optimise(
+            local=True, show_progress=False, max_evaluations=10, limit_action="ignore"
+        )
+        kappa_lo, kappa_mle, kappa_hi = lf.get_param_interval("kappa")
+        assert kappa_lo < kappa_mle < kappa_hi
+
 
 class LikelihoodFunctionTests(TestCase):
     """tests for a tree analysis class. Various tests to create a tree analysis class,
