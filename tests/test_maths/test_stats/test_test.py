@@ -10,12 +10,12 @@ from numpy import (
     concatenate,
     fill_diagonal,
     isfinite,
+    isnan,
     logical_and,
     ones,
     reshape,
     testing,
     tril,
-    isnan,
 )
 
 from cogent3.maths.stats.number import NumberCounter
