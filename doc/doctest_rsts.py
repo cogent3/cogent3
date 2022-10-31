@@ -2,16 +2,19 @@
 """
 This will doctest all files ending with .rst in this directory.
 """
-import doctest
 import os
 import pathlib
+import subprocess
 
 import click
 import nbformat
 
 from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 
+from cogent3.app.composable import define_app
+from cogent3.util import parallel as PAR
 from cogent3.util.io import atomic_write
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
@@ -49,20 +52,32 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
             )
 
 
+@define_app
+def test_file(test: pathlib.Path | str, exit_on_first: bool=True) -> bool:
+    cmnd = f"python rst2script.py {str(test)}"
+    r = subprocess.run(cmnd.split(), capture_output=True, check=True)
+    py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
+    cmnd = f"python {str(py_path)}"
+    r = subprocess.run(cmnd.split(), capture_output=True)
+    if r.returncode != 0:
+        click.secho(f"FAILED: {str(py_path)}", fg="red")
+        click.secho(r.stdout.decode("utf8"), fg="red")
+        click.secho(r.stderr.decode("utf8"), fg="red")
+
+    if exit_on_first and r.returncode != 0:
+        return False
+    elif r.returncode == 0:
+        py_path.unlink()
+
+
 def execute_rsts(file_paths, exit_on_first, verbose):
-    for test in file_paths:
-        print()
-        print("=" * 40)
-        print(test)
-        test = str(test)
-        num_fails, num_tests = doctest.testfile(
-            test,
-            optionflags=doctest.ELLIPSIS or doctest.SKIP,
-            verbose=verbose,
-            encoding="utf-8",
-        )
-        if num_fails > 0 and exit_on_first:
-            raise SystemExit(f"doctest failed in {test}")
+    runfile = test_file(exit_on_first=exit_on_first)
+    series = PAR.as_completed(runfile, file_paths)
+    for result in series:
+        if result is False and exit_on_first:
+            exit(1)
+
+
 
 
 @click.command()
@@ -111,25 +126,19 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
         just = just.split(",")
         new = []
         for fn in file_paths:
-            for sub_word in just:
-                if sub_word in fn:
-                    new.append(fn)
+            new.extend(fn for sub_word in just if sub_word in fn.name)
         file_paths = new
     elif exclude:
         exclude = exclude.split(",")
         new = []
         for fn in file_paths:
-            keep = True
-            for sub_word in exclude:
-                if sub_word in fn:
-                    keep = False
-                    break
+            keep = all(sub_word not in fn for sub_word in exclude)
             if keep:
                 new.append(fn)
         file_paths = new
 
     if verbose:
-        print("File paths, after filtering: %s" % str(file_paths))
+        print(f"File paths, after filtering: {str(file_paths)}")
 
     if suffix == "rst":
         execute_rsts(file_paths, exit_on_first, verbose)

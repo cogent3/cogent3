@@ -1,12 +1,13 @@
 import datetime
 import os
-import shutil
 import pathlib
+import shutil
 import sys
 
 from glob import glob
 
 import sphinx_bootstrap_theme
+
 
 sys.path.append("../src")
 
