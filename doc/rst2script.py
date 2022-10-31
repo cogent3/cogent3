@@ -35,7 +35,17 @@ def get_path_update():
     swd_script = pathlib.Path("set_working_directory.py").absolute()
     assert swd_script.exists()
     rootdir = str(swd_script.parent)
-    block = ["import sys", f"sys.path.append({rootdir!r})", "import os", f"os.chdir({rootdir!r})"]
+    block = [
+        "import sys",
+        f"sys.path.append({rootdir!r})",
+        "import os",
+        f"os.chdir({rootdir!r})",
+        'os.environ["OMP_NUM_THREADS"] = "1"',
+        'os.environ["OPENBLAS_NUM_THREADS"] = "1"',
+        'os.environ["MKL_NUM_THREADS"] = "1"',
+        'os.environ["VECLIB_MAXIMUM_THREADS"] = "1"',
+        'os.environ["NUMEXPR_NUM_THREADS"] = "1"',
+    ]
     return "\n".join(block)
 
 
