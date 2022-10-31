@@ -34,7 +34,8 @@ def get_path_update():
     """returns code block to allow import set_working_directory"""
     swd_script = pathlib.Path("set_working_directory.py").absolute()
     assert swd_script.exists()
-    block = ["import sys", f"sys.path.append({str(swd_script.parent)!r})"]
+    rootdir = str(swd_script.parent)
+    block = ["import sys", f"sys.path.append({rootdir!r})", "import os", f"os.chdir({rootdir!r})"]
     return "\n".join(block)
 
 

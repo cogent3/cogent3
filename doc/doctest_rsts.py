@@ -11,6 +11,8 @@ import nbformat
 
 from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 
+from cogent3.app.composable import define_app
+from cogent3.util import parallel as PAR
 from cogent3.util.io import atomic_write
 
 
@@ -50,23 +52,30 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
             )
 
 
-def execute_rsts(file_paths, exit_on_first, verbose):
-    with click.progressbar(file_paths) as paths:
-        for test in paths:
-            cmnd = f"python rst2script.py {str(test)}"
-            r = subprocess.call(cmnd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            assert r == 0, cmnd
-            py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
-            cmnd = f"python {str(py_path)}"
-            r = subprocess.call(cmnd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if r != 0:
-                click.secho(f"FAILED: {str(py_path)}", fg="red")
-                subprocess.call(cmnd.split())
+@define_app
+def test_file(test: pathlib.Path | str, exit_on_first: bool=True) -> bool:
+    cmnd = f"python rst2script.py {str(test)}"
+    r = subprocess.run(cmnd.split(), capture_output=True, check=True)
+    py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
+    cmnd = f"python {str(py_path)}"
+    r = subprocess.run(cmnd.split(), capture_output=True)
+    if r.returncode != 0:
+        click.secho(f"FAILED: {str(py_path)}", fg="red")
+        click.secho(r.stdout.decode("utf8"), fg="red")
+        click.secho(r.stderr.decode("utf8"), fg="red")
 
-            if exit_on_first and r != 0:
-                exit(1)
-            elif r == 0:
-                py_path.unlink()
+    if exit_on_first and r.returncode != 0:
+        return False
+    elif r.returncode == 0:
+        py_path.unlink()
+
+
+def execute_rsts(file_paths, exit_on_first, verbose):
+    runfile = test_file(exit_on_first=exit_on_first)
+    series = PAR.as_completed(runfile, file_paths)
+    for result in series:
+        if result is False and exit_on_first:
+            exit(1)
 
 
 
@@ -117,7 +126,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
         just = just.split(",")
         new = []
         for fn in file_paths:
-            new.extend(fn for sub_word in just if sub_word in fn)
+            new.extend(fn for sub_word in just if sub_word in fn.name)
         file_paths = new
     elif exclude:
         exclude = exclude.split(",")
