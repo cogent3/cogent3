@@ -2,9 +2,9 @@
 """
 This will doctest all files ending with .rst in this directory.
 """
-import doctest
 import os
 import pathlib
+import subprocess
 
 import click
 import nbformat
@@ -51,19 +51,24 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
 
 
 def execute_rsts(file_paths, exit_on_first, verbose):
-    for test in file_paths:
-        print()
-        print("=" * 40)
-        print(test)
-        test = str(test)
-        num_fails, num_tests = doctest.testfile(
-            test,
-            optionflags=doctest.ELLIPSIS or doctest.SKIP,
-            verbose=verbose,
-            encoding="utf-8",
-        )
-        if num_fails > 0 and exit_on_first:
-            raise SystemExit(f"doctest failed in {test}")
+    with click.progressbar(file_paths) as paths:
+        for test in paths:
+            cmnd = f"python rst2script.py {str(test)}"
+            r = subprocess.call(cmnd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            assert r == 0, cmnd
+            py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
+            cmnd = f"python {str(py_path)}"
+            r = subprocess.call(cmnd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if r != 0:
+                click.secho(f"FAILED: {str(py_path)}", fg="red")
+                subprocess.call(cmnd.split())
+
+            if exit_on_first and r != 0:
+                exit(1)
+            elif r == 0:
+                py_path.unlink()
+
+
 
 
 @click.command()
