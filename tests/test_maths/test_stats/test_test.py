@@ -10,6 +10,7 @@ from numpy import (
     concatenate,
     fill_diagonal,
     isfinite,
+    isnan,
     logical_and,
     ones,
     reshape,
@@ -90,7 +91,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -771,7 +772,7 @@ class StatTests(TestsHelper):
         assert_allclose(t_two_sample(sample, x), (1.5637254, 0.1929248))
 
         # can't do the test if both samples have single item
-        self.assertEqual(t_two_sample(x, x), (None, None))
+        self.assertTrue(isnan(t_two_sample(x, x)).all())
 
         # Test special case if t=0.
         assert_allclose(t_two_sample([2], [1, 2, 3]), (0.0, 1.0))

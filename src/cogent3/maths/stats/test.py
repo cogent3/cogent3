@@ -27,22 +27,10 @@ from numpy import std as _std
 from numpy import sum as npsum
 from numpy import take, tanh, trace, zeros
 from numpy.random import permutation, randint
+from scipy.stats import binom, f, norm, t
+from scipy.stats.distributions import chi2
 
-from cogent3.maths.stats.distribution import (
-    binomial_high,
-    binomial_low,
-    chi_high,
-    f_high,
-    f_low,
-    fprob,
-    ndtri,
-    t_high,
-    t_low,
-    tprob,
-    z_high,
-    z_low,
-    zprob,
-)
+from cogent3.maths.stats.distribution import fprob, ndtri, tprob, zprob
 from cogent3.maths.stats.kendall import kendalls_tau, pkendall
 from cogent3.maths.stats.ks import pkstwo, psmirnov2x
 from cogent3.maths.stats.number import NumberCounter
@@ -69,7 +57,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -228,7 +216,7 @@ def G_2_by_2(a, b, c, d, williams=1, directional=1):
         q = 1 + ((((n / ab) + (n / cd)) - 1) * (((n / ac) + (n / bd)) - 1)) / (6 * n)
         G /= q
 
-    p = chi_high(max(G, 0), 1)
+    p = chi2.sf(max(G, 0), 1)
 
     # find which tail we were in if the test was directional
     if directional:
@@ -271,7 +259,7 @@ def G_ind(m, williams=False):
             / (6 * tot * df)
         )
         G = G / q
-    return G, chi_high(max(G, 0), df)
+    return G, chi2.sf(max(G, 0), df)
 
 
 def calc_contingency_expected(matrix):
@@ -334,7 +322,7 @@ def G_fit(obs, exp, williams=1):
         q = 1 + (k + 1) / (6 * obs.sum())
         G /= q
 
-    return G, chi_high(G, k - 1)
+    return G, chi2.sf(G, k - 1)
 
 
 def likelihoods(d_given_h, priors):
@@ -1265,24 +1253,24 @@ def z_test(a, popmean=0, popstdev=1, tails=None):
 def z_tailed_prob(z, tails):
     """Returns appropriate p-value for given z, depending on tails."""
     if tails == "high":
-        return z_high(z)
+        return norm.sf(z)
     elif tails == "low":
-        return z_low(z)
+        return norm.cdf(z)
     else:
         return zprob(z)
 
 
-def t_tailed_prob(t, df, tails):
+def t_tailed_prob(x, df, tails):
     """Return appropriate p-value for given t and df, depending on tails."""
     tails = tails or "2"
     tails = _get_alternate(str(tails))
 
     if tails == ALT_HIGH:
-        return t_high(t, df)
+        return t.sf(x, df)
     elif tails == ALT_LOW:
-        return t_low(t, df)
+        return t.cdf(x, df)
     else:
-        return tprob(t, df)
+        return tprob(x, df)
 
 
 def reverse_tails(tails):
@@ -1356,7 +1344,7 @@ def fisher(probs):
     -2 * SUM(ln(P)) gives chi-squared distribution with 2n degrees of freedom.
     """
     try:
-        return chi_high(-2 * npsum(list(map(log, probs))), 2 * len(probs))
+        return chi2.sf(-2 * npsum(list(map(log, probs))), 2 * len(probs))
     except OverflowError:
         return 0.0
 
@@ -1395,9 +1383,9 @@ def f_two_sample(a, b, tails=None):
 
     dfn, dfd, F = f_value(a, b)
     if tails == ALT_LOW:
-        return dfn, dfd, F, f_low(dfn, dfd, F)
+        return dfn, dfd, F, f.cdf(F, dfn, dfd)
     elif tails == ALT_HIGH:
-        return dfn, dfd, F, f_high(dfn, dfd, F)
+        return dfn, dfd, F, f.sf(F, dfn, dfd)
     else:
         if var(a) >= var(b):
             side = "right"
@@ -1442,7 +1430,7 @@ def ANOVA_one_way(a):
     dfn = len(group_means) - 1
     between_MS = between_MS / dfn
     F = between_MS / within_MS
-    return dfn, dfd, F, between_MS, within_MS, group_means, f_high(dfn, dfd, F)
+    return dfn, dfd, F, between_MS, within_MS, group_means, f.sf(F, dfn, dfd)
 
 
 def MonteCarloP(value, rand_values, tail="high"):
@@ -1490,14 +1478,14 @@ def sign_test(success, trials, alt="two sided"):
     """
     alt = _get_alternate(str(alt))
     if alt == ALT_LOW:
-        p = binomial_low(success, trials, 0.5)
+        p = binom.cdf(success, trials, 0.5)
     elif alt == ALT_HIGH:
         success -= 1
-        p = binomial_high(success, trials, 0.5)
+        p = binom.sf(success, trials, 0.5)
     else:
         success = min(success, trials - success)
-        hi = 1 - binomial_high(success, trials, 0.5)
-        lo = binomial_low(success, trials, 0.5)
+        hi = 1 - binom.sf(success, trials, 0.5)
+        lo = binom.cdf(success, trials, 0.5)
         p = hi + lo
 
     return p

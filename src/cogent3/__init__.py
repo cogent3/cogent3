@@ -71,23 +71,18 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-_min_version = (3, 7)
+_min_version = (3, 8)
 if (sys.version_info.major, sys.version_info.minor) < _min_version:
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
     _min_version = ".".join(str(e) for e in _min_version)
     raise RuntimeError(
         f"Python-{_min_version} or greater is required, Python-{PY_VERSION} used."
-    )
-elif (sys.version_info.major, sys.version_info.minor) == (3, 7):
-    warnings.warn(
-        "The minimum supported python version will change to 3.8 at 2022.10",
-        category=DeprecationWarning,
     )
 
 version = __version__

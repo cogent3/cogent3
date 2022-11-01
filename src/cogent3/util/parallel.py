@@ -15,7 +15,7 @@ __author__ = "Sheng Han Moses Koh"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Sheng Han Moses Koh", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -69,12 +69,11 @@ def is_master_process():
         process_file = process_cmd.split(os.sep)[-1]
         if process_file == "server.py":
             return False
-    elif sys.version_info[1] >= 7:
+    else:
         process_name = multiprocessing.current_process().name
         if "Fork" in process_name or "Spawn" in process_name:
             return False
-    else:
-        raise RuntimeError("is_master_process() requires Python 3.7 or greater")
+
     return True
 
 

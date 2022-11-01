@@ -41,7 +41,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -378,9 +378,6 @@ class Composable(ComposableType):  # pragma: no cover
         If run in parallel, this instance serves as the master object and
         aggregates results.
         """
-        if "mininterval" in kwargs:
-            discontinued("argument", "mininterval", "2022.10", stack_level=1)
-
         if isinstance(dstore, str):
             dstore = [dstore]
 

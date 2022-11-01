@@ -1,12 +1,13 @@
 import datetime
 import os
-import shutil
 import pathlib
+import shutil
 import sys
 
 from glob import glob
 
 import sphinx_bootstrap_theme
+
 
 sys.path.append("../src")
 
@@ -75,7 +76,7 @@ year = today.strftime("%Y")
 project = "cogent3"
 copyright = f"2020-{year}, cogent3 Team"
 
-release = "2022.8.24a1"
+release = "2022.10.31a1"
 
 version = ""
 

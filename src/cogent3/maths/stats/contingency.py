@@ -1,8 +1,8 @@
 from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
 from numpy.testing import assert_allclose
+from scipy.stats.distributions import chi2
 
-from cogent3.maths.stats import chisqprob
 from cogent3.maths.stats.test import G_fit
 from cogent3.util.dict_array import DictArray
 
@@ -11,7 +11,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -275,7 +275,7 @@ class CategoryCounts:
         """
         stat = calc_chisq(self.observed.array, self.expected.array)
         if not shuffled:
-            pval = chisqprob(stat, self.df)
+            pval = chi2.sf(stat, self.df)
         else:
             pval = estimate_pval(self.observed.array, calc_chisq, num_reps=shuffled)
         title = "Chisq-test for independence"
@@ -317,7 +317,7 @@ class CategoryCounts:
             williams=williams,
         )
         if not shuffled:
-            pval = chisqprob(G, self.df)
+            pval = chi2.sf(G, self.df)
         else:
             pval = estimate_pval(obs.array, calc_G, num_reps=shuffled)
 

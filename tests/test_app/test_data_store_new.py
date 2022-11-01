@@ -28,7 +28,6 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 

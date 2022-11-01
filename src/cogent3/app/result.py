@@ -7,8 +7,9 @@ from pathlib import Path
 
 import numpy
 
+from scipy.stats.distributions import chi2
+
 from cogent3.app.data_store import get_data_source
-from cogent3.maths.stats import chisqprob
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.table import Table
 
@@ -17,7 +18,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -605,13 +606,13 @@ class hypothesis_result(model_collection_result):
 
     @property
     def pvalue(self):
-        """returns p-value from chisqprob(LR, df)
+        """returns p-value from chi2.sf(LR, df)
 
         None if LR < 0"""
         if self.LR == 0:
             pvalue = 1
         elif self.LR > 0:
-            pvalue = chisqprob(self.LR, self.df)
+            pvalue = chi2.sf(self.LR, self.df)
         else:
             pvalue = None
         return pvalue

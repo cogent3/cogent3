@@ -25,7 +25,7 @@ First import standard components necessary for all of the following calculations
         TimeReversibleNucleotide,
         predicate,
     )
-    from cogent3.maths.stats import chisqprob
+    from scipy.stats.distributions import chi2
 
 Load the alignment and tree.
 
@@ -110,7 +110,7 @@ We conduct the test between the sequentially nested models.
 
 .. jupyter-execute::
 
-    print("%.4f" % chisqprob(lr, df_patches - df_bins))
+    print("%.4f" % chi2.sf(lr, df_patches - df_bins))
 
 The stationary bin probabilities are labelled as ``bprobs`` and can be obtained as follows.
 
