@@ -1,3 +1,36 @@
+# Changes since release 2022.8.24a1
+
+## Contributors
+
+Thanks to our contributors!
+
+### Accepted PRs from
+
+- Gavin Huttley
+- KatherineCaley
+- Nick Shahmaras
+- Xingjian Leng
+
+### Identified a Bug
+
+- StephenRogers1
+
+## ENH
+
+Significant refactor of composable apps. This is the backwards incompatible change we warned of in the last release! We now use a decorator `define_app` (on classes or functions) instead of class inheritance. Please see [the c3dev wiki](https://github.com/cogent3/cogent3/wiki/composable-functions) for examples on how to port from old-style to new-style composable apps.
+
+We updated to the latest NCBI versions of genetic codes. Note, the name of genetic code 1 has changed from "Standard Nuclear" to "Standard".
+
+## BUG
+
+- Fix progressive alignment bug when a guide-tree with zero edge lengths was encountered.
+- Non-stationary independent tuple models can now be serialised.
+
+## DEP
+
+- We have removed support for python 3.7.
+- We have made scipy a dependency and begun deprecating statistical functions that are available in scipy. All deprecated functions have a warning that indicates the scipy replacement. The deprecated functions are: combinations, chi_high, chdtri, z_high, z_low function, chi_low, binomial_high, binomial_low, f_high, f_low, t_low and t_high.
+
 # Changes since release 2022.5.25a1
 
 ## Contributors
