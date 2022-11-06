@@ -1446,8 +1446,8 @@ ArraySequence.alphabet = BYTES.alphabet
 ArrayAlignment.alphabet = BYTES.alphabet
 ArrayAlignment.moltype = BYTES
 
-ArrayDnaCodonSequence.alphabet = DNA.alphabets.base.Triples
-ArrayRnaCodonSequence.alphabet = RNA.alphabets.base.Triples
+ArrayDnaCodonSequence.alphabet = DNA.alphabets.base ** 3
+ArrayRnaCodonSequence.alphabet = RNA.alphabets.base ** 3
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII

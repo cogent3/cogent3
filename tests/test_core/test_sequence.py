@@ -1195,7 +1195,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
 class CodonSequenceTests(SequenceTests, TestCase):
     class SequenceClass(ArrayCodonSequence):
-        alphabet = DNA.alphabets.base.Triples
+        alphabet = DNA.alphabets.base ** 3
 
     def test_init(self):
         """Sequence should do round-trip from string"""

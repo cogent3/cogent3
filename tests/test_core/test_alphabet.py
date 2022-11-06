@@ -249,11 +249,6 @@ class CharAlphabetTests(TestCase):
         got = tuple(r.get_word_alphabet(3))
         assert got == expect
 
-    def test_from_string(self):
-        """CharAlphabet from_string should return correct array"""
-        r = CharAlphabet("UCAG")
-        assert_equal(r.from_string("UUCUGA"), array([0, 0, 1, 0, 3, 2], "B"))
-
     def test_is_valid(self):
         """CharAlphabet is_valid should return True for valid sequence"""
         a = CharAlphabet("bca")
@@ -264,12 +259,6 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(a.is_valid("d"), False)
         self.assertEqual(a.is_valid(["a", "b"]), True)
         self.assertEqual(a.is_valid(["a", None]), False)
-
-    def test_from_array(self):
-        """CharAlphabet from_array should return correct array"""
-        r = CharAlphabet("UCAG")
-        got = r.from_array(array(["UUC", "UGA"], "c"))
-        assert_equal(got, array([[0, 0, 1], [0, 3, 2]], "B"))
 
     def test_to_chars(self):
         """CharAlphabet to_chars should convert an input array to chars"""
@@ -287,36 +276,6 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(r.to_string(array([0, 0, 1, 0, 3, 2], "B")), "UUCUGA")
         # should work with empty seq
         self.assertEqual(r.to_string(array([], "B")), "")
-
-    def test_pairs(self):
-        """pairs should cache the same object."""
-        r = CharAlphabet("UCAG")
-        rp = r.pairs
-        self.assertEqual(len(rp), 16)
-        rp2 = r.pairs
-        self.assertIs(rp, rp2)
-
-    def test_triples(self):
-        """triples should cache the same object."""
-        r = CharAlphabet("UCAG")
-        rt = r.Triples
-        self.assertEqual(len(rt), 64)
-        rt2 = r.Triples
-        self.assertIs(rt, rt2)
-
-    def test_from_seq_to_array(self):
-        """convert a sequence into indices"""
-        dna = get_moltype("dna")
-        seq = dna.make_seq("ACGG")
-        got = dna.alphabet.from_seq_to_array(seq)
-        assert_equal(got, array([dna.alphabet.index(b) for b in seq]))
-
-    def test_from_ordinals_to_seq(self):
-        """check indices convert to a sequence"""
-        indices = [2, 1, 3, 3]
-        dna = get_moltype("dna")
-        got = dna.alphabet.from_ordinals_to_seq(indices)
-        self.assertEqual(got, dna.make_seq("ACGG"))
 
 
 class JointEnumerationTests(TestCase):
