@@ -23,7 +23,7 @@ from cogent3.core.alphabet import (
     uint32,
     uint64,
 )
-from cogent3.core.moltype import RNA, get_moltype
+from cogent3.core.moltype import RNA
 
 
 DnaBases = CharAlphabet("TCAG")

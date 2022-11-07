@@ -72,9 +72,6 @@ from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.util.warning import deprecated
 
 
-Float = numpy.core.numerictypes.sctype2char(float)
-Int = numpy.core.numerictypes.sctype2char(int)
-
 maketrans = str.maketrans
 translate = str.translate
 
