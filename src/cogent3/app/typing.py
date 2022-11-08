@@ -84,7 +84,9 @@ def get_constraint_names(*hints) -> set[str, ...]:
     """returns the set of named constraints of a type hint"""
     all_hints = set()
     for hint in hints:
-        if hint in (SerialisableType, IdentifierType) or inspect.isclass(hint):
+        if hint in (SerialisableType, IdentifierType) or (
+            inspect.isclass(hint) and get_origin(hint) not in (list, tuple, set)
+        ):
             all_hints.add(hint.__name__)
             continue
 
@@ -96,7 +98,7 @@ def get_constraint_names(*hints) -> set[str, ...]:
             all_hints.update(hint.__constraints__)
             continue
 
-        if get_origin(hint) in (Union, list, tuple):
+        if get_origin(hint) in (Union, list, tuple, set):
             all_hints.update(get_constraint_names(*get_args(hint)))
 
         if type(hint) == type:

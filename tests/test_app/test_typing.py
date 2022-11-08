@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Set, Tuple, Union
 
 import pytest
 
@@ -93,9 +93,13 @@ def test_hints_resolved_from_str():
     assert got == {"SerialisableType", "DnaSequence"}
 
 
-@pytest.mark.parametrize("container", (List, Tuple))
+@pytest.mark.parametrize("container", (List, Tuple, Set))
 def test_hints_from_container_type(container):
     got = get_constraint_names(container[AlignedSeqsType])
+    assert got == {"Alignment", "ArrayAlignment"}
+    # defined using the built-in
+    builtin = eval(container.__name__.lower())
+    got = get_constraint_names(builtin[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
 
 
