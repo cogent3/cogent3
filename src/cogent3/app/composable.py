@@ -953,6 +953,9 @@ def _call(self, val, *args, **kwargs):
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
     # todo when move to python 3.8 define protocol checks for the two singular types
+    if isinstance(data, NotCompleted):
+        return data
+
     if not self._data_types or self._data_types & {
         "SerialisableType",
         "IdentifierType",

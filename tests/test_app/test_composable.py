@@ -982,5 +982,23 @@ def test_handles_None():
     __app_registry.pop(get_object_provenance(none_out), None)
 
 
+def test_validate_data_type_not_completed_pass_through():
+    # returns the instance of a NotCompleted created by an input
+    @define_app
+    def take_int1(val: int) -> int:
+        return NotCompleted("ERROR", "take_int1", "external to app", source="unknown")
+
+    @define_app
+    def take_int2(val: int) -> int:
+        return val
+
+    app = take_int1() + take_int2()
+    got = app(2)
+    assert got.origin == "take_int1"
+
+    __app_registry.pop(get_object_provenance(take_int1), None)
+    __app_registry.pop(get_object_provenance(take_int2), None)
+
+
 if __name__ == "__main__":
     main()
