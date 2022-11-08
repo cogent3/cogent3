@@ -1,3 +1,5 @@
+import sys
+
 from typing import List, Set, Tuple, Union
 
 import pytest
@@ -97,9 +99,15 @@ def test_hints_resolved_from_str():
 def test_hints_from_container_type(container):
     got = get_constraint_names(container[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
-    # defined using the built-in
-    builtin = eval(container.__name__.lower())
-    got = get_constraint_names(builtin[AlignedSeqsType])
+
+
+@pytest.mark.skipif(
+    (sys.version_info.major, sys.version_info.minor) == (3, 8),
+    reason="type object subscripting supported in >= 3.9",
+)
+@pytest.mark.parametrize("container", (list, set, tuple))
+def test_hints_from_container_type_obj(container):
+    got = get_constraint_names(container[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
 
 
