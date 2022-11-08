@@ -17,8 +17,6 @@ import json
 
 from itertools import product
 
-import numpy
-
 from numpy import (
     arange,
     array,
@@ -35,12 +33,10 @@ from numpy import (
     uint64,
     zeros,
 )
+from numpy.testing import assert_allclose
 
 from cogent3.util.misc import get_object_provenance
 
-
-Float = numpy.core.numerictypes.sctype2char(float)
-Int = numpy.core.numerictypes.sctype2char(int)
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
@@ -302,23 +298,25 @@ class Enumeration(tuple):
                 data = ravel(array(a))
             except ValueError:  # try mapping to string
                 data = ravel(array(list(map(str, a))))
-        return sum(asarray(self._allowed_range == data, Int), axis=-1)
+        return sum(asarray(self._allowed_range == data, int), axis=-1)
 
-    def _get_pairs(self):
+    @property
+    def pairs(self):  # pragma: no cover
         """Accessor for pairs, lazy evaluation."""
-        if not hasattr(self, "_pairs"):
-            self._pairs = self ** 2
-        return self._pairs
+        from cogent3.util.warning import discontinued
 
-    pairs = property(_get_pairs)
+        discontinued("property", "Alphabet.pairs", version="2023.1", reason="redundant")
+        return self ** 2
 
-    def _get_triples(self):
+    @property
+    def Triples(self):  # pragma: no cover
         """Accessor for triples, lazy evaluation."""
-        if not hasattr(self, "_triples"):
-            self._triples = self ** 3
-        return self._triples
+        from cogent3.util.warning import discontinued
 
-    Triples = property(_get_triples)
+        discontinued(
+            "property", "Alphabet.Triples", version="2023.1", reason="redundant"
+        )
+        return self ** 3
 
 
 class JointEnumeration(Enumeration):
@@ -551,7 +549,7 @@ class Alphabet(Enumeration):
         cross_product = ["".join(combo) for combo in product(*states)]
         return Alphabet(cross_product, moltype=self.moltype)
 
-    def from_seq_to_array(self, sequence):
+    def from_seq_to_array(self, sequence):  # pragma: no cover
         """Returns an array of indices corresponding to items in sequence.
 
         Parameters
@@ -569,10 +567,15 @@ class Alphabet(Enumeration):
         object. It also breaks the seqeunce into items in the current alphabet
         (e.g. breaking a raw DNA sequence into codons), which to_indices() does
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method", "Alphabet.from_seq_to_array", version="2023.1", reason="redundant"
+        )
         sequence = sequence.get_in_motif_size(self._motiflen)
         return array(list(map(self.index, sequence)))
 
-    def from_ordinals_to_seq(self, data):
+    def from_ordinals_to_seq(self, data):  # pragma: no cover
         """Returns a Sequence object corresponding to indices in data.
 
         Parameters
@@ -591,9 +594,17 @@ class Alphabet(Enumeration):
 
         Raises an AttributeError if MolType is not set.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method",
+            "Alphabet.from_ordinals_to_seq",
+            version="2023.1",
+            reason="redundant",
+        )
         return self.moltype.make_seq("".join(self[i] for i in data))
 
-    def get_matched_array(self, motifs, dtype=Float):
+    def get_matched_array(self, motifs, dtype=float):
         """Returns an array in which rows are motifs, columns are items in self.
 
         Result is an array of Float in which a[i][j] indicates whether the ith
@@ -700,22 +711,26 @@ class Alphabet(Enumeration):
 
         return tuple(motif_set)
 
+    # todo method belongs elsewhere
     def adapt_motif_probs(self, motif_probs):
         """Prepare an array or dictionary of probabilities for use with
         this alphabet by checking size and order"""
+
         if hasattr(motif_probs, "keys"):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
                 raise ValueError(f"Can't find motif {sample} in alphabet")
-            motif_probs = numpy.array([motif_probs[motif] for motif in self])
+            motif_probs = array([motif_probs[motif] for motif in self])
+        elif len(motif_probs) == len(self):
+            # what value this clause since order is just input order?
+            motif_probs = asarray(motif_probs)
         else:
-            if len(motif_probs) != len(self):
-                if len(motif_probs) != len(self):
-                    raise ValueError(
-                        f"Can't match {len(motif_probs)} probs to {len(self)} alphabet"
-                    )
-            motif_probs = numpy.asarray(motif_probs)
-        assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
+            raise ValueError(
+                f"Can't match {len(motif_probs)} probs to {len(self)} alphabet"
+            )
+        assert_allclose(
+            motif_probs.sum(), 1, err_msg=f"does not summ to 1 {motif_probs}"
+        )
         return motif_probs
 
 
@@ -751,7 +766,7 @@ class CharAlphabet(Alphabet):
             chars[i] = c
         self._indices_nums_to_chars = array(list(chars), "B").view("c")
 
-    def from_string(self, data):
+    def from_string(self, data):  # pragma: no cover
         """Returns array of indices from string containing elements.
 
         data should be a string on the alphabet, e.g. 'ACC' for the RNA
@@ -762,6 +777,14 @@ class CharAlphabet(Alphabet):
         This is on the Alphabet, not the Sequence, because lots of objects
         (e.g. Profile, Alignment) also need to use it.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method",
+            "CharAlphabet.from_string",
+            version="2023.1",
+            reason="redundant",
+        )
         vals = str.translate(data, self._chars_to_indices)
         vals = frombuffer(memoryview(vals.encode("utf8")), dtype=uint8)
         return vals
@@ -776,13 +799,21 @@ class CharAlphabet(Alphabet):
         except (TypeError, KeyError):
             return False
 
-    def from_array(self, data):
+    def from_array(self, data):  # pragma: no cover
         """Returns array of indices from array containing elements.
 
         This is useful if, instead of a string, you have an array of
         characters that's been converted into a numpy array. See
         from_string docstring for general behavior.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method",
+            "CharAlphabet.from_array",
+            version="2023.1",
+            reason="redundant",
+        )
         return take(self._char_nums_to_indices, data.view("B"))
 
     def to_chars(self, data):

@@ -72,9 +72,6 @@ from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.util.warning import deprecated
 
 
-Float = numpy.core.numerictypes.sctype2char(float)
-Int = numpy.core.numerictypes.sctype2char(int)
-
 maketrans = str.maketrans
 translate = str.translate
 
@@ -1446,8 +1443,8 @@ ArraySequence.alphabet = BYTES.alphabet
 ArrayAlignment.alphabet = BYTES.alphabet
 ArrayAlignment.moltype = BYTES
 
-ArrayDnaCodonSequence.alphabet = DNA.alphabets.base.Triples
-ArrayRnaCodonSequence.alphabet = RNA.alphabets.base.Triples
+ArrayDnaCodonSequence.alphabet = DNA.alphabets.base ** 3
+ArrayRnaCodonSequence.alphabet = RNA.alphabets.base ** 3
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII

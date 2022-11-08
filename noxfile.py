@@ -8,7 +8,6 @@ _py_versions = range(7, 11)
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test(session):
-    py_version = session.python.replace(".", "")
     session.install(".[test]")
     session.chdir("tests")
     session.run(
@@ -16,7 +15,7 @@ def test(session):
         "-s",
         "-x",
         "--junitxml",
-        f"junit-{py_version}.xml",
+        f"junit-{session.python}.xml",
         "--cov-report",
         "xml",
         "--cov",

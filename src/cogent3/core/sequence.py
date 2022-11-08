@@ -1847,7 +1847,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet.Triples,
+            alphabet=self.alphabet ** 3,
         )
 
     def complement(self):

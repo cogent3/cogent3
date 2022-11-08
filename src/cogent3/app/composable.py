@@ -13,7 +13,6 @@ from enum import Enum
 from functools import wraps
 from typing import Tuple
 
-from numpy import ndarray
 from scitrack import CachingLogger
 
 from cogent3.app.typing import get_constraint_names
