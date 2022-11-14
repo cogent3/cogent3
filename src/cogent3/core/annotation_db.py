@@ -14,6 +14,14 @@ from cogent3 import open_
 from cogent3.parse.genbank import MinimalGenbankParser
 from cogent3.parse.gff import gff_parser
 
+__author__ = "Kirat Alreja, Gavin Huttley"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
+__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
+__license__ = "BSD-3"
+__version__ = "2022.8.24a1"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
+__status__ = "Prototype"
 
 T = Optional[str]
 

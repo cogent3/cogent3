@@ -2,11 +2,23 @@ from cogent3 import load_unaligned_seqs, open_
 from cogent3.core.annotation_db import GenbankAnnotationDb, GffAnnotationDb
 from cogent3.parse.genbank import MinimalGenbankParser
 from cogent3.parse.gff import gff_parser
+import os
+
+base_path = os.path.dirname(os.path.dirname(__file__))
+data_path = os.path.join(base_path, "data")
+gff_path = os.path.join(data_path, "prok_NoLocusTags.gff")
+genbank_path = os.path.join(data_path, "NC_000913.3.gb")
+fasta_path = os.path.join(data_path, "short.fa")
 
 
-gff_path = "/Users/kiratalreja/Downloads/prok_NoLocusTags.gff"
-genbank_path = "/Users/kiratalreja/Downloads/NC_000913.3.gb"
-fasta_path = "/Users/kiratalreja/Desktop/short.fa"
+__author__ = "Kirat Alreja, Gavin Huttley"
+__copyright__ = "Copyright 2007-2022, The Cogent Project"
+__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
+__license__ = "BSD-3"
+__version__ = "2022.8.24a1"
+__maintainer__ = "Gavin Huttley"
+__email__ = "Gavin.Huttley@anu.edu.au"
+__status__ = "Prototype"
 
 
 def test_make_db():
@@ -27,7 +39,6 @@ def test_make_db():
 def test_make_sql_query():
     """Test that the SQLlite queries are correctly formed"""
 
-    gff_path = "/Users/kiratalreja/Downloads/prok_NoLocusTags.gff"
     db = GffAnnotationDb(gff_path)
 
     """only the bio_type is provided"""
@@ -160,11 +171,9 @@ def test_db_query():
     """Test that the SQL query returns the correct
     number of rows for different combinations of bio_type/identifier"""
 
-    fasta_path = "/Users/kiratalreja/Desktop/short.fa"
     seqs = load_unaligned_seqs(fasta_path, moltype="dna")
     seq = seqs.seqs[0]
 
-    gff_path = "/Users/kiratalreja/Downloads/prok_NoLocusTags.gff"
     db = GffAnnotationDb(gff_path)
 
     """multiple hits for the same identifier"""

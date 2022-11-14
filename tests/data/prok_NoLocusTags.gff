@@ -1,0 +1,25 @@
+##gff-version 3
+#!gff-spec-version 1.21
+sequence001	mine	gene	190	255	.	+	.	ID=gene0;Dbxref=ASAP:ABE-0000006;gene=thrL;gene_synonym=ECK0001;
+sequence001	mine	CDS	190	255	.	+	0	ID=CDS0;Parent=gene0;Dbxref=UniProtKB/Swiss-Prot:P0AD86;product=formate dehydrogenase;transl_except=(pos:193..195%2Caa:Sec)
+sequence001	mine	mobile_genetic_element	387	731	.	+	.	ID=id020000;mobile_element_type=insertion sequence:IS186A
+sequence001	mine	mobile_element	887	1631	.	+	.	ID=id060000;mobile_element_type=insertion sequence:IS186A2
+sequence001	mine	repeat_region	5565	5669	.	+	.	ID=id010000;Note=RIP1a;rpt_type=other
+sequence001	mine	misc_feature	5060	5089	.	+	.	ID=id070000;Note=RIP1 (repetitive extragenic palindromic) element%3B contains 2 REP sequences and 1 IHF site;
+sequence001	mine	rep_origin	5060	5160	.	+	.	ID=id040000;Note=oriC
+sequence001	mine	gene	337	2799	.	+	.	ID=gene1;Dbxref=ASAP:ABE-0000008,EcoGene:EG10998;gene=thrA;gene_synonym=thrA2,Hs,thrA1,thrD
+sequence001	mine	CDS	337	2799	.	+	0	ID=CDS1;Parent=gene1;Dbxref=InterPro:IPR002928;product=bifunctional aspartate kinase/homoserine dehydrogenase;inference=COORDINATES:similar to AA sequence:INSD:AAC73526.1
+sequence001	mine	gene	2801	3733	.	+	.	ID=gene2
+sequence001	mine	CDS	2801	3733	.	+	0	ID=CDS2;Parent=gene2;Dbxref=UniProtKB/Swiss-Prot:P00547;product=2'%2C3'-cyclic phosphodiesterase;ec_number=2.7.7.1,2.7.1.22;
+sequence001	mine	gene	3734	5020	.	+	.	ID=gene3;Dbxref=ASAP:ABE-0000012,EcoGene:EG11000;gene=thrC;pseudo=true
+sequence001	mine	CDS	3734	5020	.	+	.	ID=CDS3;Parent=gene3;product=threonine synthase;
+sequence001	mine	gene	6090	6459	.	-	.	ID=gene4
+sequence001	mine	CDS	6090	6200	.	-	.	ID=CDS4;Parent=gene4;product=peptide chain release factor;exception=ribosomal slippage
+sequence001	mine	CDS	6202	6459	.	-	.	ID=CDS4;Parent=gene4;product=peptide chain release factor;exception=ribosomal slippage
+sequence001	mine	gene	90	170	.	+	.	ID=genet1
+sequence001	mine	tRNA	90	170	.	+	.	ID=trna1;Parent=genet1;product=tRNA-Leu
+sequence001	mine	gene	6490	8470	.	+	.	ID=gener1
+sequence001	mine	rRNA	6490	8470	.	+	.	ID=rrna1;Parent=gener1;product=16S ribosomal RNA
+sequence001	mine	gene	6529	7959	.	-	.	ID=gene5
+sequence001	mine	CDS	6529	7959	.	-	.	ID=CDS5;Parent=gene5
+
