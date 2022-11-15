@@ -350,6 +350,18 @@ class functionTests(TestCase):
 
         assert_allclose(binary_dist_pearson(self.dense1), zeros((3, 3)))
 
+    def test_jaccard_set(self):
+        """tests jaccard_set"""
+        pass
+
+    def test_jaccard_ndarray(self):
+        """tests jaccard_ndarray"""
+        pass
+        
+    def test_jaccard_other(self):
+        """tests jaccard using types not covered with single dispatch"""
+        pass
+
     def test_binary_dist_jaccard(self):
         """tests binary_dist_jaccard
 
