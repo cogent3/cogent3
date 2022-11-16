@@ -5,6 +5,7 @@ import pickle
 
 from pickle import dumps, loads
 from tempfile import TemporaryDirectory
+from typing import Set, Tuple
 from unittest import main
 from unittest.mock import Mock
 
@@ -1000,9 +1001,7 @@ def test_validate_data_type_not_completed_pass_through():
     __app_registry.pop(get_object_provenance(take_int2), None)
 
 
-@pytest.mark.parametrize(
-    "first,ret", ((tuple[set[str], int], int), (int, tuple[set[str], int]))
-)
+@pytest.mark.parametrize("first,ret", ((Tuple[Set[str]], int), (int, Tuple[Set[str]])))
 def test_complex_type(first, ret):
     # disallow >2-deep nesting of types
     with pytest.raises(TypeError):
