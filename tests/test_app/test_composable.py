@@ -1000,5 +1000,18 @@ def test_validate_data_type_not_completed_pass_through():
     __app_registry.pop(get_object_provenance(take_int2), None)
 
 
+@pytest.mark.parametrize(
+    "first,ret", ((tuple[set[str], int], int), (int, tuple[set[str], int]))
+)
+def test_complex_type(first, ret):
+    # disallow >2-deep nesting of types
+    with pytest.raises(TypeError):
+
+        @define_app
+        class x:
+            def main(self, data: first) -> ret:
+                return data
+
+
 if __name__ == "__main__":
     main()

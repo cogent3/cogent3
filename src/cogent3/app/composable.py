@@ -15,7 +15,7 @@ from typing import Tuple
 
 from scitrack import CachingLogger
 
-from cogent3.app.typing import get_constraint_names
+from cogent3.app.typing import get_constraint_names, type_tree
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import (
@@ -23,6 +23,7 @@ from cogent3.util.misc import (
     get_object_provenance,
     in_jupyter,
 )
+from cogent3.util.warning import discontinued
 
 from .data_store import (
     IGNORE,
@@ -44,7 +45,8 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-from ..util.warning import discontinued
+
+_builtin_seqs = list, set, tuple
 
 
 def _make_logfile_name(process):
@@ -802,6 +804,20 @@ def _get_raw_hints(main_func, min_params):
     if return_type is None:
         raise TypeError("NoneType invalid type for return value")
 
+    # we disallow type hints with too many levels of testing,
+    # e.g set[int] is ok but tuple[set[int]] is not
+    msg = (
+        "{} type {} nesting level exceeds 2 for {}"
+        "we suggest using a custom type, e.g. a dataclass"
+    )
+    depth, _ = type_tree(first_param_type)
+    if depth > 2:
+        raise TypeError(msg.format("first_param", first_param_type, depth))
+
+    depth, _ = type_tree(return_type)
+    if depth > 2:
+        raise TypeError(msg.format("return_type", return_type, depth))
+
     return first_param_type, return_type
 
 
@@ -962,9 +978,9 @@ def _validate_data_type(self, data):
     }:
         return True
 
-    if isinstance(data, (list, tuple)) and len(data):
-        data = data[0]
-    elif isinstance(data, (list, tuple)):
+    if isinstance(data, _builtin_seqs) and len(data):
+        data = next(iter(data))
+    elif isinstance(data, _builtin_seqs):
         return NotCompleted("ERROR", self, message=f"empty data", source=data)
 
     class_name = data.__class__.__name__
@@ -1162,7 +1178,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
             func.__name__ = meth
             setattr(klass, meth, func)
 
-        # Get and type hints of main function in klass
+        # Get type hints of main function in klass
         arg_hints, return_hint = _get_main_hints(klass)
         setattr(klass, "_data_types", arg_hints)
         setattr(klass, "_return_types", return_hint)
@@ -1260,7 +1276,7 @@ def _apply_to(
     if self.app_type is not LOADER and self.input:
         # As we will be explicitly calling the input object, we disconnect
         # the two-way interaction between input and self. This means self
-        # is not called twice, and self is not unecessarily pickled during
+        # is not called twice, and self is not unnecessarily pickled during
         # parallel execution.
         self.input = None
 
