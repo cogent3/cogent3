@@ -1003,13 +1003,35 @@ def test_validate_data_type_not_completed_pass_through():
 
 @pytest.mark.parametrize("first,ret", ((Tuple[Set[str]], int), (int, Tuple[Set[str]])))
 def test_complex_type(first, ret):
-    # disallow >2-deep nesting of types
+    # disallow >2-deep nesting of types for first arg and return type
     with pytest.raises(TypeError):
 
         @define_app
         class x:
             def main(self, data: first) -> ret:
                 return data
+
+
+@pytest.mark.parametrize("hint", (Tuple[Set[str]], Tuple[Tuple[Set[str]]]))
+def test_complex_type_depths(hint):
+    # disallow >2-deep nesting of types for first arg and return type
+    with pytest.raises(TypeError):
+
+        @define_app
+        class x:
+            def main(self, data: hint) -> bool:
+                return True
+
+
+@pytest.mark.parametrize("hint", (int, Set[str]))
+def test_complex_type_allowed_depths(hint):
+    # allowed <=2-deep nesting of types
+    @define_app
+    class x:
+        def main(self, data: hint) -> int:
+            return int
+
+    __app_registry.pop(get_object_provenance(x), None)
 
 
 if __name__ == "__main__":
