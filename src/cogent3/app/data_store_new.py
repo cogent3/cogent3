@@ -178,32 +178,6 @@ class DataMember(DataMemberABC):
         return self.data_store.md5(self.unique_id)
 
 
-class DataMember(DataMemberABC):
-    def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
-        super().__init__(data_store)
-        self._unique_id = unique_id
-
-    def __repr__(self):
-        return self._unique_id
-
-    @property
-    def unique_id(self):
-        return self._unique_id
-
-
-class DataMember(DataMemberABC):
-    def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
-        super().__init__(data_store)
-        self._unique_id = unique_id
-
-    def __repr__(self):
-        return self._unique_id
-
-    @property
-    def unique_id(self):
-        return self._unique_id
-
-
 class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
@@ -475,8 +449,6 @@ def get_data_source(data) -> str:
             f"Cannot resolve a unique identifier from {type(data)}"
         )
     return source
-
-
 
 
 @get_data_source.register

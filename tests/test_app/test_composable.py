@@ -446,16 +446,6 @@ def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
 
 
 @define_app
-def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
-    return val[:4]
-
-
-@define_app
-def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
-    return val[:4]
-
-
-@define_app
 def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
