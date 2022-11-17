@@ -1,10 +1,10 @@
 import inspect
 import os
-import pathlib
 import pickle
+import shutil
 
+from pathlib import Path
 from pickle import dumps, loads
-from tempfile import TemporaryDirectory
 from unittest import main
 from unittest.mock import Mock
 
@@ -19,7 +19,6 @@ from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app.composable import (
-    GENERIC,
     NON_COMPOSABLE,
     WRITER,
     NotCompleted,
@@ -32,7 +31,13 @@ from cogent3.app.composable import (
     is_composable,
     user_function,
 )
-from cogent3.app.data_store_new import DataStoreDirectory, get_data_source
+from cogent3.app.data_store_new import (
+    APPEND,
+    OVERWRITE,
+    READONLY,
+    DataStoreDirectory,
+    get_data_source,
+)
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
@@ -225,9 +230,7 @@ def test_apply_to_strings(tmp_dir, klass):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_strings"
-    writer = io_app.write_seqs_new(
-        klass(outpath, if_dest_exists="overwrite", suffix="fasta")
-    )
+    writer = io_app.write_seqs_new(klass(outpath, mode=OVERWRITE, suffix="fasta"))
     process = reader + min_length + writer
     # create paths as strings
     _ = process.apply_to(dstore, id_from_source=get_data_source)
@@ -244,7 +247,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
     writer = io_app.write_seqs_new(
-        DataStoreDirectory(outpath, if_dest_exists="overwrite", suffix="fasta")
+        DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
     )
     process = reader + min_length + writer
     with pytest.raises(ValueError):
@@ -311,7 +314,7 @@ def test_apply_to_not_partially_done(tmp_dir):
     """correctly applies process when result already partially done"""
     dstore = io_app.get_data_store("data", suffix="fasta")
     num_records = len(dstore)
-    dirname = pathlib.Path(tmp_dir)
+    dirname = Path(tmp_dir)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     outpath = dirname / "delme.tinydb"
     writer = io_app.write_db(outpath)
@@ -996,6 +999,79 @@ def test_handles_None():
 
     __app_registry.pop(get_object_provenance(none_out), None)
 
+
+DATA_DIR = Path(__file__).parent.parent / "data"
+
+
+@pytest.fixture(scope="function")
+def fasta_dir(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    filenames = DATA_DIR.glob("*.fasta")
+    fasta_dir = tmp_dir / "fasta"
+    fasta_dir.mkdir(parents=True, exist_ok=True)
+    for fn in filenames:
+        dest = fasta_dir / fn.name
+        dest.write_text(fn.read_text())
+    return fasta_dir
+
+
+@pytest.fixture(scope="function")
+def write_dir(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    write_dir = tmp_dir / "write"
+    write_dir.mkdir(parents=True, exist_ok=True)
+    yield write_dir
+    shutil.rmtree(write_dir)
+
+
+@pytest.fixture(scope="function")
+def ro_dstore(fasta_dir):
+    return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
+
+
+@pytest.fixture(scope="function")
+def completed_objects(ro_dstore):
+    return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dstore}
+
+
+@pytest.fixture(scope="function")
+def nc_objects():
+    return {
+        f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
+        for i in range(3)
+    }
+
+
+@pytest.fixture(scope="function")
+def log_data():
+    path = Path(__file__).parent.parent / "data" / "scitrack.log"
+    return path.read_text()
+
+
+@pytest.fixture(scope="function")
+def full_dstore(write_dir, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+
+    for id, data in completed_objects.items():
+        dstore.write(unique_id=id, data=data)
+
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+'''
+def test_apply_to_only_appends(full_dstore):
+    full_dstore._mode = APPEND
+    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = [str(m) for m in dstore]
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    writer = io_app.write_seqs_new(full_dstore)
+    process = reader + min_length + writer
+    # create paths as strings
+    _ = process.apply_to(dstore, id_from_source=get_data_source)
+'''
 
 if __name__ == "__main__":
     main()

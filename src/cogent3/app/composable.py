@@ -1348,17 +1348,15 @@ def _apply_to(
 
     Notes
     -----
-    If run in parallel, this instance serves as the master object and
-    aggregates results.
+    This is an append only function, meaning that if a member already exists
+    in self.data_store for an input, it is skipped.
+    If run in parallel, this instance spawns workers and aggregates results.
     """
     if not self.input:
         raise RuntimeError(f"{self!r} is not part of a composed function")
 
     if isinstance(dstore, (str, Path)):  # one filename
         dstore = [dstore]
-
-    # todo run check on dstore to make sure we have identifiers for writing output
-    # our default function should fail if a source cannot be determined, i.e. does not return None
 
     # todo this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
@@ -1368,6 +1366,8 @@ def _apply_to(
         input_id = input_id.name.replace("".join(suffixes), "")
         if input_id in inputs:
             raise ValueError("non-unique identifier detected in data")
+        if input_id in self.data_store:  # todo write a test
+            continue
         inputs[input_id] = input_id
 
     if not dstore:  # this should just return datastore, because if all jobs are done!
