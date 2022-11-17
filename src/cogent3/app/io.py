@@ -426,7 +426,7 @@ class write_seqs_new:
             return self.data_store.write_not_completed(data.source, data.to_json())
 
         data = self._formatter(data.to_dict())
-        return self.data_store.write(identifier, data)
+        return self.data_store.write(unique_id=identifier, data=data)
 
 
 @define_app(app_type=WRITER)

@@ -1,8 +1,9 @@
 import inspect
 import os
-import pathlib
 import pickle
+import shutil
 
+from pathlib import Path
 from pickle import dumps, loads
 from tempfile import TemporaryDirectory
 from typing import Set, Tuple
@@ -20,7 +21,6 @@ from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app.composable import (
-    GENERIC,
     NON_COMPOSABLE,
     WRITER,
     NotCompleted,
@@ -33,7 +33,13 @@ from cogent3.app.composable import (
     is_composable,
     user_function,
 )
-from cogent3.app.data_store_new import DataStoreDirectory, get_data_source
+from cogent3.app.data_store_new import (
+    APPEND,
+    OVERWRITE,
+    READONLY,
+    DataStoreDirectory,
+    get_data_source,
+)
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
@@ -226,9 +232,7 @@ def test_apply_to_strings(tmp_dir, klass):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_strings"
-    writer = io_app.write_seqs_new(
-        klass(outpath, if_dest_exists="overwrite", suffix="fasta")
-    )
+    writer = io_app.write_seqs_new(klass(outpath, mode=OVERWRITE, suffix="fasta"))
     process = reader + min_length + writer
     # create paths as strings
     _ = process.apply_to(dstore, id_from_source=get_data_source)
@@ -245,7 +249,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
     writer = io_app.write_seqs_new(
-        DataStoreDirectory(outpath, if_dest_exists="overwrite", suffix="fasta")
+        DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
     )
     process = reader + min_length + writer
     with pytest.raises(ValueError):
@@ -312,7 +316,7 @@ def test_apply_to_not_partially_done(tmp_dir):
     """correctly applies process when result already partially done"""
     dstore = io_app.get_data_store("data", suffix="fasta")
     num_records = len(dstore)
-    dirname = pathlib.Path(tmp_dir)
+    dirname = Path(tmp_dir)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     outpath = dirname / "delme.tinydb"
     writer = io_app.write_db(outpath)
