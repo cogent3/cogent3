@@ -540,57 +540,6 @@ class functionTests(TestCase):
             ),
         )
 
-    # def test_no_dupes(self):
-    # """ here we check all distance functions in distance_transform for
-    # duplicate
-    # results.  Uses an unsafe hack to get all distance functions,
-    # thus disabled by default
-    # The dataset is from Legendre 2001, Ecologically Meaningful...
-    # also, doesn't actually raise an error on failing, just prints to
-    # stdout
-    # """
-    # import distance_transform
-    # L19 dataset
-    # L19data = array(
-    # [[7,1,0,0,0,0,0,0,0],
-    # [4,2,0,0,0,1,0,0,0],
-    # [2,4,0,0,0,1,0,0,0],
-    # [1,7,0,0,0,0,0,0,0],
-    # [0,8,0,0,0,0,0,0,0],
-    # [0,7,1,0,0,0,0,0,0],
-    # [0,4,2,0,0,0,2,0,0],
-    # [0,2,4,0,0,0,1,0,0],
-    # [0,1,7,0,0,0,0,0,0],
-    # [0,0,8,0,0,0,0,0,0],
-    # [0,0,7,1,0,0,0,0,0],
-    # [0,0,4,2,0,0,0,3,0],
-    # [0,0,2,4,0,0,0,1,0],
-    # [0,0,1,7,0,0,0,0,0],
-    # [0,0,0,8,0,0,0,0,0],
-    # [0,0,0,7,1,0,0,0,0],
-    # [0,0,0,4,2,0,0,0,4],
-    # [0,0,0,2,4,0,0,0,1],
-    # [0,0,0,1,7,0,0,0,0]], 'd')
-
-    # distfns = []
-    # distfn_strs = dir(distance_transform)
-    # warning: dangerous eval, and might catch bad or not functions
-    # for fnstr in distfn_strs:
-    # if fnstr.find('dist') != -1:
-    # distfns.append(eval('%s' % fnstr))
-
-    # dist_results = []
-    # for distfn in distfns:
-    # dist_results.append(distfn(L19data))
-    # for i in range(len(dist_results)):
-    # for j in range(i):
-    # try:
-    # assert_allclose(dist_results[i], dist_results[j])
-    # except:
-    # pass # should not be equal, so catch error and proceed
-    # else:
-    # print "duplicates found: ", distfns[i], distfns[j]
-
 
 if __name__ == "__main__":
     main()
