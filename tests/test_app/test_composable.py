@@ -1060,7 +1060,8 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
     dstore.write_log(unique_id="scitrack.log", data=log_data)
     return dstore
 
-'''
+
+"""
 def test_apply_to_only_appends(full_dstore):
     full_dstore._mode = APPEND
     dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
@@ -1071,7 +1072,7 @@ def test_apply_to_only_appends(full_dstore):
     process = reader + min_length + writer
     # create paths as strings
     _ = process.apply_to(dstore, id_from_source=get_data_source)
-'''
+"""
 
 if __name__ == "__main__":
     main()

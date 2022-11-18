@@ -4,10 +4,8 @@ import contextlib
 import datetime
 import os
 import re
-import reprlib
 import sqlite3
 
-from collections import defaultdict
 from pathlib import Path
 from typing import Union
 
@@ -20,9 +18,6 @@ from cogent3.app.data_store_new import (
     DataMember,
     DataStoreABC,
 )
-from cogent3.app.typing import TabularType
-from cogent3.util.deserialise import deserialise_not_completed
-from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
