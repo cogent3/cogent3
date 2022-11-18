@@ -124,7 +124,7 @@ def nc_objects():
 
 @pytest.fixture(scope="function")
 def log_data():
-    path = Path(__file__).parent.parent / "data" / "scitrack.log"
+    path = DATA_DIR / "scitrack.log"
     return path.read_text()
 
 

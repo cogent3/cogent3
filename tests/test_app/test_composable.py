@@ -59,9 +59,117 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
+DATA_DIR = Path(__file__).parent.parent / "data"
+
+
 @pytest.fixture(scope="function")
 def tmp_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("datastore")
+
+
+@pytest.fixture(scope="function")
+def fasta_dir(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    filenames = DATA_DIR.glob("*.fasta")
+    fasta_dir = tmp_dir / "fasta"
+    fasta_dir.mkdir(parents=True, exist_ok=True)
+    for fn in filenames:
+        dest = fasta_dir / fn.name
+        dest.write_text(fn.read_text())
+    return fasta_dir
+
+
+@pytest.fixture(scope="function")
+def write_dir1(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    write_dir1 = tmp_dir / "write1"
+    write_dir1.mkdir(parents=True, exist_ok=True)
+    yield write_dir1
+    shutil.rmtree(write_dir1)
+
+
+@pytest.fixture(scope="function")
+def write_dir2(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    write_dir2 = tmp_dir / "write2"
+    write_dir2.mkdir(parents=True, exist_ok=True)
+    yield write_dir2
+    shutil.rmtree(write_dir2)
+
+
+@pytest.fixture(scope="function")
+def ro_dstore(fasta_dir):
+    return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
+
+
+@pytest.fixture(scope="function")
+def completed_objects(ro_dstore):
+    return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dstore}
+
+
+@pytest.fixture(scope="function")
+def nc_objects():
+    return {
+        f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
+        for i in range(3)
+    }
+
+
+@pytest.fixture(scope="function")
+def log_data():
+    path = DATA_DIR / "scitrack.log"
+    return path.read_text()
+
+
+@pytest.fixture(scope="function")
+def full_dstore(write_dir1, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir1, suffix="fasta", mode=OVERWRITE)
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+
+    for id, data in completed_objects.items():
+        dstore.write(unique_id=id, data=data)
+
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+
+@pytest.fixture(scope="function")
+def half_dstore1(write_dir1, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir1, suffix="fasta", mode=OVERWRITE)
+    i = 0
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+        i += 1
+        if i >= len(nc_objects.items()) / 2:
+            break
+    i = 0
+    for id, data in completed_objects.items():
+        dstore.write(unique_id=id, data=data)
+        i += 1
+        if i >= len(completed_objects.items()) / 2:
+            break
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+
+@pytest.fixture(scope="function")
+def half_dstore2(write_dir2, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir2, suffix="fasta", mode=OVERWRITE)
+    i = -1
+    for id, data in nc_objects.items():
+        i += 1
+        if i < len(nc_objects.items()) / 2:
+            continue
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+    i = -1
+    for id, data in completed_objects.items():
+        i += 1
+        if i < len(completed_objects.items()) / 2:
+            continue
+        dstore.write(unique_id=id, data=data)
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
 
 
 def test_composable():
@@ -194,7 +302,7 @@ def test_disconnect():
 
 def test_as_completed():
     """correctly applies iteratively"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = io_app.get_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_unaligned(format="fasta", moltype="dna")
     got = list(reader.as_completed(dstore))
     assert len(got) == len(dstore)
@@ -225,7 +333,7 @@ def test_as_completed():
 @pytest.mark.parametrize("klass", (DataStoreDirectory,))
 def test_apply_to_strings(tmp_dir, klass):
     """apply_to handles strings as paths"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = io_app.get_data_store(DATA_DIR, suffix="fasta", limit=3)
     dstore = [str(m) for m in dstore]
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
@@ -256,7 +364,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
 
 def test_apply_to_logging(tmp_dir):
     """correctly creates log file"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = io_app.get_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
@@ -270,7 +378,7 @@ def test_apply_to_logging(tmp_dir):
 
 def test_apply_to_logger(tmp_dir):
     """correctly uses user provided logger"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = io_app.get_data_store(DATA_DIR, suffix="fasta", limit=3)
     LOGGER = CachingLogger()
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
@@ -284,7 +392,7 @@ def test_apply_to_logger(tmp_dir):
 
 def test_apply_to_invalid_logger(tmp_dir):
     """incorrect logger value raises TypeError"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = io_app.get_data_store(DATA_DIR, suffix="fasta", limit=3)
     for logger_val in (True, "somepath.log"):
         reader = io_app.load_aligned(format="fasta", moltype="dna")
         min_length = sample_app.min_length(10)
@@ -298,7 +406,7 @@ def test_apply_to_invalid_logger(tmp_dir):
 
 def test_apply_to_not_completed(tmp_dir):
     """correctly creates notcompleted"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = io_app.get_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     # trigger creation of notcompleted
     min_length = sample_app.min_length(3000)
@@ -312,7 +420,7 @@ def test_apply_to_not_completed(tmp_dir):
 
 def test_apply_to_not_partially_done(tmp_dir):
     """correctly applies process when result already partially done"""
-    dstore = io_app.get_data_store("data", suffix="fasta")
+    dstore = io_app.get_data_store(DATA_DIR, suffix="fasta")
     num_records = len(dstore)
     dirname = Path(tmp_dir)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -1000,79 +1108,27 @@ def test_handles_None():
     __app_registry.pop(get_object_provenance(none_out), None)
 
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-
-
-@pytest.fixture(scope="function")
-def fasta_dir(tmp_dir):
-    tmp_dir = Path(tmp_dir)
-    filenames = DATA_DIR.glob("*.fasta")
-    fasta_dir = tmp_dir / "fasta"
-    fasta_dir.mkdir(parents=True, exist_ok=True)
-    for fn in filenames:
-        dest = fasta_dir / fn.name
-        dest.write_text(fn.read_text())
-    return fasta_dir
-
-
-@pytest.fixture(scope="function")
-def write_dir(tmp_dir):
-    tmp_dir = Path(tmp_dir)
-    write_dir = tmp_dir / "write"
-    write_dir.mkdir(parents=True, exist_ok=True)
-    yield write_dir
-    shutil.rmtree(write_dir)
-
-
-@pytest.fixture(scope="function")
-def ro_dstore(fasta_dir):
-    return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
-
-
-@pytest.fixture(scope="function")
-def completed_objects(ro_dstore):
-    return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dstore}
-
-
-@pytest.fixture(scope="function")
-def nc_objects():
-    return {
-        f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
-        for i in range(3)
-    }
-
-
-@pytest.fixture(scope="function")
-def log_data():
-    path = Path(__file__).parent.parent / "data" / "scitrack.log"
-    return path.read_text()
-
-
-@pytest.fixture(scope="function")
-def full_dstore(write_dir, nc_objects, completed_objects, log_data):
-    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
-    for id, data in nc_objects.items():
-        dstore.write_not_completed(unique_id=id, data=data.to_json())
-
-    for id, data in completed_objects.items():
-        dstore.write(unique_id=id, data=data)
-
-    dstore.write_log(unique_id="scitrack.log", data=log_data)
-    return dstore
-
-
-"""
-def test_apply_to_only_appends(full_dstore):
-    full_dstore._mode = APPEND
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    dstore = [str(m) for m in dstore]
-    reader = io_app.load_aligned(format="fasta", moltype="dna")
-    min_length = sample_app.min_length(10)
-    writer = io_app.write_seqs_new(full_dstore)
-    process = reader + min_length + writer
+def test_apply_to_only_appends(half_dstore1, half_dstore2):
+    half_dstore1._mode = APPEND
+    reader1 = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length1 = sample_app.min_length(10)
+    writer1 = io_app.write_seqs_new(half_dstore1)
+    process1 = reader1 + min_length1 + writer1
     # create paths as strings
-    _ = process.apply_to(dstore, id_from_source=get_data_source)
-"""
+    dstore1 = io_app.get_data_store(half_dstore1.source, suffix="fasta")
+    dstore1 = [str(m) for m in dstore1]
+    # check fail on append the same records
+    with pytest.raises(IOError):
+        _ = process1.apply_to(dstore1, id_from_source=get_data_source)
+
+    half_dstore2._mode = APPEND
+    reader2 = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length2 = sample_app.min_length(10)
+    writer2 = io_app.write_seqs_new(half_dstore2)
+    process2 = reader2 + min_length2 + writer2
+    # check not fail on append new records
+    _ = process2.apply_to(dstore1, id_from_source=get_data_source)
+
 
 if __name__ == "__main__":
     main()
