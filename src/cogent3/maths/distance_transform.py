@@ -52,6 +52,8 @@ EXAMPLE USAGE:
 
 """
 
+from functools import singledispatch
+
 import numpy
 
 from numpy import (
@@ -61,6 +63,7 @@ from numpy import (
     argsort,
     array,
     asarray,
+    intersect1d,
     isfinite,
     isnan,
     logical_and,
@@ -70,9 +73,19 @@ from numpy import (
     nan_to_num,
 )
 from numpy import ndim as rank
-from numpy import ravel, seterr, shape, sqrt, square, sum, take, where, zeros, intersect1d, union1d
+from numpy import (
+    ravel,
+    seterr,
+    shape,
+    sqrt,
+    square,
+    sum,
+    take,
+    union1d,
+    where,
+    zeros,
+)
 from numpy.linalg import norm
-from functools import singledispatch
 
 
 __author__ = "Justin Kuczynski"
@@ -1254,20 +1267,33 @@ def binary_dist_hamming(datamtx, strict=True):
     return dists
 
 
-@singledispatch 
-def jaccard(x,y):
-    """Jaccard distance between two sets"""
-    raise notImplementedError(f"jaccard distance not implemented for {type(x)}")
+@singledispatch
+def jaccard(x, y):
+    """Jaccard distance between two sets is a measure of similarity between two sets
+    (0) identical, (1) dissimilar"""
+    raise NotImplementedError(f"jaccard distance not implemented for {type(x)}")
 
-@jaccard.register 
-def jaccard_set(x:set,y:set):
-    """Jaccard distance between two sets"""
-    return 1 - abs(x.intersection(y)) / abs(x.union(y))
 
-@jaccard.register 
-def jaccard_ndarray(x:np.ndarray,y:np.ndarray):
-    """jaccard distance for numpy arrays"""
-    return 1 - abs(np.intersect1d(x,y)) / abs(numpy.union1d(x,y))
+@jaccard.register
+def _(x: set, y: set):
+    """Jaccard distance between two sets is a measure of similarity between two sets
+    (0) identical, (1) dissimilar"""
+    return 1 - len(x & y) / len(x | y)
+
+
+@jaccard.register
+def _(x: frozenset, y: frozenset):
+    """Jaccard distance between two sets is a measure of similarity between two sets
+    (0) identical, (1) dissimilar"""
+    return 1 - len(x & y) / len(x | y)
+
+
+@jaccard.register
+def _(x: numpy.ndarray, y: numpy.ndarray):
+    """Jaccard distance between two sets is a measure of similarity between two sets
+    (0) identical, (1) dissimilar"""
+    return 1 - len(numpy.intersect1d(x, y)) / len(numpy.union1d(x, y))
+
 
 def binary_dist_jaccard(datamtx, strict=True):  # pragma: no cover
     """Calculates jaccard distance between rows, returns distance matrix.
@@ -1295,14 +1321,16 @@ def binary_dist_jaccard(datamtx, strict=True):  # pragma: no cover
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
-    
+
     from cogent3.util.warning import discontinued
 
     discontinued(
-        "function", "binary_dist_jaccard", "2023.10", "use scipy.spatial.distance.jaccard"
+        "function",
+        "binary_dist_jaccard",
+        "2023.5",
+        "use scipy.spatial.distance.jaccard",
     )
-    
-    
+
     datamtx = datamtx.astype(bool)
     datamtx = datamtx.astype(float)
     if strict:
