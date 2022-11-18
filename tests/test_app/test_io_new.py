@@ -4,7 +4,7 @@ import pytest
 
 from cogent3.app import io as io_app
 from cogent3.app.composable import source_proxy
-from cogent3.app.data_store_new import SKIP, DataMember, DataStoreDirectory
+from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.parse.sequence import PARSERS
 
@@ -54,7 +54,7 @@ def test_write_seqs(fasta_dir, tmp_dir):
     seqs = ArrayAlignment(data=data, moltype=None)
     seqs.info.source = datastore.source
     out_data_store = DataStoreDirectory(
-        tmp_dir / "test_write_seqs", if_dest_exists="overwrite", suffix="fasta"
+        tmp_dir / "test_write_seqs", mode=Mode.w, suffix="fasta"
     )
     writer = io_app.write_seqs_new(out_data_store, format="fasta")
     wrote = writer(seqs[0], datamember.unique_id)

@@ -9,14 +9,15 @@ from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
-    _LOG_TABLE,
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
+    APPEND,
     OVERWRITE,
     READONLY,
-    SKIP,
+    DataMember,
     DataStoreDirectory,
 )
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
@@ -75,17 +76,17 @@ def nc_dir(tmp_dir):
 
 @pytest.fixture(scope="session")
 def ro_dstore(fasta_dir):
-    return DataStoreDirectory(fasta_dir, suffix="fasta", if_dest_exists=READONLY)
+    return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
 
 
 @pytest.fixture(scope="function")
 def w_dstore(write_dir):
-    return DataStoreDirectory(write_dir, suffix="fasta", if_dest_exists=OVERWRITE)
+    return DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
 
 
 @pytest.fixture(scope="function")
 def nc_dstore(nc_dir):
-    dstore = DataStoreDirectory(nc_dir, suffix="fasta", if_dest_exists=SKIP)
+    dstore = DataStoreDirectory(nc_dir, suffix="fasta", mode=OVERWRITE)  # SKIP)
     # write one log file
     log_filename = "scitrack.log"
     dstore.write_log(log_filename, (DATA_DIR / log_filename).read_text())
@@ -104,19 +105,65 @@ def nc_dstore(nc_dir):
     # write six fasta file
     for fn in filenames:
         identifier = fn.name
-        dstore.write(identifier, fn.read_text())
+        dstore.write(unique_id=identifier, data=fn.read_text())
     return dstore
+
+
+@pytest.fixture(scope="function")
+def completed_objects(ro_dstore):
+    return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dstore}
+
+
+@pytest.fixture(scope="function")
+def nc_objects():
+    return {
+        f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
+        for i in range(3)
+    }
+
+
+@pytest.fixture(scope="function")
+def log_data():
+    path = DATA_DIR / "scitrack.log"
+    return path.read_text()
+
+
+@pytest.fixture(scope="function")
+def full_dstore(write_dir, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+
+    for id, data in completed_objects.items():
+        dstore.write(unique_id=id, data=data)
+
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+
+def test_fail_try_append(full_dstore, completed_objects):
+    full_dstore._mode = APPEND
+    id, data = list(completed_objects.items())[0]
+    with pytest.raises(IOError):
+        full_dstore.write(unique_id=id, data=data)
 
 
 def test_contains(ro_dstore):
     """correctly identify when a data store contains a member"""
     assert "brca1.fasta" in ro_dstore
+    assert "brca1" in ro_dstore
 
 
 def test_iter(ro_dstore):
     """DataStore objects allow iteration over members"""
     members = list(ro_dstore)
     assert members == ro_dstore.members
+
+
+def test_members(ro_dstore):
+    for m in ro_dstore:
+        assert isinstance(m, DataMember)
+    assert len(ro_dstore) == len(ro_dstore.completed) + len(ro_dstore.not_completed)
 
 
 def test_len(ro_dstore):
@@ -186,9 +233,23 @@ def test_not_completed(nc_dstore):
     assert isinstance(nc, str)
 
 
+def test_drop_not_completed(nc_dstore):
+    num_completed = len(nc_dstore.completed)
+    num_not_completed = len(nc_dstore.not_completed)
+    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    assert num_not_completed == 3
+    assert num_completed == 6
+    assert len(nc_dstore) == 9
+    assert num_md5 == num_completed + num_not_completed
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore.not_completed) == 0
+    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
+    assert num_md5 == num_completed
+
+
 def test_write_read_only_datastore(ro_dstore):
     with pytest.raises(IOError):
-        ro_dstore.write("brca1.fasta", "test data")
+        ro_dstore.write(unique_id="brca1.fasta", data="test data")
 
 
 def test_write_read_only_member(ro_dstore):
@@ -200,7 +261,7 @@ def test_write(fasta_dir, w_dstore):
     """correctly write content"""
     expect = Path(fasta_dir / "brca1.fasta").read_text()
     identifier = "brca1.fasta"
-    w_dstore.write(identifier, expect)
+    w_dstore.write(unique_id=identifier, data=expect)
     got = w_dstore.read(identifier)
     assert got == expect
 
@@ -211,8 +272,8 @@ def test_multi_write(fasta_dir, w_dstore):
     expect_b = Path(fasta_dir / "primates_brca1.fasta").read_text()
     identifier_a = "brca2.fasta"
     identifier_b = "primates_brca2.fasta"
-    w_dstore.write(identifier_a, expect_a)
-    w_dstore.write(identifier_b, expect_b)
+    w_dstore.write(unique_id=identifier_a, data=expect_a)
+    w_dstore.write(unique_id=identifier_b, data=expect_b)
     got_a = w_dstore.read(identifier_a)
     got_b = w_dstore.read(identifier_b)
     # check that both bits of data match
@@ -224,15 +285,9 @@ def test_append(w_dstore):
     """correctly write content"""
     identifier = "test1.fasta"
     data = "test data"
-    w_dstore.write(identifier, data)
+    w_dstore.write(unique_id=identifier, data=data)
     got = w_dstore.read(identifier)
     assert got == data
-
-
-def test_notcompleted(nc_dstore):
-    assert len(nc_dstore.not_completed) == 3
-    nc_dstore.drop_not_completed()
-    assert len(nc_dstore.not_completed) == 0
 
 
 def test_no_not_completed_subdir(nc_dstore):
@@ -251,20 +306,6 @@ def test_no_not_completed_subdir(nc_dstore):
     not_dir.mkdir(exist_ok=True)
 
 
-def test_drop_not_completed(nc_dstore):
-    num_completed = len(nc_dstore.completed)
-    num_not_completed = len(nc_dstore.not_completed)
-    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
-    assert num_not_completed == 3
-    assert num_completed == 6
-    assert len(nc_dstore) == 9
-    assert num_md5 == num_completed + num_not_completed
-    nc_dstore.drop_not_completed()
-    assert len(nc_dstore.not_completed) == 0
-    num_md5 = len(list((nc_dstore.source / _MD5_TABLE).glob("*.txt")))
-    assert num_md5 == num_completed
-
-
 def test_limit_datastore(nc_dstore):
     assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
     nc_dstore._limit = len(nc_dstore.completed)
@@ -278,3 +319,22 @@ def test_md5_sum(nc_dstore):
         data = m.read()
         md5 = nc_dstore.md5(m.unique_id)
         assert md5 == get_text_hexdigest(data)
+
+
+def test_summary_logs(full_dstore):
+    # log summary has a row per log file and a column for each property
+    got = full_dstore.summary_logs
+    assert got.shape == (1, 6)
+    assert isinstance(got, Table)
+
+
+def test_summary_not_completed(full_dstore):
+    got = full_dstore.summary_not_completed
+    assert got.shape >= (1, 1)
+    assert isinstance(got, Table)
+
+
+def test_describe(full_dstore):
+    got = full_dstore.describe
+    assert got.shape >= (3, 2)
+    assert isinstance(got, Table)

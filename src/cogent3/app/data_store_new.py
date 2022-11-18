@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import inspect
 import re
 import reprlib
 import shutil
@@ -15,7 +16,7 @@ from scitrack import get_text_hexdigest
 
 from cogent3.app.typing import TabularType
 from cogent3.core.alignment import SequenceCollection
-from cogent3.util.deserialise import deserialise_not_completed
+from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
 from cogent3.util.table import Table
@@ -35,17 +36,15 @@ _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"
 
 
-class IfExist(Enum):
-    SKIP = "skip"
-    OVERWRITE = "overwrite"
-    RAISE = "raise"
-    READONLY = "readonly"
+class Mode(Enum):
+    r = "r"
+    w = "w"
+    a = "a"
 
 
-SKIP = IfExist.SKIP
-OVERWRITE = IfExist.OVERWRITE
-RAISE = IfExist.RAISE
-READONLY = IfExist.READONLY
+APPEND = Mode.a
+OVERWRITE = Mode.w
+READONLY = Mode.r
 
 
 class DataMemberABC(ABC):
@@ -64,22 +63,34 @@ class DataMemberABC(ABC):
         return self.data_store.read(self.unique_id)
 
     def write(self, data: str) -> None:
-        self.data_store.write(self.unique_id, data)
+        self.data_store.write(unique_id=self.unique_id, data=data)
 
 
 class DataStoreABC(ABC):
+    def __new__(klass, *args, **kwargs):
+        obj = object.__new__(klass)
+
+        init_sig = inspect.signature(klass.__init__)
+        bargs = init_sig.bind_partial(klass, *args, **kwargs)
+        bargs.apply_defaults()
+        init_vals = bargs.arguments
+        init_vals.pop("self", None)
+
+        obj._init_vals = init_vals
+        return obj
+
     def __init__(
         self,
         source: str | Path,
-        if_dest_exists: IfExist = READONLY,
-        if_member_exists: IfExist = RAISE,
+        mode: Mode = READONLY,
     ):
-        self._if_dest_exists = IfExist(if_dest_exists)
-        self._if_member_exists = IfExist(if_member_exists)
+        self._mode = Mode(mode)
 
-    @abstractmethod
     def __repr__(self):
-        ...
+        num = len(self.members)
+        name = self.__class__.__name__
+        sample = f"{list(self[:2])}..." if num > 2 else list(self)
+        return f"{num}x member {name}(source='{self.source}', members={sample})"
 
     def __getitem__(self, index):
         return self.members[index]
@@ -96,15 +107,13 @@ class DataStoreABC(ABC):
         ...
 
     def _check_writable(self, unique_id: str):
-        if self._if_dest_exists is READONLY:
+        if self._mode is READONLY:
             raise IOError("datastore is readonly")
-        if self._if_member_exists in (READONLY, RAISE) and unique_id in self:
-            raise IOError(
-                f"DataStore member_exists is {self._if_member_exists!r} and {unique_id!r} exists"
-            )
+        elif unique_id in self and self._mode is APPEND:
+            raise IOError("cannot overwrite existing record in append mode")
 
     @abstractmethod
-    def write(self, unique_id: str, data: str | bytes) -> None:
+    def write(self, *, unique_id: str, data: str | bytes) -> None:
         self._check_writable(unique_id)
 
     @abstractmethod
@@ -115,14 +124,9 @@ class DataStoreABC(ABC):
     def write_log(self, unique_id: str, data: str | bytes) -> None:
         self._check_writable(unique_id)
 
-    @abstractmethod
-    def describe(self) -> TabularType:
-        ...
-
     @property
-    @abstractmethod
-    def members(self) -> list[DataMemberABC]:
-        ...
+    def members(self) -> list[DataMember]:
+        return self.completed + self.not_completed
 
     def __iter__(self):
         yield from self.members
@@ -143,18 +147,113 @@ class DataStoreABC(ABC):
         ...
 
     @property
-    @abstractmethod
     def summary_logs(self) -> TabularType:
-        ...
+        """returns a table summarising log files"""
+        rows = []
+        for record in self.logs:
+            data = record.read().splitlines()
+            first = data.pop(0).split("\t")
+            row = [first[0], record.unique_id]
+            key = None
+            mapped = {}
+            for line in data:
+                line = line.split("\t")[-1].split(" : ", maxsplit=1)
+                if len(line) == 1:
+                    mapped[key] += line[0]
+                    continue
+
+                key = line[0]
+                mapped[key] = line[1]
+
+            data = mapped
+            row.extend(
+                [
+                    data["python"],
+                    data["user"],
+                    data["command_string"],
+                    data["composable function"],
+                ]
+            )
+            rows.append(row)
+        return Table(
+            header=["time", "name", "python version", "who", "command", "composable"],
+            data=rows,
+            title="summary of log files",
+        )
 
     @property
-    @abstractmethod
     def summary_not_completed(self) -> TabularType:
-        ...
+        """returns a table summarising not completed results"""
+        # detect last exception line
+        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
+        types = defaultdict(list)
+        indices = "type", "origin"
+        for member in self.not_completed:
+            record = member.read()
+            record = deserialise_object(record)
+            key = tuple(getattr(record, k, None) for k in indices)
+            match = err_pat.findall(record.message)
+            types[key].append([match[-1] if match else record.message, record.source])
+
+        header = list(indices) + ["message", "num", "source"]
+        rows = []
+        maxtring = reprlib.aRepr.maxstring
+        reprlib.aRepr.maxstring = 45
+
+        for record in types:
+            messages, sources = list(zip(*types[record]))
+            messages = reprlib.repr(
+                ", ".join(m.splitlines()[-1] for m in set(messages))
+            )
+            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
+            row = list(record) + [
+                messages,
+                len(types[record]),
+                sources,
+            ]
+            rows.append(row)
+
+        reprlib.aRepr.maxstring = maxtring  # restoring original val
+        return Table(header=header, data=rows, title="not completed records")
+
+    @property
+    def describe(self) -> TabularType:
+        title = "Directory datastore"
+        num_not_completed = len(self.not_completed)
+        num_completed = len(self.completed)
+        num_logs = len(self.logs)
+        return Table(
+            header=["record type", "number"],
+            data=[
+                ["completed", num_completed],
+                ["not_completed", num_not_completed],
+                ["logs", num_logs],
+            ],
+            title=title,
+        )
 
     @abstractmethod
     def drop_not_completed(self):
         ...
+
+    def validate(self) -> TabularType:
+        correct_md5 = len(self.members)
+        for m in self.members:
+            data = m.read()
+            md5 = self.md5(m.unique_id)
+            if md5 != get_text_hexdigest(data):
+                correct_md5 -= 1
+        incorrect_md5 = len(self.members) - correct_md5
+
+        return Table(
+            header=["Condition", "Value"],
+            data=[
+                ["Num md5sum correct", correct_md5],
+                ["Num md5sum incorrect", incorrect_md5],
+                ["Has log", len(self.logs) > 0],
+            ],
+            title="validate status",
+        )
 
 
 class DataMember(DataMemberABC):
@@ -182,14 +281,12 @@ class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
         source,
-        if_dest_exists: IfExist = READONLY,
-        if_member_exists: IfExist = RAISE,
+        mode: Mode = READONLY,
         suffix=None,
         limit=None,
         verbose=False,
-        md5=True,
     ):
-        super().__init__(source, if_dest_exists, if_member_exists)
+        super().__init__(source, mode)
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
@@ -200,23 +297,26 @@ class DataStoreDirectory(DataStoreABC):
         self._not_completed = []
         self._limit = limit
         self._verbose = verbose
-        self._md5 = md5
-        self._source_check_create(if_dest_exists)
+        self._source_check_create(mode)
 
-    def _source_check_create(self, if_dest_exists):
+    def __contains__(self, item: str):
+        item = f"{item}.{self.suffix}" if self.suffix not in item else item
+        return super().__contains__(item)
+
+    def _source_check_create(self, mode: Mode) -> None:
         if not is_master_process():
             return
 
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
         source = self.source
-        if if_dest_exists is READONLY and not source.exists():
+        if mode is READONLY and not source.exists():
             raise IOError(f"'{source}' does not exist")
-        elif if_dest_exists is RAISE and source.exists():
-            raise IOError(f"'{source}' exists")
-        elif if_dest_exists is READONLY:
+        # elif mode is RAISE and source.exists():
+        #     raise IOError(f"'{source}' exists")
+        elif mode is READONLY:
             return
 
-        if source.exists() and if_dest_exists is OVERWRITE:
+        if source.exists() and mode is READONLY:
             for sub_dir in sub_dirs:
                 with contextlib.suppress((FileNotFoundError, NotADirectoryError)):
                     shutil.rmtree(source / sub_dir)
@@ -292,16 +392,10 @@ class DataStoreDirectory(DataStoreABC):
                 )
         return self._not_completed
 
-    @property
-    def members(self) -> list[DataMember]:
-        return self.completed + self.not_completed
-
-    # need to update write methods to append to _completed and _not_completed
-
     def _write(
-        self, subdir: str, unique_id: str, suffix: str, data: str, md5: bool
+        self, *, subdir: str, unique_id: str, suffix: str, data: str
     ) -> DataMember:
-        super().write(unique_id, data)
+        super().write(unique_id=unique_id, data=data)
         assert suffix, "Must provide suffix"
         # check suffix compatible with this datastore
         sfx, cmp = get_format_suffixes(unique_id)
@@ -319,126 +413,39 @@ class DataStoreDirectory(DataStoreABC):
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
 
+        if subdir == _LOG_TABLE:
+            return None
         if subdir == _NOT_COMPLETED_TABLE:
             member = DataMember(self, Path(_NOT_COMPLETED_TABLE) / unique_id)
         elif not subdir:
             member = DataMember(self, unique_id)
-        else:
-            assert subdir == _LOG_TABLE
-            member = None
 
-        if md5:
-            md5 = get_text_hexdigest(data)
-            unique_id = unique_id.replace(suffix, "txt")
-            unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
-            with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
-                out.write(md5)
+        md5 = get_text_hexdigest(data)
+        unique_id = unique_id.replace(suffix, "txt")
+        unique_id = unique_id if cmp is None else unique_id.replace(f".{cmp}", "")
+        with open_(self.source / _MD5_TABLE / unique_id, mode="w") as out:
+            out.write(md5)
 
         return member
 
-    def write(self, unique_id: str, data: str) -> DataMember:
-        member = self._write("", unique_id, self.suffix, data, True)
+    def write(self, *, unique_id: str, data: str) -> DataMember:
+        member = self._write(
+            subdir="", unique_id=unique_id, suffix=self.suffix, data=data
+        )
         if member is not None:
             self._completed.append(member)
         return member
 
     def write_not_completed(self, unique_id: str, data: str) -> DataMember:
-        member = self._write(_NOT_COMPLETED_TABLE, unique_id, "json", data, True)
+        member = self._write(
+            subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
+        )
         if member is not None:
             self._not_completed.append(member)
         return member
 
     def write_log(self, unique_id: str, data: str) -> None:
-        _ = self._write(_LOG_TABLE, unique_id, "log", data, False)
-
-    def describe(self) -> TabularType:
-        num_notcompleted = len(self.not_completed)
-        num_completed = len(self.completed)
-        num_logs = len(self.logs)
-        return Table(
-            header=["record type", "number"],
-            data=[
-                ["completed", num_completed],
-                ["not_completed", num_notcompleted],
-                ["logs", num_logs],
-            ],
-        )
-
-    @property
-    def summary_logs(self) -> TabularType:
-        """returns a table summarising log files"""
-        rows = []
-        for record in self.logs:
-            data = record.read().splitlines()
-            first = data.pop(0).split("\t")
-            row = [first[0], record.name]
-            key = None
-            mapped = {}
-            for line in data:
-                line = line.split("\t")[-1].split(" : ", maxsplit=1)
-                if len(line) == 1:
-                    mapped[key] += line[0]
-                    continue
-
-                key = line[0]
-                mapped[key] = line[1]
-
-            data = mapped
-            row.extend(
-                [
-                    data["python"],
-                    data["user"],
-                    data["command_string"],
-                    data["composable function"],
-                ]
-            )
-            rows.append(row)
-        return Table(
-            header=["time", "name", "python version", "who", "command", "composable"],
-            data=rows,
-            title="summary of log files",
-        )
-
-    @property
-    def summary_not_completed(self) -> TabularType:
-        """returns a table summarising not completed results"""
-        # detect last exception line
-        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
-        types = defaultdict(list)
-        indices = "type", "origin"
-        for member in self.not_completed:
-            record = member.read()
-            record = deserialise_not_completed(record)
-            key = tuple(getattr(record, k, None) for k in indices)
-            match = err_pat.findall(record.message)
-            types[key].append([match[-1] if match else record.message, record.source])
-
-        header = list(indices) + ["message", "num", "source"]
-        rows = []
-        maxtring = reprlib.aRepr.maxstring
-        reprlib.aRepr.maxstring = 45
-
-        for record in types:
-            messages, sources = list(zip(*types[record]))
-            messages = reprlib.repr(
-                ", ".join(m.splitlines()[-1] for m in set(messages))
-            )
-            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
-            row = list(record) + [
-                messages,
-                len(types[record]),
-                sources,
-            ]
-            rows.append(row)
-
-        reprlib.aRepr.maxstring = maxtring  # restoring original val
-        return Table(header=header, data=rows, title="not completed records")
-
-    def __repr__(self):
-        num = len(self.members)
-        name = self.__class__.__name__
-        sample = f"{list(self[:2])}..." if num > 2 else list(self)
-        return f"{num}x member {name}(source='{self.source}', members={sample})"
+        _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
 
 
 @singledispatch
