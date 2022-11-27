@@ -17,6 +17,7 @@ from cogent3.app.data_store_new import (
     READONLY,
     DataMember,
     DataStoreABC,
+    Mode,
 )
 
 
