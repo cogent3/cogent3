@@ -386,25 +386,6 @@ def test_new_write_read(full_dstore_sqlite):
     assert got == data
 
 
-'''
-def test_append to reset log_id
-
-def test_multi_write(fasta_dir, w_dstore):
-    """correctly write multiple files to data store"""
-    expect_a = Path(fasta_dir / "brca1.fasta").read_text()
-    expect_b = Path(fasta_dir / "primates_brca1.fasta").read_text()
-    identifier_a = "brca2.fasta"
-    identifier_b = "primates_brca2.fasta"
-    w_dstore.write(unique_id=identifier_a, data=expect_a)
-    w_dstore.write(unique_id=identifier_b, data=expect_b)
-    got_a = w_dstore.read(identifier_a)
-    got_b = w_dstore.read(identifier_b)
-    # check that both bits of data match
-    assert got_a == expect_a
-    assert got_b == expect_b
-'''
-
-
 def test_summary_logs(full_dstore_sqlite):
     # log summary has a row per log file and a column for each property
     got = full_dstore_sqlite.summary_logs
