@@ -272,6 +272,9 @@ class SqliteDataStore(DataStoreABC):
         self._not_completed = []
 
     def write(self, *, unique_id: str, data: str) -> DataMember:
+        if unique_id.startswith(_RESULT_TABLE):
+            unique_id = Path(unique_id).name
+
         super().write(unique_id=unique_id, data=data)
         member = self._write(
             table_name=_RESULT_TABLE,
@@ -284,12 +287,18 @@ class SqliteDataStore(DataStoreABC):
         return member
 
     def write_log(self, *, unique_id: str, data: str) -> None:
+        if unique_id.startswith(_LOG_TABLE):
+            unique_id = Path(unique_id).name
+
         super().write_log(unique_id=unique_id, data=data)
         _ = self._write(
             table_name=_LOG_TABLE, unique_id=unique_id, data=data, not_completed=False
         )
 
     def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+        if unique_id.startswith(_RESULT_TABLE):
+            unique_id = Path(unique_id).name
+
         super().write_not_completed(unique_id=unique_id, data=data)
         member = self._write(
             table_name=_RESULT_TABLE, unique_id=unique_id, data=data, not_completed=True
