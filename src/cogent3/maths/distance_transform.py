@@ -1266,10 +1266,12 @@ def binary_dist_hamming(datamtx, strict=True):
             dists[i][j] = dists[j][i] = dist
     return dists
 
-def fast_jaccard(x : iter, y: iter):
+
+def fast_jaccard(x: iter, y: iter):
     xset = set(x)
     yset = set(y)
     return 1 - len(xset & yset) / len(xset | yset)
+
 
 @singledispatch
 def jaccard(x, y):
@@ -1282,7 +1284,7 @@ def jaccard(x, y):
 def _(x: set, y: set):
     """Jaccard distance between two sets is a measure of similarity between two sets
     (0) identical, (1) dissimilar"""
-    if not x or not y: # two empty sets are identical
+    if not x or not y:  # two empty sets are identical
         return 0
     return 1 - len(x & y) / len(x | y)
 
@@ -1291,7 +1293,7 @@ def _(x: set, y: set):
 def _(x: frozenset, y: frozenset):
     """Jaccard distance between two sets is a measure of similarity between two sets
     (0) identical, (1) dissimilar"""
-    if not x or not y: # two empty sets are identical
+    if not x or not y:  # two empty sets are identical
         return 0
     return 1 - len(x & y) / len(x | y)
 
@@ -1300,7 +1302,7 @@ def _(x: frozenset, y: frozenset):
 def _(x: numpy.ndarray, y: numpy.ndarray):
     """Jaccard distance between two sets is a measure of similarity between two sets
     (0) identical, (1) dissimilar"""
-    if not x.any() and not y.any(): # two empty sets are identical
+    if not x.any() and not y.any():  # two empty sets are identical
         return 0
     return 1 - len(numpy.intersect1d(x, y)) / len(numpy.union1d(x, y))
 
