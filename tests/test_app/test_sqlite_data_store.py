@@ -260,26 +260,30 @@ def test_read_log(sql_dstore, log_data):
     assert got == log_data
 
 
-def test_write(sql_dstore, ro_dir_dstore):
-    """correctly write content"""
+@pytest.mark.parametrize("binary", (False, True))
+def test_write_text_binary(sql_dstore, ro_dir_dstore, binary):
+    """correctly write content whether text or binary data"""
+    db = SqliteDataStore(":memory:", mode=OVERWRITE)
     expect = Path(ro_dir_dstore.source / "brca1.fasta").read_text()
-    identifier = "result_table/brca1.fasta"
-    sql_dstore.write(unique_id=identifier, data=expect)
-    got = sql_dstore.read(identifier)
+    if binary:
+        expect = dumps(expect)
+    identifier = "brca1.fasta"
+    m = db.write(unique_id=identifier, data=expect)
+    got = m.read()
     assert got == expect
 
 
 def test_write_if_member_exists(sql_dstore, ro_dir_dstore):
     """correctly write content"""
     expect = Path(ro_dir_dstore.source / "brca1.fasta").read_text()
-    identifier = "result_table/brca1.fasta"
-    sql_dstore.write(unique_id=identifier, data=expect)
-    got = sql_dstore.read(identifier)
+    identifier = "brca1.fasta"
+    m = sql_dstore.write(unique_id=identifier, data=expect)
+    got = m.read()
     assert got == expect
     sql_dstore._mode = OVERWRITE
-    identifier = "result_table/brca1.fasta"
-    sql_dstore.write(unique_id=identifier, data=expect)
-    got = sql_dstore.read(identifier)
+    identifier = "brca1.fasta"
+    m = sql_dstore.write(unique_id=identifier, data=expect)
+    got = m.read()
     assert got == expect
 
 
@@ -386,23 +390,16 @@ def test_new_write_read(full_dstore_sqlite):
     assert got == data
 
 
-'''
-def test_append to reset log_id
-
-def test_multi_write(fasta_dir, w_dstore):
-    """correctly write multiple files to data store"""
-    expect_a = Path(fasta_dir / "brca1.fasta").read_text()
-    expect_b = Path(fasta_dir / "primates_brca1.fasta").read_text()
-    identifier_a = "brca2.fasta"
-    identifier_b = "primates_brca2.fasta"
-    w_dstore.write(unique_id=identifier_a, data=expect_a)
-    w_dstore.write(unique_id=identifier_b, data=expect_b)
-    got_a = w_dstore.read(identifier_a)
-    got_b = w_dstore.read(identifier_b)
-    # check that both bits of data match
-    assert got_a == expect_a
-    assert got_b == expect_b
-'''
+@pytest.mark.parametrize("table_name", ("", _RESULT_TABLE))
+def test_new_write_id_includes_table(full_dstore_sqlite, table_name):
+    """correctly handles table name if included in unique id"""
+    identifier = "test1.fasta"
+    if table_name:
+        identifier = str(Path(table_name) / identifier)
+    data = "test data"
+    m = full_dstore_sqlite.write(unique_id=identifier, data=data)
+    got = full_dstore_sqlite.read(m.unique_id)
+    assert got == data
 
 
 def test_summary_logs(full_dstore_sqlite):
