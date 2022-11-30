@@ -362,7 +362,7 @@ class functionTests(TestCase):
             assert_allclose(jaccard(a, c), 1)
             assert_allclose(jaccard(a, empty), 1) 
             assert_allclose(jaccard(empty, a), 1) 
-            assert_allclose(jaccard(empty, empty), 1)
+            assert_allclose(jaccard(empty, empty), 0)
             
             
         # compare 2 large (500 element) sets
@@ -386,7 +386,7 @@ class functionTests(TestCase):
         assert_allclose(jaccard(a, c), 1)
         assert_allclose(jaccard(a, empty), 1) 
         assert_allclose(jaccard(empty, a), 1) 
-        assert_allclose(jaccard(empty, empty), 1)
+        assert_allclose(jaccard(empty, empty), 0)
 
         # compare 2 large (500 element) sets
         seed(0)
