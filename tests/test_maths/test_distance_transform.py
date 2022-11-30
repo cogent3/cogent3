@@ -2,6 +2,7 @@
 """Unit tests for distance_transform.py functions.
 """
 
+from random import seed, randint, sample
 from unittest import TestCase, main
 
 from numpy import array, ones, shape, sqrt
@@ -355,18 +356,47 @@ class functionTests(TestCase):
             a = klass([1, 2, 3])
             b = klass([2, 3, 4])
             c = klass([4, 5, 6])
+            empty = klass([])
             assert_allclose(jaccard(a, b), 2 / 4)
             assert_allclose(jaccard(a, a), 0)
             assert_allclose(jaccard(a, c), 1)
+            assert_allclose(jaccard(a, empty), 1) 
+            assert_allclose(jaccard(empty, a), 1) 
+            assert_allclose(jaccard(empty, empty), 1)
+            
+            
+        # compare 2 large (500 element) sets
+        seed(0)
+        values = [randint(0, 1_000_000) for _ in range(1000)]
+        # choose 2 sets of 500 random items from the list
+        a = set(sample(values, 500))
+        b = set(sample(values, 500))
+        distance = jaccard(a, b)
+        assert_allclose(distance, 0.6715425)
 
+            
     def test_jaccard_ndarray(self):
         """tests jaccard_ndarray"""
         a = array([1, 2, 3])
         b = array([2, 3, 4])
         c = array([4, 5, 6])
+        empty =array([])
         assert_allclose(jaccard(a, b), 2 / 4)
         assert_allclose(jaccard(a, a), 0)
         assert_allclose(jaccard(a, c), 1)
+        assert_allclose(jaccard(a, empty), 1) 
+        assert_allclose(jaccard(empty, a), 1) 
+        assert_allclose(jaccard(empty, empty), 1)
+
+        # compare 2 large (500 element) sets
+        seed(0)
+        values = [randint(0, 1_000_000) for _ in range(1000)]
+        # choose 2 sets of 500 random items from the list
+        a = array([sample(values, 500)])
+        b = array([sample(values, 500)])
+        distance = jaccard(a, b)
+        assert_allclose(distance, 0.6715425)
+
 
     def test_jaccard_other(self):
         """tests jaccard using types not covered with single dispatch"""
