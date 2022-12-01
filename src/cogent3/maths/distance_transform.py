@@ -1282,14 +1282,14 @@ def jaccard(x, y):
 
 @jaccard.register
 def _(x: set, y: set):
-    if not x or not y:  # two empty sets are identical
+    if not x and not y:  # two empty sets are identical
         return 0
     return 1 - len(x & y) / len(x | y)
 
 
 @jaccard.register
 def _(x: frozenset, y: frozenset):
-    if not x or not y:  # two empty sets are identical
+    if not x and not y:  # two empty sets are identical
         return 0
     return 1 - len(x & y) / len(x | y)
 
