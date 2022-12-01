@@ -18,7 +18,7 @@ def test(session):
         "--junitxml",
         f"junit-{py_version}.xml",
         "--cov-report",
-        "xml",
+        f"lcov:lcov-{session.python}.info",
         "--cov",
         "cogent3",
         "--ignore",
