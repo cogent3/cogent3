@@ -11,6 +11,7 @@ from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
+from typing import Union
 
 from scitrack import get_text_hexdigest
 
@@ -34,6 +35,8 @@ __status__ = "Alpha"
 _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"
+
+StrOrBytes = Union[str, bytes]
 
 
 class Mode(Enum):
@@ -59,10 +62,10 @@ class DataMemberABC(ABC):
     def unique_id(self):
         ...
 
-    def read(self) -> str | bytes:
+    def read(self) -> StrOrBytes:
         return self.data_store.read(self.unique_id)
 
-    def write(self, data: str) -> None:
+    def write(self, data: StrOrBytes) -> None:
         self.data_store.write(unique_id=self.unique_id, data=data)
 
 
@@ -103,7 +106,7 @@ class DataStoreABC(ABC):
         return any(identifier == m.unique_id for m in self)
 
     @abstractmethod
-    def read(self, unique_id: str) -> str | bytes:
+    def read(self, unique_id: str) -> StrOrBytes:
         ...
 
     def _check_writable(self, unique_id: str):
@@ -113,15 +116,15 @@ class DataStoreABC(ABC):
             raise IOError("cannot overwrite existing record in append mode")
 
     @abstractmethod
-    def write(self, *, unique_id: str, data: str | bytes) -> None:
+    def write(self, *, unique_id: str, data: StrOrBytes) -> None:
         self._check_writable(unique_id)
 
     @abstractmethod
-    def write_not_completed(self, unique_id: str, data: str | bytes) -> None:
+    def write_not_completed(self, unique_id: str, data: StrOrBytes) -> None:
         self._check_writable(unique_id)
 
     @abstractmethod
-    def write_log(self, unique_id: str, data: str | bytes) -> None:
+    def write_log(self, unique_id: str, data: StrOrBytes) -> None:
         self._check_writable(unique_id)
 
     @property
