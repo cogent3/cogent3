@@ -1282,8 +1282,6 @@ def jaccard(x, y):
 
 @jaccard.register
 def _(x: set, y: set):
-    """Jaccard distance between two sets is a measure of similarity between two sets
-    (0) identical, (1) dissimilar"""
     if not x or not y:  # two empty sets are identical
         return 0
     return 1 - len(x & y) / len(x | y)
@@ -1291,8 +1289,6 @@ def _(x: set, y: set):
 
 @jaccard.register
 def _(x: frozenset, y: frozenset):
-    """Jaccard distance between two sets is a measure of similarity between two sets
-    (0) identical, (1) dissimilar"""
     if not x or not y:  # two empty sets are identical
         return 0
     return 1 - len(x & y) / len(x | y)
@@ -1300,8 +1296,6 @@ def _(x: frozenset, y: frozenset):
 
 @jaccard.register
 def _(x: numpy.ndarray, y: numpy.ndarray):
-    """Jaccard distance between two sets is a measure of similarity between two sets
-    (0) identical, (1) dissimilar"""
     if not x.any() and not y.any():  # two empty sets are identical
         return 0
     return 1 - len(numpy.intersect1d(x, y)) / len(numpy.union1d(x, y))
