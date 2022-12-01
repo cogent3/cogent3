@@ -125,7 +125,7 @@ class DataStoreABC(ABC):
         self._check_writable(unique_id)
 
     @property
-    def members(self) -> list[DataMember]:
+    def members(self) -> list[DataMemberABC]:
         return self.completed + self.not_completed
 
     def __iter__(self):
