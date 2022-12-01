@@ -5,8 +5,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
-
-from scipy.stats import norm, f, t
+from scipy.stats import f, norm, t
 
 from cogent3.maths.stats.special import (
     MACHEP,
@@ -35,7 +34,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"

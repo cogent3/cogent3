@@ -288,6 +288,11 @@ Wrap a container with a constraint. This is useful for enforcing that the data c
 Here is a light example of the ``ConstrainedDict``
 
 .. jupyter-execute::
+    :hide-code:
+
+    from cogent3.util.misc import ConstraintError
+
+.. jupyter-execute::
 
     from cogent3.util.misc import ConstrainedDict
 

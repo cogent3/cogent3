@@ -43,7 +43,7 @@ __author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -1195,7 +1195,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
 class CodonSequenceTests(SequenceTests, TestCase):
     class SequenceClass(ArrayCodonSequence):
-        alphabet = DNA.alphabets.base.Triples
+        alphabet = DNA.alphabets.base ** 3
 
     def test_init(self):
         """Sequence should do round-trip from string"""

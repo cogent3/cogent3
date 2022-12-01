@@ -63,7 +63,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -1847,7 +1847,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet.Triples,
+            alphabet=self.alphabet ** 3,
         )
 
     def complement(self):

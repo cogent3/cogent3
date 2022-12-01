@@ -1,7 +1,6 @@
 from numpy import log, outer, sqrt, zeros
 from numpy.random import shuffle
 from numpy.testing import assert_allclose
-
 from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.test import G_fit
@@ -12,7 +11,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"

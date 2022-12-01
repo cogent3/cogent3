@@ -1,4 +1,6 @@
-from typing import List, Tuple, Union
+import sys
+
+from typing import List, Set, Tuple, Union
 
 import pytest
 
@@ -11,6 +13,7 @@ from cogent3.app.typing import (
     UnalignedSeqsType,
     get_constraint_names,
     hints_from_strings,
+    type_tree,
 )
 
 
@@ -18,7 +21,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.5.25a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -93,8 +96,18 @@ def test_hints_resolved_from_str():
     assert got == {"SerialisableType", "DnaSequence"}
 
 
-@pytest.mark.parametrize("container", (List, Tuple))
+@pytest.mark.parametrize("container", (List, Tuple, Set))
 def test_hints_from_container_type(container):
+    got = get_constraint_names(container[AlignedSeqsType])
+    assert got == {"Alignment", "ArrayAlignment"}
+
+
+@pytest.mark.skipif(
+    (sys.version_info.major, sys.version_info.minor) == (3, 8),
+    reason="type object subscripting supported in >= 3.9",
+)
+@pytest.mark.parametrize("container", (list, set, tuple))
+def test_hints_from_container_type_obj(container):
     got = get_constraint_names(container[AlignedSeqsType])
     assert got == {"Alignment", "ArrayAlignment"}
 
@@ -107,3 +120,24 @@ def test_hint_inherited_class():
 
     got = get_constraint_names(dummy)
     assert got == frozenset(["dummy"])
+
+
+@pytest.mark.parametrize(
+    "hint,expect", ((int, 1), (Set[int], 2), (List[List[Set[float]]], 4))
+)
+def test_typing_tree_depth(hint, expect):
+    d, _ = type_tree(hint)
+    assert d == expect, (d, expect)
+
+
+@pytest.mark.parametrize(
+    "hint,expect",
+    (
+        (int, int),
+        (Set[int], (set, (int,))),
+        (List[Set[int]], (list, (set, (int,)))),
+    ),
+)
+def test_type_tree(hint, expect):
+    _, t = type_tree(hint)
+    assert t == expect, (t, expect)

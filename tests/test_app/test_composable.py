@@ -5,6 +5,7 @@ import pickle
 
 from pickle import dumps, loads
 from tempfile import TemporaryDirectory
+from typing import Set, Tuple
 from unittest import main
 from unittest.mock import Mock
 
@@ -46,7 +47,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -980,6 +981,57 @@ def test_handles_None():
     assert isinstance(got, NotCompleted)
 
     __app_registry.pop(get_object_provenance(none_out), None)
+
+
+def test_validate_data_type_not_completed_pass_through():
+    # returns the instance of a NotCompleted created by an input
+    @define_app
+    def take_int1(val: int) -> int:
+        return NotCompleted("ERROR", "take_int1", "external to app", source="unknown")
+
+    @define_app
+    def take_int2(val: int) -> int:
+        return val
+
+    app = take_int1() + take_int2()
+    got = app(2)
+    assert got.origin == "take_int1"
+
+    __app_registry.pop(get_object_provenance(take_int1), None)
+    __app_registry.pop(get_object_provenance(take_int2), None)
+
+
+@pytest.mark.parametrize("first,ret", ((Tuple[Set[str]], int), (int, Tuple[Set[str]])))
+def test_complex_type(first, ret):
+    # disallow >2-deep nesting of types for first arg and return type
+    with pytest.raises(TypeError):
+
+        @define_app
+        class x:
+            def main(self, data: first) -> ret:
+                return data
+
+
+@pytest.mark.parametrize("hint", (Tuple[Set[str]], Tuple[Tuple[Set[str]]]))
+def test_complex_type_depths(hint):
+    # disallow >2-deep nesting of types for first arg and return type
+    with pytest.raises(TypeError):
+
+        @define_app
+        class x:
+            def main(self, data: hint) -> bool:
+                return True
+
+
+@pytest.mark.parametrize("hint", (int, Set[str]))
+def test_complex_type_allowed_depths(hint):
+    # allowed <=2-deep nesting of types
+    @define_app
+    class x:
+        def main(self, data: hint) -> int:
+            return int
+
+    __app_registry.pop(get_object_provenance(x), None)
 
 
 if __name__ == "__main__":
