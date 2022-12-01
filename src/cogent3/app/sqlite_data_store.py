@@ -16,8 +16,10 @@ from cogent3.app.data_store_new import (
     APPEND,
     READONLY,
     DataMember,
+    DataMemberABC,
     DataStoreABC,
     Mode,
+    StrOrBytes,
 )
 
 
@@ -33,6 +35,7 @@ __status__ = "Alpha"
 _RESULT_TABLE = "result_table"
 _MEMORY = ":memory:"
 _mem_pattern = re.compile(r"^\s*[:]{0,1}memory[:]{0,1}\s*$")
+
 
 # create db
 def open_sqlite_db_rw(path: Union[str, Path]):
@@ -173,7 +176,7 @@ class SqliteDataStore(DataStoreABC):
         result = self.db.execute("SELECT lock_pid FROM state").fetchone()
         return result[0] if result else result
 
-    def read(self, identifier: str) -> str | bytes:
+    def read(self, identifier: str) -> StrOrBytes:
         """
         identifier string formed from Path(table_name) / identifier
         """
@@ -211,7 +214,9 @@ class SqliteDataStore(DataStoreABC):
             )
         return self._not_completed
 
-    def _select_members(self, table_name: str, not_completed: bool) -> list[DataMember]:
+    def _select_members(
+        self, table_name: str, not_completed: bool
+    ) -> list[DataMemberABC]:
         limit = f"LIMIT {self._limit}" if self._limit else ""
         cmnd = self.db.execute(
             f"SELECT record_id FROM {table_name} WHERE not_completed=? {limit}",
@@ -233,7 +238,7 @@ class SqliteDataStore(DataStoreABC):
 
     def _write(
         self, *, table_name: str, unique_id: str, data: str, not_completed: bool
-    ) -> DataMember | None:
+    ) -> DataMemberABC | None:
         """
         Parameters
         ----------
@@ -271,7 +276,7 @@ class SqliteDataStore(DataStoreABC):
         self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE not_completed=1")
         self._not_completed = []
 
-    def write(self, *, unique_id: str, data: str) -> DataMember:
+    def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         if unique_id.startswith(_RESULT_TABLE):
             unique_id = Path(unique_id).name
 
@@ -286,7 +291,7 @@ class SqliteDataStore(DataStoreABC):
             self._completed.append(member)
         return member
 
-    def write_log(self, *, unique_id: str, data: str) -> None:
+    def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
         if unique_id.startswith(_LOG_TABLE):
             unique_id = Path(unique_id).name
 
@@ -295,7 +300,7 @@ class SqliteDataStore(DataStoreABC):
             table_name=_LOG_TABLE, unique_id=unique_id, data=data, not_completed=False
         )
 
-    def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+    def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         if unique_id.startswith(_RESULT_TABLE):
             unique_id = Path(unique_id).name
 
