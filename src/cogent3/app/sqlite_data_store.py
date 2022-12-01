@@ -16,6 +16,7 @@ from cogent3.app.data_store_new import (
     APPEND,
     READONLY,
     DataMember,
+    DataMemberABC,
     DataStoreABC,
     Mode,
 )
@@ -211,7 +212,9 @@ class SqliteDataStore(DataStoreABC):
             )
         return self._not_completed
 
-    def _select_members(self, table_name: str, not_completed: bool) -> list[DataMember]:
+    def _select_members(
+        self, table_name: str, not_completed: bool
+    ) -> list[DataMemberABC]:
         limit = f"LIMIT {self._limit}" if self._limit else ""
         cmnd = self.db.execute(
             f"SELECT record_id FROM {table_name} WHERE not_completed=? {limit}",
@@ -233,7 +236,7 @@ class SqliteDataStore(DataStoreABC):
 
     def _write(
         self, *, table_name: str, unique_id: str, data: str, not_completed: bool
-    ) -> DataMember | None:
+    ) -> DataMemberABC | None:
         """
         Parameters
         ----------
