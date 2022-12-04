@@ -53,6 +53,7 @@ EXAMPLE USAGE:
 """
 
 from functools import singledispatch
+from typing import Union
 
 import numpy
 
@@ -63,7 +64,6 @@ from numpy import (
     argsort,
     array,
     asarray,
-    intersect1d,
     isfinite,
     isnan,
     logical_and,
@@ -1266,38 +1266,33 @@ def binary_dist_hamming(datamtx, strict=True):
             dists[i][j] = dists[j][i] = dist
     return dists
 
-
-def fast_jaccard(x: iter, y: iter):
-    xset = set(x)
-    yset = set(y)
-    return 1 - len(xset & yset) / len(xset | yset)
-
+T = Union[set,frozenset, numpy.ndarray]
 
 @singledispatch
-def jaccard(x, y):
-    """Jaccard distance between two sets is a measure of similarity between two sets
+def jaccard(x : T, y : T) -> float:
+    """Jaccard distance between two sets is a measure of similarity between two sets (or two ndarrays)
     (0) identical, (1) dissimilar"""
     raise NotImplementedError(f"jaccard distance not implemented for {type(x)}")
 
 
 @jaccard.register
-def _(x: set, y: set):
+def _(x: set, y: set) -> float:
     if not x and not y:  # two empty sets are identical
-        return 0
+        return 0.0
     return 1 - len(x & y) / len(x | y)
 
 
 @jaccard.register
-def _(x: frozenset, y: frozenset):
+def _(x: frozenset, y: frozenset) -> float:
     if not x and not y:  # two empty sets are identical
-        return 0
+        return 0.0
     return 1 - len(x & y) / len(x | y)
 
 
 @jaccard.register
-def _(x: numpy.ndarray, y: numpy.ndarray):
+def _(x: numpy.ndarray, y: numpy.ndarray) -> float:
     if not x.any() and not y.any():  # two empty sets are identical
-        return 0
+        return 0.0
     return 1 - len(numpy.intersect1d(x, y)) / len(numpy.union1d(x, y))
 
 
