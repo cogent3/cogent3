@@ -88,13 +88,13 @@ def open_sqlite_db_ro(path):
     return db
 
 
-class SqliteDataStore(DataStoreABC):
+class DataStoreSqlite(DataStoreABC):
     store_suffix = "sqlitedb"
 
     def __init__(
         self,
         source,
-        mode: Mode,
+        mode: Mode = READONLY,  # new default value
         limit=None,
         verbose=False,
     ):
@@ -107,11 +107,7 @@ class SqliteDataStore(DataStoreABC):
                 if source.suffix[1:] == self.store_suffix  # sliced to remove "."
                 else Path(f"{source}.{self.store_suffix}")
             )
-
-        super().__init__(
-            source=source,
-            mode=mode,
-        )
+        self.mode = mode
         if mode is not READONLY and limit is not None:
             raise ValueError(
                 "Using limit argument is only valid for readonly datastores"
@@ -120,9 +116,6 @@ class SqliteDataStore(DataStoreABC):
         self._verbose = verbose
         self._checksums = {}
         self._db = None
-        self._members = []
-        self._completed = []
-        self._not_completed = []
         self._open = False
         self._log_id = None
 
@@ -134,23 +127,14 @@ class SqliteDataStore(DataStoreABC):
         obj = self.__class__(**state)
         self.__dict__.update(obj.__dict__)
 
-    def __contains__(self, unique_id: str):
-        """whether relative identifier has been stored"""
-        # todo add limit here
-        query = f"SELECT count(*) as c FROM {_RESULT_TABLE} where record_id == ?"
-        result = self.db.execute(query, (unique_id,)).fetchone()
-        if result["c"] > 0:
-            return True
-        return False
-
     @property
     def db(self):
         if self._db is None:
-            db_func = open_sqlite_db_ro if self._mode is READONLY else open_sqlite_db_rw
+            db_func = open_sqlite_db_ro if self.mode is READONLY else open_sqlite_db_rw
             self._db = db_func(self.source)
             self._open = True
 
-            if self._mode is not READONLY:
+            if self.mode is not READONLY:
                 pid = os.getpid()
                 self._db.execute("INSERT INTO state(lock_pid) VALUES (?)", (pid,))
 
@@ -263,13 +247,14 @@ class SqliteDataStore(DataStoreABC):
             return None
         md5 = get_text_hexdigest(data)
 
-        if unique_id in self and self._mode is not APPEND:
+        if unique_id in self and self.mode is not APPEND:
             cmnd = f"UPDATE {table_name} SET data= ?, log_id=?, md5=? WHERE record_id=?"
             self.db.execute(cmnd, (data, self._log_id, md5, unique_id))
+        #            return None  # new because this was updating old member and was adding new member by returning a DataMember
         else:
             cmnd = f"INSERT INTO {table_name} (record_id,data,log_id,md5,not_completed) VALUES (?,?,?,?,?)"
             self.db.execute(cmnd, (unique_id, data, self._log_id, md5, not_completed))
-        return DataMember(self, Path(table_name) / unique_id)
+        return DataMember(self, Path(table_name) / unique_id)  # new indented
 
     def drop_not_completed(self) -> None:
         # self.db.execute(f"DELETE FROM {_MD5_TABLE} WHERE record_id IN (SELECT record_id FROM {_RESULT_TABLE} WHERE not_completed=1)")
@@ -287,7 +272,9 @@ class SqliteDataStore(DataStoreABC):
             data=data,
             not_completed=False,
         )
-        if member is not None:
+        if (
+            member is not None and member not in self._completed
+        ):  # new to check existence
             self._completed.append(member)
         return member
 
@@ -312,7 +299,29 @@ class SqliteDataStore(DataStoreABC):
             self._not_completed.append(member)
         return member
 
-    def md5(self, unique_id: str) -> str:
+    @property
+    def source(self) -> str | Path:
+        """string that references connecting to data store, override in subclass constructor"""
+        return self._source
+
+    # why we don't write this in base class?
+
+    @source.setter
+    def source(self, value):
+        self._source = value
+
+    @property
+    def mode(self) -> Mode:
+        """string that references datastore mode, override in override in subclass constructor"""
+        return self._mode
+
+    # why we don't write this in base class?
+
+    @mode.setter
+    def mode(self, value):
+        self._mode = value
+
+    def md5(self, unique_id: str) -> str:  # we have it in base class
         """
         Parameters
         ----------
