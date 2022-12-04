@@ -5,16 +5,18 @@ import inspect
 import re
 import reprlib
 import shutil
+import traceback
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
 
+from cogent3.app.data_store import _db_lockid
 from cogent3.app.typing import TabularType
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util.deserialise import deserialise_object
@@ -51,11 +53,18 @@ READONLY = Mode.r
 
 
 class DataMemberABC(ABC):
-    def __init__(self, data_store: "DataStoreABC" = None):
-        self.data_store = data_store
-
     def __str__(self):
         return self.unique_id
+
+    @property
+    @abstractmethod
+    def data_store(self) -> DataStoreABC:
+        ...
+
+    @data_store.setter
+    @abstractmethod
+    def data_store(self, value):
+        ...
 
     @property
     @abstractmethod
@@ -67,6 +76,15 @@ class DataMemberABC(ABC):
 
     def write(self, data: StrOrBytes) -> None:
         self.data_store.write(unique_id=self.unique_id, data=data)
+
+    def __eq__(self, other):
+        """to check equality of members and check existence of a
+        member in a list of members"""
+        return self.unique_id == other.unique_id
+
+    @property
+    def md5(self):
+        return self.data_store.md5(self.unique_id)
 
 
 class DataStoreABC(ABC):
@@ -80,14 +98,34 @@ class DataStoreABC(ABC):
         init_vals.pop("self", None)
 
         obj._init_vals = init_vals
+
+        # obj._members = [] #this list removed completety
+        obj._completed = []  # new moved here
+        obj._not_completed = []  # new moved here
+
         return obj
 
-    def __init__(
-        self,
-        source: str | Path,
-        mode: Mode = READONLY,
-    ):
-        self._mode = Mode(mode)
+    @property
+    @abstractmethod
+    def source(self) -> str | Path:
+        """string that references connecting to data store, override in subclass constructor"""
+        ...
+
+    @source.setter
+    @abstractmethod
+    def source(self, value):
+        ...
+
+    @property
+    @abstractmethod
+    def mode(self) -> Mode:
+        """string that references datastore mode, override in override in subclass constructor"""
+        ...
+
+    @mode.setter
+    @abstractmethod
+    def mode(self, value):
+        ...
 
     def __repr__(self):
         num = len(self.members)
@@ -103,16 +141,16 @@ class DataStoreABC(ABC):
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
-        return any(identifier == m.unique_id for m in self)
+        return any(Path(identifier).stem == Path(m.unique_id).stem for m in self)
 
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes:
         ...
 
     def _check_writable(self, unique_id: str):
-        if self._mode is READONLY:
+        if self.mode is READONLY:
             raise IOError("datastore is readonly")
-        elif unique_id in self and self._mode is APPEND:
+        elif unique_id in self and self.mode is APPEND:
             raise IOError("cannot overwrite existing record in append mode")
 
     @abstractmethod
@@ -148,6 +186,11 @@ class DataStoreABC(ABC):
     @abstractmethod
     def not_completed(self) -> list[DataMemberABC]:
         ...
+
+    def set_limit(self, limit):  # new
+        self._completed = []
+        self._not_completed = []
+        self._limit = limit
 
     @property
     def summary_logs(self) -> TabularType:
@@ -256,12 +299,30 @@ class DataStoreABC(ABC):
                 ["Has log", len(self.logs) > 0],
             ],
             title="validate status",
+            index_name="Condition",
         )
+
+    def md5(self, unique_id: str) -> str:  # is it good in base class
+        """
+        Parameters
+        ----------
+        unique_id
+            name of data store member
+
+        Returns
+        -------
+        md5 checksum for the member, if available, None otherwise
+        """
+        unique_id = Path(unique_id)
+        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
+        path = self.source / _MD5_TABLE / unique_id
+
+        return path.read_text() if path.exists() else None
 
 
 class DataMember(DataMemberABC):
     def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
-        super().__init__(data_store)
+        self.data_store = data_store
         self._unique_id = str(unique_id)
 
     def __repr__(self):
@@ -272,12 +333,16 @@ class DataMember(DataMemberABC):
         return self._unique_id
 
     @property
-    def source(self):
+    def source(self):  # ??
         return self.unique_id
 
     @property
-    def md5(self):
-        return self.data_store.md5(self.unique_id)
+    def data_store(self) -> DataStoreABC:
+        return self._data_store
+
+    @data_store.setter
+    def data_store(self, value):
+        self._data_store = value
 
 
 class DataStoreDirectory(DataStoreABC):
@@ -289,18 +354,16 @@ class DataStoreDirectory(DataStoreABC):
         limit=None,
         verbose=False,
     ):
-        super().__init__(source, mode)
+        self.mode = mode
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
         source = Path(source)
         self.source = source.expanduser()
         self.suffix = suffix
-        self._completed = []
-        self._not_completed = []
-        self._limit = limit
         self._verbose = verbose
         self._source_check_create(mode)
+        self._limit = limit
 
     def __contains__(self, item: str):
         item = f"{item}.{self.suffix}" if self.suffix not in item else item
@@ -329,29 +392,34 @@ class DataStoreDirectory(DataStoreABC):
         for sub_dir in sub_dirs:
             (source / sub_dir).mkdir(parents=True, exist_ok=True)
 
+    @property
+    def source(self) -> str | Path:
+        """string that references connecting to data store, override in subclass constructor"""
+        return self._source
+
+    # why we don't write this in base class?
+
+    @source.setter
+    def source(self, value):
+        self._source = value
+
+    @property
+    def mode(self) -> Mode:
+        """string that references datastore mode, override in override in subclass constructor"""
+        return self._mode
+
+    # why we don't write this in base class?
+
+    @mode.setter
+    def mode(self, value):
+        self._mode = value
+
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
         with open_(self.source / unique_id) as infile:
             data = infile.read()
 
         return data
-
-    def md5(self, unique_id: str) -> str:
-        """
-        Parameters
-        ----------
-        unique_id
-            name of data store member
-
-        Returns
-        -------
-        md5 checksum for the member, if available, None otherwise
-        """
-        unique_id = Path(unique_id)
-        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
-        path = self.source / _MD5_TABLE / unique_id
-
-        return path.read_text() if path.exists() else None
 
     def drop_not_completed(self):
         nc_dir = self.source / _NOT_COMPLETED_TABLE
@@ -488,3 +556,76 @@ def _(data: dict):
 @get_data_source.register
 def _(data: DataMemberABC):
     return str(data.unique_id)
+
+
+def upgrade_data_store(
+    inpath: Path, outpath: Path, insuffix, suffix: Optional[str] = None
+) -> DataStoreABC:
+    from cogent3.app import data_store as ds
+    from cogent3.app.io import get_data_store
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    insuffix = insuffix.lower()
+    suffix = suffix.lower()
+
+    if suffix == ".tinydb":
+        raise "cogent3 does not support tinydb. You can implement your own DataStore derived from DataStoreABC"
+    in_dstore = get_data_store(base_path=inpath, suffix=insuffix)
+
+    klass = ""
+    if suffix == ".sqlitedb":
+        klass = DataStoreSqlite
+    elif suffix is None or suffix == ".fasta" or suffix == "":
+        klass = DataStoreDirectory
+
+    out_dstore = klass(source=outpath, mode=OVERWRITE, suffix=suffix)
+    for member in in_dstore:
+        out_dstore.write(unique_id=member.name, data=member.read())
+
+    return out_dstore
+
+
+def _legacy_tiny_reader(source: Path, suffix):
+    try:
+        from fnmatch import fnmatch, translate
+
+        from tinydb import Query, TinyDB
+        from tinydb.middlewares import CachingMiddleware
+        from tinydb.storages import JSONStorage
+
+        from cogent3.app.data_store import load_record_from_json
+        from cogent3.app.sqlite_data_store import DataStoreSqlite
+    except ImportError as e:
+        raise ImportError(
+            "You need to install tinydb to be able to migrate to new datastore."
+        ) from e
+
+    storage = CachingMiddleware(JSONStorage)
+    storage.WRITE_CACHE_SIZE = 50  # todo support for user specifying
+    tinydb = TinyDB(str(source), storage=storage)
+    pattern = translate("*")
+    query = Query().identifier.matches(pattern)
+
+    id_list = []
+    data_list = []
+    for record in tinydb.search(query):
+        id_list.append(record["identifier"])
+        data_list.append(load_record_from_json(record))
+
+    dstore = DataStoreSqlite(
+        source=str(source.parent) + str(source.stem) + ".sqlitedb", mode=OVERWRITE
+    )
+
+    for id, data, is_completed in data_list:
+        if id == "LOCK":
+            cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
+            dstore.db.execute(cmnd, (data,))
+            # todo make sure _lockid of sqlitedb matches lockid from tinydb
+            assert dstore._lock_id == _db_lockid(str(source))
+        else:
+            if is_completed:
+                dstore.write(unique_id=id, data=data)
+            else:
+                dstore.write_not_completed(unique_id=id, data=data)
+
+    return dstore
