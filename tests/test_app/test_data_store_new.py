@@ -8,6 +8,14 @@ import pytest
 from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
+from cogent3.app.data_store import (
+    ReadOnlyDirectoryDataStore,
+    ReadOnlyTinyDbDataStore,
+    ReadOnlyZippedDataStore,
+    SingleReadDataStore,
+    WritableDirectoryDataStore,
+    WritableTinyDbDataStore,
+)
 from cogent3.app.data_store_new import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
@@ -16,6 +24,8 @@ from cogent3.app.data_store_new import (
     READONLY,
     DataMember,
     DataStoreDirectory,
+    _legacy_tiny_reader,
+    upgrade_data_store,
 )
 from cogent3.util.table import Table
 
@@ -192,6 +202,18 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
     return dstore
 
 
+def test_convert_tinydb_to_Sqlitedb(fasta_dir):
+    path = DATA_DIR / "data1.tinydb"
+    dstore_sqlite = _legacy_tiny_reader(path, ".tinydb")
+    assert len(dstore_sqlite) == 6
+
+
+def test_upgrade_dstore(fasta_dir, write_dir):
+    dstore = ReadOnlyDirectoryDataStore(fasta_dir, suffix=".fasta")
+    new_dstore = upgrade_data_store(dstore.source, write_dir, ".fasta", ".fasta")
+    assert len(dstore) == len(new_dstore)
+
+
 def test_fail_try_append(full_dstore, completed_objects):
     full_dstore._mode = APPEND
     id, data = list(completed_objects.items())[0]
@@ -357,12 +379,17 @@ def test_no_not_completed_subdir(nc_dstore):
     not_dir.mkdir(exist_ok=True)
 
 
-def test_limit_datastore(nc_dstore):
+def test_limit_datastore(nc_dstore):  # new changed
     assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
-    nc_dstore._limit = len(nc_dstore.completed)
+    nc_dstore.set_limit(len(nc_dstore.completed) // 2)
+    assert len(nc_dstore.completed) == len(nc_dstore.not_completed) == nc_dstore._limit
+    assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
     nc_dstore.drop_not_completed()
-    assert len(nc_dstore) == nc_dstore._limit
     assert len(nc_dstore) == len(nc_dstore.completed)
+    assert len(nc_dstore.not_completed) == 0
+    nc_dstore.set_limit(len(nc_dstore.completed) // 2)
+    assert len(nc_dstore) == len(nc_dstore.completed) == nc_dstore._limit
+    assert len(nc_dstore.not_completed) == 0
 
 
 def test_md5_sum(nc_dstore):
@@ -389,3 +416,39 @@ def test_describe(full_dstore):
     got = full_dstore.describe
     assert got.shape >= (3, 2)
     assert isinstance(got, Table)
+
+
+def test_iter(full_dstore):
+    members = list(full_dstore)
+    assert members == full_dstore.members
+
+
+def test_members(full_dstore):
+    completed = full_dstore.completed
+    not_completed = full_dstore.not_completed
+    assert full_dstore.members == completed + not_completed
+
+
+def test_validate(full_dstore):
+    validation_table = full_dstore.validate()
+    assert isinstance(validation_table, Table)
+    assert validation_table["Num md5sum correct", "Value"] == len(full_dstore)
+    assert validation_table["Num md5sum incorrect", "Value"] == 0
+    assert validation_table["Has log", "Value"] == True
+
+
+# new test
+def test_write_if_member_exists(full_dstore, write_dir):
+    """correctly write content"""
+    expect = Path(write_dir / "brca1.fasta").read_text()
+    identifier = "brca1.fasta"
+    len_dstore = len(full_dstore)
+    full_dstore.write(unique_id=identifier, data=expect)
+    assert len_dstore == len(full_dstore)
+    got = full_dstore.read(identifier)
+    assert got == expect
+    full_dstore._mode = OVERWRITE
+    full_dstore.write(unique_id=identifier, data=expect)
+    assert len_dstore == len(full_dstore)
+    got = full_dstore.read(identifier)
+    assert got == expect
