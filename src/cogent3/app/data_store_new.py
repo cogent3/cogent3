@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import contextlib
 import inspect
 import re
@@ -10,6 +9,7 @@ import traceback
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from dataclasses import dataclass
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
@@ -74,7 +74,6 @@ class DataMemberABC(ABC):
     def __repr__(self):
         return f"{self.__class__.__name__}( data_store={self.data_store.source}, unique_id={self.unique_id})"
 
-
     def read(self) -> StrOrBytes:
         return self.data_store.read(self.unique_id)
 
@@ -89,6 +88,7 @@ class DataMemberABC(ABC):
     @property
     def md5(self):
         return self.data_store.md5(self.unique_id)
+
 
 @dataclass
 class DataStoreABC(ABC):
@@ -110,22 +110,22 @@ class DataStoreABC(ABC):
         obj._not_completed = []
         return obj
 
-#     @property
-#     @abstractmethod
-#     def source(self) -> str | Path:
-#         """string that references connecting to data store, override in subclass constructor"""
-#         ...
+    #     @property
+    #     @abstractmethod
+    #     def source(self) -> str | Path:
+    #         """string that references connecting to data store, override in subclass constructor"""
+    #         ...
 
     # @source.setter
     # @abstractmethod
     # def source(self, value):
     #     ...
 
-#     @property
-#     @abstractmethod
-#     def mode(self) -> Mode:
-#         """string that references datastore mode, override in override in subclass constructor"""
-#         ...
+    #     @property
+    #     @abstractmethod
+    #     def mode(self) -> Mode:
+    #         """string that references datastore mode, override in override in subclass constructor"""
+    #         ...
 
     # @mode.setter
     # @abstractmethod
@@ -152,7 +152,6 @@ class DataStoreABC(ABC):
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
         return any(Path(identifier) == Path(m.unique_id) for m in self)
-
 
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes:
@@ -335,10 +334,10 @@ class DataMember(DataMemberABC):
 class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
-        source: Union[str,Path],
+        source: Union[str, Path],
         mode: Mode = READONLY,
-        suffix: Optional[str]=None,
-        limit: int=None,
+        suffix: Optional[str] = None,
+        limit: int = None,
         verbose=False,
     ):
         self.mode = Mode(mode)
@@ -373,7 +372,6 @@ class DataStoreDirectory(DataStoreABC):
         for sub_dir in sub_dirs:
             (source / sub_dir).mkdir(parents=True, exist_ok=True)
 
-
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
         with open_(self.source / unique_id) as infile:
@@ -395,7 +393,10 @@ class DataStoreDirectory(DataStoreABC):
     def logs(self) -> list[DataMember]:
         log_dir = self.source / _LOG_TABLE
         return (
-            [DataMember(data_store=self, unique_id=Path(_LOG_TABLE) / m.name) for m in log_dir.glob("*")]
+            [
+                DataMember(data_store=self, unique_id=Path(_LOG_TABLE) / m.name)
+                for m in log_dir.glob("*")
+            ]
             if log_dir.exists()
             else []
         )
@@ -418,7 +419,9 @@ class DataStoreDirectory(DataStoreABC):
                 if self.limit and i == self.limit:
                     break
                 self._not_completed.append(
-                    DataMember(data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / m.name)
+                    DataMember(
+                        data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / m.name
+                    )
                 )
         return self._not_completed
 
@@ -446,7 +449,9 @@ class DataStoreDirectory(DataStoreABC):
         if subdir == _LOG_TABLE:
             return None
         if subdir == _NOT_COMPLETED_TABLE:
-            member = DataMember(data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / unique_id)
+            member = DataMember(
+                data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / unique_id
+            )
         elif not subdir:
             member = DataMember(data_store=self, unique_id=unique_id)
 
@@ -520,7 +525,6 @@ def _(data: DataMemberABC):
 def upgrade_data_store(
     inpath: Path, outpath: Path, insuffix, suffix: Optional[str] = None
 ) -> DataStoreABC:
-    from cogent3.app import data_store as ds
     from cogent3.app.io import get_data_store
     from cogent3.app.sqlite_data_store import DataStoreSqlite
 
@@ -544,7 +548,7 @@ def upgrade_data_store(
     return out_dstore
 
 
-def _legacy_tiny_reader(source: Path, suffix):
+def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataStoreABC:
     try:
         from fnmatch import fnmatch, translate
 
@@ -571,9 +575,12 @@ def _legacy_tiny_reader(source: Path, suffix):
         id_list.append(record["identifier"])
         data_list.append(load_record_from_json(record))
 
-    path = Path(str(source.parent) + "/" +  str(source.stem) + ".sqlitedb")
-    path.unlink()
-    dstore = DataStoreSqlite(source=path, mode=OVERWRITE)
+    dest = dest or Path(source.parent) / f"{source.stem}.sqlitedb"
+    if dest.exists():
+        raise IOError(
+            f"Destination file {str(dest)} already exists. Delete or define new dest."
+        )
+    dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
 
     for id, data, is_completed in data_list:
         if id == "LOCK":
