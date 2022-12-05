@@ -11,6 +11,7 @@ from cogent3.app.data_store_new import (
     _LOG_TABLE,
     OVERWRITE,
     READONLY,
+    APPEND,
     DataMemberABC,
     DataStoreDirectory,
 )
@@ -63,7 +64,7 @@ def sql_dstore(ro_dir_dstore, db_dir):
 @pytest.fixture(scope="function")
 def ro_sql_dstore(sql_dstore):
     # we now need to write these out to a path
-    sql_dstore._mode = READONLY
+    sql_dstore.mode = READONLY
     return sql_dstore
 
 
@@ -128,6 +129,9 @@ def test_open_existing(dstore_on_disk):
 
 
 def test_open_to_append(dstore_on_disk):
+    ro = DataStoreSqlite(dstore_on_disk, mode=APPEND)
+
+def test_open_to_write(dstore_on_disk):
     ro = DataStoreSqlite(dstore_on_disk, mode=OVERWRITE)
 
 
@@ -156,7 +160,7 @@ def test_db_init_log():
 
 def test_open_sqlite_db_rw():
     db = open_sqlite_db_rw(":memory:")
-    # should make tables for completed, not completed, md5, log and state
+    # should make tables for results, log and state
     result = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
     assert len(result) == 3
     created_names = {r["name"] for r in result}
@@ -173,8 +177,8 @@ def test_rw_sql_dstore_mem(completed_objects):
     for unique_id, obj in completed_objects.items():
         db.write(data=obj, unique_id=unique_id)
     expect = len(completed_objects)
-    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE not_completed=?"
-    got = db.db.execute(query, (0,)).fetchone()["c"]
+    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE is_completed=?"
+    got = db.db.execute(query, (1,)).fetchone()["c"]
     assert got == expect, f"Failed for {_RESULT_TABLE} number of rows"
     assert len(db.completed) == expect
 
@@ -184,8 +188,8 @@ def test_not_completed(nc_objects):
     for unique_id, obj in nc_objects.items():
         db.write_not_completed(data=obj.to_json(), unique_id=unique_id)
     expect = len(nc_objects)
-    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE not_completed=?"
-    got = db.db.execute(query, (1,)).fetchone()["c"]
+    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE is_completed=?"
+    got = db.db.execute(query, (0,)).fetchone()["c"]
     assert got == expect, f"Failed for {_RESULT_TABLE} number of rows"
     assert len(db.not_completed) == expect
 
@@ -210,18 +214,20 @@ def test_drop_not_completed(nc_objects):
 
 def test_contains(sql_dstore):
     """correctly identify when a data store contains a member"""
-    assert "brca1.fasta" in sql_dstore
+    assert Path(_RESULT_TABLE) /"brca1.fasta" in sql_dstore
 
 
 def test_limit_datastore(full_dstore_sqlite):  # new
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
         full_dstore_sqlite.not_completed
     )
-    full_dstore_sqlite.set_limit(len(full_dstore_sqlite.completed) // 2)
+    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed) // 2
+    full_dstore_sqlite._completed = []
+    full_dstore_sqlite._not_completed = []
     assert (
         len(full_dstore_sqlite.completed)
         == len(full_dstore_sqlite.not_completed)
-        == full_dstore_sqlite._limit
+        == full_dstore_sqlite.limit
     )
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
         full_dstore_sqlite.not_completed
@@ -229,11 +235,13 @@ def test_limit_datastore(full_dstore_sqlite):  # new
     full_dstore_sqlite.drop_not_completed()
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
     assert len(full_dstore_sqlite.not_completed) == 0
-    full_dstore_sqlite.set_limit(len(full_dstore_sqlite.completed) // 2)
+    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed) // 2
+    full_dstore_sqlite._completed = []
+    full_dstore_sqlite._not_completed = []
     assert (
         len(full_dstore_sqlite)
         == len(full_dstore_sqlite.completed)
-        == full_dstore_sqlite._limit
+        == full_dstore_sqlite.limit
     )
     assert len(full_dstore_sqlite.not_completed) == 0
 
@@ -304,9 +312,8 @@ def test_write_if_member_exists(sql_dstore, ro_dir_dstore):
     identifier = "brca1.fasta"
     len_dstore = len(sql_dstore)
     m = sql_dstore.write(unique_id=identifier, data=expect)
-    assert len_dstore == len(
-        sql_dstore
-    )  # new, because previously added new member while updating the old one
+    # new, because previously added new member while updating the old one
+    assert len_dstore == len(sql_dstore)
     # got = sql_dstore.read(identifier)
     got = m.read()
     assert got == expect
@@ -390,9 +397,9 @@ def test_limit_datastore(full_dstore_sqlite):
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
         full_dstore_sqlite.not_completed
     )
-    full_dstore_sqlite._limit = len(full_dstore_sqlite.completed)
+    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed)
     full_dstore_sqlite.drop_not_completed()
-    assert len(full_dstore_sqlite) == full_dstore_sqlite._limit
+    assert len(full_dstore_sqlite) == full_dstore_sqlite.limit
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
 
 
