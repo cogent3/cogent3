@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import contextlib
 import inspect
 import re
@@ -52,24 +53,27 @@ OVERWRITE = Mode.w
 READONLY = Mode.r
 
 
+@dataclass
 class DataMemberABC(ABC):
+    data_store: DataStoreABC
+    unique_id: str
+
+    #    @property
+    #    @abstractmethod
+    #    def data_store(self) -> DataStoreABC:
+    #        ...
+
+    #   @property
+    #   @abstractmethod
+    #   def unique_id(self):
+    #       ...
+
     def __str__(self):
         return self.unique_id
 
-    @property
-    @abstractmethod
-    def data_store(self) -> DataStoreABC:
-        ...
+    def __repr__(self):
+        return f"{self.__class__.__name__}( data_store={self.data_store.source}, unique_id={self.unique_id})"
 
-    @data_store.setter
-    @abstractmethod
-    def data_store(self, value):
-        ...
-
-    @property
-    @abstractmethod
-    def unique_id(self):
-        ...
 
     def read(self) -> StrOrBytes:
         return self.data_store.read(self.unique_id)
@@ -86,8 +90,12 @@ class DataMemberABC(ABC):
     def md5(self):
         return self.data_store.md5(self.unique_id)
 
-
+@dataclass
 class DataStoreABC(ABC):
+    source: Union[str, Path]
+    mode: Mode
+    limit: int
+
     def __new__(klass, *args, **kwargs):
         obj = object.__new__(klass)
 
@@ -98,34 +106,36 @@ class DataStoreABC(ABC):
         init_vals.pop("self", None)
 
         obj._init_vals = init_vals
-
-        # obj._members = [] #this list removed completety
-        obj._completed = []  # new moved here
-        obj._not_completed = []  # new moved here
-
+        obj._completed = []
+        obj._not_completed = []
         return obj
 
-    @property
-    @abstractmethod
-    def source(self) -> str | Path:
-        """string that references connecting to data store, override in subclass constructor"""
-        ...
+#     @property
+#     @abstractmethod
+#     def source(self) -> str | Path:
+#         """string that references connecting to data store, override in subclass constructor"""
+#         ...
 
-    @source.setter
-    @abstractmethod
-    def source(self, value):
-        ...
+    # @source.setter
+    # @abstractmethod
+    # def source(self, value):
+    #     ...
 
-    @property
-    @abstractmethod
-    def mode(self) -> Mode:
-        """string that references datastore mode, override in override in subclass constructor"""
-        ...
+#     @property
+#     @abstractmethod
+#     def mode(self) -> Mode:
+#         """string that references datastore mode, override in override in subclass constructor"""
+#         ...
 
-    @mode.setter
-    @abstractmethod
-    def mode(self, value):
-        ...
+    # @mode.setter
+    # @abstractmethod
+    # def mode(self, value):
+    #     ...
+
+    # @property
+    # @abstractmethod
+    # def limit(self):
+    #     ...
 
     def __repr__(self):
         num = len(self.members)
@@ -141,7 +151,8 @@ class DataStoreABC(ABC):
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
-        return any(Path(identifier).stem == Path(m.unique_id).stem for m in self)
+        return any(Path(identifier) == Path(m.unique_id) for m in self)
+
 
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes:
@@ -186,11 +197,6 @@ class DataStoreABC(ABC):
     @abstractmethod
     def not_completed(self) -> list[DataMemberABC]:
         ...
-
-    def set_limit(self, limit):  # new
-        self._completed = []
-        self._not_completed = []
-        self._limit = limit
 
     @property
     def summary_logs(self) -> TabularType:
@@ -302,7 +308,7 @@ class DataStoreABC(ABC):
             index_name="Condition",
         )
 
-    def md5(self, unique_id: str) -> str:  # is it good in base class
+    def md5(self, unique_id: str) -> str:
         """
         Parameters
         ----------
@@ -321,40 +327,21 @@ class DataStoreABC(ABC):
 
 
 class DataMember(DataMemberABC):
-    def __init__(self, data_store: DataStoreABC = None, unique_id: str = None):
+    def __init__(self, *, data_store: DataStoreABC, unique_id: str):
         self.data_store = data_store
-        self._unique_id = str(unique_id)
-
-    def __repr__(self):
-        return self._unique_id
-
-    @property
-    def unique_id(self):
-        return self._unique_id
-
-    @property
-    def source(self):  # ??
-        return self.unique_id
-
-    @property
-    def data_store(self) -> DataStoreABC:
-        return self._data_store
-
-    @data_store.setter
-    def data_store(self, value):
-        self._data_store = value
+        self.unique_id = str(unique_id)
 
 
 class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
-        source,
+        source: Union[str,Path],
         mode: Mode = READONLY,
-        suffix=None,
-        limit=None,
+        suffix: Optional[str]=None,
+        limit: int=None,
         verbose=False,
     ):
-        self.mode = mode
+        self.mode = Mode(mode)
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
@@ -363,7 +350,7 @@ class DataStoreDirectory(DataStoreABC):
         self.suffix = suffix
         self._verbose = verbose
         self._source_check_create(mode)
-        self._limit = limit
+        self.limit = limit
 
     def __contains__(self, item: str):
         item = f"{item}.{self.suffix}" if self.suffix not in item else item
@@ -377,48 +364,20 @@ class DataStoreDirectory(DataStoreABC):
         source = self.source
         if mode is READONLY and not source.exists():
             raise IOError(f"'{source}' does not exist")
-        # elif mode is RAISE and source.exists():
-        #     raise IOError(f"'{source}' exists")
         elif mode is READONLY:
             return
 
-        if source.exists() and mode is READONLY:
-            for sub_dir in sub_dirs:
-                with contextlib.suppress((FileNotFoundError, NotADirectoryError)):
-                    shutil.rmtree(source / sub_dir)
-        elif not source.exists():
+        if not source.exists():
             source.mkdir(parents=True, exist_ok=True)
 
         for sub_dir in sub_dirs:
             (source / sub_dir).mkdir(parents=True, exist_ok=True)
 
-    @property
-    def source(self) -> str | Path:
-        """string that references connecting to data store, override in subclass constructor"""
-        return self._source
-
-    # why we don't write this in base class?
-
-    @source.setter
-    def source(self, value):
-        self._source = value
-
-    @property
-    def mode(self) -> Mode:
-        """string that references datastore mode, override in override in subclass constructor"""
-        return self._mode
-
-    # why we don't write this in base class?
-
-    @mode.setter
-    def mode(self, value):
-        self._mode = value
 
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""
         with open_(self.source / unique_id) as infile:
             data = infile.read()
-
         return data
 
     def drop_not_completed(self):
@@ -436,7 +395,7 @@ class DataStoreDirectory(DataStoreABC):
     def logs(self) -> list[DataMember]:
         log_dir = self.source / _LOG_TABLE
         return (
-            [DataMember(self, Path(_LOG_TABLE) / m.name) for m in log_dir.glob("*")]
+            [DataMember(data_store=self, unique_id=Path(_LOG_TABLE) / m.name) for m in log_dir.glob("*")]
             if log_dir.exists()
             else []
         )
@@ -446,9 +405,9 @@ class DataStoreDirectory(DataStoreABC):
         if not self._completed:
             self._completed = []
             for i, m in enumerate(self.source.glob(f"*.{self.suffix}")):
-                if self._limit and i == self._limit:
+                if self.limit and i == self.limit:
                     break
-                self._completed.append(DataMember(self, m.name))
+                self._completed.append(DataMember(data_store=self, unique_id=m.name))
         return self._completed
 
     @property
@@ -456,10 +415,10 @@ class DataStoreDirectory(DataStoreABC):
         if not self._not_completed:
             self._not_completed = []
             for i, m in enumerate((self.source / _NOT_COMPLETED_TABLE).glob(f"*.json")):
-                if self._limit and i == self._limit:
+                if self.limit and i == self.limit:
                     break
                 self._not_completed.append(
-                    DataMember(self, Path(_NOT_COMPLETED_TABLE) / m.name)
+                    DataMember(data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / m.name)
                 )
         return self._not_completed
 
@@ -479,7 +438,7 @@ class DataStoreDirectory(DataStoreABC):
             else unique_id
         )
         if suffix != "log" and unique_id in self:
-            return
+            return None
 
         with open_(self.source / subdir / unique_id, mode="w") as out:
             out.write(data)
@@ -487,9 +446,9 @@ class DataStoreDirectory(DataStoreABC):
         if subdir == _LOG_TABLE:
             return None
         if subdir == _NOT_COMPLETED_TABLE:
-            member = DataMember(self, Path(_NOT_COMPLETED_TABLE) / unique_id)
+            member = DataMember(data_store=self, unique_id=Path(_NOT_COMPLETED_TABLE) / unique_id)
         elif not subdir:
-            member = DataMember(self, unique_id)
+            member = DataMember(data_store=self, unique_id=unique_id)
 
         md5 = get_text_hexdigest(data)
         unique_id = unique_id.replace(suffix, "txt")
@@ -612,9 +571,9 @@ def _legacy_tiny_reader(source: Path, suffix):
         id_list.append(record["identifier"])
         data_list.append(load_record_from_json(record))
 
-    dstore = DataStoreSqlite(
-        source=str(source.parent) + str(source.stem) + ".sqlitedb", mode=OVERWRITE
-    )
+    path = Path(str(source.parent) + "/" +  str(source.stem) + ".sqlitedb")
+    path.unlink()
+    dstore = DataStoreSqlite(source=path, mode=OVERWRITE)
 
     for id, data, is_completed in data_list:
         if id == "LOCK":
