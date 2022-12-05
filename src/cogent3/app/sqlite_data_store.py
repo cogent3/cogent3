@@ -84,7 +84,7 @@ def open_sqlite_db_ro(path):
         uri=True,
     )
     db.row_factory = sqlite3.Row
-    #todo check that we have right tables
+    # todo check that we have right tables
     return db
 
 
@@ -134,17 +134,21 @@ class DataStoreSqlite(DataStoreABC):
         self._db = db_func(self.source)
         self._open = True
 
-        #if self.mode is APPEND:
-            #update lock_id
+        # if self.mode is APPEND:
+        # update lock_id
         if self.mode is not READONLY:
-            result = None if self.mode is APPEND else self._db.execute("SELECT lock_pid FROM state")
-#            if result is not None:
-#                raise IOError("You are trying to open a database which is locked. Use APPEND mode or unlock")
+            result = (
+                None
+                if self.mode is APPEND
+                else self._db.execute("SELECT lock_pid FROM state")
+            )
+            #            if result is not None:
+            #                raise IOError("You are trying to open a database which is locked. Use APPEND mode or unlock")
 
             pid = os.getpid()
             self._db.execute("INSERT INTO state(lock_pid) VALUES (?)", (pid,))
 
-    # todo: lock_id comes from process id, into state table  #new  check this on write
+        # todo: lock_id comes from process id, into state table  #new  check this on write
         return self._db
 
     def _init_log(self):

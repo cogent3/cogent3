@@ -24,7 +24,7 @@ from cogent3.app.data_store_new import (
     READONLY,
     DataMember,
     DataStoreDirectory,
-    _legacy_tiny_reader,
+    convert_tinydb_to_sqlite,
     upgrade_data_store,
 )
 from cogent3.util.table import Table
@@ -44,7 +44,7 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("datastore")
+    return Path(tmpdir_factory.mktemp("datastore"))
 
 
 @pytest.fixture(autouse=True)
@@ -151,10 +151,22 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
     return dstore
 
 
-def test_convert_tinydb_to_Sqlitedb(fasta_dir):
-    path = DATA_DIR / "data1.tinydb"
-    dstore_sqlite = _legacy_tiny_reader(path, ".tinydb")
+@pytest.mark.parametrize("dest", (None, "mydata.sqlitedb"))
+def test_convert_tinydb_to_sqlite(tmp_dir, dest):
+    path = tmp_dir / "data1.tinydb"
+    shutil.copy(DATA_DIR / path.name, path)
+    dest = dest if dest is None else tmp_dir / dest
+    dstore_sqlite = convert_tinydb_to_sqlite(path, dest=dest)
     assert len(dstore_sqlite) == 6
+
+
+def test_convert_tinydb_to_sqlite_error(tmp_dir):
+    path = tmp_dir / "data1.tinydb"
+    shutil.copy(DATA_DIR / path.name, path)
+    dest = tmp_dir / "data1.sqlitedb"
+    dest.write_text("blah")
+    with pytest.raises(IOError):
+        _ = convert_tinydb_to_sqlite(path, dest=dest)
 
 
 def test_upgrade_dstore(fasta_dir, write_dir):
@@ -390,7 +402,7 @@ def test_validate(full_dstore):
     assert validation_table["Has log", "Value"] == True
 
 
-def test_write_if_member_exists(full_dstore, write_dir): #new changes
+def test_write_if_member_exists(full_dstore, write_dir):  # new changes
     """correctly write content"""
     expect = Path(write_dir / "brca1.fasta").read_text()
     identifier = "brca1.fasta"

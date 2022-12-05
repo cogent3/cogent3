@@ -9,9 +9,9 @@ from scitrack import get_text_hexdigest
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
+    APPEND,
     OVERWRITE,
     READONLY,
-    APPEND,
     DataMemberABC,
     DataStoreDirectory,
 )
@@ -131,6 +131,7 @@ def test_open_existing(dstore_on_disk):
 def test_open_to_append(dstore_on_disk):
     ro = DataStoreSqlite(dstore_on_disk, mode=APPEND)
 
+
 def test_open_to_write(dstore_on_disk):
     ro = DataStoreSqlite(dstore_on_disk, mode=OVERWRITE)
 
@@ -214,7 +215,7 @@ def test_drop_not_completed(nc_objects):
 
 def test_contains(sql_dstore):
     """correctly identify when a data store contains a member"""
-    assert Path(_RESULT_TABLE) /"brca1.fasta" in sql_dstore
+    assert Path(_RESULT_TABLE) / "brca1.fasta" in sql_dstore
 
 
 def test_limit_datastore(full_dstore_sqlite):  # new
