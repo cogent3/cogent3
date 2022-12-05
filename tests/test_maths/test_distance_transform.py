@@ -2,9 +2,11 @@
 """Unit tests for distance_transform.py functions.
 """
 
+from random import randint, sample, seed
 from unittest import TestCase, main
 
 from numpy import array, ones, shape, sqrt
+from numpy.testing import assert_allclose
 
 from cogent3.maths.distance_transform import (
     binary_dist_chisq,
@@ -34,7 +36,7 @@ from cogent3.maths.distance_transform import (
     dist_soergel,
     dist_spearman_approx,
     dist_specprof,
-    numpy,
+    jaccard,
     trans_chisq,
     trans_chord,
     trans_hellinger,
@@ -51,8 +53,6 @@ __version__ = "2022.10.31a1"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
-
-from numpy.testing import assert_allclose, assert_equal
 
 
 class functionTests(TestCase):
@@ -168,10 +168,10 @@ class functionTests(TestCase):
     def test_dist_abund_jaccard(self):
         """dist_abund_jaccard should compute distances for dense1 and mtx1"""
         mtx1_expected = array([[0, 0.25], [0.25, 0]], "d")
-        assert_equal(dist_abund_jaccard(self.mtx1), mtx1_expected)
+        assert_allclose(dist_abund_jaccard(self.mtx1), mtx1_expected)
 
         dense1_expected = zeros((3, 3), "d")
-        assert_equal(dist_abund_jaccard(self.dense1), dense1_expected)
+        assert_allclose(dist_abund_jaccard(self.dense1), dense1_expected)
 
         sparse1_expected = array(
             [
@@ -182,7 +182,7 @@ class functionTests(TestCase):
             ],
             "d",
         )
-        assert_equal(dist_abund_jaccard(self.sparse1), sparse1_expected)
+        assert_allclose(dist_abund_jaccard(self.sparse1), sparse1_expected)
 
     def test_dist_morisita_horn(self):
         """tests dist_morisita_horn
@@ -295,7 +295,7 @@ class functionTests(TestCase):
         """binary OTU gain functions as expected"""
         actual = binary_dist_otu_gain(self.input_binary_dist_otu_gain1)
         expected = array([[0, 1, 2, 2], [1, 0, 2, 1], [1, 1, 0, 1], [1, 0, 1, 0]])
-        assert_equal(actual, expected)
+        assert_allclose(actual, expected)
 
     def test_binary_dist_chisq(self):
         """tests binary_dist_chisq
@@ -350,25 +350,56 @@ class functionTests(TestCase):
 
         assert_allclose(binary_dist_pearson(self.dense1), zeros((3, 3)))
 
-    def test_binary_dist_jaccard(self):
-        """tests binary_dist_jaccard
+    def test_jaccard_set(self):
+        """tests jaccard_set"""
+        for klass in (set, frozenset):
+            a = klass([1, 2, 3])
+            b = klass([2, 3, 4])
+            c = klass([4, 5, 6])
+            empty = klass([])
+            assert_allclose(jaccard(a, b), 2 / 4)
+            assert_allclose(jaccard(a, a), 0)
+            assert_allclose(jaccard(a, c), 1)
+            assert_allclose(jaccard(a, empty), 1)
+            assert_allclose(jaccard(empty, a), 1)
+            assert_allclose(jaccard(empty, empty), 0)
 
-        tests inputs of empty mtx, zeros, and sparse1 compared with calcs done
-        by hand"""
+        # compare 2 large (500 element) sets
+        seed(0)
+        values = [randint(0, 1_000_000) for _ in range(1000)]
+        # choose 2 sets of 500 random items from the list
+        a = set(sample(values, 500))
+        b = set(sample(values, 500))
+        distance = jaccard(a, b)
+        assert_allclose(distance, 0.6715425)
 
-        assert_allclose(binary_dist_jaccard(self.zeromtx), zeros((4, 4), "d"))
+    def test_jaccard_ndarray(self):
+        """tests jaccard_ndarray"""
+        a = array([1, 2, 3])
+        b = array([2, 3, 4])
+        c = array([4, 5, 6])
+        empty = array([])
+        assert_allclose(jaccard(a, b), 2 / 4)
+        assert_allclose(jaccard(a, a), 0)
+        assert_allclose(jaccard(a, c), 1)
+        assert_allclose(jaccard(a, empty), 1)
+        assert_allclose(jaccard(empty, a), 1)
+        assert_allclose(jaccard(empty, empty), 0)
 
-        sparse1expected = array(
-            [[0, 0, 1.0, 1.0], [0, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]], "d"
-        )
-        assert_allclose(binary_dist_jaccard(self.sparse1), sparse1expected)
+        # compare 2 large (500 element) sets
+        seed(0)
+        values = [randint(0, 1_000_000) for _ in range(1000)]
+        # choose 2 sets of 500 random items from the list
+        a = array([sample(values, 500)])
+        b = array([sample(values, 500)])
+        distance = jaccard(a, b)
+        assert_allclose(distance, 0.6715425)
 
-        sparse1expected = dist_manhattan(self.sparse1.astype(bool))
-        sparse1norm = array(
-            [[1, 1, 2, 1], [1, 1, 2, 1], [2, 2, 1, 1], [1, 1, 1, 100]], "d"
-        )
-        sparse1expected /= sparse1norm
-        assert_allclose(binary_dist_jaccard(self.sparse1), sparse1expected)
+    def test_jaccard_other(self):
+        """tests jaccard using types not covered with single dispatch"""
+        for a, b in ((1, 2), ([1], [2]), ("a", "b"), (1.0, 2.0)):
+            with self.assertRaises(NotImplementedError):
+                jaccard(a, b)
 
     def test_binary_dist_ochiai(self):
         """tests binary_dist_ochiai
@@ -519,15 +550,15 @@ class functionTests(TestCase):
 
     def test_dist_bray_curtis_magurran1(self):
         """zero values should return zero dist, or 1 with nonzero samples"""
-        res = dist_bray_curtis_magurran(numpy.array([[0, 0, 0], [0, 0, 0], [1, 1, 1]]))
-        assert_allclose(res, numpy.array([[0, 0, 1], [0, 0, 1], [1, 1, 0]]))
+        res = dist_bray_curtis_magurran(array([[0, 0, 0], [0, 0, 0], [1, 1, 1]]))
+        assert_allclose(res, array([[0, 0, 1], [0, 0, 1], [1, 1, 0]]))
 
     def test_dist_bray_curtis_magurran2(self):
         """should match hand-calculated values"""
-        res = dist_bray_curtis_magurran(numpy.array([[1, 4, 3], [1, 3, 5], [0, 2, 0]]))
+        res = dist_bray_curtis_magurran(array([[1, 4, 3], [1, 3, 5], [0, 2, 0]]))
         assert_allclose(
             res,
-            numpy.array(
+            array(
                 [
                     [0, 1 - 14 / 17, 1 - (0.4)],
                     [1 - 14 / 17, 0, 1 - 4 / 11],
@@ -535,57 +566,6 @@ class functionTests(TestCase):
                 ]
             ),
         )
-
-    # def test_no_dupes(self):
-    # """ here we check all distance functions in distance_transform for
-    # duplicate
-    # results.  Uses an unsafe hack to get all distance functions,
-    # thus disabled by default
-    # The dataset is from Legendre 2001, Ecologically Meaningful...
-    # also, doesn't actually raise an error on failing, just prints to
-    # stdout
-    # """
-    # import distance_transform
-    # L19 dataset
-    # L19data = array(
-    # [[7,1,0,0,0,0,0,0,0],
-    # [4,2,0,0,0,1,0,0,0],
-    # [2,4,0,0,0,1,0,0,0],
-    # [1,7,0,0,0,0,0,0,0],
-    # [0,8,0,0,0,0,0,0,0],
-    # [0,7,1,0,0,0,0,0,0],
-    # [0,4,2,0,0,0,2,0,0],
-    # [0,2,4,0,0,0,1,0,0],
-    # [0,1,7,0,0,0,0,0,0],
-    # [0,0,8,0,0,0,0,0,0],
-    # [0,0,7,1,0,0,0,0,0],
-    # [0,0,4,2,0,0,0,3,0],
-    # [0,0,2,4,0,0,0,1,0],
-    # [0,0,1,7,0,0,0,0,0],
-    # [0,0,0,8,0,0,0,0,0],
-    # [0,0,0,7,1,0,0,0,0],
-    # [0,0,0,4,2,0,0,0,4],
-    # [0,0,0,2,4,0,0,0,1],
-    # [0,0,0,1,7,0,0,0,0]], 'd')
-
-    # distfns = []
-    # distfn_strs = dir(distance_transform)
-    # warning: dangerous eval, and might catch bad or not functions
-    # for fnstr in distfn_strs:
-    # if fnstr.find('dist') != -1:
-    # distfns.append(eval('%s' % fnstr))
-
-    # dist_results = []
-    # for distfn in distfns:
-    # dist_results.append(distfn(L19data))
-    # for i in range(len(dist_results)):
-    # for j in range(i):
-    # try:
-    # assert_allclose(dist_results[i], dist_results[j])
-    # except:
-    # pass # should not be equal, so catch error and proceed
-    # else:
-    # print "duplicates found: ", distfns[i], distfns[j]
 
 
 if __name__ == "__main__":
