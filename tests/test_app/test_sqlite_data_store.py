@@ -64,7 +64,7 @@ def sql_dstore(ro_dir_dstore, db_dir):
 @pytest.fixture(scope="function")
 def ro_sql_dstore(sql_dstore):
     # we now need to write these out to a path
-    sql_dstore._mode = READONLY
+    sql_dstore = DataStoreSqlite(source=sql_dstore.source, mode=READONLY)
     return sql_dstore
 
 
@@ -215,7 +215,7 @@ def test_drop_not_completed(nc_objects):
 
 def test_contains(sql_dstore):
     """correctly identify when a data store contains a member"""
-    assert Path(_RESULT_TABLE) / "brca1.fasta" in sql_dstore
+    assert "brca1.fasta" in sql_dstore
 
 
 def test_limit_datastore(full_dstore_sqlite):  # new
@@ -361,16 +361,18 @@ def test_describe(full_dstore_sqlite):
     assert isinstance(got, Table)
 
 
-def test_pickleable_roundtrip(full_dstore_sqlite):
+def test_pickleable_roundtrip(ro_sql_dstore):
     """pickling of data stores should be reversible"""
-    re_dstore = loads(dumps(full_dstore_sqlite))
-    assert str(re_dstore) == str(full_dstore_sqlite)
-    assert re_dstore[0].read() == full_dstore_sqlite[0].read()
+    re_dstore = loads(dumps(ro_sql_dstore))
+    expect = str(ro_sql_dstore)
+    got = str(re_dstore)
+    assert got == expect
+    assert re_dstore[0].read() == ro_sql_dstore[0].read()
 
 
-def test_pickleable_member_roundtrip(full_dstore_sqlite):
+def test_pickleable_member_roundtrip(ro_sql_dstore):
     """pickling of data store members should be reversible"""
-    re_member = loads(dumps(full_dstore_sqlite[0]))
+    re_member = loads(dumps(ro_sql_dstore[0]))
     data = re_member.read()
     assert len(data) > 0
 

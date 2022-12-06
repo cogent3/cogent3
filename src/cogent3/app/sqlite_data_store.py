@@ -14,6 +14,7 @@ from scitrack import get_text_hexdigest
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
     APPEND,
+    OVERWRITE,
     READONLY,
     DataMember,
     DataMemberABC,
@@ -142,25 +143,36 @@ class DataStoreSqlite(DataStoreABC):
 
     @property
     def db(self):
-        if self._db:
-            return self._db
-        db_func = open_sqlite_db_ro if self.mode is READONLY else open_sqlite_db_rw
-        self._db = db_func(self.source)
-        self._open = True
+        if self._db is None:
+            db_func = open_sqlite_db_ro if self.mode is READONLY else open_sqlite_db_rw
+            self._db = db_func(self.source)
+            self._open = True
 
-        # if self.mode is APPEND:
-        # update lock_id
-        if self.mode is not READONLY:
-            result = (
-                None
-                if self.mode is APPEND
-                else self._db.execute("SELECT lock_pid FROM state")
-            )
-            #            if result is not None:
-            #                raise IOError("You are trying to open a database which is locked. Use APPEND mode or unlock")
+            if self.mode is not READONLY:
+                # if mode=w and the data store exists AND has a lock_pid
+                # value already, then we should fail. The user might
+                # inadvertently overwrite something otherwise.
+                # BUT if mode=a, as the user expects to be modifying the data
+                # store then we have to update the value
+                result = (
+                    None
+                    if self.mode is APPEND
+                    else self._db.execute("SELECT state_id,lock_pid FROM state")
+                ).fetchall()
+                if result and self.mode is OVERWRITE:
+                    raise IOError(
+                        "You are trying to OVERWRITE a database which is locked. Use APPEND mode or unlock"
+                    )
+                elif result:
+                    # we will update an existing
+                    state_id = result[0]["state_id"]
+                    cmnd = "UPDATE state SET lock_pid=? WHERE state_id=?"
+                    vals = [os.getpid(), state_id]
+                else:
+                    cmnd = "INSERT INTO state(lock_pid) VALUES (?)"
+                    vals = [os.getpid()]
 
-            pid = os.getpid()
-            self._db.execute("INSERT INTO state(lock_pid) VALUES (?)", (pid,))
+                self._db.execute(cmnd, tuple(vals))
 
         # todo: lock_id comes from process id, into state table  #new  check this on write
         return self._db
@@ -190,10 +202,11 @@ class DataStoreSqlite(DataStoreABC):
         identifier = Path(identifier)
         table_name = str(identifier.parent)
         if table_name not in (
-            _RESULT_TABLE,
+            ".",
             _LOG_TABLE,
         ):
             raise ValueError(f"unknown table for {str(identifier)!r}")
+
         if table_name != _LOG_TABLE:
             cmnd = f"SELECT * FROM {_RESULT_TABLE} WHERE record_id = ?"
             result = self.db.execute(cmnd, (identifier.name,)).fetchone()
@@ -230,7 +243,7 @@ class DataStoreSqlite(DataStoreABC):
             (is_completed,),
         )
         return [
-            DataMember(data_store=self, unique_id=Path(table_name) / r["record_id"])
+            DataMember(data_store=self, unique_id=r["record_id"])
             for r in cmnd.fetchall()
         ]
 
@@ -270,13 +283,13 @@ class DataStoreSqlite(DataStoreABC):
             return None
         md5 = get_text_hexdigest(data)
 
-        if Path(table_name) / unique_id in self and self.mode is not APPEND:
+        if unique_id in self and self.mode is not APPEND:
             cmnd = f"UPDATE {table_name} SET data= ?, log_id=?, md5=? WHERE record_id=?"
             self.db.execute(cmnd, (data, self._log_id, md5, unique_id))
         else:
             cmnd = f"INSERT INTO {table_name} (record_id,data,log_id,md5,is_completed) VALUES (?,?,?,?,?)"
             self.db.execute(cmnd, (unique_id, data, self._log_id, md5, is_completed))
-        return DataMember(data_store=self, unique_id=Path(table_name) / unique_id)
+        return DataMember(data_store=self, unique_id=unique_id)
 
     def drop_not_completed(self) -> None:
         self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")
