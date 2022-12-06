@@ -132,7 +132,7 @@ def nc_objects():
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def log_data():
     path = DATA_DIR / "scitrack.log"
     return path.read_text()
@@ -149,6 +149,14 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
 
     dstore.write_log(unique_id="scitrack.log", data=log_data)
     return dstore
+
+
+def test_data_member_eq(ro_dstore, fasta_dir):
+    ro_dstore2 = DataStoreDirectory(fasta_dir, mode="r", suffix="fasta")
+    name = "brca1.fasta"
+    mem1 = [m for m in ro_dstore.completed if m.unique_id == name][0]
+    mem2 = [m for m in ro_dstore2.completed if m.unique_id == name][0]
+    assert mem1 != mem2
 
 
 @pytest.mark.parametrize("dest", (None, "mydata.sqlitedb"))
