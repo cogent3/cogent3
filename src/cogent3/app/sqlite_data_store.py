@@ -32,7 +32,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-_RESULT_TABLE = "result_table"
+_RESULT_TABLE = "results"
 _MEMORY = ":memory:"
 _mem_pattern = re.compile(r"^\s*[:]{0,1}memory[:]{0,1}\s*$")
 
@@ -43,9 +43,9 @@ def open_sqlite_db_rw(path: Union[str, Path]):
 
     Notes
     -----
-    This function embeds the schema. There are four tables:
-    - complete: completed analysis objects
-    - incomplete: NotCompleted objects
+    This function embeds the schema. There are three tables:
+
+    - results: analysis objects, may be completed or not completed
     - logs: log-file contents
     - state: whether db is locked to a process
 
