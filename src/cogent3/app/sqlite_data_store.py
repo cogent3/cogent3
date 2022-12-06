@@ -14,6 +14,7 @@ from scitrack import get_text_hexdigest
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
     APPEND,
+    OVERWRITE,
     READONLY,
     DataMember,
     DataMemberABC,
@@ -201,10 +202,11 @@ class DataStoreSqlite(DataStoreABC):
         identifier = Path(identifier)
         table_name = str(identifier.parent)
         if table_name not in (
-            _RESULT_TABLE,
+            ".",
             _LOG_TABLE,
         ):
             raise ValueError(f"unknown table for {str(identifier)!r}")
+
         if table_name != _LOG_TABLE:
             cmnd = f"SELECT * FROM {_RESULT_TABLE} WHERE record_id = ?"
             result = self.db.execute(cmnd, (identifier.name,)).fetchone()
@@ -241,7 +243,7 @@ class DataStoreSqlite(DataStoreABC):
             (is_completed,),
         )
         return [
-            DataMember(data_store=self, unique_id=Path(table_name) / r["record_id"])
+            DataMember(data_store=self, unique_id=r["record_id"])
             for r in cmnd.fetchall()
         ]
 
@@ -281,13 +283,13 @@ class DataStoreSqlite(DataStoreABC):
             return None
         md5 = get_text_hexdigest(data)
 
-        if Path(table_name) / unique_id in self and self.mode is not APPEND:
+        if unique_id in self and self.mode is not APPEND:
             cmnd = f"UPDATE {table_name} SET data= ?, log_id=?, md5=? WHERE record_id=?"
             self.db.execute(cmnd, (data, self._log_id, md5, unique_id))
         else:
             cmnd = f"INSERT INTO {table_name} (record_id,data,log_id,md5,is_completed) VALUES (?,?,?,?,?)"
             self.db.execute(cmnd, (unique_id, data, self._log_id, md5, is_completed))
-        return DataMember(data_store=self, unique_id=Path(table_name) / unique_id)
+        return DataMember(data_store=self, unique_id=unique_id)
 
     def drop_not_completed(self) -> None:
         self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")

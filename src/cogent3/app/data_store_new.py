@@ -133,7 +133,7 @@ class DataStoreABC(ABC):
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
-        return any(Path(identifier) == Path(m.unique_id) for m in self)
+        return any(identifier == m.unique_id for m in self)
 
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes:
