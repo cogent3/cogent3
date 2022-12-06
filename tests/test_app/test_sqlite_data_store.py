@@ -480,3 +480,13 @@ def test_summary_not_completed(full_dstore_sqlite):
     got = full_dstore_sqlite.summary_not_completed
     assert got.shape >= (1, 1)
     assert isinstance(got, Table)
+
+
+def test_set_record_type(full_dstore_sqlite):
+    from cogent3 import make_table
+    from cogent3.util.misc import get_object_provenance
+
+    assert full_dstore_sqlite.record_type is None
+    t = make_table(data={"a": [0, 2]})
+    full_dstore_sqlite.record_type = t
+    assert full_dstore_sqlite.record_type == get_object_provenance(t)
