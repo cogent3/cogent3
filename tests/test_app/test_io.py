@@ -506,7 +506,6 @@ class TestIo(TestCase):
             w = io_app.write_db(outdir, create=True, if_exists="skip")
             w.data_store.close()
 
-    @pytest.mark.xfail
     def test_write_db_parallel(self):
         """writing with overwrite in parallel should reset db"""
         with TemporaryDirectory(dir=".") as dirname:
