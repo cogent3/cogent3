@@ -8,6 +8,14 @@ import pytest
 from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
+from cogent3.app.data_store import (
+    ReadOnlyDirectoryDataStore,
+    ReadOnlyTinyDbDataStore,
+    ReadOnlyZippedDataStore,
+    SingleReadDataStore,
+    WritableDirectoryDataStore,
+    WritableTinyDbDataStore,
+)
 from cogent3.app.data_store_new import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
@@ -16,6 +24,8 @@ from cogent3.app.data_store_new import (
     READONLY,
     DataMember,
     DataStoreDirectory,
+    convert_tinydb_to_sqlite,
+    upgrade_data_store,
 )
 from cogent3.util.table import Table
 
@@ -34,7 +44,7 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 
 @pytest.fixture(scope="session")
 def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("datastore")
+    return Path(tmpdir_factory.mktemp("datastore"))
 
 
 @pytest.fixture(autouse=True)
@@ -86,7 +96,7 @@ def w_dstore(write_dir):
 
 @pytest.fixture(scope="function")
 def nc_dstore(nc_dir):
-    dstore = DataStoreDirectory(nc_dir, suffix="fasta", mode=OVERWRITE)  # SKIP)
+    dstore = DataStoreDirectory(nc_dir, suffix="fasta", mode=OVERWRITE)
     # write one log file
     log_filename = "scitrack.log"
     dstore.write_log(log_filename, (DATA_DIR / log_filename).read_text())
@@ -139,6 +149,30 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
 
     dstore.write_log(unique_id="scitrack.log", data=log_data)
     return dstore
+
+
+@pytest.mark.parametrize("dest", (None, "mydata.sqlitedb"))
+def test_convert_tinydb_to_sqlite(tmp_dir, dest):
+    path = tmp_dir / "data1.tinydb"
+    shutil.copy(DATA_DIR / path.name, path)
+    dest = dest if dest is None else tmp_dir / dest
+    dstore_sqlite = convert_tinydb_to_sqlite(path, dest=dest)
+    assert len(dstore_sqlite) == 6
+
+
+def test_convert_tinydb_to_sqlite_error(tmp_dir):
+    path = tmp_dir / "data1.tinydb"
+    shutil.copy(DATA_DIR / path.name, path)
+    dest = tmp_dir / "data1.sqlitedb"
+    dest.write_text("blah")
+    with pytest.raises(IOError):
+        _ = convert_tinydb_to_sqlite(path, dest=dest)
+
+
+def test_upgrade_dstore(fasta_dir, write_dir):
+    dstore = ReadOnlyDirectoryDataStore(fasta_dir, suffix=".fasta")
+    new_dstore = upgrade_data_store(dstore.source, write_dir, ".fasta", ".fasta")
+    assert len(dstore) == len(new_dstore)
 
 
 def test_fail_try_append(full_dstore, completed_objects):
@@ -306,12 +340,21 @@ def test_no_not_completed_subdir(nc_dstore):
     not_dir.mkdir(exist_ok=True)
 
 
-def test_limit_datastore(nc_dstore):
+def test_limit_datastore(nc_dstore):  # new changed
     assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
-    nc_dstore._limit = len(nc_dstore.completed)
+    nc_dstore._limit = len(nc_dstore.completed) // 2
+    nc_dstore._completed = []
+    nc_dstore._not_completed = []
+    assert len(nc_dstore.completed) == len(nc_dstore.not_completed) == nc_dstore.limit
+    assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
     nc_dstore.drop_not_completed()
-    assert len(nc_dstore) == nc_dstore._limit
     assert len(nc_dstore) == len(nc_dstore.completed)
+    assert len(nc_dstore.not_completed) == 0
+    nc_dstore._limit = len(nc_dstore.completed) // 2
+    nc_dstore._completed = []
+    nc_dstore._not_completed = []
+    assert len(nc_dstore) == len(nc_dstore.completed) == nc_dstore.limit
+    assert len(nc_dstore.not_completed) == 0
 
 
 def test_md5_sum(nc_dstore):
@@ -338,3 +381,38 @@ def test_describe(full_dstore):
     got = full_dstore.describe
     assert got.shape >= (3, 2)
     assert isinstance(got, Table)
+
+
+def test_iter(full_dstore):
+    members = list(full_dstore)
+    assert members == full_dstore.members
+
+
+def test_members(full_dstore):
+    completed = full_dstore.completed
+    not_completed = full_dstore.not_completed
+    assert full_dstore.members == completed + not_completed
+
+
+def test_validate(full_dstore):
+    validation_table = full_dstore.validate()
+    assert isinstance(validation_table, Table)
+    assert validation_table["Num md5sum correct", "Value"] == len(full_dstore)
+    assert validation_table["Num md5sum incorrect", "Value"] == 0
+    assert validation_table["Has log", "Value"] == True
+
+
+def test_write_if_member_exists(full_dstore, write_dir):  # new changes
+    """correctly write content"""
+    expect = Path(write_dir / "brca1.fasta").read_text()
+    identifier = "brca1.fasta"
+    len_dstore = len(full_dstore)
+    full_dstore.write(unique_id=identifier, data=expect)
+    assert len_dstore == len(full_dstore)
+    got = full_dstore.read(identifier)
+    assert got == expect
+    full_dstore._mode = OVERWRITE
+    full_dstore.write(unique_id=identifier, data=expect)
+    assert len_dstore == len(full_dstore)
+    got = full_dstore.read(identifier)
+    assert got == expect

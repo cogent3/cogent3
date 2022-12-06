@@ -64,7 +64,7 @@ def open_sqlite_db_rw(path: Union[str, Path]):
     creates = [
         "state(state_id INTEGER PRIMARY KEY, record_type TEXT, lock_pid INTEGER)",
         f"{_LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
-        f"{_RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, not_completed INTEGER, data BLOB)",
+        f"{_RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
     ]
     for table in creates:
         db.execute(create_template.format(table))
@@ -73,7 +73,6 @@ def open_sqlite_db_rw(path: Union[str, Path]):
 
 def open_sqlite_db_ro(path):
     """returns db opened as read only
-
     Returns
     -------
     Handle to a sqlite3 session
@@ -85,44 +84,37 @@ def open_sqlite_db_ro(path):
         uri=True,
     )
     db.row_factory = sqlite3.Row
+    # todo check that we have right tables
     return db
 
 
-class SqliteDataStore(DataStoreABC):
+class DataStoreSqlite(DataStoreABC):
     store_suffix = "sqlitedb"
 
     def __init__(
         self,
         source,
-        mode: Mode,
+        mode: Mode = READONLY,
         limit=None,
         verbose=False,
     ):
         if _mem_pattern.search(str(source)):
-            self.source = _MEMORY
+            self._source = _MEMORY
         else:
             source = Path(source).expanduser()
-            self.source = (
+            self._source = (
                 source
                 if source.suffix[1:] == self.store_suffix  # sliced to remove "."
                 else Path(f"{source}.{self.store_suffix}")
             )
-
-        super().__init__(
-            source=source,
-            mode=mode,
-        )
+        self._mode = Mode(mode)
         if mode is not READONLY and limit is not None:
             raise ValueError(
                 "Using limit argument is only valid for readonly datastores"
             )
         self._limit = limit
         self._verbose = verbose
-        self._checksums = {}
         self._db = None
-        self._members = []
-        self._completed = []
-        self._not_completed = []
         self._open = False
         self._log_id = None
 
@@ -134,28 +126,43 @@ class SqliteDataStore(DataStoreABC):
         obj = self.__class__(**state)
         self.__dict__.update(obj.__dict__)
 
-    def __contains__(self, unique_id: str):
-        """whether relative identifier has been stored"""
-        # todo add limit here
-        query = f"SELECT count(*) as c FROM {_RESULT_TABLE} where record_id == ?"
-        result = self.db.execute(query, (unique_id,)).fetchone()
-        if result["c"] > 0:
-            return True
-        return False
+    @property
+    def source(self) -> str | Path:
+        """string that references connecting to data store, override in subclass constructor"""
+        return self._source
+
+    @property
+    def mode(self) -> Mode:
+        """string that references datastore mode, override in override in subclass constructor"""
+        return self._mode
+
+    @property
+    def limit(self):
+        return self._limit
 
     @property
     def db(self):
-        if self._db is None:
-            db_func = open_sqlite_db_ro if self._mode is READONLY else open_sqlite_db_rw
-            self._db = db_func(self.source)
-            self._open = True
+        if self._db:
+            return self._db
+        db_func = open_sqlite_db_ro if self.mode is READONLY else open_sqlite_db_rw
+        self._db = db_func(self.source)
+        self._open = True
 
-            if self._mode is not READONLY:
-                pid = os.getpid()
-                self._db.execute("INSERT INTO state(lock_pid) VALUES (?)", (pid,))
+        # if self.mode is APPEND:
+        # update lock_id
+        if self.mode is not READONLY:
+            result = (
+                None
+                if self.mode is APPEND
+                else self._db.execute("SELECT lock_pid FROM state")
+            )
+            #            if result is not None:
+            #                raise IOError("You are trying to open a database which is locked. Use APPEND mode or unlock")
+
+            pid = os.getpid()
+            self._db.execute("INSERT INTO state(lock_pid) VALUES (?)", (pid,))
 
         # todo: lock_id comes from process id, into state table  #new  check this on write
-
         return self._db
 
     def _init_log(self):
@@ -201,7 +208,7 @@ class SqliteDataStore(DataStoreABC):
     def completed(self):
         if not self._completed:
             self._completed = self._select_members(
-                table_name=_RESULT_TABLE, not_completed=False
+                table_name=_RESULT_TABLE, is_completed=True
             )
         return self._completed
 
@@ -210,17 +217,17 @@ class SqliteDataStore(DataStoreABC):
         """returns database records of type NotCompleted"""
         if not self._not_completed:
             self._not_completed = self._select_members(
-                table_name=_RESULT_TABLE, not_completed=True
+                table_name=_RESULT_TABLE, is_completed=False
             )
         return self._not_completed
 
     def _select_members(
-        self, table_name: str, not_completed: bool
+        self, *, table_name: str, is_completed: bool
     ) -> list[DataMemberABC]:
-        limit = f"LIMIT {self._limit}" if self._limit else ""
+        limit = f"LIMIT {self.limit}" if self.limit else ""
         cmnd = self.db.execute(
-            f"SELECT record_id FROM {table_name} WHERE not_completed=? {limit}",
-            (not_completed,),
+            f"SELECT record_id FROM {table_name} WHERE is_completed=? {limit}",
+            (is_completed,),
         )
         return [
             DataMember(data_store=self, unique_id=Path(table_name) / r["record_id"])
@@ -237,7 +244,7 @@ class SqliteDataStore(DataStoreABC):
         ]
 
     def _write(
-        self, *, table_name: str, unique_id: str, data: str, not_completed: bool
+        self, *, table_name: str, unique_id: str, data: str, is_completed: bool
     ) -> DataMemberABC | None:
         """
         Parameters
@@ -248,8 +255,8 @@ class SqliteDataStore(DataStoreABC):
             unique identifier that data will be saved under.
         data: str
             data to be saved.
-        not_completed: bool
-            flag to identify not_completed results
+        is_completed: bool
+            flag to identify NotCompleted results
 
         Returns
         -------
@@ -263,17 +270,16 @@ class SqliteDataStore(DataStoreABC):
             return None
         md5 = get_text_hexdigest(data)
 
-        if unique_id in self and self._mode is not APPEND:
+        if Path(table_name) / unique_id in self and self.mode is not APPEND:
             cmnd = f"UPDATE {table_name} SET data= ?, log_id=?, md5=? WHERE record_id=?"
             self.db.execute(cmnd, (data, self._log_id, md5, unique_id))
         else:
-            cmnd = f"INSERT INTO {table_name} (record_id,data,log_id,md5,not_completed) VALUES (?,?,?,?,?)"
-            self.db.execute(cmnd, (unique_id, data, self._log_id, md5, not_completed))
-        return DataMember(self, Path(table_name) / unique_id)
+            cmnd = f"INSERT INTO {table_name} (record_id,data,log_id,md5,is_completed) VALUES (?,?,?,?,?)"
+            self.db.execute(cmnd, (unique_id, data, self._log_id, md5, is_completed))
+        return DataMember(data_store=self, unique_id=Path(table_name) / unique_id)
 
     def drop_not_completed(self) -> None:
-        # self.db.execute(f"DELETE FROM {_MD5_TABLE} WHERE record_id IN (SELECT record_id FROM {_RESULT_TABLE} WHERE not_completed=1)")
-        self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE not_completed=1")
+        self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")
         self._not_completed = []
 
     def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
@@ -285,9 +291,11 @@ class SqliteDataStore(DataStoreABC):
             table_name=_RESULT_TABLE,
             unique_id=unique_id,
             data=data,
-            not_completed=False,
+            is_completed=True,
         )
-        if member is not None:
+        if (
+            member is not None and member not in self._completed
+        ):  # new to check existence
             self._completed.append(member)
         return member
 
@@ -297,7 +305,7 @@ class SqliteDataStore(DataStoreABC):
 
         super().write_log(unique_id=unique_id, data=data)
         _ = self._write(
-            table_name=_LOG_TABLE, unique_id=unique_id, data=data, not_completed=False
+            table_name=_LOG_TABLE, unique_id=unique_id, data=data, is_completed=False
         )
 
     def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
@@ -306,13 +314,13 @@ class SqliteDataStore(DataStoreABC):
 
         super().write_not_completed(unique_id=unique_id, data=data)
         member = self._write(
-            table_name=_RESULT_TABLE, unique_id=unique_id, data=data, not_completed=True
+            table_name=_RESULT_TABLE, unique_id=unique_id, data=data, is_completed=False
         )
         if member is not None:
             self._not_completed.append(member)
         return member
 
-    def md5(self, unique_id: str) -> str:
+    def md5(self, unique_id: str) -> str:  # we have it in base class
         """
         Parameters
         ----------

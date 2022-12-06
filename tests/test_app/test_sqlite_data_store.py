@@ -8,6 +8,8 @@ from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
+    _LOG_TABLE,
+    APPEND,
     OVERWRITE,
     READONLY,
     DataMemberABC,
@@ -16,7 +18,7 @@ from cogent3.app.data_store_new import (
 from cogent3.app.sqlite_data_store import (
     _LOG_TABLE,
     _RESULT_TABLE,
-    SqliteDataStore,
+    DataStoreSqlite,
     open_sqlite_db_rw,
 )
 from cogent3.util.table import Table
@@ -53,7 +55,7 @@ def ro_dir_dstore():
 @pytest.fixture(scope="function")
 def sql_dstore(ro_dir_dstore, db_dir):
     # we now need to write these out to a path
-    sql_dstore = SqliteDataStore(db_dir, mode=OVERWRITE)
+    sql_dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
     for m in ro_dir_dstore:
         sql_dstore.write(data=m.read(), unique_id=m.unique_id)
     return sql_dstore
@@ -62,7 +64,7 @@ def sql_dstore(ro_dir_dstore, db_dir):
 @pytest.fixture(scope="function")
 def ro_sql_dstore(sql_dstore):
     # we now need to write these out to a path
-    sql_dstore._mode = READONLY
+    sql_dstore.mode = READONLY
     return sql_dstore
 
 
@@ -100,7 +102,7 @@ def full_dstore_directory(db_dir, nc_objects, completed_objects, log_data):
 
 @pytest.fixture(scope="function")
 def full_dstore_sqlite(db_dir, nc_objects, completed_objects, log_data):
-    dstore = SqliteDataStore(db_dir, mode=OVERWRITE)
+    dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
     for id, data in nc_objects.items():
         dstore.write_not_completed(unique_id=id, data=data.to_json())
     for id, data in completed_objects.items():
@@ -117,7 +119,7 @@ def dstore_on_disk(full_dstore_sqlite):
 
 
 def test_open_existing(dstore_on_disk):
-    ro = SqliteDataStore(dstore_on_disk, mode=READONLY)
+    ro = DataStoreSqlite(dstore_on_disk, mode=READONLY)
     assert len(ro) > 0
     assert len(ro.completed) > 0
     assert len(ro.not_completed) > 0
@@ -127,11 +129,15 @@ def test_open_existing(dstore_on_disk):
 
 
 def test_open_to_append(dstore_on_disk):
-    ro = SqliteDataStore(dstore_on_disk, mode=OVERWRITE)
+    ro = DataStoreSqlite(dstore_on_disk, mode=APPEND)
+
+
+def test_open_to_write(dstore_on_disk):
+    ro = DataStoreSqlite(dstore_on_disk, mode=OVERWRITE)
 
 
 def test_db_creation():
-    db = SqliteDataStore(":memory:", mode=OVERWRITE)
+    db = DataStoreSqlite(":memory:", mode=OVERWRITE)
     db = db.db
     result = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
     assert len(result) == 3
@@ -146,7 +152,7 @@ def test_db_creation():
 
 
 def test_db_init_log():
-    dstore = SqliteDataStore(":memory:", mode=OVERWRITE)
+    dstore = DataStoreSqlite(":memory:", mode=OVERWRITE)
     dstore._init_log()
     rows = dstore.db.execute(f"Select * from {_LOG_TABLE}").fetchall()
     assert len(rows) == 1
@@ -155,7 +161,7 @@ def test_db_init_log():
 
 def test_open_sqlite_db_rw():
     db = open_sqlite_db_rw(":memory:")
-    # should make tables for completed, not completed, md5, log and state
+    # should make tables for results, log and state
     result = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
     assert len(result) == 3
     created_names = {r["name"] for r in result}
@@ -168,29 +174,29 @@ def test_open_sqlite_db_rw():
 
 def test_rw_sql_dstore_mem(completed_objects):
     """in memory dstore"""
-    db = SqliteDataStore(":memory:", mode=OVERWRITE)
+    db = DataStoreSqlite(":memory:", mode=OVERWRITE)
     for unique_id, obj in completed_objects.items():
         db.write(data=obj, unique_id=unique_id)
     expect = len(completed_objects)
-    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE not_completed=?"
-    got = db.db.execute(query, (0,)).fetchone()["c"]
+    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE is_completed=?"
+    got = db.db.execute(query, (1,)).fetchone()["c"]
     assert got == expect, f"Failed for {_RESULT_TABLE} number of rows"
     assert len(db.completed) == expect
 
 
 def test_not_completed(nc_objects):
-    db = SqliteDataStore(":memory:", mode=OVERWRITE)
+    db = DataStoreSqlite(":memory:", mode=OVERWRITE)
     for unique_id, obj in nc_objects.items():
         db.write_not_completed(data=obj.to_json(), unique_id=unique_id)
     expect = len(nc_objects)
-    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE not_completed=?"
-    got = db.db.execute(query, (1,)).fetchone()["c"]
+    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE is_completed=?"
+    got = db.db.execute(query, (0,)).fetchone()["c"]
     assert got == expect, f"Failed for {_RESULT_TABLE} number of rows"
     assert len(db.not_completed) == expect
 
 
 def test_logdata(log_data):
-    db = SqliteDataStore(":memory:", mode=OVERWRITE)
+    db = DataStoreSqlite(":memory:", mode=OVERWRITE)
     db.write_log(data=log_data, unique_id="scitrack.log")
     query = f"select count(*) as c from {_LOG_TABLE}"
     got = db.db.execute(query).fetchone()["c"]
@@ -198,7 +204,7 @@ def test_logdata(log_data):
 
 
 def test_drop_not_completed(nc_objects):
-    db = SqliteDataStore(":memory:", mode=OVERWRITE)
+    db = DataStoreSqlite(":memory:", mode=OVERWRITE)
     for unique_id, obj in nc_objects.items():
         db.write_not_completed(data=obj.to_json(), unique_id=unique_id)
     expect = len(nc_objects)
@@ -209,7 +215,36 @@ def test_drop_not_completed(nc_objects):
 
 def test_contains(sql_dstore):
     """correctly identify when a data store contains a member"""
-    assert "brca1.fasta" in sql_dstore
+    assert Path(_RESULT_TABLE) / "brca1.fasta" in sql_dstore
+
+
+def test_limit_datastore(full_dstore_sqlite):  # new
+    assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
+        full_dstore_sqlite.not_completed
+    )
+    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed) // 2
+    full_dstore_sqlite._completed = []
+    full_dstore_sqlite._not_completed = []
+    assert (
+        len(full_dstore_sqlite.completed)
+        == len(full_dstore_sqlite.not_completed)
+        == full_dstore_sqlite.limit
+    )
+    assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
+        full_dstore_sqlite.not_completed
+    )
+    full_dstore_sqlite.drop_not_completed()
+    assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
+    assert len(full_dstore_sqlite.not_completed) == 0
+    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed) // 2
+    full_dstore_sqlite._completed = []
+    full_dstore_sqlite._not_completed = []
+    assert (
+        len(full_dstore_sqlite)
+        == len(full_dstore_sqlite.completed)
+        == full_dstore_sqlite.limit
+    )
+    assert len(full_dstore_sqlite.not_completed) == 0
 
 
 def test_iter(sql_dstore):
@@ -255,7 +290,6 @@ def test_read(full_dstore_sqlite):
 def test_read_log(sql_dstore, log_data):
     """correctly read content"""
     sql_dstore.write_log(unique_id="brca1.fasta", data=log_data)
-
     got = sql_dstore.read(f"{_LOG_TABLE}/brca1.fasta")
     assert got == log_data
 
@@ -263,7 +297,7 @@ def test_read_log(sql_dstore, log_data):
 @pytest.mark.parametrize("binary", (False, True))
 def test_write_text_binary(sql_dstore, ro_dir_dstore, binary):
     """correctly write content whether text or binary data"""
-    db = SqliteDataStore(":memory:", mode=OVERWRITE)
+    db = DataStoreSqlite(":memory:", mode=OVERWRITE)
     expect = Path(ro_dir_dstore.source / "brca1.fasta").read_text()
     if binary:
         expect = dumps(expect)
@@ -277,12 +311,20 @@ def test_write_if_member_exists(sql_dstore, ro_dir_dstore):
     """correctly write content"""
     expect = Path(ro_dir_dstore.source / "brca1.fasta").read_text()
     identifier = "brca1.fasta"
+    len_dstore = len(sql_dstore)
     m = sql_dstore.write(unique_id=identifier, data=expect)
+    # new, because previously added new member while updating the old one
+    assert len_dstore == len(sql_dstore)
+    # got = sql_dstore.read(identifier)
     got = m.read()
     assert got == expect
     sql_dstore._mode = OVERWRITE
     identifier = "brca1.fasta"
     m = sql_dstore.write(unique_id=identifier, data=expect)
+    assert len_dstore == len(
+        sql_dstore
+    )  # new, because previously added new member while updating the old one
+    # got = sql_dstore.read(identifier)
     got = m.read()
     assert got == expect
 
@@ -343,12 +385,12 @@ def test_getitem(full_dstore_sqlite):
 
 
 def test_empty_data_store(db_dir):
-    dstore = SqliteDataStore(db_dir, mode=OVERWRITE)
+    dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
     assert 0 == len(dstore)
 
 
 def test_no_logs(db_dir):
-    dstore = SqliteDataStore(db_dir, mode=OVERWRITE)
+    dstore = DataStoreSqlite(db_dir, mode=OVERWRITE)
     assert len(dstore.logs) == 0
 
 
@@ -356,9 +398,9 @@ def test_limit_datastore(full_dstore_sqlite):
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
         full_dstore_sqlite.not_completed
     )
-    full_dstore_sqlite._limit = len(full_dstore_sqlite.completed)
+    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed)
     full_dstore_sqlite.drop_not_completed()
-    assert len(full_dstore_sqlite) == full_dstore_sqlite._limit
+    assert len(full_dstore_sqlite) == full_dstore_sqlite.limit
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
 
 
@@ -388,6 +430,29 @@ def test_new_write_read(full_dstore_sqlite):
     m = full_dstore_sqlite.write(unique_id=identifier, data=data)
     got = full_dstore_sqlite.read(m.unique_id)
     assert got == data
+
+
+def test_summary_logs(full_dstore_sqlite):
+    # log summary has a row per log file and a column for each property
+    got = full_dstore_sqlite.summary_logs
+    assert got.shape == (1, 6)
+    assert isinstance(got, Table)
+
+
+def test_summary_not_completed(full_dstore_sqlite):
+    got = full_dstore_sqlite.summary_not_completed
+    assert got.shape >= (1, 1)
+    assert isinstance(got, Table)
+
+
+def test_read_unknown_table(full_dstore_sqlite):
+    with pytest.raises(ValueError):
+        full_dstore_sqlite.read("unknown_table/id")
+
+
+def test_limit_on_writable(ro_dir_dstore, db_dir):
+    with pytest.raises(ValueError):
+        _ = DataStoreSqlite(db_dir, mode=OVERWRITE, limit=3)
 
 
 @pytest.mark.parametrize("table_name", ("", _RESULT_TABLE))
