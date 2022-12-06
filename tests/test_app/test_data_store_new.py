@@ -385,15 +385,15 @@ def test_append(w_dstore):
 
 def test_no_not_completed_subdir(nc_dstore):
     expect = f"{len(nc_dstore.completed)+len(nc_dstore.not_completed)}x member"
-    assert repr(nc_dstore).startswith(expect)
+    assert str(nc_dstore).startswith(expect)
     # first remove not_completed directory
     nc_dstore.drop_not_completed()
     # test repr work without not_completed directory
     assert not Path(nc_dstore.source / _NOT_COMPLETED_TABLE).exists()
     expect = f"{len(nc_dstore.completed)}x member"
-    assert repr(nc_dstore).startswith(expect)
+    assert str(nc_dstore).startswith(expect)
     expect = f"{len(nc_dstore)}x member"
-    assert repr(nc_dstore).startswith(expect)
+    assert str(nc_dstore).startswith(expect)
     assert len(nc_dstore) == len(nc_dstore.completed)
     not_dir = nc_dstore.source / _NOT_COMPLETED_TABLE
     not_dir.mkdir(exist_ok=True)

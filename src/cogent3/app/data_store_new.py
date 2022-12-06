@@ -115,6 +115,11 @@ class DataStoreABC(ABC):
         ...
 
     def __repr__(self):
+        name = self.__class__.__name__
+        construction = ", ".join(f"{k}={v}" for k, v in self._init_vals.items())
+        return f"{name}({construction})"
+
+    def __str__(self):
         num = len(self.members)
         name = self.__class__.__name__
         sample = f"{list(self[:2])}..." if num > 2 else list(self)

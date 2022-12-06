@@ -344,14 +344,14 @@ def test_summary_not_completed(full_dstore_sqlite):
 
 def test_no_not_completed_subdir(full_dstore_sqlite):
     expect = f"{len(full_dstore_sqlite.completed)+len(full_dstore_sqlite.not_completed)}x member"
-    assert repr(full_dstore_sqlite).startswith(expect)
+    assert str(full_dstore_sqlite).startswith(expect)
     # first remove not_completed directory
     full_dstore_sqlite.drop_not_completed()
     # test repr work without not_completed directory
     expect = f"{len(full_dstore_sqlite.completed)}x member"
-    assert repr(full_dstore_sqlite).startswith(expect)
+    assert str(full_dstore_sqlite).startswith(expect)
     expect = f"{len(full_dstore_sqlite)}x member"
-    assert repr(full_dstore_sqlite).startswith(expect)
+    assert str(full_dstore_sqlite).startswith(expect)
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
 
 
