@@ -360,3 +360,20 @@ class DataStoreSqlite(DataStoreABC):
         table = super().describe
         table.title = title
         return table
+
+    @property
+    def record_type(self) -> str:
+        """class name of completed results"""
+        result = self.db.execute("SELECT record_type FROM state").fetchone()
+        return result["record_type"]
+
+    @record_type.setter
+    def record_type(self, obj):
+        from cogent3.util.misc import get_object_provenance
+
+        rt = self.record_type
+        if self.mode is OVERWRITE and rt:
+            raise IOError(f"cannot overwrite existing record_type {rt}")
+
+        n = get_object_provenance(obj)
+        self.db.execute("UPDATE state SET record_type=? WHERE state_id=1", (n,))
