@@ -176,7 +176,7 @@ def test_upgrade_dstore(fasta_dir, write_dir):
 
 
 def test_fail_try_append(full_dstore, completed_objects):
-    full_dstore.mode = APPEND
+    full_dstore._mode = APPEND
     id, data = list(completed_objects.items())[0]
     with pytest.raises(IOError):
         full_dstore.write(unique_id=id, data=data)
@@ -342,7 +342,7 @@ def test_no_not_completed_subdir(nc_dstore):
 
 def test_limit_datastore(nc_dstore):  # new changed
     assert len(nc_dstore) == len(nc_dstore.completed) + len(nc_dstore.not_completed)
-    nc_dstore.limit = len(nc_dstore.completed) // 2
+    nc_dstore._limit = len(nc_dstore.completed) // 2
     nc_dstore._completed = []
     nc_dstore._not_completed = []
     assert len(nc_dstore.completed) == len(nc_dstore.not_completed) == nc_dstore.limit
@@ -350,7 +350,7 @@ def test_limit_datastore(nc_dstore):  # new changed
     nc_dstore.drop_not_completed()
     assert len(nc_dstore) == len(nc_dstore.completed)
     assert len(nc_dstore.not_completed) == 0
-    nc_dstore.limit = len(nc_dstore.completed) // 2
+    nc_dstore._limit = len(nc_dstore.completed) // 2
     nc_dstore._completed = []
     nc_dstore._not_completed = []
     assert len(nc_dstore) == len(nc_dstore.completed) == nc_dstore.limit

@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import contextlib
 import inspect
 import re
 import reprlib
-import shutil
-import traceback
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from dataclasses import dataclass
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
@@ -53,20 +49,16 @@ OVERWRITE = Mode.w
 READONLY = Mode.r
 
 
-@dataclass
 class DataMemberABC(ABC):
-    data_store: DataStoreABC
-    unique_id: str
+    @property
+    @abstractmethod
+    def data_store(self) -> DataStoreABC:
+        ...
 
-    #    @property
-    #    @abstractmethod
-    #    def data_store(self) -> DataStoreABC:
-    #        ...
-
-    #   @property
-    #   @abstractmethod
-    #   def unique_id(self):
-    #       ...
+    @property
+    @abstractmethod
+    def unique_id(self):
+        ...
 
     def __str__(self):
         return self.unique_id
@@ -90,12 +82,7 @@ class DataMemberABC(ABC):
         return self.data_store.md5(self.unique_id)
 
 
-@dataclass
 class DataStoreABC(ABC):
-    source: Union[str, Path]
-    mode: Mode
-    limit: int
-
     def __new__(klass, *args, **kwargs):
         obj = object.__new__(klass)
 
@@ -110,32 +97,22 @@ class DataStoreABC(ABC):
         obj._not_completed = []
         return obj
 
-    #     @property
-    #     @abstractmethod
-    #     def source(self) -> str | Path:
-    #         """string that references connecting to data store, override in subclass constructor"""
-    #         ...
+    @property
+    @abstractmethod
+    def source(self) -> str | Path:
+        """string that references connecting to data store, override in subclass constructor"""
+        ...
 
-    # @source.setter
-    # @abstractmethod
-    # def source(self, value):
-    #     ...
+    @property
+    @abstractmethod
+    def mode(self) -> Mode:
+        """string that references datastore mode, override in override in subclass constructor"""
+        ...
 
-    #     @property
-    #     @abstractmethod
-    #     def mode(self) -> Mode:
-    #         """string that references datastore mode, override in override in subclass constructor"""
-    #         ...
-
-    # @mode.setter
-    # @abstractmethod
-    # def mode(self, value):
-    #     ...
-
-    # @property
-    # @abstractmethod
-    # def limit(self):
-    #     ...
+    @property
+    @abstractmethod
+    def limit(self):
+        ...
 
     def __repr__(self):
         num = len(self.members)
@@ -327,8 +304,16 @@ class DataStoreABC(ABC):
 
 class DataMember(DataMemberABC):
     def __init__(self, *, data_store: DataStoreABC, unique_id: str):
-        self.data_store = data_store
-        self.unique_id = str(unique_id)
+        self._data_store = data_store
+        self._unique_id = str(unique_id)
+
+    @property
+    def data_store(self) -> DataStoreABC:
+        return self._data_store
+
+    @property
+    def unique_id(self):
+        return self._unique_id
 
 
 class DataStoreDirectory(DataStoreABC):
@@ -340,16 +325,16 @@ class DataStoreDirectory(DataStoreABC):
         limit: int = None,
         verbose=False,
     ):
-        self.mode = Mode(mode)
+        self._mode = Mode(mode)
         suffix = suffix or ""
         if suffix != "*":  # wild card search for all
             suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
         source = Path(source)
-        self.source = source.expanduser()
+        self._source = source.expanduser()
         self.suffix = suffix
         self._verbose = verbose
         self._source_check_create(mode)
-        self.limit = limit
+        self._limit = limit
 
     def __contains__(self, item: str):
         item = f"{item}.{self.suffix}" if self.suffix not in item else item
@@ -371,6 +356,20 @@ class DataStoreDirectory(DataStoreABC):
 
         for sub_dir in sub_dirs:
             (source / sub_dir).mkdir(parents=True, exist_ok=True)
+
+    @property
+    def source(self) -> str | Path:
+        """string that references connecting to data store, override in subclass constructor"""
+        return self._source
+
+    @property
+    def mode(self) -> Mode:
+        """string that references datastore mode, override in override in subclass constructor"""
+        return self._mode
+
+    @property
+    def limit(self):
+        return self._limit
 
     def read(self, unique_id: str) -> str:
         """reads data corresponding to identifier"""

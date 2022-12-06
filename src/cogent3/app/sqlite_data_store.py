@@ -99,20 +99,20 @@ class DataStoreSqlite(DataStoreABC):
         verbose=False,
     ):
         if _mem_pattern.search(str(source)):
-            self.source = _MEMORY
+            self._source = _MEMORY
         else:
             source = Path(source).expanduser()
-            self.source = (
+            self._source = (
                 source
                 if source.suffix[1:] == self.store_suffix  # sliced to remove "."
                 else Path(f"{source}.{self.store_suffix}")
             )
-        self.mode = Mode(mode)
+        self._mode = Mode(mode)
         if mode is not READONLY and limit is not None:
             raise ValueError(
                 "Using limit argument is only valid for readonly datastores"
             )
-        self.limit = limit
+        self._limit = limit
         self._verbose = verbose
         self._db = None
         self._open = False
@@ -125,6 +125,20 @@ class DataStoreSqlite(DataStoreABC):
         # this will reset connections to read only db's
         obj = self.__class__(**state)
         self.__dict__.update(obj.__dict__)
+
+    @property
+    def source(self) -> str | Path:
+        """string that references connecting to data store, override in subclass constructor"""
+        return self._source
+
+    @property
+    def mode(self) -> Mode:
+        """string that references datastore mode, override in override in subclass constructor"""
+        return self._mode
+
+    @property
+    def limit(self):
+        return self._limit
 
     @property
     def db(self):
