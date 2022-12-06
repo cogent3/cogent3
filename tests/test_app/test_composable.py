@@ -1109,7 +1109,7 @@ def test_handles_None():
 
 
 def test_apply_to_only_appends(half_dstore1, half_dstore2):
-    half_dstore1.mode = APPEND
+    half_dstore1._mode = APPEND
     reader1 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length1 = sample_app.min_length(10)
     writer1 = io_app.write_seqs_new(half_dstore1)
@@ -1121,7 +1121,7 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     with pytest.raises(IOError):
         _ = process1.apply_to(dstore1, id_from_source=get_data_source)
 
-    half_dstore2.mode = APPEND
+    half_dstore2._mode = APPEND
     reader2 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length2 = sample_app.min_length(10)
     writer2 = io_app.write_seqs_new(half_dstore2)

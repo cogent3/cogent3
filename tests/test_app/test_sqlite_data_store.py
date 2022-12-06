@@ -64,7 +64,7 @@ def sql_dstore(ro_dir_dstore, db_dir):
 @pytest.fixture(scope="function")
 def ro_sql_dstore(sql_dstore):
     # we now need to write these out to a path
-    sql_dstore.mode = READONLY
+    sql_dstore._mode = READONLY
     return sql_dstore
 
 
@@ -222,13 +222,13 @@ def test_limit_datastore(full_dstore_sqlite):  # new
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
         full_dstore_sqlite.not_completed
     )
-    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed) // 2
+    full_dstore_sqlite._limit = len(full_dstore_sqlite.completed) // 2
     full_dstore_sqlite._completed = []
     full_dstore_sqlite._not_completed = []
     assert (
         len(full_dstore_sqlite.completed)
         == len(full_dstore_sqlite.not_completed)
-        == full_dstore_sqlite.limit
+        == full_dstore_sqlite._limit
     )
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
         full_dstore_sqlite.not_completed
@@ -236,13 +236,13 @@ def test_limit_datastore(full_dstore_sqlite):  # new
     full_dstore_sqlite.drop_not_completed()
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
     assert len(full_dstore_sqlite.not_completed) == 0
-    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed) // 2
+    full_dstore_sqlite._limit = len(full_dstore_sqlite.completed) // 2
     full_dstore_sqlite._completed = []
     full_dstore_sqlite._not_completed = []
     assert (
         len(full_dstore_sqlite)
         == len(full_dstore_sqlite.completed)
-        == full_dstore_sqlite.limit
+        == full_dstore_sqlite._limit
     )
     assert len(full_dstore_sqlite.not_completed) == 0
 
@@ -398,9 +398,9 @@ def test_limit_datastore(full_dstore_sqlite):
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed) + len(
         full_dstore_sqlite.not_completed
     )
-    full_dstore_sqlite.limit = len(full_dstore_sqlite.completed)
+    full_dstore_sqlite._limit = len(full_dstore_sqlite.completed)
     full_dstore_sqlite.drop_not_completed()
-    assert len(full_dstore_sqlite) == full_dstore_sqlite.limit
+    assert len(full_dstore_sqlite) == full_dstore_sqlite._limit
     assert len(full_dstore_sqlite) == len(full_dstore_sqlite.completed)
 
 
