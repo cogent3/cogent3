@@ -64,7 +64,7 @@ def sql_dstore(ro_dir_dstore, db_dir):
 @pytest.fixture(scope="function")
 def ro_sql_dstore(sql_dstore):
     # we now need to write these out to a path
-    sql_dstore._mode = READONLY
+    sql_dstore = DataStoreSqlite(source=sql_dstore.source, mode=READONLY)
     return sql_dstore
 
 
