@@ -50,6 +50,12 @@ READONLY = Mode.r
 
 
 class DataMemberABC(ABC):
+    """Abstract base class for DataMember
+
+    A data member is a handle to a record in a DataStore. It has a reference
+    to its data store and a unique identifier.
+    """
+
     @property
     @abstractmethod
     def data_store(self) -> DataStoreABC:
@@ -64,13 +70,10 @@ class DataMemberABC(ABC):
         return self.unique_id
 
     def __repr__(self):
-        return f"{self.__class__.__name__}( data_store={self.data_store.source}, unique_id={self.unique_id})"
+        return f"{self.__class__.__name__}(data_store={self.data_store.source}, unique_id={self.unique_id})"
 
     def read(self) -> StrOrBytes:
         return self.data_store.read(self.unique_id)
-
-    def write(self, data: StrOrBytes) -> None:
-        self.data_store.write(unique_id=self.unique_id, data=data)
 
     def __eq__(self, other):
         """to check equality of members and check existence of a
@@ -83,6 +86,8 @@ class DataMemberABC(ABC):
 
 
 class DataStoreABC(ABC):
+    """Abstract base class for DataStore"""
+
     def __new__(klass, *args, **kwargs):
         obj = object.__new__(klass)
 
@@ -106,7 +111,7 @@ class DataStoreABC(ABC):
     @property
     @abstractmethod
     def mode(self) -> Mode:
-        """string that references datastore mode, override in override in subclass constructor"""
+        """string that references datastore mode, override in subclass constructor"""
         ...
 
     @property
@@ -308,6 +313,9 @@ class DataStoreABC(ABC):
 
 
 class DataMember(DataMemberABC):
+    """Generic DataMember class, bound to a data store. All read operations
+    delivered by the parent."""
+
     def __init__(self, *, data_store: DataStoreABC, unique_id: str):
         self._data_store = data_store
         self._unique_id = str(unique_id)
