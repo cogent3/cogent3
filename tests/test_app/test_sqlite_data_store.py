@@ -420,11 +420,6 @@ def test_write_read_only_datastore(ro_sql_dstore):
         ro_sql_dstore.write(unique_id="brca1.fasta", data="test data")
 
 
-def test_write_read_only_member(ro_sql_dstore):
-    with pytest.raises(IOError):
-        ro_sql_dstore[0].write("test data")
-
-
 def test_new_write_read(full_dstore_sqlite):
     """correctly write content"""
     identifier = "test1.fasta"

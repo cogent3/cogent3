@@ -75,9 +75,6 @@ class DataMemberABC(ABC):
     def read(self) -> StrOrBytes:
         return self.data_store.read(self.unique_id)
 
-    def write(self, data: StrOrBytes) -> None:
-        self.data_store.write(unique_id=self.unique_id, data=data)
-
     def __eq__(self, other):
         """to check equality of members and check existence of a
         member in a list of members"""
