@@ -294,11 +294,6 @@ def test_write_read_only_datastore(ro_dstore):
         ro_dstore.write(unique_id="brca1.fasta", data="test data")
 
 
-def test_write_read_only_member(ro_dstore):
-    with pytest.raises(IOError):
-        ro_dstore[0].write("test data")
-
-
 def test_write(fasta_dir, w_dstore):
     """correctly write content"""
     expect = Path(fasta_dir / "brca1.fasta").read_text()
