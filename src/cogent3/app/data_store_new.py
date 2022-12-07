@@ -70,7 +70,7 @@ class DataMemberABC(ABC):
         return self.unique_id
 
     def __repr__(self):
-        return f"{self.__class__.__name__}( data_store={self.data_store.source}, unique_id={self.unique_id})"
+        return f"{self.__class__.__name__}(data_store={self.data_store.source}, unique_id={self.unique_id})"
 
     def read(self) -> StrOrBytes:
         return self.data_store.read(self.unique_id)
