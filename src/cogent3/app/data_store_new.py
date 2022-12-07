@@ -50,6 +50,12 @@ READONLY = Mode.r
 
 
 class DataMemberABC(ABC):
+    """Abstract base class for DataMember
+
+    A data member is a handle to a record in a DataStore. It has a reference
+    to its data store and a unique identifier.
+    """
+
     @property
     @abstractmethod
     def data_store(self) -> DataStoreABC:
@@ -83,6 +89,8 @@ class DataMemberABC(ABC):
 
 
 class DataStoreABC(ABC):
+    """Abstract base class for DataStore"""
+
     def __new__(klass, *args, **kwargs):
         obj = object.__new__(klass)
 
@@ -106,7 +114,7 @@ class DataStoreABC(ABC):
     @property
     @abstractmethod
     def mode(self) -> Mode:
-        """string that references datastore mode, override in override in subclass constructor"""
+        """string that references datastore mode, override in subclass constructor"""
         ...
 
     @property
@@ -308,6 +316,9 @@ class DataStoreABC(ABC):
 
 
 class DataMember(DataMemberABC):
+    """Generic DataMember class, bound to a data store. All read operations
+    delivered by the parent."""
+
     def __init__(self, *, data_store: DataStoreABC, unique_id: str):
         self._data_store = data_store
         self._unique_id = str(unique_id)
