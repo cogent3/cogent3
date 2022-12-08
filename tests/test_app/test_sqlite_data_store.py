@@ -494,21 +494,21 @@ def test_set_record_type(full_dstore_sqlite):
 
 
 def test_is_locked(full_dstore_sqlite):
-    assert full_dstore_sqlite.is_locked
+    assert full_dstore_sqlite.locked
 
 
 def test_lock_unlock(full_dstore_sqlite):
     full_dstore_sqlite.unlock()
-    assert not full_dstore_sqlite.is_locked
+    assert not full_dstore_sqlite.locked
     full_dstore_sqlite.lock()
-    assert full_dstore_sqlite.is_locked
+    assert full_dstore_sqlite.locked
     full_dstore_sqlite.unlock()
-    assert not full_dstore_sqlite.is_locked
+    assert not full_dstore_sqlite.locked
 
 
 def test_lock_firsttime(full_dstore_sqlite):
     full_dstore_sqlite.db.execute("DELETE FROM state WHERE state_id=1")
     full_dstore_sqlite.lock()
-    assert full_dstore_sqlite.is_locked
+    assert full_dstore_sqlite.locked
     full_dstore_sqlite.unlock()
-    assert not full_dstore_sqlite.is_locked
+    assert not full_dstore_sqlite.locked

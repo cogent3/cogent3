@@ -310,8 +310,7 @@ class DataStoreSqlite(DataStoreABC):
         self._db.execute(cmnd, tuple(vals))
 
     def unlock(self, force=False):
-        """remove a lock if pid matches. If force, ignores pid. ignored if mode is READONLY
-        """
+        """remove a lock if pid matches. If force, ignores pid. ignored if mode is READONLY"""
         if self.mode is READONLY:
             return
 

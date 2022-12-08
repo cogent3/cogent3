@@ -152,7 +152,7 @@ def test_data_member_eq(ro_dstore, fasta_dir):
     assert mem1 != mem2
 
 
-@pytest.mark.parametrize("dest", (None, "mydata.sqlitedb"))
+@pytest.mark.parametrize("dest", (None, "mydata1.sqlitedb"))
 def test_convert_tinydb_to_sqlite(tmp_dir, dest):
     path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
@@ -161,6 +161,17 @@ def test_convert_tinydb_to_sqlite(tmp_dir, dest):
     assert len(dstore_sqlite) == 6
     # tinydb has hard-coded value of lock 123
     assert dstore_sqlite._lock_id == 123
+
+
+@pytest.mark.parametrize("dest", (None, "mydata2.sqlitedb"))
+def test_convert_tinydb_notlocker_to_sqlite(tmp_dir, dest):
+    path = tmp_dir / "sample_not_locked.tinydb"
+    shutil.copy(DATA_DIR / path.name, path)
+    dest = dest if dest is None else tmp_dir / dest
+    dstore_sqlite = convert_tinydb_to_sqlite(path, dest=dest)
+    assert len(dstore_sqlite) == 6
+    # tinydb has hard-coded value of lock 123
+    assert dstore_sqlite._lock_id == None
 
 
 def test_convert_tinydb_to_sqlite_error(tmp_dir):
