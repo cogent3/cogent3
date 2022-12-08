@@ -8,7 +8,6 @@ from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
-    _LOG_TABLE,
     APPEND,
     OVERWRITE,
     READONLY,
@@ -19,6 +18,7 @@ from cogent3.app.sqlite_data_store import (
     _LOG_TABLE,
     _RESULT_TABLE,
     DataStoreSqlite,
+    has_valid_schema,
     open_sqlite_db_rw,
 )
 from cogent3.util.table import Table
@@ -116,6 +116,12 @@ def dstore_on_disk(full_dstore_sqlite):
     path = full_dstore_sqlite.source
     full_dstore_sqlite.close()
     return path
+
+
+def test_invalid_sqlite(full_dstore_sqlite):
+    query = "CREATE TABLE newtable (log_id INTEGER PRIMARY KEY)"
+    full_dstore_sqlite.db.execute(query)
+    assert not has_valid_schema(full_dstore_sqlite.db)
 
 
 def test_open_existing(dstore_on_disk):
@@ -485,3 +491,24 @@ def test_set_record_type(full_dstore_sqlite):
     t = make_table(data={"a": [0, 2]})
     full_dstore_sqlite.record_type = t
     assert full_dstore_sqlite.record_type == get_object_provenance(t)
+
+
+def test_is_locked(full_dstore_sqlite):
+    assert full_dstore_sqlite.is_locked
+
+
+def test_lock_unlock(full_dstore_sqlite):
+    full_dstore_sqlite.unlock()
+    assert not full_dstore_sqlite.is_locked
+    full_dstore_sqlite.lock()
+    assert full_dstore_sqlite.is_locked
+    full_dstore_sqlite.unlock()
+    assert not full_dstore_sqlite.is_locked
+
+
+def test_lock_firsttime(full_dstore_sqlite):
+    full_dstore_sqlite.db.execute("DELETE FROM state WHERE state_id=1")
+    full_dstore_sqlite.lock()
+    assert full_dstore_sqlite.is_locked
+    full_dstore_sqlite.unlock()
+    assert not full_dstore_sqlite.is_locked
