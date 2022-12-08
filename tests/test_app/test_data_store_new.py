@@ -8,14 +8,7 @@ import pytest
 from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store import (
-    ReadOnlyDirectoryDataStore,
-    ReadOnlyTinyDbDataStore,
-    ReadOnlyZippedDataStore,
-    SingleReadDataStore,
-    WritableDirectoryDataStore,
-    WritableTinyDbDataStore,
-)
+from cogent3.app.data_store import ReadOnlyDirectoryDataStore
 from cogent3.app.data_store_new import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
@@ -161,15 +154,17 @@ def test_data_member_eq(ro_dstore, fasta_dir):
 
 @pytest.mark.parametrize("dest", (None, "mydata.sqlitedb"))
 def test_convert_tinydb_to_sqlite(tmp_dir, dest):
-    path = tmp_dir / "data1.tinydb"
+    path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
     dest = dest if dest is None else tmp_dir / dest
     dstore_sqlite = convert_tinydb_to_sqlite(path, dest=dest)
     assert len(dstore_sqlite) == 6
+    # tinydb has hard-coded value of lock 123
+    assert dstore_sqlite._lock_id == 123
 
 
 def test_convert_tinydb_to_sqlite_error(tmp_dir):
-    path = tmp_dir / "data1.tinydb"
+    path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
     dest = tmp_dir / "data1.sqlitedb"
     dest.write_text("blah")
