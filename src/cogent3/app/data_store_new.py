@@ -536,12 +536,10 @@ def _(data: DataMemberABC):
 def convert_directory_datastore(
     inpath: Path, outpath: Path, suffix: Optional[str] = None
 ) -> DataStoreABC:
-    from cogent3.app.io import get_data_store
-
-    in_dstore = get_data_store(base_path=inpath, suffix=suffix)
     out_dstore = DataStoreDirectory(source=outpath, mode=OVERWRITE, suffix=suffix)
-    for member in in_dstore:
-        out_dstore.write(unique_id=member.name, data=member.read())
+    filenames = inpath.glob(f"*{suffix}")
+    for fn in filenames:
+        out_dstore.write(unique_id=fn.name, data=fn.read_text())
     return out_dstore
 
 
