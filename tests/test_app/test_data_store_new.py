@@ -17,8 +17,8 @@ from cogent3.app.data_store_new import (
     READONLY,
     DataMember,
     DataStoreDirectory,
+    convert_directory_datastore,
     convert_tinydb_to_sqlite,
-    upgrade_data_store,
 )
 from cogent3.util.table import Table
 
@@ -176,6 +176,18 @@ def nc_objects():
     }
 
 
+@pytest.fixture(scope="function")
+def Sample_oldDirectoryDataStore(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    filenames = DATA_DIR.glob("*.fasta")
+    old_dir = tmp_dir / "old_dir"
+    old_dir.mkdir(parents=True, exist_ok=True)
+    for fn in filenames:
+        dest = old_dir / fn.name
+        dest.write_text(fn.read_text())
+    return old_dir
+
+
 @pytest.fixture(scope="session")
 def log_data():
     path = DATA_DIR / "scitrack.log"
@@ -268,10 +280,11 @@ def test_convert_tinydb_to_sqlite_error(tmp_dir):
         _ = convert_tinydb_to_sqlite(path, dest=dest)
 
 
-def test_upgrade_dstore(fasta_dir, write_dir):
-    dstore = ReadOnlyDirectoryDataStore(fasta_dir, suffix=".fasta")
-    new_dstore = upgrade_data_store(dstore.source, write_dir, ".fasta", ".fasta")
-    assert len(dstore) == len(new_dstore)
+def test_convert_directory_datastore(Sample_oldDirectoryDataStore, write_dir):
+    new_dstore = convert_directory_datastore(
+        Sample_oldDirectoryDataStore, write_dir, ".fasta"
+    )
+    assert len(new_dstore) == 6
 
 
 def test_fail_try_append(full_dstore, completed_objects):

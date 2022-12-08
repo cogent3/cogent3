@@ -533,29 +533,15 @@ def _(data: DataMemberABC):
     return str(data.unique_id)
 
 
-def upgrade_data_store(
-    inpath: Path, outpath: Path, insuffix, suffix: Optional[str] = None
+def convert_directory_datastore(
+    inpath: Path, outpath: Path, suffix: Optional[str] = None
 ) -> DataStoreABC:
     from cogent3.app.io import get_data_store
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
 
-    insuffix = insuffix.lower()
-    suffix = suffix.lower()
-
-    if suffix == ".tinydb":
-        raise "cogent3 does not support tinydb. You can implement your own DataStore derived from DataStoreABC"
-    in_dstore = get_data_store(base_path=inpath, suffix=insuffix)
-
-    klass = ""
-    if suffix == ".sqlitedb":
-        klass = DataStoreSqlite
-    elif suffix is None or suffix == ".fasta" or suffix == "":
-        klass = DataStoreDirectory
-
-    out_dstore = klass(source=outpath, mode=OVERWRITE, suffix=suffix)
+    in_dstore = get_data_store(base_path=inpath, suffix=suffix)
+    out_dstore = DataStoreDirectory(source=outpath, mode=OVERWRITE, suffix=suffix)
     for member in in_dstore:
         out_dstore.write(unique_id=member.name, data=member.read())
-
     return out_dstore
 
 
