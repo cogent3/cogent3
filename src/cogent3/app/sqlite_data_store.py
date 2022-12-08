@@ -171,12 +171,6 @@ class DataStoreSqlite(DataStoreABC):
             self.db.close()
         self._open = False
 
-    @property
-    def _lock_id(self):
-        """returns lock_pid"""
-        result = self.db.execute("SELECT lock_pid FROM state").fetchone()
-        return result[0] if result else result
-
     def read(self, identifier: str) -> StrOrBytes:
         """
         identifier string formed from Path(table_name) / identifier
@@ -277,6 +271,17 @@ class DataStoreSqlite(DataStoreABC):
         self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")
         self._not_completed = []
 
+    @property
+    def _lock_id(self):
+        """returns lock_pid"""
+        result = self.db.execute("SELECT lock_pid FROM state").fetchone()
+        return result[0] if result else result
+
+    @property
+    def locked(self) -> bool:
+        """returns if lock_pid is NULL or doesn't exist."""
+        return self._lock_id is not None
+
     def lock(self):
         """if writable, and not locked, locks the database to this pid"""
         # if mode=w and the data store exists AND has a lock_pid
@@ -284,43 +289,29 @@ class DataStoreSqlite(DataStoreABC):
         # inadvertently overwrite something otherwise.
         # BUT if mode=a, as the user expects to be modifying the data
         # store then we have to update the value
-        if self.mode is not READONLY:
-            result = (
-                None
-                if self.mode is APPEND
-                else self._db.execute("SELECT state_id,lock_pid FROM state")
-            ).fetchall()
-            unlocked = False
-            if result and len(result):
-                unlocked = True
-            locked = result[0]["lock_pid"] if result else None
-            if locked and self.mode is OVERWRITE:
-                raise IOError(
-                    "You are trying to OVERWRITE a database which is locked. Use APPEND mode or unlock"
-                )
-            elif locked or unlocked:
-                # we will update an existing
-                state_id = result[0]["state_id"]
-                cmnd = "UPDATE state SET lock_pid=? WHERE state_id=?"
-                vals = [os.getpid(), state_id]
-            else:
-                cmnd = "INSERT INTO state(lock_pid) VALUES (?)"
-                vals = [os.getpid()]
+        if self.mode is READONLY:
+            return
 
-            self._db.execute(cmnd, tuple(vals))
+        result = self._db.execute("SELECT state_id,lock_pid FROM state").fetchall()
+        locked = result[0]["lock_pid"] if result else None
+        if locked and self.mode is OVERWRITE:
+            raise IOError(
+                "You are trying to OVERWRITE a database which is locked. Use APPEND mode or unlock"
+            )
 
-    @property
-    def is_locked(self):
-        """returns lock pid or None if unlocked or pid matches self"""
-        return (
-            self.db.execute("SELECT lock_pid from state where state_id=1").fetchall()[
-                0
-            ]["lock_pid"]
-            is not None
-        )
+        if result:
+            # we will update an existing
+            state_id = result[0]["state_id"]
+            cmnd = "UPDATE state SET lock_pid=? WHERE state_id=?"
+            vals = [os.getpid(), state_id]
+        else:
+            cmnd = "INSERT INTO state(lock_pid) VALUES (?)"
+            vals = [os.getpid()]
+        self._db.execute(cmnd, tuple(vals))
 
     def unlock(self, force=False):
-        """remove a lock if pid matches. If force, ignores pid."""
+        """remove a lock if pid matches. If force, ignores pid. ignored if mode is READONLY
+        """
         if self.mode is READONLY:
             return
 
@@ -393,7 +384,7 @@ class DataStoreSqlite(DataStoreABC):
 
     @property
     def describe(self):
-        if self._lock_id:
+        if self.locked:
             title = f"Locked db store. Locked to pid={self._lock_id}, current pid={os.getpid()}."
         else:
             title = "Unlocked db store."
