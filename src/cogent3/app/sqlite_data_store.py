@@ -314,9 +314,7 @@ class DataStoreSqlite(DataStoreABC):
         if self.mode is READONLY:
             return
 
-        lock_id = self.db.execute(
-            "SELECT lock_pid from state where state_id=1"
-        ).fetchall()[0]["lock_pid"]
+        lock_id = self._lock_id
         if lock_id is None:
             return
 
