@@ -143,6 +143,7 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
     dstore.write_log(unique_id="scitrack.log", data=log_data)
     return dstore
 
+
 @pytest.fixture(scope="function")
 def tinydbfile_locked(tmp_dir):
     path = tmp_dir / "sample_locked.tinydb"
@@ -184,7 +185,9 @@ def test_convert_tinydb_to_sqlite(tmp_dir, dest, tinydbfile_locked):
     if dest:
         dest.unlink(missing_ok=True)
     else:
-        (Path(tinydbfile_locked.parent) / f"{tinydbfile_locked.stem}.sqlitedb").unlink(missing_ok=True)
+        (Path(tinydbfile_locked.parent) / f"{tinydbfile_locked.stem}.sqlitedb").unlink(
+            missing_ok=True
+        )
     dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_locked, dest=dest)
     assert len(dstore_sqlite) == 6
     # tinydb has hard-coded value of lock 123
@@ -197,7 +200,9 @@ def test_convert_tinydb_notlocked_to_sqlite(tmp_dir, dest, tinydbfile_notlocked)
     if dest:
         dest.unlink(missing_ok=True)
     else:
-        (Path(tinydbfile_notlocked.parent) / f"{tinydbfile_notlocked.stem}.sqlitedb").unlink(missing_ok=True)
+        (
+            Path(tinydbfile_notlocked.parent) / f"{tinydbfile_notlocked.stem}.sqlitedb"
+        ).unlink(missing_ok=True)
     dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_notlocked, dest=dest)
     assert len(dstore_sqlite) == 6
     assert dstore_sqlite._lock_id == None
