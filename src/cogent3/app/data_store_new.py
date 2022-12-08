@@ -562,9 +562,11 @@ def upgrade_data_store(
 def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataStoreABC:
     try:
         from fnmatch import fnmatch, translate
+
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
         from tinydb.storages import JSONStorage
+
         from cogent3.app.data_store import load_record_from_json
         from cogent3.app.sqlite_data_store import DataStoreSqlite
     except ImportError as e:
