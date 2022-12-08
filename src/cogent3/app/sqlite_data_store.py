@@ -85,8 +85,16 @@ def open_sqlite_db_ro(path):
         uri=True,
     )
     db.row_factory = sqlite3.Row
-    # todo check that we have right tables
+    assert has_valid_schema(db)
     return db
+
+
+def has_valid_schema(db):
+    # todo: should be a full schema check
+    query = "SELECT name FROM sqlite_master WHERE type='table'"
+    result = db.execute(query).fetchall()
+    table_names = {r["name"] for r in result}
+    return table_names == {_RESULT_TABLE, _LOG_TABLE, "state"}
 
 
 class DataStoreSqlite(DataStoreABC):
@@ -147,34 +155,8 @@ class DataStoreSqlite(DataStoreABC):
             db_func = open_sqlite_db_ro if self.mode is READONLY else open_sqlite_db_rw
             self._db = db_func(self.source)
             self._open = True
+            self.lock()
 
-            if self.mode is not READONLY:
-                # if mode=w and the data store exists AND has a lock_pid
-                # value already, then we should fail. The user might
-                # inadvertently overwrite something otherwise.
-                # BUT if mode=a, as the user expects to be modifying the data
-                # store then we have to update the value
-                result = (
-                    None
-                    if self.mode is APPEND
-                    else self._db.execute("SELECT state_id,lock_pid FROM state")
-                ).fetchall()
-                if result and self.mode is OVERWRITE:
-                    raise IOError(
-                        "You are trying to OVERWRITE a database which is locked. Use APPEND mode or unlock"
-                    )
-                elif result:
-                    # we will update an existing
-                    state_id = result[0]["state_id"]
-                    cmnd = "UPDATE state SET lock_pid=? WHERE state_id=?"
-                    vals = [os.getpid(), state_id]
-                else:
-                    cmnd = "INSERT INTO state(lock_pid) VALUES (?)"
-                    vals = [os.getpid()]
-
-                self._db.execute(cmnd, tuple(vals))
-
-        # todo: lock_id comes from process id, into state table  #new  check this on write
         return self._db
 
     def _init_log(self):
@@ -294,6 +276,64 @@ class DataStoreSqlite(DataStoreABC):
     def drop_not_completed(self) -> None:
         self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")
         self._not_completed = []
+
+    def lock(self):
+        """if writable, and not locked, locks the database to this pid"""
+        # if mode=w and the data store exists AND has a lock_pid
+        # value already, then we should fail. The user might
+        # inadvertently overwrite something otherwise.
+        # BUT if mode=a, as the user expects to be modifying the data
+        # store then we have to update the value
+        if self.mode is not READONLY:
+            result = (
+                None
+                if self.mode is APPEND
+                else self._db.execute("SELECT state_id,lock_pid FROM state")
+            ).fetchall()
+            unlocked = False
+            if result and len(result):
+                unlocked = True
+            locked = result[0]["lock_pid"] if result else None
+            if locked and self.mode is OVERWRITE:
+                raise IOError(
+                    "You are trying to OVERWRITE a database which is locked. Use APPEND mode or unlock"
+                )
+            elif locked or unlocked:
+                # we will update an existing
+                state_id = result[0]["state_id"]
+                cmnd = "UPDATE state SET lock_pid=? WHERE state_id=?"
+                vals = [os.getpid(), state_id]
+            else:
+                cmnd = "INSERT INTO state(lock_pid) VALUES (?)"
+                vals = [os.getpid()]
+
+            self._db.execute(cmnd, tuple(vals))
+
+    @property
+    def is_locked(self):
+        """returns lock pid or None if unlocked or pid matches self"""
+        return (
+            self.db.execute("SELECT lock_pid from state where state_id=1").fetchall()[
+                0
+            ]["lock_pid"]
+            is not None
+        )
+
+    def unlock(self, force=False):
+        """remove a lock if pid matches. If force, ignores pid."""
+        if self.mode is READONLY:
+            return
+
+        lock_id = self.db.execute(
+            "SELECT lock_pid from state where state_id=1"
+        ).fetchall()[0]["lock_pid"]
+        if lock_id is None:
+            return
+
+        if lock_id == os.getpid() or force:
+            self.db.execute("UPDATE state SET lock_pid=NULL WHERE state_id=1")
+
+        return
 
     def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         if unique_id.startswith(_RESULT_TABLE):
