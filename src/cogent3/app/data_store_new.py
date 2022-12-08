@@ -13,7 +13,6 @@ from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
 
-from cogent3.app.data_store import _db_lockid
 from cogent3.app.typing import TabularType
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util.deserialise import deserialise_object
@@ -576,14 +575,17 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
         ) from e
 
     storage = CachingMiddleware(JSONStorage)
-    storage.WRITE_CACHE_SIZE = 50  # todo support for user specifying
     tinydb = TinyDB(str(source), storage=storage)
     pattern = translate("*")
     query = Query().identifier.matches(pattern)
 
     id_list = []
     data_list = []
+    lock_id = None
     for record in tinydb.search(query):
+        if record["identifier"] == "LOCK":
+            lock_id = record["pid"]
+            continue
         id_list.append(record["identifier"])
         data_list.append(load_record_from_json(record))
 
@@ -595,15 +597,13 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
 
     for id, data, is_completed in data_list:
-        if id == "LOCK":
-            cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
-            dstore.db.execute(cmnd, (data,))
-            # todo make sure _lockid of sqlitedb matches lockid from tinydb
-            assert dstore._lock_id == _db_lockid(str(source))
+        if is_completed:
+            dstore.write(unique_id=id, data=data)
         else:
-            if is_completed:
-                dstore.write(unique_id=id, data=data)
-            else:
-                dstore.write_not_completed(unique_id=id, data=data)
+            dstore.write_not_completed(unique_id=id, data=data)
+
+    if lock_id is not None:
+        cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
+        dstore.db.execute(cmnd, (lock_id,))
 
     return dstore
