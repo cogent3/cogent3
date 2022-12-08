@@ -1,4 +1,3 @@
-import os
 import shutil
 
 from pathlib import Path
@@ -147,34 +146,28 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
 @pytest.fixture(scope="function")
 def tinydbfile_locked(tmp_dir):
     path = tmp_dir / "sample_locked.tinydb"
-    shutil.copy(DATA_DIR / path.name, path, )
+    shutil.copy(DATA_DIR / path.name, path)
     return path
 
 
 @pytest.fixture(scope="function")
-def tinydbfile_notlocked(tmp_dir):
+def tinydbfile_notlocked(tinydbfile_locked):
     try:
-        from fnmatch import fnmatch, translate
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
         from tinydb.storages import JSONStorage
-        from cogent3.app.data_store import load_record_from_json
-        from cogent3.app.sqlite_data_store import DataStoreSqlite
     except ImportError as e:
         raise ImportError(
             "You need to install tinydb to be able to migrate to new datastore."
         ) from e
-    path = tmp_dir / "sample_locked.tinydb"
-    shutil.copy(DATA_DIR / path.name, path)
     storage = CachingMiddleware(JSONStorage)
     storage.WRITE_CACHE_SIZE = 50  # todo support for user specifying
-    db = TinyDB(path, storage=storage)
+    db = TinyDB(tinydbfile_locked, storage=storage)
     query = Query().identifier.matches("LOCK")
-    got = db.get(query)
-    lock_id = got["pid"]
     db.remove(query)
     db.storage.flush()
-    return path
+    db.close()
+    return tinydbfile_locked
 
 
 def test_data_member_eq(ro_dstore, fasta_dir):
