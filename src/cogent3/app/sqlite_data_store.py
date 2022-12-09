@@ -7,7 +7,7 @@ import re
 import sqlite3
 
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
 from scitrack import get_text_hexdigest
 
@@ -272,7 +272,7 @@ class DataStoreSqlite(DataStoreABC):
         self._not_completed = []
 
     @property
-    def _lock_id(self):
+    def _lock_id(self) -> Optional[int]:
         """returns lock_pid"""
         result = self.db.execute("SELECT lock_pid FROM state").fetchone()
         return result[0] if result else result

@@ -211,11 +211,11 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
 def tinydbfile_locked(tmp_dir):
     path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
-    return path
+    return Path(path)
 
 
 @pytest.fixture(scope="function")
-def tinydbfile_notlocked(tinydbfile_locked):
+def tinydbfile_unlocked(tmp_dir):
     try:
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
@@ -224,14 +224,19 @@ def tinydbfile_notlocked(tinydbfile_locked):
         raise ImportError(
             "You need to install tinydb to be able to migrate to new datastore."
         ) from e
+
+    locked_path = tmp_dir / "sample_locked.tinydb"
+    shutil.copy(DATA_DIR / locked_path.name, locked_path)
+    unlocked_path = locked_path.parent / "sample_unlocked.tinydb"
+    locked_path.rename(unlocked_path)
+
     storage = CachingMiddleware(JSONStorage)
-    storage.WRITE_CACHE_SIZE = 50  # todo support for user specifying
-    db = TinyDB(tinydbfile_locked, storage=storage)
+    db = TinyDB(unlocked_path, storage=storage)
     query = Query().identifier.matches("LOCK")
     db.remove(query)
     db.storage.flush()
     db.close()
-    return tinydbfile_locked
+    return unlocked_path
 
 
 def test_data_member_eq(ro_dstore, fasta_dir):
@@ -258,15 +263,15 @@ def test_convert_tinydb_to_sqlite(tmp_dir, dest, tinydbfile_locked):
 
 
 @pytest.mark.parametrize("dest", (None, "mydata2.sqlitedb"))
-def test_convert_tinydb_notlocked_to_sqlite(tmp_dir, dest, tinydbfile_notlocked):
+def test_convert_tinydb_unlocked_to_sqlite(tmp_dir, dest, tinydbfile_unlocked):
     dest = dest if dest is None else tmp_dir / dest
     if dest:
         dest.unlink(missing_ok=True)
     else:
         (
-            Path(tinydbfile_notlocked.parent) / f"{tinydbfile_notlocked.stem}.sqlitedb"
+            Path(tinydbfile_unlocked.parent) / f"{tinydbfile_unlocked.stem}.sqlitedb"
         ).unlink(missing_ok=True)
-    dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_notlocked, dest=dest)
+    dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_unlocked, dest=dest)
     assert len(dstore_sqlite) == 6
     assert dstore_sqlite._lock_id == None
 
