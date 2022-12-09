@@ -8,7 +8,6 @@ import pytest
 from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store import ReadOnlyDirectoryDataStore
 from cogent3.app.data_store_new import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
@@ -35,7 +34,7 @@ __status__ = "Alpha"
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def tmp_dir(tmpdir_factory):
     return Path(tmpdir_factory.mktemp("datastore"))
 
@@ -47,7 +46,7 @@ def workingdir(tmp_dir, monkeypatch):
     monkeypatch.chdir(tmp_dir)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def fasta_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
@@ -77,7 +76,7 @@ def nc_dir(tmp_dir):
     shutil.rmtree(nc_dir)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ro_dstore(fasta_dir):
     return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
 

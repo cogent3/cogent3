@@ -7,7 +7,7 @@ import re
 import sqlite3
 
 from pathlib import Path
-from typing import Union, Optional
+from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
 
