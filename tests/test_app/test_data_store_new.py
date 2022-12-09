@@ -8,14 +8,6 @@ import pytest
 from scitrack import get_text_hexdigest
 
 from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store import (
-    ReadOnlyDirectoryDataStore,
-    ReadOnlyTinyDbDataStore,
-    ReadOnlyZippedDataStore,
-    SingleReadDataStore,
-    WritableDirectoryDataStore,
-    WritableTinyDbDataStore,
-)
 from cogent3.app.data_store_new import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
@@ -24,8 +16,8 @@ from cogent3.app.data_store_new import (
     READONLY,
     DataMember,
     DataStoreDirectory,
+    convert_directory_datastore,
     convert_tinydb_to_sqlite,
-    upgrade_data_store,
 )
 from cogent3.util.table import Table
 
@@ -42,7 +34,7 @@ __status__ = "Alpha"
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def tmp_dir(tmpdir_factory):
     return Path(tmpdir_factory.mktemp("datastore"))
 
@@ -54,7 +46,7 @@ def workingdir(tmp_dir, monkeypatch):
     monkeypatch.chdir(tmp_dir)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def fasta_dir(tmp_dir):
     tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
@@ -84,7 +76,7 @@ def nc_dir(tmp_dir):
     shutil.rmtree(nc_dir)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ro_dstore(fasta_dir):
     return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
 
@@ -132,6 +124,18 @@ def nc_objects():
     }
 
 
+@pytest.fixture(scope="function")
+def Sample_oldDirectoryDataStore(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    filenames = DATA_DIR.glob("*.fasta")
+    old_dir = tmp_dir / "old_dir"
+    old_dir.mkdir(parents=True, exist_ok=True)
+    for fn in filenames:
+        dest = old_dir / fn.name
+        dest.write_text(fn.read_text())
+    return old_dir
+
+
 @pytest.fixture(scope="session")
 def log_data():
     path = DATA_DIR / "scitrack.log"
@@ -151,6 +155,38 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
     return dstore
 
 
+@pytest.fixture(scope="function")
+def tinydbfile_locked(tmp_dir):
+    path = tmp_dir / "sample_locked.tinydb"
+    shutil.copy(DATA_DIR / path.name, path)
+    return Path(path)
+
+
+@pytest.fixture(scope="function")
+def tinydbfile_unlocked(tmp_dir):
+    try:
+        from tinydb import Query, TinyDB
+        from tinydb.middlewares import CachingMiddleware
+        from tinydb.storages import JSONStorage
+    except ImportError as e:
+        raise ImportError(
+            "You need to install tinydb to be able to migrate to new datastore."
+        ) from e
+
+    locked_path = tmp_dir / "sample_locked.tinydb"
+    shutil.copy(DATA_DIR / locked_path.name, locked_path)
+    unlocked_path = locked_path.parent / "sample_unlocked.tinydb"
+    locked_path.rename(unlocked_path)
+
+    storage = CachingMiddleware(JSONStorage)
+    db = TinyDB(unlocked_path, storage=storage)
+    query = Query().identifier.matches("LOCK")
+    db.remove(query)
+    db.storage.flush()
+    db.close()
+    return unlocked_path
+
+
 def test_data_member_eq(ro_dstore, fasta_dir):
     ro_dstore2 = DataStoreDirectory(fasta_dir, mode="r", suffix="fasta")
     name = "brca1.fasta"
@@ -159,17 +195,37 @@ def test_data_member_eq(ro_dstore, fasta_dir):
     assert mem1 != mem2
 
 
-@pytest.mark.parametrize("dest", (None, "mydata.sqlitedb"))
-def test_convert_tinydb_to_sqlite(tmp_dir, dest):
-    path = tmp_dir / "data1.tinydb"
-    shutil.copy(DATA_DIR / path.name, path)
+@pytest.mark.parametrize("dest", (None, "mydata1.sqlitedb"))
+def test_convert_tinydb_to_sqlite(tmp_dir, dest, tinydbfile_locked):
     dest = dest if dest is None else tmp_dir / dest
-    dstore_sqlite = convert_tinydb_to_sqlite(path, dest=dest)
+    if dest:
+        dest.unlink(missing_ok=True)
+    else:
+        (Path(tinydbfile_locked.parent) / f"{tinydbfile_locked.stem}.sqlitedb").unlink(
+            missing_ok=True
+        )
+    dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_locked, dest=dest)
     assert len(dstore_sqlite) == 6
+    # tinydb has hard-coded value of lock 123
+    assert dstore_sqlite._lock_id == 123
+
+
+@pytest.mark.parametrize("dest", (None, "mydata2.sqlitedb"))
+def test_convert_tinydb_unlocked_to_sqlite(tmp_dir, dest, tinydbfile_unlocked):
+    dest = dest if dest is None else tmp_dir / dest
+    if dest:
+        dest.unlink(missing_ok=True)
+    else:
+        (
+            Path(tinydbfile_unlocked.parent) / f"{tinydbfile_unlocked.stem}.sqlitedb"
+        ).unlink(missing_ok=True)
+    dstore_sqlite = convert_tinydb_to_sqlite(tinydbfile_unlocked, dest=dest)
+    assert len(dstore_sqlite) == 6
+    assert dstore_sqlite._lock_id == None
 
 
 def test_convert_tinydb_to_sqlite_error(tmp_dir):
-    path = tmp_dir / "data1.tinydb"
+    path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
     dest = tmp_dir / "data1.sqlitedb"
     dest.write_text("blah")
@@ -177,10 +233,11 @@ def test_convert_tinydb_to_sqlite_error(tmp_dir):
         _ = convert_tinydb_to_sqlite(path, dest=dest)
 
 
-def test_upgrade_dstore(fasta_dir, write_dir):
-    dstore = ReadOnlyDirectoryDataStore(fasta_dir, suffix=".fasta")
-    new_dstore = upgrade_data_store(dstore.source, write_dir, ".fasta", ".fasta")
-    assert len(dstore) == len(new_dstore)
+def test_convert_directory_datastore(Sample_oldDirectoryDataStore, write_dir):
+    new_dstore = convert_directory_datastore(
+        Sample_oldDirectoryDataStore, write_dir, ".fasta"
+    )
+    assert len(new_dstore) == 6
 
 
 def test_fail_try_append(full_dstore, completed_objects):

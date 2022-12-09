@@ -13,7 +13,6 @@ from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
 
-from cogent3.app.data_store import _db_lockid
 from cogent3.app.typing import TabularType
 from cogent3.core.alignment import SequenceCollection
 from cogent3.util.deserialise import deserialise_object
@@ -534,35 +533,19 @@ def _(data: DataMemberABC):
     return str(data.unique_id)
 
 
-def upgrade_data_store(
-    inpath: Path, outpath: Path, insuffix, suffix: Optional[str] = None
+def convert_directory_datastore(
+    inpath: Path, outpath: Path, suffix: Optional[str] = None
 ) -> DataStoreABC:
-    from cogent3.app.io import get_data_store
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
-
-    insuffix = insuffix.lower()
-    suffix = suffix.lower()
-
-    if suffix == ".tinydb":
-        raise "cogent3 does not support tinydb. You can implement your own DataStore derived from DataStoreABC"
-    in_dstore = get_data_store(base_path=inpath, suffix=insuffix)
-
-    klass = ""
-    if suffix == ".sqlitedb":
-        klass = DataStoreSqlite
-    elif suffix is None or suffix == ".fasta" or suffix == "":
-        klass = DataStoreDirectory
-
-    out_dstore = klass(source=outpath, mode=OVERWRITE, suffix=suffix)
-    for member in in_dstore:
-        out_dstore.write(unique_id=member.name, data=member.read())
-
+    out_dstore = DataStoreDirectory(source=outpath, mode=OVERWRITE, suffix=suffix)
+    filenames = inpath.glob(f"*{suffix}")
+    for fn in filenames:
+        out_dstore.write(unique_id=fn.name, data=fn.read_text())
     return out_dstore
 
 
 def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataStoreABC:
     try:
-        from fnmatch import fnmatch, translate
+        from fnmatch import translate
 
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
@@ -576,14 +559,17 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
         ) from e
 
     storage = CachingMiddleware(JSONStorage)
-    storage.WRITE_CACHE_SIZE = 50  # todo support for user specifying
     tinydb = TinyDB(str(source), storage=storage)
     pattern = translate("*")
     query = Query().identifier.matches(pattern)
 
     id_list = []
     data_list = []
+    lock_id = None
     for record in tinydb.search(query):
+        if record["identifier"] == "LOCK":
+            lock_id = record["pid"]
+            continue
         id_list.append(record["identifier"])
         data_list.append(load_record_from_json(record))
 
@@ -595,15 +581,13 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
 
     for id, data, is_completed in data_list:
-        if id == "LOCK":
-            cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
-            dstore.db.execute(cmnd, (data,))
-            # todo make sure _lockid of sqlitedb matches lockid from tinydb
-            assert dstore._lock_id == _db_lockid(str(source))
+        if is_completed:
+            dstore.write(unique_id=id, data=data)
         else:
-            if is_completed:
-                dstore.write(unique_id=id, data=data)
-            else:
-                dstore.write_not_completed(unique_id=id, data=data)
+            dstore.write_not_completed(unique_id=id, data=data)
+
+    if lock_id is not None or dstore._lock_id:
+        cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
+        dstore.db.execute(cmnd, (lock_id,))
 
     return dstore
