@@ -18,6 +18,7 @@ from scitrack import CachingLogger
 from cogent3 import make_aligned_seqs
 from cogent3.app import align, evo
 from cogent3.app import io as io_app
+from cogent3.app import io_new as io_app_new
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app.composable import (
@@ -340,7 +341,7 @@ def test_apply_to_strings(tmp_dir, klass):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_strings"
-    writer = io_app.write_seqs_new(klass(outpath, mode=OVERWRITE, suffix="fasta"))
+    writer = io_app_new.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
     process = reader + min_length + writer
     # create paths as strings
     _ = process.apply_to(dstore, id_from_source=get_data_source)
@@ -356,7 +357,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
-    writer = io_app.write_seqs_new(
+    writer = io_app_new.write_seqs(
         DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
     )
     process = reader + min_length + writer
