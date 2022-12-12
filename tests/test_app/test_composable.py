@@ -16,6 +16,7 @@ from scitrack import CachingLogger
 from cogent3 import make_aligned_seqs
 from cogent3.app import align, evo
 from cogent3.app import io as io_app
+from cogent3.app import io_new as io_app_new
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app.composable import (
@@ -338,7 +339,7 @@ def test_apply_to_strings(tmp_dir, klass):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_strings"
-    writer = io_app.write_seqs_new(klass(outpath, mode=OVERWRITE, suffix="fasta"))
+    writer = io_app_new.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
     process = reader + min_length + writer
     # create paths as strings
     _ = process.apply_to(dstore, id_from_source=get_data_source)
@@ -354,7 +355,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
-    writer = io_app.write_seqs_new(
+    writer = io_app_new.write_seqs(
         DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
     )
     process = reader + min_length + writer
@@ -1112,7 +1113,7 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     half_dstore1._mode = APPEND
     reader1 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length1 = sample_app.min_length(10)
-    writer1 = io_app.write_seqs_new(half_dstore1)
+    writer1 = io_app_new.write_seqs(half_dstore1)
     process1 = reader1 + min_length1 + writer1
     # create paths as strings
     dstore1 = io_app.get_data_store(half_dstore1.source, suffix="fasta")
@@ -1124,7 +1125,7 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     half_dstore2._mode = APPEND
     reader2 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length2 = sample_app.min_length(10)
-    writer2 = io_app.write_seqs_new(half_dstore2)
+    writer2 = io_app_new.write_seqs(half_dstore2)
     process2 = reader2 + min_length2 + writer2
     # check not fail on append new records
     _ = process2.apply_to(dstore1, id_from_source=get_data_source)
