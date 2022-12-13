@@ -397,6 +397,15 @@ def test_pickle_unpickle_apps(data, dser):
     assert upkld(pkld(data)) == data
 
 
+def test_pickle_it_unpickleable():
+    def foo():  # can't pickle a local function
+        ...
+
+    app = io_app.pickle_it()
+    got = app(foo)
+    assert isinstance(got, NotCompleted)
+
+
 @pytest.mark.parametrize(
     "compress,decompress",
     ((bz2.compress, bz2.decompress), (gzip.compress, gzip.decompress)),
