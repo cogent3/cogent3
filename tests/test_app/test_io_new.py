@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy
 import pytest
 
+from numpy.testing import assert_allclose
+
 from cogent3 import DNA
 from cogent3.app import io_new as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
@@ -12,6 +14,8 @@ from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
+from cogent3.util.deserialise import deserialise_object
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
@@ -22,10 +26,6 @@ __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
-
-from numpy.testing import assert_allclose
-
-from cogent3.util.table import Table
 
 
 DATA_DIR = Path(__file__).parent.parent / "data"
