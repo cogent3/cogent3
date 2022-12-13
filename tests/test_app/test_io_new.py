@@ -382,16 +382,18 @@ def test_write_json_with_info(w_dir_dstore):
 )
 def test_deserialiser(serialiser, deserialiser):
     data = {"1": 1, "abc": [1, 2]}
-    deserialised = io_app.deserialised(deserialiser=deserialiser)
+    deserialised = io_app.from_primitive(deserialiser=deserialiser)
     assert deserialised(serialiser(data)) == data
 
 
-@pytest.mark.parametrize("data,dser", (([1, 2, 3], None), (DNA, io_app.deserialised())))
+@pytest.mark.parametrize(
+    "data,dser", (([1, 2, 3], None), (DNA, io_app.from_primitive()))
+)
 def test_pickle_unpickle_apps(data, dser):
-    pkld = io_app.pickle_it()
-    upkld = io_app.unpickle_it()
+    pkld = io_app.to_primitive() + io_app.pickle_it()
+    upkld = io_app.unpickle_it() + io_app.from_primitive()
     # need to add custom deserialiser for cogent3 objects
-    upkld = upkld if dser is None else upkld + dser
+    # upkld = upkld if dser is None else upkld + dser
     assert upkld(pkld(data)) == data
 
 
@@ -410,8 +412,10 @@ def test_compress_decompress(compress, decompress):
 
 @pytest.mark.parametrize("data", ([1, 2, 3], DNA)[1:])
 def test_pickled_compressed_roundtrip(data):
-    serialised = io_app.pickle_it() + io_app.compressed()
-    deserialised = io_app.decompressed() + io_app.unpickle_it() + io_app.deserialised()
+    serialised = io_app.to_primitive() + io_app.pickle_it() + io_app.compressed()
+    deserialised = (
+        io_app.decompressed() + io_app.unpickle_it() + io_app.from_primitive()
+    )
     s = serialised(data)
     d = deserialised(s)
     assert d == data

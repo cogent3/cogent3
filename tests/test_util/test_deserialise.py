@@ -469,7 +469,6 @@ class TestDeserialising(TestCase):
         got = deserialise_object(data)
         assert got is data
 
-
     def test_deserialise_likelihood_function1(self):
         """correctly deserialise data into likelihood function"""
         # tests single alignment

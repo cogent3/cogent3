@@ -51,11 +51,6 @@ __status__ = "Alpha"
 
 @define_app
 def pickle_it(data: SerialisableType) -> bytes:
-    """attempts to call a to_rich_dict() method, fallback to
-    pickling entire object"""
-    with contextlib.suppress(AttributeError):
-        data = data.to_rich_dict()
-
     return pickle.dumps(data)
 
 
@@ -95,12 +90,32 @@ class decompressed:
         return self.decompressor(data)
 
 
+def _as_dict(obj) -> dict:
+    with contextlib.suppress(AttributeError):
+        obj = obj.to_rich_dict()
+    return obj
+
+
 @define_app
-class deserialised:
+class to_primitive:
+    """convert an object to primitive python types suitable for serialisation"""
+
+    def __init__(self, convertor: callable = _as_dict):
+        self.convertor = convertor
+
+    def main(self, data: SerialisableType) -> SerialisableType:
+        """either json convertor a dict from a cogent3 object"""
+        return self.convertor(data)
+
+
+@define_app
+class from_primitive:
+    """deserialises from primitive python types"""
+
     def __init__(self, deserialiser: callable = deserialise_object):
         self.deserialiser = deserialiser
 
-    def main(self, data: Union[dict, str, bytes]) -> SerialisableType:
+    def main(self, data: SerialisableType) -> SerialisableType:
         """either json or a dict from a cogent3 object"""
         return self.deserialiser(data)
 
@@ -307,7 +322,7 @@ class load_db:
     """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
 
-    def __init__(self, deserialiser: callable = unpickle_it() + deserialised()):
+    def __init__(self, deserialiser: callable = unpickle_it() + from_primitive()):
         self.deserialiser = deserialiser
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
@@ -393,7 +408,11 @@ class write_tabular:  # todo doctsring
 class write_db:
     """Write serialised objects to a database instance."""
 
-    def __init__(self, data_store: DataStoreABC, serialiser: callable = pickle_it()):
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        serialiser: callable = to_primitive() + pickle_it(),
+    ):
         self.data_store = data_store
         self.serialiser = serialiser
 
