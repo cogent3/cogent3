@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import importlib
 import inspect
@@ -147,9 +149,9 @@ def _make_head(text: str) -> list[str]:
 def _clean_params_docs(text: str) -> str:
     """remove unnecessary indentation"""
     text = text.splitlines(keepends=False)
-    prefix = " " * 8  # expected indentation of constructor doc
+    prefix = re.compile(r"^\s{8}")  # expected indentation of constructor doc
     for i, l in enumerate(text):
-        text[i] = l.removeprefix(prefix)
+        text[i] = prefix.sub("", l)
     return "\n".join(text)
 
 
