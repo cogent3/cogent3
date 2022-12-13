@@ -302,6 +302,28 @@ class load_json:
         return result
 
 
+@define_app(app_type=LOADER)
+class load_db:
+    """Loads serialised cogent3 objects from a db.
+    Returns whatever object type was stored."""
+
+    def __init__(self, deserialiser: callable = unpickle_it() + deserialised()):
+        self.deserialiser = deserialiser
+
+    def main(self, identifier: IdentifierType) -> SerialisableType:
+        """returns deserialised object"""
+        data = identifier.read()
+        # do we need to inject identifier attribute?
+        result = self.deserialiser(data)
+        if hasattr(result, "info"):
+            result.info["source"] = result.info.get("source", identifier)
+        else:
+            with contextlib.suppress(AttributeError):
+                identifier = getattr(result, "source", identifier)
+                setattr(result, "source", identifier)
+        return result
+
+
 @define_app(app_type=WRITER)
 class write_json:
     def __init__(
@@ -365,3 +387,35 @@ class write_tabular:  # todo doctsring
 
         output = data.to_string(format=self._format)
         return self.data_store.write(unique_id=identifier, data=output)
+
+
+@define_app(app_type=WRITER)
+class write_db:
+    """Write serialised objects to a database instance."""
+
+    def __init__(self, data_store: DataStoreABC, serialiser: callable = pickle_it()):
+        self.data_store = data_store
+        self.serialiser = serialiser
+
+    T = Union[SerialisableType, IdentifierType]
+
+    def main(self, /, data: SerialisableType, *, identifier=None) -> T:
+        """
+        Parameters
+        ----------
+        data
+            object that has a `to_json()` method, or can be json serialised
+        identifier : str
+            if not provided, taken from data.source or data.info.source
+
+        Returns
+        -------
+        identifier
+        """
+        identifier = identifier or get_data_source(data)
+        data = self.serialiser(data)
+
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_incomplete(identifier, data)
+
+        return self.data_store.write(unique_id=identifier, data=data)
