@@ -77,7 +77,10 @@ class DataMemberABC(ABC):
     def __eq__(self, other):
         """to check equality of members and check existence of a
         member in a list of members"""
-        return (self.data_store, self.unique_id) == (other.data_store, other.unique_id)
+        return type(self) == type(other) and (self.data_store, self.unique_id) == (
+            other.data_store,
+            other.unique_id,
+        )
 
     @property
     def md5(self):
