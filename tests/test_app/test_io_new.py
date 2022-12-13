@@ -419,3 +419,18 @@ def test_pickled_compressed_roundtrip(data):
 
 # todo test objects where there is no unique_id provided, or inferrable,
 # should return NotCompletedError
+
+
+def test_write_db_load_db(fasta_dir, tmp_dir):
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    orig_dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
+    data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
+    load_seqs = io_app.load_unaligned()
+    writer = io_app.write_db(data_store=data_store)
+    reader = io_app.load_db()
+    for m in orig_dstore:
+        orig = load_seqs(m)
+        m = writer(orig, identifier=m.unique_id)
+        read = reader(m)
+        assert orig == read
