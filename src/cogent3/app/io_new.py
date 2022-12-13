@@ -1,6 +1,10 @@
+import contextlib
 import json
+import pickle
 
 from enum import Enum
+from gzip import compress as gzip_compress
+from gzip import decompress as gzip_decompress
 from typing import Optional, Union
 
 import numpy
@@ -43,6 +47,77 @@ __version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+@define_app
+def pickle_it(data: SerialisableType) -> bytes:
+    return pickle.dumps(data)
+
+
+@define_app
+def unpickle_it(data: bytes) -> SerialisableType:
+    return pickle.loads(data)
+
+
+@define_app
+class compress:
+    def __init__(self, compressor: callable = gzip_compress):
+        """
+        Parameters
+        ----------
+        compressor
+            function for compressing bytes data, defaults to gzip
+        """
+        self.compressor = compressor
+
+    def main(self, data: bytes) -> bytes:
+        return self.compressor(data)
+
+
+@define_app
+class decompress:
+    def __init__(self, decompressor: callable = gzip_decompress):
+        """
+        Parameters
+        ----------
+        decompressor
+            a function for decompression, defaults to the gzip decompress
+            function
+        """
+        self.decompressor = decompressor
+
+    def main(self, data: bytes) -> bytes:
+        return self.decompressor(data)
+
+
+def _as_dict(obj) -> dict:
+    with contextlib.suppress(AttributeError):
+        obj = obj.to_rich_dict()
+    return obj
+
+
+@define_app
+class to_primitive:
+    """convert an object to primitive python types suitable for serialisation"""
+
+    def __init__(self, convertor: callable = _as_dict):
+        self.convertor = convertor
+
+    def main(self, data: SerialisableType) -> SerialisableType:
+        """either json convertor a dict from a cogent3 object"""
+        return self.convertor(data)
+
+
+@define_app
+class from_primitive:
+    """deserialises from primitive python types"""
+
+    def __init__(self, deserialiser: callable = deserialise_object):
+        self.deserialiser = deserialiser
+
+    def main(self, data: SerialisableType) -> SerialisableType:
+        """either json or a dict from a cogent3 object"""
+        return self.deserialiser(data)
 
 
 class tabular(Enum):
@@ -242,6 +317,28 @@ class load_json:
         return result
 
 
+@define_app(app_type=LOADER)
+class load_db:
+    """Loads serialised cogent3 objects from a db.
+    Returns whatever object type was stored."""
+
+    def __init__(self, deserialiser: callable = unpickle_it() + from_primitive()):
+        self.deserialiser = deserialiser
+
+    def main(self, identifier: IdentifierType) -> SerialisableType:
+        """returns deserialised object"""
+        data = identifier.read()
+        # do we need to inject identifier attribute?
+        result = self.deserialiser(data)
+        if hasattr(result, "info"):
+            result.info["source"] = result.info.get("source", identifier)
+        else:
+            with contextlib.suppress(AttributeError):
+                identifier = getattr(result, "source", identifier)
+                setattr(result, "source", identifier)
+        return result
+
+
 @define_app(app_type=WRITER)
 class write_json:
     def __init__(
@@ -305,3 +402,39 @@ class write_tabular:  # todo doctsring
 
         output = data.to_string(format=self._format)
         return self.data_store.write(unique_id=identifier, data=output)
+
+
+@define_app(app_type=WRITER)
+class write_db:
+    """Write serialised objects to a database instance."""
+
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        serialiser: callable = to_primitive() + pickle_it(),
+    ):
+        self.data_store = data_store
+        self.serialiser = serialiser
+
+    T = Union[SerialisableType, IdentifierType]
+
+    def main(self, /, data: SerialisableType, *, identifier=None) -> T:
+        """
+        Parameters
+        ----------
+        data
+            object that has a `to_json()` method, or can be json serialised
+        identifier : str
+            if not provided, taken from data.source or data.info.source
+
+        Returns
+        -------
+        identifier
+        """
+        identifier = identifier or get_data_source(data)
+        data = self.serialiser(data)
+
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_incomplete(identifier, data)
+
+        return self.data_store.write(unique_id=identifier, data=data)

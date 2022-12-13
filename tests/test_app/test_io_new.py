@@ -1,7 +1,14 @@
+import bz2
+import gzip
+import json
+import pickle
+
 from pathlib import Path
 
 import numpy
 import pytest
+
+from numpy.testing import assert_allclose
 
 from cogent3 import DNA
 from cogent3.app import io_new as io_app
@@ -12,6 +19,8 @@ from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
+from cogent3.util.deserialise import deserialise_object
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
@@ -22,10 +31,6 @@ __version__ = "2022.8.24a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
-
-from numpy.testing import assert_allclose
-
-from cogent3.util.table import Table
 
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -367,5 +372,76 @@ def test_write_json_with_info(w_dir_dstore):
     assert got["dna"] == DNA
 
 
+@pytest.mark.parametrize(
+    "serialiser,deserialiser",
+    (
+        (json.dumps, json.loads),
+        (pickle.dumps, pickle.loads),
+        (lambda x: x, deserialise_object),
+    ),
+)
+def test_deserialiser(serialiser, deserialiser):
+    data = {"1": 1, "abc": [1, 2]}
+    deserialised = io_app.from_primitive(deserialiser=deserialiser)
+    assert deserialised(serialiser(data)) == data
+
+
+@pytest.mark.parametrize(
+    "data,dser", (([1, 2, 3], None), (DNA, io_app.from_primitive()))
+)
+def test_pickle_unpickle_apps(data, dser):
+    pkld = io_app.to_primitive() + io_app.pickle_it()
+    upkld = io_app.unpickle_it() + io_app.from_primitive()
+    # need to add custom deserialiser for cogent3 objects
+    # upkld = upkld if dser is None else upkld + dser
+    assert upkld(pkld(data)) == data
+
+
+def test_pickle_it_unpickleable():
+    def foo():  # can't pickle a local function
+        ...
+
+    app = io_app.pickle_it()
+    got = app(foo)
+    assert isinstance(got, NotCompleted)
+
+
+@pytest.mark.parametrize(
+    "compress,decompress",
+    ((bz2.compress, bz2.decompress), (gzip.compress, gzip.decompress)),
+)
+def test_compress_decompress(compress, decompress):
+    data = pickle.dumps({"1": 1, "abc": [1, 2]})
+
+    decompressor = io_app.decompress(decompressor=decompress)
+    compressor = io_app.compress(compressor=compress)
+
+    assert decompressor(compressor(data)) == data
+
+
+@pytest.mark.parametrize("data", ([1, 2, 3], DNA)[1:])
+def test_pickled_compress_roundtrip(data):
+    serialised = io_app.to_primitive() + io_app.pickle_it() + io_app.compress()
+    deserialised = io_app.decompress() + io_app.unpickle_it() + io_app.from_primitive()
+    s = serialised(data)
+    d = deserialised(s)
+    assert d == data
+
+
 # todo test objects where there is no unique_id provided, or inferrable,
 # should return NotCompletedError
+
+
+def test_write_db_load_db(fasta_dir, tmp_dir):
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    orig_dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
+    data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
+    load_seqs = io_app.load_unaligned()
+    writer = io_app.write_db(data_store=data_store)
+    reader = io_app.load_db()
+    for m in orig_dstore:
+        orig = load_seqs(m)
+        m = writer(orig, identifier=m.unique_id)
+        read = reader(m)
+        assert orig == read
