@@ -1,3 +1,5 @@
+import bz2
+import gzip
 import json
 import pickle
 
@@ -382,6 +384,19 @@ def test_deserialiser(serialiser, deserialiser):
     data = {"1": 1, "abc": [1, 2]}
     deserialised = io_app.deserialised(deserialiser=deserialiser)
     assert deserialised(serialiser(data)) == data
+
+
+@pytest.mark.parametrize(
+    "compress,decompress",
+    ((bz2.compress, bz2.decompress), (gzip.compress, gzip.decompress)),
+)
+def test_compress_decompress(compress, decompress):
+    data = pickle.dumps({"1": 1, "abc": [1, 2]})
+
+    decompressor = io_app.decompressed(decompressor=decompress)
+    compressor = io_app.compressed(compressor=compress)
+
+    assert decompressor(compressor(data)) == data
 
 
 # todo test objects where there is no unique_id provided, or inferrable,

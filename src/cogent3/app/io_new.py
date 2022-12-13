@@ -1,6 +1,8 @@
 import json
 
 from enum import Enum
+from gzip import compress as gzip_compress
+from gzip import decompress as gzip_decompress
 from typing import Optional, Union
 
 import numpy
@@ -46,6 +48,37 @@ __status__ = "Alpha"
 
 
 @define_app
+@define_app
+class compressed:
+    def __init__(self, compressor: callable = gzip_compress):
+        """
+        Parameters
+        ----------
+        compressor
+            function for compressing bytes data, defaults to gzip
+        """
+        self.compressor = compressor
+
+    def main(self, data: bytes) -> bytes:
+        return self.compressor(data)
+
+
+@define_app
+class decompressed:
+    def __init__(self, decompressor: callable = gzip_decompress):
+        """
+        Parameters
+        ----------
+        decompressor
+            a function for decompression, defaults to the gzip decompress
+            function
+        """
+        self.decompressor = decompressor
+
+    def main(self, data: bytes) -> bytes:
+        return self.decompressor(data)
+
+
 class deserialised:
     def __init__(self, deserialiser: callable = deserialise_object):
         self.deserialiser = deserialiser
