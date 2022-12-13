@@ -1,5 +1,7 @@
 import contextlib
 import importlib
+import inspect
+import re
 
 
 __author__ = "Gavin Huttley"
@@ -21,6 +23,20 @@ __all__ = [
     "translate",
     "tree",
 ]
+
+_get_param = re.compile('(?<=").+(?=")')
+
+
+def _make_signature(app: type) -> str:
+    init_sig = inspect.signature(app.__init__)
+    params = ", ".join(
+        [
+            _get_param.findall(repr(v))[0]
+            for k, v in init_sig.parameters.items()
+            if k != "self"
+        ]
+    )
+    return f"{app.__name__}({params})"
 
 
 def _doc_summary(doc):
@@ -76,3 +92,84 @@ def available_apps():
 
     header = ["module", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
+
+
+def _get_app_matching_name(name: str):
+    """name can include module name"""
+    table = available_apps()
+    if "." in name:
+        modname, name = name.rsplit(".", maxsplit=1)
+        table = table.filtered(
+            lambda x: x[0].endswith(modname) and x[1] == name,
+            columns=["module", "name"],
+        )
+    else:
+        table = table.filtered(lambda x: name == x, columns="name")
+
+    if table.shape[0] == 0:
+        raise NameError(f"no app matching name {name!r}")
+    elif table.shape[0] > 1:
+        raise NameError(f"too many apps matching name {name!r},\n{table}")
+    modname, _ = table.tolist(columns=["module", "name"])[0]
+    mod = importlib.import_module(modname)
+    return getattr(mod, name)
+
+
+def get_app(name: str, *args, **kwargs):
+    """returns app instance, use app_help() to display arguments
+
+    Parameters
+    ----------
+    name
+        app name, e.g. 'minlength', or can include module information,
+        e.g. 'cogent3.app.sample.minlength'. Use latter (qualified class name)
+        style when multiple matches to name.
+    *args, **kwargs
+        positional and keyword arguments passed through to the app
+
+    Returns
+    -------
+    cogent3 app instance
+
+    Raises
+    ------
+    NameError when multiple apps have the same name. In that case use the fully
+    qualified class name, as shown above.
+    """
+    return _get_app_matching_name(name)(*args, **kwargs)
+
+
+def _make_head(text: str) -> list[str]:
+    """makes a restructured formatted header"""
+    return [text, "-" * len(text)]
+
+
+def _clean_params_docs(text: str) -> str:
+    """remove unnecessary indentation"""
+    text = text.splitlines(keepends=False)
+    prefix = " " * 8  # expected indentation of constructor doc
+    for i, l in enumerate(text):
+        text[i] = l.removeprefix(prefix)
+    return "\n".join(text)
+
+
+def app_help(name: str):
+    """displays help for the named app
+
+    Parameters
+    ----------
+    name
+        app name, e.g. 'minlength', or can include module information,
+        e.g. 'cogent3.app.sample.minlength'. Use latter (qualified class name)
+        style when multiple matches to name.
+    """
+    app = _get_app_matching_name(name)
+    docs = []
+    if app.__doc__.strip():
+        docs.extend(_make_head("Overview") + ["", app.__doc__, ""])
+
+    docs.extend(_make_head("Signature") + [_make_signature(app)])
+    if app.__init__.__doc__.strip():
+        docs.extend(["", _clean_params_docs(app.__init__.__doc__)])
+
+    print("\n".join(docs))
