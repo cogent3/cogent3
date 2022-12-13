@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import re
 import reprlib
 
@@ -77,7 +78,10 @@ class DataMemberABC(ABC):
     def __eq__(self, other):
         """to check equality of members and check existence of a
         member in a list of members"""
-        return (self.data_store, self.unique_id) == (other.data_store, other.unique_id)
+        return type(self) == type(other) and (self.data_store, self.unique_id) == (
+            other.data_store,
+            other.unique_id,
+        )
 
     @property
     def md5(self):
@@ -591,3 +595,29 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
         dstore.db.execute(cmnd, (lock_id,))
 
     return dstore
+
+
+def make_record_for_json(identifier, data, completed):
+    """returns a dict for storage as json"""
+    try:
+        data = data.to_rich_dict()
+    except AttributeError:
+        pass
+
+    data = json.dumps(data)
+    return dict(identifier=identifier, data=data, completed=completed)
+
+
+def load_record_from_json(data):
+    """returns identifier, data, completed status from json string"""
+    if type(data) == str:
+        data = json.loads(data)
+
+    value = data["data"]
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError:
+            pass
+
+    return data["identifier"], value, data["completed"]
