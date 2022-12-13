@@ -386,6 +386,15 @@ def test_deserialiser(serialiser, deserialiser):
     assert deserialised(serialiser(data)) == data
 
 
+@pytest.mark.parametrize("data,dser", (([1, 2, 3], None), (DNA, io_app.deserialised())))
+def test_pickle_unpickle_apps(data, dser):
+    pkld = io_app.pickle_it()
+    upkld = io_app.unpickle_it()
+    # need to add custom deserialiser for cogent3 objects
+    upkld = upkld if dser is None else upkld + dser
+    assert upkld(pkld(data)) == data
+
+
 @pytest.mark.parametrize(
     "compress,decompress",
     ((bz2.compress, bz2.decompress), (gzip.compress, gzip.decompress)),
@@ -397,6 +406,15 @@ def test_compress_decompress(compress, decompress):
     compressor = io_app.compressed(compressor=compress)
 
     assert decompressor(compressor(data)) == data
+
+
+@pytest.mark.parametrize("data", ([1, 2, 3], DNA)[1:])
+def test_pickled_compressed_roundtrip(data):
+    serialised = io_app.pickle_it() + io_app.compressed()
+    deserialised = io_app.decompressed() + io_app.unpickle_it() + io_app.deserialised()
+    s = serialised(data)
+    d = deserialised(s)
+    assert d == data
 
 
 # todo test objects where there is no unique_id provided, or inferrable,

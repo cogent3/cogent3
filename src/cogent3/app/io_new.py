@@ -1,4 +1,6 @@
+import contextlib
 import json
+import pickle
 
 from enum import Enum
 from gzip import compress as gzip_compress
@@ -48,6 +50,20 @@ __status__ = "Alpha"
 
 
 @define_app
+def pickle_it(data: SerialisableType) -> bytes:
+    """attempts to call a to_rich_dict() method, fallback to
+    pickling entire object"""
+    with contextlib.suppress(AttributeError):
+        data = data.to_rich_dict()
+
+    return pickle.dumps(data)
+
+
+@define_app
+def unpickle_it(data: bytes) -> SerialisableType:
+    return pickle.loads(data)
+
+
 @define_app
 class compressed:
     def __init__(self, compressor: callable = gzip_compress):
@@ -79,6 +95,7 @@ class decompressed:
         return self.decompressor(data)
 
 
+@define_app
 class deserialised:
     def __init__(self, deserialiser: callable = deserialise_object):
         self.deserialiser = deserialiser
