@@ -45,6 +45,16 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
+@define_app
+class deserialised:
+    def __init__(self, deserialiser: callable = deserialise_object):
+        self.deserialiser = deserialiser
+
+    def main(self, data: Union[dict, str, bytes]) -> SerialisableType:
+        """either json or a dict from a cogent3 object"""
+        return self.deserialiser(data)
+
+
 class tabular(Enum):
     table = "table"
     distances = "distances"
