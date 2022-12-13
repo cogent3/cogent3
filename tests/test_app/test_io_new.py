@@ -1,3 +1,6 @@
+import json
+import pickle
+
 from pathlib import Path
 
 import numpy
@@ -365,6 +368,20 @@ def test_write_json_with_info(w_dir_dstore):
     got = reader(m)
     got.deserialised_values()
     assert got["dna"] == DNA
+
+
+@pytest.mark.parametrize(
+    "serialiser,deserialiser",
+    (
+        (json.dumps, json.loads),
+        (pickle.dumps, pickle.loads),
+        (lambda x: x, deserialise_object),
+    ),
+)
+def test_deserialiser(serialiser, deserialiser):
+    data = {"1": 1, "abc": [1, 2]}
+    deserialised = io_app.deserialised(deserialiser=deserialiser)
+    assert deserialised(serialiser(data)) == data
 
 
 # todo test objects where there is no unique_id provided, or inferrable,
