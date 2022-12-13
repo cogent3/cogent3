@@ -404,18 +404,16 @@ def test_pickle_unpickle_apps(data, dser):
 def test_compress_decompress(compress, decompress):
     data = pickle.dumps({"1": 1, "abc": [1, 2]})
 
-    decompressor = io_app.decompressed(decompressor=decompress)
-    compressor = io_app.compressed(compressor=compress)
+    decompressor = io_app.decompress(decompressor=decompress)
+    compressor = io_app.compress(compressor=compress)
 
     assert decompressor(compressor(data)) == data
 
 
 @pytest.mark.parametrize("data", ([1, 2, 3], DNA)[1:])
-def test_pickled_compressed_roundtrip(data):
-    serialised = io_app.to_primitive() + io_app.pickle_it() + io_app.compressed()
-    deserialised = (
-        io_app.decompressed() + io_app.unpickle_it() + io_app.from_primitive()
-    )
+def test_pickled_compress_roundtrip(data):
+    serialised = io_app.to_primitive() + io_app.pickle_it() + io_app.compress()
+    deserialised = io_app.decompress() + io_app.unpickle_it() + io_app.from_primitive()
     s = serialised(data)
     d = deserialised(s)
     assert d == data

@@ -60,7 +60,7 @@ def unpickle_it(data: bytes) -> SerialisableType:
 
 
 @define_app
-class compressed:
+class compress:
     def __init__(self, compressor: callable = gzip_compress):
         """
         Parameters
@@ -75,7 +75,7 @@ class compressed:
 
 
 @define_app
-class decompressed:
+class decompress:
     def __init__(self, decompressor: callable = gzip_decompress):
         """
         Parameters
