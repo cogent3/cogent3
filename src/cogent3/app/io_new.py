@@ -1,10 +1,13 @@
 import contextlib
 import json
+import os
 import pickle
+import zipfile
 
 from enum import Enum
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
+from pathlib import Path
 from typing import Optional, Union
 
 import numpy
@@ -23,6 +26,14 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
+from .data_store import (
+    ReadOnlyDirectoryDataStore,
+    ReadOnlyTinyDbDataStore,
+    ReadOnlyZippedDataStore,
+    get_data_source,
+    load_record_from_json,
+    make_record_for_json,
+)
 from .data_store_new import (
     DataStoreABC,
     get_data_source,

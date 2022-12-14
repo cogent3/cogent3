@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import warnings
 import zipfile
 
 from typing import Union
@@ -139,42 +140,18 @@ def findall(base_path, suffix="fa", limit=None, verbose=False):
 def get_data_store(
     base_path: Union[str, pathlib.Path], suffix=None, limit=None, verbose=False
 ):
-    """returns DataStore containing glob matches to suffix in base_path
+    """DEPRECATED, use io_new.open_data_store"""
+    warnings.warn(
+        """get_data_store is deprecated.
+        Use io_new.open_data_store.
+        It will be io.open_data_store since 2023-3-31.
+        """,
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    from cogent3.app import io_new as io_app_new
 
-    Parameters
-    ----------
-    base_path : str or Path
-        path to directory or zipped archive
-    suffix : str
-        suffix of filenames
-    limit : int or None
-        the number of matches to return
-    Returns
-    -------
-    ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
-    """
-    base_path = pathlib.Path(base_path)
-    base_path = base_path.expanduser().absolute()
-    if base_path.suffix in (".tinydb", ".sqlitedb"):
-        suffix = "json"
-
-    if suffix is None:
-        raise ValueError("suffix required")
-
-    if not base_path.exists():
-        raise ValueError(f"'{base_path}' does not exist")
-
-    if type(suffix) != str:
-        raise ValueError(f"{suffix} is not a string")
-
-    if zipfile.is_zipfile(base_path):
-        ds_suffix = ".zip"
-    elif base_path.suffix:
-        ds_suffix = base_path.suffix
-    else:
-        ds_suffix = None
-    klass = _datastore_reader_map[ds_suffix]
-    return klass(base_path, suffix=suffix, limit=limit)
+    return io_app_new.open_data_store(base_path, suffix, limit, verbose)
 
 
 def _load_seqs(path, klass, parser, moltype):

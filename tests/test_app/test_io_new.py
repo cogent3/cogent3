@@ -1,8 +1,11 @@
 import bz2
 import gzip
 import json
+import os
 import pickle
+import shutil
 
+from os.path import join
 from pathlib import Path
 
 import numpy
@@ -12,6 +15,7 @@ from numpy.testing import assert_allclose
 
 from cogent3 import DNA
 from cogent3.app import io_new as io_app
+from cogent3.app import io_new as io_app_new
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
