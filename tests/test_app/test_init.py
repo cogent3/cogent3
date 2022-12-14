@@ -4,7 +4,9 @@ import os
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
-from cogent3 import available_apps
+import pytest
+
+from cogent3 import app_help, available_apps, get_app
 from cogent3.app import align, dist, evo, io, sample, translate, tree
 from cogent3.app.composable import (
     LOADER,
@@ -144,6 +146,34 @@ def test_available_apps_local():
     apps = available_apps()
     assert isinstance(apps, Table)
     __app_registry.pop(get_object_provenance(dummy), None)
+
+
+@pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
+def test_get_app(name):
+    __app_registry.pop(get_object_provenance(min_length), None)
+    app = get_app(name, 500)
+    assert app.__class__.__name__.endswith(name.split(".")[-1])
+
+
+@define_app
+def min_length(val: int) -> int:
+    return val
+
+
+def test_get_app_fail():
+
+    __app_registry[get_object_provenance(min_length)] = True
+
+    with pytest.raises(NameError):
+        _ = get_app("min_length", 500)
+
+    __app_registry.pop(get_object_provenance(min_length), None)
+
+
+def test_app_help(capsys):
+    app_help("omit_degenerates")
+    got = capsys.readouterr().out
+    assert got.startswith("Overview")
 
 
 if __name__ == "__main__":
