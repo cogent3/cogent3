@@ -194,8 +194,7 @@ class take_codon_positions:
         gc="Standard",
         moltype="dna",
     ):
-        """selects the indicated codon positions from an alignment
-
+        """
         Parameters
         ----------
         positions
@@ -205,7 +204,7 @@ class take_codon_positions:
             if True, returns third positions from four-fold degenerate codons.
             Overrides positions.
         gc
-            identifer for a genetic code or a genetic code instance
+            identifier for a genetic code or a genetic code instance
         moltype : str
             molecular type, must be either DNA or RNA
         """
