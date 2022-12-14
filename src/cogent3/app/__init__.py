@@ -26,31 +26,6 @@ __all__ = [
     "tree",
 ]
 
-_get_param = re.compile('(?<=").+(?=")')
-
-
-def _make_signature(app: type) -> str:
-    init_sig = inspect.signature(app.__init__)
-    params = ", ".join(
-        [
-            _get_param.findall(repr(v))[0]
-            for k, v in init_sig.parameters.items()
-            if k != "self"
-        ]
-    )
-    return f"{app.__name__}({params})"
-
-
-def _doc_summary(doc):
-    """return first para of docstring"""
-    result = []
-    for line in doc.splitlines():
-        line = line.strip()
-        if not line:
-            break
-        result.append(line)
-    return " ".join(result)
-
 
 def _get_app_attr(name, is_composable):
     """returns app details for display"""
@@ -94,6 +69,32 @@ def available_apps():
 
     header = ["module", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
+
+
+_get_param = re.compile('(?<=").+(?=")')
+
+
+def _make_signature(app: type) -> str:
+    init_sig = inspect.signature(app.__init__)
+    params = ", ".join(
+        [
+            _get_param.findall(repr(v))[0]
+            for k, v in init_sig.parameters.items()
+            if k != "self"
+        ]
+    )
+    return f"{app.__name__}({params})"
+
+
+def _doc_summary(doc):
+    """return first para of docstring"""
+    result = []
+    for line in doc.splitlines():
+        if line := line.strip():
+            result.append(line)
+        else:
+            break
+    return " ".join(result)
 
 
 def _get_app_matching_name(name: str):
