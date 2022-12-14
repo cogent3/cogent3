@@ -143,7 +143,7 @@ def get_app(name: str, *args, **kwargs):
 
 
 def _make_head(text: str) -> list[str]:
-    """makes a restructured formatted header"""
+    """makes a restructured text formatted header"""
     return [text, "-" * len(text)]
 
 
