@@ -151,9 +151,13 @@ def _clean_params_docs(text: str) -> str:
     """remove unnecessary indentation"""
     text = text.splitlines(keepends=False)
     prefix = re.compile(r"^\s{8}")  # expected indentation of constructor doc
+    doc = []
     for i, l in enumerate(text):
-        text[i] = prefix.sub("", l)
-    return "\n".join(text)
+        l = prefix.sub("", l)
+        if l.strip():
+            doc.append(l)
+
+    return "\n".join(doc)
 
 
 def app_help(name: str):
@@ -169,7 +173,7 @@ def app_help(name: str):
     app = _get_app_matching_name(name)
     docs = []
     if app.__doc__.strip():
-        docs.extend(_make_head("Overview") + ["", app.__doc__, ""])
+        docs.extend(_make_head("Overview") + [app.__doc__, ""])
 
     docs.extend(_make_head("Signature") + [_make_signature(app)])
     if app.__init__.__doc__.strip():
