@@ -13,6 +13,7 @@ from cogent3.app.typing import (
     UnalignedSeqsType,
     get_constraint_names,
     hints_from_strings,
+    type_tree,
 )
 
 
@@ -119,3 +120,24 @@ def test_hint_inherited_class():
 
     got = get_constraint_names(dummy)
     assert got == frozenset(["dummy"])
+
+
+@pytest.mark.parametrize(
+    "hint,expect", ((int, 1), (Set[int], 2), (List[List[Set[float]]], 4))
+)
+def test_typing_tree_depth(hint, expect):
+    d, _ = type_tree(hint)
+    assert d == expect, (d, expect)
+
+
+@pytest.mark.parametrize(
+    "hint,expect",
+    (
+        (int, int),
+        (Set[int], (set, (int,))),
+        (List[Set[int]], (list, (set, (int,)))),
+    ),
+)
+def test_type_tree(hint, expect):
+    _, t = type_tree(hint)
+    assert t == expect, (t, expect)
