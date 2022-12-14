@@ -150,12 +150,28 @@ def test_available_apps_local():
 
 @pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
 def test_get_app(name):
+    __app_registry.pop(get_object_provenance(min_length), None)
     app = get_app(name, 500)
     assert app.__class__.__name__.endswith(name.split(".")[-1])
 
 
+@define_app
+def min_length(val: int) -> int:
+    return val
+
+
+def test_get_app_fail():
+
+    __app_registry[get_object_provenance(min_length)] = True
+
+    with pytest.raises(NameError):
+        _ = get_app("min_length", 500)
+
+    __app_registry.pop(get_object_provenance(min_length), None)
+
+
 def test_app_help(capsys):
-    app_help("min_length")
+    app_help("omit_degenerates")
     got = capsys.readouterr().out
     assert got.startswith("Overview")
 
