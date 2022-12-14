@@ -1,8 +1,11 @@
 import bz2
 import gzip
 import json
+import os
 import pickle
+import shutil
 
+from os.path import join
 from pathlib import Path
 
 import numpy
@@ -12,6 +15,7 @@ from numpy.testing import assert_allclose
 
 from cogent3 import DNA
 from cogent3.app import io_new as io_app
+from cogent3.app import io_new as io_app_new
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
@@ -445,3 +449,32 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
         m = writer(orig, identifier=m.unique_id)
         read = reader(m)
         assert orig == read
+
+
+'''
+def test_findall():
+    """find all files recursively"""
+    found = list(io_app_new.findall(DATA_DIR, suffix=".fasta"))
+    assert len(found) > 1
+    found = list(io_app_new.findall(DATA_DIR, suffix=".fasta", limit=2))
+    assert len(found) == 2
+
+    # and with a suffix
+    found = list(io_app_new.findall(DATA_DIR, suffix=".fasta*"))
+    assert len(found) > 2
+
+
+def test_findall_zip():
+    """find all files recursively in a zip archive"""
+    zip_path = join(DATA_DIR, "new")
+    shutil.make_archive(zip_path, "zip", DATA_DIR)
+    zip_path += ".zip"  # because shutil adds the suffix
+    found = list(io_app_new.findall(zip_path, suffix="fasta"))
+    assert len(found) > 1
+    found = list(io_app_new.findall(zip_path, suffix="fasta", limit=2))
+    assert len(found) == 2
+
+    # and with a suffix
+    found = list(io_app_new.findall(zip_path, suffix=".fasta*"))
+    assert len(found) > 2
+    '''
