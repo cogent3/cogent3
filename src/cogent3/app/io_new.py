@@ -49,17 +49,17 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-@define_app
+@define_app(skip_not_completed=False)
 def pickle_it(data: SerialisableType) -> bytes:
     return pickle.dumps(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 def unpickle_it(data: bytes) -> SerialisableType:
     return pickle.loads(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class compress:
     def __init__(self, compressor: callable = gzip_compress):
         """
@@ -74,7 +74,7 @@ class compress:
         return self.compressor(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class decompress:
     def __init__(self, decompressor: callable = gzip_decompress):
         """
@@ -96,7 +96,7 @@ def _as_dict(obj) -> dict:
     return obj
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class to_primitive:
     """convert an object to primitive python types suitable for serialisation"""
 
@@ -108,7 +108,7 @@ class to_primitive:
         return self.convertor(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class from_primitive:
     """deserialises from primitive python types"""
 
@@ -404,7 +404,7 @@ class write_tabular:  # todo doctsring
         return self.data_store.write(unique_id=identifier, data=output)
 
 
-@define_app(app_type=WRITER)
+@define_app(app_type=WRITER, skip_not_completed=False)
 class write_db:
     """Write serialised objects to a database instance."""
 
