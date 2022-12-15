@@ -1,10 +1,13 @@
 import contextlib
 import json
+import os
 import pickle
+import zipfile
 
 from enum import Enum
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
+from pathlib import Path
 from typing import Optional, Union
 
 import numpy
@@ -23,6 +26,14 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
+from .data_store import (
+    ReadOnlyDirectoryDataStore,
+    ReadOnlyTinyDbDataStore,
+    ReadOnlyZippedDataStore,
+    get_data_source,
+    load_record_from_json,
+    make_record_for_json,
+)
 from .data_store_new import (
     DataStoreABC,
     get_data_source,
@@ -47,6 +58,122 @@ __version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+_datastore_reader_map = {}
+
+
+class register_datastore_reader:
+    """
+    registration decorator for read only data store classes
+
+    The registration key must be a string that of the file format suffix
+    (more than one suffix can be registered at a time).
+
+    Parameters
+    ----------
+    args: str or sequence of str
+        must be unique, a preceding '.' will be added if not already present
+    """
+
+    def __init__(self, *args):
+        args = list(args)
+        for i, suffix in enumerate(args):
+            if suffix is None:
+                assert (
+                    suffix not in _datastore_reader_map
+                ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+                continue
+
+            if not isinstance(suffix, str):
+                raise TypeError(f"{suffix!r} is not a string")
+
+            if suffix.strip() == suffix and not suffix:
+                raise ValueError("cannot have white-space suffix")
+
+            suffix = suffix.strip()
+            if suffix:
+                suffix = suffix if suffix[0] == "." else f".{suffix}"
+
+            assert (
+                suffix not in _datastore_reader_map
+            ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+            args[i] = suffix
+
+        self._type_str = tuple(args)
+
+    def __call__(self, func):
+        for type_str in self._type_str:
+            _datastore_reader_map[type_str] = func
+        return func
+
+
+# register the main readers
+register_datastore_reader("zip")(ReadOnlyZippedDataStore)
+register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
+register_datastore_reader(None)(ReadOnlyDirectoryDataStore)
+
+
+def findall(base_path, suffix="fa", limit=None, verbose=False):
+    """returns glob match to suffix, path is relative to base_path
+
+    Parameters
+    ----------
+    base_path : str
+        path to directory or zipped archive
+    suffix : str
+        suffix of filenames
+    limit : int or None
+        the number of matches to return
+    """
+    if not os.path.exists(base_path):
+        raise ValueError(f"'{base_path}' does not exist")
+
+    zipped = zipfile.is_zipfile(base_path)
+    klass = _datastore_reader_map.get(".zip" if zipped else None)
+    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
+    return data_store.members
+
+
+def open_data_store(
+    base_path: Union[str, Path], suffix=None, limit=None, verbose=False
+):
+    """returns DataStore containing glob matches to suffix in base_path
+
+    Parameters
+    ----------
+    base_path : str or Path
+        path to directory or zipped archive
+    suffix : str
+        suffix of filenames
+    limit : int or None
+        the number of matches to return
+    Returns
+    -------
+    ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
+    """
+    base_path = Path(base_path)
+    base_path = base_path.expanduser().absolute()
+    if base_path.suffix in (".tinydb", ".sqlitedb"):
+        suffix = "json"
+
+    if suffix is None:
+        raise ValueError("suffix required")
+
+    if not base_path.exists():
+        raise ValueError(f"'{base_path}' does not exist")
+
+    if type(suffix) != str:
+        raise ValueError(f"{suffix} is not a string")
+
+    if zipfile.is_zipfile(base_path):
+        ds_suffix = ".zip"
+    elif base_path.suffix:
+        ds_suffix = base_path.suffix
+    else:
+        ds_suffix = None
+    klass = _datastore_reader_map[ds_suffix]
+    return klass(base_path, suffix=suffix, limit=limit)
 
 
 @define_app(skip_not_completed=False)
