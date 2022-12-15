@@ -13,10 +13,9 @@ import pytest
 
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA
+from cogent3 import DNA, open_data_store
 from cogent3.app import align as align_app
 from cogent3.app import io as io_app
-from cogent3 import open_data_store
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import DataStoreMember
 from cogent3.app.io import write_db

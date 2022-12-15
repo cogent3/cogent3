@@ -15,11 +15,10 @@ import pytest
 from numpy import array, ndarray
 from scitrack import CachingLogger
 
-from cogent3 import make_aligned_seqs
+from cogent3 import make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
 from cogent3.app import io as io_app
 from cogent3.app import io_new as io_app_new
-from cogent3 import open_data_store
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app import typing as c3types

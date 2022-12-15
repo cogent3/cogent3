@@ -141,11 +141,17 @@ def get_data_store(
     base_path: Union[str, pathlib.Path], suffix=None, limit=None, verbose=False
 ):
     """DEPRECATED, use io_new.open_data_store"""
-    from cogent3.util.warning import deprecated
     from cogent3.app import io_new as io_app_new
+    from cogent3.util.warning import deprecated
 
-    deprecated("function", "get_data_store", "cogent3.open_data_store", "2023.3", "renamed and now a top-level import",
-               stack_level=1)
+    deprecated(
+        "function",
+        "get_data_store",
+        "cogent3.open_data_store",
+        "2023.3",
+        "renamed and now a top-level import",
+        stack_level=1,
+    )
 
     return io_app_new.open_data_store(base_path, suffix, limit, verbose)
 
