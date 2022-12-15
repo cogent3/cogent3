@@ -17,6 +17,7 @@ from cogent3 import make_aligned_seqs
 from cogent3.app import align, evo
 from cogent3.app import io as io_app
 from cogent3.app import io_new as io_app_new
+from cogent3 import open_data_store
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app.composable import (
@@ -303,7 +304,7 @@ def test_disconnect():
 
 def test_as_completed():
     """correctly applies iteratively"""
-    dstore = io_app_new.open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_unaligned(format="fasta", moltype="dna")
     got = list(reader.as_completed(dstore))
     assert len(got) == len(dstore)
@@ -334,7 +335,7 @@ def test_as_completed():
 @pytest.mark.parametrize("klass", (DataStoreDirectory,))
 def test_apply_to_strings(tmp_dir, klass):
     """apply_to handles strings as paths"""
-    dstore = io_app_new.open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     dstore = [str(m) for m in dstore]
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
@@ -365,7 +366,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
 
 def test_apply_to_logging(tmp_dir):
     """correctly creates log file"""
-    dstore = io_app_new.open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
@@ -379,7 +380,7 @@ def test_apply_to_logging(tmp_dir):
 
 def test_apply_to_logger(tmp_dir):
     """correctly uses user provided logger"""
-    dstore = io_app_new.open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     LOGGER = CachingLogger()
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
@@ -393,7 +394,7 @@ def test_apply_to_logger(tmp_dir):
 
 def test_apply_to_invalid_logger(tmp_dir):
     """incorrect logger value raises TypeError"""
-    dstore = io_app_new.open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     for logger_val in (True, "somepath.log"):
         reader = io_app.load_aligned(format="fasta", moltype="dna")
         min_length = sample_app.min_length(10)
@@ -407,7 +408,7 @@ def test_apply_to_invalid_logger(tmp_dir):
 
 def test_apply_to_not_completed(tmp_dir):
     """correctly creates notcompleted"""
-    dstore = io_app_new.open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     # trigger creation of notcompleted
     min_length = sample_app.min_length(3000)
@@ -421,7 +422,7 @@ def test_apply_to_not_completed(tmp_dir):
 
 def test_apply_to_not_partially_done(tmp_dir):
     """correctly applies process when result already partially done"""
-    dstore = io_app_new.open_data_store(DATA_DIR, suffix="fasta")
+    dstore = open_data_store(DATA_DIR, suffix="fasta")
     num_records = len(dstore)
     dirname = Path(tmp_dir)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -434,7 +435,7 @@ def test_apply_to_not_partially_done(tmp_dir):
     process = reader + writer
     _ = process.apply_to(dstore, show_progress=False)
     writer.data_store.close()
-    dstore = io_app_new.open_data_store(outpath)
+    dstore = open_data_store(outpath)
     assert len(dstore) == num_records
     dstore.close()
 
@@ -1116,7 +1117,7 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     writer1 = io_app_new.write_seqs(half_dstore1)
     process1 = reader1 + min_length1 + writer1
     # create paths as strings
-    dstore1 = io_app_new.open_data_store(half_dstore1.source, suffix="fasta")
+    dstore1 = open_data_store(half_dstore1.source, suffix="fasta")
     dstore1 = [str(m) for m in dstore1]
     # check fail on append the same records
     with pytest.raises(IOError):

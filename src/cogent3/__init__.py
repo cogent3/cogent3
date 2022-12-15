@@ -44,7 +44,7 @@ from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
-
+from cogent3.app.io_new import open_data_store
 
 __author__ = ""
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
