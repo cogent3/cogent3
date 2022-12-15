@@ -30,9 +30,6 @@ from .data_store import (
     ReadOnlyDirectoryDataStore,
     ReadOnlyTinyDbDataStore,
     ReadOnlyZippedDataStore,
-    get_data_source,
-    load_record_from_json,
-    make_record_for_json,
 )
 from .data_store_new import (
     DataStoreABC,
