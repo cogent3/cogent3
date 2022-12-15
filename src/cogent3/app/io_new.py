@@ -30,9 +30,6 @@ from .data_store import (
     ReadOnlyDirectoryDataStore,
     ReadOnlyTinyDbDataStore,
     ReadOnlyZippedDataStore,
-    get_data_source,
-    load_record_from_json,
-    make_record_for_json,
 )
 from .data_store_new import (
     DataStoreABC,
@@ -108,6 +105,7 @@ class register_datastore_reader:
         return func
 
 
+# todo GAH update to new data stores including sqlite
 # register the main readers
 register_datastore_reader("zip")(ReadOnlyZippedDataStore)
 register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
