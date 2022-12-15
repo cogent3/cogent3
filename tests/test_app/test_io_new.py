@@ -445,3 +445,15 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
         m = writer(orig, identifier=m.unique_id)
         read = reader(m)
         assert orig == read
+
+
+def test_write_db_not_completed(tmp_dir):
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
+    writer = io_app.write_db(data_store=data_store)
+    assert len(data_store.not_completed) == 0
+    writer.main(nc, identifier="blah")
+    assert len(data_store.not_completed) == 1
+    reader = io_app.load_db()

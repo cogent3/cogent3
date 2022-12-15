@@ -404,7 +404,7 @@ class write_tabular:  # todo doctsring
         return self.data_store.write(unique_id=identifier, data=output)
 
 
-@define_app(app_type=WRITER, skip_not_completed=False)
+@define_app(app_type=WRITER)
 class write_db:
     """Write serialised objects to a database instance."""
 
@@ -432,9 +432,12 @@ class write_db:
         identifier
         """
         identifier = identifier or get_data_source(data)
-        data = self.serialiser(data)
+        blob = self.serialiser(data)
 
         if isinstance(data, NotCompleted):
-            return self.data_store.write_incomplete(identifier, data)
+            return self.data_store.write_not_completed(unique_id=identifier, data=blob)
 
-        return self.data_store.write(unique_id=identifier, data=data)
+        if self.data_store.record_type is None:
+            self.data_store.record_type = data
+
+        return self.data_store.write(unique_id=identifier, data=blob)
