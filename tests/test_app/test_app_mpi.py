@@ -3,8 +3,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipUnless
 
 from cogent3.app import align as align_app
-from cogent3.app import io as io_app
-from cogent3.app import io_new as io_app_new
+from cogent3.app import io_new as io_app
 from cogent3.app.io import write_db
 from cogent3.util import parallel
 
@@ -25,7 +24,7 @@ class MPITests(TestCase):
     @skipUnless(parallel.USING_MPI, reason="Not using MPI")
     def test_write_db(self):
         """writing with overwrite in MPI should reset db"""
-        dstore = io_app_new.open_data_store("data", suffix="fasta")
+        dstore = io_app.open_data_store("data", suffix="fasta")
         members = dstore.filtered(callback=lambda x: "brca1.fasta" not in x.split("/"))
         with TemporaryDirectory(dir=".") as dirname:
             path = Path(dirname) / "delme.tinydb"
@@ -45,7 +44,7 @@ class MPITests(TestCase):
             process.data_store.close()
 
             # now get read only and check what's in there
-            result = io_app_new.open_data_store(path)
+            result = io_app.open_data_store(path)
             got = [str(m) for m in result]
 
             assert got == expect

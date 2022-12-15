@@ -16,7 +16,7 @@ from numpy.testing import assert_allclose
 from cogent3 import DNA
 from cogent3.app import align as align_app
 from cogent3.app import io as io_app
-from cogent3.app import io_new as io_app_new
+from cogent3 import open_data_store
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import DataStoreMember
 from cogent3.app.io import write_db
@@ -55,25 +55,25 @@ class TestIo(TestCase):
 
     def test_define_data_store(self):
         """returns an iterable data store"""
-        found = io_app_new.open_data_store(self.basedir, suffix=".fasta")
+        found = open_data_store(self.basedir, suffix=".fasta")
         self.assertTrue(len(found) > 1)
-        found = io_app_new.open_data_store(self.basedir, suffix=".fasta", limit=2)
+        found = open_data_store(self.basedir, suffix=".fasta", limit=2)
         self.assertTrue(len(found) == 2)
 
         # and with a suffix
-        found = list(io_app_new.open_data_store(self.basedir, suffix=".fasta*"))
+        found = list(open_data_store(self.basedir, suffix=".fasta*"))
         self.assertTrue(len(found) > 2)
 
         # with a wild-card suffix
-        found = list(io_app_new.open_data_store(self.basedir, suffix="*"))
+        found = list(open_data_store(self.basedir, suffix="*"))
         self.assertEqual(len(os.listdir(self.basedir)), len(found))
 
         # raises ValueError if suffix not provided or invalid
         with self.assertRaises(ValueError):
-            _ = io_app_new.open_data_store(self.basedir)
+            _ = open_data_store(self.basedir)
 
         with self.assertRaises(ValueError):
-            _ = io_app_new.open_data_store(self.basedir, 1)
+            _ = open_data_store(self.basedir, 1)
 
     def test_load_aligned(self):
         """correctly loads aligned seqs"""
@@ -85,13 +85,13 @@ class TestIo(TestCase):
                 self.assertIsInstance(aln, ArrayAlignment)
                 self.assertEqual(aln.info.source, paths[i])
 
-        fasta_paths = io_app_new.open_data_store(self.basedir, suffix=".fasta", limit=2)
+        fasta_paths = open_data_store(self.basedir, suffix=".fasta", limit=2)
         fasta_loader = io_app.load_aligned(format="fasta")
         validate(fasta_paths, fasta_loader)
 
     def test_load_aligned_nexus(self):
         """should handle nexus too"""
-        nexus_paths = io_app_new.open_data_store(self.basedir, suffix="nex")
+        nexus_paths = open_data_store(self.basedir, suffix="nex")
         loader = io_app.load_aligned(format="nexus")
         results = [loader(m) for m in nexus_paths]
         for result in results:
@@ -99,7 +99,7 @@ class TestIo(TestCase):
 
     def test_load_aligned_paml(self):
         """should handle paml too"""
-        paml_paths = io_app_new.open_data_store(self.basedir, suffix="paml")
+        paml_paths = open_data_store(self.basedir, suffix="paml")
         loader = io_app.load_aligned(format="paml")
         results = [loader(m) for m in paml_paths]
         for result in results:
@@ -130,7 +130,7 @@ class TestIo(TestCase):
 
     def test_load_unaligned(self):
         """load_unaligned returns degapped sequence collections"""
-        fasta_paths = io_app_new.open_data_store(self.basedir, suffix=".fasta", limit=2)
+        fasta_paths = open_data_store(self.basedir, suffix=".fasta", limit=2)
         fasta_loader = io_app.load_unaligned(format="fasta")
         for i, seqs in enumerate(map(fasta_loader, fasta_paths)):
             self.assertIsInstance(seqs, SequenceCollection)
@@ -178,7 +178,7 @@ class TestIo(TestCase):
             with zipfile.ZipFile(zip_path, "a") as out:
                 out.writestr(outpath, data)
 
-            dstore = io_app_new.open_data_store(zip_path, suffix="json")
+            dstore = open_data_store(zip_path, suffix="json")
             member = dstore.get_member("delme.json")
             reader = io_app.load_json()
             got = reader(member)
@@ -195,7 +195,7 @@ class TestIo(TestCase):
             got = writer(gr)
             self.assertIsInstance(got, DataStoreMember)
             writer.data_store.db.close()
-            dstore = io_app_new.open_data_store(f"{outpath}.tinydb", suffix="json")
+            dstore = open_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
             got = reader(dstore[0])
             dstore.close()
@@ -211,7 +211,7 @@ class TestIo(TestCase):
             data = dict(a=[1, 2], b="string")
             _ = writer(data, identifier=join("blah", "delme.json"))
             writer.data_store.db.close()
-            dstore = io_app_new.open_data_store(f"{outpath}.tinydb", suffix="json")
+            dstore = open_data_store(f"{outpath}.tinydb", suffix="json")
             reader = io_app.load_db()
             got = reader(dstore[0])
             dstore.close()
@@ -485,7 +485,7 @@ class TestIo(TestCase):
         """writing with overwrite in parallel should reset db"""
         with TemporaryDirectory(dir=".") as dirname:
             outdir = join(dirname, "delme.tinydb")
-            dstore = io_app_new.open_data_store(self.basedir, suffix="fasta")
+            dstore = open_data_store(self.basedir, suffix="fasta")
             members = dstore.filtered(
                 callback=lambda x: "brca1.fasta" not in x.split("/")
             )
@@ -501,7 +501,7 @@ class TestIo(TestCase):
             process.data_store.close()
 
             # now get read only and check what's in there
-            result = io_app_new.open_data_store(outdir)
+            result = open_data_store(outdir)
             got = [str(m) for m in result]
             self.assertNotEqual(got, [])
             result.close()
