@@ -10,8 +10,7 @@ import warnings
 
 from typing import Callable, Optional, Union
 
-from cogent3.app import app_help, available_apps, get_app
-from cogent3.app.io_new import open_data_store
+from cogent3.app import app_help, available_apps, get_app, open_data_store
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,

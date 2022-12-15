@@ -5,6 +5,8 @@ import importlib
 import inspect
 import re
 
+from .io_new import open_data_store
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
