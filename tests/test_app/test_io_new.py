@@ -137,7 +137,8 @@ def test_load_unaligned():
 
 
 @pytest.mark.parametrize(
-    "loader", (io_app.load_aligned, io_app.load_unaligned, io_app.load_tabular)
+    "loader",
+    (io_app.load_aligned, io_app.load_unaligned, io_app.load_tabular, io_app.load_db),
 )
 def test_load_nonpath(loader):
     # returns NotCompleted when it's given an alignment/sequence
