@@ -1004,7 +1004,7 @@ def _call(self, val, *args, **kwargs):
     if val is None:
         val = NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
-    if isinstance(val, NotCompleted):
+    if isinstance(val, NotCompleted) and self._skip_not_completed:
         return val
 
     # todo we should get the source information from val here
@@ -1096,7 +1096,9 @@ def _class_from_func(func):
     return result
 
 
-def define_app(klass=None, *, app_type: AppType = GENERIC):
+def define_app(
+    klass=None, *, app_type: AppType = GENERIC, skip_not_completed: bool = True
+):
     """decorator for building callable apps
 
     Parameters
@@ -1106,6 +1108,9 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
         class with the function bound as a static method.
     app_type
         what type of app, typically you just want GENERIC.
+    skip_not_completed
+        if True (default), NotCompleted instances are returned without being
+        passed to the app main() method.
 
     Notes
     -----
@@ -1241,6 +1246,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
         setattr(klass, "_data_types", arg_hints)
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
+        setattr(klass, "_skip_not_completed", skip_not_completed)
 
         if app_type is not LOADER:
             setattr(klass, "input", None)
