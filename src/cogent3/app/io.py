@@ -1,7 +1,6 @@
 import json
 import os
 import pathlib
-import warnings
 import zipfile
 
 from typing import Union
@@ -140,8 +139,8 @@ def findall(base_path, suffix="fa", limit=None, verbose=False):
 def get_data_store(
     base_path: Union[str, pathlib.Path], suffix=None, limit=None, verbose=False
 ):
-    """DEPRECATED, use io_new.open_data_store"""
-    from cogent3.app import io_new as io_app_new
+    """DEPRECATED, use top level open_data_store"""
+    from cogent3 import open_data_store
     from cogent3.util.warning import deprecated
 
     deprecated(
@@ -153,7 +152,7 @@ def get_data_store(
         stack_level=1,
     )
 
-    return io_app_new.open_data_store(base_path, suffix, limit, verbose)
+    return open_data_store(base_path, suffix, limit, verbose)
 
 
 def _load_seqs(path, klass, parser, moltype):
