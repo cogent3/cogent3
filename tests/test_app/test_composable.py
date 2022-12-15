@@ -19,6 +19,7 @@ from cogent3.app import io as io_app
 from cogent3.app import io_new as io_app_new
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
+from cogent3.app import typing as c3types
 from cogent3.app.composable import (
     NON_COMPOSABLE,
     WRITER,
@@ -1129,6 +1130,18 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     process2 = reader2 + min_length2 + writer2
     # check not fail on append new records
     _ = process2.apply_to(dstore1, id_from_source=get_data_source)
+
+
+def test_skip_not_completed():
+    @define_app(skip_not_completed=False)
+    def takes_not_completed(val: c3types.SerialisableType) -> dict:
+        return val.to_rich_dict()
+
+    app = takes_not_completed()
+    got = app(NotCompleted("ERROR", "test", "for tracing", source="blah"))
+    assert isinstance(got, dict)
+
+    __app_registry.pop(get_object_provenance(takes_not_completed), None)
 
 
 if __name__ == "__main__":

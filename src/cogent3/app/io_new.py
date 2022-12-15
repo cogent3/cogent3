@@ -176,17 +176,17 @@ def open_data_store(
     return klass(base_path, suffix=suffix, limit=limit)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 def pickle_it(data: SerialisableType) -> bytes:
     return pickle.dumps(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 def unpickle_it(data: bytes) -> SerialisableType:
     return pickle.loads(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class compress:
     def __init__(self, compressor: callable = gzip_compress):
         """
@@ -201,7 +201,7 @@ class compress:
         return self.compressor(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class decompress:
     def __init__(self, decompressor: callable = gzip_decompress):
         """
@@ -223,7 +223,7 @@ def _as_dict(obj) -> dict:
     return obj
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class to_primitive:
     """convert an object to primitive python types suitable for serialisation"""
 
@@ -235,7 +235,7 @@ class to_primitive:
         return self.convertor(data)
 
 
-@define_app
+@define_app(skip_not_completed=False)
 class from_primitive:
     """deserialises from primitive python types"""
 
@@ -559,9 +559,12 @@ class write_db:
         identifier
         """
         identifier = identifier or get_data_source(data)
-        data = self.serialiser(data)
+        blob = self.serialiser(data)
 
         if isinstance(data, NotCompleted):
-            return self.data_store.write_incomplete(identifier, data)
+            return self.data_store.write_not_completed(unique_id=identifier, data=blob)
 
-        return self.data_store.write(unique_id=identifier, data=data)
+        if self.data_store.record_type is None:
+            self.data_store.record_type = data
+
+        return self.data_store.write(unique_id=identifier, data=blob)
