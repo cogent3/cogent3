@@ -1,11 +1,8 @@
 from pathlib import Path
-from tempfile import TemporaryDirectory
-from unittest import TestCase, main, skipUnless
 
-from cogent3.app import align as align_app
-from cogent3.app import io_new as io_app
-from cogent3.app import open_data_store
-from cogent3.app.io import write_db
+import pytest
+
+from cogent3 import get_app, open_data_store
 from cogent3.util import parallel
 
 
@@ -18,38 +15,36 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
-
-class MPITests(TestCase):
-    basedir = "data"
-
-    @skipUnless(parallel.USING_MPI, reason="Not using MPI")
-    def test_write_db(self):
-        """writing with overwrite in MPI should reset db"""
-        dstore = open_data_store("data", suffix="fasta")
-        members = dstore.filtered(callback=lambda x: "brca1.fasta" not in x.split("/"))
-        with TemporaryDirectory(dir=".") as dirname:
-            path = Path(dirname) / "delme.tinydb"
-            reader = io_app.load_unaligned()
-            aligner = align_app.align_to_ref()
-            writer = write_db(path, create=True, if_exists="overwrite")
-            process = reader + aligner + writer
-
-            r = process.apply_to(
-                members,
-                show_progress=False,
-                parallel=True,
-                par_kw=dict(use_mpi=True),
-            )
-
-            expect = [str(m) for m in process.data_store]
-            process.data_store.close()
-
-            # now get read only and check what's in there
-            result = open_data_store(path)
-            got = [str(m) for m in result]
-
-            assert got == expect
+DATA_DIR = Path(__file__).parent.parent / "data"
 
 
-if __name__ == "__main__":
-    main()
+@pytest.fixture(scope="function")
+def tmp_dir(tmpdir_factory):
+    return Path(tmpdir_factory.mktemp("mpirun"))
+
+
+@pytest.mark.skipif(not parallel.USING_MPI, reason="Not using MPI")
+def test_write_db(tmp_dir):
+    """writing with overwrite in MPI should reset db"""
+    dstore = open_data_store("data", suffix="fasta")
+    members = [m for m in dstore if m.unique_id != "brca1.fasta"]
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    reader = get_app("load_unaligned")
+    aligner = get_app("align_to_ref")
+    writer = get_app("write_db", out_dstore)
+    process = reader + aligner + writer
+
+    r = process.apply_to(
+        members,
+        show_progress=False,
+        parallel=True,
+        par_kw=dict(use_mpi=True),
+    )
+
+    expect = [str(m) for m in process.data_store]
+
+    # now get read only and check what's in there
+    result = open_data_store(out_dstore.source)
+    got = [str(m) for m in result]
+
+    assert got == expect
