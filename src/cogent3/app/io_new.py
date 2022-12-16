@@ -1,6 +1,5 @@
 import contextlib
 import json
-import os
 import pickle
 import zipfile
 
@@ -32,11 +31,15 @@ from .data_store import (
     ReadOnlyZippedDataStore,
 )
 from .data_store_new import (
+    READONLY,
     DataStoreABC,
+    DataStoreDirectory,
+    Mode,
     get_data_source,
     load_record_from_json,
     make_record_for_json,
 )
+from .sqlite_data_store import DataStoreSqlite
 from .typing import (
     AlignedSeqsType,
     IdentifierType,
@@ -105,73 +108,61 @@ class register_datastore_reader:
         return func
 
 
-# todo GAH update to new data stores including sqlite
 # register the main readers
 register_datastore_reader("zip")(ReadOnlyZippedDataStore)
 register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
-register_datastore_reader(None)(ReadOnlyDirectoryDataStore)
-
-
-def findall(base_path, suffix="fa", limit=None, verbose=False):
-    """returns glob match to suffix, path is relative to base_path
-
-    Parameters
-    ----------
-    base_path : str
-        path to directory or zipped archive
-    suffix : str
-        suffix of filenames
-    limit : int or None
-        the number of matches to return
-    """
-    if not os.path.exists(base_path):
-        raise ValueError(f"'{base_path}' does not exist")
-
-    zipped = zipfile.is_zipfile(base_path)
-    klass = _datastore_reader_map.get(".zip" if zipped else None)
-    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
-    return data_store.members
+register_datastore_reader(None)(DataStoreDirectory)
+register_datastore_reader("sqlitedb")(DataStoreSqlite)
 
 
 def open_data_store(
-    base_path: Union[str, Path], suffix=None, limit=None, verbose=False
-):
-    """returns DataStore containing glob matches to suffix in base_path
+    base_path: Union[str, Path],
+    suffix: Optional[str] = None,
+    limit: Optional[int] = None,
+    mode: Union[str, Mode] = READONLY,
+    **kwargs,
+) -> DataStoreABC:
+    """returns DataStore instance of a type specified by the path suffix
 
     Parameters
     ----------
-    base_path : str or Path
-        path to directory or zipped archive
-    suffix : str
+    base_path
+        path to directory or db
+    suffix
         suffix of filenames
-    limit : int or None
+    limit
         the number of matches to return
-    Returns
-    -------
-    ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
+    mode
+        opening mode, either r, w, a as per file opening modes
     """
+    mode = Mode(mode)
+    if not isinstance(suffix, (str, type(None))):
+        raise ValueError(f"suffix {type(suffix)} not one of string or None")
+
+    kwargs = dict(limit=limit, mode=mode, suffix=suffix)
     base_path = Path(base_path)
     base_path = base_path.expanduser().absolute()
-    if base_path.suffix in (".tinydb", ".sqlitedb"):
-        suffix = "json"
+    if base_path.suffix == ".tinydb":
+        kwargs["suffix"] = "json"
+        kwargs.pop("mode")
 
-    if suffix is None:
-        raise ValueError("suffix required")
-
-    if not base_path.exists():
-        raise ValueError(f"'{base_path}' does not exist")
-
-    if type(suffix) != str:
-        raise ValueError(f"{suffix} is not a string")
-
-    if zipfile.is_zipfile(base_path):
+    if base_path.suffix == ".sqlitedb":
+        ds_suffix = base_path.suffix
+        kwargs.pop("suffix")
+    elif zipfile.is_zipfile(base_path):
         ds_suffix = ".zip"
+        kwargs.pop("mode")
     elif base_path.suffix:
         ds_suffix = base_path.suffix
     else:
         ds_suffix = None
+
+    if ds_suffix is None and suffix is None:
+        raise ValueError("a suffix is required if using a directory data store")
+
     klass = _datastore_reader_map[ds_suffix]
-    return klass(base_path, suffix=suffix, limit=limit)
+
+    return klass(base_path, **kwargs)
 
 
 @define_app(skip_not_completed=False)
@@ -254,6 +245,7 @@ class tabular(Enum):
 
 
 def _read_it(path):
+    path = Path(path) if isinstance(path, str) else path
     try:
         data = path.read()
     except AttributeError:

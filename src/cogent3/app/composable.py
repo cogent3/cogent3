@@ -989,9 +989,10 @@ def _call(self, val, *args, **kwargs):
     if isinstance(val, NotCompleted) and self._skip_not_completed:
         return val
 
-    # todo we should get the source information from val here
     if self.app_type is not LOADER and self.input:  # passing to connected app
         val = self.input(val, *args, **kwargs)
+        if isinstance(val, NotCompleted) and self._skip_not_completed:
+            return val
 
     type_checked = self._validate_data_type(val)
     if not type_checked:
@@ -1089,17 +1090,17 @@ def define_app(
         what type of app, typically you just want GENERIC.
     skip_not_completed
         if True (default), NotCompleted instances are returned without being
-        passed to the app main() method.
+        passed to the app.main() method.
 
     Notes
     -----
 
     Instances of ``cogent3`` apps are callable. If an exception occurs,
     the app returns a ``NotCompleted`` instance with logging information.
-    Apps defined with app_type LOADER, GENERIC or WRITER can be "composed" (summed together)
-    to produce a single callable that sequentially invokes the composed
-    apps. For example, the independent usage of app instances
-    ``app1`` and ``app2`` as
+    Apps defined with app_type ``LOADER``, ``GENERIC`` or ``WRITER`` can be
+    "composed" (summed together) to produce a single callable that
+    sequentially invokes the composed apps. For example, the independent
+    usage of app instances ``app1`` and ``app2`` as
 
     >>> app2(app1(data))
 
@@ -1131,6 +1132,13 @@ def define_app(
 
     Overlap between the return type hint and first argument hint is required
     for two apps to be composed together.
+
+    ``define_app`` adds a ``__call__`` method which checks an input value prior
+    to passing it to ``app.main()`` as a positional argument. The data checking
+    results in ``NotCompleted`` being returned immediately, unless
+    ``skip_not_completed==False``. If the input value type is consistent with
+    the type hint on the first argument of main it is passed to ``app.main()``.
+    If it does not match, a new ``NotCompleted`` instance is returned.
 
     An example app definition.
 
@@ -1176,7 +1184,7 @@ def define_app(
     ...                                 )
 
     ``omit_seqs`` is now an app, allowing creating different variants which
-    can be composed as per ones defined via a class
+    can be composed as per ones defined via a class.
 
     >>> omit_bad = omit_seqs(quantile=0.95)
 
@@ -1399,7 +1407,9 @@ def _apply_to(
     logger.log_message(f"{taken}", label="TIME TAKEN")
     log_file_path = Path(logger.log_file_path)
     logger.shutdown()
-    self.data_store.write_log(log_file_path.name, log_file_path.read_text())
+    self.data_store.write_log(
+        unique_id=log_file_path.name, data=log_file_path.read_text()
+    )
     if cleanup:
         log_file_path.unlink(missing_ok=True)
 
