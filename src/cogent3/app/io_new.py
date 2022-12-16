@@ -31,10 +31,10 @@ from .data_store import (
     ReadOnlyZippedDataStore,
 )
 from .data_store_new import (
-    OVERWRITE,
     READONLY,
     DataStoreABC,
     DataStoreDirectory,
+    Mode,
     get_data_source,
     load_record_from_json,
     make_record_for_json,
@@ -116,22 +116,26 @@ register_datastore_reader("sqlitedb")(DataStoreSqlite)
 
 
 def open_data_store(
-    base_path: Union[str, Path], suffix=None, limit=None, verbose=False, mode=READONLY
-):
-    """returns DataStore containing glob matches to suffix in base_path
+    base_path: Union[str, Path],
+    suffix: Optional[str] = None,
+    limit: Optional[int] = None,
+    mode: Union[str, Mode] = READONLY,
+    **kwargs,
+) -> DataStoreABC:
+    """returns DataStore instance of a type specified by the path suffix
 
     Parameters
     ----------
-    base_path : str or Path
-        path to directory or zipped archive
-    suffix : str
+    base_path
+        path to directory or db
+    suffix
         suffix of filenames
-    limit : int or None
+    limit
         the number of matches to return
-    Returns
-    -------
-    ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
+    mode
+        opening mode, either r, w, a as per file opening modes
     """
+    mode = Mode(mode)
     if not isinstance(suffix, (str, type(None))):
         raise ValueError(f"suffix {type(suffix)} not one of string or None")
 
