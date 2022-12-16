@@ -15,7 +15,7 @@ import pytest
 from numpy import array, ndarray
 from scitrack import CachingLogger
 
-from cogent3 import make_aligned_seqs, open_data_store
+from cogent3 import get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
 from cogent3.app import io as io_app
 from cogent3.app import io_new as io_app_new
@@ -307,11 +307,11 @@ def test_disconnect():
 def test_as_completed():
     """correctly applies iteratively"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    reader = io_app.load_unaligned(format="fasta", moltype="dna")
+    reader = get_app("load_unaligned", format="fasta", moltype="dna")
     got = list(reader.as_completed(dstore))
     assert len(got) == len(dstore)
     # should also be able to apply the results to another composable func
-    min_length = sample_app.min_length(10)
+    min_length = get_app("sample.min_length", 10)
     got = list(min_length.as_completed(got))
     assert len(got) == len(dstore)
     # should work on a chained function
@@ -322,7 +322,8 @@ def test_as_completed():
     got = list(proc.as_completed([str(m) for m in dstore]))
     assert len(got) == len(dstore)
     # or a single string
-    got = list(proc.as_completed(str(dstore[0])))
+    path = str(Path(dstore[0].data_store.source) / dstore[0].unique_id)
+    got = list(proc.as_completed(path))
     assert len(got) == 1
     assert isinstance(got[0].obj, SequenceCollection)
     # raises ValueError if empty list
