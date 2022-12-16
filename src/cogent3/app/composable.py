@@ -1010,6 +1010,8 @@ def _call(self, val, *args, **kwargs):
     # todo we should get the source information from val here
     if self.app_type is not LOADER and self.input:  # passing to connected app
         val = self.input(val, *args, **kwargs)
+        if isinstance(val, NotCompleted):
+            return val
 
     type_checked = self._validate_data_type(val)
     if not type_checked:
