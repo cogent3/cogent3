@@ -1,6 +1,5 @@
 import contextlib
 import json
-import os
 import pickle
 import zipfile
 
@@ -32,11 +31,15 @@ from .data_store import (
     ReadOnlyZippedDataStore,
 )
 from .data_store_new import (
+    OVERWRITE,
+    READONLY,
     DataStoreABC,
+    DataStoreDirectory,
     get_data_source,
     load_record_from_json,
     make_record_for_json,
 )
+from .sqlite_data_store import DataStoreSqlite
 from .typing import (
     AlignedSeqsType,
     IdentifierType,
