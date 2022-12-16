@@ -31,10 +31,10 @@ from .data_store import (
     ReadOnlyZippedDataStore,
 )
 from .data_store_new import (
-    OVERWRITE,
     READONLY,
     DataStoreABC,
     DataStoreDirectory,
+    Mode,
     get_data_source,
     load_record_from_json,
     make_record_for_json,
