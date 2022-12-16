@@ -102,7 +102,7 @@ def get_data_store(
     return open_data_store(base_path, suffix, limit, verbose)
 
 
-def _load_seqs(path, klass, parser, moltype):
+def _load_seqs(path, klass, parser, moltype):  # pragma: no cover
     abs_path = str(path)
     if not hasattr(path, "read"):
         # we use a DataStoreMember as it's read() handles zipped compression
