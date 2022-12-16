@@ -7,7 +7,7 @@ from typing import Union
 
 import numpy
 
-from cogent3.app.io_new import _datastore_reader_map
+from cogent3.app.io_new import _datastore_reader_map, register_datastore_reader
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
 from cogent3.core.profile import (
@@ -134,7 +134,7 @@ class load_aligned:  # pragma: no cover
         deprecated(
             "class",
             "load_aligned",
-            "cogent3.io_new.load_aligned",
+            "use cogent3.get_app('load_aligned')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -172,7 +172,7 @@ class load_unaligned:  # pragma: no cover
         deprecated(
             "class",
             "load_unaligned",
-            "cogent3.io_new.load_unaligned",
+            "use cogent3.get_app('load_unaligned')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -223,7 +223,7 @@ class load_tabular:  # pragma: no coverv
         deprecated(
             "class",
             "load_tabular",
-            "cogent3.io_new.load_tabular",
+            "use cogent3.get_app('load_tabular')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -341,7 +341,7 @@ class write_tabular(_checkpointable):  # pragma: no cover
         deprecated(
             "class",
             "write_tabular",
-            "cogent3.io_new.write_tabular",
+            "use cogent3.get_app('write_tabular')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -408,7 +408,7 @@ class write_seqs(_checkpointable):  # pragma: no cover
         deprecated(
             "class",
             "write_seqs",
-            "cogent3.io_new.write_seqs",
+            "use cogent3.get_app('write_seqs')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -465,7 +465,7 @@ class load_json:  # pragma: no cover
         deprecated(
             "class",
             "load_json",
-            "cogent3.io_new.load_json",
+            "use cogent3.get_app('load_json')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -516,7 +516,7 @@ class write_json(_checkpointable):  # pragma: no cover
         deprecated(
             "class",
             "write_json",
-            "cogent3.io_new.write_json",
+            "use cogent3.get_app('write_json')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -571,7 +571,7 @@ class load_db:  # pragma: no cover
         deprecated(
             "class",
             "load_db",
-            "cogent3.io_new.load_db",
+            "use cogent3.get_app('load_db')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
@@ -608,7 +608,7 @@ class write_db(_checkpointable):  # pragma: no cover
         deprecated(
             "class",
             "write_db",
-            "cogent3.io_new.write_db",
+            "use cogent3.get_app('write_db')",
             "2023.3",
             "use cogent3.get_app()",
             stack_level=1,
