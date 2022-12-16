@@ -112,27 +112,6 @@ register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
 register_datastore_reader(None)(ReadOnlyDirectoryDataStore)
 
 
-def findall(base_path, suffix="fa", limit=None, verbose=False):
-    """returns glob match to suffix, path is relative to base_path
-
-    Parameters
-    ----------
-    base_path : str
-        path to directory or zipped archive
-    suffix : str
-        suffix of filenames
-    limit : int or None
-        the number of matches to return
-    """
-    if not os.path.exists(base_path):
-        raise ValueError(f"'{base_path}' does not exist")
-
-    zipped = zipfile.is_zipfile(base_path)
-    klass = _datastore_reader_map.get(".zip" if zipped else None)
-    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
-    return data_store.members
-
-
 def open_data_store(
     base_path: Union[str, Path], suffix=None, limit=None, verbose=False
 ):
