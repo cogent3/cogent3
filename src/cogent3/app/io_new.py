@@ -116,7 +116,7 @@ register_datastore_reader("sqlitedb")(DataStoreSqlite)
 
 
 def open_data_store(
-    base_path: Union[str, Path], suffix=None, limit=None, verbose=False
+    base_path: Union[str, Path], suffix=None, limit=None, verbose=False, mode=READONLY
 ):
     """returns DataStore containing glob matches to suffix in base_path
 
@@ -132,28 +132,33 @@ def open_data_store(
     -------
     ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
     """
+    if not isinstance(suffix, (str, type(None))):
+        raise ValueError(f"suffix {type(suffix)} not one of string or None")
+
+    kwargs = dict(limit=limit, mode=mode, suffix=suffix)
     base_path = Path(base_path)
     base_path = base_path.expanduser().absolute()
-    if base_path.suffix in (".tinydb", ".sqlitedb"):
-        suffix = "json"
+    if base_path.suffix == ".tinydb":
+        kwargs["suffix"] = "json"
+        kwargs.pop("mode")
 
-    if suffix is None:
-        raise ValueError("suffix required")
-
-    if not base_path.exists():
-        raise ValueError(f"'{base_path}' does not exist")
-
-    if type(suffix) != str:
-        raise ValueError(f"{suffix} is not a string")
-
-    if zipfile.is_zipfile(base_path):
+    if base_path.suffix == ".sqlitedb":
+        ds_suffix = base_path.suffix
+        kwargs.pop("suffix")
+    elif zipfile.is_zipfile(base_path):
         ds_suffix = ".zip"
+        kwargs.pop("mode")
     elif base_path.suffix:
         ds_suffix = base_path.suffix
     else:
         ds_suffix = None
+
+    if ds_suffix is None and suffix is None:
+        raise ValueError("a suffix is required if using a directory data store")
+
     klass = _datastore_reader_map[ds_suffix]
-    return klass(base_path, suffix=suffix, limit=limit)
+
+    return klass(base_path, **kwargs)
 
 
 @define_app(skip_not_completed=False)
@@ -236,6 +241,7 @@ class tabular(Enum):
 
 
 def _read_it(path):
+    path = Path(path) if isinstance(path, str) else path
     try:
         data = path.read()
     except AttributeError:
