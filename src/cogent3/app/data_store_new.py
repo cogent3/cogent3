@@ -158,11 +158,11 @@ class DataStoreABC(ABC):
         self._check_writable(unique_id)
 
     @abstractmethod
-    def write_not_completed(self, unique_id: str, data: StrOrBytes) -> None:
+    def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> None:
         self._check_writable(unique_id)
 
     @abstractmethod
-    def write_log(self, unique_id: str, data: StrOrBytes) -> None:
+    def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
         self._check_writable(unique_id)
 
     @property
@@ -486,7 +486,7 @@ class DataStoreDirectory(DataStoreABC):
             self._completed.append(member)
         return member
 
-    def write_not_completed(self, unique_id: str, data: str) -> DataMember:
+    def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
         member = self._write(
             subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
         )
@@ -494,7 +494,7 @@ class DataStoreDirectory(DataStoreABC):
             self._not_completed.append(member)
         return member
 
-    def write_log(self, unique_id: str, data: str) -> None:
+    def write_log(self, *, unique_id: str, data: str) -> None:
         _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
 
 
