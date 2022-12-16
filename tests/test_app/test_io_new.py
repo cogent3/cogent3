@@ -435,6 +435,7 @@ def test_pickled_compress_roundtrip(data):
 
 def test_write_db_load_db(fasta_dir, tmp_dir):
     from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from cogent3.util.misc import get_object_provenance
 
     orig_dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
@@ -447,6 +448,8 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
         read = reader(m)
         assert orig == read
 
+    assert data_store.record_type == get_object_provenance(orig)
+
 
 def test_write_db_not_completed(tmp_dir):
     from cogent3.app.sqlite_data_store import DataStoreSqlite
@@ -458,3 +461,5 @@ def test_write_db_not_completed(tmp_dir):
     writer.main(nc, identifier="blah")
     assert len(data_store.not_completed) == 1
     reader = io_app.load_db()
+    got = reader(data_store.not_completed[0])
+    assert got.to_rich_dict() == nc.to_rich_dict()
