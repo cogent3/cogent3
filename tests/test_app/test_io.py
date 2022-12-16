@@ -38,28 +38,6 @@ class TestIo(TestCase):
         if path.exists():
             path.unlink()
 
-    def test_define_data_store(self):
-        """returns an iterable data store"""
-        found = open_data_store(self.basedir, suffix=".fasta")
-        self.assertTrue(len(found) > 1)
-        found = open_data_store(self.basedir, suffix=".fasta", limit=2)
-        self.assertTrue(len(found) == 2)
-
-        # and with a suffix
-        found = list(open_data_store(self.basedir, suffix=".fasta*"))
-        self.assertTrue(len(found) > 2)
-
-        # with a wild-card suffix
-        found = list(open_data_store(self.basedir, suffix="*"))
-        self.assertEqual(len(os.listdir(self.basedir)), len(found))
-
-        # raises ValueError if suffix not provided or invalid
-        with self.assertRaises(ValueError):
-            _ = open_data_store(self.basedir)
-
-        with self.assertRaises(ValueError):
-            _ = open_data_store(self.basedir, 1)
-
     def test_load_db_failure_json_file(self):
         """informative load_db error message when given a json file path"""
         # todo this test has a trapped exception about being unable to delete
@@ -107,32 +85,6 @@ class TestIo(TestCase):
             # but OK for write_db
             w = io_app.write_db(outdir, create=True, if_exists="skip")
             w.data_store.close()
-
-    def test_write_db_parallel(self):
-        """writing with overwrite in parallel should reset db"""
-        with TemporaryDirectory(dir=".") as dirname:
-            outdir = join(dirname, "delme.tinydb")
-            dstore = open_data_store(self.basedir, suffix="fasta")
-            members = dstore.filtered(
-                callback=lambda x: "brca1.fasta" not in x.split("/")
-            )
-            reader = io_app.load_unaligned()
-            aligner = align_app.align_to_ref()
-            writer = write_db(outdir, create=True, if_exists="overwrite")
-            process = reader + aligner + writer
-
-            _ = process.apply_to(
-                members, show_progress=False, parallel=True, cleanup=True
-            )
-            expect = [str(m) for m in process.data_store]
-            process.data_store.close()
-
-            # now get read only and check what's in there
-            result = open_data_store(outdir)
-            got = [str(m) for m in result]
-            self.assertNotEqual(got, [])
-            result.close()
-            self.assertEqual(got, expect)
 
 
 if __name__ == "__main__":
