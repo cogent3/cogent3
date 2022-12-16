@@ -142,7 +142,7 @@ def nc_dstore(nc_dir):
     dstore = DataStoreDirectory(nc_dir, suffix="fasta", mode=OVERWRITE)
     # write one log file
     log_filename = "scitrack.log"
-    dstore.write_log(log_filename, (DATA_DIR / log_filename).read_text())
+    dstore.write_log(unique_id=log_filename, data=(DATA_DIR / log_filename).read_text())
     # write three not_completed file
     nc = [
         NotCompleted(
@@ -151,7 +151,7 @@ def nc_dstore(nc_dir):
         for i in range(3)
     ]
     for i, item in enumerate(nc):
-        dstore.write_not_completed(f"nc{i + 1}", item.to_json())
+        dstore.write_not_completed(unique_id=f"nc{i + 1}", data=item.to_json())
     assert len(dstore.not_completed) == 3
     assert len(list((nc_dir / _MD5_TABLE).glob("*.txt"))) == len(dstore)
     filenames = DATA_DIR.glob("*.fasta")

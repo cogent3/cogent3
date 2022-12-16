@@ -1429,7 +1429,9 @@ def _apply_to(
     logger.log_message(f"{taken}", label="TIME TAKEN")
     log_file_path = Path(logger.log_file_path)
     logger.shutdown()
-    self.data_store.write_log(log_file_path.name, log_file_path.read_text())
+    self.data_store.write_log(
+        unique_id=log_file_path.name, data=log_file_path.read_text()
+    )
     if cleanup:
         log_file_path.unlink(missing_ok=True)
 
