@@ -63,8 +63,14 @@ def available_apps():
     for name in __all__:
         importlib.import_module(f"cogent3.app.{name}")
 
+    # exclude apps from deprecated modules
+    deprecated = ["cogent3.app.io."]
+
     rows = []
     for app, is_comp in __app_registry.items():
+        if any(app.startswith(d) for d in deprecated):
+            continue
+
         with contextlib.suppress(AttributeError):
             # probably a local scope issue in testing!
             rows.append(_get_app_attr(app, is_comp))
