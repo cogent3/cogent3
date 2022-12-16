@@ -1,6 +1,5 @@
 import contextlib
 import json
-import os
 import pickle
 import zipfile
 
@@ -32,11 +31,15 @@ from .data_store import (
     ReadOnlyZippedDataStore,
 )
 from .data_store_new import (
+    OVERWRITE,
+    READONLY,
     DataStoreABC,
+    DataStoreDirectory,
     get_data_source,
     load_record_from_json,
     make_record_for_json,
 )
+from .sqlite_data_store import DataStoreSqlite
 from .typing import (
     AlignedSeqsType,
     IdentifierType,
@@ -105,11 +108,11 @@ class register_datastore_reader:
         return func
 
 
-# todo GAH update to new data stores including sqlite
 # register the main readers
 register_datastore_reader("zip")(ReadOnlyZippedDataStore)
 register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
-register_datastore_reader(None)(ReadOnlyDirectoryDataStore)
+register_datastore_reader(None)(DataStoreDirectory)
+register_datastore_reader("sqlitedb")(DataStoreSqlite)
 
 
 def open_data_store(
