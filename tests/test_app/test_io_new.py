@@ -1,6 +1,7 @@
 import bz2
 import gzip
 import json
+import os
 import pickle
 
 from pathlib import Path
@@ -10,7 +11,7 @@ import pytest
 
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA
+from cogent3 import DNA, get_app, open_data_store
 from cogent3.app import io_new as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
@@ -463,3 +464,46 @@ def test_write_db_not_completed(tmp_dir):
     reader = io_app.load_db()
     got = reader(data_store.not_completed[0])
     assert got.to_rich_dict() == nc.to_rich_dict()
+
+
+def test_write_db_parallel(tmp_dir, fasta_dir):
+    """writing with overwrite in parallel should reset db"""
+    dstore = open_data_store(fasta_dir, suffix="fasta")
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    members = [m for m in dstore if m.unique_id != "brca1.fasta"]
+    reader = get_app("load_unaligned")
+    aligner = get_app("align_to_ref")
+    writer = get_app("write_seqs", out_dstore)
+    process = reader + aligner + writer
+
+    _ = process.apply_to(members, show_progress=False, parallel=True, cleanup=True)
+    expect = [str(Path(m.data_store.source) / m.unique_id) for m in out_dstore]
+
+    # now get read only and check what's in there
+    result = open_data_store(out_dstore.source, suffix="fasta")
+    got = [str(Path(m.data_store.source) / m.unique_id) for m in result]
+    assert got != []
+    assert got == expect
+
+
+def test_define_data_store(fasta_dir):
+    """returns an iterable data store"""
+    found = open_data_store(fasta_dir, suffix=".fasta")
+    assert len(found) > 1
+    found = open_data_store(fasta_dir, suffix=".fasta", limit=2)
+    assert len(found) == 2
+
+    # and with a suffix
+    found = list(open_data_store(fasta_dir, suffix=".fasta*"))
+    assert len(found) > 2
+
+    # with a wild-card suffix
+    found = list(open_data_store(fasta_dir, suffix="*"))
+    assert len(os.listdir(fasta_dir)) == len(found)
+
+    # raises ValueError if suffix not provided or invalid
+    with pytest.raises(ValueError):
+        _ = open_data_store(fasta_dir)
+
+    with pytest.raises(ValueError):
+        _ = open_data_store(fasta_dir, 1)

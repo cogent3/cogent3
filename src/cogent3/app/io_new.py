@@ -140,6 +140,7 @@ class tabular(Enum):
 
 
 def _read_it(path):
+    path = Path(path) if isinstance(path, str) else path
     try:
         data = path.read()
     except AttributeError:
