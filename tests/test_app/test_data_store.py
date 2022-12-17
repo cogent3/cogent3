@@ -6,7 +6,6 @@ import sys
 
 from copy import deepcopy
 from pathlib import Path
-from pickle import dumps, loads
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
@@ -47,17 +46,6 @@ class DataStoreBaseReadTests:
     ReadClass = None
     WriteClass = None
 
-    def test_findall(self):
-        """correctly identify all files with a suffix"""
-        dstore = self.ReadClass(self.basedir, suffix=".fasta")
-        num = len(dstore.members)
-        self.assertEqual(num, 6)
-
-        dstore = self.ReadClass(self.basedir, suffix=".fasta", limit=2)
-
-        num = len(dstore.members)
-        self.assertEqual(num, 2)
-
     def test_get_relative_identifier(self):
         """correctly returns the relative identifier"""
         # member path based on uncompressed
@@ -78,30 +66,11 @@ class DataStoreBaseReadTests:
         got = {dstore.get_absolute_identifier(p) for p in expect}
         self.assertEqual(got, expect)
 
-    def test_contains(self):
-        """correctly identify when a data store contains a member"""
-        # member path based on uncompressed
-        basedir = self.basedir.split(".")[0]
-        dstore = self.ReadClass(self.basedir, suffix=".fasta")
-        self.assertTrue("brca1.fasta" in dstore)
-        self.assertTrue(f"{basedir}{os.sep}brca1.fasta" in dstore)
-
     def test_get_member(self):
         """returns a matching member"""
         dstore = self.ReadClass(self.basedir, suffix=".fasta")
         member = dstore.get_member("brca1.fasta")
         self.assertNotEqual(member, None)
-
-    def test_iter(self):
-        """DataStore objects allow iteration over members"""
-        dstore = self.ReadClass(self.basedir, suffix=".fasta")
-        members = list(dstore)
-        self.assertEqual(members, dstore.members)
-
-    def test_len(self):
-        """DataStore returns correct len"""
-        dstore = self.ReadClass(self.basedir, suffix=".fasta")
-        self.assertEqual(len(dstore), len(dstore.members))
 
     def test_read(self):
         """correctly read content"""
@@ -142,37 +111,9 @@ class DataStoreBaseReadTests:
         ]
         self.assertEqual(len(got), len(expect))
 
-    def test_pickleable_roundtrip(self):
-        """pickling of data stores should be reversible"""
-
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        re_dstore = loads(dumps(dstore))
-        self.assertEqual(str(dstore), str(re_dstore))
-        self.assertEqual(dstore[0].read(), re_dstore[0].read())
-
-    def test_pickleable_member_roundtrip(self):
-        """pickling of data store members should be reversible"""
-
-        dstore = self.ReadClass(self.basedir, suffix="*")
-        re_member = loads(dumps(dstore[0]))
-        data = re_member.read()
-        self.assertTrue(len(data) > 0)
-
 
 class DataStoreBaseWriteTests:
     WriteClass = None
-
-    def test_write(self):
-        """correctly write content"""
-        expect = Path(f"data{os.sep}brca1.fasta").read_text()
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, self.basedir)
-            dstore = self.WriteClass(path, suffix=".fa", create=True)
-            identifier = dstore.make_absolute_identifier("brca1.fasta")
-            abs_id = dstore.write(identifier, expect)
-            got = dstore.read(abs_id)
-            self.assertEqual(got, expect)
-            dstore.close()
 
     def test_write_wout_suffix(self):
         """appends suffix expected to records"""
@@ -215,24 +156,6 @@ class DataStoreBaseWriteTests:
             md5 = "05a7302479c55c0b5890b50f617c5642"
             got = dstore.md5(abs_id, force=True)
             self.assertEqual(got, md5)
-            dstore.close()
-
-    def test_multi_write(self):
-        """correctly write multiple files to data store"""
-        expect_a = Path(f"data{os.sep}brca1.fasta").read_text()
-        expect_b = Path(f"data{os.sep}primates_brca1.fasta").read_text()
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, self.basedir)
-            dstore = self.WriteClass(path, suffix=".fa", create=True)
-            identifier_a = dstore.make_absolute_identifier("brca1.fasta")
-            identifier_b = dstore.make_absolute_identifier("primates_brca1.fasta")
-            abs_id_a = dstore.write(identifier_a, expect_a)
-            abs_id_b = dstore.write(identifier_b, expect_b)
-            got_a = dstore.read(abs_id_a)
-            got_b = dstore.read(abs_id_b)
-            # check that both bits of data match
-            self.assertEqual(got_a, expect_a)
-            self.assertEqual(got_b, expect_b)
             dstore.close()
 
     def test_add_file(self):
@@ -455,27 +378,6 @@ class DirectoryDataStoreReadTests(
                 assert got is nc
 
 
-class ZippedDataStoreReadTests(TestCase, DataStoreBaseReadTests):
-    basedir = "data.zip"
-    ReadClass = ReadOnlyZippedDataStore
-
-    def setUp(self):
-        basedir = self.basedir.split(".")[0]
-        shutil.make_archive(
-            base_name=basedir, format="zip", base_dir=basedir, root_dir="."
-        )
-
-    def tearDown(self):
-        os.remove(self.basedir)
-
-    def test_store_suffix(self):
-        """data store adds file suffix if not provided"""
-        source = self.basedir.split(".")[0]
-        dstore = self.ReadClass(source, suffix="*")
-        self.assertEqual(dstore.source, self.basedir)
-        self.assertTrue(len(dstore) > 1)
-
-
 class TinyDBDataStoreTests(TestCase):
     basedir = "data"
     ReadClass = ReadOnlyTinyDbDataStore
@@ -496,23 +398,6 @@ class TinyDBDataStoreTests(TestCase):
                 identifier = dstore.make_relative_identifier(id_)
                 dstore.write(identifier, data)
             self.assertTrue(len(dstore), len(self.data))
-            dstore.close()
-
-    def test_tiny_contains(self):
-        """contains operation works for tinydb data store"""
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, self.basedir)
-            dstore = self.WriteClass(path, if_exists="overwrite")
-            for id_, data in self.data.items():
-                identifier = dstore.make_relative_identifier(id_)
-                got = dstore.write(identifier, data)
-                # just string value matching element should return True
-                self.assertTrue(got in dstore)
-                # but if database member parent is not the same as the
-                # data store, it will be False
-                got.parent = "abcd"
-                self.assertTrue(got not in dstore)
-            self.assertTrue("brca1.json" in dstore)
             dstore.close()
 
     def test_add_file(self):
@@ -545,19 +430,6 @@ class TinyDBDataStoreTests(TestCase):
             self.assertEqual(got.read(), self.data[keys[0]])
             dstore.close()
 
-    def test_tinydb_iter(self):
-        """tinydb iter works"""
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, self.basedir)
-            dstore = self.WriteClass(path, if_exists="overwrite")
-            for id_, data in self.data.items():
-                identifier = dstore.make_relative_identifier(id_)
-                dstore.write(identifier, data)
-
-            members = list(dstore)
-            self.assertEqual(members, dstore.members)
-            dstore.close()
-
     def test_tinydb_filter(self):
         """filtering members by name"""
         with TemporaryDirectory(dir=".") as dirname:
@@ -568,25 +440,6 @@ class TinyDBDataStoreTests(TestCase):
                 dstore.write(identifier, data)
             matches = dstore.filtered("*brca1*")
             self.assertGreater(len(matches), 2)
-            dstore.close()
-
-    def test_pickleable_roundtrip(self):
-        """pickling of data stores should be reversible"""
-
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, "data")
-            dstore = self.WriteClass(path, if_exists="ignore")
-            for id_, data in self.data.items():
-                identifier = dstore.make_relative_identifier(id_)
-                dstore.write(identifier, data)
-            dstore.db.storage.flush()  # make sure written to disk
-            m = dstore[0]
-            got = m.read()
-            re_dstore = loads(dumps(dstore))
-            got = re_dstore[0].read()
-            re_dstore.close()
-            self.assertEqual(str(dstore), str(re_dstore))
-            self.assertEqual(got, dstore[0].read())
             dstore.close()
 
     def test_unchanged_database_record(self):
@@ -654,34 +507,6 @@ class TinyDBDataStoreTests(TestCase):
             self.assertTrue("notcompleted" in got["type"].lower())
             dstore.close()
 
-    def test_summary_methods(self):
-        """produce a table"""
-        keys = list(self.data)
-        incomplete = [
-            keys.pop(0),
-            NotCompleted("FAIL", "somefunc", "checking", source="testing.txt"),
-        ]
-        with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(dirname, self.basedir)
-            dstore = self.WriteClass(path, if_exists="overwrite")
-            id_ = dstore.make_relative_identifier(incomplete[0])
-            dstore.write_incomplete(id_, incomplete[1])
-            for k in keys:
-                id_ = dstore.make_relative_identifier(k)
-                dstore.write(id_, self.data[k])
-            # now add a log file
-            dstore.add_file(f"data{os.sep}scitrack.log", cleanup=False)
-            got = dstore.describe
-            # table has rows for completed, incomplete and log
-            self.assertEqual(got.shape, (3, 2))
-            # log summary has a row per log file and a column for each property
-            got = dstore.summary_logs
-            self.assertEqual(got.shape, (1, 6))
-            # incomplete summmary has a row per type and 5 columns
-            got = dstore.summary_incomplete
-            self.assertEqual(got.shape, (1, 5))
-            dstore.close()
-
     def test_dblock(self):
         """locking/unlocking of db"""
         keys = list(self.data)
@@ -711,76 +536,6 @@ class TinyDBDataStoreTests(TestCase):
             # but we can force it
             dstore.unlock(force=True)
             self.assertFalse(dstore.locked)
-            dstore.close()
-
-    def test_db_creation(self):
-        """overwrite, raise, ignore conditions"""
-
-        def create_tinydb(path, create, locked=False):
-            if path.exists():
-                path.unlink()
-
-            dstore = self.WriteClass(path, create=create)
-            for k in keys:
-                id_ = dstore.make_relative_identifier(k)
-                dstore.write(id_, self.data[k])
-
-            num_members = len(dstore)
-
-            if locked:
-                dstore.db.insert({"identifier": "LOCK", "pid": 123})
-                dstore.db.storage.flush()
-                dstore.db.storage.close()
-            else:
-                dstore.close()
-
-            return num_members
-
-        keys = list(self.data)
-        with TemporaryDirectory(dir=".") as dirname:
-            dirname = Path(dirname)
-            path = dirname / f"{self.basedir}.tinydb"
-            # correctly overwrite a tinydb irrespective of lock status
-            for locked in (False, True):
-                create_tinydb(path, create=True, locked=locked)
-                dstore = self.WriteClass(path, create=True, if_exists=OVERWRITE)
-                self.assertEqual(len(dstore), 0)
-                self.assertTrue(dstore.locked)
-                dstore.write("id.json", "some data")
-                dstore.close()
-                self.assertTrue(path.exists())
-
-            # correctly raises exception when RAISE irrespective of lock status
-            for locked in (False, True):
-                create_tinydb(path, create=True, locked=locked)
-                with self.assertRaises(FileExistsError):
-                    self.WriteClass(path, create=True, if_exists=RAISE)
-
-            # correctly warns if IGNORE, irrespective of lock status
-            for locked in (False, True):
-                num_members = create_tinydb(path, create=True, locked=locked)
-                dstore = self.WriteClass(path, create=True, if_exists=IGNORE)
-                self.assertEqual(len(dstore), num_members)
-                self.assertTrue(dstore.locked)
-                dstore.write("id.json", "some data")
-                self.assertEqual(len(dstore), num_members + 1)
-                dstore.close()
-                self.assertTrue(path.exists())
-
-    def test_db_creation2(self):
-        """handles create path argument"""
-
-        with TemporaryDirectory(dir=".") as dirname:
-            dirname = Path(dirname) / "subdir"
-            path = dirname / f"{self.basedir}.tinydb"
-
-            # raises FileNotFoundError when create is False and full path does
-            # not exist
-            with self.assertRaises(FileNotFoundError):
-                self.WriteClass(path, create=False)
-
-            # correctly creates tinydb when full path does not exist
-            dstore = self.WriteClass(path, create=True)
             dstore.close()
 
     def test_write_wout_suffix(self):
@@ -815,23 +570,6 @@ class SingleReadStoreTests(TestCase):
         dstore = self.Class(self.basedir)
         got = dstore.get_absolute_identifier("brca1.fasta")
         self.assertEqual(got, self.basedir)
-
-    def test_contains(self):
-        """correctly identify when a data store contains a member"""
-        dstore = self.Class(self.basedir)
-        self.assertTrue("brca1.fasta" in dstore)
-        self.assertTrue(self.basedir in dstore)
-
-    def test_read(self):
-        """correctly read content"""
-        with open(f"data{os.sep}brca1.fasta") as infile:
-            expect = dict(MinimalFastaParser(infile))
-
-        dstore = self.Class(self.basedir, suffix=".fasta")
-        data = dstore.read(self.basedir)
-        data = data.splitlines()
-        got = dict(MinimalFastaParser(data))
-        self.assertEqual(got, expect)
 
 
 class TestFunctions(TestCase):

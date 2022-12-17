@@ -95,8 +95,19 @@ def load_record_from_json(data):
     return data["identifier"], value, data["completed"]
 
 
-class DataStoreMember(str):
+class DataStoreMember(str):  # pragma: no cover
     def __new__(klass, name, parent=None, id=None):
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "DataStoreMember",
+            "cogent3.data_store_new.DataMember",
+            "2023.3",
+            "use cogent3.data_store_new.DataMember",
+            stack_level=1,
+        )
+
         result = str.__new__(klass, name)
         result.name = os.path.basename(name)
         result.parent = parent
@@ -126,7 +137,7 @@ class DataStoreMember(str):
         return self.parent.md5(self, force=True)
 
 
-class ReadOnlyDataStoreBase:
+class ReadOnlyDataStoreBase:  # pragma: no cover
 
     store_suffix = None
 
@@ -147,6 +158,17 @@ class ReadOnlyDataStoreBase:
             record md5 hexadecimal checksum of read data when possible
         """
         # assuming delimiter is /
+
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "ReadOnlyDataStoreBase",
+            "cogent3.data_store_new.DataStoreDirectory",
+            "2023.3",
+            "use cogent3.data_store_new.DataStoreDirectory",
+            stack_level=1,
+        )
 
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
@@ -329,7 +351,7 @@ class ReadOnlyDataStoreBase:
         _ = self.write(unique_id, data)
 
 
-class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
+class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):  # pragma: no cover
     @property
     def members(self):
         if not self._members:
@@ -352,7 +374,7 @@ class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):
         return open_(identifier)
 
 
-class SingleReadDataStore(ReadOnlyDirectoryDataStore):
+class SingleReadDataStore(ReadOnlyDirectoryDataStore):  # pragma: no cover
     """simplified for a single file"""
 
     def __init__(self, source, *args, **kwargs):
@@ -373,8 +395,17 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):
         self._members = [DataStoreMember(path, self)]
 
 
-class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
+class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):  # pragma: no cover
     store_suffix = "zip"
+
+    def __init(self):
+        super().__init()
+
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "class", "ReadOnlyZippedDataStore", "2022.3", "use cogent3.open_data_store"
+        )
 
     @property
     def members(self):
@@ -408,7 +439,7 @@ class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):
         return record
 
 
-class WritableDataStoreBase:
+class WritableDataStoreBase:  # pragma: no cover
     """a writeable data store"""
 
     def __init__(self, if_exists=RAISE, create=False):
@@ -420,6 +451,17 @@ class WritableDataStoreBase:
         create : bool
             if True, the destination is created
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "WritableDataStoreBase",
+            "cogent3.data_store_new.DataStoreDirectory",
+            "2023.3",
+            "use cogent3.data_store_new.DataStoreDirectory",
+            stack_level=1,
+        )
+
         d = locals()
         d = UnionDict({k: v for k, v in d.items() if k != "self"})
         if self._persistent:
@@ -557,7 +599,9 @@ class WritableDataStoreBase:
         pass
 
 
-class WritableDirectoryDataStore(ReadOnlyDirectoryDataStore, WritableDataStoreBase):
+class WritableDirectoryDataStore(
+    ReadOnlyDirectoryDataStore, WritableDataStoreBase
+):  # pragma: no cover
     @extend_docstring_from(ReadOnlyDirectoryDataStore.__init__, pre=False)
     @extend_docstring_from(WritableDataStoreBase.__init__, pre=False)
     def __init__(
@@ -657,13 +701,19 @@ def _db_lockid(path):
     return lockid
 
 
-class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
+class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):  # pragma: no cover
     """A TinyDB based json data store"""
 
     store_suffix = "tinydb"
 
     @extend_docstring_from(ReadOnlyDirectoryDataStore.__init__)
     def __init__(self, *args, **kwargs):
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "class", "ReadOnlyTinyDbDataStore", "2022.3", "use cogent3.open_data_store"
+        )
+
         kwargs["suffix"] = "json"
         super(ReadOnlyTinyDbDataStore, self).__init__(*args, **kwargs)
         self._db = None
@@ -930,7 +980,9 @@ class ReadOnlyTinyDbDataStore(ReadOnlyDataStoreBase):
         )
 
 
-class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
+class WritableTinyDbDataStore(
+    ReadOnlyTinyDbDataStore, WritableDataStoreBase
+):  # pragma: no cover
     @extend_docstring_from(WritableDirectoryDataStore.__init__)
     def __init__(self, *args, **kwargs):
         """
@@ -940,6 +992,12 @@ class WritableTinyDbDataStore(ReadOnlyTinyDbDataStore, WritableDataStoreBase):
         A TinyDb file can be locked. In which case, ``if_exists=OVERWRITE``
         will be converted to RAISE.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "class", "WritableTinyDbDataStore", "2022.3", "use cogent3.open_data_store"
+        )
+
         if_exists = kwargs.pop("if_exists", RAISE)
         create = kwargs.pop("create", True)
         ReadOnlyTinyDbDataStore.__init__(self, *args, **kwargs)
