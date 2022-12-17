@@ -82,17 +82,17 @@ class TestGenericResult(TestCase):
             {"A": "ACGT"}, info=dict(source=source, random_key=1234)
         )
         gr = generic_result(aln)
-        self.assertEqual(gr.source, "path/blah.fasta")
+        self.assertEqual(gr.source, "blah.fasta")
 
         # or Path
         aln.info.source = pathlib.Path(source)
         gr = generic_result(aln)
-        self.assertEqual(str(gr.source), str(pathlib.Path("path/blah.fasta")))
+        self.assertEqual(str(gr.source), str(pathlib.Path("blah.fasta")))
 
         # or DataStoreMember
         aln.info.source = DataStoreMember(source)
         gr = generic_result(aln)
-        self.assertEqual(str(gr.source), "path/blah.fasta")
+        self.assertEqual(str(gr.source), "blah.fasta")
 
         aln.info = {}
         with self.assertRaises(ValueError):
