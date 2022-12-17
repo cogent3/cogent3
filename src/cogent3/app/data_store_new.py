@@ -502,10 +502,8 @@ class DataStoreDirectory(DataStoreABC):
 def get_data_source(data) -> str:
     source = getattr(data, "source", None)
     if source is None:
-        raise NotImplementedError(
-            f"Cannot resolve a unique identifier from {type(data)}"
-        )
-    return source
+        return None
+    return get_data_source(source)
 
 
 @get_data_source.register

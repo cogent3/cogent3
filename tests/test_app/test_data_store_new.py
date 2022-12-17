@@ -1,5 +1,7 @@
+import json
 import shutil
 
+from itertools import product
 from pathlib import Path
 from pickle import dumps, loads
 
@@ -18,8 +20,11 @@ from cogent3.app.data_store_new import (
     DataStoreDirectory,
     convert_directory_datastore,
     convert_tinydb_to_sqlite,
+    get_data_source,
+    load_record_from_json,
 )
 from cogent3.util.table import Table
+from cogent3.util.union_dict import UnionDict
 
 
 __author__ = "Gavin Huttley"
@@ -476,3 +481,61 @@ def test_write_if_member_exists(full_dstore, write_dir):  # new changes
     assert len_dstore == len(full_dstore)
     got = full_dstore.read(identifier)
     assert got == expect
+
+
+@pytest.mark.parametrize("klass", (str, Path))
+def test_get_data_source_attr(klass):
+    """handles case where input has source attribute string object or pathlib object"""
+
+    class dummy:
+        source = None
+
+    obj = dummy()
+    value = klass("some/path.txt")
+    obj.source = value
+    got = get_data_source(obj)
+    assert got == str("path.txt")
+
+
+_types = tuple(product((dict, UnionDict), (str, Path)))
+
+
+@pytest.mark.parametrize("container_type,source_stype", _types)
+def test_get_data_source_dict(container_type, source_stype):
+    """handles case where input is dict (sub)class instance with top level source key"""
+    value = source_stype("some/path.txt")
+    data = container_type(source=value)
+    got = get_data_source(data)
+    assert got == "path.txt"
+
+
+@pytest.mark.parametrize("data", (dict(), set(), dict(info=dict())))
+def test_get_data_source_none(data):
+    assert get_data_source(data) is None
+
+
+@pytest.mark.parametrize("klass", (str, Path))
+def test_get_data_source_seqcoll(klass):
+    """handles case where input is sequence collection object"""
+    from cogent3 import make_unaligned_seqs
+
+    value = klass("some/path.txt")
+    obj = make_unaligned_seqs(
+        data=dict(seq1="ACGG"), info=dict(source=value, random_key=1234)
+    )
+    got = get_data_source(obj)
+    assert got == "path.txt"
+
+
+def test_load_record_from_json():
+    """handle different types of input"""
+    orig = {"data": "blah", "identifier": "some.json", "completed": True}
+    data = orig.copy()
+    data2 = data.copy()
+    data2["data"] = json.dumps(data)
+    for d in (data, json.dumps(data), data2):
+        expected = "blah" if d != data2 else json.loads(data2["data"])
+        Id, data_, compl = load_record_from_json(d)
+        assert Id == "some.json"
+        assert data_ == expected
+        assert compl == True
