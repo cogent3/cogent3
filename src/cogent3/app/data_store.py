@@ -365,8 +365,8 @@ class SingleReadDataStore(ReadOnlyDirectoryDataStore):  # pragma: no cover
 class ReadOnlyZippedDataStore(ReadOnlyDataStoreBase):  # pragma: no cover
     store_suffix = "zip"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         from cogent3.util.warning import discontinued
 
