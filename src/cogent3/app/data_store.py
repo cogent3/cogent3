@@ -353,6 +353,7 @@ class ReadOnlyDataStoreBase:  # pragma: no cover
 
 class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):  # pragma: no cover
     def __init__(self, *args, **kwargs):
+        """"""
         super().__init__(*args, **kwargs)
         deprecated("class", f"{self.__class__.__name__}", "DataStoreDirectory", "2023.3", "use cogent3.open_data_store")
     
