@@ -132,7 +132,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
         exclude = exclude.split(",")
         new = []
         for fn in file_paths:
-            keep = all(sub_word not in fn for sub_word in exclude)
+            keep = all(sub_word not in str(fn) for sub_word in exclude)
             if keep:
                 new.append(fn)
         file_paths = new
