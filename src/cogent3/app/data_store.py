@@ -166,7 +166,7 @@ class ReadOnlyDataStoreBase:  # pragma: no cover
             "ReadOnlyDataStoreBase",
             "cogent3.data_store_new.DataStoreDirectory",
             "2023.3",
-            "use cogent3.data_store_new.DataStoreDirectory",
+            "use cogent3.data_store_new.DataStoreABC",
             stack_level=1,
         )
 
@@ -458,7 +458,7 @@ class WritableDataStoreBase:  # pragma: no cover
             "WritableDataStoreBase",
             "cogent3.data_store_new.DataStoreDirectory",
             "2023.3",
-            "use cogent3.data_store_new.DataStoreDirectory",
+            "use cogent3.data_store_new.DataStoreABC",
             stack_level=1,
         )
 
