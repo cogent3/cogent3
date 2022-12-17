@@ -627,7 +627,8 @@ class WritableDirectoryDataStore(
         assert "w" in mode or "a" in mode
         ReadOnlyDirectoryDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
-        deprecated("class", f"{self.__class__.__name__}", "DataStoreDirectory", "2023.3", "use cogent3.open_data_store")
+        deprecated("class", f"{self.__class__.__name__}", "DataStoreDirectory", "2023.3",
+                   "convert to sqlitedb using cogent3.app.data_store_new.convert_tinydb_to_sqlite")
 
         d = locals()
         self._persistent = {k: v for k, v in d.items() if k != "self"}
@@ -1000,7 +1001,7 @@ class WritableTinyDbDataStore(
         from cogent3.util.warning import discontinued
 
         discontinued(
-            "class", "WritableTinyDbDataStore", "2022.3", "use cogent3.open_data_store"
+            "class", "WritableTinyDbDataStore", "2022.3", "use sqlitedb via cogent3.open_data_store"
         )
 
         if_exists = kwargs.pop("if_exists", RAISE)
