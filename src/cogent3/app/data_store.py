@@ -11,7 +11,6 @@ import zipfile
 from collections import defaultdict
 from fnmatch import fnmatch, translate
 from io import TextIOWrapper
-from json import JSONDecodeError
 from pathlib import Path
 from pprint import pprint
 from warnings import warn
@@ -21,6 +20,11 @@ from tinydb import Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
+from cogent3.app.data_store_new import (
+    get_data_source,
+    load_record_from_json,
+    make_record_for_json,
+)
 from cogent3.util.deserialise import deserialise_not_completed
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
 from cogent3.util.misc import extend_docstring_from
@@ -44,55 +48,6 @@ SKIP = "skip"
 OVERWRITE = "overwrite"
 RAISE = "raise"
 IGNORE = "ignore"
-
-
-def get_data_source(data) -> str:
-    """identifies attribute of data named 'source'
-
-    Notes
-    -----
-    Alignment objects have a source element in their info dict
-    """
-    if isinstance(data, (str, pathlib.Path)):
-        return str(data)
-
-    if hasattr(data, "source"):
-        return str(data.source)
-
-    if hasattr(data, "info"):
-        return get_data_source(data.info)
-
-    if isinstance(data, dict):
-        value = data.get("source")
-        return str(value) if value else None
-
-    return None
-
-
-def make_record_for_json(identifier, data, completed):
-    """returns a dict for storage as json"""
-    try:
-        data = data.to_rich_dict()
-    except AttributeError:
-        pass
-
-    data = json.dumps(data)
-    return dict(identifier=identifier, data=data, completed=completed)
-
-
-def load_record_from_json(data):
-    """returns identifier, data, completed status from json string"""
-    if type(data) == str:
-        data = json.loads(data)
-
-    value = data["data"]
-    if isinstance(value, str):
-        try:
-            value = json.loads(value)
-        except JSONDecodeError:
-            pass
-
-    return data["identifier"], value, data["completed"]
 
 
 class DataStoreMember(str):  # pragma: no cover
