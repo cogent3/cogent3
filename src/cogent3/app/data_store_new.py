@@ -15,7 +15,11 @@ from typing import Optional, Union
 from scitrack import get_text_hexdigest
 
 from cogent3.app.typing import TabularType
-from cogent3.core.alignment import SequenceCollection
+from cogent3.core.alignment import (
+    Alignment,
+    ArrayAlignment,
+    SequenceCollection,
+)
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.io import get_format_suffixes, open_
 from cogent3.util.parallel import is_master_process
@@ -502,15 +506,23 @@ class DataStoreDirectory(DataStoreABC):
 def get_data_source(data) -> str:
     source = getattr(data, "source", None)
     if source is None:
-        raise NotImplementedError(
-            f"Cannot resolve a unique identifier from {type(data)}"
-        )
-    return source
+        return None
+    return get_data_source(source)
 
 
 @get_data_source.register
 def _(data: SequenceCollection):
-    return get_data_source(data.info.source)
+    return get_data_source(data.info)
+
+
+@get_data_source.register
+def _(data: ArrayAlignment):
+    return get_data_source(data.info)
+
+
+@get_data_source.register
+def _(data: Alignment):
+    return get_data_source(data.info)
 
 
 @get_data_source.register
@@ -526,7 +538,7 @@ def _(data: Path):
 @get_data_source.register
 def _(data: dict):
     try:
-        source = data["info"]["source"]
+        source = data.get("info", {})["source"]
     except KeyError:
         source = data.get("source", None)
     return get_data_source(source)
