@@ -352,6 +352,10 @@ class ReadOnlyDataStoreBase:  # pragma: no cover
 
 
 class ReadOnlyDirectoryDataStore(ReadOnlyDataStoreBase):  # pragma: no cover
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        deprecated("class", f"{self.__class__.__name__}", "DataStoreDirectory", "2023.3", "use cogent3.open_data_store")
+    
     @property
     def members(self):
         if not self._members:
@@ -623,6 +627,7 @@ class WritableDirectoryDataStore(
         assert "w" in mode or "a" in mode
         ReadOnlyDirectoryDataStore.__init__(self, source=source, suffix=suffix, md5=md5)
         WritableDataStoreBase.__init__(self, if_exists=if_exists, create=create)
+        deprecated("class", f"{self.__class__.__name__}", "DataStoreDirectory", "2023.3", "use cogent3.open_data_store")
 
         d = locals()
         self._persistent = {k: v for k, v in d.items() if k != "self"}
