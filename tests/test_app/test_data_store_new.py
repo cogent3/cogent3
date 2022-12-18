@@ -240,17 +240,18 @@ def test_convert_tinydb_to_sqlite_error(tmp_dir):
 
 
 @pytest.mark.parametrize(
-    "orig",
+    "orig,num_logs",
     (
-        DATA_DIR / "sample_locked.tinydb",
-        DATA_DIR.parent.parent / "doc" / "data" / "demo-locked.tinydb",
+        (DATA_DIR / "sample_locked.tinydb", 0),
+        (DATA_DIR.parent.parent / "doc" / "data" / "demo-locked.tinydb", 1),
     ),
 )
-def test_convert_tinydbs_to_sqlite(tmp_dir, orig):
+def test_convert_tinydbs_to_sqlite(tmp_dir, orig, num_logs):
     src = tmp_dir / orig.name
     shutil.copy(orig, src)
     dest = tmp_dir / "data1.sqlitedb"
     got = convert_tinydb_to_sqlite(src, dest=dest)
+    assert len(got.logs) == num_logs
 
 
 def test_convert_directory_datastore(Sample_oldDirectoryDataStore, write_dir):
