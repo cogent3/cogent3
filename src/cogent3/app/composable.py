@@ -1013,7 +1013,10 @@ def _call(self, val, *args, **kwargs):
             return val
 
     type_checked = self._validate_data_type(val)
-    if not type_checked:
+    if isinstance(val, NotCompleted):
+        if self._skip_not_completed:
+            return val
+    elif not type_checked:
         return type_checked
 
     try:

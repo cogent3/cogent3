@@ -1169,8 +1169,10 @@ def test_skip_not_completed():
         return val.to_rich_dict()
 
     app = takes_not_completed()
-    got = app(NotCompleted("ERROR", "test", "for tracing", source="blah"))
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    got = app(nc)
     assert isinstance(got, dict)
+    assert got == nc.to_rich_dict()
 
     __app_registry.pop(get_object_provenance(takes_not_completed), None)
 
