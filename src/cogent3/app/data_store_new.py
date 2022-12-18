@@ -600,7 +600,10 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
     writer = write_db(data_store=dstore)
     for id, data, is_completed in data_list:
-        writer.main(data, identifier=id)
+        if id.endswith(".log"):
+            writer.data_store.write_log(unique_id=id, data=data)
+        else:
+            writer.main(data, identifier=id)
 
     if lock_id is not None or dstore._lock_id:
         cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
