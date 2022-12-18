@@ -233,9 +233,25 @@ def test_convert_tinydb_to_sqlite_error(tmp_dir):
     path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
     dest = tmp_dir / "data1.sqlitedb"
+    # create a file at dest path to trigger error
     dest.write_text("blah")
     with pytest.raises(IOError):
         _ = convert_tinydb_to_sqlite(path, dest=dest)
+
+
+@pytest.mark.parametrize(
+    "orig,num_logs",
+    (
+        (DATA_DIR / "sample_locked.tinydb", 0),
+        (DATA_DIR.parent.parent / "doc" / "data" / "demo-locked.tinydb", 1),
+    ),
+)
+def test_convert_tinydbs_to_sqlite(tmp_dir, orig, num_logs):
+    src = tmp_dir / orig.name
+    shutil.copy(orig, src)
+    dest = tmp_dir / "data1.sqlitedb"
+    got = convert_tinydb_to_sqlite(src, dest=dest)
+    assert len(got.logs) == num_logs
 
 
 def test_convert_directory_datastore(Sample_oldDirectoryDataStore, write_dir):

@@ -512,3 +512,7 @@ def test_lock_firsttime(full_dstore_sqlite):
     assert full_dstore_sqlite.locked
     full_dstore_sqlite.unlock()
     assert not full_dstore_sqlite.locked
+
+
+def test_db_without_logs(ro_sql_dstore):
+    assert len(ro_sql_dstore.logs) == 0

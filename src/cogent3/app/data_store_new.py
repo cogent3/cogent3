@@ -574,6 +574,9 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
             "You need to install tinydb to be able to migrate to new datastore."
         ) from e
 
+    from .io_new import write_db
+
+    source = Path(source)
     storage = CachingMiddleware(JSONStorage)
     tinydb = TinyDB(str(source), storage=storage)
     pattern = translate("*")
@@ -595,12 +598,12 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
             f"Destination file {str(dest)} already exists. Delete or define new dest."
         )
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
-
+    writer = write_db(data_store=dstore)
     for id, data, is_completed in data_list:
-        if is_completed:
-            dstore.write(unique_id=id, data=data)
+        if id.endswith(".log"):
+            writer.data_store.write_log(unique_id=id, data=data)
         else:
-            dstore.write_not_completed(unique_id=id, data=data)
+            writer.main(data, identifier=id)
 
     if lock_id is not None or dstore._lock_id:
         cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
