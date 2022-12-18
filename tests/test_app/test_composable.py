@@ -5,7 +5,6 @@ import shutil
 
 from pathlib import Path
 from pickle import dumps, loads
-from tempfile import TemporaryDirectory
 from typing import Set, Tuple
 from unittest import main
 from unittest.mock import Mock
@@ -553,26 +552,6 @@ def slicer(val, index=2):
 
 @define_app
 def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
-    return val[:4]
-
-
-@define_app
-def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
-    return val[:4]
-
-
-@define_app
-def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
-    return val[:4]
-
-
-@define_app
-def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
-    return val[:4]
-
-
-@define_app
-def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
     return val[:4]
 
 

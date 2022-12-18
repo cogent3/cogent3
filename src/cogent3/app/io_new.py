@@ -60,6 +60,111 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
+_datastore_reader_map = {}
+
+
+class register_datastore_reader:
+    """
+    registration decorator for read only data store classes
+
+    The registration key must be a string that of the file format suffix
+    (more than one suffix can be registered at a time).
+
+    Parameters
+    ----------
+    args: str or sequence of str
+        must be unique, a preceding '.' will be added if not already present
+    """
+
+    def __init__(self, *args):
+        args = list(args)
+        for i, suffix in enumerate(args):
+            if suffix is None:
+                assert (
+                    suffix not in _datastore_reader_map
+                ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+                continue
+
+            if not isinstance(suffix, str):
+                raise TypeError(f"{suffix!r} is not a string")
+
+            if suffix.strip() == suffix and not suffix:
+                raise ValueError("cannot have white-space suffix")
+
+            suffix = suffix.strip()
+            if suffix:
+                suffix = suffix if suffix[0] == "." else f".{suffix}"
+
+            assert (
+                suffix not in _datastore_reader_map
+            ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+            args[i] = suffix
+
+        self._type_str = tuple(args)
+
+    def __call__(self, func):
+        for type_str in self._type_str:
+            _datastore_reader_map[type_str] = func
+        return func
+
+
+# register the main readers
+register_datastore_reader("zip")(ReadOnlyZippedDataStore)
+register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
+register_datastore_reader(None)(DataStoreDirectory)
+register_datastore_reader("sqlitedb")(DataStoreSqlite)
+
+
+def open_data_store(
+    base_path: Union[str, Path],
+    suffix: Optional[str] = None,
+    limit: Optional[int] = None,
+    mode: Union[str, Mode] = READONLY,
+    **kwargs,
+) -> DataStoreABC:
+    """returns DataStore instance of a type specified by the path suffix
+
+    Parameters
+    ----------
+    base_path
+        path to directory or db
+    suffix
+        suffix of filenames
+    limit
+        the number of matches to return
+    mode
+        opening mode, either r, w, a as per file opening modes
+    """
+    mode = Mode(mode)
+    if not isinstance(suffix, (str, type(None))):
+        raise ValueError(f"suffix {type(suffix)} not one of string or None")
+
+    kwargs = dict(limit=limit, mode=mode, suffix=suffix)
+    base_path = Path(base_path)
+    base_path = base_path.expanduser().absolute()
+    if base_path.suffix == ".tinydb":
+        kwargs["suffix"] = "json"
+        kwargs.pop("mode")
+
+    if base_path.suffix == ".sqlitedb":
+        ds_suffix = base_path.suffix
+        kwargs.pop("suffix")
+    elif zipfile.is_zipfile(base_path):
+        ds_suffix = ".zip"
+        kwargs.pop("mode")
+    elif base_path.suffix:
+        ds_suffix = base_path.suffix
+    else:
+        ds_suffix = None
+
+    if ds_suffix is None and suffix is None:
+        raise ValueError("a suffix is required if using a directory data store")
+
+    klass = _datastore_reader_map[ds_suffix]
+
+    return klass(base_path, **kwargs)
+
+
 @define_app(skip_not_completed=False)
 def pickle_it(data: SerialisableType) -> bytes:
     return pickle.dumps(data)
