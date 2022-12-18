@@ -226,10 +226,11 @@ class DataStoreSqlite(DataStoreABC):
     @property
     def logs(self):
         """returns all log records"""
-        cmnd = self.db.execute(f"SELECT data, log_name FROM {_LOG_TABLE}")
+        cmnd = self.db.execute(f"SELECT log_name FROM {_LOG_TABLE}")
         return [
             DataMember(data_store=self, unique_id=Path(_LOG_TABLE) / r["log_name"])
             for r in cmnd.fetchall()
+            if r["log_name"]
         ]
 
     def _write(
