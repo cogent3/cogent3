@@ -10,6 +10,7 @@ from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
+from types import NoneType
 from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
@@ -301,7 +302,8 @@ class DataStoreABC(ABC):
             index_name="Condition",
         )
 
-    def md5(self, unique_id: str) -> str:
+    @abstractmethod
+    def md5(self, unique_id: str) -> Union[str, NoneType]:
         """
         Parameters
         ----------
@@ -312,11 +314,6 @@ class DataStoreABC(ABC):
         -------
         md5 checksum for the member, if available, None otherwise
         """
-        unique_id = Path(unique_id)
-        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
-        path = self.source / _MD5_TABLE / unique_id
-
-        return path.read_text() if path.exists() else None
 
 
 class DataMember(DataMemberABC):
@@ -500,6 +497,23 @@ class DataStoreDirectory(DataStoreABC):
 
     def write_log(self, *, unique_id: str, data: str) -> None:
         _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
+
+    def md5(self, unique_id: str) -> Union[str, NoneType]:
+        """
+        Parameters
+        ----------
+        unique_id
+            name of data store member
+
+        Returns
+        -------
+        md5 checksum for the member, if available, None otherwise
+        """
+        unique_id = Path(unique_id)
+        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
+        path = self.source / _MD5_TABLE / unique_id
+
+        return path.read_text() if path.exists() else None
 
 
 @singledispatch
