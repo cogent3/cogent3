@@ -1031,7 +1031,7 @@ def _validate_data_type(self, data):
     # todo when move to python 3.8 define protocol checks for the two singular types
     if isinstance(data, NotCompleted) and self._skip_not_completed:
         return data
-    
+
     if not self._data_types or self._data_types & {
         "SerialisableType",
         "IdentifierType",
@@ -1041,10 +1041,11 @@ def _validate_data_type(self, data):
     if isinstance(data, source_proxy):
         data = data.obj
 
-    if isinstance(data, (list, tuple)) and len(data):
-        data = data[0]
-    elif isinstance(data, (list, tuple)):
-        return NotCompleted("ERROR", self, message=f"empty data", source=data)
+    if isinstance(data, _builtin_seqs):
+        if len(data):
+            data = next(iter(data))
+        else:
+            return NotCompleted("ERROR", self, message="empty data", source=data)
 
     class_name = data.__class__.__name__
     valid = class_name in self._data_types
