@@ -414,7 +414,7 @@ def test_limit_datastore(full_dstore_sqlite):
 
 def test_validate(full_dstore_sqlite):
     r = full_dstore_sqlite.validate()
-    assert r.shape == (3, 2)
+    assert r.shape == (4, 2)
 
 
 def test_no_not_completed(sql_dstore):
@@ -534,3 +534,10 @@ def test_md5_none(md5_none):
 
 def test_md5_missing(md5_none):
     md5_none.md5("unknown")
+
+
+def test_validate_missing_md5(md5_none):
+    t = md5_none.validate()
+    assert t["Num md5sum missing", "Value"] == 9
+    for c in ("correct", "incorrect"):
+        assert t[f"Num md5sum {c}", "Value"] == 0

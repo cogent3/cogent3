@@ -284,18 +284,24 @@ class DataStoreABC(ABC):
 
     def validate(self) -> TabularType:
         correct_md5 = len(self.members)
+        missing_md5 = 0
         for m in self.members:
             data = m.read()
             md5 = self.md5(m.unique_id)
-            if md5 != get_text_hexdigest(data):
+            if md5 is None:
+                missing_md5 += 1
                 correct_md5 -= 1
-        incorrect_md5 = len(self.members) - correct_md5
+            elif md5 != get_text_hexdigest(data):
+                correct_md5 -= 1
+
+        incorrect_md5 = len(self.members) - correct_md5 - missing_md5
 
         return Table(
             header=["Condition", "Value"],
             data=[
                 ["Num md5sum correct", correct_md5],
                 ["Num md5sum incorrect", incorrect_md5],
+                ["Num md5sum missing", missing_md5],
                 ["Has log", len(self.logs) > 0],
             ],
             title="validate status",
