@@ -516,3 +516,21 @@ def test_lock_firsttime(full_dstore_sqlite):
 
 def test_db_without_logs(ro_sql_dstore):
     assert len(ro_sql_dstore.logs) == 0
+
+
+@pytest.fixture(scope="function")
+def md5_none(full_dstore_sqlite):
+    """create a data store with empty md5 fields"""
+    full_dstore_sqlite.db.execute(
+        "UPDATE results SET md5=? WHERE record_id LIKE '%'", (None,)
+    )
+    return full_dstore_sqlite
+
+
+def test_md5_none(md5_none):
+    m = md5_none[0]
+    assert m.md5 is None
+
+
+def test_md5_missing(md5_none):
+    md5_none.md5("unknown")

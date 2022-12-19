@@ -445,6 +445,16 @@ def test_md5_sum(nc_dstore):
         assert md5 == get_text_hexdigest(data)
 
 
+def test_md5_none(fasta_dir):
+    dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
+    for m in dstore.members:
+        assert m.md5 is None
+
+
+def test_md5_missing(nc_dstore):
+    nc_dstore.md5("unknown") is None
+
+
 def test_summary_logs_missing_field(nc_dstore):
     log_path = Path(nc_dstore.source) / nc_dstore.logs[0].unique_id
     data = [
