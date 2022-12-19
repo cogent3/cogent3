@@ -7,7 +7,6 @@ import re
 import sqlite3
 
 from pathlib import Path
-from types import NoneType
 from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
@@ -37,7 +36,7 @@ __status__ = "Alpha"
 _RESULT_TABLE = "results"
 _MEMORY = ":memory:"
 _mem_pattern = re.compile(r"^\s*[:]{0,1}memory[:]{0,1}\s*$")
-
+NoneType = type(None)
 
 # create db
 def open_sqlite_db_rw(path: Union[str, Path]):

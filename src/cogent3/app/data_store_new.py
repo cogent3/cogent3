@@ -10,7 +10,6 @@ from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
 from pathlib import Path
-from types import NoneType
 from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
@@ -41,6 +40,7 @@ _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"
 
 StrOrBytes = Union[str, bytes]
+NoneType = type(None)
 
 
 class Mode(Enum):
