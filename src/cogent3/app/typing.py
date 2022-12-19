@@ -84,7 +84,9 @@ def get_constraint_names(*hints) -> set[str, ...]:
     """returns the set of named constraints of a type hint"""
     all_hints = set()
     for hint in hints:
-        if hint in (SerialisableType, IdentifierType) or inspect.isclass(hint):
+        if hint in (SerialisableType, IdentifierType) or (
+            inspect.isclass(hint) and get_origin(hint) not in (list, tuple, set)
+        ):
             all_hints.add(hint.__name__)
             continue
 
@@ -96,7 +98,7 @@ def get_constraint_names(*hints) -> set[str, ...]:
             all_hints.update(hint.__constraints__)
             continue
 
-        if get_origin(hint) in (Union, list, tuple):
+        if get_origin(hint) in (Union, list, tuple, set):
             all_hints.update(get_constraint_names(*get_args(hint)))
 
         if type(hint) == type:
@@ -119,3 +121,28 @@ def hints_from_strings(*strings: Iterable[str]) -> list:
             raise ValueError(f"{string!r} not a known type constant")
         types.append(_mappings[string])
     return types
+
+
+def type_tree(hint, depth=0) -> tuple:
+    """compute the order of types"""
+    level_type = get_origin(hint)
+    if not level_type:
+        return depth + 1, hint
+
+    levels = []
+    depths = []
+    for arg in get_args(hint):
+        d, t = type_tree(arg, depth=depth)
+        levels.append(t)
+        depths.append(d)
+    depth = max(depths) + 1
+
+    if len(levels) == 1:
+        levels = levels[0]
+
+    try:
+        levels = tuple(levels)
+    except TypeError:
+        levels = (levels,)
+
+    return depth, (level_type, levels)
