@@ -216,7 +216,7 @@ class DataStoreABC(ABC):
                     data["python"],
                     data["user"],
                     data["command_string"],
-                    data["composable function"],
+                    data.get("composable function", ""),
                 ]
             )
             rows.append(row)
