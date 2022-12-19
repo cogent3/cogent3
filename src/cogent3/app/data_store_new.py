@@ -356,6 +356,22 @@ class DataStoreDirectory(DataStoreABC):
         self._source_check_create(mode)
         self._limit = limit
 
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            return self.members[index]
+        elif isinstance(index, str):
+            for member in self.completed:
+                if member.unique_id == index:
+                    return member
+            for member in self.not_completed:
+                if member.unique_id == f"{_NOT_COMPLETED_TABLE}/{index}.json":
+                    return member
+            raise IndexError("Datamember index is not defined")
+        else:
+            raise IndexError(
+                "Index of datamember in datastore must be an integer or string identifier"
+            )
+
     def __contains__(self, item: str):
         item = f"{item}.{self.suffix}" if self.suffix not in item else item
         return super().__contains__(item)
