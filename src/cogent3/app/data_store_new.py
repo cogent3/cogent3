@@ -491,6 +491,7 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+        (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         member = self._write(
             subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
         )
