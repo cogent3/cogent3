@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "develop", "composable_refactor" ]
+    branches: [ "develop", "data_store_refactor" ]
   pull_request:
-    branches: [ "develop", "composable_refactor" ]
+    branches: [ "develop", "data_store_refactor" ]
 
 jobs:
   tests:
@@ -35,8 +35,24 @@ jobs:
       - name: "Run nox for ${{ matrix.python-version }}"
         run: "nox -s test-${{ matrix.python-version }}"
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
         with:
-          file: "./tests/junit-${{ matrix.python-version }}.xml"
-          fail_ci_if_error: true
+          parallel: true
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.test_number }}
+          path-to-lcov: "tests/lcov-${{ matrix.python-version }}.info"
+
+  finish:
+    needs: tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10"]
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
