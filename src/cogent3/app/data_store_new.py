@@ -357,7 +357,7 @@ class DataStoreDirectory(DataStoreABC):
         self._limit = limit
 
     def __getitem__(self, index):
-        if isinstance(index, int):
+        if isinstance(index, Union[int, slice]):
             return self.members[index]
         elif isinstance(index, str):
             for member in self.completed:
