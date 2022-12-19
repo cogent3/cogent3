@@ -946,7 +946,7 @@ def get_object_provenance(obj):
 
 def extend_docstring_from(source, pre=False):
     def docstring_inheriting_decorator(dest):
-        parts = [source.__doc__, dest.__doc__ or ""]
+        parts = [source.__doc__ or "", dest.__doc__ or ""]
         # trim leading/trailing blank lines from parts
         for i, part in enumerate(parts):
             part = part.split("\n")

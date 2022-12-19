@@ -7,6 +7,7 @@ from typing import Union
 
 import numpy
 
+from cogent3.app.io_new import _datastore_reader_map, register_datastore_reader
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
 from cogent3.core.profile import (
@@ -28,13 +29,7 @@ from .composable import (
     define_app,
 )
 from .data_store import (
-    IGNORE,
-    OVERWRITE,
-    RAISE,
     SKIP,
-    ReadOnlyDirectoryDataStore,
-    ReadOnlyTinyDbDataStore,
-    ReadOnlyZippedDataStore,
     SingleReadDataStore,
     WritableTinyDbDataStore,
     get_data_source,
@@ -61,60 +56,6 @@ __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-_datastore_reader_map = {}
-
-
-class register_datastore_reader:
-    """
-    registration decorator for read only data store classes
-
-    The registration key must be a string that of the file format suffix
-    (more than one suffix can be registered at a time).
-
-    Parameters
-    ----------
-    args: str or sequence of str
-        must be unique, a preceding '.' will be added if not already present
-    """
-
-    def __init__(self, *args):
-        args = list(args)
-        for i, suffix in enumerate(args):
-            if suffix is None:
-                assert (
-                    suffix not in _datastore_reader_map
-                ), f"{suffix!r} already in {list(_datastore_reader_map)}"
-                continue
-
-            if not isinstance(suffix, str):
-                raise TypeError(f"{suffix!r} is not a string")
-
-            if suffix.strip() == suffix and not suffix:
-                raise ValueError("cannot have white-space suffix")
-
-            suffix = suffix.strip()
-            if suffix:
-                suffix = suffix if suffix[0] == "." else f".{suffix}"
-
-            assert (
-                suffix not in _datastore_reader_map
-            ), f"{suffix!r} already in {list(_datastore_reader_map)}"
-            args[i] = suffix
-
-        self._type_str = tuple(args)
-
-    def __call__(self, func):
-        for type_str in self._type_str:
-            _datastore_reader_map[type_str] = func
-        return func
-
-
-# register the main readers
-register_datastore_reader("zip")(ReadOnlyZippedDataStore)
-register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
-register_datastore_reader(None)(ReadOnlyDirectoryDataStore)
-
-
 def findall(base_path, suffix="fa", limit=None, verbose=False):
     """returns glob match to suffix, path is relative to base_path
 
@@ -127,6 +68,12 @@ def findall(base_path, suffix="fa", limit=None, verbose=False):
     limit : int or None
         the number of matches to return
     """
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function", "findall", "2023.3", "use the new cogent3.open_data_store()"
+    )
+
     if not os.path.exists(base_path):
         raise ValueError(f"'{base_path}' does not exist")
 
@@ -138,50 +85,28 @@ def findall(base_path, suffix="fa", limit=None, verbose=False):
 
 def get_data_store(
     base_path: Union[str, pathlib.Path], suffix=None, limit=None, verbose=False
-):
-    """returns DataStore containing glob matches to suffix in base_path
+):  # pragma: no cover
+    """DEPRECATED, use top level open_data_store"""
+    from cogent3 import open_data_store
+    from cogent3.util.warning import deprecated
 
-    Parameters
-    ----------
-    base_path : str or Path
-        path to directory or zipped archive
-    suffix : str
-        suffix of filenames
-    limit : int or None
-        the number of matches to return
-    Returns
-    -------
-    ReadOnlyDirectoryDataStore or ReadOnlyZippedDataStore
-    """
-    base_path = pathlib.Path(base_path)
-    base_path = base_path.expanduser().absolute()
-    if base_path.suffix in (".tinydb", ".sqlitedb"):
-        suffix = "json"
+    deprecated(
+        "function",
+        "get_data_store",
+        "cogent3.open_data_store",
+        "2023.3",
+        "renamed and now a top-level import",
+        stack_level=1,
+    )
 
-    if suffix is None:
-        raise ValueError("suffix required")
-
-    if not base_path.exists():
-        raise ValueError(f"'{base_path}' does not exist")
-
-    if type(suffix) != str:
-        raise ValueError(f"{suffix} is not a string")
-
-    if zipfile.is_zipfile(base_path):
-        ds_suffix = ".zip"
-    elif base_path.suffix:
-        ds_suffix = base_path.suffix
-    else:
-        ds_suffix = None
-    klass = _datastore_reader_map[ds_suffix]
-    return klass(base_path, suffix=suffix, limit=limit)
+    return open_data_store(base_path=base_path, suffix=suffix, limit=limit)
 
 
-def _load_seqs(path, klass, parser, moltype):
+def _load_seqs(path, klass, parser, moltype):  # pragma: no cover
     abs_path = str(path)
-    if type(path) == str:
+    if not hasattr(path, "read"):
         # we use a DataStoreMember as it's read() handles zipped compression
-        path = SingleReadDataStore(path)[0]
+        path = SingleReadDataStore(str(path))[0]
     data = path.read().splitlines()
     data = dict(iter(parser(data)))
     seqs = klass(data=data, moltype=moltype)
@@ -190,7 +115,7 @@ def _load_seqs(path, klass, parser, moltype):
 
 
 @define_app(app_type=LOADER)
-class load_aligned:
+class load_aligned:  # pragma: no cover
     """Loads aligned sequences. Returns an Alignment object."""
 
     klass = ArrayAlignment
@@ -204,6 +129,17 @@ class load_aligned:
         format : str
             sequence file format
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "load_aligned",
+            "use cogent3.get_app('load_aligned')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
+
         if moltype:
             moltype = get_moltype(moltype)
         self.moltype = moltype
@@ -217,7 +153,7 @@ class load_aligned:
 
 
 @define_app(app_type=LOADER)
-class load_unaligned:
+class load_unaligned:  # pragma: no cover
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
     klass = SequenceCollection
@@ -231,6 +167,17 @@ class load_unaligned:
         format : str
             sequence file format
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "load_unaligned",
+            "use cogent3.get_app('load_unaligned')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
+
         if moltype:
             moltype = get_moltype(moltype)
         self.moltype = moltype
@@ -245,7 +192,7 @@ class load_unaligned:
 
 
 @define_app(app_type=LOADER)
-class load_tabular:
+class load_tabular:  # pragma: no coverv
     """Loads delimited data. Returns a Table."""
 
     def __init__(
@@ -271,6 +218,17 @@ class load_tabular:
         strict
             all rows MUST have the same number of records
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "load_tabular",
+            "use cogent3.get_app('load_tabular')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
+
         self._sep = sep
         self._with_title = with_title
         self._with_header = with_header
@@ -355,7 +313,7 @@ class load_tabular:
 
 
 @define_app(app_type=WRITER)
-class write_tabular(_checkpointable):
+class write_tabular(_checkpointable):  # pragma: no cover
     """writes tabular data"""
 
     def __init__(
@@ -378,6 +336,17 @@ class write_tabular(_checkpointable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "write_tabular",
+            "use cogent3.get_app('write_tabular')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
+
         super().__init__(
             data_path=data_path,
             name_callback=name_callback,
@@ -403,7 +372,7 @@ class write_tabular(_checkpointable):
 
 
 @define_app(app_type=WRITER)
-class write_seqs(_checkpointable):
+class write_seqs(_checkpointable):  # pragma: no cover
     """Writes sequences to text files in standard format."""
 
     def __init__(
@@ -434,6 +403,17 @@ class write_seqs(_checkpointable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "write_seqs",
+            "use cogent3.get_app('write_seqs')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
+
         super().__init__(
             data_path=data_path,
             name_callback=name_callback,
@@ -475,9 +455,21 @@ class write_seqs(_checkpointable):
 
 
 @define_app(app_type=LOADER)
-class load_json:
+class load_json:  # pragma: no cover
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
+
+    def __init__(self):
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "load_json",
+            "use cogent3.get_app('load_json')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
 
     def main(self, path: IdentifierType) -> SerialisableType:
         """returns object deserialised from json at path"""
@@ -500,7 +492,7 @@ class load_json:
 
 
 @define_app(app_type=WRITER)
-class write_json(_checkpointable):
+class write_json(_checkpointable):  # pragma: no cover
     """Writes json serialised objects to individual json files."""
 
     def __init__(self, data_path, name_callback=None, create=False, if_exists=SKIP):
@@ -519,6 +511,17 @@ class write_json(_checkpointable):
             behaviour if output exists. Either 'skip', 'raise' (raises an
             exception), 'overwrite'
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "write_json",
+            "use cogent3.get_app('write_json')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
+
         super().__init__(
             data_path=data_path,
             name_callback=name_callback,
@@ -558,12 +561,21 @@ class write_json(_checkpointable):
 
 
 @define_app(app_type=LOADER)
-class load_db:
+class load_db:  # pragma: no cover
     """Loads json serialised cogent3 objects from a TinyDB file.
     Returns whatever object type was stored."""
 
     def __init__(self):
-        pass
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "load_db",
+            "use cogent3.get_app('load_db')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
         """returns object deserialised from a TinyDb"""
@@ -587,10 +599,21 @@ class load_db:
 
 
 @define_app(app_type=WRITER)
-class write_db(_checkpointable):
+class write_db(_checkpointable):  # pragma: no cover
     """Writes json serialised objects to a TinyDB instance."""
 
     def __init__(self, data_path, name_callback=None, create=False, if_exists=SKIP):
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "class",
+            "write_db",
+            "use cogent3.get_app('write_db')",
+            "2023.3",
+            "use cogent3.get_app()",
+            stack_level=1,
+        )
+
         super().__init__(
             data_path=data_path,
             name_callback=name_callback,
