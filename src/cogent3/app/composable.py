@@ -1013,10 +1013,7 @@ def _call(self, val, *args, **kwargs):
             return val
 
     type_checked = self._validate_data_type(val)
-    if isinstance(val, NotCompleted):
-        if self._skip_not_completed:
-            return val
-    elif not type_checked:
+    if not type_checked:
         return type_checked
 
     try:
@@ -1032,9 +1029,9 @@ def _call(self, val, *args, **kwargs):
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
     # todo when move to python 3.8 define protocol checks for the two singular types
-    if isinstance(data, NotCompleted):
+    if isinstance(data, NotCompleted) and self._skip_not_completed:
         return data
-
+    
     if not self._data_types or self._data_types & {
         "SerialisableType",
         "IdentifierType",
