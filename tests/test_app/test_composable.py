@@ -1163,6 +1163,28 @@ def test_complex_type_allowed_depths(hint):
     __app_registry.pop(get_object_provenance(x), None)
 
 
+def test_apply_to_only_appends(half_dstore1, half_dstore2):
+    half_dstore1._mode = APPEND
+    reader1 = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length1 = sample_app.min_length(10)
+    writer1 = io_app_new.write_seqs(half_dstore1)
+    process1 = reader1 + min_length1 + writer1
+    # create paths as strings
+    dstore1 = open_data_store(half_dstore1.source, suffix="fasta")
+    dstore1 = [str(Path(m.data_store.source) / m.unique_id) for m in dstore1]
+    # check fail on append the same records
+    with pytest.raises(IOError):
+        _ = process1.apply_to(dstore1, id_from_source=get_data_source)
+
+    half_dstore2._mode = APPEND
+    reader2 = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length2 = sample_app.min_length(10)
+    writer2 = io_app_new.write_seqs(half_dstore2)
+    process2 = reader2 + min_length2 + writer2
+    # check not fail on append new records
+    _ = process2.apply_to(dstore1, id_from_source=get_data_source)
+
+
 def test_skip_not_completed():
     @define_app(skip_not_completed=False)
     def takes_not_completed(val: c3types.SerialisableType) -> dict:

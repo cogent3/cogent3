@@ -445,6 +445,25 @@ def test_md5_sum(nc_dstore):
         assert md5 == get_text_hexdigest(data)
 
 
+def test_md5_none(fasta_dir):
+    dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
+    for m in dstore.members:
+        assert m.md5 is None
+
+
+def test_md5_missing(nc_dstore):
+    nc_dstore.md5("unknown") is None
+
+
+def test_summary_logs_missing_field(nc_dstore):
+    log_path = Path(nc_dstore.source) / nc_dstore.logs[0].unique_id
+    data = [
+        l for l in log_path.read_text().splitlines() if "composable function" not in l
+    ]
+    log_path.write_text("\n".join(data))
+    assert isinstance(nc_dstore.summary_logs, Table)
+
+
 def test_summary_logs(full_dstore):
     # log summary has a row per log file and a column for each property
     got = full_dstore.summary_logs

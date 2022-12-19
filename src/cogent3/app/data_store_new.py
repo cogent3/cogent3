@@ -40,6 +40,7 @@ _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"
 
 StrOrBytes = Union[str, bytes]
+NoneType = type(None)
 
 
 class Mode(Enum):
@@ -216,7 +217,7 @@ class DataStoreABC(ABC):
                     data["python"],
                     data["user"],
                     data["command_string"],
-                    data["composable function"],
+                    data.get("composable function", ""),
                 ]
             )
             rows.append(row)
@@ -283,25 +284,32 @@ class DataStoreABC(ABC):
 
     def validate(self) -> TabularType:
         correct_md5 = len(self.members)
+        missing_md5 = 0
         for m in self.members:
             data = m.read()
             md5 = self.md5(m.unique_id)
-            if md5 != get_text_hexdigest(data):
+            if md5 is None:
+                missing_md5 += 1
                 correct_md5 -= 1
-        incorrect_md5 = len(self.members) - correct_md5
+            elif md5 != get_text_hexdigest(data):
+                correct_md5 -= 1
+
+        incorrect_md5 = len(self.members) - correct_md5 - missing_md5
 
         return Table(
             header=["Condition", "Value"],
             data=[
                 ["Num md5sum correct", correct_md5],
                 ["Num md5sum incorrect", incorrect_md5],
+                ["Num md5sum missing", missing_md5],
                 ["Has log", len(self.logs) > 0],
             ],
             title="validate status",
             index_name="Condition",
         )
 
-    def md5(self, unique_id: str) -> str:
+    @abstractmethod
+    def md5(self, unique_id: str) -> Union[str, NoneType]:
         """
         Parameters
         ----------
@@ -312,11 +320,6 @@ class DataStoreABC(ABC):
         -------
         md5 checksum for the member, if available, None otherwise
         """
-        unique_id = Path(unique_id)
-        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
-        path = self.source / _MD5_TABLE / unique_id
-
-        return path.read_text() if path.exists() else None
 
 
 class DataMember(DataMemberABC):
@@ -500,6 +503,23 @@ class DataStoreDirectory(DataStoreABC):
 
     def write_log(self, *, unique_id: str, data: str) -> None:
         _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
+
+    def md5(self, unique_id: str) -> Union[str, NoneType]:
+        """
+        Parameters
+        ----------
+        unique_id
+            name of data store member
+
+        Returns
+        -------
+        md5 checksum for the member, if available, None otherwise
+        """
+        unique_id = Path(unique_id)
+        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
+        path = self.source / _MD5_TABLE / unique_id
+
+        return path.read_text() if path.exists() else None
 
 
 @singledispatch
