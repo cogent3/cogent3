@@ -575,3 +575,18 @@ def test_write_read_not_completed(nc_dstore):
         Path(got_dict["not_completed_construction"]["kwargs"]["source"]).stem
         == Path(nc_dict["not_completed_construction"]["kwargs"]["source"]).stem
     )
+
+
+def test_get_item_by_integer(ro_dstore):
+    member = ro_dstore[len(ro_dstore) - 1]
+    assert isinstance(member, DataMember)
+
+
+def test_get_item_by_string(nc_dstore):
+    member = nc_dstore["brca1.fasta"]
+    assert isinstance(member, DataMember)
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    writer = io_app.write_seqs(data_store=nc_dstore)
+    writer.main(nc, identifier="blah")
+    member = nc_dstore["blah"]
+    assert isinstance(member, DataMember)
