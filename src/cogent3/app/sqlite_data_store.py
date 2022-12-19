@@ -36,7 +36,7 @@ __status__ = "Alpha"
 _RESULT_TABLE = "results"
 _MEMORY = ":memory:"
 _mem_pattern = re.compile(r"^\s*[:]{0,1}memory[:]{0,1}\s*$")
-
+NoneType = type(None)
 
 # create db
 def open_sqlite_db_rw(path: Union[str, Path]):
@@ -254,10 +254,12 @@ class DataStoreSqlite(DataStoreABC):
         """
         if self._log_id is None:
             self._init_log()
+
         if table_name == _LOG_TABLE:
             cmnd = f"UPDATE {table_name} SET data =?, log_name =? WHERE log_id=?"
             self.db.execute(cmnd, (data, unique_id, self._log_id))
             return None
+
         md5 = get_text_hexdigest(data)
 
         if unique_id in self and self.mode is not APPEND:
@@ -266,6 +268,7 @@ class DataStoreSqlite(DataStoreABC):
         else:
             cmnd = f"INSERT INTO {table_name} (record_id,data,log_id,md5,is_completed) VALUES (?,?,?,?,?)"
             self.db.execute(cmnd, (unique_id, data, self._log_id, md5, is_completed))
+
         return DataMember(data_store=self, unique_id=unique_id)
 
     def drop_not_completed(self) -> None:
@@ -362,7 +365,7 @@ class DataStoreSqlite(DataStoreABC):
             self._not_completed.append(member)
         return member
 
-    def md5(self, unique_id: str) -> str:  # we have it in base class
+    def md5(self, unique_id: str) -> Union[str, NoneType]:  # we have it in base class
         """
         Parameters
         ----------
@@ -372,13 +375,10 @@ class DataStoreSqlite(DataStoreABC):
         -------
         md5 checksum for the member, if available, None otherwise
         """
-        unique_id = Path(unique_id)
-        unique_id = re.sub(rf"[.]({self.store_suffix}|json)$", ".txt", unique_id.name)
-
         cmnd = f"SELECT * FROM {_RESULT_TABLE} WHERE record_id = ?"
         result = self.db.execute(cmnd, (unique_id,)).fetchone()
 
-        return result["md5"]
+        return result["md5"] if result else None
 
     @property
     def describe(self):
