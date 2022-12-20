@@ -96,7 +96,6 @@ def get_data_store(
         "cogent3.open_data_store",
         "2023.3",
         "renamed and now a top-level import",
-        stack_level=1,
     )
 
     return open_data_store(base_path=base_path, suffix=suffix, limit=limit)
@@ -137,7 +136,6 @@ class load_aligned:  # pragma: no cover
             "use cogent3.get_app('load_aligned')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
         if moltype:
@@ -175,7 +173,6 @@ class load_unaligned:  # pragma: no cover
             "use cogent3.get_app('load_unaligned')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
         if moltype:
@@ -226,7 +223,6 @@ class load_tabular:  # pragma: no coverv
             "use cogent3.get_app('load_tabular')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
         self._sep = sep
@@ -344,7 +340,6 @@ class write_tabular(_checkpointable):  # pragma: no cover
             "use cogent3.get_app('write_tabular')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
         super().__init__(
@@ -411,7 +406,6 @@ class write_seqs(_checkpointable):  # pragma: no cover
             "use cogent3.get_app('write_seqs')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
         super().__init__(
@@ -468,7 +462,6 @@ class load_json:  # pragma: no cover
             "use cogent3.get_app('load_json')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
     def main(self, path: IdentifierType) -> SerialisableType:
@@ -519,7 +512,6 @@ class write_json(_checkpointable):  # pragma: no cover
             "use cogent3.get_app('write_json')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
         super().__init__(
@@ -574,7 +566,6 @@ class load_db:  # pragma: no cover
             "use cogent3.get_app('load_db')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
@@ -611,7 +602,6 @@ class write_db(_checkpointable):  # pragma: no cover
             "use cogent3.get_app('write_db')",
             "2023.3",
             "use cogent3.get_app()",
-            stack_level=1,
         )
 
         super().__init__(

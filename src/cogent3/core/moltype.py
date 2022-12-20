@@ -739,7 +739,7 @@ class MolType(object):
 
     def gettype(self):  # pragma: no cover
         """Return the moltype label."""
-        deprecated("method", "gettype", "get_type", "2023.6", "pep8", stack_level=1)
+        deprecated("method", "gettype", "get_type", "2023.6", "pep8")
         return self.label
 
     def get_type(self):  # pragma: no cover

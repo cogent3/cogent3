@@ -60,7 +60,6 @@ class DataStoreMember(str):  # pragma: no cover
             "cogent3.data_store_new.DataMember",
             "2023.3",
             "use cogent3.data_store_new.DataMember",
-            stack_level=1,
         )
 
         result = str.__new__(klass, name)
@@ -122,7 +121,6 @@ class ReadOnlyDataStoreBase:  # pragma: no cover
             "cogent3.data_store_new.DataStoreDirectory",
             "2023.3",
             "use cogent3.data_store_new.DataStoreABC",
-            stack_level=1,
         )
 
         # todo this approach to caching persistent arguments for reconstruction
@@ -429,7 +427,6 @@ class WritableDataStoreBase:  # pragma: no cover
             "cogent3.data_store_new.DataStoreDirectory",
             "2023.3",
             "use cogent3.data_store_new.DataStoreABC",
-            stack_level=1,
         )
 
         d = locals()
