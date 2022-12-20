@@ -585,12 +585,6 @@ def test_write_read_not_completed(nc_dstore):
     writer = io_app.write_seqs(data_store=nc_dstore)
     writer.main(nc, identifier="blah")
     assert len(nc_dstore.not_completed) == 1
-    reader = io_app.load_aligned()
-    got = reader(nc_dstore.not_completed[0])
-    got_dict = got.to_rich_dict()
-    nc_dict = nc.to_rich_dict()
-    assert got_dict["type"] == nc_dict["type"]
-    assert (
-        Path(got_dict["not_completed_construction"]["kwargs"]["source"]).stem
-        == Path(nc_dict["not_completed_construction"]["kwargs"]["source"]).stem
-    )
+    got = nc_dstore.not_completed[0].read()
+    assert nc.to_json() == got
+
