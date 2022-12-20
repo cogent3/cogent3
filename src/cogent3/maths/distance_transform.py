@@ -1266,10 +1266,12 @@ def binary_dist_hamming(datamtx, strict=True):
             dists[i][j] = dists[j][i] = dist
     return dists
 
-T = Union[set,frozenset, numpy.ndarray]
+
+T = Union[set, frozenset, numpy.ndarray]
+
 
 @singledispatch
-def jaccard(x : T, y : T) -> float:
+def jaccard(x: T, y: T) -> float:
     """Jaccard distance between two sets is a measure of similarity between two sets (or two ndarrays)
     (0) identical, (1) dissimilar"""
     raise NotImplementedError(f"jaccard distance not implemented for {type(x)}")
