@@ -23,6 +23,7 @@ from cogent3.app.data_store_new import (
     convert_directory_datastore,
     convert_tinydb_to_sqlite,
     get_data_source,
+    get_unique_id,
     load_record_from_json,
 )
 from cogent3.util.table import Table
@@ -544,6 +545,14 @@ def test_get_data_source_dict(container_type, source_stype):
     data = container_type(source=value)
     got = get_data_source(data)
     assert got == "path.txt"
+
+
+@pytest.mark.parametrize(
+    "name", ("path/name.txt", "path/name.gz", "path/name.fasta.gz", "name.fasta.gz")
+)
+def test_get_unique_id(name):
+    got = get_unique_id(name)
+    assert got == "name"
 
 
 @pytest.mark.parametrize("data", (dict(), set(), dict(info=dict())))

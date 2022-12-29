@@ -1,3 +1,5 @@
+import pathlib
+
 from os.path import dirname, join
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
@@ -5,9 +7,14 @@ from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
 
-from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
+from cogent3 import (
+    load_aligned_seqs,
+    make_aligned_seqs,
+    make_tree,
+    open_data_store,
+)
 from cogent3.app import evo as evo_app
-from cogent3.app import io
+from cogent3.app import io_new
 from cogent3.app.composable import NotCompleted
 from cogent3.app.result import (
     hypothesis_result,
@@ -866,8 +873,10 @@ class TestBootstrap(TestCase):
         m2 = evo_app.model("HKY85")
         hyp = evo_app.hypothesis(m1, m2)
         with TemporaryDirectory(dir=".") as dirname:
-            path = join(dirname, "delme.tinydb")
-            _ = io.load_db() + evo_app.bootstrap(hyp, num_reps=2) + io.write_db(path)
+            dirname = pathlib.Path(dirname)
+            out_dstore = open_data_store(dirname / "delme.sqlitedb", mode="w")
+            writer = io_new.write_db(out_dstore)
+            _ = io_new.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
 
 
 if __name__ == "__main__":

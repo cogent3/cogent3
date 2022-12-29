@@ -524,6 +524,13 @@ class DataStoreDirectory(DataStoreABC):
         return path.read_text() if path.exists() else None
 
 
+def get_unique_id(name: str) -> str:
+    """strips any format suffixes from name"""
+    name = get_data_source(name)
+    suffixes = ".".join(sfx for sfx in get_format_suffixes(name) if sfx)
+    return re.sub(fr"[.]{suffixes}$", "", name)
+
+
 @singledispatch
 def get_data_source(data) -> str:
     source = getattr(data, "source", None)
