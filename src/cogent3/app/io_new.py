@@ -39,7 +39,7 @@ from .data_store_new import (
     load_record_from_json,
     make_record_for_json,
 )
-from .sqlite_data_store import DataStoreSqlite
+from .sqlite_data_store import _MEMORY, DataStoreSqlite
 from .typing import (
     AlignedSeqsType,
     IdentifierType,
@@ -141,13 +141,15 @@ def open_data_store(
 
     kwargs = dict(limit=limit, mode=mode, suffix=suffix)
     base_path = Path(base_path)
-    base_path = base_path.expanduser().absolute()
+    base_path = (
+        base_path if base_path.name == ":memory:" else base_path.expanduser().absolute()
+    )
     if base_path.suffix == ".tinydb":
         kwargs["suffix"] = "json"
         kwargs.pop("mode")
 
-    if base_path.suffix == ".sqlitedb":
-        ds_suffix = base_path.suffix
+    if base_path.suffix == ".sqlitedb" or base_path.name == _MEMORY:
+        ds_suffix = ".sqlitedb"
         kwargs.pop("suffix")
     elif zipfile.is_zipfile(base_path):
         ds_suffix = ".zip"
@@ -156,6 +158,9 @@ def open_data_store(
         ds_suffix = base_path.suffix
     else:
         ds_suffix = None
+
+    if base_path.name == _MEMORY and mode is READONLY:
+        raise NotImplementedError("in memory readonly sqlitedb")
 
     if ds_suffix is None and suffix is None:
         raise ValueError("a suffix is required if using a directory data store")

@@ -6,6 +6,7 @@ import pytest
 
 from scitrack import get_text_hexdigest
 
+from cogent3 import open_data_store
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     APPEND,
@@ -541,3 +542,9 @@ def test_validate_missing_md5(md5_none):
     assert t["Num md5sum missing", "Value"] == 9
     for c in ("correct", "incorrect"):
         assert t[f"Num md5sum {c}", "Value"] == 0
+
+
+def test_open_data_store_sqlitedb_err():
+    # cannot create an in-mmemory db to read only
+    with pytest.raises(NotImplementedError):
+        open_data_store(":memory:", mode="r")
