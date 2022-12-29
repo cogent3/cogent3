@@ -35,7 +35,7 @@ from .data_store import (
     DataStoreMember,
     WritableDirectoryDataStore,
 )
-from .data_store_new import get_data_source
+from .data_store_new import DataMember, get_data_source, get_unique_id
 
 
 __author__ = "Gavin Huttley"
@@ -1346,7 +1346,7 @@ def is_composable(obj):
 def _apply_to(
     self,
     dstore,
-    id_from_source: callable = get_data_source,
+    id_from_source: callable = get_unique_id,
     parallel=False,
     par_kw=None,
     logger=None,
