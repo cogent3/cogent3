@@ -16,8 +16,7 @@ from scitrack import CachingLogger
 
 from cogent3 import get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
-from cogent3.app import io as io_app
-from cogent3.app import io_new as io_app_new
+from cogent3.app import io_new as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app import typing as c3types
@@ -342,7 +341,7 @@ def test_apply_to_strings(tmp_dir, klass):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_strings"
-    writer = io_app_new.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
+    writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
     process = reader + min_length + writer
     # create paths as strings
     _ = process.apply_to(dstore, id_from_source=get_data_source)
@@ -352,13 +351,13 @@ def test_apply_to_strings(tmp_dir, klass):
 def test_apply_to_non_unique_identifiers(tmp_dir):
     """should fail if non-unique names"""
     dstore = [
-        "brca1.bats.fasta",
-        "brca1.apes.fasta",
+        "brca1.fasta",
+        "brca1.fasta",
     ]
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
     outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
-    writer = io_app_new.write_seqs(
+    writer = io_app.write_seqs(
         DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
     )
     process = reader + min_length + writer
@@ -371,13 +370,12 @@ def test_apply_to_logging(tmp_dir):
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
-    outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
-    writer = io_app.write_db(outpath)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
     process = reader + min_length + writer
     r = process.apply_to(dstore, show_progress=False)
     # always creates a log
     assert len(process.data_store.logs) == 1
-    process.data_store.close()
 
 
 def test_apply_to_logger(tmp_dir):
@@ -386,26 +384,26 @@ def test_apply_to_logger(tmp_dir):
     LOGGER = CachingLogger()
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
-    outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
-    writer = io_app.write_db(outpath)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
     process = reader + min_length + writer
-    r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
+    process.apply_to(dstore, show_progress=False, logger=LOGGER)
     assert len(process.data_store.logs) == 1
-    process.data_store.close()
 
 
-def test_apply_to_invalid_logger(tmp_dir):
+@pytest.mark.parametrize("logger_val", (True, "somepath.log"))
+def test_apply_to_invalid_logger(tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    for logger_val in (True, "somepath.log"):
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        with pytest.raises(TypeError):
-            process.apply_to(dstore, show_progress=False, logger=logger_val)
-        process.data_store.close()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = reader + min_length + writer
+    with pytest.raises(TypeError):
+        process.apply_to(dstore, show_progress=False, logger=logger_val)
+
+    out_dstore.close()
 
 
 def test_apply_to_not_completed(tmp_dir):
@@ -414,32 +412,28 @@ def test_apply_to_not_completed(tmp_dir):
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     # trigger creation of notcompleted
     min_length = sample_app.min_length(3000)
-    outpath = os.path.join(os.getcwd(), tmp_dir, "delme.tinydb")
-    writer = io_app.write_db(outpath)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
     process = reader + min_length + writer
-    r = process.apply_to(dstore, show_progress=False)
-    assert len(process.data_store.incomplete) == 3
-    process.data_store.close()
+    process.apply_to(dstore, show_progress=False)
+    assert len(out_dstore.not_completed) == 3
 
 
 def test_apply_to_not_partially_done(tmp_dir):
     """correctly applies process when result already partially done"""
     dstore = open_data_store(DATA_DIR, suffix="fasta")
     num_records = len(dstore)
-    dirname = Path(tmp_dir)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
-    outpath = dirname / "delme.tinydb"
-    writer = io_app.write_db(outpath)
-    _ = writer(reader(dstore[0]))
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    _ = writer(reader(dstore[0]))  # doing the first one
     writer.data_store.close()
 
-    writer = io_app.write_db(outpath, if_exists="ignore")
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="a")
+    writer = io_app.write_db(out_dstore)
     process = reader + writer
     _ = process.apply_to(dstore, show_progress=False)
-    writer.data_store.close()
-    dstore = open_data_store(outpath)
-    assert len(dstore) == num_records
-    dstore.close()
+    assert len(out_dstore) == num_records
 
 
 def test_err_result():
@@ -1164,22 +1158,29 @@ def test_complex_type_allowed_depths(hint):
 
 
 def test_apply_to_only_appends(half_dstore1, half_dstore2):
-    half_dstore1._mode = APPEND
+    half_dstore1 = open_data_store(
+        half_dstore1.source, suffix=half_dstore1.suffix, mode=APPEND
+    )
     reader1 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length1 = sample_app.min_length(10)
-    writer1 = io_app_new.write_seqs(half_dstore1)
+    writer1 = io_app.write_seqs(half_dstore1)
     process1 = reader1 + min_length1 + writer1
+
     # create paths as strings
-    dstore1 = open_data_store(half_dstore1.source, suffix="fasta")
-    dstore1 = [str(Path(m.data_store.source) / m.unique_id) for m in dstore1]
-    # check fail on append the same records
-    with pytest.raises(IOError):
+    dstore1 = [
+        str(Path(m.data_store.source) / m.unique_id) for m in half_dstore1.completed
+    ]
+    # check fail on all the same records
+    with pytest.raises(ValueError):
         _ = process1.apply_to(dstore1, id_from_source=get_data_source)
 
-    half_dstore2._mode = APPEND
+    half_dstore2 = open_data_store(
+        half_dstore2.source, suffix=half_dstore2.suffix, mode=APPEND
+    )
+
     reader2 = io_app.load_aligned(format="fasta", moltype="dna")
     min_length2 = sample_app.min_length(10)
-    writer2 = io_app_new.write_seqs(half_dstore2)
+    writer2 = io_app.write_seqs(half_dstore2)
     process2 = reader2 + min_length2 + writer2
     # check not fail on append new records
     _ = process2.apply_to(dstore1, id_from_source=get_data_source)
