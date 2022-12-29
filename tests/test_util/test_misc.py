@@ -1191,5 +1191,23 @@ class ExtendDocstringTests(TestCase):
         )
 
 
+def test_not_in_jupyter():
+    from cogent3.util.misc import in_jupyter
+
+    assert not in_jupyter()
+
+
+def test_is_in_jupyter():
+    # an ugly hack, the in_jupyter function relies entirely on whether a
+    # get_ipython variable exists in the name space
+    import cogent3.util.misc as module
+
+    from cogent3.util.misc import in_jupyter
+
+    module.get_ipython = lambda x: x
+    assert in_jupyter()
+    del module.get_ipython
+
+
 if __name__ == "__main__":
     main()
