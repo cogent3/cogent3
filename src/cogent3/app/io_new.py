@@ -35,7 +35,7 @@ from .data_store_new import (
     DataStoreABC,
     DataStoreDirectory,
     Mode,
-    get_data_source,
+    get_unique_id,
     load_record_from_json,
     make_record_for_json,
 )
@@ -468,7 +468,7 @@ class write_json:
     def main(
         self, data: SerialisableType, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_data_source(data)
+        identifier = identifier or get_unique_id(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -492,7 +492,7 @@ class write_seqs:  # todo docstring
     def main(
         self, data: SeqsCollectionType, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_data_source(data)
+        identifier = identifier or get_unique_id(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -511,7 +511,7 @@ class write_tabular:  # todo doctsring
     def main(
         self, data: TabularType, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_data_source(data)
+        identifier = identifier or get_unique_id(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -548,7 +548,7 @@ class write_db:
         -------
         identifier
         """
-        identifier = identifier or get_data_source(data)
+        identifier = identifier or get_unique_id(data)
         blob = self.serialiser(data)
 
         if isinstance(data, NotCompleted):
