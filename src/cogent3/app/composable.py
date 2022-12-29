@@ -1288,13 +1288,8 @@ def _source_wrapped(self, value: source_proxy) -> source_proxy:
     return value
 
 
-def _as_completed(
-    self,
-    dstore,
-    parallel=False,
-    par_kw=None,
-    # show_progress?
-) -> Generator:
+@UI.display_wrap
+def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Generator:
     """invokes self composable function on the provided data store
 
     Parameters
@@ -1309,10 +1304,10 @@ def _as_completed(
         member of dstore.
     par_kw
         dict of values for configuring parallel execution.
-
-    Returns
-    -------
-    Result of the process as a list.
+    kwargs
+        setting a show_progress boolean keyword value here
+        affects progress display code, other arguments are passed to
+        the cogent3.util.progress_bar.display_wrap decorator
 
     Notes
     -----
@@ -1320,6 +1315,7 @@ def _as_completed(
     aggregates results. If run in serial, results are returned in the
     same order as provided.
     """
+    ui = kwargs.pop("ui")
     app = (
         self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
     )
@@ -1335,7 +1331,8 @@ def _as_completed(
         to_do = PAR.as_completed(app, mapped, **par_kw)
     else:
         to_do = map(app, mapped)
-    return to_do
+
+    return ui.series(to_do, count=len(mapped), **kwargs)
 
 
 def is_composable(obj):
@@ -1377,15 +1374,18 @@ def _apply_to(
     cleanup : bool
         after copying of log files into the data store, it is deleted
         from the original location
+    show_progress : bool
+        controls progress bar display
 
     Returns
     -------
-    Result of the process as a list
+    The output data store instance
 
     Notes
     -----
     This is an append only function, meaning that if a member already exists
     in self.data_store for an input, it is skipped.
+
     If run in parallel, this instance spawns workers and aggregates results.
     """
     if not self.input:
@@ -1415,7 +1415,9 @@ def _apply_to(
     logger.log_versions(["cogent3"])
 
     inputs = _proxy_input(inputs.values())
-    for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
+    for result in self.as_completed(
+        inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
+    ):
         member = self.main(
             data=result.obj, identifier=id_from_source(result.source)
         )  # writers must return DataMember
