@@ -9,6 +9,8 @@ import pytest
 
 from scitrack import get_text_hexdigest
 
+import cogent3.app.io_new as io_app
+
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     _MD5_TABLE,
@@ -574,3 +576,15 @@ def test_load_record_from_json():
         assert Id == "some.json"
         assert data_ == expected
         assert compl == True
+
+
+def test_write_read_not_completed(nc_dstore):
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore.not_completed) == 0
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    writer = io_app.write_seqs(data_store=nc_dstore)
+    writer.main(nc, identifier="blah")
+    assert len(nc_dstore.not_completed) == 1
+    got = nc_dstore.not_completed[0].read()
+    assert nc.to_json() == got
+

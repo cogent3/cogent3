@@ -452,7 +452,7 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
     assert data_store.record_type == get_object_provenance(orig)
 
 
-def test_write_db_not_completed(tmp_dir):
+def test_write_read_db_not_completed(tmp_dir):
     from cogent3.app.sqlite_data_store import DataStoreSqlite
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")

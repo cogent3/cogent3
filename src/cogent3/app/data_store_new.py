@@ -494,6 +494,7 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+        (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         member = self._write(
             subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
         )
@@ -502,6 +503,7 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write_log(self, *, unique_id: str, data: str) -> None:
+        (self.source / _LOG_TABLE).mkdir(parents=True, exist_ok=True)        
         _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
 
     def md5(self, unique_id: str) -> Union[str, NoneType]:
