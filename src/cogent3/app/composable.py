@@ -1397,14 +1397,13 @@ def _apply_to(
     # todo this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
     for m in dstore:
-        input_id = Path(m if isinstance(m, DataStoreMember) else id_from_source(m))
-        suffixes = input_id.suffixes
-        input_id = input_id.name.replace("".join(suffixes), "")
+        input_id = Path(m.unique_id) if isinstance(m, DataMember) else m
+        input_id = id_from_source(input_id)
         if input_id in inputs:
             raise ValueError("non-unique identifier detected in data")
         if input_id in self.data_store:  # todo write a test
             continue
-        inputs[input_id] = input_id
+        inputs[input_id] = m
 
     if not dstore:  # this should just return datastore, because if all jobs are done!
         raise ValueError("dstore is empty")
@@ -1415,7 +1414,7 @@ def _apply_to(
     logger.log_message(str(self), label="composable function")
     logger.log_versions(["cogent3"])
 
-    inputs = _proxy_input(dstore)
+    inputs = _proxy_input(inputs.values())
     for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
         member = self.main(
             data=result.obj, identifier=id_from_source(result.source)
