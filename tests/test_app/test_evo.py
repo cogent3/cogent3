@@ -876,13 +876,7 @@ class TestBootstrap(TestCase):
             dirname = pathlib.Path(dirname)
             out_dstore = open_data_store(dirname / "delme.sqlitedb", mode="w")
             writer = io_new.write_db(out_dstore)
-
-            path = join(dirname, "delme.sqlitedb")
-            _ = (
-                io_new.load_db()
-                + evo_app.bootstrap(hyp, num_reps=2)
-                + io_new.write_db(path)
-            )
+            _ = io_new.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
 
 
 if __name__ == "__main__":
