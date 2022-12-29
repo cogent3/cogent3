@@ -1014,4 +1014,12 @@ def get_setting_from_environ(environ_var, params_types):
 
 def in_jupyter() -> bool:
     """whether code is being executed within a jupyter notebook"""
-    return callable(globals().get("get_ipython"))
+    val = True
+    try:
+        # primitive approach, just check whether the following function
+        # is in the namespace
+        get_ipython
+    except NameError:
+        val = False
+
+    return val
