@@ -436,6 +436,32 @@ def test_apply_to_not_partially_done(tmp_dir):
     assert len(out_dstore) == num_records
 
 
+@pytest.mark.xfail(reason="passes except when run in full test suite")
+@pytest.mark.parametrize("show", (True, False))
+def test_as_completed_progress(full_dstore, show):
+    # this contextlib trap works only if test is run separately
+    # but clearly there's some effect on stderr being
+    # re-piped by other tests?
+    # the capsys fixture does not seem to work at all, but is likely how to
+    # do this robustly
+    import io
+
+    from contextlib import redirect_stderr
+
+    loader = get_app("load_unaligned", format="fasta", moltype="dna")
+    min_length = get_app("min_length", 300)
+    app = loader + min_length
+    with redirect_stderr(io.StringIO()) as f:
+        list(app.as_completed(full_dstore.completed, show_progress=show))
+
+    result = f.getvalue().splitlines()
+    if show:
+        assert len(result) > 0
+        assert "100%" in result[-1]
+    else:
+        assert len(result) == 0
+
+
 def test_err_result():
     """excercise creation of NotCompletedResult"""
     result = NotCompleted("SKIP", "this", "some obj")
