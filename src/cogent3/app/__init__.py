@@ -85,13 +85,14 @@ _get_param = re.compile('(?<=").+(?=")')
 def _make_signature(app: type) -> str:
     init_sig = inspect.signature(app.__init__)
     params = ", ".join(
-        [
+        [f'"{app.__name__}"']
+        + [
             _get_param.findall(repr(v))[0]
             for k, v in init_sig.parameters.items()
             if k != "self"
         ]
     )
-    return f"{app.__name__}({params})"
+    return f"{app.__name__}_app = get_app({params})"
 
 
 def _doc_summary(doc):
@@ -133,8 +134,9 @@ def get_app(name: str, *args, **kwargs):
     ----------
     name
         app name, e.g. 'minlength', or can include module information,
-        e.g. 'cogent3.app.sample.minlength'. Use latter (qualified class name)
-        style when multiple matches to name.
+        e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
+        latter (qualified class name) style when there are multiple matches
+        to name.
     *args, **kwargs
         positional and keyword arguments passed through to the app
 
@@ -144,7 +146,7 @@ def get_app(name: str, *args, **kwargs):
 
     Raises
     ------
-    NameError when multiple apps have the same name. In that case use the fully
+    NameError when multiple apps have the same name. In that case use a
     qualified class name, as shown above.
     """
     return _get_app_matching_name(name)(*args, **kwargs)
@@ -175,15 +177,16 @@ def app_help(name: str):
     ----------
     name
         app name, e.g. 'minlength', or can include module information,
-        e.g. 'cogent3.app.sample.minlength'. Use latter (qualified class name)
-        style when multiple matches to name.
+        e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
+        latter (qualified class name) style when there are multiple matches
+        to name.
     """
     app = _get_app_matching_name(name)
     docs = []
     if app.__doc__.strip():
         docs.extend(_make_head("Overview") + [app.__doc__, ""])
 
-    docs.extend(_make_head("Signature") + [_make_signature(app)])
+    docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
     if app.__init__.__doc__.strip():
         docs.extend(["", _clean_params_docs(app.__init__.__doc__)])
 
