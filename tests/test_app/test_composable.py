@@ -306,22 +306,22 @@ def test_as_completed():
     """correctly applies iteratively"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = get_app("load_unaligned", format="fasta", moltype="dna")
-    got = list(reader.as_completed(dstore))
+    got = list(reader.as_completed(dstore, show_progress=False))
     assert len(got) == len(dstore)
     # should also be able to apply the results to another composable func
     min_length = get_app("sample.min_length", 10)
-    got = list(min_length.as_completed(got))
+    got = list(min_length.as_completed(got, show_progress=False))
     assert len(got) == len(dstore)
     # should work on a chained function
     proc = reader + min_length
-    got = list(proc.as_completed(dstore))
+    got = list(proc.as_completed(dstore, show_progress=False))
     assert len(got) == len(dstore)
     # and works on a list of just strings
-    got = list(proc.as_completed([str(m) for m in dstore]))
+    got = list(proc.as_completed([str(m) for m in dstore], show_progress=False))
     assert len(got) == len(dstore)
     # or a single string
     path = str(Path(dstore[0].data_store.source) / dstore[0].unique_id)
-    got = list(proc.as_completed(path))
+    got = list(proc.as_completed(path, show_progress=False))
     assert len(got) == 1
     assert isinstance(got[0].obj, SequenceCollection)
     # raises ValueError if empty list
