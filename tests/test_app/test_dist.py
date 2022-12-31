@@ -103,24 +103,24 @@ class FastSlowDistTests(TestCase):
 
     def test_compatible_parameters(self):
         """tests if the input parameters are compatible with fast_slow_dist initialisation"""
-        fast_slow_dist = get_app("fast_slow_dist", fast_calc="hamming", moltype="dna")
-        fast_slow_dist = get_app("fast_slow_dist", fast_calc="TN93")
-        fast_slow_dist = get_app("fast_slow_dist", slow_calc="GTR")
-        fast_slow_dist = get_app("fast_slow_dist", fast_calc="TN93")
+        for kwargs in (
+            dict(fast_calc="hamming", moltype="dna"),
+            dict(fast_calc="TN93"),
+            dict(slow_calc="GTR"),
+            dict(fast_calc="TN93"),
+        ):
+            _ = get_app("fast_slow_dist", **kwargs)
 
-        # fails for paralinear or hamming if no moltype
-        with self.assertRaises(ValueError):
-            fast_slow_dist = get_app("fast_slow_dist", slow_calc="hamming")
-        with self.assertRaises(ValueError):
-            fast_slow_dist = get_app("fast_slow_dist", slow_calc="paralinear")
-
-        # fails for hamming as slow_calc
-        with self.assertRaises(ValueError):
-            fast_slow_dist = get_app(
-                "fast_slow_dist", slow_calc="hamming", moltype="dna"
-            )
-        with self.assertRaises(ValueError):
-            fast_slow_dist = get_app("fast_slow_dist", fast_calc="GTR")
+    def test_incompatible_parameters(self):
+        """tests incompatible input parameters with fast_slow_dist initialisation"""
+        for kwargs in (
+            dict(fast_calc="hamming"),
+            dict(slow_calc="paralinear"),
+            dict(fast_calc="GTR"),
+            dict(slow_calc="hamming", moltype="dna"),
+        ):
+            with self.assertRaises(ValueError):
+                _ = get_app("fast_slow_dist", **kwargs)
 
     def test_composable_apps(self):
         """tests two composable apps"""
