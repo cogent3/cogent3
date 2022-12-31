@@ -306,22 +306,22 @@ def test_as_completed():
     """correctly applies iteratively"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = get_app("load_unaligned", format="fasta", moltype="dna")
-    got = list(reader.as_completed(dstore))
+    got = list(reader.as_completed(dstore, show_progress=False))
     assert len(got) == len(dstore)
     # should also be able to apply the results to another composable func
     min_length = get_app("sample.min_length", 10)
-    got = list(min_length.as_completed(got))
+    got = list(min_length.as_completed(got, show_progress=False))
     assert len(got) == len(dstore)
     # should work on a chained function
     proc = reader + min_length
-    got = list(proc.as_completed(dstore))
+    got = list(proc.as_completed(dstore, show_progress=False))
     assert len(got) == len(dstore)
     # and works on a list of just strings
-    got = list(proc.as_completed([str(m) for m in dstore]))
+    got = list(proc.as_completed([str(m) for m in dstore], show_progress=False))
     assert len(got) == len(dstore)
     # or a single string
     path = str(Path(dstore[0].data_store.source) / dstore[0].unique_id)
-    got = list(proc.as_completed(path))
+    got = list(proc.as_completed(path, show_progress=False))
     assert len(got) == 1
     assert isinstance(got[0].obj, SequenceCollection)
     # raises ValueError if empty list
@@ -438,23 +438,12 @@ def test_apply_to_not_partially_done(tmp_dir):
 
 @pytest.mark.xfail(reason="passes except when run in full test suite")
 @pytest.mark.parametrize("show", (True, False))
-def test_as_completed_progress(full_dstore, show):
-    # this contextlib trap works only if test is run separately
-    # but clearly there's some effect on stderr being
-    # re-piped by other tests?
-    # the capsys fixture does not seem to work at all, but is likely how to
-    # do this robustly
-    import io
-
-    from contextlib import redirect_stderr
-
+def test_as_completed_progress(full_dstore, capsys, show):
     loader = get_app("load_unaligned", format="fasta", moltype="dna")
-    min_length = get_app("min_length", 300)
-    app = loader + min_length
-    with redirect_stderr(io.StringIO()) as f:
-        list(app.as_completed(full_dstore.completed, show_progress=show))
-
-    result = f.getvalue().splitlines()
+    omit_degenerates = get_app("omit_degenerates")
+    app = loader + omit_degenerates
+    list(app.as_completed(full_dstore.completed, show_progress=show))
+    result = capsys.readouterr().err.splitlines()
     if show:
         assert len(result) > 0
         assert "100%" in result[-1]
