@@ -596,4 +596,3 @@ def test_write_read_not_completed(nc_dstore):
     assert len(nc_dstore.not_completed) == 1
     got = nc_dstore.not_completed[0].read()
     assert nc.to_json() == got
-
