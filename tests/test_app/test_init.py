@@ -1,13 +1,13 @@
 """testing the default import"""
 import os
 
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
 import pytest
 
-from cogent3 import app_help, available_apps, get_app
-from cogent3.app import align, dist, evo, io, sample, translate, tree
+from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.composable import (
     LOADER,
     WRITER,
@@ -30,36 +30,44 @@ __status__ = "Alpha"
 
 
 def _get_all_composables(tmp_dir_name):
-    test_model1 = evo.model("HKY85")
-    test_model2 = evo.model("GN")
-    test_hyp = evo.hypothesis(test_model1, test_model2)
+    tmp_dir_name = Path(tmp_dir_name)
+    test_model1 = get_app("model", "HKY85")
+    test_model2 = get_app("model", "GN")
+    test_hyp = get_app("hypothesis", test_model1, test_model2)
     test_num_reps = 100
-
     return [
-        align.align_to_ref(),
-        align.progressive_align(model="GY94"),
-        dist.fast_slow_dist(moltype="dna", fast_calc="hamming"),
-        evo.ancestral_states(),
-        evo.bootstrap(hyp=test_hyp, num_reps=test_num_reps),
-        evo.hypothesis(test_model1, test_model2),
-        evo.model("GN"),
-        evo.tabulate_stats(),
-        sample.fixed_length(100),
-        sample.min_length(100),
-        io.write_db(tmp_dir_name, create=True),
-        io.write_json(tmp_dir_name, create=True),
-        io.write_seqs(tmp_dir_name, create=True),
-        sample.omit_bad_seqs(),
-        sample.omit_degenerates(),
-        sample.omit_duplicated(),
-        sample.take_codon_positions(1),
-        sample.take_named_seqs(),
-        sample.take_n_seqs(2),
-        sample.trim_stop_codons(gc=1),
-        translate.select_translatable(),
-        tree.quick_tree(),
-        tree.scale_branches(),
-        tree.uniformize_tree(),
+        get_app(
+            "align_to_ref",
+        ),
+        get_app("progressive_align", model="GY94"),
+        get_app("fast_slow_dist", moltype="dna", fast_calc="hamming"),
+        get_app("ancestral_states"),
+        get_app("bootstrap", hyp=test_hyp, num_reps=test_num_reps),
+        get_app("hypothesis", test_model1, test_model2),
+        get_app("model", "GN"),
+        get_app("tabulate_stats"),
+        get_app("fixed_length", 100),
+        get_app("sample.min_length", 100),
+        get_app("write_db", open_data_store(tmp_dir_name / "delme.sqlitedb", mode="w")),
+        get_app(
+            "write_json",
+            open_data_store(tmp_dir_name / "json", suffix="json", mode="w"),
+        ),
+        get_app(
+            "write_seqs",
+            open_data_store(tmp_dir_name / "fasta", suffix="fasta", mode="w"),
+        ),
+        get_app("omit_bad_seqs"),
+        get_app("omit_degenerates"),
+        get_app("omit_duplicated"),
+        get_app("take_codon_positions", 1),
+        get_app("take_named_seqs"),
+        get_app("take_n_seqs", 2),
+        get_app("trim_stop_codons", gc=1),
+        get_app("select_translatable"),
+        get_app("quick_tree"),
+        get_app("scale_branches"),
+        get_app("uniformize_tree"),
     ]
 
 
@@ -99,10 +107,6 @@ class TestAvailableApps(TestCase):
                 # Compose two composable applications, there should not be exceptions.
                 app_a + app_b
 
-            for app in applications:
-                if hasattr(app, "data_store"):
-                    app.data_store.close()
-
     def test_incompatible_pairwise_applications(self):
         """Properly identify two incompatible applications"""
 
@@ -130,10 +134,6 @@ class TestAvailableApps(TestCase):
                 # Compose two incompatible applications, there should be exceptions.
                 with self.assertRaises(err_type):
                     app_a + app_b
-
-            for app in applications:
-                if hasattr(app, "data_store"):
-                    app.data_store.close()
 
 
 def test_available_apps_local():
