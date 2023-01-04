@@ -10,10 +10,12 @@ We load the unaligned sequences we will use in our examples.
 
 .. jupyter-execute::
 
-    from cogent3.app import io
+    from cogent3 import get_app
 
-    reader = io.load_unaligned(format="fasta")
-    seqs = reader("data/SCA1-cds.fasta")
+    loader = get_app("load_unaligned", format="fasta")
+    seqs = loader("data/SCA1-cds.fasta")
+
+.. note:: We use an app loader, but since this is just a single file we could have used the ``cogent3.load_unaligned_seqs()`` function.
 
 Codon alignment with default settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -22,19 +24,13 @@ The default settings will result in estimation of a guide tree (using percent id
 
 .. jupyter-execute::
 
-    from cogent3.app.align import progressive_align
+    from cogent3 import get_app
 
-    codon_aligner = progressive_align("codon")
+    codon_aligner = get_app("progressive_align", "codon")
     aligned = codon_aligner(seqs)
     aligned
 
-The parameters used to construct the alignment, including the guide tree and substitution model, are record in the ``info`` attribute.
-
-.. jupyter-execute::
-
-    aligned.info
-
-.. note:: If can also specify ``unique_guides=True``, which means a guide tree will be estimated for every alignment.
+.. note:: If you specify ``unique_guides=True``, a guide tree will be estimated for every alignment.
 
 Specify a different distance measure for estimating the guide tree
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -45,28 +41,28 @@ The distance measures available are the same as for the nucleotide case (percent
 
 .. jupyter-execute::
 
-    nt_aligner = progressive_align("codon", distance="paralinear")
+    nt_aligner = get_app("progressive_align", "codon", distance="paralinear")
     aligned = nt_aligner(seqs)
     aligned
 
 Providing a guide tree
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. note:: The guide tree needs to have branch lengths, otherwise a ``ValueError`` is raised.
-
 .. jupyter-execute::
 
     tree = "((Chimp:0.001,Human:0.001):0.0076,Macaque:0.01,((Rat:0.01,Mouse:0.01):0.02,Mouse_Lemur:0.02):0.01)"
-    codon_aligner = progressive_align("codon", guide_tree=tree)
+    codon_aligner = get_app("progressive_align", "codon", guide_tree=tree)
     aligned = codon_aligner(seqs)
     aligned
+
+.. warning:: The guide tree must have branch lengths, otherwise a ``ValueError`` is raised.
 
 Specifying the gap parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    codon_aligner = progressive_align(
+    codon_aligner = get_app("progressive_align",
         "codon", guide_tree=tree, indel_rate=0.001, indel_length=0.01
     )
     aligned = codon_aligner(seqs)
@@ -75,18 +71,22 @@ Specifying the gap parameters
 Specifying the substitution model and parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Any codon substitution model can be used. (See ``cogent3.available_models()``.) If you provide parameter values, those must be consistent with the model definition.
+Any ``cogent3`` codon substitution model can be used. (See ``cogent3.available_models()``.) 
 
 .. jupyter-execute::
 
-    codon_aligner = progressive_align(
+    codon_aligner = get_app("progressive_align",
         "CNFHKY", guide_tree=tree, param_vals=dict(omega=0.1, kappa=3)
     )
     aligned = codon_aligner(seqs)
     aligned
 
+.. note:: If you provide parameter values, those must be consistent with the model definition.
+
 Alignment settings and file provenance are recorded in the ``info`` attribute
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 
 .. jupyter-execute::
 
