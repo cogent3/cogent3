@@ -12,19 +12,19 @@ natural selection (`Nielsen and Yang
 
 .. jupyter-execute::
 
-    from cogent3.app import evo, io
+    from cogent3 import get_app
 
-    loader = io.load_aligned(format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
-    sites_differ = evo.natsel_sitehet(
+    sites_differ = get_app("natsel_sitehet", 
         "GNC", tree="data/primate_brca1.tree", optimise_motif_probs=False
     )
 
     result = sites_differ(aln)
     result
 
-The models have been constructed such that site-class bins have names indicating the mode of natural selection: -ve is purifying (omega<1); neutral (omega=1); and +ve is positive natural selection (omega>1). The two parameters of interest relating to these are the ``bprobs`` (the maximum likelihood estimate of the frequency of the site-class) and the corresponding value of omega.
+The models have been constructed such that site-class bins have names indicating the mode of natural selection: -ve is purifying (oomega<1); neutral (omega=1); and +ve is positive natural selection (omega>1). The two parameters of interest relating to these are the ``bprobs`` (the maximum likelihood estimate of the frequency of the site-class) and the corresponding value of omega.
 
 .. jupyter-execute::
 

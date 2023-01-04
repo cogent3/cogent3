@@ -6,15 +6,15 @@
 Using a protein model
 ---------------------
 
-We load the unaligned sequences we will use in our examples and translate them.
+We use apps to load unaligned DNA sequences and to translate them into amino acids.
 
 .. jupyter-execute::
 
-    from cogent3.app import io, translate
+    from cogent3 import get_app
 
-    reader = io.load_unaligned(format="fasta")
-    to_aa = translate.translate_seqs()
-    process = reader + to_aa
+    loader = get_app("load_unaligned", format="fasta")
+    to_aa = get_app("translate_seqs")
+    process = loader + to_aa
     seqs = process("data/SCA1-cds.fasta")
 
 Protein alignment with default settings
@@ -24,9 +24,9 @@ The default setting for "protein" is a WG01 model.
 
 .. jupyter-execute::
 
-    from cogent3.app.align import progressive_align
+    from cogent3 import get_app
 
-    aa_aligner = progressive_align("protein")
+    aa_aligner = get_app("progressive_align", "protein")
     aligned = aa_aligner(seqs)
     aligned
 
@@ -39,7 +39,7 @@ The distance measures available are percent or paralinear.
 
 .. jupyter-execute::
 
-    aa_aligner = progressive_align("protein", distance="paralinear")
+    aa_aligner = get_app("progressive_align", "protein", distance="paralinear")
     aligned = aa_aligner(seqs)
     aligned
 

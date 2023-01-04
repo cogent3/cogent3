@@ -6,22 +6,20 @@
 Testing a hypothesis – non-stationary or time-reversible
 ========================================================
 
-We evaluate whether the GTR model is sufficient for a data set, compared with the GN (non-stationary general nucleotide model).
+We test the hypothesis that the GTR model is sufficient for a data set, compared with the GN (non-stationary general nucleotide model).
 
 .. jupyter-execute::
 
-    from cogent3.app import evo, io, sample
+    from cogent3 import get_app
 
-    loader = io.load_aligned(format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
-
-.. jupyter-execute::
 
     tree = "data/primate_brca1.tree"
 
-    null = evo.model("GTR", tree=tree, optimise_motif_probs=True)
-    alt = evo.model("GN", tree=tree, optimise_motif_probs=True)
-    hyp = evo.hypothesis(null, alt)
+    null = get_app("model", "GTR", tree=tree, optimise_motif_probs=True)
+    alt = get_app("model", "GN", tree=tree, optimise_motif_probs=True)
+    hyp = get_app("hypothesis", null, alt)
     result = hyp(aln)
     type(result)
 
@@ -31,7 +29,7 @@ We evaluate whether the GTR model is sufficient for a data set, compared with th
 
     result
 
-In this case, we accept the null given the p-value is > 0.05. We still use this object to demonstrate the properties of a ``hypothesis_result``.
+In this case, we accept the null given the p-value is > 0.05. We use this object to demonstrate the properties of a ``hypothesis_result``.
 
 ``hypothesis_result`` has attributes and keys
 ---------------------------------------------
@@ -66,13 +64,14 @@ The alternate hypothesis
 Saving hypothesis results
 -------------------------
 
-You are advised to save these results as json using the standard json writer, or the db writer.
+You are advised to save these results as serialised data since this provides maximum flexibility for downstream analyses.
 
-This following would write the result into a ``tinydb``.
+The following would write the result into a ``sqlitedb``.
 
 .. code-block:: python
 
-    from cogent3.app.io import write_db
-
-    writer = write_db("path/to/myresults.tinydb", create=True, if_exists="overwrite")
+    from cogent3 import get_app, open_data_store
+    
+    output = open_data_store("path/to/myresults.sqlitedb", mode="w")
+    writer = get_app("write_db", data_store=output)
     writer(result)

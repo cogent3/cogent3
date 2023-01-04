@@ -10,19 +10,17 @@ We fit a discrete-time Markov nucleotide model. This corresponds to a Barry and 
 
 .. jupyter-execute::
 
-    from cogent3.app import evo, io
+    from cogent3 import get_app
 
-    loader = io.load_aligned(format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
-    model = evo.model("BH", tree="data/primate_brca1.tree")
+    model = get_app("model", "BH", tree="data/primate_brca1.tree")
     result = model(aln)
     result
 
-**NOTE:** DLC stands for diagonal largest in column and the value is a
-check on the identifiability of the model. ``unique_Q`` is not
-applicable to a discrete-time model and so remains as ``None``.
+.. note:: DLC stands for diagonal largest in column and the value is a check on the identifiability of the model. ``unique_Q`` is another identifiability check, but it not applicable to a discrete-time model and so remains as ``None``.
 
-Looking at the likelihood function, you will
+Looking at the likelihood function, we see these maximum likelihood estimated values
 
 .. jupyter-execute::
 
@@ -47,7 +45,7 @@ For a discrete-time model, aside from the root motif probabilities, everything i
 
 .. jupyter-execute::
 
-    tabulator = evo.tabulate_stats()
+    tabulator = get_app("tabulate_stats")
     stats = tabulator(result)
     stats
 

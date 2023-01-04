@@ -6,17 +6,17 @@
 Extracting maximum likelihood estimates from a ``model_result``
 ===============================================================
 
-If you want to get the stats out-of a fitted model, use the ``evo.tabulate_stats()`` app.
+If you want to get the stats from a fitted model, use the ``tabulate_stats`` app.
 
-We first fit a model.
+We demonstrate this by first fitting a model.
 
 .. jupyter-execute::
 
-    from cogent3.app import evo, io
+    from cogent3 import get_app
 
-    loader = io.load_aligned(format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
-    model = evo.model("GN", tree="data/primate_brca1.tree")
+    model = get_app("model", "GN", tree="data/primate_brca1.tree")
     result = model(aln)
 
 Create and apply ``tabulate_stats`` app
@@ -24,7 +24,7 @@ Create and apply ``tabulate_stats`` app
 
 .. jupyter-execute::
 
-    tabulator = evo.tabulate_stats()
+    tabulator = get_app("tabulate_stats")
     tabulated = tabulator(result)
     tabulated
 
@@ -33,7 +33,7 @@ Create and apply ``tabulate_stats`` app
 Edge parameters
 ---------------
 
-These are all parameters that differ between edges. Since the current model is time-homogeneous (a single rate matrix), only the table only has entries for the branch scalar (denoted “length”).
+These are all parameters that differ between edges. Since the current model is time-homogeneous (a single rate matrix), the table only has entries for the branch scalar (denoted “length”).
 
 .. jupyter-execute::
 
@@ -44,7 +44,7 @@ These are all parameters that differ between edges. Since the current model is t
 Global parameters
 -----------------
 
-In this example, these are the elements of the rate matrix.
+These are the elements of the rate matrix.
 
 .. jupyter-execute::
 
@@ -53,7 +53,7 @@ In this example, these are the elements of the rate matrix.
 Motif parameters
 ----------------
 
-In the current example, these are estimates of the nucleotide probabilities in the unobserved ancestor.
+These are estimates of the nucleotide probabilities in the unobserved ancestor.
 
 .. jupyter-execute::
 

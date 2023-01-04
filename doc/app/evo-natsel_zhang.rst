@@ -6,7 +6,7 @@
 ``natsel_zhang`` – a branch-site test
 =====================================
 
-This is the hypothesis test presented in `Zhang et al <https://www.ncbi.nlm.nih.gov/pubmed/16107592>`__. This test evaluates the hypothesis that a set of sites have undergone positive natural selection on a pre-specified set of lineages.
+This is the hypothesis test presented in `Zhang et al <https://www.ncbi.nlm.nih.gov/pubmed/16107592>`__. It evaluates the hypothesis that a set of sites have undergone positive natural selection on a pre-specified set of lineages.
 
 For this model class, there are groups of branches for which all positions are evolving neutrally but some proportion of those neutrally evolving sites change to adaptively evolving on so-called foreground edges. For the current example, we’ll define the Chimpanzee and Human branches as foreground and everything else as background. The following table defines the parameter scopes.
 
@@ -30,12 +30,12 @@ For this model class, there are groups of branches for which all positions are e
 
 .. jupyter-execute::
 
-    from cogent3.app import evo, io
+    from cogent3 import get_app
 
-    loader = io.load_aligned(format="fasta", moltype="dna")
+    loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
-    zhang_test = evo.natsel_zhang(
+    zhang_test = get_app("natsel_zhang", 
         "GNC",
         tree="data/primate_brca1.tree",
         optimise_motif_probs=False,
@@ -63,7 +63,7 @@ Getting all the statistics in tabular form
 
 .. jupyter-execute::
 
-    tab = evo.tabulate_stats()
+    tab = get_app("tabulate_stats")
     stats = tab(result.alt)
     stats
 
