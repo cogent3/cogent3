@@ -176,5 +176,29 @@ def test_app_help(capsys):
     assert got.startswith("Overview")
 
 
+@define_app
+class blah:
+    def __init__(self):
+        ...
+
+    def main(self, val: int) -> int:
+        return val
+
+
+@pytest.mark.parametrize(
+    "app_doc,init_doc", ((None, None), ("text", None), (None, "text"), ("text", "text"))
+)
+def test_app_help_no_docs(capsys, app_doc, init_doc):
+    blah.__doc__ = app_doc
+    blah.__init__.__doc__ = init_doc
+    app_help("blah")
+    got = capsys.readouterr().out
+    if app_doc:
+        assert "Overview" in got
+
+    if init_doc:
+        assert "Options" in got
+
+
 if __name__ == "__main__":
     main()

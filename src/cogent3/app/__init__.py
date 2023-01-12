@@ -183,11 +183,13 @@ def app_help(name: str):
     """
     app = _get_app_matching_name(name)
     docs = []
-    if app.__doc__.strip():
+    app_doc = app.__doc__ or ""
+    if app_doc.strip():
         docs.extend(_make_head("Overview") + [app.__doc__, ""])
 
     docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
-    if app.__init__.__doc__.strip():
-        docs.extend(["", _clean_params_docs(app.__init__.__doc__)])
+    init_doc = app.__init__.__doc__ or ""
+    if init_doc.strip():
+        docs.extend(["", _clean_params_docs(init_doc)])
 
     print("\n".join(docs))
