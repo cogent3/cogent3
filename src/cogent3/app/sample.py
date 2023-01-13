@@ -107,12 +107,11 @@ class concat:
 
 @define_app
 class omit_degenerates:
-    """Excludes alignment columns with degenerate conditions. Can accomodate
+    """Excludes alignment columns with degenerate characters. Can accomodate
     reading frame."""
 
     def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
-        """excludes degenerate characters from alignment
-
+        """
         Parameters
         ----------
         moltype : str
@@ -278,15 +277,16 @@ class take_codon_positions:
 
 @define_app
 class take_named_seqs:
-    """Extracts named sequences."""
+    """Selects named sequences from a collection."""
 
     def __init__(self, *names, negate=False):
-        """selects named sequences from a collection
-
-        Returns
-        -------
-        A new sequence collection, or False if not all the named sequences are
-        in the collection.
+        """
+        Parameters
+        ----------
+        *names
+            series of sequence names
+        negate
+            if True, excludes the provided names from the result
         """
         self._names = names
         self._negate = negate

@@ -4,6 +4,7 @@ import contextlib
 import importlib
 import inspect
 import re
+import textwrap
 
 from .io_new import open_data_store
 
@@ -97,7 +98,9 @@ def _make_signature(app: type) -> str:
             if k != "self"
         ]
     )
-    return f"{app.__name__}_app = get_app({params})"
+    sig = f"{app.__name__} = get_app({params})"
+    subsequent_indent = " " * (sig.find("(") + 1)
+    return "\n".join(textwrap.wrap(sig, subsequent_indent=subsequent_indent))
 
 
 def _doc_summary(doc):
@@ -167,12 +170,17 @@ def _clean_params_docs(text: str) -> str:
     text = text.splitlines(keepends=False)
     prefix = re.compile(r"^\s{8}")  # expected indentation of constructor doc
     doc = []
-    for i, l in enumerate(text):
+    for l in text:
         l = prefix.sub("", l)
         if l.strip():
             doc.append(l)
 
     return "\n".join(doc)
+
+
+def _clean_overview(text: str) -> str:
+    text = text.split()
+    return "\n".join(textwrap.wrap(" ".join(text), break_long_words=False))
 
 
 def app_help(name: str):
@@ -190,7 +198,7 @@ def app_help(name: str):
     docs = []
     app_doc = app.__doc__ or ""
     if app_doc.strip():
-        docs.extend(_make_head("Overview") + [app.__doc__, ""])
+        docs.extend(_make_head("Overview") + [_clean_overview(app_doc), ""])
 
     docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
     init_doc = app.__init__.__doc__ or ""
@@ -198,7 +206,7 @@ def app_help(name: str):
         docs.extend(["", _clean_params_docs(init_doc)])
 
     types = _make_types(app)
-    docs.extend([""] + _make_head("Input type") + types["_data_types"])
-    docs.extend([""] + _make_head("Output type") + types["_return_types"])
+    docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
+    docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
 
     print("\n".join(docs))
