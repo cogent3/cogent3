@@ -171,9 +171,10 @@ def test_get_app_fail():
 
 
 def test_app_help(capsys):
-    app_help("omit_degenerates")
+    app_help("compress")
     got = capsys.readouterr().out
-    assert got.startswith("Overview")
+    assert "Options" in got
+    assert got.count("bytes") >= 2  # both input and output types are bytes
 
 
 @define_app

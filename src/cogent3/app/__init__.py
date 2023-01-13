@@ -36,12 +36,7 @@ def _get_app_attr(name, is_composable):
     mod = importlib.import_module(modname)
     obj = getattr(mod, name)
 
-    _types = {"_data_types": [], "_return_types": []}
-
-    for tys in _types:
-        types = getattr(obj, tys, None) or []
-        types = [types] if type(types) == str else types
-        _types[tys] = [{None: ""}.get(e, e) for e in types]
+    _types = _make_types(obj)
 
     return [
         mod.__name__,
@@ -51,6 +46,16 @@ def _get_app_attr(name, is_composable):
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
     ]
+
+
+def _make_types(app) -> dict:
+    """returns type hints for the input and output"""
+    _types = {"_data_types": [], "_return_types": []}
+    for tys in _types:
+        types = getattr(app, tys, None) or []
+        types = [types] if type(types) == str else types
+        _types[tys] = [{None: ""}.get(e, e) for e in types]
+    return _types
 
 
 def available_apps():
@@ -191,5 +196,9 @@ def app_help(name: str):
     init_doc = app.__init__.__doc__ or ""
     if init_doc.strip():
         docs.extend(["", _clean_params_docs(init_doc)])
+
+    types = _make_types(app)
+    docs.extend([""] + _make_head("Input type") + types["_data_types"])
+    docs.extend([""] + _make_head("Output type") + types["_return_types"])
 
     print("\n".join(docs))
