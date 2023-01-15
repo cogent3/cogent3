@@ -1186,7 +1186,7 @@ def define_app(
     ``drop_bad`` is a composable app with ``app_type=GENERIC``. The input
     data must be a sequence alignment instance. It returns the same type,
     which is also serialisable.  (If invalid input data is provided a
-    ``NoteCompleted`` instance is returned.)
+    ``NotCompleted`` instance is returned.)
 
     You can also decorate functions. In that case, they will be converted into
     a class with the same name as the original function. The function itself is

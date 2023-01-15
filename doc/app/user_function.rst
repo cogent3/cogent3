@@ -1,7 +1,7 @@
 Turn your functions into composable apps
 ========================================
 
-This is super easy -- just use the ``define_app`` decorator! This generates a wrapper class that has a reference to your function and can then become part of a composed function.
+Just use the ``define_app`` decorator! This generates a wrapper class that has a reference to your function and can then become part of a composed function.
 
 You need two things:
 

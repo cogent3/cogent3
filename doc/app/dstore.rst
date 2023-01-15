@@ -3,6 +3,8 @@
 
     import set_working_directory
 
+.. _data_stores:
+
 Specifying data for analysis
 ============================
 
@@ -13,7 +15,7 @@ We represent this concept by a ``DataStore`` class. There are different flavours
 -  directory based
 -  Sqlite based
 
-All of these types support being indexed, iterated over, etc.. The ``sqlitedb`` variants do have some unique abilities (discussed below).
+All of these types support being indexed, iterated over, etc..
 
 A read only data store
 ----------------------
@@ -25,7 +27,8 @@ To create one of these, you provide a ``path`` AND a ``suffix`` of the files wit
     from cogent3 import open_data_store
 
     dstore = open_data_store("data/raw.zip", suffix="fa*", limit=5, mode="r")
-    dstore
+
+.. _data_member: 
 
 Data store “members”
 --------------------
@@ -52,12 +55,12 @@ Looping over a data store
 Making a writeable data store
 -----------------------------
 
-The creation of a writeable data store is handled for you by specifying a mode.
+The creation of a writeable data store is specified with ``mode="w"``, or (to append) ``mode="a"``. In the former case, any existing records are overwritten. In the latter case, existing records are ignored.
 
-Sqlitedb data stores are special
---------------------------------
+Sqlitedb data stores for serialised data
+----------------------------------------
 
-When you specify a Sqlitedb data store as your output (by using ``open_data_store()``), you get additional features that are useful for dissecting the results of an analysis.
+When you specify a Sqlitedb data store as your output (by using ``open_data_store()``) you write multiple records into a single file making distribution easier.
 
 One important issue to note is the process which creates a Sqlitedb “locks” the file. If that process exits unnaturally (e.g. the run that was producing it was interrupted) then the file may remain in a locked state. If the db is in this state, ``cogent3`` will not modify it unless you explicitly unlock it.
 
@@ -65,7 +68,7 @@ This is represented in the display as shown below.
 
 .. jupyter-execute::
 
-    dstore = get_data_store("data/demo-locked.tinydb")
+    dstore = open_data_store("data/demo-locked.sqlitedb")
     dstore.describe
 
 To unlock, you execute the following:
@@ -75,7 +78,7 @@ To unlock, you execute the following:
     dstore.unlock(force=True)
 
 Interrogating run logs
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 If you use the ``apply_to()`` method, a ``scitrack`` logfile will be included in the data store. This includes useful information regarding the run conditions that produced the contents of the data store.
 
