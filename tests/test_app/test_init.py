@@ -180,10 +180,10 @@ def test_app_help(capsys):
 @define_app
 class blah:
     def __init__(self):
-        ...
+        self.constant = 2
 
     def main(self, val: int) -> int:
-        return val
+        return val + self.constant
 
 
 @pytest.mark.parametrize(

@@ -170,10 +170,10 @@ def _clean_params_docs(text: str) -> str:
     text = text.splitlines(keepends=False)
     prefix = re.compile(r"^\s{8}")  # expected indentation of constructor doc
     doc = []
-    for l in text:
-        l = prefix.sub("", l)
-        if l.strip():
-            doc.append(l)
+    for line in text:
+        line = prefix.sub("", line)
+        if line.strip():
+            doc.append(line)
 
     return "\n".join(doc)
 
