@@ -4,6 +4,7 @@ import contextlib
 import importlib
 import inspect
 import re
+import textwrap
 
 from .io_new import open_data_store
 
@@ -36,12 +37,7 @@ def _get_app_attr(name, is_composable):
     mod = importlib.import_module(modname)
     obj = getattr(mod, name)
 
-    _types = {"_data_types": [], "_return_types": []}
-
-    for tys in _types:
-        types = getattr(obj, tys, None) or []
-        types = [types] if type(types) == str else types
-        _types[tys] = [{None: ""}.get(e, e) for e in types]
+    _types = _make_types(obj)
 
     return [
         mod.__name__,
@@ -51,6 +47,16 @@ def _get_app_attr(name, is_composable):
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
     ]
+
+
+def _make_types(app) -> dict:
+    """returns type hints for the input and output"""
+    _types = {"_data_types": [], "_return_types": []}
+    for tys in _types:
+        types = getattr(app, tys, None) or []
+        types = [types] if type(types) == str else types
+        _types[tys] = [{None: ""}.get(e, e) for e in types]
+    return _types
 
 
 def available_apps():
@@ -92,7 +98,9 @@ def _make_signature(app: type) -> str:
             if k != "self"
         ]
     )
-    return f"{app.__name__}_app = get_app({params})"
+    sig = f"{app.__name__} = get_app({params})"
+    subsequent_indent = " " * (sig.find("(") + 1)
+    return "\n".join(textwrap.wrap(sig, subsequent_indent=subsequent_indent))
 
 
 def _doc_summary(doc):
@@ -162,12 +170,17 @@ def _clean_params_docs(text: str) -> str:
     text = text.splitlines(keepends=False)
     prefix = re.compile(r"^\s{8}")  # expected indentation of constructor doc
     doc = []
-    for i, l in enumerate(text):
-        l = prefix.sub("", l)
-        if l.strip():
-            doc.append(l)
+    for line in text:
+        line = prefix.sub("", line)
+        if line.strip():
+            doc.append(line)
 
     return "\n".join(doc)
+
+
+def _clean_overview(text: str) -> str:
+    text = text.split()
+    return "\n".join(textwrap.wrap(" ".join(text), break_long_words=False))
 
 
 def app_help(name: str):
@@ -183,11 +196,17 @@ def app_help(name: str):
     """
     app = _get_app_matching_name(name)
     docs = []
-    if app.__doc__.strip():
-        docs.extend(_make_head("Overview") + [app.__doc__, ""])
+    app_doc = app.__doc__ or ""
+    if app_doc.strip():
+        docs.extend(_make_head("Overview") + [_clean_overview(app_doc), ""])
 
     docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
-    if app.__init__.__doc__.strip():
-        docs.extend(["", _clean_params_docs(app.__init__.__doc__)])
+    init_doc = app.__init__.__doc__ or ""
+    if init_doc.strip():
+        docs.extend(["", _clean_params_docs(init_doc)])
+
+    types = _make_types(app)
+    docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
+    docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
 
     print("\n".join(docs))

@@ -171,9 +171,34 @@ def test_get_app_fail():
 
 
 def test_app_help(capsys):
-    app_help("omit_degenerates")
+    app_help("compress")
     got = capsys.readouterr().out
-    assert got.startswith("Overview")
+    assert "Options" in got
+    assert got.count("bytes") >= 2  # both input and output types are bytes
+
+
+@define_app
+class blah:
+    def __init__(self):
+        self.constant = 2
+
+    def main(self, val: int) -> int:
+        return val + self.constant
+
+
+@pytest.mark.parametrize(
+    "app_doc,init_doc", ((None, None), ("text", None), (None, "text"), ("text", "text"))
+)
+def test_app_help_no_docs(capsys, app_doc, init_doc):
+    blah.__doc__ = app_doc
+    blah.__init__.__doc__ = init_doc
+    app_help("blah")
+    got = capsys.readouterr().out
+    if app_doc:
+        assert "Overview" in got
+
+    if init_doc:
+        assert "Options" in got
 
 
 if __name__ == "__main__":
