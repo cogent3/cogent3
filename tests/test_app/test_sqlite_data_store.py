@@ -6,7 +6,7 @@ import pytest
 
 from scitrack import get_text_hexdigest
 
-from cogent3 import open_data_store
+from cogent3 import get_app, open_data_store
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     APPEND,
@@ -548,3 +548,41 @@ def test_open_data_store_sqlitedb_err():
     # cannot create an in-mmemory db to read only
     with pytest.raises(NotImplementedError):
         open_data_store(":memory:", mode="r")
+
+
+def _make_appendable_dstore(path, suffix):
+    return open_data_store(path, suffix=suffix, mode="a")
+
+
+def _make_and_run_proc(out_path, suffix, members):
+    out_dstore = _make_appendable_dstore(out_path, suffix)
+    loader = get_app("load_unaligned", moltype="dna", format="fasta")
+    mlength = get_app("min_length", 400)
+
+    if suffix:
+        writer = get_app("write_seqs", out_dstore, format="fasta")
+    else:
+        writer = get_app("write_db", out_dstore)
+
+    app = loader + mlength + writer
+    return app.apply_to(members, cleanup=True)
+
+
+@pytest.mark.parametrize(
+    "name,suffix", (("appended", "fa"), ("appended.sqlitedb", None))
+)
+def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
+    # do half the records in the first call
+    num = len(ro_dir_dstore.completed) // 2
+    # make a path for writeable dstore
+    out_path = tmp_dir / name
+    got1 = _make_and_run_proc(out_path, suffix, ro_dir_dstore[:num])
+    assert len(got1.logs) == 1
+
+    # creating a separate instance should result in a
+    # new log file
+    got2 = _make_and_run_proc(out_path, suffix, ro_dir_dstore[num:])
+    assert len(got2.logs) == 2
+    # should be a row for each log
+    summary = got2.summary_logs
+    assert summary.shape[0] == 2
