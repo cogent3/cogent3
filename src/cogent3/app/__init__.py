@@ -89,18 +89,41 @@ _get_param = re.compile('(?<=").+(?=")')
 
 
 def _make_signature(app: type) -> str:
+    from cogent3.util.misc import get_object_provenance
+
     init_sig = inspect.signature(app.__init__)
-    params = ", ".join(
-        [f'"{app.__name__}"']
-        + [
-            _get_param.findall(repr(v))[0]
-            for k, v in init_sig.parameters.items()
-            if k != "self"
-        ]
-    )
-    sig = f"{app.__name__} = get_app({params})"
-    subsequent_indent = " " * (sig.find("(") + 1)
-    return "\n".join(textwrap.wrap(sig, subsequent_indent=subsequent_indent))
+    app_name = app.__name__
+    params = [f'"{app_name}"']
+    empty_default = inspect._empty
+    for k, v in init_sig.parameters.items():
+        if k == "self":
+            continue
+
+        txt = repr(v).replace("\n", " ")
+        # clean up text when callable() used  as a type hint
+        txt = txt.replace("<built-in function callable>", "callable")
+
+        val = _get_param.findall(txt)[0]
+        if v.default is not empty_default and callable(v.default):
+            val = val.split("=", maxsplit=1)
+            if hasattr(v.default, "app_type"):
+                val[-1] = f" {str(v.default)}"
+            else:
+                val[-1] = f" {get_object_provenance(v.default)}"
+            val = "=".join(val)
+        params.append(val.replace("\n", " "))
+
+    sig_prefix = f"{app_name}_app = get_app"
+    sig_prefix_length = len(sig_prefix)
+
+    if len(", ".join(params)) + sig_prefix_length <= 68:  # plus 2 parentheses makes 70
+        params = ", ".join(params)
+        return f"{sig_prefix}({params})"
+
+    indent = " " * 4
+    params = ",\n".join([f"{indent}{p}" for p in params])
+
+    return f"{sig_prefix}(\n{params},\n)"
 
 
 def _doc_summary(doc):
