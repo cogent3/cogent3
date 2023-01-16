@@ -45,8 +45,7 @@ class concat:
     """Creates a concatenated alignment from a series."""
 
     def __init__(self, join_seq="", intersect=True, moltype=None):
-        """concatenate sequences from a series of alignments
-
+        """
         Parameters
         ----------
         join_seq : str
@@ -310,8 +309,6 @@ class take_n_seqs:
 
     def __init__(self, number, random=False, seed=None, fixed_choice=True):
         """
-        selects n sequences from a collection
-
         Parameters
         ----------
         number: int
@@ -530,9 +527,7 @@ class omit_bad_seqs:
     """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
-        """Returns an alignment without the sequences responsible for
-        exceeding disallowed_frac.
-
+        """
         Parameters
         ----------
         quantile : float or None
@@ -576,8 +571,7 @@ class omit_duplicated:
     seqs.info.dropped."""
 
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
-        """Returns unique sequences, adds 'dropped' key to seqs.info
-
+        """
         Parameters
         ----------
         mask_degen
@@ -657,8 +651,7 @@ class trim_stop_codons:
     """Removes terminal stop codons."""
 
     def __init__(self, gc=1):
-        """selects named sequences from a collection
-
+        """
         Parameters
         ----------
         gc
