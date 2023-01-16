@@ -2,6 +2,7 @@ import bz2
 import gzip
 import json
 import os
+import pathlib
 import pickle
 
 from pathlib import Path
@@ -87,7 +88,7 @@ def test_write_seqs(fasta_dir, tmp_dir):
         tmp_dir / "test_write_seqs", mode=Mode.w, suffix="fasta"
     )
     writer = io_app.write_seqs(out_data_store, format="fasta")
-    wrote = writer(seqs[0], datamember.unique_id)
+    wrote = writer(seqs[0], identifier=datamember.unique_id)
     assert isinstance(wrote, DataMember)
 
 
@@ -507,3 +508,54 @@ def test_define_data_store(fasta_dir):
 
     with pytest.raises(ValueError):
         _ = open_data_store(fasta_dir, 1)
+
+
+def seqs():
+    from cogent3 import make_unaligned_seqs
+
+    return make_unaligned_seqs(
+        data=dict(a="ACGG", b="GGC"), info=dict(source="dummy/blah.1.2.fa")
+    )
+
+
+def table():
+    from cogent3 import make_table
+
+    table = make_table(
+        data=dict(a=[0, 1, 2], b=[0, 1, 2]),
+    )
+    table.source = "dummy/blah.1.2.fa"
+    return table
+
+
+def dir_dstore(tmp_dir):
+    return open_data_store(tmp_dir / "sample", suffix="fa", mode="w")
+
+
+def db_dstore(tmp_dir):
+    return open_data_store(tmp_dir / "sample.sqlitedb", mode="w")
+
+
+@pytest.mark.parametrize(
+    "writer,data,dstore",
+    (
+        ("write_seqs", seqs(), dir_dstore),
+        ("write_db", seqs(), db_dstore),
+        ("write_json", seqs(), dir_dstore),
+        ("write_tabular", table(), dir_dstore),
+    ),
+)
+def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
+    def uniqid(source):
+        from cogent3.app.data_store_new import get_data_source
+
+        name = pathlib.Path(get_data_source(source)).name
+        return name.split(".")[0]
+
+    writer = get_app(writer, data_store=dstore(tmp_dir), id_from_source=uniqid)
+    m = writer(data)
+    # directory data stores have a suffix, so we create expected name using that
+    suffix = getattr(writer.data_store, "suffix", "")
+    suffix = f".{suffix}" if suffix else suffix
+    expect = f"blah{suffix}"
+    assert m.unique_id == expect

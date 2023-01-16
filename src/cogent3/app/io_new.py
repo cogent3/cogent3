@@ -22,6 +22,7 @@ from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
+from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
@@ -466,14 +467,26 @@ class write_json:
     def __init__(
         self,
         data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
     ):
+        """
+        Parameters
+        ----------
+        data_store
+            A writeable data store.
+        id_from_source
+            A function for creating a unique identifier based on the data
+            source. The default function removes path information and
+            filename + compression suffixes.
+        """
         self.data_store = data_store
         self._format = "json"
+        self._id_from_source = id_from_source
 
     def main(
-        self, data: SerialisableType, identifier: Optional[str] = None
+        self, /, data: SerialisableType, *, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_unique_id(data)
+        identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -485,19 +498,26 @@ class write_json:
 
 
 @define_app(app_type=WRITER)
-class write_seqs:  # todo docstring
+class write_seqs:
+    @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
         data_store: DataStoreABC,
-        format="fasta",
+        id_from_source: callable = get_unique_id,
+        format: str = "fasta",
     ):
+        """
+        format
+            sequence format
+        """
         self.data_store = data_store
         self._formatter = FORMATTERS[format]
+        self._id_from_source = id_from_source
 
     def main(
-        self, data: SeqsCollectionType, identifier: Optional[str] = None
+        self, /, data: SeqsCollectionType, *, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_unique_id(data)
+        identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -508,15 +528,26 @@ class write_seqs:  # todo docstring
 
 
 @define_app(app_type=WRITER)
-class write_tabular:  # todo doctsring
-    def __init__(self, data_store: DataStoreABC, format="tsv"):
+class write_tabular:
+    @extend_docstring_from(write_json.__init__, pre=False)
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
+        format: str = "tsv",
+    ):
+        """
+        format
+            tabular format, e.g. 'csv' or 'tsv'
+        """
         self.data_store = data_store
+        self._id_from_source = id_from_source
         self._format = format
 
     def main(
-        self, data: TabularType, identifier: Optional[str] = None
+        self, /, data: TabularType, *, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_unique_id(data)
+        identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -530,31 +561,27 @@ class write_tabular:  # todo doctsring
 class write_db:
     """Write serialised objects to a database instance."""
 
+    @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
         data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
         serialiser: callable = to_primitive() + pickle_it(),
     ):
+        """
+        serialiser
+            A callable for serialising input data. By default, it converts
+            data into primitive python data types, pickling the result.
+        """
         self.data_store = data_store
-        self.serialiser = serialiser
+        self._serialiser = serialiser
+        self._id_from_source = id_from_source
 
-    T = Union[SerialisableType, IdentifierType]
-
-    def main(self, /, data: SerialisableType, *, identifier=None) -> T:
-        """
-        Parameters
-        ----------
-        data
-            object that has a `to_json()` method, or can be json serialised
-        identifier : str
-            if not provided, taken from data.source or data.info.source
-
-        Returns
-        -------
-        identifier
-        """
-        identifier = identifier or get_unique_id(data)
-        blob = self.serialiser(data)
+    def main(
+        self, /, data: SerialisableType, *, identifier: Optional[str] = None
+    ) -> IdentifierType:
+        identifier = identifier or self._id_from_source(data)
+        blob = self._serialiser(data)
 
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(unique_id=identifier, data=blob)
