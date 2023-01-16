@@ -56,9 +56,8 @@ def _make_logfile_name(process):
     text = re.split(r"\s+\+\s+", text)
     parts = [part[: part.find("(")] for part in text]
     result = "-".join(parts)
-    pid = os.getpid()
-    result = f"{result}-pid{pid}.log"
-    return result
+    uid = str(uuid4())
+    return f"{result}-{uid[:8]}.log"
 
 
 def _get_origin(origin):
