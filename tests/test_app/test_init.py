@@ -201,5 +201,19 @@ def test_app_help_no_docs(capsys, app_doc, init_doc):
         assert "Options" in got
 
 
+@pytest.mark.parametrize(
+    "app_name", ("bootstrap", "from_primitive", "load_db", "take_named_seqs")[:1]
+)
+def test_app_help_signature(capsys, app_name):
+    from cogent3.app import _get_app_matching_name, _make_signature
+
+    got = _make_signature(_get_app_matching_name(app_name))
+    # app name is in quotes
+    assert f'"{app_name}"' in got
+    # check split across multiple lines if long signature
+    if len(got) > 70:
+        assert got.count("\n") > 1
+
+
 if __name__ == "__main__":
     main()
