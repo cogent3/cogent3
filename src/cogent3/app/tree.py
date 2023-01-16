@@ -19,11 +19,11 @@ __status__ = "Alpha"
 
 @define_app
 class scale_branches:
-    """Transforms tree branch lengths from nucleotide to codon, or the converse."""
+    """Transforms tree branch lengths from nucleotide to codon, or the
+    converse. Returns a new tree with lengths divided by scalar"""
 
     def __init__(self, nuc_to_codon=None, codon_to_nuc=None, scalar=1, min_length=1e-6):
-        """returns a new tree with lengths divided by scalar
-
+        """
         Parameters
         ----------
         nuc_to_codon : bool
@@ -67,8 +67,7 @@ class uniformize_tree:
     """Standardises the orientation of unrooted trees."""
 
     def __init__(self, root_at="midpoint", ordered_names=None):
-        """returns a new tree with standardised orientation
-
+        """
         Parameters
         ----------
         root_at
@@ -94,17 +93,18 @@ class uniformize_tree:
 
 @define_app
 class quick_tree:
-    """Neighbour Joining tree based on pairwise distances."""
+    """Computes a Neighbour Joining tree from pairwise distances."""
 
     def __init__(self, drop_invalid=False):
-        """computes a neighbour joining tree from an alignment
+        """
         Parameters
         ----------
         drop_invalid : bool
-            drops all rows / columns with an invalid entry
-            if True, sequences for which a pairwise distance could not be
-            calculated are excluded, the resulting tree will be for the subset of labels with strictly valid distances
-            if False, an ArithmeticError is raised if a distance could not be computed on observed data.
+            drops all rows / columns with an invalid entry. If True, sequences
+            for which a distance could not be calculated are excluded and
+            the resulting tree will be for the subset of labels with strictly
+            valid distances. If False, an ArithmeticError is raised if a
+            distance is invalid.
         """
         self._drop_invalid = drop_invalid
 
