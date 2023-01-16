@@ -1,5 +1,6 @@
 """Generally useful utility classes and methods.
 """
+import inspect
 import os
 import re
 import warnings
@@ -930,7 +931,7 @@ def get_object_provenance(obj):
     # algorithm inspired by Greg Baacon's answer to
     # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
     # -name-of-an-object-in-python
-    if isinstance(obj, type):
+    if isinstance(obj, type) or inspect.isfunction(obj):
         mod = obj.__module__
         name = obj.__name__
     else:

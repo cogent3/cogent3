@@ -396,28 +396,44 @@ class UtilsTests(TestCase):
 
     def test_get_object_provenance(self):
         """correctly deduce object provenance"""
+        from cogent3 import DNA, SequenceCollection, get_model
+
         result = get_object_provenance("abncd")
         self.assertEqual(result, "str")
-        from cogent3 import DNA
 
         got = get_object_provenance(DNA)
         self.assertEqual(got, "cogent3.core.moltype.MolType")
-        from cogent3.evolve.models import HKY85
 
-        sm = HKY85()
+        sm = get_model("HKY85")
         got = get_object_provenance(sm)
         self.assertEqual(
-            got, "cogent3.evolve.substitution_model." "TimeReversibleNucleotide"
+            got, "cogent3.evolve.substitution_model.TimeReversibleNucleotide"
         )
 
         # handle a type
-        from cogent3 import SequenceCollection
-
         instance = SequenceCollection(dict(a="ACG", b="GGG"))
         instance_prov = get_object_provenance(instance)
         self.assertEqual(instance_prov, "cogent3.core.alignment.SequenceCollection")
         type_prov = get_object_provenance(SequenceCollection)
         self.assertEqual(instance_prov, type_prov)
+
+    def test_get_object_provenance_builtins(self):
+        """allow identifying builtins too"""
+        from gzip import GzipFile, compress
+
+        obj_prov = get_object_provenance(compress)
+
+        self.assertEqual(obj_prov, "gzip.compress")
+
+        obj_prov = get_object_provenance(GzipFile)
+        self.assertEqual(obj_prov, "gzip.GzipFile")
+
+        d = dict(a=23, b=1)
+        obj_prov = get_object_provenance(d)
+        self.assertEqual(obj_prov, "dict")
+
+        obj_prov = get_object_provenance(dict)
+        self.assertEqual(obj_prov, "dict")
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
