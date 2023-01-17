@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import inspect
 import json
 import re
@@ -589,21 +590,21 @@ def convert_directory_datastore(
 
 
 def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataStoreABC:
-    try:
-        from fnmatch import translate
+    from datetime import datetime
+    from fnmatch import translate
 
+    from .data_store import load_record_from_json
+    from .io_new import write_db
+    from .sqlite_data_store import _LOG_TABLE, DataStoreSqlite
+
+    try:
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
         from tinydb.storages import JSONStorage
-
-        from cogent3.app.data_store import load_record_from_json
-        from cogent3.app.sqlite_data_store import DataStoreSqlite
     except ImportError as e:
         raise ImportError(
             "You need to install tinydb to be able to migrate to new datastore."
         ) from e
-
-    from .io_new import write_db
 
     source = Path(source)
     storage = CachingMiddleware(JSONStorage)
@@ -630,7 +631,19 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
     writer = write_db(data_store=dstore)
     for id, data, is_completed in data_list:
         if id.endswith(".log"):
-            writer.data_store.write_log(unique_id=id, data=data)
+            cmnd = f"UPDATE {_LOG_TABLE} SET data =?, log_name =?"
+            values = (data, id)
+            with contextlib.suppress(ValueError):
+                date = datetime.strptime(
+                    data.split("\t", maxsplit=1)[0], "%Y-%m-%d %H:%M:%S"
+                )
+                cmnd = f"{cmnd}, date=?"
+                values += (date,)
+
+            cmnd = f"{cmnd} WHERE log_id=?"
+            values += (dstore._log_id,)
+
+            dstore.db.execute(cmnd, values)
         else:
             writer.main(data, identifier=id)
 
