@@ -256,6 +256,7 @@ class DataStoreSqlite(DataStoreABC):
             self._init_log()
 
         if table_name == _LOG_TABLE:
+            # todo how to evaluate whether writing a new log?
             cmnd = f"UPDATE {table_name} SET data =?, log_name =? WHERE log_id=?"
             self.db.execute(cmnd, (data, unique_id, self._log_id))
             return None
