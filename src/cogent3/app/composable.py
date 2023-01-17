@@ -52,9 +52,12 @@ _builtin_seqs = list, set, tuple
 
 
 def _make_logfile_name(process):
-    text = str(process)
-    text = re.split(r"\s+\+\s+", text)
-    parts = [part[: part.find("(")] for part in text]
+    text = re.split(r"\s+\+\s+", str(process))
+    parts = []
+    for part in text:
+        if index := part.find("(") >= 0:
+            part = part[:index]
+        parts.append(part)
     result = "-".join(parts)
     uid = str(uuid4())
     return f"{result}-{uid[:8]}.log"

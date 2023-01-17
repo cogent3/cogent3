@@ -593,6 +593,7 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
     from datetime import datetime
     from fnmatch import translate
 
+    from .composable import CachingLogger, _make_logfile_name
     from .data_store import load_record_from_json
     from .io_new import write_db
     from .sqlite_data_store import _LOG_TABLE, DataStoreSqlite
@@ -627,6 +628,11 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
         raise IOError(
             f"Destination file {str(dest)} already exists. Delete or define new dest."
         )
+
+    LOGGER = CachingLogger(create_dir=True)
+    log_file_path = source.parent / _make_logfile_name("convert_tinydb_to_sqlite")
+    LOGGER.log_file_path = log_file_path
+
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
     writer = write_db(data_store=dstore)
     for id, data, is_completed in data_list:
@@ -647,6 +653,12 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
         else:
             writer.main(data, identifier=id)
 
+    # add a new log, recording this conversion
+    LOGGER.shutdown()
+    dstore.close()
+    dstore = DataStoreSqlite(source=dest, mode=APPEND)
+    dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
+    log_file_path.unlink()
     if lock_id is not None or dstore._lock_id:
         cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
         dstore.db.execute(cmnd, (lock_id,))
