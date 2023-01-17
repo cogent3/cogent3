@@ -246,7 +246,7 @@ def test_convert_tinydb_to_sqlite_error(tmp_dir):
     "orig,num_logs",
     (
         (DATA_DIR / "sample_locked.tinydb", 1),
-        (DATA_DIR.parent.parent / "doc" / "data" / "demo-locked.tinydb", 2),
+        (DATA_DIR / "sample_locked_w_log.tinydb", 2),
     ),
 )
 def test_convert_tinydbs_to_sqlite(tmp_dir, orig, num_logs):
