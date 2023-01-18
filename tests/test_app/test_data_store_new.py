@@ -25,6 +25,7 @@ from cogent3.app.data_store_new import (
     get_data_source,
     get_unique_id,
     load_record_from_json,
+    summary_not_completeds,
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
@@ -478,6 +479,22 @@ def test_summary_not_completed(full_dstore):
     got = full_dstore.summary_not_completed
     assert got.shape >= (1, 1)
     assert isinstance(got, Table)
+
+
+@pytest.mark.parametrize("use_dser", (False, True))
+def test_summary_not_completed_func(nc_objects, use_dser):
+    dstore = io_app.open_data_store(":memory:", mode="w")
+    writer = io_app.write_db(dstore)
+    deser = io_app.load_db().deserialiser if use_dser else None
+    for nc in nc_objects:
+        writer(nc)
+
+    got = summary_not_completeds(dstore, deserialise=deser)
+    assert isinstance(got, Table)
+    if use_dser:
+        assert got.shape[0] >= 1
+    else:
+        assert got.shape[0] == 0
 
 
 def test_describe(full_dstore):
