@@ -55,8 +55,8 @@ def _make_logfile_name(process):
     text = re.split(r"\s+\+\s+", str(process))
     parts = []
     for part in text:
-        if index := part.find("(") >= 0:
-            part = part[:index]
+        if part.find("(") >= 0:
+            part = part[: part.find("(")]
         parts.append(part)
     result = "-".join(parts)
     uid = str(uuid4())
