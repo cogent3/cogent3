@@ -232,47 +232,7 @@ class DataStoreABC(ABC):
     def summary_not_completed(self) -> TabularType:
         """returns a table summarising not completed results"""
         # detect last exception line
-        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
-        types = defaultdict(list)
-        indices = "type", "origin"
-        num_bytes = 0
-        for member in self.not_completed:
-            record = member.read()
-            if isinstance(record, bytes):
-                num_bytes += 1
-                continue
-            record = deserialise_object(record)
-            key = tuple(getattr(record, k, None) for k in indices)
-            match = err_pat.findall(record.message)
-            types[key].append([match[-1] if match else record.message, record.source])
-
-        header = list(indices) + ["message", "num", "source"]
-        if num_bytes == len(self.not_completed):
-            return Table(
-                header=header,
-                title="Cannot summarise not_completed as they are all bytes, "
-                "use an appropriate reader",
-            )
-
-        rows = []
-        maxtring = reprlib.aRepr.maxstring
-        reprlib.aRepr.maxstring = 45
-
-        for record in types:
-            messages, sources = list(zip(*types[record]))
-            messages = reprlib.repr(
-                ", ".join(m.splitlines()[-1] for m in set(messages))
-            )
-            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
-            row = list(record) + [
-                messages,
-                len(types[record]),
-                sources,
-            ]
-            rows.append(row)
-
-        reprlib.aRepr.maxstring = maxtring  # restoring original val
-        return Table(header=header, data=rows, title="not completed records")
+        return summary_not_completeds(self.not_completed)
 
     @property
     def describe(self) -> TabularType:
@@ -349,6 +309,57 @@ class DataMember(DataMemberABC):
     @property
     def unique_id(self):
         return self._unique_id
+
+
+def summary_not_completeds(
+    not_completed: list[DataMemberABC], deserialise: Optional[callable] = None
+) -> Table:
+    """
+    Parameters
+    ----------
+    not_completed
+        list of DataMember instances for notcompleted records
+    deserialise
+        a callable for converting not completed contents, the result of member.read() must be a json string
+    """
+    err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
+    types = defaultdict(list)
+    indices = "type", "origin"
+    num_bytes = 0
+    for member in not_completed:
+        record = member.read()
+        if deserialise:
+            record = deserialise(record)
+        if isinstance(record, bytes):
+            num_bytes += 1
+            continue
+        record = deserialise_object(record)
+        key = tuple(getattr(record, k, None) for k in indices)
+        match = err_pat.findall(record.message)
+        types[key].append([match[-1] if match else record.message, record.source])
+    header = list(indices) + ["message", "num", "source"]
+    if num_bytes == len(not_completed):
+        return Table(
+            header=header,
+            title="Cannot summarise not_completed as they are all bytes, "
+            "use an appropriate reader",
+        )
+
+    rows = []
+    maxtring = reprlib.aRepr.maxstring
+    reprlib.aRepr.maxstring = 45
+    for record in types:
+        messages, sources = list(zip(*types[record]))
+        messages = reprlib.repr(", ".join(m.splitlines()[-1] for m in set(messages)))
+        sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
+        row = list(record) + [
+            messages,
+            len(types[record]),
+            sources,
+        ]
+        rows.append(row)
+    reprlib.aRepr.maxstring = maxtring  # restoring original val
+    return Table(header=header, data=rows, title="not completed records")
 
 
 class DataStoreDirectory(DataStoreABC):
