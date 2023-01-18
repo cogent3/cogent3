@@ -235,14 +235,25 @@ class DataStoreABC(ABC):
         err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
         types = defaultdict(list)
         indices = "type", "origin"
+        num_bytes = 0
         for member in self.not_completed:
             record = member.read()
+            if isinstance(record, bytes):
+                num_bytes += 1
+                continue
             record = deserialise_object(record)
             key = tuple(getattr(record, k, None) for k in indices)
             match = err_pat.findall(record.message)
             types[key].append([match[-1] if match else record.message, record.source])
 
         header = list(indices) + ["message", "num", "source"]
+        if num_bytes == len(self.not_completed):
+            return Table(
+                header=header,
+                title="Cannot summarise not_completed as they are all bytes, "
+                "use an appropriate reader",
+            )
+
         rows = []
         maxtring = reprlib.aRepr.maxstring
         reprlib.aRepr.maxstring = 45

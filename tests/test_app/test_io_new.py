@@ -467,6 +467,17 @@ def test_write_read_db_not_completed(tmp_dir):
     assert got.to_rich_dict() == nc.to_rich_dict()
 
 
+def test_write_read_db_summary_not_completed(tmp_dir):
+    # should not fail, even if not completed content is compressed
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
+    writer = get_app("write_db", data_store=data_store)
+    writer.main(nc, identifier="blah")
+    assert isinstance(writer.data_store.summary_not_completed, Table)
+
+
 def test_write_db_parallel(tmp_dir, fasta_dir):
     """writing with overwrite in parallel should reset db"""
     dstore = open_data_store(fasta_dir, suffix="fasta")
