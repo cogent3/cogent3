@@ -66,7 +66,7 @@ class _AnnotationMixin:
                 result.append(annotation)
             if extend_query:
                 result.extend(
-                    annotation.get_annotations_matching(
+                    annotation.get_features_matching(
                         feature_type, name, extend_query=extend_query
                     )
                 )
@@ -361,6 +361,7 @@ class _Annotatable(_AnnotationMixin):
         from cogent3.core.sequence import Sequence
 
         if isinstance(self, Sequence):
+
             from cogent3.util.warning import deprecated
 
             deprecated(
@@ -370,7 +371,7 @@ class _Annotatable(_AnnotationMixin):
                 " 2023.3",
                 "method .get_by_annotation will be disconinued for Sequence objects",
             )
-        for annotation in self.get_annotations_matching(annotation_type, name):
+        for annotation in self.get_features_matching(annotation_type, name):
             try:
                 seq = self[annotation.map]
             except ValueError as msg:

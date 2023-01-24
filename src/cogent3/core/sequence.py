@@ -965,7 +965,7 @@ class Sequence(_Annotatable, SequenceI):
         annotations = []
         annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
         for annot_type in annot_types:
-            annotations += self.get_annotations_matching(
+            annotations += self.get_features_matching(
                 annot_type, extend_query=extend_query
             )
 
