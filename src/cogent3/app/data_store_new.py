@@ -351,7 +351,7 @@ def summary_not_completeds(
     for record in types:
         messages, sources = list(zip(*types[record]))
         messages = reprlib.repr(", ".join(m.splitlines()[-1] for m in set(messages)))
-        sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
+        sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources if s))
         row = list(record) + [
             messages,
             len(types[record]),

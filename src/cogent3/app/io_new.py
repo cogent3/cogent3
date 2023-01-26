@@ -450,7 +450,13 @@ class load_db:
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
         """returns deserialised object"""
-        data = identifier.read()
+        try:
+            data = identifier.read()
+        except AttributeError:
+            raise AttributeError(
+                f"{identifier} failed because its of type {type(identifier)}"
+            )
+
         # do we need to inject identifier attribute?
         result = self.deserialiser(data)
         if hasattr(result, "info"):
@@ -557,7 +563,7 @@ class write_tabular:
         return self.data_store.write(unique_id=identifier, data=output)
 
 
-@define_app(app_type=WRITER)
+@define_app(app_type=WRITER, skip_not_completed=False)
 class write_db:
     """Write serialised objects to a database instance."""
 
