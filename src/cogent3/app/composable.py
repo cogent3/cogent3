@@ -1420,9 +1420,7 @@ def _apply_to(
     for result in self.as_completed(
         inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
     ):
-        member = self.main(
-            data=result.obj, identifier=id_from_source(result.source)
-        )  # writers must return DataMember
+        member = self.main(data=result.obj, identifier=id_from_source(result.source))
         md5 = member.md5
         logger.log_message(str(member), label="output")
         if md5:

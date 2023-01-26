@@ -100,14 +100,12 @@ class TreeNode(object):
         """Returns new TreeNode object."""
         self.name = name
         self.name_loaded = name_loaded
-        if params is None:
-            params = {}
-        self.params = params
+        self.params = params or {}
         self.children = []
         if children is not None:
             self.extend(children)
         self._parent = parent
-        if (parent is not None) and not (self in parent.children):
+        if parent is not None and self not in parent.children:
             parent.append(self)
 
     # built-in methods and list interface support
@@ -143,10 +141,7 @@ class TreeNode(object):
 
     def compare_name(self, other):
         """Compares TreeNode by name"""
-        if self is other:
-            return True
-
-        return self.name == other.name
+        return True if self is other else self.name == other.name
 
     def compare_by_names(self, other):
         """Equality test for trees by name"""
