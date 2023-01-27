@@ -1566,7 +1566,7 @@ def _make_filter_func(aln):
         gap = "-"
 
     def func_str(x):
-        return gap not in "".join(x)
+        return gap not in "".join([str(s) for s in x])
 
     def func_arr(x):
         return (x != gap).all()
@@ -2973,8 +2973,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         aln = self.Class([["name1", "TTTTTTAAAA"], ["name2", "AAAATTTTTT"]])
         aln = aln[2:8]
         draw = aln.dotplot(show_progress=False)
-        expected = set([("name1", "TTTTAA"), ("name2", "AATTTT")])
-        got = {(s.name, s._seq) for s in (draw.seq1, draw.seq2)}
+        expected = {("name1", "TTTTAA"), ("name2", "AATTTT")}
+        got = {(s.name, s._seq.value) for s in (draw.seq1, draw.seq2)}
         self.assertEqual(got, expected)
 
     def test_to_moltype_annotations(self):

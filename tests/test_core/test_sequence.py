@@ -5,6 +5,7 @@
 import json
 import os
 import re
+import pytest
 
 from pickle import dumps
 from unittest import TestCase, main
@@ -35,6 +36,7 @@ from cogent3.core.sequence import (
     ProteinSequence,
     RnaSequence,
     Sequence,
+    SeqView,
 )
 from cogent3.util.misc import get_object_provenance
 
@@ -83,7 +85,7 @@ class SequenceTests(TestCase):
         """Sequence init with other seq should preserve name and info."""
         r = self.RNA("UCAGG", name="x", info={"z": 3})
         s = Sequence(r)
-        self.assertEqual(s._seq, "UCAGG")
+        self.assertEqual(s._seq.value, "UCAGG")
         self.assertEqual(s.name, "x")
         self.assertEqual(s.info.z, 3)
 
@@ -104,7 +106,7 @@ class SequenceTests(TestCase):
         self.assertIsNot(got_annot2, annot2)
         self.assertEqual(got.name, s.name)
         self.assertEqual(got.info, s.info)
-        self.assertEqual(got._seq, s._seq)
+        self.assertEqual(got._seq.value, s._seq.value)
         self.assertEqual(got.moltype, s.moltype)
         annot1_slice = str(annot1.get_slice())
         annot2_slice = str(annot2.get_slice())
@@ -1374,6 +1376,152 @@ class ModelSequenceTests(SequenceTests):
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1})
         c = seq.counts(allow_gap=True)
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1, "-": 1})
+
+simple_slices = [
+    slice(None, None, 1),
+    slice(None, 3, None),
+    slice(1, None, None),
+    slice(1, 3, None),
+    slice(None, None, None),
+    slice(1, 3, 1),
+]
+
+
+@pytest.mark.parametrize("slice", simple_slices, scope="session")
+def test_seqview_defaults(slice):
+    seq_data = "actgaagtgagatata"
+    sv = SeqView(seq_data)
+    assert sv[slice].value == seq_data[slice]
+
+
+@pytest.mark.parametrize(
+    "codon_pos_slices",
+    (
+        slice(0, None, 3),
+        slice(1, None, 3),
+        slice(2, None, 3),
+    ),
+)
+def test_seqview_codon_pos(codon_pos_slices):
+    seq_data = "actgaag"
+    sv = SeqView(seq_data)
+    assert sv[codon_pos_slices].value == seq_data[codon_pos_slices]
+
+
+@pytest.mark.parametrize(
+    "neg_stop_slice",
+    (
+        slice(0, -3, None),
+        slice(1, -3, 1),
+        slice(None, -3, None),
+        slice(None, -3, 1),
+    ),
+)
+def test_seqview_neg_stop(neg_stop_slice):
+    "e.g. for removing the stop codon"
+    seq_data = "actgaacagttga"
+    sv = SeqView(seq_data)
+    assert sv[neg_stop_slice].value == seq_data[neg_stop_slice]
+
+
+@pytest.mark.parametrize(
+    "neg_start_slice",
+    (
+        slice(-3, 10, None),
+        slice(-3, None, 1),
+        slice(-3, None, None),
+        slice(-3, 10, 1),
+    ),
+)
+def test_seqview_neg_start(neg_start_slice):
+    seq_data = "actgaacagttga"
+    sv = SeqView(seq_data)
+    assert sv[neg_start_slice].value == seq_data[neg_start_slice]
+
+
+@pytest.mark.parametrize(
+    "neg_start_slice",
+    (
+        slice(None, None, -1),
+        slice(None, None, -2),
+        slice(None, None, -3),
+        slice(10, 0, -1),
+        slice(10, None, -1),
+        slice(None, 0, -1),
+    ),
+)
+def test_seqview_neg_step(neg_start_slice):
+    seq_data = "actgaacagttga"
+    sv = SeqView(seq_data)
+    s = slice(0, 6, -1)
+    assert sv[neg_start_slice].value == seq_data[neg_start_slice]
+
+
+@pytest.mark.parametrize(
+    "sub_slices",
+    (
+        (slice(None, None, None), slice(None, None, None)),
+        (slice(None, None, 1), slice(2, 6, 1)),
+        (slice(2, 6, 1), slice(None, None, None)),
+        (slice(2, 6, 1), slice(None, None, 1)),
+        (slice(1, 6, 1), slice(2, 4, 1)),
+        (slice(2, 4, 1), slice(1, 6, 1)),
+        (slice(1, 9, 1), slice(None, None, 3)),
+        (slice(1, 9, 3), slice(1, 3, 2)),
+    ),
+    scope="session",
+)
+def test_subslice(sub_slices):
+    seq_data = "actgaattg"
+    sv = SeqView(seq_data)
+    slice_1, slice_2 = sub_slices
+    assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
+    "sub_slices_triple",
+    (
+        (slice(None, None, 1), slice(None, None, 1), slice(None, None, 1)),
+        (slice(None, 9, 1), slice(None, 8, 1), slice(None, 7, 1)),
+        (slice(1, 9, 1), slice(2, 8, 1), slice(3, 7, 1)),
+        (slice(1, 9, 1), slice(2, 8, 1), slice(3, 9, 1)),
+        (slice(None, None, 1), slice(None, None, 2), slice(None, None, 3)),
+        (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, 3)),
+    ),
+)
+def test_subslice_3(sub_slices_triple):
+    seq_data = "actgaattg"
+    sv = SeqView(seq_data)
+    slice_1, slice_2, slice_3 = sub_slices_triple
+    assert sv[slice_1][slice_2][slice_3].value == seq_data[slice_1][slice_2][slice_3]
+
+
+@pytest.mark.parametrize(
+    "slice_tuple",
+    (
+        (slice(None, None, None), slice(None, None, None)),
+        (slice(None, None, 1), slice(2, 6, 1)),
+        (slice(2, 6, 1), slice(None, None, None)),
+        (slice(2, 6, 1), slice(None, None, 1)),
+        (slice(1, 6, 1), slice(2, 4, 1)),
+        (slice(2, 4, 1), slice(1, 6, 1)),
+        (slice(1, 9, 1), slice(None, None, 3)),
+        (slice(1, 9, 3), slice(1, 3, 2)),
+    ),
+)
+def test_seqview_len(slice_tuple):
+    seq_data = "actgaattg"
+    sv = SeqView(seq_data)
+    slice_1, slice_2 = slice_tuple
+    assert len(sv[slice_1]) == len(seq_data[slice_1])
+    assert len(sv[slice_1][slice_2]) == len(seq_data[slice_1][slice_2])
+
+
+def test_seqview_replace():
+    seq_data = "actgaattg"
+    sv = SeqView(seq_data)
+    assert sv.replace("a", "u").value == seq_data.replace("a", "u")
+    assert sv.replace("a", "u").replace("u", "a").value == seq_data
 
 
 # run if called from command-line

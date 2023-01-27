@@ -61,6 +61,7 @@ __credits__ = [
     "Gavin Huttley",
     "Matthew Wakefield",
     "Daniel McDonald",
+    "Katherine Caley",
 ]
 __license__ = "BSD-3"
 __version__ = "2022.10.31a1"
@@ -91,7 +92,7 @@ class SequenceI(object):
 
     def __str__(self):
         """__str__ returns self._seq unmodified."""
-        return self._seq
+        return self._seq.value
 
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
@@ -152,11 +153,11 @@ class SequenceI(object):
         This is a string method, nothing to do with translating into a
         protein sequence.
         """
-        return self._seq.translate(*args, **kwargs)
+        return self._seq.value.translate(*args, **kwargs)
 
     def count(self, item):
         """count() delegates to self._seq."""
-        return self._seq.count(item)
+        return self._seq.value.count(item)
 
     def counts(
         self,
@@ -183,11 +184,13 @@ class SequenceI(object):
 
         """
         try:
-            data = self._seq
+            data = self._seq.value
         except AttributeError:
             data = self._data
 
-        not_array = isinstance(data, str)
+        not_array = isinstance(data, str) or isinstance(
+            data, SeqView
+        )
 
         if motif_length == 1:
             counts = CategoryCounter(data)
@@ -230,23 +233,23 @@ class SequenceI(object):
 
     def __lt__(self, other):
         """compares based on the sequence string."""
-        return self._seq < str(other)
+        return self._seq.value < str(other)
 
     def __eq__(self, other):
         """compares based on the sequence string."""
-        return self._seq == str(other)
+        return self._seq.value == str(other)
 
     def __ne__(self, other):
         """compares based on the sequence string."""
-        return self._seq != str(other)
+        return self._seq.value != str(other)
 
     def __hash__(self):
         """__hash__ behaves like the sequence string for dict lookup."""
-        return hash(self._seq)
+        return hash(self._seq.value)
 
     def __contains__(self, other):
         """__contains__ checks whether other is in the sequence string."""
-        return other in self._seq
+        return other in self._seq.value
 
     def shuffle(self):
         """returns a randomized copy of the Sequence object"""
@@ -800,7 +803,7 @@ class Sequence(_Annotatable, SequenceI):
         self.name = name
         orig_seq = seq
         if isinstance(seq, Sequence):
-            seq = seq._seq
+            seq = seq._seq.value
         elif isinstance(seq, ArraySequence):
             seq = str(seq)
         elif isinstance(seq, bytes):
@@ -814,10 +817,15 @@ class Sequence(_Annotatable, SequenceI):
         seq = self._seq_filter(seq)
         if not preserve_case and not seq.isupper():
             seq = seq.upper()
-        self._seq = seq
+        if isinstance(seq, SeqView):
+            self._seq = seq
+        elif isinstance(seq, str):
+            self._seq = SeqView(seq)
 
         if check:
-            self.moltype.verify_sequence(self._seq, gaps_allowed, wildcards_allowed)
+            self.moltype.verify_sequence(
+                self._seq.value, gaps_allowed, wildcards_allowed
+            )
 
         if not isinstance(info, InfoClass):
             try:
@@ -976,9 +984,9 @@ class Sequence(_Annotatable, SequenceI):
         i = 0
         segments = []
         for b, e in region.get_coordinates():
-            segments.extend((self._seq[i:b], mask_char * (e - b)))
+            segments.extend((self._seq[i:b].value, mask_char * (e - b)))
             i = e
-        segments.append(self._seq[i:])
+        segments.append(self._seq[i:].value)
 
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
@@ -986,7 +994,9 @@ class Sequence(_Annotatable, SequenceI):
         new.annotations = self.annotations[:]
         return new
 
-    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
+    def gapped_by_map_segment_iter(
+        self, map, allow_gaps=True, recode_gaps=False
+    ):
         for span in map.spans:
             if span.lost:
                 if allow_gaps:
@@ -995,7 +1005,7 @@ class Sequence(_Annotatable, SequenceI):
                 else:
                     raise ValueError(f"gap(s) in map {map}")
             else:
-                seg = self._seq[span.start : span.end]
+                seg = self._seq[span.start : span.end].value
                 if span.reverse:
                     complement = self.moltype.complement
                     seg = [complement(base) for base in seg[::-1]]
@@ -1133,7 +1143,9 @@ class Sequence(_Annotatable, SequenceI):
         gapless = []
         segments = []
         nongap = re.compile(f"([^{re.escape('-')}]+)")
-        for match in nongap.finditer(self._seq):
+        for match in nongap.finditer(
+            self._seq.value
+        ):
             segments.append(match.span())
             gapless.append(match.group())
         map = Map(segments, parent_length=len(self)).inverse()
@@ -1179,7 +1191,7 @@ class Sequence(_Annotatable, SequenceI):
             # assume already a regex
             pass
 
-        pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        pos = [m.span() for m in re.finditer(pattern, self._seq.value)]
         if not pos:
             return []
 
@@ -1287,7 +1299,7 @@ class NucleicAcidSequence(Sequence):
         if not allow_partial and not divisible_by_3:
             raise ValueError("seq length not divisible by 3")
 
-        if divisible_by_3 and codons and gc.is_stop(codons[-3:]):
+        if divisible_by_3 and codons and gc.is_stop(codons[-3:].value):
             codons = codons[:-3]
 
         return self.__class__(codons, name=self.name, info=self.info)
@@ -1312,7 +1324,7 @@ class NucleicAcidSequence(Sequence):
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
-            orig_codon = self._seq[posn : posn + 3]
+            orig_codon = self._seq[posn : posn + 3].value
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:
@@ -1387,6 +1399,60 @@ class NucleicAcidSequence(Sequence):
         obs = template.wrap(obs)
         cat = CategoryCounts(obs)
         return cat.G_fit()
+
+class SeqView:
+    __slots__ = ("seq", "start", "stop", "step", "replacements")
+
+    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
+        self.seq = seq
+        self.start = start or 0
+        self.stop = len(seq) if stop is None else stop
+        self.step = step or 1
+        self.replacements = []
+
+    def __getitem__(self, slice: slice):
+        step = self.step if slice.step is None else slice.step
+        start = slice.start if slice.start is not None else 0 if step > 0 else -1
+        stop = slice.stop if slice.stop is not None else len(self) if step > 0 else -len(self) -1
+
+        return self.__class__(
+            self.seq,
+            start=self.start + start * abs(self.step),
+            stop=min(self.stop, self.start + stop * abs(self.step)),
+            step=self.step * step,
+        )
+
+    @property
+    def value(self):
+        start, stop, step = self.start, self.stop, self.step
+
+        value = self.seq[start:stop:step]
+        for old, new in self.replacements:
+            value = value.replace(old, new, -1)
+        return value
+
+    def replace(self, old, new):
+        if len(old) == len(new):
+            self.replacements.append((old, new))
+            return self
+        else:
+            raise ValueError("old and new must be the same length")
+
+    def __len__(self):
+        return abs((self.start - self.stop) // abs(self.step))
+
+    def __iter__(self):
+        return iter(self.value)
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    def __repr__(self) -> str:
+        seq_str = self.seq
+        if len(seq_str) > 15:
+            seq_str = f"{seq_str[:10]}...{seq_str[-5:]}"
+        return f"{self.__class__.__name__}(seq={seq_str!r}, start={self.start}, stop={self.stop}, step={self.step})"
+
 
 
 class DnaSequence(NucleicAcidSequence):
@@ -1847,7 +1913,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet ** 3,
+            alphabet=self.alphabet**3,
         )
 
     def complement(self):
