@@ -301,7 +301,8 @@ class DataStoreSqlite(DataStoreABC):
         locked = result[0]["lock_pid"] if result else None
         if locked and self.mode is OVERWRITE:
             raise IOError(
-                "You are trying to OVERWRITE a database which is locked. Use APPEND mode or unlock"
+                f"You are trying to OVERWRITE {str(self.source)!r} which is "
+                "locked. Use APPEND mode or unlock."
             )
 
         if result:

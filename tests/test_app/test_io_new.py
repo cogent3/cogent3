@@ -570,3 +570,9 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     suffix = f".{suffix}" if suffix else suffix
     expect = f"blah{suffix}"
     assert m.unique_id == expect
+
+
+def test_open_suffix_dirname(tmp_dir):
+    outpath = tmp_dir / "melsubgroup_aln_flydivas_v1.2"
+    outpath.mkdir(exist_ok=True)
+    dstore = open_data_store(outpath, suffix="txt")

@@ -140,16 +140,17 @@ def open_data_store(
     if not isinstance(suffix, (str, type(None))):
         raise ValueError(f"suffix {type(suffix)} not one of string or None")
 
-    kwargs = dict(limit=limit, mode=mode, suffix=suffix)
+    kwargs = {"limit": limit, "mode": mode, "suffix": suffix, **kwargs}
     base_path = Path(base_path)
     base_path = (
         base_path if base_path.name == ":memory:" else base_path.expanduser().absolute()
     )
-    if base_path.suffix == ".tinydb":
+    if base_path.is_dir():
+        ds_suffix = None
+    elif base_path.suffix == ".tinydb":
         kwargs["suffix"] = "json"
         kwargs.pop("mode")
-
-    if base_path.suffix == ".sqlitedb" or base_path.name == _MEMORY:
+    elif base_path.suffix == ".sqlitedb" or base_path.name == _MEMORY:
         ds_suffix = ".sqlitedb"
         kwargs.pop("suffix")
     elif zipfile.is_zipfile(base_path):
@@ -158,6 +159,7 @@ def open_data_store(
     elif base_path.suffix:
         ds_suffix = base_path.suffix
     else:
+        # triggered when mode="w"
         ds_suffix = None
 
     if base_path.name == _MEMORY and mode is READONLY:
