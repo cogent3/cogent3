@@ -573,6 +573,8 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
 
 
 def test_open_suffix_dirname(tmp_dir):
+    # open_data_store correctly identifies this as a directory data store
     outpath = tmp_dir / "melsubgroup_aln_flydivas_v1.2"
     outpath.mkdir(exist_ok=True)
     dstore = open_data_store(outpath, suffix="txt")
+    assert isinstance(dstore, DataStoreDirectory)
