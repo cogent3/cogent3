@@ -3,6 +3,6 @@ pillow==9.4.0
 psutil==5.9.4
 scipy==1.10.0
 nox==2022.11.21
-plotly==5.12.0
+plotly==5.13.0
 typing_extensions>=3.7
 .[dev]
