@@ -274,9 +274,9 @@ class SequenceCollectionBaseTests(object):
         x = self.Class(self.a)
         y = self.Class(self.b)
         z = self.Class(self.c)
-        assert_equal(x, exp)
-        assert_equal(z, exp)
-        assert_equal(y, exp)
+        assert x == exp
+        assert z == exp
+        assert y == exp
 
     test_init_aln.__doc__ = Class.__name__ + test_init_aln.__doc__
 

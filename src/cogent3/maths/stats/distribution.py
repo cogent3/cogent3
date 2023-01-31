@@ -6,6 +6,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
 from scipy.stats import f, norm, t
+from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.special import (
     MACHEP,
@@ -53,7 +54,7 @@ def z_low(x):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "z_low", "2022.12", "use scipy.stats.norm.cdf")
+    discontinued("function", "z_low", "2023.04.02", "use scipy.stats.norm.cdf")
 
     y = x * SQRTH
     z = abs(y)  # distribution is symmetric
@@ -75,7 +76,7 @@ def z_high(x):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "z_high", "2022.12", "use scipy.stats.norm.sf")
+    discontinued("function", "z_high", "2023.04.02", "use scipy.stats.norm.sf")
 
     y = x * SQRTH
     z = abs(y)
@@ -109,7 +110,7 @@ def chi_low(x, df):  # pragma: no cover
     from cogent3.util.warning import discontinued
 
     discontinued(
-        "function", "chi_low", "2022.12", "use scipy.stats.distributions.chi2.cdf"
+        "function", "chi_low", "2023.04.02", "use scipy.stats.distributions.chi2.cdf"
     )
 
     x = fix_rounding_error(x)
@@ -134,7 +135,7 @@ def chi_high(x, df):  # pragma: no cover
     from cogent3.util.warning import discontinued
 
     discontinued(
-        "function", "chi_high", "2022.12", "use scipy.stats.distributions.chi2.sf"
+        "function", "chi_high", "2023.04.02", "use scipy.stats.distributions.chi2.sf"
     )
 
     x = fix_rounding_error(x)
@@ -159,7 +160,7 @@ def t_low(t, df):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "t_low", "2022.12", "use scipy.stats.t.cdf")
+    discontinued("function", "t_low", "2023.04.02", "use scipy.stats.t.cdf")
 
     if df < 1:
         raise ValueError(f"t_low: df must be >= 1 (got {df}).")
@@ -179,7 +180,7 @@ def t_high(t, df):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "t_high", "2022.12", "use scipy.stats.t.sf")
+    discontinued("function", "t_high", "2023.04.02", "use scipy.stats.t.sf")
 
     if df < 1:
         raise ValueError(f"t_high: df must be >= 1 (got {df}).")
@@ -225,7 +226,7 @@ def binomial_high(successes, trials, prob):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "binomial_high", "2022.12", "use scipy.stats.binom.sf")
+    discontinued("function", "binomial_high", "2023.04.02", "use scipy.stats.binom.sf")
 
     if -1 <= successes < 0:
         return 1
@@ -237,7 +238,7 @@ def binomial_low(successes, trials, prob):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "binomial_low", "2022.12", "use scipy.stats.binom.cdf")
+    discontinued("function", "binomial_low", "2023.04.02", "use scipy.stats.binom.cdf")
 
     return bdtr(successes, trials, prob)
 
@@ -270,9 +271,11 @@ def f_low(df1, df2, x):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "f_low", "2022.12", "use scipy.stats.f.cdf(x, df1, df2)")
+    discontinued(
+        "function", "f_low", "2023.04.02", "use scipy.stats.f.cdf(x, df1, df2)"
+    )
 
-    return fdtr(df1, df2, x)
+    return f.cdf(df1, df2, x)
 
 
 def f_high(df1, df2, x):  # pragma: no cover
@@ -285,9 +288,11 @@ def f_high(df1, df2, x):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "f_high", "2022.12", "use scipy.stats.f.sf(x, df1, df2)")
+    discontinued(
+        "function", "f_high", "2023.04.02", "use scipy.stats.f.sf(x, df1, df2)"
+    )
 
-    return fdtrc(df1, df2, x)
+    return f.sf(df1, df2, x)
 
 
 def fprob(dfn, dfd, F, side="right"):
@@ -443,7 +448,7 @@ def fdtr(a, b, x):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "fdtr", "2022.12", "use scipy.stats.f.cdf(x, df1, df2)")
+    discontinued("function", "fdtr", "2023.04.02", "use scipy.stats.f.cdf(x, df1, df2)")
 
     if min(a, b) < 1:
         raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
@@ -462,7 +467,7 @@ def fdtrc(a, b, x):  # pragma: no cover
 
     from cogent3.util.warning import discontinued
 
-    discontinued("function", "fdtrc", "2022.12", "use scipy.stats.f.sf(x, df1, df2)")
+    discontinued("function", "fdtrc", "2023.04.02", "use scipy.stats.f.sf(x, df1, df2)")
 
     if min(a, b) < 1:
         raise ValueError("F a and b (degrees of freedom) must both be >= 1.")
@@ -495,7 +500,10 @@ def chdtri(df, y):  # pragma: no cover
     from cogent3.util.warning import discontinued
 
     discontinued(
-        "function", "chdtri", "2022.12", "use scipy.stats.distributions.chi2.isf"
+        "function",
+        "chdtri",
+        "2023.04.02",
+        "use scipy.stats.distributions.chi2.isf(y, df), NOTE: order of arguments is reversed.",
     )
 
     y = fix_rounding_error(y)
@@ -639,7 +647,7 @@ def theoretical_quantiles(n, dist, *args):
     dist = dist.lower()
     funcs = dict(
         normal=ndtri,
-        chisq=chdtri,
+        chisq=chi2.isf,
         t=stdtri,
     )
 
@@ -654,5 +662,10 @@ def theoretical_quantiles(n, dist, *args):
 
     if not args:
         return array([func(p) for p in probs])
+
+    if (
+        dist == "chisq"
+    ):  # to use scipy.stats.distributions.chi2.isf we need to reverse the order of the arguments
+        return array([func(*((p,) + args)) for p in probs])
 
     return array([func(*(args + (p,))) for p in probs])

@@ -299,7 +299,6 @@ def test_bruteforce(aseq1, aseq2):
     expect[3].append((segment(1, 6), segment(4, 9)))
     expect[10].append((segment(2, 6), segment(12, 16)))
     assert got.paths == expect.paths
-    return got
 
 
 def test_find_matched_paths_2seq(aseq1, aseq2):
