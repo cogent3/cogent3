@@ -1041,7 +1041,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def gettype(self):  # pragma: no cover
         """Return the sequence type."""
-        deprecated("method", "gettype", "get_type", "2023.6", "pep8", stack_level=1)
+        deprecated("method", "gettype", "get_type", "2023.6", "pep8")
         return self.get_type()
 
     def get_type(self):
@@ -1056,7 +1056,6 @@ class Sequence(_Annotatable, SequenceI):
             "resolved_ambiguities",
             "2023.6",
             "pep8",
-            stack_level=1,
         )
         return self.resolved_ambiguities()
 

@@ -1,5 +1,6 @@
 """Generally useful utility classes and methods.
 """
+import inspect
 import os
 import re
 import warnings
@@ -930,7 +931,7 @@ def get_object_provenance(obj):
     # algorithm inspired by Greg Baacon's answer to
     # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
     # -name-of-an-object-in-python
-    if isinstance(obj, type):
+    if isinstance(obj, type) or inspect.isfunction(obj):
         mod = obj.__module__
         name = obj.__name__
     else:
@@ -946,7 +947,7 @@ def get_object_provenance(obj):
 
 def extend_docstring_from(source, pre=False):
     def docstring_inheriting_decorator(dest):
-        parts = [source.__doc__, dest.__doc__ or ""]
+        parts = [source.__doc__ or "", dest.__doc__ or ""]
         # trim leading/trailing blank lines from parts
         for i, part in enumerate(parts):
             part = part.split("\n")
@@ -1014,4 +1015,12 @@ def get_setting_from_environ(environ_var, params_types):
 
 def in_jupyter() -> bool:
     """whether code is being executed within a jupyter notebook"""
-    return callable(globals().get("get_ipython"))
+    val = True
+    try:
+        # primitive approach, just check whether the following function
+        # is in the namespace
+        get_ipython
+    except NameError:
+        val = False
+
+    return val

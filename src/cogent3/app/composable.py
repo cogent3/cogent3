@@ -1,7 +1,6 @@
 import inspect
 import json
 import os
-import pathlib
 import re
 import textwrap
 import time
@@ -11,7 +10,9 @@ import types
 from copy import deepcopy
 from enum import Enum
 from functools import wraps
-from typing import Tuple
+from pathlib import Path
+from typing import Any, Generator, Tuple
+from uuid import uuid4
 
 from scitrack import CachingLogger
 
@@ -25,6 +26,7 @@ from cogent3.util.misc import (
 )
 from cogent3.util.warning import discontinued
 
+from ..util.warning import discontinued
 from .data_store import (
     IGNORE,
     OVERWRITE,
@@ -32,8 +34,8 @@ from .data_store import (
     SKIP,
     DataStoreMember,
     WritableDirectoryDataStore,
-    get_data_source,
 )
+from .data_store_new import DataMember, get_data_source, get_unique_id
 
 
 __author__ = "Gavin Huttley"
@@ -50,13 +52,15 @@ _builtin_seqs = list, set, tuple
 
 
 def _make_logfile_name(process):
-    text = str(process)
-    text = re.split(r"\s+\+\s+", text)
-    parts = [part[: part.find("(")] for part in text]
+    text = re.split(r"\s+\+\s+", str(process))
+    parts = []
+    for part in text:
+        if part.find("(") >= 0:
+            part = part[: part.find("(")]
+        parts.append(part)
     result = "-".join(parts)
-    pid = os.getpid()
-    result = f"{result}-pid{pid}.log"
-    return result
+    uid = str(uuid4())
+    return f"{result}-{uid[:8]}.log"
 
 
 def _get_origin(origin):
@@ -82,7 +86,10 @@ class NotCompleted(int):
         # todo this approach to caching persistent arguments for reconstruction
         # is fragile. Need an inspect module based approach
         origin = _get_origin(origin)
-        source = get_data_source(source)
+        try:
+            source = get_data_source(source)
+        except Exception:
+            source = None
         d = locals()
         d = {k: v for k, v in d.items() if k != "cls"}
         result = int.__new__(cls, False)
@@ -395,7 +402,7 @@ class Composable(ComposableType):  # pragma: no cover
                 )
 
             if not logger.log_file_path:
-                src = pathlib.Path(self.data_store.source)
+                src = Path(self.data_store.source)
                 logger.log_file_path = str(src.parent / _make_logfile_name(self))
 
             log_file_path = str(logger.log_file_path)
@@ -418,9 +425,7 @@ class Composable(ComposableType):  # pragma: no cover
         # be logged
         inputs = {}
         for m in dstore:
-            input_id = pathlib.Path(
-                m if isinstance(m, DataStoreMember) else get_data_source(m)
-            )
+            input_id = Path(m if isinstance(m, DataStoreMember) else get_data_source(m))
             suffixes = input_id.suffixes
             input_id = input_id.name.replace("".join(suffixes), "")
             inputs[input_id] = m
@@ -452,7 +457,7 @@ class Composable(ComposableType):  # pragma: no cover
                 else:
                     input_id = get_data_source(result)
                     outcome = result
-                input_id = pathlib.Path(pathlib.Path(input_id))
+                input_id = Path(input_id)
                 suffixes = input_id.suffixes
                 input_id = input_id.name.replace("".join(suffixes), "")
             elif process is not self:
@@ -935,19 +940,79 @@ def _new(klass, *args, **kwargs):
     return obj
 
 
+class source_proxy:
+    __slots__ = ("_obj", "_src", "_uuid")
+
+    def __init__(self, obj: Any = None) -> None:
+        self._obj = obj
+        self._src = obj
+        self._uuid = uuid4()
+
+    def __hash__(self):
+        return hash(self._uuid)
+
+    @property
+    def obj(self):
+        return self._obj
+
+    def set_obj(self, obj):
+        self._obj = obj
+
+    @property
+    def source(self):
+        """origin of this object, defaults to a random uuid"""
+        return self._src
+
+    @source.setter
+    def source(self, src: Any):
+        # need to check whether src is hashable, how to cope if it isn't?
+        # might need to make this instance hashable perhaps using a uuid?
+        self._src = src
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._obj, name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name.startswith("_"):
+            super().__setattr__(name, value)
+        else:
+            setattr(self._obj, name, value)
+
+    def __bool__(self):
+        return bool(self._obj)
+
+    def __repr__(self):
+        return self.obj.__repr__()
+
+    def __str__(self):
+        return self.obj.__str__()
+
+    def __eq__(self, other):
+        return self.obj.__eq__(other)
+
+    def __len__(self):
+        return self.obj.__len__()
+
+    # pickling induces infinite recursion on python 3.9/3.10
+    # only on Windows, so implementing the following methods explicitly
+    def __getstate__(self):
+        return self._obj, self._src, self._uuid
+
+    def __setstate__(self, state):
+        self._obj, self._src, self._uuid = state
+
+
 def _call(self, val, *args, **kwargs):
-    # logic for trapping call to main
-
     if val is None:
-        val = NotCompleted("BUG", self, "unexpected input value None", source="unknown")
+        val = NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
-    if isinstance(val, NotCompleted):
+    if isinstance(val, NotCompleted) and self._skip_not_completed:
         return val
-
-    # todo we should get the source information from val here
 
     if self.app_type is not LOADER and self.input:  # passing to connected app
         val = self.input(val, *args, **kwargs)
+        if isinstance(val, NotCompleted) and self._skip_not_completed:
+            return val
 
     type_checked = self._validate_data_type(val)
     if not type_checked:
@@ -959,17 +1024,14 @@ def _call(self, val, *args, **kwargs):
         result = NotCompleted("ERROR", self, traceback.format_exc(), source=val)
 
     if result is None:
-        result = NotCompleted(
-            "BUG", self, "unexpected output value None", source="unknown"
-        )
-
+        result = NotCompleted("BUG", self, "unexpected output value None", source=val)
     return result
 
 
 def _validate_data_type(self, data):
     """checks data class name matches defined compatible types"""
     # todo when move to python 3.8 define protocol checks for the two singular types
-    if isinstance(data, NotCompleted):
+    if isinstance(data, NotCompleted) and self._skip_not_completed:
         return data
 
     if not self._data_types or self._data_types & {
@@ -978,10 +1040,14 @@ def _validate_data_type(self, data):
     }:
         return True
 
-    if isinstance(data, _builtin_seqs) and len(data):
-        data = next(iter(data))
-    elif isinstance(data, _builtin_seqs):
-        return NotCompleted("ERROR", self, message=f"empty data", source=data)
+    if isinstance(data, source_proxy):
+        data = data.obj
+
+    if isinstance(data, _builtin_seqs):
+        if len(data):
+            data = next(iter(data))
+        else:
+            return NotCompleted("ERROR", self, message="empty data", source=data)
 
     class_name = data.__class__.__name__
     valid = class_name in self._data_types
@@ -1034,7 +1100,9 @@ def _class_from_func(func):
     return result
 
 
-def define_app(klass=None, *, app_type: AppType = GENERIC):
+def define_app(
+    klass=None, *, app_type: AppType = GENERIC, skip_not_completed: bool = True
+):
     """decorator for building callable apps
 
     Parameters
@@ -1044,16 +1112,19 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
         class with the function bound as a static method.
     app_type
         what type of app, typically you just want GENERIC.
+    skip_not_completed
+        if True (default), NotCompleted instances are returned without being
+        passed to the app.main() method.
 
     Notes
     -----
 
     Instances of ``cogent3`` apps are callable. If an exception occurs,
     the app returns a ``NotCompleted`` instance with logging information.
-    Apps defined with app_type LOADER, GENERIC or WRITER can be "composed" (summed together)
-    to produce a single callable that sequentially invokes the composed
-    apps. For example, the independent usage of app instances
-    ``app1`` and ``app2`` as
+    Apps defined with app_type ``LOADER``, ``GENERIC`` or ``WRITER`` can be
+    "composed" (summed together) to produce a single callable that
+    sequentially invokes the composed apps. For example, the independent
+    usage of app instances ``app1`` and ``app2`` as
 
     >>> app2(app1(data))
 
@@ -1086,6 +1157,13 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
     Overlap between the return type hint and first argument hint is required
     for two apps to be composed together.
 
+    ``define_app`` adds a ``__call__`` method which checks an input value prior
+    to passing it to ``app.main()`` as a positional argument. The data checking
+    results in ``NotCompleted`` being returned immediately, unless
+    ``skip_not_completed==False``. If the input value type is consistent with
+    the type hint on the first argument of main it is passed to ``app.main()``.
+    If it does not match, a new ``NotCompleted`` instance is returned.
+
     An example app definition.
 
     >>> from cogent3.app.composable import define_app
@@ -1110,7 +1188,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
     ``drop_bad`` is a composable app with ``app_type=GENERIC``. The input
     data must be a sequence alignment instance. It returns the same type,
     which is also serialisable.  (If invalid input data is provided a
-    ``NoteCompleted`` instance is returned.)
+    ``NotCompleted`` instance is returned.)
 
     You can also decorate functions. In that case, they will be converted into
     a class with the same name as the original function. The function itself is
@@ -1130,7 +1208,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
     ...                                 )
 
     ``omit_seqs`` is now an app, allowing creating different variants which
-    can be composed as per ones defined via a class
+    can be composed as per ones defined via a class.
 
     >>> omit_bad = omit_seqs(quantile=0.95)
 
@@ -1139,7 +1217,8 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
 
     if hasattr(klass, "app_type"):
         raise TypeError(
-            f"The class {klass.__name__!r} is already decorated, avoid using inheritance from a decorated class."
+            f"The class {klass.__name__!r} is already decorated, avoid using "
+            "inheritance from a decorated class."
         )
 
     app_type = AppType(app_type)
@@ -1148,25 +1227,20 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
     def wrapped(klass):
         if inspect.isfunction(klass):
             klass = _class_from_func(klass)
-
         if not inspect.isclass(klass):
             raise ValueError(f"{klass} is not a class")
 
-        # check if user defined these methods
-        method_list = [
-            "__call__",
-            "__repr__",
-            "__str__",
-            "__new__",
-            "_validate_data_type",
-        ]
-        excludes = ["__add__", "disconnect", "apply_to"]
+        excludes = []
+        if not composable:
+            excludes = ["__add__", "disconnect"]
+        if app_type is not WRITER:
+            excludes.extend(["apply_to", "set_logger"])
+        method_list = [item for item in __mapping if item not in excludes] + ["__str__"]
+        # check if user defined input for composable
         if composable and getattr(klass, "input", None):
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
-        elif composable:
-            method_list.extend(excludes)
 
         for meth in method_list:
             # make sure method not defined by user before adding
@@ -1183,6 +1257,7 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
         setattr(klass, "_data_types", arg_hints)
         setattr(klass, "_return_types", return_hint)
         setattr(klass, "app_type", app_type)
+        setattr(klass, "_skip_not_completed", skip_not_completed)
 
         if app_type is not LOADER:
             setattr(klass, "input", None)
@@ -1193,28 +1268,30 @@ def define_app(klass=None, *, app_type: AppType = GENERIC):
 
         # register this app
         __app_registry[get_object_provenance(klass)] = composable
-
         return klass
 
     return wrapped(klass) if klass else wrapped
 
 
-def is_composable(obj):
-    """checks whether obj has been registered by the composable decorator"""
-    return __app_registry.get(get_object_provenance(obj), False)
+def _proxy_input(dstore):
+    inputs = []
+    for e in dstore:
+        if not e:
+            continue
+        if not isinstance(e, source_proxy):
+            e = source_proxy(e)
+        inputs.append(e)
+
+    return inputs
+
+
+def _source_wrapped(self, value: source_proxy) -> source_proxy:
+    value.set_obj(self(value.obj))
+    return value
 
 
 @UI.display_wrap
-def _apply_to(
-    self,
-    dstore,
-    parallel=False,
-    par_kw=None,
-    logger=None,
-    cleanup=False,
-    ui=None,
-    **kwargs,
-):
+def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Generator:
     """invokes self composable function on the provided data store
 
     Parameters
@@ -1229,6 +1306,69 @@ def _apply_to(
         member of dstore.
     par_kw
         dict of values for configuring parallel execution.
+    kwargs
+        setting a show_progress boolean keyword value here
+        affects progress display code, other arguments are passed to
+        the cogent3.util.progress_bar.display_wrap decorator
+
+    Notes
+    -----
+    If run in parallel, this instance serves as the master object and
+    aggregates results. If run in serial, results are returned in the
+    same order as provided.
+    """
+    ui = kwargs.pop("ui")
+    app = (
+        self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
+    )
+
+    if isinstance(dstore, str):
+        dstore = [dstore]
+    mapped = _proxy_input(dstore)
+    if not mapped:
+        raise ValueError("dstore is empty")
+
+    if parallel:
+        par_kw = par_kw or {}
+        to_do = PAR.as_completed(app, mapped, **par_kw)
+    else:
+        to_do = map(app, mapped)
+
+    return ui.series(to_do, count=len(mapped), **kwargs)
+
+
+def is_composable(obj):
+    """checks whether obj has been registered by the composable decorator"""
+    return __app_registry.get(get_object_provenance(obj), False)
+
+
+def _apply_to(
+    self,
+    dstore,
+    id_from_source: callable = get_unique_id,
+    parallel=False,
+    par_kw=None,
+    logger=None,
+    cleanup=False,
+    show_progress=False,
+):
+    """invokes self composable function on the provided data store
+
+    Parameters
+    ----------
+    dstore
+        a path, list of paths, or DataStore to which the process will be
+        applied.
+    id_from_source : callable
+        makes the unique identifier from elements of dstore that will be
+        used for writing results
+    parallel : bool
+        run in parallel, according to arguments in par_kwargs. If True,
+        the last step of the composable function serves as the master
+        process, with earlier steps being executed in parallel for each
+        member of dstore.
+    par_kw
+        dict of values for configuring parallel execution.
     logger
         Argument ignored if not an io.writer. If a scitrack logger not provided,
         one is created with a name that defaults to the composable function names
@@ -1236,136 +1376,79 @@ def _apply_to(
     cleanup : bool
         after copying of log files into the data store, it is deleted
         from the original location
+    show_progress : bool
+        controls progress bar display
 
     Returns
     -------
-    Result of the process as a list
+    The output data store instance
 
     Notes
     -----
-    If run in parallel, this instance serves as the master object and
-    aggregates results.
+    This is an append only function, meaning that if a member already exists
+    in self.data_store for an input, it is skipped.
+
+    If run in parallel, this instance spawns workers and aggregates results.
     """
-    if isinstance(dstore, str):
+    if not self.input:
+        raise RuntimeError(f"{self!r} is not part of a composed function")
+
+    if isinstance(dstore, (str, Path)):  # one filename
         dstore = [dstore]
 
-    dstore = [e for e in dstore if e]
-    if not dstore:
-        raise ValueError("dstore is empty")
-
-    am_writer = hasattr(self, "data_store")
-    if am_writer:
-        start = time.time()
-        if logger is None:
-            logger = CachingLogger()
-        elif not isinstance(logger, CachingLogger):
-            raise TypeError(
-                f"logger must be scitrack.CachingLogger, not {type(logger)}"
-            )
-
-        if not logger.log_file_path:
-            src = pathlib.Path(self.data_store.source)
-            logger.log_file_path = str(src.parent / _make_logfile_name(self))
-
-        log_file_path = str(logger.log_file_path)
-        logger.log_message(str(self), label="composable function")
-        logger.log_versions(["cogent3"])
-
-    results = []
-    process = self.input or self if self.app_type is not LOADER else self
-    if self.app_type is not LOADER and self.input:
-        # As we will be explicitly calling the input object, we disconnect
-        # the two-way interaction between input and self. This means self
-        # is not called twice, and self is not unnecessarily pickled during
-        # parallel execution.
-        self.input = None
-
-    # with a tinydb dstore, this also excludes data that failed to complete
-    # todo update to consider different database backends
-    # we want a dict mapping input member names to their md5 sums so these can
-    # be logged
+    # todo this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
     for m in dstore:
-        input_id = pathlib.Path(
-            m if isinstance(m, DataStoreMember) else get_data_source(m)
-        )
-        suffixes = input_id.suffixes
-        input_id = input_id.name.replace("".join(suffixes), "")
+        input_id = Path(m.unique_id) if isinstance(m, DataMember) else m
+        input_id = id_from_source(input_id)
+        if input_id in inputs:
+            raise ValueError("non-unique identifier detected in data")
+        if input_id in self.data_store:  # todo write a test
+            continue
         inputs[input_id] = m
 
-    if len(inputs) < len(dstore):
-        diff = len(dstore) - len(inputs)
-        raise ValueError(
-            f"could not construct unique identifiers for {diff} records, "
-            "avoid using '.' as a delimiter in names."
-        )
+    if not dstore:  # this should just return datastore, because if all jobs are done!
+        raise ValueError("dstore is empty")
 
-    if parallel:
-        par_kw = par_kw or {}
-        to_do = PAR.as_completed(process, inputs.values(), **par_kw)
-    else:
-        to_do = map(process, inputs.values())
+    start = time.time()
+    self.set_logger(logger)
+    logger = self.logger
+    logger.log_message(str(self), label="composable function")
+    logger.log_versions(["cogent3"])
 
-    for result in ui.series(to_do, count=len(inputs)):
-        if process is not self and am_writer:
-            # if result is NotCompleted, it will be written as incomplete
-            # by data store backend. The outcome is just the
-            # associated db identifier for tracking steps below we need to
-            # know it's NotCompleted.
-            # Note: we directly call .write() so NotCompleted's don't
-            # get blocked from being written by __call__()
-            outcome = self.main(data=result)
-            if result and isinstance(outcome, DataStoreMember):
-                input_id = outcome.name
-            else:
-                input_id = get_data_source(result)
-                outcome = result
-            input_id = pathlib.Path(pathlib.Path(input_id))
-            suffixes = input_id.suffixes
-            input_id = input_id.name.replace("".join(suffixes), "")
-        elif process is not self:
-            outcome = self(result)
-        else:
-            outcome = result
+    inputs = _proxy_input(inputs.values())
+    for result in self.as_completed(
+        inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
+    ):
+        member = self.main(data=result.obj, identifier=id_from_source(result.source))
+        md5 = member.md5
+        logger.log_message(str(member), label="output")
+        if md5:
+            logger.log_message(md5, label="output md5sum")
 
-        results.append(outcome)
+    taken = time.time() - start
+    logger.log_message(f"{taken}", label="TIME TAKEN")
+    log_file_path = Path(logger.log_file_path)
+    logger.shutdown()
+    self.data_store.write_log(
+        unique_id=log_file_path.name, data=log_file_path.read_text()
+    )
+    if cleanup:
+        log_file_path.unlink(missing_ok=True)
 
-        if am_writer:
-            # now need to search for the source member
-            m = inputs[input_id]
-            input_md5 = getattr(m, "md5", None)
-            logger.log_message(input_id, label="input")
-            if input_md5:
-                logger.log_message(input_md5, label="input md5sum")
+    return self.data_store
 
-            if isinstance(outcome, NotCompleted):
-                # log error/fail details
-                logger.log_message(
-                    f"{outcome.origin} : {outcome.message}", label=outcome.type
-                )
-                continue
-            elif not outcome:
-                # other cases where outcome is Falsy (e.g. None)
-                logger.log_message(f"unexpected value {outcome!r}", label="FAIL")
-                continue
 
-            logger.log_message(outcome, label="output")
-            logger.log_message(outcome.md5, label="output md5sum")
+def _set_logger(self, logger=None):
 
-    if am_writer:
-        finish = time.time()
-        taken = finish - start
-
-        logger.log_message(f"{taken}", label="TIME TAKEN")
-        logger.shutdown()
-        self.data_store.add_file(log_file_path, cleanup=cleanup, keep_suffix=True)
-        self.data_store.close()
-
-    # now reconnect input
-    if process is not self:
-        self = process + self
-
-    return results
+    if logger is None:
+        logger = CachingLogger(create_dir=True)
+    if not isinstance(logger, CachingLogger):
+        raise TypeError(f"logger must be of type CachingLogger not {type(logger)}")
+    if not logger.log_file_path:
+        src = Path(self.data_store.source).parent
+        logger.log_file_path = str(src / _make_logfile_name(self))
+    self.logger = logger
 
 
 __mapping = {
@@ -1376,4 +1459,7 @@ __mapping = {
     "_validate_data_type": _validate_data_type,
     "disconnect": _disconnect,
     "apply_to": _apply_to,
+    "_source_wrapped": _source_wrapped,
+    "as_completed": _as_completed,
+    "set_logger": _set_logger,
 }

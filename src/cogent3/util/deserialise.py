@@ -358,7 +358,7 @@ def deserialise_object(data):
     if type(data) is str:
         data = json.loads(data)
 
-    type_ = data.get("type", None)
+    type_ = data.get("type", None) if hasattr(data, "get") else None
     if type_ is None:
         return data
 

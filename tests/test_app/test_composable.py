@@ -1,10 +1,10 @@
 import inspect
 import os
-import pathlib
 import pickle
+import shutil
 
+from pathlib import Path
 from pickle import dumps, loads
-from tempfile import TemporaryDirectory
 from typing import Set, Tuple
 from unittest import main
 from unittest.mock import Mock
@@ -14,14 +14,15 @@ import pytest
 from numpy import array, ndarray
 from scitrack import CachingLogger
 
-from cogent3 import make_aligned_seqs
+from cogent3 import get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
-from cogent3.app import io as io_app
+from cogent3.app import io_new as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
+from cogent3.app import typing as c3types
 from cogent3.app.composable import (
-    GENERIC,
     NON_COMPOSABLE,
+    WRITER,
     NotCompleted,
     __app_registry,
     _add,
@@ -31,6 +32,13 @@ from cogent3.app.composable import (
     get_object_provenance,
     is_composable,
     user_function,
+)
+from cogent3.app.data_store_new import (
+    APPEND,
+    OVERWRITE,
+    READONLY,
+    DataStoreDirectory,
+    get_data_source,
 )
 from cogent3.app.sample import min_length, omit_degenerates
 from cogent3.app.translate import select_translatable
@@ -51,6 +59,119 @@ __version__ = "2022.10.31a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+DATA_DIR = Path(__file__).parent.parent / "data"
+
+
+@pytest.fixture(scope="function")
+def tmp_dir(tmpdir_factory):
+    return tmpdir_factory.mktemp("datastore")
+
+
+@pytest.fixture(scope="function")
+def fasta_dir(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    filenames = DATA_DIR.glob("*.fasta")
+    fasta_dir = tmp_dir / "fasta"
+    fasta_dir.mkdir(parents=True, exist_ok=True)
+    for fn in filenames:
+        dest = fasta_dir / fn.name
+        dest.write_text(fn.read_text())
+    return fasta_dir
+
+
+@pytest.fixture(scope="function")
+def write_dir1(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    write_dir1 = tmp_dir / "write1"
+    write_dir1.mkdir(parents=True, exist_ok=True)
+    yield write_dir1
+    shutil.rmtree(write_dir1)
+
+
+@pytest.fixture(scope="function")
+def write_dir2(tmp_dir):
+    tmp_dir = Path(tmp_dir)
+    write_dir2 = tmp_dir / "write2"
+    write_dir2.mkdir(parents=True, exist_ok=True)
+    yield write_dir2
+    shutil.rmtree(write_dir2)
+
+
+@pytest.fixture(scope="function")
+def ro_dstore(fasta_dir):
+    return DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
+
+
+@pytest.fixture(scope="function")
+def completed_objects(ro_dstore):
+    return {f"{Path(m.unique_id).stem}": m.read() for m in ro_dstore}
+
+
+@pytest.fixture(scope="function")
+def nc_objects():
+    return {
+        f"id_{i}": NotCompleted("ERROR", "location", "message", source=f"id_{i}")
+        for i in range(3)
+    }
+
+
+@pytest.fixture(scope="function")
+def log_data():
+    path = DATA_DIR / "scitrack.log"
+    return path.read_text()
+
+
+@pytest.fixture(scope="function")
+def full_dstore(write_dir1, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir1, suffix="fasta", mode=OVERWRITE)
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+
+    for id, data in completed_objects.items():
+        dstore.write(unique_id=id, data=data)
+
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+
+@pytest.fixture(scope="function")
+def half_dstore1(write_dir1, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir1, suffix="fasta", mode=OVERWRITE)
+    i = 0
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+        i += 1
+        if i >= len(nc_objects.items()) / 2:
+            break
+    i = 0
+    for id, data in completed_objects.items():
+        dstore.write(unique_id=id, data=data)
+        i += 1
+        if i >= len(completed_objects.items()) / 2:
+            break
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+
+@pytest.fixture(scope="function")
+def half_dstore2(write_dir2, nc_objects, completed_objects, log_data):
+    dstore = DataStoreDirectory(write_dir2, suffix="fasta", mode=OVERWRITE)
+    i = -1
+    for id, data in nc_objects.items():
+        i += 1
+        if i < len(nc_objects.items()) / 2:
+            continue
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+    i = -1
+    for id, data in completed_objects.items():
+        i += 1
+        if i < len(completed_objects.items()) / 2:
+            continue
+        dstore.write(unique_id=id, data=data)
+    dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
 
 
 def test_composable():
@@ -181,146 +302,153 @@ def test_disconnect():
     __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
 
 
-def test_apply_to():
+def test_as_completed():
     """correctly applies iteratively"""
-
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    reader = io_app.load_unaligned(format="fasta", moltype="dna")
-    got = reader.apply_to(dstore, show_progress=False)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    reader = get_app("load_unaligned", format="fasta", moltype="dna")
+    got = list(reader.as_completed(dstore, show_progress=False))
     assert len(got) == len(dstore)
     # should also be able to apply the results to another composable func
-    min_length = sample_app.min_length(10)
-    got = min_length.apply_to(got, show_progress=False)
+    min_length = get_app("sample.min_length", 10)
+    got = list(min_length.as_completed(got, show_progress=False))
     assert len(got) == len(dstore)
     # should work on a chained function
     proc = reader + min_length
-    got = proc.apply_to(dstore, show_progress=False)
+    got = list(proc.as_completed(dstore, show_progress=False))
     assert len(got) == len(dstore)
     # and works on a list of just strings
-    got = proc.apply_to([str(m) for m in dstore], show_progress=False)
+    got = list(proc.as_completed([str(m) for m in dstore], show_progress=False))
     assert len(got) == len(dstore)
     # or a single string
-    got = proc.apply_to(str(dstore[0]), show_progress=False)
+    path = str(Path(dstore[0].data_store.source) / dstore[0].unique_id)
+    got = list(proc.as_completed(path, show_progress=False))
     assert len(got) == 1
-    assert isinstance(got[0], SequenceCollection)
+    assert isinstance(got[0].obj, SequenceCollection)
     # raises ValueError if empty list
     with pytest.raises(ValueError):
-        proc.apply_to([])
+        proc.as_completed([])
 
     # raises ValueError if list with empty string
     with pytest.raises(ValueError):
-        proc.apply_to(["", ""])
+        list(proc.as_completed(["", ""]))
 
 
-def test_apply_to_strings():
+@pytest.mark.parametrize("klass", (DataStoreDirectory,))
+def test_apply_to_strings(tmp_dir, klass):
     """apply_to handles strings as paths"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     dstore = [str(m) for m in dstore]
-    with TemporaryDirectory(dir=".") as dirname:
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        # create paths as strings
-        r = process.apply_to(dstore, show_progress=False)
-        assert len(process.data_store.logs) == 1
-        process.data_store.close()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    outpath = tmp_dir / "test_apply_to_strings"
+    writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
+    process = reader + min_length + writer
+    # create paths as strings
+    _ = process.apply_to(dstore, id_from_source=get_data_source)
+    assert len(process.data_store.logs) == 1
 
 
-def test_apply_to_non_unique_identifiers():
+def test_apply_to_non_unique_identifiers(tmp_dir):
     """should fail if non-unique names"""
     dstore = [
-        "brca1.bats.fasta",
-        "brca1.apes.fasta",
+        "brca1.fasta",
+        "brca1.fasta",
     ]
-    with TemporaryDirectory(dir=".") as dirname:
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        process = reader + min_length
-        with pytest.raises(ValueError):
-            process.apply_to(dstore)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    outpath = tmp_dir / "test_apply_to_non_unique_identifiers"
+    writer = io_app.write_seqs(
+        DataStoreDirectory(outpath, mode=OVERWRITE, suffix="fasta")
+    )
+    process = reader + min_length + writer
+    with pytest.raises(ValueError):
+        process.apply_to(dstore)
 
 
-def test_apply_to_logging():
+def test_apply_to_logging(tmp_dir):
     """correctly creates log file"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    with TemporaryDirectory(dir=".") as dirname:
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        r = process.apply_to(dstore, show_progress=False)
-        # always creates a log
-        assert len(process.data_store.logs) == 1
-        process.data_store.close()
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = reader + min_length + writer
+    r = process.apply_to(dstore, show_progress=False)
+    # always creates a log
+    assert len(process.data_store.logs) == 1
 
 
-def test_apply_to_logger():
+def test_apply_to_logger(tmp_dir):
     """correctly uses user provided logger"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    with TemporaryDirectory(dir=".") as dirname:
-        LOGGER = CachingLogger()
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        min_length = sample_app.min_length(10)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        r = process.apply_to(dstore, show_progress=False, logger=LOGGER)
-        assert len(process.data_store.logs) == 1
-        process.data_store.close()
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    LOGGER = CachingLogger()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = reader + min_length + writer
+    process.apply_to(dstore, show_progress=False, logger=LOGGER)
+    assert len(process.data_store.logs) == 1
 
 
-def test_apply_to_invalid_logger():
+@pytest.mark.parametrize("logger_val", (True, "somepath.log"))
+def test_apply_to_invalid_logger(tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    for logger_val in (True, "somepath.log"):
-        with TemporaryDirectory(dir=".") as dirname:
-            reader = io_app.load_aligned(format="fasta", moltype="dna")
-            min_length = sample_app.min_length(10)
-            outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-            writer = io_app.write_db(outpath)
-            process = reader + min_length + writer
-            with pytest.raises(TypeError):
-                process.apply_to(dstore, show_progress=False, logger=logger_val)
-            process.data_store.close()
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = reader + min_length + writer
+    with pytest.raises(TypeError):
+        process.apply_to(dstore, show_progress=False, logger=logger_val)
+
+    out_dstore.close()
 
 
-def test_apply_to_not_completed():
+def test_apply_to_not_completed(tmp_dir):
     """correctly creates notcompleted"""
-    dstore = io_app.get_data_store("data", suffix="fasta", limit=3)
-    with TemporaryDirectory(dir=".") as dirname:
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        # trigger creation of notcompleted
-        min_length = sample_app.min_length(3000)
-        outpath = os.path.join(os.getcwd(), dirname, "delme.tinydb")
-        writer = io_app.write_db(outpath)
-        process = reader + min_length + writer
-        r = process.apply_to(dstore, show_progress=False)
-        assert len(process.data_store.incomplete) == 3
-        process.data_store.close()
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    # trigger creation of notcompleted
+    min_length = sample_app.min_length(3000)
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = reader + min_length + writer
+    process.apply_to(dstore, show_progress=False)
+    assert len(out_dstore.not_completed) == 3
 
 
-def test_apply_to_not_partially_done():
+def test_apply_to_not_partially_done(tmp_dir):
     """correctly applies process when result already partially done"""
-    dstore = io_app.get_data_store("data", suffix="fasta")
+    dstore = open_data_store(DATA_DIR, suffix="fasta")
     num_records = len(dstore)
-    with TemporaryDirectory(dir=".") as dirname:
-        dirname = pathlib.Path(dirname)
-        reader = io_app.load_aligned(format="fasta", moltype="dna")
-        outpath = dirname / "delme.tinydb"
-        writer = io_app.write_db(outpath)
-        _ = writer(reader(dstore[0]))
-        writer.data_store.close()
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="w")
+    writer = io_app.write_db(out_dstore)
+    _ = writer(reader(dstore[0]))  # doing the first one
+    writer.data_store.close()
 
-        writer = io_app.write_db(outpath, if_exists="ignore")
-        process = reader + writer
-        _ = process.apply_to(dstore, show_progress=False)
-        writer.data_store.close()
-        dstore = io_app.get_data_store(outpath)
-        assert len(dstore) == num_records
-        dstore.close()
+    out_dstore = open_data_store(tmp_dir / "delme.sqlitedb", mode="a")
+    writer = io_app.write_db(out_dstore)
+    process = reader + writer
+    _ = process.apply_to(dstore, show_progress=False)
+    assert len(out_dstore) == num_records
+
+
+@pytest.mark.xfail(reason="passes except when run in full test suite")
+@pytest.mark.parametrize("show", (True, False))
+def test_as_completed_progress(full_dstore, capsys, show):
+    loader = get_app("load_unaligned", format="fasta", moltype="dna")
+    omit_degenerates = get_app("omit_degenerates")
+    app = loader + omit_degenerates
+    list(app.as_completed(full_dstore.completed, show_progress=show))
+    result = capsys.readouterr().err.splitlines()
+    if show:
+        assert len(result) > 0
+        assert "100%" in result[-1]
+    else:
+        assert len(result) == 0
 
 
 def test_err_result():
@@ -335,12 +463,6 @@ def test_err_result():
     fake_source = Mock()
     fake_source.source = "blah"
     del fake_source.info
-    result = NotCompleted("SKIP", "this", "err", source=fake_source)
-    assert result.source == "blah"
-
-    fake_source = Mock()
-    del fake_source.source
-    fake_source.info.source = "blah"
     result = NotCompleted("SKIP", "this", "err", source=fake_source)
     assert result.source == "blah"
 
@@ -443,11 +565,16 @@ def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
 
 
 @define_app
+def foo_without_arg_kwargs(val: AlignedSeqsType) -> AlignedSeqsType:
+    return val[:4]
+
+
+@define_app
 def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
 
-for _app_ in (foo, bar):
+for _app_ in (foo, bar, foo_without_arg_kwargs):
     __app_registry.pop(get_object_provenance(_app_), None)
 
 
@@ -455,6 +582,17 @@ def test_user_function():
     """composable functions should be user definable"""
 
     u_function = foo()
+
+    aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
+    got = u_function(aln)
+
+    assert got.to_dict() == {"a": "GCAA", "b": "GCTT"}
+
+
+def test_user_function_without_arg_kwargs():
+    """composable functions should be user definable"""
+
+    u_function = foo_without_arg_kwargs()
 
     aln = make_aligned_seqs(data=[("a", "GCAAGCGTTTAT"), ("b", "GCTTTTGTCAAT")])
     got = u_function(aln)
@@ -875,7 +1013,7 @@ def test_forbidden_methods_composable_app(meth):
 
     setattr(app_forbidden_methods1, meth, function1)
     with pytest.raises(TypeError):
-        define_app(app_type=GENERIC)(app_forbidden_methods1)
+        define_app(app_type=WRITER)(app_forbidden_methods1)
 
 
 @pytest.mark.parametrize(
@@ -1032,6 +1170,49 @@ def test_complex_type_allowed_depths(hint):
             return int
 
     __app_registry.pop(get_object_provenance(x), None)
+
+
+def test_apply_to_only_appends(half_dstore1, half_dstore2):
+    half_dstore1 = open_data_store(
+        half_dstore1.source, suffix=half_dstore1.suffix, mode=APPEND
+    )
+    reader1 = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length1 = sample_app.min_length(10)
+    writer1 = io_app.write_seqs(half_dstore1)
+    process1 = reader1 + min_length1 + writer1
+
+    # create paths as strings
+    dstore1 = [
+        str(Path(m.data_store.source) / m.unique_id) for m in half_dstore1.completed
+    ]
+    # check fail on all the same records
+    with pytest.raises(ValueError):
+        _ = process1.apply_to(dstore1, id_from_source=get_data_source)
+
+    half_dstore2 = open_data_store(
+        half_dstore2.source, suffix=half_dstore2.suffix, mode=APPEND
+    )
+
+    reader2 = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length2 = sample_app.min_length(10)
+    writer2 = io_app.write_seqs(half_dstore2)
+    process2 = reader2 + min_length2 + writer2
+    # check not fail on append new records
+    _ = process2.apply_to(dstore1, id_from_source=get_data_source)
+
+
+def test_skip_not_completed():
+    @define_app(skip_not_completed=False)
+    def takes_not_completed(val: c3types.SerialisableType) -> dict:
+        return val.to_rich_dict()
+
+    app = takes_not_completed()
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    got = app(nc)
+    assert isinstance(got, dict)
+    assert got == nc.to_rich_dict()
+
+    __app_registry.pop(get_object_provenance(takes_not_completed), None)
 
 
 if __name__ == "__main__":
