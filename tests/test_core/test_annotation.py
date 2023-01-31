@@ -23,10 +23,10 @@ def makeSampleSequence(with_gaps=False):
     cds = (15, 25)
     utr = (12, 15)
     if with_gaps:
-        raw_seq = f"{raw_seq[:5]}-----{raw_seq[10:-2]}--"
+        raw_seq = raw_seq[:5] + "-----" + raw_seq[10:-2] + "--"
     seq = DNA.make_seq(raw_seq)
-    seq.add_feature("CDS", "CDS", [cds])
-    seq.add_feature("5'UTR", "5' UTR", [utr])
+    seq.add_annotation(Feature, "CDS", "CDS", [cds])
+    seq.add_annotation(Feature, "5'UTR", "5' UTR", [utr])
     return seq
 
 
@@ -119,8 +119,9 @@ class TestAnnotations(unittest.TestCase):
             "LTR": {"FAKE01": "CCCTTTTT", "FAKE02": "CCCTTTTT"},
         }
         newaln = self.aln[:5] + self.aln[10:]
+        feature_list = newaln.get_annotations_matching("LTR")
         for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
-            feature_list = newaln.get_features_matching(annot_type)
+            feature_list = newaln.get_annotations_matching(annot_type)
             new = newaln.get_region_covering_all(feature_list).get_slice().to_dict()
             expected = aln_expecteds[annot_type]
             assert expected == new, (annot_type, expected, new)
@@ -141,7 +142,7 @@ class TestAnnotations(unittest.TestCase):
 
     def test_feature_projection(self):
         expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-        aln_ltr = self.aln.get_features_matching("LTR")[0]
+        aln_ltr = self.aln.get_annotations_matching("LTR")[0]
         for seq_name in ["FAKE01", "FAKE02"]:
             expected = expecteds[seq_name]
             seq_ltr = self.aln.project_annotation(seq_name, aln_ltr)

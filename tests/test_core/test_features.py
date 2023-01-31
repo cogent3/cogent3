@@ -24,8 +24,8 @@ class FeaturesTest(TestCase):
         self.s = DNA.make_seq(
             "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
         )
-        self.exon1 = self.s.add_feature("exon", "fred", [(10, 15)])
-        self.exon2 = self.s.add_feature("exon", "trev", [(30, 40)])
+        self.exon1 = self.s.add_annotation(Feature, "exon", "fred", [(10, 15)])
+        self.exon2 = self.s.add_annotation(Feature, "exon", "trev", [(30, 40)])
         self.nested_feature = self.exon1.add_feature("repeat", "bob", [(2, 5)])
 
     def test_exon_extraction(self):
@@ -37,14 +37,14 @@ class FeaturesTest(TestCase):
         self.assertEqual(str(self.s[self.exon1]), "CCCCC")
         self.assertEqual(str(self.exon1.get_slice()), "CCCCC")
 
-    def test_get_features_matching(self):
+    def test_get_annotations_matching(self):
         """correctly identifies all features of a given type"""
 
         # Usually the only way to get a Feature object like exon1
         # is to ask the sequence for it. There is one method for querying
         # annotations by type and optionally by name:
 
-        exons = self.s.get_features_matching("exon")
+        exons = self.s.get_annotations_matching("exon")
         self.assertEqual(
             str(exons), '[exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]'
         )
@@ -55,30 +55,30 @@ class FeaturesTest(TestCase):
         seq = DNA.make_seq("AAAAAAAAA", name="x")
         exon = seq.add_annotation(Feature, "exon", "fred", [(3, 8)])
         nested_exon = exon.add_annotation(Feature, "exon", "fred", [(3, 7)])
-        exons = seq.get_features_matching("exon", extend_query=True)
+        exons = seq.get_annotations_matching("exon", extend_query=True)
         self.assertEqual(len(exons), 2)
         self.assertEqual(str(exons), '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5]')
         # tests multiple layers of nested annotations
         nested_exon.add_annotation(Feature, "exon", "fred", [(3, 6)])
-        exons = seq.get_features_matching("exon", extend_query=True)
+        exons = seq.get_annotations_matching("exon", extend_query=True)
         self.assertEqual(len(exons), 3)
         self.assertEqual(
             str(exons),
             '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5, exon "fred" at [3:6]/4]',
         )
         # tests extend_query=False, and only get back the base exon
-        exons = seq.get_features_matching("exon")
+        exons = seq.get_annotations_matching("exon")
         self.assertEqual(len(exons), 1)
         self.assertEqual(str(exons), '[exon "fred" at [3:8]/9]')
 
-    def test_get_features_matching2(self):
-        """get_features_matching returns empty feature if no matches"""
+    def test_get_annotations_matching2(self):
+        """get_annotations_matching returns empty feature if no matches"""
 
         # If the sequence does not have a matching feature
         # you get back an empty list, and slicing the sequence
         # with that returns a sequence of length 0.
 
-        dont_exist = self.s.get_features_matching("dont_exist")
+        dont_exist = self.s.get_annotations_matching("dont_exist")
         self.assertEqual(dont_exist, [])
         self.assertEqual(str(self.s[dont_exist]), "")
 
@@ -88,7 +88,7 @@ class FeaturesTest(TestCase):
         # To construct a pseudo-feature covering (or excluding)
         # multiple features, use get_region_covering_all:
 
-        exons = self.s.get_features_matching("exon")
+        exons = self.s.get_annotations_matching("exon")
         self.assertEqual(
             str(self.s.get_region_covering_all(exons)),
             'region "exon" at [10:15, 30:40]/48',
@@ -114,7 +114,7 @@ class FeaturesTest(TestCase):
         # Though .get_region_covering_all also guarantees
         # no overlaps within the result, slicing does not:
 
-        exons = self.s.get_features_matching("exon")
+        exons = self.s.get_annotations_matching("exon")
         self.assertEqual(
             str(self.s.get_region_covering_all(exons + exons)),
             'region "exon" at [10:15, 30:40]/48',
@@ -166,7 +166,7 @@ class FeaturesTest(TestCase):
         # but in those cases where a free-floating feature is created it can
         # ater be attached:
 
-        exons = self.s.get_features_matching("exon")
+        exons = self.s.get_annotations_matching("exon")
         self.assertEqual(len(self.s.annotations), 2)
         region = self.s.get_region_covering_all(exons)
         self.assertEqual(len(self.s.annotations), 2)
@@ -192,7 +192,7 @@ class FeaturesTest(TestCase):
         )
         self.assertEqual(str(plus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
         minus = plus.rc()
-        minus_cds = minus.get_features_matching("CDS")[0]
+        minus_cds = minus.get_annotations_matching("CDS")[0]
         self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
 
     def test_feature_from_alignment(self):
@@ -586,15 +586,15 @@ class FeaturesTest(TestCase):
         seq.add_annotation(Feature, "exon", "myname", [(0, 5)])
         got = seq.to_json()
         new = deserialise_object(got)
-        feat = new.get_features_matching("exon")[0]
+        feat = new.get_annotations_matching("exon")[0]
         self.assertEqual(str(feat.get_slice()), "AAAAA")
 
         # now with a list span
         seq = seq[3:]
-        feat = seq.get_features_matching("exon")[0]
+        feat = seq.get_annotations_matching("exon")[0]
         got = seq.to_json()
         new = deserialise_object(got)
-        feat = new.get_features_matching("exon")[0]
+        feat = new.get_annotations_matching("exon")[0]
         self.assertEqual(str(feat.get_slice(complete=False)), "AA")
 
     def test_roundtripped_alignment(self):
@@ -620,7 +620,7 @@ class FeaturesTest(TestCase):
         expect = f.get_slice().to_dict()
         json = aln.to_json()
         new = deserialise_object(json)
-        got = list(new.get_features_matching("generic"))[0]
+        got = list(new.get_annotations_matching("generic"))[0]
         self.assertEqual(got.get_slice().to_dict(), expect)
 
         # annotations on both alignment and sequence
@@ -638,7 +638,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(got_exons.get_slice().to_dict(), expect)
         ## get back the generic
         expect = f.get_slice().to_dict()
-        got = list(new.get_features_matching("generic"))[0]
+        got = list(new.get_annotations_matching("generic"))[0]
         self.assertEqual(got.get_slice().to_dict(), expect)
 
         # check masking of seq features still works
@@ -656,10 +656,11 @@ class FeaturesTest(TestCase):
         # at the alignment level
         sub_aln = aln[:-3]
         s = sub_aln.named_seqs["x"]
+        s.data.get_annotations_matching("exon", "E2")[0]
         d = s.data[:11]
         json = s.to_json()
         new = deserialise_object(json)
-        gf1, gf2 = list(new.data.get_features_matching("exon"))
+        gf1, gf2 = list(new.data.get_annotations_matching("exon"))
         self.assertEqual(str(gf1.get_slice()), "GGGGG")
         self.assertEqual(str(gf2.get_slice()), "C")
         # the sliced alignment
@@ -697,7 +698,7 @@ class FeaturesTest(TestCase):
         y_valued = seq.add_annotation(Variable, "SNP", "freq", xx_y)
         json = seq.to_json()
         new = deserialise_object(json)
-        got = list(new.get_features_matching("SNP"))[0]
+        got = list(new.get_annotations_matching("SNP"))[0]
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
 
