@@ -6,6 +6,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
 from scipy.stats import f, norm, t
+from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.special import (
     MACHEP,
@@ -272,7 +273,7 @@ def f_low(df1, df2, x):  # pragma: no cover
 
     discontinued("function", "f_low", "2022.12", "use scipy.stats.f.cdf(x, df1, df2)")
 
-    return fdtr(df1, df2, x)
+    return f.cdf(df1, df2, x)
 
 
 def f_high(df1, df2, x):  # pragma: no cover
@@ -287,7 +288,7 @@ def f_high(df1, df2, x):  # pragma: no cover
 
     discontinued("function", "f_high", "2022.12", "use scipy.stats.f.sf(x, df1, df2)")
 
-    return fdtrc(df1, df2, x)
+    return f.sf(df1, df2, x)
 
 
 def fprob(dfn, dfd, F, side="right"):
@@ -495,7 +496,10 @@ def chdtri(df, y):  # pragma: no cover
     from cogent3.util.warning import discontinued
 
     discontinued(
-        "function", "chdtri", "2022.12", "use scipy.stats.distributions.chi2.isf"
+        "function",
+        "chdtri",
+        "2022.12",
+        "use scipy.stats.distributions.chi2.isf(y, df), NOTE: order of arguments is reversed.",
     )
 
     y = fix_rounding_error(y)
@@ -639,7 +643,7 @@ def theoretical_quantiles(n, dist, *args):
     dist = dist.lower()
     funcs = dict(
         normal=ndtri,
-        chisq=chdtri,
+        chisq=chi2.isf,
         t=stdtri,
     )
 
@@ -654,5 +658,8 @@ def theoretical_quantiles(n, dist, *args):
 
     if not args:
         return array([func(p) for p in probs])
+
+    if dist == "chisq":  # to use scipy.stats.distributions.chi2.isf we need to reverse the order of the arguments
+        return array([func(*((p,) + args)) for p in probs])
 
     return array([func(*(args + (p,))) for p in probs])
