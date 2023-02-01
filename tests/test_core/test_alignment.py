@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+import itertools
 import json
 import os
 import pathlib
@@ -9,11 +9,18 @@ from tempfile import TemporaryDirectory, mktemp
 from unittest import TestCase, main
 
 import numpy
+import pytest
 
 from numpy import array, log2, nan, transpose
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3 import load_aligned_seqs, load_unaligned_seqs, make_seq, open_
+from cogent3 import (
+    load_aligned_seqs,
+    load_unaligned_seqs,
+    make_aligned_seqs,
+    make_seq,
+    open_,
+)
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -267,9 +274,9 @@ class SequenceCollectionBaseTests(object):
         x = self.Class(self.a)
         y = self.Class(self.b)
         z = self.Class(self.c)
-        assert_equal(x, exp)
-        assert_equal(z, exp)
-        assert_equal(y, exp)
+        assert x == exp
+        assert z == exp
+        assert y == exp
 
     test_init_aln.__doc__ = Class.__name__ + test_init_aln.__doc__
 
@@ -3368,6 +3375,25 @@ class IntegrationTests(TestCase):
         d = Alignment(a, moltype=DNA)
         self.assertEqual(str(d), ">x\nAAA\n>y\nCCC\n")
         self.assertEqual(self.r1.name, "x")
+
+
+@pytest.mark.parametrize(
+    "moltype,array_align",
+    tuple(itertools.product(["rna", "dna", "protein"], [True, False])),
+)
+def test_upac_consensus_allow_gaps(moltype, array_align):
+    aln = make_aligned_seqs(
+        data={"s1": "ACGG", "s2": "ACGG", "s3": "-CGG"},
+        moltype=moltype,
+        array_align=array_align,
+    )
+    # default behaviour
+    iupac = aln.iupac_consensus()
+    assert iupac == "?CGG"
+
+    # allow_gaps
+    iupac = aln.iupac_consensus(allow_gaps=False)
+    assert iupac == "ACGG"
 
 
 # run tests if invoked from command line

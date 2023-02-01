@@ -396,7 +396,7 @@ class align_to_ref:
                 continue
 
             aln = global_pairwise(ref_seq, seq, **kwargs).to_type(array_align=False)
-            pwise.append(((seq.name, aln)))
+            pwise.append((seq.name, aln))
 
         return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
 

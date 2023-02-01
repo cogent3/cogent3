@@ -12,7 +12,7 @@ authors = [
 keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioinformatics"]
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.7,<3.11"
+requires-python = ">=3.8,<3.11"
 dependencies = ["chardet",
         "numpy",
         "numba>0.48.0;python_version<'3.9'",
@@ -30,7 +30,6 @@ classifiers = [
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -126,7 +125,7 @@ filterwarnings = [
 
 [tool.black]
 line-length = 88
-target-version = ["py37", "py38", "py39", "py310"]
+target-version = ["py38", "py39", "py310"]
 exclude = '''
 /(
     \.eggs

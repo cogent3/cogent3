@@ -22,7 +22,7 @@ code_eval = re.compile(r"(?<=\s{4})([>]{3}|[.]{3})\s")
 code_block = re.compile(r".. (jupyter-execute|doctest)::")
 block_option = re.compile(r"\s+:[a-z\-]+:")
 raise_option = re.compile(r"\s+:raises:")
-
+plotly_show = re.compile(r"\s*[a-z]+.*\.show\(")
 
 def get_error_type(line):
     if raise_option.search(line) is None:
@@ -89,6 +89,12 @@ def format_block(block):
     if error_type:
         code.insert(0, "try:")
         code.extend([f"except {error_type}:", "    pass"])
+
+    for i, l in enumerate(code):
+        if plotly_show.search(l):
+            # comment out as cannot be executed in script
+            code[i] = f"# {l}"
+
     return code
 
 

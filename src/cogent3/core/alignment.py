@@ -236,6 +236,9 @@ def assign_sequential_names(ignored, num_seqs, base_name="seq", start_at=0):
 
 def coerce_to_string(s):
     """Converts an arbitrary sequence into a string."""
+    if isinstance(s, (set, frozenset)):
+        return "".join(c for c in s)
+
     if isinstance(s, str):  # if it's a string, OK as is
         return s
     if isinstance(s, Aligned):  # if it's an Aligned object, convert to string
@@ -2349,13 +2352,16 @@ class AlignmentI(object):
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    def iupac_consensus(self, alphabet=None):
+    def iupac_consensus(self, alphabet=None, allow_gaps=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
+
+        exclude = set() if allow_gaps else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
+            col = set(col) - exclude
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
@@ -3880,15 +3886,20 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
-    def iupac_consensus(self, alphabet=None):
+    def iupac_consensus(self, alphabet=None, allow_gaps=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
+
+        exclude = set() if allow_gaps else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
-            col = alphabet.make_array_seq(col, alphabet=alphabet.alphabets.degen_gapped)
-            consensus.append(degen(str(col)))
+            col = set(
+                alphabet.make_array_seq(col, alphabet=alphabet.alphabets.degen_gapped)
+            )
+            col -= exclude
+            consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
     def sample(
