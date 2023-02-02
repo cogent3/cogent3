@@ -239,7 +239,6 @@ class TestsTests(TestCase):
         assert_allclose(tail(0.25, "a" == "a"), 0.25 / 2)
         assert_allclose(tail(0.25, "a" != "a"), 1 - (0.25 / 2))
 
-
     def test_multiple_comparisons(self):
         """multiple_comparisons should match values from R"""
         assert_allclose(
