@@ -514,7 +514,14 @@ class Table:
                     f"different number of elements in header {hlen} and data row 0 {dcols}"
                 )
 
-            data = dict(zip(header, zip(*data)))
+            try:
+                data = dict(zip(header, zip(*data, strict=True), strict=True))
+            except TypeError:  # handle python versions <3.10
+                # check that number of elements per row is correct
+                if set(len(r) for r in data) != {hlen}:
+                    raise ValueError(f"not all rows have {hlen} elements")
+
+                data = dict(zip(header, zip(*data)))
 
         if header is None:
             header = list(data) if isinstance(data, dict) else []
