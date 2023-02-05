@@ -7,7 +7,7 @@ from enum import Enum
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import numpy
 
@@ -26,11 +26,7 @@ from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
-from .data_store import (
-    ReadOnlyDirectoryDataStore,
-    ReadOnlyTinyDbDataStore,
-    ReadOnlyZippedDataStore,
-)
+from .data_store import ReadOnlyTinyDbDataStore, ReadOnlyZippedDataStore
 from .data_store_new import (
     READONLY,
     DataStoreABC,
@@ -214,7 +210,8 @@ class decompress:
         return self.decompressor(data)
 
 
-def _as_dict(obj) -> dict:
+def as_dict(obj: Any) -> dict:
+    """returns result of to_rich_dict method if it exists"""
     with contextlib.suppress(AttributeError):
         obj = obj.to_rich_dict()
     return obj
@@ -224,11 +221,11 @@ def _as_dict(obj) -> dict:
 class to_primitive:
     """convert an object to primitive python types suitable for serialisation"""
 
-    def __init__(self, convertor: callable = _as_dict):
+    def __init__(self, convertor: callable = as_dict):
         self.convertor = convertor
 
     def main(self, data: SerialisableType) -> SerialisableType:
-        """either json convertor a dict from a cogent3 object"""
+        """returns dict from a cogent3 object"""
         return self.convertor(data)
 
 
