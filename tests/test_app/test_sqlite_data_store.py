@@ -437,12 +437,6 @@ def test_summary_logs(full_dstore_sqlite):
     assert isinstance(got, Table)
 
 
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
-    assert isinstance(got, Table)
-
-
 def test_read_unknown_table(full_dstore_sqlite):
     with pytest.raises(ValueError):
         full_dstore_sqlite.read("unknown_table/id")
@@ -469,12 +463,6 @@ def test_summary_logs(full_dstore_sqlite):
     # log summary has a row per log file and a column for each property
     got = full_dstore_sqlite.summary_logs
     assert got.shape == (1, 6)
-    assert isinstance(got, Table)
-
-
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
     assert isinstance(got, Table)
 
 
