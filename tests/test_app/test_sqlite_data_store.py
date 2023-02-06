@@ -586,3 +586,19 @@ def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
     # should be a row for each log
     summary = got2.summary_logs
     assert summary.shape[0] == 2
+
+
+def test_summary_not_completed(nc_objects):
+    dstore = open_data_store(":memory:", mode="w")
+    writer = get_app("write_db", dstore)
+    for nc in nc_objects.values():
+        writer(nc)
+
+    # relying on the fact that all nc_objects have same origin
+    # and message, so those columns can be readily interrogated
+    summary = dstore.summary_not_completed
+    vals = summary.tolist(columns=["origin", "message", "num"])
+    assert len(vals) == 1
+    assert vals[0] == ["location", "'message'", 3]
+
+    # print(dstore.summary_not_completed)
