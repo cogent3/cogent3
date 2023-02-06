@@ -1523,6 +1523,12 @@ def test_seqview_replace():
     assert sv.replace("a", "u").value == seq_data.replace("a", "u")
     assert sv.replace("a", "u").replace("u", "a").value == seq_data
 
+def test_seqview_replace_2():
+    seq_data = "aaaa"
+    sv = SeqView(seq_data)
+    sv_replaced = sv.replace("a", "u")
+    sv_replaced_again = sv_replaced.replace("u", "t")
+    assert sv_replaced_again.value == seq_data.replace("a", "u").replace("u", "t")
 
 # run if called from command-line
 if __name__ == "__main__":

@@ -384,8 +384,10 @@ class DataStoreSqlite(DataStoreABC):
 
     @property
     def describe(self):
-        if self.locked:
+        if self.locked and self._lock_id != os.getpid():
             title = f"Locked db store. Locked to pid={self._lock_id}, current pid={os.getpid()}."
+        elif self.locked:
+            title = "Locked to the current process."
         else:
             title = "Unlocked db store."
         table = super().describe

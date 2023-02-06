@@ -1124,6 +1124,8 @@ class Sequence(_Annotatable, SequenceI):
 
         """
         seq = self._seq
+        if isinstance(seq, SeqView):
+            seq = seq.value
         if motif_length == 1:
             return seq
 
@@ -1402,7 +1404,7 @@ class NucleicAcidSequence(Sequence):
 class SeqView:
     __slots__ = ("seq", "start", "stop", "step", "replacements")
 
-    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
+    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None, replacements = None):
         self.seq = seq
         self.start = start or 0
         self.stop = len(seq) if stop is None else stop
@@ -1419,6 +1421,7 @@ class SeqView:
             start=self.start + start * abs(self.step),
             stop=min(self.stop, self.start + stop * abs(self.step)),
             step=self.step * step,
+            replacements=self.replacements
         )
 
     @property

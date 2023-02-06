@@ -863,14 +863,9 @@ class SequenceTestMethods(unittest.TestCase):
 
     def test_get_in_motif_size(self):
         """test accuracy of chunking various sizes"""
-        self.assertEqual(
-            [x.value for x in self.seq.get_in_motif_size(2)],
-            ["AT", "GA", "CG", "TT", "GC", "GT", "AG", "CA", "TA", "GC", "TC", "GA"],
-        )
-        self.assertEqual(
-            [x.value for x in self.seq.get_in_motif_size(3)],
-            ["ATG", "ACG", "TTG", "CGT", "AGC", "ATA", "GCT", "CGA"],
-        )
+        self.assertEqual(list(self.seq.get_in_motif_size(2)), ["AT", "GA", "CG", "TT", "GC", "GT", "AG", "CA", "TA", "GC", "TC", "GA"])
+
+        self.assertEqual(list(self.seq.get_in_motif_size(3)), ["ATG", "ACG", "TTG", "CGT", "AGC", "ATA", "GCT", "CGA"])
 
     def test_translate(self):
         """test of translating seqs"""
