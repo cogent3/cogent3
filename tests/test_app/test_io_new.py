@@ -16,6 +16,7 @@ from cogent3 import DNA, get_app, open_data_store
 from cogent3.app import io_new as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
+from cogent3.app.io_new import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
@@ -578,3 +579,12 @@ def test_open_suffix_dirname(tmp_dir):
     outpath.mkdir(exist_ok=True)
     dstore = open_data_store(outpath, suffix="txt")
     assert isinstance(dstore, DataStoreDirectory)
+
+
+@pytest.mark.parametrize("data", ({"a": [0, 1]}, DNA))
+def test_default_serialiser_deserialiser(data):
+    # the default deserialiser should successfully reverse the
+    # default serialiser
+    s = DEFAULT_SERIALISER(data)
+    ds = DEFAULT_DESERIALISER(s)
+    assert ds == data

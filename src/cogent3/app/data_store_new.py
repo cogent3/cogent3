@@ -348,10 +348,15 @@ def summary_not_completeds(
     rows = []
     maxtring = reprlib.aRepr.maxstring
     reprlib.aRepr.maxstring = 45
+    limit_len = 45
     for record in types:
         messages, sources = list(zip(*types[record]))
         messages = reprlib.repr(", ".join(m.splitlines()[-1] for m in set(messages)))
-        sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources if s))
+        sources = ", ".join(s.splitlines()[-1] for s in sources if s)
+        if len(sources) > limit_len:
+            idx = sources.rfind(",", None, limit_len) + 1
+            idx = idx if idx > 0 else limit_len
+            sources = f"{sources[:idx]} ..."
         row = list(record) + [
             messages,
             len(types[record]),
