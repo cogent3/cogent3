@@ -46,6 +46,7 @@ test = [
     "black",
     "isort",
     "kaleido",
+    "pandas",
     "plotly",
     "psutil",
     "pytest",
