@@ -439,12 +439,15 @@ class load_json:
         return result
 
 
+DEFAULT_DESERIALISER = unpickle_it() + from_primitive()
+
+
 @define_app(app_type=LOADER)
 class load_db:
     """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
 
-    def __init__(self, deserialiser: callable = unpickle_it() + from_primitive()):
+    def __init__(self, deserialiser: callable = DEFAULT_DESERIALISER):
         self.deserialiser = deserialiser
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
@@ -562,6 +565,9 @@ class write_tabular:
         return self.data_store.write(unique_id=identifier, data=output)
 
 
+DEFAULT_SERIALISER = to_primitive() + pickle_it()
+
+
 @define_app(app_type=WRITER, skip_not_completed=False)
 class write_db:
     """Write serialised objects to a database instance."""
@@ -571,7 +577,7 @@ class write_db:
         self,
         data_store: DataStoreABC,
         id_from_source: callable = get_unique_id,
-        serialiser: callable = to_primitive() + pickle_it(),
+        serialiser: callable = DEFAULT_SERIALISER,
     ):
         """
         serialiser

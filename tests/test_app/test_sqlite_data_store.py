@@ -343,12 +343,6 @@ def test_summary_logs(full_dstore_sqlite):
     assert isinstance(got, Table)
 
 
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
-    assert isinstance(got, Table)
-
-
 def test_no_not_completed_subdir(full_dstore_sqlite):
     expect = f"{len(full_dstore_sqlite.completed)+len(full_dstore_sqlite.not_completed)}x member"
     assert str(full_dstore_sqlite).startswith(expect)
@@ -443,12 +437,6 @@ def test_summary_logs(full_dstore_sqlite):
     assert isinstance(got, Table)
 
 
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
-    assert isinstance(got, Table)
-
-
 def test_read_unknown_table(full_dstore_sqlite):
     with pytest.raises(ValueError):
         full_dstore_sqlite.read("unknown_table/id")
@@ -475,12 +463,6 @@ def test_summary_logs(full_dstore_sqlite):
     # log summary has a row per log file and a column for each property
     got = full_dstore_sqlite.summary_logs
     assert got.shape == (1, 6)
-    assert isinstance(got, Table)
-
-
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
     assert isinstance(got, Table)
 
 
@@ -586,3 +568,17 @@ def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
     # should be a row for each log
     summary = got2.summary_logs
     assert summary.shape[0] == 2
+
+
+def test_summary_not_completed(nc_objects):
+    dstore = open_data_store(":memory:", mode="w")
+    writer = get_app("write_db", dstore)
+    for nc in nc_objects.values():
+        writer(nc)
+
+    # relying on the fact that all nc_objects have same origin
+    # and message, so those columns can be readily interrogated
+    summary = dstore.summary_not_completed
+    vals = summary.tolist(columns=["origin", "message", "num"])
+    assert len(vals) == 1
+    assert vals[0] == ["location", "'message'", 3]
