@@ -1243,16 +1243,6 @@ def foo2():
     ...
 
 
-def foo2():
-    """some text
-
-    Notes
-    -----
-    body
-    """
-    ...
-
-
 def foo3():
     """
     Notes
