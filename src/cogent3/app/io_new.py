@@ -171,16 +171,20 @@ def open_data_store(
 
 @define_app(skip_not_completed=False)
 def pickle_it(data: SerialisableType) -> bytes:
+    """Serialises data using pickle."""
     return pickle.dumps(data)
 
 
 @define_app(skip_not_completed=False)
 def unpickle_it(data: bytes) -> SerialisableType:
+    "Deserialises pickle data."
     return pickle.loads(data)
 
 
 @define_app(skip_not_completed=False)
 class compress:
+    """Compresses bytes data."""
+
     def __init__(self, compressor: callable = gzip_compress):
         """
         Parameters
@@ -196,6 +200,8 @@ class compress:
 
 @define_app(skip_not_completed=False)
 class decompress:
+    """Decompresses data."""
+
     def __init__(self, decompressor: callable = gzip_decompress):
         """
         Parameters
@@ -472,6 +478,8 @@ class load_db:
 
 @define_app(app_type=WRITER)
 class write_json:
+    """Writes data in json format."""
+
     def __init__(
         self,
         data_store: DataStoreABC,
@@ -507,6 +515,8 @@ class write_json:
 
 @define_app(app_type=WRITER)
 class write_seqs:
+    """Write sequences in standard formats."""
+
     @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
@@ -537,6 +547,8 @@ class write_seqs:
 
 @define_app(app_type=WRITER)
 class write_tabular:
+    """Writes tabular data in text format supported by the cogent3 Table object."""
+
     @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
