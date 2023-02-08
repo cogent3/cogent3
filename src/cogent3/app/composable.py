@@ -1087,6 +1087,8 @@ def _class_from_func(func):
     sig = inspect.signature(func)
     class_name = func.__name__
     _main = _set_hints(_main, *_get_raw_hints(func, 1))
+    docs = func.__doc__
+    func.__doc__ = None
 
     _class_dict = {"__init__": _init, "main": _main, "_user_func": staticmethod(func)}
 
@@ -1097,6 +1099,7 @@ def _class_from_func(func):
     result = types.new_class(class_name, (), exec_body=lambda x: x.update(_class_dict))
     result.__module__ = module  # necessary for pickle support
     result._func_sig = sig
+    result.__doc__ = docs
     return result
 
 

@@ -1215,5 +1215,16 @@ def test_skip_not_completed():
     __app_registry.pop(get_object_provenance(takes_not_completed), None)
 
 
+def test_copies_doc_from_func():
+    @define_app
+    def delme(val: c3types.SerialisableType) -> dict:
+        """my docstring"""
+        return val.to_rich_dict()
+
+    assert delme.__doc__ == "my docstring"
+
+    __app_registry.pop(get_object_provenance(delme), None)
+
+
 if __name__ == "__main__":
     main()
