@@ -1230,7 +1230,6 @@ def test_is_in_jupyter():
 
 def foo1():
     """some text"""
-    ...
 
 
 def foo2():
@@ -1240,7 +1239,6 @@ def foo2():
     -----
     body
     """
-    ...
 
 
 def foo3():
@@ -1249,7 +1247,6 @@ def foo3():
     -----
     body
     """
-    ...
 
 
 def foo4():
