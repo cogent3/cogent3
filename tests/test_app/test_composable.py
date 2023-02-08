@@ -1223,7 +1223,20 @@ def test_copies_doc_from_func():
 
     assert delme.__doc__ == "my docstring"
 
+    @define_app
+    def delme2(val: c3types.SerialisableType) -> dict:
+        """my docstring
+        Notes
+        -----
+        body
+        """
+        return val.to_rich_dict()
+
+    assert delme2.__doc__ == "my docstring"
+    assert delme2.__init__.__doc__.split() == ["Notes", "-----", "body"]
+
     __app_registry.pop(get_object_provenance(delme), None)
+    __app_registry.pop(get_object_provenance(delme2), None)
 
 
 if __name__ == "__main__":
