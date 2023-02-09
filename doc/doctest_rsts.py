@@ -5,6 +5,7 @@ This will doctest all files ending with .rst in this directory.
 import os
 import pathlib
 import subprocess
+import tempfile
 
 import click
 import nbformat
@@ -25,6 +26,8 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+
+DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 def execute_ipynb(file_paths, exit_on_first, verbose):
     failed = False
@@ -54,21 +57,37 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
 
 @define_app
 def test_file(test: pathlib.Path | str, exit_on_first: bool=True) -> bool:
-    cmnd = f"python rst2script.py {str(test)}"
-    r = subprocess.run(cmnd.split(), capture_output=True, check=True)
-    py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
-    cmnd = f"python {str(py_path)}"
-    r = subprocess.run(cmnd.split(), capture_output=True)
-    if r.returncode != 0:
-        click.secho(f"FAILED: {str(py_path)}", fg="red")
-        click.secho(r.stdout.decode("utf8"), fg="red")
-        click.secho(r.stderr.decode("utf8"), fg="red")
+    orig_wd = os.getcwd()
+    with tempfile.TemporaryDirectory(dir=".") as workingdir:
+        os.chdir(workingdir)
+        workingdir = pathlib.Path(workingdir)
+        # create a symlink to the data dir
+        (workingdir / "data").symlink_to(DATA_DIR, target_is_directory=True)
 
-    if exit_on_first and r.returncode != 0:
-        return False
-    elif r.returncode == 0:
-        py_path.unlink()
+        # copy the rest file
+        test = pathlib.Path(test)
+        dest = workingdir / test.name
+        dest.write_text(test.read_text())
+        test = dest
+        cmnd = f"python rst2script.py {str(test)}"
+        r = subprocess.run(cmnd.split(), capture_output=True, check=True)
 
+        py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
+
+        cmnd = f"python {str(py_path)}"
+        r = subprocess.run(cmnd.split(), capture_output=True)
+
+        os.chdir(orig_wd)
+
+        if r.returncode != 0:
+            click.secho(f"FAILED: {str(py_path)}", fg="red")
+            click.secho(r.stdout.decode("utf8"), fg="red")
+            click.secho(r.stderr.decode("utf8"), fg="red")
+
+        if exit_on_first and r.returncode != 0:
+            return False
+
+    return True
 
 def execute_rsts(file_paths, exit_on_first, verbose):
     runfile = test_file(exit_on_first=exit_on_first)
