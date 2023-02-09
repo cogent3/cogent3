@@ -247,6 +247,18 @@ class from_primitive:
         return self.deserialiser(data)
 
 
+@define_app
+def to_json(data: SerialisableType) -> str:
+    """Convert primitive python types to json string."""
+    return json.dumps(data)
+
+
+@define_app
+def from_json(data: str) -> SerialisableType:
+    """Convert json string to primitive python types."""
+    return json.loads(data)
+
+
 class tabular(Enum):
     table = "table"
     distances = "distances"
