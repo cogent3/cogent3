@@ -588,3 +588,28 @@ def test_default_serialiser_deserialiser(data):
     s = DEFAULT_SERIALISER(data)
     ds = DEFAULT_DESERIALISER(s)
     assert ds == data
+
+
+def test_to_json():
+    to_j = get_app("to_json")
+    data = {"a": [0, 1]}
+    assert to_j(data) == json.dumps(data)
+
+
+def test_from_json():
+    from_j = get_app("from_json")
+    assert from_j('{"a": [0, 1]}') == {"a": [0, 1]}
+
+
+def test_to_from_json():
+    to_j = get_app("to_json")
+    from_j = get_app("from_json")
+    app = to_j + from_j
+    data = {"a": [0, 1]}
+    assert app(data) == data
+    assert app(data) is not data
+
+
+def test_to_json_combines():
+    app = get_app("to_primitive") + get_app("to_json")
+    assert app(DNA) == DNA.to_json()
