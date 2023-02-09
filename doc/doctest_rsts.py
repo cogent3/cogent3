@@ -13,7 +13,6 @@ import nbformat
 from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 
 from cogent3.app.composable import define_app
-from cogent3.util import parallel as PAR
 from cogent3.util.io import atomic_write
 
 
@@ -28,6 +27,7 @@ __status__ = "Production"
 
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
+
 
 def execute_ipynb(file_paths, exit_on_first, verbose):
     failed = False
@@ -56,28 +56,31 @@ def execute_ipynb(file_paths, exit_on_first, verbose):
 
 
 @define_app
-def test_file(test: pathlib.Path | str, exit_on_first: bool=True) -> bool:
-    orig_wd = os.getcwd()
-    with tempfile.TemporaryDirectory(dir=".") as workingdir:
-        os.chdir(workingdir)
-        workingdir = pathlib.Path(workingdir)
+def test_file(test: pathlib.Path | str, exit_on_first: bool = True) -> bool:
+    test = pathlib.Path(test).absolute()
+    orig_wd = pathlib.Path(os.getcwd())
+    rst_to_py = orig_wd / "rst2script.py"
+    with tempfile.TemporaryDirectory(dir=orig_wd) as working_dir:
+        working_dir = pathlib.Path(working_dir)
         # create a symlink to the data dir
-        (workingdir / "data").symlink_to(DATA_DIR, target_is_directory=True)
+        (working_dir / "data").symlink_to(DATA_DIR)
 
         # copy the rest file
-        test = pathlib.Path(test)
-        dest = workingdir / test.name
+        dest = working_dir / test.name
         dest.write_text(test.read_text())
         test = dest
-        cmnd = f"python rst2script.py {str(test)}"
-        r = subprocess.run(cmnd.split(), capture_output=True, check=True)
+        cmnd = f"python {str(rst_to_py)} -wd {str(working_dir)} {str(test)}"
+        r = subprocess.run(cmnd.split(), capture_output=True, check=False)
+        if r.returncode != 0:
+            click.secho(f"FAILED: {str(rst_to_py)}", fg="red")
+            click.secho(r.stdout.decode("utf8"), fg="red")
+            click.secho(r.stderr.decode("utf8"), fg="red")
+            exit(1)
 
         py_path = pathlib.Path(f'{str(test).removesuffix("rst")}py')
 
         cmnd = f"python {str(py_path)}"
         r = subprocess.run(cmnd.split(), capture_output=True)
-
-        os.chdir(orig_wd)
 
         if r.returncode != 0:
             click.secho(f"FAILED: {str(py_path)}", fg="red")
@@ -89,14 +92,12 @@ def test_file(test: pathlib.Path | str, exit_on_first: bool=True) -> bool:
 
     return True
 
+
 def execute_rsts(file_paths, exit_on_first, verbose):
     runfile = test_file(exit_on_first=exit_on_first)
-    series = PAR.as_completed(runfile, file_paths)
-    for result in series:
+    for result in runfile.as_completed(file_paths, parallel=True):
         if result is False and exit_on_first:
             exit(1)
-
-
 
 
 @click.command()
@@ -134,7 +135,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
         p = pathlib.Path(file_paths)
         assert p.suffix.lower() in ".rst.ipynb", f"Unknown format suffix '{p.suffix}'"
         suffix = p.suffix[1:]
-        file_paths = [file_paths]
+        file_paths = [p]
     else:
         file_paths = list(pathlib.Path(file_paths).glob(f"*.{suffix}"))
 
