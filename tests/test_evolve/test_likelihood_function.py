@@ -2255,8 +2255,7 @@ class ComparisonTests(TestCase):
         assert_allclose(lf.lnL, lnL)
         assert_allclose(lf.nfp, nfp)
 
-@pytest.mark.xfail
-def test_simulate_alignment3(self):
+def test_simulate_alignment3():
     """Simulated alignment with gap-induced ambiguous positions
     preserved"""
     t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
@@ -2274,9 +2273,9 @@ def test_simulate_alignment3(self):
     lf.set_alignment(al)
 
     simulated = lf.simulate_alignment()
-    self.assertEqual(len(simulated.names), 4)
+    assert len(simulated.names) == 4
     import re
-    self.assertEqual(re.sub("[ATCG]", "x", simulated.to_dict()["a"]), "x??xxxxxx?")
+    assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "x??xxxxxx?"
 
 
 if __name__ == "__main__":

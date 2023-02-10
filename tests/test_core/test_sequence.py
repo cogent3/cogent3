@@ -5,23 +5,17 @@
 import json
 import os
 import re
-import pytest
 
 from pickle import dumps
 from unittest import TestCase, main
+
+import pytest
 
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.core.annotation import Feature, SimpleVariable, Variable
-from cogent3.core.moltype import (
-    ASCII,
-    BYTES,
-    DNA,
-    RNA,
-    AlphabetError,
-    get_moltype,
-)
+from cogent3.core.moltype import ASCII, BYTES, DNA, RNA, AlphabetError, get_moltype
 from cogent3.core.sequence import (
     ABSequence,
     ArrayCodonSequence,
@@ -1197,7 +1191,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
 class CodonSequenceTests(SequenceTests, TestCase):
     class SequenceClass(ArrayCodonSequence):
-        alphabet = DNA.alphabets.base ** 3
+        alphabet = DNA.alphabets.base**3
 
     def test_init(self):
         """Sequence should do round-trip from string"""
@@ -1377,6 +1371,7 @@ class ModelSequenceTests(SequenceTests):
         c = seq.counts(allow_gap=True)
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1, "-": 1})
 
+
 simple_slices = [
     slice(None, None, 1),
     slice(None, 3, None),
@@ -1440,7 +1435,7 @@ def test_seqview_neg_start(neg_start_slice):
 
 
 @pytest.mark.parametrize(
-    "neg_start_slice",
+    "neg_step_slice",
     (
         slice(None, None, -1),
         slice(None, None, -2),
@@ -1450,11 +1445,11 @@ def test_seqview_neg_start(neg_start_slice):
         slice(None, 0, -1),
     ),
 )
-def test_seqview_neg_step(neg_start_slice):
+def test_seqview_neg_step(neg_step_slice):
     seq_data = "actgaacagttga"
     sv = SeqView(seq_data)
     s = slice(0, 6, -1)
-    assert sv[neg_start_slice].value == seq_data[neg_start_slice]
+    assert sv[neg_step_slice].value == seq_data[neg_step_slice]
 
 
 @pytest.mark.parametrize(
@@ -1475,6 +1470,25 @@ def test_subslice(sub_slices):
     seq_data = "actgaattg"
     sv = SeqView(seq_data)
     slice_1, slice_2 = sub_slices
+    assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
+    "sub_slices_neg",
+    (
+        (slice(0, -3, 1), slice(1, 4, -1)),
+        (slice(1, -1, 1), slice(1, 3, None)),
+        (slice(0, -3, 1), slice(1, -4, 1)),
+        (slice(0, -4, 1), slice(1, -3, 1)),
+        (slice(0, 6, 1), slice(0, -1, 1)),
+        (slice(1, -1, 1), slice(1, 3, 1)),
+    ),
+    scope="session",
+)
+def test_subslice_neg(sub_slices_neg):
+    seq_data = "actgaattg"
+    sv = SeqView(seq_data)
+    slice_1, slice_2 = sub_slices_neg
     assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
 
 
@@ -1523,12 +1537,14 @@ def test_seqview_replace():
     assert sv.replace("a", "u").value == seq_data.replace("a", "u")
     assert sv.replace("a", "u").replace("u", "a").value == seq_data
 
+
 def test_seqview_replace_2():
     seq_data = "aaaa"
     sv = SeqView(seq_data)
     sv_replaced = sv.replace("a", "u")
     sv_replaced_again = sv_replaced.replace("u", "t")
     assert sv_replaced_again.value == seq_data.replace("a", "u").replace("u", "t")
+
 
 # run if called from command-line
 if __name__ == "__main__":

@@ -188,9 +188,7 @@ class SequenceI(object):
         except AttributeError:
             data = self._data
 
-        not_array = isinstance(data, str) or isinstance(
-            data, SeqView
-        )
+        not_array = isinstance(data, str) or isinstance(data, SeqView)
 
         if motif_length == 1:
             counts = CategoryCounter(data)
@@ -815,11 +813,16 @@ class Sequence(_Annotatable, SequenceI):
                 seq = "".join(map(str, seq))
 
         seq = self._seq_filter(seq)
-        if not preserve_case and not seq.isupper():
-            seq = seq.upper()
+
         if isinstance(seq, SeqView):
+            if not preserve_case and not seq.value.isupper():
+                seq.seq = seq.seq.upper()
             self._seq = seq
-        elif isinstance(seq, str):
+
+        elif not preserve_case and not seq.isupper():
+            seq = seq.upper()
+
+        if isinstance(seq, str):
             self._seq = SeqView(seq)
 
         if check:
@@ -994,9 +997,7 @@ class Sequence(_Annotatable, SequenceI):
         new.annotations = self.annotations[:]
         return new
 
-    def gapped_by_map_segment_iter(
-        self, map, allow_gaps=True, recode_gaps=False
-    ):
+    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
         for span in map.spans:
             if span.lost:
                 if allow_gaps:
@@ -1144,9 +1145,7 @@ class Sequence(_Annotatable, SequenceI):
         gapless = []
         segments = []
         nongap = re.compile(f"([^{re.escape('-')}]+)")
-        for match in nongap.finditer(
-            self._seq.value
-        ):
+        for match in nongap.finditer(self._seq.value):
             segments.append(match.span())
             gapless.append(match.group())
         map = Map(segments, parent_length=len(self)).inverse()
@@ -1401,44 +1400,65 @@ class NucleicAcidSequence(Sequence):
         cat = CategoryCounts(obs)
         return cat.G_fit()
 
-class SeqView:
-    __slots__ = ("seq", "start", "stop", "step", "replacements")
 
-    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None, replacements = None):
+class SeqView:
+    __slots__ = ("seq", "start", "stop", "step")
+
+    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
         self.seq = seq
         self.start = start or 0
         self.stop = len(seq) if stop is None else stop
         self.step = step or 1
-        self.replacements = []
 
     def __getitem__(self, slice: slice):
-        step = self.step if slice.step is None else slice.step
-        start = slice.start if slice.start is not None else 0 if step > 0 else -1
-        stop = slice.stop if slice.stop is not None else len(self) if step > 0 else -len(self) -1
+        slice_step = self.step if slice.step is None else slice.step
+        slice_start = (
+            slice.start if slice.start is not None else 0 if slice_step > 0 else -1
+        )
+        slice_stop = (
+            slice.stop
+            if slice.stop is not None
+            else len(self)
+            if slice_step > 0
+            else -len(self) - 1
+        )
+
+        if self.stop >= 0 and slice_stop >= 0:
+            stop = min(self.stop, self.start + slice_stop * abs(self.step))
+        elif self.stop < 0 and slice_stop < 0:
+            stop = self.stop + slice_stop
+        elif self.stop >= 0:
+            stop = (
+                self.stop
+                if self.stop < len(self) + slice_stop
+                else self.start
+                + slice_stop * abs(self.step)
+                + (len(self) - len(self.seq))
+            )
+        else:  # self.stop < 0
+            stop = (
+                self.stop
+                if len(self) < self.start + slice_stop * abs(self.step)
+                else self.start + slice_stop * abs(self.step)
+            )
 
         return self.__class__(
             self.seq,
-            start=self.start + start * abs(self.step),
-            stop=min(self.stop, self.start + stop * abs(self.step)),
-            step=self.step * step,
-            replacements=self.replacements
+            start=self.start + slice_start * abs(self.step),
+            stop=stop,
+            step=self.step * slice_step,
         )
 
     @property
     def value(self):
-        start, stop, step = self.start, self.stop, self.step
-
-        value = self.seq[start:stop:step]
-        for old, new in self.replacements:
-            value = value.replace(old, new, -1)
-        return value
+        return self.seq[self.start : self.stop : self.step]
 
     def replace(self, old, new):
+        new_seq = self.seq.replace(old, new)
         if len(old) == len(new):
-            self.replacements.append((old, new))
-            return self
+            return SeqView(new_seq, start=self.start, stop=self.stop, step=self.step)
         else:
-            raise ValueError("old and new must be the same length")
+            return SeqView(new_seq)
 
     def __len__(self):
         return abs((self.start - self.stop) // abs(self.step))
@@ -1454,7 +1474,6 @@ class SeqView:
         if len(seq_str) > 15:
             seq_str = f"{seq_str[:10]}...{seq_str[-5:]}"
         return f"{self.__class__.__name__}(seq={seq_str!r}, start={self.start}, stop={self.stop}, step={self.step})"
-
 
 
 class DnaSequence(NucleicAcidSequence):
