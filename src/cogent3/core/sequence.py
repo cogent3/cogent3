@@ -1441,7 +1441,6 @@ class SeqView:
                 if len(self) < self.start + slice_stop * abs(self.step)
                 else self.start + slice_stop * abs(self.step)
             )
-
         return self.__class__(
             self.seq,
             start=self.start + slice_start * abs(self.step),
@@ -1461,7 +1460,7 @@ class SeqView:
             return SeqView(new_seq)
 
     def __len__(self):
-        return abs((self.start - self.stop) // abs(self.step))
+        return len(self.value)
 
     def __iter__(self):
         return iter(self.value)
