@@ -5,12 +5,14 @@
 - Gavin Huttley
 - Katherine Caley
 - Nick Shahmaras
- 
+- khiron
+
 Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users active on the GitHub Discussions!
 
 ## Enhancements
 
 - get_object_provenance() now allows builtins
+- jaccard() distance measure added and older approach deprecated
 
 ### Composable apps
 
