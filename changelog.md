@@ -3,7 +3,7 @@
 ## Contributors
 
 - Gavin Huttley
-- KatherineCaley
+- Katherine Caley
 - Nick Shahmaras
  
 Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users active on the GitHub Discussions!
