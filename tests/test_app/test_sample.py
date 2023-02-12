@@ -10,7 +10,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -122,6 +122,11 @@ class TranslateTests(TestCase):
         # error if no moltype
         with self.assertRaises(AssertionError):
             _ = sample.take_codon_positions(moltype=None)
+
+    def test_take_named_3(self):
+        """3 named seqs"""
+        select = sample.take_named_seqs("a", "b", "c")
+        assert select._init_vals == {"names": tuple("abc"), "negate": False}
 
     def test_take_named(self):
         """returns collections containing named seqs"""
@@ -440,16 +445,16 @@ class TranslateTests(TestCase):
         ]
         ccat = sample.concat()
         # triggered by first record
-        with self.assertRaises(TypeError):
-            ccat(data)
+        got = ccat(data)
+        self.assertIsInstance(got, composable.NotCompleted)
 
         # triggered by second record
-        with self.assertRaises(TypeError):
-            ccat(data[::-1])
+        got = ccat(data[::-1])
+        self.assertIsInstance(got, composable.NotCompleted)
 
         # triggered by no data
-        with self.assertRaises(ValueError):
-            ccat([])
+        got = ccat([])
+        self.assertIsInstance(got, composable.NotCompleted)
 
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""

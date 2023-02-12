@@ -18,6 +18,11 @@ from cogent3 import (
 from cogent3.app.result import model_collection_result, model_result
 from cogent3.core import alignment, moltype
 from cogent3.evolve.models import get_model
+from cogent3.evolve.ns_substitution_model import (
+    NonReversibleDinucleotide,
+    NonReversibleTrinucleotide,
+    _sym_preds,
+)
 from cogent3.util.deserialise import (
     deserialise_likelihood_function,
     deserialise_object,
@@ -28,7 +33,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -123,6 +128,18 @@ class TestDeserialising(TestCase):
         got = deserialise_object(data)
         self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
         sm = get_model("CNFGTR")
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+        sm = get_model("GNC")
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+        sm = NonReversibleDinucleotide(_sym_preds)
+        data = sm.to_json()
+        got = deserialise_object(data)
+        self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
+        sm = NonReversibleTrinucleotide(_sym_preds)
         data = sm.to_json()
         got = deserialise_object(data)
         self.assertEqual(got.to_rich_dict(), sm.to_rich_dict())
@@ -448,6 +465,9 @@ class TestDeserialising(TestCase):
         jdata = json.dumps(data)
         got = deserialise_object(jdata)
         self.assertEqual(got, data)
+        data = range(4)
+        got = deserialise_object(data)
+        assert got is data
 
     def test_deserialise_likelihood_function1(self):
         """correctly deserialise data into likelihood function"""

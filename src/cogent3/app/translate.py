@@ -1,22 +1,19 @@
 from collections import defaultdict
+from typing import Union
 
 from cogent3.core.alignment import SequenceCollection
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import (
-    ALIGNED_TYPE,
-    SEQUENCE_TYPE,
-    ComposableSeq,
-    NotCompleted,
-)
+from .composable import NotCompleted, define_app
+from .typing import SeqsCollectionType, SerialisableType
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -145,27 +142,21 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
         ffold = set()
         to_indices = alphabet.to_indices
         for group in four_fold:
-            grp = frozenset([tuple(to_indices(element)) for element in group])
+            grp = frozenset(tuple(to_indices(element)) for element in group)
             ffold.add(grp)
         four_fold = ffold
 
     return four_fold
 
 
-class select_translatable(ComposableSeq):
-    """Identifies most likely reading frame. Returns modified sequences / alignment,
-    if it could be resolved, NotCompleted otherwise."""
-
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
-    _output_types = SEQUENCE_TYPE
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+@define_app
+class select_translatable:
+    """Selects translatable sequences by identifying the most likely reading
+    frame. Sequences are truncated to modulo 3. seqs.info has a
+    translation_errors entry."""
 
     def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
-        """selects translatable sequences
-
-        Sequences are truncated to modulo 3. seqs.info has a translation_errors
-        entry.
-
+        """
         Parameters
         ----------
         moltype : str
@@ -183,13 +174,6 @@ class select_translatable(ComposableSeq):
         A sequence collection. Sequences that could not be translated
         are excluded.
         """
-        super(select_translatable, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
-
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
@@ -197,9 +181,10 @@ class select_translatable(ComposableSeq):
         self._gc = get_code(gc)
         self._allow_rc = allow_rc
         self._trim_terminal_stop = trim_terminal_stop
-        self.func = self.get_translatable
 
-    def get_translatable(self, seqs):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, seqs: SeqsCollectionType) -> T:
         """returns the translatable sequences from seqs.
 
         translation errors are stroed in the info object"""
@@ -239,16 +224,13 @@ class select_translatable(ComposableSeq):
         return translatable
 
 
-class translate_seqs(ComposableSeq):
-    """Translates sequences, assumes in correct reading frame."""
-
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+@define_app
+class translate_seqs:
+    """Translates nucleic acid sequences into protein sequences, assumes in
+    correct reading frame."""
 
     def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
-        """generates aa sequences
-
+        """
         Parameters
         ----------
         moltype : str
@@ -263,22 +245,16 @@ class translate_seqs(ComposableSeq):
         A sequence collection. Sequences that could not be translated
         are excluded.
         """
-        super(translate_seqs, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
-
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self._moltype = moltype
         self._gc = get_code(gc)
         self._trim_terminal_stop = trim_terminal_stop
-        self.func = self.get_translated
 
-    def get_translated(self, seqs):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, seqs: SeqsCollectionType) -> T:
         """returns translated sequences"""
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)

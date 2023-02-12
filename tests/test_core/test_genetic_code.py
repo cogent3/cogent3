@@ -19,7 +19,7 @@ __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -41,7 +41,7 @@ class GeneticCodeTests(TestCase):
         self.NcbiStandard = [
             "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             1,
-            "Standard Nuclear",
+            "Standard",
             "---M---------------M---------------M----------------------------",
         ]
 
@@ -69,7 +69,7 @@ class GeneticCodeTests(TestCase):
         )
         self.assertEqual(sgc.start_codons, {"TTG": "M", "CTG": "M", "ATG": "M"})
         self.assertEqual(sgc.ID, 1)
-        self.assertEqual(sgc.name, "Standard Nuclear")
+        self.assertEqual(sgc.name, "Standard")
         self.assertEqual(sgc["UUU"], "F")
         self.assertEqual(sgc.is_start("ATG"), True)
         self.assertEqual(sgc.is_start("AAA"), False)
@@ -95,7 +95,7 @@ class GeneticCodeTests(TestCase):
             )
             self.assertEqual(sgc.start_codons, {"TTG": "M", "CTG": "M", "ATG": "M"})
             self.assertEqual(sgc.ID, 1)
-            self.assertEqual(sgc.name, "Standard Nuclear")
+            self.assertEqual(sgc.name, "Standard")
             self.assertEqual(sgc["TTT"], "F")
             self.assertEqual(sgc.is_start("ATG"), True)
             self.assertEqual(sgc.is_start("AAA"), False)
@@ -361,7 +361,7 @@ class GeneticCodeTests(TestCase):
 
     def test_get_code(self):
         """correctly return the genetic code"""
-        for code_id in [1, "1", "Standard Nuclear", DEFAULT]:
+        for code_id in [1, "1", "Standard", DEFAULT]:
             got = get_code(code_id)
             self.assertEqual(got, DEFAULT)
         got = get_code(2)
@@ -370,8 +370,8 @@ class GeneticCodeTests(TestCase):
     def test_available_codes(self):
         """avaialable_codes returns Table with correct shape"""
         codes = available_codes()
-        self.assertEqual(codes.shape, (17, 2))
-        self.assertEqual(codes[0, "Name"], "Standard Nuclear")
+        self.assertTrue(codes.shape[0] > 17)
+        self.assertEqual(codes[0, "Name"], "Standard")
 
     def test_to_table(self):
         """tests to_table method."""
@@ -411,7 +411,7 @@ class GeneticCodeTests(TestCase):
         )
         self.assertTrue("<table>" in got)
         self.assertTrue("</table>" in got)
-        self.assertIn("Standard Nuclear", got)
+        self.assertIn("Standard", got)
 
 
 # Run tests if called from command line

@@ -7,8 +7,9 @@ from pathlib import Path
 
 import numpy
 
+from scipy.stats.distributions import chi2
+
 from cogent3.app.data_store import get_data_source
-from cogent3.maths.stats import chisqprob
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.table import Table
 
@@ -17,7 +18,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -26,7 +27,6 @@ __status__ = "Alpha"
 class generic_result(MutableMapping):
     """A dict style container for storing results."""
 
-    _type = "generic_result"
     _item_types = ()
 
     def __init__(self, source):
@@ -127,7 +127,6 @@ class generic_result(MutableMapping):
 class model_result(generic_result):
     """Storage of model results."""
 
-    _type = "model_result"
     _stat_attrs = ("lnL", "nfp", "DLC", "unique_Q")
     _item_types = ("AlignmentLikelihoodFunction",)
 
@@ -400,7 +399,6 @@ class model_result(generic_result):
 class model_collection_result(generic_result):
     """Storage of a collection of model_result."""
 
-    _type = "model_collection_result"
     _item_types = ("model_result",)
 
     def __init__(self, name=None, source=None):
@@ -523,7 +521,6 @@ class hypothesis_result(model_collection_result):
     """Storage of a collection of model_result instances that are hierarchically
     related."""
 
-    _type = "hypothesis_result"
     _item_types = ("model_result",)
 
     @extend_docstring_from(model_collection_result.__init__, pre=True)
@@ -609,20 +606,19 @@ class hypothesis_result(model_collection_result):
 
     @property
     def pvalue(self):
-        """returns p-value from chisqprob(LR, df)
+        """returns p-value from chi2.sf(LR, df)
 
         None if LR < 0"""
         if self.LR == 0:
             pvalue = 1
         elif self.LR > 0:
-            pvalue = chisqprob(self.LR, self.df)
+            pvalue = chi2.sf(self.LR, self.df)
         else:
             pvalue = None
         return pvalue
 
 
 class bootstrap_result(generic_result):
-    _type = "bootstrap_result"
     _item_types = ("hypothesis_result", "model_collection_result")
 
     def __init__(self, source=None):
@@ -651,7 +647,6 @@ class bootstrap_result(generic_result):
 class tabular_result(generic_result):
     """stores one or multiple cogent3 Tables, DictArray"""
 
-    _type = "tabular_result"
     _stat_attrs = ("header", "rows")
     _item_types = (
         "Table",

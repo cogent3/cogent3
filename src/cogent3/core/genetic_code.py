@@ -16,7 +16,7 @@ __author__ = "Greg Caporaso and Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "caporaso@colorado.edu"
 __status__ = "Production"
@@ -353,7 +353,7 @@ NcbiGeneticCodeData = [
         [
             "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             1,
-            "Standard Nuclear",
+            "Standard",
             "---M---------------M---------------M----------------------------",
         ],
         [
@@ -366,12 +366,13 @@ NcbiGeneticCodeData = [
             "FFLLSSSSYY**CCWWTTTTPPPPHHQQRRRRIIMMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             3,
             "Yeast Mitochondrial",
-            "----------------------------------MM----------------------------",
+            "----------------------------------MM---------------M------------",
         ],
         [
             "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             4,
-            "Mold, Protozoan, and Coelenterate Mitochondrial, and Mycoplasma/Spiroplasma Nuclear",
+            "Mold Mitochondrial; Protozoan Mitochondrial; Coelenterate "
+            "Mitochondrial; Mycoplasma; Spiroplasma",
             "--MM---------------M------------MMMM---------------M------------",
         ],
         [
@@ -383,13 +384,13 @@ NcbiGeneticCodeData = [
         [
             "FFLLSSSSYYQQCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             6,
-            "Ciliate, Dasycladacean and Hexamita Nuclear",
+            "Ciliate Nuclear; Dasycladacean Nuclear; Hexamita Nuclear",
             "-----------------------------------M----------------------------",
         ],
         [
             "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG",
             9,
-            "Echinoderm and Flatworm Mitochondrial",
+            "Echinoderm Mitochondrial; Flatworm Mitochondrial",
             "-----------------------------------M---------------M------------",
         ],
         [
@@ -401,7 +402,7 @@ NcbiGeneticCodeData = [
         [
             "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             11,
-            "Bacterial Nuclear and Plant Plastid",
+            "Bacterial, Archaeal and Plant Plastid",
             "---M---------------M------------MMMM---------------M------------",
         ],
         [
@@ -414,7 +415,7 @@ NcbiGeneticCodeData = [
             "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSSGGVVVVAAAADDEEGGGG",
             13,
             "Ascidian Mitochondrial",
-            "-----------------------------------M----------------------------",
+            "---M------------------------------MM---------------M------------",
         ],
         [
             "FFLLSSSSYYY*CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNNKSSSSVVVVAAAADDEEGGGG",
@@ -425,7 +426,7 @@ NcbiGeneticCodeData = [
         [
             "FFLLSSSSYY*QCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             15,
-            "Blepharisma Nuclear",
+            "Blepharisma Macronuclear",
             "-----------------------------------M----------------------------",
         ],
         [
@@ -436,7 +437,7 @@ NcbiGeneticCodeData = [
         ],
         [
             "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNNKSSSSVVVVAAAADDEEGGGG",
-            20,
+            21,
             "Trematode Mitochondrial",
             "-----------------------------------M---------------M------------",
         ],
@@ -450,6 +451,67 @@ NcbiGeneticCodeData = [
             "FF*LSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
             23,
             "Thraustochytrium Mitochondrial",
+            "--------------------------------M--M---------------M------------",
+        ],
+        [
+            "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSSKVVVVAAAADDEEGGGG",
+            24,
+            "Rhabdopleuridae Mitochondrial",
+            "---M---------------M---------------M---------------M------------",
+        ],
+        [
+            "FFLLSSSSYY**CCGWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            25,
+            "Candidate Division SR1 and Gracilibacteria",
+            "---M-------------------------------M---------------M------------",
+        ],
+        [
+            "FFLLSSSSYY**CC*WLLLAPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            26,
+            "Pachysolen tannophilus Nuclear",
+            "-------------------M---------------M----------------------------",
+        ],
+        [
+            "FFLLSSSSYYQQCCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            27,
+            "Karyorelict Nuclear",
+            "-----------------------------------M----------------------------",
+        ],
+        [
+            "FFLLSSSSYYQQCCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            28,
+            "Condylostoma Nuclear",
+            "-----------------------------------M----------------------------",
+        ],
+        [
+            "FFLLSSSSYYYYCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            29,
+            "Mesodinium Nuclear",
+            "-----------------------------------M----------------------------",
+        ],
+        [
+            "FFLLSSSSYYEECC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            30,
+            "Peritrich Nuclear",
+            "-----------------------------------M----------------------------",
+        ],
+        [
+            "FFLLSSSSYYEECCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            31,
+            "Blastocrithidia Nuclear",
+            "-----------------------------------M----------------------------",
+        ],
+        [
+            "FFLLSSSSYY*WCC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
+            32,
+            "Balanophoraceae Plastid",
+            "---M---------------M------------MMMM---------------M------------",
+        ],
+        [
+            "FFLLSSSSYYY*CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSSKVVVVAAAADDEEGGGG",
+            33,
+            "Cephalodiscidae Mitochondrial",
+            "---M---------------M---------------M---------------M------------",
         ],
     ]
 ]

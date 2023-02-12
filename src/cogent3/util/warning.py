@@ -7,13 +7,13 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Jai Ram Rideout"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def deprecated(_type, old, new, version, reason=None, stack_level=2):
+def deprecated(_type, old, new, version, reason=None, stack_level=3):
     """a convenience function for deprecating classes, functions, arguments.
 
     Parameters
@@ -39,10 +39,10 @@ def deprecated(_type, old, new, version, reason=None, stack_level=2):
 
     with catch_warnings():
         simplefilter("always")
-        _warn(msg, DeprecationWarning, stack_level)
+        _warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
-def discontinued(_type, name, version, reason=None, stack_level=2):
+def discontinued(_type, name, version, reason=None, stack_level=3):
     """convenience func to warn about discontinued attributes
 
     Parameters
@@ -58,7 +58,6 @@ def discontinued(_type, name, version, reason=None, stack_level=2):
         why, and what choices users have
     stack_level
         as per warnings.warn
-
     """
     msg = (
         f"{_type} {name} is discontinued, support will be stopped in version {version}"
@@ -68,4 +67,4 @@ def discontinued(_type, name, version, reason=None, stack_level=2):
 
     with catch_warnings():
         simplefilter("always")
-        _warn(msg, DeprecationWarning, stack_level)
+        _warn(msg, DeprecationWarning, stacklevel=stack_level)

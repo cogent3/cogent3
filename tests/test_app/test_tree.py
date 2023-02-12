@@ -14,7 +14,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -64,30 +64,24 @@ class TestTree(TestCase):
         fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         dist_matrix = fast_slow_dist(aln)
         quick1 = tree_app.quick_tree()
-        tree1 = quick1.quick_tree(dist_matrix)
+        tree1 = quick1(dist_matrix)
         self.assertEqual(set(tree1.get_tip_names()), set(aln.names))
 
     def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
         path = os.path.join(data_path, "brca1_5.paml")
         aln1 = load_aligned_seqs(path, moltype=DNA)
-        fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
+        calc_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
-        proc = fast_slow_dist + quick
+        proc = calc_dist + quick
         self.assertEqual(
             str(proc),
-            "fast_slow_dist(type='distance', distance=None, moltype='dna',\n"
-            "fast_calc='hamming', slow_calc=None) + quick_tree(type='tree',\n"
+            "fast_slow_dist(distance=None, moltype='dna', "
+            "fast_calc='hamming',\nslow_calc=None) + quick_tree("
             "drop_invalid=False)",
         )
         self.assertIsInstance(proc, tree_app.quick_tree)
-        self.assertEqual(proc._type, "tree")
         self.assertIsInstance(proc.input, dist.fast_slow_dist)
-        self.assertIs(proc.output, None)
-        self.assertIsInstance(proc._input_types, frozenset)
-        self.assertIsInstance(proc._output_types, frozenset)
-        self.assertIsInstance(proc._in, dist.fast_slow_dist)
-        self.assertIs(proc._out, None)
 
         tree1 = proc(aln1)
         self.assertIsInstance(tree1, PhyloNode)
@@ -115,7 +109,7 @@ class TestTree(TestCase):
         }
 
         darr = DistanceMatrix(data)
-        tree = quick_tree.quick_tree(darr)
+        tree = quick_tree(darr)
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
@@ -145,7 +139,7 @@ class TestTree(TestCase):
             ("TombBat", "LittleBro"): 0.12,
         }
         darr = DistanceMatrix(data)
-        tree = quick_tree.quick_tree(darr)
+        tree = quick_tree(darr)
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
@@ -167,7 +161,7 @@ class TestTree(TestCase):
             ("BAA10469", "Avin_42730"): 1.85,
         }
         darr = DistanceMatrix(data)
-        tree = quick_tree.quick_tree(darr)
+        tree = quick_tree(darr)
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
@@ -190,12 +184,13 @@ class TestTree(TestCase):
         }
 
         darr = DistanceMatrix(data)
+        # must explicitly call main() method to avoid error trapping by decorator
         with self.assertRaises(KeyError):
-            tree = quick_tree.quick_tree(darr)
+            quick_tree.main(darr)
         # when distance_matrix is None after dropping invalid
         with self.assertRaises(ValueError):
             quick_tree = tree_app.quick_tree(drop_invalid=True)
-            tree = quick_tree.quick_tree(darr)
+            quick_tree.main(darr)
 
         data = {
             ("DogFaced", "FlyingFox"): 0.05,
@@ -220,7 +215,7 @@ class TestTree(TestCase):
             ("TombBat", "LittleBro"): 0.12,
         }
         darr = DistanceMatrix(data)
-        tree = quick_tree.quick_tree(darr)
+        tree = quick_tree(darr)
         self.assertIsInstance(tree, PhyloNode)
         self.assertIsNotNone(tree.children)
         self.assertEqual(
@@ -229,7 +224,7 @@ class TestTree(TestCase):
 
         data = {"a": {"b": 0.1, "a": 0.0}, "b": {"a": 0.1, "b": 0.0}}
         darr = DistanceMatrix(data)
-        tree = quick_tree.quick_tree(darr)
+        tree = quick_tree(darr)
         self.assertEqual(
             set(tree.get_tip_names()), set.union(*(set(tup) for tup in data))
         )

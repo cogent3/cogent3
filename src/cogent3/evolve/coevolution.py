@@ -50,7 +50,6 @@ from random import shuffle
 from numpy import (
     array,
     e,
-    float,
     greater_equal,
     isnan,
     less_equal,
@@ -87,7 +86,7 @@ __credits__ = [
     "Rob Knight",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"
@@ -1244,7 +1243,7 @@ def get_ancestral_seqs(aln, tree, sm=None, pseudocount=1e-6, optimise=True):
     lf = sm.make_likelihood_function(tree, sm.motif_probs)
     lf.set_alignment(aln, motif_pseudocount=pseudocount)
     if optimise:
-        lf.optimise(local=True)
+        lf.optimise(local=True, show_progress=False)
     return ArrayAlignment(lf.likely_ancestral_seqs(), moltype=aln.moltype)
 
 

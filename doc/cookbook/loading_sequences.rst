@@ -5,8 +5,8 @@
 
 .. _load-seqs:
 
-Loading an alignment from a file
---------------------------------
+Loading an alignment from a file or url
+---------------------------------------
 
 .. author, Gavin Huttley, Tony Walters, Tom Elliott
 
@@ -41,6 +41,19 @@ The ``load_unaligned_seqs()`` function returns a sequence collection.
 
     seqs = load_unaligned_seqs("data/long_testseqs.fasta", moltype="dna")
     type(seqs)
+
+
+Loading from a url
+^^^^^^^^^^^^^^^^^^
+
+The ``cogent3`` load functions support loading from a url. We load the above fasta file directly from GitHub.
+
+.. jupyter-execute::
+
+    from cogent3 import load_aligned_seqs
+
+
+    aln = load_aligned_seqs("https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta", moltype="dna")
 
 Specifying the file format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

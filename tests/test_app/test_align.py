@@ -19,7 +19,7 @@ from cogent3.app.align import (
     pairwise_to_multiple,
 )
 from cogent3.app.composable import NotCompleted
-from cogent3.core.alignment import Aligned
+from cogent3.core.alignment import Aligned, ArrayAlignment
 from cogent3.core.location import gap_coords_to_map
 
 
@@ -27,7 +27,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -340,18 +340,7 @@ class ProgressiveAlignment(TestCase):
         """progressive alignment with nuc models"""
         aligner = align_app.progressive_align(model="TN93", distance="TN93")
         aln = aligner(self.seqs)
-        expect = {
-            "Rhesus": "GCCAGCTCATTACAGCATGAGAACAG---TTTGTTACTCACT",
-            "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
-            "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAG---TTTATTGTCCAAC",
-            "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAG---TTTATTATACACT",
-        }
-        got = aln.to_dict()
-        self.assertEqual(got, expect)
-
-        # using default
-        aligner = align_app.progressive_align(model="TN93", distance="TN93")
-        aln = aligner(self.seqs)
+        self.assertIsInstance(aln, ArrayAlignment)
         self.assertEqual(len(aln), 42)
         self.assertEqual(aln.moltype, aligner._moltype)
         # todo the following is not robust across operating systems

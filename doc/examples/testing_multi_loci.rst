@@ -14,7 +14,7 @@ We want to know whether an exchangeability parameter is different between alignm
 
     from cogent3 import load_aligned_seqs, make_table, make_tree
     from cogent3.evolve.models import HKY85
-    from cogent3.maths.stats import chisqprob
+    from scipy.stats.distributions import chi2
     from cogent3.recalculation.scope import ALL, EACH
 
     aln = load_aligned_seqs("data/long_testseqs.fasta")
@@ -62,5 +62,5 @@ Just to pretty up the result display, I'll print(a table consisting of the test 
 .. jupyter-execute::
 
     make_table(
-        header=["LR", "df", "p"], rows=[[LR, df, chisqprob(LR, df)]], digits=2, space=3,
+        header=["LR", "df", "p"], rows=[[LR, df, chi2.sf(LR, df)]], digits=2, space=3,
     )

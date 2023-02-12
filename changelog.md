@@ -1,3 +1,129 @@
+# Changes since release "2022.10.31a1"
+
+## Contributors
+
+- Gavin Huttley
+- Katherine Caley
+- Nick Shahmaras
+- khiron
+
+Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users active on the GitHub Discussions!
+
+## Enhancements
+
+- get_object_provenance() now allows builtins
+- jaccard() distance measure added and older approach deprecated
+
+### Composable apps
+
+- app_help() and get_app() available as top-level imports.
+     - app_help() takes the name of the app as a string and displays its summary, parameters and how to create one using get_app().
+     - get_app() creates an app instance given its name as a string and constructor arguments.
+- added skip_not_completed keyword parameter to define_app decorator.
+    - Some apps need to process NotCompleted instances. The current `app.__call__` method returns these instances immediately without passing through to the apps `.main()` method. The change introduces a semi-private attribute `_skip_not_completed` to the class. If it's False, the instance will be passed to `main()`.
+- composable data validation now allows NotCompleted
+    - if <app>.input returned a NotCompleted, it was being treated as an invalid data type rather than preserving the original cause for failure. The data validation method now immediately returns a provided NotCompleted instance
+- add argument id_from_source to all writer apps for a naming callback
+    - It should be a callable that generates a unique ID from input data
+    - Defaults to new get_unique_id() function, which extracts base name by calling get_data_source() and processing the result, removing file suffixes identified by get_format_suffixes().
+    - this means filename suffixes are dropped more cleanly
+- new app to_primitive(). This uses a to_rich_dict() method if available otherwise it just returns the original object.
+- new app from_primitive(). This takes a dict and deserialises the object using the standard cogent3 functions.
+- new app pickle_it(). Does as the name implies.
+- new app unpickle_it(). Does as the name implies.
+- new app compress(). Compresses using a provided compress function. Defaults to gzip compress.
+- new app decompress(). Deompresses using a provided decompress function. Defaults to gzip decompress.
+- new app to_json(). Converts result of to_primitive() to json string.
+- new app from_json(). Converts json string to python primitives suitable for from_primitive().
+- added DEFAULT_SERIALISER and a corresponding DEFAULT_DESERIALISER app instances
+  - these are to_primitive() + pickle_it() (and the reverse)
+- app.typing.get_constraint_names() now supports all standard python Sequence built-ins (list, tuple, set).
+- add type resolver for nested types
+    - function resolves the type tree of nested types and also returns the depth of that type tree
+    - ensure custom apps don't have excessive nested types. The motivation for this check is it is difficult to efficiently resolve, so we advise the developer (via a TypeError message) to define a custom class for such complex types. They can then choose to validate construction of those class attributes themselves.
+
+### DataStores
+
+These have been completely rewritten and have different behaviour from the original versions. Deprecation warnings are raised when the old ones are employed.
+
+- Loading and creating data stores should now be done using open_data_store(), a top-level import.
+  - It replaces the (now deprecated) get_data_store() function.
+  - It adds a mode argument, "r" is read only, "w" write, and "a" append. This function should now be used for all creation of new data store instances.
+  - Supports opening in-memory sqlitedb for writing, just use ":memory:" as the data_path. If mode is read only, raises a NotImplementedError.
+- added new DataStoreSqlite for a more flexibile data store backed
+  - supports all python types via pickling, including compression of that data
+  - is part of the standard library
+  - uses the new DEFAULT_SERIALISER for serialisation. The corresponding DEFAULT_DESERIALISER can be used for reversing that.
+  - specified using the suffix ".sqlitedb" or using ":memory:" for an in memory sqlitedb
+  - record_type property is the type of completed records
+- DataStore's have completed and not_completed properties
+  - Iteration on data stores is across *both* of those
+  - Iterate over the completed property for subsequent analyses
+- DataStore's have drop_not_completed method
+- All data stores record NotCompleted and md5 data
+- DataStore's have a .validate() method, which checks all records match their recorded md5.
+- DataStore's provide separate methods for writing different types
+  - write, write_not_completed, write_log
+  - all require keyword style arguments
+  - all return a DataMember
+- DataStoreABC.validate() now records missing md5
+- DataStores now have a summary_not_completed property
+- repr(DataStore) now displays the construction statement. The str(DataStore) returns the output previously displayed by repr().
+
+### Alignments
+
+- iupac_consensus() method now allows ignoring gaps using the allow_gaps argument.
+
+## Deprecations
+
+- get_data_store -> open_data_store
+- all previous data store, data member, writer, loader classes
+- Data store summary_incomplete property is renamed summary_not_completed
+
+## Discontinued
+
+- We are discontinuing support for tinydb.
+  - added convert_tinydb_to_sqlite() function for converting old tinydb to sqlitedb
+  - adds a log recording the conversion
+- All previous data store types are discontinued, use open_data_store() function for getting a data store instead of a direct import path.
+
+## BUG
+
+- progress display in notebooks now works again
+
+# Changes since release 2022.8.24a1
+
+## Contributors
+
+Thanks to our contributors!
+
+### Accepted PRs from
+
+- Gavin Huttley
+- KatherineCaley
+- Nick Shahmaras
+- Xingjian Leng
+
+### Identified a Bug
+
+- StephenRogers1
+
+## ENH
+
+Significant refactor of composable apps. This is the backwards incompatible change we warned of in the last release! We now use a decorator `define_app` (on classes or functions) instead of class inheritance. Please see [the c3dev wiki](https://github.com/cogent3/cogent3/wiki/composable-functions) for examples on how to port from old-style to new-style composable apps.
+
+We updated to the latest NCBI versions of genetic codes. Note, the name of genetic code 1 has changed from "Standard Nuclear" to "Standard".
+
+## BUG
+
+- Fix progressive alignment bug when a guide-tree with zero edge lengths was encountered.
+- Non-stationary independent tuple models can now be serialised.
+
+## DEP
+
+- We have removed support for python 3.7.
+- We have made scipy a dependency and begun deprecating statistical functions that are available in scipy. All deprecated functions have a warning that indicates the scipy replacement. The deprecated functions are: combinations, chi_high, chdtri, z_high, z_low function, chi_low, binomial_high, binomial_low, f_high, f_low, t_low and t_high.
+
 # Changes since release 2022.5.25a1
 
 ## Contributors

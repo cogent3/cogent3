@@ -6,28 +6,25 @@
 Apply a non-stationary nucleotide model to an alignment with 3 sequences
 ========================================================================
 
-We load some sample data first and select just 3 sequences, all via
-``apps``.
+We load some sample data first and select just 3 sequences.
 
 .. jupyter-execute::
 
-    from cogent3.app import io, sample
+    from cogent3 import get_app
 
-    reader = io.load_aligned(format="fasta", moltype="dna")
-    select_seqs = sample.take_named_seqs("Human", "Rhesus", "Galago")
-    process = reader + select_seqs
+    loader = get_app("load_aligned", format="fasta", moltype="dna")
+    select_seqs = get_app("take_named_seqs", "Human", "Rhesus", "Galago")
+    process = loader + select_seqs
     aln = process("data/primate_brca1.fasta")
     aln.names
 
 We analyses these using the general Markov nucleotide, GN, model.
 Because we analyse just 3 sequences, there is only one possible unrooted
-tree. It’s not required to specify the tree in this instance.
+tree, hence it is not required to specify the tree in this instance.
 
 .. jupyter-execute::
 
-    from cogent3.app import evo
-
-    gn = evo.model("GN")
+    gn = get_app("model", "GN")
     gn
 
 We apply this to ``aln``.
@@ -64,13 +61,13 @@ More detail on the fitted model are available via attributes. For instance, disp
 
     fitted.source
 
-The ``model_result.tree`` attribute is an “annotated tree”. Maximum likelihood estimates from the model have been assigned to the tree. Of particular significance, the “length” attribute corresponds to the expected number of substitutions (or ENS). For a non-stationary model, like GN, this can be different to the conventional length (`Kaehler et al <https://www.ncbi.nlm.nih.gov/pubmed/25503772>`__).
+The ``model_result.tree`` attribute is an "annotated tree". Maximum likelihood estimates from the model have been assigned to the tree. Of particular significance, the "length" attribute corresponds to the expected number of substitutions (or ENS). For a non-stationary model, like GN, this can be different to the conventional length (`Kaehler et al <https://www.ncbi.nlm.nih.gov/pubmed/25503772>`__).
 
 .. jupyter-execute::
 
     fitted.tree, fitted.alignment
 
-We can access the sum of all branch lengths. Either as “ENS” or “paralinear” using the ``total_length()`` method.
+We can access the sum of all branch lengths. Either as "ENS" or "paralinear" using the ``total_length()`` method.
 
 .. jupyter-execute::
 
@@ -83,7 +80,7 @@ Controlled by setting ``split_codons=True``.
 
 .. jupyter-execute::
 
-    gn = evo.model("GN", split_codons=True)
+    gn = get_app("model", "GN", split_codons=True)
 
     fitted = gn(aln)
     fitted

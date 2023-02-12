@@ -15,7 +15,7 @@ __author__ = ["Gavin Huttley"]
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -292,7 +292,8 @@ def deserialise_substitution_model(data):
     if sm is None:
         alphabet = deserialise_alphabet(data.pop("alphabet"))
         klass = _get_class(data.pop("type"))
-        sm = klass(alphabet, **data)
+        data["alphabet"] = alphabet
+        sm = klass(**data)
 
     return sm
 
@@ -357,7 +358,7 @@ def deserialise_object(data):
     if type(data) is str:
         data = json.loads(data)
 
-    type_ = data.get("type", None)
+    type_ = data.get("type", None) if hasattr(data, "get") else None
     if type_ is None:
         return data
 

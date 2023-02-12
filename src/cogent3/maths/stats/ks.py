@@ -20,15 +20,14 @@ from numpy import (
     sum,
     zeros,
 )
-
-from cogent3.maths.stats.special import combinations
+from scipy.special import binom
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -57,7 +56,7 @@ def pkolmogorov1x(statistic, n):
         return 1.0
     to = floor(n * (1 - statistic)) + 1
     j = arange(0, to)
-    coeffs = asarray([log(combinations(n, i)) for i in j])
+    coeffs = asarray([log(binom(n, i)) for i in j])
     p = sum(
         exp(
             coeffs

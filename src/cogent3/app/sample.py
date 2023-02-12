@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List, Union
 
 from numpy import array
 from numpy import random as np_random
@@ -7,22 +8,16 @@ from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 
-from .composable import (
-    ALIGNED_TYPE,
-    SEQUENCE_TYPE,
-    SERIALISABLE_TYPE,
-    ComposableAligned,
-    ComposableSeq,
-    NotCompleted,
-)
+from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
+from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -45,12 +40,12 @@ def union(groups):
     return union
 
 
+@define_app(app_type=NON_COMPOSABLE)
 class concat:
-    """Creates a concatenated alignment from a series. Returns an Alignment."""
+    """Creates a concatenated alignment from a series."""
 
     def __init__(self, join_seq="", intersect=True, moltype=None):
-        """concatenate sequences from a series of alignments
-
+        """
         Parameters
         ----------
         join_seq : str
@@ -66,7 +61,9 @@ class concat:
         self._moltype = moltype
         self._join_seq = join_seq
 
-    def concat(self, data):
+    def main(
+        self, data: List[AlignedSeqsType]
+    ) -> Union[SerialisableType, AlignedSeqsType]:
         """returns an alignment
 
         Parameters
@@ -79,7 +76,7 @@ class concat:
 
         names = []
         for aln in data:
-            if not (isinstance(aln, ArrayAlignment) or isinstance(aln, Alignment)):
+            if not isinstance(aln, (ArrayAlignment, Alignment)):
                 raise TypeError(f"{type(aln)} invalid for concat")
             names.append(aln.names)
 
@@ -106,20 +103,14 @@ class concat:
         aln = ArrayAlignment(data=combined, moltype=self._moltype)
         return aln
 
-    __call__ = concat
 
-
-class omit_degenerates(ComposableAligned):
-    """Excludes alignment columns with degenerate conditions. Can accomodate
-    reading frame. Returns modified Alignment."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+@define_app
+class omit_degenerates:
+    """Excludes alignment columns with degenerate characters. Can accomodate
+    reading frame."""
 
     def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
-        """excludes degenerate characters from alignment
-
+        """
         Parameters
         ----------
         moltype : str
@@ -131,45 +122,30 @@ class omit_degenerates(ComposableAligned):
             tuple contains a degen character at any position the entire tuple
             is excluded
         """
-        super(omit_degenerates, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
         self.moltype = moltype
-        self._no_degen = omit_degenerates
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
-        self.func = self.filter_degenerates
 
-    def filter_degenerates(self, aln):
+    T = Union[SerialisableType, AlignedSeqsType]
+
+    def main(self, aln: AlignedSeqsType) -> T:
         if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
 
-        result = aln.no_degenerates(
+        return aln.no_degenerates(
             motif_length=self._motif_length, allow_gap=self._allow_gap
-        )
-        if not result:
-            result = NotCompleted(
-                "FAIL", self, "all columns contained degenerates", source=aln
-            )
-
-        return result
+        ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
 
 
-class omit_gap_pos(ComposableAligned):
+@define_app
+class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
-    reading frame. Returns modified Alignment."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+    reading frame."""
 
     def __init__(self, allowed_frac=0.99, motif_length=1, moltype=None):
         """
@@ -183,12 +159,6 @@ class omit_gap_pos(ComposableAligned):
         moltype : str
             molecular type, must be either DNA or RNA
         """
-        super(omit_gap_pos, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
@@ -196,41 +166,33 @@ class omit_gap_pos(ComposableAligned):
         self.moltype = moltype
         self._allowed_frac = allowed_frac
         self._motif_length = motif_length
-        self.func = self.omit
 
-    def omit(self, aln):
+    T = Union[SerialisableType, AlignedSeqsType]
+
+    def main(self, aln: AlignedSeqsType) -> T:
         if self.moltype and aln.moltype != self.moltype:
             # try converting
             aln = aln.to_moltype(self.moltype)
 
-        result = aln.omit_gap_pos(
+        return aln.omit_gap_pos(
             allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
+        ) or NotCompleted(
+            "FAIL", self, "all columns exceeded gap threshold", source=aln
         )
-        if not result:
-            result = NotCompleted(
-                "FAIL", self, "all columns exceeded gap threshold", source=aln
-            )
-
-        return result
 
 
-class take_codon_positions(ComposableAligned):
-    """Extracts the specified codon position(s) from an alignment.
-    Returns an Alignment."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+@define_app
+class take_codon_positions:
+    """Extracts the specified codon position(s) from an alignment."""
 
     def __init__(
         self,
         *positions,
         fourfold_degenerate=False,
-        gc="Standard Nuclear",
+        gc="Standard",
         moltype="dna",
     ):
-        """selects the indicated codon positions from an alignment
-
+        """
         Parameters
         ----------
         positions
@@ -240,16 +202,10 @@ class take_codon_positions(ComposableAligned):
             if True, returns third positions from four-fold degenerate codons.
             Overrides positions.
         gc
-            identifer for a genetic code or a genetic code instance
+            identifier for a genetic code or a genetic code instance
         moltype : str
             molecular type, must be either DNA or RNA
         """
-        super(take_codon_positions, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         assert moltype is not None
         moltype = get_moltype(moltype)
 
@@ -265,20 +221,20 @@ class take_codon_positions(ComposableAligned):
                 gc, alphabet=moltype.alphabet, as_indices=True
             )
             self._fourfold_degen_sets = sets
-            self.func = self.take_fourfold_positions
+            self._func = self.take_fourfold_positions
             return
 
         assert (
             1 <= min(positions) <= 3 and 1 <= max(positions) <= 3
         ), "Invalid codon positions"
 
-        by_index = True if len(positions) == 1 else False
+        by_index = len(positions) == 1
         if by_index:
             positions = positions[0] - 1
-            self.func = self.take_codon_position
+            self._func = self.take_codon_position
         else:
             positions = tuple(p - 1 for p in sorted(positions))
-            self.func = self.take_codon_positions
+            self._func = self.take_codon_positions
 
         self._positions = positions
 
@@ -289,7 +245,7 @@ class take_codon_positions(ComposableAligned):
         fourfold_codon_sets = self._fourfold_degen_sets
 
         def ffold(x):
-            x = set(tuple(e) for e in list(x))
+            x = {tuple(e) for e in list(x)}
             for codon_set in fourfold_codon_sets:
                 if x <= codon_set:
                     return True
@@ -312,34 +268,31 @@ class take_codon_positions(ComposableAligned):
         indices = [k for k in range(length) if k % 3 in self._positions]
         return aln.take_positions(indices)
 
+    T = Union[SerialisableType, AlignedSeqsType]
 
-class take_named_seqs(ComposableSeq):
-    """Extracts (or everything but) named sequences. Returns a filtered
-    sequences, alignment that satisified the condition, NotCompleted otherwise."""
+    def main(self, aln: AlignedSeqsType) -> T:
+        return self._func(aln)
 
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
+@define_app
+class take_named_seqs:
+    """Selects named sequences from a collection."""
 
     def __init__(self, *names, negate=False):
-        """selects named sequences from a collection
-
-        Returns
-        -------
-        A new sequence collection, or False if not all the named sequences are
-        in the collection.
         """
-        super(take_named_seqs, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
+        Parameters
+        ----------
+        *names
+            series of sequence names
+        negate
+            if True, excludes the provided names from the result
+        """
         self._names = names
         self._negate = negate
-        self.func = self.take_seqs
 
-    def take_seqs(self, data):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, data: SeqsCollectionType) -> T:
         try:
             data = data.take_seqs(self._names, negate=self._negate)
         except KeyError:
@@ -349,20 +302,13 @@ class take_named_seqs(ComposableSeq):
         return data
 
 
-class take_n_seqs(ComposableSeq):
-    """Selects n sequences from a collection. Chooses first n sequences, or selects randomly if specified.
-
-    Returns original object type with the selected sequences, NotCompleted object otherwise.
-    """
-
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+@define_app
+class take_n_seqs:
+    """Selects n sequences from a collection. Chooses first n sequences, or
+    selects randomly if specified."""
 
     def __init__(self, number, random=False, seed=None, fixed_choice=True):
         """
-        selects n sequences from a collection
-
         Parameters
         ----------
         number: int
@@ -379,13 +325,6 @@ class take_n_seqs(ComposableSeq):
         -------
         A new sequence collection, or NotCompleted if not insufficient sequences are in the collection.
         """
-        super(take_n_seqs, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
-
         if seed:
             np_random.seed(seed)
 
@@ -393,7 +332,6 @@ class take_n_seqs(ComposableSeq):
         self._number = number
         self._random = random
         self._fixed_choice = fixed_choice
-        self.func = self.take_seqs
 
     def _set_names(self, data):
         """set the names attribute"""
@@ -403,9 +341,12 @@ class take_n_seqs(ComposableSeq):
 
         self._names = np_random.choice(data.names, self._number, replace=False)
 
-    def take_seqs(self, data):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, data: SeqsCollectionType) -> T:
+        """returns data with n sequences"""
         if len(data.names) < self._number:
-            return NotCompleted("FALSE", self.take_seqs, "not enough sequences")
+            return NotCompleted("FALSE", self.main, "not enough sequences")
 
         if self._names is None or not self._fixed_choice:
             self._set_names(data)
@@ -419,13 +360,9 @@ class take_n_seqs(ComposableSeq):
         return data
 
 
-class min_length(ComposableSeq):
-    """Filters sequence collections / alignments by length. Returns the
-    data if it satisfies the condition, NotCompleted otherwise."""
-
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+@define_app
+class min_length:
+    """Filters sequence collections / alignments by length."""
 
     def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
         """
@@ -440,39 +377,32 @@ class min_length(ComposableSeq):
         moltype
             molecular type, can be string or instance
         """
-        super(min_length, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if motif_length > 1:
             length = length // motif_length
         self._min_length = length
         self._motif_length = motif_length
-        self.func = self.if_long_enough
         self._subtract_degen = subtract_degen
         if moltype:
             moltype = get_moltype(moltype)
         self._moltype = moltype
 
-    def if_long_enough(self, data):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, data: SeqsCollectionType) -> T:
         if self._moltype and self._moltype != data.moltype:
             data = data.to_moltype(self._moltype)
 
-        if self._subtract_degen:
-            if not hasattr(data.alphabet, "non_degen"):
-                name = self.__class__.__name__
-                msg = (
-                    "%s(subtract_degen=True) requires DNA, RNA or PROTEIN " "moltype"
-                ) % name
-                raise ValueError(msg)
+        if self._subtract_degen and not hasattr(data.alphabet, "non_degen"):
+            raise ValueError(
+                f"{self.__class__.__name__}(subtract_degen=True) requires DNA, RNA or PROTEIN "
+                "moltype"
+            )
 
         lengths = data.get_lengths(
             allow_gap=not self._subtract_degen,
             include_ambiguity=not self._subtract_degen,
         )
-        length, _ = min([(l, n) for n, l in lengths.items()])
+        length, _ = min((l, n) for n, l in lengths.items())
 
         if length < self._min_length:
             msg = f"{length} < min_length {self._min_length}"
@@ -498,13 +428,9 @@ class _GetStart:
         return self.func(length)
 
 
-class fixed_length(ComposableAligned):
-    """Sample an alignment to a fixed length. Returns an Alignment of the
-    specified length, or NotCompleted if alignment too short."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+@define_app
+class fixed_length:
+    """Sample an alignment to a fixed length."""
 
     def __init__(
         self, length, start=0, random=False, seed=None, motif_length=1, moltype=None
@@ -528,12 +454,6 @@ class fixed_length(ComposableAligned):
         moltype
             molecular type, can be string or instance
         """
-        super(fixed_length, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         diff = length % motif_length
         if diff != 0:
             length -= diff
@@ -558,7 +478,7 @@ class fixed_length(ComposableAligned):
         if seed:
             np_random.seed(seed)
 
-        self.func = {False: self.truncated}.get(random, self.sample_positions)
+        self._func = {False: self.truncated}.get(random, self.sample_positions)
 
     def truncated(self, aln):
         if self._moltype and self._moltype != aln.moltype:
@@ -566,12 +486,10 @@ class fixed_length(ComposableAligned):
 
         if len(aln) < self._length:
             msg = f"{len(aln)} < min_length {self._length}"
-            result = NotCompleted("FALSE", self.__class__.__name__, msg, source=aln)
+            return NotCompleted("FALSE", self.__class__.__name__, msg, source=aln)
         else:
             start = self._start(len(aln) - self._length)
-            result = aln[start : start + self._length]
-
-        return result
+            return aln[start : start + self._length]
 
     def sample_positions(self, aln):
         if self._moltype and self._moltype != aln.moltype:
@@ -597,19 +515,19 @@ class fixed_length(ComposableAligned):
         result = aln.take_positions(result.flatten().tolist())
         return result
 
+    T = Union[SerialisableType, AlignedSeqsType]
 
-class omit_bad_seqs(ComposableAligned):
-    """Eliminates sequences from Alignment based on gap fraction, unique gaps.
-    Returns modified alignment."""
+    def main(self, data: AlignedSeqsType) -> T:
+        """return a fixed length alignment"""
+        return self._func(data)
 
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+
+@define_app
+class omit_bad_seqs:
+    """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
-        """Returns an alignment without the sequences responsible for
-        exceeding disallowed_frac.
-
+        """
         Parameters
         ----------
         quantile : float or None
@@ -623,12 +541,6 @@ class omit_bad_seqs(ComposableAligned):
         moltype
             molecular type, can be string or instance
         """
-        super(omit_bad_seqs, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
         assert (
@@ -637,9 +549,10 @@ class omit_bad_seqs(ComposableAligned):
         self._quantile = quantile
         self._gap_fraction = gap_fraction
         self._moltype = moltype
-        self.func = self.drop_bad_seqs
 
-    def drop_bad_seqs(self, aln):
+    T = Union[SerialisableType, AlignedSeqsType]
+
+    def main(self, aln: AlignedSeqsType) -> T:
         if self._moltype and self._moltype != aln.moltype:
             aln = aln.to_moltype(self._moltype)
 
@@ -652,17 +565,13 @@ class omit_bad_seqs(ComposableAligned):
         return result
 
 
-class omit_duplicated(ComposableSeq):
+@define_app
+class omit_duplicated:
     """Removes redundant sequences, recording dropped sequences in
-    seqs.info.dropped. Returns sequence collection with only unique sequences."""
-
-    _input_types = (SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE)
-    _output_types = (SEQUENCE_TYPE, SERIALISABLE_TYPE, ALIGNED_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+    seqs.info.dropped."""
 
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
-        """Returns unique sequences, adds 'dropped' key to seqs.info
-
+        """
         Parameters
         ----------
         mask_degen
@@ -676,14 +585,7 @@ class omit_duplicated(ComposableSeq):
         moltype
             molecular type, can be string or instance
         """
-        super(omit_duplicated, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-
         assert not choose or choose in "longestrandom"
-        self._formatted_params()
         if moltype:
             moltype = get_moltype(moltype)
         self._moltype = moltype
@@ -692,11 +594,11 @@ class omit_duplicated(ComposableSeq):
 
         self._mask_degen = mask_degen
         if choose == "longest":
-            self.func = self.choose_longest
+            self._func = self.choose_longest
         elif choose == "random":
-            self.func = self.choose_random
+            self._func = self.choose_random
         else:
-            self.func = self.take_unique
+            self._func = self.take_unique
 
     def choose_longest(self, seqs):
         if self._moltype and self._moltype != seqs.moltype:
@@ -720,7 +622,7 @@ class omit_duplicated(ComposableSeq):
         duplicates = seqs.get_identical_sets(mask_degen=self._mask_degen)
         excludes = []
         for group in duplicates:
-            chosen = np_random.choice([e for e in group])
+            chosen = np_random.choice(list(group))
             group.remove(chosen)
             excludes.extend(group)
 
@@ -738,17 +640,18 @@ class omit_duplicated(ComposableSeq):
         seqs = seqs.take_seqs(names, negate=True)
         return seqs
 
+    T = Union[SerialisableType, SeqsCollectionType]
 
-class trim_stop_codons(ComposableSeq):
-    """Removes terminal stop codons. Returns sequences / alignment."""
+    def main(self, seqs: SeqsCollectionType) -> T:
+        return self._func(seqs)
 
-    _input_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (SEQUENCE_TYPE, ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment", "SequenceCollection")
+
+@define_app
+class trim_stop_codons:
+    """Removes terminal stop codons."""
 
     def __init__(self, gc=1):
-        """selects named sequences from a collection
-
+        """
         Parameters
         ----------
         gc
@@ -760,15 +663,10 @@ class trim_stop_codons(ComposableSeq):
         A new sequence collection, or False if not all the named sequences are
         in the collection.
         """
-        super(trim_stop_codons, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         self._gc = gc
-        self.func = self.trim_stops
 
-    def trim_stops(self, data):
+    T = Union[SerialisableType, SeqsCollectionType]
+
+    def main(self, data: SeqsCollectionType) -> T:
         data = data.trim_stop_codons(gc=self._gc)
         return data

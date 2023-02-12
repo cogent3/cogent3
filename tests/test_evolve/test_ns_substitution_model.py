@@ -27,7 +27,7 @@ __author__ = "Peter Maxwell and  Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Ananias Iliadis"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -71,7 +71,7 @@ class MakeCachedObjects:
         self.aln = self.lf.simulate_alignment(seq_length)
         self.results = dict(aln=self.aln)
         self.discrete_tree = make_tree(tip_names=self.aln.names)
-        self.opt_args = opt_args
+        self.opt_args = {**opt_args, **{"show_progress": False}}
         self.tree = tree
 
     def fit_general(self, **kwargs):

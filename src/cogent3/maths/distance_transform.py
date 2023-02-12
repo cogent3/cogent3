@@ -52,6 +52,9 @@ EXAMPLE USAGE:
 
 """
 
+from functools import singledispatch
+from typing import Union
+
 import numpy
 
 from numpy import (
@@ -70,7 +73,18 @@ from numpy import (
     nan_to_num,
 )
 from numpy import ndim as rank
-from numpy import ravel, seterr, shape, sqrt, square, sum, take, where, zeros
+from numpy import (
+    ravel,
+    seterr,
+    shape,
+    sqrt,
+    square,
+    sum,
+    take,
+    union1d,
+    where,
+    zeros,
+)
 from numpy.linalg import norm
 
 
@@ -86,7 +100,7 @@ __credits__ = [
     "Greg Caporaso",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
@@ -1253,7 +1267,38 @@ def binary_dist_hamming(datamtx, strict=True):
     return dists
 
 
-def binary_dist_jaccard(datamtx, strict=True):
+T = Union[set, frozenset, numpy.ndarray]
+
+
+@singledispatch
+def jaccard(x: T, y: T) -> float:
+    """Jaccard distance between two sets is a measure of similarity between two sets (or two ndarrays)
+    (0) identical, (1) dissimilar"""
+    raise NotImplementedError(f"jaccard distance not implemented for {type(x)}")
+
+
+@jaccard.register
+def _(x: set, y: set) -> float:
+    if not x and not y:  # two empty sets are identical
+        return 0.0
+    return 1 - len(x & y) / len(x | y)
+
+
+@jaccard.register
+def _(x: frozenset, y: frozenset) -> float:
+    if not x and not y:  # two empty sets are identical
+        return 0.0
+    return 1 - len(x & y) / len(x | y)
+
+
+@jaccard.register
+def _(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    if not x.any() and not y.any():  # two empty sets are identical
+        return 0.0
+    return 1 - len(numpy.intersect1d(x, y)) / len(numpy.union1d(x, y))
+
+
+def binary_dist_jaccard(datamtx, strict=True):  # pragma: no cover
     """Calculates jaccard distance between rows, returns distance matrix.
 
     converts matrix to boolean.  jaccard dist = 1 - jaccard index
@@ -1279,6 +1324,16 @@ def binary_dist_jaccard(datamtx, strict=True):
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
+
+    from cogent3.util.warning import discontinued
+
+    discontinued(
+        "function",
+        "binary_dist_jaccard",
+        "2023.5",
+        "use scipy.spatial.distance.jaccard",
+    )
+
     datamtx = datamtx.astype(bool)
     datamtx = datamtx.astype(float)
     if strict:

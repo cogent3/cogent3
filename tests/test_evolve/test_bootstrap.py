@@ -17,7 +17,7 @@ __credits__ = [
     "Andrew Butterfield",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -99,7 +99,7 @@ class BootstrapTests(unittest.TestCase):
         )
         bstrap.set_num_replicates(REPLICATES)
         bstrap.set_seed(1984)
-        bstrap.run(local=True)
+        bstrap.run(local=True, show_progress=False)
         samplelnL = bstrap.get_sample_lnL()
         for lnL in samplelnL:
             assert lnL < 0.0, lnL
@@ -126,7 +126,7 @@ class BootstrapTests(unittest.TestCase):
         )
         prob_bstrap.set_num_replicates(REPLICATES)
         prob_bstrap.set_seed(1984)
-        prob_bstrap.run(local=True)
+        prob_bstrap.run(local=True, show_progress=False)
 
         self.assertEqual(len(prob_bstrap.get_sample_LR_list()), REPLICATES)
 

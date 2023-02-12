@@ -17,8 +17,6 @@ import json
 
 from itertools import product
 
-import numpy
-
 from numpy import (
     arange,
     array,
@@ -32,20 +30,19 @@ from numpy import (
     uint8,
     uint16,
     uint32,
+    uint64,
     zeros,
 )
+from numpy.testing import assert_allclose
 
 from cogent3.util.misc import get_object_provenance
 
-
-Float = numpy.core.numerictypes.sctype2char(float)
-Int = numpy.core.numerictypes.sctype2char(int)
 
 __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Andrew Butterfield"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -56,38 +53,21 @@ class AlphabetError(Exception):
 
 
 def get_array_type(num_elements):
-    """Returns smallest array type that can contain sequence on num_elements.
-
-    Used to figure out how large a data type is needed for the array in which
-    elements are indices from an alphabet. If the data type is too small
-    (e.g. you allocated an uint8 array, with 256 possible states (0-255), but
-    your data actually have more than 256 states, e.g. tripeptide data with
-    20*20*20 = 8000 states), when you assign a state larger than the data type
-    can hold you'll get an unexpected result. For example, assigning state
-    800 in an array that can only hold 256 different states will actually
-    give you the result mod 256:
-
-    >>> a = array(range(10), uint8)
-    >>> a
-    array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9],'B')
-    >>> a[0] = 800
-    >>> a
-    array([32,  1,  2,  3,  4,  5,  6,  7,  8,  9],'B')
-           ^^
-           NOTE: element 1 is _not_ 800, but instead 32 -- nasty surprise!
-
-    Getting the size of the necessary array from the alphabet is a good
-    solution to this problem.
-
-    WARNING: Will not overflow if somehow you manage to feed it an alphabet
-    with more than 2**32 elements, but it seems unlikely that this will
-    happen very often in practice...
+    """Returns the smallest numpy integer dtype that can contain elements
+    within num_elements.
     """
-    if num_elements <= 256:
-        return uint8
-    elif num_elements <= 2 ** 16:
-        return uint16
-    return uint32
+    if num_elements < 2 ** 8:
+        dtype = uint8
+    elif num_elements < 2 ** 16:
+        dtype = uint16
+    elif num_elements < 2 ** 32:
+        dtype = uint32
+    elif num_elements < 2 ** 64:
+        dtype = uint64
+    else:
+        raise NotImplementedError(f"{num_elements} is too big for 64-bit integer")
+
+    return dtype
 
 
 def _make_translation_tables(a):
@@ -318,23 +298,25 @@ class Enumeration(tuple):
                 data = ravel(array(a))
             except ValueError:  # try mapping to string
                 data = ravel(array(list(map(str, a))))
-        return sum(asarray(self._allowed_range == data, Int), axis=-1)
+        return sum(asarray(self._allowed_range == data, int), axis=-1)
 
-    def _get_pairs(self):
+    @property
+    def pairs(self):  # pragma: no cover
         """Accessor for pairs, lazy evaluation."""
-        if not hasattr(self, "_pairs"):
-            self._pairs = self ** 2
-        return self._pairs
+        from cogent3.util.warning import discontinued
 
-    pairs = property(_get_pairs)
+        discontinued("property", "Alphabet.pairs", version="2023.1", reason="redundant")
+        return self ** 2
 
-    def _get_triples(self):
+    @property
+    def Triples(self):  # pragma: no cover
         """Accessor for triples, lazy evaluation."""
-        if not hasattr(self, "_triples"):
-            self._triples = self ** 3
-        return self._triples
+        from cogent3.util.warning import discontinued
 
-    Triples = property(_get_triples)
+        discontinued(
+            "property", "Alphabet.Triples", version="2023.1", reason="redundant"
+        )
+        return self ** 3
 
 
 class JointEnumeration(Enumeration):
@@ -563,16 +545,11 @@ class Alphabet(Enumeration):
         Note that the result is not a JointEnumeration object, and cannot
         unpack its indices. However, the items in the result _are_ all strings.
         """
-        crossproduct = [""]
-        for a in range(word_length):
-            n = []
-            for c in crossproduct:
-                for m in self:
-                    n.append(m + c)
-            crossproduct = n
-        return Alphabet(crossproduct, moltype=self.moltype)
+        states = (list(self),) * word_length
+        cross_product = ["".join(combo) for combo in product(*states)]
+        return Alphabet(cross_product, moltype=self.moltype)
 
-    def from_seq_to_array(self, sequence):
+    def from_seq_to_array(self, sequence):  # pragma: no cover
         """Returns an array of indices corresponding to items in sequence.
 
         Parameters
@@ -590,10 +567,15 @@ class Alphabet(Enumeration):
         object. It also breaks the seqeunce into items in the current alphabet
         (e.g. breaking a raw DNA sequence into codons), which to_indices() does
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method", "Alphabet.from_seq_to_array", version="2023.1", reason="redundant"
+        )
         sequence = sequence.get_in_motif_size(self._motiflen)
         return array(list(map(self.index, sequence)))
 
-    def from_ordinals_to_seq(self, data):
+    def from_ordinals_to_seq(self, data):  # pragma: no cover
         """Returns a Sequence object corresponding to indices in data.
 
         Parameters
@@ -612,9 +594,17 @@ class Alphabet(Enumeration):
 
         Raises an AttributeError if MolType is not set.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method",
+            "Alphabet.from_ordinals_to_seq",
+            version="2023.1",
+            reason="redundant",
+        )
         return self.moltype.make_seq("".join(self[i] for i in data))
 
-    def get_matched_array(self, motifs, dtype=Float):
+    def get_matched_array(self, motifs, dtype=float):
         """Returns an array in which rows are motifs, columns are items in self.
 
         Result is an array of Float in which a[i][j] indicates whether the ith
@@ -721,22 +711,26 @@ class Alphabet(Enumeration):
 
         return tuple(motif_set)
 
+    # todo method belongs elsewhere
     def adapt_motif_probs(self, motif_probs):
         """Prepare an array or dictionary of probabilities for use with
         this alphabet by checking size and order"""
+
         if hasattr(motif_probs, "keys"):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
                 raise ValueError(f"Can't find motif {sample} in alphabet")
-            motif_probs = numpy.array([motif_probs[motif] for motif in self])
+            motif_probs = array([motif_probs[motif] for motif in self])
+        elif len(motif_probs) == len(self):
+            # what value this clause since order is just input order?
+            motif_probs = asarray(motif_probs)
         else:
-            if len(motif_probs) != len(self):
-                if len(motif_probs) != len(self):
-                    raise ValueError(
-                        f"Can't match {len(motif_probs)} probs to {len(self)} alphabet"
-                    )
-            motif_probs = numpy.asarray(motif_probs)
-        assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
+            raise ValueError(
+                f"Can't match {len(motif_probs)} probs to {len(self)} alphabet"
+            )
+        assert_allclose(
+            motif_probs.sum(), 1, err_msg=f"does not summ to 1 {motif_probs}"
+        )
         return motif_probs
 
 
@@ -772,7 +766,7 @@ class CharAlphabet(Alphabet):
             chars[i] = c
         self._indices_nums_to_chars = array(list(chars), "B").view("c")
 
-    def from_string(self, data):
+    def from_string(self, data):  # pragma: no cover
         """Returns array of indices from string containing elements.
 
         data should be a string on the alphabet, e.g. 'ACC' for the RNA
@@ -783,6 +777,14 @@ class CharAlphabet(Alphabet):
         This is on the Alphabet, not the Sequence, because lots of objects
         (e.g. Profile, Alignment) also need to use it.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method",
+            "CharAlphabet.from_string",
+            version="2023.1",
+            reason="redundant",
+        )
         vals = str.translate(data, self._chars_to_indices)
         vals = frombuffer(memoryview(vals.encode("utf8")), dtype=uint8)
         return vals
@@ -797,13 +799,21 @@ class CharAlphabet(Alphabet):
         except (TypeError, KeyError):
             return False
 
-    def from_array(self, data):
+    def from_array(self, data):  # pragma: no cover
         """Returns array of indices from array containing elements.
 
         This is useful if, instead of a string, you have an array of
         characters that's been converted into a numpy array. See
         from_string docstring for general behavior.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "method",
+            "CharAlphabet.from_array",
+            version="2023.1",
+            reason="redundant",
+        )
         return take(self._char_nums_to_indices, data.view("B"))
 
     def to_chars(self, data):

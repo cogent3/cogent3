@@ -63,7 +63,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -1041,7 +1041,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def gettype(self):  # pragma: no cover
         """Return the sequence type."""
-        deprecated("method", "gettype", "get_type", "2023.6", "pep8", stack_level=1)
+        deprecated("method", "gettype", "get_type", "2023.6", "pep8")
         return self.get_type()
 
     def get_type(self):
@@ -1056,7 +1056,6 @@ class Sequence(_Annotatable, SequenceI):
             "resolved_ambiguities",
             "2023.6",
             "pep8",
-            stack_level=1,
         )
         return self.resolved_ambiguities()
 
@@ -1847,7 +1846,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet.Triples,
+            alphabet=self.alphabet ** 3,
         )
 
     def complement(self):
@@ -1886,7 +1885,7 @@ class ArrayDnaSequence(ArrayNucleicAcidSequence):
     alphabet = None  # set to DNA.alphabets.degen_gapped in moltype.py
 
     def __init__(self, data="", *args, **kwargs):
-        """Returns new ArrayRnaSequence, converting U -> T"""
+        """Returns new ArrayDnaSequence, converting U -> T"""
         if hasattr(data, "upper"):
             data = data.upper().replace("U", "T")
         return super(ArrayDnaSequence, self).__init__(data, *args, **kwargs)

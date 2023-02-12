@@ -39,7 +39,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Felix Schill", "Sheng Koh"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -514,7 +514,14 @@ class Table:
                     f"different number of elements in header {hlen} and data row 0 {dcols}"
                 )
 
-            data = {c: v for c, v in zip(header, zip(*data))}
+            try:
+                data = dict(zip(header, zip(*data, strict=True), strict=True))
+            except TypeError:  # handle python versions <3.10
+                # check that number of elements per row is correct
+                if set(len(r) for r in data) != {hlen}:
+                    raise ValueError(f"not all rows have {hlen} elements")
+
+                data = dict(zip(header, zip(*data)))
 
         if header is None:
             header = list(data) if isinstance(data, dict) else []

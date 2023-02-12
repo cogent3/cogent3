@@ -34,7 +34,7 @@ __author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -1130,7 +1130,7 @@ class TestCodonAlphabet(_AlphabetTestCase):
     def test_constructing_from_func(self):
         """the CodonAlphabet function should support genetic code names as well"""
         alpha_int = CodonAlphabet(1)
-        alpha_name = CodonAlphabet("Standard Nuclear")
+        alpha_name = CodonAlphabet("Standard")
         self.assertEqual(alpha_int, alpha_name)
         alpha_int = CodonAlphabet(2)
         alpha_name = CodonAlphabet("Vertebrate Mitochondrial")

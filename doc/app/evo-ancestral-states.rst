@@ -12,11 +12,11 @@ We first fit a model to the sample data.
 
 .. jupyter-execute::
 
-    from cogent3.app import evo, io
+    from cogent3 import get_app
 
-    reader = io.load_aligned(format="fasta")
-    aln = reader("data/primate_brca1.fasta")
-    gn = evo.model("GN", tree="data/primate_brca1.tree")
+    loader = get_app("load_aligned", format="fasta")
+    aln = loader("data/primate_brca1.fasta")
+    gn = get_app("model", "GN", tree="data/primate_brca1.tree")
     result = gn(aln)
 
 Define the ``ancestral_states`` app
@@ -24,7 +24,7 @@ Define the ``ancestral_states`` app
 
 .. jupyter-execute::
 
-    reconstuctor = evo.ancestral_states()
+    reconstuctor = get_app("ancestral_states")
     states_result = reconstuctor(result)
     states_result
 

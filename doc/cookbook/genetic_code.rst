@@ -113,6 +113,11 @@ Translating a DNA sequence with a terminating stop codon
 You can't translate a sequence that contains a stop codon.
 
 .. jupyter-execute::
+    :hide-code:
+
+    from cogent3.core.alphabet import AlphabetError
+
+.. jupyter-execute::
     :raises: AlphabetError
 
     pep = my_seq.get_translation()

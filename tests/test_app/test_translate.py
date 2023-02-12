@@ -16,7 +16,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -127,7 +127,7 @@ class TestFourFoldDegen(TestCase):
         # using straight characters
         expect = set()
         for di in "GC", "GG", "CT", "CC", "TC", "CG", "AC", "GT":
-            expect.update([frozenset([di + n for n in "ACGT"])])
+            expect.update([frozenset(di + n for n in "ACGT")])
 
         for i in range(1, 3):
             got = get_fourfold_degenerate_sets(get_code(i), as_indices=False)

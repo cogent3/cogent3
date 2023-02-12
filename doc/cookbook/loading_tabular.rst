@@ -19,6 +19,17 @@ We load a tab separated data file using the ``load_table()`` function. The forma
 
 .. note:: If you invoke the static column types argument, i.e.``load_table(..., static_column_types=True)`` and the column data are not static, those columns will be left as a string type.
 
+Loading from a url
+==================
+
+The ``cogent3`` load functions support loading from a url. We load the above ``.tsv`` file directly from GitHub.
+
+.. jupyter-execute::
+
+    from cogent3 import load_table
+
+    table = load_table("https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/stats.tsv")
+
 Loading delimited specifying the format
 =======================================
 

@@ -90,7 +90,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -236,6 +236,9 @@ def assign_sequential_names(ignored, num_seqs, base_name="seq", start_at=0):
 
 def coerce_to_string(s):
     """Converts an arbitrary sequence into a string."""
+    if isinstance(s, (set, frozenset)):
+        return "".join(c for c in s)
+
     if isinstance(s, str):  # if it's a string, OK as is
         return s
     if isinstance(s, Aligned):  # if it's an Aligned object, convert to string
@@ -2349,13 +2352,16 @@ class AlignmentI(object):
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    def iupac_consensus(self, alphabet=None):
+    def iupac_consensus(self, alphabet=None, allow_gaps=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
+
+        exclude = set() if allow_gaps else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
+            col = set(col) - exclude
             consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
@@ -3748,7 +3754,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self.array_seqs = transpose(self.array_positions)
         self.seq_data = self.array_seqs
         self.seq_len = len(self.array_positions)
-        self._type = self.moltype.get_type()
 
     def _force_same_data(self, data, names):
         """Forces array that was passed in to be used as selfarray_positions"""
@@ -3879,17 +3884,22 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)} x {self.seq_len} {self._type} alignment: {seqs}"
+        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
-    def iupac_consensus(self, alphabet=None):
+    def iupac_consensus(self, alphabet=None, allow_gaps=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
+
+        exclude = set() if allow_gaps else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
-            col = alphabet.make_array_seq(col, alphabet=alphabet.alphabets.degen_gapped)
-            consensus.append(degen(str(col)))
+            col = set(
+                alphabet.make_array_seq(col, alphabet=alphabet.alphabets.degen_gapped)
+            )
+            col -= exclude
+            consensus.append(degen(coerce_to_string(col)))
         return coerce_to_string(consensus)
 
     def sample(
@@ -4364,7 +4374,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         names = self.names
 
         self._motif_probs = {}
-        self._type = self.moltype.get_type()
         lengths = list(map(len, self.seq_data))
         if lengths and (max(lengths) != min(lengths)):
             raise DataError(
@@ -4409,7 +4418,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)} x {self.seq_len} {self._type} alignment: {seqs}"
+        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     def _mapped(self, slicemap):
         align = []

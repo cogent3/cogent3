@@ -1,3 +1,5 @@
+import pathlib
+
 from os.path import dirname, join
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
@@ -5,9 +7,14 @@ from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
 
-from cogent3 import load_aligned_seqs, make_aligned_seqs, make_tree
+from cogent3 import (
+    load_aligned_seqs,
+    make_aligned_seqs,
+    make_tree,
+    open_data_store,
+)
 from cogent3.app import evo as evo_app
-from cogent3.app import io
+from cogent3.app import io_new
 from cogent3.app.composable import NotCompleted
 from cogent3.app.result import (
     hypothesis_result,
@@ -20,9 +27,9 @@ from cogent3.util.deserialise import deserialise_object
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -38,7 +45,7 @@ class TestModel(TestCase):
         model = evo_app.model("HKY85", time_het="max")
         got = " ".join(str(model).splitlines())
         expect = (
-            "model(type='model', sm='HKY85', tree=None, unique_trees=False, "
+            "model(sm='HKY85', tree=None, unique_trees=False, "
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, "
             "opt_args=None, upper=50, split_codons=False, "
@@ -55,7 +62,7 @@ class TestModel(TestCase):
             for value in (True, False):
                 # check setting via sm_args is overridden
                 with self.assertRaises(ValueError):
-                    model = evo_app.model(
+                    _ = evo_app.model(
                         mn,
                         optimise_motif_probs=value,
                         sm_args=dict(optimise_motif_probs=not value),
@@ -147,7 +154,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(data=_data, moltype="dna")
+        aln = make_aligned_seqs(data=_data, moltype="dna", info=dict(source="blah"))
         result = mod_coll(aln)
         self.assertTrue(
             result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
@@ -268,8 +275,11 @@ class TestModel(TestCase):
         hyp = evo_app.hypothesis(model1, model2)
         got = " ".join(str(hyp).splitlines())
         expect = (
-            "hypothesis(type='hypothesis', null='HKY85', "
-            "alternates=(model(type='model', sm='HKY85', tree=None, unique_trees=False, "
+            "hypothesis(null=model(sm='HKY85', tree=None, unique_trees=False, "
+            "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
+            "time_het=None, param_rules=None, opt_args=None, upper=50, "
+            "split_codons=False, show_progress=False, verbose=False), "
+            "alternates=(model(sm='HKY85', tree=None, unique_trees=False, "
             "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, opt_args=None, upper=50,"
             " split_codons=False, show_progress=False, verbose=False),),"
@@ -384,7 +394,7 @@ class TestModel(TestCase):
     def test_model_tree_unique_trees(self):
         """handles case of using unique trees for each alignment"""
         with self.assertRaises(AssertionError):
-            model1 = evo_app.model("GN", tree="(a,b,c)", unique_trees=True)
+            _ = evo_app.model("GN", tree="(a,b,c)", unique_trees=True)
         _data1 = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
@@ -863,8 +873,10 @@ class TestBootstrap(TestCase):
         m2 = evo_app.model("HKY85")
         hyp = evo_app.hypothesis(m1, m2)
         with TemporaryDirectory(dir=".") as dirname:
-            path = join(dirname, "delme.tinydb")
-            _ = io.load_db() + evo_app.bootstrap(hyp, num_reps=2) + io.write_db(path)
+            dirname = pathlib.Path(dirname)
+            out_dstore = open_data_store(dirname / "delme.sqlitedb", mode="w")
+            writer = io_new.write_db(out_dstore)
+            _ = io_new.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
 
 
 if __name__ == "__main__":

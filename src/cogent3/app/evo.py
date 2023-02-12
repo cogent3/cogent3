@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Union
 
 import cogent3.util.io
 
@@ -7,19 +8,7 @@ from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
 
-from .composable import (
-    ALIGNED_TYPE,
-    BOOTSTRAP_RESULT_TYPE,
-    HYPOTHESIS_RESULT_TYPE,
-    MODEL_RESULT_TYPE,
-    RESULT_TYPE,
-    SERIALISABLE_TYPE,
-    TABULAR_RESULT_TYPE,
-    ComposableHypothesis,
-    ComposableModel,
-    ComposableTabular,
-    NotCompleted,
-)
+from .composable import NotCompleted, define_app
 from .result import (
     bootstrap_result,
     hypothesis_result,
@@ -27,25 +16,30 @@ from .result import (
     model_result,
     tabular_result,
 )
+from .typing import (
+    AlignedSeqsType,
+    BootstrapResultType,
+    HypothesisResultType,
+    ModelCollectionResultType,
+    ModelResultType,
+    SerialisableType,
+    TabularResultType,
+)
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
 
 
-class model(ComposableModel):
-    """Define a substitution model + tree for maximum likelihood evaluation.
-    Returns model_result."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, MODEL_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+@define_app
+class model:
+    """Define a substitution model + tree for maximum likelihood evaluation."""
 
     def __init__(
         self,
@@ -116,14 +110,8 @@ class model(ComposableModel):
         with the optimised likelihood function. In the case of split_codons,
         the result object has a separate entry for each codon position.
         """
-        super(model, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
         self._verbose = verbose
         self._upper = upper
-        self._formatted_params()
         assert not (
             tree and unique_trees
         ), "cannot provide a tree when unique_trees is True"
@@ -171,7 +159,6 @@ class model(ComposableModel):
         self._param_rules = param_rules
         self._time_het = deepcopy(time_het)
         self._split_codons = split_codons
-        self.func = self.fit
 
     def _configure_lf(self, aln, identifier, initialise=None):
         lf = self._sm.make_likelihood_function(self._tree, **self._lf_args)
@@ -241,13 +228,12 @@ class model(ComposableModel):
 
         return lf
 
-    def fit(self, aln, initialise=None, construct=True, **opt_args):
+    def main(
+        self, aln: AlignedSeqsType, initialise=None, construct=True, **opt_args
+    ) -> Union[SerialisableType, ModelResultType]:
         moltypes = {aln.moltype.label, self._sm.moltype.label}
         if moltypes in [{"protein", "dna"}, {"protein", "rna"}]:
-            msg = (
-                f"substitution model moltype '{self._sm.moltype.label}' and"
-                f" alignment moltype '{aln.moltype.label}' are incompatible"
-            )
+            msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         evaluation_limit = opt_args.get("max_evaluations", None)
@@ -302,18 +288,13 @@ class _InitFrom:
     def __call__(self, other, *args, **kwargs):
         try:
             other.initialise_from_nested(self.nested)
-        except:
+        except Exception:
             pass
         return other
 
 
-class model_collection(ComposableHypothesis):
-    """Fits a collection of models. Returns a
-    model_collection_result."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+class _ModelCollectionBase:
+    """Base class for fitting collections of models."""
 
     def __init__(self, null, *alternates, sequential=True, init_alt=None):
         """
@@ -338,12 +319,6 @@ class model_collection(ComposableHypothesis):
         To stop the null MLEs from being used, provide a lambda function that
         just returns the likelihood function, e.g. init_alt=lambda lf, identifier: lf
         """
-        super(model_collection, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if sequential and init_alt:
             sequential = False
 
@@ -355,12 +330,8 @@ class model_collection(ComposableHypothesis):
             raise ValueError(msg)
 
         self._alts = alternates
-        self.func = self.test_hypothesis
         self._init_alt = init_alt
         self._sequential = sequential
-
-    def _make_result(self, aln):
-        return model_collection_result(source=aln.info)
 
     def _initialised_alt(self, null, aln):
         if callable(self._init_alt):
@@ -377,7 +348,9 @@ class model_collection(ComposableHypothesis):
             null = result
         return results
 
-    def test_hypothesis(self, aln):
+    T = Union[SerialisableType, ModelCollectionResultType, HypothesisResultType]
+
+    def main(self, aln: AlignedSeqsType) -> T:
         try:
             null = self.null(aln)
         except ValueError:
@@ -406,33 +379,31 @@ class model_collection(ComposableHypothesis):
         return result
 
 
-class hypothesis(model_collection):
-    """Specify a hypothesis through defining two models. Returns a
-    hypothesis_result."""
+@define_app
+class model_collection(_ModelCollectionBase):
+    """Fits a collection of models."""
 
-    def _make_result(self, aln):
+    def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
+        return model_collection_result(source=aln.info)
+
+
+@define_app
+class hypothesis(_ModelCollectionBase):
+    """Specify a hypothesis through defining two models."""
+
+    def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
         return hypothesis_result(name_of_null=self.null.name, source=aln.info)
 
 
-class bootstrap(ComposableHypothesis):
-    """Parametric bootstrap for a provided hypothesis. Returns a bootstrap_result."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, BOOTSTRAP_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
+@define_app
+class bootstrap:
+    """Parametric bootstrap for a provided hypothesis."""
 
     def __init__(self, hyp, num_reps, parallel=False, verbose=False):
-        super(bootstrap, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         self._hyp = hyp
         self._num_reps = num_reps
         self._verbose = verbose
         self._parallel = parallel
-        self.func = self.run
 
     def _fit_sim(self, rep_num):
         sim_aln = self._null.simulate_alignment()
@@ -444,7 +415,9 @@ class bootstrap(ComposableHypothesis):
             sym_result = None
         return sym_result
 
-    def run(self, aln):
+    T = Union[SerialisableType, BootstrapResultType]
+
+    def main(self, aln: AlignedSeqsType) -> T:
         result = bootstrap_result(aln.info.source)
         try:
             obs = self._hyp(aln)
@@ -468,24 +441,13 @@ class bootstrap(ComposableHypothesis):
         return result
 
 
-class ancestral_states(ComposableTabular):
-    """Computes ancestral state probabilities from a model result. Returns a dict
-    with a DictArray for each node."""
+@define_app
+class ancestral_states:
+    """Computes ancestral state probabilities from a model result."""
 
-    _input_types = MODEL_RESULT_TYPE
-    _output_types = (RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = "model_result"
-
-    def __init__(self):
-        super(ancestral_states, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
-        self.func = self.recon_ancestor
-
-    def recon_ancestor(self, result):
+    def main(
+        self, result: ModelResultType
+    ) -> Union[SerialisableType, TabularResultType]:
         """returns a tabular_result of posterior probabilities of ancestral states"""
         anc = result.lf.reconstruct_ancestral_seqs()
         fl = result.lf.get_full_length_likelihoods()
@@ -500,23 +462,13 @@ class ancestral_states(ComposableTabular):
         return tab
 
 
-class tabulate_stats(ComposableTabular):
+@define_app
+class tabulate_stats:
     """Extracts all model statistics from model_result as Table."""
 
-    _input_types = (MODEL_RESULT_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, TABULAR_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = "model_result"
-
-    def __init__(self):
-        super(tabulate_stats, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
-        self.func = self.extract_stats
-
-    def extract_stats(self, result):
+    def main(
+        self, result: ModelResultType
+    ) -> Union[SerialisableType, TabularResultType]:
         """returns Table for all statistics returned by likelihood function
         get_statistics"""
         stats = result.lf.get_statistics(with_titles=True, with_motif_probs=True)
@@ -535,14 +487,11 @@ def is_codon_model(sm):
     return isinstance(sm, _Codon)
 
 
-class natsel_neutral(ComposableHypothesis):
+@define_app
+class natsel_neutral:
     """Test of selective neutrality by assessing whether omega equals 1.
     Under the alternate, there is one omega for all branches and all sites.
     """
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(
         self,
@@ -584,12 +533,6 @@ class natsel_neutral(ComposableHypothesis):
         verbose : bool
             prints intermediate states to screen during fitting
         """
-        super(natsel_neutral, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
@@ -635,22 +578,22 @@ class natsel_neutral(ComposableHypothesis):
             lf_args=deepcopy(lf_args),
             verbose=verbose,
         )
-        hyp = hypothesis(null, alt)
+        self._hyp = hypothesis(null, alt)
 
-        self.func = hyp
+    T = Union[SerialisableType, HypothesisResultType]
+
+    def main(self, data: AlignedSeqsType) -> T:
+        return self._hyp(data)
 
 
-class natsel_zhang(ComposableHypothesis):
+@define_app
+class natsel_zhang:
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
 
     Note: Our implementation is not as parametrically succinct as that of
     Zhang et al, we have 1 additional bin probability.
     """
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(
         self,
@@ -717,12 +660,6 @@ class natsel_zhang(ComposableHypothesis):
         The scoping parameters (tip1, tip2, outgroup, stem, clade) define the
         foreground edges.
         """
-        super(natsel_zhang, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
@@ -796,8 +733,6 @@ class natsel_zhang(ComposableHypothesis):
             upper_omega=upper_omega,
         )
 
-        self.func = self.test_hypothesis
-
     def _get_alt_from_null(self, null):
         rules = null.lf.get_param_rules()
         # extend the bprobs rule to include new bins
@@ -831,7 +766,9 @@ class natsel_zhang(ComposableHypothesis):
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    def test_hypothesis(self, aln, *args, **kwargs):
+    T = Union[SerialisableType, HypothesisResultType]
+
+    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -848,14 +785,11 @@ class natsel_zhang(ComposableHypothesis):
         return result
 
 
-class natsel_sitehet(ComposableHypothesis):
+@define_app
+class natsel_sitehet:
     """Test for site-heterogeneity in omega. Under null, there are 2 site-classes,
     omega < 1 and omega = 1. Under the alternate, an additional site-class of
     omega > 1 is added."""
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(
         self,
@@ -900,12 +834,6 @@ class natsel_sitehet(ComposableHypothesis):
         verbose : bool
             prints intermediate states to screen during fitting
         """
-        super(natsel_sitehet, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
@@ -962,8 +890,6 @@ class natsel_sitehet(ComposableHypothesis):
             upper_omega=upper_omega,
         )
 
-        self.func = self.test_hypothesis
-
     def _get_alt_from_null(self, null):
         rules = null.lf.get_param_rules()
         # extend the bprobs rule to include new bin
@@ -990,7 +916,9 @@ class natsel_sitehet(ComposableHypothesis):
         alt_args["param_rules"] = rules
         return model(**alt_args)
 
-    def test_hypothesis(self, aln, *args, **kwargs):
+    T = Union[SerialisableType, HypothesisResultType]
+
+    def main(self, aln: AlignedSeqsType, *args, **kwargs) -> T:
         null_result = self.null(aln)
         if not null_result:
             return null_result
@@ -1007,16 +935,13 @@ class natsel_sitehet(ComposableHypothesis):
         return result
 
 
-class natsel_timehet(ComposableHypothesis):
+@define_app
+class natsel_timehet:
     """The branch heterogeneity hypothesis test for natural selection.
     Tests for whether a single omega for all branches is sufficient against the
-    alternate that a user specified subset of branches have a distinct value
+    alternate that a user specified subset of branches has a distinct value
     (or values) of omega.
     """
-
-    _input_types = (ALIGNED_TYPE, SERIALISABLE_TYPE)
-    _output_types = (RESULT_TYPE, HYPOTHESIS_RESULT_TYPE, SERIALISABLE_TYPE)
-    _data_types = ("ArrayAlignment", "Alignment")
 
     def __init__(
         self,
@@ -1083,12 +1008,6 @@ class natsel_timehet(ComposableHypothesis):
         verbose : bool
             prints intermediate states to screen during fitting
         """
-        super(natsel_timehet, self).__init__(
-            input_types=self._input_types,
-            output_types=self._output_types,
-            data_types=self._data_types,
-        )
-        self._formatted_params()
         if not is_codon_model(sm):
             raise ValueError(f"{sm} is not a codon model")
 
@@ -1159,6 +1078,9 @@ class natsel_timehet(ComposableHypothesis):
             lf_args=deepcopy(lf_args),
             verbose=verbose,
         )
-        hyp = hypothesis(null, alt)
+        self._hyp = hypothesis(null, alt)
 
-        self.func = hyp
+    T = Union[SerialisableType, HypothesisResultType]
+
+    def main(self, data: AlignedSeqsType) -> T:
+        return self._hyp(data)

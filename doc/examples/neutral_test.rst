@@ -14,7 +14,7 @@ This file contains an example for performing a likelihood ratio test of neutrali
 
     from cogent3 import load_aligned_seqs, load_tree
     from cogent3.evolve.models import get_model
-    from cogent3.maths import stats
+    from scipy.stats.distributions import chi2
 
 Get your alignment and tree.
 
@@ -90,7 +90,7 @@ The lnL's from the two models are now used to calculate the likelihood ratio sta
 
     LR = 2 * (lf.get_log_likelihood() - null_lnL)
     df = lf.get_num_free_params() - null_nfp
-    P = stats.chisqprob(LR, df)
+    P = chi2.sf(LR, df)
 
 Print this and look up a chi-sq with number of edges - 1 degrees of freedom.
 

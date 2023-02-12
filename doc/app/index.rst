@@ -2,9 +2,16 @@
 The ``apps``
 ############
 
-``cogent3`` comes with pre-defined "apps". These are capabilities that can be used by themselves, or added together to define a pipeline. Apps that can be combined into a pipeline are called *composable*.
+``cogent3`` comes with pre-defined "apps" which perform single functions that can be configured by the user. Apps are designed to enable usage without requiring detailed understanding of programming and so they can be applied in batch to a large amount of data. In other words, being able to use them as functions without writing loops or conditionals.
 
-.. The goal is to allow using apps without requiring detailed understanding of programming. In other words, being able to use them as functions without writing loops or conditionals.
+Apps can be used by themselves, or added together to define a "composed function" (aka pipeline). Composed functions can be applied to a single, or thousands, of data file(s).
+
+Apps have several key features
+
+#. trap errors
+#. check the validity of input data
+#. can be used by themselves or combined into a "composed" app
+#. automatically track the relationship between an input data record and its output record
 
 Overview
 ========
@@ -12,11 +19,12 @@ Overview
 .. toctree::
     :maxdepth: 1
 
-    warning
     app-overview
+    app-help
+    app-get
+    available-apps
     dstore
     not-completed
-    available-apps
 
 The ``progressive_align`` App
 =============================
@@ -29,7 +37,6 @@ The ``progressive_align`` App
     align-nucleotide
     align-codon
     align-protein
-
 
 The ``model`` App
 =================
@@ -75,10 +82,10 @@ These apps all employ codon models to evaluate different types of hypotheses reg
     evo-natsel_zhang
 
 
-The ``user_function`` Apps
-==========================
+Write your own Apps
+===================
 
-These apps are capable to wrap another user specified function
+You can write your own apps.
 
 .. toctree::
     :maxdepth: 1

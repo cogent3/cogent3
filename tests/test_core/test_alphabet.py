@@ -7,6 +7,7 @@ import pickle
 
 from unittest import TestCase, main
 
+from numpy import unravel_index
 from numpy.testing import assert_equal
 
 from cogent3.core.alphabet import (
@@ -20,8 +21,9 @@ from cogent3.core.alphabet import (
     uint8,
     uint16,
     uint32,
+    uint64,
 )
-from cogent3.core.moltype import RNA, get_moltype
+from cogent3.core.moltype import RNA
 
 
 DnaBases = CharAlphabet("TCAG")
@@ -32,7 +34,7 @@ __author__ = "Rob Knight, Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -68,11 +70,17 @@ class get_array_type_tests(TestCase):
         """get_array_type should return unsigned type that fits elements."""
         self.assertEqual(get_array_type(0), uint8)
         self.assertEqual(get_array_type(100), uint8)
-        self.assertEqual(get_array_type(256), uint8)  # boundary case
+        self.assertEqual(get_array_type(255), uint8)  # boundary case
         self.assertEqual(get_array_type(257), uint16)  # boundary case
         self.assertEqual(get_array_type(10000), uint16)
-        self.assertEqual(get_array_type(65536), uint16)
+        self.assertEqual(get_array_type(65535), uint16)
         self.assertEqual(get_array_type(65537), uint32)
+        self.assertEqual(get_array_type(1 + 2 ** 32), uint64)
+
+    def test_get_array_type_fail(self):
+        """get_array_type should return unsigned type that fits elements."""
+        with self.assertRaises(NotImplementedError):
+            self.assertEqual(get_array_type(2 ** 64), uint64)
 
 
 class EnumerationTests(TestCase):
@@ -233,10 +241,13 @@ class CharAlphabetTests(TestCase):
         self.assertIsInstance(got, type(r))
         self.assertEqual(got.get_word_alphabet(2), wa)
 
-    def test_from_string(self):
-        """CharAlphabet from_string should return correct array"""
-        r = CharAlphabet("UCAG")
-        assert_equal(r.from_string("UUCUGA"), array([0, 0, 1, 0, 3, 2], "B"))
+    def test_word_alphabet_order(self):
+        bases = "TCAG"
+        r = CharAlphabet(bases)
+        indices = [unravel_index(i, shape=(4, 4, 4)) for i in range(64)]
+        expect = tuple("".join([bases[b] for b in coord]) for coord in indices)
+        got = tuple(r.get_word_alphabet(3))
+        assert got == expect
 
     def test_is_valid(self):
         """CharAlphabet is_valid should return True for valid sequence"""
@@ -248,12 +259,6 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(a.is_valid("d"), False)
         self.assertEqual(a.is_valid(["a", "b"]), True)
         self.assertEqual(a.is_valid(["a", None]), False)
-
-    def test_from_array(self):
-        """CharAlphabet from_array should return correct array"""
-        r = CharAlphabet("UCAG")
-        got = r.from_array(array(["UUC", "UGA"], "c"))
-        assert_equal(got, array([[0, 0, 1], [0, 3, 2]], "B"))
 
     def test_to_chars(self):
         """CharAlphabet to_chars should convert an input array to chars"""
@@ -271,36 +276,6 @@ class CharAlphabetTests(TestCase):
         self.assertEqual(r.to_string(array([0, 0, 1, 0, 3, 2], "B")), "UUCUGA")
         # should work with empty seq
         self.assertEqual(r.to_string(array([], "B")), "")
-
-    def test_pairs(self):
-        """pairs should cache the same object."""
-        r = CharAlphabet("UCAG")
-        rp = r.pairs
-        self.assertEqual(len(rp), 16)
-        rp2 = r.pairs
-        self.assertIs(rp, rp2)
-
-    def test_triples(self):
-        """triples should cache the same object."""
-        r = CharAlphabet("UCAG")
-        rt = r.Triples
-        self.assertEqual(len(rt), 64)
-        rt2 = r.Triples
-        self.assertIs(rt, rt2)
-
-    def test_from_seq_to_array(self):
-        """convert a sequence into indices"""
-        dna = get_moltype("dna")
-        seq = dna.make_seq("ACGG")
-        got = dna.alphabet.from_seq_to_array(seq)
-        assert_equal(got, array([dna.alphabet.index(b) for b in seq]))
-
-    def test_from_ordinals_to_seq(self):
-        """check indices convert to a sequence"""
-        indices = [2, 1, 3, 3]
-        dna = get_moltype("dna")
-        got = dna.alphabet.from_ordinals_to_seq(indices)
-        self.assertEqual(got, dna.make_seq("ACGG"))
 
 
 class JointEnumerationTests(TestCase):
