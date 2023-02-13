@@ -92,7 +92,7 @@ class SequenceI(object):
 
     def __str__(self):
         """__str__ returns self._seq unmodified."""
-        return self._seq.value
+        return str(self._seq)
 
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
@@ -153,11 +153,11 @@ class SequenceI(object):
         This is a string method, nothing to do with translating into a
         protein sequence.
         """
-        return self._seq.value.translate(*args, **kwargs)
+        return str(self).translate(*args, **kwargs)
 
     def count(self, item):
         """count() delegates to self._seq."""
-        return self._seq.value.count(item)
+        return str(self).count(item)
 
     def counts(
         self,
@@ -184,11 +184,11 @@ class SequenceI(object):
 
         """
         try:
-            data = self._seq.value
+            data = str(self._seq)
         except AttributeError:
             data = self._data
 
-        not_array = isinstance(data, str) or isinstance(data, SeqView)
+        not_array = isinstance(data, (SeqView, str))
 
         if motif_length == 1:
             counts = CategoryCounter(data)
@@ -231,23 +231,23 @@ class SequenceI(object):
 
     def __lt__(self, other):
         """compares based on the sequence string."""
-        return self._seq.value < str(other)
+        return str(self._seq) < str(other)
 
     def __eq__(self, other):
         """compares based on the sequence string."""
-        return self._seq.value == str(other)
+        return str(self._seq) == str(other)
 
     def __ne__(self, other):
         """compares based on the sequence string."""
-        return self._seq.value != str(other)
+        return str(self) != str(other)
 
     def __hash__(self):
         """__hash__ behaves like the sequence string for dict lookup."""
-        return hash(self._seq.value)
+        return hash(str(self))
 
     def __contains__(self, other):
         """__contains__ checks whether other is in the sequence string."""
-        return other in self._seq.value
+        return other in str(self)
 
     def shuffle(self):
         """returns a randomized copy of the Sequence object"""
@@ -801,7 +801,10 @@ class Sequence(_Annotatable, SequenceI):
         self.name = name
         orig_seq = seq
         if isinstance(seq, Sequence):
-            seq = seq._seq.value
+            try:
+                seq = str(self)
+            except AttributeError:
+                seq = str(seq)
         elif isinstance(seq, ArraySequence):
             seq = str(seq)
         elif isinstance(seq, bytes):
@@ -815,7 +818,7 @@ class Sequence(_Annotatable, SequenceI):
         seq = self._seq_filter(seq)
 
         if isinstance(seq, SeqView):
-            if not preserve_case and not seq.value.isupper():
+            if not preserve_case and not str(seq).isupper():
                 seq.seq = seq.seq.upper()
             self._seq = seq
 
@@ -827,7 +830,7 @@ class Sequence(_Annotatable, SequenceI):
 
         if check:
             self.moltype.verify_sequence(
-                self._seq.value, gaps_allowed, wildcards_allowed
+                str(self), gaps_allowed, wildcards_allowed
             )
 
         if not isinstance(info, InfoClass):
@@ -987,9 +990,9 @@ class Sequence(_Annotatable, SequenceI):
         i = 0
         segments = []
         for b, e in region.get_coordinates():
-            segments.extend((self._seq[i:b].value, mask_char * (e - b)))
+            segments.extend((str(self._seq[i:b]), mask_char * (e - b)))
             i = e
-        segments.append(self._seq[i:].value)
+        segments.append(str(self._seq[i:]))
 
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
@@ -1006,7 +1009,7 @@ class Sequence(_Annotatable, SequenceI):
                 else:
                     raise ValueError(f"gap(s) in map {map}")
             else:
-                seg = self._seq[span.start : span.end].value
+                seg = str(self._seq[span.start : span.end])
                 if span.reverse:
                     complement = self.moltype.complement
                     seg = [complement(base) for base in seg[::-1]]
@@ -1126,7 +1129,7 @@ class Sequence(_Annotatable, SequenceI):
         """
         seq = self._seq
         if isinstance(seq, SeqView):
-            seq = seq.value
+            seq = str(self)
         if motif_length == 1:
             return seq
 
@@ -1145,7 +1148,7 @@ class Sequence(_Annotatable, SequenceI):
         gapless = []
         segments = []
         nongap = re.compile(f"([^{re.escape('-')}]+)")
-        for match in nongap.finditer(self._seq.value):
+        for match in nongap.finditer(str(self)):
             segments.append(match.span())
             gapless.append(match.group())
         map = Map(segments, parent_length=len(self)).inverse()
@@ -1191,7 +1194,7 @@ class Sequence(_Annotatable, SequenceI):
             # assume already a regex
             pass
 
-        pos = [m.span() for m in re.finditer(pattern, self._seq.value)]
+        pos = [m.span() for m in re.finditer(pattern, str(self))]
         if not pos:
             return []
 
@@ -1466,7 +1469,7 @@ class SeqView:
         return iter(self.value)
 
     def __str__(self) -> str:
-        return str(self.value)
+        return self.value
 
     def __repr__(self) -> str:
         seq_str = self.seq
