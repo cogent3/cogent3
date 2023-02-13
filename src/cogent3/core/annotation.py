@@ -205,7 +205,7 @@ class _Annotatable(_AnnotationMixin):
                 "Sequence.add_annotation",
                 "_Annotatable.add_annotation",
                 " 2023.3",
-                "method .add_annotation will be disconinued for Sequence objects",
+                "method .add_annotation will be discontinued for Sequence objects",
             )
 
         annot = klass(self, *args, **kw)
@@ -223,7 +223,7 @@ class _Annotatable(_AnnotationMixin):
                 "Sequence.clear_annotations",
                 "_Annotatable.clear_annotations",
                 " 2023.3",
-                "method .clear_annotations will be disconinued for Sequence objects",
+                "method .clear_annotations will be discontinued for Sequence objects",
             )
 
         self.annotations = []
@@ -239,7 +239,7 @@ class _Annotatable(_AnnotationMixin):
                 "Sequence.attach_annotations",
                 "_Annotatable.attach_annotations",
                 " 2023.3",
-                "method .attach_annotations will be disconinued for Sequence objects",
+                "method .attach_annotations will be discontinued for Sequence objects",
             )
 
         for annot in annots:
@@ -264,7 +264,7 @@ class _Annotatable(_AnnotationMixin):
                 "Sequence.detach_annotations",
                 "_Annotatable.detach_annotations",
                 " 2023.3",
-                "method .detach_annotations will be disconinued for Sequence objects",
+                "method .detach_annotations will be discontinued for Sequence objects",
             )
         for annot in annots:
             if annot.parent is not self:
@@ -327,7 +327,7 @@ class _Annotatable(_AnnotationMixin):
                 "Sequence.get_region_covering_all",
                 "_Annotatable.get_region_covering_all",
                 " 2023.3",
-                "method .get_region_covering_all will be disconinued for Sequence objects",
+                "method .get_region_covering_all will be discontinued for Sequence objects",
             )
 
         if extend_query:
@@ -369,7 +369,7 @@ class _Annotatable(_AnnotationMixin):
                 "Sequence.get_by_annotation",
                 "_Annotatable.get_by_annotation",
                 " 2023.3",
-                "method .get_by_annotation will be disconinued for Sequence objects",
+                "method .get_by_annotation will be discontinued for Sequence objects",
             )
         for annotation in self.get_features_matching(annotation_type, name):
             try:
