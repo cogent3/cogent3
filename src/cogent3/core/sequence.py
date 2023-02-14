@@ -801,10 +801,7 @@ class Sequence(_Annotatable, SequenceI):
         self.name = name
         orig_seq = seq
         if isinstance(seq, Sequence):
-            try:
-                seq = str(self)
-            except AttributeError:
-                seq = str(seq)
+            seq = str(seq)
         elif isinstance(seq, ArraySequence):
             seq = str(seq)
         elif isinstance(seq, bytes):
