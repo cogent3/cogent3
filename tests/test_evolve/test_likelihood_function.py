@@ -538,8 +538,6 @@ DogFaced   root      1.00  1.00
         simalign = lf.simulate_alignment()
         self.assertEqual(len(simalign), 6)
 
-
-
     def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
 
@@ -2255,6 +2253,7 @@ class ComparisonTests(TestCase):
         assert_allclose(lf.lnL, lnL)
         assert_allclose(lf.nfp, nfp)
 
+
 def test_simulate_alignment3():
     """Simulated alignment with gap-induced ambiguous positions
     preserved"""
@@ -2275,6 +2274,7 @@ def test_simulate_alignment3():
     simulated = lf.simulate_alignment()
     assert len(simulated.names) == 4
     import re
+
     assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "x??xxxxxx?"
 
 

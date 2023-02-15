@@ -826,9 +826,7 @@ class Sequence(_Annotatable, SequenceI):
             self._seq = SeqView(seq)
 
         if check:
-            self.moltype.verify_sequence(
-                str(self), gaps_allowed, wildcards_allowed
-            )
+            self.moltype.verify_sequence(str(self), gaps_allowed, wildcards_allowed)
 
         if not isinstance(info, InfoClass):
             try:
@@ -1933,7 +1931,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet**3,
+            alphabet=self.alphabet ** 3,
         )
 
     def complement(self):
