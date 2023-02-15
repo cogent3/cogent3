@@ -418,7 +418,7 @@ class CircularTreeGeometry(TreeGeometryBase):
             textangle = 360 - self.theta
             value = value.ljust(max_attr_length)
 
-        radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
+        radius = np.sqrt(self.x**2 + self.y**2) + padding
         x, y = polar_2_cartesian(self.theta, radius)
 
         return UnionDict(

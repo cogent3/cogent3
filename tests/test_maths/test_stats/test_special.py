@@ -185,7 +185,7 @@ class SpecialTests(TestCase):
             (9, 27, 0.0003): math.log(9.175389e-26),
             (1032, 2050, 0.5): math.log(0.01679804),
         }
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             assert_allclose(ln_binomial(*key), value, 1e-4)
 
     def test_ln_binomial_floats(self):
@@ -200,7 +200,7 @@ class SpecialTests(TestCase):
             (10, 100.5, 0.5): (math.log(7.578011e-18), math.log(1.365543e-17)),
         }
 
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             min_val, max_val = value
             assert min_val < ln_binomial(*key) < max_val
             # self.assert_allclose(binomial_exact(*key), value, 1e-4)

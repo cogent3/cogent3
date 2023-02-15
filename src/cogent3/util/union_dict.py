@@ -78,7 +78,6 @@ class UnionDict(dict):
             other = UnionDict(other)
 
         for a in list(other):
-
             if self.get(a) is None or not (
                 isinstance(other.get(a), dict) and isinstance(self.get(a), dict)
             ):

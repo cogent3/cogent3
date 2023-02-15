@@ -1768,7 +1768,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_get_edge_names(self):
         tree = self._maketree()
-        for (a, b, outgroup, result) in [
+        for a, b, outgroup, result in [
             ("A", "B", None, ["A", "B"]),
             ("E", "C", None, ["C", "D", "cd", "E"]),
             ("C", "D", "E", ["C", "D"]),
@@ -1826,7 +1826,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_get_node_matching_name(self):
         tree = self.default_tree
-        for (name, expect_tip) in [("A", True), ("ab", False)]:
+        for name, expect_tip in [("A", True), ("ab", False)]:
             edge = tree.get_node_matching_name(name)
             self.assertEqual(edge.name, name)
             self.assertEqual(edge.istip(), expect_tip)
@@ -1935,7 +1935,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_params_merge(self):
         t = make_tree(treestring="((((a,b)ab,c)abc),d)")
-        for (label, length, beta) in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
+        for label, length, beta in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
             t.get_node_matching_name(label).params = {"length": length, "beta": beta}
         t = t.get_sub_tree(["b", "c", "d"])
         self.assertEqual(

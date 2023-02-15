@@ -185,9 +185,9 @@ def _tn93_from_matrix(
         + (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
     )
     var = (
-        v1 ** 2 * pur_ts_diffs
-        + v2 ** 2 * pyr_ts_diffs
-        + v4 ** 2 * tv_diffs
+        v1**2 * pur_ts_diffs
+        + v2**2 * pyr_ts_diffs
+        + v4**2 * tv_diffs
         - (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs) ** 2
     )
     var /= total
@@ -236,7 +236,7 @@ def _paralinear(matrix):
 
     r = matrix.shape[0]
     d_xy = -log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
-    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r ** 2 * total)
+    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r**2 * total)
 
     return total, p, d_xy, var
 
@@ -264,7 +264,7 @@ def _logdet(matrix, use_tk_adjustment=True):
         var = None
     else:
         d_xy = -log(det(frequency)) / r - log(r)
-        var = (var_term / r ** 2 - 1) / total
+        var = (var_term / r**2 - 1) / total
 
     return total, p, d_xy, var
 

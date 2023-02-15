@@ -303,6 +303,7 @@ def mapping_parser(line, fields, delimiters=None, flatten=list_flatten):
 # individual parsers
 #################################
 
+
 #################################
 # mapping parsers: id, sq
 #

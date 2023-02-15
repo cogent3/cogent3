@@ -29,7 +29,7 @@ class ScoredTreeCollection(_UserList):
 
     def write(self, filename):
         with atomic_write(filename, mode="wt") as f:
-            for (score, tree) in self:
+            for score, tree in self:
                 f.writelines(
                     self.scored_tree_format(
                         tree.get_newick(with_distances=True), str(score)
@@ -113,7 +113,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         weights.reverse()
         tail = (1.0 - cutoff) * sum(weights)
         dropped = 0.0
-        for (index, weight) in enumerate(weights):
+        for index, weight in enumerate(weights):
             dropped += weight
             if dropped > tail:
                 weights = weights[index:]

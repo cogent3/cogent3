@@ -94,7 +94,7 @@ class GffTest(TestCase):
 
     def testGffParserData(self):
         """Test gff_parser with valid data lines"""
-        for (line, canned_result) in data_lines:
+        for line, canned_result in data_lines:
             result = next(gff_parser(StringIO(line)))
             canned_result = list(canned_result)
             self.assertEqual(result.pop("Attributes")["Info"], canned_result.pop(8))

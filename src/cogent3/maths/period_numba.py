@@ -27,7 +27,7 @@ def goertzel_inner(x, N, period):  # pragma: no cover
         s_prev2 = s_prev
         s_prev = s
 
-    power = numpy.sqrt(s_prev2 ** 2 + s_prev ** 2 - coeff * s_prev2 * s_prev)
+    power = numpy.sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
     return power
 
 

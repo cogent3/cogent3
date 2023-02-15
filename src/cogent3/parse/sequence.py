@@ -68,7 +68,7 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
             raise FileFormatError(f"Unsupported file format {format}")
         parser = PARSERS[format]
         source = f
-    for (name, seq) in parser(source, **kw):
+    for name, seq in parser(source, **kw):
         if isinstance(seq, str):
             if dialign_recode:
                 seq = seq.translate(_lc_to_wc)

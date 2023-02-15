@@ -72,7 +72,7 @@ def pkolmogorov2x(statistic, n):
     k = int(n * statistic) + 1
     m = 2 * k - 1
     h = k - n * statistic
-    H = ones(m ** 2, "d")
+    H = ones(m**2, "d")
     for i in range(m):
         for j in range(m):
             if i - j + 1 < 0:
@@ -107,7 +107,7 @@ def pkstwo(x_vector, tolerance=1e-6):
             w = log(x_vector[i])
             s = 0
             for k in range(1, k_max, 2):
-                s += exp(k ** 2 * z - w)
+                s += exp(k**2 * z - w)
             x_vector[i] = s / INVSQRT2PI
         else:
             z = -2 * x_vector[i] ** 2
@@ -117,7 +117,7 @@ def pkstwo(x_vector, tolerance=1e-6):
             new = 1
             while fabs(old - new) > tolerance:
                 old = new
-                new += 2 * s * exp(z * k ** 2)
+                new += 2 * s * exp(z * k**2)
                 s *= -1
                 k += 1
             x_vector[i] = new

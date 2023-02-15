@@ -120,7 +120,7 @@ class ProgressContext:
                 noun += " "
             template = f"{noun}%{len(str(count))}d/{count}"
             labels = [template % (i + 1) for i in range(0, count)]
-        for (i, item) in enumerate(items):
+        for i, item in enumerate(items):
             self.display(msg=labels[i], progress=start + step * i)
             yield item
         self.display(progress=end)

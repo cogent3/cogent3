@@ -212,7 +212,8 @@ class Span(SpanI):
     not an underlying sequence (eg sl[:n] == sl[0:n]), so this slicing is
     very different to feature slicing.
 
-    Spans may optionaly have a value, which gets preserved when they are remapped etc."""
+    Spans may optionaly have a value, which gets preserved when they are remapped etc.
+    """
 
     lost = False
 
@@ -568,7 +569,7 @@ class Map(object):
 
         if spans is None:
             spans = []
-            for (start, end) in locations:
+            for start, end in locations:
                 diff = 0
                 reverse = start > end
                 if max(start, end) < 0 or min(start, end) > parent_length:
@@ -772,7 +773,7 @@ class Map(object):
         temp.sort()
         new_spans = []
         last_hi = 0
-        for (lo, hi, start, end) in temp:
+        for lo, hi, start, end in temp:
             if lo > last_hi:
                 new_spans.append(LostSpan(lo - last_hi))
             elif lo < last_hi:

@@ -1080,7 +1080,7 @@ class LikelihoodFunction(ParameterController):
                 )
 
             leaves = self.get_param_value("leaf_likelihoods", locus=locus)
-            for (seq_name, leaf) in list(leaves.items()):
+            for seq_name, leaf in list(leaves.items()):
                 orig_ambig[seq_name] = leaf.get_ambiguous_positions()
 
         if random_series is None:

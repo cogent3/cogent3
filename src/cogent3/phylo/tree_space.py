@@ -66,7 +66,7 @@ def tree2ancestry(tree, order=None):
     n = len(nodes)
     A = numpy.zeros([n, n], int)
     seen = {}
-    for (i, node) in enumerate(nodes):
+    for i, node in enumerate(nodes):
         A[i, i] = 1
         seen[id(node)] = i
         for c in node.children:
@@ -223,7 +223,7 @@ class TreeEvaluator(object):
         # All trees of size a-1, no need to compare them
         for n in range(init_tree_size + 1, a):
             trees2 = []
-            for (err2, lengths2, ancestry) in trees:
+            for err2, lengths2, ancestry in trees:
                 for split_edge in range(len(ancestry)):
                     ancestry2 = grown(ancestry, split_edge)
                     trees2.append((None, None, ancestry2))
