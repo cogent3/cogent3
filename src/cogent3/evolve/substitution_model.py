@@ -326,6 +326,7 @@ class _SubstitutionModel(object):
         space=None,
         **kw,
     ):
+
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
 
@@ -550,7 +551,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         if x == y:
             return False
         gap_start = gap_end = gap_strand = None
-        for i, (X, Y) in enumerate(zip(x, y)):
+        for (i, (X, Y)) in enumerate(zip(x, y)):
             G = self.gapmotif[i]
             if X != Y:
                 if X != G and Y != G:
@@ -731,12 +732,12 @@ class Parametric(_ContinuousSubstitutionModel):
         # Check for redundancy in predicates, ie: 1 or more than combine
         # to be equivalent to 1 or more others, or the distance params.
         # Give a clearer error in simple cases like always false or true.
-        for name, matrix in list(predicate_masks.items()):
+        for (name, matrix) in list(predicate_masks.items()):
             if numpy.alltrue((matrix == 0).flat):
                 raise ValueError(f"Predicate {name} is always false.")
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
-        for name, matrix in list(predicate_masks.items()):
+        for (name, matrix) in list(predicate_masks.items()):
             if numpy.alltrue((matrix == self._instantaneous_mask).flat):
                 raise ValueError(f"Predicate {name} is always true.")
         if redundancy_in_predicate_masks(predicate_masks):
@@ -765,7 +766,7 @@ class Parametric(_ContinuousSubstitutionModel):
     def calc_exchangeability_matrix(self, mprobs, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
         R = self._instantaneous_mask_f.copy()
-        for indices, par in zip(self.predicate_indices, params):
+        for (indices, par) in zip(self.predicate_indices, params):
             R[indices] *= par
         return R
 
@@ -842,7 +843,7 @@ class Parametric(_ContinuousSubstitutionModel):
         rule = self.get_predicate_mask(rule)
         weighted_scale = 0.0
         bin_probs = numpy.asarray(bin_probs)
-        for Q, bin_prob, motif_probs in zip(Qs, bin_probs, motif_probss):
+        for (Q, bin_prob, motif_probs) in zip(Qs, bin_probs, motif_probss):
             row_totals = numpy.sum(rule * Q, axis=1)
             motif_probs = numpy.asarray(motif_probs)
             word_probs = self.calc_word_probs(motif_probs)
@@ -868,7 +869,7 @@ class Parametric(_ContinuousSubstitutionModel):
             rules = [(None, rule) for rule in rules]
         predicate_masks = {}
         order = []
-        for key, pred in rules:
+        for (key, pred) in rules:
             (label, mask) = self.adapt_predicate(pred, key)
             if label in predicate_masks:
                 raise KeyError(f'Duplicate predicate name "{label}"')

@@ -161,6 +161,7 @@ def min_length(val: int) -> int:
 
 
 def test_get_app_fail():
+
     __app_registry[get_object_provenance(min_length)] = True
 
     with pytest.raises(NameError):

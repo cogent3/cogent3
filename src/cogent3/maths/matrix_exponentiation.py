@@ -109,7 +109,7 @@ class PadeExponentiator(_Exponentiator):
         # Scale A so that norm is < 1/2
         norm = numpy.maximum.reduce(numpy.sum(numpy.absolute(A), axis=1))
         j = int(numpy.floor(numpy.log(max(norm, 0.5)) / numpy.log(2.0))) + 1
-        A = A / 2.0**j
+        A = A / 2.0 ** j
 
         # How many iterations required
         e = 1.0
@@ -118,8 +118,8 @@ class PadeExponentiator(_Exponentiator):
         while e > 1e-12:
             q += 1
             q2 = 2.0 * q
-            qf *= q**2 / (q2 * (q2 - 1) * q2 * (q2 + 1))
-            e = 8 * (norm / (2**j)) ** (2 * q) * qf
+            qf *= q ** 2 / (q2 * (q2 - 1) * q2 * (q2 + 1))
+            e = 8 * (norm / (2 ** j)) ** (2 * q) * qf
 
         # Pade Approximation for exp(A)
         X = A

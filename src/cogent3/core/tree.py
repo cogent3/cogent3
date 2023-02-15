@@ -195,7 +195,7 @@ class TreeNode(object):
         """
         if isinstance(target, TreeNode):
             target = target.name
-        for i, curr_node in enumerate(self.children):
+        for (i, curr_node) in enumerate(self.children):
             if curr_node.name == target:
                 self.remove_node(curr_node)
                 return True
@@ -705,9 +705,9 @@ class TreeNode(object):
         # make a blank array of the right dimensions to alter
         result = zeros([len(node_list), len(tip_list)])
         # put 1 in the column for each child of each node
-        for i, node in enumerate(node_list):
+        for (i, node) in enumerate(node_list):
             children = [n.name for n in node.tips()]
-            for j, dec in enumerate(tip_list):
+            for (j, dec) in enumerate(tip_list):
                 if dec in children:
                     result[i, j] = 1
         return result, node_list
@@ -813,7 +813,7 @@ class TreeNode(object):
         if len(self.children) != len(other.children):
             return False
         if self.children:
-            for self_child, other_child in zip(self.children, other.children):
+            for (self_child, other_child) in zip(self.children, other.children):
                 if not self_child.same_shape(other_child):
                     return False
             return True
@@ -1413,7 +1413,7 @@ class TreeNode(object):
         xml = [f"{pad}<clade>"]
         if self.name_loaded:
             xml.append(f"{pad}   <name>{self.name}</name>")
-        for n, v in list(self.params.items()):
+        for (n, v) in list(self.params.items()):
             if v == params.get(n, None):
                 continue
             xml.append(f"{pad}   <param><name>{n}</name><value>{v}</value></param>")

@@ -365,7 +365,7 @@ class LikelihoodFunctionTests(TestCase):
         return lf
 
     def _setLengthsAndBetas(self, likelihood_function):
-        for species, length in [
+        for (species, length) in [
             ("DogFaced", 0.1),
             ("NineBande", 0.2),
             ("Human", 0.3),
@@ -375,7 +375,7 @@ class LikelihoodFunctionTests(TestCase):
             likelihood_function.set_param_rule(
                 "length", value=length, edge=species, is_constant=True
             )
-        for species1, species2, length in [
+        for (species1, species2, length) in [
             ("Human", "HowlerMon", 0.7),
             ("Human", "Mouse", 0.6),
         ]:
@@ -537,6 +537,8 @@ DogFaced   root      1.00  1.00
         lf.set_alignment(al)
         simalign = lf.simulate_alignment()
         self.assertEqual(len(simalign), 6)
+
+
 
     def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
@@ -2253,7 +2255,6 @@ class ComparisonTests(TestCase):
         assert_allclose(lf.lnL, lnL)
         assert_allclose(lf.nfp, nfp)
 
-
 def test_simulate_alignment3():
     """Simulated alignment with gap-induced ambiguous positions
     preserved"""
@@ -2274,7 +2275,6 @@ def test_simulate_alignment3():
     simulated = lf.simulate_alignment()
     assert len(simulated.names) == 4
     import re
-
     assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "x??xxxxxx?"
 
 

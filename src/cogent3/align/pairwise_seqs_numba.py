@@ -17,13 +17,7 @@ __status__ = "Production"
 
 
 @njit(
-    Tuple(
-        types=(
-            Tuple(types=(int64, int64)),
-            int64,
-            float64,
-        )
-    )(
+    Tuple(types=(Tuple(types=(int64, int64)), int64, float64,))(
         int64[::1],
         int64[::1],
         int64[::1],
@@ -85,7 +79,7 @@ def calc_rows(
 
     MIN_SCALE = -10000
     MAX_SCALE = +10000
-    SCALE_STEP = 2.0**50
+    SCALE_STEP = 2.0 ** 50
     MIN_FLOAT_VALUE = 1.0 / SCALE_STEP
 
     N = max(T.shape[0], T.shape[1])
@@ -139,6 +133,7 @@ def calc_rows(
 
         current_row_index = plan[i]
         for j in range(j_low, j_high):
+
             for dest_state in range(dest_states):
                 state = state_directions[dest_state, 0]
                 bin = state_directions[dest_state, 1]

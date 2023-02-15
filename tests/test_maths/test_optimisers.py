@@ -23,7 +23,7 @@ def quartic(x):
     # Has global maximum at -4 and local maximum at 2
     # http://www.wolframalpha.com/input/?i=x**2*%283*x**2%2B8*x-48%29
     # Scaled down 10-fold to avoid having to change init_temp
-    return x**2 * (3 * x**2 + 8 * x - 48)
+    return x ** 2 * (3 * x ** 2 + 8 * x - 48)
 
 
 class NullFile(object):

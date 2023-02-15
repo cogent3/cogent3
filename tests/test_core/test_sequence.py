@@ -15,14 +15,7 @@ from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.core.annotation import Feature, SimpleVariable, Variable
-from cogent3.core.moltype import (
-    ASCII,
-    BYTES,
-    DNA,
-    RNA,
-    AlphabetError,
-    get_moltype,
-)
+from cogent3.core.moltype import ASCII, BYTES, DNA, RNA, AlphabetError, get_moltype
 from cogent3.core.sequence import (
     ABSequence,
     ArrayCodonSequence,

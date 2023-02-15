@@ -748,7 +748,6 @@ def appify(input_types, output_types, data_types=None):  # pragma: no cover
     apps.
 
     """
-
     # the 3 nested functions are required to allow setting decorator arguments
     # to allow using functools.wraps so the decorated function has the correct
     # docstring, name etc... And, the final inner one gets to pass the
@@ -869,6 +868,7 @@ def _disconnect(self):
 
 
 def _add(self, other):
+
     if getattr(other, "app_type", None) not in {WRITER, LOADER, GENERIC}:
         raise TypeError(f"{other!r} is not composable")
 
@@ -1070,7 +1070,6 @@ def _class_from_func(func):
 
     func becomes a static method on the class
     """
-
     # these methods MUST be in function scope so that separate instances are
     # created for each decorated function
     def _init(self, *args, **kwargs):
@@ -1441,6 +1440,7 @@ def _apply_to(
 
 
 def _set_logger(self, logger=None):
+
     if logger is None:
         logger = CachingLogger(create_dir=True)
     if not isinstance(logger, CachingLogger):

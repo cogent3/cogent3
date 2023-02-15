@@ -19,6 +19,7 @@ __status__ = "Production"
 
 @njit(cache=True)
 def calc_TN93_P(mprobs, time, alpha1, alpha2, result):  # pragma: no cover
+
     if not (mprobs.shape[0] == result.shape[0] == result.shape[1] == 4):
         raise ValueError("all array dimensions must equal 4")
 

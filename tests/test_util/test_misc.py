@@ -551,8 +551,8 @@ class ClassCheckerTests(TestCase):
         self.assertEqual(self.intcheck.__contains__("3"), False)
         self.assertEqual(self.intcheck.__contains__(3.0), False)
         self.assertEqual(self.intcheck.__contains__(3), True)
-        self.assertEqual(self.intcheck.__contains__(4**60), True)
-        self.assertEqual(self.intcheck.__contains__(4**60 * -1), True)
+        self.assertEqual(self.intcheck.__contains__(4 ** 60), True)
+        self.assertEqual(self.intcheck.__contains__(4 ** 60 * -1), True)
 
         d = _my_dict()
         self.assertEqual(self.dictcheck.__contains__(d), True)
@@ -568,7 +568,7 @@ class ClassCheckerTests(TestCase):
         self.assertEqual(self.numcheck.__contains__(-3.0), True)
         self.assertEqual(self.numcheck.__contains__(3e-300), True)
         self.assertEqual(self.numcheck.__contains__(0), True)
-        self.assertEqual(self.numcheck.__contains__(4**1000), True)
+        self.assertEqual(self.numcheck.__contains__(4 ** 1000), True)
         self.assertEqual(self.numcheck.__contains__("4**1000"), False)
 
     def test_str(self):
