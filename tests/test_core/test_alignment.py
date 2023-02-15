@@ -2987,7 +2987,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         aln = aln[2:8]
         draw = aln.dotplot(show_progress=False)
         expected = {("name1", "TTTTAA"), ("name2", "AATTTT")}
-        got = {(s.name, s._seq.value) for s in (draw.seq1, draw.seq2)}
+        got = {(s.name, str(s)) for s in (draw.seq1, draw.seq2)}
         self.assertEqual(got, expected)
 
     def test_to_moltype_annotations(self):

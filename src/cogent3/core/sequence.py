@@ -184,7 +184,7 @@ class SequenceI(object):
 
         """
         try:
-            data = str(self._seq)
+            data = str(self)
         except AttributeError:
             data = self._data
 
@@ -231,11 +231,11 @@ class SequenceI(object):
 
     def __lt__(self, other):
         """compares based on the sequence string."""
-        return str(self._seq) < str(other)
+        return str(self) < str(other)
 
     def __eq__(self, other):
         """compares based on the sequence string."""
-        return str(self._seq) == str(other)
+        return str(self) == str(other)
 
     def __ne__(self, other):
         """compares based on the sequence string."""
@@ -1035,7 +1035,7 @@ class Sequence(_Annotatable, SequenceI):
         if len(self) > 10:
             seq = f"{str(self._seq[:7])}... {len(self)}"
         else:
-            seq = str(self._seq)
+            seq = str(self)
         return f"{myclass}({seq})"
 
     def get_name(self):
@@ -1297,7 +1297,7 @@ class NucleicAcidSequence(Sequence):
         if not allow_partial and not divisible_by_3:
             raise ValueError("seq length not divisible by 3")
 
-        if divisible_by_3 and codons and gc.is_stop(codons[-3:].value):
+        if divisible_by_3 and codons and gc.is_stop(str(codons[-3:])):
             codons = codons[:-3]
 
         return self.__class__(codons, name=self.name, info=self.info)
@@ -1322,7 +1322,7 @@ class NucleicAcidSequence(Sequence):
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
-            orig_codon = self._seq[posn : posn + 3].value
+            orig_codon = str(self._seq[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:

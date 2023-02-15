@@ -86,7 +86,7 @@ class SequenceTests(TestCase):
         """Sequence init with other seq should preserve name and info."""
         r = self.RNA("UCAGG", name="x", info={"z": 3})
         s = Sequence(r)
-        self.assertEqual(s._seq.value, "UCAGG")
+        self.assertEqual(str(s), "UCAGG")
         self.assertEqual(s.name, "x")
         self.assertEqual(s.info.z, 3)
 
@@ -107,7 +107,7 @@ class SequenceTests(TestCase):
         self.assertIsNot(got_annot2, annot2)
         self.assertEqual(got.name, s.name)
         self.assertEqual(got.info, s.info)
-        self.assertEqual(got._seq.value, s._seq.value)
+        self.assertEqual(str(got), str(s))
         self.assertEqual(got.moltype, s.moltype)
         annot1_slice = str(annot1.get_slice())
         annot2_slice = str(annot2.get_slice())
