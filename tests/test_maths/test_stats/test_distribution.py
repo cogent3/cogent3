@@ -156,7 +156,7 @@ class DistributionsTests(TestCase):
             (180, 318): 2.436995e-17,
             (180, 1024): 8.266457e-233,
         }
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             assert_allclose(poisson_low(*key), value, rtol=1e-6)
 
     def test_poisson_high(self):
@@ -178,7 +178,7 @@ class DistributionsTests(TestCase):
             (180, 318): 1,
             (180, 1024): 1,
         }
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             assert_allclose(poisson_high(*key), value)
 
     def test_poisson_exact(self):
@@ -198,7 +198,7 @@ class DistributionsTests(TestCase):
             (180, 318): 1.067247e-17,
             (180, 1024): 6.815085e-233,
         }
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             assert_allclose(poisson_exact(*key), value, rtol=1e-6)
 
     def test_binomial_series(self):
@@ -227,7 +227,7 @@ class DistributionsTests(TestCase):
             (9, 27, 0.0003): 9.175389e-26,
             (1032, 2050, 0.5): 0.01679804,
         }
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             assert_almost_equal(binomial_exact(*key), value, 1e-4)
 
     def test_binomial_exact_floats(self):
@@ -242,7 +242,7 @@ class DistributionsTests(TestCase):
             (0.5, 5, 0.3): (0.16807, 0.36015),
         }
 
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             min_val, max_val = value
             assert min_val < binomial_exact(*key) < max_val
             # assert_almost_equal(binomial_exact(*key), value, 1e-4)

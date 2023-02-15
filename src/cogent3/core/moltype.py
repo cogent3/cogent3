@@ -816,7 +816,7 @@ class MolType(object):
         """
         most_specific = len(self.alphabet) + 1
         result = self.missing
-        for (code, motifs2) in list(self.ambiguities.items()):
+        for code, motifs2 in list(self.ambiguities.items()):
             for c in motifs:
                 if c not in motifs2:
                     break
@@ -1443,8 +1443,8 @@ ArraySequence.alphabet = BYTES.alphabet
 ArrayAlignment.alphabet = BYTES.alphabet
 ArrayAlignment.moltype = BYTES
 
-ArrayDnaCodonSequence.alphabet = DNA.alphabets.base ** 3
-ArrayRnaCodonSequence.alphabet = RNA.alphabets.base ** 3
+ArrayDnaCodonSequence.alphabet = DNA.alphabets.base**3
+ArrayRnaCodonSequence.alphabet = RNA.alphabets.base**3
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII

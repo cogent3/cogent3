@@ -40,7 +40,7 @@ class _LikelihoodTreeEdge(object):
             # The children are ungapped sequences, 'alignment'
             # indicates where gaps need to go.
             assignments = []
-            for (i, c) in enumerate(children):
+            for i, c in enumerate(children):
                 a = []
                 for align_index in alignment:
                     col = align_index[i]
@@ -100,7 +100,7 @@ class _LikelihoodTreeEdge(object):
 
     def select_columns(self, cols):
         children = []
-        for (index, child) in self._indexed_children:
+        for index, child in self._indexed_children:
             child = child.select_columns(cols)
             children.append(child)
         return self.__class__(children, self.edge_name)
@@ -135,7 +135,7 @@ class _LikelihoodTreeEdge(object):
         if self.edge_name == name:
             return self
         else:
-            for (i, c) in self._indexed_children:
+            for i, c in self._indexed_children:
                 r = c.get_edge(name)
                 if r is not None:
                     return r
@@ -169,7 +169,7 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
     integer_type = numerictypes(int)
 
     # For scaling very very small numbers
-    BASE = 2.0 ** 100
+    BASE = 2.0**100
     LOG_BASE = numpy.log(BASE)
 
     def sum_input_likelihoodsR(self, result, *likelihoods):
@@ -214,7 +214,7 @@ def _indexed(values):
     unique = []
     counts = []
     seen = {}
-    for (c, key) in enumerate(values):
+    for c, key in enumerate(values):
         if key in seen:
             i = seen[key]
             counts[i] += 1
@@ -301,7 +301,7 @@ class LikelihoodTreeLeaf(object):
 
     def get_ambiguous_positions(self):
         ambig = {}
-        for (i, u) in enumerate(self.index):
+        for i, u in enumerate(self.index):
             if self.ambig[u] != 1.0:
                 ambig[i] = self.uniq[u]
         return ambig

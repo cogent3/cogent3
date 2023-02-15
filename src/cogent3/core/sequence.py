@@ -826,9 +826,7 @@ class Sequence(_Annotatable, SequenceI):
             self._seq = SeqView(seq)
 
         if check:
-            self.moltype.verify_sequence(
-                str(self), gaps_allowed, wildcards_allowed
-            )
+            self.moltype.verify_sequence(str(self), gaps_allowed, wildcards_allowed)
 
         if not isinstance(info, InfoClass):
             try:
@@ -1358,7 +1356,7 @@ class NucleicAcidSequence(Sequence):
         orfs = []
         start = None
         protein = self.get_translation(gc=gc)
-        for (posn, aa) in enumerate(protein):
+        for posn, aa in enumerate(protein):
             posn *= 3
             if aa == "*":
                 if start is not None:

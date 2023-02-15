@@ -407,7 +407,7 @@ class NumberCounter(CategoryCounter):
         """updates values of self using counts dict"""
         for k, v in data.items():
             try:
-                k ** 2
+                k**2
             except TypeError:
                 raise TypeError(f"key {k} is not numeric")
             self[k] += v

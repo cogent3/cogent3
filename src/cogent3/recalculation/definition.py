@@ -154,7 +154,7 @@ class CalculationDefn(_NonLeafDefn):
         cells = []
         for input_nums in self.uniq:
             args = []
-            for (arg, u) in zip(self.args, input_nums):
+            for arg, u in zip(self.args, input_nums):
                 arg = input_soup[id(arg)][u]
                 args.append(arg)
             cell = self.make_cell(*args)
@@ -264,7 +264,7 @@ class _InputDefn(_LeafDefn):
 
     def update_from_calculator(self, calc):
         outputs = calc.get_current_cell_values_for_defn(self)
-        for (output, setting) in zip(outputs, self.uniq):
+        for output, setting in zip(outputs, self.uniq):
             # catch cases where parameters fall outside bounds due to precision
             if setting.is_constant:
                 ...  # block trying other conditions
@@ -364,7 +364,7 @@ class ParamDefn(_InputDefn):
     def make_cells(self, input_soup=None, variable=None):
         input_soup = input_soup or {}
         uniq_cells = []
-        for (i, v) in enumerate(self.uniq):
+        for i, v in enumerate(self.uniq):
             scope = [key for key in self.assignments if self.assignments[key] is v]
             if v.is_constant or (variable is not None and variable is not v):
                 cell = ConstCell(self.name, v.value)
@@ -521,7 +521,7 @@ class PartitionDefn(_InputDefn):
         input_soup = input_soup or {}
         uniq_cells = []
         all_cells = []
-        for (i, v) in enumerate(self.uniq):
+        for i, v in enumerate(self.uniq):
             if v is None:
                 raise ValueError(f"input {self.name} not set")
             assert hasattr(v, "get_default_value"), v
@@ -598,7 +598,7 @@ class SelectForDimension(_Defn):
     def make_cells(self, input_soup, variable=None):
         cells = []
         distribs = input_soup[id(self.arg)]
-        for (input_num, bin_num) in self.uniq:
+        for input_num, bin_num in self.uniq:
             cell = EvaluatedCell(
                 self.name, (lambda x, p=bin_num: x[p]), (distribs[input_num],)
             )

@@ -55,8 +55,8 @@ def distance_dict_to_2D(dists):
     names = names_from_distance_dict(dists)
     L = len(names)
     d = numpy.zeros([L, L], Float)
-    for (i, a) in enumerate(names):
-        for (j, b) in enumerate(names):
+    for i, a in enumerate(names):
+        for j, b in enumerate(names):
             if i != j:
                 d[i, j] = lookup_symmetric_dict(dists, a, b)
     return (names, d)
@@ -77,7 +77,7 @@ def distance_dict_and_names_to_1D(dists, names):
     where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
     d = []
-    for (name_i, name_j) in triangular_order(names):
+    for name_i, name_j in triangular_order(names):
         d.append(lookup_symmetric_dict(dists, name_i, name_j))
     return numpy.array(d)
 

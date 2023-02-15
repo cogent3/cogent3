@@ -204,12 +204,9 @@ class FastSlowDistTests(TestCase):
         self.assertTrue(got[("Human", "Opossum")] >= 0)
 
         # now as a process
-        proc = (
-            get_app(
-                "align_to_ref",
-            )
-            + get_app("fast_slow_dist", fast_calc="hamming", moltype="dna")
-        )
+        proc = get_app(
+            "align_to_ref",
+        ) + get_app("fast_slow_dist", fast_calc="hamming", moltype="dna")
         got = proc(self.seqs1)
         self.assertEqual(got[("Human", "Rhesus")], 1)
 

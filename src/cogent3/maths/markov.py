@@ -55,7 +55,7 @@ class TransitionMatrix(object):
     def emit(self, random_series):
         """Generates an infinite sequence of states"""
         partitions = numpy.add.accumulate(self.Matrix, axis=1)
-        for (state, row) in enumerate(partitions[:-1]):
+        for state, row in enumerate(partitions[:-1]):
             assert abs(row[-1] - 1.0) < 1e-6, (state, self.Matrix[state])
         x = random_series.uniform(0.0, 1.0)
         state = bisect.bisect_left(numpy.add.accumulate(self.StationaryProbs), x)
@@ -68,7 +68,7 @@ class TransitionMatrix(object):
         from cogent3.util.table import Table
 
         labels = []
-        for (i, label) in enumerate(self.Tags):
+        for i, label in enumerate(self.Tags):
             if hasattr(label, "__len__") and not isinstance(label, str):
                 label = ",".join(str(z) for z in label)
             # Table needs unique labels
@@ -103,7 +103,7 @@ class TransitionMatrix(object):
     def getLikelihoodOfSequence(self, obs, backward=False):
         """Just for testing really"""
         profile = numpy.zeros([len(obs), self.size], Float)
-        for (i, a) in enumerate(obs):
+        for i, a in enumerate(obs):
             # This is suspiciously alphabet-like!
             profile[i, self.Tags.index(obs[i])] = 1.0
         return self.getLikelihoodOfProfile(profile, backward=backward)
@@ -159,7 +159,7 @@ class TransitionMatrix(object):
         n = len(R)
         assert len(Ts) == n
         result = None
-        for (x, a) in enumerate(self.Tags):
+        for x, a in enumerate(self.Tags):
             a = Ts[a - 1]
             if result is None:
                 tags = a.Tags
@@ -168,7 +168,7 @@ class TransitionMatrix(object):
             else:
                 assert a.Tags == tags, (a.Tags, tags)
             a = a.Matrix
-            for (y, b) in enumerate(self.Tags):
+            for y, b in enumerate(self.Tags):
                 b = Ts[b - 1].Matrix
                 block = self.Matrix[x, y] * blended(a, b)
                 result[x * c : (x + 1) * c, y * c : (y + 1) * c] = block

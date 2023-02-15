@@ -75,12 +75,12 @@ class get_array_type_tests(TestCase):
         self.assertEqual(get_array_type(10000), uint16)
         self.assertEqual(get_array_type(65535), uint16)
         self.assertEqual(get_array_type(65537), uint32)
-        self.assertEqual(get_array_type(1 + 2 ** 32), uint64)
+        self.assertEqual(get_array_type(1 + 2**32), uint64)
 
     def test_get_array_type_fail(self):
         """get_array_type should return unsigned type that fits elements."""
         with self.assertRaises(NotImplementedError):
-            self.assertEqual(get_array_type(2 ** 64), uint64)
+            self.assertEqual(get_array_type(2**64), uint64)
 
 
 class EnumerationTests(TestCase):
@@ -157,7 +157,7 @@ class EnumerationTests(TestCase):
 
     def test_pow(self):
         """Enumeration pow should produce JointEnumeration with n copies"""
-        a = AminoAcids ** 3
+        a = AminoAcids**3
         self.assertEqual(a[0], (AminoAcids[0],) * 3)
         self.assertEqual(a[-1], (AminoAcids[-1],) * 3)
         self.assertEqual(len(a), len(AminoAcids) ** 3)
@@ -165,14 +165,14 @@ class EnumerationTests(TestCase):
 
         # check that it works with gaps
         a = Enumeration("a-b", "-")
-        b = a ** 3
+        b = a**3
         self.assertEqual(len(b), 27)
         self.assertEqual(b.gap, ("-", "-", "-"))
         self.assertEqual(b.gap_index, 13)
         self.assertEqual(b.array_type, uint8)
 
         # check that array type is set correctly if needed
-        b = a ** 6  # too big to fit in char
+        b = a**6  # too big to fit in char
         self.assertEqual(b.array_type, uint16)
 
     def test_mul(self):

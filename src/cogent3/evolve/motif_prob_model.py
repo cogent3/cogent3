@@ -129,7 +129,7 @@ class ComplexMotifProbModel(MotifProbModel):
         self.w2m = w2m = numpy.zeros([length, size, len(monomers)], int)
         contexts = monomers.get_word_alphabet(length - 1)
         self.w2c = w2c = numpy.zeros([size, length * len(contexts)], int)
-        for (i, word) in enumerate(tuple_alphabet):
+        for i, word in enumerate(tuple_alphabet):
             for j in range(length):
                 monomer = monomers.index(word[j])
                 context = contexts.index(word[:j] + word[j + 1 :])
@@ -141,7 +141,7 @@ class ComplexMotifProbModel(MotifProbModel):
         self.mutant_motif = numpy.zeros(mask.shape, int)
         self.context_indices = numpy.zeros(mask.shape, int)
 
-        for (i, old_word, j, new_word, diff) in self._mutations():
+        for i, old_word, j, new_word, diff in self._mutations():
             self.mutated_posn[i, j] = diff
             mutant_motif = new_word[diff]
             context = new_word[:diff] + new_word[diff + 1 :]
@@ -256,7 +256,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
         assert len(motif_probs) == self.word_length
-        for (i, m) in enumerate(motif_probs):
+        for i, m in enumerate(motif_probs):
             pc.set_param_rule("psmprobs", value=m, position=str(i), **kw)
 
     def adapt_motif_probs(self, motif_probs, auto=False):

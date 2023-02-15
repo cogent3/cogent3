@@ -56,13 +56,13 @@ def get_array_type(num_elements):
     """Returns the smallest numpy integer dtype that can contain elements
     within num_elements.
     """
-    if num_elements < 2 ** 8:
+    if num_elements < 2**8:
         dtype = uint8
-    elif num_elements < 2 ** 16:
+    elif num_elements < 2**16:
         dtype = uint16
-    elif num_elements < 2 ** 32:
+    elif num_elements < 2**32:
         dtype = uint32
-    elif num_elements < 2 ** 64:
+    elif num_elements < 2**64:
         dtype = uint64
     else:
         raise NotImplementedError(f"{num_elements} is too big for 64-bit integer")
@@ -306,7 +306,7 @@ class Enumeration(tuple):
         from cogent3.util.warning import discontinued
 
         discontinued("property", "Alphabet.pairs", version="2023.1", reason="redundant")
-        return self ** 2
+        return self**2
 
     @property
     def Triples(self):  # pragma: no cover
@@ -316,7 +316,7 @@ class Enumeration(tuple):
         discontinued(
             "property", "Alphabet.Triples", version="2023.1", reason="redundant"
         )
-        return self ** 3
+        return self**3
 
 
 class JointEnumeration(Enumeration):
@@ -619,7 +619,7 @@ class Alphabet(Enumeration):
         """
         result = zeros([len(motifs), len(self)], dtype)
         obj_to_index = self._obj_to_index
-        for (u, ambig_motif) in enumerate(motifs):
+        for u, ambig_motif in enumerate(motifs):
             for motif in self.resolve_ambiguity(ambig_motif):
                 result[u, obj_to_index[motif]] = 1.0
         return result

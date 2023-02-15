@@ -195,7 +195,6 @@ class ModelSays(predicate):
 
 class DirectedMotifChange(predicate):
     def __init__(self, from_motif, to_motif, diff_at=None):
-
         self.from_motif = from_motif
         self.motiflen = len(from_motif)
         self.to_motif = to_motif
@@ -212,7 +211,7 @@ class DirectedMotifChange(predicate):
         """positions where motif pattern is found in query"""
         positions = set()
         for offset in range(len(query) - self.motiflen + 1):
-            for (q, ms) in zip(query[offset : offset + self.motiflen], motifs):
+            for q, ms in zip(query[offset : offset + self.motiflen], motifs):
                 if q not in ms:
                     break
             else:

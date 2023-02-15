@@ -56,7 +56,7 @@ class PsubMatrixDefn(PartitionDefn):
     def make_cells(self, input_soup=None, variable=None):
         uniq_cells = []
         all_cells = []
-        for (i, v) in enumerate(self.uniq):
+        for i, v in enumerate(self.uniq):
             if v is None:
                 raise ValueError(f"input {self.name} not set")
             assert hasattr(v, "get_default_value"), v

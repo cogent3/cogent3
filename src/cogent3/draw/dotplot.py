@@ -26,7 +26,7 @@ def suitable_threshold(window, desired_probability):
     cumulative_p = 0.0
     for matches in range(window, 0, -1):
         mismatches = window - matches
-        p = 0.75 ** mismatches
+        p = 0.75**mismatches
         for i in range(matches, 0, -1):  # n
             p *= i + mismatches
             p /= i

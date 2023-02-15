@@ -278,6 +278,7 @@ class RefalignmentTests(TestCase):
 
     def test_pairwise_to_multiple_2(self):
         """correctly handle alignments with gaps beyond end of query"""
+
         # cogent3.core.alignment.DataError: Not all sequences are the same length:
         # max is 425, min is 419
         def make_pwise(data, ref_name):
