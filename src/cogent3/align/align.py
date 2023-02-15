@@ -97,8 +97,8 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     a1 = s1.moltype.alphabet
     a2 = s2.moltype.alphabet
     S = numpy.zeros([len(a1), len(a2)], Float)
-    for i, m1 in enumerate(a1):
-        for j, m2 in enumerate(a2):
+    for (i, m1) in enumerate(a1):
+        for (j, m2) in enumerate(a2):
             S[i, j] = Sd[m1, m2]
     psub = numpy.exp(S)
     mprobs = numpy.ones(len(psub), Float) / len(psub)

@@ -48,7 +48,7 @@ class FloatWithAttrs(float):
 
     def __init__(self, value, **kw):
         float.__init__(self)
-        for n, v in list(kw.items()):
+        for (n, v) in list(kw.items()):
             setattr(self, n, v)
 
 

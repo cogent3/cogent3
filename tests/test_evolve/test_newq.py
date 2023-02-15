@@ -129,7 +129,7 @@ class NewQ(TestCase):
 
     def test_lf_display(self):
         """str of likelihood functions should not fail"""
-        for dummy, model in self.ordered_by_complexity:
+        for (dummy, model) in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(motif_length=2, mprob_model=model)
             di.adapt_motif_probs(self.cond_root_probs, auto=True)
             lf = di.make_likelihood_function(self.tree)
@@ -137,7 +137,7 @@ class NewQ(TestCase):
 
     def test_get_statistics(self):
         """get statistics should correctly apply arguments"""
-        for mprobs, model in self.ordered_by_complexity:
+        for (mprobs, model) in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(
                 motif_length=2, motif_probs=mprobs, mprob_model=model
             )
@@ -155,7 +155,7 @@ class NewQ(TestCase):
 
     def test_get_motif_probs(self):
         """exercise getting motif probs under all models"""
-        for mprobs, model in self.ordered_by_complexity:
+        for (mprobs, model) in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(
                 motif_length=2, motif_probs=mprobs, mprob_model=model
             )
@@ -166,7 +166,7 @@ class NewQ(TestCase):
 
     def test_sim_alignment(self):
         """should be able to simulate an alignment under all models"""
-        for mprobs, model in self.ordered_by_complexity:
+        for (mprobs, model) in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(
                 motif_length=2, motif_probs=mprobs, mprob_model=model
             )
@@ -178,7 +178,7 @@ class NewQ(TestCase):
     def test_reconstruct_ancestor(self):
         """should be able to reconstruct ancestral sequences under all
         models"""
-        for mprobs, model in self.ordered_by_complexity:
+        for (mprobs, model) in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(motif_length=2, mprob_model=model)
             di.adapt_motif_probs(mprobs, auto=True)
             lf = di.make_likelihood_function(self.tree)
@@ -187,9 +187,9 @@ class NewQ(TestCase):
             lf.reconstruct_ancestral_seqs()
 
     def test_results_different(self):
-        for i, (mprobs, dummy) in enumerate(self.ordered_by_complexity):
+        for (i, (mprobs, dummy)) in enumerate(self.ordered_by_complexity):
             results = []
-            for dummy, model in self.ordered_by_complexity:
+            for (dummy, model) in self.ordered_by_complexity:
                 di = TimeReversibleNucleotide(
                     motif_length=2, motif_probs=mprobs, mprob_model=model
                 )

@@ -117,7 +117,7 @@ def benchmarks(test):
     sequence_lengths = [18, 2004]
     treesizes = [5, 20]
 
-    for optimise_motifs, parameterisation in [
+    for (optimise_motifs, parameterisation) in [
         (False, "global"),
         (False, "local"),
         (True, "global"),

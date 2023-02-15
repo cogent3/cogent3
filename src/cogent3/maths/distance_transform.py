@@ -841,7 +841,7 @@ def dist_morisita_horn(datamtx, strict=True):
     dists = zeros((numrows, numrows), "d")
 
     rowsums = datamtx.sum(axis=1, dtype="float")
-    row_ds = (datamtx**2).sum(axis=1, dtype="float")  # these are d_a, etc
+    row_ds = (datamtx ** 2).sum(axis=1, dtype="float")  # these are d_a, etc
 
     for i in range(numrows):
         if row_ds[i] != 0.0:
@@ -922,8 +922,8 @@ def dist_pearson(datamtx, strict=True):
             r2m = rowmeans[j]
             r2dev = r2 - r2m
             top = sum(r1dev * r2dev)
-            sum1 = sum(r1dev**2)
-            sum2 = sum(r2dev**2)
+            sum1 = sum(r1dev ** 2)
+            sum2 = sum(r2dev ** 2)
 
             if sum1 == 0.0 and sum2 == 0.0:
                 r = 1.0
@@ -1039,7 +1039,7 @@ def dist_spearman_approx(datamtx, strict=True):
             rank2 = _rankdata(r2)
             rankdiff = rank1 - rank2
             dsqsum = sum((rankdiff) ** 2)
-            dist = 6 * dsqsum / float(numcols * (numcols**2 - 1))
+            dist = 6 * dsqsum / float(numcols * (numcols ** 2 - 1))
 
             dists[i][j] = dists[j][i] = dist
     return dists

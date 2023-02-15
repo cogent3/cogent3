@@ -92,6 +92,7 @@ class DataStoreMember(str):  # pragma: no cover
 
 
 class ReadOnlyDataStoreBase:  # pragma: no cover
+
     store_suffix = None
 
     def __init__(self, source, suffix=None, limit=None, verbose=False, md5=True):

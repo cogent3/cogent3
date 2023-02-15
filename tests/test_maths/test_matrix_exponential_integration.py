@@ -27,7 +27,11 @@ class TestIntegratingExponentiator(TestCase):
         q = array([[0.5, 0.2, 0.1, 0.2]] * 4)
         for i in range(4):
             q[i, i] = 0.0
-            q[i, i] = -sum(q[i,])
+            q[i, i] = -sum(
+                q[
+                    i,
+                ]
+            )
         self.q = q
         self.p0 = array([0.2, 0.3, 0.3, 0.2])
 

@@ -121,7 +121,7 @@ def var(x, axis=None):
     else:
         n = x.shape[axis]
     # compute the sum of squares from the mean(s)
-    sample_SS = npsum(x**2, axis) - npsum(x, axis) ** 2 / n
+    sample_SS = npsum(x ** 2, axis) - npsum(x, axis) ** 2 / n
     return sample_SS / (n - 1)
 
 
@@ -837,7 +837,7 @@ def spearman(x_items, y_items):
     if ties1 == 0 and ties2 == 0:
         n = len(rank1)
         sum_sqr = npsum([(x - y) ** 2 for x, y in zip(rank1, rank2)])
-        rho = 1 - (6 * sum_sqr / (n * (n**2 - 1)))
+        rho = 1 - (6 * sum_sqr / (n * (n ** 2 - 1)))
     else:
         avg = lambda x: npsum(x) / len(x)
 
@@ -1548,7 +1548,7 @@ def ks_test(x, y=None, alt="two sided", exact=None, warn_for_ties=True):
         Pval = (
             1 - pkstwo(sqrt(n) * stat)
             if alt == ALT_TWO_SIDED and not ties
-            else exp(-2 * n * stat**2)
+            else exp(-2 * n * stat ** 2)
         )
     if ties and warn_for_ties:
         warnings.warn("Cannot compute correct KS probability with ties")
@@ -1639,7 +1639,7 @@ def mw_test(x, y):
         if value != prev and start is not None:
             ave_rank = _average_rank(start, index)
             num_tied = index - start + 1
-            T += num_tied**3 - num_tied
+            T += num_tied ** 3 - num_tied
             for i in range(start - 1, index):
                 combined["rank"][i] = ave_rank
             start = None
@@ -1649,7 +1649,7 @@ def mw_test(x, y):
     if start is not None:
         ave_rank = _average_rank(start, index)
         num_tied = index - start + 2
-        T += num_tied**3 - num_tied
+        T += num_tied ** 3 - num_tied
         for i in range(start - 1, index + 1):
             combined["rank"][i] = ave_rank
 
@@ -1662,7 +1662,7 @@ def mw_test(x, y):
     U2 = prod - U1
     U = max([U1, U2])
     numerator = U - prod / 2
-    denominator = sqrt((prod / (total * (total - 1))) * ((total**3 - total - T) / 12))
+    denominator = sqrt((prod / (total * (total - 1))) * ((total ** 3 - total - T) / 12))
     z = numerator / denominator
     p = zprob(z)
     return U, p

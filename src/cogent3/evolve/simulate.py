@@ -43,7 +43,7 @@ def evolve_sequence(
     to pick a new motif derived from parent_seq[i]"""
     seq = []
     randomMotifSources = {}
-    for i, parent_motif in enumerate(parent_seq):
+    for (i, parent_motif) in enumerate(parent_seq):
         if i in preserved_sites:
             edge_motif = preserved_sites[i]
         else:
@@ -52,7 +52,7 @@ def evolve_sequence(
                 parent_motif_index = motifs.index(parent_motif)
                 site_cat = site_cats[i]
                 psub = psubs[site_cat]
-                for dest_motif_index, dest_motif in enumerate(motifs):
+                for (dest_motif_index, dest_motif) in enumerate(motifs):
                     prob = psub[parent_motif_index, dest_motif_index]
                     mprobs[dest_motif] = prob
                 randomMotifSources[site_cat, parent_motif] = _randomMotifGenerator(

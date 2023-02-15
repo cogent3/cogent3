@@ -98,7 +98,7 @@ class ParametricBootstrapCore(object):
         alignment_random_state = random.Random(self.seed).getstate()
 
         def one_replicate(i):
-            for pc, start_point in zip(self.parameter_controllers, starting_points):
+            for (pc, start_point) in zip(self.parameter_controllers, starting_points):
                 # may have fewer CPUs per replicate than for original
                 # using a calculator as a memo object to reset the params
                 pc.update_from_calculator(start_point)
@@ -161,7 +161,7 @@ class EstimateProbability(ParametricBootstrapCore):
         observed_LR = self.get_observed_LR()
         sample_LRs = self.get_sample_LR_list()
 
-        for count, value in enumerate(sample_LRs):
+        for (count, value) in enumerate(sample_LRs):
             if value <= observed_LR:
                 return float(count) / len(sample_LRs)
         return 1.0

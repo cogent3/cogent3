@@ -151,7 +151,7 @@ def uniq_neighbour_joins(trees, encode_partition):
     filtering out any duplicates"""
     L = len(trees[0].nodes)
     scores = numpy.zeros([len(trees), L, L])
-    for k, tree in enumerate(trees):
+    for (k, tree) in enumerate(trees):
         scores[k] = tree.get_dist_saved_join_score_matrix()
     topologies = set()
     order = numpy.argsort(scores.flat)

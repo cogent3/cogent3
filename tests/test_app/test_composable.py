@@ -732,6 +732,7 @@ def test_concat_not_composable():
 
 
 def test_composed_func_pickleable():
+
     ml = min_length(100)
     no_degen = omit_degenerates(moltype="dna")
     app = ml + no_degen
@@ -905,7 +906,7 @@ def test_inheritance_from_decorated_class():
 # have to define this at module level for pickling to work
 @define_app
 def func2app(arg1: int, exponent: int) -> float:
-    return arg1**exponent
+    return arg1 ** exponent
 
 
 def test_decorate_app_function():
@@ -931,7 +932,7 @@ def test_roundtrip_decorated_function():
 def test_decorated_func_optional():
     @define_app(app_type=NON_COMPOSABLE)
     def power(val: int, pow: int = 1) -> int:
-        return val**pow
+        return val ** pow
 
     sqd = power(2)
     assert sqd(3) == 9
@@ -941,19 +942,19 @@ def test_decorated_func_optional():
 
 def test_decorated_func_repr():
     def kw(val: int = 1) -> int:
-        return val**val
+        return val ** val
 
     def kw_kw(val: int = 1, pow: int = 1) -> int:
-        return val**pow
+        return val ** pow
 
     def pos(val: int) -> int:
-        return val**val
+        return val ** val
 
     def pos_pos(val: int, pow: int) -> int:
-        return val**pow
+        return val ** pow
 
     def pos_kw(val: int, pow: int = 1) -> int:
-        return val**pow
+        return val ** pow
 
     fns = {fn: func for fn, func in locals().items() if callable(func)}
     args = {"pos": 4, "kw": dict(pow=3)}
@@ -977,7 +978,7 @@ def test_decorated_func_repr():
 def test_decorated_func_just_args():
     @define_app(app_type=NON_COMPOSABLE)
     def power(val: int, pow: int) -> int:
-        return val**pow
+        return val ** pow
 
     sqd = power()
     assert sqd(3, 3) == 27
