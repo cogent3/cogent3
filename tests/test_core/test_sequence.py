@@ -1385,12 +1385,12 @@ simple_slices = [
     slice(1, None, None),
     slice(1, 3, None),
     slice(None, None, None),
-    slice(1, 3, 1),
 ]
 
 
 @pytest.mark.parametrize("slice", simple_slices, scope="session")
 def test_seqview_defaults(slice):
+    """SeqView should accept slices with all combinations of default parameters"""
     seq_data = "actgaagtgagatata"
     sv = SeqView(seq_data)
     assert sv[slice].value == seq_data[slice]
@@ -1405,6 +1405,7 @@ def test_seqview_defaults(slice):
     ),
 )
 def test_seqview_codon_pos(codon_pos_slices):
+    """Seqview should slice with step parameter > 1"""
     seq_data = "actgaag"
     sv = SeqView(seq_data)
     assert sv[codon_pos_slices].value == seq_data[codon_pos_slices]
@@ -1432,10 +1433,11 @@ def test_seqview_neg_stop(neg_stop_slice):
         slice(-3, 10, None),
         slice(-3, None, 1),
         slice(-3, None, None),
-        slice(-3, 10, 1),
+        slice(-3, 10, 3),
     ),
 )
 def test_seqview_neg_start(neg_start_slice):
+    """Seqview should handle negative start value"""
     seq_data = "actgaacagttga"
     sv = SeqView(seq_data)
     assert sv[neg_start_slice].value == seq_data[neg_start_slice]
@@ -1445,14 +1447,16 @@ def test_seqview_neg_start(neg_start_slice):
     "neg_step_slice",
     (
         slice(None, None, -1),
-        slice(None, None, -2),
         slice(None, None, -3),
-        slice(10, 0, -1),
         slice(10, None, -1),
         slice(None, 0, -1),
+        slice(10, 0, -1),
+        slice(-1, -1, -1),
+        slice(-1, -1, -3),
     ),
 )
 def test_seqview_neg_step(neg_step_slice):
+    """Seqview should work with negative step"""
     seq_data = "actgaacagttga"
     sv = SeqView(seq_data)
     s = slice(0, 6, -1)
@@ -1474,6 +1478,7 @@ def test_seqview_neg_step(neg_step_slice):
     scope="session",
 )
 def test_subslice(sub_slices):
+    """SeqView should handle multiple slices, subsequent slices may overlap or be within previous slices"""
     seq_data = "actgaattg"
     sv = SeqView(seq_data)
     slice_1, slice_2 = sub_slices
@@ -1493,6 +1498,9 @@ def test_subslice(sub_slices):
     scope="session",
 )
 def test_subslice_neg(sub_slices_neg):
+    """SeqView should handle subsequence slices with >=1 negative stop values,
+    subsequent slices may overlap or be within previous slices
+    """
     seq_data = "actgaattg"
     sv = SeqView(seq_data)
     slice_1, slice_2 = sub_slices_neg
@@ -1503,14 +1511,13 @@ def test_subslice_neg(sub_slices_neg):
     "sub_slices_triple",
     (
         (slice(None, None, 1), slice(None, None, 1), slice(None, None, 1)),
-        (slice(None, 9, 1), slice(None, 8, 1), slice(None, 7, 1)),
         (slice(1, 9, 1), slice(2, 8, 1), slice(3, 7, 1)),
         (slice(1, 9, 1), slice(2, 8, 1), slice(3, 9, 1)),
-        (slice(None, None, 1), slice(None, None, 2), slice(None, None, 3)),
         (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, 3)),
     ),
 )
 def test_subslice_3(sub_slices_triple):
+    """SeqView should handle three subsequent slices"""
     seq_data = "actgaattg"
     sv = SeqView(seq_data)
     slice_1, slice_2, slice_3 = sub_slices_triple
@@ -1531,6 +1538,7 @@ def test_subslice_3(sub_slices_triple):
     ),
 )
 def test_seqview_len(slice_tuple):
+    """The len() of a SeqView should realize any slices"""
     seq_data = "actgaattg"
     sv = SeqView(seq_data)
     slice_1, slice_2 = slice_tuple
@@ -1539,18 +1547,24 @@ def test_seqview_len(slice_tuple):
 
 
 def test_seqview_replace():
+    """SeqView supports replacements of substrings, however overriding the sequence data"""
     seq_data = "actgaattg"
     sv = SeqView(seq_data)
-    assert sv.replace("a", "u").value == seq_data.replace("a", "u")
-    assert sv.replace("a", "u").replace("u", "a").value == seq_data
-
-
-def test_seqview_replace_2():
-    seq_data = "aaaa"
-    sv = SeqView(seq_data)
     sv_replaced = sv.replace("a", "u")
-    sv_replaced_again = sv_replaced.replace("u", "t")
-    assert sv_replaced_again.value == seq_data.replace("a", "u").replace("u", "t")
+    assert sv_replaced.value == seq_data.replace("a", "u")
+    assert sv_replaced.replace("u", "a").value == seq_data
+    assert sv_replaced.seq == seq_data.replace("a", "u")
+
+
+def test_seqview_remove_gaps():
+    """Replacing strings of different lengths should work, although any previous slices will be lost"""
+    seq_data = "act----ttg"
+    sv = SeqView(seq_data)
+    sliced = sv[2:4]
+    replaced = sliced.replace("-", "")
+    assert replaced.value == seq_data.replace("-", "")
+    assert replaced.start == 0
+    assert replaced.stop == len(seq_data.replace("-", ""))
 
 
 # run if called from command-line
