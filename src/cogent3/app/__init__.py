@@ -158,12 +158,12 @@ def _get_app_matching_name(name: str):
     return getattr(mod, name)
 
 
-def get_app(name: str, *args, **kwargs):
+def get_app(_app_name: str, *args, **kwargs):
     """returns app instance, use app_help() to display arguments
 
     Parameters
     ----------
-    name
+    _app_name
         app name, e.g. 'minlength', or can include module information,
         e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
         latter (qualified class name) style when there are multiple matches
@@ -180,7 +180,7 @@ def get_app(name: str, *args, **kwargs):
     NameError when multiple apps have the same name. In that case use a
     qualified class name, as shown above.
     """
-    return _get_app_matching_name(name)(*args, **kwargs)
+    return _get_app_matching_name(_app_name)(*args, **kwargs)
 
 
 def _make_head(text: str) -> list[str]:
