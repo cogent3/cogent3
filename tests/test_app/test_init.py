@@ -155,6 +155,12 @@ def test_get_app(name):
     assert app.__class__.__name__.endswith(name.split(".")[-1])
 
 
+def test_get_app_kwargs():
+    # when an app has a name kwarg
+    # we should still be able to use get_app!
+    _ = get_app("model", "F81", name="F81-model")
+
+
 @define_app
 def min_length(val: int) -> int:
     return val
