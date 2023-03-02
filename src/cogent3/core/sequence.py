@@ -1399,52 +1399,265 @@ class NucleicAcidSequence(Sequence):
         return cat.G_fit()
 
 
+def _input_vals_pos_step(seqlen, start, stop, step):
+    start = 0 if start is None else start
+    if start > 0 and start >= seqlen:
+        # start beyond seq is an empty slice
+        return 0, 0, 1
+
+    stop = seqlen if stop is None else stop
+    if stop < 0 and abs(stop) >= seqlen:
+        # finished slice before we started seq!
+        return 0, 0, 1
+
+    start = max(seqlen + start, 0) if start < 0 else start
+
+    if stop > 0:
+        stop = min(seqlen, stop)
+    elif stop < 0:
+        stop += seqlen
+
+    if start >= stop:
+        start = stop = 0
+        step = 1
+
+    return start, stop, step
+
+
+def _input_vals_neg_step(seqlen, start, stop, step):
+    # Note how Python reverse slicing works
+    # we need to make sure the start and stop are both
+    # negative, for example "abcd"[-1:-5:-1] returns "dcba"
+    if start is None or start >= seqlen:  # set default
+        start = -1  # Done
+    elif start >= 0:  # convert to -ve index
+        start = start - seqlen
+    elif start < -seqlen:  # start is bounded by len(seq)
+        return 0, 0, 1
+
+    if stop is None:  # set default
+        stop = -seqlen - 1
+    elif stop >= 0:
+        stop -= seqlen
+
+    stop = max(stop, -seqlen - 1)  # stop should always be <= len(seq)
+
+    # checking for zero-length slice
+    if start < stop:
+        return 0, 0, 1
+    return start, stop, step
+
+
 class SeqView:
     __slots__ = ("seq", "start", "stop", "step")
 
     def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
+        if step == 0:
+            raise ValueError("step cannot be 0")
+        step = 1 if step is None else step
+
+        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
+        start, stop, step = func(len(seq), start, stop, step)
         self.seq = seq
-        self.start = start or 0
-        self.stop = len(seq) if stop is None else stop
-        self.step = step or 1
+        self.start = start
+        self.stop = stop
+        self.step = step
 
-    def __getitem__(self, slice: slice):
-        slice_step = self.step if slice.step is None else slice.step
-        slice_start = (
-            slice.start if slice.start is not None else 0 if slice_step > 0 else -1
-        )
-        slice_stop = (
-            slice.stop
-            if slice.stop is not None
-            else len(self)
-            if slice_step > 0
-            else -len(self) - 1
-        )
+    def _get_index(self, val):
+        if len(self) == 0:
+            raise IndexError(val)
 
-        if self.stop >= 0 and slice_stop >= 0:
-            stop = min(self.stop, self.start + slice_stop * abs(self.step))
-        elif self.stop < 0 and slice_stop < 0:
-            stop = self.stop + slice_stop
-        elif self.stop >= 0:
-            stop = (
-                self.stop
-                if self.stop < len(self) + slice_stop
-                else self.start
-                + slice_stop * abs(self.step)
-                + (len(self) - len(self.seq))
+        if self.step > 0:
+            if val > 0 and val >= len(self):
+                raise IndexError(val)
+            elif val < 0 and abs(val) > len(self):
+                raise IndexError(val)
+
+            if val >= 0:
+                val = self.start + val * self.step
+            else:
+                val = self.start + len(self) * self.step + val * abs(self.step)
+
+            return SeqView(self.seq, start=val, stop=val + 1)
+
+        elif self.step < 0:
+            if val > 0 and val >= len(self):
+                raise IndexError(val)
+            elif val < 0 and abs(val) > len(self):
+                raise IndexError(val)
+
+            if val >= 0:
+                val = self.start + val * self.step
+            else:
+                val = self.start + len(self) * self.step + val * self.step
+
+            return SeqView(self.seq, start=val, stop=val - 1, step=-1)
+
+    def _get_slice(self, slice, step):
+        slice_start = slice.start if slice.start is not None else 0
+        slice_stop = slice.stop if slice.stop is not None else len(self)
+
+        if self.step > 0:
+            if slice_start >= 0:
+                start = self.start + slice_start * self.step
+            else:
+                start = max(
+                    self.start + len(self) * self.step + slice_start * self.step,
+                    self.start,
+                )
+
+            if slice_stop > self.stop:
+                stop = self.stop
+            elif slice_stop >= 0:
+                stop = self.start + slice_stop * self.step
+            else:
+                # "true stop" adjust for if abs(stop-start) % step != 0
+                # "true stop" = self.start + len(self) * self.step
+                stop = self.start + len(self) * self.step + slice_stop * self.step
+
+            # if -ve, it's an invalid slice
+            if start < 0 or stop < 0:
+                return _zero_slice
+
+            # checking for zero-length slice
+            if stop < start:
+                return _zero_slice
+            if start > len(self.seq):
+                return _zero_slice
+
+            return self.__class__(
+                self.seq,
+                start=start,
+                stop=min(self.stop, stop),
+                step=self.step * step,
             )
-        else:  # self.stop < 0
-            stop = (
-                self.stop
-                if len(self) < self.start + slice_stop * abs(self.step)
-                else self.start + slice_stop * abs(self.step)
+
+        elif self.step < 0:
+            if slice_start >= 0:
+                start = self.start + slice_start * self.step
+            elif abs(slice_start) > len(self):
+                start = self.start
+            else:
+                start = self.start + len(self) * self.step + slice_start * self.step
+
+            if slice_stop > len(self.seq):
+                return _zero_slice
+            elif slice_stop >= 0:
+                stop = self.start + slice_stop * self.step
+            else:  # slice_stop < 0
+                stop = self.start + len(self) * self.step + slice_stop * self.step
+
+            # if +ve, it's an invalid slice
+            if start >= 0 or stop >= 0:
+                return _zero_slice
+
+            return self.__class__(
+                self.seq,
+                start=start,
+                stop=max(self.stop, stop),
+                step=self.step * step,
             )
-        return self.__class__(
-            self.seq,
-            start=self.start + slice_start * abs(self.step),
-            stop=stop,
-            step=self.step * slice_step,
-        )
+
+    def _get_reverse_slice(self, slice, step):
+        slice_start = slice.start if slice.start is not None else -1
+        slice_stop = slice.stop if slice.stop is not None else -len(self) - 1
+
+        if self.step < 0:
+            # max start is "true stop" + abs(step), because stop is not inclusive
+            # "true stop" adjust for if abs(stop-start) % step != 0
+            if slice_start >= len(self):
+                start = (
+                    len(self.seq) + self.start + len(self) * self.step + abs(self.step)
+                )
+            elif slice_start >= 0:
+                start = len(self.seq) + (self.start + slice_start * self.step)
+
+            else:
+                start = len(self.seq) + (
+                    self.start + len(self) * self.step + slice_start * self.step
+                )
+
+            if slice_stop >= 0:
+                stop = len(self.seq) + (self.start + slice_stop * self.step)
+                if stop <= len(self.seq) + self.stop:
+                    _zero_slice
+            else:
+                stop = len(self.seq) + (
+                    self.start + len(self) * self.step + slice_stop * self.step
+                )
+                if stop > len(self.seq) + self.start:
+                    stop = len(self.seq) + self.start + 1
+
+            # if -ve, it's an invalid slice
+            if start < 0 or stop < 0:
+                return _zero_slice
+
+            # checking for zero-length slice
+            if stop < start:
+                return _zero_slice
+            if start > len(self.seq):
+                return _zero_slice
+
+            return self.__class__(
+                self.seq,
+                start=start,
+                stop=stop,
+                step=self.step * step,
+            )
+
+        elif self.step > 0:
+            # "true stop" adjust for if abs(stop-start) % step != 0
+            # max possible start is "true stop" - step, because stop is not inclusive
+            # "true stop" - step is converted to -ve index via subtracting len(self)
+            if slice_start >= len(self):
+                start = (self.start + len(self) * self.step - self.step) - len(self.seq)
+            elif slice_start >= 0:
+                start = (self.start + slice_start * self.step) - len(self.seq)
+            else:
+                start = (
+                    self.start
+                    + len(self) * self.step
+                    + slice_start * self.step
+                    - len(self.seq)
+                )
+
+            if slice_stop >= (len_seq := len(self.seq)):
+                return _zero_slice
+
+            if slice_stop >= 0:
+                stop = self.start + (slice_stop * self.step) - len_seq
+            else:
+                stop = (
+                    self.start
+                    + (len(self) * self.step)
+                    + (slice_stop * self.step)
+                    - len_seq
+                )
+
+            if start >= 0 or stop >= 0:
+                return _zero_slice
+
+            return self.__class__(
+                self.seq,
+                start=start,
+                stop=max(stop, self.start - len(self.seq) - 1),
+                step=self.step * step,
+            )
+
+    def __getitem__(self, slice):
+        if isinstance(slice, int):
+            return self._get_index(slice)
+        if len(self) == 0:
+            return self
+
+        slice_step = 1 if slice.step is None else slice.step
+
+        if slice_step > 0:
+            return self._get_slice(slice, slice_step)
+        elif slice_step < 0:
+            return self._get_reverse_slice(slice, slice_step)
+        else:
+            raise ValueError("SeqView cannot be sliced with a step of 0")
 
     @property
     def value(self):
@@ -1454,11 +1667,11 @@ class SeqView:
         new_seq = self.seq.replace(old, new)
         if len(old) == len(new):
             return SeqView(new_seq, start=self.start, stop=self.stop, step=self.step)
-        else:
-            return SeqView(new_seq)
+
+        return SeqView(new_seq)
 
     def __len__(self):
-        return len(self.value)
+        return abs((self.start - self.stop) // self.step)
 
     def __iter__(self):
         return iter(self.value)
@@ -1467,10 +1680,15 @@ class SeqView:
         return self.value
 
     def __repr__(self) -> str:
-        seq_str = self.seq
-        if len(seq_str) > 15:
-            seq_str = f"{seq_str[:10]}...{seq_str[-5:]}"
-        return f"{self.__class__.__name__}(seq={seq_str!r}, start={self.start}, stop={self.stop}, step={self.step})"
+        if len(self.seq) > 15:
+            seq = f"{seq_str[:10]}...{seq_str[-5:]}"
+        else:
+            seq = self.seq
+
+        return f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, stop={self.stop}, step={self.step})"
+
+
+_zero_slice = SeqView(seq="")
 
 
 class DnaSequence(NucleicAcidSequence):
