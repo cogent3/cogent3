@@ -1379,176 +1379,520 @@ class ModelSequenceTests(SequenceTests):
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1, "-": 1})
 
 
-simple_slices = [
-    slice(None, None, 1),
-    slice(None, 3, None),
-    slice(1, None, None),
-    slice(1, 3, None),
-    slice(None, None, None),
-]
+import pytest
+from cogent3.core.sequence import SeqView
 
 
-@pytest.mark.parametrize("slice", simple_slices, scope="session")
-def test_seqview_defaults(slice):
+@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
+@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
+def test_seqview_initialisation(start, stop, step):
+    """Initialising a SeqView should work with range of provided values"""
+    seq_data = "0123456789"
+    got = SeqView(seq_data, start=start, stop=stop, step=step)
+    expected = seq_data[start:stop:step]
+    assert got.value == expected
+
+
+def test_seqview_invalid_step():
+    "Testing that SeqView raises Value error when initialised with step of 0"
+    with pytest.raises(ValueError):
+        got = SeqView(seq="0123456789", step=0)
+
+
+@pytest.mark.parametrize("index", (-10, -5, 0, 5, 9))  # -10 and 9 are boundary
+def test_seqview_index(index):
+    """SeqView with default values can be sliced with a single index, when within the length of the sequence"""
+    seq_data = "0123456789"
+    sv = SeqView(seq_data)
+    got = sv[index]
+    expected = seq_data[index]
+    assert got.value == expected
+    assert len(got) == 1
+
+
+def test_seqview_index_null():
+    "Indexing a SeqView of length 0 should return an IndexError"
+    sv = SeqView("")
+    with pytest.raises(IndexError):
+        _ = sv[0]
+
+
+@pytest.mark.parametrize("start", (0, 2, 4))
+def test_seqview_invalid_index(start):
+    "indexing out of bounds with a forward step should raise an IndexError"
+    seq = "0123456789"
+    length = abs(start - len(seq))
+    pos_boundary_index = length
+    neg_boundary_index = -length - 1
+
+    sv = SeqView(seq=seq, start=start)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("start", (0, 2, 4))
+def test_seqview_invalid_index_positive_step_gt_1(start):
+    "boundary condition for indexing out of bounds with a forward step greater than 1"
+    seq = "0123456789"
+    step = 2
+    length = abs((start - len(seq)) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = SeqView(seq=seq, start=start, step=step)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("stop", (0, 2, -11))
+def test_seqview_invalid_index_reverse_step(stop):
+    "boundary condition for indexing out of bounds with a reverse step"
+    seq = "0123456789"
+    step = -1
+    start = len(seq)
+    length = abs((start - stop) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = SeqView(seq=seq, start=start, stop=stop, step=step)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("stop", (0, 2, -6))
+def test_seqview_invalid_index_reverse_step_gt_1(stop):
+    "boundary condition for indexing out of bounds with a reverse step less than -1"
+    seq = "0123456789"
+    step = -2
+    start = len(seq)
+    length = abs((start - stop) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = SeqView(seq=seq, start=start, stop=stop, step=step)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+def test_seqview_slice_null():
+    sv = SeqView("")
+    assert len(sv) == 0
+    got = sv[2:]
+    assert len(got) == 0
+
+
+def test_seqview_start_out_of_bounds():
+    "boundary condition for start index out of bounds"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, 1
+    boundary = abs((init_start - init_stop) // init_step)
+    sv = SeqView(seq=seq, start=init_start, stop=init_stop, step=init_step)
+    got = sv[boundary::].value
+    assert got == ""
+
+
+def test_seqview_start_out_of_bounds_step_gt_1():
+    "boundary condition for start index out of bounds with step greater than 1"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, 2
+    boundary = abs((init_start - init_stop) // init_step)
+    sv = SeqView(seq=seq, start=init_start, stop=init_stop, step=init_step)
+    got = sv[boundary::].value
+    assert got == ""
+
+
+def test_seqview_start_out_of_bounds_reverse_step():
+    "boundary condition for start index out of bounds with reverse step"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, -2
+    boundary_pos = abs((init_start - init_stop) // init_step)
+    boundary_neg = -abs((init_start - init_stop) // init_step) - 1
+
+    sv = SeqView(seq=seq, start=init_start, stop=init_stop, step=init_step)
+
+    assert sv[boundary_pos::].value == ""
+    assert sv[boundary_neg::].value == ""
+
+
+@pytest.mark.parametrize(
+    "simple_slices",
+    (
+        slice(None, None, 1),
+        slice(None, 3, None),
+        slice(1, None, None),
+        slice(1, 3, None),
+        slice(None, None, None),
+    ),
+)
+def test_seqview_defaults(simple_slices):
     """SeqView should accept slices with all combinations of default parameters"""
-    seq_data = "actgaagtgagatata"
-    sv = SeqView(seq_data)
-    assert sv[slice].value == seq_data[slice]
+    seq = "0123456789"
+    got = SeqView(seq)[simple_slices]
+    expected = seq[simple_slices]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("index", (-8, -5, 0, 5, 8))
+@pytest.mark.parametrize(
+    "simple_slices",
+    (
+        slice(None, None, 1),
+        slice(None, 10, None),
+        slice(1, None, None),
+        slice(1, 10, None),
+        slice(1, 10, 1),
+        slice(None, None, None),
+    ),
+)
+def test_seqview_sliced_index(index, simple_slices):
+    """SeqView that has been sliced with default parameters, can then be indexed"""
+    seq = "0123456789"
+    sv = SeqView(seq)
+    got = sv[simple_slices][index]
+    expected = seq[simple_slices][index]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("first_step", (1, 2, -1, -2))
+@pytest.mark.parametrize("second_step", (1, 2, -1, -2))
+def test_seqview_reverse_slice(first_step, second_step):
+    """subsequent slices may reverse the previous slice"""
+    seq = "0123456789"
+    sv = SeqView(seq=seq, step=first_step)
+    got = sv[::second_step]
+    expected = seq[::first_step][::second_step]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "01234567890"))
+@pytest.mark.parametrize("index", (-10, -4, 0, 6, 10))
+@pytest.mark.parametrize("start", (None, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 9, -10, -11))
+@pytest.mark.parametrize("step", (-1, -2))
+def test_seqview_rev_sliced_index(index, start, stop, step, seq):
+    """SeqView that has been reverse sliced, can then be sliced with a single index"""
+    seq_data = seq
+    try:  # if python slicing raises an index error, we expect SeqView to also throw error
+        expected = seq_data[start:stop:step][index]
+    except IndexError:
+        with pytest.raises(IndexError):
+            _ = SeqView(seq=seq_data, start=start, stop=stop, step=step)[index].value
+    else:  # if no index error, SeqView should match python slicing
+        got = SeqView(seq=seq_data, start=start, stop=stop, step=step)[index].value
+        assert got == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
+@pytest.mark.parametrize("index", (-10, -4, 0, 6, 10))
+@pytest.mark.parametrize("start", (None, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 0, 9, -10, -11))
+@pytest.mark.parametrize("step", (-1, -2))
+def test_seqview_rev_sliced_index(index, start, stop, step, seq):
+    """As above, but SeqView is initialised with defaults before first slice"""
+    sv = SeqView(seq)
+    try:  # if python slicing raises an index error, we expect SeqView to also throw error
+        expected = seq[start:stop:step][index]
+    except IndexError:
+        with pytest.raises(IndexError):
+            _ = sv[start:stop:step][index].value
+    else:  # if no index error, SeqView should match python slicing
+        got = sv[start:stop:step][index].value
+        assert got == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
+@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
+@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
+@pytest.mark.parametrize("step", (1, 2, -1, -2))
+def test_seqview_init_with_negatives(seq, start, stop, step):
+    "SeqView initialisation should handle any combination of positive and negative slices"
+    got = SeqView(seq, start=start, stop=stop, step=step)
+    expected = seq[start:stop:step]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
+@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
+@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
+@pytest.mark.parametrize("step", (1, 2, -1, -2))
+def test_seqview_slice_with_negatives(seq, start, stop, step):
+    """SeqView should handle any combination of positive and negative slices"""
+    sv = SeqView(seq)
+    got = sv[start:stop:step]
+    expected = seq[start:stop:step]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("start", (None, 0, 2))
+@pytest.mark.parametrize("stop", (None, 5, 7, 10))
+@pytest.mark.parametrize("step", (1, 2))
+@pytest.mark.parametrize("start_2", (None, 0, 1, 2))
+@pytest.mark.parametrize("stop_2", (None, 2, 4, 10))
+@pytest.mark.parametrize("step_2", (1, 2))
+def test_subsequent_slice_forward(start, stop, step, start_2, stop_2, step_2):
+    """SeqView should handle subsequent forward slice"""
+    seq = "0123456789"
+    sv = SeqView(seq=seq)
+    got = sv[start:stop:step][start_2:stop_2:step_2]
+    expected = seq[start:stop:step][start_2:stop_2:step_2]
+    assert got.value == expected
+    assert len(got) == len(expected)
 
 
 @pytest.mark.parametrize(
-    "codon_pos_slices",
+    "slice_1, slice_2",
     (
-        slice(0, None, 3),
-        slice(1, None, 3),
-        slice(2, None, 3),
+        # WITH DEFAULTS
+        # first stop -ve
+        (slice(None, -3, None), slice(None, None, None)),
+        # second stop -ve
+        (slice(None, None, None), slice(None, -1, None)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -3, None), slice(None, -5, None)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -5, None), slice(None, -3, None)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, None), slice(None, -8, None)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, None), slice(None, -3, None)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, None), slice(None, 7, None)),
+        # first stop -ve, second stop +ve, second slice OUTSIDE first
+        (slice(None, -6, None), slice(None, 7, None)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 6, None), slice(None, -2, None)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, None), slice(None, -7, None)),
+        # WITH FIRST STEP > 1
+        # first stop -ve
+        (slice(None, -3, 2), slice(None, None, None)),
+        # second stop -ve
+        (slice(None, None, 2), slice(None, -1, None)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -1, 2), slice(None, -3, None)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -3, 2), slice(None, -2, None)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, 2), slice(None, -8, None)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, 2), slice(None, -3, None)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, 2), slice(None, 3, None)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -6, 2), slice(None, 7, None)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 6, 2), slice(None, -2, None)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, 2), slice(None, -7, None)),
+        # WITH SECOND STEP > 1
+        # first stop -ve
+        (slice(None, -3, None), slice(None, None, 3)),
+        # second stop -ve
+        (slice(None, None, None), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -2, None), slice(None, -4, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -4, None), slice(None, -3, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, None), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, None), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, None), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -6, None), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 9, None), slice(None, -2, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, None), slice(None, -7, 3)),
+        # WITH BOTH STEP > 1
+        # first stop -ve
+        (slice(None, -3, 2), slice(None, None, 3)),
+        # second stop -ve
+        (slice(None, None, 2), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -1, 3), slice(None, -2, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -2, 2), slice(None, -1, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, 3), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, 2), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, 3), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -3, 3), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 9, 2), slice(None, -1, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, 2), slice(None, -7, 3)),
+        # NON-ZERO START
+        # first stop -ve
+        (slice(1, -3, 2), slice(None, None, 3)),
+        # second stop -ve
+        (slice(1, None, 2), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(1, -1, 3), slice(None, -2, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(1, -2, 2), slice(None, -1, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(1, -3, 3), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(1, -8, 2), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(1, -2, 3), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(1, -3, 3), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(1, 10, 2), slice(None, -1, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(1, 6, 2), slice(None, -7, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
     ),
 )
-def test_seqview_codon_pos(codon_pos_slices):
-    """Seqview should slice with step parameter > 1"""
-    seq_data = "actgaag"
+def test_subsequent_slice_neg_stop(slice_1, slice_2):
+    """SeqView should handle subsequence slices with >=1 negative stop values,
+    subsequent slices may overlap or be within previous slices
+    """
+    seq_data = "abcdefghijk"
     sv = SeqView(seq_data)
-    assert sv[codon_pos_slices].value == seq_data[codon_pos_slices]
-
-
-@pytest.mark.parametrize(
-    "neg_stop_slice",
-    (
-        slice(0, -3, None),
-        slice(1, -3, 1),
-        slice(None, -3, None),
-        slice(None, -3, 1),
-    ),
-)
-def test_seqview_neg_stop(neg_stop_slice):
-    "e.g. for removing the stop codon"
-    seq_data = "actgaacagttga"
-    sv = SeqView(seq_data)
-    assert sv[neg_stop_slice].value == seq_data[neg_stop_slice]
-
-
-@pytest.mark.parametrize(
-    "neg_start_slice",
-    (
-        slice(-3, 10, None),
-        slice(-3, None, 1),
-        slice(-3, None, None),
-        slice(-3, 10, 3),
-    ),
-)
-def test_seqview_neg_start(neg_start_slice):
-    """Seqview should handle negative start value"""
-    seq_data = "actgaacagttga"
-    sv = SeqView(seq_data)
-    assert sv[neg_start_slice].value == seq_data[neg_start_slice]
-
-
-@pytest.mark.parametrize(
-    "neg_step_slice",
-    (
-        slice(None, None, -1),
-        slice(None, None, -3),
-        slice(10, None, -1),
-        slice(None, 0, -1),
-        slice(10, 0, -1),
-        slice(-1, -1, -1),
-        slice(-1, -1, -3),
-    ),
-)
-def test_seqview_neg_step(neg_step_slice):
-    """Seqview should work with negative step"""
-    seq_data = "actgaacagttga"
-    sv = SeqView(seq_data)
-    s = slice(0, 6, -1)
-    assert sv[neg_step_slice].value == seq_data[neg_step_slice]
-
-
-@pytest.mark.parametrize(
-    "sub_slices",
-    (
-        (slice(None, None, None), slice(None, None, None)),
-        (slice(None, None, 1), slice(2, 6, 1)),
-        (slice(2, 6, 1), slice(None, None, None)),
-        (slice(2, 6, 1), slice(None, None, 1)),
-        (slice(1, 6, 1), slice(2, 4, 1)),
-        (slice(2, 4, 1), slice(1, 6, 1)),
-        (slice(1, 9, 1), slice(None, None, 3)),
-        (slice(1, 9, 3), slice(1, 3, 2)),
-    ),
-    scope="session",
-)
-def test_subslice(sub_slices):
-    """SeqView should handle multiple slices, subsequent slices may overlap or be within previous slices"""
-    seq_data = "actgaattg"
-    sv = SeqView(seq_data)
-    slice_1, slice_2 = sub_slices
     assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
 
 
 @pytest.mark.parametrize(
-    "sub_slices_neg",
+    "slice_1, slice_2",
     (
-        (slice(0, -3, 1), slice(1, 4, -1)),
-        (slice(1, -1, 1), slice(1, 3, None)),
-        (slice(0, -3, 1), slice(1, -4, 1)),
-        (slice(0, -4, 1), slice(1, -3, 1)),
-        (slice(0, 6, 1), slice(0, -1, 1)),
-        (slice(1, -1, 1), slice(1, 3, 1)),
+        # WITH DEFAULTS
+        # first start -ve
+        (slice(-6, None, None), slice(None, None, None)),
+        # second start -ve
+        (slice(None, None, None), slice(-6, None, None)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-6, None, None), slice(-4, None, None)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-4, None, None), slice(-6, None, None)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-8, None, None), slice(2, None, None)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, None), slice(7, None, None)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, None), slice(-7, None, None)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(5, None, None), slice(-6, None, None)),
+        # WITH FIRST STEP > 1
+        # first start -ve
+        (slice(-6, None, 2), slice(None, None, None)),
+        # second start -ve
+        (slice(None, None, 2), slice(-6, None, None)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-8, None, 2), slice(-6, None, None)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, 2), slice(-9, None, None)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, 2), slice(2, None, None)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, 2), slice(7, None, None)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, 2), slice(-7, None, None)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, 2), slice(-9, None, None)),
+        # WITH SECOND STEP > 1
+        # first start -ve
+        (slice(-6, None, None), slice(None, None, 2)),
+        # second start -ve
+        (slice(None, None, None), slice(-6, None, 2)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-8, None, None), slice(-6, None, 2)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, None), slice(-9, None, 2)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, None), slice(2, None, 2)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, None), slice(7, None, 2)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, None), slice(-7, None, 2)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, None), slice(-9, None, 2)),
+        # WITH BOTH STEP > 1
+        # first start -ve
+        (slice(-6, None, 3), slice(None, None, 2)),
+        # second start -ve
+        (slice(None, None, 3), slice(-6, None, 2)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-9, None, 3), slice(-7, None, 2)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, 3), slice(-9, None, 2)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, 3), slice(2, None, 2)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, 2), slice(7, None, 2)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, 3), slice(-7, None, 2)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, 3), slice(-9, None, 2)),
+        (slice(-9, 7, 3), slice(-2, None, None)),
     ),
-    scope="session",
 )
-def test_subslice_neg(sub_slices_neg):
-    """SeqView should handle subsequence slices with >=1 negative stop values,
-    subsequent slices may overlap or be within previous slices
+def test_subsequent_slice_neg_start(slice_1, slice_2):
+    """SeqView should handle subsequence slices with >=1 negative start values,
+    subsequent slices may or may not overlap or be within previous slices
     """
-    seq_data = "actgaattg"
+    seq_data = "abcdefghijk"
     sv = SeqView(seq_data)
-    slice_1, slice_2 = sub_slices_neg
     assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
 
 
 @pytest.mark.parametrize(
     "sub_slices_triple",
     (
-        (slice(None, None, 1), slice(None, None, 1), slice(None, None, 1)),
+        (slice(None, None, None), slice(None, None, None), slice(None, None, None)),
         (slice(1, 9, 1), slice(2, 8, 1), slice(3, 7, 1)),
         (slice(1, 9, 1), slice(2, 8, 1), slice(3, 9, 1)),
-        (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, 3)),
+        (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, -3)),
     ),
 )
 def test_subslice_3(sub_slices_triple):
     """SeqView should handle three subsequent slices"""
-    seq_data = "actgaattg"
+    seq_data = "abcdefghijk"
     sv = SeqView(seq_data)
     slice_1, slice_2, slice_3 = sub_slices_triple
     assert sv[slice_1][slice_2][slice_3].value == seq_data[slice_1][slice_2][slice_3]
 
 
-@pytest.mark.parametrize(
-    "slice_tuple",
-    (
-        (slice(None, None, None), slice(None, None, None)),
-        (slice(None, None, 1), slice(2, 6, 1)),
-        (slice(2, 6, 1), slice(None, None, None)),
-        (slice(2, 6, 1), slice(None, None, 1)),
-        (slice(1, 6, 1), slice(2, 4, 1)),
-        (slice(2, 4, 1), slice(1, 6, 1)),
-        (slice(1, 9, 1), slice(None, None, 3)),
-        (slice(1, 9, 3), slice(1, 3, 2)),
-    ),
-)
-def test_seqview_len(slice_tuple):
-    """The len() of a SeqView should realize any slices"""
-    seq_data = "actgaattg"
-    sv = SeqView(seq_data)
-    slice_1, slice_2 = slice_tuple
-    assert len(sv[slice_1]) == len(seq_data[slice_1])
-    assert len(sv[slice_1][slice_2]) == len(seq_data[slice_1][slice_2])
+@pytest.mark.parametrize("start", (0, 2, -1))
+@pytest.mark.parametrize("stop", (7, 10, -11))
+@pytest.mark.parametrize("step", (1, 2, -2))
+@pytest.mark.parametrize("start_2", (0, 2, -8))
+@pytest.mark.parametrize("stop_2", (2, 4))
+@pytest.mark.parametrize("step_2", (1, -2))
+@pytest.mark.parametrize("start_3", (0, 1, -6))
+@pytest.mark.parametrize("stop_3", (4, 10, -10))
+@pytest.mark.parametrize("step_3", (2, -2))
+def test_triple_slice(
+    start, stop, step, start_2, stop_2, step_2, start_3, stop_3, step_3
+):
+    """SeqView should handle subsequent forward slice"""
+    seq = "0123456789"
+    sv = SeqView(seq=seq)
+    got = sv[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
+    expected = seq[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
+
+    assert got.value == expected
+    assert len(got) == len(expected)
 
 
 def test_seqview_replace():
     """SeqView supports replacements of substrings, however overriding the sequence data"""
-    seq_data = "actgaattg"
+    seq_data = "abcdefghijk"
     sv = SeqView(seq_data)
     sv_replaced = sv.replace("a", "u")
     assert sv_replaced.value == seq_data.replace("a", "u")
@@ -1558,12 +1902,13 @@ def test_seqview_replace():
 
 def test_seqview_remove_gaps():
     """Replacing strings of different lengths should work, although any previous slices will be lost"""
-    seq_data = "act----ttg"
+    seq_data = "abc----def"
     sv = SeqView(seq_data)
     sliced = sv[2:4]
+    assert sliced.start == 2
     replaced = sliced.replace("-", "")
     assert replaced.value == seq_data.replace("-", "")
-    assert replaced.start == 0
+    assert replaced.start == 0  # start should now be zero,
     assert replaced.stop == len(seq_data.replace("-", ""))
 
 
