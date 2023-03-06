@@ -17,7 +17,6 @@ import warnings
 from unittest import TestCase, main
 
 import numpy
-import pytest
 
 from numpy import dot, ones
 from numpy.testing import assert_allclose

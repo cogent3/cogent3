@@ -1443,9 +1443,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
     stop = max(stop, -seqlen - 1)  # stop should always be <= len(seq)
 
     # checking for zero-length slice
-    if start < stop:
-        return 0, 0, 1
-    return start, stop, step
+    return (0, 0, 1) if start < stop else (start, stop, step)
 
 
 class SeqView:
@@ -1498,151 +1496,168 @@ class SeqView:
         slice_stop = slice.stop if slice.stop is not None else len(self)
 
         if self.step > 0:
-            if slice_start >= 0:
-                start = self.start + slice_start * self.step
-            else:
-                start = max(
-                    self.start + len(self) * self.step + slice_start * self.step,
-                    self.start,
-                )
-
-            if slice_stop > self.stop:
-                stop = self.stop
-            elif slice_stop >= 0:
-                stop = self.start + slice_stop * self.step
-            else:
-                # "true stop" adjust for if abs(stop-start) % step != 0
-                # "true stop" = self.start + len(self) * self.step
-                stop = self.start + len(self) * self.step + slice_stop * self.step
-
-            # if -ve, it's an invalid slice
-            if start < 0 or stop < 0:
-                return _zero_slice
-
-            # checking for zero-length slice
-            if stop < start:
-                return _zero_slice
-            if start > len(self.seq):
-                return _zero_slice
-
-            return self.__class__(
-                self.seq,
-                start=start,
-                stop=min(self.stop, stop),
-                step=self.step * step,
+            return self._get_forward_slice_from_forward_seqview_(
+                slice_start, slice_stop, step
             )
 
         elif self.step < 0:
-            if slice_start >= 0:
-                start = self.start + slice_start * self.step
-            elif abs(slice_start) > len(self):
-                start = self.start
-            else:
-                start = self.start + len(self) * self.step + slice_start * self.step
-
-            if slice_stop > len(self.seq):
-                return _zero_slice
-            elif slice_stop >= 0:
-                stop = self.start + slice_stop * self.step
-            else:  # slice_stop < 0
-                stop = self.start + len(self) * self.step + slice_stop * self.step
-
-            # if +ve, it's an invalid slice
-            if start >= 0 or stop >= 0:
-                return _zero_slice
-
-            return self.__class__(
-                self.seq,
-                start=start,
-                stop=max(self.stop, stop),
-                step=self.step * step,
+            return self._get_forward_slice_from_reverse_seqview_(
+                slice_start, slice_stop, step
             )
+
+    def _get_forward_slice_from_forward_seqview_(self, slice_start, slice_stop, step):
+        start = (
+            self.start + slice_start * self.step
+            if slice_start >= 0
+            else max(
+                self.start + len(self) * self.step + slice_start * self.step,
+                self.start,
+            )
+        )
+        if slice_stop > self.stop:
+            stop = self.stop
+        elif slice_stop >= 0:
+            stop = self.start + slice_stop * self.step
+        else:
+            # "true stop" adjust for if abs(stop-start) % step != 0
+            # "true stop" = self.start + len(self) * self.step
+            stop = self.start + len(self) * self.step + slice_stop * self.step
+
+        # if -ve, it's an invalid slice
+        if start < 0 or stop < 0:
+            return _zero_slice
+
+        # checking for zero-length slice
+        if stop < start:
+            return _zero_slice
+        if start > len(self.seq):
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=min(self.stop, stop),
+            step=self.step * step,
+        )
+
+    def _get_forward_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
+        if slice_start >= 0:
+            start = self.start + slice_start * self.step
+        elif abs(slice_start) > len(self):
+            start = self.start
+        else:
+            start = self.start + len(self) * self.step + slice_start * self.step
+
+        if slice_stop > len(self.seq):
+            return _zero_slice
+        elif slice_stop >= 0:
+            stop = self.start + slice_stop * self.step
+        else:  # slice_stop < 0
+            stop = self.start + len(self) * self.step + slice_stop * self.step
+
+        # if +ve, it's an invalid slice
+        if start >= 0 or stop >= 0:
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=max(self.stop, stop),
+            step=self.step * step,
+        )
 
     def _get_reverse_slice(self, slice, step):
         slice_start = slice.start if slice.start is not None else -1
         slice_stop = slice.stop if slice.stop is not None else -len(self) - 1
 
         if self.step < 0:
-            # max start is "true stop" + abs(step), because stop is not inclusive
-            # "true stop" adjust for if abs(stop-start) % step != 0
-            if slice_start >= len(self):
-                start = (
-                    len(self.seq) + self.start + len(self) * self.step + abs(self.step)
-                )
-            elif slice_start >= 0:
-                start = len(self.seq) + (self.start + slice_start * self.step)
-
-            else:
-                start = len(self.seq) + (
-                    self.start + len(self) * self.step + slice_start * self.step
-                )
-
-            if slice_stop >= 0:
-                stop = len(self.seq) + (self.start + slice_stop * self.step)
-                if stop <= len(self.seq) + self.stop:
-                    _zero_slice
-            else:
-                stop = len(self.seq) + (
-                    self.start + len(self) * self.step + slice_stop * self.step
-                )
-                if stop > len(self.seq) + self.start:
-                    stop = len(self.seq) + self.start + 1
-
-            # if -ve, it's an invalid slice
-            if start < 0 or stop < 0:
-                return _zero_slice
-
-            # checking for zero-length slice
-            if stop < start:
-                return _zero_slice
-            if start > len(self.seq):
-                return _zero_slice
-
-            return self.__class__(
-                self.seq,
-                start=start,
-                stop=stop,
-                step=self.step * step,
+            return self._get_reverse_slice_from_reverse_seqview_(
+                slice_start, slice_stop, step
             )
-
         elif self.step > 0:
-            # "true stop" adjust for if abs(stop-start) % step != 0
-            # max possible start is "true stop" - step, because stop is not inclusive
-            # "true stop" - step is converted to -ve index via subtracting len(self)
-            if slice_start >= len(self):
-                start = (self.start + len(self) * self.step - self.step) - len(self.seq)
-            elif slice_start >= 0:
-                start = (self.start + slice_start * self.step) - len(self.seq)
-            else:
-                start = (
-                    self.start
-                    + len(self) * self.step
-                    + slice_start * self.step
-                    - len(self.seq)
-                )
-
-            if slice_stop >= (len_seq := len(self.seq)):
-                return _zero_slice
-
-            if slice_stop >= 0:
-                stop = self.start + (slice_stop * self.step) - len_seq
-            else:
-                stop = (
-                    self.start
-                    + (len(self) * self.step)
-                    + (slice_stop * self.step)
-                    - len_seq
-                )
-
-            if start >= 0 or stop >= 0:
-                return _zero_slice
-
-            return self.__class__(
-                self.seq,
-                start=start,
-                stop=max(stop, self.start - len(self.seq) - 1),
-                step=self.step * step,
+            return self._get_reverse_slice_from_forward_seqview_(
+                slice_start, slice_stop, step
             )
+
+    def _get_reverse_slice_from_forward_seqview_(self, slice_start, slice_stop, step):
+        # "true stop" adjust for if abs(stop-start) % step != 0
+        # max possible start is "true stop" - step, because stop is not inclusive
+        # "true stop" - step is converted to -ve index via subtracting len(self)
+        if slice_start >= len(self):
+            start = (self.start + len(self) * self.step - self.step) - len(self.seq)
+        elif slice_start >= 0:
+            start = (self.start + slice_start * self.step) - len(self.seq)
+        else:
+            start = (
+                self.start
+                + len(self) * self.step
+                + slice_start * self.step
+                - len(self.seq)
+            )
+
+        if slice_stop >= (len_seq := len(self.seq)):
+            return _zero_slice
+
+        if slice_stop >= 0:
+            stop = self.start + (slice_stop * self.step) - len_seq
+        else:
+            stop = (
+                self.start
+                + (len(self) * self.step)
+                + (slice_stop * self.step)
+                - len_seq
+            )
+
+        if start >= 0 or stop >= 0:
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=max(stop, self.start - len(self.seq) - 1),
+            step=self.step * step,
+        )
+
+    def _get_reverse_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
+        # max start is "true stop" + abs(step), because stop is not inclusive
+        # "true stop" adjust for if abs(stop-start) % step != 0
+        if slice_start >= len(self):
+            start = len(self.seq) + self.start + len(self) * self.step + abs(self.step)
+        elif slice_start >= 0:
+            start = len(self.seq) + (self.start + slice_start * self.step)
+
+        else:
+            start = len(self.seq) + (
+                self.start + len(self) * self.step + slice_start * self.step
+            )
+
+        if slice_stop >= 0:
+            stop = len(self.seq) + (self.start + slice_stop * self.step)
+            if stop <= len(self.seq) + self.stop:
+                _zero_slice
+        else:
+            stop = len(self.seq) + (
+                self.start + len(self) * self.step + slice_stop * self.step
+            )
+            if stop > len(self.seq) + self.start:
+                stop = len(self.seq) + self.start + 1
+
+        # if -ve, it's an invalid slice
+        if start < 0 or stop < 0:
+            return _zero_slice
+
+        # checking for zero-length slice
+        if stop < start:
+            return _zero_slice
+        if start > len(self.seq):
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=stop,
+            step=self.step * step,
+        )
 
     def __getitem__(self, slice):
         if isinstance(slice, int):
@@ -1680,11 +1695,7 @@ class SeqView:
         return self.value
 
     def __repr__(self) -> str:
-        if len(self.seq) > 15:
-            seq = f"{seq_str[:10]}...{seq_str[-5:]}"
-        else:
-            seq = self.seq
-
+        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if len(self.seq) > 15 else self.seq
         return f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, stop={self.stop}, step={self.step})"
 
 
@@ -2149,7 +2160,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet ** 3,
+            alphabet=self.alphabet**3,
         )
 
     def complement(self):

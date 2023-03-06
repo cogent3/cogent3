@@ -1393,7 +1393,7 @@ def test_seqview_initialisation(start, stop, step):
 def test_seqview_invalid_step():
     "Testing that SeqView raises Value error when initialised with step of 0"
     with pytest.raises(ValueError):
-        got = SeqView(seq="0123456789", step=0)
+        _ = SeqView(seq="0123456789", step=0)
 
 
 @pytest.mark.parametrize("index", (-10, -5, 0, 5, 9))  # -10 and 9 are boundary
@@ -1584,24 +1584,6 @@ def test_seqview_rev_sliced_index(index, start, stop, step, seq):
             _ = SeqView(seq=seq_data, start=start, stop=stop, step=step)[index].value
     else:  # if no index error, SeqView should match python slicing
         got = SeqView(seq=seq_data, start=start, stop=stop, step=step)[index].value
-        assert got == expected
-
-
-@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
-@pytest.mark.parametrize("index", (-10, -4, 0, 6, 10))
-@pytest.mark.parametrize("start", (None, 10, -1, -10))
-@pytest.mark.parametrize("stop", (None, 0, 9, -10, -11))
-@pytest.mark.parametrize("step", (-1, -2))
-def test_seqview_rev_sliced_index(index, start, stop, step, seq):
-    """As above, but SeqView is initialised with defaults before first slice"""
-    sv = SeqView(seq)
-    try:  # if python slicing raises an index error, we expect SeqView to also throw error
-        expected = seq[start:stop:step][index]
-    except IndexError:
-        with pytest.raises(IndexError):
-            _ = sv[start:stop:step][index].value
-    else:  # if no index error, SeqView should match python slicing
-        got = sv[start:stop:step][index].value
         assert got == expected
 
 
