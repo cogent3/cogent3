@@ -1476,7 +1476,7 @@ class SeqView:
             else:
                 val = self.start + len(self) * self.step + val * abs(self.step)
 
-            return SeqView(self.seq, start=val, stop=val + 1)
+            return self.__class__(self.seq, start=val, stop=val + 1)
 
         elif self.step < 0:
             if val > 0 and val >= len(self):
@@ -1489,7 +1489,7 @@ class SeqView:
             else:
                 val = self.start + len(self) * self.step + val * self.step
 
-            return SeqView(self.seq, start=val, stop=val - 1, step=-1)
+            return self.__class__(self.seq, start=val, stop=val - 1, step=-1)
 
     def _get_slice(self, slice, step):
         slice_start = slice.start if slice.start is not None else 0
@@ -1672,7 +1672,9 @@ class SeqView:
         elif slice_step < 0:
             return self._get_reverse_slice(slice, slice_step)
         else:
-            raise ValueError("SeqView cannot be sliced with a step of 0")
+            raise ValueError(
+                f"{self.__class__.__name__} cannot be sliced with a step of 0"
+            )
 
     @property
     def value(self):
@@ -1681,9 +1683,11 @@ class SeqView:
     def replace(self, old, new):
         new_seq = self.seq.replace(old, new)
         if len(old) == len(new):
-            return SeqView(new_seq, start=self.start, stop=self.stop, step=self.step)
+            return self.__class__(
+                new_seq, start=self.start, stop=self.stop, step=self.step
+            )
 
-        return SeqView(new_seq)
+        return self.__class__(new_seq)
 
     def __len__(self):
         return abs((self.start - self.stop) // self.step)
@@ -2160,7 +2164,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet**3,
+            alphabet=self.alphabet ** 3,
         )
 
     def complement(self):
