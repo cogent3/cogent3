@@ -1414,6 +1414,15 @@ def test_seqview_index_null():
         _ = sv[0]
 
 
+def test_seqview_step_0():
+    "Initialising or slicing a SeqView with a step of 0 should return an IndexError"
+    sv = SeqView("0123456789")
+    with pytest.raises(ValueError):
+        _ = sv[::0]
+    with pytest.raises(ValueError):
+        _ = SeqView("0123456789", step=0)
+
+
 @pytest.mark.parametrize("start", (0, 2, 4))
 def test_seqview_invalid_index(start):
     "indexing out of bounds with a forward step should raise an IndexError"
@@ -1830,6 +1839,45 @@ def test_subsequent_slice_neg_start(slice_1, slice_2):
 
 
 @pytest.mark.parametrize(
+    "slice_1, slice_2",
+    (
+        # WITH DEFAULTS
+        # first step -ve
+        (slice(None, None, -1), slice(None, None, None)),
+        # second step -ve
+        (slice(None, None, None), slice(None, None, -1)),
+        # both step -ve, start/stop -ve, second slice WITHIN first
+        (slice(-1, -11, -2), slice(-1, -5, -3)),
+        # both step -ve, start/stop -ve, second slice OUTSIDE first
+        (slice(-1, -11, -2), slice(-1, -11, -3)),
+        # both step -ve, start/stop +ve, second slice WITHIN first
+        (slice(10, 0, -2), slice(5, 0, -3)),
+        # both step -ve, start/stop +ve, second slice OUTSIDE first
+        (slice(10, 0, -2), slice(10, 0, -3)),
+        # first step -ve, second step +ve, second slice WITHIN first
+        (slice(10, 0, -2), slice(1, 5, 2)),
+        # first step -ve, second step +ve, second slice OUTSIDE first
+        (slice(10, 0, -2), slice(0, 10, 2)),
+        # first step +ve, second step -ve, second slice WITHIN first
+        (slice(0, 10, 2), slice(4, 0, -2)),
+        # first step +ve, second step -ve, second slice OUTSIDE first
+        (slice(0, 10, 3), slice(10, 0, -2)),
+        # first step -ve, second step +ve, second start/stop +ve
+        (slice(10, 1, -1), slice(-8, 11, 2)),
+        # first step -ve, second step +ve, second start/stop +ve
+        (slice(10, 1, -1), slice(-19, 0, -2)),
+    ),
+)
+def test_subsequent_slice_neg_step(slice_1, slice_2):
+    """SeqView should handle subsequence slices with negative step values,
+    subsequent slices may overlap or be within previous slices
+    """
+    seq_data = "0123456789"
+    sv = SeqView(seq_data)
+    assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
     "sub_slices_triple",
     (
         (slice(None, None, None), slice(None, None, None), slice(None, None, None)),
@@ -1848,10 +1896,10 @@ def test_subslice_3(sub_slices_triple):
 
 @pytest.mark.parametrize("start", (0, 2, -1))
 @pytest.mark.parametrize("stop", (7, 10, -11))
-@pytest.mark.parametrize("step", (1, 2, -2))
+@pytest.mark.parametrize("step", (1, -2))
 @pytest.mark.parametrize("start_2", (0, 2, -8))
 @pytest.mark.parametrize("stop_2", (2, 4))
-@pytest.mark.parametrize("step_2", (1, -2))
+@pytest.mark.parametrize("step_2", (2, -1))
 @pytest.mark.parametrize("start_3", (0, 1, -6))
 @pytest.mark.parametrize("stop_3", (4, 10, -10))
 @pytest.mark.parametrize("step_3", (2, -2))
@@ -1888,6 +1936,26 @@ def test_seqview_remove_gaps():
     assert replaced.value == seq_data.replace("-", "")
     assert replaced.start == 0  # start should now be zero,
     assert replaced.stop == len(seq_data.replace("-", ""))
+
+
+def test_seqview_repr():
+    # case 1: Short sequence, defaults
+    seq = "ACGT"
+    view = SeqView(seq)
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1)"
+    assert repr(view) == expected
+
+    # case 2: Long sequence
+    seq = "ACGT" * 10
+    view = SeqView(seq)
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1)"
+    assert repr(view) == expected
+
+    # case 3: Non-zero start, stop, and step values
+    seq = "ACGT" * 10
+    view = SeqView(seq, start=5, stop=35, step=2)
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2)"
+    assert repr(view) == expected
 
 
 # run if called from command-line
