@@ -1633,9 +1633,9 @@ class SeqView:
             )
 
         if slice_stop >= 0:
-            stop = len(self.seq) + (self.start + slice_stop * self.step)
-            if stop <= len(self.seq) + self.stop:
-                _zero_slice
+            stop = seq_len + (self.start + slice_stop * self.step)
+            if stop <= seq_len + self.stop:
+                return _zero_slice
         else:
             stop = seq_len + (
                 self.start + len(self) * self.step + slice_stop * self.step
