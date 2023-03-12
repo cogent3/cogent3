@@ -29,6 +29,7 @@ from cogent3.util.misc import (
     curry,
     docstring_to_summary_rest,
     extend_docstring_from,
+    get_format_suffixes,
     get_independent_coords,
     get_merged_by_value_coords,
     get_merged_overlapping_coords,

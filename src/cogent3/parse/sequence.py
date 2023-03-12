@@ -79,7 +79,9 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
     f.close()
 
 
-def format_from_filename(filename, format=None):
+def format_from_filename(filename, format=None): # pragma: no coverage
+    from cogent3.util.warning import deprecated
+    deprecated("function", "cogent3.parse.sequence.format_from_filename", "cogent3.util.misc.get_format_suffixes", "2023.3")
     """Detects format based on filename."""
     if format:
         return format
