@@ -151,3 +151,12 @@ lines_after_imports=2
 lines_between_types=1
 multi_line_output=3
 use_parentheses=true
+
+[tool.scriv]
+format="md"
+categories=["Contributers","ENH","BUG","DOC","Deprecations","Discontinued"]
+output_file="changelog.md"
+version="literal: src/cogent3/__init__.py:__version__"
+skip_fragments="README.*"
+new_fragment_template="file: changelog.d/templates/new.md.j2"
+entry_title_template="file: changelog.d/templates/title.md.j2"
