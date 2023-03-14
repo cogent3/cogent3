@@ -86,7 +86,7 @@ def format_from_filename(filename, format=None):  # pragma: no coverage
         "function",
         "cogent3.parse.sequence.format_from_filename",
         "cogent3.util.misc.get_format_suffixes",
-        "2023.3",
+        "2023.6",
     )
     """Detects format based on filename."""
     if format:
