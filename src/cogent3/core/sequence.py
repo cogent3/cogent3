@@ -144,7 +144,7 @@ class SequenceI(object):
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def translate(self, *args, **kwargs):   # pragma: no cover 
+    def translate(self, *args, **kwargs):  # pragma: no cover
         """returns the result of call str.translate
 
         Notes
@@ -153,7 +153,13 @@ class SequenceI(object):
         protein sequence.
         """
         from cogent3.util.warning import discontinued
-        discontinued("function","cogent3.core.sequence.SequenceI.translate","06/2023","Better if user just converts sequence to string.")
+
+        discontinued(
+            "function",
+            "cogent3.core.sequence.SequenceI.translate",
+            "06/2023",
+            "Better if user just converts sequence to string.",
+        )
         return self._seq.translate(*args, **kwargs)
 
     def count(self, item):
