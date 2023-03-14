@@ -119,7 +119,7 @@ def create_acceptable_sequence(sequence):
     trans_table = dict([(ord(c), None) for c in "{}[]()^"])
     trans_table[ord("o")] = ord("?")
     # strip out secondary structure annotation {}[]()^
-    return sequence.translate(trans_table)  # should be accepted by RnaSequence
+    return str(sequence).translate(trans_table)  # should be accepted by RnaSequence
 
 
 def RdbParser(
