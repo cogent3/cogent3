@@ -156,8 +156,8 @@ class SequenceI(object):
 
         discontinued(
             "function",
-            "cogent3.core.sequence.SequenceI.translate",
-            "06/2023",
+            "cogent3.core.sequence.Sequence.translate",
+            "2023.6",
             "Better if user just converts sequence to string.",
         )
         return self._seq.translate(*args, **kwargs)
