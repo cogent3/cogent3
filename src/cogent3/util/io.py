@@ -9,7 +9,7 @@ from os import remove
 from pathlib import Path
 from re import compile
 from tempfile import mkdtemp
-from typing import IO, Callable, Union
+from typing import IO, Callable, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -33,8 +33,8 @@ _urls = compile("^(http[s]*|file)")
 
 
 def _get_compression_open(
-    path: Union[str, Path] = None, compression: Union[str] = None
-) -> Union[Callable]:
+    path: Union[str, Path] = None, compression: Optional[str] = None
+) -> Optional[Callable]:
     """returns function for opening compression formats
 
     Parameters
@@ -312,7 +312,10 @@ class atomic_write:
         self.__exit__(None, None, None)
 
 
-def get_format_suffixes(filename: Union[str, Path]):
+T = Optional[str]
+
+
+def get_format_suffixes(filename: Union[str, Path]) -> Tuple[T, T]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
