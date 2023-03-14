@@ -61,6 +61,7 @@ __credits__ = [
     "Gavin Huttley",
     "Matthew Wakefield",
     "Daniel McDonald",
+    "Katherine Caley",
 ]
 __license__ = "BSD-3"
 __version__ = "2023.2.12a1"
@@ -91,7 +92,7 @@ class SequenceI(object):
 
     def __str__(self):
         """__str__ returns self._seq unmodified."""
-        return self._seq
+        return str(self._seq)
 
     def to_fasta(self, make_seqlabel=None, block_size=60):
         """Return string of self in FASTA format, no trailing newline
@@ -160,11 +161,11 @@ class SequenceI(object):
             "2023.6",
             "Better if user just converts sequence to string.",
         )
-        return self._seq.translate(*args, **kwargs)
+        return str(self).translate(*args, **kwargs)
 
     def count(self, item):
         """count() delegates to self._seq."""
-        return self._seq.count(item)
+        return str(self).count(item)
 
     def counts(
         self,
@@ -191,11 +192,11 @@ class SequenceI(object):
 
         """
         try:
-            data = self._seq
+            data = str(self)
         except AttributeError:
             data = self._data
 
-        not_array = isinstance(data, str)
+        not_array = isinstance(data, (SeqView, str))
 
         if motif_length == 1:
             counts = CategoryCounter(data)
@@ -238,23 +239,23 @@ class SequenceI(object):
 
     def __lt__(self, other):
         """compares based on the sequence string."""
-        return self._seq < str(other)
+        return str(self) < str(other)
 
     def __eq__(self, other):
         """compares based on the sequence string."""
-        return self._seq == str(other)
+        return str(self) == str(other)
 
     def __ne__(self, other):
         """compares based on the sequence string."""
-        return self._seq != str(other)
+        return str(self) != str(other)
 
     def __hash__(self):
         """__hash__ behaves like the sequence string for dict lookup."""
-        return hash(self._seq)
+        return hash(str(self))
 
     def __contains__(self, other):
         """__contains__ checks whether other is in the sequence string."""
-        return other in self._seq
+        return other in str(self)
 
     def shuffle(self):
         """returns a randomized copy of the Sequence object"""
@@ -808,7 +809,7 @@ class Sequence(_Annotatable, SequenceI):
         self.name = name
         orig_seq = seq
         if isinstance(seq, Sequence):
-            seq = seq._seq
+            seq = str(seq)
         elif isinstance(seq, ArraySequence):
             seq = str(seq)
         elif isinstance(seq, bytes):
@@ -820,12 +821,20 @@ class Sequence(_Annotatable, SequenceI):
                 seq = "".join(map(str, seq))
 
         seq = self._seq_filter(seq)
-        if not preserve_case and not seq.isupper():
+
+        if isinstance(seq, SeqView):
+            if not preserve_case and not str(seq).isupper():
+                seq.seq = seq.seq.upper()
+            self._seq = seq
+
+        elif not preserve_case and not seq.isupper():
             seq = seq.upper()
-        self._seq = seq
+
+        if isinstance(seq, str):
+            self._seq = SeqView(seq)
 
         if check:
-            self.moltype.verify_sequence(self._seq, gaps_allowed, wildcards_allowed)
+            self.moltype.verify_sequence(str(self), gaps_allowed, wildcards_allowed)
 
         if not isinstance(info, InfoClass):
             try:
@@ -984,9 +993,9 @@ class Sequence(_Annotatable, SequenceI):
         i = 0
         segments = []
         for b, e in region.get_coordinates():
-            segments.extend((self._seq[i:b], mask_char * (e - b)))
+            segments.extend((str(self._seq[i:b]), mask_char * (e - b)))
             i = e
-        segments.append(self._seq[i:])
+        segments.append(str(self._seq[i:]))
 
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
@@ -1003,7 +1012,7 @@ class Sequence(_Annotatable, SequenceI):
                 else:
                     raise ValueError(f"gap(s) in map {map}")
             else:
-                seg = self._seq[span.start : span.end]
+                seg = str(self._seq[span.start : span.end])
                 if span.reverse:
                     complement = self.moltype.complement
                     seg = [complement(base) for base in seg[::-1]]
@@ -1034,7 +1043,7 @@ class Sequence(_Annotatable, SequenceI):
         if len(self) > 10:
             seq = f"{str(self._seq[:7])}... {len(self)}"
         else:
-            seq = str(self._seq)
+            seq = str(self)
         return f"{myclass}({seq})"
 
     def get_name(self):
@@ -1122,6 +1131,8 @@ class Sequence(_Annotatable, SequenceI):
 
         """
         seq = self._seq
+        if isinstance(seq, SeqView):
+            seq = str(self)
         if motif_length == 1:
             return seq
 
@@ -1140,7 +1151,7 @@ class Sequence(_Annotatable, SequenceI):
         gapless = []
         segments = []
         nongap = re.compile(f"([^{re.escape('-')}]+)")
-        for match in nongap.finditer(self._seq):
+        for match in nongap.finditer(str(self)):
             segments.append(match.span())
             gapless.append(match.group())
         map = Map(segments, parent_length=len(self)).inverse()
@@ -1186,7 +1197,7 @@ class Sequence(_Annotatable, SequenceI):
             # assume already a regex
             pass
 
-        pos = [m.span() for m in re.finditer(pattern, self._seq)]
+        pos = [m.span() for m in re.finditer(pattern, str(self))]
         if not pos:
             return []
 
@@ -1294,7 +1305,7 @@ class NucleicAcidSequence(Sequence):
         if not allow_partial and not divisible_by_3:
             raise ValueError("seq length not divisible by 3")
 
-        if divisible_by_3 and codons and gc.is_stop(codons[-3:]):
+        if divisible_by_3 and codons and gc.is_stop(str(codons[-3:])):
             codons = codons[:-3]
 
         return self.__class__(codons, name=self.name, info=self.info)
@@ -1319,7 +1330,7 @@ class NucleicAcidSequence(Sequence):
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
-            orig_codon = self._seq[posn : posn + 3]
+            orig_codon = str(self._seq[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:
@@ -1394,6 +1405,307 @@ class NucleicAcidSequence(Sequence):
         obs = template.wrap(obs)
         cat = CategoryCounts(obs)
         return cat.G_fit()
+
+
+def _input_vals_pos_step(seqlen, start, stop, step):
+    start = 0 if start is None else start
+    if start > 0 and start >= seqlen:
+        # start beyond seq is an empty slice
+        return 0, 0, 1
+
+    stop = seqlen if stop is None else stop
+    if stop < 0 and abs(stop) >= seqlen:
+        # finished slice before we started seq!
+        return 0, 0, 1
+
+    start = max(seqlen + start, 0) if start < 0 else start
+
+    if stop > 0:
+        stop = min(seqlen, stop)
+    elif stop < 0:
+        stop += seqlen
+
+    if start >= stop:
+        start = stop = 0
+        step = 1
+
+    return start, stop, step
+
+
+def _input_vals_neg_step(seqlen, start, stop, step):
+    # Note how Python reverse slicing works
+    # we need to make sure the start and stop are both
+    # negative, for example "abcd"[-1:-5:-1] returns "dcba"
+    if start is None or start >= seqlen:  # set default
+        start = -1  # Done
+    elif start >= 0:  # convert to -ve index
+        start = start - seqlen
+    elif start < -seqlen:  # start is bounded by len(seq)
+        return 0, 0, 1
+
+    if stop is None:  # set default
+        stop = -seqlen - 1
+    elif stop >= 0:
+        stop -= seqlen
+
+    stop = max(stop, -seqlen - 1)  # stop should always be <= len(seq)
+
+    # checking for zero-length slice
+    return (0, 0, 1) if start < stop else (start, stop, step)
+
+
+class SeqView:
+    __slots__ = ("seq", "start", "stop", "step")
+
+    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
+        if step == 0:
+            raise ValueError("step cannot be 0")
+        step = 1 if step is None else step
+
+        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
+        start, stop, step = func(len(seq), start, stop, step)
+        self.seq = seq
+        self.start = start
+        self.stop = stop
+        self.step = step
+
+    def _get_index(self, val):
+        if len(self) == 0:
+            raise IndexError(val)
+
+        if self.step > 0:
+            if val > 0 and val >= len(self):
+                raise IndexError(val)
+            elif val < 0 and abs(val) > len(self):
+                raise IndexError(val)
+
+            if val >= 0:
+                val = self.start + val * self.step
+            else:
+                val = self.start + len(self) * self.step + val * abs(self.step)
+
+            return self.__class__(self.seq, start=val, stop=val + 1)
+
+        elif self.step < 0:
+            if val > 0 and val >= len(self):
+                raise IndexError(val)
+            elif val < 0 and abs(val) > len(self):
+                raise IndexError(val)
+
+            if val >= 0:
+                val = self.start + val * self.step
+            else:
+                val = self.start + len(self) * self.step + val * self.step
+
+            return self.__class__(self.seq, start=val, stop=val - 1, step=-1)
+
+    def _get_slice(self, slice, step):
+        slice_start = slice.start if slice.start is not None else 0
+        slice_stop = slice.stop if slice.stop is not None else len(self)
+
+        if self.step > 0:
+            return self._get_forward_slice_from_forward_seqview_(
+                slice_start, slice_stop, step
+            )
+
+        elif self.step < 0:
+            return self._get_forward_slice_from_reverse_seqview_(
+                slice_start, slice_stop, step
+            )
+
+    def _get_forward_slice_from_forward_seqview_(self, slice_start, slice_stop, step):
+        start = (
+            self.start + slice_start * self.step
+            if slice_start >= 0
+            else max(
+                self.start + len(self) * self.step + slice_start * self.step,
+                self.start,
+            )
+        )
+        if slice_stop > self.stop:
+            stop = self.stop
+        elif slice_stop >= 0:
+            stop = self.start + slice_stop * self.step
+        else:
+            # "true stop" adjust for if abs(stop-start) % step != 0
+            # "true stop" = self.start + len(self) * self.step
+            stop = self.start + len(self) * self.step + slice_stop * self.step
+
+        # if -ve, it's an invalid slice
+        if start < 0 or stop < 0:
+            return _zero_slice
+
+        # checking for zero-length slice
+        if stop < start:
+            return _zero_slice
+        if start > len(self.seq):
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=min(self.stop, stop),
+            step=self.step * step,
+        )
+
+    def _get_forward_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
+        if slice_start >= 0:
+            start = self.start + slice_start * self.step
+        elif abs(slice_start) > len(self):
+            start = self.start
+        else:
+            start = self.start + len(self) * self.step + slice_start * self.step
+
+        if slice_stop >= 0:
+            stop = self.start + slice_stop * self.step
+        else:  # slice_stop < 0
+            stop = self.start + len(self) * self.step + slice_stop * self.step
+
+        # if +ve, it's an invalid slice
+        if start >= 0 or stop >= 0:
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=max(self.stop, stop),
+            step=self.step * step,
+        )
+
+    def _get_reverse_slice(self, slice, step):
+        slice_start = slice.start if slice.start is not None else -1
+        slice_stop = slice.stop if slice.stop is not None else -len(self) - 1
+
+        if self.step < 0:
+            return self._get_reverse_slice_from_reverse_seqview_(
+                slice_start, slice_stop, step
+            )
+        elif self.step > 0:
+            return self._get_reverse_slice_from_forward_seqview_(
+                slice_start, slice_stop, step
+            )
+
+    def _get_reverse_slice_from_forward_seqview_(self, slice_start, slice_stop, step):
+        # "true stop" adjust for if abs(stop-start) % step != 0
+        # max possible start is "true stop" - step, because stop is not inclusive
+        # "true stop" - step is converted to -ve index via subtracting len(self)
+        seq_len = len(self.seq)
+        if slice_start >= len(self):
+            start = (self.start + len(self) * self.step - self.step) - seq_len
+        elif slice_start >= 0:
+            start = (self.start + slice_start * self.step) - seq_len
+        else:
+            start = (
+                self.start
+                + len(self) * self.step
+                + slice_start * self.step
+                - len(self.seq)
+            )
+
+        if slice_stop >= seq_len:
+            return _zero_slice
+
+        if slice_stop >= 0:
+            stop = self.start + (slice_stop * self.step) - seq_len
+        else:
+            stop = (
+                self.start
+                + (len(self) * self.step)
+                + (slice_stop * self.step)
+                - seq_len
+            )
+
+        if start >= 0 or stop >= 0:
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=max(stop, self.start - len(self.seq) - 1),
+            step=self.step * step,
+        )
+
+    def _get_reverse_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
+        # max start is "true stop" + abs(step), because stop is not inclusive
+        # "true stop" adjust for if abs(stop-start) % step != 0
+        seq_len = len(self.seq)
+        if slice_start >= len(self):
+            start = seq_len + self.start + len(self) * self.step + abs(self.step)
+        elif slice_start >= 0:
+            start = seq_len + (self.start + slice_start * self.step)
+        else:
+            start = seq_len + (
+                self.start + len(self) * self.step + slice_start * self.step
+            )
+
+        if slice_stop >= 0:
+            stop = seq_len + (self.start + slice_stop * self.step)
+            if stop <= seq_len + self.stop:
+                return _zero_slice
+        else:
+            stop = seq_len + (
+                self.start + len(self) * self.step + slice_stop * self.step
+            )
+            if stop > seq_len + self.start:
+                stop = seq_len + self.start + 1
+
+        # if -ve, it's an invalid slice becomes zero
+        # checking for zero-length slice
+        if stop < start or start > seq_len or min(start, stop) < 0:
+            return _zero_slice
+
+        return self.__class__(
+            self.seq,
+            start=start,
+            stop=stop,
+            step=self.step * step,
+        )
+
+    def __getitem__(self, slice):
+        if isinstance(slice, int):
+            return self._get_index(slice)
+        if len(self) == 0:
+            return self
+
+        slice_step = 1 if slice.step is None else slice.step
+
+        if slice_step > 0:
+            return self._get_slice(slice, slice_step)
+        elif slice_step < 0:
+            return self._get_reverse_slice(slice, slice_step)
+        else:
+            raise ValueError(
+                f"{self.__class__.__name__} cannot be sliced with a step of 0"
+            )
+
+    @property
+    def value(self):
+        return self.seq[self.start : self.stop : self.step]
+
+    def replace(self, old, new):
+        new_seq = self.seq.replace(old, new)
+        if len(old) == len(new):
+            return self.__class__(
+                new_seq, start=self.start, stop=self.stop, step=self.step
+            )
+
+        return self.__class__(new_seq)
+
+    def __len__(self):
+        return abs((self.start - self.stop) // self.step)
+
+    def __iter__(self):
+        return iter(self.value)
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __repr__(self) -> str:
+        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if len(self.seq) > 15 else self.seq
+        return f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, stop={self.stop}, step={self.step})"
+
+
+_zero_slice = SeqView(seq="")
 
 
 class DnaSequence(NucleicAcidSequence):
