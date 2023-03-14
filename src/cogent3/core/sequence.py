@@ -64,7 +64,7 @@ __credits__ = [
     "Katherine Caley",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -145,7 +145,7 @@ class SequenceI(object):
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def translate(self, *args, **kwargs):
+    def translate(self, *args, **kwargs):  # pragma: no cover
         """returns the result of call str.translate
 
         Notes
@@ -153,6 +153,14 @@ class SequenceI(object):
         This is a string method, nothing to do with translating into a
         protein sequence.
         """
+        from cogent3.util.warning import discontinued
+
+        discontinued(
+            "function",
+            "cogent3.core.sequence.Sequence.translate",
+            "2023.6",
+            "Better if user just converts sequence to string.",
+        )
         return str(self).translate(*args, **kwargs)
 
     def count(self, item):
