@@ -7,7 +7,7 @@ from io import StringIO
 from pathlib import Path
 from unittest import TestCase, main
 
-from cogent3.parse.gff import *
+from cogent3.parse.gff import gff_parser, parse_attributes_gff2
 
 
 __author__ = "Matthew Wakefield"
