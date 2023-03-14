@@ -44,7 +44,7 @@ def FromFilenameParser(filename, format=None, **kw):
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
     """
-    format = format_from_filename(filename, format)
+    format, _ = format_from_filename(filename, format)
     f = open_(filename, newline=None, mode="rt")
     return FromFileParser(f, format, **kw)
 
@@ -79,9 +79,15 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
     f.close()
 
 
-def format_from_filename(filename, format=None): # pragma: no coverage
+def format_from_filename(filename, format=None):  # pragma: no coverage
     from cogent3.util.warning import deprecated
-    deprecated("function", "cogent3.parse.sequence.format_from_filename", "cogent3.util.misc.get_format_suffixes", "2023.3")
+
+    deprecated(
+        "function",
+        "cogent3.parse.sequence.format_from_filename",
+        "cogent3.util.misc.get_format_suffixes",
+        "2023.3",
+    )
     """Detects format based on filename."""
     if format:
         return format

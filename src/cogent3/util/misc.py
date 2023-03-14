@@ -32,8 +32,6 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
 
-_compression = re.compile(r"\.(gz|bz2)$")
-
 
 def _adjusted_gt_minprob_vector(probs, minprob):
     # operates on a 1D numpy vector
@@ -1051,13 +1049,3 @@ def in_jupyter() -> bool:
         val = False
 
     return val
-
-def get_format_suffixes(filename, format=None):
-    if format:
-        return format
-    else:
-        r = _compression.search(filename)
-        if r:
-            filename = filename[: r.start()]
-
-        return filename[filename.rfind(".") + 1 :]
