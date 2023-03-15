@@ -505,9 +505,9 @@ class LocationTests(TestCase):
         """Location should init with 1 or 2 values, plus params."""
         l = Location(37)
         self.assertEqual(str(l), "37")
-        l = Location(37, Ambiguity=">")
+        l = Location(37, ambiguity=">")
         self.assertEqual(str(l), ">37")
-        l = Location(37, Ambiguity="<")
+        l = Location(37, ambiguity="<")
         self.assertEqual(str(l), "<37")
         l = Location(37, Accession="AB123")
         self.assertEqual(str(l), "AB123:37")

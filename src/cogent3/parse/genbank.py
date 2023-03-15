@@ -260,15 +260,15 @@ def parse_simple_location_segment(segment):
 
         return Location(
             [
-                Location(first, Ambiguity=first_ambiguity),
-                Location(second, Ambiguity=second_ambiguity),
+                Location(first, ambiguity=first_ambiguity),
+                Location(second, ambiguity=second_ambiguity),
             ]
         )
     else:
         if not segment[0].isdigit():
             first_ambiguity = segment[0]
             segment = segment[1:]
-        return Location(int(segment), Ambiguity=first_ambiguity)
+        return Location(int(segment), ambiguity=first_ambiguity)
 
 
 def parse_location_line(tokens, parser=parse_simple_location_segment):
@@ -303,7 +303,7 @@ class Location(object):
 
     data must either be a long, an object that can be coerced to a long, or a
         sequence of two BasePosition objects. It can _not_ be two numbers.
-    Ambiguity should be None (the default), '>', or '<'.
+    ambiguity should be None (the default), '>', or '<'.
     IsBetween should be False (the default), or True.
     IsBounds should be False(the default, indicates range), or True.
     Accession should be an accession, or None (default).
@@ -321,25 +321,44 @@ class Location(object):
     def __init__(
         self,
         data,
-        Ambiguity=None,
+        ambiguity=None,
         IsBetween=False,
         IsBounds=False,
         Accession=None,
         Db=None,
         Strand=1,
+        **kwargs,
     ):
         """Returns new LocalLocation object."""
+
         try:
             data = int(data)
         except TypeError:
             pass  # assume was two Location objects.
         self._data = data
-        self.Ambiguity = Ambiguity
+        self.ambiguity = ambiguity
         self.IsBetween = IsBetween
         self.IsBounds = IsBounds
         self.Accession = Accession
         self.Db = Db
         self.Strand = Strand
+
+        dep_arg_map = {
+            "Ambiguity": "ambiguity"
+        }  # map between deprecated argument name and current argument name
+        for dep_arg, arg in dep_arg_map.items():
+            if dep_arg in kwargs:
+                setattr(self, arg, kwargs.pop(dep_arg))
+
+                from cogent3.util.warning import deprecated
+
+                deprecated(
+                    "Argument",
+                    dep_arg,
+                    arg,
+                    "2023.06.15",
+                    "changed to be PEP8 compliant",
+                )
 
     def __str__(self):
         """Returns self in string format.
@@ -358,8 +377,8 @@ class Location(object):
             try:
                 data = int(self._data)
                 # if the above line succeeds, we've got a single item
-                if self.Ambiguity:
-                    curr = self.Ambiguity + str(data)
+                if self.ambiguity:
+                    curr = self.ambiguity + str(data)
                 else:
                     curr = str(data)
             except TypeError:
@@ -594,7 +613,7 @@ def parse_location_atom(location_atom):
     a = location_atom
     if a.startswith("<") or a.startswith(">"):  # fuzzy
         position = int(a[1:])
-        return Location(position, Ambiguity=a[0])
+        return Location(position, ambiguity=a[0])
     # otherwise, should just be an integer
     return Location(int(a))
 
