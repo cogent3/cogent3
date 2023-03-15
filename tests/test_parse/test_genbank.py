@@ -511,7 +511,7 @@ class LocationTests(TestCase):
         self.assertEqual(str(l), "<37")
         l = Location(37, accession="AB123")
         self.assertEqual(str(l), "AB123:37")
-        l = Location(37, accession="AB123", Db="Kegg")
+        l = Location(37, accession="AB123", db="Kegg")
         self.assertEqual(str(l), "Kegg::AB123:37")
 
         l1 = Location(37)

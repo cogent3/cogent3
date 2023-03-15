@@ -307,7 +307,7 @@ class Location(object):
     is_between should be False (the default), or True.
     is_bounds should be False(the default, indicates range), or True.
     accession should be an accession, or None (default).
-    Db should be a database identifier, or None (default).
+    db should be a database identifier, or None (default).
     Strand should be 1 (forward, default) or -1 (reverse).
 
     WARNING: This Location will allow you to do things that can't happen in
@@ -325,7 +325,7 @@ class Location(object):
         is_between=False,
         is_bounds=False,
         accession=None,
-        Db=None,
+        db=None,
         Strand=1,
         **kwargs,
     ):
@@ -340,7 +340,7 @@ class Location(object):
         self.is_between = is_between
         self.is_bounds = is_bounds
         self.accession = accession
-        self.Db = Db
+        self.db = db
         self.Strand = Strand
 
         dep_arg_map = {
@@ -348,7 +348,8 @@ class Location(object):
             "IsBetween": "is_between",
             "IsBounds": "is_bounds",
             "Accession": "accession",
-        }  # map between deprecated argument name and current argument name
+            "Db": "db",
+        }  # map between deprecated argument name and PEP8 compliant argument name
         for dep_arg, arg in dep_arg_map.items():
             if dep_arg in kwargs:
                 setattr(self, arg, kwargs.pop(dep_arg))
@@ -395,9 +396,9 @@ class Location(object):
         # check if we need to add on the accession and database
         if self.accession:
             curr = self.accession + ":" + curr
-            # we're only going to add the Db if we got an accession
-            if self.Db:
-                curr = self.Db + "::" + curr
+            # we're only going to add the db if we got an accession
+            if self.db:
+                curr = self.db + "::" + curr
         # check if it's complemented
         if self.Strand == -1:
             curr = f"complement({curr})"
