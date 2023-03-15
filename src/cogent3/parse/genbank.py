@@ -306,7 +306,7 @@ class Location(object):
     ambiguity should be None (the default), '>', or '<'.
     is_between should be False (the default), or True.
     is_bounds should be False(the default, indicates range), or True.
-    Accession should be an accession, or None (default).
+    accession should be an accession, or None (default).
     Db should be a database identifier, or None (default).
     Strand should be 1 (forward, default) or -1 (reverse).
 
@@ -324,7 +324,7 @@ class Location(object):
         ambiguity=None,
         is_between=False,
         is_bounds=False,
-        Accession=None,
+        accession=None,
         Db=None,
         Strand=1,
         **kwargs,
@@ -339,14 +339,15 @@ class Location(object):
         self.ambiguity = ambiguity
         self.is_between = is_between
         self.is_bounds = is_bounds
-        self.Accession = Accession
+        self.accession = accession
         self.Db = Db
         self.Strand = Strand
 
         dep_arg_map = {
             "Ambiguity": "ambiguity",
             "IsBetween": "is_between",
-            "IsBounds": "is_bounds"
+            "IsBounds": "is_bounds",
+            "Accession": "accession",
         }  # map between deprecated argument name and current argument name
         for dep_arg, arg in dep_arg_map.items():
             if dep_arg in kwargs:
@@ -392,8 +393,8 @@ class Location(object):
                 else:
                     curr = f"{first}{'..'}{last}"
         # check if we need to add on the accession and database
-        if self.Accession:
-            curr = self.Accession + ":" + curr
+        if self.accession:
+            curr = self.accession + ":" + curr
             # we're only going to add the Db if we got an accession
             if self.Db:
                 curr = self.Db + "::" + curr
