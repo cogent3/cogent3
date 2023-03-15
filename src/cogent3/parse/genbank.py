@@ -304,7 +304,7 @@ class Location(object):
     data must either be a long, an object that can be coerced to a long, or a
         sequence of two BasePosition objects. It can _not_ be two numbers.
     ambiguity should be None (the default), '>', or '<'.
-    IsBetween should be False (the default), or True.
+    is_between should be False (the default), or True.
     IsBounds should be False(the default, indicates range), or True.
     Accession should be an accession, or None (default).
     Db should be a database identifier, or None (default).
@@ -322,7 +322,7 @@ class Location(object):
         self,
         data,
         ambiguity=None,
-        IsBetween=False,
+        is_between=False,
         IsBounds=False,
         Accession=None,
         Db=None,
@@ -337,14 +337,15 @@ class Location(object):
             pass  # assume was two Location objects.
         self._data = data
         self.ambiguity = ambiguity
-        self.IsBetween = IsBetween
+        self.is_between = is_between
         self.IsBounds = IsBounds
         self.Accession = Accession
         self.Db = Db
         self.Strand = Strand
 
         dep_arg_map = {
-            "Ambiguity": "ambiguity"
+            "Ambiguity": "ambiguity",
+            "IsBetween": "is_between",
         }  # map between deprecated argument name and current argument name
         for dep_arg, arg in dep_arg_map.items():
             if dep_arg in kwargs:
@@ -367,13 +368,13 @@ class Location(object):
         you abuse this object, you'll get results that aren't valid GenBank
         locations.
         """
-        if self.IsBetween:  # between two bases
+        if self.is_between:  # between two bases
             try:
                 first, last = self._data
                 curr = f"{first}^{last}"
             except TypeError:  # only one base? must be this or the next
                 curr = f"{first}^{first + 1}"
-        else:  # not self.IsBetween
+        else:  # not self.is_between
             try:
                 data = int(self._data)
                 # if the above line succeeds, we've got a single item
@@ -600,7 +601,7 @@ def parse_location_segment(location_segment):
     # check if it's between two adjacent bases
     elif "^" in s:
         first, second = s.split("^")
-        return Location([lsp(first), lsp(second)], IsBetween=True)
+        return Location([lsp(first), lsp(second)], is_between=True)
     # check if it's a single base reference -- but don't be fooled by
     # accessions!
     elif "." in s and s.startswith("(") and s.endswith(")"):
