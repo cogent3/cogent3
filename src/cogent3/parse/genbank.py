@@ -4,10 +4,7 @@ from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
 from cogent3.core.moltype import get_moltype
 from cogent3.parse.record import FieldWrapper
-from cogent3.parse.record_finder import (
-    DelimitedRecordFinder,
-    LabeledRecordFinder,
-)
+from cogent3.parse.record_finder import DelimitedRecordFinder, LabeledRecordFinder
 
 
 __author__ = "Rob Knight"
@@ -301,21 +298,30 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
 class Location(object):
     """GenBank location object. Integer, or low, high, or 2-base bound.
 
-    data must either be a long, an object that can be coerced to a long, or a
+    Parameters
+    ----------
+    data : Numeric type
+        either a long, an object that can be coerced to a long, or a
         sequence of two BasePosition objects. It can _not_ be two numbers.
-    ambiguity should be None (the default), '>', or '<'.
-    is_between should be False (the default), or True.
-    is_bounds should be False(the default, indicates range), or True.
-    accession should be an accession, or None (default).
-    db should be a database identifier, or None (default).
-    Strand should be 1 (forward, default) or -1 (reverse).
+    ambiguity : str
+        ambiguity can be '>', or '<', or default = None
+    is_between : bool
+        default = False
+    is_bounds : bool
+       default = False, which indicates range
+    accession : str
+        the accession number
+    db : str
+        database identifier
+    strand : int
+        strand should be 1 (forward, default) or -1 (reverse).
 
     WARNING: This Location will allow you to do things that can't happen in
     GenBank, such as having a start and stop that aren't from the same
     accession. No validation is performed to prevent this. All reasonable
     cases should work.
 
-    WARNING: Coordinates are based on 1, not 0, as in GenBank format.
+    WARNING: Coordinates are 0-based, not 1-based, thus no longer as in Genbank Format.
     """
 
     def __init__(
@@ -446,10 +452,7 @@ class Location(object):
 
 
 class LocationList(list):
-    """List of Location objects.
-
-    WARNING: Coordinates are based on 1, not 0, to match GenBank format.
-    """
+    """List of Location objects."""
 
     BIGNUM = 1e300
 
