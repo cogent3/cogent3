@@ -518,7 +518,7 @@ class LocationTests(TestCase):
         l2 = Location(42)
         l = Location([l1, l2])
         self.assertEqual(str(l), "37..42")
-        l3 = Location([l1, l2], IsBounds=True)
+        l3 = Location([l1, l2], is_bounds=True)
         self.assertEqual(str(l3), "(37.42)")
         l4 = Location([l1, l2], is_between=True)
         self.assertEqual(str(l4), "37^42")

@@ -305,7 +305,7 @@ class Location(object):
         sequence of two BasePosition objects. It can _not_ be two numbers.
     ambiguity should be None (the default), '>', or '<'.
     is_between should be False (the default), or True.
-    IsBounds should be False(the default, indicates range), or True.
+    is_bounds should be False(the default, indicates range), or True.
     Accession should be an accession, or None (default).
     Db should be a database identifier, or None (default).
     Strand should be 1 (forward, default) or -1 (reverse).
@@ -323,7 +323,7 @@ class Location(object):
         data,
         ambiguity=None,
         is_between=False,
-        IsBounds=False,
+        is_bounds=False,
         Accession=None,
         Db=None,
         Strand=1,
@@ -338,7 +338,7 @@ class Location(object):
         self._data = data
         self.ambiguity = ambiguity
         self.is_between = is_between
-        self.IsBounds = IsBounds
+        self.is_bounds = is_bounds
         self.Accession = Accession
         self.Db = Db
         self.Strand = Strand
@@ -346,6 +346,7 @@ class Location(object):
         dep_arg_map = {
             "Ambiguity": "ambiguity",
             "IsBetween": "is_between",
+            "IsBounds": "is_bounds"
         }  # map between deprecated argument name and current argument name
         for dep_arg, arg in dep_arg_map.items():
             if dep_arg in kwargs:
@@ -386,7 +387,7 @@ class Location(object):
                 # if long conversion failed, should have two LocalLocation
                 # objects
                 first, last = self._data
-                if self.IsBounds:
+                if self.is_bounds:
                     curr = f"({first}{'.'}{last})"
                 else:
                     curr = f"{first}{'..'}{last}"
