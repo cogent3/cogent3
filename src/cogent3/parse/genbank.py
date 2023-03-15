@@ -358,7 +358,7 @@ class Location(object):
                 from cogent3.util.warning import deprecated
 
                 deprecated(
-                    "Argument",
+                    "argument",
                     dep_arg,
                     arg,
                     "2023.06.15",
@@ -405,19 +405,44 @@ class Location(object):
             curr = f"complement({curr})"
         return curr
 
-    def first(self):
+    def start(self):
         """Returns first base self could be."""
         try:
-            return int(self._data)
+            return int(self._data) - 1
         except TypeError:
-            return self._data[0].first()
+            return self._data[0].start()
 
-    def last(self):
+    def stop(self):
         """Returns last base self could be."""
         try:
-            return int(self._data)
+            return int(self._data) - 1
         except TypeError:
-            return self._data[-1].last()
+            return self._data[-1].stop()
+
+    def first(self):
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "Location.first",
+            "Location.start",
+            "2023.06.15",
+            "Warning: '.start()' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
+        )
+
+        return self.start()
+
+    def last(self):
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "Location.last",
+            "Location.stop",
+            "2023.06.15",
+            "Warning: '.stop()' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
+        )
+        return self.stop()
 
 
 class LocationList(list):
@@ -428,23 +453,48 @@ class LocationList(list):
 
     BIGNUM = 1e300
 
-    def first(self):
+    def start(self):
         """Returns first base of self."""
         curr = self.BIGNUM
         for i in self:
-            first = i.first()
-            if curr > first:
-                curr = first
+            start = i.start()
+            if curr > start:
+                curr = start
         return curr
 
-    def last(self):
+    def stop(self):
         """Returns last base of self."""
         curr = 0
         for i in self:
-            last = i.last()
-            if last > curr:
-                curr = last
+            stop = i.stop()
+            if stop > curr:
+                curr = stop
         return curr
+
+    def first(self):
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "LocationList.first",
+            "LocationList.start",
+            "2023.06.15",
+            "Warning: '.start()' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
+        )
+
+        return self.start() + 1
+
+    def last(self):
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "LocationList.last",
+            "LocationList.stop",
+            "2023.06.15",
+            "Warning: '.stop()' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
+        )
+        return self.stop() + 1
 
     def strand(self):
         """Returns strand of components: 1=forward, -1=reverse, 0=both"""
@@ -469,12 +519,12 @@ class LocationList(list):
         """Extracts pieces of self from sequence."""
         result = []
         for i in self:
-            first, last = i.first() - 1, i.last()  # inclusive, not exclusive
+            start, stop = i.start(), i.stop() + 1  # inclusive, not exclusive
             # translate to 0-based indices and check if it wraps around
-            if first < last:
-                curr = sequence[first:last]
+            if start < stop:
+                curr = sequence[start:stop]
             else:
-                curr = sequence[first:] + sequence[:last]
+                curr = sequence[start:] + sequence[:stop]
             # reverse-complement if necessary
             if i.strand == -1:
                 curr = curr.translate(trans_table)[::-1]
@@ -700,7 +750,7 @@ def RichGenbankParser(
             if feature["location"] is None or feature["type"] in ["source", "organism"]:
                 continue
             for location in feature["location"]:
-                (lo, hi) = (location.first() - 1, location.last())
+                (lo, hi) = (location.start(), location.stop() + 1)
                 if location.strand == -1:
                     (lo, hi) = (hi, lo)
                     assert reversed is not False

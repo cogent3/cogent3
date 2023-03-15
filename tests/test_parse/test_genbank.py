@@ -528,6 +528,14 @@ class LocationTests(TestCase):
         self.assertEqual(str(l5), "complement(37^42..(37.42))")
 
 
+def test_Location_start():
+    """the start and stop should reflect 0-based indexing (python style), not 1-based indexing (genbank style).
+    This means they should be 1 less than the data given"""
+    l = Location(37)
+    assert str(l.start()) == "36"
+    assert str(l.stop()) == "36"
+
+
 class LocationListTests(TestCase):
     """Tests of the LocationList class."""
 
