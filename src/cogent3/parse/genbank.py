@@ -288,7 +288,7 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
             if type_ == "complement(":
                 children.reverse()
                 for c in children:
-                    c.Strand *= -1
+                    c.strand *= -1
             curr_index = parent.index(curr)
             del parent[curr_index]
             parent[curr_index:curr_index] = children[:]
@@ -326,7 +326,7 @@ class Location(object):
         is_bounds=False,
         accession=None,
         db=None,
-        Strand=1,
+        strand=1,
         **kwargs,
     ):
         """Returns new LocalLocation object."""
@@ -341,7 +341,7 @@ class Location(object):
         self.is_bounds = is_bounds
         self.accession = accession
         self.db = db
-        self.Strand = Strand
+        self.strand = strand
 
         dep_arg_map = {
             "Ambiguity": "ambiguity",
@@ -349,6 +349,7 @@ class Location(object):
             "IsBounds": "is_bounds",
             "Accession": "accession",
             "Db": "db",
+            "Strand": "strand",
         }  # map between deprecated argument name and PEP8 compliant argument name
         for dep_arg, arg in dep_arg_map.items():
             if dep_arg in kwargs:
@@ -400,7 +401,7 @@ class Location(object):
             if self.db:
                 curr = self.db + "::" + curr
         # check if it's complemented
-        if self.Strand == -1:
+        if self.strand == -1:
             curr = f"complement({curr})"
         return curr
 
@@ -449,7 +450,7 @@ class LocationList(list):
         """Returns strand of components: 1=forward, -1=reverse, 0=both"""
         curr = {}
         for i in self:
-            curr[i.Strand] = 1
+            curr[i.strand] = 1
         if len(curr) >= 2:  # found stuff on both strands
             return 0
         else:
@@ -475,7 +476,7 @@ class LocationList(list):
             else:
                 curr = sequence[first:] + sequence[:last]
             # reverse-complement if necessary
-            if i.Strand == -1:
+            if i.strand == -1:
                 curr = curr.translate(trans_table)[::-1]
             result.append(curr)
         return "".join(result)
@@ -700,7 +701,7 @@ def RichGenbankParser(
                 continue
             for location in feature["location"]:
                 (lo, hi) = (location.first() - 1, location.last())
-                if location.Strand == -1:
+                if location.strand == -1:
                     (lo, hi) = (hi, lo)
                     assert reversed is not False
                     reversed = True

@@ -329,13 +329,13 @@ ORIGIN
         l = lsp("37")
         self.assertEqual(l._data, 37)
         self.assertEqual(str(l), "37")
-        self.assertEqual(l.Strand, 1)
+        self.assertEqual(l.strand, 1)
         l = lsp("40..50")
         first, second = l._data
         self.assertEqual(first._data, 40)
         self.assertEqual(second._data, 50)
         self.assertEqual(str(l), "40..50")
-        self.assertEqual(l.Strand, 1)
+        self.assertEqual(l.strand, 1)
         # should handle ambiguous starts and ends
         l = lsp(">37")
         self.assertEqual(l._data, 37)
@@ -524,7 +524,7 @@ class LocationTests(TestCase):
         self.assertEqual(str(l4), "37^42")
         l5 = Location([l4, l3])
         self.assertEqual(str(l5), "37^42..(37.42)")
-        l5 = Location([l4, l3], Strand=-1)
+        l5 = Location([l4, l3], strand=-1)
         self.assertEqual(str(l5), "complement(37^42..(37.42))")
 
 
@@ -536,7 +536,7 @@ class LocationListTests(TestCase):
         l = Location(3)
         l2_a = Location(5)
         l2_b = Location(7)
-        l2 = Location([l2_a, l2_b], Strand=-1)
+        l2 = Location([l2_a, l2_b], strand=-1)
         l3_a = Location(10)
         l3_b = Location(12)
         l3 = Location([l3_a, l3_b])
