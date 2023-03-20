@@ -532,8 +532,8 @@ def test_Location_start():
     """the start and stop should reflect 0-based indexing (python style), not 1-based indexing (genbank style).
     This means they should be 1 less than the data given"""
     l = Location(37)
-    assert str(l.start()) == "36"
-    assert str(l.stop()) == "36"
+    assert l.start == 36
+    assert l.stop == 36
 
 
 class LocationListTests(TestCase):
