@@ -17,7 +17,7 @@ from cogent3.parse import (
     tinyseq,
 )
 from cogent3.parse.record import FileFormatError
-from cogent3.util.io import open_, get_format_suffixes
+from cogent3.util.io import get_format_suffixes, open_
 
 
 __author__ = "Cath Lawrence"

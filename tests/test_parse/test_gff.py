@@ -7,7 +7,7 @@ from io import StringIO
 from pathlib import Path
 from unittest import TestCase, main
 
-from cogent3.parse.gff import *
+from cogent3.parse.gff import gff_parser, parse_attributes_gff2
 
 
 __author__ = "Matthew Wakefield"
@@ -147,6 +147,12 @@ class GffTest(TestCase):
             self.assertEqual(len(result), 10)
         # 15 total lines, but 2 comments
         self.assertEqual(i + 1, 15 - 2)
+
+    def test_custom_attr_func(self):
+        """user provided attr parser"""
+        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+        for result in gff_parser(gff3_path, attribute_parser=lambda x, y: x):
+            self.assertIsInstance(result["Attributes"], str)
 
 
 if __name__ == "__main__":
