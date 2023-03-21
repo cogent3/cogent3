@@ -427,7 +427,7 @@ class Location(object):
         except TypeError:
             return self._data[-1].stop
 
-    def first(self):
+    def first(self):  # pragma: no cover
         from cogent3.util.warning import deprecated
 
         deprecated(
@@ -440,7 +440,7 @@ class Location(object):
 
         return self.start
 
-    def last(self):
+    def last(self):  # pragma: no cover
         from cogent3.util.warning import deprecated
 
         deprecated(
@@ -456,50 +456,28 @@ class Location(object):
 class LocationList(list):
     """List of Location objects."""
 
-    BIGNUM = 1e300
-
-    def start(self):
+    def first(self):  # pragma: no cover
         """Returns first base of self."""
-        curr = self.BIGNUM
-        for i in self:
-            start = i.start
-            if curr > start:
-                curr = start
-        return curr
+        from cogent3.util.warning import discontinued
 
-    def stop(self):
-        """Returns last base of self."""
-        curr = 0
-        for i in self:
-            stop = i.stop
-            if stop > curr:
-                curr = stop
-        return curr
-
-    def first(self):
-        from cogent3.util.warning import deprecated
-
-        deprecated(
+        discontinued(
             "method",
             "LocationList.first",
-            "LocationList.start",
             "2023.06.15",
-            "Warning: '.start' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
         )
 
-        return self.start + 1
+        return min(self, key=lambda x: x.start) + 1
 
-    def last(self):
-        from cogent3.util.warning import deprecated
+    def last(self):  # pragma: no cover
+        """Returns last base of self."""
+        from cogent3.util.warning import discontinued
 
-        deprecated(
+        discontinued(
             "method",
             "LocationList.last",
-            "LocationList.stop",
             "2023.06.15",
-            "Warning: '.stop' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
         )
-        return self.stop + 1
+        return max(self, key=lambda x: x.stop) + 1
 
     @property
     def strand(self):
