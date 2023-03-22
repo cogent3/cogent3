@@ -466,7 +466,7 @@ class LocationList(list):
             "2023.06.15",
         )
 
-        return min(self, key=lambda x: x.start) + 1
+        return min(self, key=lambda x: x.start).start + 1
 
     def last(self):  # pragma: no cover
         """Returns last base of self."""
@@ -477,7 +477,7 @@ class LocationList(list):
             "LocationList.last",
             "2023.06.15",
         )
-        return max(self, key=lambda x: x.stop) + 1
+        return max(self, key=lambda x: x.stop).stop + 1
 
     @property
     def strand(self):
