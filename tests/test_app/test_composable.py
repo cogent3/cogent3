@@ -27,11 +27,9 @@ from cogent3.app.composable import (
     __app_registry,
     _add,
     _get_raw_hints,
-    appify,
     define_app,
     get_object_provenance,
     is_composable,
-    user_function,
 )
 from cogent3.app.data_store_new import (
     APPEND,
@@ -552,13 +550,6 @@ def _demo(ctx, expect):
     return ctx.frame_start == expect
 
 
-# for testing appify
-@appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
-def slicer(val, index=2):
-    """my docstring"""
-    return val[:index]
-
-
 @define_app
 def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
     return val[:4]
@@ -615,26 +606,6 @@ def test_user_function_multiple():
     assert got_2 == {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
 
 
-def test_appify():
-    """acts like a decorator should!"""
-    assert slicer.__doc__ == "my docstring"
-    assert slicer.__name__ == "slicer"
-    app = slicer()
-    assert SERIALISABLE_TYPE in app._input_types
-    assert SERIALISABLE_TYPE in app._output_types
-    assert app(list(range(4))) == [0, 1]
-    app2 = slicer(index=3)
-    assert app2(list(range(4))) == [0, 1, 2]
-
-
-def test_appify_pickle():
-    """appified function should be pickleable"""
-    app = slicer(index=6)
-    dumped = dumps(app)
-    loaded = loads(dumped)
-    assert loaded(list(range(10))) == list(range(6))
-
-
 def test_user_function_repr():
     got = repr(bar(num=3))
     assert got == "bar(num=3)"
@@ -643,48 +614,6 @@ def test_user_function_repr():
 def test_user_function_str():
     got = str(bar(num=3))
     assert got == "bar(num=3)"
-
-
-def test_user_function_with_args_kwargs():
-    """correctly handles definition with args, kwargs"""
-    from math import log
-
-    def product(val, multiplier, take_log=False):
-        result = val * multiplier
-        if take_log:
-            result = log(result)
-
-        return result
-
-    # without defining any args, kwargs
-    ufunc = user_function(
-        product,
-        SERIALISABLE_TYPE,
-        SERIALISABLE_TYPE,
-    )
-    assert ufunc(2, 2) == 4
-    assert ufunc(2, 2, take_log=True) == log(4)
-
-    # defining default arg2
-    ufunc = user_function(
-        product,
-        SERIALISABLE_TYPE,
-        SERIALISABLE_TYPE,
-        2,
-    )
-    assert ufunc(2) == 4
-    assert ufunc(2, take_log=True) == log(4)
-
-    # defining default kwarg only
-    ufunc = user_function(product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, take_log=True)
-    assert ufunc(2, 2) == log(4)
-    assert ufunc(2, 2, take_log=False) == 4
-
-    # defining default arg and kwarg
-    ufunc = user_function(
-        product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, 2, take_log=True
-    )
-    assert ufunc(2) == log(4)
 
 
 def test_app_registry():
