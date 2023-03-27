@@ -8,7 +8,7 @@ name: Format code using black and isort
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "develop", "issue23-precommithooks" ]
 
 jobs:
   linters:
