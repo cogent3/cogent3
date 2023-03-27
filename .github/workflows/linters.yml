@@ -1,0 +1,32 @@
+name: Format code using black and isort
+# modified from https://towardsdatascience.com/black-with-git-hub-actions-4ffc5c61b5fe
+# caching https://stackoverflow.com/questions/59127258/how-can-i-use-pip-cache-in-github-actions
+# black integration https://black.readthedocs.io/en/stable/integrations/github_actions.html
+# isort integration https://pycqa.github.io/isort/docs/configuration/github_action.html
+
+
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  linters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Format code with black 
+        run: |
+          pip install black==21.12b0
+          black .
+      - name: Format code with isort
+        run: |
+          pip install  isort==5.10.1
+          isort .
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: ${{ github.actor }}
+          author_email: ${{ github.actor }}@users.noreply.github.com
+          message: "Format code with black and sort imports with isort"
+          add: "."
