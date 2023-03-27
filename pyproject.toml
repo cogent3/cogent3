@@ -44,7 +44,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 [project.optional-dependencies]
 test = [
     "black==21.12b",
-    "isort==5.10.1",
+    "isort==5.12.0",
     "click==8.0.4", # black needs this pinned
     "kaleido",
     "pandas",
@@ -86,7 +86,7 @@ dev = ["black==21.12b",
        "ipykernel",
        "ipython",
        "ipywidgets",
-       "isort==5.10.1",
+       "isort==5.12.0",
        "jupyter-sphinx",
        "jupyter_client",
        "jupyterlab",
