@@ -20,6 +20,7 @@ from cogent3.app.typing import get_constraint_names, type_tree
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import (
+    docstring_to_summary_rest,
     extend_docstring_from,
     get_object_provenance,
     in_jupyter,
@@ -35,14 +36,14 @@ from .data_store import (
     DataStoreMember,
     WritableDirectoryDataStore,
 )
-from .data_store_new import get_data_source
+from .data_store_new import DataMember, get_data_source, get_unique_id
 
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -52,13 +53,15 @@ _builtin_seqs = list, set, tuple
 
 
 def _make_logfile_name(process):
-    text = str(process)
-    text = re.split(r"\s+\+\s+", text)
-    parts = [part[: part.find("(")] for part in text]
+    text = re.split(r"\s+\+\s+", str(process))
+    parts = []
+    for part in text:
+        if part.find("(") >= 0:
+            part = part[: part.find("(")]
+        parts.append(part)
     result = "-".join(parts)
-    pid = os.getpid()
-    result = f"{result}-pid{pid}.log"
-    return result
+    uid = str(uuid4())
+    return f"{result}-{uid[:8]}.log"
 
 
 def _get_origin(origin):
@@ -1085,6 +1088,8 @@ def _class_from_func(func):
     sig = inspect.signature(func)
     class_name = func.__name__
     _main = _set_hints(_main, *_get_raw_hints(func, 1))
+    summary, body = docstring_to_summary_rest(func.__doc__)
+    func.__doc__ = None
 
     _class_dict = {"__init__": _init, "main": _main, "_user_func": staticmethod(func)}
 
@@ -1095,6 +1100,8 @@ def _class_from_func(func):
     result = types.new_class(class_name, (), exec_body=lambda x: x.update(_class_dict))
     result.__module__ = module  # necessary for pickle support
     result._func_sig = sig
+    result.__doc__ = summary
+    result.__init__.__doc__ = body
     return result
 
 
@@ -1186,7 +1193,7 @@ def define_app(
     ``drop_bad`` is a composable app with ``app_type=GENERIC``. The input
     data must be a sequence alignment instance. It returns the same type,
     which is also serialisable.  (If invalid input data is provided a
-    ``NoteCompleted`` instance is returned.)
+    ``NotCompleted`` instance is returned.)
 
     You can also decorate functions. In that case, they will be converted into
     a class with the same name as the original function. The function itself is
@@ -1288,13 +1295,8 @@ def _source_wrapped(self, value: source_proxy) -> source_proxy:
     return value
 
 
-def _as_completed(
-    self,
-    dstore,
-    parallel=False,
-    par_kw=None,
-    # show_progress?
-) -> Generator:
+@UI.display_wrap
+def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Generator:
     """invokes self composable function on the provided data store
 
     Parameters
@@ -1309,10 +1311,10 @@ def _as_completed(
         member of dstore.
     par_kw
         dict of values for configuring parallel execution.
-
-    Returns
-    -------
-    Result of the process as a list.
+    kwargs
+        setting a show_progress boolean keyword value here
+        affects progress display code, other arguments are passed to
+        the cogent3.util.progress_bar.display_wrap decorator
 
     Notes
     -----
@@ -1320,6 +1322,7 @@ def _as_completed(
     aggregates results. If run in serial, results are returned in the
     same order as provided.
     """
+    ui = kwargs.pop("ui")
     app = (
         self.input._source_wrapped if self.app_type is WRITER else self._source_wrapped
     )
@@ -1335,7 +1338,8 @@ def _as_completed(
         to_do = PAR.as_completed(app, mapped, **par_kw)
     else:
         to_do = map(app, mapped)
-    return to_do
+
+    return ui.series(to_do, count=len(mapped), **kwargs)
 
 
 def is_composable(obj):
@@ -1346,7 +1350,7 @@ def is_composable(obj):
 def _apply_to(
     self,
     dstore,
-    id_from_source: callable = get_data_source,
+    id_from_source: callable = get_unique_id,
     parallel=False,
     par_kw=None,
     logger=None,
@@ -1377,15 +1381,18 @@ def _apply_to(
     cleanup : bool
         after copying of log files into the data store, it is deleted
         from the original location
+    show_progress : bool
+        controls progress bar display
 
     Returns
     -------
-    Result of the process as a list
+    The output data store instance
 
     Notes
     -----
     This is an append only function, meaning that if a member already exists
     in self.data_store for an input, it is skipped.
+
     If run in parallel, this instance spawns workers and aggregates results.
     """
     if not self.input:
@@ -1397,14 +1404,13 @@ def _apply_to(
     # todo this should fail if somebody provides data that cannot produce a unique_id
     inputs = {}
     for m in dstore:
-        input_id = Path(m if isinstance(m, DataStoreMember) else id_from_source(m))
-        suffixes = input_id.suffixes
-        input_id = input_id.name.replace("".join(suffixes), "")
+        input_id = Path(m.unique_id) if isinstance(m, DataMember) else m
+        input_id = id_from_source(input_id)
         if input_id in inputs:
             raise ValueError("non-unique identifier detected in data")
         if input_id in self.data_store:  # todo write a test
             continue
-        inputs[input_id] = input_id
+        inputs[input_id] = m
 
     if not dstore:  # this should just return datastore, because if all jobs are done!
         raise ValueError("dstore is empty")
@@ -1415,11 +1421,11 @@ def _apply_to(
     logger.log_message(str(self), label="composable function")
     logger.log_versions(["cogent3"])
 
-    inputs = _proxy_input(dstore)
-    for result in self.as_completed(inputs, parallel=parallel, par_kw=par_kw):
-        member = self.main(
-            data=result.obj, identifier=id_from_source(result.source)
-        )  # writers must return DataMember
+    inputs = _proxy_input(inputs.values())
+    for result in self.as_completed(
+        inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
+    ):
+        member = self.main(data=result.obj, identifier=id_from_source(result.source))
         md5 = member.md5
         logger.log_message(str(member), label="output")
         if md5:

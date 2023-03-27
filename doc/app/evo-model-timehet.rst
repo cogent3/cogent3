@@ -8,12 +8,12 @@ Specifying a non-stationary model with time-heterogeneous parameters
 
 A model is considered time-heterogeneous if rate matrix terms differ between edges on a tree.
 
-In this example, we load the and display our sample primate tree, highlighting the edge sets that will be assigned different rate matrices.
+In this example, we load and display our sample primate tree, highlighting the edges that will be assigned different rate matrices.
 
 .. jupyter-execute::
 
     from cogent3 import load_tree
-    from cogent3.app import evo, io
+    from cogent3 import get_app
 
     tree = load_tree("data/primate_brca1.tree")
     fig = tree.get_figure(contemporaneous=True)
@@ -31,18 +31,18 @@ To construct a ``model`` with this information, we create a dictionary that we a
 
 .. jupyter-execute::
 
-    time_het = evo.model(
+    time_het = get_app("model", 
         "GN",
         tree=tree,
         time_het=[dict(tip_names=["Human", "Orangutan"], outgroup_name="Galago")],
     )
 
-The outcome of this setting to ``model`` is that the black edges will share one rate matrix, the red edges another. We fit the model to the sample data set.
+The outcome of this setting to ``model`` is that the black edges will share one rate matrix, the red edges another. We fit the model to the data.
 
 .. jupyter-execute::
 
-    reader = io.load_aligned(format="fasta")
-    aln = reader("data/primate_brca1.fasta")
+    loader = get_app("load_aligned", format="fasta")
+    aln = loader("data/primate_brca1.fasta")
     result = time_het(aln)
 
 Examining the fitted likelihood function, the rate parameters differ between the edge sets.

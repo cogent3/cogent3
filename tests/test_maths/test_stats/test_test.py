@@ -91,7 +91,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -238,20 +238,6 @@ class TestsTests(TestCase):
         """tail should return x/2 if test is true; 1-(x/2) otherwise"""
         assert_allclose(tail(0.25, "a" == "a"), 0.25 / 2)
         assert_allclose(tail(0.25, "a" != "a"), 1 - (0.25 / 2))
-
-    def test_combinations(self):
-        """combinations should return correct binomial coefficient"""
-        assert_allclose(combinations(5, 3), 10)
-        assert_allclose(combinations(5, 2), 10)
-        # only one way to pick no items or the same number of items
-        assert_allclose(combinations(123456789, 0), 1)
-        assert_allclose(combinations(123456789, 123456789), 1)
-        # n ways to pick one item
-        assert_allclose(combinations(123456789, 1), 123456789, rtol=1e-6)
-        # n(n-1)/2 ways to pick 2 items
-        assert_allclose(combinations(123456789, 2), 123456789 * 123456788 / 2)
-        # check an arbitrary value in R
-        assert_allclose(combinations(1234567, 12), 2.617073e64, rtol=1e-6)
 
     def test_multiple_comparisons(self):
         """multiple_comparisons should match values from R"""

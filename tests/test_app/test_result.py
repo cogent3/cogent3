@@ -4,7 +4,7 @@ from unittest import TestCase, main
 
 from cogent3 import make_aligned_seqs, make_table
 from cogent3.app import evo as evo_app
-from cogent3.app.data_store import DataStoreMember
+from cogent3.app.data_store_new import DataMember
 from cogent3.app.result import (
     generic_result,
     hypothesis_result,
@@ -20,7 +20,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -77,22 +77,22 @@ class TestGenericResult(TestCase):
     def test_infers_source(self):
         """flexible handling of data source"""
         # works for string
-        source = "path/blah.fasta"
+        source = pathlib.Path("path/blah.fasta")
         aln = make_aligned_seqs(
-            {"A": "ACGT"}, info=dict(source=source, random_key=1234)
+            {"A": "ACGT"}, info=dict(source=str(source), random_key=1234)
         )
         gr = generic_result(aln)
-        self.assertEqual(gr.source, "blah.fasta")
+        self.assertEqual(gr.source, source.name)
 
         # or Path
-        aln.info.source = pathlib.Path(source)
+        aln.info.source = source
         gr = generic_result(aln)
-        self.assertEqual(str(gr.source), str(pathlib.Path("blah.fasta")))
+        self.assertEqual(str(gr.source), source.name)
 
-        # or DataStoreMember
-        aln.info.source = DataStoreMember(source)
+        # or DataMember
+        aln.info.source = DataMember(data_store=None, unique_id=source.name)
         gr = generic_result(aln)
-        self.assertEqual(str(gr.source), "blah.fasta")
+        self.assertEqual(str(gr.source), source.name)
 
         aln.info = {}
         with self.assertRaises(ValueError):

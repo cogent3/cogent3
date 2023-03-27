@@ -13,7 +13,7 @@ There are multiple algorithmic approaches to solving parallel computation proble
     
     It is not always faster to split tasks between processes. You should see a performance gain if the calculation time per task of the worker is significantly greater than the time it will take the master process to deal with the result -- in our example, the time it takes to write the alignment to file.
 
-    While the alignment problem indicated above stipulated writing all results to separate files, this is not always a good idea. It can prove very inefficient if the individual alignment files are small. In such a case, storing the result in a single file (e.g. as a ``tinydb`` database) is better.
+    While the alignment problem indicated above stipulated writing all results to separate files, this is not always a good idea. It can prove very inefficient if the individual alignment files are small. In such a case, storing the result in a single file (e.g. as a ``sqlitedb`` database) is better.
 
 Parallel computation on a single computer
 -----------------------------------------

@@ -1,10 +1,12 @@
 """Generally useful utility classes and methods.
 """
+import inspect
 import os
 import re
 import warnings
 
 from random import randint
+from typing import Tuple
 from warnings import warn
 
 import numpy
@@ -25,7 +27,7 @@ __credits__ = [
     "Marcin Cieslik",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -930,7 +932,7 @@ def get_object_provenance(obj):
     # algorithm inspired by Greg Baacon's answer to
     # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
     # -name-of-an-object-in-python
-    if isinstance(obj, type):
+    if isinstance(obj, type) or inspect.isfunction(obj):
         mod = obj.__module__
         name = obj.__name__
     else:
@@ -963,6 +965,30 @@ def extend_docstring_from(source, pre=False):
         return dest
 
     return docstring_inheriting_decorator
+
+
+_doc_block = re.compile(
+    r"^\s*(Parameters|Notes|Raises)", flags=re.IGNORECASE | re.MULTILINE
+)
+
+
+def docstring_to_summary_rest(text: str) -> Tuple[str, str]:
+    """separates the summary at the start of a docstring from the rest
+
+    Notes
+    -----
+    Assumes numpydoc style.
+    """
+    if not text:
+        return "", ""
+
+    pos = _doc_block.search(text)
+    if pos is None:
+        return text, ""
+
+    summary = text[: pos.start()].rstrip()
+    text = text[pos.start() :]
+    return summary, text.lstrip("\n").rstrip(" ")
 
 
 def ascontiguousarray(source_array, dtype=None):
@@ -1014,4 +1040,12 @@ def get_setting_from_environ(environ_var, params_types):
 
 def in_jupyter() -> bool:
     """whether code is being executed within a jupyter notebook"""
-    return callable(globals().get("get_ipython"))
+    val = True
+    try:
+        # primitive approach, just check whether the following function
+        # is in the namespace
+        get_ipython
+    except NameError:
+        val = False
+
+    return val

@@ -13,7 +13,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -151,14 +151,12 @@ def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
 
 @define_app
 class select_translatable:
-    """Identifies most likely reading frame."""
+    """Selects translatable sequences by identifying the most likely reading
+    frame. Sequences are truncated to modulo 3. seqs.info has a
+    translation_errors entry."""
 
     def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
-        """selects translatable sequences
-
-        Sequences are truncated to modulo 3. seqs.info has a translation_errors
-        entry.
-
+        """
         Parameters
         ----------
         moltype : str
@@ -228,11 +226,11 @@ class select_translatable:
 
 @define_app
 class translate_seqs:
-    """Translates sequences, assumes in correct reading frame."""
+    """Translates nucleic acid sequences into protein sequences, assumes in
+    correct reading frame."""
 
     def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
-        """generates aa sequences
-
+        """
         Parameters
         ----------
         moltype : str

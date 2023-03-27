@@ -15,7 +15,7 @@ __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Sandra Smit", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Development"
@@ -119,7 +119,7 @@ def create_acceptable_sequence(sequence):
     trans_table = dict([(ord(c), None) for c in "{}[]()^"])
     trans_table[ord("o")] = ord("?")
     # strip out secondary structure annotation {}[]()^
-    return sequence.translate(trans_table)  # should be accepted by RnaSequence
+    return str(sequence).translate(trans_table)  # should be accepted by RnaSequence
 
 
 def RdbParser(

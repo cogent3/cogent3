@@ -7,7 +7,7 @@ from enum import Enum
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import numpy
 
@@ -22,24 +22,21 @@ from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
+from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
-from .data_store import (
-    ReadOnlyDirectoryDataStore,
-    ReadOnlyTinyDbDataStore,
-    ReadOnlyZippedDataStore,
-)
+from .data_store import ReadOnlyTinyDbDataStore, ReadOnlyZippedDataStore
 from .data_store_new import (
     READONLY,
     DataStoreABC,
     DataStoreDirectory,
     Mode,
-    get_data_source,
+    get_unique_id,
     load_record_from_json,
     make_record_for_json,
 )
-from .sqlite_data_store import DataStoreSqlite
+from .sqlite_data_store import _MEMORY, DataStoreSqlite
 from .typing import (
     AlignedSeqsType,
     IdentifierType,
@@ -54,7 +51,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -139,15 +136,18 @@ def open_data_store(
     if not isinstance(suffix, (str, type(None))):
         raise ValueError(f"suffix {type(suffix)} not one of string or None")
 
-    kwargs = dict(limit=limit, mode=mode, suffix=suffix)
+    kwargs = {"limit": limit, "mode": mode, "suffix": suffix, **kwargs}
     base_path = Path(base_path)
-    base_path = base_path.expanduser().absolute()
-    if base_path.suffix == ".tinydb":
+    base_path = (
+        base_path if base_path.name == ":memory:" else base_path.expanduser().absolute()
+    )
+    if base_path.is_dir():
+        ds_suffix = None
+    elif base_path.suffix == ".tinydb":
         kwargs["suffix"] = "json"
         kwargs.pop("mode")
-
-    if base_path.suffix == ".sqlitedb":
-        ds_suffix = base_path.suffix
+    elif base_path.suffix == ".sqlitedb" or base_path.name == _MEMORY:
+        ds_suffix = ".sqlitedb"
         kwargs.pop("suffix")
     elif zipfile.is_zipfile(base_path):
         ds_suffix = ".zip"
@@ -155,7 +155,11 @@ def open_data_store(
     elif base_path.suffix:
         ds_suffix = base_path.suffix
     else:
+        # triggered when mode="w"
         ds_suffix = None
+
+    if base_path.name == _MEMORY and mode is READONLY:
+        raise NotImplementedError("in memory readonly sqlitedb")
 
     if ds_suffix is None and suffix is None:
         raise ValueError("a suffix is required if using a directory data store")
@@ -167,16 +171,20 @@ def open_data_store(
 
 @define_app(skip_not_completed=False)
 def pickle_it(data: SerialisableType) -> bytes:
+    """Serialises data using pickle."""
     return pickle.dumps(data)
 
 
 @define_app(skip_not_completed=False)
 def unpickle_it(data: bytes) -> SerialisableType:
+    "Deserialises pickle data."
     return pickle.loads(data)
 
 
 @define_app(skip_not_completed=False)
 class compress:
+    """Compresses bytes data."""
+
     def __init__(self, compressor: callable = gzip_compress):
         """
         Parameters
@@ -192,6 +200,8 @@ class compress:
 
 @define_app(skip_not_completed=False)
 class decompress:
+    """Decompresses data."""
+
     def __init__(self, decompressor: callable = gzip_decompress):
         """
         Parameters
@@ -206,7 +216,8 @@ class decompress:
         return self.decompressor(data)
 
 
-def _as_dict(obj) -> dict:
+def as_dict(obj: Any) -> dict:
+    """returns result of to_rich_dict method if it exists"""
     with contextlib.suppress(AttributeError):
         obj = obj.to_rich_dict()
     return obj
@@ -216,11 +227,11 @@ def _as_dict(obj) -> dict:
 class to_primitive:
     """convert an object to primitive python types suitable for serialisation"""
 
-    def __init__(self, convertor: callable = _as_dict):
+    def __init__(self, convertor: callable = as_dict):
         self.convertor = convertor
 
     def main(self, data: SerialisableType) -> SerialisableType:
-        """either json convertor a dict from a cogent3 object"""
+        """returns dict from a cogent3 object"""
         return self.convertor(data)
 
 
@@ -234,6 +245,18 @@ class from_primitive:
     def main(self, data: SerialisableType) -> SerialisableType:
         """either json or a dict from a cogent3 object"""
         return self.deserialiser(data)
+
+
+@define_app
+def to_json(data: SerialisableType) -> str:
+    """Convert primitive python types to json string."""
+    return json.dumps(data)
+
+
+@define_app
+def from_json(data: str) -> SerialisableType:
+    """Convert json string to primitive python types."""
+    return json.loads(data)
 
 
 class tabular(Enum):
@@ -434,17 +457,26 @@ class load_json:
         return result
 
 
+DEFAULT_DESERIALISER = unpickle_it() + from_primitive()
+
+
 @define_app(app_type=LOADER)
 class load_db:
     """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
 
-    def __init__(self, deserialiser: callable = unpickle_it() + from_primitive()):
+    def __init__(self, deserialiser: callable = DEFAULT_DESERIALISER):
         self.deserialiser = deserialiser
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
         """returns deserialised object"""
-        data = identifier.read()
+        try:
+            data = identifier.read()
+        except AttributeError:
+            raise AttributeError(
+                f"{identifier} failed because its of type {type(identifier)}"
+            )
+
         # do we need to inject identifier attribute?
         result = self.deserialiser(data)
         if hasattr(result, "info"):
@@ -458,17 +490,31 @@ class load_db:
 
 @define_app(app_type=WRITER)
 class write_json:
+    """Writes data in json format."""
+
     def __init__(
         self,
         data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
     ):
+        """
+        Parameters
+        ----------
+        data_store
+            A writeable data store.
+        id_from_source
+            A function for creating a unique identifier based on the data
+            source. The default function removes path information and
+            filename + compression suffixes.
+        """
         self.data_store = data_store
         self._format = "json"
+        self._id_from_source = id_from_source
 
     def main(
-        self, data: SerialisableType, identifier: Optional[str] = None
+        self, /, data: SerialisableType, *, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_data_source(data)
+        identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -480,19 +526,28 @@ class write_json:
 
 
 @define_app(app_type=WRITER)
-class write_seqs:  # todo docstring
+class write_seqs:
+    """Write sequences in standard formats."""
+
+    @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
         data_store: DataStoreABC,
-        format="fasta",
+        id_from_source: callable = get_unique_id,
+        format: str = "fasta",
     ):
+        """
+        format
+            sequence format
+        """
         self.data_store = data_store
         self._formatter = FORMATTERS[format]
+        self._id_from_source = id_from_source
 
     def main(
-        self, data: SeqsCollectionType, identifier: Optional[str] = None
+        self, /, data: SeqsCollectionType, *, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_data_source(data)
+        identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -503,15 +558,28 @@ class write_seqs:  # todo docstring
 
 
 @define_app(app_type=WRITER)
-class write_tabular:  # todo doctsring
-    def __init__(self, data_store: DataStoreABC, format="tsv"):
+class write_tabular:
+    """Writes tabular data in text format supported by the cogent3 Table object."""
+
+    @extend_docstring_from(write_json.__init__, pre=False)
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
+        format: str = "tsv",
+    ):
+        """
+        format
+            tabular format, e.g. 'csv' or 'tsv'
+        """
         self.data_store = data_store
+        self._id_from_source = id_from_source
         self._format = format
 
     def main(
-        self, data: TabularType, identifier: Optional[str] = None
+        self, /, data: TabularType, *, identifier: Optional[str] = None
     ) -> IdentifierType:
-        identifier = identifier or get_data_source(data)
+        identifier = identifier or self._id_from_source(data)
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
                 unique_id=f"{identifier}.json", data=data.to_json()
@@ -521,35 +589,34 @@ class write_tabular:  # todo doctsring
         return self.data_store.write(unique_id=identifier, data=output)
 
 
-@define_app(app_type=WRITER)
+DEFAULT_SERIALISER = to_primitive() + pickle_it()
+
+
+@define_app(app_type=WRITER, skip_not_completed=False)
 class write_db:
     """Write serialised objects to a database instance."""
 
+    @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
         data_store: DataStoreABC,
-        serialiser: callable = to_primitive() + pickle_it(),
+        id_from_source: callable = get_unique_id,
+        serialiser: callable = DEFAULT_SERIALISER,
     ):
+        """
+        serialiser
+            A callable for serialising input data. By default, it converts
+            data into primitive python data types, pickling the result.
+        """
         self.data_store = data_store
-        self.serialiser = serialiser
+        self._serialiser = serialiser
+        self._id_from_source = id_from_source
 
-    T = Union[SerialisableType, IdentifierType]
-
-    def main(self, /, data: SerialisableType, *, identifier=None) -> T:
-        """
-        Parameters
-        ----------
-        data
-            object that has a `to_json()` method, or can be json serialised
-        identifier : str
-            if not provided, taken from data.source or data.info.source
-
-        Returns
-        -------
-        identifier
-        """
-        identifier = identifier or get_data_source(data)
-        blob = self.serialiser(data)
+    def main(
+        self, /, data: SerialisableType, *, identifier: Optional[str] = None
+    ) -> IdentifierType:
+        identifier = identifier or self._id_from_source(data)
+        blob = self._serialiser(data)
 
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(unique_id=identifier, data=blob)

@@ -7,6 +7,8 @@ from copy import copy, deepcopy
 from os import remove, rmdir
 from unittest import TestCase, main
 
+import pytest
+
 from numpy.testing import assert_allclose
 
 from cogent3.util.misc import (
@@ -25,6 +27,7 @@ from cogent3.util.misc import (
     adjusted_gt_minprob,
     adjusted_within_bounds,
     curry,
+    docstring_to_summary_rest,
     extend_docstring_from,
     get_independent_coords,
     get_merged_by_value_coords,
@@ -54,7 +57,7 @@ __credits__ = [
     "Daniel McDonald",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -396,28 +399,44 @@ class UtilsTests(TestCase):
 
     def test_get_object_provenance(self):
         """correctly deduce object provenance"""
+        from cogent3 import DNA, SequenceCollection, get_model
+
         result = get_object_provenance("abncd")
         self.assertEqual(result, "str")
-        from cogent3 import DNA
 
         got = get_object_provenance(DNA)
         self.assertEqual(got, "cogent3.core.moltype.MolType")
-        from cogent3.evolve.models import HKY85
 
-        sm = HKY85()
+        sm = get_model("HKY85")
         got = get_object_provenance(sm)
         self.assertEqual(
-            got, "cogent3.evolve.substitution_model." "TimeReversibleNucleotide"
+            got, "cogent3.evolve.substitution_model.TimeReversibleNucleotide"
         )
 
         # handle a type
-        from cogent3 import SequenceCollection
-
         instance = SequenceCollection(dict(a="ACG", b="GGG"))
         instance_prov = get_object_provenance(instance)
         self.assertEqual(instance_prov, "cogent3.core.alignment.SequenceCollection")
         type_prov = get_object_provenance(SequenceCollection)
         self.assertEqual(instance_prov, type_prov)
+
+    def test_get_object_provenance_builtins(self):
+        """allow identifying builtins too"""
+        from gzip import GzipFile, compress
+
+        obj_prov = get_object_provenance(compress)
+
+        self.assertEqual(obj_prov, "gzip.compress")
+
+        obj_prov = get_object_provenance(GzipFile)
+        self.assertEqual(obj_prov, "gzip.GzipFile")
+
+        d = dict(a=23, b=1)
+        obj_prov = get_object_provenance(d)
+        self.assertEqual(obj_prov, "dict")
+
+        obj_prov = get_object_provenance(dict)
+        self.assertEqual(obj_prov, "dict")
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
@@ -1189,6 +1208,67 @@ class ExtendDocstringTests(TestCase):
         self.assertEqual(
             self.FooPrepend.__doc__, "I am foo.\nThis is a class docstring."
         )
+
+
+def test_not_in_jupyter():
+    from cogent3.util.misc import in_jupyter
+
+    assert not in_jupyter()
+
+
+def test_is_in_jupyter():
+    # an ugly hack, the in_jupyter function relies entirely on whether a
+    # get_ipython variable exists in the name space
+    import cogent3.util.misc as module
+
+    from cogent3.util.misc import in_jupyter
+
+    module.get_ipython = lambda x: x
+    assert in_jupyter()
+    del module.get_ipython
+
+
+def foo1():
+    """some text"""
+
+
+def foo2():
+    """some text
+
+    Notes
+    -----
+    body
+    """
+
+
+def foo3():
+    """
+    Notes
+    -----
+    body
+    """
+
+
+def foo4():
+    ...
+
+
+_sum_expect = "some text"
+_body_expect = ["Notes", "-----", "body"]
+
+
+@pytest.mark.parametrize(
+    "foo,sum_exp,body_exp",
+    (
+        (foo1, _sum_expect, []),
+        (foo2, _sum_expect, _body_expect),
+        (foo3, "", _body_expect),
+        (foo4, "", []),
+    ),
+)
+def test_docstring_to_summary_rest(foo, sum_exp, body_exp):
+    summary, body = docstring_to_summary_rest(foo.__doc__)
+    assert summary == sum_exp and body.split() == body_exp
 
 
 if __name__ == "__main__":

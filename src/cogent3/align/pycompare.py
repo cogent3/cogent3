@@ -14,7 +14,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -610,9 +610,9 @@ def find_matched_paths(
         s1_coord, _ = paths.last_on_path(seq1_idx, seq2_idx)
         left_limit = min(abs(s1_coord.end - seq1_idx), delta)
         ref_coord, other_coord = _extend_from_position(
-            seq1._seq,
+            str(seq1),
             seq1_idx,
-            seq2._seq,
+            str(seq2),
             seq2_idx,
             window=window,
             threshold=threshold,

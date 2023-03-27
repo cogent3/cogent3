@@ -37,7 +37,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -60,7 +60,6 @@ class DataStoreMember(str):  # pragma: no cover
             "cogent3.data_store_new.DataMember",
             "2023.3",
             "use cogent3.data_store_new.DataMember",
-            stack_level=1,
         )
 
         result = str.__new__(klass, name)
@@ -122,7 +121,6 @@ class ReadOnlyDataStoreBase:  # pragma: no cover
             "cogent3.data_store_new.DataStoreDirectory",
             "2023.3",
             "use cogent3.data_store_new.DataStoreABC",
-            stack_level=1,
         )
 
         # todo this approach to caching persistent arguments for reconstruction
@@ -429,7 +427,6 @@ class WritableDataStoreBase:  # pragma: no cover
             "cogent3.data_store_new.DataStoreDirectory",
             "2023.3",
             "use cogent3.data_store_new.DataStoreABC",
-            stack_level=1,
         )
 
         d = locals()

@@ -3,30 +3,32 @@
 
     import set_working_directory
 
+.. _data_stores:
+
 Specifying data for analysis
 ============================
 
-We introduce the concept of a “data store”. This represents the data record(s) that you want to analyse. It can be a single file, a directory of files, a zipped directory of files or a single ``tinydb`` file containing multiple data records.
+We introduce the concept of a “data store”. This represents the data record(s) that you want to analyse. It can be a single file, a directory of files, a zipped directory of files or a single ``sqlitedb`` file containing multiple data records.
 
 We represent this concept by a ``DataStore`` class. There are different flavours of these:
 
 -  directory based
--  zip archive based
--  TinyDB based (this is a NoSQL json based data base)
+-  Sqlite based
 
-These can be read only or writable. All of these types support being indexed, iterated over, filtered, etc.. The ``tinydb`` variants do have some unique abilities (discussed below).
+All of these types support being indexed, iterated over, etc..
 
 A read only data store
 ----------------------
 
-To create one of these, you provide a ``path`` AND a ``suffix`` of the files within the directory / zip that you will be analysing. (If the path ends with ``.tinydb``, no file suffix is required.)
+To create one of these, you provide a ``path`` AND a ``suffix`` of the files within the directory / zip that you will be analysing. (If the path ends with ``.sqlitedb``, no file suffix is required.)
 
 .. jupyter-execute::
 
-    from cogent3.app.io import get_data_store
+    from cogent3 import open_data_store
 
-    dstore = get_data_store("data/raw.zip", suffix="fa*", limit=5)
-    dstore
+    dstore = open_data_store("data/raw.zip", suffix="fa*", limit=5, mode="r")
+
+.. _data_member: 
 
 Data store “members”
 --------------------
@@ -42,22 +44,6 @@ These are able to read their own raw data.
 
     m.read()[:20]  # truncating
 
-Showing the last few members
-----------------------------
-
-Use the ``head()`` method to see the first few.
-
-.. jupyter-execute::
-
-    dstore.tail()
-
-Filtering a data store for specific members
--------------------------------------------
-
-.. jupyter-execute::
-
-    dstore.filtered("*ENSG00000067704*")
-
 Looping over a data store
 -------------------------
 
@@ -69,22 +55,20 @@ Looping over a data store
 Making a writeable data store
 -----------------------------
 
-The creation of a writeable data store is handled for you by the different writers we provide under ``cogent3.app.io``.
+The creation of a writeable data store is specified with ``mode="w"``, or (to append) ``mode="a"``. In the former case, any existing records are overwritten. In the latter case, existing records are ignored.
 
-.. warning:: The ``WritableZippedDataStore`` is deprecated.
+Sqlitedb data stores for serialised data
+----------------------------------------
 
-TinyDB data stores are special
-------------------------------
+When you specify a Sqlitedb data store as your output (by using ``open_data_store()``) you write multiple records into a single file making distribution easier.
 
-When you specify a TinyDB data store as your output (by using ``io.write_db()``), you get additional features that are useful for dissecting the results of an analysis.
-
-One important issue to note is the process which creates a TinyDB “locks” the file. If that process exits unnaturally (e.g. the run that was producing it was interrupted) then the file may remain in a locked state. If the db is in this state, ``cogent3`` will not modify it unless you explicitly unlock it.
+One important issue to note is the process which creates a Sqlitedb “locks” the file. If that process exits unnaturally (e.g. the run that was producing it was interrupted) then the file may remain in a locked state. If the db is in this state, ``cogent3`` will not modify it unless you explicitly unlock it.
 
 This is represented in the display as shown below.
 
 .. jupyter-execute::
 
-    dstore = get_data_store("data/demo-locked.tinydb")
+    dstore = open_data_store("data/demo-locked.sqlitedb")
     dstore.describe
 
 To unlock, you execute the following:
@@ -94,9 +78,9 @@ To unlock, you execute the following:
     dstore.unlock(force=True)
 
 Interrogating run logs
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
-If you use the ``apply_to(logger=true)`` method, a ``scitrack`` logfile will be included in the data store. This includes useful information regarding the run conditions that produced the contents of the data store.
+If you use the ``apply_to()`` method, a ``scitrack`` logfile will be included in the data store. This includes useful information regarding the run conditions that produced the contents of the data store.
 
 .. jupyter-execute::
 
@@ -108,7 +92,7 @@ Log files can be accessed vial a special attribute.
 
     dstore.logs
 
-Each element in that list is a ``DataStoreMember`` which you can use to get the data contents.
+Each element in that list is a ``DataMember`` which you can use to get the data contents.
 
 .. jupyter-execute::
 

@@ -17,7 +17,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -45,8 +45,7 @@ class concat:
     """Creates a concatenated alignment from a series."""
 
     def __init__(self, join_seq="", intersect=True, moltype=None):
-        """concatenate sequences from a series of alignments
-
+        """
         Parameters
         ----------
         join_seq : str
@@ -107,12 +106,11 @@ class concat:
 
 @define_app
 class omit_degenerates:
-    """Excludes alignment columns with degenerate conditions. Can accomodate
+    """Excludes alignment columns with degenerate characters. Can accomodate
     reading frame."""
 
     def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
-        """excludes degenerate characters from alignment
-
+        """
         Parameters
         ----------
         moltype : str
@@ -278,15 +276,16 @@ class take_codon_positions:
 
 @define_app
 class take_named_seqs:
-    """Extracts named sequences."""
+    """Selects named sequences from a collection."""
 
     def __init__(self, *names, negate=False):
-        """selects named sequences from a collection
-
-        Returns
-        -------
-        A new sequence collection, or False if not all the named sequences are
-        in the collection.
+        """
+        Parameters
+        ----------
+        *names
+            series of sequence names
+        negate
+            if True, excludes the provided names from the result
         """
         self._names = names
         self._negate = negate
@@ -310,8 +309,6 @@ class take_n_seqs:
 
     def __init__(self, number, random=False, seed=None, fixed_choice=True):
         """
-        selects n sequences from a collection
-
         Parameters
         ----------
         number: int
@@ -530,9 +527,7 @@ class omit_bad_seqs:
     """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
-        """Returns an alignment without the sequences responsible for
-        exceeding disallowed_frac.
-
+        """
         Parameters
         ----------
         quantile : float or None
@@ -576,8 +571,7 @@ class omit_duplicated:
     seqs.info.dropped."""
 
     def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
-        """Returns unique sequences, adds 'dropped' key to seqs.info
-
+        """
         Parameters
         ----------
         mask_degen
@@ -657,8 +651,7 @@ class trim_stop_codons:
     """Removes terminal stop codons."""
 
     def __init__(self, gc=1):
-        """selects named sequences from a collection
-
+        """
         Parameters
         ----------
         gc

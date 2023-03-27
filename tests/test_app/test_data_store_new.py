@@ -9,6 +9,8 @@ import pytest
 
 from scitrack import get_text_hexdigest
 
+import cogent3.app.io_new as io_app
+
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     _MD5_TABLE,
@@ -21,7 +23,9 @@ from cogent3.app.data_store_new import (
     convert_directory_datastore,
     convert_tinydb_to_sqlite,
     get_data_source,
+    get_unique_id,
     load_record_from_json,
+    summary_not_completeds,
 )
 from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
@@ -31,7 +35,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -242,8 +246,8 @@ def test_convert_tinydb_to_sqlite_error(tmp_dir):
 @pytest.mark.parametrize(
     "orig,num_logs",
     (
-        (DATA_DIR / "sample_locked.tinydb", 0),
-        (DATA_DIR.parent.parent / "doc" / "data" / "demo-locked.tinydb", 1),
+        (DATA_DIR / "sample_locked.tinydb", 1),
+        (DATA_DIR / "sample_locked_w_log.tinydb", 2),
     ),
 )
 def test_convert_tinydbs_to_sqlite(tmp_dir, orig, num_logs):
@@ -477,6 +481,22 @@ def test_summary_not_completed(full_dstore):
     assert isinstance(got, Table)
 
 
+@pytest.mark.parametrize("use_dser", (False, True))
+def test_summary_not_completed_func(nc_objects, use_dser):
+    dstore = io_app.open_data_store(":memory:", mode="w")
+    writer = io_app.write_db(dstore)
+    deser = io_app.load_db().deserialiser if use_dser else None
+    for nc in nc_objects:
+        writer(nc)
+
+    got = summary_not_completeds(dstore, deserialise=deser)
+    assert isinstance(got, Table)
+    if use_dser:
+        assert got.shape[0] >= 1
+    else:
+        assert got.shape[0] == 0
+
+
 def test_describe(full_dstore):
     got = full_dstore.describe
     assert got.shape >= (3, 2)
@@ -544,6 +564,14 @@ def test_get_data_source_dict(container_type, source_stype):
     assert got == "path.txt"
 
 
+@pytest.mark.parametrize(
+    "name", ("path/name.txt", "path/name.gz", "path/name.fasta.gz", "name.fasta.gz")
+)
+def test_get_unique_id(name):
+    got = get_unique_id(name)
+    assert got == "name"
+
+
 @pytest.mark.parametrize("data", (dict(), set(), dict(info=dict())))
 def test_get_data_source_none(data):
     assert get_data_source(data) is None
@@ -574,3 +602,14 @@ def test_load_record_from_json():
         assert Id == "some.json"
         assert data_ == expected
         assert compl == True
+
+
+def test_write_read_not_completed(nc_dstore):
+    nc_dstore.drop_not_completed()
+    assert len(nc_dstore.not_completed) == 0
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    writer = io_app.write_seqs(data_store=nc_dstore)
+    writer.main(nc, identifier="blah")
+    assert len(nc_dstore.not_completed) == 1
+    got = nc_dstore.not_completed[0].read()
+    assert nc.to_json() == got

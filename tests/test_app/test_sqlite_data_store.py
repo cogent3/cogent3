@@ -6,6 +6,7 @@ import pytest
 
 from scitrack import get_text_hexdigest
 
+from cogent3 import get_app, open_data_store
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store_new import (
     APPEND,
@@ -28,7 +29,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -342,12 +343,6 @@ def test_summary_logs(full_dstore_sqlite):
     assert isinstance(got, Table)
 
 
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
-    assert isinstance(got, Table)
-
-
 def test_no_not_completed_subdir(full_dstore_sqlite):
     expect = f"{len(full_dstore_sqlite.completed)+len(full_dstore_sqlite.not_completed)}x member"
     assert str(full_dstore_sqlite).startswith(expect)
@@ -442,12 +437,6 @@ def test_summary_logs(full_dstore_sqlite):
     assert isinstance(got, Table)
 
 
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
-    assert isinstance(got, Table)
-
-
 def test_read_unknown_table(full_dstore_sqlite):
     with pytest.raises(ValueError):
         full_dstore_sqlite.read("unknown_table/id")
@@ -474,12 +463,6 @@ def test_summary_logs(full_dstore_sqlite):
     # log summary has a row per log file and a column for each property
     got = full_dstore_sqlite.summary_logs
     assert got.shape == (1, 6)
-    assert isinstance(got, Table)
-
-
-def test_summary_not_completed(full_dstore_sqlite):
-    got = full_dstore_sqlite.summary_not_completed
-    assert got.shape >= (1, 1)
     assert isinstance(got, Table)
 
 
@@ -541,3 +524,61 @@ def test_validate_missing_md5(md5_none):
     assert t["Num md5sum missing", "Value"] == 9
     for c in ("correct", "incorrect"):
         assert t[f"Num md5sum {c}", "Value"] == 0
+
+
+def test_open_data_store_sqlitedb_err():
+    # cannot create an in-mmemory db to read only
+    with pytest.raises(NotImplementedError):
+        open_data_store(":memory:", mode="r")
+
+
+def _make_appendable_dstore(path, suffix):
+    return open_data_store(path, suffix=suffix, mode="a")
+
+
+def _make_and_run_proc(out_path, suffix, members):
+    out_dstore = _make_appendable_dstore(out_path, suffix)
+    loader = get_app("load_unaligned", moltype="dna", format="fasta")
+    mlength = get_app("sample.min_length", 400)
+
+    if suffix:
+        writer = get_app("write_seqs", out_dstore, format="fasta")
+    else:
+        writer = get_app("write_db", out_dstore)
+
+    app = loader + mlength + writer
+    return app.apply_to(members, cleanup=True)
+
+
+@pytest.mark.parametrize(
+    "name,suffix", (("appended", "fa"), ("appended.sqlitedb", None))
+)
+def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
+    # do half the records in the first call
+    num = len(ro_dir_dstore.completed) // 2
+    # make a path for writeable dstore
+    out_path = tmp_dir / name
+    got1 = _make_and_run_proc(out_path, suffix, ro_dir_dstore[:num])
+    assert len(got1.logs) == 1
+
+    # creating a separate instance should result in a
+    # new log file
+    got2 = _make_and_run_proc(out_path, suffix, ro_dir_dstore[num:])
+    assert len(got2.logs) == 2
+    # should be a row for each log
+    summary = got2.summary_logs
+    assert summary.shape[0] == 2
+
+
+def test_summary_not_completed(nc_objects):
+    dstore = open_data_store(":memory:", mode="w")
+    writer = get_app("write_db", dstore)
+    for nc in nc_objects.values():
+        writer(nc)
+
+    # relying on the fact that all nc_objects have same origin
+    # and message, so those columns can be readily interrogated
+    summary = dstore.summary_not_completed
+    vals = summary.tolist(columns=["origin", "message", "num"])
+    assert len(vals) == 1
+    assert vals[0] == ["location", "'message'", 3]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import inspect
 import json
 import re
@@ -30,7 +31,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -231,36 +232,7 @@ class DataStoreABC(ABC):
     def summary_not_completed(self) -> TabularType:
         """returns a table summarising not completed results"""
         # detect last exception line
-        err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
-        types = defaultdict(list)
-        indices = "type", "origin"
-        for member in self.not_completed:
-            record = member.read()
-            record = deserialise_object(record)
-            key = tuple(getattr(record, k, None) for k in indices)
-            match = err_pat.findall(record.message)
-            types[key].append([match[-1] if match else record.message, record.source])
-
-        header = list(indices) + ["message", "num", "source"]
-        rows = []
-        maxtring = reprlib.aRepr.maxstring
-        reprlib.aRepr.maxstring = 45
-
-        for record in types:
-            messages, sources = list(zip(*types[record]))
-            messages = reprlib.repr(
-                ", ".join(m.splitlines()[-1] for m in set(messages))
-            )
-            sources = reprlib.repr(", ".join(s.splitlines()[-1] for s in sources))
-            row = list(record) + [
-                messages,
-                len(types[record]),
-                sources,
-            ]
-            rows.append(row)
-
-        reprlib.aRepr.maxstring = maxtring  # restoring original val
-        return Table(header=header, data=rows, title="not completed records")
+        return summary_not_completeds(self.not_completed)
 
     @property
     def describe(self) -> TabularType:
@@ -337,6 +309,62 @@ class DataMember(DataMemberABC):
     @property
     def unique_id(self):
         return self._unique_id
+
+
+def summary_not_completeds(
+    not_completed: list[DataMemberABC], deserialise: Optional[callable] = None
+) -> Table:
+    """
+    Parameters
+    ----------
+    not_completed
+        list of DataMember instances for notcompleted records
+    deserialise
+        a callable for converting not completed contents, the result of member.read() must be a json string
+    """
+    err_pat = re.compile(r"[A-Z][a-z]+[A-Z][a-z]+\:.+")
+    types = defaultdict(list)
+    indices = "type", "origin"
+    num_bytes = 0
+    for member in not_completed:
+        record = member.read()
+        if deserialise:
+            record = deserialise(record)
+        if isinstance(record, bytes):
+            num_bytes += 1
+            continue
+        record = deserialise_object(record)
+        key = tuple(getattr(record, k, None) for k in indices)
+        match = err_pat.findall(record.message)
+        types[key].append([match[-1] if match else record.message, record.source])
+    header = list(indices) + ["message", "num", "source"]
+    if num_bytes == len(not_completed):
+        return Table(
+            header=header,
+            title="Cannot summarise not_completed as they are all bytes, "
+            "use an appropriate reader",
+        )
+
+    rows = []
+    maxtring = reprlib.aRepr.maxstring
+    reprlib.aRepr.maxstring = 45
+    limit_len = 45
+    for record in types:
+        messages, sources = list(zip(*types[record]))
+        messages = reprlib.repr(", ".join(m.splitlines()[-1] for m in set(messages)))
+        sources = ", ".join(s.splitlines()[-1] for s in sources if s)
+        if len(sources) > limit_len:
+            idx = sources.rfind(",", None, limit_len) + 1
+            idx = idx if idx > 0 else limit_len
+            sources = f"{sources[:idx]} ..."
+        row = list(record) + [
+            messages,
+            len(types[record]),
+            sources,
+        ]
+        rows.append(row)
+    reprlib.aRepr.maxstring = maxtring  # restoring original val
+    return Table(header=header, data=rows, title="not completed records")
 
 
 class DataStoreDirectory(DataStoreABC):
@@ -494,6 +522,7 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+        (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         member = self._write(
             subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
         )
@@ -502,6 +531,7 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write_log(self, *, unique_id: str, data: str) -> None:
+        (self.source / _LOG_TABLE).mkdir(parents=True, exist_ok=True)
         _ = self._write(subdir=_LOG_TABLE, unique_id=unique_id, suffix="log", data=data)
 
     def md5(self, unique_id: str) -> Union[str, NoneType]:
@@ -520,6 +550,13 @@ class DataStoreDirectory(DataStoreABC):
         path = self.source / _MD5_TABLE / unique_id
 
         return path.read_text() if path.exists() else None
+
+
+def get_unique_id(name: str) -> str:
+    """strips any format suffixes from name"""
+    name = get_data_source(name)
+    suffixes = ".".join(sfx for sfx in get_format_suffixes(name) if sfx)
+    return re.sub(fr"[.]{suffixes}$", "", name)
 
 
 @singledispatch
@@ -580,21 +617,22 @@ def convert_directory_datastore(
 
 
 def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataStoreABC:
-    try:
-        from fnmatch import translate
+    from datetime import datetime
+    from fnmatch import translate
 
+    from .composable import CachingLogger, _make_logfile_name
+    from .data_store import load_record_from_json
+    from .io_new import write_db
+    from .sqlite_data_store import _LOG_TABLE, DataStoreSqlite
+
+    try:
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
         from tinydb.storages import JSONStorage
-
-        from cogent3.app.data_store import load_record_from_json
-        from cogent3.app.sqlite_data_store import DataStoreSqlite
     except ImportError as e:
         raise ImportError(
             "You need to install tinydb to be able to migrate to new datastore."
         ) from e
-
-    from .io_new import write_db
 
     source = Path(source)
     storage = CachingMiddleware(JSONStorage)
@@ -617,14 +655,37 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
         raise IOError(
             f"Destination file {str(dest)} already exists. Delete or define new dest."
         )
+
+    LOGGER = CachingLogger(create_dir=True)
+    log_file_path = source.parent / _make_logfile_name("convert_tinydb_to_sqlite")
+    LOGGER.log_file_path = log_file_path
+
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
     writer = write_db(data_store=dstore)
     for id, data, is_completed in data_list:
         if id.endswith(".log"):
-            writer.data_store.write_log(unique_id=id, data=data)
+            cmnd = f"UPDATE {_LOG_TABLE} SET data =?, log_name =?"
+            values = (data, id)
+            with contextlib.suppress(ValueError):
+                date = datetime.strptime(
+                    data.split("\t", maxsplit=1)[0], "%Y-%m-%d %H:%M:%S"
+                )
+                cmnd = f"{cmnd}, date=?"
+                values += (date,)
+
+            cmnd = f"{cmnd} WHERE log_id=?"
+            values += (dstore._log_id,)
+
+            dstore.db.execute(cmnd, values)
         else:
             writer.main(data, identifier=id)
 
+    # add a new log, recording this conversion
+    LOGGER.shutdown()
+    dstore.close()
+    dstore = DataStoreSqlite(source=dest, mode=APPEND)
+    dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
+    log_file_path.unlink()
     if lock_id is not None or dstore._lock_id:
         cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
         dstore.db.execute(cmnd, (lock_id,))

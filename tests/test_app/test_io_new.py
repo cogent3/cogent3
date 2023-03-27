@@ -2,6 +2,7 @@ import bz2
 import gzip
 import json
 import os
+import pathlib
 import pickle
 
 from pathlib import Path
@@ -15,6 +16,7 @@ from cogent3 import DNA, get_app, open_data_store
 from cogent3.app import io_new as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
+from cogent3.app.io_new import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
@@ -28,7 +30,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.8.24a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -87,7 +89,7 @@ def test_write_seqs(fasta_dir, tmp_dir):
         tmp_dir / "test_write_seqs", mode=Mode.w, suffix="fasta"
     )
     writer = io_app.write_seqs(out_data_store, format="fasta")
-    wrote = writer(seqs[0], datamember.unique_id)
+    wrote = writer(seqs[0], identifier=datamember.unique_id)
     assert isinstance(wrote, DataMember)
 
 
@@ -452,7 +454,7 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
     assert data_store.record_type == get_object_provenance(orig)
 
 
-def test_write_db_not_completed(tmp_dir):
+def test_write_read_db_not_completed(tmp_dir):
     from cogent3.app.sqlite_data_store import DataStoreSqlite
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
@@ -464,6 +466,17 @@ def test_write_db_not_completed(tmp_dir):
     reader = io_app.load_db()
     got = reader(data_store.not_completed[0])
     assert got.to_rich_dict() == nc.to_rich_dict()
+
+
+def test_write_read_db_summary_not_completed(tmp_dir):
+    # should not fail, even if not completed content is compressed
+    from cogent3.app.sqlite_data_store import DataStoreSqlite
+
+    nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
+    data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
+    writer = get_app("write_db", data_store=data_store)
+    writer.main(nc, identifier="blah")
+    assert isinstance(writer.data_store.summary_not_completed, Table)
 
 
 def test_write_db_parallel(tmp_dir, fasta_dir):
@@ -507,3 +520,96 @@ def test_define_data_store(fasta_dir):
 
     with pytest.raises(ValueError):
         _ = open_data_store(fasta_dir, 1)
+
+
+def seqs():
+    from cogent3 import make_unaligned_seqs
+
+    return make_unaligned_seqs(
+        data=dict(a="ACGG", b="GGC"), info=dict(source="dummy/blah.1.2.fa")
+    )
+
+
+def table():
+    from cogent3 import make_table
+
+    table = make_table(
+        data=dict(a=[0, 1, 2], b=[0, 1, 2]),
+    )
+    table.source = "dummy/blah.1.2.fa"
+    return table
+
+
+def dir_dstore(tmp_dir):
+    return open_data_store(tmp_dir / "sample", suffix="fa", mode="w")
+
+
+def db_dstore(tmp_dir):
+    return open_data_store(tmp_dir / "sample.sqlitedb", mode="w")
+
+
+@pytest.mark.parametrize(
+    "writer,data,dstore",
+    (
+        ("write_seqs", seqs(), dir_dstore),
+        ("write_db", seqs(), db_dstore),
+        ("write_json", seqs(), dir_dstore),
+        ("write_tabular", table(), dir_dstore),
+    ),
+)
+def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
+    def uniqid(source):
+        from cogent3.app.data_store_new import get_data_source
+
+        name = pathlib.Path(get_data_source(source)).name
+        return name.split(".")[0]
+
+    writer = get_app(writer, data_store=dstore(tmp_dir), id_from_source=uniqid)
+    m = writer(data)
+    # directory data stores have a suffix, so we create expected name using that
+    suffix = getattr(writer.data_store, "suffix", "")
+    suffix = f".{suffix}" if suffix else suffix
+    expect = f"blah{suffix}"
+    assert m.unique_id == expect
+
+
+def test_open_suffix_dirname(tmp_dir):
+    # open_data_store correctly identifies this as a directory data store
+    outpath = tmp_dir / "melsubgroup_aln_flydivas_v1.2"
+    outpath.mkdir(exist_ok=True)
+    dstore = open_data_store(outpath, suffix="txt")
+    assert isinstance(dstore, DataStoreDirectory)
+
+
+@pytest.mark.parametrize("data", ({"a": [0, 1]}, DNA))
+def test_default_serialiser_deserialiser(data):
+    # the default deserialiser should successfully reverse the
+    # default serialiser
+    s = DEFAULT_SERIALISER(data)
+    ds = DEFAULT_DESERIALISER(s)
+    assert ds == data
+
+
+def test_to_json():
+    to_j = get_app("to_json")
+    data = {"a": [0, 1]}
+    assert to_j(data) == json.dumps(data)
+
+
+def test_from_json():
+    from_j = get_app("from_json")
+    assert from_j('{"a": [0, 1]}') == {"a": [0, 1]}
+
+
+def test_to_from_json():
+    to_j = get_app("to_json")
+    from_j = get_app("from_json")
+    app = to_j + from_j
+    data = {"a": [0, 1]}
+    assert app(data) == data
+    assert app(data) is not data
+
+
+def test_to_json_combines():
+    app = get_app("to_primitive") + get_app("to_json")
+    assert app(DNA) == DNA.to_json()
