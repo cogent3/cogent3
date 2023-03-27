@@ -1499,9 +1499,9 @@ class SeqView:
 
             return self.__class__(self.seq, start=val, stop=val - 1, step=-1)
 
-    def _get_slice(self, slice, step):
-        slice_start = slice.start if slice.start is not None else 0
-        slice_stop = slice.stop if slice.stop is not None else len(self)
+    def _get_slice(self, segment, step):
+        slice_start = segment.start if segment.start is not None else 0
+        slice_stop = segment.stop if segment.stop is not None else len(self)
 
         if self.step > 0:
             return self._get_forward_slice_from_forward_seqview_(
@@ -1572,9 +1572,9 @@ class SeqView:
             step=self.step * step,
         )
 
-    def _get_reverse_slice(self, slice, step):
-        slice_start = slice.start if slice.start is not None else -1
-        slice_stop = slice.stop if slice.stop is not None else -len(self) - 1
+    def _get_reverse_slice(self, segment, step):
+        slice_start = segment.start if segment.start is not None else -1
+        slice_stop = segment.stop if segment.stop is not None else -len(self) - 1
 
         if self.step < 0:
             return self._get_reverse_slice_from_reverse_seqview_(
@@ -1661,18 +1661,18 @@ class SeqView:
             step=self.step * step,
         )
 
-    def __getitem__(self, slice):
-        if isinstance(slice, int):
-            return self._get_index(slice)
+    def __getitem__(self, segment):
+        if isinstance(segment, int):
+            return self._get_index(segment)
         if len(self) == 0:
             return self
 
-        slice_step = 1 if slice.step is None else slice.step
+        slice_step = 1 if segment.step is None else segment.step
 
         if slice_step > 0:
-            return self._get_slice(slice, slice_step)
+            return self._get_slice(segment, slice_step)
         elif slice_step < 0:
-            return self._get_reverse_slice(slice, slice_step)
+            return self._get_reverse_slice(segment, slice_step)
         else:
             raise ValueError(
                 f"{self.__class__.__name__} cannot be sliced with a step of 0"
