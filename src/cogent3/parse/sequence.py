@@ -79,7 +79,7 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
     f.close()
 
 
-def format_from_filename(filename, format=None):  # pragma: no coverage
+def format_from_filename(filename, format=None):  # pragma: no cover
     from cogent3.util.warning import deprecated
 
     deprecated(
