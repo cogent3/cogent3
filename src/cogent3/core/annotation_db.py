@@ -302,8 +302,9 @@ def _select_records_sql(
     str, tuple
         the SQL statement and the tuple of values
     """
-
-    where, vals = _matching_conditions(conditions=conditions, partial=partial)
+    where, vals = _matching_conditions(
+        conditions=conditions, start=start, end=end, partial=partial
+    )
     columns = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns} FROM {table_name}"
     if not where:
