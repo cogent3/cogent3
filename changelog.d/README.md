@@ -15,19 +15,19 @@ Uncomment the category of change you are making and add a short description of t
 change as a markdown bullet point.  For example:
 
 Contributors
-*   khiron
+* khiron
 
 ENH
-*   Added a new feature that allows users to do Y
+* Added a new feature that allows users to do Y
 
 DEP
-*   Removed deprecated feature Z
+* Removed deprecated feature Z
 
 BUG
-*   Fixed a bug that caused the project to crash when a user did X by doing Y instead
+* Fixed a bug that caused the project to crash when a user did X by doing Y instead
 
 DOC
-*   Documented feature Z
+* Documented feature Z
 
 Check the file in with your changes.  
 
