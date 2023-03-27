@@ -19,12 +19,12 @@ Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users
 ### Composable apps
 
 - app_help() and get_app() available as top-level imports.
-   - app_help() takes the name of the app as a string and displays its summary, parameters and how to create one using get_app().
-   - get_app() creates an app instance given its name as a string and constructor arguments.
+  - app_help() takes the name of the app as a string and displays its summary, parameters and how to create one using get_app().
+  - get_app() creates an app instance given its name as a string and constructor arguments.
 - added skip_not_completed keyword parameter to define_app decorator.
-   - Some apps need to process NotCompleted instances. The current `app.__call__` method returns these instances immediately without passing through to the apps `.main()` method. The change introduces a semi-private attribute `_skip_not_completed` to the class. If it's False, the instance will be passed to `main()`.
+  - Some apps need to process NotCompleted instances. The current `app.__call__` method returns these instances immediately without passing through to the apps `.main()` method. The change introduces a semi-private attribute `_skip_not_completed` to the class. If it's False, the instance will be passed to `main()`.
 - composable data validation now allows NotCompleted
-   - if <app>.input returned a NotCompleted, it was being treated as an invalid data type rather than preserving the original cause for failure. The data validation method now immediately returns a provided NotCompleted instance
+  - if <app>.input returned a NotCompleted, it was being treated as an invalid data type rather than preserving the original cause for failure. The data validation method now immediately returns a provided NotCompleted instance
 - add argument id_from_source to all writer apps for a naming callback
   - It should be a callable that generates a unique ID from input data
   - Defaults to new get_unique_id() function, which extracts base name by calling get_data_source() and processing the result, removing file suffixes identified by get_format_suffixes().
