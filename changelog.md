@@ -19,16 +19,16 @@ Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users
 ### Composable apps
 
 - app_help() and get_app() available as top-level imports.
-     - app_help() takes the name of the app as a string and displays its summary, parameters and how to create one using get_app().
-     - get_app() creates an app instance given its name as a string and constructor arguments.
+   - app_help() takes the name of the app as a string and displays its summary, parameters and how to create one using get_app().
+   - get_app() creates an app instance given its name as a string and constructor arguments.
 - added skip_not_completed keyword parameter to define_app decorator.
-    - Some apps need to process NotCompleted instances. The current `app.__call__` method returns these instances immediately without passing through to the apps `.main()` method. The change introduces a semi-private attribute `_skip_not_completed` to the class. If it's False, the instance will be passed to `main()`.
+   - Some apps need to process NotCompleted instances. The current `app.__call__` method returns these instances immediately without passing through to the apps `.main()` method. The change introduces a semi-private attribute `_skip_not_completed` to the class. If it's False, the instance will be passed to `main()`.
 - composable data validation now allows NotCompleted
-    - if <app>.input returned a NotCompleted, it was being treated as an invalid data type rather than preserving the original cause for failure. The data validation method now immediately returns a provided NotCompleted instance
+   - if <app>.input returned a NotCompleted, it was being treated as an invalid data type rather than preserving the original cause for failure. The data validation method now immediately returns a provided NotCompleted instance
 - add argument id_from_source to all writer apps for a naming callback
-    - It should be a callable that generates a unique ID from input data
-    - Defaults to new get_unique_id() function, which extracts base name by calling get_data_source() and processing the result, removing file suffixes identified by get_format_suffixes().
-    - this means filename suffixes are dropped more cleanly
+  - It should be a callable that generates a unique ID from input data
+  - Defaults to new get_unique_id() function, which extracts base name by calling get_data_source() and processing the result, removing file suffixes identified by get_format_suffixes().
+  - this means filename suffixes are dropped more cleanly
 - new app to_primitive(). This uses a to_rich_dict() method if available otherwise it just returns the original object.
 - new app from_primitive(). This takes a dict and deserialises the object using the standard cogent3 functions.
 - new app pickle_it(). Does as the name implies.
@@ -41,8 +41,8 @@ Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users
   - these are to_primitive() + pickle_it() (and the reverse)
 - app.typing.get_constraint_names() now supports all standard python Sequence built-ins (list, tuple, set).
 - add type resolver for nested types
-    - function resolves the type tree of nested types and also returns the depth of that type tree
-    - ensure custom apps don't have excessive nested types. The motivation for this check is it is difficult to efficiently resolve, so we advise the developer (via a TypeError message) to define a custom class for such complex types. They can then choose to validate construction of those class attributes themselves.
+  - function resolves the type tree of nested types and also returns the depth of that type tree
+  - ensure custom apps don't have excessive nested types. The motivation for this check is it is difficult to efficiently resolve, so we advise the developer (via a TypeError message) to define a custom class for such complex types. They can then choose to validate construction of those class attributes themselves.
 
 ### DataStores
 
@@ -160,17 +160,17 @@ We will drop support for python 3.7 by release 2022.10.
 ## ENH
 
 - new `cogent3.util.parallel.as_completed()` generator function
-    - `as_completed()` wraps MPI or `concurrent.futures` executors and delivers results as they are completed. In contrast, `parallel.imap()` / `parallel.map()` deliver results in the same order as the input series. The advantage of `as_completed()` is the interval of result arrival at the parent process is better distributed.
+  - `as_completed()` wraps MPI or `concurrent.futures` executors and delivers results as they are completed. In contrast, `parallel.imap()` / `parallel.map()` deliver results in the same order as the input series. The advantage of `as_completed()` is the interval of result arrival at the parent process is better distributed.
 - new function `cogent3.load_seq()` loads a single sequence from a file
 - convert substitution model `__str__` to `__repr__`; more useful since `__repr__` is called also by str().
 
 ## BUG
 
 - fixes to `annotation_from_gff()` method on annotatable sequence / alignment objects
-    - method would break if GFF records had no ID. This situation is quite common in some Ensembl gff3 files. We generate a "no-id-#" identifier in those cases.
-    - we now add features are added to their parent feature.
+  - method would break if GFF records had no ID. This situation is quite common in some Ensembl gff3 files. We generate a "no-id-#" identifier in those cases.
+  - we now add features are added to their parent feature.
 - improve consistency in setting motif_probs on likelihood function
-    - only apply a pseudocount if optimising motif probs and at least one state has zero frequency, default pseudocount is 0.5. Thanks to StephenRogers1 for finding this issue!
+  - only apply a pseudocount if optimising motif probs and at least one state has zero frequency, default pseudocount is 0.5. Thanks to StephenRogers1 for finding this issue!
 
 ## DOC
 
