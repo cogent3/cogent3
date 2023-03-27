@@ -176,6 +176,9 @@ def _matching_conditions(
     ----------
     conditions : dict
         column name and values to be matched
+    start, end : OptionalInt
+        select records whose (start, end) values lie between start and end,
+        or overlap them if (partial is True)
     partial : bool, optional
         if False, only records within start, end are included. If True,
         all records that overlap the segment defined by start, end are included.
