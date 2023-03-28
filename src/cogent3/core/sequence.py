@@ -18,7 +18,7 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Tuple, Optional, Iterator
+from typing import Generator, Iterator, List, Optional, Tuple
 
 from numpy import (
     arange,
@@ -874,7 +874,7 @@ class Sequence(_Annotatable, SequenceI):
             return None
 
         for feature in self._annotation_db.get_features_matching(**kwargs):
-            # todo: if feature is outside the range of the sequence:
+            # todo: if feature is outside the range of the SeqView:
             # todo: continue
             yield feature
 
