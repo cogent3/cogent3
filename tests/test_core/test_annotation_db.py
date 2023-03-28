@@ -3,8 +3,9 @@ import pytest
 
 from cogent3 import _Table
 from cogent3.core import annotation_db as ann_db
-from cogent3.core.sequence import Sequence
 from cogent3.core.annotation_db import FeatureDataType, GffAnnotationDb
+from cogent3.core.sequence import Sequence
+
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
