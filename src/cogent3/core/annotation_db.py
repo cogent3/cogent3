@@ -448,7 +448,7 @@ class SqliteAnnotationDbMixin:
                 table_name=table_name, columns=columns, **kwargs
             ):
                 yield FeatureDataType(
-                    type=result["biotype"],
+                    biotype=result["biotype"],
                     name=result["name"],
                     spans=[tuple(c) for c in result["spans"]],
                     reverse=result["strand"] == "-",
