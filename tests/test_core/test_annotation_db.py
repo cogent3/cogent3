@@ -496,3 +496,69 @@ def test_to_moltype():
     rna = s.to_moltype("rna")
 
     assert "T" not in rna
+
+
+@pytest.fixture()
+def seq() -> Sequence:
+    return Sequence("ATTGTACGC", name="test_seq")
+
+
+@pytest.fixture()
+def anno_db() -> GffAnnotationDb:
+    return GffAnnotationDb([])
+
+
+def test_query_db_no_annotation_db(seq):
+    """
+    Test that `query_db` returns an empty list when no annotation database is attached to the sequence.
+    """
+    assert not list(seq.query_db(biotype="exon", seqid="test"))
+
+
+def test_query_db_no_matching_feature(seq, anno_db):
+    """
+    Test that `query_db` returns an empty list when there is no matching feature in the annotation database.
+    """
+    seq.annotation_db = anno_db
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+    )
+
+    assert not list(seq.query_db(biotype="exon", name="non_matching"))
+
+
+def test_query_db_matching_feature(seq, anno_db):
+    """
+    Test that `query_db` returns a list with one matching feature in the annotation database.
+    """
+    seq.annotation_db = anno_db
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+    )
+    got = list(seq.query_db(biotype="exon", seqid=seq.name))
+    expected = FeatureDataType(
+        biotype="exon", name="exon1", spans=[(1, 4)], reverse=False
+    )
+
+    assert got == [expected]
+
+
+def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
+    """
+    Test that `query_db` returns a list with all matching features in the annotation database.
+    """
+    seq.annotation_db = anno_db
+
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+    )
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
+    )
+    got = list(seq.query_db(biotype="exon"))
+    expected = [
+        FeatureDataType(biotype="exon", name="exon1", spans=[(1, 4)], reverse=False),
+        FeatureDataType(biotype="exon", name="exon2", spans=[(6, 10)], reverse=False),
+    ]
+
+    assert got == expected
