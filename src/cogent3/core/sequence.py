@@ -21,7 +21,7 @@ from collections import defaultdict
 from functools import total_ordering, singledispatch
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Tuple
+from typing import Generator, List, Tuple, Optional, Iterator
 
 from numpy import (
     arange,
@@ -814,11 +814,7 @@ class Sequence(_Annotatable, SequenceI):
         orig_seq = seq
 
         checker = (
-            (
-                lambda x: self.moltype.verify_sequence(
-                    x, gaps_allowed, wildcards_allowed
-                )
-            )
+            (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
             if check
             else (lambda x: x)
         )
@@ -842,8 +838,6 @@ class Sequence(_Annotatable, SequenceI):
         self._repr_policy = dict(num_pos=60)
 
         self._annotation_db = None
-
-
 
     @property
     def annotation_offset(self):
@@ -887,7 +881,6 @@ class Sequence(_Annotatable, SequenceI):
         start=None,
         stop=None,
     ):
-
 
         if self._annotation_db is None:
             return None
@@ -945,7 +938,7 @@ class Sequence(_Annotatable, SequenceI):
 
         moltype = get_moltype(moltype)
         sv = SeqView(moltype.coerce_str(self._seq.value))
-        new = moltype.make_seq(sv, name=self.name, info = self.info)
+        new = moltype.make_seq(sv, name=self.name, info=self.info)
 
         new.clear_annotations()
         for ann in self.annotations:
@@ -1130,7 +1123,9 @@ class Sequence(_Annotatable, SequenceI):
             new = self._mapped(index)
 
         elif isinstance(index, (int, slice)):
-            new = self.__class__(self._seq[index], name=self.name, check=False, info=self.info)
+            new = self.__class__(
+                self._seq[index], name=self.name, check=False, info=self.info
+            )
 
         if self.annotation_db is not None:
             new.annotation_db = self.annotation_db
@@ -1139,8 +1134,6 @@ class Sequence(_Annotatable, SequenceI):
             new._repr_policy.update(self._repr_policy)
 
         return new
-
-
 
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
@@ -1576,10 +1569,9 @@ class SeqView:
         self.step = step
         self.offset = None
 
-
     @property
     def reversed(self):
-        return self.step<0
+        return self.step < 0
 
     def absolute_index(self, value):
         # note: this is the positive/positive case...
@@ -2417,17 +2409,21 @@ class ArrayProteinWithStopSequence(ArraySequence):
 def _coerce_seq(data, preserve_case, checker):
     raise NotImplementedError(f"{type(data)}")
 
+
 @_coerce_seq.register
 def _(data: SeqView, preserve_case, checker):
     return data
+
 
 @_coerce_seq.register
 def _(data: Sequence, preserve_case, checker):
     return _coerce_seq(str(data), preserve_case, checker)
 
+
 @_coerce_seq.register
 def _(data: ArraySequence, preserve_case, checker):
     return _coerce_seq(str(data), preserve_case, checker)
+
 
 @_coerce_seq.register
 def _(data: str, preserve_case, checker):
@@ -2435,6 +2431,7 @@ def _(data: str, preserve_case, checker):
         data = data.upper()
     checker(data)
     return SeqView(data)
+
 
 @_coerce_seq.register
 def _(data: bytes, preserve_case, checker):
@@ -2444,9 +2441,11 @@ def _(data: bytes, preserve_case, checker):
     checker(data)
     return SeqView(data)
 
+
 @_coerce_seq.register
 def _(data: tuple, preserve_case, checker):
     return _coerce_seq("".join(data), preserve_case, checker)
+
 
 @_coerce_seq.register
 def _(data: list, preserve_case, checker):
