@@ -20,7 +20,7 @@ import warnings
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Tuple
+from typing import Generator, List, Tuple, Optional, Iterator
 
 from numpy import (
     arange,
