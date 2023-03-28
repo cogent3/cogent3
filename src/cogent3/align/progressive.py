@@ -178,11 +178,12 @@ def TreeAlign(*args, **kwargs):  # pragma: no cover
     """
 
     from cogent3.util.warning import deprecated
+
     deprecated(
-    "function",
-    "TreeAlign",
-    "tree_align",
-    "2023.9",
-)
-    
+        "function",
+        "TreeAlign",
+        "tree_align",
+        "2023.9",
+    )
+
     return tree_align(*args, **kwargs)
