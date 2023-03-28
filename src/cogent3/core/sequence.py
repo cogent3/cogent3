@@ -18,7 +18,7 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Tuple
+from typing import Generator, List, Tuple, Optional, Iterator
 
 from numpy import (
     arange,
@@ -804,6 +804,7 @@ class Sequence(_Annotatable, SequenceI):
 
             check: if True (the default), validates against the MolType
         """
+
         if name is None and hasattr(seq, "name"):
             name = seq.name
         self.name = name
@@ -853,6 +854,29 @@ class Sequence(_Annotatable, SequenceI):
                 ann.copy_annotations_to(self)
 
         self._repr_policy = dict(num_pos=60)
+
+        self._annotation_db = None
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
+
+    def query_db(self, **kwargs):
+        if self._annotation_db is None:
+            return None
+
+        for feature in self._annotation_db.get_features_matching(**kwargs):
+            # todo: if feature is outside the range of the sequence:
+            # todo: continue
+            yield feature
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq

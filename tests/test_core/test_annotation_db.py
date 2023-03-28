@@ -3,11 +3,12 @@ import pytest
 
 from cogent3 import _Table
 from cogent3.core import annotation_db as ann_db
-
+from cogent3.core.sequence import Sequence
+from cogent3.core.annotation_db import FeatureDataType, GffAnnotationDb
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
+__credits__ = ["Gavin Huttley", "Katherine Caley"]
 __license__ = "BSD-3"
 __version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
@@ -146,3 +147,69 @@ def test_gb_get_parent(gb_db):
 def test_protocol_adherence(gff_db, gb_db):
     for db in (gff_db, gb_db):
         assert isinstance(db, ann_db.SupportsFeatures)
+
+
+@pytest.fixture()
+def seq() -> Sequence:
+    return Sequence("ATTGTACGC", name="test_seq")
+
+
+@pytest.fixture()
+def anno_db() -> GffAnnotationDb:
+    return GffAnnotationDb([])
+
+
+def test_query_db_no_annotation_db(seq):
+    """
+    Test that `query_db` returns an empty list when no annotation database is attached to the sequence.
+    """
+    assert not list(seq.query_db(biotype="exon", seqid="test"))
+
+
+def test_query_db_no_matching_feature(seq, anno_db):
+    """
+    Test that `query_db` returns an empty list when there is no matching feature in the annotation database.
+    """
+    seq.annotation_db = anno_db
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+    )
+
+    assert not list(seq.query_db(biotype="exon", name="non_matching"))
+
+
+def test_query_db_matching_feature(seq, anno_db):
+    """
+    Test that `query_db` returns a list with one matching feature in the annotation database.
+    """
+    seq.annotation_db = anno_db
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+    )
+    got = list(seq.query_db(biotype="exon", seqid=seq.name))
+    expected = FeatureDataType(
+        biotype="exon", name="exon1", spans=[(1, 4)], reverse=False
+    )
+
+    assert got == [expected]
+
+
+def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
+    """
+    Test that `query_db` returns a list with all matching features in the annotation database.
+    """
+    seq.annotation_db = anno_db
+
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
+    )
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
+    )
+    got = list(seq.query_db(biotype="exon"))
+    expected = [
+        FeatureDataType(biotype="exon", name="exon1", spans=[(1, 4)], reverse=False),
+        FeatureDataType(biotype="exon", name="exon2", spans=[(6, 10)], reverse=False),
+    ]
+
+    assert got == expected
