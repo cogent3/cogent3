@@ -21,7 +21,7 @@ import warnings
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Tuple, Optional, Iterator
+from typing import Generator, Iterator, List, Optional, Tuple
 
 from numpy import (
     arange,
