@@ -11,6 +11,8 @@ import numpy
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.table import Table
 from cogent3.util.misc import get_object_provenance
+from cogent3.util.table import Table
+from cogent3.util.misc import get_object_provenance
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
@@ -843,6 +845,7 @@ def deserialise_gb_db(data: dict):
 def _db_from_genbank(path, db):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
+    from cogent3 import open_
 
     with open_(path) as infile:
         data = list(MinimalGenbankParser(infile))
