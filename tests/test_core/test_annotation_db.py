@@ -402,3 +402,15 @@ def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
     ]
 
     assert got == expected
+
+
+def test_annotate_from(seq):
+    seq.annotate_from("data/simple.gff", pre_parsed=False)
+
+    got = list(seq.query_db(biotype="exon"))
+    assert len(got) == 2
+
+    feature1 = got[0]
+    assert feature1["name"] == "exon1"
+    assert feature1["biotype"] == "exon"
+    assert feature1["spans"] == [(1, 10)]
