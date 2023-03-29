@@ -16,6 +16,7 @@ import json
 import os
 import re
 import warnings
+import pathlib
 
 from functools import singledispatch, total_ordering
 from operator import eq, ne
@@ -876,6 +877,8 @@ class Sequence(_Annotatable, SequenceI):
         if not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
+        # todo: it the users responsibility to know the offset (if any) between the sequence and custom annotations
+        # does a user annotationDb need to know its offset then?
 
     def get_features_matching(
         self,
@@ -941,6 +944,27 @@ class Sequence(_Annotatable, SequenceI):
             strand=strand,
             on_alignment=on_alignment,
         )
+
+    def annotate_from(self, f, pre_parsed=False):
+        """annotates a Sequence from a file"""
+        # currently only supports gff files
+
+        if pre_parsed:
+            data = f
+        else:
+            path = pathlib.Path(f)
+            if ".gff" in path.suffixes:
+                from cogent3.parse.gff import gff_parser
+
+                data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
+            else:
+                # todo: add support for annotating from other files?
+                # in this case do we require files to be pre-parsed?
+                raise ValueError(f"no support for {path.suffixes} file")
+
+        self.annotation_db = GffAnnotationDb(data=data)
+
+        # todo: are we assuming that coordinates are good to go? if so, goodbye old seqview object.
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
