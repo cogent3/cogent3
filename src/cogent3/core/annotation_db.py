@@ -8,9 +8,9 @@ import typing
 
 import numpy
 
-import cogent3
-
 from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.misc import get_object_provenance
+from cogent3.util.table import Table
 from cogent3.util.misc import get_object_provenance
 
 
@@ -455,7 +455,7 @@ class SqliteAnnotationDbMixin:
                 )
 
     @property
-    def describe(self) -> cogent3._Table:
+    def describe(self) -> Table:
         """top level description of the annotation db"""
         sql_template = "SELECT DISTINCT {} FROM {};"
         data = {}
@@ -471,7 +471,9 @@ class SqliteAnnotationDbMixin:
             result = self._execute_sql(f"SELECT COUNT(*) FROM {table}").fetchone()
             row_counts.append(result["COUNT(*)"])
 
-        table = cogent3.make_table(
+        from cogent3 import make_table
+
+        table = make_table(
             data={
                 "type": list(data.keys())
                 + [f"num_rows({t!r})" for t in self.table_names],
@@ -504,7 +506,8 @@ class SqliteAnnotationDbMixin:
                 records[table].append(
                     {k: v for k, v in record.items() if v is not None}
                 )
-        records["type"] = cogent3.util.misc.get_object_provenance(self)
+
+        records["type"] = get_object_provenance(self)
         return records
 
     @classmethod
@@ -837,8 +840,9 @@ def deserialise_gb_db(data: dict):
 
 def _db_from_genbank(path):
     from cogent3.parse.genbank import MinimalGenbankParser
+    from cogent3 import open_
 
-    with cogent3.open_(path) as infile:
+    with open_(path) as infile:
         data = list(MinimalGenbankParser(infile))
 
     return GenbankAnnotationDb(data[0]["features"], data[0]["locus"])
