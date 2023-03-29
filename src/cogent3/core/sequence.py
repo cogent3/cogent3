@@ -13,6 +13,7 @@ creation.
 import json
 import re
 import warnings
+import pathlib
 
 from collections import defaultdict
 from functools import total_ordering
@@ -36,6 +37,7 @@ from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Map, _Annotatable
+from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
@@ -868,15 +870,37 @@ class Sequence(_Annotatable, SequenceI):
         if not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
+        # todo: it the users responsibility to know the offset (if any) between the sequence and custom annotations
+        # does a user annotationDb need to know its offset then?
 
     def query_db(self, **kwargs):
         if self._annotation_db is None:
             return None
 
         for feature in self._annotation_db.get_features_matching(**kwargs):
-            # todo: if feature is outside the range of the SeqView:
-            # todo: continue
+            # todo: if feature is outside the range of the SeqView: continue
             yield feature
+
+    def annotate_from(self, f, pre_parsed=False):
+        """annotates a Sequence from a file"""
+        # currently only supports gff files
+
+        if pre_parsed:
+            data = f
+        else:
+            path = pathlib.Path(f)
+            if ".gff" in path.suffixes:
+                from cogent3.parse.gff import gff_parser
+
+                data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
+            else:
+                # todo: add support for annotating from other files?
+                # in this case do we require files to be pre-parsed?
+                raise ValueError(f"no support for {path.suffixes} file")
+
+        self.annotation_db = GffAnnotationDb(data=data)
+
+        # todo: are we assuming that coordinates are good to go? if so, goodbye old seqview object.
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
