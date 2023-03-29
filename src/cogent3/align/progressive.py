@@ -150,33 +150,7 @@ def tree_align(
 
 
 def TreeAlign(*args, **kwargs):  # pragma: no cover
-    """Returns a multiple sequence alignment and tree.
-
-    Parameters
-    ----------
-    model
-        a substitution model or the name of one, see available_models()
-    seqs
-        a sequence collection
-    indel_rate, indel_length
-        parameters for the progressive pair-HMM
-    ests_from_pairwise
-        if no tree provided and True, the median value
-        of the substitution model parameters are used
-    param_vals
-        named key, value pairs for model parameters. These
-        override ests_from_pairwise.
-
-    Notes
-    -----
-    Uses a tree for determining the progressive order. If a tree is not
-    provided, a Neighbour Joining tree is constructed from pairwise
-    distances estimated (using the provided substitution model) from pairwise
-    aligning the sequences.
-
-    Parameters and tree are added to ``<align>.info["align_params"]``.
-    """
-
+    """deprecated, used tree_align()"""
     from cogent3.util.warning import deprecated
 
     deprecated(
