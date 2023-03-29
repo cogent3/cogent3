@@ -91,7 +91,7 @@ __credits__ = [
     "Michael Dwan",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -238,7 +238,6 @@ class TestsTests(TestCase):
         """tail should return x/2 if test is true; 1-(x/2) otherwise"""
         assert_allclose(tail(0.25, "a" == "a"), 0.25 / 2)
         assert_allclose(tail(0.25, "a" != "a"), 1 - (0.25 / 2))
-
 
     def test_multiple_comparisons(self):
         """multiple_comparisons should match values from R"""

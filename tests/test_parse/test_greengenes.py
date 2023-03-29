@@ -14,7 +14,7 @@ __copyright__ = "Copyright 2007-2022, The Cogent Project"  # consider project na
 # remember to add yourself if you make changes
 __credits__ = ["Daniel McDonald"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Prototype"

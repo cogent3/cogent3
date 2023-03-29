@@ -7,7 +7,7 @@ from enum import Enum
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import numpy
 
@@ -26,11 +26,7 @@ from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
-from .data_store import (
-    ReadOnlyDirectoryDataStore,
-    ReadOnlyTinyDbDataStore,
-    ReadOnlyZippedDataStore,
-)
+from .data_store import ReadOnlyTinyDbDataStore, ReadOnlyZippedDataStore
 from .data_store_new import (
     READONLY,
     DataStoreABC,
@@ -55,7 +51,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -175,16 +171,20 @@ def open_data_store(
 
 @define_app(skip_not_completed=False)
 def pickle_it(data: SerialisableType) -> bytes:
+    """Serialises data using pickle."""
     return pickle.dumps(data)
 
 
 @define_app(skip_not_completed=False)
 def unpickle_it(data: bytes) -> SerialisableType:
+    "Deserialises pickle data."
     return pickle.loads(data)
 
 
 @define_app(skip_not_completed=False)
 class compress:
+    """Compresses bytes data."""
+
     def __init__(self, compressor: callable = gzip_compress):
         """
         Parameters
@@ -200,6 +200,8 @@ class compress:
 
 @define_app(skip_not_completed=False)
 class decompress:
+    """Decompresses data."""
+
     def __init__(self, decompressor: callable = gzip_decompress):
         """
         Parameters
@@ -214,7 +216,8 @@ class decompress:
         return self.decompressor(data)
 
 
-def _as_dict(obj) -> dict:
+def as_dict(obj: Any) -> dict:
+    """returns result of to_rich_dict method if it exists"""
     with contextlib.suppress(AttributeError):
         obj = obj.to_rich_dict()
     return obj
@@ -224,11 +227,11 @@ def _as_dict(obj) -> dict:
 class to_primitive:
     """convert an object to primitive python types suitable for serialisation"""
 
-    def __init__(self, convertor: callable = _as_dict):
+    def __init__(self, convertor: callable = as_dict):
         self.convertor = convertor
 
     def main(self, data: SerialisableType) -> SerialisableType:
-        """either json convertor a dict from a cogent3 object"""
+        """returns dict from a cogent3 object"""
         return self.convertor(data)
 
 
@@ -242,6 +245,18 @@ class from_primitive:
     def main(self, data: SerialisableType) -> SerialisableType:
         """either json or a dict from a cogent3 object"""
         return self.deserialiser(data)
+
+
+@define_app
+def to_json(data: SerialisableType) -> str:
+    """Convert primitive python types to json string."""
+    return json.dumps(data)
+
+
+@define_app
+def from_json(data: str) -> SerialisableType:
+    """Convert json string to primitive python types."""
+    return json.loads(data)
 
 
 class tabular(Enum):
@@ -442,12 +457,15 @@ class load_json:
         return result
 
 
+DEFAULT_DESERIALISER = unpickle_it() + from_primitive()
+
+
 @define_app(app_type=LOADER)
 class load_db:
     """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
 
-    def __init__(self, deserialiser: callable = unpickle_it() + from_primitive()):
+    def __init__(self, deserialiser: callable = DEFAULT_DESERIALISER):
         self.deserialiser = deserialiser
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
@@ -472,6 +490,8 @@ class load_db:
 
 @define_app(app_type=WRITER)
 class write_json:
+    """Writes data in json format."""
+
     def __init__(
         self,
         data_store: DataStoreABC,
@@ -507,6 +527,8 @@ class write_json:
 
 @define_app(app_type=WRITER)
 class write_seqs:
+    """Write sequences in standard formats."""
+
     @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
@@ -537,6 +559,8 @@ class write_seqs:
 
 @define_app(app_type=WRITER)
 class write_tabular:
+    """Writes tabular data in text format supported by the cogent3 Table object."""
+
     @extend_docstring_from(write_json.__init__, pre=False)
     def __init__(
         self,
@@ -565,6 +589,9 @@ class write_tabular:
         return self.data_store.write(unique_id=identifier, data=output)
 
 
+DEFAULT_SERIALISER = to_primitive() + pickle_it()
+
+
 @define_app(app_type=WRITER, skip_not_completed=False)
 class write_db:
     """Write serialised objects to a database instance."""
@@ -574,7 +601,7 @@ class write_db:
         self,
         data_store: DataStoreABC,
         id_from_source: callable = get_unique_id,
-        serialiser: callable = to_primitive() + pickle_it(),
+        serialiser: callable = DEFAULT_SERIALISER,
     ):
         """
         serialiser

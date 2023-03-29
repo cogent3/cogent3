@@ -33,7 +33,7 @@ __author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -864,11 +864,12 @@ class SequenceTestMethods(unittest.TestCase):
     def test_get_in_motif_size(self):
         """test accuracy of chunking various sizes"""
         self.assertEqual(
-            self.seq.get_in_motif_size(2),
+            list(self.seq.get_in_motif_size(2)),
             ["AT", "GA", "CG", "TT", "GC", "GT", "AG", "CA", "TA", "GC", "TC", "GA"],
         )
+
         self.assertEqual(
-            self.seq.get_in_motif_size(3),
+            list(self.seq.get_in_motif_size(3)),
             ["ATG", "ACG", "TTG", "CGT", "AGC", "ATA", "GCT", "CGA"],
         )
 

@@ -16,6 +16,7 @@ from cogent3 import DNA, get_app, open_data_store
 from cogent3.app import io_new as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
+from cogent3.app.io_new import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix
@@ -29,7 +30,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -578,3 +579,37 @@ def test_open_suffix_dirname(tmp_dir):
     outpath.mkdir(exist_ok=True)
     dstore = open_data_store(outpath, suffix="txt")
     assert isinstance(dstore, DataStoreDirectory)
+
+
+@pytest.mark.parametrize("data", ({"a": [0, 1]}, DNA))
+def test_default_serialiser_deserialiser(data):
+    # the default deserialiser should successfully reverse the
+    # default serialiser
+    s = DEFAULT_SERIALISER(data)
+    ds = DEFAULT_DESERIALISER(s)
+    assert ds == data
+
+
+def test_to_json():
+    to_j = get_app("to_json")
+    data = {"a": [0, 1]}
+    assert to_j(data) == json.dumps(data)
+
+
+def test_from_json():
+    from_j = get_app("from_json")
+    assert from_j('{"a": [0, 1]}') == {"a": [0, 1]}
+
+
+def test_to_from_json():
+    to_j = get_app("to_json")
+    from_j = get_app("from_json")
+    app = to_j + from_j
+    data = {"a": [0, 1]}
+    assert app(data) == data
+    assert app(data) is not data
+
+
+def test_to_json_combines():
+    app = get_app("to_primitive") + get_app("to_json")
+    assert app(DNA) == DNA.to_json()

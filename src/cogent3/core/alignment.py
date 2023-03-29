@@ -90,7 +90,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -120,7 +120,7 @@ def AllowedCharacters(chars, is_array=False, negate=False):
         if is_array:
             data = set(data.flatten())
         else:
-            data = set("".join(data))
+            data = set("".join([str(d) for d in data]))
         return data <= chars
 
     def not_chars(data):
@@ -191,7 +191,7 @@ class GapsOk:
         if self.is_array:
             data = Counter(data.flatten())
         else:
-            data = Counter("".join(data))
+            data = Counter("".join([str(d) for d in data]))
 
         num_gap = sum(data[g] for g in self.gap_chars)
         gap_frac = num_gap / length

@@ -11,6 +11,7 @@ from typing import Optional, Union
 
 from scitrack import get_text_hexdigest
 
+from cogent3.app import typing as c3_types
 from cogent3.app.data_store_new import (
     _LOG_TABLE,
     APPEND,
@@ -28,7 +29,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -384,8 +385,10 @@ class DataStoreSqlite(DataStoreABC):
 
     @property
     def describe(self):
-        if self.locked:
+        if self.locked and self._lock_id != os.getpid():
             title = f"Locked db store. Locked to pid={self._lock_id}, current pid={os.getpid()}."
+        elif self.locked:
+            title = "Locked to the current process."
         else:
             title = "Unlocked db store."
         table = super().describe
@@ -408,3 +411,13 @@ class DataStoreSqlite(DataStoreABC):
 
         n = get_object_provenance(obj)
         self.db.execute("UPDATE state SET record_type=? WHERE state_id=1", (n,))
+
+    @property
+    def summary_not_completed(self) -> c3_types.TabularType:
+        """returns a table summarising not completed results"""
+        from .data_store_new import summary_not_completeds
+        from .io_new import DEFAULT_DESERIALISER
+
+        return summary_not_completeds(
+            self.not_completed, deserialise=DEFAULT_DESERIALISER
+        )

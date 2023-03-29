@@ -64,7 +64,7 @@ __credits__ = [
     "Jan Kosinski",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
@@ -1573,7 +1573,7 @@ def _make_filter_func(aln):
         gap = "-"
 
     def func_str(x):
-        return gap not in "".join(x)
+        return gap not in "".join([str(s) for s in x])
 
     def func_arr(x):
         return (x != gap).all()
@@ -2980,8 +2980,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         aln = self.Class([["name1", "TTTTTTAAAA"], ["name2", "AAAATTTTTT"]])
         aln = aln[2:8]
         draw = aln.dotplot(show_progress=False)
-        expected = set([("name1", "TTTTAA"), ("name2", "AATTTT")])
-        got = {(s.name, s._seq) for s in (draw.seq1, draw.seq2)}
+        expected = {("name1", "TTTTAA"), ("name2", "AATTTT")}
+        got = {(s.name, str(s)) for s in (draw.seq1, draw.seq2)}
         self.assertEqual(got, expected)
 
     def test_to_moltype_annotations(self):

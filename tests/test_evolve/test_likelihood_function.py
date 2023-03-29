@@ -62,7 +62,7 @@ __credits__ = [
     "Ananias Iliadis",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -536,29 +536,6 @@ DogFaced   root      1.00  1.00
         lf.set_alignment(al)
         simalign = lf.simulate_alignment()
         self.assertEqual(len(simalign), 6)
-
-    def test_simulate_alignment3(self):
-        """Simulated alignment with gap-induced ambiguous positions
-        preserved"""
-        t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
-        al = make_aligned_seqs(
-            data={
-                "a": "g--cactat?",
-                "b": "---c-ctcct",
-                "c": "-a-c-ctat-",
-                "d": "-a-c-ctat-",
-            }
-        )
-        sm = TimeReversibleNucleotide(recode_gaps=True)
-        lf = sm.make_likelihood_function(t)
-        # pc.set_constant_lengths()
-        lf.set_alignment(al)
-        # print lf.simulate_alignment(sequence_length=10)
-        simulated = lf.simulate_alignment()
-        self.assertEqual(len(simulated.names), 4)
-        import re
-
-        self.assertEqual(re.sub("[ATCG]", "x", simulated.to_dict()["a"]), "x??xxxxxx?")
 
     def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
@@ -2274,6 +2251,30 @@ class ComparisonTests(TestCase):
         lnL, nfp = -9167.537271862948, 3
         assert_allclose(lf.lnL, lnL)
         assert_allclose(lf.nfp, nfp)
+
+
+def test_simulate_alignment3():
+    """Simulated alignment with gap-induced ambiguous positions
+    preserved"""
+    t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
+    al = make_aligned_seqs(
+        data={
+            "a": "g--cactat?",
+            "b": "---c-ctcct",
+            "c": "-a-c-ctat-",
+            "d": "-a-c-ctat-",
+        }
+    )
+    sm = TimeReversibleNucleotide(recode_gaps=True)
+    lf = sm.make_likelihood_function(t)
+
+    lf.set_alignment(al)
+
+    simulated = lf.simulate_alignment()
+    assert len(simulated.names) == 4
+    import re
+
+    assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "x??xxxxxx?"
 
 
 if __name__ == "__main__":

@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+import collections.abc as abc
+import functools
+import os
+import typing
+
 from pathlib import Path
 
 from cogent3.util.io import open_
@@ -13,35 +17,48 @@ __credits__ = [
     "Christopher Bradley",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
 
-def gff_parser(f):
+@functools.singledispatch
+def gff_parser(
+    f: typing.Union[str, os.PathLike, abc.Sequence, typing.IO], attribute_parser=None
+) -> typing.Iterable[dict]:
     """parses a gff file
+
     Parameters
     -----------
     f
         accepts string path or pathlib.Path or file-like object (e.g. StringIO)
+    attribute_parser
+        callback function for custom handling of attributes field. Defaults to
+        a function that converts Attributes field into a dict based on the gff
+        version.
 
     Returns
     -------
     dict
         contains each of the 9 parameters specified by gff3, and comments.
     """
-
-    # calling a separate function to ensure file closes correctly
-    f = f if not isinstance(f, Path) else str(f)
-    if isinstance(f, str):
-        with open_(f) as infile:
-            yield from _gff_parser(infile)
-    else:
-        yield from _gff_parser(f)
+    yield from _gff_parser(f, attribute_parser=attribute_parser)
 
 
-def _gff_parser(f):
+@gff_parser.register
+def _(f: str, attribute_parser=None) -> typing.Iterable[dict]:
+    with open_(f) as infile:
+        yield from _gff_parser(infile, attribute_parser=attribute_parser)
+
+
+@gff_parser.register
+def _(f: os.PathLike, attribute_parser=None) -> typing.Iterable[dict]:
+    with open_(f) as infile:
+        yield from _gff_parser(infile, attribute_parser=attribute_parser)
+
+
+def _gff_parser(f, attribute_parser=None):
     """parses a gff file"""
 
     gff3_header = "gff-version 3"
@@ -51,10 +68,8 @@ def _gff_parser(f):
         gff3 = gff3_header in f.readline()
         f.seek(0)
 
-    if gff3:
-        attribute_parser = parse_attributes_gff3
-    else:
-        attribute_parser = parse_attributes_gff2
+    if attribute_parser is None:
+        attribute_parser = parse_attributes_gff3 if gff3 else parse_attributes_gff2
 
     for line in f:
         # comments and blank lines

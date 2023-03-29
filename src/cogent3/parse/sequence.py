@@ -17,7 +17,7 @@ from cogent3.parse import (
     tinyseq,
 )
 from cogent3.parse.record import FileFormatError
-from cogent3.util.io import open_
+from cogent3.util.io import get_format_suffixes, open_
 
 
 __author__ = "Cath Lawrence"
@@ -30,7 +30,7 @@ __credits__ = [
     "Rob Knight",
 ]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -44,7 +44,7 @@ def FromFilenameParser(filename, format=None, **kw):
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
     """
-    format = format_from_filename(filename, format)
+    format, _ = get_format_suffixes(filename)
     f = open_(filename, newline=None, mode="rt")
     return FromFileParser(f, format, **kw)
 
@@ -79,7 +79,15 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
     f.close()
 
 
-def format_from_filename(filename, format=None):
+def format_from_filename(filename, format=None):  # pragma: no cover
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.parse.sequence.format_from_filename",
+        "cogent3.util.misc.get_format_suffixes",
+        "2023.6",
+    )
     """Detects format based on filename."""
     if format:
         return format

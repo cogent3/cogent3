@@ -24,22 +24,22 @@ block_option = re.compile(r"\s+:[a-z\-]+:")
 raise_option = re.compile(r"\s+:raises:")
 plotly_show = re.compile(r"\s*[a-z]+.*\.show\(")
 
+
 def get_error_type(line):
     if raise_option.search(line) is None:
         return None
     return raise_option.sub("", line).strip()
 
 
-def get_path_update():
+def get_path_update(rootdir: pathlib.Path) -> str:
     """returns code block to allow import set_working_directory"""
     swd_script = pathlib.Path("set_working_directory.py").absolute()
     assert swd_script.exists()
-    rootdir = str(swd_script.parent)
     block = [
         "import sys",
-        f"sys.path.append({rootdir!r})",
+        f"sys.path.append({str(swd_script.parent)!r})",
         "import os",
-        f"os.chdir({rootdir!r})",
+        f"os.chdir({str(rootdir)!r})",
         'os.environ["OMP_NUM_THREADS"] = "1"',
         'os.environ["OPENBLAS_NUM_THREADS"] = "1"',
         'os.environ["MKL_NUM_THREADS"] = "1"',
@@ -98,9 +98,9 @@ def format_block(block):
     return code
 
 
-def get_code_blocks(doc: list[str]) -> str:
+def get_code_blocks(doc: list[str], working_dir: pathlib.Path) -> str:
     coords = get_code_block_line_numbers(doc)
-    refactored = [get_path_update()]
+    refactored = [get_path_update(working_dir)]
     for start, end in coords:
         code = format_block(doc[start + 1 : end])
         refactored.extend([""] + code)
@@ -111,20 +111,29 @@ def get_code_blocks(doc: list[str]) -> str:
 def _rst_path(*args):
     path = pathlib.Path(args[-1])
     assert path.suffix == ".rst"
+    if not path.exists():
+        click.secho(f"ERROR: {str(path)} does not exist", fg="red")
+        exit(1)
     return path
 
 
 @click.command(no_args_is_help=True, context_settings={"show_default": True})
 @click.argument("rst_path", callback=_rst_path)
+@click.option(
+    "-wd",
+    "--working_dir",
+    type=pathlib.Path,
+    help="Set the working directory. Defaults to dir containing this script.",
+)
 @click.option("-t", "--test", is_flag=True, help="don't write script, print it")
-def main(rst_path, test):
-    """extracts code under jupyter_execute or doctest blocks to pythomn script"""
-    outpath = rst_path.parent / f"{rst_path.stem}.py"
-
+def main(rst_path, working_dir, test):
+    """extracts code under jupyter_execute or doctest blocks to python script"""
+    outpath = f"{rst_path.stem}.py"
+    outpath = (working_dir / outpath) if working_dir else (rst_path.parent / outpath)
     doc = rst_path.read_text()
     doc = doc.splitlines()
-
-    just_code = get_code_blocks(doc)
+    working_dir = working_dir or pathlib.Path(__file__).parent
+    just_code = get_code_blocks(doc, working_dir)
     if test:
         print(just_code)
         exit()

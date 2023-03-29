@@ -23,7 +23,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -153,6 +153,12 @@ def test_get_app(name):
     __app_registry.pop(get_object_provenance(min_length), None)
     app = get_app(name, 500)
     assert app.__class__.__name__.endswith(name.split(".")[-1])
+
+
+def test_get_app_kwargs():
+    # when an app has a name kwarg
+    # we should still be able to use get_app!
+    _ = get_app("model", "F81", name="F81-model")
 
 
 @define_app

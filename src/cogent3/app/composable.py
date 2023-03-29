@@ -20,6 +20,7 @@ from cogent3.app.typing import get_constraint_names, type_tree
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import (
+    docstring_to_summary_rest,
     extend_docstring_from,
     get_object_provenance,
     in_jupyter,
@@ -42,7 +43,7 @@ __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Nick Shahmaras"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
@@ -1087,6 +1088,8 @@ def _class_from_func(func):
     sig = inspect.signature(func)
     class_name = func.__name__
     _main = _set_hints(_main, *_get_raw_hints(func, 1))
+    summary, body = docstring_to_summary_rest(func.__doc__)
+    func.__doc__ = None
 
     _class_dict = {"__init__": _init, "main": _main, "_user_func": staticmethod(func)}
 
@@ -1097,6 +1100,8 @@ def _class_from_func(func):
     result = types.new_class(class_name, (), exec_body=lambda x: x.update(_class_dict))
     result.__module__ = module  # necessary for pickle support
     result._func_sig = sig
+    result.__doc__ = summary
+    result.__init__.__doc__ = body
     return result
 
 

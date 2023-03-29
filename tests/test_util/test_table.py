@@ -12,6 +12,7 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase, main, skipIf
 
 import numpy
+import pytest
 
 from numpy import arange
 from numpy.testing import assert_equal
@@ -43,7 +44,7 @@ __author__ = "Thomas La"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Thomas La", "Christopher Bradley"]
 __license__ = "BSD-3"
-__version__ = "2022.10.31a1"
+__version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -1973,6 +1974,13 @@ class TableTests(TestCase):
         self.assertFalse(is_html_markup("<table>"))
         self.assertFalse(is_html_markup("blah < blah"))
         self.assertFalse(is_html_markup("blah > blah"))
+
+
+@pytest.mark.parametrize("data", ([[0, 1, 2], [0, 1]], [[0, 1, 2], [0, 1, 2, 3]]))
+def test_mixed_row_lengths(data):
+    """should fail"""
+    with pytest.raises(ValueError):
+        _ = Table(header=["a", "b", "c"], data=data)
 
 
 if __name__ == "__main__":
