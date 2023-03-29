@@ -2,8 +2,12 @@ import numpy
 import pytest
 
 from cogent3 import _Table
-from cogent3.core import annotation_db as ann_db
-from cogent3.core.annotation_db import FeatureDataType, GffAnnotationDb
+from cogent3.core.annotation_db import (
+    FeatureDataType,
+    GffAnnotationDb,
+    load_annotations,
+    SupportsFeatures,
+)
 from cogent3.core.sequence import Sequence
 
 
@@ -23,7 +27,7 @@ def gff_db():
         "sample_data/Homo_sapiens.GRCh38.109.chromosome.22.gff3.gz",
         "data/c_elegans_WS199_shortened_gff.gff3",
     )
-    return ann_db.load_annotations(paths[1])
+    return load_annotations(paths[1])
 
 
 def test_gff_describe(gff_db):
@@ -88,13 +92,11 @@ def test_to_rich_dict(gff_db):
     # not a very good test! needs to be serialise / deserialize
     rd = gff_db.to_rich_dict()
     assert "type" in rd
-    got = ann_db.GffAnnotationDb.from_dict(rd)
-    print(got)
+    got = GffAnnotationDb.from_dict(rd)
 
 
 def test_empty_data():
-    got = ann_db.GffAnnotationDb([])
-    print(got)
+    got = GffAnnotationDb([])
 
 
 # testing GenBank files
@@ -102,12 +104,7 @@ def test_empty_data():
 def gb_db():
     paths = ("data/annotated_seq.gb",)
 
-    return ann_db.load_annotations(paths[0])
-
-
-# def test_gb_init(gf_db, gb_db):
-#     print("gb", gb_db.biotype_counts())
-#     print("gff-gb", big_gb_gff.biotype_counts())
+    return load_annotations(paths[0])
 
 
 @pytest.mark.xfail(reason="todo: upload data to be able to test this method")
@@ -123,7 +120,7 @@ def test_gb_get_children(gb_db, parent_biotype, name):
             end=coords.max(),
         )
     )[0]
-    assert child["type"] != parent["type"]
+    assert child["biotype"] != parent["biotype"]
     assert child["name"] == parent["name"]
 
 
@@ -140,14 +137,14 @@ def test_gb_get_parent(gb_db):
             end=coords.max(),
         )
     )[0]
-    assert parent["type"] != cds["type"]
-    assert parent["type"] == "gene"
+    assert parent["biotype"] != cds["biotype"]
+    assert parent["biotype"] == "gene"
     assert parent["name"] == cds["name"]
 
 
 def test_protocol_adherence(gff_db, gb_db):
     for db in (gff_db, gb_db):
-        assert isinstance(db, ann_db.SupportsFeatures)
+        assert isinstance(db, SupportsFeatures)
 
 
 @pytest.fixture()
@@ -214,3 +211,15 @@ def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
     ]
 
     assert got == expected
+
+
+def test_annotate_from(seq):
+    seq.annotate_from("data/simple.gff", pre_parsed=False)
+
+    got = list(seq.query_db(biotype="exon"))
+    assert len(got) == 2
+
+    feature1 = got[0]
+    assert feature1["name"] == "exon1"
+    assert feature1["biotype"] == "exon"
+    assert feature1["spans"] == [(1, 10)]
