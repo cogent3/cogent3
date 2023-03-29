@@ -900,7 +900,8 @@ class Sequence(_Annotatable, SequenceI):
         ):
             yield FeatureNew(self, **feature)
 
-    def annotate_from_gff(self, f: os.PathLike, offset=None):
+    def annotate_from_gff(self, f: os.PathLi
+        ke, offset=None):
         """copies annotations from a gff file to self,
 
         Parameters
