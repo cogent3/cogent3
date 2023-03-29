@@ -211,6 +211,7 @@ def deserialise_seq(data, aligned=False):
     """
     from cogent3.core.alignment import Aligned
     from cogent3.core.moltype import get_moltype
+    from cogent3.core.alignment import Aligned
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
