@@ -5,9 +5,8 @@ from importlib import import_module
 
 import cogent3
 
-from cogent3.core.alignment import Aligned
 from cogent3.core.genetic_code import get_code
-from cogent3.core.moltype import _CodonAlphabet, get_moltype
+
 from cogent3.util.io import open_, path_exists
 
 
@@ -161,6 +160,8 @@ def deserialise_result(data):
 @register_deserialiser("cogent3.core.moltype")
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
+    from cogent3.core.moltype import _CodonAlphabet, get_moltype
+
     data.pop("version", None)
     label = data["moltype"]
     data["moltype"] = get_moltype(label)
@@ -178,6 +179,8 @@ def deserialise_moltype(data):
 @register_deserialiser("cogent3.core.alphabet")
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
+    from cogent3.core.moltype import _CodonAlphabet, get_moltype
+
     data.pop("version", None)
     if _get_class(data.get("type")) == _CodonAlphabet:
         result = deserialise_moltype(data)
@@ -208,6 +211,7 @@ def deserialise_seq(data, aligned=False):
 
     """
     from cogent3.core.moltype import get_moltype
+    from cogent3.core.alignment import Aligned
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
