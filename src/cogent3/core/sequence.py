@@ -885,7 +885,7 @@ class Sequence(_Annotatable, SequenceI):
         return self._seq.offset
 
     @annotation_offset.setter
-    def set_annotation_offset(self, value):
+    def annotation_offset(self, value):
         self._seq.offset = value
 
     @property
@@ -914,6 +914,19 @@ class Sequence(_Annotatable, SequenceI):
 
         query_start = self._seq.absolute_index(start) if start is not None else None
         query_end = self._seq.absolute_index(stop) if stop is not None else None
+        query_start = self._seq.absolute_index(start) if start is not None else None
+        query_end = self._seq.absolute_index(stop) if stop is not None else None
+
+        for feature in self.annotation_db.get_features_matching(
+            biotype=feature_type, name=name, start=query_start, end=query_end
+        ):
+            relative_spans = [
+                (self._seq.relative_index(i), self._seq.relative_index(j))
+                for i, j in feature["spans"]
+            ]
+            # todo: note that we're just using typed dict for feature
+            feature["spans"] = relative_spans
+            yield feature
 
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
