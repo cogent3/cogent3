@@ -34,3 +34,4 @@ junit-*.xml
 doc/draw*
 dist/*
 working/*
+lcov*.info

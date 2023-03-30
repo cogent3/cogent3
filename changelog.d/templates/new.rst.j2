@@ -1,0 +1,15 @@
+.. A new scriv changelog fragment.
+{% if config.categories -%}
+..
+.. Uncomment the header that is right (remove the leading dots).
+..
+{% for cat in config.categories -%}
+.. {{ cat }}
+.. {{ config.rst_header_chars[1] * (cat|length) }}
+..
+.. - A bullet item for the {{ cat }} category.
+..
+{% endfor -%}
+{% else %}
+- A bullet item for this fragment. EDIT ME!
+{% endif -%}

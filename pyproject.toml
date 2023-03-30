@@ -43,8 +43,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "black",
-    "isort",
+    "black==21.12b",
+    "isort==5.10.1",
+    "click==8.0.4", # black needs this pinned
     "kaleido",
     "pandas",
     "plotly",
@@ -53,7 +54,7 @@ test = [
     "pytest-cov",
     "pytest-xdist",
     "nox"]
-doc  = ["click",
+doc  = ["click==8.0.4",
         "ipykernel",
         "ipython",
         "ipywidgets",
@@ -79,13 +80,13 @@ doc  = ["click",
         "sphinx_panels",
         "sphinxcontrib-bibtex"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["black",
-       "click",
+dev = ["black==21.12b",
+       "click==8.0.4",
        "flit",
        "ipykernel",
        "ipython",
        "ipywidgets",
-       "isort",
+       "isort==5.10.1",
        "jupyter-sphinx",
        "jupyter_client",
        "jupyterlab",
@@ -151,3 +152,12 @@ lines_after_imports=2
 lines_between_types=1
 multi_line_output=3
 use_parentheses=true
+
+[tool.scriv]
+format="md"
+categories=["Contributers","ENH","BUG","DOC","Deprecations","Discontinued"]
+output_file="changelog.md"
+version="literal: src/cogent3/__init__.py:__version__"
+skip_fragments="README.*"
+new_fragment_template="file: changelog.d/templates/new.md.j2"
+entry_title_template="file: changelog.d/templates/title.md.j2"

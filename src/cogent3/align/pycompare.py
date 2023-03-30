@@ -610,9 +610,9 @@ def find_matched_paths(
         s1_coord, _ = paths.last_on_path(seq1_idx, seq2_idx)
         left_limit = min(abs(s1_coord.end - seq1_idx), delta)
         ref_coord, other_coord = _extend_from_position(
-            seq1._seq,
+            str(seq1),
             seq1_idx,
-            seq2._seq,
+            str(seq2),
             seq2_idx,
             window=window,
             threshold=threshold,
