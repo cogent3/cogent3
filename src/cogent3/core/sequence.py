@@ -1550,6 +1550,23 @@ class SeqView:
         self.start = start
         self.stop = stop
         self.step = step
+        self.offset = None
+
+    def absolute_index(self, value):
+        # note: this is the positive/positive case...
+
+        if self.start + value > self.stop:
+            raise IndexError("Index out of bounds")
+
+        offset = self.start if self.offset is None else self.offset + self.start
+        return offset + (value * self.step)
+
+    def relative_index(self, value):
+        """
+        This reverts an absolute index back to its index relative to the underlying seq.
+        again, this is all for the simplest, positive case.
+        """
+        return value if self.offset is None else value - self.offset
 
     def _get_index(self, val):
         if len(self) == 0:
