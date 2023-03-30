@@ -21,7 +21,7 @@ import warnings
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, Iterator, List, Optional, Tuple
+from typing import Generator, List, Tuple
 
 from numpy import (
     arange,
@@ -891,7 +891,7 @@ class Sequence(_Annotatable, SequenceI):
         return self._seq.offset
 
     @annotation_offset.setter
-    def set_annotation_offset(self, value):
+    def annotation_offset(self, value):
         self._seq.offset = value
 
     @property
