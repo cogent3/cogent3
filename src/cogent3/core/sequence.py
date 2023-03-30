@@ -877,8 +877,6 @@ class Sequence(_Annotatable, SequenceI):
         if not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
-        # todo: it the users responsibility to know the offset (if any) between the sequence and custom annotations
-        # does a user annotationDb need to know its offset then?
 
     def get_features_matching(
         self,
