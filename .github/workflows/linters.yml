@@ -40,7 +40,7 @@ jobs:
       - name: Format code using black
         run: black .
       - name: Sort import statements using isort
-          isort src tests doc noxfile.py
+        run: isort src tests doc noxfile.py
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
