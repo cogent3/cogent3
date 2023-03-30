@@ -26,7 +26,7 @@ jobs:
           python -m pip install black
           python -m pip install isort
           python -m pip install click
-      - name: Extract version requirements from pyproject.toml
+      - name: Extract version requirements from pyproject.toml and install
         run: |
           export click_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "click" in line][0])')
           export black_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "black" in line][0])')
@@ -34,9 +34,6 @@ jobs:
           echo "Click version: $click_version"
           echo "Black version: $black_version"
           echo "Isort version: $isort_version"
-      - name: Install specific versions of black, isort, and click
-        run: |
-          echo "Installing specific versions of $black_version, $isort_version, and $click_version"
           python -m pip install $click_version $black_version $isort_version
       - name: Format code using black
         run: black .
