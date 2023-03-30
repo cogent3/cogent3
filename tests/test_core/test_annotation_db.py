@@ -414,3 +414,10 @@ def test_annotate_from(seq):
     assert feature1["name"] == "exon1"
     assert feature1["biotype"] == "exon"
     assert feature1["spans"] == [(1, 10)]
+
+
+def test_query_db_start_stop():
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    seq.annotate_from("data/simple.gff", pre_parsed=False)
+    got = list(seq.query_db(start=2, stop=10))
+    print(got)
