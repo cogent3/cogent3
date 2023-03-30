@@ -1537,7 +1537,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step")
+    __slots__ = ("seq", "start", "stop", "step", "offset")
 
     def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
         if step == 0:
