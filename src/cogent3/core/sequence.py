@@ -885,7 +885,7 @@ class Sequence(_Annotatable, SequenceI):
         return self._seq.offset
 
     @annotation_offset.setter
-    def set_annotation_offset(self, value):
+    def annotation_offset(self, value):
         self._seq.offset = value
 
     @property
