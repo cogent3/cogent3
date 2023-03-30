@@ -35,7 +35,9 @@ jobs:
           echo "Black version: $black_version"
           echo "Isort version: $isort_version"
       - name: Install specific versions of black, isort, and click
-        run: python -m pip install ${click_version:+click$click_version} ${black_version:+black$black_version} ${isort_version:+isort$isort_version}
+        run: |
+          echo "Installing specific versions of $black_version, $isort_version, and $click_version"
+          python -m pip install $click_version $black_version $isort_version
       - name: Format code using black
         run: black .
       - name: Sort import statements using isort
