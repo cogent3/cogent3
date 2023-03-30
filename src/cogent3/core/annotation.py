@@ -22,7 +22,6 @@ __status__ = "Production"
 
 
 class _AnnotationMixin:
-
     def add_feature(self, bio_type, name, spans):
         feat = Feature(self, bio_type, name, spans)
 

@@ -11,7 +11,6 @@ import numpy
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
-from cogent3.util.misc import get_object_provenance
 
 
 __author__ = "Gavin Huttley"
@@ -169,8 +168,6 @@ def _add_record_sql(
 
 def _matching_conditions(
     conditions: dict,
-    start: OptionalInt = None,
-    end: OptionalInt = None,
     partial: bool = True,
 ):
     """creates WHERE clause
@@ -179,9 +176,6 @@ def _matching_conditions(
     ----------
     conditions : dict
         column name and values to be matched
-    start, end : OptionalInt
-        select records whose (start, end) values lie between start and end,
-        or overlap them if (partial is True)
     partial : bool, optional
         if False, only records within start, end are included. If True,
         all records that overlap the segment defined by start, end are included.
@@ -193,6 +187,10 @@ def _matching_conditions(
     """
     # todo this needs to support OR operation on some conditions, e.g. if the value of
     # a condition is a tuple, do OR
+
+    start = conditions.pop("start", None)
+    end = conditions.pop("end", None)
+
     sql = []
     vals = ()
     if conditions:
@@ -304,9 +302,8 @@ def _select_records_sql(
     str, tuple
         the SQL statement and the tuple of values
     """
-    where, vals = _matching_conditions(
-        conditions=conditions, start=start, end=end, partial=partial
-    )
+
+    where, vals = _matching_conditions(conditions=conditions, partial=partial)
     columns = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns} FROM {table_name}"
     if not where:
