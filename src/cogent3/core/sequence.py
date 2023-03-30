@@ -19,7 +19,7 @@ from collections import defaultdict
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, Iterator, List, Optional, Tuple
+from typing import Generator, List, Tuple
 
 from numpy import (
     arange,
@@ -776,8 +776,7 @@ class SequenceI(object):
         else:
             name = None
 
-        new_seq = self.__class__(str(self) + other_seq, name=name)
-        return new_seq
+        return self.__class__(str(self) + other_seq, name=name)
 
 
 @total_ordering
@@ -811,9 +810,7 @@ class Sequence(_Annotatable, SequenceI):
             name = seq.name
         self.name = name
         orig_seq = seq
-        if isinstance(seq, Sequence):
-            seq = str(seq)
-        elif isinstance(seq, ArraySequence):
+        if isinstance(seq, (Sequence, ArraySequence)):
             seq = str(seq)
         elif isinstance(seq, bytes):
             seq = seq.decode("utf-8")
@@ -879,7 +876,7 @@ class Sequence(_Annotatable, SequenceI):
         return self._seq.offset
 
     @annotation_offset.setter
-    def set_annotation_offset(self, value):
+    def annotation_offset(self, value):
         self._seq.offset = value
 
     @property
@@ -893,15 +890,29 @@ class Sequence(_Annotatable, SequenceI):
         if not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
-        # todo: it the users responsibility to know the offset (if any) between the sequence and custom annotations
-        # does a user annotationDb need to know its offset then?
 
-    def query_db(self, **kwargs):
+    def query_db(
+        self,
+        feature_type=None,
+        name=None,
+        start=None,
+        stop=None,
+    ):
         if self._annotation_db is None:
             return None
 
-        for feature in self._annotation_db.get_features_matching(**kwargs):
-            # todo: if feature is outside the range of the SeqView: continue
+        query_start = self._seq.absolute_index(start) if start is not None else None
+        query_end = self._seq.absolute_index(stop) if stop is not None else None
+
+        for feature in self.annotation_db.get_features_matching(
+            biotype=feature_type, name=name, start=query_start, end=query_end
+        ):
+            relative_spans = [
+                (self._seq.relative_index(i), self._seq.relative_index(j))
+                for i, j in feature["spans"]
+            ]
+            # todo: note that we're just using typed dict for feature
+            feature["spans"] = relative_spans
             yield feature
 
     def annotate_from(self, f, pre_parsed=False):
