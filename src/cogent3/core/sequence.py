@@ -22,7 +22,7 @@ from collections import defaultdict
 from functools import total_ordering, singledispatch
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, Iterator, List, Optional, Tuple
+from typing import Generator, List, Tuple
 
 from numpy import (
     arange,
@@ -874,8 +874,6 @@ class Sequence(_Annotatable, SequenceI):
         if not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
-        # todo: it the users responsibility to know the offset (if any) between the sequence and custom annotations
-        # does a user annotationDb need to know its offset then?
 
     def query_db(
         self,
