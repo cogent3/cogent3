@@ -403,3 +403,10 @@ def test_sequence_collection_annotate_from_gff():
     assert (
         seq_collection.get_seq("test_seq").annotation_db is seq_collection.annotation_db
     )
+
+
+def test_query_db_start_stop():
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    seq.annotate_from("data/simple.gff", pre_parsed=False)
+    got = list(seq.query_db(start=2, stop=10))
+    print(got)
