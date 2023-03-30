@@ -866,6 +866,29 @@ class Sequence(_Annotatable, SequenceI):
         self._seq.offset = value
 
     @property
+    def annotation_offset(self):
+        """
+        The offset between annotation coordinates and sequence coordinates.
+
+        The offset can be used to adjust annotation coordinates to match the position
+        of the given Sequence within a larger genomic context. For example, if the
+        Annotations are with resepct to a chomorome, and the sequence represents
+        a gene that is 100 bp from the start of a chromosome, the offset can be set to
+        100 to ensure that the gene's annotations are aligned with the appropriate
+        genomic positions.
+
+
+        Returns:
+            int: The offset between annotation coordinates and sequence coordinates.
+        """
+
+        return self._seq.offset
+
+    @annotation_offset.setter
+    def set_annotation_offset(self, value):
+        self._seq.offset = value
+
+    @property
     def annotation_db(self):
         return self._annotation_db
 
