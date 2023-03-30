@@ -46,5 +46,5 @@ jobs:
         with:
           author_name: ${{ github.actor }}
           author_email: ${{ github.actor }}@users.noreply.github.com
-          message: "Format code with black and sort imports with isort"
+          message: "STY: pre-commit linting with black and isort"
           add: "."
