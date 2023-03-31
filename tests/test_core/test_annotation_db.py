@@ -419,7 +419,7 @@ def test_query_db_no_annotation_db(seq):
     """
     Test that `query_db` returns an empty list when no annotation database is attached to the sequence.
     """
-    assert not list(seq.query_db(biotype="exon", seqid="test"))
+    assert not list(seq.query_db(feature_type="exon", name="test"))
 
 
 def test_query_db_no_matching_feature(seq, anno_db):
@@ -431,7 +431,7 @@ def test_query_db_no_matching_feature(seq, anno_db):
         seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
     )
 
-    assert not list(seq.query_db(biotype="exon", name="non_matching"))
+    assert not list(seq.query_db(feature_type="exon", name="non_matching"))
 
 
 def test_query_db_matching_feature(seq, anno_db):
@@ -442,7 +442,7 @@ def test_query_db_matching_feature(seq, anno_db):
     anno_db.add_feature(
         seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
     )
-    got = list(seq.query_db(biotype="exon", seqid=seq.name))
+    got = list(seq.query_db(feature_type="exon"))
     expected = FeatureDataType(
         biotype="exon", name="exon1", spans=[(1, 4)], reverse=False
     )
@@ -462,7 +462,7 @@ def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
     anno_db.add_feature(
         seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
     )
-    got = list(seq.query_db(biotype="exon"))
+    got = list(seq.query_db(feature_type="exon"))
     expected = [
         FeatureDataType(biotype="exon", name="exon1", spans=[(1, 4)], reverse=False),
         FeatureDataType(biotype="exon", name="exon2", spans=[(6, 10)], reverse=False),
@@ -474,7 +474,7 @@ def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
 def test_annotate_from(seq):
     seq.annotate_from("data/simple.gff", pre_parsed=False)
 
-    got = list(seq.query_db(biotype="exon"))
+    got = list(seq.query_db(feature_type="exon"))
     assert len(got) == 2
 
     feature1 = got[0]
