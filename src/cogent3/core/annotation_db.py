@@ -103,7 +103,7 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
     def add_feature(
         self,
-        seqid: str,
+        seqid: str,  # is seqid and name referring to the same thing?
         biotype: str,
         name: str,
         spans: typing.List[typing.Tuple[int, int]],
