@@ -229,4 +229,16 @@ def test_query_db_start_stop():
     seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
     seq.annotate_from("data/simple.gff", pre_parsed=False)
     got = list(seq.query_db(start=2, stop=10))
-    print(got)
+
+
+def test_query_db_start_stop_seqview():
+    seq = Sequence("A" * 22, name="test_seq")
+    seq.annotate_from("data/simple.gff", pre_parsed=False)
+
+    subseq = seq[9:]
+    got = list(subseq.query_db(start=2, stop=10))
+    # the adjust query should be .query_db(start=9+2, stop=9+10)
+    expect = [
+        {"biotype": "exon", "name": "exon2", "spans": [(11, 20)], "reverse": False}
+    ]
+    assert got == expect

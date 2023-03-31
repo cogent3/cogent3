@@ -188,6 +188,12 @@ class _Annotatable(_AnnotationMixin):
         new.attach_annotations(sliced_annots)
         if hasattr(self, "_repr_policy"):
             new._repr_policy.update(self._repr_policy)
+
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence) and isinstance(index, (int, slice)):
+            new._seq = self._seq[index]
+            new.annotation_db = self.annotation_db
         return new
 
     def _mapped(self, map):
