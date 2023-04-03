@@ -22,8 +22,8 @@ __status__ = "Production"
 
 
 class _AnnotationMixin:
-    def add_feature(self, bio_type, name, spans):
-        feat = Feature(self, bio_type, name, spans)
+    def add_feature(self, biotype, name, spans):
+        feat = Feature(self, biotype, name, spans)
 
         if feat.parent is not self:
             raise ValueError("doesn't belong here")
