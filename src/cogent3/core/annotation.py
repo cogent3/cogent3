@@ -193,7 +193,8 @@ class _Annotatable(_AnnotationMixin):
 
         if isinstance(self, Sequence) and isinstance(index, (int, slice)):
             new._seq = self._seq[index]
-            new.annotation_db = self.annotation_db
+            if self.annotation_db is not None:
+                new.annotation_db = self.annotation_db
         return new
 
     def _mapped(self, map):
