@@ -197,9 +197,10 @@ def _matching_conditions(
         conds = []
         vals = []
         for col, val in conditions.items():
-            op = "LIKE" if "%" in val else "="
-            conds.append(f"{col} {op} ?")
-            vals.append(val)
+            if val:
+                op = "LIKE" if "%" in val else "="
+                conds.append(f"{col} {op} ?")
+                vals.append(val)
         sql.append(" AND ".join(conds))
         vals = tuple(vals)
 
@@ -472,7 +473,7 @@ class SqliteAnnotationDbMixin:
 
         table = make_table(
             data={
-                "type": list(data.keys())
+                "biotype": list(data.keys())
                 + [f"num_rows({t!r})" for t in self.table_names],
                 "count": [len(v) for v in data.values()] + row_counts,
             }
@@ -490,7 +491,7 @@ class SqliteAnnotationDbMixin:
         return counts
 
     def to_rich_dict(self):
-        # todo drop columns from records with n o value
+        # todo drop columns from records with no value
         # top level dict for each table_name
         records = {}
         for table in self.table_names:
@@ -608,17 +609,17 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         return reduced
 
     def _get_feature_by_id(
-        self, table_name: str, column: str, name: str
+        self, table_name: str, column: str, name: str, biotype: OptionalStr = None
     ) -> typing.List[FeatureDataType]:
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
             table_name=table_name,
-            conditions={column: name},
-            columns=("biotype", "spans", "strand", "name", "parent_id"),
+            conditions={column: name, "biotype": biotype},
+            columns=["biotype", "spans", "strand", "name", "parent_id"],
         )
         for result in self._execute_sql(sql, values=vals):
             yield {
-                "type": result["biotype"],
+                "biotype": result["biotype"],
                 "name": result["name"],
                 "spans": [tuple(c) for c in result["spans"]],
                 "reverse": result["strand"] == "-",
@@ -626,14 +627,17 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             }
 
     def get_feature_children(
-        self, name: str, **kwargs
+        self, name: str, biotype: OptionalStr = None, **kwargs
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # kwargs is used because other classes need start / end
         # just uses search matching
         for table_name in self.table_names:
             for result in self._get_feature_by_id(
-                table_name=table_name, column="parent_id", name=f"%{name}%"
+                table_name=table_name,
+                column="parent_id",
+                name=f"%{name}%",
+                biotype=biotype,
             ):
                 result.pop("parent_id")  # remove invalid field for the FeatureDataType
                 yield result
@@ -745,28 +749,21 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         name: str,
         start: int,
         end: int,
+        biotype: OptionalStr = None,
         partial: bool = False,
     ) -> typing.List[FeatureDataType]:
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
             table_name=table_name,
-            conditions={"name": name},
+            conditions={"name": name, "biotype": biotype},
             start=start,
             end=end,
-            columns=(
-                "biotype",
-                "start",
-                "end",
-                "spans",
-                "strand",
-                "name",
-                "parent_id",
-            ),
+            columns=["biotype", "start", "end", "spans", "strand", "name", "parent_id"],
             partial=partial,
         )
         for result in self._execute_sql(sql, values=vals):
             yield {
-                "type": result["biotype"],
+                "biotype": result["biotype"],
                 "name": name,
                 "start": result["start"],
                 "end": result["end"],
@@ -777,6 +774,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     def get_feature_children(
         self,
         name: str,
+        biotype: OptionalStr = None,
         exclude_biotype: OptionalStr = None,
         start: OptionalInt = None,
         end: OptionalInt = None,
@@ -787,11 +785,12 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
             for feat in self._get_feature_by_id(
                 table_name=table,
                 name=name,
+                biotype=biotype,
                 start=int(start),
                 end=int(end),
                 partial=False,
             ):
-                if feat["type"] == exclude_biotype:
+                if feat["biotype"] == exclude_biotype:
                     continue
                 cstart, cend = feat.pop("start"), feat.pop("end")
                 if not (start <= cstart < end and start < cend <= end):
@@ -816,7 +815,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 partial=False,
             ):
                 # add support for != operation to SQL where clause generation
-                if feat["type"] == exclude_biotype:
+                if feat["biotype"] == exclude_biotype:
                     continue
 
                 cstart, cend = feat.pop("start"), feat.pop("end")
@@ -836,8 +835,8 @@ def deserialise_gb_db(data: dict):
 
 
 def _db_from_genbank(path):
-    from cogent3.parse.genbank import MinimalGenbankParser
     from cogent3 import open_
+    from cogent3.parse.genbank import MinimalGenbankParser
 
     with open_(path) as infile:
         data = list(MinimalGenbankParser(infile))

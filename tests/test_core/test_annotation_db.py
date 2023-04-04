@@ -1,12 +1,14 @@
+import pathlib
+
 import numpy
 import pytest
 
-from cogent3 import _Table
+from cogent3 import _Table, load_seq
+from cogent3.core.annotation import FeatureNew
 from cogent3.core.annotation_db import (
-    FeatureDataType,
     GffAnnotationDb,
-    load_annotations,
     SupportsFeatures,
+    load_annotations,
 )
 from cogent3.core.sequence import Sequence
 
@@ -20,6 +22,8 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
+
 
 @pytest.fixture(scope="session")
 def gff_db():
@@ -28,6 +32,16 @@ def gff_db():
         "data/c_elegans_WS199_shortened_gff.gff3",
     )
     return load_annotations(paths[1])
+
+
+@pytest.fixture()
+def seq_db():
+    seq = load_seq(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta", moltype="dna")
+    db = load_annotations(DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
+
+    seq.annotation_db = db
+
+    return seq
 
 
 def test_gff_describe(gff_db):
@@ -103,12 +117,10 @@ def test_empty_data():
 @pytest.fixture(scope="session")
 def gb_db():
     paths = ("data/annotated_seq.gb",)
-
     return load_annotations(paths[0])
 
 
-@pytest.mark.xfail(reason="todo: upload data to be able to test this method")
-@pytest.mark.parametrize("parent_biotype, name", (("gene", "GS_RS00055"),))
+@pytest.mark.parametrize("parent_biotype, name", (("gene", "CNA00110"),))
 def test_gb_get_children(gb_db, parent_biotype, name):
     parent = list(gb_db.get_features_matching(biotype=parent_biotype, name=name))[0]
     coords = numpy.array(parent["spans"])
@@ -124,9 +136,8 @@ def test_gb_get_children(gb_db, parent_biotype, name):
     assert child["name"] == parent["name"]
 
 
-@pytest.mark.xfail(reason="todo: upload data to be able to test this method")
 def test_gb_get_parent(gb_db):
-    cds_id = "GS_RS00055"
+    cds_id = "CNA00110"
     cds = list(gb_db.get_features_matching(biotype="CDS", name=cds_id))[0]
     coords = numpy.array(cds["spans"])
     parent = list(
@@ -149,11 +160,12 @@ def test_protocol_adherence(gff_db, gb_db):
 
 @pytest.fixture()
 def seq() -> Sequence:
-    return Sequence("ATTGTACGC", name="test_seq")
+    return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
 
 
 @pytest.fixture()
 def anno_db() -> GffAnnotationDb:
+    # an empty db that we can add to
     return GffAnnotationDb([])
 
 
@@ -174,6 +186,7 @@ def test_query_db_no_matching_feature(seq, anno_db):
     )
 
     assert not list(seq.query_db(feature_type="exon", name="non_matching"))
+    assert not list(seq.query_db(feature_type="CDS"))
 
 
 def test_query_db_matching_feature(seq, anno_db):
@@ -185,11 +198,11 @@ def test_query_db_matching_feature(seq, anno_db):
         seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
     )
     got = list(seq.query_db(feature_type="exon"))
-    expected = FeatureDataType(
-        biotype="exon", name="exon1", spans=[(1, 4)], reverse=False
-    )
 
-    assert got == [expected]
+    assert got[0].biotype == "exon"
+    assert got[0].name == "exon1"
+    assert len(got) == 1
+    assert got[0].reversed == False
 
 
 def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
@@ -205,12 +218,8 @@ def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
         seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
     )
     got = list(seq.query_db(feature_type="exon"))
-    expected = [
-        FeatureDataType(biotype="exon", name="exon1", spans=[(1, 4)], reverse=False),
-        FeatureDataType(biotype="exon", name="exon2", spans=[(6, 10)], reverse=False),
-    ]
 
-    assert got == expected
+    assert len(got) == 2
 
 
 def test_annotate_from(seq):
@@ -220,25 +229,68 @@ def test_annotate_from(seq):
     assert len(got) == 2
 
     feature1 = got[0]
-    assert feature1["name"] == "exon1"
-    assert feature1["biotype"] == "exon"
-    assert feature1["spans"] == [(1, 10)]
+    assert feature1.name == "exon1"
+    assert feature1.biotype == "exon"
+    assert (feature1.map.start, feature1.map.end) == (1, 10)
 
 
-def test_query_db_start_stop():
-    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
-    seq.annotate_from("data/simple.gff", pre_parsed=False)
+def test_query_db_start_stop(seq):
+    # todo: cannot forget the lost spans...
+    seq.annotate_from("data/simple.gff")
     got = list(seq.query_db(start=2, stop=10))
+    assert len(got) == 4
 
 
-def test_query_db_start_stop_seqview():
-    seq = Sequence("A" * 22, name="test_seq")
+def test_query_db_start_stop_seqview(seq):
     seq.annotate_from("data/simple.gff", pre_parsed=False)
 
     subseq = seq[9:]
     got = list(subseq.query_db(start=2, stop=10))
     # the adjust query should be .query_db(start=9+2, stop=9+10)
-    expect = [
-        {"biotype": "exon", "name": "exon2", "spans": [(11, 20)], "reverse": False}
-    ]
-    assert got == expect
+
+    # start it 11 (not 12) because gff is in 1-based coordinated
+    assert (got[0].map.start, got[0].map.end) == (11, 20)
+    # todo: should coords of features be relative to the view or the underlying seq?
+
+
+def test_feature_get_slice():
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    feature_dict = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 10),
+        ],
+        "reversed": False,
+    }
+
+    feature = FeatureNew(seq, **feature_dict)
+
+    got = feature.get_slice()
+    assert str(got) == str(seq[5:10])
+
+
+def test_feature_query_get_slice(seq_db):
+    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    assert feat.name == "Transcript:B0019.1"
+    assert str(feat.get_slice()) == str(seq_db)[9:70]
+
+
+def test_feature_get_children(seq_db):
+    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    new_feat_5pUTR = list(feat.get_children(biotype="five_prime_UTR"))
+    assert len(new_feat_5pUTR) == 1
+    assert str(new_feat_5pUTR[0].get_slice()) == str(seq_db)[:9]
+
+    new_feat_CDS = list(feat.get_children(biotype="CDS"))[0]
+    assert new_feat_CDS.name == "CDS:B0019.1"
+
+
+def test_rc_database(seq_db):
+    rc_seq = seq_db.rc()
+    print(rc_seq.annotation_db)
+    assert rc_seq.annotation_db is not None
+
+    feat = list(rc_seq.query_db(name="Transcript:B0019.1"))[0]
+    assert feat.name == "Transcript:B0019.1"
+    assert str(feat.get_slice()) == str(seq_db)[9:70]
