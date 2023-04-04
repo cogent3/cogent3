@@ -405,20 +405,38 @@ def test_sequence_collection_annotate_from_gff():
     )
 
 
-def test_query_db_start_stop():
-    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
-    seq.annotate_from("data/simple.gff", pre_parsed=False)
+def test_query_db_start_stop(seq):
+    # todo: cannot forget the lost spans...
+    seq.annotate_from("data/simple.gff")
     got = list(seq.query_db(start=2, stop=10))
 
 
-def test_query_db_start_stop_seqview():
-    seq = Sequence("A" * 22, name="test_seq")
+def test_query_db_start_stop_seqview(seq):
     seq.annotate_from("data/simple.gff", pre_parsed=False)
 
     subseq = seq[9:]
     got = list(subseq.query_db(start=2, stop=10))
     # the adjust query should be .query_db(start=9+2, stop=9+10)
-    expect = [
-        {"biotype": "exon", "name": "exon2", "spans": [(11, 20)], "reverse": False}
-    ]
-    assert got == expect
+
+    # start it 11 (not 12) because gff is in 1-based coordinated
+    assert (got[0].map.start, got[0].map.end) == (11, 20)
+    # todo: should coords of features be relative to the view or the underlying seq?
+
+
+def test_feature_get_slice():
+    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
+    feature_dict = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 10),
+        ],
+        "reversed": False,
+    }
+
+    feature = FeatureNew(seq, **feature_dict)
+
+    got = feature.get_slice()
+    assert str(got) == str(seq[5:10])
+
+
