@@ -23,11 +23,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install tomli
-          python -m pip install black
-          python -m pip install isort
-          python -m pip install click
-      - name: Extract version requirements from pyproject.toml and install
-        run: |
           export click_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "click" in line][0])')
           export black_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "black" in line][0])')
           export isort_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "isort" in line][0])')
