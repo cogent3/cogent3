@@ -9,6 +9,7 @@ import typing
 import numpy
 
 from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
 
 
@@ -840,8 +841,7 @@ def deserialise_gb_db(data: dict):
     return GenbankAnnotationDb.from_dict(data)
 
 
-def _db_from_genbank(path, db):
-    from cogent3 import open_
+def _db_from_genbank(path):
     from cogent3.parse.genbank import MinimalGenbankParser
     from cogent3 import open_
 
