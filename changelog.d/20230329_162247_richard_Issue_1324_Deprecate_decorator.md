@@ -1,5 +1,5 @@
 ### ENH
 
-- deprecation usding decorator
+- serializable deprecation of function and method arguments using decorator
 
 <!--
