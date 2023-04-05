@@ -4,45 +4,73 @@
 """
 from unittest import TestCase, main
 
-from cogent3.util.warning import deprecate, deprecated_args
+import pytest
+
+from cogent3.util.warning import deprecated_args
 
 
-__author__ = "Richard Morris"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Richard Morris"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-def test_deprecate_args():
+def test_deprecated_args():
     # Example target function to be decorated
-    @deprecated_args([("x", "a"),("y", "b")], version="a future release", reason="x and y are not descriptive")
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
     def test_function(a: int, b: int) -> int:
         return a + b
 
     expected = test_function(a=5, b=3)
     got = test_function(x=5, y=3)
-    assert got==expected
-    
-
-class WarningTests(TestCase):
-    """Tests of functions in warnings"""
-
-    def test_deprecate(self):
-        """test that deprecated decorator functions"""
-
-        def new_function():
-            return True
-
-        @deprecate(new_function, "2023.3", "test deprecation")
-        def old_function():
-            return False
-
-        self.assertTrue(new_function())
-        self.assertTrue(old_function())
+    assert got == expected
 
 
-if __name__ == "__main__":
-    main()
+def test_deprecated_args_emits_warning():
+    # Example target function to be decorated
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
+    def test_function(a: int, b: int) -> int:
+        return a + b
+
+    with pytest.deprecated_call():
+        test_function(x=5, y=3)
+
+    with pytest.deprecated_call():
+        test_function(a=5, y=3)
+    with pytest.deprecated_call():
+        test_function(x=5, b=3)
+
+    with pytest.warns(None) as record:  # verify no warnings for correct parameters
+        test_function(a=5, b=3)
+    assert not record
+
+
+def test_function_deprecated_args_maintains_docstring():
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
+    def test_function(a: int, b: int) -> int:
+        """This is a test function"""
+        return a + b
+
+    assert test_function.__doc__ == "This is a test function"
+
+
+def test_method_deprecated_args():
+    class test_class:
+        @deprecated_args(
+            [("x", "a"), ("y", "b")],
+            version="a future release",
+            reason="x and y are not descriptive",
+        )
+        def test_method(self, a: int, b: int) -> int:
+            return a + b
+
+    test_object = test_class()
+    expected = test_object.test_method(a=5, b=3)
+    got = test_object.test_method(x=5, y=3)
+    assert got == expected

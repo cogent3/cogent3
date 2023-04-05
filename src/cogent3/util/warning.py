@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from typing import Any, Callable, Union
+import functools
+from typing import Any, Callable, List, Tuple, Union
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
@@ -71,65 +72,39 @@ def discontinued(_type, name, version, reason=None, stack_level=3):
         _warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
-def deprecate(
-    alternate: Union[Callable[..., Any], None] = None,
-    version: str = None,
-    reason: str = None,
-) -> Callable[..., Any]:
-    """
-    Decorator to mark a function as deprecated and optionally to be replaced by an
-    alternate function.
-
-    Args:
-        alternate (Callable[..., Any], optional): The alternate function to be called
-            instead of the deprecated function. Defaults to None.
-        version (str, optional): Specifies when the deprecated function will be removed.
-            Defaults to None.
-        reason (str, optional): The reason for deprecating the function. Defaults to None.
-
-    The decorator will call the alternate function when the decorated function is called.
-    If an alternate function is not provided, or is not a callable function
-    then the original function will be called instead.
-    """
-
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
-        def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
-
-            deprecated(
-                _type="function",
-                old=func.__name__,
-                new=alternate.__name__ if alternate else None,
-                version=version,
-                reason=reason,
-            )
-
-            return (
-                alternate(*args, **kwargs)  # call the alternate function
-                if alternate and callable(alternate)
-                else func(*args, **kwargs)  # call the original function
-            )
-
-        return wrapper
-
-    return decorator
-
-
 def deprecated_args(
-    mapping: List[Tuple[str,str]],
+    mapping: List[Tuple[str, str]],
     version: str,
     reason: str,
 ) -> Callable[..., Any]:
-            
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    A decorator that marks specific arguments of a function as deprecated.
 
+    The decorator accepts a list of 2-tuples specifying the mapping of old argument names to new argument names.
+    When the decorated function is called with any of the old argument names, they will be replaced with their
+    corresponding new names in the kwargs dictionary.
+
+    Args:
+        mapping: A list of 2-tuples specifying the mapping of old argument names to new argument names.
+        version: A string indicating the version when the deprecated arguments will be removed.
+        reason: An optional string providing a reason for deprecation.
+
+    Returns:
+        The decorated function.
+    """
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
             message = []
-            for old,new in mapping:
+            for old, new in mapping:
                 if old in kwargs:
                     kwargs[new] = kwargs.pop(old)
                     message.append(f"{old}->{new}")
             if message:
-                print(f'Warning: The following parameters of {func.__name__} are deprecated. [{", ".join(message)}] and will be removed in {version or "a future release"}.{f"  {reason}" if reason else ""}')
+                msg = f'The following parameters of `{func.__name__}` are deprecated. [{", ".join(message)}] will be removed in {version or "a future release"}.{f"  {reason}" if reason else ""}'
+                _warn(msg, DeprecationWarning, stacklevel=2)
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
