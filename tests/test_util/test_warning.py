@@ -74,7 +74,7 @@ def test_method_deprecated_args():
     assert got == expected
 
 
-def test_pickling():
+def test_pickling_deprecated_args():
     @deprecated_args(
         [("x", "a"), ("y", "b")],
         version="a future release",
