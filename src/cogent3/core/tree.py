@@ -1070,13 +1070,8 @@ class TreeNode(object):
         """
         # linearize the tips in postorder.
         # .__start, .__stop compose the slice in tip_order.
-        if endpoints is None:
-            tip_order = list(self.tips())
-        else:
-            tip_order = []
-            for i, name in enumerate(endpoints):
-                node = self.get_node_matching_name(name)
-                tip_order.append(node)
+        tip_order = list(self.tips())
+
         for i, node in enumerate(tip_order):
             node.__start, node.__stop = i, i + 1
 
@@ -1114,8 +1109,19 @@ class TreeNode(object):
                 update_result()
 
         from_root = []
+        if endpoints is not None:
+            selected = {getattr(n, "name", n) for n in endpoints}
+            keys = list(result)
+            for a, b in keys:
+                if a in selected and b in selected:
+                    continue
+                result.pop((a, b))
+        else:
+            selected = {n.name for n in tip_order}
+
         for i, n in enumerate(tip_order):
-            from_root.append((n.name, tipdistances[i]))
+            if n.name in selected:
+                from_root.append((n.name, tipdistances[i]))
         return from_root, result
 
     def get_distances(self, endpoints=None):
@@ -2145,53 +2151,7 @@ class PhyloNode(TreeNode):
         """
         # linearize the tips in postorder.
         # .__start, .__stop compose the slice in tip_order.
-        if endpoints is None:
-            tip_order = list(self.tips())
-        else:
-            tip_order = []
-            for i, name in enumerate(endpoints):
-                node = self.get_node_matching_name(name)
-                tip_order.append(node)
-        for i, node in enumerate(tip_order):
-            node.__start, node.__stop = i, i + 1
-
-        num_tips = len(tip_order)
-        result = {}
-        # distances from tip to curr node
-        tipdistances = zeros((num_tips), float)
-
-        def update_result():
-            # set tip_tip distance between tips of different child
-            for child1, child2 in combinations(node.children, 2):
-                for tip1 in range(child1.__start, child1.__stop):
-                    for tip2 in range(child2.__start, child2.__stop):
-                        name1 = tip_order[tip1].name
-                        name2 = tip_order[tip2].name
-                        result[(name1, name2)] = tipdistances[tip1] + tipdistances[tip2]
-                        result[(name2, name1)] = tipdistances[tip1] + tipdistances[tip2]
-
-        for node in self.traverse(self_before=False, self_after=True):
-            if not node.children:
-                continue
-            # subtree with solved child wedges
-            starts, stops = [], []  # to calc ._start and ._stop for curr node
-            for child in node.children:
-                if hasattr(child, "length") and child.length is not None:
-                    child_len = child.length
-                else:
-                    child_len = 1  # default length
-                tipdistances[child.__start : child.__stop] += child_len
-                starts.append(child.__start)
-                stops.append(child.__stop)
-            node.__start, node.__stop = min(starts), max(stops)
-            # update result if nessessary
-            if len(node.children) > 1:  # not single child
-                update_result()
-
-        from_root = []
-        for i, n in enumerate(tip_order):
-            from_root.append((n.name, tipdistances[i]))
-        return from_root, result
+        return super()._get_distances(endpoints=endpoints)
 
     def get_distances(self, endpoints=None):
         """The distance matrix as a dictionary.
