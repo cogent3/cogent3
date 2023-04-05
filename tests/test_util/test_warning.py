@@ -4,7 +4,7 @@
 """
 from unittest import TestCase, main
 
-from cogent3.util.warning import deprecate
+from cogent3.util.warning import deprecate, deprecated_args
 
 
 __author__ = "Richard Morris"
@@ -16,6 +16,16 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
+def test_deprecate_args():
+    # Example target function to be decorated
+    @deprecated_args([("x", "a"),("y", "b")], version="a future release", reason="x and y are not descriptive")
+    def test_function(a: int, b: int) -> int:
+        return a + b
+
+    expected = test_function(a=5, b=3)
+    got = test_function(x=5, y=3)
+    assert got==expected
+    
 
 class WarningTests(TestCase):
     """Tests of functions in warnings"""

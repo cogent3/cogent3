@@ -112,3 +112,24 @@ def deprecate(
         return wrapper
 
     return decorator
+
+
+def deprecated_args(
+    mapping: List[Tuple[str,str]],
+    version: str,
+    reason: str,
+) -> Callable[..., Any]:
+            
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+
+        def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
+            message = []
+            for old,new in mapping:
+                if old in kwargs:
+                    kwargs[new] = kwargs.pop(old)
+                    message.append(f"{old}->{new}")
+            if message:
+                print(f'Warning: The following parameters of {func.__name__} are deprecated. [{", ".join(message)}] and will be removed in {version or "a future release"}.{f"  {reason}" if reason else ""}')
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
