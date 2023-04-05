@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-"""Unit tests for union_dict.
-"""
-from unittest import TestCase, main
+import pickle
 
 import pytest
 
@@ -74,3 +72,17 @@ def test_method_deprecated_args():
     expected = test_object.test_method(a=5, b=3)
     got = test_object.test_method(x=5, y=3)
     assert got == expected
+
+
+def test_pickling():
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
+    def test_function(a: int, b: int) -> int:
+        return a + b
+
+    myfunc = test_function(x=1, y=2)
+    pickled_func = pickle.dumps(myfunc)
+    assert type(pickled_func) == bytes
