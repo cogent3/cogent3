@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import functools
 
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Tuple
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 

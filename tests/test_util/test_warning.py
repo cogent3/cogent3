@@ -86,7 +86,7 @@ def test_function_deprecated_args_pickled():
 
     myfunc = changed(x=1, y=2)
     pickled_func = pickle.dumps(myfunc)
-    assert type(pickled_func) == bytes
+    assert isinstance(pickled_func,bytes)
     unpickled_func = pickle.loads(pickled_func)
     assert unpickled_func == changed(a=1, b=2)
 
@@ -167,6 +167,6 @@ def test_method_deprecated_args_pickled():
 
     myfunc = foo().changed(x=1, y=2)
     pickled_func = pickle.dumps(myfunc)
-    assert type(pickled_func) == bytes
+    assert isinstance(pickled_func,bytes)
     unpickled_func = pickle.loads(pickled_func)
     assert unpickled_func == foo().changed(a=1, b=2)
