@@ -84,13 +84,24 @@ def deprecated_args(
     When the decorated function is called with any of the old argument names, they will be replaced with their
     corresponding new names in the kwargs dictionary.
 
-    Args:
-        mapping: A list of 2-tuples specifying the mapping of old argument names to new argument names.
-        version: A string indicating the version when the deprecated arguments will be removed.
-        reason: An optional string providing a reason for deprecation.
+    Parameters
+    ----------
+    mapping : List[Tuple[str, str]]
+        A list of 2-tuples specifying the mapping of old argument names to new argument names.
+    version : str
+        A string indicating the version when the deprecated arguments will be removed.
+    reason : str
+        An optional string providing a reason for deprecation.
 
-    Returns:
+    Returns
+    -------
+    Callable[..., Any]
         The decorated function.
+
+    Warnings
+    --------
+    DeprecationWarning
+        A warning will be raised when the decorated function is called with any of the deprecated arguments.
     """
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
