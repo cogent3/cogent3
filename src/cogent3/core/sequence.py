@@ -841,6 +841,8 @@ class Sequence(_Annotatable, SequenceI):
 
         self._annotation_db = None
 
+
+
     @property
     def annotation_offset(self):
         """
