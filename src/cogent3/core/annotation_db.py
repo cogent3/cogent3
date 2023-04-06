@@ -60,7 +60,7 @@ class FeatureDataType(typing.TypedDict):
     biotype: str  # rename type attr of cogent3 Annotatables to match this?
     name: str  # rename to name to match cogent3 Annotatable.name?
     spans: list[tuple[int, int]]
-    reverse: bool  # True if feature on reverse strand
+    reversed: bool  # True if feature on reverse strand
 
 
 @typing.runtime_checkable
@@ -449,7 +449,7 @@ class SqliteAnnotationDbMixin:
                     biotype=result["biotype"],
                     name=result["name"],
                     spans=[tuple(c) for c in result["spans"]],
-                    reverse=result["strand"] == "-",
+                    reversed=result["strand"] == "-",
                 )
 
     @property
@@ -622,7 +622,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
                 "biotype": result["biotype"],
                 "name": result["name"],
                 "spans": [tuple(c) for c in result["spans"]],
-                "reverse": result["strand"] == "-",
+                "reversed": result["strand"] == "-",
                 "parent_id": result["parent_id"],
             }
 
