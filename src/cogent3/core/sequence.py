@@ -13,12 +13,12 @@ creation.
 
 import contextlib
 import json
+import pathlib
 import re
 import warnings
-import pathlib
 
 from collections import defaultdict
-from functools import total_ordering
+from functools import total_ordering, singledispatch
 from operator import eq, ne
 from random import shuffle
 from typing import Generator, List, Tuple
@@ -812,31 +812,10 @@ class Sequence(_Annotatable, SequenceI):
             name = seq.name
         self.name = name
         orig_seq = seq
-        if isinstance(seq, (Sequence, ArraySequence)):
-            seq = str(seq)
-        elif isinstance(seq, bytes):
-            seq = seq.decode("utf-8")
-        elif not isinstance(seq, str):
-            try:
-                seq = "".join(seq)
-            except TypeError:
-                seq = "".join(map(str, seq))
 
-        seq = self._seq_filter(seq)
+        checker = (lambda x: x) if not check else (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
 
-        if isinstance(seq, SeqView):
-            if not preserve_case and not str(seq).isupper():
-                seq.seq = seq.seq.upper()
-            self._seq = seq
-
-        elif not preserve_case and not seq.isupper():
-            seq = seq.upper()
-
-        if isinstance(seq, str):
-            self._seq = SeqView(seq)
-
-        if check:
-            self.moltype.verify_sequence(str(self), gaps_allowed, wildcards_allowed)
+        self._seq = _coerce_seq(seq, preserve_case, checker)
 
         if not isinstance(info, InfoClass):
             try:
@@ -844,10 +823,8 @@ class Sequence(_Annotatable, SequenceI):
             except TypeError:
                 info = InfoClass()
         if hasattr(orig_seq, "info"):
-            try:
+            with contextlib.suppress(Exception):
                 info.update(orig_seq.info)
-            except:
-                pass
         self.info = info
 
         if isinstance(orig_seq, _Annotatable):
@@ -857,6 +834,8 @@ class Sequence(_Annotatable, SequenceI):
         self._repr_policy = dict(num_pos=60)
 
         self._annotation_db = None
+
+
 
     @property
     def annotation_offset(self):
@@ -957,8 +936,9 @@ class Sequence(_Annotatable, SequenceI):
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = get_moltype(moltype)
-        make_seq = moltype.make_seq
-        new = make_seq(self, name=self.name)
+        sv = SeqView(moltype.coerce_str(self._seq.value))
+        new = moltype.make_seq(sv, name=self.name, info = self.info)
+
         new.clear_annotations()
         for ann in self.annotations:
             ann.copy_annotations_to(new)
@@ -1498,11 +1478,11 @@ class NucleicAcidSequence(Sequence):
 
     def to_rna(self):
         """Returns copy of self as RNA."""
-        return RnaSequence(self)
+        return self.to_moltype("rna")
 
     def to_dna(self):
         """Returns copy of self as DNA."""
-        return DnaSequence(self)
+        return self.to_moltype("dna")
 
     def strand_symmetry(self, motif_length=1):
         """returns G-test for strand symmetry"""
@@ -2423,3 +2403,43 @@ class ArrayProteinSequence(ArraySequence):
 class ArrayProteinWithStopSequence(ArraySequence):
     moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
     alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.degen_gapped in moltype.py
+
+
+@singledispatch
+def _coerce_seq(data, preserve_case, checker):
+    raise NotImplementedError(f"{type(data)}")
+
+@_coerce_seq.register
+def _(data: SeqView, preserve_case, checker):
+    return data
+
+@_coerce_seq.register
+def _(data: Sequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+@_coerce_seq.register
+def _(data: ArraySequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+@_coerce_seq.register
+def _(data: str, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    checker(data)
+    return SeqView(data)
+
+@_coerce_seq.register
+def _(data: bytes, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    data = data.decode("utf8")
+    checker(data)
+    return SeqView(data)
+
+@_coerce_seq.register
+def _(data: tuple, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)
+
+@_coerce_seq.register
+def _(data: list, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)
