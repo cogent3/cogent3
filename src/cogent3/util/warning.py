@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import functools
+
 from typing import Any, Callable, List, Tuple, Union
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
@@ -115,6 +116,7 @@ def deprecated_args(
     When `my_function` is called with the argument `old_name`, a warning will be raised indicating that the argument
     is deprecated and should be replaced with `new_name`.
     """
+
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
