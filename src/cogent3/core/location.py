@@ -575,11 +575,6 @@ class Map(object):
                     raise RuntimeError(
                         f"located outside sequence: {str((start, end, parent_length))}"
                     )
-                elif min(start, end) > parent_length:
-                    diff = max(start, end) - parent_length
-                    start = [start, parent_length][start > parent_length]
-                    end = [end, parent_length][end > parent_length]
-
                 span = Span(start, end, tidy, tidy, reverse=reverse)
                 if diff < 0:
                     spans += [LostSpan(-diff), span]
