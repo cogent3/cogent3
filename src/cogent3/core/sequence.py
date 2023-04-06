@@ -905,15 +905,13 @@ class Sequence(_Annotatable, SequenceI):
         query_end = self._seq.absolute_index(stop) if stop is not None else None
 
         for feature in self.annotation_db.get_features_matching(
-            biotype=feature_type, name=name, start=query_start, end=query_end
+            seqid=self.name,
+            name=name,
+            biotype=feature_type,
+            start=query_start,
+            end=query_end,
         ):
-            relative_spans = [
-                (self._seq.relative_index(i), self._seq.relative_index(j))
-                for i, j in feature["spans"]
-            ]
-            # todo: note that we're just using typed dict for feature
-            feature["spans"] = relative_spans
-            yield feature
+            yield FeatureNew(self, **feature)
 
     def annotate_from(self, f, pre_parsed=False):
         """annotates a Sequence from a file"""
