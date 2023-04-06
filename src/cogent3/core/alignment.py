@@ -1630,7 +1630,7 @@ class _SequenceCollectionBase:
         return rc
 
     def reverse_complement(self):
-        """Returns the reverse complement alignment. A synonymn for rc."""
+        """Returns the reverse complement alignment. A synonym for rc."""
         return self.rc()
 
     def pad_seqs(self, pad_length=None, **kwargs):
