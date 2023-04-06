@@ -13,7 +13,7 @@ from .location import Map, as_map
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Katherine Caley"]
 __license__ = "BSD-3"
 __version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
