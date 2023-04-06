@@ -10,6 +10,8 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
+
+import contextlib
 import json
 import re
 import warnings
@@ -923,18 +925,23 @@ class Sequence(_Annotatable, SequenceI):
             data = f
         else:
             path = pathlib.Path(f)
-            if ".gff" in path.suffixes:
-                from cogent3.parse.gff import gff_parser
-
-                data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
-            else:
-                # todo: add support for annotating from other files?
-                # in this case do we require files to be pre-parsed?
+            if ".gff" not in path.suffixes:
+                if self.annotation_db is not None and not isinstance(GffAnnotationDb):
+                    raise ValueError(
+                        f"{type(self.annotation_db)} already attached, further annotations must be of the same origin"
+                    )
                 raise ValueError(f"no support for {path.suffixes} file")
 
+            from cogent3.parse.gff import gff_parser
+
+            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
         self.annotation_db = GffAnnotationDb(data=data)
 
-        # todo: are we assuming that coordinates are good to go? if so, goodbye old seqview object.
+        # todo: at the point at which we attach an annotation_db to a sequence, are we assuming that
+        # the view (if any) is the sequence that the coordinates in the annotation file
+        # refer to (with the ability of offsetting the coordinates if needed).
+        # in which case we do something like the following...
+        self._seq = SeqView(self._seq.value)
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
