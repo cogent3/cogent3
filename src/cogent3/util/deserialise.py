@@ -6,7 +6,6 @@ from importlib import import_module
 import cogent3
 
 from cogent3.core.genetic_code import get_code
-
 from cogent3.util.io import open_, path_exists
 
 
@@ -210,8 +209,8 @@ def deserialise_seq(data, aligned=False):
     -------
 
     """
-    from cogent3.core.moltype import get_moltype
     from cogent3.core.alignment import Aligned
+    from cogent3.core.moltype import get_moltype
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
