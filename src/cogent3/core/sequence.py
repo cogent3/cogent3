@@ -1539,6 +1539,7 @@ class SeqView:
         self.step = step
         self.offset = None
 
+
     @property
     def reversed(self):
         return self.step < 0

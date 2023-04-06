@@ -440,3 +440,46 @@ def test_feature_get_slice():
     assert str(got) == str(seq[5:10])
 
 
+def test_feature_query_get_slice(seq_db):
+    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    assert feat.name == "Transcript:B0019.1"
+    assert str(feat.get_slice()) == str(seq_db)[9:70]
+
+
+def test_db_rc_persists(seq_db):
+    """assert that the db persists after the .rc() method call"""
+    rc_seq = seq_db.rc()
+    assert rc_seq.annotation_db is not None
+
+
+def test_same_feature_rc(seq_db):
+    # Transcript:B0019.1 is a feature on the reverse strand
+
+    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    rc_seq = seq_db.rc()
+    r_feat = list(rc_seq.query_db(name="Transcript:B0019.1"))[0]
+
+    assert feat.get_slice() == r_feat.get_slice()
+
+
+
+def test_rc_features(anno_db):
+    # adding the feature to the positive strand
+    from cogent3 import DNA
+
+    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+
+    seq.annotation_db = anno_db
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
+    )
+
+    feat = list(seq.query_db(name="exon1"))[0]
+
+    r_seq = seq.rc()
+    r_feat = list(r_seq.query_db(name="exon1"))[0]
+
+    assert feat.get_slice() == r_feat.get_slice()
+
+
+
