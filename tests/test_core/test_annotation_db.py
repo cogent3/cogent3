@@ -254,12 +254,10 @@ def test_get_features_matching_start_stop_seqview(seq):
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     seq_features = list(seq.get_features_matching(start=0, stop=3))
     assert len(seq_features) == 3
-    print(seq_features)
 
     # edge case, only 1 features that overlaps with index 12
     subseq = seq[9:]
     seq_features_features = list(subseq.get_features_matching(start=3, stop=10))
-    print(seq_features_features)
     assert len(seq_features_features) == 1
 
 
