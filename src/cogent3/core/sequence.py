@@ -1013,8 +1013,7 @@ class Sequence(_Annotatable, SequenceI):
         moltype = get_moltype(moltype)
         s = moltype.coerce_str(self._seq.value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
-
-        sv = SeqView(moltype.coerce_str(self._seq.value))
+        sv = SeqView(s)
         new = moltype.make_seq(sv, name=self.name, info=self.info)
 
         new.clear_annotations()
