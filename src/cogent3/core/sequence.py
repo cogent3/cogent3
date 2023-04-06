@@ -16,7 +16,6 @@ import json
 import os
 import re
 import warnings
-import pathlib
 
 from functools import singledispatch, total_ordering
 from operator import eq, ne

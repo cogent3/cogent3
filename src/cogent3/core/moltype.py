@@ -1318,6 +1318,14 @@ def _convert_to_dna(seq: str) -> str:
     return seq.replace("u", "t").replace("U", "T")
 
 
+def _convert_to_rna(seq):
+    return seq.replace("t", "u").replace("T", "U")
+
+
+def _convert_to_dna(seq):
+    return seq.replace("u", "t").replace("U", "T")
+
+
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
     # want to prematurely assume DNA or Protein.
