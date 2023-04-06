@@ -701,8 +701,6 @@ class MolType(object):
         # set modeling sequence
         self._make_array_seq = array_seq_constructor
 
-        self._coerce_string = coerce_string or (lambda x: x)
-
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
         self._coerce_string = coerce_string or _do_nothing
