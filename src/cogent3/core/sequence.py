@@ -14,9 +14,9 @@ creation.
 import contextlib
 import json
 import os
+import pathlib
 import re
 import warnings
-import pathlib
 
 from functools import singledispatch, total_ordering
 from operator import eq, ne
@@ -841,6 +841,8 @@ class Sequence(_Annotatable, SequenceI):
         self._repr_policy = dict(num_pos=60)
 
         self._annotation_db = None
+
+
 
     @property
     def annotation_offset(self):
