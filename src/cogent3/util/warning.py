@@ -91,7 +91,7 @@ def deprecated_args(
     version : str
         A string indicating the version when the deprecated arguments will be removed.
     reason : str
-        An optional string providing a reason for deprecation.
+        A string providing a reason for deprecation.
 
     Returns
     -------
@@ -102,6 +102,18 @@ def deprecated_args(
     --------
     DeprecationWarning
         A warning will be raised when the decorated function is called with any of the deprecated arguments.
+
+    Examples
+    --------
+    Here's an example of how to use the `deprecated_args` decorator to mark the argument `old_name` as deprecated
+    and replace it with the new name `new_name`.
+
+    >>> @deprecated_args(mapping=[('old_name', 'new_name')], version='2.0', reason='Use new_name instead')
+    >>> def my_function(new_name):
+    >>>     # do something here
+
+    When `my_function` is called with the argument `old_name`, a warning will be raised indicating that the argument
+    is deprecated and should be replaced with `new_name`.
     """
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
