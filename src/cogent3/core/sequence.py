@@ -36,7 +36,7 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Map, _Annotatable
+from cogent3.core.annotation import Map, _Annotatable, FeatureNew
 from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
@@ -898,6 +898,8 @@ class Sequence(_Annotatable, SequenceI):
         start=None,
         stop=None,
     ):
+
+
         if self._annotation_db is None:
             return None
 
@@ -1125,6 +1127,25 @@ class Sequence(_Annotatable, SequenceI):
         else:
             seq = str(self)
         return f"{myclass}({seq})"
+
+    def __getitem__(self, index):
+
+        # instead, we could support SeqViews slicing with a map..?
+        if isinstance(index, Map):
+            new = self._mapped(index)
+
+        elif isinstance(index, (int, slice)):
+            new = self.__class__(self._seq[index], name=self.name, check=False, info=self.info)
+
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
+
+        return new
+
+
 
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
