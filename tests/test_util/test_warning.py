@@ -7,82 +7,143 @@ import pytest
 from cogent3.util.warning import deprecated_args
 
 
-def test_deprecated_args():
-    # Example target function to be decorated
-    @deprecated_args(
-        [("x", "a"), ("y", "b")],
-        version="a future release",
-        reason="x and y are not descriptive",
-    )
-    def test_function(a: int, b: int) -> int:
-        return a + b
-
-    expected = test_function(a=5, b=3)
-    got = test_function(x=5, y=3)
-    assert got == expected
-
-
-def test_deprecated_args_emits_warning():
-    # Example target function to be decorated
-    @deprecated_args(
-        [("x", "a"), ("y", "b")],
-        version="a future release",
-        reason="x and y are not descriptive",
-    )
-    def test_function(a: int, b: int) -> int:
-        return a + b
-
-    with pytest.deprecated_call():
-        test_function(x=5, y=3)
-
-    with pytest.deprecated_call():
-        test_function(a=5, y=3)
-    with pytest.deprecated_call():
-        test_function(x=5, b=3)
-
-    with pytest.warns(None) as record:  # verify no warnings for correct parameters
-        test_function(a=5, b=3)
-    assert not record
-
-
-def test_function_deprecated_args_maintains_docstring():
-    @deprecated_args(
-        [("x", "a"), ("y", "b")],
-        version="a future release",
-        reason="x and y are not descriptive",
-    )
-    def test_function(a: int, b: int) -> int:
-        """This is a test function"""
-        return a + b
-
-    assert test_function.__doc__ == "This is a test function"
-
-
-def test_method_deprecated_args():
-    class test_class:
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_function_deprecated_args_pickled():
+    class foo:
         @deprecated_args(
             [("x", "a"), ("y", "b")],
             version="a future release",
             reason="x and y are not descriptive",
         )
-        def test_method(self, a: int, b: int) -> int:
+        def changed(self, a: int, b: int) -> int:
             return a + b
 
-    test_object = test_class()
-    expected = test_object.test_method(a=5, b=3)
-    got = test_object.test_method(x=5, y=3)
-    assert got == expected
+    myfunc = foo().changed(x=1, y=2)
+    pickled_func = pickle.dumps(myfunc)
+    assert type(pickled_func) == bytes
+    unpickled_func = pickle.loads(pickled_func)
+    assert unpickled_func == foo().changed(a=1, b=2)
 
 
-def test_pickling_deprecated_args():
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_function_deprecated_args():
     @deprecated_args(
         [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
     )
-    def test_function(a: int, b: int) -> int:
+    def changed(a: int, b: int) -> int:
         return a + b
 
-    myfunc = test_function(x=1, y=2)
+    expected = changed(a=5, b=3)
+    got = changed(x=5, y=3)
+    assert got == expected
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_function_deprecated_args_docstring():
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
+    def changed(a: int, b: int) -> int:
+        """This is a test function"""
+        return a + b
+
+    assert changed.__doc__ == "This is a test function"
+
+
+@pytest.mark.parametrize("kwargs", (dict(x=5, y=3), dict(a=5, y=3), dict(x=5, b=3)))
+def test_function_deprecated_args_warns(kwargs):
+    # Example target function to be decorated
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
+    def changed(a: int, b: int) -> int:
+        return a + b
+
+    with pytest.deprecated_call():
+        changed(**kwargs)
+
+
+def test_function_redundant_deprecated_args_does_not_warn():
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
+    def changed(a: int, b: int) -> int:
+        return a + b
+
+    with pytest.warns(None) as record:  # verify no warnings for correct parameters
+        changed(a=5, b=3)
+    assert not record
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_function_deprecated_args_pickled():
+    @deprecated_args(
+        [("x", "a"), ("y", "b")],
+        version="a future release",
+        reason="x and y are not descriptive",
+    )
+    def changed(a: int, b: int) -> int:
+        return a + b
+
+    myfunc = changed(x=1, y=2)
     pickled_func = pickle.dumps(myfunc)
     assert type(pickled_func) == bytes
+    unpickled_func = pickle.loads(pickled_func)
+    assert unpickled_func == changed(a=1, b=2)
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_method_deprecated_args():
+    class foo:
+        @deprecated_args(
+            [("x", "a"), ("y", "b")],
+            version="a future release",
+            reason="x and y are not descriptive",
+        )
+        def changed(self, a: int, b: int) -> int:
+            return a + b
+
+    expected = foo().changed(a=5, b=3)
+    got = foo().changed(x=5, y=3)
+    assert got == expected
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_method_deprecated_args_docstring():
+    class foo:
+        @deprecated_args(
+            [("x", "a"), ("y", "b")],
+            version="a future release",
+            reason="x and y are not descriptive",
+        )
+        def changed(self, a: int, b: int) -> int:
+            """This is a test function"""
+            return a + b
+
+    assert foo().changed.__doc__ == "This is a test function"
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_function_deprecated_args_pickled():
+    class foo:
+        @deprecated_args(
+            [("x", "a"), ("y", "b")],
+            version="a future release",
+            reason="x and y are not descriptive",
+        )
+        def changed(self, a: int, b: int) -> int:
+            return a + b
+
+    myfunc = foo().changed(x=1, y=2)
+    pickled_func = pickle.dumps(myfunc)
+    assert type(pickled_func) == bytes
+    unpickled_func = pickle.loads(pickled_func)
+    assert unpickled_func == foo().changed(a=1, b=2)
