@@ -1154,6 +1154,13 @@ class Sequence(_Annotatable, SequenceI):
     def __len__(self):
         return len(self._seq)
 
+    def __str__(self):
+        result = str(self._seq)
+        if self._seq.reversed:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
+
     def __iter__(self):
         return iter(self._seq)
 
@@ -1358,9 +1365,12 @@ class NucleicAcidSequence(Sequence):
 
     def rc(self):
         """Converts a nucleic acid sequence to its reverse complement."""
-        complement = self.moltype.rc(self)
-        rc = self.__class__(complement, name=self.name, info=self.info)
-        self._annotations_nucleic_reversed_on(rc)
+        rc = self.__class__(
+            self._seq[::-1], name=self.name, check=False, info=self.info
+        )
+        if self.annotation_db is not None:
+            rc.annotation_db = self.annotation_db
+        rc._seq = self._seq[::-1]
         return rc
 
     def has_terminal_stop(self, gc=None, allow_partial=False):
@@ -1570,6 +1580,11 @@ class SeqView:
         self.stop = stop
         self.step = step
         self.offset = None
+
+
+    @property
+    def reversed(self):
+        return self.step<0
 
     def absolute_index(self, value):
         # note: this is the positive/positive case...
