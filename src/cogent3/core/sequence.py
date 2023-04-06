@@ -16,7 +16,6 @@ import json
 import pathlib
 import re
 import warnings
-import pathlib
 
 from collections import defaultdict
 from functools import total_ordering, singledispatch
