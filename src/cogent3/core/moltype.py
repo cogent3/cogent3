@@ -559,6 +559,7 @@ class MolType(object):
         make_alphabet_group=False,
         array_seq_constructor=None,
         colors=None,
+        coerce_string=lambda x: x,
     ):
         """Returns a new MolType object. Note that the parameters are in flux.
 
@@ -701,6 +702,8 @@ class MolType(object):
 
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
+        self._coerce_string = coerce_string
+
     def __repr__(self):
         """String representation of MolType.
 
@@ -712,6 +715,9 @@ class MolType(object):
     def __getnewargs_ex__(self, *args, **kw):
         data = self.to_rich_dict(for_pickle=True)
         return (), data
+
+    def coerce_str(self, data: str):
+        return self._coerce_string(data)
 
     def to_rich_dict(self, for_pickle=False):
         data = deepcopy(self._serialisable)
@@ -748,7 +754,7 @@ class MolType(object):
 
     def make_seq(self, seq, name=None, **kwargs):
         """Returns sequence of correct type."""
-        return self._make_seq(seq, name, **kwargs)
+        return self._make_seq(self.coerce_str(seq), name, **kwargs)
 
     def make_array_seq(self, seq, name=None, **kwargs):
         """
@@ -1294,6 +1300,11 @@ class MolType(object):
 
         return css, styles
 
+def _convert_to_rna(seq):
+    return seq.replace("t", "u").replace("T", "U")
+
+def _convert_to_dna(seq):
+    return seq.replace("u", "t").replace("U", "T")
 
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
@@ -1316,6 +1327,7 @@ DNA = MolType(
     make_alphabet_group=True,
     array_seq_constructor=ArrayDnaSequence,
     colors=NT_COLORS,
+    coerce_string=_convert_to_dna,
 )
 
 RNA = MolType(
@@ -1329,6 +1341,7 @@ RNA = MolType(
     make_alphabet_group=True,
     array_seq_constructor=ArrayRnaSequence,
     colors=NT_COLORS,
+    coerce_string=_convert_to_rna,
 )
 
 PROTEIN = MolType(
@@ -1362,6 +1375,7 @@ BYTES = MolType(
     array_seq_constructor=ArraySequence,
     label="bytes",
 )
+
 
 # the None value catches cases where a moltype has no label attribute
 _style_defaults = {

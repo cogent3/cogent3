@@ -96,12 +96,8 @@ class SequenceTests(TestCase):
         annot1 = s.add_feature("exon", "annot1", [(0, 10)])
         annot2 = s.add_feature("exon", "annot2", [(10, 14)])
         got = s.copy()
-        got_annot1 = got.get_features_matching(
-            feature_type="exon", name="annot1"
-        )[0]
-        got_annot2 = got.get_features_matching(
-            feature_type="exon", name="annot2"
-        )[0]
+        got_annot1 = got.get_features_matching(feature_type="exon", name="annot1")[0]
+        got_annot2 = got.get_features_matching(feature_type="exon", name="annot2")[0]
         self.assertIsNot(got, s)
         self.assertIsNot(got_annot1, annot1)
         self.assertIsNot(got_annot2, annot2)
@@ -128,23 +124,15 @@ class SequenceTests(TestCase):
         self.assertEqual(r[-1], "G")
         self.assertEqual(r[1:3], "CA")
 
-    def test_conversion(self):
-        """Should convert t to u automatically"""
-        r = self.RNA("TCAtu")
-        self.assertEqual(str(r), "UCAUU")
-
-        d = self.DNA("UCAtu")
-        self.assertEqual(str(d), "TCATT")
-
     def test_to_dna(self):
         """Returns copy of self as DNA."""
-        r = self.RNA("TCA")
+        r = self.RNA("UCA")
         self.assertEqual(str(r), "UCA")
         self.assertEqual(str(r.to_dna()), "TCA")
 
     def test_to_rna(self):
         """Returns copy of self as RNA."""
-        r = self.DNA("UCA")
+        r = self.DNA("TCA")
         self.assertEqual(str(r), "TCA")
         self.assertEqual(str(r.to_rna()), "UCA")
 
