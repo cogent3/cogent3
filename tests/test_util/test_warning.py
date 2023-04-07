@@ -139,7 +139,6 @@ def test_method_correct_args_do_not_warn():
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_method_deprecated_args_pickled():
 
-    global foo_instance
     foo_instance = foo()
     assert foo_instance.a == 0
     assert foo_instance.b == 0
