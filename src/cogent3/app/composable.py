@@ -359,6 +359,21 @@ class source_proxy:
 
 
 def _call(self, val, *args, **kwargs):
+    """
+    Parameters
+    ----------
+    val
+        the primary data the app operates on. If the instance type
+        does not match tha defined for the first argument of the
+        app.main() method, a NotCompleted result is generated.
+    args, kwargs
+        other positional and keyword arguments of the app.main()
+        method.
+
+    Returns
+    -------
+    The return type of app.main()
+    """
     if val is None:
         val = NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
@@ -526,6 +541,7 @@ def define_app(
 
     An example app definition.
 
+    >>> from typing import Union
     >>> from cogent3.app.composable import define_app
     >>> from cogent3.app.typing import AlignedSeqsType, SerialisableType
     ...
@@ -554,6 +570,7 @@ def define_app(
     a class with the same name as the original function. The function itself is
     bound to this new class as a ``staticmethod``, e.g.
 
+    >>> from typing import Union
     >>> from cogent3.app.composable import define_app
     >>> from cogent3.app.typing import AlignedSeqsType, SerialisableType
     >>>
@@ -561,11 +578,11 @@ def define_app(
     >>>
     >>> @define_app
     ... def omit_seqs(aln: AlignedSeqsType, quantile=None, gap_fraction=1, moltype="dna") -> T:
-    ...         return aln.omit_bad_seqs(
-    ...                                 quantile=quantile,
-    ...                                 gap_fraction=gap_fraction,
-    ...                                 moltype=moltype
-    ...                                 )
+    ...     return aln.omit_bad_seqs(
+    ...                             quantile=quantile,
+    ...                             gap_fraction=gap_fraction,
+    ...                             moltype=moltype
+    ...                             )
 
     ``omit_seqs`` is now an app, allowing creating different variants which
     can be composed as per ones defined via a class.
