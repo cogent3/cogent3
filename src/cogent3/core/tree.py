@@ -76,6 +76,15 @@ class TreeError(Exception):
     pass
 
 
+def _copy_node(n):
+    result = n.__class__()
+    efc = n._exclude_from_copy
+    for k, v in list(n.__dict__.items()):
+        if k not in efc:
+            result.__dict__[k] = deepcopy(n.__dict__[k])
+    return result
+
+
 class TreeNode(object):
     """Store information about a tree node. Mutable.
 
@@ -238,35 +247,12 @@ class TreeNode(object):
         return len(self.children)
 
     # support for copy module
-    def copy_recursive(self, memo=None, _nil=None, constructor="ignored"):
-        """Returns copy of self's structure, including shallow copy of attrs.
-
-        constructor is ignored; required to support old tree unit tests.
-        """
-        _nil = _nil or []
-        result = self.__class__()
-        efc = self._exclude_from_copy
-        for k, v in list(self.__dict__.items()):
-            if k not in efc:  # avoid infinite recursion
-                result.__dict__[k] = deepcopy(self.__dict__[k])
-        for c in self:
-            result.append(c.copy())
-        return result
-
     def copy(self, memo=None, _nil=None, constructor="ignored"):
         """Returns a copy of self using an iterative approach"""
 
         _nil = _nil or []
 
-        def __copy_node(n):
-            result = n.__class__()
-            efc = n._exclude_from_copy
-            for k, v in list(n.__dict__.items()):
-                if k not in efc:
-                    result.__dict__[k] = deepcopy(n.__dict__[k])
-            return result
-
-        root = __copy_node(self)
+        root = _copy_node(self)
         nodes_stack = [[root, self, len(self.children)]]
 
         while nodes_stack:
@@ -277,7 +263,7 @@ class TreeNode(object):
             if unvisited_children:
                 top[2] -= 1
                 old_child = old_top_node.children[-unvisited_children]
-                new_child = __copy_node(old_child)
+                new_child = _copy_node(old_child)
                 new_top_node.append(new_child)
                 nodes_stack.append([new_child, old_child, len(old_child.children)])
             else:  # no unvisited children
@@ -462,40 +448,6 @@ class TreeNode(object):
                 curr_children = curr.children
                 child_index_stack.pop()
                 child_index_stack[-1] += 1
-
-    def traverse_recursive(self, self_before=True, self_after=False, include_self=True):
-        """Returns iterator over descendants. IMPORTANT: read notes below.
-
-        traverse_recursive is slower than traverse, and can lead to stack
-        errors. However, you _must_ use traverse_recursive if you plan to
-        modify the tree topology as you walk over it (e.g. in post-order),
-        because the iterative methods use their own stack that is not updated
-        if you alter the tree.
-
-        self_before includes each node before its descendants if True.
-        self_after includes each node after its descendants if True.
-        include_self includes the initial node if True.
-
-        self_before and self_after are independent. If neither is True, only
-        terminal nodes will be returned.
-
-        Note that if self is terminal, it will only be included once even if
-        self_before and self_after are both True.
-
-        This is a depth-first traversal. Since the trees are not binary,
-        preorder and postorder traversals are possible, but inorder traversals
-        would depend on the data in the tree and are not handled here.
-        """
-        if self.children:
-            if self_before and include_self:
-                yield self
-            for child in self.children:
-                for i in child.traverse_recursive(self_before, self_after):
-                    yield i
-            if self_after and include_self:
-                yield self
-        elif include_self:
-            yield self
 
     def ancestors(self):
         """Returns all ancestors back to the root. Dynamically calculated."""
@@ -840,60 +792,6 @@ class TreeNode(object):
     def to_json(self):
         """returns json formatted string {'newick': with edges and distances, 'edge_attributes': }"""
         return json.dumps(self.to_rich_dict())
-
-    def get_newick_recursive(
-        self,
-        with_distances=False,
-        semicolon=True,
-        escape_name=True,
-        with_node_names=False,
-    ):
-        """Return the newick string for this edge.
-
-        Parameters
-        ----------
-        with_distances
-            whether branch lengths are included.
-        semicolon
-            end tree string with a semicolon
-        escape_name
-            if any of these characters []'"(),
-            nodes name, wrap the name in single quotes
-        with_node_names
-            includes internal node names (except 'root')
-
-        """
-        newick = []
-        subtrees = []
-        for child in self.children:
-            nwk = child.get_newick_recursive(
-                with_distances, semicolon=False, with_node_names=with_node_names
-            )
-            subtrees.append(nwk)
-
-        if subtrees:
-            newick.append(f"({','.join(subtrees)})")
-
-        if self.name_loaded or with_node_names:
-            if self.name is None or with_node_names and self.is_root():
-                name = ""
-            else:
-                name = str(self.name)
-                if escape_name and not (name.startswith("'") and name.endswith("'")):
-                    if re.search("""[]['"(),:;_]""", name):
-                        name = "'%s'" % name.replace("'", "''")
-                    else:
-                        name = name.replace(" ", "_")
-            newick.append(name)
-
-        if isinstance(self, PhyloNode):
-            if with_distances and self.length is not None:
-                newick.append(f":{self.length}")
-
-        if semicolon:
-            newick.append(";")
-
-        return "".join(newick)
 
     def get_newick(
         self,
