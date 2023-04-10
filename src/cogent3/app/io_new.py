@@ -143,9 +143,6 @@ def open_data_store(
     )
     if base_path.is_dir():
         ds_suffix = None
-    elif base_path.suffix == ".tinydb":
-        kwargs["suffix"] = "json"
-        kwargs.pop("mode")
     elif base_path.suffix == ".sqlitedb" or base_path.name == _MEMORY:
         ds_suffix = ".sqlitedb"
         kwargs.pop("suffix")
