@@ -63,13 +63,12 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 @pytest.fixture(scope="function")
-def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("datastore")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("datastore")
 
 
 @pytest.fixture(scope="function")
 def fasta_dir(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
     fasta_dir = tmp_dir / "fasta"
     fasta_dir.mkdir(parents=True, exist_ok=True)
@@ -81,7 +80,6 @@ def fasta_dir(tmp_dir):
 
 @pytest.fixture(scope="function")
 def write_dir1(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     write_dir1 = tmp_dir / "write1"
     write_dir1.mkdir(parents=True, exist_ok=True)
     yield write_dir1
@@ -90,7 +88,6 @@ def write_dir1(tmp_dir):
 
 @pytest.fixture(scope="function")
 def write_dir2(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     write_dir2 = tmp_dir / "write2"
     write_dir2.mkdir(parents=True, exist_ok=True)
     yield write_dir2
