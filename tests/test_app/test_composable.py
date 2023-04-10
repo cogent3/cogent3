@@ -132,6 +132,15 @@ def full_dstore(write_dir1, nc_objects, completed_objects, log_data):
 
 
 @pytest.fixture(scope="function")
+def nc_dstore(tmp_dir, nc_objects):
+    dstore = DataStoreDirectory(tmp_dir, suffix="fasta", mode=OVERWRITE)
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+
+    return dstore
+
+
+@pytest.fixture(scope="function")
 def half_dstore1(write_dir1, nc_objects, completed_objects, log_data):
     dstore = DataStoreDirectory(write_dir1, suffix="fasta", mode=OVERWRITE)
     i = 0
@@ -398,10 +407,24 @@ def test_apply_to_invalid_logger(tmp_dir, logger_val):
     with pytest.raises(TypeError):
         process.apply_to(dstore, show_progress=False, logger=logger_val)
 
-    out_dstore.close()
+
+def test_apply_to_input_only_not_completed(nc_dstore, tmp_dir):
+    """correctly skips notcompleted"""
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    # trigger creation of notcompleted
+    outpath = tmp_dir / "delme.sqlitedb"
+    out_dstore = open_data_store(outpath, mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = (
+        io_app.load_aligned(format="fasta", moltype="dna")
+        + sample_app.min_length(3000)
+        + writer
+    )
+    process.apply_to(dstore, show_progress=False)
+    assert len(out_dstore.not_completed) == len(nc_dstore)
 
 
-def test_apply_to_not_completed(tmp_dir):
+def test_apply_to_makes_not_completed(tmp_dir):
     """correctly creates notcompleted"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
