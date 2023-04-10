@@ -902,12 +902,12 @@ class TreeNode(object):
         escape_name=True,
         with_node_names=False,
     ):
-        """Return the newick string for this tree.
+        """Return the newick string of node and its descendents
 
         Parameters
         ----------
         with_distances
-            whether branch lengths are included.
+            include value of node length attribute if present.
         semicolon
             end tree string with a semicolon
         escape_name
@@ -915,9 +915,6 @@ class TreeNode(object):
             nodes name, wrap the name in single quotes
         with_node_names
             includes internal node names (except 'root')
-
-        NOTE: This method returns the Newick representation of this node
-        and its descendents.
         """
         result = ["("]
         nodes_stack = [[self, len(self.children)]]
@@ -956,24 +953,20 @@ class TreeNode(object):
                                 name = name.replace(" ", "_")
                     result.append(name)
 
-                if isinstance(self, PhyloNode):
-                    if with_distances and top_node.length is not None:
-                        # result.append(":%s" % top_node.length)
-                        result[-1] = f"{result[-1]}:{top_node.length}"
+                if (
+                    with_distances
+                    and (length := getattr(top_node, "length", None)) is not None
+                ):
+                    result[-1] = f"{result[-1]}:{length}"
 
                 result.append(",")
 
         len_result = len(result)
         if len_result == 2:  # single node no name
-            if semicolon:
-                return ";"
-            else:
-                return ""
-        elif len_result == 3:  # single node with name
-            if semicolon:
-                return f"{result[1]};"
-            else:
-                return result[1]
+            return ";" if semicolon else ""
+
+        if len_result == 3:  # single node with name
+            return f"{result[1]};" if semicolon else result[1]
         else:
             if semicolon:
                 result[-1] = ";"
@@ -986,16 +979,14 @@ class TreeNode(object):
 
         Returns True if node was present, False otherwise.
         """
-        to_delete = None
         for i, curr_node in enumerate(self.children):
             if curr_node is target:
-                to_delete = i
                 break
-        if to_delete is None:
-            return False
         else:
-            del self[to_delete]
-            return True
+            return False
+
+        del self[i]
+        return True
 
     def get_edge_names(
         self, tip1name, tip2name, clade=True, stem=False, outgroup_name=None
@@ -1030,8 +1021,8 @@ class TreeNode(object):
         # a named edge at it's root, but it's only used here then discarded.
         if outgroup_name is not None:
             outgroup = self.get_node_matching_name(outgroup_name)
-            if outgroup.children:
-                raise TreeError(f"Outgroup ({outgroup_name!r}) must be a tip")
+            if not outgroup.is_tip():
+                raise TreeError(f"Outgroup ({outgroup_name!r}) is not a tip")
             self = outgroup.unrooted_deepcopy()
 
         join_edge = self.get_connecting_node(tip1name, tip2name)
@@ -1049,8 +1040,8 @@ class TreeNode(object):
         if clade:
             # get the list of names contained by join_edge
             for child in join_edge.children:
-                branchnames = child.get_node_names(includeself=1)
-                edge_names.extend(branchnames)
+                branch_names = child.get_node_names(includeself=1)
+                edge_names.extend(branch_names)
 
         return edge_names
 
@@ -1061,135 +1052,6 @@ class TreeNode(object):
             for c in (tuple(self.children) + (self.parent,))
             if c is not None and c is not parent
         ]
-
-    def _get_distances(self, endpoints=None):
-        """Iteratively calcluates all of the root-to-tip and tip-to-tip
-        distances, resulting in a tuple of:
-            - A list of (name, path length) pairs.
-            - A dictionary of (tip1,tip2):distance pairs
-        """
-        # linearize the tips in postorder.
-        # .__start, .__stop compose the slice in tip_order.
-        tip_order = list(self.tips())
-
-        for i, node in enumerate(tip_order):
-            node.__start, node.__stop = i, i + 1
-
-        num_tips = len(tip_order)
-        result = {}
-        # distances from tip to curr node
-        tipdistances = zeros((num_tips), float)
-
-        def update_result():
-            # set tip_tip distance between tips of different child
-            for child1, child2 in combinations(node.children, 2):
-                for tip1 in range(child1.__start, child1.__stop):
-                    for tip2 in range(child2.__start, child2.__stop):
-                        name1 = tip_order[tip1].name
-                        name2 = tip_order[tip2].name
-                        result[(name1, name2)] = tipdistances[tip1] + tipdistances[tip2]
-                        result[(name2, name1)] = tipdistances[tip1] + tipdistances[tip2]
-
-        for node in self.traverse(self_before=False, self_after=True):
-            if not node.children:
-                continue
-            # subtree with solved child wedges
-            starts, stops = [], []  # to calc ._start and ._stop for curr node
-            for child in node.children:
-                if hasattr(child, "length") and child.length is not None:
-                    child_len = child.length
-                else:
-                    child_len = 1  # default length
-                tipdistances[child.__start : child.__stop] += child_len
-                starts.append(child.__start)
-                stops.append(child.__stop)
-            node.__start, node.__stop = min(starts), max(stops)
-            # update result if nessessary
-            if len(node.children) > 1:  # not single child
-                update_result()
-
-        from_root = []
-        if endpoints is not None:
-            selected = {getattr(n, "name", n) for n in endpoints}
-            keys = list(result)
-            for a, b in keys:
-                if a in selected and b in selected:
-                    continue
-                result.pop((a, b))
-        else:
-            selected = {n.name for n in tip_order}
-
-        for i, n in enumerate(tip_order):
-            if n.name in selected:
-                from_root.append((n.name, tipdistances[i]))
-        return from_root, result
-
-    def get_distances(self, endpoints=None):
-        """The distance matrix as a dictionary.
-
-        Usage:
-            Grabs the branch lengths (evolutionary distances) as
-            a complete matrix (i.e. a,b and b,a).
-        """
-
-        (root_dists, endpoint_dists) = self._get_distances(endpoints)
-        return endpoint_dists
-
-    def set_max_tip_tip_distance(self):
-        """Propagate tip distance information up the tree
-
-        This method was originally implemented by Julia Goodrich with the intent
-        of being able to determine max tip to tip distances between nodes on
-        large trees efficiently. The code has been modified to track the
-        specific tips the distance is between
-        """
-        for n in self.postorder():
-            if n.is_tip():
-                n.MaxDistTips = [[0.0, n.name], [0.0, n.name]]
-            else:
-                if len(n.children) == 1:
-                    tip_a, tip_b = n.children[0].MaxDistTips
-                    tip_a[0] += n.children[0].length or 0.0
-                    tip_b[0] += n.children[0].length or 0.0
-                else:
-                    tip_info = [(max(c.MaxDistTips), c) for c in n.children]
-                    dists = [i[0][0] for i in tip_info]
-                    best_idx = argsort(dists)[-2:]
-                    tip_a, child_a = tip_info[best_idx[0]]
-                    tip_b, child_b = tip_info[best_idx[1]]
-                    tip_a[0] += child_a.length or 0.0
-                    tip_b[0] += child_b.length or 0.0
-                n.MaxDistTips = [tip_a, tip_b]
-
-    def get_max_tip_tip_distance(self):
-        """Returns the max tip tip distance between any pair of tips
-
-        Returns (dist, tip_names, internal_node)
-        """
-        if not hasattr(self, "MaxDistTips"):
-            self.set_max_tip_tip_distance()
-
-        longest = 0.0
-        names = [None, None]
-        best_node = None
-        for n in self.nontips(include_self=True):
-            tip_a, tip_b = n.MaxDistTips
-            dist = tip_a[0] + tip_b[0]
-
-            if dist > longest:
-                longest = dist
-                best_node = n
-                names = [tip_a[1], tip_b[1]]
-        return longest, names, best_node
-
-    def max_tip_tip_distance(self):
-        """returns the max distance between any pair of tips
-
-        Also returns the tip names  that it is between as a tuple"""
-        distmtx, tip_order = self.tip_to_tip_distances()
-        idx_max = divmod(distmtx.argmax(), distmtx.shape[1])
-        max_pair = (tip_order[idx_max[0]].name, tip_order[idx_max[1]].name)
-        return distmtx[idx_max], max_pair
 
     def _get_sub_tree(
         self, included_names, constructor=None, keep_root=False, tipsonly=False
@@ -1733,36 +1595,6 @@ class TreeNode(object):
                 update_result()
         return result + result.T, tip_order
 
-    def compare_by_tip_distances(self, other, dist_f=distance_from_r):
-        """Compares self to other using tip-to-tip distance matrices.
-
-        Value returned is dist_f(m1, m2) for the two matrices. Default is
-        to use the Pearson correlation coefficient, with +1 giving a distance
-        of 0 and -1 giving a distance of +1 (the madimum possible value).
-        Depending on the application, you might instead want to use
-        distance_from_r_squared, which counts correlations of both +1 and -1
-        as identical (0 distance).
-
-        Note: automatically strips out the names that don't match (this is
-        necessary for this method because the distance between non-matching
-        names and matching names is undefined in the tree where they don't
-        match, and because we need to reorder the names in the two trees to
-        match up the distance matrices).
-        """
-        self_names = [i.name for i in self.tips()]
-        other_names = [i.name for i in other.tips()]
-        common_names = frozenset(self_names) & frozenset(other_names)
-        if not common_names:
-            raise ValueError("No names in common between the two trees." "")
-        if len(common_names) <= 2:
-            return 1  # the two trees must match by definition in this case
-        # figure out correct order of the two name matrices
-        self_order = [self_names.index(i) for i in common_names]
-        other_order = [other_names.index(i) for i in common_names]
-        self_matrix = self.tip_to_tip_distances()[0][self_order][:, self_order]
-        other_matrix = other.tip_to_tip_distances()[0][other_order][:, other_order]
-        return dist_f(self_matrix, other_matrix)
-
     def get_figure(self, style="square", **kwargs):
         """
         gets Dendrogram for plotting the phylogeny
@@ -2151,14 +1983,67 @@ class PhyloNode(TreeNode):
         """
         # linearize the tips in postorder.
         # .__start, .__stop compose the slice in tip_order.
-        return super()._get_distances(endpoints=endpoints)
+        tip_order = list(self.tips())
+
+        for i, node in enumerate(tip_order):
+            node.__start, node.__stop = i, i + 1
+
+        num_tips = len(tip_order)
+        result = {}
+        # distances from tip to curr node
+        tipdistances = zeros((num_tips), float)
+
+        def update_result():
+            # set tip_tip distance between tips of different child
+            for child1, child2 in combinations(node.children, 2):
+                for tip1 in range(child1.__start, child1.__stop):
+                    for tip2 in range(child2.__start, child2.__stop):
+                        name1 = tip_order[tip1].name
+                        name2 = tip_order[tip2].name
+                        result[(name1, name2)] = tipdistances[tip1] + tipdistances[tip2]
+                        result[(name2, name1)] = tipdistances[tip1] + tipdistances[tip2]
+
+        for node in self.traverse(self_before=False, self_after=True):
+            if not node.children:
+                continue
+            # subtree with solved child wedges
+            starts, stops = [], []  # to calc ._start and ._stop for curr node
+            for child in node.children:
+                if hasattr(child, "length") and child.length is not None:
+                    child_len = child.length
+                else:
+                    child_len = 1  # default length
+                tipdistances[child.__start : child.__stop] += child_len
+                starts.append(child.__start)
+                stops.append(child.__stop)
+            node.__start, node.__stop = min(starts), max(stops)
+            # update result if nessessary
+            if len(node.children) > 1:  # not single child
+                update_result()
+
+        from_root = []
+        if endpoints is not None:
+            selected = {getattr(n, "name", n) for n in endpoints}
+            keys = list(result)
+            for a, b in keys:
+                if a in selected and b in selected:
+                    continue
+                result.pop((a, b))
+        else:
+            selected = {n.name for n in tip_order}
+
+        for i, n in enumerate(tip_order):
+            if n.name in selected:
+                from_root.append((n.name, tipdistances[i]))
+        return from_root, result
 
     def get_distances(self, endpoints=None):
         """The distance matrix as a dictionary.
 
         Usage:
             Grabs the branch lengths (evolutionary distances) as
-            a complete matrix (i.e. a,b and b,a)."""
+            a complete matrix (i.e. a,b and b,a).
+        """
 
         (root_dists, endpoint_dists) = self._get_distances(endpoints)
         return endpoint_dists
@@ -2267,6 +2152,62 @@ class PhyloNode(TreeNode):
         other_matrix = other.tip_to_tip_distances(endpoints=other_nodes)[0]
 
         return dist_f(self_matrix, other_matrix)
+
+    def get_max_tip_tip_distance(self):
+        """Returns the max tip-to-tip distance between any pair of tips
+
+        Returns (dist, tip_names, internal_node)
+        """
+        if not hasattr(self, "MaxDistTips"):
+            self.set_max_tip_tip_distance()
+
+        longest = 0.0
+        names = [None, None]
+        best_node = None
+        for n in self.nontips(include_self=True):
+            tip_a, tip_b = n.MaxDistTips
+            dist = tip_a[0] + tip_b[0]
+
+            if dist > longest:
+                longest = dist
+                best_node = n
+                names = [tip_a[1], tip_b[1]]
+        return longest, names, best_node
+
+    def max_tip_tip_distance(self):
+        """returns the max distance between any pair of tips
+
+        Also returns the tip names  that it is between as a tuple"""
+        distmtx, tip_order = self.tip_to_tip_distances()
+        idx_max = divmod(distmtx.argmax(), distmtx.shape[1])
+        max_pair = (tip_order[idx_max[0]].name, tip_order[idx_max[1]].name)
+        return distmtx[idx_max], max_pair
+
+    def set_max_tip_tip_distance(self):
+        """Propagate tip distance information up the tree
+
+        This method was originally implemented by Julia Goodrich with the intent
+        of being able to determine max tip to tip distances between nodes on
+        large trees efficiently. The code has been modified to track the
+        specific tips the distance is between
+        """
+        for n in self.postorder():
+            if n.is_tip():
+                n.MaxDistTips = [[0.0, n.name], [0.0, n.name]]
+            else:
+                if len(n.children) == 1:
+                    tip_a, tip_b = n.children[0].MaxDistTips
+                    tip_a[0] += n.children[0].length or 0.0
+                    tip_b[0] += n.children[0].length or 0.0
+                else:
+                    tip_info = [(max(c.MaxDistTips), c) for c in n.children]
+                    dists = [i[0][0] for i in tip_info]
+                    best_idx = argsort(dists)[-2:]
+                    tip_a, child_a = tip_info[best_idx[0]]
+                    tip_b, child_b = tip_info[best_idx[1]]
+                    tip_a[0] += child_a.length or 0.0
+                    tip_b[0] += child_b.length or 0.0
+                n.MaxDistTips = [tip_a, tip_b]
 
 
 class TreeBuilder(object):
