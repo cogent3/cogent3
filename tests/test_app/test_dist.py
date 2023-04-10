@@ -1,5 +1,3 @@
-import os
-
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
@@ -46,12 +44,13 @@ _seqs5 = {"Human": "ASSLQHENSSLLLT", "Bandicoot": "XSLMLETSSLLSN"}
 
 
 def _get_all_composable_apps():
+    out_dstore = open_data_store(":memory:", mode="w")
     return [
         get_app("align_to_ref"),
         get_app("progressive_align", model="GY94"),
         get_app("fixed_length", 100),
         get_app("sample.min_length", 100),
-        get_app("write_seqs", os.getcwd()),
+        get_app("write_seqs", out_dstore),
         get_app(
             "omit_bad_seqs",
         ),

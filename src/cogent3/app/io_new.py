@@ -507,6 +507,8 @@ class write_json:
             source. The default function removes path information and
             filename + compression suffixes.
         """
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
         self.data_store = data_store
         self._format = "json"
         self._id_from_source = id_from_source
@@ -540,6 +542,8 @@ class write_seqs:
         format
             sequence format
         """
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
         self.data_store = data_store
         self._formatter = FORMATTERS[format]
         self._id_from_source = id_from_source
@@ -572,6 +576,8 @@ class write_tabular:
         format
             tabular format, e.g. 'csv' or 'tsv'
         """
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
         self.data_store = data_store
         self._id_from_source = id_from_source
         self._format = format
@@ -608,6 +614,8 @@ class write_db:
             A callable for serialising input data. By default, it converts
             data into primitive python data types, pickling the result.
         """
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
         self.data_store = data_store
         self._serialiser = serialiser
         self._id_from_source = id_from_source
