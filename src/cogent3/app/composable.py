@@ -359,6 +359,21 @@ class source_proxy:
 
 
 def _call(self, val, *args, **kwargs):
+    """
+    Parameters
+    ----------
+    val
+        the primary data the app operates on. If the instance type
+        does not match tha defined for the first argument of the
+        app.main() method, a NotCompleted result is generated.
+    args, kwargs
+        other positional and keyword arguments of the app.main()
+        method.
+
+    Returns
+    -------
+    The return type of app.main()
+    """
     if val is None:
         val = NotCompleted("ERROR", self, "unexpected input value None", source=val)
 
