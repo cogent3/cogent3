@@ -1783,6 +1783,109 @@ class TreeNode(object):
 
         return Dendrogram(self, style=style, **kwargs)
 
+    def balanced(self):
+        """Tree 'rooted' here with no neighbour having > 50% of the edges.
+
+        Usage:
+            Using a balanced tree can substantially improve performance of
+            the likelihood calculations. Note that the resulting tree has a
+            different orientation with the effect that specifying clades or
+            stems for model parameterisation should be done using the
+            'outgroup_name' argument.
+        """
+        # this should work OK on ordinary 3-way trees, not so sure about
+        # other cases.  Given 3 neighbours, if one has > 50% of edges it
+        # can only improve things to divide it up, worst case:
+        # (51),25,24 -> (50,1),49.
+        # If no neighbour has >50% we can't improve on where we are, eg:
+        # (49),25,26 -> (20,19),51
+        last_edge = None
+        edge = self
+        known_weight = 0
+        cache = {}
+        while 1:
+            (max_weight, remaining_weight, next_edge) = edge._imbalance(
+                last_edge, cache
+            )
+            known_weight += remaining_weight
+            if max_weight <= known_weight + 2:
+                break
+            last_edge = edge
+            edge = next_edge
+            known_weight += 1
+        return edge.unrooted_deepcopy()
+
+    def same_topology(self, other):
+        """Tests whether two trees have the same topology."""
+        tip_names = self.get_tip_names()
+        root_at = tip_names[0]
+        me = self.rooted_with_tip(root_at).sorted(tip_names)
+        them = other.rooted_with_tip(root_at).sorted(tip_names)
+        return self is other or me.same_shape(them)
+
+    def unrooted_deepcopy(self, constructor=None, parent=None):
+        # walks the tree unrooted-style, ie: treating self.parent as just
+        # another child 'parent' is where we got here from, ie: the neighbour
+        # that we don't need to explore.
+        if constructor is None:
+            constructor = self._default_tree_constructor()
+
+        neighbours = self._getNeighboursExcept(parent)
+        children = []
+        for child in neighbours:
+            children.append(child.unrooted_deepcopy(constructor, parent=self))
+
+        # we might be walking UP the tree, so:
+        if parent is None:
+            # base edge
+            edge = None
+        elif parent.parent is self:
+            # self's parent is becoming self's child, and edge params are stored
+            # by the child
+            edge = parent
+        else:
+            assert parent is self.parent
+            edge = self
+
+        result = constructor(edge, tuple(children))
+        if parent is None:
+            result.name = "root"
+        return result
+
+    def unrooted(self):
+        """A tree with at least 3 children at the root."""
+        constructor = self._default_tree_constructor()
+        need_to_expand = len(self.children) < 3
+        new_children = []
+        for oldnode in self.children:
+            if oldnode.children and need_to_expand:
+                for sib in oldnode.children:
+                    sib = sib.deepcopy(constructor)
+                    if sib.length is not None and oldnode.length is not None:
+                        sib.length += oldnode.length
+                    new_children.append(sib)
+                need_to_expand = False
+            else:
+                new_children.append(oldnode.deepcopy(constructor))
+        return constructor(self, new_children)
+
+    def rooted_at(self, edge_name):
+        """Return a new tree rooted at the provided node.
+
+        Usage:
+            This can be useful for drawing unrooted trees with an orientation
+            that reflects knowledge of the true root location.
+        """
+        newroot = self.get_node_matching_name(edge_name)
+        if not newroot.children:
+            raise TreeError(f"Can't use a tip ({repr(edge_name)}) as the root")
+        return newroot.unrooted_deepcopy()
+
+    def rooted_with_tip(self, outgroup_name):
+        """A new tree with the named tip as one of the root's children"""
+        tip = self.get_node_matching_name(outgroup_name)
+        return tip.parent.unrooted_deepcopy()
+
 
 class PhyloNode(TreeNode):
     def __init__(self, *args, **kwargs):
@@ -1923,109 +2026,6 @@ class PhyloNode(TreeNode):
                 child.length = child.length or node.length
             else:
                 child.length = child.length + node.length
-
-    def unrooted_deepcopy(self, constructor=None, parent=None):
-        # walks the tree unrooted-style, ie: treating self.parent as just
-        # another child 'parent' is where we got here from, ie: the neighbour
-        # that we don't need to explore.
-        if constructor is None:
-            constructor = self._default_tree_constructor()
-
-        neighbours = self._getNeighboursExcept(parent)
-        children = []
-        for child in neighbours:
-            children.append(child.unrooted_deepcopy(constructor, parent=self))
-
-        # we might be walking UP the tree, so:
-        if parent is None:
-            # base edge
-            edge = None
-        elif parent.parent is self:
-            # self's parent is becoming self's child, and edge params are stored
-            # by the child
-            edge = parent
-        else:
-            assert parent is self.parent
-            edge = self
-
-        result = constructor(edge, tuple(children))
-        if parent is None:
-            result.name = "root"
-        return result
-
-    def balanced(self):
-        """Tree 'rooted' here with no neighbour having > 50% of the edges.
-
-        Usage:
-            Using a balanced tree can substantially improve performance of
-            the likelihood calculations. Note that the resulting tree has a
-            different orientation with the effect that specifying clades or
-            stems for model parameterisation should be done using the
-            'outgroup_name' argument.
-        """
-        # this should work OK on ordinary 3-way trees, not so sure about
-        # other cases.  Given 3 neighbours, if one has > 50% of edges it
-        # can only improve things to divide it up, worst case:
-        # (51),25,24 -> (50,1),49.
-        # If no neighbour has >50% we can't improve on where we are, eg:
-        # (49),25,26 -> (20,19),51
-        last_edge = None
-        edge = self
-        known_weight = 0
-        cache = {}
-        while 1:
-            (max_weight, remaining_weight, next_edge) = edge._imbalance(
-                last_edge, cache
-            )
-            known_weight += remaining_weight
-            if max_weight <= known_weight + 2:
-                break
-            last_edge = edge
-            edge = next_edge
-            known_weight += 1
-        return edge.unrooted_deepcopy()
-
-    def same_topology(self, other):
-        """Tests whether two trees have the same topology."""
-        tip_names = self.get_tip_names()
-        root_at = tip_names[0]
-        me = self.rooted_with_tip(root_at).sorted(tip_names)
-        them = other.rooted_with_tip(root_at).sorted(tip_names)
-        return self is other or me.same_shape(them)
-
-    def unrooted(self):
-        """A tree with at least 3 children at the root."""
-        constructor = self._default_tree_constructor()
-        need_to_expand = len(self.children) < 3
-        new_children = []
-        for oldnode in self.children:
-            if oldnode.children and need_to_expand:
-                for sib in oldnode.children:
-                    sib = sib.deepcopy(constructor)
-                    if sib.length is not None and oldnode.length is not None:
-                        sib.length += oldnode.length
-                    new_children.append(sib)
-                need_to_expand = False
-            else:
-                new_children.append(oldnode.deepcopy(constructor))
-        return constructor(self, new_children)
-
-    def rooted_at(self, edge_name):
-        """Return a new tree rooted at the provided node.
-
-        Usage:
-            This can be useful for drawing unrooted trees with an orientation
-            that reflects knowledge of the true root location.
-        """
-        newroot = self.get_node_matching_name(edge_name)
-        if not newroot.children:
-            raise TreeError(f"Can't use a tip ({repr(edge_name)}) as the root")
-        return newroot.unrooted_deepcopy()
-
-    def rooted_with_tip(self, outgroup_name):
-        """A new tree with the named tip as one of the root's children"""
-        tip = self.get_node_matching_name(outgroup_name)
-        return tip.parent.unrooted_deepcopy()
 
     def root_at_midpoint(self):
         """return a new tree rooted at midpoint of the two tips farthest apart
