@@ -878,7 +878,7 @@ class Sequence(_Annotatable, SequenceI):
 
         The offset can be used to adjust annotation coordinates to match the position
         of the given Sequence within a larger genomic context. For example, if the
-        Annotations are with resepct to a chomorome, and the sequence represents
+        Annotations are with respect to a chromosome, and the sequence represents
         a gene that is 100 bp from the start of a chromosome, the offset can be set to
         100 to ensure that the gene's annotations are aligned with the appropriate
         genomic positions.
@@ -971,31 +971,6 @@ class Sequence(_Annotatable, SequenceI):
             on_alignment=on_alignment,
         )
 
-    def annotate_from(self, f, pre_parsed=False):
-        """annotates a Sequence from a file"""
-        # currently only supports gff files
-
-        if pre_parsed:
-            data = f
-        else:
-            path = pathlib.Path(f)
-            if ".gff" not in path.suffixes:
-                if self.annotation_db is not None and not isinstance(GffAnnotationDb):
-                    raise ValueError(
-                        f"{type(self.annotation_db)} already attached, further annotations must be of the same origin"
-                    )
-                raise ValueError(f"no support for {path.suffixes} file")
-
-            from cogent3.parse.gff import gff_parser
-
-            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
-        self.annotation_db = GffAnnotationDb(data=data)
-
-        # todo: at the point at which we attach an annotation_db to a sequence, are we assuming that
-        # the view (if any) is the sequence that the coordinates in the annotation file
-        # refer to (with the ability of offsetting the coordinates if needed).
-        # in which case we do something like the following...
-        self._seq = SeqView(self._seq.value)
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
