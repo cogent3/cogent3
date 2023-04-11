@@ -428,8 +428,6 @@ class FeatureNew(_AnnotationMixin, _Serialisable):
         self.biotype = biotype
         self.name = name
         self.reversed = reversed
-
-        # todo: kath: length of seq/view for map object
         self.map = Map(locations=spans, parent_length=len(parent))
 
     def get_slice(self):

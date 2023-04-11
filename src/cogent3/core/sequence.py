@@ -937,6 +937,9 @@ class Sequence(_Annotatable, SequenceI):
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = get_moltype(moltype)
+        s = moltype.coerce_str(self._seq.value)
+        moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
+
         sv = SeqView(moltype.coerce_str(self._seq.value))
         new = moltype.make_seq(sv, name=self.name, info=self.info)
 
@@ -1118,7 +1121,9 @@ class Sequence(_Annotatable, SequenceI):
 
     def __getitem__(self, index):
 
-        # instead, we could support SeqViews slicing with a map..?
+        if hasattr(index, "get_slice"):
+            return index.get_slice()
+
         if isinstance(index, Map):
             new = self._mapped(index)
 
@@ -1148,9 +1153,6 @@ class Sequence(_Annotatable, SequenceI):
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
         return result
-
-    def __iter__(self):
-        return iter(self._seq)
 
     def gettype(self):  # pragma: no cover
         """Return the sequence type."""
@@ -2407,6 +2409,10 @@ class ArrayProteinWithStopSequence(ArraySequence):
 
 @singledispatch
 def _coerce_seq(data, preserve_case, checker):
+    from cogent3.core.alignment import Aligned
+
+    if isinstance(data, Aligned):
+        return _coerce_seq(str(data), preserve_case, checker)
     raise NotImplementedError(f"{type(data)}")
 
 

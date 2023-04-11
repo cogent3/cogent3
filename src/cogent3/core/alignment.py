@@ -56,6 +56,7 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -1588,8 +1589,7 @@ class _SequenceCollectionBase:
 
     def to_dna(self):
         """returns copy of self as an alignment of DNA moltype seqs"""
-        make_seq = cogent3.DNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("dna") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.DNA, name=self.name, info=self.info
         )
@@ -1599,8 +1599,7 @@ class _SequenceCollectionBase:
 
     def to_rna(self):
         """returns copy of self as an alignment of RNA moltype seqs"""
-        make_seq = cogent3.RNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("rna") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.RNA, name=self.name, info=self.info
         )
@@ -1610,8 +1609,7 @@ class _SequenceCollectionBase:
 
     def to_protein(self):
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
-        make_seq = cogent3.PROTEIN.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("protein") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.PROTEIN, name=self.name, info=self.info
         )
@@ -2329,12 +2327,12 @@ class AlignmentI(object):
             col_lookup = dict.fromkeys(cols)
             for name, seq in list(self.named_seqs.items()):
                 result[name] = make_seq(
-                    [seq[i] for i in range(len(seq)) if i not in col_lookup]
+                    [str(seq[i]) for i in range(len(seq)) if i not in col_lookup]
                 )
         # otherwise, just get the requested indices
         else:
             for name, seq in list(self.named_seqs.items()):
-                result[name] = make_seq([seq[i] for i in cols])
+                result[name] = make_seq([str(seq[i]) for i in cols])
         return self.__class__(result, names=self.names, info=self.info)
 
     def get_position_indices(self, f, native=False, negate=False):
@@ -4407,9 +4405,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         self.seq_data = self._seqs = aligned_seqs
 
     def _coerce_seqs(self, seqs, is_array):
-        if not min(
-            [isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for seq in seqs]
-        ):
+        if any(isinstance(seq, ArraySequence) for seq in seqs):
+            seqs = [self.moltype.make_seq(str(seq), name=seq.name) for seq in seqs]
+        elif not any(isinstance(seq, (_Annotatable, Aligned)) for seq in seqs):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
@@ -4604,7 +4602,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 if g == tgp:
                     combo.append(gap)
                 else:
-                    combo.append(s)
+                    combo.append(str(s))
             result[name] = combo
         return Alignment(result, alphabet=self.alphabet.with_gap_motif())
 
