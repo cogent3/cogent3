@@ -704,6 +704,8 @@ class MolType(object):
         # set modeling sequence
         self._make_array_seq = array_seq_constructor
 
+        self._coerce_string = coerce_string or (lambda x: x)
+
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
         self._coerce_string = coerce_string or _do_nothing()
@@ -758,6 +760,7 @@ class MolType(object):
 
     def make_seq(self, seq, name=None, **kwargs):
         """Returns sequence of correct type."""
+        name = name or getattr(seq, "name", None)
         return self._make_seq(self.coerce_str(seq), name, **kwargs)
 
     def make_array_seq(self, seq, name=None, **kwargs):
@@ -776,6 +779,7 @@ class MolType(object):
         -------
         ArraySequence
         """
+        name = name or getattr(seq, "name", None)
         alphabet = kwargs.pop("alphabet", None)
         if alphabet is None and hasattr(self, "alphabets"):
             alphabet = self.alphabets.degen_gapped
@@ -1305,11 +1309,11 @@ class MolType(object):
         return css, styles
 
 
-def _convert_to_rna(seq):
+def _convert_to_rna(seq: str) -> str:
     return seq.replace("t", "u").replace("T", "U")
 
 
-def _convert_to_dna(seq):
+def _convert_to_dna(seq: str) -> str:
     return seq.replace("u", "t").replace("U", "T")
 
 
