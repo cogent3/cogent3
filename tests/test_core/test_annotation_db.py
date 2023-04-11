@@ -1,4 +1,6 @@
+import os
 import pathlib
+import tempfile
 
 import numpy
 import pytest
