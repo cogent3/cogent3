@@ -706,8 +706,6 @@ class MolType(object):
 
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
-        self._coerce_string = coerce_string or _do_nothing()
-
     def __repr__(self):
         """String representation of MolType.
 

@@ -451,20 +451,20 @@ class FeatureNew(_AnnotationMixin, _Serialisable):
             # because the underlying sequence is unchanged, just grab the segments out as strings
             # join them, and then do the reverse complement
             segments = [
-                str(self.parent[span.start : span.end])
-                for span in self.map.spans
+                str(self.parent[span.start : span.end]) for span in self.map.spans
             ]
             segments = self.parent.moltype.complement("".join(segments)[::-1])
 
         elif parent_reversed and not feature_reversed:
-            parent = self.parent._seq[::-1] # todo: waiting from __getitem__ on Sequence to be implemented
-            segments = [
-                str(parent[span.start : span.end]) for span in self.map.spans
-            ]
+            parent = self.parent._seq[
+                ::-1
+            ]  # todo: waiting from __getitem__ on Sequence to be implemented
+            segments = [str(parent[span.start : span.end]) for span in self.map.spans]
 
         elif parent_reversed and feature_reversed:
             segments = [
-                str(self.parent[span.start : span.end]) for span in self.map.nucleic_reversed().reversed()
+                str(self.parent[span.start : span.end])
+                for span in self.map.nucleic_reversed().reversed()
             ]
 
         return self.parent.moltype.make_seq(seq="".join(segments), name=self.name)
