@@ -890,8 +890,6 @@ class Sequence(_Annotatable, SequenceI):
 
         query_start = self._seq.absolute_index(start) if start is not None else None
         query_end = self._seq.absolute_index(stop) if stop is not None else None
-        query_start = self._seq.absolute_index(start) if start is not None else None
-        query_end = self._seq.absolute_index(stop) if stop is not None else None
 
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
