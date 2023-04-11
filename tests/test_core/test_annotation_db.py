@@ -1,4 +1,6 @@
+import os
 import pathlib
+import tempfile
 
 import numpy
 import pytest
@@ -642,7 +644,6 @@ def test_same_feature_rc(seq_db):
     assert feat.get_slice() == r_feat.get_slice()
 
 
-
 def test_rc_features(anno_db):
     # adding the feature to the positive strand
     from cogent3 import DNA
@@ -660,6 +661,3 @@ def test_rc_features(anno_db):
     r_feat = list(r_seq.query_db(name="exon1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
-
-
-

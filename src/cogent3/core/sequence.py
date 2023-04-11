@@ -942,32 +942,6 @@ class Sequence(_Annotatable, SequenceI):
             on_alignment=on_alignment,
         )
 
-    def annotate_from(self, f, pre_parsed=False):
-        """annotates a Sequence from a file"""
-        # currently only supports gff files
-
-        if pre_parsed:
-            data = f
-        else:
-            path = pathlib.Path(f)
-            if ".gff" not in path.suffixes:
-                if self.annotation_db is not None and not isinstance(GffAnnotationDb):
-                    raise ValueError(
-                        f"{type(self.annotation_db)} already attached, further annotations must be of the same origin"
-                    )
-                raise ValueError(f"no support for {path.suffixes} file")
-
-            from cogent3.parse.gff import gff_parser
-
-            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
-        self.annotation_db = GffAnnotationDb(data=data)
-
-        # todo: at the point at which we attach an annotation_db to a sequence, are we assuming that
-        # the view (if any) is the sequence that the coordinates in the annotation file
-        # refer to (with the ability of offsetting the coordinates if needed).
-        # in which case we do something like the following...
-        self._seq = SeqView(self._seq.value)
-
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
 
