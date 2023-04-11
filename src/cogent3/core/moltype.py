@@ -720,7 +720,7 @@ class MolType(object):
         data = self.to_rich_dict(for_pickle=True)
         return (), data
 
-    def coerce_str(self, data: str):
+    def coerce_str(self, data: str) -> str:
         return self._coerce_string(data)
 
     def to_rich_dict(self, for_pickle=False):
