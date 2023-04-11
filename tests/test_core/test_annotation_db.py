@@ -493,11 +493,8 @@ def test_query_db_start_stop_seqview(seq):
 
     subseq = seq[9:]
     got = list(subseq.query_db(start=2, stop=10))
-    # the adjust query should be .query_db(start=9+2, stop=9+10)
-
-    # start it 11 (not 12) because gff is in 1-based coordinated
+    # the adjusted query should be .query_db(start=9+2, stop=9+10)
     assert (got[0].map.start, got[0].map.end) == (11, 20)
-    # todo: should coords of features be relative to the view or the underlying seq?
 
 
 def test_feature_get_slice():
@@ -549,7 +546,6 @@ def test_same_feature_rc(seq_db):
     assert feat.get_slice() == r_feat.get_slice()
 
 
-
 def test_rc_features(anno_db):
     # adding the feature to the positive strand
     from cogent3 import DNA
@@ -569,4 +565,21 @@ def test_rc_features(anno_db):
     assert feat.get_slice() == r_feat.get_slice()
 
 
+def test_seq_getitem():
+    from cogent3 import DNA
 
+    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+
+    seq_sliced = seq[4:6]
+    assert seq_sliced == str(seq)[4:6:]
+    assert seq_sliced._seq.seq == str(seq)
+
+
+def test_to_moltype():
+    from cogent3 import DNA
+
+    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
+    s = DNA.make_seq(seq)
+    rna = s.to_moltype("rna")
+
+    assert "T" not in rna
