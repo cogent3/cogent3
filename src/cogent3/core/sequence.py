@@ -813,7 +813,15 @@ class Sequence(_Annotatable, SequenceI):
         self.name = name
         orig_seq = seq
 
-        checker = (lambda x: x) if not check else (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
+        checker = (
+            (
+                lambda x: self.moltype.verify_sequence(
+                    x, gaps_allowed, wildcards_allowed
+                )
+            )
+            if check
+            else (lambda x: x)
+        )
 
         self._seq = _coerce_seq(seq, preserve_case, checker)
 
