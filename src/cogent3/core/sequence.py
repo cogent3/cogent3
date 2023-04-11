@@ -45,7 +45,7 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse import gff
+from cogent3.parse.gff import gff_parser
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -846,7 +846,7 @@ class Sequence(_Annotatable, SequenceI):
 
         The offset can be used to adjust annotation coordinates to match the position
         of the given Sequence within a larger genomic context. For example, if the
-        Annotations are with resepct to a chomorome, and the sequence represents
+        Annotations are with respect to a chromosome, and the sequence represents
         a gene that is 100 bp from the start of a chromosome, the offset can be set to
         100 to ensure that the gene's annotations are aligned with the appropriate
         genomic positions.
@@ -896,32 +896,6 @@ class Sequence(_Annotatable, SequenceI):
             end=query_end,
         ):
             yield FeatureNew(self, **feature)
-
-    def annotate_from(self, f, pre_parsed=False):
-        """annotates a Sequence from a file"""
-        # currently only supports gff files
-
-        if pre_parsed:
-            data = f
-        else:
-            path = pathlib.Path(f)
-            if ".gff" not in path.suffixes:
-                if self.annotation_db is not None and not isinstance(GffAnnotationDb):
-                    raise ValueError(
-                        f"{type(self.annotation_db)} already attached, further annotations must be of the same origin"
-                    )
-                raise ValueError(f"no support for {path.suffixes} file")
-
-            from cogent3.parse.gff import gff_parser
-
-            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
-        self.annotation_db = GffAnnotationDb(data=data)
-
-        # todo: at the point at which we attach an annotation_db to a sequence, are we assuming that
-        # the view (if any) is the sequence that the coordinates in the annotation file
-        # refer to (with the ability of offsetting the coordinates if needed).
-        # in which case we do something like the following...
-        self._seq = SeqView(self._seq.value)
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
@@ -974,57 +948,26 @@ class Sequence(_Annotatable, SequenceI):
 
         return offset + start
 
-    def annotate_from_gff(self, f, pre_parsed=False):
-        """annotates a Sequence from a gff file where each entry has the same SeqID"""
-        # only features with parent features included in the 'features' dict
-        gff_contents = f if pre_parsed else gff.gff_parser(f)
-        top_level = defaultdict(list)
-        grouped = defaultdict(list)
-        num_no_id = 0
-        for gff_dict in gff_contents:
-            if gff_dict["SeqID"] != self.name:
-                # we can only handle features for this sequence
-                continue
-
-            id_ = gff_dict["Attributes"]["ID"]
-            parents = gff_dict["Attributes"].get("Parent", None)
-            if parents is None and id_:
-                assert id_ not in top_level, f"non-unique id {id_}"
-                top_level[id_].append(
-                    self.add_feature(
-                        gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
+    def annotate_from_gff(self, f, pre_parsed=False, offset=None):
+        if pre_parsed:
+            data = f
+        else:
+            path = pathlib.Path(f)
+            if self.annotation_db is not None:
+                if not isinstance(self.annotation_db, GffAnnotationDb):
+                    raise ValueError(
+                        f"{type(self.annotation_db)} already attached, further annotations must be of the same origin"
                     )
-                )
-            elif parents is None:
-                id_ = f"no-id-{num_no_id}"
-                num_no_id += 1
-                self.add_feature(
-                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                )
-            else:
-                for parent in parents:
-                    grouped[parent].append(gff_dict)
+                else:
+                    ...
+                    # todo: support merging annotationDbs
+            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
 
-        # we annotate the annotations
-        while grouped:
-            for key, features in top_level.items():
-                child_features = grouped.pop(key, [])
-                if child_features:
-                    break
-
-            for feature in features:
-                feature_start = self._get_feature_start(feature)
-                for gff_dict in child_features:
-                    id_ = gff_dict["Attributes"]["ID"]
-                    b = gff_dict["Start"]
-                    e = gff_dict["End"]
-                    type_ = gff_dict["Type"]
-                    sub_feat = feature.add_feature(
-                        type_,
-                        id_,
-                        [(b - feature_start, e - feature_start)],
-                    )
-                    top_level[gff_dict["Attributes"]["ID"]].append(sub_feat)
+        self.annotation_db = GffAnnotationDb(data=data)
+        # annotations are relative to view, the slice at this point in time should be the underlying seq
+        self._seq = SeqView(self._seq.value)
+        if offset:
+            self.annotation_offset = offset
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False

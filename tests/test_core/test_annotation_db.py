@@ -1,4 +1,6 @@
+import os
 import pathlib
+import tempfile
 
 import numpy
 import pytest
@@ -336,3 +338,31 @@ def test_to_moltype():
     rna = s.to_moltype("rna")
 
     assert "T" not in rna
+
+
+def test_annotate_from_gff():
+    """annotate_from_gff for SequenceCollection"""
+    from cogent3.core.alignment import Alignment, ArrayAlignment
+
+    aln = Alignment({"seq1": "ACGU", "seq2": "CGUA", "seq3": "C-GU"})
+    gff_data = [
+        ["seq1", "prog1", "snp", "1", "2", "1.0", "+", "1", '"abc"'],
+        ["seq3", "prog2", "del", "1", "3", "1.0", "+", "1", '"xyz"'],
+        ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
+    ]
+    gff_data = list(map("\t".join, gff_data))
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+        f.write("\n".join(gff_data))
+        gff_path = f.name
+
+    try:
+        aln.annotate_from_gff(gff_path, "seq1")
+        aln_seq_1 = aln.get_seq("seq1")
+        annos = list(aln_seq_1.query_db())
+        assert len(annos) == 1
+    except Exception as e:
+        # re-raise any exception that occurs
+        raise e
+    finally:
+        os.remove(gff_path)
