@@ -1997,7 +1997,13 @@ class SequenceCollection(_SequenceCollectionBase):
             if name in self.named_seqs:
                 self.named_seqs[name].copy_annotations(seq)
 
-    def annotate_from_gff(self, f):
+    def annotate_from_gff(self, f, seq_name=None, offset=None):
+        if seq_name:
+            self.get_seq(seq_name).annotate_from_gff(f, offset)
+        else:
+            ...
+
+    def annotate_from_gff_old(self, f):
         """Copies annotations from gff-format file to self.
 
         Matches by name of sequence. This method accepts string path
