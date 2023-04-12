@@ -2,6 +2,7 @@ from unittest import TestCase, main
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
+
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -69,6 +70,7 @@ class FeaturesTest(TestCase):
         # tests extend_query=False, and only get back the base exon
         exons = seq.get_annotations_matching("exon")
         self.assertEqual(len(exons), 1)
+        print(exons)
         self.assertEqual(str(exons), '[exon "fred" at [3:8]/9]')
 
     def test_get_annotations_matching2(self):
