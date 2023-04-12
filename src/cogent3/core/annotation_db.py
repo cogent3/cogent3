@@ -620,7 +620,10 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
             table_name=table_name,
-            conditions={column: name, "biotype": biotype},
+            conditions={
+                column: name,
+                "biotype": biotype,
+            },
             columns=["biotype", "spans", "strand", "name", "parent_id"],
         )
         for result in self._execute_sql(sql, values=vals):
