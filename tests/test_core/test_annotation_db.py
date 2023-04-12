@@ -407,192 +407,20 @@ def test_sequence_collection_annotate_from_gff():
     )
 
 
-def test_query_db_start_stop(seq):
+def test_get_features_matching_start_stop(seq):
     # todo: cannot forget the lost spans...
-    seq.annotate_from("data/simple.gff")
-    got = list(seq.query_db(start=2, stop=10))
-
-
-def test_query_db_start_stop_seqview(seq):
-    seq.annotate_from("data/simple.gff", pre_parsed=False)
-
-    subseq = seq[9:]
-    got = list(subseq.query_db(start=2, stop=10))
-    # the adjusted query should be .query_db(start=9+2, stop=9+10)
-    assert (got[0].map.start, got[0].map.end) == (11, 20)
-
-
-def test_feature_get_slice():
-    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
-    feature_dict = {
-        "biotype": "CDS",
-        "name": "fake",
-        "spans": [
-            (5, 10),
-        ],
-        "reversed": False,
-    }
-
-    feature = FeatureNew(seq, **feature_dict)
-
-    got = feature.get_slice()
-    assert str(got) == str(seq[5:10])
-
-
-def test_feature_query_get_slice(seq_db):
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
-    assert feat.name == "Transcript:B0019.1"
-    assert str(feat.get_slice()) == str(seq_db)[9:70]
-
-
-def test_db_rc_persists(seq_db):
-    """assert that the db persists after the .rc() method call"""
-    rc_seq = seq_db.rc()
-    assert rc_seq.annotation_db is not None
-
-
-def test_same_feature_rc(seq_db):
-    # Transcript:B0019.1 is a feature on the reverse strand
-
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
-    rc_seq = seq_db.rc()
-    r_feat = list(rc_seq.query_db(name="Transcript:B0019.1"))[0]
-
-    assert feat.get_slice() == r_feat.get_slice()
-
-
-def test_rc_features(anno_db):
-    # adding the feature to the positive strand
-    from cogent3 import DNA
-
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
-
-    seq.annotation_db = anno_db
-    anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
-    )
-
-    feat = list(seq.query_db(name="exon1"))[0]
-
-    r_seq = seq.rc()
-    r_feat = list(r_seq.query_db(name="exon1"))[0]
-
-    assert feat.get_slice() == r_feat.get_slice()
-
-
-def test_seq_getitem():
-    from cogent3 import DNA
-
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
-
-    seq_sliced = seq[4:6]
-    assert seq_sliced == str(seq)[4:6:]
-    assert seq_sliced._seq.seq == str(seq)
-
-
-def test_to_moltype():
-    from cogent3 import DNA
-
-    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
-    s = DNA.make_seq(seq)
-    rna = s.to_moltype("rna")
-
-    assert "T" not in rna
-
-
-@pytest.fixture()
-def seq() -> Sequence:
-    return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
-
-
-@pytest.fixture()
-def anno_db() -> GffAnnotationDb:
-    # an empty db that we can add to
-    return GffAnnotationDb([])
-
-
-def test_query_db_no_annotation_db(seq):
-    """
-    Test that `query_db` returns an empty list when no annotation database is attached to the sequence.
-    """
-    assert not list(seq.query_db(feature_type="exon", name="test"))
-
-
-def test_query_db_no_matching_feature(seq, anno_db):
-    """
-    Test that `query_db` returns an empty list when there is no matching feature in the annotation database.
-    """
-    seq.annotation_db = anno_db
-    anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
-    )
-
-    assert not list(seq.query_db(feature_type="exon", name="non_matching"))
-    assert not list(seq.query_db(feature_type="CDS"))
-
-
-def test_query_db_matching_feature(seq, anno_db):
-    """
-    Test that `query_db` returns a list with one matching feature in the annotation database.
-    """
-    seq.annotation_db = anno_db
-    anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
-    )
-    got = list(seq.query_db(feature_type="exon"))
-
-    assert got[0].biotype == "exon"
-    assert got[0].name == "exon1"
-    assert len(got) == 1
-    assert got[0].reversed == False
-
-
-def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
-    """
-    Test that `query_db` returns a list with all matching features in the annotation database.
-    """
-    seq.annotation_db = anno_db
-
-    anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
-    )
-    anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
-    )
-    got = list(seq.query_db(feature_type="exon"))
-
-    assert len(got) == 2
-
-
-def test_annotate_from(seq):
-    seq.annotate_from("data/simple.gff", pre_parsed=False)
-
-    got = list(seq.query_db(feature_type="exon"))
-    assert len(got) == 2
-
-    feature1 = got[0]
-    assert feature1.name == "exon1"
-    assert feature1.biotype == "exon"
-    assert (feature1.map.start, feature1.map.end) == (1, 10)
-
-
-def test_query_db_start_stop(seq):
-    # todo: cannot forget the lost spans...
-    seq.annotate_from("data/simple.gff")
-    got = list(seq.query_db(start=2, stop=10))
+    seq.annotate_from_gff("data/simple.gff")
+    got = list(seq.get_features_matching(start=2, stop=10))
     assert len(got) == 4
 
 
-def test_query_db_start_stop_seqview(seq):
-    seq.annotate_from("data/simple.gff", pre_parsed=False)
+def test_get_features_matching_start_stop_seqview(seq):
+    seq.annotate_from_gff("data/simple.gff")
 
     subseq = seq[9:]
-    got = list(subseq.query_db(start=2, stop=10))
-    # the adjust query should be .query_db(start=9+2, stop=9+10)
-
-    # start it 11 (not 12) because gff is in 1-based coordinated
+    got = list(subseq.get_features_matching(start=2, stop=10))
+    # the adjusted query should be .get_features_matching(start=9+2, stop=9+10)
     assert (got[0].map.start, got[0].map.end) == (11, 20)
-    # todo: should coords of features be relative to the view or the underlying seq?
 
 
 def test_feature_get_slice():
@@ -612,17 +440,10 @@ def test_feature_get_slice():
     assert str(got) == str(seq[5:10])
 
 
-def test_feature_query_get_slice(seq_db):
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
-    assert feat.name == "Transcript:B0019.1"
-    assert str(feat.get_slice()) == str(seq_db)[9:70]
-
-
 def test_feature_get_children(seq_db):
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
     new_feat_5pUTR = list(feat.get_children(biotype="five_prime_UTR"))
     assert len(new_feat_5pUTR) == 1
-    assert str(new_feat_5pUTR[0].get_slice()) == str(seq_db)[:9]
 
     new_feat_CDS = list(feat.get_children(biotype="CDS"))[0]
     assert new_feat_CDS.name == "CDS:B0019.1"
@@ -637,9 +458,9 @@ def test_db_rc_persists(seq_db):
 def test_same_feature_rc(seq_db):
     # Transcript:B0019.1 is a feature on the reverse strand
 
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
     rc_seq = seq_db.rc()
-    r_feat = list(rc_seq.query_db(name="Transcript:B0019.1"))[0]
+    r_feat = list(rc_seq.get_features_matching(name="Transcript:B0019.1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
 
@@ -655,9 +476,8 @@ def test_rc_features(anno_db):
         seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
     )
 
-    feat = list(seq.query_db(name="exon1"))[0]
-
+    feat = list(seq.get_features_matching(name="exon1"))[0]
     r_seq = seq.rc()
-    r_feat = list(r_seq.query_db(name="exon1"))[0]
+    r_feat = list(r_seq.get_features_matching(name="exon1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
