@@ -39,7 +39,7 @@ from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import FeatureNew, Map, _Annotatable
-from cogent3.core.annotation_db import GffAnnotationDb, GenbankAnnotationDb
+from cogent3.core.annotation_db import GenbankAnnotationDb, GffAnnotationDb
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
