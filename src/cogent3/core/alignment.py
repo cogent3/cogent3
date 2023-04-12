@@ -56,6 +56,7 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -1996,11 +1997,18 @@ class SequenceCollection(_SequenceCollectionBase):
             if name in self.named_seqs:
                 self.named_seqs[name].copy_annotations(seq)
 
-    def annotate_from_gff(self, f, seq_name=None, offset=None):
-        if seq_name:
-            self.get_seq(seq_name).annotate_from_gff(f, offset)
-        else:
-            ...
+    def annotate_from_gff(self, f: os.PathLike, seq_name: [str], offset: int = None):
+        """copies annotations from a gff file to a sequence in self
+
+        Parameters
+        ----------
+        f : path to gff annotation file.
+        seq_name : names of seqs to be annotated.
+        offset : Optional, the offset between annotation coordinates and sequence coordinates.
+
+        """
+
+        self.get_seq(seq_name).annotate_from_gff(f, offset=offset)
 
     def annotate_from_gff_old(self, f):
         """Copies annotations from gff-format file to self.

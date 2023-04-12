@@ -454,9 +454,7 @@ class FeatureNew(_AnnotationMixin, _Serialisable):
             segments = self.parent.moltype.complement("".join(segments)[::-1])
 
         elif parent_reversed and not feature_reversed:
-            parent = self.parent._seq[
-                ::-1
-            ]  # todo: waiting from __getitem__ on Sequence to be implemented
+            parent = self.parent[::-1]
             segments = [str(parent[span.start : span.end]) for span in self.map.spans]
 
         elif parent_reversed and feature_reversed:
@@ -472,6 +470,12 @@ class FeatureNew(_AnnotationMixin, _Serialisable):
             biotype=biotype, name=self.name
         ):
             yield FeatureNew(self.parent, **child)
+
+    def __len__(self):
+        return len(self.map)
+
+    def __repr__(self):
+        return f"{self.name} at {self.map}"
 
 
 # https://pythonspeed.com/products/filmemoryprofiler/

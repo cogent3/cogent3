@@ -13,11 +13,11 @@ creation.
 
 import contextlib
 import json
+import os
 import pathlib
 import re
 import warnings
 
-from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
@@ -39,7 +39,7 @@ from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import FeatureNew, Map, _Annotatable
-from cogent3.core.annotation_db import GffAnnotationDb
+from cogent3.core.annotation_db import GffAnnotationDb, GenbankAnnotationDb
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
@@ -874,13 +874,14 @@ class Sequence(_Annotatable, SequenceI):
             raise TypeError
         self._annotation_db = value
 
-    def query_db(
+    def get_features_matching(
         self,
         feature_type=None,
         name=None,
         start=None,
         stop=None,
     ):
+        """yield features matching the given conditions"""
 
         if self._annotation_db is None:
             return None
@@ -896,6 +897,47 @@ class Sequence(_Annotatable, SequenceI):
             end=query_end,
         ):
             yield FeatureNew(self, **feature)
+
+    def annotate_from_gff(self, f: os.PathLike, offset=None):
+        """copies annotations from a gff file to self,
+
+        Parameters
+        ----------
+        f : path to gff annotation file.
+        offset : Optional, the offset between annotation coordinates and sequence coordinates.
+
+        """
+        path = pathlib.Path(f)
+        if self.annotation_db is None:
+            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
+            self.annotation_db = GffAnnotationDb(data=data)
+        elif isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
+        else:
+            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
+            self.annotation_db = GffAnnotationDb(data=data, db=self.annotation_db._db)
+        if offset:
+            self.annotation_offset = offset
+
+    def add_feature(
+        self,
+        biotype: str,
+        name: str,
+        spans,
+        strand: str = None,
+        on_alignment: bool = False,
+    ):
+        if self.annotation_db == None:
+            self.annotation_db = GffAnnotationDb([])
+
+        self.annotation_db.add_feature(
+            seqid=self.name,
+            biotype=biotype,
+            name=name,
+            spans=spans,
+            strand=strand,
+            on_alignment=on_alignment,
+        )
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
@@ -947,27 +989,6 @@ class Sequence(_Annotatable, SequenceI):
                 offset += feature.map.start
 
         return offset + start
-
-    def annotate_from_gff(self, f, pre_parsed=False, offset=None):
-        if pre_parsed:
-            data = f
-        else:
-            path = pathlib.Path(f)
-            if self.annotation_db is not None:
-                if not isinstance(self.annotation_db, GffAnnotationDb):
-                    raise ValueError(
-                        f"{type(self.annotation_db)} already attached, further annotations must be of the same origin"
-                    )
-                else:
-                    ...
-                    # todo: support merging annotationDbs
-            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
-
-        self.annotation_db = GffAnnotationDb(data=data)
-        # annotations are relative to view, the slice at this point in time should be the underlying seq
-        self._seq = SeqView(self._seq.value)
-        if offset:
-            self.annotation_offset = offset
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False
