@@ -541,11 +541,17 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         "parent_id": "TEXT",
     }
 
-    def __init__(self, data, source=":memory:"):
+    def __init__(self, data, db=None, source=":memory:"):
         # note that data is destroyed
-        self._db = None
         self._num_fakeids = 0
         self.source = source
+        if db is None:
+            self._db = sqlite3.connect(
+                self.source, detect_types=sqlite3.PARSE_DECLTYPES
+            )
+            self._db.row_factory = sqlite3.Row
+        else:
+            self._db = db
         self._init_tables()
         data = self._merged_data(data)
         self._populate_from_records(data)
@@ -584,7 +590,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # row, converting their coordinates
         # extract the name from ID and add this into the table
         # I am not convinced we can rely on gff files to be ordered,
-        # if we could we could do this as one pass over the data
+        # if we could, we could do this as one pass over the data
         while records:
             record = records.pop(0)
             record["biotype"] = record.pop("Type")
@@ -613,7 +619,10 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
             table_name=table_name,
-            conditions={column: name, "biotype": biotype},
+            conditions={
+                column: name,
+                "biotype": biotype,
+            },
             columns=["biotype", "spans", "strand", "name", "parent_id"],
         )
         for result in self._execute_sql(sql, values=vals):
@@ -859,6 +868,6 @@ def _db_from_gff(path):
     return GffAnnotationDb(data=data)
 
 
-def load_annotations(path: os.PathLike) -> SupportsFeatures:
+def load_annotations(path: os.PathLike, seq_names=None) -> SupportsFeatures:
     path = pathlib.Path(path)
     return _db_from_genbank(path) if ".gb" in path.suffixes else _db_from_gff(path)
