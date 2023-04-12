@@ -1109,6 +1109,9 @@ class Sequence(_Annotatable, SequenceI):
 
         return new
 
+    def __iter__(self):
+        yield from iter(str(self))
+
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
         return self.name
