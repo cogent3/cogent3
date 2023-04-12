@@ -235,7 +235,8 @@ class SequenceTests(TestCase):
 
         sequence = Sequence(seq)
         sequence.annotate_from_gff(gff3_path)
-        matches = [m for m in sequence.get_features_matching("*", extend_query=True)]
+        matches = [m for m in sequence.get_features_matching()]
+        print(matches)
         # 13 features with one having 2 parents, so 14 instances should be found
         self.assertEqual(len(matches), 14)
 
@@ -1947,6 +1948,12 @@ def test_seqview_repr():
     view = SeqView(seq, start=5, stop=35, step=2)
     expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2)"
     assert repr(view) == expected
+
+
+def test_distance_indices():
+    """ArraySequence distance should work with function of indices"""
+    s1 = RNA.make_array_seq("UGCUGCUC", name="s1")
+    s2 = RNA.make_seq(s1)
 
 
 # run if called from command-line
