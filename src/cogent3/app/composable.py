@@ -1,6 +1,5 @@
 import inspect
 import json
-import os
 import re
 import textwrap
 import time
@@ -9,7 +8,6 @@ import types
 
 from copy import deepcopy
 from enum import Enum
-from functools import wraps
 from pathlib import Path
 from typing import Any, Generator, Tuple
 from uuid import uuid4
@@ -19,23 +17,8 @@ from scitrack import CachingLogger
 from cogent3.app.typing import get_constraint_names, type_tree
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
-from cogent3.util.misc import (
-    docstring_to_summary_rest,
-    extend_docstring_from,
-    get_object_provenance,
-    in_jupyter,
-)
-from cogent3.util.warning import discontinued
+from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
 
-from ..util.warning import discontinued
-from .data_store import (
-    IGNORE,
-    OVERWRITE,
-    RAISE,
-    SKIP,
-    DataStoreMember,
-    WritableDirectoryDataStore,
-)
 from .data_store_new import DataMember, get_data_source, get_unique_id
 
 
