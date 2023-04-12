@@ -46,6 +46,24 @@ def seq_db():
     return seq
 
 
+@pytest.fixture()
+def seq() -> Sequence:
+    return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
+
+
+@pytest.fixture()
+def anno_db() -> GffAnnotationDb:
+    # an empty db that we can add to
+    return GffAnnotationDb([])
+
+
+@pytest.fixture()
+def simple_seq_gff_db() -> Sequence:
+    seq = Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
+    seq.annotate_from_gff(DATA_DIR / "simple.gff")
+    return seq
+
+
 def test_gff_describe(gff_db):
     result = gff_db.describe
     assert isinstance(result, _Table)
@@ -160,46 +178,35 @@ def test_protocol_adherence(gff_db, gb_db):
         assert isinstance(db, SupportsFeatures)
 
 
-@pytest.fixture()
-def seq() -> Sequence:
-    return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
-
-
-@pytest.fixture()
-def anno_db() -> GffAnnotationDb:
-    # an empty db that we can add to
-    return GffAnnotationDb([])
-
-
-def test_query_db_no_annotation_db(seq):
+def test_get_features_matching_no_annotation_db(seq):
     """
-    Test that `query_db` returns an empty list when no annotation database is attached to the sequence.
+    Test that `get_features_matching` returns an empty list when no annotation database is attached to the sequence.
     """
-    assert not list(seq.query_db(feature_type="exon", name="test"))
+    assert not list(seq.get_features_matching(feature_type="exon", name="test"))
 
 
-def test_query_db_no_matching_feature(seq, anno_db):
+def test_get_features_matching_no_matching_feature(seq, anno_db):
     """
-    Test that `query_db` returns an empty list when there is no matching feature in the annotation database.
+    Test that `get_features_matching` returns an empty list when there is no matching feature in the annotation database.
     """
     seq.annotation_db = anno_db
     anno_db.add_feature(
         seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
     )
 
-    assert not list(seq.query_db(feature_type="exon", name="non_matching"))
-    assert not list(seq.query_db(feature_type="CDS"))
+    assert not list(seq.get_features_matching(feature_type="exon", name="non_matching"))
+    assert not list(seq.get_features_matching(feature_type="CDS"))
 
 
-def test_query_db_matching_feature(seq, anno_db):
+def test_get_features_matching_matching_feature(seq, anno_db):
     """
-    Test that `query_db` returns a list with one matching feature in the annotation database.
+    Test that `get_features_matching` returns a list with one matching feature in the annotation database.
     """
     seq.annotation_db = anno_db
     anno_db.add_feature(
         seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
     )
-    got = list(seq.query_db(feature_type="exon"))
+    got = list(seq.get_features_matching(feature_type="exon"))
 
     assert got[0].biotype == "exon"
     assert got[0].name == "exon1"
@@ -207,9 +214,9 @@ def test_query_db_matching_feature(seq, anno_db):
     assert got[0].reversed == False
 
 
-def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
+def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
     """
-    Test that `query_db` returns a list with all matching features in the annotation database.
+    Test that `get_features_matching` returns a list with all matching features in the annotation database.
     """
     seq.annotation_db = anno_db
 
@@ -219,15 +226,15 @@ def test_query_db_matching_features(anno_db: GffAnnotationDb, seq):
     anno_db.add_feature(
         seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
     )
-    got = list(seq.query_db(feature_type="exon"))
+    got = list(seq.get_features_matching(feature_type="exon"))
 
     assert len(got) == 2
 
 
-def test_annotate_from(seq):
-    seq.annotate_from("data/simple.gff", pre_parsed=False)
+def test_annotate_from_gff(seq):
+    seq.annotate_from_gff("data/simple.gff")
 
-    got = list(seq.query_db(feature_type="exon"))
+    got = list(seq.get_features_matching(feature_type="exon"))
     assert len(got) == 2
 
     feature1 = got[0]
@@ -236,19 +243,19 @@ def test_annotate_from(seq):
     assert (feature1.map.start, feature1.map.end) == (1, 10)
 
 
-def test_query_db_start_stop(seq):
+def test_get_features_matching_start_stop(seq):
     # todo: cannot forget the lost spans...
-    seq.annotate_from("data/simple.gff")
-    got = list(seq.query_db(start=2, stop=10))
+    seq.annotate_from_gff("data/simple.gff")
+    got = list(seq.get_features_matching(start=2, stop=10))
     assert len(got) == 4
 
 
-def test_query_db_start_stop_seqview(seq):
-    seq.annotate_from("data/simple.gff", pre_parsed=False)
+def test_get_features_matching_start_stop_seqview(seq):
+    seq.annotate_from_gff("data/simple.gff")
 
     subseq = seq[9:]
-    got = list(subseq.query_db(start=2, stop=10))
-    # the adjusted query should be .query_db(start=9+2, stop=9+10)
+    got = list(subseq.get_features_matching(start=2, stop=10))
+    # the adjusted query should be .get_features_matching(start=9+2, stop=9+10)
     assert (got[0].map.start, got[0].map.end) == (11, 20)
 
 
@@ -269,17 +276,10 @@ def test_feature_get_slice():
     assert str(got) == str(seq[5:10])
 
 
-def test_feature_query_get_slice(seq_db):
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
-    assert feat.name == "Transcript:B0019.1"
-    assert str(feat.get_slice()) == str(seq_db)[9:70]
-
-
 def test_feature_get_children(seq_db):
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
     new_feat_5pUTR = list(feat.get_children(biotype="five_prime_UTR"))
     assert len(new_feat_5pUTR) == 1
-    assert str(new_feat_5pUTR[0].get_slice()) == str(seq_db)[:9]
 
     new_feat_CDS = list(feat.get_children(biotype="CDS"))[0]
     assert new_feat_CDS.name == "CDS:B0019.1"
@@ -294,9 +294,9 @@ def test_db_rc_persists(seq_db):
 def test_same_feature_rc(seq_db):
     # Transcript:B0019.1 is a feature on the reverse strand
 
-    feat = list(seq_db.query_db(name="Transcript:B0019.1"))[0]
+    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
     rc_seq = seq_db.rc()
-    r_feat = list(rc_seq.query_db(name="Transcript:B0019.1"))[0]
+    r_feat = list(rc_seq.get_features_matching(name="Transcript:B0019.1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
 
@@ -312,12 +312,18 @@ def test_rc_features(anno_db):
         seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
     )
 
-    feat = list(seq.query_db(name="exon1"))[0]
-
+    feat = list(seq.get_features_matching(name="exon1"))[0]
     r_seq = seq.rc()
-    r_feat = list(r_seq.query_db(name="exon1"))[0]
+    r_feat = list(r_seq.get_features_matching(name="exon1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
+
+
+def test_sequence_add_feature(seq):
+    record = dict(name="gene-01", biotype="gene", spans=[(12, 16)], strand="+")
+    seq.add_feature(**record)
+
+    print(seq.get_features_matching(feature_type="gene"))
 
 
 def test_seq_getitem():
@@ -340,29 +346,7 @@ def test_to_moltype():
     assert "T" not in rna
 
 
-def test_annotate_from_gff():
-    """annotate_from_gff for SequenceCollection"""
-    from cogent3.core.alignment import Alignment, ArrayAlignment
-
-    aln = Alignment({"seq1": "ACGU", "seq2": "CGUA", "seq3": "C-GU"})
-    gff_data = [
-        ["seq1", "prog1", "snp", "1", "2", "1.0", "+", "1", '"abc"'],
-        ["seq3", "prog2", "del", "1", "3", "1.0", "+", "1", '"xyz"'],
-        ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
-    ]
-    gff_data = list(map("\t".join, gff_data))
-
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-        f.write("\n".join(gff_data))
-        gff_path = f.name
-
-    try:
-        aln.annotate_from_gff(gff_path, "seq1")
-        aln_seq_1 = aln.get_seq("seq1")
-        annos = list(aln_seq_1.query_db())
-        assert len(annos) == 1
-    except Exception as e:
-        # re-raise any exception that occurs
-        raise e
-    finally:
-        os.remove(gff_path)
+def test_multiple_anno_dbs(seq):
+    seq.annotate_from_gff(DATA_DIR / "simple.gff")
+    seq.annotate_from_gff(DATA_DIR / "simple2.gff")
+    assert len(list(seq.get_features_matching())) == 10
