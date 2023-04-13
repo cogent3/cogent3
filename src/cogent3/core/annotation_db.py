@@ -706,14 +706,15 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         "attributes": "json",
     }
 
-    def __init__(self, data: typing.List[dict], seqid: str, source=":memory:"):
+    def __init__(self, data: typing.List[dict], seqid: str, source=":memory:", db=None):
         # note that data is destroyed
-        self._db = None
+        self._db = db
         self._num_fakeids = 0
         self.source = source
         self._init_tables()
         self._populate_from_records(data, seqid)
 
+    # todo: rename add_records, make public method - can be used to add genbank records to an existing GenbankAnnotationDb
     def _populate_from_records(self, records, seqid):
         # Can we really trust case to be consistent across sources of gff??
         # I doubt it, so more robust regex likely required
@@ -843,34 +844,39 @@ def deserialise_gb_db(data: dict):
     return GenbankAnnotationDb.from_dict(data)
 
 
-def _db_from_genbank(path):
+def _db_from_genbank(path, db):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
 
     with open_(path) as infile:
         data = list(MinimalGenbankParser(infile))
 
-    return GenbankAnnotationDb(data[0]["features"], data[0]["locus"])
+    return GenbankAnnotationDb(data[0]["features"], data[0]["locus"], db=db)
 
 
 def _leave_attributes(*attrs):
     return attrs[0]
 
 
-def _db_from_gff(path, db=None):
+def _db_from_gff(path, seqids, db):
     from cogent3.parse.gff import gff_parser
 
     data = list(
         gff_parser(
             path,
+            seqids=seqids,
             attribute_parser=_leave_attributes,
         )
     )
     return GffAnnotationDb(data=data, db=db)
 
 
-def load_annotations(path: os.PathLike, seq_ids, db=None) -> SupportsFeatures:
+def load_annotations(path: os.PathLike, seqids=None, db=None) -> SupportsFeatures:
+    if seqids is not None:
+        seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path)
     return (
-        _db_from_genbank(path) if ".gb" in path.suffixes else _db_from_gff(path, db=db)
+        _db_from_genbank(path, db=db)
+        if ".gb" in path.suffixes
+        else _db_from_gff(path, seqids=seqids, db=db)
     )

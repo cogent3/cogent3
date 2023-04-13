@@ -52,12 +52,11 @@ from numpy.random import choice, permutation, randint
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3.core.annotation import Map, _Annotatable
+from cogent3.core.annotation_db import GenbankAnnotationDb, load_annotations
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-from cogent3.core.annotation_db import load_annotations, GenbankAnnotationDb
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2034,31 +2033,6 @@ class SequenceCollection(_SequenceCollectionBase):
         # add reference to this annotation_db on each sequence that was provided in seq_ids
         for seq in seq_ids:
             self.get_seq(seq).annotation_db = self.annotation_db
-
-    def annotate_from_gff_old(self, f):
-        """Copies annotations from gff-format file to self.
-
-        Matches by name of sequence. This method accepts string path
-        or pathlib.Path or file-like object (e.g. StringIO)
-
-        Skips sequences in the file that are not in self.
-        """
-
-        seq_dict = {}
-
-        for gff_dict in gff_parser(f):
-            if gff_dict["SeqID"] not in self.named_seqs:
-                continue
-            seq_id = gff_dict["SeqID"]
-            if seq_id not in seq_dict.keys():
-                seq_dict[seq_id] = [gff_dict]
-                continue
-            seq_dict[seq_id].append(gff_dict)
-        for seq_id in seq_dict.keys():
-            seq = self.named_seqs[seq_id]
-            if not hasattr(seq, "annotations"):
-                seq = seq.data
-            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed=True)
 
 
 @total_ordering
