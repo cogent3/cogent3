@@ -1,7 +1,7 @@
-#!/usr/bin/env python
 import functools
+import inspect
 
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
@@ -34,9 +34,7 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3):
         as per warnings.warn
 
     """
-    msg = (
-        f"use {_type} {new} instead of {old}, support discontinued in version {version}"
-    )
+    msg = f"{_type} {old} which will be removed in version {version}, use {new} instead"
     if reason is not None:
         msg = f"{msg}\n{reason}"
 
@@ -45,14 +43,14 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3):
         _warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
-def discontinued(_type, name, version, reason=None, stack_level=3):
+def discontinued(_type, old, version, reason=None, stack_level=3):
     """convenience func to warn about discontinued attributes
 
     Parameters
     ----------
     _type
         should be one of class, method, function, argument
-    name
+    old
         the attributes name
     version
         the version by which support for the old name will be
@@ -62,9 +60,7 @@ def discontinued(_type, name, version, reason=None, stack_level=3):
     stack_level
         as per warnings.warn
     """
-    msg = (
-        f"{_type} {name} is discontinued, support will be stopped in version {version}"
-    )
+    msg = f"{_type} {old} is discontinued and will be removed in version {version}"
     if reason is not None:
         msg = f"{msg}\n{reason}"
 
@@ -128,6 +124,67 @@ def deprecated_args(
             if message:
                 msg = f'The following parameters of `{func.__name__}` are deprecated. [{", ".join(message)}] will be removed in {version or "a future release"}.{f"  {reason}" if reason else ""}'
                 _warn(msg, DeprecationWarning, stacklevel=2)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def deprecated_callable(
+    version: str,
+    reason: str,
+    new: Optional[str] = None,
+    is_discontinued: bool = False,
+) -> Callable:
+    """
+    A decorator that marks callables (function or method) as deprecated or discontinued..
+    Parameters
+    ----------
+    version : str
+        The version when it will be removed in calver format, e.g. 'YYYY.MM'
+    reason : str
+        Reason for deprecation or guidance on what to do
+    new : str
+        If the callable is being replaced, this is the replacement, e.g. 'ClassName.new_method()'
+    is_discontinued : bool
+        If True the callable is being discontinued.
+
+    Returns
+    -------
+    Callable
+        The decorated callable.
+
+    Warnings
+    --------
+    DeprecationWarning
+        A warning will be raised when the decorated function is called.
+
+    Examples
+    --------
+    Here's an example of how to use the `deprecated_callable` decorator to mark the function `my_function` as deprecated
+    in favour of a new function.
+
+    >>> @deprecated_callable(version='2023.6', reason='function rename', new='a_function')
+    >>> def my_function(arg): pass
+
+    """
+
+    def decorator(func: Callable) -> Callable:
+        _type = "method" if inspect.ismethod(func) else "function"
+        old = func.__name__
+        params = dict(
+            _type=_type, old=old, version=version, reason=reason, stack_level=2
+        )
+        if is_discontinued:
+            depr_func = discontinued
+        else:
+            params["new"] = new
+            depr_func = deprecated
+
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Callable:
+            depr_func(**params)
             return func(*args, **kwargs)
 
         return wrapper

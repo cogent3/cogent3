@@ -3,7 +3,7 @@ import warnings
 
 import pytest
 
-from cogent3.util.warning import deprecated_args
+from cogent3.util.warning import deprecated_args, deprecated_callable
 
 
 __author__ = "Richard Morris"
@@ -159,3 +159,60 @@ def test_method_deprecated_args_pickled():
     unpickled_foo.changed(x=2, y=3)
     assert unpickled_foo.a == 2
     assert unpickled_foo.b == 3
+
+
+class foo2:
+    # noting that new_meth does not exist
+    @deprecated_callable("2023.9", reason="test meth", new="new_meth")
+    def old_meth(self, v):
+        return v ** 2
+
+    @deprecated_callable("2023.9", reason="redundant", is_discontinued=True)
+    def squared(self, v):
+        return v * v
+
+
+@deprecated_callable("2023.9", reason="test func", new="new_func")
+def old_func(v):
+    return v ** 3
+
+
+@deprecated_callable("2023.9", reason="redundant", is_discontinued=True)
+def cubed(v):
+    return v * v
+
+
+@pytest.mark.parametrize("func", (foo2().old_meth, foo2().squared, old_func, cubed))
+def test_deprecated_callable_warn(func):
+    with pytest.deprecated_call():
+        func(2)
+
+
+@pytest.mark.parametrize("func", (cubed, old_func))
+def test_method_deprecated_function_pickling(recwarn, func):
+    # using pytest recwarn fixture here since the filterwarning decorator
+    # does not seem to play nice with parametrize
+    # serialize func with pickle
+    pickled_func = pickle.dumps(func)
+    assert isinstance(pickled_func, bytes)
+
+    # deserialize with pickle
+    unpickled_func = pickle.loads(pickled_func)
+
+    assert unpickled_func(20) == func(20)
+
+
+def test_method_deprecated_method_pickling(recwarn):
+    # serialize instance with pickle
+    instance = foo2()
+    pickled = pickle.dumps(instance)
+    assert isinstance(pickled, bytes)
+
+    # deserialize with pickle
+    unpickled = pickle.loads(pickled)
+
+    # the method still works after pickling
+    assert unpickled.old_meth(20) == instance.old_meth(20)
+
+    # the method still works after pickling
+    assert unpickled.squared(20) == instance.squared(20)
