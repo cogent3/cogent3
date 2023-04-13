@@ -9,8 +9,8 @@ import typing
 import numpy
 
 from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.table import Table
 from cogent3.util.misc import get_object_provenance
+from cogent3.util.table import Table
 
 
 __author__ = "Gavin Huttley"
