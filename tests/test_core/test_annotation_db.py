@@ -1,6 +1,4 @@
-import os
 import pathlib
-import tempfile
 
 import numpy
 import pytest
@@ -297,7 +295,7 @@ def test_db_persists_post_rc(seq_db):
     assert rc_seq.annotation_db is not None
 
 
-def test_rc_get_slice_positive_feature(anno_db):
+def test_rc_get_slice_negative_feature(anno_db):
     """given a feature on the - strand, the feature.get_slice() should return
     the same sequence before and after the sequence is reverse complemented
     """
@@ -405,106 +403,8 @@ def test_sequence_collection_annotate_from_gff():
     assert (
         seq_collection.get_seq("test_seq").annotation_db is seq_collection.annotation_db
     )
+    got = list(seq.get_features_matching(feature_type="CDS"))
+    assert len(got) == 2
 
-
-def test_get_features_matching_start_stop(seq):
-    # todo: cannot forget the lost spans...
-    seq.annotate_from_gff("data/simple.gff")
-    got = list(seq.get_features_matching(start=2, stop=10))
-    assert len(got) == 4
-
-
-def test_get_features_matching_start_stop_seqview(seq):
-    seq.annotate_from_gff("data/simple.gff")
-
-    subseq = seq[9:]
-    got = list(subseq.get_features_matching(start=2, stop=10))
-    # the adjusted query should be .get_features_matching(start=9+2, stop=9+10)
-    assert (got[0].map.start, got[0].map.end) == (11, 20)
-
-
-def test_feature_get_slice():
-    seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
-    feature_dict = {
-        "biotype": "CDS",
-        "name": "fake",
-        "spans": [
-            (5, 10),
-        ],
-        "reversed": False,
-    }
-
-    feature = FeatureNew(seq, **feature_dict)
-
-    got = feature.get_slice()
-    assert str(got) == str(seq[5:10])
-
-
-def test_feature_get_children(seq_db):
-    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
-    new_feat_5pUTR = list(feat.get_children(biotype="five_prime_UTR"))
-    assert len(new_feat_5pUTR) == 1
-
-    new_feat_CDS = list(feat.get_children(biotype="CDS"))[0]
-    assert new_feat_CDS.name == "CDS:B0019.1"
-
-
-def test_db_rc_persists(seq_db):
-    """assert that the db persists after the .rc() method call"""
-    rc_seq = seq_db.rc()
-    assert rc_seq.annotation_db is not None
-
-
-def test_same_feature_rc(seq_db):
-    # Transcript:B0019.1 is a feature on the reverse strand
-
-    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
-    rc_seq = seq_db.rc()
-    r_feat = list(rc_seq.get_features_matching(name="Transcript:B0019.1"))[0]
-
-    assert feat.get_slice() == r_feat.get_slice()
-
-
-def test_rc_features(anno_db):
-    # adding the feature to the positive strand
-    from cogent3 import DNA
-
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
-
-    seq.annotation_db = anno_db
-    anno_db.add_feature(
-        seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
-    )
-
-    feat = list(seq.get_features_matching(name="exon1"))[0]
-    r_seq = seq.rc()
-    r_feat = list(r_seq.get_features_matching(name="exon1"))[0]
-
-    assert feat.get_slice() == r_feat.get_slice()
-
-
-def test_sequence_add_feature(seq):
-    record = dict(name="gene-01", biotype="gene", spans=[(12, 16)], strand="+")
-    seq.add_feature(**record)
-
-    print(seq.get_features_matching(feature_type="gene"))
-
-
-def test_seq_getitem():
-    from cogent3 import DNA
-
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
-
-    seq_sliced = seq[4:6]
-    assert seq_sliced == str(seq)[4:6:]
-    assert seq_sliced._seq.seq == str(seq)
-
-
-def test_to_moltype():
-    from cogent3 import DNA
-
-    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
-    s = DNA.make_seq(seq)
-    rna = s.to_moltype("rna")
-
-    assert "T" not in rna
+    got = list(seq.get_features_matching(feature_type="CpG"))
+    assert len(got) == 1
