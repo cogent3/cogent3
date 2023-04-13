@@ -350,3 +350,17 @@ def test_multiple_anno_dbs(seq):
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     seq.annotate_from_gff(DATA_DIR / "simple2.gff")
     assert len(list(seq.get_features_matching())) == 10
+
+
+def test_sequence_collection_annotate_from_fgg():
+    from cogent3 import SequenceCollection
+
+    sequences = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
+
+    seq_collection = SequenceCollection(sequences)
+
+    seq_collection.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids=["test_seq"])
+
+    assert seq_collection.get_seq("test_seq").annotation_db is not None
+    assert len(list(seq_collection.get_seq("test_seq").get_features_matching())) == 5
+    assert seq_collection.get_seq("test_seq2").annotation_db is None
