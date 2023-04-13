@@ -346,29 +346,15 @@ def test_to_moltype():
     assert "T" not in rna
 
 
-def test_annotate_from_gff():
-    """annotate_from_gff for SequenceCollection"""
-    from cogent3.core.alignment import Alignment, ArrayAlignment
+def test_sequence_collection_annotate_from_fgg():
+    from cogent3 import SequenceCollection
 
-    aln = Alignment({"seq1": "ACGU", "seq2": "CGUA", "seq3": "C-GU"})
-    gff_data = [
-        ["seq1", "prog1", "snp", "1", "2", "1.0", "+", "1", '"abc"'],
-        ["seq3", "prog2", "del", "1", "3", "1.0", "+", "1", '"xyz"'],
-        ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
-    ]
-    gff_data = list(map("\t".join, gff_data))
+    sequences = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-        f.write("\n".join(gff_data))
-        gff_path = f.name
+    seq_collection = SequenceCollection(sequences)
 
-    try:
-        aln.annotate_from_gff(gff_path, "seq1")
-        aln_seq_1 = aln.get_seq("seq1")
-        annos = list(aln_seq_1.query_db())
-        assert len(annos) == 1
-    except Exception as e:
-        # re-raise any exception that occurs
-        raise e
-    finally:
-        os.remove(gff_path)
+    seq_collection.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids=["test_seq"])
+
+    assert seq_collection.get_seq("test_seq").annotation_db is not None
+    assert len(list(seq_collection.get_seq("test_seq").get_features_matching())) == 5
+    assert seq_collection.get_seq("test_seq2").annotation_db is None
