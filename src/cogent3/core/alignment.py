@@ -509,6 +509,19 @@ class _SequenceCollectionBase:
         self._set_additional_attributes(curr_seqs)
 
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
+        self._annotation_db = None
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
