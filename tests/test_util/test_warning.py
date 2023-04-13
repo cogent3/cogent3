@@ -183,7 +183,7 @@ def cubed(v):
 
 
 @pytest.mark.parametrize("func", (foo2().old_meth, foo2().squared, old_func, cubed))
-def test_method_deprecated_args_warn(func):
+def test_deprecated_callable_warn(func):
     with pytest.deprecated_call():
         func(2)
 
