@@ -39,7 +39,11 @@ from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import FeatureNew, Map, _Annotatable
-from cogent3.core.annotation_db import GenbankAnnotationDb, GffAnnotationDb
+from cogent3.core.annotation_db import (
+    GenbankAnnotationDb,
+    GffAnnotationDb,
+    load_annotations,
+)
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
@@ -907,15 +911,15 @@ class Sequence(_Annotatable, SequenceI):
         offset : Optional, the offset between annotation coordinates and sequence coordinates.
 
         """
-        path = pathlib.Path(f)
         if self.annotation_db is None:
-            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
-            self.annotation_db = GffAnnotationDb(data=data)
+            self.annotation_db = load_annotations(f, self.name)
         elif isinstance(self.annotation_db, GenbankAnnotationDb):
             raise ValueError("GenbankAnnotationDb already attached")
         else:
-            data = list(gff_parser(path, attribute_parser=lambda *attrs: attrs[0]))
-            self.annotation_db = GffAnnotationDb(data=data, db=self.annotation_db._db)
+            self.annotation_db = load_annotations(
+                f, self.name, db=self.annotation_db._db
+            )
+
         if offset:
             self.annotation_offset = offset
 
@@ -927,7 +931,7 @@ class Sequence(_Annotatable, SequenceI):
         strand: str = None,
         on_alignment: bool = False,
     ):
-        if self.annotation_db == None:
+        if self.annotation_db is None:
             self.annotation_db = GffAnnotationDb([])
 
         self.annotation_db.add_feature(
