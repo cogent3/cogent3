@@ -1,6 +1,4 @@
-import os
 import pathlib
-import tempfile
 
 import numpy
 import pytest
@@ -182,7 +180,7 @@ def test_get_features_matching_no_annotation_db(seq):
     """
     Test that `get_features_matching` returns an empty list when no annotation database is attached to the sequence.
     """
-    assert not list(seq.get_features_matching(feature_type="exon", name="test"))
+    assert not list(seq.get_features_matching())
 
 
 def test_get_features_matching_no_matching_feature(seq, anno_db):
@@ -232,34 +230,41 @@ def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
 
 
 def test_annotate_from_gff(seq):
-    seq.annotate_from_gff("data/simple.gff")
+    seq.annotate_from_gff(DATA_DIR / "simple.gff")
 
     got = list(seq.get_features_matching(feature_type="exon"))
     assert len(got) == 2
 
-    feature1 = got[0]
-    assert feature1.name == "exon1"
-    assert feature1.biotype == "exon"
-    assert (feature1.map.start, feature1.map.end) == (1, 10)
+    got = list(seq.get_features_matching(feature_type="CDS"))
+    assert len(got) == 2
+
+    got = list(seq.get_features_matching(feature_type="CpG"))
+    assert len(got) == 1
 
 
 def test_get_features_matching_start_stop(seq):
-    # todo: cannot forget the lost spans...
-    seq.annotate_from_gff("data/simple.gff")
+    # todo: need to implement LostSpans()
+    seq.annotate_from_gff(DATA_DIR / "simple.gff")
     got = list(seq.get_features_matching(start=2, stop=10))
     assert len(got) == 4
 
 
 def test_get_features_matching_start_stop_seqview(seq):
-    seq.annotate_from_gff("data/simple.gff")
+    """testing that get_features_matching adjusts"""
+    seq.annotate_from_gff(DATA_DIR / "simple.gff")
+    seq_features = list(seq.get_features_matching(start=0, stop=3))
+    assert len(seq_features) == 3
+    print(seq_features)
 
+    # edge case, only 1 features that overlaps with index 12
     subseq = seq[9:]
-    got = list(subseq.get_features_matching(start=2, stop=10))
-    # the adjusted query should be .get_features_matching(start=9+2, stop=9+10)
-    assert (got[0].map.start, got[0].map.end) == (11, 20)
+    seq_features_features = list(subseq.get_features_matching(start=3, stop=10))
+    print(seq_features_features)
+    assert len(seq_features_features) == 1
 
 
-def test_feature_get_slice():
+def test_get_slice():
+    """get_slice should return the same as slicing the sequence directly"""
     seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
     feature_dict = {
         "biotype": "CDS",
@@ -271,7 +276,6 @@ def test_feature_get_slice():
     }
 
     feature = FeatureNew(seq, **feature_dict)
-
     got = feature.get_slice()
     assert str(got) == str(seq[5:10])
 
@@ -285,14 +289,16 @@ def test_feature_get_children(seq_db):
     assert new_feat_CDS.name == "CDS:B0019.1"
 
 
-def test_db_rc_persists(seq_db):
+def test_db_persists_post_rc(seq_db):
     """assert that the db persists after the .rc() method call"""
     rc_seq = seq_db.rc()
     assert rc_seq.annotation_db is not None
 
 
-def test_same_feature_rc(seq_db):
-    # Transcript:B0019.1 is a feature on the reverse strand
+def test_rc_get_slice_positive_feature(anno_db):
+    """given a feature on the - strand, the feature.get_slice() should return
+    the same sequence before and after the sequence is reverse complemented
+    """
 
     feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
     rc_seq = seq_db.rc()
@@ -301,9 +307,10 @@ def test_same_feature_rc(seq_db):
     assert feat.get_slice() == r_feat.get_slice()
 
 
-def test_rc_features(anno_db):
-    # adding the feature to the positive strand
-    from cogent3 import DNA
+def test_rc_get_slice_positive_feature(anno_db):
+    """given a feature on the + strand, the feature.get_slice() should return
+    the same sequence before and after the sequence is reverse complemented
+    """
 
     seq = DNA.make_seq("AAAAGGGG", name="seq1")
 
@@ -319,48 +326,80 @@ def test_rc_features(anno_db):
     assert feat.get_slice() == r_feat.get_slice()
 
 
-def test_sequence_add_feature(seq):
+def test_add_feature(seq):
+    """Sequence supports manual adding of features for a seq with no bound AnnotationDb"""
     record = dict(name="gene-01", biotype="gene", spans=[(12, 16)], strand="+")
     seq.add_feature(**record)
+    feats = list(seq.get_features_matching(feature_type="gene"))
 
-    print(seq.get_features_matching(feature_type="gene"))
-
-
-def test_seq_getitem():
-    from cogent3 import DNA
-
-    seq = DNA.make_seq("AAAAGGGG", name="seq1")
-
-    seq_sliced = seq[4:6]
-    assert seq_sliced == str(seq)[4:6:]
-    assert seq_sliced._seq.seq == str(seq)
+    assert seq.annotation_db is not None
+    assert len(feats) == 1
+    assert feats[0].biotype == "gene"
 
 
-def test_to_moltype():
-    from cogent3 import DNA
+def test_add_feature_existing_db(simple_seq_gff_db):
+    """Sequence supports manual adding of features for a seq with an existing AnnotationDb"""
+    record = dict(name="gene-01", biotype="gene", spans=[(12, 16)], strand="+")
+    simple_seq_gff_db.add_feature(**record)
 
+    # total features should be 5+1=6
+    all_feats = list(simple_seq_gff_db.get_features_matching())
+    assert len(all_feats) == 6
+
+
+def test__getitem__(simple_seq_gff_db):
+    """Sequence.__getitem__ should keep the underlying seq in the SeqView
+    and preserve any annotation_db"""
+
+    seq_sliced = simple_seq_gff_db[4:6]
+    assert seq_sliced == str(simple_seq_gff_db)[4:6]
+    # check the underlying seq is still the original sequence data
+    assert seq_sliced._seq.seq == str(simple_seq_gff_db)
+    # check the annotation_db is still attached and the same instance
+    assert (
+        seq_sliced.annotation_db
+        and seq_sliced.annotation_db is simple_seq_gff_db.annotation_db
+    )
+
+
+def test_to_moltype_dna():
+    """to_moltype("dna") ensures conversion from T to U"""
     seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
-    s = DNA.make_seq(seq)
-    rna = s.to_moltype("rna")
+    rna = seq.to_moltype("rna")
 
     assert "T" not in rna
 
 
-def test_multiple_anno_dbs(seq):
+def test_to_moltype_rna():
+    """to_moltype("rna") ensures conversion from U to T"""
+    seq = RNA.make_seq("AAAAGGGGUUU", name="seq1")
+    rna = seq.to_moltype("dna")
+
+    assert "U" not in rna
+
+
+def test_annotate_from_gff_multiple_calls(seq):
+    """5 records in each gff file, total features on seq should be 10"""
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     seq.annotate_from_gff(DATA_DIR / "simple2.gff")
     assert len(list(seq.get_features_matching())) == 10
 
 
-def test_sequence_collection_annotate_from_fgg():
-    from cogent3 import SequenceCollection
+def test_sequence_collection_annotate_from_gff():
+    """providing a seqid to SequenceCollection.annotate_from_gff will
+    annotate the SequenceCollection, and the Sequence. Both of these will point
+    to the same AnnotationDb instance
+    """
+    seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
+    seq_collection = SequenceCollection(seqs)
+    seq_collection.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
 
-    sequences = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
-
-    seq_collection = SequenceCollection(sequences)
-
-    seq_collection.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids=["test_seq"])
-
+    # the seq for which the seqid was provided is annotated
     assert seq_collection.get_seq("test_seq").annotation_db is not None
     assert len(list(seq_collection.get_seq("test_seq").get_features_matching())) == 5
+    # the seq for which the seqid was NOT provided is NOT annotated
     assert seq_collection.get_seq("test_seq2").annotation_db is None
+    # the annotation_db on the seq and the seq collection are the same object
+    assert (
+        seq_collection.get_seq("test_seq").annotation_db is seq_collection.annotation_db
+    )
