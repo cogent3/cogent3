@@ -481,3 +481,30 @@ def test_rc_features(anno_db):
     r_feat = list(r_seq.get_features_matching(name="exon1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
+
+
+def test_sequence_add_feature(seq):
+    record = dict(name="gene-01", biotype="gene", spans=[(12, 16)], strand="+")
+    seq.add_feature(**record)
+
+    print(seq.get_features_matching(feature_type="gene"))
+
+
+def test_seq_getitem():
+    from cogent3 import DNA
+
+    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+
+    seq_sliced = seq[4:6]
+    assert seq_sliced == str(seq)[4:6:]
+    assert seq_sliced._seq.seq == str(seq)
+
+
+def test_to_moltype():
+    from cogent3 import DNA
+
+    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
+    s = DNA.make_seq(seq)
+    rna = s.to_moltype("rna")
+
+    assert "T" not in rna
