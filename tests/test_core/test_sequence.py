@@ -236,7 +236,6 @@ class SequenceTests(TestCase):
         sequence = Sequence(seq)
         sequence.annotate_from_gff(gff3_path)
         matches = [m for m in sequence.get_features_matching()]
-        print(matches)
         # 13 features with one having 2 parents, so 14 instances should be found
         self.assertEqual(len(matches), 14)
 
