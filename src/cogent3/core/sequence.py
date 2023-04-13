@@ -14,6 +14,7 @@ creation.
 import contextlib
 import json
 import os
+import pathlib
 import re
 import warnings
 

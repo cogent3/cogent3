@@ -446,7 +446,7 @@ ORIGIN
         parser = RichGenbankParser(infile, add_annotation=add_annotation)
 
         seq = [s for l, s in parser][0]
-        cds = dict([(f.name, f) for f in seq.get_annotations_matching("CDS")])
+        cds = dict([(f.name, f) for f in seq.get_features_matching("CDS")])
         expects = {
             "CNA00110": "MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD"
             "SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL"
@@ -478,7 +478,7 @@ ORIGIN
             got_1 = [s for _, s in parser][0]
 
         # name formed from /product value
-        got = {f.name for f in got_1.get_annotations_matching("mRNA")}
+        got = {f.name for f in got_1.get_features_matching("mRNA")}
         self.assertEqual(got, {"conserved hypothetical protein", "chaperone, putative"})
 
         # the file defines itself as DNA
@@ -492,7 +492,7 @@ ORIGIN
 
             self.assertEqual(len(got_1.annotations), len(got_2.annotations))
             self.assertEqual(got_2.moltype.label, moltype)
-            got = {f.name for f in got_1.get_annotations_matching("mRNA")}
+            got = {f.name for f in got_1.get_features_matching("mRNA")}
             self.assertEqual(
                 got, {"conserved hypothetical protein", "chaperone, putative"}
             )
