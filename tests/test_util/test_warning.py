@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
 import pickle
+import warnings
 
 import pytest
 
@@ -70,9 +69,10 @@ def test_function_correct_args_do_not_warn():
     def changed(a: int, b: int) -> int:
         return a + b
 
-    with pytest.warns(None) as record:  # verify no warnings for correct parameters
+    with warnings.catch_warnings():
+        # verify no warnings for correct parameters
+        warnings.simplefilter("error")
         changed(a=5, b=3)
-    assert not record
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
@@ -131,9 +131,10 @@ def test_method_deprecated_args_warn(kwargs):
 
 
 def test_method_correct_args_do_not_warn():
-    with pytest.warns(None) as record:  # verify no warnings for correct parameters
+    with warnings.catch_warnings():
+        # verify no warnings for correct parameters
+        warnings.simplefilter("error")
         foo().changed(a=5, b=3)
-    assert not record
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
