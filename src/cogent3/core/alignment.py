@@ -56,6 +56,8 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+from cogent3.core.annotation_db import load_annotations, GenbankAnnotationDb
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2009,18 +2011,29 @@ class SequenceCollection(_SequenceCollectionBase):
             if name in self.named_seqs:
                 self.named_seqs[name].copy_annotations(seq)
 
-    def annotate_from_gff(self, f: os.PathLike, seq_name: [str], offset: int = None):
+    def annotate_from_gff(self, f: os.PathLike, seq_ids: [str]):
         """copies annotations from a gff file to a sequence in self
 
         Parameters
         ----------
         f : path to gff annotation file.
         seq_name : names of seqs to be annotated.
-        offset : Optional, the offset between annotation coordinates and sequence coordinates.
+        does not support setting offset, set offset directly on sequences with seq.annotation_offset = offset
 
         """
+        if isinstance(seq_ids, str):
+            seq_ids = [seq_ids]
 
-        self.get_seq(seq_name).annotate_from_gff(f, offset=offset)
+        if self.annotation_db is None:
+            self.annotation_db = load_annotations(f, seq_ids)
+        elif isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
+        else:
+            self.annotation_db = load_annotations(f, seq_ids, db=self.annotation_db._db)
+
+        # add reference to this annotation_db on each sequence that was provided in seq_ids
+        for seq in seq_ids:
+            self.get_seq(seq).annotation_db = self.annotation_db
 
     def annotate_from_gff_old(self, f):
         """Copies annotations from gff-format file to self.

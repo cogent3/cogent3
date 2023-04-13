@@ -857,7 +857,7 @@ def _leave_attributes(*attrs):
     return attrs[0]
 
 
-def _db_from_gff(path):
+def _db_from_gff(path, db=None):
     from cogent3.parse.gff import gff_parser
 
     data = list(
@@ -866,9 +866,11 @@ def _db_from_gff(path):
             attribute_parser=_leave_attributes,
         )
     )
-    return GffAnnotationDb(data=data)
+    return GffAnnotationDb(data=data, db=db)
 
 
-def load_annotations(path: os.PathLike, seq_names=None) -> SupportsFeatures:
+def load_annotations(path: os.PathLike, seq_ids, db=None) -> SupportsFeatures:
     path = pathlib.Path(path)
-    return _db_from_genbank(path) if ".gb" in path.suffixes else _db_from_gff(path)
+    return (
+        _db_from_genbank(path) if ".gb" in path.suffixes else _db_from_gff(path, db=db)
+    )
