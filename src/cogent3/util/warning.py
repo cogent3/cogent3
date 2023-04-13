@@ -34,9 +34,7 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3):
         as per warnings.warn
 
     """
-    msg = (
-        f"use {_type} {new} instead of {old}, support discontinued in version {version}"
-    )
+    msg = f"{_type} {old} which will be removed in version {version}, use {new} instead"
     if reason is not None:
         msg = f"{msg}\n{reason}"
 
@@ -45,14 +43,14 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3):
         _warn(msg, DeprecationWarning, stacklevel=stack_level)
 
 
-def discontinued(_type, name, version, reason=None, stack_level=3):
+def discontinued(_type, old, version, reason=None, stack_level=3):
     """convenience func to warn about discontinued attributes
 
     Parameters
     ----------
     _type
         should be one of class, method, function, argument
-    name
+    old
         the attributes name
     version
         the version by which support for the old name will be
@@ -62,9 +60,7 @@ def discontinued(_type, name, version, reason=None, stack_level=3):
     stack_level
         as per warnings.warn
     """
-    msg = (
-        f"{_type} {name} is discontinued, support will be stopped in version {version}"
-    )
+    msg = f"{_type} {old} is discontinued and will be removed in version {version}"
     if reason is not None:
         msg = f"{msg}\n{reason}"
 
