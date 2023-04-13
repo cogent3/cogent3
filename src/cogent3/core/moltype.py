@@ -29,8 +29,6 @@ from copy import deepcopy
 from random import choice
 from string import ascii_letters as letters
 
-import numpy
-
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,
@@ -66,7 +64,6 @@ from cogent3.util.misc import (
     FunctionWrapper,
     add_lowercase,
     get_object_provenance,
-    iterable,
 )
 from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.util.warning import deprecated
@@ -708,7 +705,7 @@ class MolType(object):
 
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
-        self._coerce_string = coerce_string or _do_nothing()
+        self._coerce_string = coerce_string or _do_nothing
 
     def __repr__(self):
         """String representation of MolType.

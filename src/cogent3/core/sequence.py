@@ -14,11 +14,10 @@ creation.
 import contextlib
 import json
 import os
-import pathlib
 import re
 import warnings
 
-from functools import total_ordering, singledispatch
+from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
 from typing import Generator, List, Tuple
@@ -49,7 +48,6 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse.gff import gff_parser
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
