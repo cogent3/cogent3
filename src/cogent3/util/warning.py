@@ -174,7 +174,8 @@ def deprecated_callable(
     """
 
     def decorator(func: Callable) -> Callable:
-        _type = "method" if inspect.ismethod(func) else "function"
+        sig = set(inspect.signature(func).parameters)
+        _type = "method" if sig & {"self", "cls", "klass"} else "function"
         old = func.__name__
         params = dict(
             _type=_type,
