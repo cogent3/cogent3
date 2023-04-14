@@ -329,13 +329,13 @@ ORIGIN
         l = lsp("37")
         self.assertEqual(l._data, 37)
         self.assertEqual(str(l), "37")
-        self.assertEqual(l.Strand, 1)
+        self.assertEqual(l.strand, 1)
         l = lsp("40..50")
         first, second = l._data
         self.assertEqual(first._data, 40)
         self.assertEqual(second._data, 50)
         self.assertEqual(str(l), "40..50")
-        self.assertEqual(l.Strand, 1)
+        self.assertEqual(l.strand, 1)
         # should handle ambiguous starts and ends
         l = lsp(">37")
         self.assertEqual(l._data, 37)
@@ -505,27 +505,35 @@ class LocationTests(TestCase):
         """Location should init with 1 or 2 values, plus params."""
         l = Location(37)
         self.assertEqual(str(l), "37")
-        l = Location(37, Ambiguity=">")
+        l = Location(37, ambiguity=">")
         self.assertEqual(str(l), ">37")
-        l = Location(37, Ambiguity="<")
+        l = Location(37, ambiguity="<")
         self.assertEqual(str(l), "<37")
-        l = Location(37, Accession="AB123")
+        l = Location(37, accession="AB123")
         self.assertEqual(str(l), "AB123:37")
-        l = Location(37, Accession="AB123", Db="Kegg")
+        l = Location(37, accession="AB123", db="Kegg")
         self.assertEqual(str(l), "Kegg::AB123:37")
 
         l1 = Location(37)
         l2 = Location(42)
         l = Location([l1, l2])
         self.assertEqual(str(l), "37..42")
-        l3 = Location([l1, l2], IsBounds=True)
+        l3 = Location([l1, l2], is_bounds=True)
         self.assertEqual(str(l3), "(37.42)")
-        l4 = Location([l1, l2], IsBetween=True)
+        l4 = Location([l1, l2], is_between=True)
         self.assertEqual(str(l4), "37^42")
         l5 = Location([l4, l3])
         self.assertEqual(str(l5), "37^42..(37.42)")
-        l5 = Location([l4, l3], Strand=-1)
+        l5 = Location([l4, l3], strand=-1)
         self.assertEqual(str(l5), "complement(37^42..(37.42))")
+
+
+def test_Location_start():
+    """the start and stop should reflect 0-based indexing (python style), not 1-based indexing (genbank style).
+    This means they should be 1 less than the data given"""
+    l = Location(37)
+    assert l.start == 36
+    assert l.stop == 36
 
 
 class LocationListTests(TestCase):
@@ -536,7 +544,7 @@ class LocationListTests(TestCase):
         l = Location(3)
         l2_a = Location(5)
         l2_b = Location(7)
-        l2 = Location([l2_a, l2_b], Strand=-1)
+        l2 = Location([l2_a, l2_b], strand=-1)
         l3_a = Location(10)
         l3_b = Location(12)
         l3 = Location([l3_a, l3_b])
