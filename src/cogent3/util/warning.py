@@ -136,6 +136,7 @@ def deprecated_callable(
     reason: str,
     new: Optional[str] = None,
     is_discontinued: bool = False,
+    stack_level=2,
 ) -> Callable:
     """
     A decorator that marks callables (function or method) as deprecated or discontinued..
@@ -149,6 +150,8 @@ def deprecated_callable(
         If the callable is being replaced, this is the replacement, e.g. 'ClassName.new_method()'
     is_discontinued : bool
         If True the callable is being discontinued.
+    stack_level
+        as per warnings.warn
 
     Returns
     -------
@@ -174,7 +177,11 @@ def deprecated_callable(
         _type = "method" if inspect.ismethod(func) else "function"
         old = func.__name__
         params = dict(
-            _type=_type, old=old, version=version, reason=reason, stack_level=2
+            _type=_type,
+            old=old,
+            version=version,
+            reason=reason,
+            stack_level=stack_level,
         )
         if is_discontinued:
             depr_func = discontinued
