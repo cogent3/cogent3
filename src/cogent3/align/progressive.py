@@ -15,7 +15,7 @@ __status__ = "Production"
 
 
 @UI.display_wrap
-def TreeAlign(
+def tree_align(
     model,
     seqs,
     tree=None,
@@ -147,3 +147,17 @@ def TreeAlign(
     )
     align.info["align_params"] = param_vals
     return align, tree
+
+
+def TreeAlign(*args, **kwargs):  # pragma: no cover
+    """deprecated, used tree_align()"""
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "TreeAlign",
+        "tree_align",
+        "2023.9",
+    )
+
+    return tree_align(*args, **kwargs)

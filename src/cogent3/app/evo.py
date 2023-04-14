@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Union
+from typing import Callable, Optional, Union
 
 import cogent3.util.io
 
@@ -206,7 +206,12 @@ class model:
         self._lf = lf
 
     def _fit_aln(
-        self, aln, identifier=None, initialise=None, construct=True, **opt_args
+        self,
+        aln: AlignedSeqsType,
+        identifier: Optional[str] = None,
+        initialise: Callable = None,
+        construct: bool = True,
+        **opt_args,
     ):
         if construct:
             self._configure_lf(aln=aln, identifier=identifier, initialise=initialise)
@@ -229,8 +234,31 @@ class model:
         return lf
 
     def main(
-        self, aln: AlignedSeqsType, initialise=None, construct=True, **opt_args
+        self,
+        aln: AlignedSeqsType,
+        initialise: Callable = None,
+        construct: bool = True,
+        **opt_args,
     ) -> Union[SerialisableType, ModelResultType]:
+        """
+        Parameters
+        ----------
+        aln
+            Alignment instance. aln.info.source indicates the origin of the
+            alignment and will be propagated to the model_result so it can
+            be written
+        initialise
+            callable that takes a likelihood function instance and sets initial
+            parameter values prior to optimisation
+        construct
+            whether the likelihood function is created each time
+        opt_args
+            arguments passed to the optimiser
+
+        Returns
+        -------
+        An optimised model_result instance
+        """
         moltypes = {aln.moltype.label, self._sm.moltype.label}
         if moltypes in [{"protein", "dna"}, {"protein", "rna"}]:
             msg = f"substitution model moltype '{self._sm.moltype.label}' and alignment moltype '{aln.moltype.label}' are incompatible"

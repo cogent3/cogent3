@@ -1430,7 +1430,7 @@ class SequenceCollectionBaseTests(object):
 
         if self.Class == SequenceCollection:
             # this class cannot slice
-            return True
+            return
 
         # should persist in slicing
         self.assertEqual(
@@ -1441,7 +1441,7 @@ class SequenceCollectionBaseTests(object):
         """the wrap argument affects the number of columns"""
         if self.Class == SequenceCollection:
             # this class does not have this method
-            return True
+            return
 
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
