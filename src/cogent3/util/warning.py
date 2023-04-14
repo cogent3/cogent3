@@ -36,7 +36,7 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3):
     """
     msg = f"{_type} {old} which will be removed in version {version}, use {new} instead"
     if reason is not None:
-        msg = f"{msg}\n{reason}"
+        msg = f"{msg}\nreason={reason!r}"
 
     with catch_warnings():
         simplefilter("always")
@@ -62,7 +62,7 @@ def discontinued(_type, old, version, reason=None, stack_level=3):
     """
     msg = f"{_type} {old} is discontinued and will be removed in version {version}"
     if reason is not None:
-        msg = f"{msg}\n{reason}"
+        msg = f"{msg}\nreason={reason!r}"
 
     with catch_warnings():
         simplefilter("always")
@@ -136,6 +136,7 @@ def deprecated_callable(
     reason: str,
     new: Optional[str] = None,
     is_discontinued: bool = False,
+    stack_level=2,
 ) -> Callable:
     """
     A decorator that marks callables (function or method) as deprecated or discontinued..
@@ -149,6 +150,8 @@ def deprecated_callable(
         If the callable is being replaced, this is the replacement, e.g. 'ClassName.new_method()'
     is_discontinued : bool
         If True the callable is being discontinued.
+    stack_level
+        as per warnings.warn
 
     Returns
     -------
@@ -171,10 +174,15 @@ def deprecated_callable(
     """
 
     def decorator(func: Callable) -> Callable:
-        _type = "method" if inspect.ismethod(func) else "function"
+        sig = set(inspect.signature(func).parameters)
+        _type = "method" if sig & {"self", "cls", "klass"} else "function"
         old = func.__name__
         params = dict(
-            _type=_type, old=old, version=version, reason=reason, stack_level=2
+            _type=_type,
+            old=old,
+            version=version,
+            reason=reason,
+            stack_level=stack_level,
         )
         if is_discontinued:
             depr_func = discontinued
