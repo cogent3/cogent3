@@ -34,6 +34,7 @@ from numpy import (
 )
 from numpy.testing import assert_allclose
 
+from cogent3.util import warning as c3warns
 from cogent3.util.misc import get_object_provenance
 
 
@@ -272,7 +273,13 @@ class Enumeration(tuple):
             moltype = None
         return JointEnumeration([self, other], moltype=moltype)
 
-    def counts(self, a):
+    @c3warns.deprecated_callable(
+        "2023.10",
+        "Not used",
+        is_discontinued=True,
+        stack_level=4,
+    )
+    def counts(self, a):  # pragma: no cover
         """Returns array containing counts of each item in a.
 
         For example, on the enumeration 'UCAG', the sequence 'CCUG' would
@@ -637,11 +644,15 @@ class Alphabet(Enumeration):
 
         return tuple(motif_set)
 
-    # todo method belongs elsewhere
-    def adapt_motif_probs(self, motif_probs):
+    @c3warns.deprecated_callable(
+        "2023.10",
+        "Handled by cogent3.evolve.motif_prob_model.adapt_motif_probs",
+        is_discontinued=True,
+        stack_level=4,
+    )
+    def adapt_motif_probs(self, motif_probs):  # pragma: no cover
         """Prepare an array or dictionary of probabilities for use with
         this alphabet by checking size and order"""
-
         if hasattr(motif_probs, "keys"):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
