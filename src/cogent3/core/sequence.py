@@ -816,11 +816,7 @@ class Sequence(_Annotatable, SequenceI):
         orig_seq = seq
 
         checker = (
-            (
-                lambda x: self.moltype.verify_sequence(
-                    x, gaps_allowed, wildcards_allowed
-                )
-            )
+            (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
             if check
             else (lambda x: x)
         )
@@ -844,8 +840,6 @@ class Sequence(_Annotatable, SequenceI):
         self._repr_policy = dict(num_pos=60)
 
         self._annotation_db = None
-
-
 
     @property
     def annotation_offset(self):
@@ -969,7 +963,6 @@ class Sequence(_Annotatable, SequenceI):
             strand=strand,
             on_alignment=on_alignment,
         )
-
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq

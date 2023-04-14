@@ -845,8 +845,8 @@ def deserialise_gb_db(data: dict):
 
 
 def _db_from_genbank(path, db):
-    from cogent3.parse.genbank import MinimalGenbankParser
     from cogent3 import open_
+    from cogent3.parse.genbank import MinimalGenbankParser
 
     with open_(path) as infile:
         data = list(MinimalGenbankParser(infile))
