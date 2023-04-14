@@ -4,6 +4,7 @@ from typing import Union
 
 import numpy
 
+from cogent3.core.alphabet import Alphabet
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 
@@ -290,7 +291,7 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
 
 
 ProbsTypes = Union[dict, numpy.ndarray, list, tuple]
-AlphaTypes = Union["Alphabet", tuple, list]
+AlphaTypes = Union[Alphabet, tuple, list]
 
 
 def adapt_motif_probs(alphabet: AlphaTypes, motif_probs: ProbsTypes) -> numpy.ndarray:
