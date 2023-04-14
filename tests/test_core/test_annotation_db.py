@@ -124,7 +124,7 @@ def test_to_rich_dict(gff_db):
     # not a very good test! needs to be serialise / deserialize
     rd = gff_db.to_rich_dict()
     assert "type" in rd
-    got = GffAnnotationDb.from_dict(rd)
+    _ = GffAnnotationDb.from_dict(rd)
 
 
 def test_empty_data():

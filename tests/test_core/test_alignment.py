@@ -45,7 +45,6 @@ from cogent3.core.alignment import (
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Feature
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
 from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
 from cogent3.maths.util import safe_p_log_p
@@ -3385,8 +3384,6 @@ def test_upac_consensus_allow_gaps(moltype, array_align):
 
 
 def test_rc_iter():
-    from cogent3 import DNA
-
     dna = DNA.make_seq("ACG", name="seq1")
     rc = dna.rc()
 
@@ -3399,11 +3396,6 @@ def test_to_dna_raises():
     seq = make_seq("ETV", moltype="protein")
     with pytest.raises(AlphabetError):
         seq.to_moltype("dna")
-
-
-def test_one_off():
-    aln = Alignment({"seq1": "TCG", "seq2": "TCG"})
-    r1 = aln.take_positions([1])
 
 
 # run tests if invoked from command line

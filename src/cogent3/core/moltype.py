@@ -755,7 +755,6 @@ class MolType(object):
 
     def make_seq(self, seq, name=None, **kwargs):
         """Returns sequence of correct type."""
-        from cogent3.core.sequence import ArraySequence
 
         name = name or getattr(seq, "name", None)
         if isinstance(seq, ArraySequence):
