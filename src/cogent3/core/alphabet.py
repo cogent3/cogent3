@@ -273,7 +273,13 @@ class Enumeration(tuple):
             moltype = None
         return JointEnumeration([self, other], moltype=moltype)
 
-    def counts(self, a):
+    @c3warns.deprecated_callable(
+        "2023.10",
+        "Not used",
+        is_discontinued=True,
+        stack_level=4,
+    )
+    def counts(self, a):  # pragma: no cover
         """Returns array containing counts of each item in a.
 
         For example, on the enumeration 'UCAG', the sequence 'CCUG' would
