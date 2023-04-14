@@ -36,7 +36,7 @@ def deprecated(_type, old, new, version, reason=None, stack_level=3):
     """
     msg = f"{_type} {old} which will be removed in version {version}, use {new} instead"
     if reason is not None:
-        msg = f"{msg}\n{reason}"
+        msg = f"{msg}\nreason={reason!r}"
 
     with catch_warnings():
         simplefilter("always")
@@ -62,7 +62,7 @@ def discontinued(_type, old, version, reason=None, stack_level=3):
     """
     msg = f"{_type} {old} is discontinued and will be removed in version {version}"
     if reason is not None:
-        msg = f"{msg}\n{reason}"
+        msg = f"{msg}\nreason={reason!r}"
 
     with catch_warnings():
         simplefilter("always")
