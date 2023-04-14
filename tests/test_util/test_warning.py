@@ -216,3 +216,11 @@ def test_method_deprecated_method_pickling(recwarn):
 
     # the method still works after pickling
     assert unpickled.squared(20) == instance.squared(20)
+
+
+@pytest.mark.parametrize(
+    "func,_type", ((foo2().old_meth, "method"), (cubed, "function"))
+)
+def test_deprecated_callable_resolves_type(recwarn, func, _type):
+    func(2)
+    assert _type in recwarn.list[0].message.args[0]
