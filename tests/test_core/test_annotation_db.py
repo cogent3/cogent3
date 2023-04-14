@@ -1,6 +1,4 @@
-import os
 import pathlib
-import tempfile
 
 import numpy
 import pytest
@@ -408,4 +406,3 @@ def test_sequence_collection_annotate_from_gff():
 
     got = list(seq.get_features_matching(feature_type="CpG"))
     assert len(got) == 1
-

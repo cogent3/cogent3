@@ -848,7 +848,7 @@ class Sequence(_Annotatable, SequenceI):
 
         The offset can be used to adjust annotation coordinates to match the position
         of the given Sequence within a larger genomic context. For example, if the
-        Annotations are with resepct to a chomorome, and the sequence represents
+        Annotations are with respect to a chromosome, and the sequence represents
         a gene that is 100 bp from the start of a chromosome, the offset can be set to
         100 to ensure that the gene's annotations are aligned with the appropriate
         genomic positions.
