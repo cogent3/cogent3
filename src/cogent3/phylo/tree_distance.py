@@ -21,14 +21,16 @@ def lin_rajan_moret(tree1: PhyloNode, tree2: PhyloNode) -> float:
 
     Returns
     -------
-    float 
+    float
         the lin-rajan-moret distance
 
     Notes
     -----
     see:
-    Lin et al. 2011
+    Lin et al. 2012
     A Metric for Phylogenetic Trees Based on Matching
+    IEEE/ACM Transactions on Computational Biology and Bioinformatics
+    vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
 
     """
     names = tree1.get_tip_names()
@@ -54,9 +56,9 @@ def _convert_tree_to_vectors(tree: PhyloNode, tip_names: List) -> numpy.ndarray:
     name_index = {n: i for i, n in enumerate(tip_names)}
     # we get the tree as a set of splits.
     splits = tree.subsets()
-    rows = []
-    for split in splits:
-        row = numpy.zeros(len(tip_names), int)
+    rows = numpy.zeros((len(splits), len(tip_names)), dtype=bool)
+    for i, split in enumerate(splits):
+        row = rows[i]
         # Cogent only returns one side of a
         # split, so we build the other side
         if ref_tip in split:
@@ -65,13 +67,11 @@ def _convert_tree_to_vectors(tree: PhyloNode, tip_names: List) -> numpy.ndarray:
             names = list(name_set - split)
         indices = [name_index[n] for n in names]
         row[indices] = True
-        rows.append(row)
-    rows = numpy.array(rows)
     return rows
 
 
 def _hamming(vector1: numpy.ndarray, vector2: numpy.ndarray) -> int:
-    return numpy.count_nonzero(vector1 != vector2)
+    return (vector1 != vector2).sum()
 
 
 def _weight(vector1: numpy.ndarray, vector2: numpy.ndarray) -> int:
@@ -92,4 +92,3 @@ def _matched_distance(vector1: numpy.ndarray, vector2: numpy.ndarray) -> int:
     B = _bipartite_graph(vector1, vector2)
     matching = linear_sum_assignment(B)
     return B[matching].sum()
-
