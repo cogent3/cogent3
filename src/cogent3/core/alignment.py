@@ -509,6 +509,19 @@ class _SequenceCollectionBase:
         self._set_additional_attributes(curr_seqs)
 
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
+        self._annotation_db = None
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -4402,11 +4415,24 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(self._seq_to_aligned(s, n))
         self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
+        self._annotation_db = None
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
 
     def _coerce_seqs(self, seqs, is_array):
-        if not min(
-            [isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for seq in seqs]
-        ):
+        if any(isinstance(seq, ArraySequence) for seq in seqs):
+            seqs = [self.moltype.make_seq(str(seq), name=seq.name) for seq in seqs]
+        elif not any(isinstance(seq, (_Annotatable, Aligned)) for seq in seqs):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
