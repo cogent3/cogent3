@@ -10,12 +10,14 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
+
+import contextlib
 import json
+import os
 import re
 import warnings
 
-from collections import defaultdict
-from functools import total_ordering
+from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
 from typing import Generator, List, Tuple
@@ -808,37 +810,19 @@ class Sequence(_Annotatable, SequenceI):
 
             check: if True (the default), validates against the MolType
         """
+
         if name is None and hasattr(seq, "name"):
             name = seq.name
         self.name = name
         orig_seq = seq
-        if isinstance(seq, Sequence):
-            seq = str(seq)
-        elif isinstance(seq, ArraySequence):
-            seq = str(seq)
-        elif isinstance(seq, bytes):
-            seq = seq.decode("utf-8")
-        elif not isinstance(seq, str):
-            try:
-                seq = "".join(seq)
-            except TypeError:
-                seq = "".join(map(str, seq))
 
-        seq = self._seq_filter(seq)
+        checker = (
+            (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
+            if check
+            else (lambda x: x)
+        )
 
-        if isinstance(seq, SeqView):
-            if not preserve_case and not str(seq).isupper():
-                seq.seq = seq.seq.upper()
-            self._seq = seq
-
-        elif not preserve_case and not seq.isupper():
-            seq = seq.upper()
-
-        if isinstance(seq, str):
-            self._seq = SeqView(seq)
-
-        if check:
-            self.moltype.verify_sequence(str(self), gaps_allowed, wildcards_allowed)
+        self._seq = _coerce_seq(seq, preserve_case, checker)
 
         if not isinstance(info, InfoClass):
             try:
@@ -846,10 +830,8 @@ class Sequence(_Annotatable, SequenceI):
             except TypeError:
                 info = InfoClass()
         if hasattr(orig_seq, "info"):
-            try:
+            with contextlib.suppress(Exception):
                 info.update(orig_seq.info)
-            except:
-                pass
         self.info = info
 
         if isinstance(orig_seq, _Annotatable):
@@ -2369,3 +2351,54 @@ class ArrayProteinSequence(ArraySequence):
 class ArrayProteinWithStopSequence(ArraySequence):
     moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
     alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.degen_gapped in moltype.py
+
+
+@singledispatch
+def _coerce_seq(data, preserve_case, checker):
+    from cogent3.core.alignment import Aligned
+
+    if isinstance(data, Aligned):
+        return _coerce_seq(str(data), preserve_case, checker)
+    raise NotImplementedError(f"{type(data)}")
+
+
+@_coerce_seq.register
+def _(data: SeqView, preserve_case, checker):
+    return data
+
+
+@_coerce_seq.register
+def _(data: Sequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: ArraySequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: str, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    checker(data)
+    return SeqView(data)
+
+
+@_coerce_seq.register
+def _(data: bytes, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    data = data.decode("utf8")
+    checker(data)
+    return SeqView(data)
+
+
+@_coerce_seq.register
+def _(data: tuple, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: list, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)
