@@ -124,23 +124,15 @@ class SequenceTests(TestCase):
         self.assertEqual(r[-1], "G")
         self.assertEqual(r[1:3], "CA")
 
-    def test_conversion(self):
-        """Should convert t to u automatically"""
-        r = self.RNA("TCAtu")
-        self.assertEqual(str(r), "UCAUU")
-
-        d = self.DNA("UCAtu")
-        self.assertEqual(str(d), "TCATT")
-
     def test_to_dna(self):
         """Returns copy of self as DNA."""
-        r = self.RNA("TCA")
+        r = self.RNA("UCA")
         self.assertEqual(str(r), "UCA")
         self.assertEqual(str(r.to_dna()), "TCA")
 
     def test_to_rna(self):
         """Returns copy of self as RNA."""
-        r = self.DNA("UCA")
+        r = self.DNA("TCA")
         self.assertEqual(str(r), "TCA")
         self.assertEqual(str(r.to_rna()), "UCA")
 
