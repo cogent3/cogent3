@@ -1630,7 +1630,7 @@ class _SequenceCollectionBase:
         return rc
 
     def reverse_complement(self):
-        """Returns the reverse complement alignment. A synonymn for rc."""
+        """Returns the reverse complement alignment. A synonym for rc."""
         return self.rc()
 
     def pad_seqs(self, pad_length=None, **kwargs):
@@ -2329,12 +2329,12 @@ class AlignmentI(object):
             col_lookup = dict.fromkeys(cols)
             for name, seq in list(self.named_seqs.items()):
                 result[name] = make_seq(
-                    [seq[i] for i in range(len(seq)) if i not in col_lookup]
+                    [str(seq[i]) for i in range(len(seq)) if i not in col_lookup]
                 )
         # otherwise, just get the requested indices
         else:
             for name, seq in list(self.named_seqs.items()):
-                result[name] = make_seq([seq[i] for i in cols])
+                result[name] = make_seq("".join(str(seq[i]) for i in cols))
         return self.__class__(result, names=self.names, info=self.info)
 
     def get_position_indices(self, f, native=False, negate=False):
