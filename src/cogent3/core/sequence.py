@@ -48,7 +48,6 @@ from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse import gff
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -1093,6 +1092,30 @@ class Sequence(_Annotatable, SequenceI):
         else:
             seq = str(self)
         return f"{myclass}({seq})"
+
+    def __getitem__(self, index):
+
+        if hasattr(index, "get_slice"):
+            return index.get_slice()
+
+        if isinstance(index, Map):
+            new = self._mapped(index)
+
+        elif isinstance(index, (int, slice)):
+            new = self.__class__(
+                self._seq[index], name=self.name, check=False, info=self.info
+            )
+
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
+
+        return new
+
+    def __iter__(self):
+        yield from iter(str(self))
 
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
