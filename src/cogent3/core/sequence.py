@@ -35,7 +35,12 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Map, _Annotatable
+from cogent3.core.annotation import FeatureNew, Map, _Annotatable
+from cogent3.core.annotation_db import (
+    GenbankAnnotationDb,
+    GffAnnotationDb,
+    load_annotations,
+)
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
@@ -853,6 +858,117 @@ class Sequence(_Annotatable, SequenceI):
 
         self._repr_policy = dict(num_pos=60)
 
+        self._annotation_db = None
+
+    @property
+    def annotation_offset(self):
+        """
+        The offset between annotation coordinates and sequence coordinates.
+
+        The offset can be used to adjust annotation coordinates to match the position
+        of the given Sequence within a larger genomic context. For example, if the
+        Annotations are with respect to a chromosome, and the sequence represents
+        a gene that is 100 bp from the start of a chromosome, the offset can be set to
+        100 to ensure that the gene's annotations are aligned with the appropriate
+        genomic positions.
+
+
+        Returns:
+            int: The offset between annotation coordinates and sequence coordinates.
+        """
+
+        return self._seq.offset
+
+    @annotation_offset.setter
+    def annotation_offset(self, value):
+        self._seq.offset = value
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
+
+    def get_features_matching(
+        self,
+        feature_type=None,
+        name=None,
+        start=None,
+        stop=None,
+    ):
+        """yield features matching the given conditions"""
+
+        if self._annotation_db is None:
+            return None
+
+        query_start = self._seq.absolute_index(start) if start is not None else None
+        query_end = self._seq.absolute_index(stop) if stop is not None else None
+
+        for feature in self.annotation_db.get_features_matching(
+            seqid=self.name,
+            name=name,
+            biotype=feature_type,
+            start=query_start,
+            end=query_end,
+        ):
+            yield FeatureNew(self, **feature)
+
+        for feature in self.annotation_db.get_features_matching(
+            seqid=self.name,
+            name=name,
+            biotype=feature_type,
+            start=query_start,
+            end=query_end,
+        ):
+            yield FeatureNew(self, **feature)
+
+    def annotate_from_gff(self, f: os.PathLike, offset=None):
+        """copies annotations from a gff file to self,
+
+        Parameters
+        ----------
+        f : path to gff annotation file.
+        offset : Optional, the offset between annotation coordinates and sequence coordinates.
+
+        """
+        if self.annotation_db is None:
+            self.annotation_db = load_annotations(f, self.name)
+        elif isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
+        else:
+            self.annotation_db = load_annotations(
+                f, self.name, db=self.annotation_db._db
+            )
+
+        if offset:
+            self.annotation_offset = offset
+
+    def add_feature(
+        self,
+        biotype: str,
+        name: str,
+        spans,
+        strand: str = None,
+        on_alignment: bool = False,
+    ):
+        if self.annotation_db is None:
+            self.annotation_db = GffAnnotationDb([])
+
+        self.annotation_db.add_feature(
+            seqid=self.name,
+            biotype=biotype,
+            name=name,
+            spans=spans,
+            strand=strand,
+            on_alignment=on_alignment,
+        )
+
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
 
@@ -902,58 +1018,6 @@ class Sequence(_Annotatable, SequenceI):
                 offset += feature.map.start
 
         return offset + start
-
-    def annotate_from_gff(self, f, pre_parsed=False):
-        """annotates a Sequence from a gff file where each entry has the same SeqID"""
-        # only features with parent features included in the 'features' dict
-        gff_contents = f if pre_parsed else gff.gff_parser(f)
-        top_level = defaultdict(list)
-        grouped = defaultdict(list)
-        num_no_id = 0
-        for gff_dict in gff_contents:
-            if gff_dict["SeqID"] != self.name:
-                # we can only handle features for this sequence
-                continue
-
-            id_ = gff_dict["Attributes"]["ID"]
-            parents = gff_dict["Attributes"].get("Parent", None)
-            if parents is None and id_:
-                assert id_ not in top_level, f"non-unique id {id_}"
-                top_level[id_].append(
-                    self.add_feature(
-                        gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                    )
-                )
-            elif parents is None:
-                id_ = f"no-id-{num_no_id}"
-                num_no_id += 1
-                self.add_feature(
-                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                )
-            else:
-                for parent in parents:
-                    grouped[parent].append(gff_dict)
-
-        # we annotate the annotations
-        while grouped:
-            for key, features in top_level.items():
-                child_features = grouped.pop(key, [])
-                if child_features:
-                    break
-
-            for feature in features:
-                feature_start = self._get_feature_start(feature)
-                for gff_dict in child_features:
-                    id_ = gff_dict["Attributes"]["ID"]
-                    b = gff_dict["Start"]
-                    e = gff_dict["End"]
-                    type_ = gff_dict["Type"]
-                    sub_feat = feature.add_feature(
-                        type_,
-                        id_,
-                        [(b - feature_start, e - feature_start)],
-                    )
-                    top_level[gff_dict["Attributes"]["ID"]].append(sub_feat)
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False
@@ -1463,7 +1527,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step")
+    __slots__ = ("seq", "start", "stop", "step", "offset")
 
     def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
         if step == 0:
@@ -1475,11 +1539,21 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
+        self.offset = None
         self.step = step
 
     @property
     def reversed(self):
         return self.step < 0
+
+    def absolute_index(self, value):
+        # note: this is the positive/positive case...
+
+        if self.start + value > self.stop:
+            raise IndexError("Index out of bounds")
+
+        offset = self.start if self.offset is None else self.offset + self.start
+        return offset + (value * self.step)
 
     def _get_index(self, val):
         if len(self) == 0:
