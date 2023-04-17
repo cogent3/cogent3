@@ -1588,8 +1588,7 @@ class _SequenceCollectionBase:
 
     def to_dna(self):
         """returns copy of self as an alignment of DNA moltype seqs"""
-        make_seq = cogent3.DNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("dna") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.DNA, name=self.name, info=self.info
         )
@@ -1599,8 +1598,7 @@ class _SequenceCollectionBase:
 
     def to_rna(self):
         """returns copy of self as an alignment of RNA moltype seqs"""
-        make_seq = cogent3.RNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("rna") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.RNA, name=self.name, info=self.info
         )
@@ -1610,8 +1608,7 @@ class _SequenceCollectionBase:
 
     def to_protein(self):
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
-        make_seq = cogent3.PROTEIN.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("protein") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.PROTEIN, name=self.name, info=self.info
         )
@@ -4604,7 +4601,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 if g == tgp:
                     combo.append(gap)
                 else:
-                    combo.append(s)
+                    combo.append(str(s))
             result[name] = combo
         return Alignment(result, alphabet=self.alphabet.with_gap_motif())
 

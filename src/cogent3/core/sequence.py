@@ -774,8 +774,7 @@ class SequenceI(object):
         else:
             name = None
 
-        new_seq = self.__class__(str(self) + other_seq, name=name)
-        return new_seq
+        return self.__class__(str(self) + other_seq, name=name)
 
 
 @total_ordering
@@ -868,8 +867,11 @@ class Sequence(_Annotatable, SequenceI):
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = get_moltype(moltype)
-        make_seq = moltype.make_seq
-        new = make_seq(self, name=self.name)
+        s = moltype.coerce_str(self._seq.value)
+        moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
+        sv = SeqView(s)
+        new = moltype.make_seq(sv, name=self.name, info=self.info)
+
         new.clear_annotations()
         for ann in self.annotations:
             ann.copy_annotations_to(new)
@@ -1386,11 +1388,11 @@ class NucleicAcidSequence(Sequence):
 
     def to_rna(self):
         """Returns copy of self as RNA."""
-        return RnaSequence(self)
+        return self.to_moltype("rna")
 
     def to_dna(self):
         """Returns copy of self as DNA."""
-        return DnaSequence(self)
+        return self.to_moltype("dna")
 
     def strand_symmetry(self, motif_length=1):
         """returns G-test for strand symmetry"""
