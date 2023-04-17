@@ -103,12 +103,20 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
     def add_feature(
         self,
-        seqid: str,  # is seqid and name referring to the same thing?
+        seqid: str,
         biotype: str,
         name: str,
         spans: typing.List[typing.Tuple[int, int]],
         strand: str = None,
         on_alignment: bool = False,
+    ) -> None:
+        ...
+
+    def add_records(
+        self,
+        records: typing.Sequence[dict],
+        # seqid required for genbank
+        seqid: typing.Optional[str] = None,
     ) -> None:
         ...
 
@@ -555,9 +563,9 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             self._db = db
         self._init_tables()
         data = self._merged_data(data)
-        self._populate_from_records(data)
+        self.add_records(data)
 
-    def _populate_from_records(self, reduced):
+    def add_records(self, reduced):
         # Can we really trust text case of "ID" and "Parent" to be consistent
         # across sources of gff?? I doubt it, so more robust regex likely
         # required
@@ -709,10 +717,9 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self._num_fakeids = 0
         self.source = source
         self._init_tables()
-        self._populate_from_records(data, seqid)
+        self.add_records(data, seqid)
 
-    # todo: rename add_records, make public method - can be used to add genbank records to an existing GenbankAnnotationDb
-    def _populate_from_records(self, records, seqid):
+    def add_records(self, records, seqid):
         # Can we really trust case to be consistent across sources of gff??
         # I doubt it, so more robust regex likely required
         # Can we even rely on these concepts being represented by the text
