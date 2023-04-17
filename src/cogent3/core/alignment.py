@@ -4443,6 +4443,27 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         ).parse_out_gaps()
         return Aligned(map, seq)
 
+    def __getitem__(self, index):
+
+        if hasattr(index, "get_slice"):
+            return index.get_slice()
+
+        if isinstance(index, Map):
+            new = self._mapped(index)
+
+        elif isinstance(index, (int, slice)):
+            seqs = [s[index] for s in self.seqs]
+
+            new = self.__class__(seqs, name=self.name, info=self.info)
+
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
+
+        return new
+
     def __repr__(self):
         seqs = []
         limit = 10
