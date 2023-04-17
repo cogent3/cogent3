@@ -3,8 +3,6 @@ import functools
 import os
 import typing
 
-from pathlib import Path
-
 from cogent3.util.io import open_
 
 
@@ -22,10 +20,15 @@ __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
 
+OptionalCallable = typing.Optional[typing.Callable]
+OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
+
 
 @functools.singledispatch
 def gff_parser(
-    f: typing.Union[str, os.PathLike, abc.Sequence, typing.IO], attribute_parser=None
+    f: typing.Union[str, os.PathLike, abc.Sequence, typing.IO],
+    attribute_parser: OptionalCallable = None,
+    seqids: OptionalStrContainer = None,
 ) -> typing.Iterable[dict]:
     """parses a gff file
 
@@ -43,23 +46,35 @@ def gff_parser(
     dict
         contains each of the 9 parameters specified by gff3, and comments.
     """
-    yield from _gff_parser(f, attribute_parser=attribute_parser)
+    yield from _gff_parser(f, attribute_parser=attribute_parser, seqids=seqids)
 
 
 @gff_parser.register
-def _(f: str, attribute_parser=None) -> typing.Iterable[dict]:
+def _(
+    f: str,
+    attribute_parser: OptionalCallable = None,
+    seqids: OptionalStrContainer = None,
+) -> typing.Iterable[dict]:
     with open_(f) as infile:
-        yield from _gff_parser(infile, attribute_parser=attribute_parser)
+        yield from gff_parser(infile, attribute_parser=attribute_parser, seqids=seqids)
 
 
 @gff_parser.register
-def _(f: os.PathLike, attribute_parser=None) -> typing.Iterable[dict]:
+def _(
+    f: os.PathLike,
+    attribute_parser: OptionalCallable = None,
+    seqids: OptionalStrContainer = None,
+) -> typing.Iterable[dict]:
     with open_(f) as infile:
-        yield from _gff_parser(infile, attribute_parser=attribute_parser)
+        yield from gff_parser(infile, attribute_parser=attribute_parser, seqids=seqids)
 
 
-def _gff_parser(f, attribute_parser=None):
+def _gff_parser(
+    f, attribute_parser: OptionalCallable = None, seqids: OptionalStrContainer = None
+) -> typing.Iterable[dict]:
     """parses a gff file"""
+    seqids = seqids or set()
+    seqids = {seqids} if isinstance(seqids, str) else set(seqids)
 
     gff3_header = "gff-version 3"
     if isinstance(f, list):
@@ -88,6 +103,9 @@ def _gff_parser(f, attribute_parser=None):
         assert len(cols) == 9, len(line)
         seqid, source, type_, start, end, score, strand, phase, attributes = cols
 
+        if seqids and seqid not in seqids:
+            continue
+
         # adjust for 0-based indexing
         start, end = int(start) - 1, int(end)
         # start is always meant to be less than end in GFF
@@ -103,7 +121,7 @@ def _gff_parser(f, attribute_parser=None):
         # all attributes have an "ID" but this may not be unique
         attributes = attribute_parser(attributes, (start, end))
 
-        rtn = {
+        yield {
             "SeqID": seqid,
             "Source": source,
             "Type": type_,
@@ -115,10 +133,9 @@ def _gff_parser(f, attribute_parser=None):
             "Attributes": attributes,
             "Comments": comments,
         }
-        yield rtn
 
 
-def parse_attributes_gff2(attributes, span):
+def parse_attributes_gff2(attributes: str, span: typing.Tuple[int, int]) -> dict:
     """Returns a dict with name and info keys"""
     name = attributes[attributes.find('"') + 1 :]
     if '"' in name:
@@ -126,7 +143,7 @@ def parse_attributes_gff2(attributes, span):
     return {"ID": name, "Info": attributes}
 
 
-def parse_attributes_gff3(attributes, span):
+def parse_attributes_gff3(attributes: str, span: typing.Tuple[int, int]) -> dict:
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")
     attributes = attributes.split(";")
