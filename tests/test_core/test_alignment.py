@@ -45,7 +45,6 @@ from cogent3.core.alignment import (
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Feature
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
 from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
 from cogent3.maths.util import safe_p_log_p
@@ -3382,6 +3381,21 @@ def test_upac_consensus_allow_gaps(moltype, array_align):
     # allow_gaps
     iupac = aln.iupac_consensus(allow_gaps=False)
     assert iupac == "ACGG"
+
+
+def test_rc_iter():
+    dna = DNA.make_seq("ACG", name="seq1")
+    rc = dna.rc()
+
+    got = [x for x in rc]
+    expect = ["C", "G", "T"]
+    assert got == expect
+
+
+def test_to_dna_raises():
+    seq = make_seq("ETV", moltype="protein")
+    with pytest.raises(AlphabetError):
+        seq.to_moltype("dna")
 
 
 # run tests if invoked from command line
