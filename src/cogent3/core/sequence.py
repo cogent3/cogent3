@@ -900,15 +900,6 @@ class Sequence(_Annotatable, SequenceI):
         ):
             yield FeatureNew(self, **feature)
 
-        for feature in self.annotation_db.get_features_matching(
-            seqid=self.name,
-            name=name,
-            biotype=feature_type,
-            start=query_start,
-            end=query_end,
-        ):
-            yield FeatureNew(self, **feature)
-
     def annotate_from_gff(self, f: os.PathLike, offset=None):
         """copies annotations from a gff file to self,
 
