@@ -13,7 +13,7 @@ from .location import Map, as_map
 
 __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
+__credits__ = ["Peter Maxwell", "Gavin Huttley", "Katherine Caley"]
 __license__ = "BSD-3"
 __version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
@@ -21,7 +21,104 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class _Annotatable:
+class _AnnotationMixin:
+    def add_feature(self, biotype, name, spans):
+        feat = Feature(self, biotype, name, spans)
+
+        if feat.parent is not self:
+            raise ValueError("doesn't belong here")
+
+        if feat.attached:
+            raise ValueError("already attached")
+
+        if self.annotations is self.__class__.annotations:
+            self.annotations = []
+
+        self.annotations.extend([feat])
+
+        feat.attached = True
+
+        return feat
+
+    def get_features_matching(self, feature_type, name=None, extend_query=False):
+        """
+
+        Parameters
+        ----------
+        feature_type : string
+            name of the feature type. Wild-cards allowed.
+        name : string
+            name of the instance. Wild-cards allowed.
+        extend_query : boolean
+            queries sub-annotations if True
+        Returns
+        -------
+        list of AnnotatableFeatures
+        """
+        result = []
+        if len(self.annotations) == 0:
+            return result
+        for annotation in self.annotations:
+            if fnmatch(annotation.type, feature_type) and (
+                name is None or fnmatch(annotation.name, name)
+            ):
+                result.append(annotation)
+            if extend_query:
+                result.extend(
+                    annotation.get_features_matching(
+                        feature_type, name, extend_query=extend_query
+                    )
+                )
+        return result
+
+    def get_drawables(self):
+        """returns a dict of drawables, keyed by type"""
+        result = defaultdict(list)
+        for a in self.annotations:
+            result[a.type].append(a.get_drawable())
+        return result
+
+    def get_drawable(self, width=600, vertical=False):
+        """returns Drawable instance"""
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables()
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
+
+
+class _Annotatable(_AnnotationMixin):
     # default
     annotations = ()
 
@@ -96,61 +193,54 @@ class _Annotatable:
     def _mapped(self, map):
         raise NotImplementedError
 
-    def get_drawables(self):
-        """returns a dict of drawables, keyed by type"""
-        result = defaultdict(list)
-        for a in self.annotations:
-            result[a.type].append(a.get_drawable())
-        return result
-
     def add_annotation(self, klass, *args, **kw):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.add_annotation",
+                "_Annotatable.add_annotation",
+                " 2023.3",
+                "method .add_annotation will be discontinued for Sequence objects",
+            )
+
         annot = klass(self, *args, **kw)
         self.attach_annotations([annot])
         return annot
 
     def clear_annotations(self):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.clear_annotations",
+                "_Annotatable.clear_annotations",
+                " 2023.3",
+                "method .clear_annotations will be discontinued for Sequence objects",
+            )
+
         self.annotations = []
 
-    def get_drawable(self, width=600, vertical=False):
-        """returns Drawable instance"""
-        from cogent3.draw.drawable import Drawable
-
-        drawables = self.get_drawables()
-        if not drawables:
-            return None
-        # we order by tracks
-        top = 0
-        space = 0.25
-        annotes = []
-        for feature_type in drawables:
-            new_bottom = top + space
-            for i, annott in enumerate(drawables[feature_type]):
-                annott.shift(y=new_bottom - annott.bottom)
-                if i > 0:
-                    annott._showlegend = False
-                annotes.append(annott)
-
-            top = annott.top
-
-        top += space
-        height = max((top / len(self)) * width, 300)
-        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
-        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
-
-        if vertical:
-            all_traces = [t.T.as_trace() for t in annotes]
-            width, height = height, width
-            xaxis, yaxis = yaxis, xaxis
-        else:
-            all_traces = [t.as_trace() for t in annotes]
-
-        drawer = Drawable(
-            title=self.name, traces=all_traces, width=width, height=height
-        )
-        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
-        return drawer
-
     def attach_annotations(self, annots):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.attach_annotations",
+                "_Annotatable.attach_annotations",
+                " 2023.3",
+                "method .attach_annotations will be discontinued for Sequence objects",
+            )
+
         for annot in annots:
             if annot.parent is not self:
                 raise ValueError("doesn't belong here")
@@ -163,6 +253,18 @@ class _Annotatable:
             annot.attached = True
 
     def detach_annotations(self, annots):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.detach_annotations",
+                "_Annotatable.detach_annotations",
+                " 2023.3",
+                "method .detach_annotations will be discontinued for Sequence objects",
+            )
         for annot in annots:
             if annot.parent is not self:
                 raise ValueError("doesn't live here")
@@ -170,9 +272,6 @@ class _Annotatable:
             if annot.attached:
                 self.annotations.remove(annot)
                 annot.attached = False
-
-    def add_feature(self, type, name, spans):
-        return self.add_annotation(Feature, type, name, spans)
 
     def get_annotations_matching(self, annotation_type, name=None, extend_query=False):
         """
@@ -189,6 +288,15 @@ class _Annotatable:
         -------
         list of AnnotatableFeatures
         """
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "get_annotations_matching",
+            "get_features_matching",
+            " 2023.3",
+        )
+
         result = []
         if len(self.annotations) == 0:
             return result
@@ -208,6 +316,19 @@ class _Annotatable:
     def get_region_covering_all(
         self, annotations, feature_class=None, extend_query=False
     ):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.get_region_covering_all",
+                "_Annotatable.get_region_covering_all",
+                " 2023.3",
+                "method .get_region_covering_all will be discontinued for Sequence objects",
+            )
+
         if extend_query:
             annotations = [annot._projected_to_base(self) for annot in annotations]
         spans = []
@@ -236,7 +357,20 @@ class _Annotatable:
             current sequence are ignored.
 
         """
-        for annotation in self.get_annotations_matching(annotation_type, name):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.get_by_annotation",
+                "_Annotatable.get_by_annotation",
+                " 2023.3",
+                "method .get_by_annotation will be discontinued for Sequence objects",
+            )
+        for annotation in self.get_features_matching(annotation_type, name):
             try:
                 seq = self[annotation.map]
             except ValueError as msg:
@@ -369,7 +503,7 @@ class _Feature(_Annotatable, _Serialisable):
 
     def get_shadow(self):
         return self.__class__(
-            self.parent, self.map.shadow(), type="region", name="not " + self.name
+            self.parent, self.map.shadow(), type="region", name=f"not {self.name}"
         )
 
     def __len__(self):
@@ -479,8 +613,8 @@ class _Variable(_Feature):
 def Variable(parent, type, name, xxy_list):
     """A variable that has 2 x-components (start, end) and a single y component.
     Currently used by Vestige - BMC Bioinformatics, 6:130, 2005."""
-    start = min([min(x1, x2) for ((x1, x2), y) in xxy_list])
-    end = max([max(x1, x2) for ((x1, x2), y) in xxy_list])
+    start = min(min(x1, x2) for ((x1, x2), y) in xxy_list)
+    end = max(max(x1, x2) for ((x1, x2), y) in xxy_list)
     if start != 0:
         xxy_list = [((x1 - start, x2 - start), y) for ((x1, x2), y) in xxy_list]
         end -= start

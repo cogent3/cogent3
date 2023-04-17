@@ -922,7 +922,7 @@ class SequenceCollectionBaseTests(object):
 
         if self.Class == Alignment:
             aln_seq_3 = aln.get_seq("seq3")
-            matches = [m for m in aln_seq_3.get_annotations_matching("*")]
+            matches = [m for m in aln_seq_3.get_features_matching("*")]
             self.assertFalse("-" in matches[0].get_slice())
 
     def test_annotate_from_gff3(self):
@@ -942,14 +942,14 @@ class SequenceCollectionBaseTests(object):
         aln_seq = aln.named_seqs[name]
         if not hasattr(aln_seq, "annotations"):
             aln_seq = aln_seq.data
-        matches = [m for m in aln_seq.get_annotations_matching("*", extend_query=True)]
+        matches = [m for m in aln_seq.get_features_matching("*", extend_query=True)]
         # 13 features with one having 2 parents, so 14 instances should be found
         self.assertEqual(len(matches), 14)
-        matches = [m for m in aln_seq.get_annotations_matching("gene")]
+        matches = [m for m in aln_seq.get_features_matching("gene")]
         self.assertEqual(len(matches), 1)
-        matches = matches[0].get_annotations_matching("mRNA")
+        matches = matches[0].get_features_matching("mRNA")
         self.assertEqual(len(matches), 1)
-        matches = matches[0].get_annotations_matching("exon")
+        matches = matches[0].get_features_matching("exon")
         self.assertEqual(len(matches), 3)
 
     def test_add(self):
@@ -1430,7 +1430,7 @@ class SequenceCollectionBaseTests(object):
 
         if self.Class == SequenceCollection:
             # this class cannot slice
-            return
+            return True
 
         # should persist in slicing
         self.assertEqual(
@@ -1441,7 +1441,7 @@ class SequenceCollectionBaseTests(object):
         """the wrap argument affects the number of columns"""
         if self.Class == SequenceCollection:
             # this class does not have this method
-            return
+            return True
 
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
@@ -2908,25 +2908,15 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         # generates an annotatable Alignment object
         aln = load_aligned_seqs(path, array_align=False, moltype="dna")
         # when the annotation is outside(before) boundary of the slice
-        aln.named_seqs["NineBande"].data.add_annotation(
-            Feature, "exon", "annot1", [(0, 10)]
-        )
+        aln.named_seqs["NineBande"].data.add_feature("exon", "annot1", [(0, 10)])
         # when the annotation is across boundary of the slice
-        aln.named_seqs["Mouse"].data.add_annotation(
-            Feature, "exon", "annot2", [(10, 21)]
-        )
+        aln.named_seqs["Mouse"].data.add_feature("exon", "annot2", [(10, 21)])
         # when the annotation is within boundary of the slice
-        aln.named_seqs["Human"].data.add_annotation(
-            Feature, "exon", "annot3", [(20, 25)]
-        )
+        aln.named_seqs["Human"].data.add_feature("exon", "annot3", [(20, 25)])
         # when the annotation is across boundary of the slice
-        aln.named_seqs["HowlerMon"].data.add_annotation(
-            Feature, "exon", "annot4", [(25, 32)]
-        )
+        aln.named_seqs["HowlerMon"].data.add_feature("exon", "annot4", [(25, 32)])
         # when the annotation is outside(after) boundary of the slice
-        aln.named_seqs["DogFaced"].data.add_annotation(
-            Feature, "exon", "annot5", [(40, 45)]
-        )
+        aln.named_seqs["DogFaced"].data.add_feature("exon", "annot5", [(40, 45)])
         aln = aln[20:30]
 
         # for these species, each has an annotation spanning slice boundary or within it
@@ -2955,9 +2945,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             self.assertEqual(len(new_seq.data.annotations), 1)
 
         # add another human annotation that is outside slice
-        aln.named_seqs["Human"].data.add_annotation(
-            Feature, "exon", "annot6", [(40, 45)]
-        )
+        aln.named_seqs["Human"].data.add_feature("exon", "annot6", [(40, 45)])
         # tests the case when sliced argument if False regarding the Human sequence
         new_seq = aln.named_seqs["Human"].deepcopy(sliced=False)
         self.assertEqual(len(new_seq.data), len(aln.named_seqs["Human"].data))
@@ -2995,9 +2983,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s1 = Sequence("TTTTTTAAAA", name="test_seq1")
         s2 = Sequence("AAAATTTTTT", name="test_seq2")
         s3 = Sequence("AATTTTTAAA", name="test_seq3")
-        s1.add_annotation(Feature, "exon", "fred", [(0, 6)])
-        s2.add_annotation(Feature, "exon", "fred", [(4, 10)])
-        s3.add_annotation(Feature, "exon", "fred", [(2, 7)])
+        s1.add_feature("exon", "fred", [(0, 6)])
+        s2.add_feature("exon", "fred", [(4, 10)])
+        s3.add_feature("exon", "fred", [(2, 7)])
         data = {"seq1": s1, "seq2": s2, "seq3": s3}
         aln = self.Class(data=data)
         aln.add_feature("demo", "one", [(0, 1), (2, 4)])
@@ -3018,9 +3006,9 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         """get_annotations_from_any_seq returns correct annotations"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         seqs = self.Class(data, moltype=DNA)
-        seqs.get_seq("seq1").add_annotation(Feature, "exon", "annotation1", [(3, 8)])
-        seqs.get_seq("seq2").add_annotation(Feature, "exon", "annotation2", [(1, 2)])
-        seqs.get_seq("seq3").add_annotation(Feature, "exon", "annotation3", [(3, 6)])
+        seqs.get_seq("seq1").add_feature("exon", "annotation1", [(3, 8)])
+        seqs.get_seq("seq2").add_feature("exon", "annotation2", [(1, 2)])
+        seqs.get_seq("seq3").add_feature("exon", "annotation3", [(3, 6)])
         got = seqs.get_annotations_from_any_seq()
         self.assertEqual(len(got), 3)
         self.assertEqual(str(got[0]), 'exon "annotation1" at [3:8]/9')
@@ -3047,7 +3035,7 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
 
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
         seqs = self.Class(data, moltype=DNA)
-        x = seqs.get_seq("seq1").add_annotation(Feature, "exon", "fred", [(3, 8)])
+        x = seqs.get_seq("seq1").add_feature("exon", "fred", [(3, 8)])
         expect = str(x.get_slice())
         new = seqs.rename_seqs(lambda x: x.upper())
         got = list(new.get_annotations_from_any_seq("exon"))[0]
