@@ -1380,6 +1380,10 @@ AB = MolType(
     label="ab",
 )
 
+# todo the _CodonAlphabet class should not exist,
+# the genetic code should have an alphabet, not
+# the alphabet has a genetic code
+
 
 class _CodonAlphabet(Alphabet):
     """Codon alphabets are DNA TupleAlphabets with a genetic code attribute and some codon-specific methods"""
@@ -1413,15 +1417,9 @@ def CodonAlphabet(gc=1, include_stop_codons=False):
     return a
 
 
-def _method_codon_alphabet(ignore, *args, **kwargs):
-    """If CodonAlphabet is set as a property, it gets self as extra 1st arg."""
-    return CodonAlphabet(*args, **kwargs)
-
-
 STANDARD_CODON = CodonAlphabet()
 
 # Modify NucleicAcidSequence to avoid circular import
-NucleicAcidSequence.codon_alphabet = _method_codon_alphabet
 NucleicAcidSequence.protein = PROTEIN
 ArrayRnaSequence.moltype = RNA
 ArrayRnaSequence.alphabet = RNA.alphabets.degen_gapped
