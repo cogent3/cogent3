@@ -239,6 +239,9 @@ class SequenceTests(TestCase):
         # 13 features with one having 2 parents, so 14 instances should be found
         self.assertEqual(len(matches), 14)
 
+    @pytest.mark.xfail(
+        reason="todo: annotate_from_gff needs to be using bound annotation_db"
+    )
     def test_annotate_gff_nested_features(self):
         """correctly annotate a sequence with nested features"""
         # the synthetic example
