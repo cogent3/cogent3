@@ -1309,7 +1309,7 @@ class NucleicAcidSequence(Sequence):
 
         return self.__class__(codons, name=self.name, info=self.info)
 
-    def get_translation(self, gc=None, incomplete_ok=False):
+    def get_translation(self, gc=None, incomplete_ok=False, include_stop=False):
         """translate to amino acid sequence
 
         Parameters
@@ -1325,7 +1325,7 @@ class NucleicAcidSequence(Sequence):
         sequence of PROTEIN moltype
         """
         gc = get_code(gc)
-        codon_alphabet = self.codon_alphabet(gc).with_gap_motif()
+        codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
