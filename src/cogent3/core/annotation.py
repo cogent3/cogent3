@@ -423,6 +423,62 @@ class _Serialisable:
         return json.dumps(self.to_rich_dict())
 
 
+class FeatureNew(_AnnotationMixin, _Serialisable):
+    def __init__(self, parent, biotype, name, spans, reversed):
+        self.parent = parent
+        self.biotype = biotype
+        self.name = name
+        self.reversed = reversed
+        self.map = Map(locations=spans, parent_length=len(parent))
+
+    def get_slice(self):
+        # feature maps and spans are always oriented with respect to the + stand sequence, this means
+        # that when we really do need to be grabbing out the - strand sequence, that the features need to be
+        # be adjusted so that the features spans need to be made relative w.r.t. the end.
+
+        # todo: need to cope with cases where span is a lostSpan...
+
+        parent_reversed = self.parent._seq.reversed
+        feature_reversed = self.reversed
+
+        if not parent_reversed and not feature_reversed:
+            segments = [
+                str(self.parent[span.start : span.end]) for span in self.map.spans
+            ]
+
+        elif not parent_reversed and feature_reversed:
+            # because the underlying sequence is unchanged, just grab the segments out as strings
+            # join them, and then do the reverse complement
+            segments = [
+                str(self.parent[span.start : span.end]) for span in self.map.spans
+            ]
+            segments = self.parent.moltype.complement("".join(segments)[::-1])
+
+        elif parent_reversed and not feature_reversed:
+            parent = self.parent[::-1]
+            segments = [str(parent[span.start : span.end]) for span in self.map.spans]
+
+        elif parent_reversed and feature_reversed:
+            segments = [
+                str(self.parent[span.start : span.end])
+                for span in self.map.nucleic_reversed().reversed()
+            ]
+
+        return self.parent.moltype.make_seq(seq="".join(segments), name=self.name)
+
+    def get_children(self, biotype=None):
+        for child in self.parent.annotation_db.get_feature_children(
+            biotype=biotype, name=self.name
+        ):
+            yield FeatureNew(self.parent, **child)
+
+    def __len__(self):
+        return len(self.map)
+
+    def __repr__(self):
+        return f"{self.name} at {self.map}"
+
+
 # https://pythonspeed.com/products/filmemoryprofiler/
 
 
