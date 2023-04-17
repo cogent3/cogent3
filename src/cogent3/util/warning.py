@@ -73,6 +73,7 @@ def deprecated_args(
     mapping: List[Tuple[str, str]],
     version: str,
     reason: str,
+    is_discontinued: bool = False,
 ) -> Callable[..., Any]:
     """
     A decorator that marks specific arguments of a function as deprecated.
@@ -85,10 +86,13 @@ def deprecated_args(
     ----------
     mapping : List[Tuple[str, str]]
         A list of 2-tuples specifying the mapping of old argument names to new argument names.
+        if the argument is being discontinued then the new argument name should be None
     version : str
-        A string indicating the version when the deprecated arguments will be removed.
+        The version when the old arguments will be removed in calver format, e.g. 'YYYY.MM'
     reason : str
-        A string providing a reason for deprecation.
+        Reason for deprecation or guidance on what to do
+    is_discontinued : bool
+        If True the callable is being discontinued.
 
     Returns
     -------
@@ -105,7 +109,7 @@ def deprecated_args(
     Here's an example of how to use the `deprecated_args` decorator to mark the argument `old_name` as deprecated
     and replace it with the new name `new_name`.
 
-    >>> @deprecated_args(mapping=[('old_name', 'new_name')], version='2.0', reason='Use new_name instead')
+    >>> @deprecated_args(mapping=[('old_name', 'new_name')], version='2.0', reason='Use new_name instead', is_discontinues=True)
     >>> def my_function(new_name):
     >>>     # do something here
 
@@ -120,9 +124,9 @@ def deprecated_args(
             for old, new in mapping:
                 if old in kwargs:
                     kwargs[new] = kwargs.pop(old)
-                    message.append(f"{old}->{new}")
+                    message.append(f"{old}" if is_discontinued else f"{old}->{new}")
             if message:
-                msg = f'The following parameters of `{func.__name__}` are deprecated. [{", ".join(message)}] will be removed in {version or "a future release"}.{f"  {reason}" if reason else ""}'
+                msg = f'The following parameters of `{func.__name__}` are {"discontinued" if is_discontinued else "deprecated"}. [{", ".join(message)}] will be removed in {version or "a future release"}.{f"  {reason}" if reason else ""}'
                 _warn(msg, DeprecationWarning, stacklevel=2)
             return func(*args, **kwargs)
 
