@@ -1247,7 +1247,6 @@ class ProteinWithStopSequence(Sequence):
 class NucleicAcidSequence(Sequence):
     """Abstract base class for DNA and RNA sequences."""
 
-    PROTEIN = None  # will set in moltype
     codon_alphabet = None  # will set in moltype
 
     def reverse_complement(self):
