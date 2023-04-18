@@ -153,6 +153,7 @@ lines_after_imports=2
 lines_between_types=1
 multi_line_output=3
 use_parentheses=true
+src_paths = ["src", "tests","doc","noxfile.py"]
 
 [tool.scriv]
 format="md"
