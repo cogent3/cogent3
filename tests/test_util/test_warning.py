@@ -19,9 +19,9 @@ __status__ = "Production"
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        arguments=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -34,9 +34,9 @@ def test_function_deprecated_args():
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_docstring():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        arguments=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         """This is a test function"""
@@ -49,9 +49,9 @@ def test_function_deprecated_args_docstring():
 def test_function_deprecated_args_warn(kwargs):
     # Example target function to be decorated
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        arguments=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -62,9 +62,9 @@ def test_function_deprecated_args_warn(kwargs):
 
 def test_function_correct_args_do_not_warn():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        arguments=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -78,9 +78,9 @@ def test_function_correct_args_do_not_warn():
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_pickled():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        arguments=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -98,9 +98,9 @@ class foo:
         self.b = 0
 
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        arguments=[("x", "a"), ("y", "b")],
     )
     def changed(self, a: int, b: int):
         """This is a test function"""

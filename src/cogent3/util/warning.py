@@ -1,7 +1,7 @@
 import functools
 import inspect
 
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple, Union
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
@@ -70,10 +70,9 @@ def discontinued(_type, old, version, reason=None, stack_level=3):
 
 
 def deprecated_args(
-    mapping: List[Tuple[str, str]],
     version: str,
     reason: str,
-    is_discontinued: bool = False,
+    arguments: List[Union[Tuple[str, str], str]] = None,
 ) -> Callable[..., Any]:
     """
     A decorator that marks specific arguments of a function as deprecated.
@@ -84,15 +83,12 @@ def deprecated_args(
 
     Parameters
     ----------
-    mapping : List[Tuple[str, str]]
-        A list of 2-tuples specifying the mapping of old argument names to new argument names.
-        if the argument is being discontinued then the new argument name should be None
     version : str
         The version when the old arguments will be removed in calver format, e.g. 'YYYY.MM'
     reason : str
         Reason for deprecation or guidance on what to do
-    is_discontinued : bool
-        If True the callable is being discontinued.
+    mapping : List[Union[Tuple[str, str],str]]
+        A list of discontinued old argument names, or deprecated old and replacement new argument names.
 
     Returns
     -------
@@ -102,32 +98,34 @@ def deprecated_args(
     Warnings
     --------
     DeprecationWarning
-        A warning will be raised when the decorated function is called with any of the deprecated arguments.
+        A warning will be raised when the decorated function is called for each deprecated argument
+        used in the calling function.
 
     Examples
     --------
     Here's an example of how to use the `deprecated_args` decorator to mark the argument `old_name` as deprecated
     and replace it with the new name `new_name`.
 
-    >>> @deprecated_args(mapping=[('old_name', 'new_name')], version='2.0', reason='Use new_name instead', is_discontinues=True)
+    >>> @deprecated_args('2.0', 'Use new_name instead',[('old_arg', 'new_arg'),'discontinued_arg'],)
     >>> def my_function(new_name):
     >>>     # do something here
 
-    When `my_function` is called with the argument `old_name`, a warning will be raised indicating that the argument
-    is deprecated and should be replaced with `new_name`.
+    When `my_function` is called with the argument `old_arg`, a warning will be raised indicating that the argument
+    is deprecated and should be replaced with `new_arg`, and `discontinued_arg` is to be deprecated without replacement.
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
-            message = []
-            for old, new in mapping:
-                if old in kwargs:
-                    kwargs[new] = kwargs.pop(old)
-                    message.append(f"{old}" if is_discontinued else f"{old}->{new}")
-            if message:
-                msg = f'The following parameters of `{func.__name__}` are {"discontinued" if is_discontinued else "deprecated"}. [{", ".join(message)}] will be removed in {version or "a future release"}.{f"  {reason}" if reason else ""}'
-                _warn(msg, DeprecationWarning, stacklevel=2)
+            for argument in arguments:
+                if isinstance(argument, tuple):
+                    old, new = argument
+                    if old in kwargs:
+                        kwargs[new] = kwargs.pop(old)
+                        deprecated("argument", old, new, version, reason)
+                else:
+                    if argument in kwargs:
+                        discontinued("argument", argument, version, reason)
             return func(*args, **kwargs)
 
         return wrapper
