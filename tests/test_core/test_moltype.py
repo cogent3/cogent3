@@ -8,7 +8,6 @@ from cogent3.core.moltype import (
     DNA,
     PROTEIN,
     RNA,
-    STANDARD_CODON,
     AlphabetError,
     AlphabetGroup,
     CodonAlphabet,
@@ -975,6 +974,8 @@ class DinucAlphabet(_AlphabetTestCase):
 
 class TestCodonAlphabet(_AlphabetTestCase):
     def setUp(self):
+        from cogent3.core.moltype import STANDARD_CODON
+
         self.alpha = STANDARD_CODON
 
     def test_ambiguous_gaps(self):

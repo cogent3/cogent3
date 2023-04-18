@@ -887,16 +887,16 @@ class MolType(object):
         Always tries to return same type as item: if item looks like a dict,
         will return list of keys.
         """
+        if isinstance(item, (list, tuple)):
+            data = "".join(item)
+        else:
+            data = str(item)
+
         if not self.complements:
             raise TypeError(
                 "Tried to complement sequence using alphabet without complements."
             )
-        try:
-            return item.translate(self.ComplementTable)
-        except (AttributeError, TypeError):
-            item = iterable(item)
-            get = self.complements.get
-            return item.__class__([get(i, i) for i in item])
+        return item.__class__(data.translate(self.ComplementTable))
 
     def rc(self, item):
         """Returns reverse complement of item w/ data from self.complements.
@@ -1044,16 +1044,13 @@ class MolType(object):
 
     def degap(self, sequence):
         """Deletes all gap characters from sequence."""
-        try:
-            trans = dict([(i, None) for i in map(ord, self.gaps)])
-            return sequence.__class__(sequence.translate(trans))
-        except AttributeError:
-            gap = self.gaps
+        if isinstance(sequence, (tuple, list)):
+            data = "".join(sequence)
+        else:
+            data = str(sequence)
 
-            def not_gap(x):
-                return x not in gap
-
-            return sequence.__class__(list(filter(not_gap, sequence)))
+        trans = dict([(i, None) for i in map(ord, self.gaps)])
+        return sequence.__class__(data.translate(trans))
 
     def gap_indices(self, sequence):
         """Returns list of indices of all gaps in the sequence, or []."""
@@ -1383,6 +1380,10 @@ AB = MolType(
     label="ab",
 )
 
+# todo the _CodonAlphabet class should not exist,
+# the genetic code should have an alphabet, not
+# the alphabet has a genetic code
+
 
 class _CodonAlphabet(Alphabet):
     """Codon alphabets are DNA TupleAlphabets with a genetic code attribute and some codon-specific methods"""
@@ -1416,15 +1417,9 @@ def CodonAlphabet(gc=1, include_stop_codons=False):
     return a
 
 
-def _method_codon_alphabet(ignore, *args, **kwargs):
-    """If CodonAlphabet is set as a property, it gets self as extra 1st arg."""
-    return CodonAlphabet(*args, **kwargs)
-
-
 STANDARD_CODON = CodonAlphabet()
 
 # Modify NucleicAcidSequence to avoid circular import
-NucleicAcidSequence.codon_alphabet = _method_codon_alphabet
 NucleicAcidSequence.protein = PROTEIN
 ArrayRnaSequence.moltype = RNA
 ArrayRnaSequence.alphabet = RNA.alphabets.degen_gapped

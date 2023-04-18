@@ -27,11 +27,9 @@ from cogent3.app.composable import (
     __app_registry,
     _add,
     _get_raw_hints,
-    appify,
     define_app,
     get_object_provenance,
     is_composable,
-    user_function,
 )
 from cogent3.app.data_store_new import (
     APPEND,
@@ -65,13 +63,12 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 @pytest.fixture(scope="function")
-def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("datastore")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("datastore")
 
 
 @pytest.fixture(scope="function")
 def fasta_dir(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
     fasta_dir = tmp_dir / "fasta"
     fasta_dir.mkdir(parents=True, exist_ok=True)
@@ -83,7 +80,6 @@ def fasta_dir(tmp_dir):
 
 @pytest.fixture(scope="function")
 def write_dir1(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     write_dir1 = tmp_dir / "write1"
     write_dir1.mkdir(parents=True, exist_ok=True)
     yield write_dir1
@@ -92,7 +88,6 @@ def write_dir1(tmp_dir):
 
 @pytest.fixture(scope="function")
 def write_dir2(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     write_dir2 = tmp_dir / "write2"
     write_dir2.mkdir(parents=True, exist_ok=True)
     yield write_dir2
@@ -133,6 +128,15 @@ def full_dstore(write_dir1, nc_objects, completed_objects, log_data):
         dstore.write(unique_id=id, data=data)
 
     dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+
+@pytest.fixture(scope="function")
+def nc_dstore(tmp_dir, nc_objects):
+    dstore = DataStoreDirectory(tmp_dir, suffix="fasta", mode=OVERWRITE)
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+
     return dstore
 
 
@@ -403,10 +407,24 @@ def test_apply_to_invalid_logger(tmp_dir, logger_val):
     with pytest.raises(TypeError):
         process.apply_to(dstore, show_progress=False, logger=logger_val)
 
-    out_dstore.close()
+
+def test_apply_to_input_only_not_completed(nc_dstore, tmp_dir):
+    """correctly skips notcompleted"""
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    # trigger creation of notcompleted
+    outpath = tmp_dir / "delme.sqlitedb"
+    out_dstore = open_data_store(outpath, mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = (
+        io_app.load_aligned(format="fasta", moltype="dna")
+        + sample_app.min_length(3000)
+        + writer
+    )
+    process.apply_to(dstore, show_progress=False)
+    assert len(out_dstore.not_completed) == len(nc_dstore)
 
 
-def test_apply_to_not_completed(tmp_dir):
+def test_apply_to_makes_not_completed(tmp_dir):
     """correctly creates notcompleted"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -552,13 +570,6 @@ def _demo(ctx, expect):
     return ctx.frame_start == expect
 
 
-# for testing appify
-@appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
-def slicer(val, index=2):
-    """my docstring"""
-    return val[:index]
-
-
 @define_app
 def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
     return val[:4]
@@ -615,26 +626,6 @@ def test_user_function_multiple():
     assert got_2 == {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
 
 
-def test_appify():
-    """acts like a decorator should!"""
-    assert slicer.__doc__ == "my docstring"
-    assert slicer.__name__ == "slicer"
-    app = slicer()
-    assert SERIALISABLE_TYPE in app._input_types
-    assert SERIALISABLE_TYPE in app._output_types
-    assert app(list(range(4))) == [0, 1]
-    app2 = slicer(index=3)
-    assert app2(list(range(4))) == [0, 1, 2]
-
-
-def test_appify_pickle():
-    """appified function should be pickleable"""
-    app = slicer(index=6)
-    dumped = dumps(app)
-    loaded = loads(dumped)
-    assert loaded(list(range(10))) == list(range(6))
-
-
 def test_user_function_repr():
     got = repr(bar(num=3))
     assert got == "bar(num=3)"
@@ -643,48 +634,6 @@ def test_user_function_repr():
 def test_user_function_str():
     got = str(bar(num=3))
     assert got == "bar(num=3)"
-
-
-def test_user_function_with_args_kwargs():
-    """correctly handles definition with args, kwargs"""
-    from math import log
-
-    def product(val, multiplier, take_log=False):
-        result = val * multiplier
-        if take_log:
-            result = log(result)
-
-        return result
-
-    # without defining any args, kwargs
-    ufunc = user_function(
-        product,
-        SERIALISABLE_TYPE,
-        SERIALISABLE_TYPE,
-    )
-    assert ufunc(2, 2) == 4
-    assert ufunc(2, 2, take_log=True) == log(4)
-
-    # defining default arg2
-    ufunc = user_function(
-        product,
-        SERIALISABLE_TYPE,
-        SERIALISABLE_TYPE,
-        2,
-    )
-    assert ufunc(2) == 4
-    assert ufunc(2, take_log=True) == log(4)
-
-    # defining default kwarg only
-    ufunc = user_function(product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, take_log=True)
-    assert ufunc(2, 2) == log(4)
-    assert ufunc(2, 2, take_log=False) == 4
-
-    # defining default arg and kwarg
-    ufunc = user_function(
-        product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, 2, take_log=True
-    )
-    assert ufunc(2) == log(4)
 
 
 def test_app_registry():

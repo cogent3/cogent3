@@ -573,6 +573,21 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     assert m.unique_id == expect
 
 
+@pytest.mark.parametrize(
+    "writer",
+    (
+        "write_seqs",
+        "write_db",
+        "write_json",
+        "write_tabular",
+    ),
+)
+def test_writer_fails_on_data_store(writer):
+    # should raise a type error if not a data store provided
+    with pytest.raises(TypeError):
+        get_app(writer, data_store="not-a-data_store")
+
+
 def test_open_suffix_dirname(tmp_dir):
     # open_data_store correctly identifies this as a directory data store
     outpath = tmp_dir / "melsubgroup_aln_flydivas_v1.2"
