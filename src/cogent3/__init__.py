@@ -26,8 +26,6 @@ from cogent3.core.moltype import (
     DNA,
     PROTEIN,
     RNA,
-    STANDARD_CODON,
-    CodonAlphabet,
     available_moltypes,
     get_moltype,
 )

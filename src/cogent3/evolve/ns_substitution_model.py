@@ -1,6 +1,6 @@
 import numpy
 
-from cogent3.core import moltype
+from cogent3.core import genetic_code, moltype
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
@@ -188,11 +188,11 @@ class NonReversibleTrinucleotide(NonReversibleNucleotide):
 class NonReversibleCodon(_Codon, NonReversibleNucleotide):
     """Base non-reversible codon substitution model."""
 
+    # todo deprecate alphabet argument
     @extend_docstring_from(Parametric.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
-        if gc is not None:
-            alphabet = moltype.CodonAlphabet(gc=gc)
-        kw["alphabet"] = alphabet or moltype.STANDARD_CODON
+        self.gc = genetic_code.get_code(gc)
+        kw["alphabet"] = self.gc.get_alphabet()
         NonReversibleNucleotide.__init__(self, **kw)
 
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 substitution_model.py
 
@@ -40,7 +39,7 @@ import numpy
 
 from numpy.linalg import svd
 
-from cogent3.core import moltype
+from cogent3.core import genetic_code, moltype
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.evolve.substitution_calculation import (
@@ -1011,7 +1010,7 @@ class _Codon:
             return ndiffs == 1
 
     def get_predefined_predicates(self):
-        codon_preds = _CodonPredicates(self.get_alphabet().get_genetic_code())
+        codon_preds = _CodonPredicates(self.gc)
 
         preds = _TimeReversibleNucleotide.get_predefined_predicates(self)
         preds.update(
@@ -1028,9 +1027,9 @@ class _Codon:
 class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
     """Core substitution model for codons"""
 
+    # todo deprecate alphabet argument
     @extend_docstring_from(_TimeReversibleNucleotide.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
-        if gc is not None:
-            alphabet = moltype.CodonAlphabet(gc=gc)
-        kw["alphabet"] = alphabet or moltype.STANDARD_CODON
+        self.gc = genetic_code.get_code(gc)
+        kw["alphabet"] = self.gc.get_alphabet()
         _TimeReversibleNucleotide.__init__(self, **kw)

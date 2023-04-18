@@ -9,7 +9,7 @@ from cogent3.align import (
     make_dna_scoring_dict,
     make_generic_scoring_dict,
 )
-from cogent3.align.progressive import TreeAlign
+from cogent3.align.progressive import tree_align
 from cogent3.app import dist
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
@@ -528,7 +528,7 @@ class progressive_align:
         with warnings.catch_warnings(record=False):
             warnings.simplefilter("ignore")
             try:
-                result, tree = TreeAlign(self._model, seqs, **kwargs)
+                result, tree = tree_align(self._model, seqs, **kwargs)
                 if self._moltype and self._moltype != result.moltype:
                     result = result.to_moltype(self._moltype)
 

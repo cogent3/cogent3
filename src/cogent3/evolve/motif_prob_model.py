@@ -1,9 +1,10 @@
-#!/usr/bin/env python
-
 import warnings
+
+from typing import Union
 
 import numpy
 
+from cogent3.core.alphabet import Alphabet
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.recalculation.definition import CalcDefn, PartitionDefn
 
@@ -76,8 +77,7 @@ class MotifProbModel(object):
         return result
 
     def adapt_motif_probs(self, motif_probs, auto=False):
-        motif_probs = self.get_input_alphabet().adapt_motif_probs(motif_probs)
-        assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
+        motif_probs = adapt_motif_probs(self.get_input_alphabet(), motif_probs)
         return motif_probs
 
     def make_equal_motif_probs(self):
@@ -196,11 +196,11 @@ class MonomerProbModel(ComplexMotifProbModel):
 
     def adapt_motif_probs(self, motif_probs, auto=False):
         try:
-            motif_probs = self.monomer_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.monomer_alphabet, motif_probs)
         except ValueError:
-            motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.tuple_alphabet, motif_probs)
             if not auto:
-                warnings.warn("Motif probs overspecified", stacklevel=5)
+                warnings.warn("Motif probs over specified", stacklevel=5)
             motif_probs = self.calc_monomer_probs(motif_probs)
         return motif_probs
 
@@ -261,9 +261,9 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def adapt_motif_probs(self, motif_probs, auto=False):
         try:
-            motif_probs = self.monomer_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.monomer_alphabet, motif_probs)
         except ValueError:
-            motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.tuple_alphabet, motif_probs)
             motif_probs = self.calc_posn_specific_monomer_probs(motif_probs)
         else:
             motif_probs = [motif_probs] * self.word_length
@@ -288,3 +288,45 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
             mprobs
         )
         return (mprobs, mprobs, mprobs_matrix)
+
+
+ProbsTypes = Union[dict, numpy.ndarray, list, tuple]
+AlphaTypes = Union[Alphabet, tuple, list]
+
+
+def adapt_motif_probs(alphabet: AlphaTypes, motif_probs: ProbsTypes) -> numpy.ndarray:
+    """returns array of motif probs in alphabet order
+
+    Parameters
+    ----------
+    alphabet
+        ordered series of states
+    motif_probs
+        dict or other series with values present in alphabet
+
+    Raises
+    ------
+    AssertionError if values do not sum to 1
+
+    Returns
+    -------
+    array of floats in alphabet order
+    """
+
+    if len(alphabet) != len(motif_probs):
+        raise ValueError(
+            f"Can't match {len(motif_probs)} probs to {len(alphabet)} alphabet"
+        )
+
+    if hasattr(motif_probs, "keys"):
+        # need to wrap the keys method because it can be a DictArray
+        if diff := set(motif_probs.keys()) - set(alphabet):
+            raise ValueError(f"Can't find motif(s) {diff!r} in alphabet")
+        return numpy.array([motif_probs[motif] for motif in alphabet])
+    else:
+        motif_probs = numpy.asarray(motif_probs)
+
+    numpy.testing.assert_allclose(
+        motif_probs.sum(), 1, err_msg=f"does not summ to 1 {motif_probs}"
+    )
+    return motif_probs

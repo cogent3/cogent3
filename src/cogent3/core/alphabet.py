@@ -21,7 +21,6 @@ from numpy import (
     arange,
     array,
     asarray,
-    frombuffer,
     newaxis,
     ravel,
     sum,
@@ -35,6 +34,7 @@ from numpy import (
 )
 from numpy.testing import assert_allclose
 
+from cogent3.util import warning as c3warns
 from cogent3.util.misc import get_object_provenance
 
 
@@ -273,7 +273,13 @@ class Enumeration(tuple):
             moltype = None
         return JointEnumeration([self, other], moltype=moltype)
 
-    def counts(self, a):
+    @c3warns.deprecated_callable(
+        "2023.10",
+        "Not used",
+        is_discontinued=True,
+        stack_level=4,
+    )
+    def counts(self, a):  # pragma: no cover
         """Returns array containing counts of each item in a.
 
         For example, on the enumeration 'UCAG', the sequence 'CCUG' would
@@ -299,24 +305,6 @@ class Enumeration(tuple):
             except ValueError:  # try mapping to string
                 data = ravel(array(list(map(str, a))))
         return sum(asarray(self._allowed_range == data, int), axis=-1)
-
-    @property
-    def pairs(self):  # pragma: no cover
-        """Accessor for pairs, lazy evaluation."""
-        from cogent3.util.warning import discontinued
-
-        discontinued("property", "Alphabet.pairs", version="2023.1", reason="redundant")
-        return self ** 2
-
-    @property
-    def Triples(self):  # pragma: no cover
-        """Accessor for triples, lazy evaluation."""
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "property", "Alphabet.Triples", version="2023.1", reason="redundant"
-        )
-        return self ** 3
 
 
 class JointEnumeration(Enumeration):
@@ -549,61 +537,6 @@ class Alphabet(Enumeration):
         cross_product = ["".join(combo) for combo in product(*states)]
         return Alphabet(cross_product, moltype=self.moltype)
 
-    def from_seq_to_array(self, sequence):  # pragma: no cover
-        """Returns an array of indices corresponding to items in sequence.
-
-        Parameters
-        ----------
-        sequence: Sequence
-         A cogent3 sequence object
-
-        Returns
-        -------
-        ndarray
-
-        Notes
-        -----
-        Unlike to_indices() in superclass, this method returns a numpy array
-        object. It also breaks the seqeunce into items in the current alphabet
-        (e.g. breaking a raw DNA sequence into codons), which to_indices() does
-        """
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "method", "Alphabet.from_seq_to_array", version="2023.1", reason="redundant"
-        )
-        sequence = sequence.get_in_motif_size(self._motiflen)
-        return array(list(map(self.index, sequence)))
-
-    def from_ordinals_to_seq(self, data):  # pragma: no cover
-        """Returns a Sequence object corresponding to indices in data.
-
-        Parameters
-        ----------
-        data: series
-            series of int
-
-        Returns
-        -------
-        Sequence with self.moltype
-
-        Notes
-        -----
-        Unlike from_indices(), this method uses the MolType to
-        coerce the result into a sequence of the correct class.
-
-        Raises an AttributeError if MolType is not set.
-        """
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "method",
-            "Alphabet.from_ordinals_to_seq",
-            version="2023.1",
-            reason="redundant",
-        )
-        return self.moltype.make_seq("".join(self[i] for i in data))
-
     def get_matched_array(self, motifs, dtype=float):
         """Returns an array in which rows are motifs, columns are items in self.
 
@@ -711,11 +644,15 @@ class Alphabet(Enumeration):
 
         return tuple(motif_set)
 
-    # todo method belongs elsewhere
-    def adapt_motif_probs(self, motif_probs):
+    @c3warns.deprecated_callable(
+        "2023.10",
+        "Handled by cogent3.evolve.motif_prob_model.adapt_motif_probs",
+        is_discontinued=True,
+        stack_level=4,
+    )
+    def adapt_motif_probs(self, motif_probs):  # pragma: no cover
         """Prepare an array or dictionary of probabilities for use with
         this alphabet by checking size and order"""
-
         if hasattr(motif_probs, "keys"):
             sample = list(motif_probs.keys())[0]
             if sample not in self:
@@ -766,29 +703,6 @@ class CharAlphabet(Alphabet):
             chars[i] = c
         self._indices_nums_to_chars = array(list(chars), "B").view("c")
 
-    def from_string(self, data):  # pragma: no cover
-        """Returns array of indices from string containing elements.
-
-        data should be a string on the alphabet, e.g. 'ACC' for the RNA
-        alhabet 'UCAG' would return the array [2,1,1]. This is useful for
-        converting strings into arrays of small integers on the alphabet,
-        e.g. for reading a Sequence from a string.
-
-        This is on the Alphabet, not the Sequence, because lots of objects
-        (e.g. Profile, Alignment) also need to use it.
-        """
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "method",
-            "CharAlphabet.from_string",
-            version="2023.1",
-            reason="redundant",
-        )
-        vals = str.translate(data, self._chars_to_indices)
-        vals = frombuffer(memoryview(vals.encode("utf8")), dtype=uint8)
-        return vals
-
     def is_valid(self, seq):
         """Returns True if seq contains only items in self."""
         try:
@@ -798,23 +712,6 @@ class CharAlphabet(Alphabet):
             return max(ind) < len(self) and min(ind) >= 0
         except (TypeError, KeyError):
             return False
-
-    def from_array(self, data):  # pragma: no cover
-        """Returns array of indices from array containing elements.
-
-        This is useful if, instead of a string, you have an array of
-        characters that's been converted into a numpy array. See
-        from_string docstring for general behavior.
-        """
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "method",
-            "CharAlphabet.from_array",
-            version="2023.1",
-            reason="redundant",
-        )
-        return take(self._char_nums_to_indices, data.view("B"))
 
     def to_chars(self, data):
         """Converts array of indices into array of elements.

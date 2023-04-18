@@ -151,7 +151,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             tree = cogent3.make_tree(treestring="(A:.1,B:.1)")
         else:
             tree = cogent3.make_tree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
-        aln, tree = cogent3.align.progressive.TreeAlign(
+        aln, tree = cogent3.align.progressive.tree_align(
             model, seqs, tree=tree, param_vals=param_vals, show_progress=False, **kw
         )
         return aln
@@ -181,7 +181,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         )
 
     def test_progessive_model_name(self):
-        """TreeAlign handles models specified by name"""
+        """tree_align handles models specified by name"""
         self._test_aln({"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"})
 
     def test_progressive_est_tree(self):
@@ -193,7 +193,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
             }
         )
-        aln, tree = cogent3.align.progressive.TreeAlign(
+        aln, tree = cogent3.align.progressive.tree_align(
             HKY85(), seqs, show_progress=False, param_vals={"kappa": 4.0}
         )
 
@@ -204,7 +204,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         }
         self.assertEqual(aln.to_dict(), expect)
 
-        aln, tree = cogent3.align.progressive.TreeAlign(
+        aln, tree = cogent3.align.progressive.tree_align(
             HKY85(),
             seqs,
             show_progress=False,
@@ -233,8 +233,8 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             param_vals=[("kappa", 2.0)],
         )
 
-    def test_TreeAlign_does_pairs(self):
-        """test TreeAlign handles pairs of sequences"""
+    def test_tree_align_does_pairs(self):
+        """test tree_align handles pairs of sequences"""
         self._test_aln({"A": "acttgtac", "B": "ac--gtac"})
 
     def test_gap_at_start(self):
@@ -286,7 +286,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         tree_variants = itertools.permutations(tree_mapping, r=3)
 
         for tree_encoding in tree_variants:
-            aln, _ = cogent3.align.progressive.TreeAlign(
+            aln, _ = cogent3.align.progressive.tree_align(
                 model="F81",
                 seqs=seqs,
                 tree=cogent3.make_tree("({},{},{})".format(*tree_encoding)),
