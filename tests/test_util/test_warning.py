@@ -224,3 +224,18 @@ def test_method_deprecated_method_pickling(recwarn):
 def test_deprecated_callable_resolves_type(recwarn, func, _type):
     func(2)
     assert _type in recwarn.list[0].message.args[0]
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_function_deprecated_args_deprecated_callable_chained_decorators():
+    @deprecated_args("2023.6", "x is not descriptive", [("x", "a")])
+    @deprecated_args("2023.6", "y is not descriptive", [("y", "b")])
+    @deprecated_callable(
+        "2023.6", "Improved change function", [("changed", "changed2")]
+    )
+    def changed(a: int, b: int) -> int:
+        return a + b
+
+    expected = changed(a=5, b=3)
+    got = changed(x=5, y=3)
+    assert got == expected
