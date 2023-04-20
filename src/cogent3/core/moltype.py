@@ -580,7 +580,7 @@ class MolType(object):
             dict of char:tuple, doesn't include gaps (these are
             hard-coded as - and ?, and added later.
         label
-            text label, don't know what this is used for. Unnecessary?
+            text label that is used to identify instances by `get_moltype()`
         complements
             dict of symbol:symbol showing how the non-degenerate
             single characters complement each other. Used for constructing
