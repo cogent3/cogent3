@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
 import os
@@ -200,5 +199,10 @@ def test_no_seq_names(multi_seqid_path):
     assert got == expect
 
 
-if __name__ == "__main__":
-    main()
+def test_parse_field_spaces():
+    path = DATA_DIR / "simple.gff"
+    got = list(gff_parser(path))
+    for record in got:
+        for value in record.values():
+            if isinstance(value, str):
+                assert value.strip() == value, "should not have spaces!"

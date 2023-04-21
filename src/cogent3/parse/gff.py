@@ -96,7 +96,7 @@ def _gff_parser(
         if not line:
             continue
 
-        cols = line.split("\t")
+        cols = [c.strip() for c in line.split("\t")]
         # the final column (attributes) may be empty
         if len(cols) == 8:
             cols.append("")
