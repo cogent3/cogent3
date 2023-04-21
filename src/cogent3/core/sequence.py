@@ -898,6 +898,7 @@ class Sequence(_Annotatable, SequenceI):
             start=query_start,
             end=query_end,
         ):
+            feature.pop("seqid")  # not required here as provided
             yield FeatureNew(self, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):

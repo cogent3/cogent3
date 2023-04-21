@@ -57,6 +57,7 @@ sqlite3.register_converter("json", sqlite_json_to_dict)
 
 
 class FeatureDataType(typing.TypedDict):
+    seqid: str  # name of the sseq
     biotype: str  # rename type attr of cogent3 Annotatables to match this?
     name: str  # rename to name to match cogent3 Annotatable.name?
     spans: list[tuple[int, int]]
@@ -448,12 +449,13 @@ class SqliteAnnotationDbMixin:
         # we define query as all defined variables from local name space,
         # excluding "self" and kwargs at default values
         kwargs = {k: v for k, v in locals().items() if k != "self" and v is not None}
-        columns = ("biotype", "spans", "strand", "name")
+        columns = ("seqid", "biotype", "spans", "strand", "name")
         for table_name in self.table_names:
             for result in self._get_records_matching(
                 table_name=table_name, columns=columns, **kwargs
             ):
                 yield FeatureDataType(
+                    seqid=result["seqid"],
                     biotype=result["biotype"],
                     name=result["name"],
                     spans=[tuple(c) for c in result["spans"]],
@@ -554,14 +556,9 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
+        self._db = db
         if db is None:
-            self._db = sqlite3.connect(
-                self.source, detect_types=sqlite3.PARSE_DECLTYPES
-            )
-            self._db.row_factory = sqlite3.Row
-        else:
-            self._db = db
-        self._init_tables()
+            self._init_tables()
         data = self._merged_data(data)
         self.add_records(data)
 
