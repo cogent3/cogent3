@@ -217,7 +217,7 @@ def _matching_conditions(
         # only matches within bounds
         if partial:
             cond = [
-                f"(start <= {start} AND end >= {start})",  # straddles beginning of segment
+                f"(start <= {start} AND end > {start})",  # straddles beginning of segment
                 f"(start < {end} AND end >= {end})",  # straddles end of segment
                 f"(start <= {start} AND end >= {end})",  # includes segment
             ]
