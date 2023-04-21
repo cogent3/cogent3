@@ -117,6 +117,10 @@ def bytes_to_string(data):
     """returns a string if data is bytes, otherwise returns original"""
     if isinstance(data, bytes):
         data = data.decode("utf_8")
+    elif isinstance(data, (list, tuple)):
+        data = "".join(str(d) for d in data)
+    else:
+        data = str(data)
     return data
 
 

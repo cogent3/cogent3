@@ -1,11 +1,13 @@
-#!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
 import os
+import re
 
 from io import StringIO
 from pathlib import Path
 from unittest import TestCase, main
+
+import pytest
 
 from cogent3.parse.gff import gff_parser, parse_attributes_gff2
 
@@ -18,6 +20,8 @@ __version__ = "2023.2.12a1"
 __maintainer__ = "Matthew Wakefield"
 __email__ = "wakefield@wehi.edu.au"
 __status__ = "Production"
+
+DATA_DIR = Path(__file__).parent.parent / "data"
 
 headers = [
     """##gff-version 2 
@@ -155,5 +159,50 @@ class GffTest(TestCase):
             self.assertIsInstance(result["Attributes"], str)
 
 
-if __name__ == "__main__":
-    main()
+@pytest.fixture
+def multi_seqid_path(tmp_path):
+    gff_path = DATA_DIR / "ensembl_sample.gff3"
+    data = gff_path.read_text().splitlines()
+    # add two new seqid's using the last 4 lines, twice
+    change = data[-4:]
+    data.extend(_modify_lines(change, "3"))
+    data.extend(_modify_lines(change, "4"))
+    outpath = tmp_path / "ensembl-edited.gff3"
+    outpath.write_text("\n".join(data))
+    return outpath
+
+
+def _modify_lines(change, seqid: str) -> list:
+    ident = re.compile(r"ENS[GT]\d+")
+    result = []
+    for line in change:
+        # change all identifiers so each seqid has unique identifiers
+        for match in ident.findall(line):
+            line = line.replace(match, f"{match}{seqid}")
+        line = line.split("\t")
+        line[0] = seqid
+        line = "\t".join(line)
+        result.append(line)
+    return result
+
+
+@pytest.mark.parametrize("seqids", ("22", ("3",), ("3", "4")))
+def test_seq_names(multi_seqid_path, seqids):
+    got = {r["SeqID"] for r in gff_parser(multi_seqid_path, seqids=seqids)}
+    expect = {seqids} if isinstance(seqids, str) else set(seqids)
+    assert got == expect
+
+
+def test_no_seq_names(multi_seqid_path):
+    got = {r["SeqID"] for r in gff_parser(multi_seqid_path, seqids=None)}
+    expect = {"22", "3", "4"}
+    assert got == expect
+
+
+def test_parse_field_spaces():
+    path = DATA_DIR / "simple.gff"
+    got = list(gff_parser(path))
+    for record in got:
+        for value in record.values():
+            if isinstance(value, str):
+                assert value.strip() == value, "should not have spaces!"

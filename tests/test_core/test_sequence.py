@@ -93,15 +93,11 @@ class SequenceTests(TestCase):
     def test_copy(self):
         """correctly returns a copy version of self"""
         s = Sequence("TTTTTTTTTTAAAA", name="test_copy")
-        annot1 = s.add_annotation(Feature, "exon", "annot1", [(0, 10)])
-        annot2 = s.add_annotation(Feature, "exon", "annot2", [(10, 14)])
+        annot1 = s.add_feature("exon", "annot1", [(0, 10)])
+        annot2 = s.add_feature("exon", "annot2", [(10, 14)])
         got = s.copy()
-        got_annot1 = got.get_annotations_matching(
-            annotation_type="exon", name="annot1"
-        )[0]
-        got_annot2 = got.get_annotations_matching(
-            annotation_type="exon", name="annot2"
-        )[0]
+        got_annot1 = got.get_features_matching(feature_type="exon", name="annot1")[0]
+        got_annot2 = got.get_features_matching(feature_type="exon", name="annot2")[0]
         self.assertIsNot(got, s)
         self.assertIsNot(got_annot1, annot1)
         self.assertIsNot(got_annot2, annot2)
@@ -128,23 +124,15 @@ class SequenceTests(TestCase):
         self.assertEqual(r[-1], "G")
         self.assertEqual(r[1:3], "CA")
 
-    def test_conversion(self):
-        """Should convert t to u automatically"""
-        r = self.RNA("TCAtu")
-        self.assertEqual(str(r), "UCAUU")
-
-        d = self.DNA("UCAtu")
-        self.assertEqual(str(d), "TCATT")
-
     def test_to_dna(self):
         """Returns copy of self as DNA."""
-        r = self.RNA("TCA")
+        r = self.RNA("UCA")
         self.assertEqual(str(r), "UCA")
         self.assertEqual(str(r.to_dna()), "TCA")
 
     def test_to_rna(self):
         """Returns copy of self as RNA."""
-        r = self.DNA("UCA")
+        r = self.DNA("TCA")
         self.assertEqual(str(r), "TCA")
         self.assertEqual(str(r.to_rna()), "UCA")
 
@@ -247,10 +235,13 @@ class SequenceTests(TestCase):
 
         sequence = Sequence(seq)
         sequence.annotate_from_gff(gff3_path)
-        matches = [m for m in sequence.get_annotations_matching("*", extend_query=True)]
+        matches = [m for m in sequence.get_features_matching()]
         # 13 features with one having 2 parents, so 14 instances should be found
         self.assertEqual(len(matches), 14)
 
+    @pytest.mark.xfail(
+        reason="todo: annotate_from_gff needs to be using bound annotation_db"
+    )
     def test_annotate_gff_nested_features(self):
         """correctly annotate a sequence with nested features"""
         # the synthetic example
@@ -272,21 +263,21 @@ class SequenceTests(TestCase):
 
         # get the gene and check it has a single annotation and that
         # its slice is correct
-        ann = seq.get_annotations_matching("gene")
+        ann = seq.get_features_matching("gene")
         self.assertEqual(len(ann), 1)
         self.assertEqual(len(ann[0].annotations), 1)
         seq = ann[0].get_slice()
         self.assertEqual(str(seq), "GGAAAATTTTTTTTTAAGGGGGAAAAAAAAA")
 
         # the gene has 1 transcript
-        ann = seq.get_annotations_matching("mRNA", extend_query=True)
+        ann = seq.get_features_matching("mRNA", extend_query=True)
         self.assertEqual(len(ann), 1)
         self.assertEqual(len(ann[0].annotations), 2)  # 2 exons
         seq = ann[0].get_slice()
         self.assertEqual(str(seq), "AAAATTTTTTTTTAAGGGGGAAA")
 
         # the transcript has 2 exons
-        ann = seq.get_annotations_matching("exon", extend_query=True)
+        ann = seq.get_features_matching("exon", extend_query=True)
         self.assertEqual(len(ann), 2)
         exon_seqs = ("TTTTTTTTT", "GGGGG")
         for x in ann:

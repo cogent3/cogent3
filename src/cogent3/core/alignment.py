@@ -52,6 +52,7 @@ from numpy.random import choice, permutation, randint
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3.core.annotation import Map, _Annotatable
+from cogent3.core.annotation_db import GenbankAnnotationDb, load_annotations
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
@@ -509,6 +510,19 @@ class _SequenceCollectionBase:
         self._set_additional_attributes(curr_seqs)
 
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
+        self._annotation_db = None
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -1588,8 +1602,7 @@ class _SequenceCollectionBase:
 
     def to_dna(self):
         """returns copy of self as an alignment of DNA moltype seqs"""
-        make_seq = cogent3.DNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("dna") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.DNA, name=self.name, info=self.info
         )
@@ -1599,8 +1612,7 @@ class _SequenceCollectionBase:
 
     def to_rna(self):
         """returns copy of self as an alignment of RNA moltype seqs"""
-        make_seq = cogent3.RNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("rna") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.RNA, name=self.name, info=self.info
         )
@@ -1610,8 +1622,7 @@ class _SequenceCollectionBase:
 
     def to_protein(self):
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
-        make_seq = cogent3.PROTEIN.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
+        data = [s.to_moltype("protein") for s in self.seqs]
         new = self.__class__(
             data=data, moltype=cogent3.PROTEIN, name=self.name, info=self.info
         )
@@ -1630,7 +1641,7 @@ class _SequenceCollectionBase:
         return rc
 
     def reverse_complement(self):
-        """Returns the reverse complement alignment. A synonymn for rc."""
+        """Returns the reverse complement alignment. A synonym for rc."""
         return self.rc()
 
     def pad_seqs(self, pad_length=None, **kwargs):
@@ -1999,30 +2010,29 @@ class SequenceCollection(_SequenceCollectionBase):
             if name in self.named_seqs:
                 self.named_seqs[name].copy_annotations(seq)
 
-    def annotate_from_gff(self, f):
-        """Copies annotations from gff-format file to self.
+    def annotate_from_gff(self, f: os.PathLike, seq_ids: [str]):
+        """copies annotations from a gff file to a sequence in self
 
-        Matches by name of sequence. This method accepts string path
-        or pathlib.Path or file-like object (e.g. StringIO)
+        Parameters
+        ----------
+        f : path to gff annotation file.
+        seq_name : names of seqs to be annotated.
+        does not support setting offset, set offset directly on sequences with seq.annotation_offset = offset
 
-        Skips sequences in the file that are not in self.
         """
+        if isinstance(seq_ids, str):
+            seq_ids = [seq_ids]
 
-        seq_dict = {}
+        if self.annotation_db is None:
+            self.annotation_db = load_annotations(f, seq_ids)
+        elif isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
+        else:
+            self.annotation_db = load_annotations(f, seq_ids, db=self.annotation_db._db)
 
-        for gff_dict in gff_parser(f):
-            if gff_dict["SeqID"] not in self.named_seqs:
-                continue
-            seq_id = gff_dict["SeqID"]
-            if seq_id not in seq_dict.keys():
-                seq_dict[seq_id] = [gff_dict]
-                continue
-            seq_dict[seq_id].append(gff_dict)
-        for seq_id in seq_dict.keys():
-            seq = self.named_seqs[seq_id]
-            if not hasattr(seq, "annotations"):
-                seq = seq.data
-            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed=True)
+        # add reference to this annotation_db on each sequence that was provided in seq_ids
+        for seq in seq_ids:
+            self.get_seq(seq).annotation_db = self.annotation_db
 
 
 @total_ordering
@@ -2179,8 +2189,24 @@ class Aligned(object):
         return Aligned(map[self.map.inverse()].inverse(), self.data)
 
     def get_annotations_matching(self, alignment, annotation_type="*", **kwargs):
-        for annot in self.data.get_annotations_matching(
-            annotation_type=annotation_type, **kwargs
+
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "get_annotations_matching",
+            "get_features_matching",
+            "2023.3",
+        )
+
+        for annot in self.data.get_features_matching(
+            feature_type=annotation_type, **kwargs
+        ):
+            yield annot.remapped_to(alignment, self.map.inverse())
+
+    def get_features_matching(self, alignment, annotation_type="*", **kwargs):
+        for annot in self.data.get_features_matching(
+            feature_type=annotation_type, **kwargs
         ):
             yield annot.remapped_to(alignment, self.map.inverse())
 
@@ -2313,12 +2339,12 @@ class AlignmentI(object):
             col_lookup = dict.fromkeys(cols)
             for name, seq in list(self.named_seqs.items()):
                 result[name] = make_seq(
-                    [seq[i] for i in range(len(seq)) if i not in col_lookup]
+                    [str(seq[i]) for i in range(len(seq)) if i not in col_lookup]
                 )
         # otherwise, just get the requested indices
         else:
             for name, seq in list(self.named_seqs.items()):
-                result[name] = make_seq([seq[i] for i in cols])
+                result[name] = make_seq("".join(str(seq[i]) for i in cols))
         return self.__class__(result, names=self.names, info=self.info)
 
     def get_position_indices(self, f, native=False, negate=False):
@@ -4389,11 +4415,24 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(self._seq_to_aligned(s, n))
         self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
+        self._annotation_db = None
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
 
     def _coerce_seqs(self, seqs, is_array):
-        if not min(
-            [isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for seq in seqs]
-        ):
+        if any(isinstance(seq, ArraySequence) for seq in seqs):
+            seqs = [self.moltype.make_seq(str(seq), name=seq.name) for seq in seqs]
+        elif not any(isinstance(seq, (_Annotatable, Aligned)) for seq in seqs):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
@@ -4403,6 +4442,27 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seq, key, preserve_case=True
         ).parse_out_gaps()
         return Aligned(map, seq)
+
+    def __getitem__(self, index):
+
+        if hasattr(index, "get_slice"):
+            return index.get_slice()
+
+        if isinstance(index, Map):
+            new = self._mapped(index)
+
+        elif isinstance(index, (int, slice)):
+            seqs = [s[index] for s in self.seqs]
+
+            new = self.__class__(seqs, name=self.name, info=self.info)
+
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
+
+        return new
 
     def __repr__(self):
         seqs = []
@@ -4443,12 +4503,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         return annot.remapped_to(target_aligned.data, target_aligned.map)
 
     def get_projected_annotations(self, seq_name, *args):
-        aln_annots = self.get_annotations_matching(*args)
+        aln_annots = self.get_features_matching(*args)
         return [self.project_annotation(seq_name, a) for a in aln_annots]
 
     def get_annotations_from_seq(self, seq_name, annotation_type="*", **kwargs):
         aligned = self.named_seqs[seq_name]
-        return aligned.get_annotations_matching(
+        return aligned.get_features_matching(
             self, annotation_type=annotation_type, **kwargs
         )
 
@@ -4588,7 +4648,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 if g == tgp:
                     combo.append(gap)
                 else:
-                    combo.append(s)
+                    combo.append(str(s))
             result[name] = combo
         return Alignment(result, alphabet=self.alphabet.with_gap_motif())
 

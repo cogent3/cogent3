@@ -10,12 +10,14 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
+
+import contextlib
 import json
+import os
 import re
 import warnings
 
-from collections import defaultdict
-from functools import total_ordering
+from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
 from typing import Generator, List, Tuple
@@ -35,13 +37,17 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Map, _Annotatable
+from cogent3.core.annotation import FeatureNew, Map, _Annotatable
+from cogent3.core.annotation_db import (
+    GenbankAnnotationDb,
+    GffAnnotationDb,
+    load_annotations,
+)
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse import gff
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -774,8 +780,7 @@ class SequenceI(object):
         else:
             name = None
 
-        new_seq = self.__class__(str(self) + other_seq, name=name)
-        return new_seq
+        return self.__class__(str(self) + other_seq, name=name)
 
 
 @total_ordering
@@ -804,37 +809,19 @@ class Sequence(_Annotatable, SequenceI):
 
             check: if True (the default), validates against the MolType
         """
+
         if name is None and hasattr(seq, "name"):
             name = seq.name
         self.name = name
         orig_seq = seq
-        if isinstance(seq, Sequence):
-            seq = str(seq)
-        elif isinstance(seq, ArraySequence):
-            seq = str(seq)
-        elif isinstance(seq, bytes):
-            seq = seq.decode("utf-8")
-        elif not isinstance(seq, str):
-            try:
-                seq = "".join(seq)
-            except TypeError:
-                seq = "".join(map(str, seq))
 
-        seq = self._seq_filter(seq)
+        checker = (
+            (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
+            if check
+            else (lambda x: x)
+        )
 
-        if isinstance(seq, SeqView):
-            if not preserve_case and not str(seq).isupper():
-                seq.seq = seq.seq.upper()
-            self._seq = seq
-
-        elif not preserve_case and not seq.isupper():
-            seq = seq.upper()
-
-        if isinstance(seq, str):
-            self._seq = SeqView(seq)
-
-        if check:
-            self.moltype.verify_sequence(str(self), gaps_allowed, wildcards_allowed)
+        self._seq = _coerce_seq(seq, preserve_case, checker)
 
         if not isinstance(info, InfoClass):
             try:
@@ -842,10 +829,8 @@ class Sequence(_Annotatable, SequenceI):
             except TypeError:
                 info = InfoClass()
         if hasattr(orig_seq, "info"):
-            try:
+            with contextlib.suppress(Exception):
                 info.update(orig_seq.info)
-            except:
-                pass
         self.info = info
 
         if isinstance(orig_seq, _Annotatable):
@@ -853,6 +838,109 @@ class Sequence(_Annotatable, SequenceI):
                 ann.copy_annotations_to(self)
 
         self._repr_policy = dict(num_pos=60)
+
+        self._annotation_db = None
+
+    @property
+    def annotation_offset(self):
+        """
+        The offset between annotation coordinates and sequence coordinates.
+
+        The offset can be used to adjust annotation coordinates to match the position
+        of the given Sequence within a larger genomic context. For example, if the
+        Annotations are with respect to a chromosome, and the sequence represents
+        a gene that is 100 bp from the start of a chromosome, the offset can be set to
+        100 to ensure that the gene's annotations are aligned with the appropriate
+        genomic positions.
+
+
+        Returns:
+            int: The offset between annotation coordinates and sequence coordinates.
+        """
+
+        return self._seq.offset
+
+    @annotation_offset.setter
+    def annotation_offset(self, value):
+        self._seq.offset = value
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
+
+    def get_features_matching(
+        self,
+        feature_type=None,
+        name=None,
+        start=None,
+        stop=None,
+    ):
+        """yield features matching the given conditions"""
+
+        if self._annotation_db is None:
+            return None
+
+        query_start = self._seq.absolute_index(start) if start is not None else None
+        query_end = self._seq.absolute_index(stop) if stop is not None else None
+
+        for feature in self.annotation_db.get_features_matching(
+            seqid=self.name,
+            name=name,
+            biotype=feature_type,
+            start=query_start,
+            end=query_end,
+        ):
+            feature.pop("seqid")  # not required here as provided
+            yield FeatureNew(self, **feature)
+
+    def annotate_from_gff(self, f: os.PathLike, offset=None):
+        """copies annotations from a gff file to self,
+
+        Parameters
+        ----------
+        f : path to gff annotation file.
+        offset : Optional, the offset between annotation coordinates and sequence coordinates.
+
+        """
+        if self.annotation_db is None:
+            self.annotation_db = load_annotations(f, self.name)
+        elif isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
+        else:
+            self.annotation_db = load_annotations(
+                f, self.name, db=self.annotation_db._db
+            )
+
+        if offset:
+            self.annotation_offset = offset
+
+    def add_feature(
+        self,
+        biotype: str,
+        name: str,
+        spans,
+        strand: str = None,
+        on_alignment: bool = False,
+    ):
+        if self.annotation_db is None:
+            self.annotation_db = GffAnnotationDb([])
+
+        self.annotation_db.add_feature(
+            seqid=self.name,
+            biotype=biotype,
+            name=name,
+            spans=spans,
+            strand=strand,
+            on_alignment=on_alignment,
+        )
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
@@ -868,8 +956,11 @@ class Sequence(_Annotatable, SequenceI):
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = get_moltype(moltype)
-        make_seq = moltype.make_seq
-        new = make_seq(self, name=self.name)
+        s = moltype.coerce_str(self._seq.value)
+        moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
+        sv = SeqView(s)
+        new = moltype.make_seq(sv, name=self.name, info=self.info)
+
         new.clear_annotations()
         for ann in self.annotations:
             ann.copy_annotations_to(new)
@@ -900,58 +991,6 @@ class Sequence(_Annotatable, SequenceI):
                 offset += feature.map.start
 
         return offset + start
-
-    def annotate_from_gff(self, f, pre_parsed=False):
-        """annotates a Sequence from a gff file where each entry has the same SeqID"""
-        # only features with parent features included in the 'features' dict
-        gff_contents = f if pre_parsed else gff.gff_parser(f)
-        top_level = defaultdict(list)
-        grouped = defaultdict(list)
-        num_no_id = 0
-        for gff_dict in gff_contents:
-            if gff_dict["SeqID"] != self.name:
-                # we can only handle features for this sequence
-                continue
-
-            id_ = gff_dict["Attributes"]["ID"]
-            parents = gff_dict["Attributes"].get("Parent", None)
-            if parents is None and id_:
-                assert id_ not in top_level, f"non-unique id {id_}"
-                top_level[id_].append(
-                    self.add_feature(
-                        gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                    )
-                )
-            elif parents is None:
-                id_ = f"no-id-{num_no_id}"
-                num_no_id += 1
-                self.add_feature(
-                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                )
-            else:
-                for parent in parents:
-                    grouped[parent].append(gff_dict)
-
-        # we annotate the annotations
-        while grouped:
-            for key, features in top_level.items():
-                child_features = grouped.pop(key, [])
-                if child_features:
-                    break
-
-            for feature in features:
-                feature_start = self._get_feature_start(feature)
-                for gff_dict in child_features:
-                    id_ = gff_dict["Attributes"]["ID"]
-                    b = gff_dict["Start"]
-                    e = gff_dict["End"]
-                    type_ = gff_dict["Type"]
-                    sub_feat = feature.add_feature(
-                        type_,
-                        id_,
-                        [(b - feature_start, e - feature_start)],
-                    )
-                    top_level[gff_dict["Attributes"]["ID"]].append(sub_feat)
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False
@@ -1046,6 +1085,30 @@ class Sequence(_Annotatable, SequenceI):
             seq = str(self)
         return f"{myclass}({seq})"
 
+    def __getitem__(self, index):
+
+        if hasattr(index, "get_slice"):
+            return index.get_slice()
+
+        if isinstance(index, Map):
+            new = self._mapped(index)
+
+        elif isinstance(index, (int, slice)):
+            new = self.__class__(
+                self._seq[index], name=self.name, check=False, info=self.info
+            )
+
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
+
+        return new
+
+    def __iter__(self):
+        yield from iter(str(self))
+
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
         return self.name
@@ -1053,8 +1116,12 @@ class Sequence(_Annotatable, SequenceI):
     def __len__(self):
         return len(self._seq)
 
-    def __iter__(self):
-        return iter(self._seq)
+    def __str__(self):
+        result = str(self._seq)
+        if self._seq.reversed:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
 
     def gettype(self):  # pragma: no cover
         """Return the sequence type."""
@@ -1247,7 +1314,6 @@ class ProteinWithStopSequence(Sequence):
 class NucleicAcidSequence(Sequence):
     """Abstract base class for DNA and RNA sequences."""
 
-    PROTEIN = None  # will set in moltype
     codon_alphabet = None  # will set in moltype
 
     def reverse_complement(self):
@@ -1257,9 +1323,12 @@ class NucleicAcidSequence(Sequence):
 
     def rc(self):
         """Converts a nucleic acid sequence to its reverse complement."""
-        complement = self.moltype.rc(self)
-        rc = self.__class__(complement, name=self.name, info=self.info)
-        self._annotations_nucleic_reversed_on(rc)
+        rc = self.__class__(
+            self._seq[::-1], name=self.name, check=False, info=self.info
+        )
+        if self.annotation_db is not None:
+            rc.annotation_db = self.annotation_db
+        rc._seq = self._seq[::-1]
         return rc
 
     def has_terminal_stop(self, gc=None, allow_partial=False):
@@ -1310,7 +1379,7 @@ class NucleicAcidSequence(Sequence):
 
         return self.__class__(codons, name=self.name, info=self.info)
 
-    def get_translation(self, gc=None, incomplete_ok=False):
+    def get_translation(self, gc=None, incomplete_ok=False, include_stop=False):
         """translate to amino acid sequence
 
         Parameters
@@ -1326,7 +1395,7 @@ class NucleicAcidSequence(Sequence):
         sequence of PROTEIN moltype
         """
         gc = get_code(gc)
-        codon_alphabet = self.codon_alphabet(gc).with_gap_motif()
+        codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
         for posn in range(0, len(self._seq) - 2, 3):
@@ -1380,11 +1449,11 @@ class NucleicAcidSequence(Sequence):
 
     def to_rna(self):
         """Returns copy of self as RNA."""
-        return RnaSequence(self)
+        return self.to_moltype("rna")
 
     def to_dna(self):
         """Returns copy of self as DNA."""
-        return DnaSequence(self)
+        return self.to_moltype("dna")
 
     def strand_symmetry(self, motif_length=1):
         """returns G-test for strand symmetry"""
@@ -1455,7 +1524,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step")
+    __slots__ = ("seq", "start", "stop", "step", "offset")
 
     def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
         if step == 0:
@@ -1467,7 +1536,21 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
+        self.offset = None
         self.step = step
+
+    @property
+    def reversed(self):
+        return self.step < 0
+
+    def absolute_index(self, value):
+        # note: this is the positive/positive case...
+
+        if self.start + value > self.stop:
+            raise IndexError("Index out of bounds")
+
+        offset = self.start if self.offset is None else self.offset + self.start
+        return offset + (value * self.step)
 
     def _get_index(self, val):
         if len(self) == 0:
@@ -2283,3 +2366,54 @@ class ArrayProteinSequence(ArraySequence):
 class ArrayProteinWithStopSequence(ArraySequence):
     moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
     alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.degen_gapped in moltype.py
+
+
+@singledispatch
+def _coerce_seq(data, preserve_case, checker):
+    from cogent3.core.alignment import Aligned
+
+    if isinstance(data, Aligned):
+        return _coerce_seq(str(data), preserve_case, checker)
+    raise NotImplementedError(f"{type(data)}")
+
+
+@_coerce_seq.register
+def _(data: SeqView, preserve_case, checker):
+    return data
+
+
+@_coerce_seq.register
+def _(data: Sequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: ArraySequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: str, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    checker(data)
+    return SeqView(data)
+
+
+@_coerce_seq.register
+def _(data: bytes, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    data = data.decode("utf8")
+    checker(data)
+    return SeqView(data)
+
+
+@_coerce_seq.register
+def _(data: tuple, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: list, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)
