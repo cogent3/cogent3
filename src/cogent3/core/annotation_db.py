@@ -732,7 +732,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
             # we create the location data directly
             if location := record.get("location", None):
                 store["spans"] = numpy.array(
-                    sorted([sorted((s.first(), s.last())) for s in location]), dtype=int
+                    sorted([sorted((s.start, s.stop)) for s in location]), dtype=int
                 )
                 if strand := location.strand:
                     store["strand"] = strand
