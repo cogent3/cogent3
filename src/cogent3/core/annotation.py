@@ -3,6 +3,7 @@ import json
 
 from collections import defaultdict
 from fnmatch import fnmatch
+from typing import Optional
 
 import numpy
 
@@ -118,12 +119,9 @@ class _AnnotationMixin:
         return drawer
 
 
-class _Annotatable(_AnnotationMixin):
-    # default
-    annotations = ()
-
-    # Subclasses should provide __init__, getOwnTracks, and a _mapped for use by
-    # __getitem__
+class _AnnotationCore:
+    """core methods for annotation handling, used by both new and old
+    style features"""
 
     def _sliced_annotations(self, new, slice):
         result = []
@@ -145,15 +143,6 @@ class _Annotatable(_AnnotationMixin):
                         annot = annot.remapped_to(new, newmap)
                         if annot.map.useful:
                             result.append(annot)
-        return result
-
-    def _shifted_annotations(self, new, shift):
-        result = []
-        if self.annotations:
-            newmap = Map([(shift, shift + len(self))], parent_length=len(new))
-            for annot in self.annotations:
-                annot = annot.remapped_to(new, newmap)
-                result.append(annot)
         return result
 
     def _as_map(self, index):
@@ -192,6 +181,66 @@ class _Annotatable(_AnnotationMixin):
 
     def _mapped(self, map):
         raise NotImplementedError
+
+    def get_region_covering_all(
+        self, annotations, feature_class=None, extend_query=False
+    ):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.get_region_covering_all",
+                "_Annotatable.get_region_covering_all",
+                " 2023.3",
+                "method .get_region_covering_all will be discontinued for Sequence objects",
+            )
+
+        if extend_query:
+            annotations = [annot._projected_to_base(self) for annot in annotations]
+        spans = []
+        annotation_types = []
+        for annot in annotations:
+            spans.extend(annot.map.spans)
+            if annot.type not in annotation_types:
+                annotation_types.append(annot.type)
+        map = Map(spans=spans, parent_length=len(self))
+        map = map.covered()  # No overlaps
+        name = ",".join(annotation_types)
+
+        if feature_class is None:
+            feature_class = _Feature
+
+        return feature_class(self, map, type="region", name=name)
+
+    def _annotations_nucleic_reversed_on(self, new):
+        """applies self.annotations to new with coordinates adjusted for
+        reverse complement."""
+        assert len(new) == len(self)
+        annotations = []
+        for annot in self.annotations:
+            new_map = annot.map.nucleic_reversed()
+            annotations.append(annot.__class__(new, new_map, annot))
+        new.attach_annotations(annotations)
+
+
+class _Annotatable(_AnnotationCore, _AnnotationMixin):
+    # default
+    annotations = ()
+
+    # Subclasses should provide __init__, getOwnTracks, and a _mapped for use by
+    # __getitem__
+
+    def _shifted_annotations(self, new, shift):
+        result = []
+        if self.annotations:
+            newmap = Map([(shift, shift + len(self))], parent_length=len(new))
+            for annot in self.annotations:
+                annot = annot.remapped_to(new, newmap)
+                result.append(annot)
+        return result
 
     def add_annotation(self, klass, *args, **kw):
         from cogent3.core.sequence import Sequence
@@ -313,39 +362,6 @@ class _Annotatable(_AnnotationMixin):
                 )
         return result
 
-    def get_region_covering_all(
-        self, annotations, feature_class=None, extend_query=False
-    ):
-        from cogent3.core.sequence import Sequence
-
-        if isinstance(self, Sequence):
-            from cogent3.util.warning import deprecated
-
-            deprecated(
-                "method",
-                "Sequence.get_region_covering_all",
-                "_Annotatable.get_region_covering_all",
-                " 2023.3",
-                "method .get_region_covering_all will be discontinued for Sequence objects",
-            )
-
-        if extend_query:
-            annotations = [annot._projected_to_base(self) for annot in annotations]
-        spans = []
-        annotation_types = []
-        for annot in annotations:
-            spans.extend(annot.map.spans)
-            if annot.type not in annotation_types:
-                annotation_types.append(annot.type)
-        map = Map(spans=spans, parent_length=len(self))
-        map = map.covered()  # No overlaps
-        name = ",".join(annotation_types)
-
-        if feature_class is None:
-            feature_class = _Feature
-
-        return feature_class(self, map, type="region", name=name)
-
     def get_by_annotation(self, annotation_type, name=None, ignore_partial=False):
         """yields the sequence segments corresponding to the specified
         annotation_type and name one at a time.
@@ -380,16 +396,6 @@ class _Annotatable(_AnnotationMixin):
             seq.info["name"] = annotation.name
             yield seq
 
-    def _annotations_nucleic_reversed_on(self, new):
-        """applies self.annotations to new with coordinates adjusted for
-        reverse complement."""
-        assert len(new) == len(self)
-        annotations = []
-        for annot in self.annotations:
-            new_map = annot.map.nucleic_reversed()
-            annotations.append(annot.__class__(new, new_map, annot))
-        new.attach_annotations(annotations)
-
     def _projected_to_base(self, base):
         raise NotImplementedError
 
@@ -423,6 +429,96 @@ class _Serialisable:
         return json.dumps(self.to_rich_dict())
 
 
+class Annotation(_AnnotationCore, _Serialisable):
+    """new style annotation, created on demand"""
+
+    __slots__ = "parent", "map", "biotype", "name", "_serialisable", "base", "base_map"
+
+    # todo implement a __new__ to trap args for serialisation purposes
+    def __init__(self, parent, map: Map, biotype: str, name: str):
+        d = locals()
+        exclude = ("self", "__class__", "kw")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
+        self.biotype = biotype
+        self.name = name
+        self.parent = parent
+        if isinstance(map, Map):
+            assert map.parent_length == len(parent), (map, len(parent))
+        else:
+            map = Map(locations=map, parent_length=len(parent))
+
+        self.map = map
+
+    def get_drawable(self):
+        """returns plotly trace"""
+        from cogent3.draw.drawable import make_shape
+
+        return make_shape(type_=self)
+
+    def _mapped(self, slicemap):
+        name = f"{repr(slicemap)} of {self.name}"
+        return self.__class__(
+            parent=self.parent, map=slicemap, biotype=self.biotype, name=name
+        )
+
+    def get_slice(self, complete=True):
+        """The corresponding sequence fragment.  If 'complete' is true
+        and the full length of this feature is not present in the sequence
+        then this method will fail."""
+        map = self.map
+        if not (complete or map.complete):
+            map = map.without_gaps()
+        return self.parent[map]
+
+    def without_lost_spans(self):
+        """Keeps only the parts which are actually present in the underlying sequence"""
+        if self.map.complete:
+            return self
+        keep = self.map.nongap()
+        return self.__class__(
+            self.parent, self.map[keep], biotype=self.biotype, name=self.name
+        )
+
+    def as_one_span(self):
+        new_map = self.map.get_covering_span()
+        return self.__class__(
+            self.parent, new_map, biotype=self.biotype, name=f"one-span {self.name}"
+        )
+
+    def get_shadow(self):
+        return self.__class__(
+            self.parent, self.map.shadow(), type="region", name=f"not {self.name}"
+        )
+
+    def __len__(self):
+        return len(self.map)
+
+    def __repr__(self):
+        name = f' "{self.name}"'
+        return f"{self.biotype}{name} at {self.map}"
+
+    def _projected_to_base(self, base):
+        if self.parent == base:
+            return self.__class__(base, self.map)
+        return self.remapped_to(base, self.parent._projected_to_base(base).map)
+
+    def remapped_to(self, grandparent, gmap):
+        map = gmap[self.map]
+        return self.__class__(grandparent, map, biotype=self.biotype, name=self.name)
+
+    def get_coordinates(self):
+        """returns sequence coordinates of this Feature as
+        [(start1, end1), ...]"""
+        return self.map.get_coordinates()
+
+    def get_children(self, biotype: Optional[str] = None):
+        """generator returns sub-features of self optionally matching biotype"""
+        make_feature = self.parent.make_feature
+        db = self.parent.annotation_db
+        for child in db.get_feature_children(biotype=biotype, name=self.name):
+            yield make_feature(child)
+
+
 class FeatureNew(_AnnotationMixin, _Serialisable):
     def __init__(self, parent, biotype, name, spans, reversed):
         self.parent = parent
@@ -431,6 +527,28 @@ class FeatureNew(_AnnotationMixin, _Serialisable):
         self.reversed = reversed
         self.map = Map(locations=spans, parent_length=len(parent))
 
+    # remapped_to takes an alignment and the "inverted" Aligned map and returns a new instance of self
+    def from_seq_to_align(self, aln, aligned):
+        """transfer instance into aln through alignment coords
+
+        Parameters
+        ----------
+        aln : Alignment
+            self should be bound to an Aligned member of obj
+        """
+        assert len(self.parent) == len(aln)
+        # the Map.inverse() method transforms the seq coords into alignment
+        # coords, returning a new Map which can itself be sliced
+        mapp = aligned.map.inverse()
+        new_map = mapp[self.map]
+        return self.__class__(
+            aln,
+            biotype=self.biotype,
+            name=self.name,
+            spans=new_map.get_coordinates(),
+            reversed=self.reversed,
+        )
+
     def get_slice(self):
         # feature maps and spans are always oriented with respect to the + stand sequence, this means
         # that when we really do need to be grabbing out the - strand sequence, that the features need to be
@@ -438,6 +556,7 @@ class FeatureNew(_AnnotationMixin, _Serialisable):
 
         # todo: need to cope with cases where span is a lostSpan...
 
+        # separation of concerns issue, this prevents slicing using an alignment
         parent_reversed = self.parent._seq.reversed
         feature_reversed = self.reversed
 
@@ -470,7 +589,7 @@ class FeatureNew(_AnnotationMixin, _Serialisable):
         for child in self.parent.annotation_db.get_feature_children(
             biotype=biotype, name=self.name
         ):
-            yield FeatureNew(self.parent, **child)
+            yield Annotation(self.parent, **child)
 
     def __len__(self):
         return len(self.map)
@@ -697,3 +816,7 @@ def SimpleVariable(parent, type, name, data):
     assert len(data) == len(parent), (len(data), len(parent))
     map = Map([(0, len(data))], parent_length=len(parent))
     return _SimpleVariable(parent, map, type=type, name=name, data=data)
+
+
+def make_annotation_for_seq(seq, feature):
+    ...

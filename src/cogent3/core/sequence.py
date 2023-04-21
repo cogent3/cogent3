@@ -20,7 +20,7 @@ import warnings
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Tuple
+from typing import Generator, List, Optional, Tuple, Union
 
 from numpy import (
     arange,
@@ -37,8 +37,9 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import FeatureNew, Map, _Annotatable
+from cogent3.core.annotation import Annotation, Map, _Annotatable
 from cogent3.core.annotation_db import (
+    FeatureDataType,
     GenbankAnnotationDb,
     GffAnnotationDb,
     load_annotations,
@@ -56,7 +57,7 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import deprecated
+from cogent3.util.warning import deprecated, deprecated_args
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -876,20 +877,40 @@ class Sequence(_Annotatable, SequenceI):
             raise TypeError
         self._annotation_db = value
 
+    # todo deprecate feature_type for biotype
     def get_features_matching(
         self,
-        feature_type=None,
-        name=None,
-        start=None,
-        stop=None,
+        feature_type: Optional[str] = None,
+        name: Optional[str] = None,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
     ):
-        """yield features matching the given conditions"""
+        """yields Annotation instances
+
+        Parameters
+        ----------
+        feature_type
+            biotype of the feature
+        name
+            name of the feature
+        start, end
+            start, end positions to search between, relative to offset
+            of this sequence. If not provided, entire span of sequence is used.
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
 
         if self._annotation_db is None:
             return None
 
         query_start = self._seq.absolute_index(start) if start is not None else None
         query_end = self._seq.absolute_index(stop) if stop is not None else None
+
+        seq_rced = self._seq.reversed
 
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
@@ -898,8 +919,45 @@ class Sequence(_Annotatable, SequenceI):
             start=query_start,
             end=query_end,
         ):
-            feature.pop("seqid")  # not required here as provided
-            yield FeatureNew(self, **feature)
+            yield self.make_feature(feature)
+
+    def make_feature(self, feature: FeatureDataType) -> Annotation:
+        """
+        return an Annotation instance from feature data
+
+        Parameters
+        ----------
+        feature
+            dict of key data to make a Annotation instance
+
+        Notes
+        -----
+        Unlike add_feature(), this method does not add the feature to the
+        database.
+        """
+        feature = dict(feature)
+        seq_rced = self._seq.reversed
+        feature.pop("seqid", None)  # not required here as provided
+        revd = feature.pop("reversed", None)
+        spans = feature.pop("spans", None)
+        fmap = Map(locations=spans, parent_length=len(self))
+        if revd and not seq_rced:
+            # the sequence is on the plus strand, and the
+            # feature coordinates are also for the plus strand
+            # but their order needs to be changed to indicate
+            # reverse complement is required
+            fmap = fmap.reversed()
+        elif seq_rced and not revd:
+            # plus strand feature, but the sequence reverse complemented
+            # so we need to nucleic-reverse the map
+            fmap = fmap.nucleic_reversed()
+        elif seq_rced:
+            # sequence is rc'ed, the feature was minus strand of
+            # original, so needs to be both nucleic reversed and
+            # then reversed
+            fmap = fmap.nucleic_reversed().reversed()
+
+        return Annotation(self, fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
         """copies annotations from a gff file to self,
@@ -1051,7 +1109,7 @@ class Sequence(_Annotatable, SequenceI):
                 else:
                     raise ValueError(f"gap(s) in map {map}")
             else:
-                seg = str(self._seq[span.start : span.end])
+                seg = str(self[span.start : span.end])
                 if span.reverse:
                     complement = self.moltype.complement
                     seg = [complement(base) for base in seg[::-1]]
@@ -1080,15 +1138,15 @@ class Sequence(_Annotatable, SequenceI):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = f"{str(self._seq[:7])}... {len(self)}"
+            seq = f"{str(self[:7])}... {len(self)}"
         else:
             seq = str(self)
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
-
-        if hasattr(index, "get_slice"):
-            return index.get_slice()
+        # todo gah check this omission
+        # if hasattr(index, "get_slice"):
+        #     return index.get_slice()
 
         if isinstance(index, Map):
             new = self._mapped(index)
@@ -1545,7 +1603,7 @@ class SeqView:
 
     def absolute_index(self, value):
         # note: this is the positive/positive case...
-
+        # todo gah handle reversed
         if self.start + value > self.stop:
             raise IndexError("Index out of bounds")
 

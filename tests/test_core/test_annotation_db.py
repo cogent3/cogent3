@@ -4,12 +4,12 @@ import numpy
 import pytest
 
 from cogent3 import DNA, RNA, SequenceCollection, _Table, load_seq
-from cogent3.core.annotation import FeatureNew
+from cogent3.core.annotation import Annotation
 from cogent3.core.annotation_db import (
     GffAnnotationDb,
     SupportsFeatures,
-    load_annotations,
     _matching_conditions,
+    load_annotations,
 )
 from cogent3.core.sequence import Sequence
 
@@ -210,7 +210,77 @@ def test_get_features_matching_matching_feature(seq, anno_db):
     assert got[0].biotype == "exon"
     assert got[0].name == "exon1"
     assert len(got) == 1
-    assert got[0].reversed == False
+
+
+def test_gav():
+    # gah todo also need to check a slice with stride
+    from cogent3 import make_seq
+    from cogent3.core.annotation import Feature
+
+    #            ++   ++++
+    #              ---    --
+    raw_seq = "AACCTTTGGGGAATTT"
+
+    plus_spans = [(2, 4), (7, 11)]
+    plus_seq = "".join(raw_seq[s:e] for s, e in plus_spans)
+
+    minus_spans = [(4, 7), (11, 13)]
+    minus_seq = "".join(raw_seq[s:e] for s, e in minus_spans)
+    minus_seq = "".join([{"T": "A", "A": "T"}[b] for b in minus_seq[::-1]])
+    seq = make_seq(raw_seq, name="s1", moltype="dna")
+    db = GffAnnotationDb(data=[])
+    db.add_feature(
+        seqid="s1",
+        biotype="cds",
+        name="plus",
+        spans=plus_spans,
+        strand="+",
+        on_alignment=False,
+    )
+    db.add_feature(
+        seqid="s1",
+        biotype="cds",
+        name="minus",
+        spans=minus_spans,
+        strand="-",
+        on_alignment=False,
+    )
+    seq.annotation_db = db
+    plus = list(seq.get_features_matching(name="plus"))[0]
+    assert str(plus.get_slice()) == plus_seq
+    minus = list(seq.get_features_matching(name="minus"))[0]
+    assert str(minus.get_slice()) == minus_seq
+
+    f = Feature(seq, "cds", "minus", reversed([reversed(s) for s in minus_spans]))
+    s = f.get_slice()
+    assert str(s) == minus_seq
+
+    # now reverse complement the sequence
+    rced = seq.rc()
+
+    rced_spans = [(5, 9), (12, 14)]
+    rf = Feature(rced, "cds", "minus", [reversed(s) for s in rced_spans])
+    got = rf.get_slice()
+
+    plus = list(rced.get_features_matching(name="plus"))[0]
+    assert str(plus.get_slice()) == plus_seq
+    minus = list(rced.get_features_matching(name="minus"))[0]
+    print(rf, minus)
+    assert str(minus.get_slice()) == minus_seq
+
+
+def test_gav2():
+    from cogent3 import make_seq
+    from cogent3.core import location as loc
+
+    seq = make_seq("AACCTTTGGGGAATTT", moltype="dna")
+    mmap = loc.Map(locations=[(4, 7), (11, 13)], parent_length=16)
+    expect = seq[mmap.reversed()]
+
+    rcseq = seq.rc()
+    rmap = mmap.nucleic_reversed().reversed()
+    got = rcseq[rmap]
+    assert str(got) == str(expect)
 
 
 def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
@@ -251,7 +321,7 @@ def test_get_features_matching_start_stop(seq):
 
 
 def test_matching_conditions():
-    got, _ = _matching_conditions({'start': 1, 'end': 5}, partial=True)
+    got, _ = _matching_conditions({"start": 1, "end": 5}, partial=True)
     expect = "((start <= 1 AND end > 1) OR (start < 5 AND end >= 5) OR (start <= 1 AND end >= 5))"
     assert got == expect
 
@@ -273,7 +343,7 @@ def test_get_features_matching_start_stop_seqview(seq):
 def test_get_slice():
     """get_slice should return the same as slicing the sequence directly"""
     seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
-    feature_dict = {
+    feature_data = {
         "biotype": "CDS",
         "name": "fake",
         "spans": [
@@ -281,8 +351,7 @@ def test_get_slice():
         ],
         "reversed": False,
     }
-
-    feature = FeatureNew(seq, **feature_dict)
+    feature = seq.make_feature(feature_data)
     got = feature.get_slice()
     assert str(got) == str(seq[5:10])
 

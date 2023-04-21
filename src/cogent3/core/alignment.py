@@ -2010,7 +2010,7 @@ class SequenceCollection(_SequenceCollectionBase):
             if name in self.named_seqs:
                 self.named_seqs[name].copy_annotations(seq)
 
-    def annotate_from_gff(self, f: os.PathLike, seq_ids: [str]):
+    def annotate_from_gff(self, f: os.PathLike, seq_ids: list[str]):
         """copies annotations from a gff file to a sequence in self
 
         Parameters

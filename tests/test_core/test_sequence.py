@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for Sequence class and its subclasses.
 """
 
@@ -1949,6 +1948,29 @@ def test_seqview_repr():
     assert repr(view) == expected
 
 
-# run if called from command-line
-if __name__ == "__main__":
-    main()
+@pytest.fixture(scope="session")
+def one_seq():
+    from cogent3 import make_seq
+
+    return make_seq("AACCTGGAACC", moltype="dna")
+
+
+@pytest.mark.parametrize("rc", (False, True))
+def test_seq_repr(one_seq, rc):
+    pat = re.compile("[ACGT]+")
+    dna = one_seq.moltype
+    if rc:
+        expect = dna.rc(str(one_seq))
+        seq = one_seq.rc()
+    else:
+        expect = str(one_seq)
+        seq = one_seq
+
+    got = pat.findall(repr(seq))[0]
+    assert expect.startswith(got), (expect, got)
+
+
+def test_gav3():
+    raise NotImplementedError(
+        "check annotations get correct sequence when there's a stride"
+    )
