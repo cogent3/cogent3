@@ -9,6 +9,7 @@ from cogent3.core.annotation_db import (
     GffAnnotationDb,
     SupportsFeatures,
     load_annotations,
+    _matching_conditions,
 )
 from cogent3.core.sequence import Sequence
 
@@ -248,7 +249,13 @@ def test_get_features_matching_start_stop(seq):
     got = list(seq.get_features_matching(start=2, stop=10))
     assert len(got) == 4
 
-@pytest.mark.xfail(reason="discuss with kath")
+
+def test_matching_conditions():
+    got, _ = _matching_conditions({'start': 1, 'end': 5}, partial=True)
+    expect = "((start <= 1 AND end > 1) OR (start < 5 AND end >= 5) OR (start <= 1 AND end >= 5))"
+    assert got == expect
+
+
 def test_get_features_matching_start_stop_seqview(seq):
     """testing that get_features_matching adjusts"""
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
