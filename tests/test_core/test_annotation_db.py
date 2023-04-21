@@ -210,7 +210,6 @@ def test_get_features_matching_matching_feature(seq, anno_db):
     assert got[0].biotype == "exon"
     assert got[0].name == "exon1"
     assert len(got) == 1
-    assert got[0].reversed == False
 
 
 def test_gav():
@@ -344,7 +343,7 @@ def test_get_features_matching_start_stop_seqview(seq):
 def test_get_slice():
     """get_slice should return the same as slicing the sequence directly"""
     seq = Sequence("ATTGTACGCCCCTGA", name="test_seq")
-    feature_dict = {
+    feature_data = {
         "biotype": "CDS",
         "name": "fake",
         "spans": [
@@ -352,8 +351,7 @@ def test_get_slice():
         ],
         "reversed": False,
     }
-
-    feature = Annotation(seq, **feature_dict)
+    feature = seq.make_feature(feature_data)
     got = feature.get_slice()
     assert str(got) == str(seq[5:10])
 

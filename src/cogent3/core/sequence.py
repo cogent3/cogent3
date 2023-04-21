@@ -39,6 +39,7 @@ from numpy.random import permutation
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Annotation, Map, _Annotatable
 from cogent3.core.annotation_db import (
+    FeatureDataType,
     GenbankAnnotationDb,
     GffAnnotationDb,
     load_annotations,
@@ -918,27 +919,45 @@ class Sequence(_Annotatable, SequenceI):
             start=query_start,
             end=query_end,
         ):
-            feature.pop("seqid")  # not required here as provided
-            revd = feature.pop("reversed")
-            spans = feature.pop("spans")
-            fmap = Map(locations=spans, parent_length=len(self))
-            if revd and not seq_rced:
-                # the sequence is on the plus strand, and the
-                # feature coordinates are also for the plus strand
-                # but their order needs to be changed to indicate
-                # reverse complement is required
-                fmap = fmap.reversed()
-            elif seq_rced and not revd:
-                # plus strand feature, but the sequence reverse complemented
-                # so we need to nucleic-reverse the map
-                fmap = fmap.nucleic_reversed()
-            elif seq_rced:
-                # sequence is rc'ed, the feature was minus strand of
-                # original, so needs to be both nucleic reversed and
-                # then reversed
-                fmap = fmap.nucleic_reversed().reversed()
+            yield self.make_feature(feature)
 
-            yield Annotation(self, fmap, **feature)
+    def make_feature(self, feature: FeatureDataType) -> Annotation:
+        """
+        return an Annotation instance from feature data
+
+        Parameters
+        ----------
+        feature
+            dict of key data to make a Annotation instance
+
+        Notes
+        -----
+        Unlike add_feature(), this method does not add the feature to the
+        database.
+        """
+        feature = dict(feature)
+        seq_rced = self._seq.reversed
+        feature.pop("seqid", None)  # not required here as provided
+        revd = feature.pop("reversed", None)
+        spans = feature.pop("spans", None)
+        fmap = Map(locations=spans, parent_length=len(self))
+        if revd and not seq_rced:
+            # the sequence is on the plus strand, and the
+            # feature coordinates are also for the plus strand
+            # but their order needs to be changed to indicate
+            # reverse complement is required
+            fmap = fmap.reversed()
+        elif seq_rced and not revd:
+            # plus strand feature, but the sequence reverse complemented
+            # so we need to nucleic-reverse the map
+            fmap = fmap.nucleic_reversed()
+        elif seq_rced:
+            # sequence is rc'ed, the feature was minus strand of
+            # original, so needs to be both nucleic reversed and
+            # then reversed
+            fmap = fmap.nucleic_reversed().reversed()
+
+        return Annotation(self, fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
         """copies annotations from a gff file to self,

@@ -3,6 +3,7 @@ import json
 
 from collections import defaultdict
 from fnmatch import fnmatch
+from typing import Optional
 
 import numpy
 
@@ -456,7 +457,9 @@ class Annotation(_AnnotationCore, _Serialisable):
 
     def _mapped(self, slicemap):
         name = f"{repr(slicemap)} of {self.name}"
-        return self.__class__(self, slicemap, type="slice", name=name)
+        return self.__class__(
+            parent=self.parent, map=slicemap, biotype=self.biotype, name=name
+        )
 
     def get_slice(self, complete=True):
         """The corresponding sequence fragment.  If 'complete' is true
@@ -508,13 +511,12 @@ class Annotation(_AnnotationCore, _Serialisable):
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
 
-    def get_children(self, biotype=None):
-        for child in self.parent.get_feature_children(biotype=biotype, name=self.name):
-            fmap = Map(
-                locations=child.pop("spans"), parent_length=self.map.parent_length
-            )
-            revd = child.pop("reversed")
-            yield Annotation(self.parent, fmap, **child)
+    def get_children(self, biotype: Optional[str] = None):
+        """generator returns sub-features of self optionally matching biotype"""
+        make_feature = self.parent.make_feature
+        db = self.parent.annotation_db
+        for child in db.get_feature_children(biotype=biotype, name=self.name):
+            yield make_feature(child)
 
 
 class FeatureNew(_AnnotationMixin, _Serialisable):
