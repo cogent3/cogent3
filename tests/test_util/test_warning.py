@@ -1,8 +1,6 @@
 import pickle
 import warnings
 
-from typing import Optional
-
 import pytest
 
 from cogent3.util.warning import deprecated_args, deprecated_callable
@@ -236,10 +234,10 @@ def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn
         "2023.6", "Improved change function", new="changed2", is_discontinued=True
     )
     def changed(a: int, b: int) -> int:
-        return a
+        return a + b
 
     got = changed(x=5, b=3)
-    assert got == 5
+    assert got == 8
     warnings = [warning.message.args[0] for warning in recwarn.list]
     assert any("argument x which will be removed" in warning for warning in warnings)
     assert any("argument b is discontinued" in warning for warning in warnings)
