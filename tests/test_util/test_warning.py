@@ -19,9 +19,9 @@ __status__ = "Production"
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -34,9 +34,9 @@ def test_function_deprecated_args():
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_docstring():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         """This is a test function"""
@@ -49,9 +49,9 @@ def test_function_deprecated_args_docstring():
 def test_function_deprecated_args_warn(kwargs):
     # Example target function to be decorated
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -62,9 +62,9 @@ def test_function_deprecated_args_warn(kwargs):
 
 def test_function_correct_args_do_not_warn():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -78,9 +78,9 @@ def test_function_correct_args_do_not_warn():
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_pickled():
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -98,9 +98,9 @@ class foo:
         self.b = 0
 
     @deprecated_args(
-        [("x", "a"), ("y", "b")],
         version="a future release",
         reason="x and y are not descriptive",
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(self, a: int, b: int):
         """This is a test function"""
@@ -127,7 +127,7 @@ def test_method_deprecated_args_docstring():
 def test_method_deprecated_args_warn(kwargs):
 
     with pytest.deprecated_call():
-        foo().changed(**kwargs)
+        foo().changed(**kwargs)  # pylint: disable=no-value-for-parameter
 
 
 def test_method_correct_args_do_not_warn():
@@ -143,7 +143,7 @@ def test_method_deprecated_args_pickled():
     foo_instance = foo()
     assert foo_instance.a == 0
     assert foo_instance.b == 0
-    foo_instance.changed(x=1, y=2)
+    foo_instance.changed(x=1, y=2)  # pylint: disable=no-value-for-parameter
     assert foo_instance.a == 1
     assert foo_instance.b == 2
 
@@ -224,3 +224,21 @@ def test_method_deprecated_method_pickling(recwarn):
 def test_deprecated_callable_resolves_type(recwarn, func, _type):
     func(2)
     assert _type in recwarn.list[0].message.args[0]
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn):
+    @deprecated_args("2023.6", "x is not descriptive", old_new=[("x", "a")])
+    @deprecated_args("2023.6", "b is no longer required", discontinued=["b"])
+    @deprecated_callable(
+        "2023.6", "Improved change function", new="changed2", is_discontinued=True
+    )
+    def changed(a: int, b: int) -> int:
+        return a + b
+
+    got = changed(x=5, b=3)  # pylint: disable=no-value-for-parameter
+    assert got == 8
+    warnings = [warning.message.args[0] for warning in recwarn.list]
+    assert any("argument x which will be removed" in warning for warning in warnings)
+    assert any("argument b is discontinued" in warning for warning in warnings)
+    assert any("function changed is discontinued" in warning for warning in warnings)
