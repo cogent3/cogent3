@@ -229,7 +229,7 @@ def test_deprecated_callable_resolves_type(recwarn, func, _type):
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn):
     @deprecated_args("2023.6", "x is not descriptive", old_new=[("x", "a")])
-    @deprecated_args("2023.6", "b is no longer required", discontinued="b")
+    @deprecated_args("2023.6", "b is no longer required", discontinued=["b"])
     @deprecated_callable(
         "2023.6", "Improved change function", new="changed2", is_discontinued=True
     )
