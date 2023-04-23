@@ -1,4 +1,5 @@
 import pickle
+from typing import Optional
 import warnings
 
 import pytest
@@ -21,7 +22,7 @@ def test_function_deprecated_args():
     @deprecated_args(
         version="a future release",
         reason="x and y are not descriptive",
-        arguments=[("x", "a"), ("y", "b")],
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -36,7 +37,7 @@ def test_function_deprecated_args_docstring():
     @deprecated_args(
         version="a future release",
         reason="x and y are not descriptive",
-        arguments=[("x", "a"), ("y", "b")],
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         """This is a test function"""
@@ -51,7 +52,7 @@ def test_function_deprecated_args_warn(kwargs):
     @deprecated_args(
         version="a future release",
         reason="x and y are not descriptive",
-        arguments=[("x", "a"), ("y", "b")],
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -64,7 +65,7 @@ def test_function_correct_args_do_not_warn():
     @deprecated_args(
         version="a future release",
         reason="x and y are not descriptive",
-        arguments=[("x", "a"), ("y", "b")],
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -80,7 +81,7 @@ def test_function_deprecated_args_pickled():
     @deprecated_args(
         version="a future release",
         reason="x and y are not descriptive",
-        arguments=[("x", "a"), ("y", "b")],
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(a: int, b: int) -> int:
         return a + b
@@ -100,7 +101,7 @@ class foo:
     @deprecated_args(
         version="a future release",
         reason="x and y are not descriptive",
-        arguments=[("x", "a"), ("y", "b")],
+        old_new=[("x", "a"), ("y", "b")],
     )
     def changed(self, a: int, b: int):
         """This is a test function"""
@@ -228,18 +229,19 @@ def test_deprecated_callable_resolves_type(recwarn, func, _type):
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn):
-    @deprecated_args("2023.6", "x is not descriptive", [("x", "a")])
-    @deprecated_args("2023.6", "y is not descriptive", [("y", "b")])
+    @deprecated_args("2023.6", "x is not descriptive", old_new=[("x", "a")])
+    @deprecated_args("2023.6", "b is no longer required", discontinued="b")
     @deprecated_callable(
-        "2023.6", "Improved change function", [("changed", "changed2")]
+        "2023.6", "Improved change function", new="changed2", is_discontinued=True
     )
     def changed(a: int, b: int) -> int:
-        return a + b
+        return a
 
-    expected = changed(a=5, b=3)
-    got = changed(x=5, y=3)
-    assert got == expected
-    assert 'function changed which will be removed' in recwarn.list[0].message.args[0]
-    assert 'argument x which will be removed' in recwarn.list[1].message.args[0]
-    assert 'argument y which will be removed' in recwarn.list[2].message.args[0]
+    got = changed(x=5,b=3)
+    assert got == 5
+    warnings = [warning.message.args[0] for warning in recwarn.list]
+    assert any('argument x which will be removed' in warning for warning in warnings)
+    assert any('argument b is discontinued' in warning for warning in warnings)
+    assert any('function changed is discontinued' in warning for warning in warnings)
+    
     
