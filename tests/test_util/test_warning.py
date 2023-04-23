@@ -127,7 +127,7 @@ def test_method_deprecated_args_docstring():
 def test_method_deprecated_args_warn(kwargs):
 
     with pytest.deprecated_call():
-        foo().changed(**kwargs) # pylint: disable=no-value-for-parameter
+        foo().changed(**kwargs)  # pylint: disable=no-value-for-parameter
 
 
 def test_method_correct_args_do_not_warn():
@@ -143,7 +143,7 @@ def test_method_deprecated_args_pickled():
     foo_instance = foo()
     assert foo_instance.a == 0
     assert foo_instance.b == 0
-    foo_instance.changed(x=1, y=2) # pylint: disable=no-value-for-parameter
+    foo_instance.changed(x=1, y=2)  # pylint: disable=no-value-for-parameter
     assert foo_instance.a == 1
     assert foo_instance.b == 2
 
