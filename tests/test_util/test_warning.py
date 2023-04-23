@@ -236,7 +236,7 @@ def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn
     def changed(a: int, b: int) -> int:
         return a + b
 
-    got = changed(x=5, b=3)
+    got = changed(x=5, b=3)  # pylint: disable=no-value-for-parameter
     assert got == 8
     warnings = [warning.message.args[0] for warning in recwarn.list]
     assert any("argument x which will be removed" in warning for warning in warnings)
