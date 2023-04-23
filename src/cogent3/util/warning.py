@@ -68,14 +68,15 @@ def discontinued(_type, old, version, reason=None, stack_level=3):
         simplefilter("always")
         _warn(msg, DeprecationWarning, stacklevel=stack_level)
 
-_discontinued = discontinued # renamed to avoid name clash with discontinued argument in deprecated args decorator
+
+_discontinued = discontinued  # renamed to avoid name clash with discontinued argument in deprecated args decorator
+
 
 def deprecated_args(
     version: str,
     reason: str,
     old_new: List[Tuple[str, str]] = None,
     discontinued: str = None,
-
 ) -> Callable[..., Any]:
     """
     A decorator that marks specific arguments of a function as deprecated.

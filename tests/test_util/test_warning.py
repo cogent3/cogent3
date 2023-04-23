@@ -1,6 +1,7 @@
 import pickle
-from typing import Optional
 import warnings
+
+from typing import Optional
 
 import pytest
 
@@ -237,11 +238,9 @@ def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn
     def changed(a: int, b: int) -> int:
         return a
 
-    got = changed(x=5,b=3)
+    got = changed(x=5, b=3)
     assert got == 5
     warnings = [warning.message.args[0] for warning in recwarn.list]
-    assert any('argument x which will be removed' in warning for warning in warnings)
-    assert any('argument b is discontinued' in warning for warning in warnings)
-    assert any('function changed is discontinued' in warning for warning in warnings)
-    
-    
+    assert any("argument x which will be removed" in warning for warning in warnings)
+    assert any("argument b is discontinued" in warning for warning in warnings)
+    assert any("function changed is discontinued" in warning for warning in warnings)
