@@ -2061,7 +2061,7 @@ def test_get_kmers_strict_RNA_gaps():
 
 
 def test_get_kmers_strict_protein_gaps():
-    orig = "CEF_GMN"
+    orig = "CEF-GMN"
     r = ProteinSequence(orig)
 
     assert r.get_kmers(1, strict=True) == ["C", "E", "F", "G", "M", "N"]
@@ -2069,15 +2069,32 @@ def test_get_kmers_strict_protein_gaps():
     assert r.get_kmers(3, strict=True) == ["CEF", "GMN"]
     assert r.get_kmers(4, strict=True) == []
 
-    assert r.get_kmers(1, strict=False) == ["C", "E", "F", "_", "G", "M", "N"]
-    assert r.get_kmers(2, strict=False) == ["CE", "EF", "F_", "_G", "GM", "MN"]
-    assert r.get_kmers(3, strict=False) == ["CEF", "EF_", "F_G", "_GM", "GMN"]
-    assert r.get_kmers(4, strict=False) == ["CEF_", "EF_G", "F_GM", "_GMN"]
-    assert r.get_kmers(5, strict=False) == ["CEF_G", "EF_GM", "F_GMN"]
-    assert r.get_kmers(6, strict=False) == ["CEF_GM", "EF_GMN"]
-    assert r.get_kmers(7, strict=False) == ["CEF_GMN"]
+    assert r.get_kmers(1, strict=False) == ["C", "E", "F", "-", "G", "M", "N"]
+    assert r.get_kmers(2, strict=False) == ["CE", "EF", "F-", "-G", "GM", "MN"]
+    assert r.get_kmers(3, strict=False) == ["CEF", "EF-", "F-G", "-GM", "GMN"]
+    assert r.get_kmers(4, strict=False) == ["CEF-", "EF-G", "F-GM", "-GMN"]
+    assert r.get_kmers(5, strict=False) == ["CEF-G", "EF-GM", "F-GMN"]
+    assert r.get_kmers(6, strict=False) == ["CEF-GM", "EF-GMN"]
+    assert r.get_kmers(7, strict=False) == ["CEF-GMN"]
     assert r.get_kmers(8, strict=False) == []
 
+def test_get_kmers_strict_DNA_RNA_Protein_allgap():
+    orig = "-------"
+
+    r = DnaSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-","-","-","-","-","-","-"]
+
+    r = RnaSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-","-","-","-","-","-","-"]
+
+    r = ProteinSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-","-","-","-","-","-","-"]
+
+
+    
 
 # run if called from command-line
 if __name__ == "__main__":
