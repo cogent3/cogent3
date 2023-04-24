@@ -3394,6 +3394,17 @@ def test_copy_annotations(cls, gff_db):
     assert seq_coll.annotation_db.num_matches() == expect
 
 
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_assign_none(cls, gff_db):
+    """assigning None to annotation_db breaks conection"""
+
+    seq_coll = cls({"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"})
+    seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
+    seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
+    seq_coll.annotation_db = None
+    assert seq_coll.annotation_db is None
+
+
 def test_copy_annotations_incompat_fails(seqcoll_db, gb_db):
     """copy_annotations copies records from annotation db"""
     with pytest.raises(TypeError):
