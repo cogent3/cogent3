@@ -26,13 +26,16 @@ __status__ = "Production"
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def gff_db():
-    paths = (
-        "sample_data/Homo_sapiens.GRCh38.109.chromosome.22.gff3.gz",
-        "data/c_elegans_WS199_shortened_gff.gff3",
-    )
-    return load_annotations(paths[1])
+    path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+    return load_annotations(path)
+
+
+@pytest.fixture(scope="function")
+def gff_small_db():
+    path = DATA_DIR / "simple.gff"
+    return load_annotations(path)
 
 
 @pytest.fixture()
@@ -102,6 +105,20 @@ def test_gff_counts(gff_db):
     assert len(got) > 0
 
 
+def test_gff_num_matches(gff_db):
+    count = gff_db.num_matches()
+    assert count == 11
+    assert gff_db.num_matches(seqid="I") == 11
+    assert gff_db.num_matches(seqid="IV") == 0
+
+
+def test_gb_num_matches(gb_db):
+    count = gb_db.num_matches()
+    assert count == 10  # value from manual count from file
+    assert gb_db.num_matches(seqid="AE017341") == 10
+    assert gb_db.num_matches(seqid="IV") == 0
+
+
 def test_gff_find_user_features(gff_db):
     record = dict(
         seqid="2", name="gene-01", biotype="gene", spans=[(23, 33)], strand="+"
@@ -135,8 +152,7 @@ def test_empty_data():
 # testing GenBank files
 @pytest.fixture(scope="session")
 def gb_db():
-    paths = ("data/annotated_seq.gb",)
-    return load_annotations(paths[0])
+    return load_annotations(DATA_DIR / "annotated_seq.gb")
 
 
 @pytest.mark.parametrize("parent_biotype, name", (("gene", "CNA00110"),))
@@ -485,3 +501,40 @@ def test_sequence_collection_annotate_from_gff():
 
     got = list(seq.get_features_matching(feature_type="CpG"))
     assert len(got) == 1
+
+
+def test_seq_coll_query():
+    """obtain same results when querying from collection as from seq"""
+    seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
+    seq_coll = SequenceCollection(seqs)
+    seq_coll.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
+
+    seq = seq_coll.get_seq("test_seq")
+    # the seq for which the seqid was provided is annotated
+    assert seq.annotation_db is not None
+    expect = list(seq.get_features_matching())
+    got = seq_coll.get_features(seqid="test_seq")
+    # the seq for which the seqid was NOT provided is NOT annotated
+    assert seq_coll.get_seq("test_seq2").annotation_db is None
+    # the annotation_db on the seq and the seq collection are the same object
+    assert seq.annotation_db is seq_coll.annotation_db
+    got = list(seq.get_features_matching(feature_type="CDS"))
+    assert len(got) == 2
+
+    got = list(seq.get_features_matching(feature_type="CpG"))
+    assert len(got) == 1
+
+
+def test_gff_update_existing(gff_db, gff_small_db):
+    expect = gff_db.num_matches() + gff_small_db.num_matches()
+    gff_db.update(gff_small_db)
+    assert gff_db.num_matches() == expect
+
+
+@pytest.mark.parametrize("seqids", (None, "23", [None], ["23"]))
+def test_gff_update_existing_specify_seqid(gff_db, gff_small_db, seqids):
+    expect = gff_db.num_matches() + gff_small_db.num_matches(
+        seqid=seqids[0] if isinstance(seqids, list) else seqids
+    )
+    gff_db.update(gff_small_db, seqids=seqids)
+    assert gff_db.num_matches() == expect

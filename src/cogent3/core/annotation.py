@@ -23,24 +23,8 @@ __status__ = "Production"
 
 
 class _AnnotationMixin:
-    def add_feature(self, biotype, name, spans):
-        feat = Feature(self, biotype, name, spans)
-
-        if feat.parent is not self:
-            raise ValueError("doesn't belong here")
-
-        if feat.attached:
-            raise ValueError("already attached")
-
-        if self.annotations is self.__class__.annotations:
-            self.annotations = []
-
-        self.annotations.extend([feat])
-
-        feat.attached = True
-
-        return feat
-
+    # todo gah add a _anotatable_getitem_()? which can be checked
+    # for to deliver the old behaviour
     def get_features_matching(self, feature_type, name=None, extend_query=False):
         """
 
@@ -233,6 +217,24 @@ class _Annotatable(_AnnotationCore, _AnnotationMixin):
     # Subclasses should provide __init__, getOwnTracks, and a _mapped for use by
     # __getitem__
 
+    def add_feature(self, biotype, name, spans):
+        feat = Feature(self, biotype, name, spans)
+
+        if feat.parent is not self:
+            raise ValueError("doesn't belong here")
+
+        if feat.attached:
+            raise ValueError("already attached")
+
+        if self.annotations is self.__class__.annotations:
+            self.annotations = []
+
+        self.annotations.extend([feat])
+
+        feat.attached = True
+
+        return feat
+
     def _shifted_annotations(self, new, shift):
         result = []
         if self.annotations:
@@ -401,6 +403,8 @@ class _Annotatable(_AnnotationCore, _AnnotationMixin):
 
 
 class _Serialisable:
+    # todo gah will need a version check in util/deserialise to allow transforming
+    # old style annotations to new from json
     def to_rich_dict(self):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         data = copy.deepcopy(self._serialisable)
@@ -429,13 +433,23 @@ class _Serialisable:
         return json.dumps(self.to_rich_dict())
 
 
+# todo gah implement __repr__ and __str__ methods
 class Annotation(_AnnotationCore, _Serialisable):
     """new style annotation, created on demand"""
 
-    __slots__ = "parent", "map", "biotype", "name", "_serialisable", "base", "base_map"
+    __slots__ = (
+        "parent",
+        "seqid",
+        "map",
+        "biotype",
+        "name",
+        "_serialisable",
+        "base",  # todo gah do we need this?
+        "base_map",  # todo gah do we need this?
+    )
 
-    # todo implement a __new__ to trap args for serialisation purposes
-    def __init__(self, parent, map: Map, biotype: str, name: str):
+    # todo gah implement a __new__ to trap args for serialisation purposes?
+    def __init__(self, *, parent, seqid: str, map: Map, biotype: str, name: str):
         d = locals()
         exclude = ("self", "__class__", "kw")
         self._serialisable = {k: v for k, v in d.items() if k not in exclude}
@@ -456,10 +470,13 @@ class Annotation(_AnnotationCore, _Serialisable):
         return make_shape(type_=self)
 
     def _mapped(self, slicemap):
-        name = f"{repr(slicemap)} of {self.name}"
-        return self.__class__(
-            parent=self.parent, map=slicemap, biotype=self.biotype, name=name
-        )
+        # the self._serialisable dict is used for serialisation, so we need to
+        # use a copy to create the new instance
+        kwargs = {
+            **self._serialisable,
+            **{"map": slicemap, "name": f"{repr(slicemap)} of {self.name}"},
+        }
+        return self.__class__(**kwargs)
 
     def get_slice(self, complete=True):
         """The corresponding sequence fragment.  If 'complete' is true
@@ -503,8 +520,11 @@ class Annotation(_AnnotationCore, _Serialisable):
         return self.remapped_to(base, self.parent._projected_to_base(base).map)
 
     def remapped_to(self, grandparent, gmap):
-        map = gmap[self.map]
-        return self.__class__(grandparent, map, biotype=self.biotype, name=self.name)
+        kwargs = {
+            **self._serialisable,
+            **{"map": gmap[self.map], "parent": grandparent},
+        }
+        return self.__class__(**kwargs)
 
     def get_coordinates(self):
         """returns sequence coordinates of this Feature as

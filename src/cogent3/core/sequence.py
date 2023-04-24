@@ -873,7 +873,7 @@ class Sequence(_Annotatable, SequenceI):
     def annotation_db(self, value):
         from cogent3.core.annotation_db import SupportsFeatures
 
-        if not isinstance(value, SupportsFeatures):
+        if value and not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
 
@@ -921,7 +921,7 @@ class Sequence(_Annotatable, SequenceI):
         ):
             yield self.make_feature(feature)
 
-    def make_feature(self, feature: FeatureDataType) -> Annotation:
+    def make_feature(self, feature: FeatureDataType, *args) -> Annotation:
         """
         return an Annotation instance from feature data
 
@@ -938,7 +938,10 @@ class Sequence(_Annotatable, SequenceI):
         feature = dict(feature)
         seq_rced = self._seq.reversed
         feature.pop("seqid", None)  # not required here as provided
-        revd = feature.pop("reversed", None)
+        # todo gah check consistency of relationship between reversed and strand
+        # i.e. which object has responsibility for transforming the strand value
+        # (a string) into a bool?
+        revd = feature.pop("reversed", None) or feature.pop("strand", None) == "-"
         spans = feature.pop("spans", None)
         fmap = Map(locations=spans, parent_length=len(self))
         if revd and not seq_rced:
@@ -957,7 +960,7 @@ class Sequence(_Annotatable, SequenceI):
             # then reversed
             fmap = fmap.nucleic_reversed().reversed()
 
-        return Annotation(self, fmap, **feature)
+        return Annotation(parent=self, seqid=self.name, map=fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
         """copies annotations from a gff file to self,
@@ -982,6 +985,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def add_feature(
         self,
+        *,
         biotype: str,
         name: str,
         spans,
@@ -991,14 +995,13 @@ class Sequence(_Annotatable, SequenceI):
         if self.annotation_db is None:
             self.annotation_db = GffAnnotationDb([])
 
-        self.annotation_db.add_feature(
-            seqid=self.name,
-            biotype=biotype,
-            name=name,
-            spans=spans,
-            strand=strand,
-            on_alignment=on_alignment,
+        feature_data = FeatureDataType(
+            seqid=self.name, **{n: v for n, v in locals().items() if n != "self"}
         )
+
+        self.annotation_db.add_feature(**feature_data)
+        feature_data.pop("on_alignment")
+        return self.make_feature(feature_data)
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
@@ -1033,10 +1036,13 @@ class Sequence(_Annotatable, SequenceI):
 
     def copy(self):
         """returns a copy of self"""
-        new = self.__class__(self._seq, name=self.name, info=self.info)
+        new = self.__class__(self._seq[:], name=self.name, info=self.info)
         if self.is_annotated():
             for annot in self.annotations:
                 annot.copy_annotations_to(new)
+
+        # todo gah revisit copying and how are we handling _seq too
+        new._annotation_db = self._annotation_db
         return new
 
     def _get_feature_start(self, feature):
@@ -1294,7 +1300,8 @@ class Sequence(_Annotatable, SequenceI):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return len(self.annotations) != 0
+        num = self.annotation_db.num_matches() if self.annotation_db else 0
+        return num != 0 or len(self.annotations) != 0
 
     def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
         """Adds an annotation at sequence positions matching pattern.
@@ -1329,7 +1336,9 @@ class Sequence(_Annotatable, SequenceI):
         num_match = len(pos) if allow_multiple else 1
         return [
             self.add_feature(
-                annot_type, f"{name}:{i}" if allow_multiple else name, [pos[i]]
+                biotype=annot_type,
+                name=f"{name}:{i}" if allow_multiple else name,
+                spans=[pos[i]],
             )
             for i in range(num_match)
         ]

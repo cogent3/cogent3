@@ -25,6 +25,7 @@ __status__ = "Production"
 
 OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
+OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
 OptionalBool = typing.Optional[bool]
 ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
 
@@ -80,6 +81,8 @@ class SerialisableType(typing.Protocol):
 class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
     def get_features_matching(
         self,
+        *,
+        seqid: OptionalStr = None,
         biotype: OptionalStr = None,
         name: OptionalStr = None,
         start: OptionalInt = None,
@@ -90,13 +93,23 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
         ...
 
     def get_feature_children(
-        self, name: str, start: OptionalInt = None, end: OptionalInt = None
+        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None
     ) -> typing.List[FeatureDataType]:
         ...
 
     def get_feature_parent(
-        self, name: str, start: OptionalInt = None, end: OptionalInt = None
+        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None
     ) -> typing.List[FeatureDataType]:
+        ...
+
+    def num_matches(
+        self,
+        seqid: OptionalStr = None,
+        biotype: OptionalStr = None,
+        name: OptionalStr = None,
+        strand: OptionalStr = None,
+        on_alignment: OptionalBool = None,
+    ) -> int:
         ...
 
 
@@ -104,21 +117,27 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
     def add_feature(
         self,
-        seqid: str,
+        *,
         biotype: str,
         name: str,
         spans: typing.List[typing.Tuple[int, int]],
-        strand: str = None,
+        seqid: OptionalStr = None,
+        strand: OptionalStr = None,
         on_alignment: bool = False,
     ) -> None:
         ...
 
     def add_records(
         self,
+        *,
         records: typing.Sequence[dict],
         # seqid required for genbank
-        seqid: typing.Optional[str] = None,
+        seqid: OptionalStr = None,
     ) -> None:
+        ...
+
+    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+        # update records with those from an instance of the same type
         ...
 
 
@@ -317,13 +336,53 @@ def _select_records_sql(
     columns = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns} FROM {table_name}"
     if not where:
-        return sql
+        return sql, None
 
     sql = f"{sql} WHERE {where};"
     return sql, vals
 
 
-# todo add support for querying for text within the additional feature,
+def _count_records_sql(
+    table_name: str,
+    conditions: dict,
+    columns: typing.Optional[typing.List[str]] = None,
+    start: OptionalInt = None,
+    end: OptionalInt = None,
+    partial=True,
+) -> ReturnType:
+    """create SQL count statement and values
+
+    Parameters
+    ----------
+    table_name : str
+        containing the data to be selected from
+    columns : Tuple[str]
+        values to select
+    conditions : dict
+        the WHERE conditions
+    start, end : OptionalInt
+        select records whose (start, end) values lie between start and end,
+        or overlap them if (partial is True)
+    partial : bool, optional
+        if False, only records within start, end are included. If True,
+        all records that overlap the segment defined by start, end are included.
+
+    Returns
+    -------
+    str, tuple
+        the SQL statement and the tuple of values
+    """
+
+    where, vals = _matching_conditions(conditions=conditions, partial=partial)
+    sql = f"SELECT COUNT(*) FROM {table_name}"
+    if not where:
+        return sql, None
+
+    sql = f"{sql} WHERE {where};"
+    return sql, vals
+
+
+# todo gah add support for querying for text within the additional feature,
 # for example, add a "attrs_like" argument which users can provide text
 # that will be treated as surrounded by wild-cards
 class SqliteAnnotationDbMixin:
@@ -462,6 +521,23 @@ class SqliteAnnotationDbMixin:
                     reversed=result["strand"] == "-",
                 )
 
+    def num_matches(
+        self,
+        seqid: OptionalStr = None,
+        biotype: OptionalStr = None,
+        name: OptionalStr = None,
+        strand: OptionalStr = None,
+        on_alignment: OptionalBool = None,
+    ) -> int:
+        """return the number of records matching condition"""
+        kwargs = {k: v for k, v in locals().items() if k != "self"}
+        num = 0
+        for table_name in self.table_names:
+            sql, values = _count_records_sql(table_name, conditions=kwargs)
+            result = list(self._execute_sql(sql, values=values).fetchone())[0]
+            num += result
+        return num
+
     @property
     def describe(self) -> Table:
         """top level description of the annotation db"""
@@ -518,19 +594,37 @@ class SqliteAnnotationDbMixin:
         records["type"] = get_object_provenance(self)
         return records
 
+    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+        """update records with those from an instance of the same type"""
+        if not isinstance(annot_db, type(self)):
+            raise TypeError(f"{type(annot_db)} != {type(self)}")
+
+        self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
+
     @classmethod
     def from_dict(cls, data: dict):
-        data.pop("type")
         # make an empty db
-        db = cls([])
+        db = cls(data=[])
+        db._update_db_from_rich_dict(data)
+        return db
+
+    def _update_db_from_rich_dict(self, data: dict, seqids: OptionalStr = None):
+        data.pop("type", None)
+        if isinstance(seqids, str):
+            seqids = {seqids}
+        elif seqids is not None:
+            seqids = set(seqids) - {None}  # make sure None is not part of this!
+
+        # todo gah prevent duplication of existing records
         for table_name, records in data.items():
             for record in records:
+                if seqids and record["seqid"] not in seqids:
+                    continue
                 record["spans"] = numpy.array(record["spans"], dtype=int)
                 sql, vals = _add_record_sql(
                     table_name, {k: v for k, v in record.items() if v is not None}
                 )
-                db._execute_sql(sql, vals)
-        return db
+                self._execute_sql(sql, vals)
 
 
 class GffAnnotationDb(SqliteAnnotationDbMixin):
