@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -594,7 +593,7 @@ class _SequenceCollectionBase:
     def annotation_db(self, value):
         from cogent3.core.annotation_db import SupportsFeatures
 
-        if not isinstance(value, SupportsFeatures):
+        if value and not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
 
@@ -4622,26 +4621,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(self._seq_to_aligned(s, n))
         self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
-
-    @property
-    def annotation_db(self):
-        return self._annotation_db
-
-    @annotation_db.setter
-    def annotation_db(self, value):
-        from cogent3.core.annotation_db import SupportsFeatures
-
-        if not isinstance(value, SupportsFeatures):
-            raise TypeError
-        self._annotation_db = value
-
-    @annotation_db.setter
-    def annotation_db(self, value):
-        from cogent3.core.annotation_db import SupportsFeatures
-
-        if not isinstance(value, SupportsFeatures):
-            raise TypeError
-        self._annotation_db = value
 
     def _coerce_seqs(self, seqs, is_array):
         if any(isinstance(seq, ArraySequence) for seq in seqs):
