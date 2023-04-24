@@ -1992,7 +1992,7 @@ def test_get_kmers_strict():
     assert r.get_kmers(1,strict=False) == ["T", "C", "A", "G", "G", "A", "?"]
     assert r.get_kmers(2,strict=False) == ["TC", "CA", "AG", "GG", "GA", "A?"]
     assert r.get_kmers(3,strict=False) == ["TCA", "CAG", "AGG", "GGA", "GA?"]
-    # assert r.get_kmers(4,strict=False) == ["TCAG", "CAGG", "AGGA", "GA?"]
+    assert r.get_kmers(4,strict=False) == ["TCAG", "CAGG", "AGGA", "GGA?"]
     assert r.get_kmers(5,strict=False) == ["TCAGG", "CAGGA", "AGGA?"]
     assert r.get_kmers(6,strict=False) == ["TCAGGA", "CAGGA?"]
     assert r.get_kmers(7,strict=False) == ["TCAGGA?"]
