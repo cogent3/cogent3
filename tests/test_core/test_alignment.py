@@ -16,6 +16,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import (
     load_aligned_seqs,
+    load_seq,
     load_unaligned_seqs,
     make_aligned_seqs,
     make_seq,
@@ -923,33 +924,6 @@ class SequenceCollectionBaseTests(object):
             aln_seq_3 = aln.get_seq("seq3")
             matches = [m for m in aln_seq_3.get_features_matching("*")]
             self.assertFalse("-" in matches[0].get_slice())
-
-    def test_annotate_from_gff3(self):
-        """annotate_from_gff should work on data from gff3 files"""
-        from cogent3.parse.fasta import FastaParser
-
-        if self.Class == ArrayAlignment:
-            return
-
-        fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-        name, seq = next(FastaParser(fasta_path))
-
-        # using annotate_from_gff will nest annotations
-        aln = self.Class({name: seq})
-        aln.annotate_from_gff(gff3_path)
-        aln_seq = aln.named_seqs[name]
-        if not hasattr(aln_seq, "annotations"):
-            aln_seq = aln_seq.data
-        matches = [m for m in aln_seq.get_features_matching("*", extend_query=True)]
-        # 13 features with one having 2 parents, so 14 instances should be found
-        self.assertEqual(len(matches), 14)
-        matches = [m for m in aln_seq.get_features_matching("gene")]
-        self.assertEqual(len(matches), 1)
-        matches = matches[0].get_features_matching("mRNA")
-        self.assertEqual(len(matches), 1)
-        matches = matches[0].get_features_matching("exon")
-        self.assertEqual(len(matches), 3)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
@@ -3398,6 +3372,24 @@ def test_to_dna_raises():
         seq.to_moltype("dna")
 
 
-# run tests if invoked from command line
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_annotate_from_gff3(cls):
+    """annotate_from_gff should work on data from gff3 files"""
+    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+    seq = load_seq(fasta_path, moltype="dna")
+
+    # using annotate_from_gff will nest annotations
+    seq_coll = cls({seq.name: seq})
+    seq_coll.annotate_from_gff(gff3_path)
+    member_seq = seq_coll.get_seq(seq.name)
+
+    matches = list(member_seq.get_features_matching())
+    # 11 features
+    assert len(matches) == 11
+    matches = list(member_seq.get_features_matching(feature_type="gene"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="mRNA"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="exon"))
+    assert len(matches) == 3

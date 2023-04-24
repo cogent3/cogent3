@@ -1,17 +1,19 @@
 """Unit tests for Sequence class and its subclasses.
 """
-
 import json
 import os
+import pathlib
 import re
 
 from pickle import dumps
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
+
+import cogent3
 
 from cogent3.core.annotation import Feature, SimpleVariable, Variable
 from cogent3.core.moltype import (
@@ -49,6 +51,8 @@ __version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+DATADIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 class SequenceTests(TestCase):
@@ -92,11 +96,15 @@ class SequenceTests(TestCase):
     def test_copy(self):
         """correctly returns a copy version of self"""
         s = Sequence("TTTTTTTTTTAAAA", name="test_copy")
-        annot1 = s.add_feature("exon", "annot1", [(0, 10)])
-        annot2 = s.add_feature("exon", "annot2", [(10, 14)])
+        annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
+        annot2 = s.add_feature(biotype="exon", name="annot2", spans=[(10, 14)])
         got = s.copy()
-        got_annot1 = got.get_features_matching(feature_type="exon", name="annot1")[0]
-        got_annot2 = got.get_features_matching(feature_type="exon", name="annot2")[0]
+        got_annot1 = list(
+            got.get_features_matching(feature_type="exon", name="annot1")
+        )[0]
+        got_annot2 = list(
+            got.get_features_matching(feature_type="exon", name="annot2")
+        )[0]
         self.assertIsNot(got, s)
         self.assertIsNot(got_annot1, annot1)
         self.assertIsNot(got_annot2, annot2)
@@ -106,8 +114,8 @@ class SequenceTests(TestCase):
         self.assertEqual(got.moltype, s.moltype)
         annot1_slice = str(annot1.get_slice())
         annot2_slice = str(annot2.get_slice())
-        got1_slice = str(got.annotations[0].get_slice())
-        got2_slice = str(got.annotations[1].get_slice())
+        got1_slice = str(got_annot1.get_slice())
+        got2_slice = str(got_annot2.get_slice())
         self.assertEqual(annot1_slice, got1_slice)
         self.assertEqual(annot2_slice, got2_slice)
 
@@ -224,20 +232,6 @@ class SequenceTests(TestCase):
         with self.assertRaises(ValueError):
             s.to_moltype("")
 
-    def test_annotate_from_gff(self):
-        """correctly annotates a Sequence from a gff file"""
-        from cogent3.parse.fasta import FastaParser
-
-        fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-        name, seq = next(FastaParser(fasta_path))
-
-        sequence = Sequence(seq)
-        sequence.annotate_from_gff(gff3_path)
-        matches = [m for m in sequence.get_features_matching()]
-        # 13 features with one having 2 parents, so 14 instances should be found
-        self.assertEqual(len(matches), 14)
-
     @pytest.mark.xfail(
         reason="todo: annotate_from_gff needs to be using bound annotation_db"
     )
@@ -255,7 +249,7 @@ class SequenceTests(TestCase):
         #                       *****     exon
         # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
         seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
-        gff3_path = os.path.join("data/ensembl_sample.gff3")
+        gff3_path = DATADIR / "ensembl_sample.gff3"
         seq.annotate_from_gff(gff3_path)
         # we have 1 "full chromosome" annotation, 3 generic regions and 1 gene
         self.assertEqual(len(seq.annotations), 5)
@@ -970,13 +964,10 @@ class SequenceTests(TestCase):
 
     def test_is_annotated(self):
         """is_annotated operates correctly"""
-        from cogent3.core.annotation import _Annotatable
-
         s = self.SEQ("ACGGCTGAAGCGCTCCGGGTTTAAAACG")
-        annotatable = isinstance(s, _Annotatable)
-        if annotatable:
+        if hasattr(s, "annotation_db"):
             self.assertFalse(s.is_annotated())
-            _ = s.add_feature("gene", "blah", [(0, 10)])
+            _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
             self.assertTrue(s.is_annotated())
         else:
             with self.assertRaises(AttributeError):
@@ -1955,6 +1946,32 @@ def one_seq():
     return make_seq("AACCTGGAACC", moltype="dna")
 
 
+@pytest.fixture(scope="session")
+def worm_seq_path():
+    return DATADIR / "c_elegans_WS199_dna_shortened.fasta"
+
+
+@pytest.fixture(scope="session")
+def worm_gff_path():
+    return DATADIR / "c_elegans_WS199_shortened_gff.gff3"
+
+
+def test_annotate_from_gff(worm_seq_path, worm_gff_path):
+    """correctly annotates a Sequence from a gff file"""
+    # duplicated in test_alignment on seq collection
+    seq = cogent3.load_seq(worm_seq_path, moltype="dna")
+
+    seq.annotate_from_gff(worm_gff_path)
+    matches = list(seq.get_features_matching())
+    assert len(matches) == 11
+    matches = list(seq.get_features_matching(feature_type="gene"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="mRNA"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="exon"))
+    assert len(matches) == 3
+
+
 @pytest.mark.parametrize("rc", (False, True))
 def test_seq_repr(one_seq, rc):
     pat = re.compile("[ACGT]+")
@@ -1970,7 +1987,18 @@ def test_seq_repr(one_seq, rc):
     assert expect.startswith(got), (expect, got)
 
 
-def test_gav3():
+@pytest.mark.xfail(reason="todo: to be implemented")
+def test_db_bind_fails_with_incompatible_moltype(worm_seq_path, worm_gff_path):
+    from cogent3.core.annotation_db import load_annotations
+
+    seq = cogent3.load_seq(worm_seq_path, moltype="text")
+    db = load_annotations(worm_gff_path)
+    with pytest.raises(TypeError):
+        seq.annotation_db = db
+
+
+@pytest.mark.xfail(reason="todo: write test")
+def test_annotation_from_slice_with_stride():
     raise NotImplementedError(
         "check annotations get correct sequence when there's a stride"
     )

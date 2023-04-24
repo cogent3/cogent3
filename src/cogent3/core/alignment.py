@@ -28,6 +28,7 @@ from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
+from typing import Optional, Union
 
 import numpy
 
@@ -2010,7 +2011,9 @@ class SequenceCollection(_SequenceCollectionBase):
             if name in self.named_seqs:
                 self.named_seqs[name].copy_annotations(seq)
 
-    def annotate_from_gff(self, f: os.PathLike, seq_ids: list[str]):
+    def annotate_from_gff(
+        self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
+    ):
         """copies annotations from a gff file to a sequence in self
 
         Parameters
@@ -2020,13 +2023,18 @@ class SequenceCollection(_SequenceCollectionBase):
         does not support setting offset, set offset directly on sequences with seq.annotation_offset = offset
 
         """
+        if isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError(
+                "GenbankAnnotationDb already attached, is incompatible with GffAnnotationDb"
+            )
+
         if isinstance(seq_ids, str):
             seq_ids = [seq_ids]
+        else:
+            seq_ids = self.names
 
         if self.annotation_db is None:
             self.annotation_db = load_annotations(f, seq_ids)
-        elif isinstance(self.annotation_db, GenbankAnnotationDb):
-            raise ValueError("GenbankAnnotationDb already attached")
         else:
             self.annotation_db = load_annotations(f, seq_ids, db=self.annotation_db._db)
 

@@ -985,6 +985,7 @@ class Sequence(_Annotatable, SequenceI):
 
     def add_feature(
         self,
+        *,
         biotype: str,
         name: str,
         spans,
@@ -1035,10 +1036,13 @@ class Sequence(_Annotatable, SequenceI):
 
     def copy(self):
         """returns a copy of self"""
-        new = self.__class__(self._seq, name=self.name, info=self.info)
+        new = self.__class__(self._seq[:], name=self.name, info=self.info)
         if self.is_annotated():
             for annot in self.annotations:
                 annot.copy_annotations_to(new)
+
+        # todo gah revisit copying and how are we handling _seq too
+        new._annotation_db = self._annotation_db
         return new
 
     def _get_feature_start(self, feature):
@@ -1296,7 +1300,8 @@ class Sequence(_Annotatable, SequenceI):
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return len(self.annotations) != 0
+        num = self.annotation_db.num_matches() if self.annotation_db else 0
+        return num != 0 or len(self.annotations) != 0
 
     def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
         """Adds an annotation at sequence positions matching pattern.
