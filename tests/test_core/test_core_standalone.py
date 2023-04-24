@@ -313,7 +313,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         seq1 = DNA.make_seq("aagaagaagaccccca")
         seq2 = DNA.make_seq("aagaagaagaccccct")
-        seq2.add_feature("exon", "fred", [(10, 15)])
+        seq2.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
         aln = make_aligned_seqs(data={"a": seq1, "b": seq2})
         # TODO the ability to pickle/unpickle depends on the protocol
         # in Py3 for reasons that are not clear. This needs to be looked
