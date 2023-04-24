@@ -2093,8 +2093,47 @@ def test_get_kmers_strict_DNA_RNA_Protein_allgap():
     assert r.get_kmers(1, strict=True) == []
     assert r.get_kmers(1, strict=False) == ["-","-","-","-","-","-","-"]
 
-
+def test_get_kmers_strict_DNA_RNA_Protein_mixed_ambiguities():
+    r = DnaSequence('NGASTAH')
+    assert r.get_kmers(1, strict=True) == ["G", "A", "T", "A"]
+    assert r.get_kmers(2, strict=True) == ["GA", "TA"]
+    assert r.get_kmers(3, strict=True) == []
     
+    assert r.get_kmers(1, strict=False) == ["N", "G", "A", "S", "T", "A", "H"]
+    assert r.get_kmers(2, strict=False) == ["NG", "GA", "AS", "ST", "TA", "AH"]
+    assert r.get_kmers(3, strict=False) == ["NGA", "GAS", "AST", "STA", "TAH"]
+    assert r.get_kmers(4, strict=False) == ["NGAS", "GAST", "ASTA", "STAH"]
+    assert r.get_kmers(5, strict=False) == ["NGAST", "GASTA", "ASTAH"]
+    assert r.get_kmers(6, strict=False) == ["NGASTA", "GASTAH"]
+    assert r.get_kmers(7, strict=False) == ["NGASTAH"]
+    assert r.get_kmers(8, strict=False) == []
+    
+    r = RnaSequence('RGAWUAD')
+    assert r.get_kmers(1, strict=True) == ["G", "A", "U", "A"]
+    assert r.get_kmers(2, strict=True) == ["GA", "UA"]
+    assert r.get_kmers(3, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["R", "G", "A", "W", "U", "A", "D"]
+    assert r.get_kmers(2, strict=False) == ["RG", "GA", "AW", "WU", "UA", "AD"]
+    assert r.get_kmers(3, strict=False) == ["RGA", "GAW", "AWU", "WUA", "UAD"]
+    assert r.get_kmers(4, strict=False) == ["RGAW", "GAWU", "AWUA", "WUAD"]
+    assert r.get_kmers(5, strict=False) == ["RGAWU", "GAWUA", "AWUAD"]
+    assert r.get_kmers(6, strict=False) == ["RGAWUA", "GAWUAD"]
+    assert r.get_kmers(7, strict=False) == ["RGAWUAD"]
+    assert r.get_kmers(8, strict=False) == []
+    
+    r = ProteinSequence('BQMXNRZ')
+    assert r.get_kmers(1, strict=True) == ["Q", "M", "N", "R"]
+    assert r.get_kmers(2, strict=True) == ["QM", "NR"]
+    assert r.get_kmers(3, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["B", "Q", "M", "X", "N", "R", "Z"]
+    assert r.get_kmers(2, strict=False) == ["BQ", "QM", "MX", "XN", "NR", "RZ"]
+    assert r.get_kmers(3, strict=False) == ["BQM", "QMX", "MXN", "XNR", "NRZ"]
+    assert r.get_kmers(4, strict=False) == ["BQMX", "QMXN", "MXNR", "XNRZ"]
+    assert r.get_kmers(5, strict=False) == ["BQMXN", "QMXNR", "MXNRZ"]
+    assert r.get_kmers(6, strict=False) == ["BQMXNR", "QMXNRZ"]
+    assert r.get_kmers(7, strict=False) == ["BQMXNRZ"]
+    assert r.get_kmers(8, strict=False) == []
+        
 
 # run if called from command-line
 if __name__ == "__main__":
