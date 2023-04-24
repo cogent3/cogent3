@@ -873,7 +873,7 @@ class Sequence(_Annotatable, SequenceI):
     def annotation_db(self, value):
         from cogent3.core.annotation_db import SupportsFeatures
 
-        if not isinstance(value, SupportsFeatures):
+        if value and not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
 
@@ -938,7 +938,10 @@ class Sequence(_Annotatable, SequenceI):
         feature = dict(feature)
         seq_rced = self._seq.reversed
         feature.pop("seqid", None)  # not required here as provided
-        revd = feature.pop("reversed", None)
+        # todo gah check consistency of relationship between reversed and strand
+        # i.e. which object has responsibility for transforming the strand value
+        # (a string) into a bool?
+        revd = feature.pop("reversed", None) or feature.pop("strand", None) == "-"
         spans = feature.pop("spans", None)
         fmap = Map(locations=spans, parent_length=len(self))
         if revd and not seq_rced:
@@ -957,7 +960,7 @@ class Sequence(_Annotatable, SequenceI):
             # then reversed
             fmap = fmap.nucleic_reversed().reversed()
 
-        return Annotation(self, fmap, **feature)
+        return Annotation(parent=self, seqid=self.name, map=fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
         """copies annotations from a gff file to self,
@@ -991,14 +994,13 @@ class Sequence(_Annotatable, SequenceI):
         if self.annotation_db is None:
             self.annotation_db = GffAnnotationDb([])
 
-        self.annotation_db.add_feature(
-            seqid=self.name,
-            biotype=biotype,
-            name=name,
-            spans=spans,
-            strand=strand,
-            on_alignment=on_alignment,
+        feature_data = FeatureDataType(
+            seqid=self.name, **{n: v for n, v in locals().items() if n != "self"}
         )
+
+        self.annotation_db.add_feature(**feature_data)
+        feature_data.pop("on_alignment")
+        return self.make_feature(feature_data)
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq

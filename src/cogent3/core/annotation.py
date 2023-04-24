@@ -432,10 +432,19 @@ class _Serialisable:
 class Annotation(_AnnotationCore, _Serialisable):
     """new style annotation, created on demand"""
 
-    __slots__ = "parent", "map", "biotype", "name", "_serialisable", "base", "base_map"
+    __slots__ = (
+        "parent",
+        "seqid",
+        "map",
+        "biotype",
+        "name",
+        "_serialisable",
+        "base",  # todo gah do we need this?
+        "base_map",  # todo gah do we need this?
+    )
 
-    # todo implement a __new__ to trap args for serialisation purposes
-    def __init__(self, parent, map: Map, biotype: str, name: str):
+    # todo gah implement a __new__ to trap args for serialisation purposes?
+    def __init__(self, *, parent, seqid: str, map: Map, biotype: str, name: str):
         d = locals()
         exclude = ("self", "__class__", "kw")
         self._serialisable = {k: v for k, v in d.items() if k not in exclude}
@@ -456,10 +465,13 @@ class Annotation(_AnnotationCore, _Serialisable):
         return make_shape(type_=self)
 
     def _mapped(self, slicemap):
-        name = f"{repr(slicemap)} of {self.name}"
-        return self.__class__(
-            parent=self.parent, map=slicemap, biotype=self.biotype, name=name
-        )
+        # the self._serialisable dict is used for serialisation, so we need to
+        # use a copy to create the new instance
+        kwargs = {
+            **self._serialisable,
+            **{"map": slicemap, "name": f"{repr(slicemap)} of {self.name}"},
+        }
+        return self.__class__(**kwargs)
 
     def get_slice(self, complete=True):
         """The corresponding sequence fragment.  If 'complete' is true

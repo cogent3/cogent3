@@ -80,6 +80,8 @@ class SerialisableType(typing.Protocol):
 class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
     def get_features_matching(
         self,
+        *,
+        seqid: OptionalStr = None,
         biotype: OptionalStr = None,
         name: OptionalStr = None,
         start: OptionalInt = None,
@@ -90,12 +92,12 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
         ...
 
     def get_feature_children(
-        self, name: str, start: OptionalInt = None, end: OptionalInt = None
+        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None
     ) -> typing.List[FeatureDataType]:
         ...
 
     def get_feature_parent(
-        self, name: str, start: OptionalInt = None, end: OptionalInt = None
+        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None
     ) -> typing.List[FeatureDataType]:
         ...
 
@@ -104,20 +106,22 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
     def add_feature(
         self,
-        seqid: str,
+        *,
         biotype: str,
         name: str,
         spans: typing.List[typing.Tuple[int, int]],
-        strand: str = None,
+        seqid: OptionalStr = None,
+        strand: OptionalStr = None,
         on_alignment: bool = False,
     ) -> None:
         ...
 
     def add_records(
         self,
+        *,
         records: typing.Sequence[dict],
         # seqid required for genbank
-        seqid: typing.Optional[str] = None,
+        seqid: OptionalStr = None,
     ) -> None:
         ...
 
