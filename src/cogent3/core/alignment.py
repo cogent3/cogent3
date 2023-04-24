@@ -18,6 +18,7 @@
     passed in a stream of two-item label, sequence pairs. However, this can
     cause confusion when testing.
 """
+import functools
 import json
 import os
 import re
@@ -28,7 +29,7 @@ from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
-from typing import Optional, Union
+from typing import Iterator, Optional, Union
 
 import numpy
 
@@ -52,8 +53,12 @@ from numpy.random import choice, permutation, randint
 
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
-from cogent3.core.annotation import Map, _Annotatable
-from cogent3.core.annotation_db import GenbankAnnotationDb, load_annotations
+from cogent3.core.annotation import Annotation, Map, _Annotatable
+from cogent3.core.annotation_db import (
+    GenbankAnnotationDb,
+    SupportsFeatures,
+    load_annotations,
+)
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
@@ -338,6 +343,57 @@ def seqs_from_empty(obj, *args, **kwargs):
     raise ValueError("Cannot create empty SequenceCollection.")
 
 
+@functools.singledispatch
+def merged_db_collection(seqs) -> SupportsFeatures:
+    """return one AnnotationDb's
+
+    Parameters
+    ----------
+    seqs
+        iterable list of data
+
+    Returns
+    -------
+    list of all annotation db's
+
+    Raises
+    ------
+    TypeError if different classes of AnnotationDb
+    """
+    first = None
+    merged = None
+    db_attr = "annotation_db"
+    for seq in seqs:
+        if not isinstance(seq, (Aligned, Sequence)):
+            continue
+        if isinstance(seq, Aligned):
+            db = seq.data.annotation_db
+        elif isinstance(seq, Sequence):
+            db = seq.annotation_db
+
+        if first is None and db:
+            # todo gah should this be a copy so immutable?
+            first = db
+            merged = first
+            continue
+
+        if first and db and type(first) != type(db):
+            raise TypeError(
+                f"annotation db types must be equal: {type(first)} != {type(db)}"
+            )
+
+        if first is None:
+            continue
+        first.update(db)
+
+    return merged
+
+
+@merged_db_collection.register
+def _(seqs: dict) -> SupportsFeatures:
+    return merged_db_collection(seqs.values())
+
+
 @total_ordering
 class _SequenceCollectionBase:
     """
@@ -457,6 +513,16 @@ class _SequenceCollectionBase:
         # read all the data in if we were passed a generator
         if isinstance(data, GeneratorType):
             data = list(data)
+
+        input_type = self._guess_input_type(data)
+        if input_type in ("aln", "collection"):
+            anno_db = merged_db_collection(data.seqs)
+        elif input_type == "kv_pairs":
+            anno_db = merged_db_collection(dict(data))
+        elif isinstance(data, (tuple, list)):
+            anno_db = merged_db_collection(data)
+        else:
+            anno_db = None
         # set the name
         self.name = name
         names = list(names) if names is not None else names
@@ -511,7 +577,7 @@ class _SequenceCollectionBase:
         self._set_additional_attributes(curr_seqs)
 
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
-        self._annotation_db = None
+        self._annotation_db = anno_db or None
 
     @property
     def annotation_db(self):
@@ -2041,6 +2107,50 @@ class SequenceCollection(_SequenceCollectionBase):
         # add reference to this annotation_db on each sequence that was provided in seq_ids
         for seq in seq_ids:
             self.get_seq(seq).annotation_db = self.annotation_db
+
+    def get_features(
+        self,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+    ) -> Iterator[Annotation]:
+        """yields Annotation instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+
+        if self._annotation_db is None:
+            return None
+
+        seqids = [seqid] if isinstance(seqid, str) else seqid
+        if seqids is None:
+            for feature in self.annotation_db.get_features_matching(
+                biotype=biotype, name=name
+            ):
+                seqid = feature["seqid"]
+                seq = self.named_seqs[seqid]
+                yield seq.make_feature(feature)
+            return
+
+        for seqid in seqids:
+            seq = self.named_seqs[seqid]
+            for feature in self.annotation_db.get_features_matching(
+                seqid=seqid, biotype=biotype, name=name
+            ):
+                yield seq.make_feature(feature)
 
 
 @total_ordering
@@ -4423,7 +4533,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
                 aligned_seqs.append(self._seq_to_aligned(s, n))
         self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
-        self._annotation_db = None
 
     @property
     def annotation_db(self):

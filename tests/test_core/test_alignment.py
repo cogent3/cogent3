@@ -342,18 +342,6 @@ class SequenceCollectionBaseTests(object):
             # ArrayAlignment is allowed to strip Info objects
             self.assertEqual([i.info.x for i in b.seqs], [5, 4, 3])
 
-    def test_init_annotated_seqs(self):
-        """correctly construct from list with annotated seq"""
-        if self.Class == ArrayAlignment:
-            # this class cannot be annotated
-            return
-        seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
-        _ = seq.add_feature("exon", "name", [(4, 10)])
-        coll = self.Class(data=[seq])
-        got_seq = coll.get_seq("seq1")
-        ann = got_seq.annotations[0]
-        self.assertEqual(str(got_seq[ann]), "GGGGGG")
-
     def test_init_pairs(self):
         """SequenceCollection init from list of (key,val) pairs should work correctly"""
         seqs = [["x", "XXX"], ["b", "BBB"], ["c", "CCC"]]
@@ -3393,3 +3381,48 @@ def test_annotate_from_gff3(cls):
     assert len(matches) == 1
     matches = list(matches[0].get_children(biotype="exon"))
     assert len(matches) == 3
+
+
+@pytest.fixture(scope="session")
+def seqcoll_db():
+    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+    seq = load_seq(fasta_path, moltype="dna")
+    seq_coll = SequenceCollection({seq.name: seq})
+    seq_coll.annotate_from_gff(gff3_path)
+    return seq_coll
+
+
+def test_seqcoll_query(seqcoll_db):
+    """querying from a SequenceCollection produces features bound to their seqs"""
+    matches = list(seqcoll_db.get_features(seqid="I"))
+    # 11 features
+    assert len(matches) == 11
+    matches = list(seqcoll_db.get_features(seqid="I", biotype="gene"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="mRNA"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="exon"))
+    assert len(matches) == 3
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_init_annotated_seqs(cls):
+    """correctly construct from list with annotated seq"""
+    seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
+    _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
+    coll = cls(data=[seq])
+    features = list(coll.get_features(biotype="exon"))
+    assert len(features) == 1
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_init_aln3(cls):
+    """SequenceCollection should init from existing alignments"""
+    exp = cls(["AAA", "AAA"])
+    x = ArrayAlignment(exp)
+    y = SequenceCollection(exp)
+    z = Alignment(exp)
+    assert x == exp
+    assert z == exp
+    assert y == exp

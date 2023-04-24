@@ -429,6 +429,7 @@ class _Serialisable:
         return json.dumps(self.to_rich_dict())
 
 
+# todo gah implement __repr__ and __str__ methods
 class Annotation(_AnnotationCore, _Serialisable):
     """new style annotation, created on demand"""
 

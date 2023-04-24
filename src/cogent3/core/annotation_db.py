@@ -336,7 +336,7 @@ def _select_records_sql(
     columns = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns} FROM {table_name}"
     if not where:
-        return sql
+        return sql, None
 
     sql = f"{sql} WHERE {where};"
     return sql, vals

@@ -503,6 +503,28 @@ def test_sequence_collection_annotate_from_gff():
     assert len(got) == 1
 
 
+def test_seq_coll_query():
+    """obtain same results when querying from collection as from seq"""
+    seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
+    seq_coll = SequenceCollection(seqs)
+    seq_coll.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
+
+    seq = seq_coll.get_seq("test_seq")
+    # the seq for which the seqid was provided is annotated
+    assert seq.annotation_db is not None
+    expect = list(seq.get_features_matching())
+    got = seq_coll.get_features(seqid="test_seq")
+    # the seq for which the seqid was NOT provided is NOT annotated
+    assert seq_coll.get_seq("test_seq2").annotation_db is None
+    # the annotation_db on the seq and the seq collection are the same object
+    assert seq.annotation_db is seq_coll.annotation_db
+    got = list(seq.get_features_matching(feature_type="CDS"))
+    assert len(got) == 2
+
+    got = list(seq.get_features_matching(feature_type="CpG"))
+    assert len(got) == 1
+
+
 def test_gff_update_existing(gff_db, gff_small_db):
     expect = gff_db.num_matches() + gff_small_db.num_matches()
     gff_db.update(gff_small_db)
