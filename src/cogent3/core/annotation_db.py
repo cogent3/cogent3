@@ -101,6 +101,15 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
     ) -> typing.List[FeatureDataType]:
         ...
 
+    def num_matches(
+        self,
+        biotype: OptionalStr = None,
+        name: OptionalStr = None,
+        strand: OptionalStr = None,
+        on_alignment: OptionalBool = None,
+    ) -> int:
+        ...
+
 
 @typing.runtime_checkable
 class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
@@ -327,7 +336,47 @@ def _select_records_sql(
     return sql, vals
 
 
-# todo add support for querying for text within the additional feature,
+def _count_records_sql(
+    table_name: str,
+    conditions: dict,
+    columns: typing.Optional[typing.List[str]] = None,
+    start: OptionalInt = None,
+    end: OptionalInt = None,
+    partial=True,
+) -> ReturnType:
+    """create SQL count statement and values
+
+    Parameters
+    ----------
+    table_name : str
+        containing the data to be selected from
+    columns : Tuple[str]
+        values to select
+    conditions : dict
+        the WHERE conditions
+    start, end : OptionalInt
+        select records whose (start, end) values lie between start and end,
+        or overlap them if (partial is True)
+    partial : bool, optional
+        if False, only records within start, end are included. If True,
+        all records that overlap the segment defined by start, end are included.
+
+    Returns
+    -------
+    str, tuple
+        the SQL statement and the tuple of values
+    """
+
+    where, vals = _matching_conditions(conditions=conditions, partial=partial)
+    sql = f"SELECT COUNT(*) FROM {table_name}"
+    if not where:
+        return sql, None
+
+    sql = f"{sql} WHERE {where};"
+    return sql, vals
+
+
+# todo gah add support for querying for text within the additional feature,
 # for example, add a "attrs_like" argument which users can provide text
 # that will be treated as surrounded by wild-cards
 class SqliteAnnotationDbMixin:
@@ -465,6 +514,23 @@ class SqliteAnnotationDbMixin:
                     spans=[tuple(c) for c in result["spans"]],
                     reversed=result["strand"] == "-",
                 )
+
+    def num_matches(
+        self,
+        seqid: OptionalStr = None,
+        biotype: OptionalStr = None,
+        name: OptionalStr = None,
+        strand: OptionalStr = None,
+        on_alignment: OptionalBool = None,
+    ) -> int:
+        """return the number of records matching condition"""
+        kwargs = {k: v for k, v in locals().items() if k != "self"}
+        num = 0
+        for table_name in self.table_names:
+            sql, values = _count_records_sql(table_name, conditions=kwargs)
+            result = list(self._execute_sql(sql, values=values).fetchone())[0]
+            num += result
+        return num
 
     @property
     def describe(self) -> Table:

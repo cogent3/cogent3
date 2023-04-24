@@ -102,6 +102,20 @@ def test_gff_counts(gff_db):
     assert len(got) > 0
 
 
+def test_gff_num_matches(gff_db):
+    count = gff_db.num_matches()
+    assert count == 11
+    assert gff_db.num_matches(seqid="I") == 11
+    assert gff_db.num_matches(seqid="IV") == 0
+
+
+def test_gb_num_matches(gb_db):
+    count = gb_db.num_matches()
+    assert count == 10  # value from manual count from file
+    assert gb_db.num_matches(seqid="AE017341") == 10
+    assert gb_db.num_matches(seqid="IV") == 0
+
+
 def test_gff_find_user_features(gff_db):
     record = dict(
         seqid="2", name="gene-01", biotype="gene", spans=[(23, 33)], strand="+"
@@ -135,8 +149,7 @@ def test_empty_data():
 # testing GenBank files
 @pytest.fixture(scope="session")
 def gb_db():
-    paths = ("data/annotated_seq.gb",)
-    return load_annotations(paths[0])
+    return load_annotations(DATA_DIR / "annotated_seq.gb")
 
 
 @pytest.mark.parametrize("parent_biotype, name", (("gene", "CNA00110"),))
