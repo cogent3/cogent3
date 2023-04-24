@@ -1081,16 +1081,16 @@ class Sequence(_Annotatable, SequenceI):
         ambigs = self.moltype.ambiguities
         return [ambigs[motif] for motif in self._seq]
 
-    def iter_kmers(self, k: int, strict:bool=False) -> Generator[str, None, None]:
-        """generates all overlapping k-mers.  
-           When strict is True, the characters in the k-mer must be 
-           a subset of the canonical characters for the moltype"""
+    def iter_kmers(self, k: int, strict: bool = False) -> Generator[str, None, None]:
+        """generates all overlapping k-mers.
+        When strict is True, the characters in the k-mer must be
+        a subset of the canonical characters for the moltype"""
         if k <= 0:
             raise ValueError(f"k must be an int > 0, not {k}")
 
         if not isinstance(k, int):
             raise ValueError(f"k must be an int, not {k}")
-        
+
         canonical = set(self.moltype)
         for i in range(len(self) - k + 1):
             kmer = self[i : i + k]
@@ -1100,9 +1100,9 @@ class Sequence(_Annotatable, SequenceI):
                 if all(char in canonical for char in kmer):
                     yield kmer
 
-    def get_kmers(self, k: int, strict:bool=False) -> List[str]:
+    def get_kmers(self, k: int, strict: bool = False) -> List[str]:
         """return all overlapping k-mers"""
-        return list(self.iter_kmers(k,strict))
+        return list(self.iter_kmers(k, strict))
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator function that yield new sequence objects
