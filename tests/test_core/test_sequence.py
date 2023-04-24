@@ -1957,6 +1957,46 @@ def test_seqview_repr():
     expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2)"
     assert repr(view) == expected
 
+def test_iter_kmers_strict():
+    """correctly yield all k-mers"""
+    from typing import Generator
+
+    orig = "TCAGGA"
+    r = Sequence(orig)
+    assert isinstance(r.iter_kmers(k=1,strict=True), Generator)
+
+    for k in range(1, 7):
+        expect = [str(orig[i : i + k]) for i in range(len(orig) - k + 1)]
+        got = list(r.iter_kmers(k,strict=True))
+        assert got==expect
+
+    orig = ""
+    r = Sequence(orig)
+    assert isinstance(r.iter_kmers(k=1,strict=True), Generator)
+    got = list(r.iter_kmers(k=1))
+    assert got == []
+
+def test_get_kmers_strict():
+    """returns a list of k-mers"""
+    orig = "TCAGGA?"
+    r = Sequence(orig)
+
+    assert r.get_kmers(1,strict=True) == ["T", "C", "A", "G", "G", "A"]
+    assert r.get_kmers(2,strict=True) == ["TC", "CA", "AG", "GG", "GA"]
+    assert r.get_kmers(3,strict=True) == ["TCA", "CAG", "AGG", "GGA"]
+    assert r.get_kmers(4,strict=True) == ["TCAG", "CAGG", "AGGA"]
+    assert r.get_kmers(5,strict=True) == ["TCAGG", "CAGGA"]
+    assert r.get_kmers(6,strict=True) == ["TCAGGA"]
+    assert r.get_kmers(7,strict=True) == []
+    
+    assert r.get_kmers(1,strict=False) == ["T", "C", "A", "G", "G", "A", "?"]
+    assert r.get_kmers(2,strict=False) == ["TC", "CA", "AG", "GG", "GA", "A?"]
+    assert r.get_kmers(3,strict=False) == ["TCA", "CAG", "AGG", "GGA", "GA?"]
+    # assert r.get_kmers(4,strict=False) == ["TCAG", "CAGG", "AGGA", "GA?"]
+    assert r.get_kmers(5,strict=False) == ["TCAGG", "CAGGA", "AGGA?"]
+    assert r.get_kmers(6,strict=False) == ["TCAGGA", "CAGGA?"]
+    assert r.get_kmers(7,strict=False) == ["TCAGGA?"]
+    assert r.get_kmers(8,strict=False) == []
 
 # run if called from command-line
 if __name__ == "__main__":
