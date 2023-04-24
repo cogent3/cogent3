@@ -26,13 +26,16 @@ __status__ = "Production"
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def gff_db():
-    paths = (
-        "sample_data/Homo_sapiens.GRCh38.109.chromosome.22.gff3.gz",
-        "data/c_elegans_WS199_shortened_gff.gff3",
-    )
-    return load_annotations(paths[1])
+    path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+    return load_annotations(path)
+
+
+@pytest.fixture(scope="function")
+def gff_small_db():
+    path = DATA_DIR / "simple.gff"
+    return load_annotations(path)
 
 
 @pytest.fixture()
@@ -498,3 +501,18 @@ def test_sequence_collection_annotate_from_gff():
 
     got = list(seq.get_features_matching(feature_type="CpG"))
     assert len(got) == 1
+
+
+def test_gff_update_existing(gff_db, gff_small_db):
+    expect = gff_db.num_matches() + gff_small_db.num_matches()
+    gff_db.update(gff_small_db)
+    assert gff_db.num_matches() == expect
+
+
+@pytest.mark.parametrize("seqids", (None, "23", [None], ["23"]))
+def test_gff_update_existing_specify_seqid(gff_db, gff_small_db, seqids):
+    expect = gff_db.num_matches() + gff_small_db.num_matches(
+        seqid=seqids[0] if isinstance(seqids, list) else seqids
+    )
+    gff_db.update(gff_small_db, seqids=seqids)
+    assert gff_db.num_matches() == expect

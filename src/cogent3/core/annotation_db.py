@@ -25,6 +25,7 @@ __status__ = "Production"
 
 OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
+OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
 OptionalBool = typing.Optional[bool]
 ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
 
@@ -103,6 +104,7 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 
     def num_matches(
         self,
+        seqid: OptionalStr = None,
         biotype: OptionalStr = None,
         name: OptionalStr = None,
         strand: OptionalStr = None,
@@ -132,6 +134,10 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
         # seqid required for genbank
         seqid: OptionalStr = None,
     ) -> None:
+        ...
+
+    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+        # update records with those from an instance of the same type
         ...
 
 
@@ -588,19 +594,37 @@ class SqliteAnnotationDbMixin:
         records["type"] = get_object_provenance(self)
         return records
 
+    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+        """update records with those from an instance of the same type"""
+        if not isinstance(annot_db, type(self)):
+            raise TypeError(f"{type(annot_db)} != {type(self)}")
+
+        self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
+
     @classmethod
     def from_dict(cls, data: dict):
-        data.pop("type")
         # make an empty db
-        db = cls([])
+        db = cls(data=[])
+        db._update_db_from_rich_dict(data)
+        return db
+
+    def _update_db_from_rich_dict(self, data: dict, seqids: OptionalStr = None):
+        data.pop("type", None)
+        if isinstance(seqids, str):
+            seqids = {seqids}
+        elif seqids is not None:
+            seqids = set(seqids) - {None}  # make sure None is not part of this!
+
+        # todo gah prevent duplication of existing records
         for table_name, records in data.items():
             for record in records:
+                if seqids and record["seqid"] not in seqids:
+                    continue
                 record["spans"] = numpy.array(record["spans"], dtype=int)
                 sql, vals = _add_record_sql(
                     table_name, {k: v for k, v in record.items() if v is not None}
                 )
-                db._execute_sql(sql, vals)
-        return db
+                self._execute_sql(sql, vals)
 
 
 class GffAnnotationDb(SqliteAnnotationDbMixin):
