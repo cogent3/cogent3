@@ -2038,6 +2038,25 @@ def test_get_kmers_strict_Protein():
     assert r.get_kmers(6,strict=False) == ["CEFGMN", "EFGMNX"]
     assert r.get_kmers(7,strict=False) == ["CEFGMNX"]
 
+def test_get_kmers_strict_DNA_gaps():
+    orig = "TCA-GAT"
+    r = DnaSequence(orig)
+    
+    assert r.get_kmers(1,strict=True) == ["T", "C", "A", "G", "A", "T"]
+    assert r.get_kmers(2,strict=True) == ["TC", "CA", "GA", "AT"]
+    assert r.get_kmers(3,strict=True) == ["TCA", "GAT"]
+    assert r.get_kmers(4,strict=True) == []
+    
+    assert r.get_kmers(1,strict=False) == ["T", "C", "A", "-", "G", "A", "T"]
+    assert r.get_kmers(2,strict=False) == ["TC", "CA", "A-", "-G", "GA", "AT"]
+    assert r.get_kmers(3,strict=False) == ["TCA", "CA-", "A-G", "-GA", "GAT"]
+    assert r.get_kmers(4,strict=False) == ["TCA-", "CA-G", "A-GA", "-GAT"]
+    assert r.get_kmers(5,strict=False) == ["TCA-G", "CA-GA", "A-GAT"]
+    assert r.get_kmers(6,strict=False) == ["TCA-GA", "CA-GAT"]
+    assert r.get_kmers(7,strict=False) == ["TCA-GAT"]
+    assert r.get_kmers(8,strict=False) == []
+
+
 # run if called from command-line
 if __name__ == "__main__":
     main()
