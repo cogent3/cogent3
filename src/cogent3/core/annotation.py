@@ -23,24 +23,8 @@ __status__ = "Production"
 
 
 class _AnnotationMixin:
-    def add_feature(self, biotype, name, spans):
-        feat = Feature(self, biotype, name, spans)
-
-        if feat.parent is not self:
-            raise ValueError("doesn't belong here")
-
-        if feat.attached:
-            raise ValueError("already attached")
-
-        if self.annotations is self.__class__.annotations:
-            self.annotations = []
-
-        self.annotations.extend([feat])
-
-        feat.attached = True
-
-        return feat
-
+    # todo gah add a _anotatable_getitem_()? which can be checked
+    # for to deliver the old behaviour
     def get_features_matching(self, feature_type, name=None, extend_query=False):
         """
 
@@ -233,6 +217,24 @@ class _Annotatable(_AnnotationCore, _AnnotationMixin):
     # Subclasses should provide __init__, getOwnTracks, and a _mapped for use by
     # __getitem__
 
+    def add_feature(self, biotype, name, spans):
+        feat = Feature(self, biotype, name, spans)
+
+        if feat.parent is not self:
+            raise ValueError("doesn't belong here")
+
+        if feat.attached:
+            raise ValueError("already attached")
+
+        if self.annotations is self.__class__.annotations:
+            self.annotations = []
+
+        self.annotations.extend([feat])
+
+        feat.attached = True
+
+        return feat
+
     def _shifted_annotations(self, new, shift):
         result = []
         if self.annotations:
@@ -401,6 +403,8 @@ class _Annotatable(_AnnotationCore, _AnnotationMixin):
 
 
 class _Serialisable:
+    # todo gah will need a version check in util/deserialise to allow transforming
+    # old style annotations to new from json
     def to_rich_dict(self):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         data = copy.deepcopy(self._serialisable)
@@ -516,8 +520,11 @@ class Annotation(_AnnotationCore, _Serialisable):
         return self.remapped_to(base, self.parent._projected_to_base(base).map)
 
     def remapped_to(self, grandparent, gmap):
-        map = gmap[self.map]
-        return self.__class__(grandparent, map, biotype=self.biotype, name=self.name)
+        kwargs = {
+            **self._serialisable,
+            **{"map": gmap[self.map], "parent": grandparent},
+        }
+        return self.__class__(**kwargs)
 
     def get_coordinates(self):
         """returns sequence coordinates of this Feature as

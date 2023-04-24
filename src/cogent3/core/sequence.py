@@ -921,7 +921,7 @@ class Sequence(_Annotatable, SequenceI):
         ):
             yield self.make_feature(feature)
 
-    def make_feature(self, feature: FeatureDataType) -> Annotation:
+    def make_feature(self, feature: FeatureDataType, *args) -> Annotation:
         """
         return an Annotation instance from feature data
 
@@ -1336,7 +1336,9 @@ class Sequence(_Annotatable, SequenceI):
         num_match = len(pos) if allow_multiple else 1
         return [
             self.add_feature(
-                annot_type, f"{name}:{i}" if allow_multiple else name, [pos[i]]
+                biotype=annot_type,
+                name=f"{name}:{i}" if allow_multiple else name,
+                spans=[pos[i]],
             )
             for i in range(num_match)
         ]

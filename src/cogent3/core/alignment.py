@@ -29,7 +29,7 @@ from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
-from typing import Iterator, Optional, Union
+from typing import Iterator, List, Optional, Tuple, Union
 
 import numpy
 
@@ -55,7 +55,9 @@ import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3.core.annotation import Annotation, Map, _Annotatable
 from cogent3.core.annotation_db import (
+    FeatureDataType,
     GenbankAnnotationDb,
+    GffAnnotationDb,
     SupportsFeatures,
     load_annotations,
 )
@@ -72,6 +74,7 @@ from cogent3.maths.stats.number import CategoryCounter
 from cogent3.maths.util import safe_log
 from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
@@ -101,6 +104,9 @@ __version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Production"
+
+
+DEFAULT_ANNOTATION_DB = GffAnnotationDb
 
 
 class DataError(Exception):
@@ -382,7 +388,7 @@ def merged_db_collection(seqs) -> SupportsFeatures:
                 f"annotation db types must be equal: {type(first)} != {type(db)}"
             )
 
-        if first is None:
+        if first is None or db is None:
             continue
         first.update(db)
 
@@ -2061,21 +2067,42 @@ class _SequenceCollectionBase:
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences"""
 
-    def copy_annotations(self, unaligned):
-        """Copies annotations from seqs in unaligned to self, matching by name.
+    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+        """copy annotations into attached annotation db
 
-        Alignment programs like ClustalW don't preserve annotations,
-        so this method is available to copy annotations off the unaligned
-        sequences.
+        Parameters
+        ----------
+        seq_db
+            compatible annotation db
 
-        unaligned should be a dictionary of Sequence instances.
-
-        Ignores sequences that are not in self, so safe to use on larger dict
-        of seqs that are not in the current collection/alignment.
+        Notes
+        -----
+        Only copies annotations for records with seqid self.names
         """
-        for name, seq in list(unaligned.items()):
-            if name in self.named_seqs:
-                self.named_seqs[name].copy_annotations(seq)
+        if not isinstance(seq_db, SupportsFeatures):
+            raise TypeError(
+                f"type {type(seq_db)} does not match SupportsFeatures interface"
+            )
+
+        if not self.annotation_db:
+            # todo gah add ability to query multiple values in Annotation db
+            num = 0
+            for seqid in self.names:
+                num += seq_db.num_matches(seqid=seqid)
+                if num > 0:
+                    break
+            else:
+                # no matching ID's, nothing to do
+                return
+
+            self.annotation_db = type(seq_db)(
+                data=[]
+            )  # make an empty db of the same type
+
+        if not isinstance(seq_db, type(self.annotation_db)):
+            raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
+
+        self.annotation_db.update(seq_db, seqids=self.names)
 
     def annotate_from_gff(
         self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
@@ -2108,8 +2135,49 @@ class SequenceCollection(_SequenceCollectionBase):
         for seq in seq_ids:
             self.get_seq(seq).annotation_db = self.annotation_db
 
+    def add_feature(
+        self,
+        *,
+        seqid: str,
+        biotype: str,
+        name: str,
+        spans: List[Tuple[int, int]],
+        strand: str = "+",
+    ) -> Annotation:
+        """
+        add feature on named sequence
+
+        Parameters
+        ----------
+        seqid
+            seq name to associate with
+        biotype
+            biological type
+        name
+            feature name
+        spans
+            plus strand coordinates
+        strand
+            either '+' or '-'
+
+        Returns
+        -------
+        Annotation
+        """
+        if not self.annotation_db:
+            # todo gah can we define the default in some better way?
+            self.annotation_db = DEFAULT_ANNOTATION_DB(data=[])
+
+        if seqid and seqid not in self.names:
+            raise ValueError(f"unknown {seqid=}")
+
+        feature = {k: v for k, v in locals().items() if k != "self"}
+
+        return self.annotation_db.add_feature(**feature)
+
     def get_features(
         self,
+        *,
         seqid: Optional[str] = None,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
@@ -2132,17 +2200,26 @@ class SequenceCollection(_SequenceCollectionBase):
         of strand of the current instance.
         """
 
-        if self._annotation_db is None:
+        if self.annotation_db is None:
+            anno_db = merged_db_collection(self.seqs)
+            self.annotation_db = anno_db
+
+        if self.annotation_db is None:
             return None
 
         seqids = [seqid] if isinstance(seqid, str) else seqid
+
+        if seqid and not set(seqid) & set(self.names):
+            raise ValueError(f"unknown {seqid=}")
+
         if seqids is None:
             for feature in self.annotation_db.get_features_matching(
                 biotype=biotype, name=name
             ):
                 seqid = feature["seqid"]
                 seq = self.named_seqs[seqid]
-                yield seq.make_feature(feature)
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)
             return
 
         for seqid in seqids:
@@ -2150,11 +2227,12 @@ class SequenceCollection(_SequenceCollectionBase):
             for feature in self.annotation_db.get_features_matching(
                 seqid=seqid, biotype=biotype, name=name
             ):
-                yield seq.make_feature(feature)
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)
 
 
 @total_ordering
-class Aligned(object):
+class Aligned:
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
 
@@ -2205,7 +2283,10 @@ class Aligned(object):
         new_seq = self.data.copy()
         if sliced:
             span = self.map.get_covering_span()
-            new_seq = new_seq[span.start : span.end]
+            new_seq = type(new_seq)(
+                str(new_seq[span.start : span.end]), info=new_seq.info
+            )
+            new_seq.annotation_db = None
             new_map = self.map.zeroed()
         else:
             new_map = self.map
@@ -2221,9 +2302,15 @@ class Aligned(object):
     def copy_annotations(self, other):
         self.data.copy_annotations(other)
 
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.annotate_from_gff()", is_discontinued=True
+    )
     def annotate_from_gff(self, f):
         self.data.annotate_from_gff(f)
 
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.add_feature()", is_discontinued=True
+    )
     def add_feature(self, *args, **kwargs):
         self.data.add_feature(*args, **kwargs)
 
@@ -2306,22 +2393,23 @@ class Aligned(object):
     def remapped_to(self, map):
         return Aligned(map[self.map.inverse()].inverse(), self.data)
 
-    def get_annotations_matching(self, alignment, annotation_type="*", **kwargs):
+    def make_feature(
+        self, feature: FeatureDataType, alignment: "Alignment"
+    ) -> Annotation:
+        """returns a feature, not written into annotation_db"""
+        annot = self.data.make_feature(feature)
+        return annot.remapped_to(alignment, self.map.inverse())
 
-        from cogent3.util.warning import deprecated
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.get_features()", is_discontinued=True
+    )
+    def get_annotations_matching(self, alignment, **kwargs):
+        for feature in self.data.annotation_db.get_features_matching(**kwargs):
+            yield self.make_feature(feature, alignment)
 
-        deprecated(
-            "method",
-            "get_annotations_matching",
-            "get_features_matching",
-            "2023.3",
-        )
-
-        for annot in self.data.get_features_matching(
-            feature_type=annotation_type, **kwargs
-        ):
-            yield annot.remapped_to(alignment, self.map.inverse())
-
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.get_features()", is_discontinued=True
+    )
     def get_features_matching(self, alignment, annotation_type="*", **kwargs):
         for annot in self.data.get_features_matching(
             feature_type=annotation_type, **kwargs
@@ -4946,3 +5034,60 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result[a.type].append(d)
 
         return result
+
+    def add_feature(
+        self,
+        *,
+        biotype: str,
+        name: str,
+        spans: List[Tuple[int, int]],
+        seqid: Optional[str] = None,
+        strand: str = "+",
+        on_alignment: Optional[bool] = None,
+    ) -> Annotation:
+        """
+        add feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        seqid
+            sequence name, incompatible with on_alignment
+        biotype
+            biological type, e.g. CDS
+        name
+            name of the feature
+        spans
+            plus strand coordinates of feature
+        strand
+            '+' (default) or '-'
+        on_alignment
+            the feature is in alignment coordinates, incompatible with setting
+            seqid. Set to True if seqid not provided.
+
+        Returns
+        -------
+        Annotation
+
+        Raises
+        ------
+        ValueError if define a seqid not on alignment or use seqid and
+        on_alignment.
+        """
+        if seqid and on_alignment is None:
+            on_alignment = False
+        else:
+            on_alignment = on_alignment or True
+
+        if seqid and on_alignment:
+            raise ValueError("seqid and on_alignment are incomatible")
+
+        if seqid and seqid not in self.names:
+            raise ValueError(f"unknown {seqid=}")
+
+        if not self.annotation_db:
+            # probably need to define the default in some better way
+            self.annotation_db = DEFAULT_ANNOTATION_DB(data=[])
+
+        feature = {k: v for k, v in locals().items() if k != "self"}
+
+        return self.annotation_db.add_feature(**feature)
