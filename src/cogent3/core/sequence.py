@@ -893,7 +893,7 @@ class Sequence(_Annotatable, SequenceI):
             biotype of the feature
         name
             name of the feature
-        start, end
+        start, stop
             start, end positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
 

@@ -338,7 +338,7 @@ def test_get_features_matching_start_stop(seq):
 
 def test_matching_conditions():
     got, _ = _matching_conditions({"start": 1, "end": 5}, partial=True)
-    expect = "((start <= 1 AND end > 1) OR (start < 5 AND end >= 5) OR (start <= 1 AND end >= 5))"
+    expect = "((start >= 1 AND end <= 5) OR (start <= 1 AND end > 1) OR (start < 5 AND end >= 5) OR (start <= 1 AND end >= 5))"
     assert got == expect
 
 
