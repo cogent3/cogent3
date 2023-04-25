@@ -4704,13 +4704,25 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aln_annots = self.get_features_matching(*args)
         return [self.project_annotation(seq_name, a) for a in aln_annots]
 
-    def get_annotations_from_seq(self, seq_name, annotation_type="*", **kwargs):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="use <collection>.get_features(seqid=<seq_name>)",
+        is_discontinued=True,
+    )
+    def get_annotations_from_seq(
+        self, seq_name, annotation_type="*", **kwargs
+    ):  # pragma: no cover
         aligned = self.named_seqs[seq_name]
         return aligned.get_features_matching(
             self, annotation_type=annotation_type, **kwargs
         )
 
-    def get_annotations_from_any_seq(self, annotation_type="*", **kwargs):
+    @c3warn.deprecated_callable(
+        "2023.7", reason="use <collection>.get_features()", is_discontinued=True
+    )
+    def get_annotations_from_any_seq(
+        self, annotation_type="*", **kwargs
+    ):  # pragma: no cover
         result = []
         for seq_name in self.names:
             a = self.get_annotations_from_seq(
@@ -4719,7 +4731,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result.extend(a)
         return result
 
-    def get_by_seq_annotation(self, seq_name, *args):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="handled by <collection>.get_features(seqid=<seqid>)",
+        is_discontinued=True,
+    )
+    def get_by_seq_annotation(self, seq_name, *args):  # pragma: no cover
         result = []
         for feature in self.get_annotations_from_seq(seq_name, *args):
             segment = self[feature.map.start : feature.map.end]
