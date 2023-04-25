@@ -245,16 +245,6 @@ class SequenceCollectionBaseTests(object):
         self.b = Alignment(["AAA", "AAA"])
         self.c = SequenceCollection(["AAA", "AAA"])
 
-    def test_deepcopy(self):
-        """correctly deep copy aligned objects in an alignment"""
-        data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
-        seqs = self.Class(data)
-        copied = seqs.deepcopy(sliced=True)
-        assert_equal(seqs.to_rich_dict(), copied.to_rich_dict())
-        self.assertNotEqual(id(copied), id(seqs))
-        for name in seqs.names:
-            self.assertNotEqual(id(copied.named_seqs[name]), copied.named_seqs[name])
-
     def test_guess_input_type(self):
         """SequenceCollection  _guess_input_type should figure out data type correctly"""
         git = self.a._guess_input_type
@@ -3469,3 +3459,17 @@ def test_deepcopy():
     assert len(new_seq.data) == len(aln.named_seqs["Human"].data)
     assert new_seq.data.is_annotated()
     assert len(new_seq.data.annotations) == 2
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_deepcopy_aligned(cls):
+    """correctly deep copy aligned objects in an alignment"""
+    data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
+    seqs = cls(data)
+    copied = seqs.deepcopy(sliced=True)
+    orig_rd = seqs.to_rich_dict()
+    cpy_rd = copied.to_rich_dict()
+    assert orig_rd == cpy_rd
+    assert id(copied) != id(seqs)
+    for name in seqs.names:
+        assert id(copied.named_seqs[name]) != copied.named_seqs[name]

@@ -2284,7 +2284,7 @@ class Aligned:
         if sliced:
             span = self.map.get_covering_span()
             new_seq = type(new_seq)(
-                str(new_seq[span.start : span.end]), info=new_seq.info
+                str(new_seq[span.start : span.end]), info=new_seq.info, name=self.name
             )
             new_seq.annotation_db = None
             new_map = self.map.zeroed()
