@@ -3,7 +3,6 @@
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.annotation import Feature, _Feature
 from cogent3.core.location import Map, Span
 
 
@@ -15,25 +14,6 @@ __version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
-
-
-def SimpleAnnotation(parent, locations, name):
-    return Feature(parent, "", name, locations)
-
-
-def annotate(parent, start, end, name):
-    annot = parent.add_annotation(SimpleAnnotation, locations=[(start, end)], name=name)
-    return annot
-
-
-def structure(a, depth=0):
-    annots = [structure(annot, depth + 1) for annot in a.annotations]
-    if not isinstance(a, _Feature):
-        return ("seq", len(a), annots)
-    elif annots:
-        return (a.name, repr(a.map), annots)
-    else:
-        return (a.name, repr(a.map))
 
 
 class MapTest(unittest.TestCase):
@@ -57,26 +37,6 @@ class MapTest(unittest.TestCase):
             # print (start, end), r,
             if r != expected:
                 self.fail(repr((r, expected)))
-
-    def test_maps_on_maps(self):
-        seq = DNA.make_seq("ATCGATCGAT" * 5, name="base")
-        feat1 = annotate(seq, 10, 20, "fake")
-        annotate(feat1, 3, 5, "fake2")
-        annotate(seq, 1, 3, "left")
-
-        seq2 = seq[5:]
-        self.assertEqual(
-            structure(seq),
-            (
-                "seq",
-                50,
-                [("fake", "[10:20]/50", [("fake2", "[3:5]/10")]), ("left", "[1:3]/50")],
-            ),
-        )
-        self.assertEqual(
-            structure(seq2),
-            ("seq", 45, [("fake", "[5:15]/45", [("fake2", "[3:5]/10")])]),
-        )
 
     def test_get_by_annotation(self):
         seq = DNA.make_seq("ATCGATCGAT" * 5, name="base")
