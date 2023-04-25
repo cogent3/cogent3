@@ -2003,6 +2003,7 @@ def test_annotation_from_slice_with_stride():
         "check annotations get correct sequence when there's a stride"
     )
 
+
 def test_absolute_index_base_cases(one_seq):
     """with no offset or view, the absolute index should remain unchanged"""
     got = one_seq._seq.absolute_index(5)
@@ -2024,7 +2025,7 @@ def test_absolute_index_positive(one_seq):
 
     # with an offset and start, the abs index should be offset + start + index
     view = one_seq[2::]
-    view.annotation_offset = 2 # todo: do we want the annotation_offset to be preserved when slicing? I think yes
+    view.annotation_offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
     got = view._seq.absolute_index(2)
     assert got == 2 + 2 + 2
 
@@ -2032,7 +2033,7 @@ def test_absolute_index_positive(one_seq):
     view = one_seq[2::2]
     view.annotation_offset = 2
     got = view._seq.absolute_index(2)
-    assert got == 2 + 2 + 2*2
+    assert got == 2 + 2 + 2 * 2
 
 
 def test_absolute_index_negative(one_seq):
@@ -2045,19 +2046,19 @@ def test_absolute_index_negative(one_seq):
     view = one_seq[::-1]
     view.annotation_offset = 2
     got = view._seq.absolute_index(-2)
-    assert got == 3 # note an index of 3 is the 4th position
+    assert got == 3  # note an index of 3 is the 4th position
 
     # a start position should not change the above example because -ve indexing is relative to the end
     view = one_seq[-2::-1]
     view.annotation_offset = 2
     got = view._seq.absolute_index(-2)
-    assert got == 3 # note an index of 3 is the 4th position
+    assert got == 3  # note an index of 3 is the 4th position
 
     # a stop position
     view = one_seq[:1:-1]
     view.annotation_offset = 2
     got = view._seq.absolute_index(-2)
-    assert got == 5 # note an index of 5 is the 6th position
+    assert got == 5  # note an index of 5 is the 6th position
 
 
 @pytest.mark.xfail(reason="todo: kath passes except when run in the full test suite")
@@ -2110,9 +2111,14 @@ def integer_seq():
 @pytest.mark.parametrize("value", (0, 2, -2))
 @pytest.mark.parametrize("offset", (None, 1, 2))
 @pytest.mark.parametrize("start", (None, -1, -2))
-@pytest.mark.parametrize("stop", (None, -10, ))
+@pytest.mark.parametrize(
+    "stop",
+    (None, -10),
+)
 @pytest.mark.parametrize("step", (-1, -2))
-def test_absolute_relative_roundtrip_reverse(integer_seq, value, offset, start, stop, step):
+def test_absolute_relative_roundtrip_reverse(
+    integer_seq, value, offset, start, stop, step
+):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
     view.offset = offset
@@ -2130,7 +2136,9 @@ def test_absolute_relative_roundtrip_reverse(integer_seq, value, offset, start, 
 @pytest.mark.parametrize("start", (None, -1, -2))
 @pytest.mark.parametrize("stop", (None, -10, -11))
 @pytest.mark.parametrize("step", (-1, 2))
-def test_relative_absolute_roundtrip_reverse(integer_seq, value, offset, start, stop, step):
+def test_relative_absolute_roundtrip_reverse(
+    integer_seq, value, offset, start, stop, step
+):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
     view.offset = offset

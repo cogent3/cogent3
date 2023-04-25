@@ -1634,7 +1634,6 @@ class SeqView:
 
         return abs_value
 
-
     def relative_index(self, value):
         """converts an index relative to annotation coordinates to be with respect to the current sequence view"""
 
@@ -1644,22 +1643,31 @@ class SeqView:
         if self.reversed:
             offset = 0 if self.offset is None else self.offset
             if value < offset + len(self.seq) - self.stop * self.step:
-                raise IndexError("Index not within current view, cannot convert to relative index")
-            if (rel_value := ((len(self.seq)-(value - offset)) + self.start)) % self.step != 0:
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
+            if (
+                rel_value := ((len(self.seq) - (value - offset)) + self.start)
+            ) % self.step != 0:
                 # todo: should this error be more explicit that it is due to not aligning with the step
-                raise IndexError("Index not within current view, cannot convert to relative index")
-            rel_value = abs(rel_value/self.step)
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
+            rel_value = abs(rel_value / self.step)
 
         else:
             offset = self.start if self.offset is None else self.offset + self.start
             if value < offset:
-                raise IndexError("Index not within current view, cannot convert to relative index")
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
             if (rel_value := (value - offset)) % self.step != 0:
-                raise IndexError("Index not within current view, cannot convert to relative index")
-            rel_value = rel_value/self.step
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
+            rel_value = rel_value / self.step
 
         return int(rel_value)
-
 
     def _get_index(self, val):
         if len(self) == 0:
