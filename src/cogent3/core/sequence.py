@@ -884,6 +884,7 @@ class Sequence(_Annotatable, SequenceI):
         name: Optional[str] = None,
         start: Optional[int] = None,
         stop: Optional[int] = None,
+        allow_partial: bool = False,
     ):
         """yields Annotation instances
 
@@ -924,6 +925,7 @@ class Sequence(_Annotatable, SequenceI):
             biotype=feature_type,
             start=query_start,
             end=query_end,  # todo gah end should be stop
+            allow_partial=allow_partial,
         ):
             yield self.make_feature(feature)
 
