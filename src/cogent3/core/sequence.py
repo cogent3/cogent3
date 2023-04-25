@@ -1153,6 +1153,7 @@ class Sequence(_Annotatable, SequenceI):
         # todo gah check this omission
         # if hasattr(index, "get_slice"):
         #     return index.get_slice()
+        # todo: kath preserve the offset?
 
         if isinstance(index, Map):
             new = self._mapped(index)
@@ -1610,14 +1611,71 @@ class SeqView:
     def reversed(self):
         return self.step < 0
 
-    def absolute_index(self, value):
-        # note: this is the positive/positive case...
-        # todo gah handle reversed
-        if self.start + value > self.stop:
-            raise IndexError("Index out of bounds")
+    def absolute_index(self, value: int):
+        """Converts an index relative to the current view to be with respect to the coordinates of the sequence's annotations
 
-        offset = self.start if self.offset is None else self.offset + self.start
-        return offset + (value * self.step)
+        Parameters
+        ----------
+        value   int
+                index relative to the current View, supports +ve or -ve indexing
+
+        Returns
+        -------
+        (positive) index relative to the coordinates of the sequence's annotations
+
+        """
+
+        index, _, _ = self._get_index(value)
+        offset = 0 if self.offset is None else self.offset
+        if self.reversed:
+            # todo: kath, does not account for a step > 1
+            if self.start - abs(value) < self.stop:
+                raise IndexError("Index out of bounds")
+
+            abs_value = offset + len(self.seq) + index
+        else:
+            # todo: kath, does not account for a step > 1
+            if self.start + value > self.stop:
+                raise IndexError("Index out of bounds")
+
+            abs_value = offset + index
+
+        return abs_value
+
+    def relative_index(self, value):
+        """converts an index relative to annotation coordinates to be with respect to the current sequence view"""
+
+        if value < 0:
+            raise IndexError("Index must be +ve and relative to the + strand")
+
+        if self.reversed:
+            offset = 0 if self.offset is None else self.offset
+            if value < offset + len(self.seq) - self.stop * self.step:
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
+            if (
+                rel_value := ((len(self.seq) - (value - offset)) + self.start)
+            ) % self.step != 0:
+                # todo: should this error be more explicit that it is due to not aligning with the step
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
+            rel_value = abs(rel_value / self.step)
+
+        else:
+            offset = self.start if self.offset is None else self.offset + self.start
+            if value < offset:
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
+            if (rel_value := (value - offset)) % self.step != 0:
+                raise IndexError(
+                    "Index not within current view, cannot convert to relative index"
+                )
+            rel_value = rel_value / self.step
+
+        return int(rel_value)
 
     def _get_index(self, val):
         if len(self) == 0:
@@ -1634,7 +1692,7 @@ class SeqView:
             else:
                 val = self.start + len(self) * self.step + val * abs(self.step)
 
-            return self.__class__(self.seq, start=val, stop=val + 1)
+            return val, val + 1, 1
 
         elif self.step < 0:
             if val > 0 and val >= len(self):
@@ -1647,7 +1705,7 @@ class SeqView:
             else:
                 val = self.start + len(self) * self.step + val * self.step
 
-            return self.__class__(self.seq, start=val, stop=val - 1, step=-1)
+            return val, val - 1, -1
 
     def _get_slice(self, segment, step):
         slice_start = segment.start if segment.start is not None else 0
@@ -1813,7 +1871,9 @@ class SeqView:
 
     def __getitem__(self, segment):
         if isinstance(segment, int):
-            return self._get_index(segment)
+            start, stop, step = self._get_index(segment)
+            return self.__class__(self.seq, start=start, stop=stop, step=step)
+
         if len(self) == 0:
             return self
 
