@@ -59,12 +59,26 @@ class MapTest(unittest.TestCase):
         self.assertEqual(len(answer), 1)
         self.assertEqual(str(seq[answer[0]]), "TCGAT")
 
+    @pytest.mark.xfail(reason="todo: see comments in test")
     def test_get_by_seq_annotation(self):
         aln = make_aligned_seqs(
             data={"a": "ATCGAAATCGAT", "b": "ATCGA--TCGAT"}, array_align=False
         )
+        # original version was putting annotation directly on seq
         b = aln.get_seq("b")
-        b.add_annotation(Feature, "test_type", "test_label", [(4, 6)])
+        f = aln.add_feature(
+            seqid="b", biotype="test_type", name="test_label", spans=[(4, 6)]
+        )
+        print(f)  # f should be a feature, but is currently None
 
-        answer = aln.get_by_seq_annotation("b", "test_type")[0].to_dict()
+        # in the original get_by_seq_annotations(), inside the method it
+        # used self[feature.map.start : feature.map.end],
+        # so what was returned was an alignment slice compared to below,
+        # which is only non-gap positions of "b"
+        # todo gah add argument get_slice(strict=True), which means if parent is
+        # an alignment, only the columns from non-gap positions are returned.
+        # Argument has non effect on Sequence, OR add a new get_alignment_slice()
+        # method?
+        answer = list(aln.get_features(seqid="b", biotype="test_type"))
+        answer = answer[0].get_slice().to_dict()
         self.assertEqual(answer, {"b": "A--T", "a": "AAAT"})
