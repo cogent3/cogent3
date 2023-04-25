@@ -57,7 +57,10 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import deprecated, deprecated_args
+from cogent3.util.warning import (
+    deprecated,
+    deprecated_args,
+)
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -877,10 +880,14 @@ class Sequence(_Annotatable, SequenceI):
             raise TypeError
         self._annotation_db = value
 
-    # todo deprecate feature_type for biotype
-    def get_features_matching(
+    @deprecated_args(
+        "2023.7",
+        reason="consistent nomenclature",
+        old_new=[("feature_type", "biotype")],
+    )
+    def get_features(
         self,
-        feature_type: Optional[str] = None,
+        biotype: Optional[str] = None,
         name: Optional[str] = None,
         start: Optional[int] = None,
         stop: Optional[int] = None,
@@ -890,7 +897,7 @@ class Sequence(_Annotatable, SequenceI):
 
         Parameters
         ----------
-        feature_type
+        biotype
             biotype of the feature
         name
             name of the feature
@@ -921,7 +928,7 @@ class Sequence(_Annotatable, SequenceI):
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
             name=name,
-            biotype=feature_type,
+            biotype=biotype,
             start=query_start,
             end=query_end,  # todo gah end should be stop
             allow_partial=allow_partial,
