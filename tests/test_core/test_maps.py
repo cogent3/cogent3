@@ -34,7 +34,6 @@ class MapTest(unittest.TestCase):
             ((10, 0), "[10:5, 5:0]"),
         ]:
             r = repr(Span(start, end, reverse=start > end).remap_with(map))
-            # print (start, end), r,
             if r != expected:
                 self.fail(repr((r, expected)))
 
@@ -67,41 +66,3 @@ class MapTest(unittest.TestCase):
 
         answer = aln.get_by_seq_annotation("b", "test_type")[0].to_dict()
         self.assertEqual(answer, {"b": "A--T", "a": "AAAT"})
-
-
-if 0:  # old, needs fixes
-    # Maps
-    a = Map([(10, 20)], parent_length=100)
-
-    for (desc, map, expected) in [
-        ("a ", a, "Map([10:20] on base)"),
-        ("i ", a.inverse(), "Map([-10-, 0:10, -80-] on Map([10:20] on base))"),
-        ("1 ", a[5:], "Map([5:10] on Map([10:20] on base))"),
-        ("1r", a[5:].relative_to(b), "Map([15:20] on base)"),
-        ("2 ", a[:5], "Map([0:5] on Map([10:20] on base))"),
-        ("2r", a[:5].relative_to(b), "Map([10:15] on base)"),
-        (
-            "r ",
-            a.relative_to(a[5:]),
-            "Map([-5-, 0:5] on Map([5:10] on Map([10:20] on base)))",
-        ),
-        (
-            "r ",
-            a[2:4].relative_to(a[2:6]),
-            "Map([0:2] on Map([2:6] on Map([10:20] on base)))",
-        ),
-        (
-            "r ",
-            a[2:4].relative_to(a[2:6][0:3]),
-            "Map([0:2] on Map([0:3] on Map([2:6] on Map([10:20] on base))))",
-        ),
-    ]:
-        print(desc, repr(map), end=" ")
-        if repr(map) == expected:
-            print()
-        else:
-            print(" <--- ", expected)
-            bad = True
-
-if __name__ == "__main__":
-    unittest.main()
