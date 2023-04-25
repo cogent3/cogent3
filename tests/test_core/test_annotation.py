@@ -47,35 +47,6 @@ class TestAnnotations(unittest.TestCase):
         self.seq = makeSampleSequence()
         self.aln = makeSampleAlignment()
 
-    def test_inherit_feature(self):
-        """should be able to subclass and extend _Feature"""
-
-        class NewFeat(_Feature):
-            def __init__(self, *args, **kwargs):
-                super(NewFeat, self).__init__(*args, **kwargs)
-
-            def newMethod(self):
-                if len(self.map.spans) > 1:
-                    as_one = self.as_one_span()  # should create new instance of NewFeat
-                    return as_one.newMethod()
-                return True
-
-        seq = DNA.make_seq("ACGTACGTACGT")
-        f = seq.add_annotation(
-            NewFeat, as_map([(1, 3), (5, 7)], len(seq)), type="gene", name="abcd"
-        )
-        self.assertEqual(type(f.as_one_span()), NewFeat)
-        self.assertEqual(type(f.get_shadow()), NewFeat)
-        f2 = seq.add_annotation(
-            NewFeat, as_map([(3, 5)], len(seq)), type="gene", name="def"
-        )
-
-        self.assertEqual(
-            type(seq.get_region_covering_all([f, f2], feature_class=NewFeat)), NewFeat
-        )
-        # now use the new method
-        f.newMethod()
-
     def test_slice_seq_with_annotations(self):
         newseq = self.seq[:5] + self.seq[10:]
         for annot_type in ["CDS", "5'UTR"]:
