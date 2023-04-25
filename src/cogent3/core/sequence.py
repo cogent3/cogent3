@@ -1628,8 +1628,16 @@ class SeqView:
         index, _, _ = self._get_index(value)
         offset = 0 if self.offset is None else self.offset
         if self.reversed:
+            # todo: kath, does not account for a step > 1
+            if self.start - abs(value) < self.stop:
+                raise IndexError("Index out of bounds")
+
             abs_value = offset + len(self.seq) + index
         else:
+            # todo: kath, does not account for a step > 1
+            if self.start + value > self.stop:
+                raise IndexError("Index out of bounds")
+
             abs_value = offset + index
 
         return abs_value
