@@ -2,6 +2,8 @@
 
 import unittest
 
+import pytest
+
 from cogent3 import DNA, make_aligned_seqs
 from cogent3.core.location import Map, Span
 
@@ -39,23 +41,23 @@ class MapTest(unittest.TestCase):
 
     def test_get_by_annotation(self):
         seq = DNA.make_seq("ATCGATCGAT" * 5, name="base")
-        seq.add_annotation(Feature, "test_type", "test_label", [(5, 10)])
-        seq.add_annotation(Feature, "test_type", "test_label2", [(15, 18)])
+        seq.add_feature(biotype="test_type", name="test_label", spans=[(5, 10)])
+        seq.add_feature(biotype="test_type", name="test_label2", spans=[(15, 18)])
 
-        answer = list(seq.get_by_annotation("test_type"))
+        answer = list(seq.get_features(biotype="test_type"))
         self.assertEqual(len(answer), 2)
-        self.assertEqual(str(answer[0]), "TCGAT")
-        self.assertEqual(str(answer[1]), "TCG")
+        self.assertEqual(str(seq[answer[0]]), "TCGAT")
+        self.assertEqual(str(seq[answer[1]]), "TCG")
 
-        answer = list(seq.get_by_annotation("test_type", "test_label"))
+        answer = list(seq.get_features(biotype="test_type", name="test_label"))
         self.assertEqual(len(answer), 1)
-        self.assertEqual(str(answer[0]), "TCGAT")
+        self.assertEqual(str(seq[answer[0]]), "TCGAT")
 
         # test ignoring of a partial annotation
         sliced_seq = seq[:17]
-        answer = list(sliced_seq.get_by_annotation("test_type", ignore_partial=True))
+        answer = list(sliced_seq.get_features(biotype="test_type", allow_partial=False))
         self.assertEqual(len(answer), 1)
-        self.assertEqual(str(answer[0]), "TCGAT")
+        self.assertEqual(str(seq[answer[0]]), "TCGAT")
 
     def test_get_by_seq_annotation(self):
         aln = make_aligned_seqs(
