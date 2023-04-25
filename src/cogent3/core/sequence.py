@@ -907,17 +907,23 @@ class Sequence(_Annotatable, SequenceI):
         if self._annotation_db is None:
             return None
 
-        query_start = self._seq.absolute_index(start) if start is not None else None
-        query_end = self._seq.absolute_index(stop) if stop is not None else None
-
-        seq_rced = self._seq.reversed
-
+        query_start = self._seq.absolute_index(self.annotation_offset + (start or 0))
+        query_end = self._seq.absolute_index(
+            self.annotation_offset + (stop or len(self))
+        )
+        # todo gah check logic of handling of negative indices
+        query_start, query_end = (
+            (query_start, query_end)
+            if query_start < query_end
+            else (query_end, query_start)
+        )
+        query_start = max(query_start, 0)
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
             name=name,
             biotype=feature_type,
             start=query_start,
-            end=query_end,
+            end=query_end,  # todo gah end should be stop
         ):
             yield self.make_feature(feature)
 
@@ -1682,7 +1688,7 @@ class SeqView:
             raise IndexError(val)
 
         if self.step > 0:
-            if val > 0 and val >= len(self):
+            if val > 0 and val > len(self):
                 raise IndexError(val)
             elif val < 0 and abs(val) > len(self):
                 raise IndexError(val)
@@ -1695,7 +1701,7 @@ class SeqView:
             return val, val + 1, 1
 
         elif self.step < 0:
-            if val > 0 and val >= len(self):
+            if val > 0 and val > len(self):
                 raise IndexError(val)
             elif val < 0 and abs(val) > len(self):
                 raise IndexError(val)
