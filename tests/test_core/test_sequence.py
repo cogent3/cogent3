@@ -1939,7 +1939,7 @@ def test_seqview_repr():
     assert repr(view) == expected
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def one_seq():
     from cogent3 import make_seq
 
@@ -2061,7 +2061,6 @@ def test_absolute_index_negative(one_seq):
     assert got == 5  # note an index of 5 is the 6th position
 
 
-@pytest.mark.xfail(reason="todo: kath passes except when run in the full test suite")
 def test_relative_index_base_cases(one_seq):
     """with no offset or view, the absolute index should remain unchanged"""
     got = one_seq._seq.relative_index(5)
