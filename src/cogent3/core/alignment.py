@@ -2176,7 +2176,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
         return self.annotation_db.add_feature(**feature)
 
-    def get_features(
+    def get_features( 
         self,
         *,
         seqid: Optional[str] = None,
@@ -2411,10 +2411,10 @@ class Aligned:
     @c3warn.deprecated_callable(
         "2023.10", "handled by <collection>.get_features()", is_discontinued=True
     )
-    def get_features_matching(self, alignment, annotation_type="*", **kwargs):
-        for annot in self.data.get_features_matching(
-            feature_type=annotation_type, **kwargs
-        ):
+    def get_features_matching(
+        self, alignment, annotation_type="*", **kwargs
+    ):  # pragma: no cover
+        for annot in self.data.get_features(biotype=annotation_type, **kwargs):
             yield annot.remapped_to(alignment, self.map.inverse())
 
     def get_drawables(self):

@@ -101,12 +101,8 @@ class SequenceTests(TestCase):
         annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
         annot2 = s.add_feature(biotype="exon", name="annot2", spans=[(10, 14)])
         got = s.copy()
-        got_annot1 = list(
-            got.get_features_matching(feature_type="exon", name="annot1")
-        )[0]
-        got_annot2 = list(
-            got.get_features_matching(feature_type="exon", name="annot2")
-        )[0]
+        got_annot1 = list(got.get_features(biotype="exon", name="annot1"))[0]
+        got_annot2 = list(got.get_features(biotype="exon", name="annot2"))[0]
         self.assertIsNot(got, s)
         self.assertIsNot(got_annot1, annot1)
         self.assertIsNot(got_annot2, annot2)
@@ -1964,9 +1960,9 @@ def test_annotate_from_gff(worm_seq_path, worm_gff_path):
     seq = cogent3.load_seq(worm_seq_path, moltype="dna")
 
     seq.annotate_from_gff(worm_gff_path)
-    matches = list(seq.get_features_matching())
+    matches = list(seq.get_features())
     assert len(matches) == 11
-    matches = list(seq.get_features_matching(feature_type="gene"))
+    matches = list(seq.get_features(biotype="gene"))
     assert len(matches) == 1
     matches = list(matches[0].get_children(biotype="mRNA"))
     assert len(matches) == 1

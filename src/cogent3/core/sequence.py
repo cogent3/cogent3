@@ -60,6 +60,7 @@ from cogent3.util.transform import for_seq, per_shortest
 from cogent3.util.warning import (
     deprecated,
     deprecated_args,
+    deprecated_callable,
 )
 
 
@@ -934,6 +935,13 @@ class Sequence(_Annotatable, SequenceI):
             allow_partial=allow_partial,
         ):
             yield self.make_feature(feature)
+
+    @deprecated_callable(
+        "2023.7", reason="simpler name", new="<instance>.get_features()"
+    )
+    def get_features_matching(self, **kwargs):
+        """use .get_features()"""
+        return self.get_features(**kwargs)
 
     def make_feature(self, feature: FeatureDataType, *args) -> Annotation:
         """
