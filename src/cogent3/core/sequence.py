@@ -1172,9 +1172,9 @@ class Sequence(_Annotatable, SequenceI):
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
-        # todo gah check this omission
-        # if hasattr(index, "get_slice"):
-        #     return index.get_slice()
+        if hasattr(index, "map"):
+            index = index.map
+
         # todo: kath preserve the offset?
 
         if isinstance(index, Map):
