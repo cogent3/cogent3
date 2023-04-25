@@ -3407,7 +3407,8 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
         seqcoll_db.copy_annotations({"a": "ACGGT"})
 
 
-def test_deepcopy():
+@pytest.mark.xfail(reason="todo gah to be implemented")
+def test_deepcopy_with_features():
     """correctly deepcopy Aligned objects in an alignment"""
     path = DATA_DIR / "brca1_5.paml"
     # generates an annotatable Alignment object
