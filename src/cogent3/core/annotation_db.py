@@ -233,30 +233,26 @@ def _matching_conditions(
         vals = tuple(vals)
 
     if isinstance(start, int) and isinstance(end, int):
-        # only matches within bounds
         if partial:
+            # allow matches that overlap the segment
             cond = [
+                f"(start >= {start} AND end <= {end})",  # lies within the segment
                 f"(start <= {start} AND end > {start})",  # straddles beginning of segment
                 f"(start < {end} AND end >= {end})",  # straddles end of segment
                 f"(start <= {start} AND end >= {end})",  # includes segment
             ]
             cond = " OR ".join(cond)
         else:
+            # only matches within bounds
             cond = f"start >= {start} AND end <= {end}"
         sql.append(f"({cond})")
     elif isinstance(start, int):
-        if partial:
-            cond = " OR ".join(
-                [f"start >= {start}", f"(start <= {start} AND end >= {start})"]
-            )
-        else:
-            cond = f"start >= {start}"
+        # if query has no end, then any feature containing start
+        cond = f"(start <= {start} AND {start} < end)"
         sql.append(f"({cond})")
     elif isinstance(end, int):
-        if partial:
-            cond = " OR ".join([f"end <= {end}", f"(start <= {end} AND end >= {end})"])
-        else:
-            cond = f"end <= {end}"
+        # if query has no start, then any feature containing end
+        cond = f"(start <= {end} AND {end} < end)"
         sql.append(f"({cond})")
 
     sql = f"{' AND '.join(sql)}"
