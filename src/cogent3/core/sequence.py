@@ -908,10 +908,9 @@ class Sequence(_Annotatable, SequenceI):
         if self._annotation_db is None:
             return None
 
-        query_start = self._seq.absolute_index(self.annotation_offset + (start or 0))
-        query_end = self._seq.absolute_index(
-            self.annotation_offset + (stop or len(self))
-        )
+        offset = self.annotation_offset or 0
+        query_start = self._seq.absolute_index(offset + (start or 0))
+        query_end = self._seq.absolute_index(offset + (stop or len(self)))
         # todo gah check logic of handling of negative indices
         query_start, query_end = (
             (query_start, query_end)
@@ -1612,7 +1611,7 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
-        self.offset = None
+        self.offset = None  # todo gah this should default to 0
         self.step = step
 
     @property
