@@ -5092,4 +5092,4 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         feature = {k: v for k, v in locals().items() if k != "self"}
 
-        return self.annotation_db.add_feature(**feature)
+        self.annotation_db.add_feature(**feature)
