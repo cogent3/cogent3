@@ -1,5 +1,7 @@
 """Unit tests for Sequence class and its subclasses.
 """
+
+import contextlib
 import json
 import os
 import pathlib
@@ -2080,9 +2082,9 @@ def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
     view.annotation_offset = offset
-    abs = view._seq.absolute_index(value)
-    rel = view._seq.relative_index(abs)
-    assert rel == value
+    abs_val = view._seq.absolute_index(value)
+    rel_val = view._seq.relative_index(abs_val)
+    assert rel_val == value
 
 
 @pytest.mark.parametrize("value", (0, 2, 3))
@@ -2094,12 +2096,10 @@ def test_relative_absolute_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
     view.annotation_offset = offset
-    try:
-        rel = view._seq.relative_index(value)
-        abs = view._seq.absolute_index(rel)
-        assert abs == value
-    except IndexError:
-        pass
+    with contextlib.suppress(IndexError):
+        rel_val = view._seq.relative_index(value)
+        abs_val = view._seq.absolute_index(rel_val)
+        assert abs_val == value
 
 
 @pytest.fixture(scope="session")
@@ -2121,13 +2121,11 @@ def test_absolute_relative_roundtrip_reverse(
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
     view.offset = offset
-    abs = view.absolute_index(value)
-    try:
-        rel = view.relative_index(abs)
+    abs_val = view.absolute_index(value)
+    with contextlib.suppress(IndexError):
+        rel_val = view.relative_index(abs_val)
         assert view.offset == offset
-        assert (view[rel]).value == view[value].value
-    except IndexError:
-        pass
+        assert (view[rel_val]).value == view[value].value
 
 
 @pytest.mark.parametrize("value", (0, 2, 3))
@@ -2141,9 +2139,7 @@ def test_relative_absolute_roundtrip_reverse(
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
     view.offset = offset
-    try:
-        rel = view.relative_index(value)
-        abs = view.absolute_index(rel)
-        assert abs == value
-    except IndexError:
-        pass
+    with contextlib.suppress(IndexError):
+        rel_val = view.relative_index(value)
+        abs_val = view.absolute_index(rel_val)
+        assert abs_val == value
