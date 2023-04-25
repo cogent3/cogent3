@@ -3253,10 +3253,10 @@ def test_annotate_from_gff3(cls):
     seq_coll.annotate_from_gff(gff3_path)
     member_seq = seq_coll.get_seq(seq.name)
 
-    matches = list(member_seq.get_features_matching())
+    matches = list(member_seq.get_features())
     # 11 features
     assert len(matches) == 11
-    matches = list(member_seq.get_features_matching(feature_type="gene"))
+    matches = list(member_seq.get_features(biotype="gene"))
     assert len(matches) == 1
     matches = list(matches[0].get_children(biotype="mRNA"))
     assert len(matches) == 1

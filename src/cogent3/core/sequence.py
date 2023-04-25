@@ -57,7 +57,11 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import deprecated, deprecated_args
+from cogent3.util.warning import (
+    deprecated,
+    deprecated_args,
+    deprecated_callable,
+)
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -877,23 +881,28 @@ class Sequence(_Annotatable, SequenceI):
             raise TypeError
         self._annotation_db = value
 
-    # todo deprecate feature_type for biotype
-    def get_features_matching(
+    @deprecated_args(
+        "2023.7",
+        reason="consistent nomenclature",
+        old_new=[("feature_type", "biotype")],
+    )
+    def get_features(
         self,
-        feature_type: Optional[str] = None,
+        biotype: Optional[str] = None,
         name: Optional[str] = None,
         start: Optional[int] = None,
         stop: Optional[int] = None,
+        allow_partial: bool = False,
     ):
         """yields Annotation instances
 
         Parameters
         ----------
-        feature_type
+        biotype
             biotype of the feature
         name
             name of the feature
-        start, end
+        start, stop
             start, end positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
 
@@ -907,19 +916,32 @@ class Sequence(_Annotatable, SequenceI):
         if self._annotation_db is None:
             return None
 
-        query_start = self._seq.absolute_index(start) if start is not None else None
-        query_end = self._seq.absolute_index(stop) if stop is not None else None
-
-        seq_rced = self._seq.reversed
-
+        offset = self.annotation_offset or 0
+        query_start = self._seq.absolute_index(offset + (start or 0))
+        query_end = self._seq.absolute_index(offset + (stop or len(self)))
+        # todo gah check logic of handling of negative indices
+        query_start, query_end = (
+            (query_start, query_end)
+            if query_start < query_end
+            else (query_end, query_start)
+        )
+        query_start = max(query_start, 0)
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
             name=name,
-            biotype=feature_type,
+            biotype=biotype,
             start=query_start,
-            end=query_end,
+            end=query_end,  # todo gah end should be stop
+            allow_partial=allow_partial,
         ):
             yield self.make_feature(feature)
+
+    @deprecated_callable(
+        "2023.7", reason="simpler name", new="<instance>.get_features()"
+    )
+    def get_features_matching(self, **kwargs):
+        """use .get_features()"""
+        return self.get_features(**kwargs)
 
     def make_feature(self, feature: FeatureDataType, *args) -> Annotation:
         """
@@ -1150,9 +1172,9 @@ class Sequence(_Annotatable, SequenceI):
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
-        # todo gah check this omission
-        # if hasattr(index, "get_slice"):
-        #     return index.get_slice()
+        if hasattr(index, "map"):
+            index = index.map
+
         # todo: kath preserve the offset?
 
         if isinstance(index, Map):
@@ -1604,7 +1626,7 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
-        self.offset = None
+        self.offset = None  # todo gah this should default to 0
         self.step = step
 
     @property
@@ -1682,7 +1704,7 @@ class SeqView:
             raise IndexError(val)
 
         if self.step > 0:
-            if val > 0 and val >= len(self):
+            if val > 0 and val > len(self):
                 raise IndexError(val)
             elif val < 0 and abs(val) > len(self):
                 raise IndexError(val)
@@ -1695,7 +1717,7 @@ class SeqView:
             return val, val + 1, 1
 
         elif self.step < 0:
-            if val > 0 and val >= len(self):
+            if val > 0 and val > len(self):
                 raise IndexError(val)
             elif val < 0 and abs(val) > len(self):
                 raise IndexError(val)

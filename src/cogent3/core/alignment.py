@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2300,19 +2299,24 @@ class Aligned:
     def with_termini_unknown(self):
         return self.__class__(self.map.with_termini_unknown(), self.data)
 
-    def copy_annotations(self, other):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="handled by <collection>.copy_annotations()",
+        is_discontinued=True,
+    )
+    def copy_annotations(self, other):  # pragma: no cover
         self.data.copy_annotations(other)
 
     @c3warn.deprecated_callable(
         "2023.10", "handled by <collection>.annotate_from_gff()", is_discontinued=True
     )
-    def annotate_from_gff(self, f):
+    def annotate_from_gff(self, f):  # pragma: no cover
         self.data.annotate_from_gff(f)
 
     @c3warn.deprecated_callable(
         "2023.10", "handled by <collection>.add_feature()", is_discontinued=True
     )
-    def add_feature(self, *args, **kwargs):
+    def add_feature(self, *args, **kwargs):  # pragma: no cover
         self.data.add_feature(*args, **kwargs)
 
     def __str__(self):
@@ -2404,17 +2408,17 @@ class Aligned:
     @c3warn.deprecated_callable(
         "2023.10", "handled by <collection>.get_features()", is_discontinued=True
     )
-    def get_annotations_matching(self, alignment, **kwargs):
-        for feature in self.data.annotation_db.get_features_matching(**kwargs):
+    def get_annotations_matching(self, alignment, **kwargs):  # pragma: no cover
+        for feature in self.data.annotation_db.get_features(**kwargs):
             yield self.make_feature(feature, alignment)
 
     @c3warn.deprecated_callable(
         "2023.10", "handled by <collection>.get_features()", is_discontinued=True
     )
-    def get_features_matching(self, alignment, annotation_type="*", **kwargs):
-        for annot in self.data.get_features_matching(
-            feature_type=annotation_type, **kwargs
-        ):
+    def get_features_matching(
+        self, alignment, annotation_type="*", **kwargs
+    ):  # pragma: no cover
+        for annot in self.data.get_features(biotype=annotation_type, **kwargs):
             yield annot.remapped_to(alignment, self.map.inverse())
 
     def get_drawables(self):
@@ -4700,13 +4704,25 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         aln_annots = self.get_features_matching(*args)
         return [self.project_annotation(seq_name, a) for a in aln_annots]
 
-    def get_annotations_from_seq(self, seq_name, annotation_type="*", **kwargs):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="use <collection>.get_features(seqid=<seq_name>)",
+        is_discontinued=True,
+    )
+    def get_annotations_from_seq(
+        self, seq_name, annotation_type="*", **kwargs
+    ):  # pragma: no cover
         aligned = self.named_seqs[seq_name]
         return aligned.get_features_matching(
             self, annotation_type=annotation_type, **kwargs
         )
 
-    def get_annotations_from_any_seq(self, annotation_type="*", **kwargs):
+    @c3warn.deprecated_callable(
+        "2023.7", reason="use <collection>.get_features()", is_discontinued=True
+    )
+    def get_annotations_from_any_seq(
+        self, annotation_type="*", **kwargs
+    ):  # pragma: no cover
         result = []
         for seq_name in self.names:
             a = self.get_annotations_from_seq(
@@ -4715,7 +4731,12 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result.extend(a)
         return result
 
-    def get_by_seq_annotation(self, seq_name, *args):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="handled by <collection>.get_features(seqid=<seqid>)",
+        is_discontinued=True,
+    )
+    def get_by_seq_annotation(self, seq_name, *args):  # pragma: no cover
         result = []
         for feature in self.get_annotations_from_seq(seq_name, *args):
             segment = self[feature.map.start : feature.map.end]

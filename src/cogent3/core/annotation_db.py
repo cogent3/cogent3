@@ -196,7 +196,7 @@ def _add_record_sql(
 
 def _matching_conditions(
     conditions: dict,
-    partial: bool = True,
+    allow_partial: bool = True,
 ):
     """creates WHERE clause
 
@@ -204,7 +204,7 @@ def _matching_conditions(
     ----------
     conditions : dict
         column name and values to be matched
-    partial : bool, optional
+    allow_partial : bool, optional
         if False, only records within start, end are included. If True,
         all records that overlap the segment defined by start, end are included.
 
@@ -233,30 +233,26 @@ def _matching_conditions(
         vals = tuple(vals)
 
     if isinstance(start, int) and isinstance(end, int):
-        # only matches within bounds
-        if partial:
+        if allow_partial:
+            # allow matches that overlap the segment
             cond = [
+                f"(start >= {start} AND end <= {end})",  # lies within the segment
                 f"(start <= {start} AND end > {start})",  # straddles beginning of segment
                 f"(start < {end} AND end >= {end})",  # straddles end of segment
                 f"(start <= {start} AND end >= {end})",  # includes segment
             ]
             cond = " OR ".join(cond)
         else:
+            # only matches within bounds
             cond = f"start >= {start} AND end <= {end}"
         sql.append(f"({cond})")
     elif isinstance(start, int):
-        if partial:
-            cond = " OR ".join(
-                [f"start >= {start}", f"(start <= {start} AND end >= {start})"]
-            )
-        else:
-            cond = f"start >= {start}"
+        # if query has no end, then any feature containing start
+        cond = f"(start <= {start} AND {start} < end)"
         sql.append(f"({cond})")
     elif isinstance(end, int):
-        if partial:
-            cond = " OR ".join([f"end <= {end}", f"(start <= {end} AND end >= {end})"])
-        else:
-            cond = f"end <= {end}"
+        # if query has no start, then any feature containing end
+        cond = f"(start <= {end} AND {end} < end)"
         sql.append(f"({cond})")
 
     sql = f"{' AND '.join(sql)}"
@@ -268,7 +264,7 @@ def _del_records_sql(
     conditions: dict,
     start: OptionalInt = None,
     end: OptionalInt = None,
-    partial=True,
+    allow_partial=True,
 ) -> ReturnType:
     """creates the SQL and values for identifying records to be deleted
 
@@ -280,8 +276,8 @@ def _del_records_sql(
         column name and values to be matched
     start, end : OptionalInt
         select records whose (start, end) values lie between start and end,
-        or overlap them if (partial is True)
-    partial : bool, optional
+        or overlap them if (allow_partial is True)
+    allow_partial : bool, optional
         if False, only records within start, end are included. If True,
         all records that overlap the segment defined by start, end are included.
 
@@ -291,7 +287,7 @@ def _del_records_sql(
         the SQL statement and the tuple of values
     """
     where, vals = _matching_conditions(
-        conditions=conditions, start=start, end=end, partial=partial
+        conditions=conditions, start=start, end=end, allow_partial=allow_partial
     )
     sql = f"DELETE FROM {table_name}"
     if not where:
@@ -307,7 +303,7 @@ def _select_records_sql(
     columns: typing.Optional[typing.List[str]] = None,
     start: OptionalInt = None,
     end: OptionalInt = None,
-    partial=True,
+    allow_partial=True,
 ) -> ReturnType:
     """create SQL select statement and values
 
@@ -321,8 +317,8 @@ def _select_records_sql(
         the WHERE conditions
     start, end : OptionalInt
         select records whose (start, end) values lie between start and end,
-        or overlap them if (partial is True)
-    partial : bool, optional
+        or overlap them if (allow_partial is True)
+    allow_partial : bool, optional
         if False, only records within start, end are included. If True,
         all records that overlap the segment defined by start, end are included.
 
@@ -332,7 +328,9 @@ def _select_records_sql(
         the SQL statement and the tuple of values
     """
 
-    where, vals = _matching_conditions(conditions=conditions, partial=partial)
+    where, vals = _matching_conditions(
+        conditions=conditions, allow_partial=allow_partial
+    )
     columns = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns} FROM {table_name}"
     if not where:
@@ -348,7 +346,7 @@ def _count_records_sql(
     columns: typing.Optional[typing.List[str]] = None,
     start: OptionalInt = None,
     end: OptionalInt = None,
-    partial=True,
+    allow_partial=True,
 ) -> ReturnType:
     """create SQL count statement and values
 
@@ -362,8 +360,8 @@ def _count_records_sql(
         the WHERE conditions
     start, end : OptionalInt
         select records whose (start, end) values lie between start and end,
-        or overlap them if (partial is True)
-    partial : bool, optional
+        or overlap them if (allow_partial is True)
+    allow_partial : bool, optional
         if False, only records within start, end are included. If True,
         all records that overlap the segment defined by start, end are included.
 
@@ -373,7 +371,9 @@ def _count_records_sql(
         the SQL statement and the tuple of values
     """
 
-    where, vals = _matching_conditions(conditions=conditions, partial=partial)
+    where, vals = _matching_conditions(
+        conditions=conditions, allow_partial=allow_partial
+    )
     sql = f"SELECT COUNT(*) FROM {table_name}"
     if not where:
         return sql, None
@@ -470,8 +470,12 @@ class SqliteAnnotationDbMixin:
     ) -> typing.Iterator[FeatureDataType]:
         """return all fields"""
         columns = kwargs.pop("columns", None)
+        allow_partial = kwargs.pop("allow_partial", False)
         sql, vals = _select_records_sql(
-            table_name=table_name, conditions=kwargs, columns=columns
+            table_name=table_name,
+            conditions=kwargs,
+            columns=columns,
+            allow_partial=allow_partial,
         )
         yield from self._execute_sql(sql, values=vals)
 
@@ -484,6 +488,7 @@ class SqliteAnnotationDbMixin:
         end: int = None,
         strand: bool = None,
         on_alignment: bool = None,
+        allow_partial: bool = False,
     ) -> typing.Iterator[dict]:
         """return all fields for matching records"""
         # a record is Everything, a Feature is a subset
@@ -503,6 +508,7 @@ class SqliteAnnotationDbMixin:
         end: int = None,
         strand: bool = None,
         on_alignment: bool = None,
+        allow_partial: bool = False,
     ) -> typing.Iterator[FeatureDataType]:
         # returns essential values to create a Feature
         # we define query as all defined variables from local name space,
@@ -855,7 +861,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         start: int,
         end: int,
         biotype: OptionalStr = None,
-        partial: bool = False,
+        allow_partial: bool = False,
     ) -> typing.List[FeatureDataType]:
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
@@ -864,7 +870,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
             start=start,
             end=end,
             columns=["biotype", "start", "end", "spans", "strand", "name", "parent_id"],
-            partial=partial,
+            allow_partial=allow_partial,
         )
         for result in self._execute_sql(sql, values=vals):
             yield {
@@ -893,7 +899,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 biotype=biotype,
                 start=int(start),
                 end=int(end),
-                partial=False,
+                allow_partial=False,
             ):
                 if feat["biotype"] == exclude_biotype:
                     continue
@@ -917,7 +923,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 name=name,
                 start=int(start),
                 end=int(end),
-                partial=False,
+                allow_partial=False,
             ):
                 # add support for != operation to SQL where clause generation
                 if feat["biotype"] == exclude_biotype:
