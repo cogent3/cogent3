@@ -913,6 +913,8 @@ class Sequence(_Annotatable, SequenceI):
         of strand of the current instance.
         """
 
+        # todo gah force start / stop to be positive
+
         if self._annotation_db is None:
             return None
 
