@@ -2205,6 +2205,7 @@ class SequenceCollection(_SequenceCollectionBase):
         seqid: Optional[str] = None,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
+        on_alignment: Optional[bool] = None,
     ) -> Iterator[Annotation]:
         """yields Annotation instances
 
@@ -2216,6 +2217,9 @@ class SequenceCollection(_SequenceCollectionBase):
             biotype of the feature, e.g. CDS, gene
         name
             name of the feature
+        on_alignment
+            limit query to features on Alignment, ignores sequences. Ignored on
+            SequenceCollection instances.
 
         Notes
         -----
@@ -2223,7 +2227,7 @@ class SequenceCollection(_SequenceCollectionBase):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-
+        on_alignment = None if not isinstance(self, Alignment) else on_alignment
         if self.annotation_db is None:
             anno_db = merged_db_collection(self.seqs)
             self.annotation_db = anno_db
@@ -2236,10 +2240,17 @@ class SequenceCollection(_SequenceCollectionBase):
         if seqid and not set(seqid) & set(self.names):
             raise ValueError(f"unknown {seqid=}")
 
+        if seqids and on_alignment:
+            raise ValueError(f"cannot provide seqids with on_alignment")
+
         if seqids is None:
             for feature in self.annotation_db.get_features_matching(
-                biotype=biotype, name=name
+                biotype=biotype, name=name, on_alignment=on_alignment
             ):
+                if on_alignment:
+                    yield self.make_feature(feature=feature, on_alignment=on_alignment)
+                    continue
+
                 seqid = feature["seqid"]
                 seq = self.named_seqs[seqid]
                 # passing self only used when self is an Alignment
@@ -2249,7 +2260,7 @@ class SequenceCollection(_SequenceCollectionBase):
         for seqid in seqids:
             seq = self.named_seqs[seqid]
             for feature in self.annotation_db.get_features_matching(
-                seqid=seqid, biotype=biotype, name=name
+                seqid=seqid, biotype=biotype, name=name, on_alignment=None
             ):
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)

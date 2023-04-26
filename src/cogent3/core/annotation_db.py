@@ -226,7 +226,7 @@ def _matching_conditions(
         vals = []
         for col, val in conditions.items():
             if val:
-                op = "LIKE" if "%" in val else "="
+                op = "LIKE" if isinstance(val, str) and "%" in val else "="
                 conds.append(f"{col} {op} ?")
                 vals.append(val)
         sql.append(" AND ".join(conds))
@@ -495,7 +495,9 @@ class SqliteAnnotationDbMixin:
         # we define query as all defined variables from local name space,
         # excluding "self" and kwargs at default values
         kwargs = {k: v for k, v in locals().items() if k != "self" and v is not None}
-        for table_name in self.table_names:
+        # alignment features are created by the user specific
+        table_names = ["user"] if on_alignment else self.table_names
+        for table_name in table_names:
             for result in self._get_records_matching(table_name, **kwargs):
                 yield {k: result[k] for k in result.keys()}
 
@@ -515,7 +517,9 @@ class SqliteAnnotationDbMixin:
         # excluding "self" and kwargs at default values
         kwargs = {k: v for k, v in locals().items() if k != "self" and v is not None}
         columns = ("seqid", "biotype", "spans", "strand", "name")
-        for table_name in self.table_names:
+        # alignment features are created by the user specific
+        table_names = ["user"] if on_alignment else self.table_names
+        for table_name in table_names:
             for result in self._get_records_matching(
                 table_name=table_name, columns=columns, **kwargs
             ):
