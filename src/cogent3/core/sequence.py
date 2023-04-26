@@ -913,20 +913,27 @@ class Sequence(_Annotatable, SequenceI):
         of strand of the current instance.
         """
 
-        # todo gah force start / stop to be positive
-
         if self._annotation_db is None:
             return None
 
-        offset = self.annotation_offset or 0
-        query_start = self._seq.absolute_index(offset + (start or 0))
-        query_end = self._seq.absolute_index(offset + (stop or len(self)))
+        start = start or 0
+        stop = stop or len(self)
+
+        # handle negative start / stop
+        start = start + len(self) if start < 0 else start
+        stop = stop + len(self) if stop < 0 else stop
+
+        # sort start / stop
+        start, stop = (start, stop) if start < stop else (stop, start)
+
+        # note: offset is handled by absolute_position
+        # we set include_boundary=False because start is inclusive indexing,
+        # i,e., the start cannot be equal to the length of the view
+        query_start = self._seq.absolute_position(start, include_boundary=False)
+        # we set include_boundary=True because stop is exclusive indexing,
+        # i,e., the stop can be equal to the length of the view
+        query_end = self._seq.absolute_position(stop, include_boundary=True)
         # todo gah check logic of handling of negative indices
-        query_start, query_end = (
-            (query_start, query_end)
-            if query_start < query_end
-            else (query_end, query_start)
-        )
         query_start = max(query_start, 0)
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
@@ -937,7 +944,7 @@ class Sequence(_Annotatable, SequenceI):
             allow_partial=allow_partial,
         ):
             # spans need to be converted from absolute to relative positions
-            # DO NOT do adjustment in make_feature since that's user facing
+            # DO NOT do adjustment in make_feature since that's user facing,
             # and we expect them to make a feature manually
             yield self.make_feature(feature)
 
@@ -1640,81 +1647,79 @@ class SeqView:
     def reversed(self):
         return self.step < 0
 
-    def absolute_index(self, value: int):
+    def absolute_position(self, rel_index: int, include_boundary=False):
         """Converts an index relative to the current view to be with respect to the coordinates of the sequence's annotations
 
         Parameters
         ----------
-        value   int
-                index relative to the current View, supports +ve or -ve indexing
+        rel_index    int
+                relative position with respect to the current view
 
         Returns
         -------
-        (positive) index relative to the coordinates of the sequence's annotations
+        the absolute index with respect to the coordinates of the sequence's annotations
 
         """
 
-        index, _, _ = self._get_index(value)
+        if rel_index < 0:
+            raise IndexError("only positive indexing supported!")
+
+        # _get_index return the absolute position relative to the underlying sequence
+        seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
+
+        # add offset and handle reversed views, now absolute relative to annotation coordinates
         offset = 0 if self.offset is None else self.offset
         if self.reversed:
-            # todo: kath, does not account for a step > 1
-            if self.start - abs(value) < self.stop:
-                raise IndexError("Index out of bounds")
-
-            abs_value = offset + len(self.seq) + index
+            abs_index = offset + len(self.seq) + seq_index
         else:
-            # todo: kath, does not account for a step > 1
-            if self.start + value > self.stop:
-                raise IndexError("Index out of bounds")
+            abs_index = offset + seq_index
 
-            abs_value = offset + index
+        return abs_index
 
-        return abs_value
+    def relative_position(self, abs_index, stop=False):
+        """converts an index relative to annotation coordinates to be with respect to the current sequence view
 
-    def relative_index(self, value):
-        """converts an index relative to annotation coordinates to be with respect to the current sequence view"""
+        NOTE: the returned value DOES NOT reflect python indexing. Importantly, negative values represent positions that
+        precede the current view.
+        """
 
-        if value < 0:
+        if abs_index < 0:
             raise IndexError("Index must be +ve and relative to the + strand")
 
         if self.reversed:
             offset = 0 if self.offset is None else self.offset
-            if value < offset + len(self.seq) - self.stop * self.step:
-                raise IndexError(
-                    "Index not within current view, cannot convert to relative index"
-                )
+
             if (
-                rel_value := ((len(self.seq) - (value - offset)) + self.start)
-            ) % self.step != 0:
-                # todo: should this error be more explicit that it is due to not aligning with the step
-                raise IndexError(
-                    "Index not within current view, cannot convert to relative index"
-                )
-            rel_value = abs(rel_value / self.step)
+                tmp := ((len(self.seq) - (abs_index - offset)) + self.start)
+            ) % self.step == 0 or stop:
+                rel_pos = tmp // abs(self.step)
+            else:
+                rel_pos = (tmp // abs(self.step)) + 1
 
         else:
             offset = self.start if self.offset is None else self.offset + self.start
-            if value < offset:
-                raise IndexError(
-                    "Index not within current view, cannot convert to relative index"
-                )
-            if (rel_value := (value - offset)) % self.step != 0:
-                raise IndexError(
-                    "Index not within current view, cannot convert to relative index"
-                )
-            rel_value = rel_value / self.step
 
-        return int(rel_value)
+            if (tmp := abs_index - offset) % self.step == 0 or stop:
+                rel_pos = tmp // self.step
+            else:
+                rel_pos = (tmp // self.step) + 1
 
-    def _get_index(self, val):
+        return rel_pos
+
+    def _get_index(self, val, include_boundary=False):
         if len(self) == 0:
             raise IndexError(val)
 
+        if val > 0 and include_boundary and val > len(self):
+            raise IndexError(val)
+        elif val > 0 and not include_boundary and val >= len(self):
+            raise IndexError(val)
+        elif val < 0 and include_boundary and abs(val) > (len(self) + 1):
+            raise IndexError(val)
+        elif val < 0 and not include_boundary and abs(val) > len(self):
+            raise IndexError(val)
+
         if self.step > 0:
-            if val > 0 and val > len(self):
-                raise IndexError(val)
-            elif val < 0 and abs(val) > len(self):
-                raise IndexError(val)
 
             if val >= 0:
                 val = self.start + val * self.step
@@ -1724,10 +1729,6 @@ class SeqView:
             return val, val + 1, 1
 
         elif self.step < 0:
-            if val > 0 and val > len(self):
-                raise IndexError(val)
-            elif val < 0 and abs(val) > len(self):
-                raise IndexError(val)
 
             if val >= 0:
                 val = self.start + val * self.step
