@@ -1958,6 +1958,185 @@ def test_seqview_repr():
     assert repr(view) == expected
 
 
+def test_get_kmers_strict():
+    orig = "TCAGGAN"
+    r = DnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["T", "C", "A", "G", "G", "A"]
+    assert r.get_kmers(2, strict=True) == ["TC", "CA", "AG", "GG", "GA"]
+    assert r.get_kmers(3, strict=True) == ["TCA", "CAG", "AGG", "GGA"]
+    assert r.get_kmers(4, strict=True) == ["TCAG", "CAGG", "AGGA"]
+    assert r.get_kmers(5, strict=True) == ["TCAGG", "CAGGA"]
+    assert r.get_kmers(6, strict=True) == ["TCAGGA"]
+    assert r.get_kmers(7, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["T", "C", "A", "G", "G", "A", "N"]
+    assert r.get_kmers(2, strict=False) == ["TC", "CA", "AG", "GG", "GA", "AN"]
+    assert r.get_kmers(3, strict=False) == ["TCA", "CAG", "AGG", "GGA", "GAN"]
+    assert r.get_kmers(4, strict=False) == ["TCAG", "CAGG", "AGGA", "GGAN"]
+    assert r.get_kmers(5, strict=False) == ["TCAGG", "CAGGA", "AGGAN"]
+    assert r.get_kmers(6, strict=False) == ["TCAGGA", "CAGGAN"]
+    assert r.get_kmers(7, strict=False) == ["TCAGGAN"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_RNA():
+    orig = "UCAGGAN"
+    r = RnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["U", "C", "A", "G", "G", "A"]
+    assert r.get_kmers(2, strict=True) == ["UC", "CA", "AG", "GG", "GA"]
+    assert r.get_kmers(3, strict=True) == ["UCA", "CAG", "AGG", "GGA"]
+    assert r.get_kmers(4, strict=True) == ["UCAG", "CAGG", "AGGA"]
+    assert r.get_kmers(5, strict=True) == ["UCAGG", "CAGGA"]
+    assert r.get_kmers(6, strict=True) == ["UCAGGA"]
+    assert r.get_kmers(7, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["U", "C", "A", "G", "G", "A", "N"]
+    assert r.get_kmers(2, strict=False) == ["UC", "CA", "AG", "GG", "GA", "AN"]
+    assert r.get_kmers(3, strict=False) == ["UCA", "CAG", "AGG", "GGA", "GAN"]
+    assert r.get_kmers(4, strict=False) == ["UCAG", "CAGG", "AGGA", "GGAN"]
+    assert r.get_kmers(5, strict=False) == ["UCAGG", "CAGGA", "AGGAN"]
+    assert r.get_kmers(6, strict=False) == ["UCAGGA", "CAGGAN"]
+    assert r.get_kmers(7, strict=False) == ["UCAGGAN"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_protein():
+    orig = "CEFGMNX"
+    r = ProteinSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["C", "E", "F", "G", "M", "N"]
+    assert r.get_kmers(2, strict=True) == ["CE", "EF", "FG", "GM", "MN"]
+    assert r.get_kmers(3, strict=True) == ["CEF", "EFG", "FGM", "GMN"]
+    assert r.get_kmers(4, strict=True) == ["CEFG", "EFGM", "FGMN"]
+    assert r.get_kmers(5, strict=True) == ["CEFGM", "EFGMN"]
+    assert r.get_kmers(6, strict=True) == ["CEFGMN"]
+
+    assert r.get_kmers(1, strict=False) == ["C", "E", "F", "G", "M", "N", "X"]
+    assert r.get_kmers(2, strict=False) == ["CE", "EF", "FG", "GM", "MN", "NX"]
+    assert r.get_kmers(3, strict=False) == ["CEF", "EFG", "FGM", "GMN", "MNX"]
+    assert r.get_kmers(4, strict=False) == ["CEFG", "EFGM", "FGMN", "GMNX"]
+    assert r.get_kmers(5, strict=False) == ["CEFGM", "EFGMN", "FGMNX"]
+    assert r.get_kmers(6, strict=False) == ["CEFGMN", "EFGMNX"]
+    assert r.get_kmers(7, strict=False) == ["CEFGMNX"]
+
+
+def test_get_kmers_strict_DNA_gaps():
+    orig = "TCA-GAT"
+    r = DnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["T", "C", "A", "G", "A", "T"]
+    assert r.get_kmers(2, strict=True) == ["TC", "CA", "GA", "AT"]
+    assert r.get_kmers(3, strict=True) == ["TCA", "GAT"]
+    assert r.get_kmers(4, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["T", "C", "A", "-", "G", "A", "T"]
+    assert r.get_kmers(2, strict=False) == ["TC", "CA", "A-", "-G", "GA", "AT"]
+    assert r.get_kmers(3, strict=False) == ["TCA", "CA-", "A-G", "-GA", "GAT"]
+    assert r.get_kmers(4, strict=False) == ["TCA-", "CA-G", "A-GA", "-GAT"]
+    assert r.get_kmers(5, strict=False) == ["TCA-G", "CA-GA", "A-GAT"]
+    assert r.get_kmers(6, strict=False) == ["TCA-GA", "CA-GAT"]
+    assert r.get_kmers(7, strict=False) == ["TCA-GAT"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_RNA_gaps():
+    orig = "UCA-GAU"
+    r = RnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["U", "C", "A", "G", "A", "U"]
+    assert r.get_kmers(2, strict=True) == ["UC", "CA", "GA", "AU"]
+    assert r.get_kmers(3, strict=True) == ["UCA", "GAU"]
+    assert r.get_kmers(4, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["U", "C", "A", "-", "G", "A", "U"]
+    assert r.get_kmers(2, strict=False) == ["UC", "CA", "A-", "-G", "GA", "AU"]
+    assert r.get_kmers(3, strict=False) == ["UCA", "CA-", "A-G", "-GA", "GAU"]
+    assert r.get_kmers(4, strict=False) == ["UCA-", "CA-G", "A-GA", "-GAU"]
+    assert r.get_kmers(5, strict=False) == ["UCA-G", "CA-GA", "A-GAU"]
+    assert r.get_kmers(6, strict=False) == ["UCA-GA", "CA-GAU"]
+    assert r.get_kmers(7, strict=False) == ["UCA-GAU"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_protein_gaps():
+    orig = "CEF-GMN"
+    r = ProteinSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["C", "E", "F", "G", "M", "N"]
+    assert r.get_kmers(2, strict=True) == ["CE", "EF", "GM", "MN"]
+    assert r.get_kmers(3, strict=True) == ["CEF", "GMN"]
+    assert r.get_kmers(4, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["C", "E", "F", "-", "G", "M", "N"]
+    assert r.get_kmers(2, strict=False) == ["CE", "EF", "F-", "-G", "GM", "MN"]
+    assert r.get_kmers(3, strict=False) == ["CEF", "EF-", "F-G", "-GM", "GMN"]
+    assert r.get_kmers(4, strict=False) == ["CEF-", "EF-G", "F-GM", "-GMN"]
+    assert r.get_kmers(5, strict=False) == ["CEF-G", "EF-GM", "F-GMN"]
+    assert r.get_kmers(6, strict=False) == ["CEF-GM", "EF-GMN"]
+    assert r.get_kmers(7, strict=False) == ["CEF-GMN"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_DNA_RNA_Protein_allgap():
+    orig = "-------"
+
+    r = DnaSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-", "-", "-", "-", "-", "-", "-"]
+
+    r = RnaSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-", "-", "-", "-", "-", "-", "-"]
+
+    r = ProteinSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-", "-", "-", "-", "-", "-", "-"]
+
+
+def test_get_kmers_strict_DNA_RNA_Protein_mixed_ambiguities():
+    r = DnaSequence("NGASTAH")
+    assert r.get_kmers(1, strict=True) == ["G", "A", "T", "A"]
+    assert r.get_kmers(2, strict=True) == ["GA", "TA"]
+    assert r.get_kmers(3, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["N", "G", "A", "S", "T", "A", "H"]
+    assert r.get_kmers(2, strict=False) == ["NG", "GA", "AS", "ST", "TA", "AH"]
+    assert r.get_kmers(3, strict=False) == ["NGA", "GAS", "AST", "STA", "TAH"]
+    assert r.get_kmers(4, strict=False) == ["NGAS", "GAST", "ASTA", "STAH"]
+    assert r.get_kmers(5, strict=False) == ["NGAST", "GASTA", "ASTAH"]
+    assert r.get_kmers(6, strict=False) == ["NGASTA", "GASTAH"]
+    assert r.get_kmers(7, strict=False) == ["NGASTAH"]
+    assert r.get_kmers(8, strict=False) == []
+
+    r = RnaSequence("RGAWUAD")
+    assert r.get_kmers(1, strict=True) == ["G", "A", "U", "A"]
+    assert r.get_kmers(2, strict=True) == ["GA", "UA"]
+    assert r.get_kmers(3, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["R", "G", "A", "W", "U", "A", "D"]
+    assert r.get_kmers(2, strict=False) == ["RG", "GA", "AW", "WU", "UA", "AD"]
+    assert r.get_kmers(3, strict=False) == ["RGA", "GAW", "AWU", "WUA", "UAD"]
+    assert r.get_kmers(4, strict=False) == ["RGAW", "GAWU", "AWUA", "WUAD"]
+    assert r.get_kmers(5, strict=False) == ["RGAWU", "GAWUA", "AWUAD"]
+    assert r.get_kmers(6, strict=False) == ["RGAWUA", "GAWUAD"]
+    assert r.get_kmers(7, strict=False) == ["RGAWUAD"]
+    assert r.get_kmers(8, strict=False) == []
+
+    r = ProteinSequence("BQMXNRZ")
+    assert r.get_kmers(1, strict=True) == ["Q", "M", "N", "R"]
+    assert r.get_kmers(2, strict=True) == ["QM", "NR"]
+    assert r.get_kmers(3, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["B", "Q", "M", "X", "N", "R", "Z"]
+    assert r.get_kmers(2, strict=False) == ["BQ", "QM", "MX", "XN", "NR", "RZ"]
+    assert r.get_kmers(3, strict=False) == ["BQM", "QMX", "MXN", "XNR", "NRZ"]
+    assert r.get_kmers(4, strict=False) == ["BQMX", "QMXN", "MXNR", "XNRZ"]
+    assert r.get_kmers(5, strict=False) == ["BQMXN", "QMXNR", "MXNRZ"]
+    assert r.get_kmers(6, strict=False) == ["BQMXNR", "QMXNRZ"]
+    assert r.get_kmers(7, strict=False) == ["BQMXNRZ"]
+    assert r.get_kmers(8, strict=False) == []
+
+
 # run if called from command-line
 if __name__ == "__main__":
     main()
