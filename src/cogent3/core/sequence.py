@@ -936,6 +936,9 @@ class Sequence(_Annotatable, SequenceI):
             end=query_end,  # todo gah end should be stop
             allow_partial=allow_partial,
         ):
+            # spans need to be converted from absolute to relative positions
+            # DO NOT do adjustment in make_feature since that's user facing
+            # and we expect them to make a feature manually
             yield self.make_feature(feature)
 
     @deprecated_callable(
@@ -958,6 +961,7 @@ class Sequence(_Annotatable, SequenceI):
         -----
         Unlike add_feature(), this method does not add the feature to the
         database.
+        We assume that spans represent the coordinates for this instance!
         """
         feature = dict(feature)
         seq_rced = self._seq.reversed
