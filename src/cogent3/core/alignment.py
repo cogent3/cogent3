@@ -2135,6 +2135,29 @@ class SequenceCollection(_SequenceCollectionBase):
         for seq in seq_ids:
             self.get_seq(seq).annotation_db = self.annotation_db
 
+    def make_feature(
+        self,
+        *,
+        feature: FeatureDataType,
+    ) -> Annotation:
+        """
+        create a feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        feature
+            a dict with all the necessary data rto construct a feature
+
+        Returns
+        -------
+        Annotation
+
+        Notes
+        -----
+        To get a feature AND add it to annotation_db, use add_feature().
+        """
+        return self.named_seqs[feature["seqid"]].make_feature(feature)
+
     def add_feature(
         self,
         *,
@@ -2173,7 +2196,8 @@ class SequenceCollection(_SequenceCollectionBase):
 
         feature = {k: v for k, v in locals().items() if k != "self"}
 
-        return self.annotation_db.add_feature(**feature)
+        self.annotation_db.add_feature(**feature)
+        return self.make_feature(feature=feature)
 
     def get_features(
         self,
@@ -5093,3 +5117,43 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         feature = {k: v for k, v in locals().items() if k != "self"}
 
         self.annotation_db.add_feature(**feature)
+        feature.pop("on_alignment", None)
+        return self.make_feature(feature=feature, on_alignment=on_alignment)
+
+    def make_feature(
+        self,
+        *,
+        feature: FeatureDataType,
+        on_alignment: Optional[bool] = None,
+    ) -> Annotation:
+        """
+        create a feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        feature
+            a dict with all the necessary data rto construct a feature
+        on_alignment
+            the feature is in alignment coordinates, incompatible with setting
+            'seqid'. Set to True if 'seqid' not provided.
+
+        Returns
+        -------
+        Annotation
+
+        Raises
+        ------
+        ValueError if define a 'seqid' not on alignment or use 'seqid' and
+        on_alignment.
+
+        Notes
+        -----
+        To get a feature AND add it to annotation_db, use add_feature().
+        """
+        if not on_alignment:
+            return self.named_seqs[feature["seqid"]].make_feature(feature)
+
+        feature["map"] = Map(parent_length=len(self), locations=feature.pop("spans"))
+        feature.pop("reversed", None)
+        feature.pop("strand", None)
+        return Annotation(parent=self, **feature)
