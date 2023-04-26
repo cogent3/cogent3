@@ -5162,8 +5162,11 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         To get a feature AND add it to annotation_db, use add_feature().
         """
         if not on_alignment:
-            return self.named_seqs[feature["seqid"]].make_feature(feature)
+            return self.named_seqs[feature["seqid"]].make_feature(feature, self)
 
+        # there's no sequence to bind to, the feature is directly on self
+        # todo gah check handling of strand etc..., maybe reuse code
+        # in Sequence?
         feature["map"] = Map(parent_length=len(self), locations=feature.pop("spans"))
         feature.pop("reversed", None)
         feature.pop("strand", None)

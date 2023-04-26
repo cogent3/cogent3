@@ -63,6 +63,7 @@ class FeatureDataType(typing.TypedDict):
     name: str  # rename to name to match cogent3 Annotatable.name?
     spans: list[tuple[int, int]]
     reversed: bool  # True if feature on reverse strand
+    on_alignment: bool  # True if feature on an alignment
 
 
 @typing.runtime_checkable
@@ -516,19 +517,26 @@ class SqliteAnnotationDbMixin:
         # we define query as all defined variables from local name space,
         # excluding "self" and kwargs at default values
         kwargs = {k: v for k, v in locals().items() if k != "self" and v is not None}
-        columns = ("seqid", "biotype", "spans", "strand", "name")
         # alignment features are created by the user specific
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
+            columns = ("seqid", "biotype", "spans", "strand", "name")
+            if table_name == "user":
+                columns += ("on_alignment",)
             for result in self._get_records_matching(
                 table_name=table_name, columns=columns, **kwargs
             ):
+                if "on_alignment" in result.keys():
+                    on_alignment = result["on_alignment"]
+                else:
+                    on_alignment = None
                 yield FeatureDataType(
                     seqid=result["seqid"],
                     biotype=result["biotype"],
                     name=result["name"],
                     spans=[tuple(c) for c in result["spans"]],
                     reversed=result["strand"] == "-",
+                    on_alignment=on_alignment,
                 )
 
     def num_matches(
