@@ -18,33 +18,36 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-def makeSampleSequence(with_gaps=False):
+def makeSampleSequence(name, with_gaps=False):
     raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
     cds = (15, 25)
     utr = (12, 15)
     if with_gaps:
         raw_seq = f"{raw_seq[:5]}-----{raw_seq[10:-2]}--"
-    seq = DNA.make_seq(raw_seq)
-    seq.add_feature("CDS", "CDS", [cds])
-    seq.add_feature("5'UTR", "5' UTR", [utr])
+    # name is required for creating annotations
+    seq = DNA.make_seq(raw_seq, name=name)
+    seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
+    seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
     return seq
 
 
 def makeSampleAlignment():
-    seq1 = makeSampleSequence()
-    seq2 = makeSampleSequence(with_gaps=True)
-    seqs = {"FAKE01": seq1, "FAKE02": seq2}
+    seq1 = makeSampleSequence("FAKE01")
+    seq2 = makeSampleSequence("FAKE02", with_gaps=True)
+    seqs = {seq1.name: seq1, seq2.name: seq2}
     aln = make_aligned_seqs(data=seqs, array_align=False)
-    aln.add_annotation(Feature, "misc_feature", "misc", [(12, 25)])
-    aln.add_annotation(Feature, "CDS", "blue", [(15, 25)])
-    aln.add_annotation(Feature, "5'UTR", "red", [(2, 4)])
-    aln.add_annotation(Feature, "LTR", "fake", [(2, 15)])
+    aln.add_feature(
+        biotype="misc_feature", name="misc", spans=[(12, 25)], on_alignment=True
+    )
+    aln.add_feature(biotype="CDS", name="blue", spans=[(15, 25)], on_alignment=True)
+    aln.add_feature(biotype="5'UTR", name="red", spans=[(2, 4)], on_alignment=True)
+    aln.add_feature(biotype="LTR", name="fake", spans=[(2, 15)], on_alignment=True)
     return aln
 
 
 class TestAnnotations(unittest.TestCase):
     def setUp(self):
-        self.seq = makeSampleSequence()
+        self.seq = makeSampleSequence("seq1")
         self.aln = makeSampleAlignment()
 
     def test_slice_seq_with_annotations(self):
@@ -214,8 +217,8 @@ class TestMapSpans(unittest.TestCase):
 
 @pytest.mark.parametrize("alignment", (False, True))
 def test_constructing_collections(alignment):
-    seq1 = makeSampleSequence()
-    seq2 = makeSampleSequence(with_gaps=True)
+    seq1 = makeSampleSequence("FAKE01")
+    seq2 = makeSampleSequence("FAKE02", with_gaps=True)
     seqs = {"FAKE01": seq1, "FAKE02": seq2}
     expect = sum(s.annotation_db.num_matches() for s in seqs.values())
     if alignment:
