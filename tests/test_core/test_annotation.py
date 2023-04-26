@@ -57,6 +57,17 @@ class TestAnnotations(unittest.TestCase):
             new = str(list(newseq.get_by_annotation(annot_type))[0])
             assert orig == new, (annot_type, orig, new)
 
+    def test_add_annotated_seqs_drops_annotations(self):
+        # retain link to annotation db as long as a simple slice
+        a = self.seq[:5]
+        b = self.seq[10:]
+        assert a.annotation_db is not None
+        assert b.annotation_db is not None
+        # but adding two seqs drops the annotation db since too
+        # difficult to track coords
+        newseq = a + b
+        assert newseq.annotation_db is None
+
     def test_aln_annotations(self):
         """test that annotations to alignment and its' sequences"""
         aln_expecteds = {
