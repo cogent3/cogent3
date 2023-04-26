@@ -936,6 +936,9 @@ class Sequence(_Annotatable, SequenceI):
             end=query_end,  # todo gah end should be stop
             allow_partial=allow_partial,
         ):
+            # spans need to be converted from absolute to relative positions
+            # DO NOT do adjustment in make_feature since that's user facing
+            # and we expect them to make a feature manually
             yield self.make_feature(feature)
 
     @deprecated_callable(
@@ -958,6 +961,7 @@ class Sequence(_Annotatable, SequenceI):
         -----
         Unlike add_feature(), this method does not add the feature to the
         database.
+        We assume that spans represent the coordinates for this instance!
         """
         feature = dict(feature)
         seq_rced = self._seq.reversed
@@ -984,6 +988,7 @@ class Sequence(_Annotatable, SequenceI):
             # then reversed
             fmap = fmap.nucleic_reversed().reversed()
 
+        feature.pop("on_alignment", None)
         return Annotation(parent=self, seqid=self.name, map=fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
@@ -1012,10 +1017,10 @@ class Sequence(_Annotatable, SequenceI):
         *,
         biotype: str,
         name: str,
-        spans,
+        spans: List[Tuple[int, int]],
         strand: str = None,
         on_alignment: bool = False,
-    ):
+    ) -> Annotation:
         if self.annotation_db is None:
             self.annotation_db = GffAnnotationDb([])
 

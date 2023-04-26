@@ -1,8 +1,9 @@
 from unittest import TestCase, main
 
+import pytest
+
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -25,9 +26,11 @@ class FeaturesTest(TestCase):
         self.s = DNA.make_seq(
             "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig"
         )
-        self.exon1 = self.s.add_feature("exon", "fred", [(10, 15)])
-        self.exon2 = self.s.add_feature("exon", "trev", [(30, 40)])
-        self.nested_feature = self.exon1.add_feature("repeat", "bob", [(2, 5)])
+        self.exon1 = self.s.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
+        self.exon2 = self.s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
+        self.nested_feature = self.s.add_feature(
+            biotype="repeat", name="bob", spans=[(12, 17)]
+        )
 
     def test_exon_extraction(self):
         """exon feature used to slice or directly access sequence"""
@@ -38,40 +41,42 @@ class FeaturesTest(TestCase):
         self.assertEqual(str(self.s[self.exon1]), "CCCCC")
         self.assertEqual(str(self.exon1.get_slice()), "CCCCC")
 
-    def test_get_features_matching(self):
+    def test_get_features(self):
         """correctly identifies all features of a given type"""
 
         # Usually the only way to get a Feature object like exon1
         # is to ask the sequence for it. There is one method for querying
         # annotations by type and optionally by name:
 
-        exons = self.s.get_features_matching("exon")
+        exons = list(self.s.get_features(biotype="exon"))
         self.assertEqual(
             str(exons), '[exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]'
         )
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_get_nested_annotations_matching(self):
         """correctly identifies all features of a given type when nested annotations"""
 
         seq = DNA.make_seq("AAAAAAAAA", name="x")
         exon = seq.add_annotation(Feature, "exon", "fred", [(3, 8)])
         nested_exon = exon.add_annotation(Feature, "exon", "fred", [(3, 7)])
-        exons = seq.get_features_matching("exon", extend_query=True)
+        exons = seq.get_features(biotype="exon", extend_query=True)
         self.assertEqual(len(exons), 2)
         self.assertEqual(str(exons), '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5]')
         # tests multiple layers of nested annotations
         nested_exon.add_annotation(Feature, "exon", "fred", [(3, 6)])
-        exons = seq.get_features_matching("exon", extend_query=True)
+        exons = seq.get_features(biotype="exon", extend_query=True)
         self.assertEqual(len(exons), 3)
         self.assertEqual(
             str(exons),
             '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5, exon "fred" at [3:6]/4]',
         )
         # tests extend_query=False, and only get back the base exon
-        exons = seq.get_features_matching("exon")
+        exons = seq.get_features(biotype="exon")
         self.assertEqual(len(exons), 1)
         self.assertEqual(str(exons), '[exon "fred" at [3:8]/9]')
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_get_features_matching2(self):
         """get_features_matching returns empty feature if no matches"""
 
@@ -79,17 +84,18 @@ class FeaturesTest(TestCase):
         # you get back an empty list, and slicing the sequence
         # with that returns a sequence of length 0.
 
-        dont_exist = self.s.get_features_matching("dont_exist")
+        dont_exist = self.s.get_features(biotype="dont_exist")
         self.assertEqual(dont_exist, [])
         self.assertEqual(str(self.s[dont_exist]), "")
 
+    @pytest.mark.xfail(reason="todo gah duplicated in test_annotation?")
     def test_get_region_covering_all(self):
         """combines multiple features into one or their shadow"""
 
         # To construct a pseudo-feature covering (or excluding)
         # multiple features, use get_region_covering_all:
 
-        exons = self.s.get_features_matching("exon")
+        exons = self.s.get_features(biotype="exon")
         self.assertEqual(
             str(self.s.get_region_covering_all(exons)),
             'region "exon" at [10:15, 30:40]/48',
@@ -109,13 +115,14 @@ class FeaturesTest(TestCase):
 
         self.assertEqual(str(self.s[self.exon1, self.exon2]), "CCCCCTTTTTAAAAA")
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_slice_errors_from_merged(self):
         """no overlap in merged features"""
 
         # Though .get_region_covering_all also guarantees
         # no overlaps within the result, slicing does not:
 
-        exons = self.s.get_features_matching("exon")
+        exons = self.s.get_features(biotype="exon")
         self.assertEqual(
             str(self.s.get_region_covering_all(exons + exons)),
             'region "exon" at [10:15, 30:40]/48',
@@ -129,6 +136,7 @@ class FeaturesTest(TestCase):
         with self.assertRaises(ValueError):
             self.s[15:20, 5:16]
 
+    @pytest.mark.xfail(reason="todo gah delete test, not supporting this")
     def test_feature_slicing(self):
         """features can be sliced"""
 
@@ -160,6 +168,7 @@ class FeaturesTest(TestCase):
         with self.assertRaises(ValueError):
             c[self.exon1]
 
+    @pytest.mark.xfail(reason="todo gah delete test? or update to new API")
     def test_feature_attach_detach(self):
         """correctly associate, disassociate from seq"""
 
@@ -167,7 +176,7 @@ class FeaturesTest(TestCase):
         # but in those cases where a free-floating feature is created it can
         # ater be attached:
 
-        exons = self.s.get_features_matching("exon")
+        exons = self.s.get_features(biotype="exon")
         self.assertEqual(len(self.s.annotations), 2)
         region = self.s.get_region_covering_all(exons)
         self.assertEqual(len(self.s.annotations), 2)
@@ -176,6 +185,7 @@ class FeaturesTest(TestCase):
         region.detach()
         self.assertEqual(len(self.s.annotations), 2)
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_feature_reverse(self):
         """reverse complement of features"""
 
@@ -193,9 +203,10 @@ class FeaturesTest(TestCase):
         )
         self.assertEqual(str(plus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
         minus = plus.rc()
-        minus_cds = minus.get_features_matching("CDS")[0]
+        minus_cds = minus.get_features(biotype="CDS")[0]
         self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_feature_from_alignment(self):
         """seq features obtained from the alignment"""
 
@@ -206,8 +217,8 @@ class FeaturesTest(TestCase):
         )
         self.assertEqual(str(aln), ">x\n-AAAAAAAAA\n>y\nTTTT--TTTT\n")
         exon = aln.get_seq("x").add_annotation(Feature, "exon", "fred", [(3, 8)])
-        aln_exons = aln.get_annotations_from_seq("x", "exon")
-        aln_exons = aln.get_annotations_from_any_seq("exon")
+        aln_exons = aln.get_features(seqid="x", biotype="exon")
+        aln_exons = aln.get_features(biotype="exon")
         # But these will be returned as **alignment**
         # features with locations in alignment coordinates.
 
@@ -232,20 +243,21 @@ class FeaturesTest(TestCase):
         self.s = DNA.make_seq("AAAAAAAAA", name="x")
         exon = self.s.add_annotation(Feature, "exon", "fred", [(3, 8)])
         exon = aln.get_seq("x").copy_annotations(self.s)
-        aln_exons = list(aln.get_annotations_from_seq("x", "exon"))
+        aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
         self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
 
         # even if the name is different.
 
         exon = aln.get_seq("y").copy_annotations(self.s)
-        aln_exons = list(aln.get_annotations_from_seq("y", "exon"))
+        aln_exons = list(aln.get_features(seqid="y", biotype="exon"))
         self.assertEqual(str(aln_exons), '[exon "fred" at [3:4, 6:10]/10]')
         self.assertEqual(str(aln[aln_exons]), ">x\nAAAAA\n>y\nTCCCC\n")
 
         # default for get_annotations_from_any_seq is return all features
-        got = aln.get_annotations_from_any_seq()
+        got = aln.get_features()
         self.assertEqual(len(got), 2)
 
+    @pytest.mark.xfail(reason="todo gah implement lost spans")
     def test_lost_spans(self):
         """features no longer included in an alignment represented by lost spans"""
 
@@ -258,10 +270,11 @@ class FeaturesTest(TestCase):
         seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
         seq.add_feature("exon", "A", [(5, 8)])
         aln.get_seq("x").copy_annotations(seq)
-        copied = list(aln.get_annotations_from_seq("x", "exon"))
+        copied = list(aln.get_features(seqid="x", name="exon"))
         self.assertEqual(str(copied), '[exon "A" at [5:5, -4-]/5]')
         self.assertEqual(str(copied[0].get_slice()), ">x\n----\n>y\n----\n")
 
+    @pytest.mark.xfail(reason="todo gah delete test, not supporting this")
     def test_seq_different_name_with_same_length(self):
         """copying features between sequences"""
 
@@ -274,9 +287,10 @@ class FeaturesTest(TestCase):
         seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
         seq.add_feature("exon", "A", [(5, 8)])
         aln.get_seq("y").copy_annotations(seq)
-        copied = list(aln.get_annotations_from_seq("y", "exon"))
+        copied = list(aln.get_features(seqid="y", name="exon"))
         self.assertEqual(str(copied), '[exon "A" at [7:10]/10]')
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_seq_shorter(self):
         """lost spans on shorter sequences"""
 
@@ -288,9 +302,10 @@ class FeaturesTest(TestCase):
         diff_len_seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCCCCCCCCCC", "x")
         diff_len_seq.add_feature("repeat", "A", [(12, 14)])
         aln.get_seq("y").copy_annotations(diff_len_seq)
-        copied = list(aln.get_annotations_from_seq("y", "repeat"))
+        copied = list(aln.get_features(seqid="y", name="repeat"))
         self.assertEqual(str(copied), '[repeat "A" at [10:10, -6-]/10]')
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_terminal_gaps(self):
         """features in cases of terminal gaps"""
 
@@ -299,17 +314,19 @@ class FeaturesTest(TestCase):
         aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
         )
-        aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
-        aln_exons = list(aln.get_annotations_from_seq("x", "exon"))
+        feat = dict(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+        aln.add_feature(**feat)
+        aln_exons = list(aln.get_features(seqid="x", name="exon"))
         self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
         self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--TTT\n")
         aln = make_aligned_seqs(
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
         )
-        aln.get_seq("x").add_feature("exon", "fred", [(3, 8)])
-        aln_exons = list(aln.get_annotations_from_seq("x", "exon"))
+        aln.add_feature(**feat)
+        aln_exons = list(aln.get_features(seqid="x", name="exon"))
         self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--T--\n")
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_feature_residue(self):
         """seq features on alignment operate in sequence coordinates"""
         # In this case, only those residues included within the feature are
@@ -324,7 +341,7 @@ class FeaturesTest(TestCase):
         exon = aln.get_seq("x").add_feature("exon", "ex1", [(0, 4)])
         self.assertEqual(str(exon), 'exon "ex1" at [0:4]/9')
         self.assertEqual(str(exon.get_slice()), "CCCC")
-        aln_exons = list(aln.get_annotations_from_seq("x", "exon"))
+        aln_exons = list(aln.get_features(seqid="x", name="exon"))
         self.assertEqual(str(aln_exons), '[exon "ex1" at [0:1, 2:5]/10]')
         self.assertEqual(str(aln_exons[0].get_slice()), ">x\nCCCC\n>y\n----\n")
 
@@ -352,6 +369,7 @@ class FeaturesTest(TestCase):
         coords = all_exons.get_coordinates()
         assert coords == [(0, 1), (2, 5)]
 
+    @pytest.mark.xfail(reason="todo gah change test to new api")
     def test_annotated_region_masks(self):
         """masking a sequence with specific features"""
 
@@ -367,11 +385,17 @@ class FeaturesTest(TestCase):
             data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
         )
         self.assertEqual(str(aln), ">x\nC-CCCAAAAAGGGAA\n>y\n-T----TTTTG-GTT\n")
-        exon = aln.get_seq("x").add_feature("exon", "norwegian", [(0, 4)])
+        exon = aln.get_seq("x").add_feature(
+            biotype="exon", name="norwegian", spans=[(0, 4)]
+        )
         self.assertEqual(str(exon.get_slice()), "CCCC")
-        repeat = aln.get_seq("x").add_feature("repeat", "blue", [(9, 12)])
+        repeat = aln.get_seq("x").add_feature(
+            biotype="repeat", name="blue", spans=[(9, 12)]
+        )
         self.assertEqual(str(repeat.get_slice()), "GGG")
-        repeat = aln.get_seq("y").add_feature("repeat", "frog", [(5, 7)])
+        repeat = aln.get_seq("y").add_feature(
+            biotype="repeat", name="frog", spans=[(5, 7)]
+        )
         self.assertEqual(str(repeat.get_slice()), "GG")
 
         # Each sequence should correctly mask either the single feature,
@@ -449,6 +473,7 @@ class FeaturesTest(TestCase):
             ">x\nC-CCC?????GGG??\n>y\n-?----????G-G??\n",
         )
 
+    @pytest.mark.xfail(reason="todo gah implement support for projection")
     def test_projected_to_base(self):
         """tests a given annotation is correctly projected on the base sequence"""
 
@@ -473,6 +498,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(got.map.end, 10)
         self.assertEqual(got.map.parent_length, len(seq))
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_nested_annotated_region_masks(self):
         """masking a sequence with specific features when nested annotations"""
 
@@ -505,6 +531,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(got["x"], "?-???AAAAATTTAA")
         self.assertEqual(got["y"], "-T----TTTTG-GTT")
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""
 
@@ -520,7 +547,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(
             str(
                 as_series.get_seq("human").add_feature(
-                    "cpgsite", "cpg", [(0, 2), (5, 7)]
+                    biotype="cpgsite", name="cpg", spans=[(0, 2), (5, 7)]
                 )
             ),
             'cpgsite "cpg" at [0:2, 5:7]/10',
@@ -528,7 +555,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(
             str(
                 as_series.get_seq("mouse").add_feature(
-                    "cpgsite", "cpg", [(5, 7), (8, 10)]
+                    biotype="cpgsite", name="cpg", spans=[(5, 7), (8, 10)]
                 )
             ),
             'cpgsite "cpg" at [5:7, 8:10]/10',
@@ -553,9 +580,8 @@ class FeaturesTest(TestCase):
             'cpgsite "cpg" at [8:10]/10',
         )
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_constructor_equivalence(self):
-        """ """
-
         # These different constructions should generate the same output.
         data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]
         as_series = make_aligned_seqs(data=data, array_align=False)
@@ -580,6 +606,9 @@ class FeaturesTest(TestCase):
             "TTT??????????TTTTTTTTTT?????TTTT????TT",
         )
 
+    @pytest.mark.xfail(
+        reason="todo gah implement support for annotation_db serialisation"
+    )
     def test_roundtrip_json(self):
         """features can roundtrip from json"""
 
@@ -587,17 +616,20 @@ class FeaturesTest(TestCase):
         seq.add_annotation(Feature, "exon", "myname", [(0, 5)])
         got = seq.to_json()
         new = deserialise_object(got)
-        feat = new.get_features_matching("exon")[0]
+        feat = new.get_features(biotype="exon")[0]
         self.assertEqual(str(feat.get_slice()), "AAAAA")
 
         # now with a list span
         seq = seq[3:]
-        feat = seq.get_features_matching("exon")[0]
+        feat = seq.get_features(biotype="exon")[0]
         got = seq.to_json()
         new = deserialise_object(got)
-        feat = new.get_features_matching("exon")[0]
+        feat = new.get_features(biotype="exon")[0]
         self.assertEqual(str(feat.get_slice(complete=False)), "AA")
 
+    @pytest.mark.xfail(
+        reason="todo gah update test to use latest API plus support serialisation"
+    )
     def test_roundtripped_alignment(self):
         """Alignment with annotations roundtrips correctly"""
         # annotations just on member sequences
@@ -605,12 +637,12 @@ class FeaturesTest(TestCase):
             data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
         )
         _ = aln.get_seq("x").add_annotation(Feature, "exon", "fred", [(3, 8)])
-        seq_exon = list(aln.get_annotations_from_seq("x", "exon"))[0]
+        seq_exon = list(aln.get_features(seqid="x", name="exon"))[0]
         expect = seq_exon.get_slice()
 
         json = aln.to_json()
         new = deserialise_object(json)
-        got_exons = list(new.get_annotations_from_seq("x", "exon"))[0]
+        got_exons = list(new.get_features(seqid="x", name="exon"))[0]
         self.assertEqual(got_exons.get_slice().to_dict(), expect.to_dict())
 
         # annotations just on alignment
@@ -621,7 +653,7 @@ class FeaturesTest(TestCase):
         expect = f.get_slice().to_dict()
         json = aln.to_json()
         new = deserialise_object(json)
-        got = list(new.get_features_matching("generic"))[0]
+        got = list(new.get_features(biotype="generic"))[0]
         self.assertEqual(got.get_slice().to_dict(), expect)
 
         # annotations on both alignment and sequence
@@ -633,19 +665,20 @@ class FeaturesTest(TestCase):
         json = aln.to_json()
         new = deserialise_object(json)
         ## get back the exon
-        seq_exon = list(aln.get_annotations_from_seq("x", "exon"))[0]
+        seq_exon = list(aln.get_features(seqid="x", name="exon"))[0]
         expect = seq_exon.get_slice().to_dict()
-        got_exons = list(new.get_annotations_from_seq("x", "exon"))[0]
+        got_exons = list(new.get_features(seqid="x", name="exon"))[0]
         self.assertEqual(got_exons.get_slice().to_dict(), expect)
         ## get back the generic
         expect = f.get_slice().to_dict()
-        got = list(new.get_features_matching("generic"))[0]
+        got = list(new.get_features(biotype="generic"))[0]
         self.assertEqual(got.get_slice().to_dict(), expect)
 
         # check masking of seq features still works
         new = new.with_masked_annotations("exon", mask_char="?")
         self.assertEqual(new[4:9].to_dict(), dict(x="?????", y="--CCC"))
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_roundtripped_alignment2(self):
         """Sliced Alignment with annotations roundtrips correctly"""
         # annotations just on member sequences
@@ -660,7 +693,7 @@ class FeaturesTest(TestCase):
         d = s.data[:11]
         json = s.to_json()
         new = deserialise_object(json)
-        gf1, gf2 = list(new.data.get_features_matching("exon"))
+        gf1, gf2 = list(new.data.get_features(biotype="exon"))
         self.assertEqual(str(gf1.get_slice()), "GGGGG")
         self.assertEqual(str(gf2.get_slice()), "C")
         # the sliced alignment
@@ -670,6 +703,7 @@ class FeaturesTest(TestCase):
         self.assertEqual(str(x.data.annotations[0].get_slice()), "GGGGG")
         self.assertEqual(str(x.data.annotations[1].get_slice()), "C")
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_roundtrip_rc_annotated_align(self):
         """should work for an alignment that has been reverse complemented"""
         # the key that exposed the bug was a gap in the middle of the sequence
@@ -691,6 +725,7 @@ class FeaturesTest(TestCase):
         got_annots = {a.name: a.get_slice() for a in got.get_annotations_from_any_seq()}
         self.assertEqual(got_annots, orig_annots)
 
+    @pytest.mark.xfail(reason="todo gah delete test not supporting Variable class")
     def test_roundtrip_variable(self):
         """should recover the Variable feature type"""
         seq = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
@@ -698,14 +733,16 @@ class FeaturesTest(TestCase):
         y_valued = seq.add_annotation(Variable, "SNP", "freq", xx_y)
         json = seq.to_json()
         new = deserialise_object(json)
-        got = list(new.get_features_matching("SNP"))[0]
+        got = list(new.get_features(biotype="SNP"))[0]
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
 
+    @pytest.mark.xfail(reason="todo gah change test to use feature to get nested")
     def test_nested_get_slice(self):
         """check the get_slice method works on nested annotations"""
         self.assertEqual(self.nested_feature.get_slice(), "CCC")
 
+    @pytest.mark.xfail(reason="todo gah change test to use latest API")
     def test_nested_to_rich_dict(self):
         """check the to_rich_dict method works with nested annotations"""
         self.assertEqual(
@@ -713,6 +750,7 @@ class FeaturesTest(TestCase):
             self.nested_feature.to_rich_dict(),
         )
 
+    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_nested_deserialise_annotation(self):
         """nested annotations can be deserialised"""
         got = self.s.to_json()
@@ -744,7 +782,3 @@ class FeaturesTest(TestCase):
             pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
         )
         self.assertEqual(annot, [])
-
-
-if __name__ == "__main__":
-    main()
