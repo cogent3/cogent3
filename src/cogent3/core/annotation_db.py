@@ -468,7 +468,7 @@ class SqliteAnnotationDbMixin:
 
     def _get_records_matching(
         self, table_name: str, **kwargs
-    ) -> typing.Iterator[FeatureDataType]:
+    ) -> typing.Iterator[sqlite3.Row]:
         """return all fields"""
         columns = kwargs.pop("columns", None)
         allow_partial = kwargs.pop("allow_partial", False)

@@ -1016,10 +1016,10 @@ class Sequence(_Annotatable, SequenceI):
         *,
         biotype: str,
         name: str,
-        spans,
+        spans: List[Tuple[int, int]],
         strand: str = None,
         on_alignment: bool = False,
-    ):
+    ) -> Annotation:
         if self.annotation_db is None:
             self.annotation_db = GffAnnotationDb([])
 
