@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-
 import unittest
 
-from cogent3 import DNA, make_aligned_seqs
+import pytest
+
+from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.annotation import Feature, _Feature
 from cogent3.core.location import Map, Span, as_map
 from cogent3.core.sequence import DnaSequence, RnaSequence
@@ -212,5 +212,15 @@ class TestMapSpans(unittest.TestCase):
             self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.mark.parametrize("alignment", (False, True))
+def test_constructing_collections(alignment):
+    seq1 = makeSampleSequence()
+    seq2 = makeSampleSequence(with_gaps=True)
+    seqs = {"FAKE01": seq1, "FAKE02": seq2}
+    expect = sum(s.annotation_db.num_matches() for s in seqs.values())
+    if alignment:
+        coll = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
+    else:
+        coll = make_unaligned_seqs(data=seqs, moltype="dna")
+
+    assert coll.annotation_db.num_matches() == expect

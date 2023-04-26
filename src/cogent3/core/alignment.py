@@ -525,7 +525,7 @@ class _SequenceCollectionBase:
             anno_db = merged_db_collection(data.seqs)
         elif input_type == "kv_pairs":
             anno_db = merged_db_collection(dict(data))
-        elif isinstance(data, (tuple, list)):
+        elif isinstance(data, (tuple, list, dict)):
             anno_db = merged_db_collection(data)
         else:
             anno_db = None
