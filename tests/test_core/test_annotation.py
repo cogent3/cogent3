@@ -81,18 +81,22 @@ class TestAnnotations(unittest.TestCase):
             "5'UTR": {"FAKE01": "TTT", "FAKE02": "TTT"},
         }
         for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
-            observed = list(self.aln.get_by_annotation(annot_type))[0].to_dict()
+            observed = (
+                list(self.aln.get_features(biotype=annot_type, on_alignment=True))[0]
+                .get_slice()
+                .to_dict()
+            )
             expected = aln_expecteds[annot_type]
             assert observed == expected, (annot_type, expected, observed)
             if annot_type in ["misc_feature", "LTR"]:
                 continue  # because seqs haven't been annotated with it
-            for name in self.aln.names:
-                observed = list(
-                    self.aln.named_seqs[name].data.get_by_annotation(annot_type)
-                )[0]
-                observed = str(observed)
-                expected = seq_expecteds[annot_type][name]
-                assert str(observed) == expected, (annot_type, name, expected, observed)
+
+            observed = list(
+                self.aln.get_features(seqid=self.aln.names, biotype=annot_type)
+            )[0]
+            observed = observed.get_slice().to_dict()
+            expected = seq_expecteds[annot_type]
+            assert observed == expected
 
     def test_slice_aln_with_annotations(self):
         """test that annotations of sequences and alignments survive alignment
