@@ -226,6 +226,9 @@ def _matching_conditions(
         conds = []
         vals = []
         for col, val in conditions.items():
+            # todo gah FIX this excludes a False value from being a condition!
+            # conditions are filtered for None before here, so we should add
+            # an else where the op is assigned !=
             if val:
                 op = "LIKE" if isinstance(val, str) and "%" in val else "="
                 conds.append(f"{col} {op} ?")
@@ -515,7 +518,7 @@ class SqliteAnnotationDbMixin:
     ) -> typing.Iterator[FeatureDataType]:
         # returns essential values to create a Feature
         # we define query as all defined variables from local name space,
-        # excluding "self" and kwargs at default values
+        # excluding "self" and kwargs with a default value of None
         kwargs = {k: v for k, v in locals().items() if k != "self" and v is not None}
         # alignment features are created by the user specific
         table_names = ["user"] if on_alignment else self.table_names
