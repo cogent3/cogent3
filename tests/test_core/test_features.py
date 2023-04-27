@@ -4,7 +4,6 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -89,22 +88,16 @@ class FeaturesTest(TestCase):
         self.assertEqual(dont_exist, [])
         self.assertEqual(str(self.s[dont_exist]), "")
 
-    @pytest.mark.xfail(reason="todo gah duplicated in test_annotation?")
-    def test_get_region_covering_all(self):
-        """combines multiple features into one or their shadow"""
+    def test_union(self):
+        """combines multiple features into one"""
 
         # To construct a pseudo-feature covering (or excluding)
         # multiple features, use get_region_covering_all:
 
-        exons = self.s.get_features(biotype="exon")
-        self.assertEqual(
-            str(self.s.get_region_covering_all(exons)),
-            'region "exon" at [10:15, 30:40]/48',
-        )
-        self.assertEqual(
-            str(self.s.get_region_covering_all(exons).get_shadow()),
-            'region "not exon" at [0:10, 15:30, 40:48]/48',
-        )
+        exons = list(self.s.get_features(biotype="exon"))
+        exon1 = exons.pop(0)
+        combined = exon1.union(exons)
+        self.assertEqual(str(combined.get_slice()), "CCCCCTTTTTAAAAA")
 
         # eg: all the exon sequence:
 
