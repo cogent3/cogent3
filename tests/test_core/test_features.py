@@ -115,59 +115,6 @@ class FeaturesTest(TestCase):
         shadow = exon1.union(exons).shadow()
         assert str(shadow.get_slice()) == expect
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_slice_errors_from_merged(self):
-        """no overlap in merged features"""
-
-        # Though .get_region_covering_all also guarantees
-        # no overlaps within the result, slicing does not:
-
-        exons = self.s.get_features(biotype="exon")
-        self.assertEqual(
-            str(self.s.get_region_covering_all(exons + exons)),
-            'region "exon" at [10:15, 30:40]/48',
-        )
-        with self.assertRaises(ValueError):
-            self.s[self.exon1, self.exon1, self.exon1, self.exon1, self.exon1]
-
-        # You can use features, maps, slices or integers,
-        # but non-monotonic slices are not allowed:
-
-        with self.assertRaises(ValueError):
-            self.s[15:20, 5:16]
-
-    @pytest.mark.xfail(reason="todo gah delete test, not supporting this")
-    def test_feature_slicing(self):
-        """features can be sliced"""
-
-        # Features are themselves sliceable:
-
-        self.assertEqual(str(self.exon1[0:3].get_slice()), "CCC")
-
-        # When sequences are concatenated they keep their (non-overlapping) annotations:
-
-        c = self.s[self.exon1[4:]] + self.s
-        self.assertEqual(len(c), 49)
-
-        answers = [
-            'exon "fred" at [-4-, 0:1]/49',
-            'exon "fred" at [11:16]/49',
-            'exon "trev" at [31:41]/49',
-        ]
-
-        array = []
-
-        for feat in c.annotations:
-            array.append(str(feat))
-
-        self.assertEqual(answers, array)
-
-        # Since features know their parents you can't
-        # use a feature from one sequence to slice another:
-
-        with self.assertRaises(ValueError):
-            c[self.exon1]
-
     @pytest.mark.xfail(reason="todo gah delete test? or update to new API")
     def test_feature_attach_detach(self):
         """correctly associate, disassociate from seq"""
