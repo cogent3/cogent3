@@ -7,6 +7,7 @@ from typing import Optional
 
 import numpy
 
+from cogent3.util import warning as c3warn
 from cogent3.util.misc import get_object_provenance
 
 from .location import Map, as_map
@@ -165,39 +166,6 @@ class _AnnotationCore:
 
     def _mapped(self, map):
         raise NotImplementedError
-
-    def get_region_covering_all(
-        self, annotations, feature_class=None, extend_query=False
-    ):
-        from cogent3.core.sequence import Sequence
-
-        if isinstance(self, Sequence):
-            from cogent3.util.warning import deprecated
-
-            deprecated(
-                "method",
-                "Sequence.get_region_covering_all",
-                "_Annotatable.get_region_covering_all",
-                " 2023.3",
-                "method .get_region_covering_all will be discontinued for Sequence objects",
-            )
-
-        if extend_query:
-            annotations = [annot._projected_to_base(self) for annot in annotations]
-        spans = []
-        annotation_types = []
-        for annot in annotations:
-            spans.extend(annot.map.spans)
-            if annot.type not in annotation_types:
-                annotation_types.append(annot.type)
-        map = Map(spans=spans, parent_length=len(self))
-        map = map.covered()  # No overlaps
-        name = ",".join(annotation_types)
-
-        if feature_class is None:
-            feature_class = _Feature
-
-        return feature_class(self, map, type="region", name=name)
 
     def _annotations_nucleic_reversed_on(self, new):
         """applies self.annotations to new with coordinates adjusted for
@@ -538,6 +506,37 @@ class Annotation(_AnnotationCore, _Serialisable):
         for child in db.get_feature_children(biotype=biotype, name=self.name):
             yield make_feature(child)
 
+    def union(self, features):
+        """return as a single Annotation
+
+        Notes
+        -----
+        Overlapping spans are merged
+        """
+        combined = self.map.spans[:]
+        feat_names = set()
+        biotypes = set()
+        seqids = set()
+        for feature in features:
+            if feature.parent is not self.parent:
+                raise ValueError(f"cannot merge annotations from different objects")
+
+            combined.extend(feature.map.spans)
+            if feature.name:
+                feat_names.add(feature.name)
+            if feature.seqid:
+                seqids.add(feature.seqid)
+            if feature.biotype:
+                biotypes.add(feature.biotype)
+        name = ", ".join(feat_names)
+        map = Map(spans=combined, parent_length=len(self.parent))
+        map = map.covered()  # No overlaps
+        seqid = ", ".join(seqids) if seqids else None
+        biotype = ", ".join(biotypes)
+        return self.__class__(
+            parent=self.parent, seqid=seqid, map=map, biotype=biotype, name=name
+        )
+
 
 # https://pythonspeed.com/products/filmemoryprofiler/
 
@@ -663,6 +662,42 @@ class _Feature(_Annotatable, _Serialisable):
         new = self.__class__(**serialisable)
         annotatable.attach_annotations([new])
         return annotatable
+
+    @c3warn.deprecated_callable(
+        "2023.7", reason="replaced by", new="<instance>.union()"
+    )
+    def get_region_covering_all(
+        self, annotations, feature_class=None, extend_query=False
+    ):
+        from cogent3.core.sequence import Sequence
+
+        if isinstance(self, Sequence):
+            from cogent3.util.warning import deprecated
+
+            deprecated(
+                "method",
+                "Sequence.get_region_covering_all",
+                "_Annotatable.get_region_covering_all",
+                " 2023.3",
+                "method .get_region_covering_all will be discontinued for Sequence objects",
+            )
+
+        if extend_query:
+            annotations = [annot._projected_to_base(self) for annot in annotations]
+        spans = []
+        annotation_types = []
+        for annot in annotations:
+            spans.extend(annot.map.spans)
+            if annot.type not in annotation_types:
+                annotation_types.append(annot.type)
+        map = Map(spans=spans, parent_length=len(self))
+        map = map.covered()  # No overlaps
+        name = ",".join(annotation_types)
+
+        if feature_class is None:
+            feature_class = _Feature
+
+        return feature_class(self, map, type="region", name=name)
 
 
 class AnnotatableFeature(_Feature):
