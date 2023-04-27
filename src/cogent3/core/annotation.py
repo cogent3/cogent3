@@ -424,6 +424,7 @@ class Annotation(_AnnotationCore, _Serialisable):
         self.biotype = biotype
         self.name = name
         self.parent = parent
+        self.seqid = seqid
         if isinstance(map, Map):
             assert map.parent_length == len(parent), (map, len(parent))
         else:
@@ -461,18 +462,30 @@ class Annotation(_AnnotationCore, _Serialisable):
             return self
         keep = self.map.nongap()
         return self.__class__(
-            self.parent, self.map[keep], biotype=self.biotype, name=self.name
+            self.parent,
+            self.map[keep],
+            biotype=self.biotype,
+            name=self.name,
+            seqid=self.seqid,
         )
 
     def as_one_span(self):
         new_map = self.map.get_covering_span()
         return self.__class__(
-            self.parent, new_map, biotype=self.biotype, name=f"one-span {self.name}"
+            self.parent,
+            new_map,
+            biotype=self.biotype,
+            name=f"one-span {self.name}",
+            seqid=self.seqid,
         )
 
     def get_shadow(self):
         return self.__class__(
-            self.parent, self.map.shadow(), type="region", name=f"not {self.name}"
+            self.parent,
+            self.map.shadow(),
+            type="region",
+            name=f"not {self.name}",
+            seqid=self.seqid,
         )
 
     def __len__(self):
@@ -480,7 +493,7 @@ class Annotation(_AnnotationCore, _Serialisable):
 
     def __repr__(self):
         name = f' "{self.name}"'
-        return f"{self.biotype}{name} at {self.map}"
+        return f"{self.seqid!r} {self.biotype}{name} at {self.map}"
 
     def _projected_to_base(self, base):
         if self.parent == base:
