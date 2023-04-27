@@ -538,6 +538,37 @@ class Annotation(_AnnotationCore, _Serialisable):
         for child in db.get_feature_children(biotype=biotype, name=self.name):
             yield make_feature(child)
 
+    def union(self, features):
+        """return as a single Annotation
+
+        Notes
+        -----
+        Overlapping spans are merged
+        """
+        combined = self.map.spans[:]
+        feat_names = set()
+        biotypes = set()
+        seqids = set()
+        for feature in features:
+            if feature.parent is not self.parent:
+                raise ValueError(f"cannot merge annotations from different objects")
+
+            combined.extend(feature.map.spans)
+            if feature.name:
+                feat_names.add(feature.name)
+            if feature.seqid:
+                seqids.add(feature.seqid)
+            if feature.biotype:
+                biotypes.add(feature.biotype)
+        name = ", ".join(feat_names)
+        map = Map(spans=combined, parent_length=len(self.parent))
+        map = map.covered()  # No overlaps
+        seqid = ", ".join(seqids) if seqids else None
+        biotype = ", ".join(biotypes)
+        return self.__class__(
+            parent=self.parent, seqid=seqid, map=map, biotype=biotype, name=name
+        )
+
 
 # https://pythonspeed.com/products/filmemoryprofiler/
 
