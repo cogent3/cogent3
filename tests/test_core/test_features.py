@@ -4,6 +4,7 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
+
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
