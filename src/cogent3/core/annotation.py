@@ -479,6 +479,19 @@ class Annotation(_AnnotationCore, _Serialisable):
             seqid=self.seqid,
         )
 
+    def shadow(self):
+        """returns new instance corresponding to disjoint of self coordinates"""
+        return self.__class__(
+            parent=self.parent,
+            map=self.map.shadow(),
+            biotype=f"not {self.biotype}",
+            name=f"not {self.name}",
+            seqid=self.seqid,
+        )
+
+    @c3warn.deprecated_callable(
+        "2023.7", reason="new method", new="<instance>.shadow()"
+    )
     def get_shadow(self):
         return self.__class__(
             self.parent,

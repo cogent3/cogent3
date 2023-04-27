@@ -4,7 +4,6 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -100,15 +99,21 @@ class FeaturesTest(TestCase):
         combined = exon1.union(exons)
         self.assertEqual(str(combined.get_slice()), "CCCCCTTTTTAAAAA")
 
-        # eg: all the exon sequence:
+    def test_shadow(self):
+        """combines multiple features into shadow"""
 
-        self.assertEqual(
-            str(self.s.get_region_covering_all(exons).get_slice()), "CCCCCTTTTTAAAAA"
+        # To construct a pseudo-feature covering (or excluding)
+        # multiple features, use get_region_covering_all:
+
+        exons = list(self.s.get_features(biotype="exon"))
+        expect = str(
+            self.s[: exons[0].map.start]
+            + self.s[exons[0].map.end : exons[1].map.start]
+            + self.s[exons[1].map.end :]
         )
-
-        # or with slice notation:
-
-        self.assertEqual(str(self.s[self.exon1, self.exon2]), "CCCCCTTTTTAAAAA")
+        exon1 = exons.pop(0)
+        shadow = exon1.union(exons).shadow()
+        assert str(shadow.get_slice()) == expect
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_slice_errors_from_merged(self):
