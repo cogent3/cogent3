@@ -1711,6 +1711,7 @@ class _SequenceCollectionBase:
         )
         if isinstance(self, _Annotatable) and self.annotations:
             self._annotations_nucleic_reversed_on(rc)
+        rc.annotation_db = self.annotation_db
         return rc
 
     def reverse_complement(self):
