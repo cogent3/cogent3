@@ -262,9 +262,9 @@ def test_gav():
         on_alignment=False,
     )
     seq.annotation_db = db
-    plus = list(seq.get_features_matching(name="plus"))[0]
+    plus = list(seq.get_features(name="plus"))[0]
     assert str(plus.get_slice()) == plus_seq
-    minus = list(seq.get_features_matching(name="minus"))[0]
+    minus = list(seq.get_features(name="minus"))[0]
     assert str(minus.get_slice()) == minus_seq
 
     f = Feature(seq, "cds", "minus", reversed([reversed(s) for s in minus_spans]))
@@ -278,9 +278,9 @@ def test_gav():
     rf = Feature(rced, "cds", "minus", [reversed(s) for s in rced_spans])
     got = rf.get_slice()
 
-    plus = list(rced.get_features_matching(name="plus"))[0]
+    plus = list(rced.get_features(name="plus"))[0]
     assert str(plus.get_slice()) == plus_seq
-    minus = list(rced.get_features_matching(name="minus"))[0]
+    minus = list(rced.get_features(name="minus"))[0]
     print(rf, minus)
     assert str(minus.get_slice()) == minus_seq
 
@@ -394,9 +394,9 @@ def test_rc_get_slice_negative_feature(seq_db):
     the same sequence before and after the sequence is reverse complemented
     """
 
-    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
+    feat = list(seq_db.get_features(name="Transcript:B0019.1"))[0]
     rc_seq = seq_db.rc()
-    r_feat = list(rc_seq.get_features_matching(name="Transcript:B0019.1"))[0]
+    r_feat = list(rc_seq.get_features(name="Transcript:B0019.1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
 
