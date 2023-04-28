@@ -19,7 +19,6 @@ from cogent3.core.alignment import (
 )
 from cogent3.core.annotation_db import load_annotations
 from cogent3.core.genetic_code import available_codes, get_code
-
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (

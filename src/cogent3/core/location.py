@@ -690,7 +690,7 @@ class Map(object):
             last_x = x
             last_y = y
         assert y == 0
-        return Map(result, parent_length=self.parent_length)
+        return Map(locations=result, parent_length=self.parent_length)
 
     def reversed(self):
         """Reversed location on same parent"""
