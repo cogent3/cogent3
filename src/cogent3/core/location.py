@@ -575,13 +575,35 @@ class Map(object):
                     raise RuntimeError(
                         f"located outside sequence: {str((start, end, parent_length))}"
                     )
-                span = Span(start, end, tidy, tidy, reverse=reverse)
-                if diff < 0:
-                    spans += [LostSpan(-diff), span]
-                elif diff > 0:
-                    spans += [span, LostSpan(diff)]
+                if max(start, end) > parent_length and min(start, end) < 0:
+                    l_diff = min(start, end)
+                    r_diff = max(start, end) - parent_length
+                    start, end = (
+                        (0, parent_length) if start < end else (parent_length, 0)
+                    )
+                    spans += [
+                        LostSpan(abs(l_diff)),
+                        Span(start, end, tidy, tidy, reverse=reverse),
+                        LostSpan(abs(r_diff)),
+                    ]
+                elif min(start, end) < 0:
+                    diff = min(start, end)
+                    start = 0 if start < 0 else start
+                    end = 0 if end < 0 else end
+                    spans += [
+                        LostSpan(abs(diff)),
+                        Span(start, end, tidy, tidy, reverse=reverse),
+                    ]
+                elif max(start, end) > parent_length:
+                    diff = max(start, end) - parent_length
+                    start = parent_length if start > parent_length else start
+                    end = parent_length if end > parent_length else end
+                    spans += [
+                        Span(start, end, tidy, tidy, reverse=reverse),
+                        LostSpan(abs(diff)),
+                    ]
                 else:
-                    spans += [span]
+                    spans += [Span(start, end, tidy, tidy, reverse=reverse)]
 
         self.offsets = []
         self.useful = False
