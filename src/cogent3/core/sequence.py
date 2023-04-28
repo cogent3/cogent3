@@ -1432,7 +1432,7 @@ class NucleicAcidSequence(Sequence):
         )
         if self.annotation_db is not None:
             rc.annotation_db = self.annotation_db
-        rc._seq = self._seq[::-1]
+
         return rc
 
     def has_terminal_stop(self, gc=None, allow_partial=False):
