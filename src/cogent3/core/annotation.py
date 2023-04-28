@@ -557,6 +557,11 @@ class Annotation(_AnnotationCore, _Serialisable):
         name = ", ".join(feat_names)
         map = Map(spans=combined, parent_length=len(self.parent))
         map = map.covered()  # No overlaps
+        # the covered method drops reversed status so we need to
+        # resurrect that, but noting we've not checked consistency
+        # across the features
+        if self.map.reverse != map.reverse:
+            map = map.reversed()
         seqid = ", ".join(seqids) if seqids else None
         biotype = ", ".join(biotypes)
         return self.__class__(
