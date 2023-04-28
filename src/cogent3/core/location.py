@@ -42,6 +42,9 @@ import copy
 from bisect import bisect_left, bisect_right
 from functools import total_ordering
 from itertools import chain
+from typing import Union
+
+from numpy import ndarray
 
 from cogent3.util.misc import (
     ClassChecker,
@@ -852,6 +855,51 @@ class Map(object):
             span.end -= min_val
 
         return zeroed
+
+    T = Union[ndarray, int]
+
+    def absolute_position(self, rel_pos: T) -> T:
+        """converts rel_pos into an absolute position
+
+        Raises
+        ------
+        raises ValueError if rel_pos < 0
+        """
+        check = ndarray([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        if check.min() < 0:
+            raise ValueError(f"must positive, not {rel_pos=}")
+
+        if len(self) == self.parent_length:
+            # handle case of reversed here?
+            return rel_pos
+
+        return self.start + rel_pos
+
+    def relative_position(self, abs_pos: T) -> T:
+        """converts abs_pos into an relative position
+
+        Raises
+        ------
+        raises ValueError if abs_pos < 0
+        """
+        check = ndarray([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+        if check.min() < 0:
+            raise ValueError(f"must positive, not {abs_pos=}")
+        return abs_pos - self.start
+
+    def convert_position_for_reversed(self, rel_pos: T) -> T:
+        """adjusts a relative position for changed orientation
+
+        Raises
+        ------
+        raises ValueError if rel_pos < 0 or rel_pos > len(self)
+        """
+        check = ndarray([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        if check.min() < 0 or check.max() > len(self):
+            raise ValueError(
+                f"must be a relative position within [0,{len(self)}], not {rel_pos=}"
+            )
+        return len(self) - rel_pos - 1
 
 
 class SpansOnly(ConstrainedList):
