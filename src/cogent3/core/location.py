@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Alignments and Sequences are _Annotatables
 _Annotatables hold a list of Maps.
 Maps can be Features, Variables or AlignedSequences.
@@ -44,7 +43,7 @@ from functools import total_ordering
 from itertools import chain
 from typing import Union
 
-from numpy import ndarray
+from numpy import array, ndarray
 
 from cogent3.util.misc import (
     ClassChecker,
@@ -865,7 +864,7 @@ class Map(object):
         ------
         raises ValueError if rel_pos < 0
         """
-        check = ndarray([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        check = array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
         if check.min() < 0:
             raise ValueError(f"must positive, not {rel_pos=}")
 
@@ -882,7 +881,7 @@ class Map(object):
         ------
         raises ValueError if abs_pos < 0
         """
-        check = ndarray([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+        check = array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
         if check.min() < 0:
             raise ValueError(f"must positive, not {abs_pos=}")
         return abs_pos - self.start
@@ -894,7 +893,7 @@ class Map(object):
         ------
         raises ValueError if rel_pos < 0 or rel_pos > len(self)
         """
-        check = ndarray([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        check = array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
         if check.min() < 0 or check.max() > len(self):
             raise ValueError(
                 f"must be a relative position within [0,{len(self)}], not {rel_pos=}"
