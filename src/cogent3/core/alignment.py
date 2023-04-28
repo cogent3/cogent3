@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2246,11 +2245,21 @@ class SequenceCollection(_SequenceCollectionBase):
             raise ValueError(f"cannot provide seqids with on_alignment")
 
         if seqids is None:
+            seq_map = None
             for feature in self.annotation_db.get_features_matching(
                 biotype=biotype, name=name, on_alignment=on_alignment
             ):
-                if on_alignment:
-                    yield self.make_feature(feature=feature, on_alignment=on_alignment)
+                if on_al := feature.pop("on_alignment", on_alignment):
+                    if seq_map is None:
+                        seq_map = self.seqs[0].map
+                    # gah todo use the Aligned map to transform the absolute
+                    # index from the db into a relative index
+                    spans = numpy.array(feature["spans"])
+                    spans = seq_map.relative_position(spans)
+                    feature["spans"] = spans.tolist()
+                    # and if i've been reversed...?
+                    feature["reversed"] = seq_map.reverse
+                    yield self.make_feature(feature=feature, on_alignment=on_al)
                     continue
 
                 seqid = feature["seqid"]
@@ -5169,7 +5178,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         # there's no sequence to bind to, the feature is directly on self
         # todo gah check handling of strand etc..., maybe reuse code
         # in Sequence?
-        feature["map"] = Map(parent_length=len(self), locations=feature.pop("spans"))
-        feature.pop("reversed", None)
+        fmap = Map(parent_length=len(self), locations=feature.pop("spans"))
+        if feature.pop("reversed", None):
+            fmap = fmap.nucleic_reversed()
         feature.pop("strand", None)
-        return Annotation(parent=self, **feature)
+        return Annotation(parent=self, map=fmap, **feature)
