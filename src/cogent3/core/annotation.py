@@ -506,7 +506,7 @@ class Annotation(_AnnotationCore, _Serialisable):
 
     def __repr__(self):
         name = f' "{self.name}"'
-        return f"{self.seqid!r} {self.biotype}{name} at {self.map}"
+        return f'"{self.seqid}" {self.biotype}{name} at {self.map}'
 
     def _projected_to_base(self, base):
         if self.parent == base:
@@ -557,6 +557,11 @@ class Annotation(_AnnotationCore, _Serialisable):
         name = ", ".join(feat_names)
         map = Map(spans=combined, parent_length=len(self.parent))
         map = map.covered()  # No overlaps
+        # the covered method drops reversed status so we need to
+        # resurrect that, but noting we've not checked consistency
+        # across the features
+        if self.map.reverse != map.reverse:
+            map = map.reversed()
         seqid = ", ".join(seqids) if seqids else None
         biotype = ", ".join(biotypes)
         return self.__class__(

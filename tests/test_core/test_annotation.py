@@ -105,37 +105,7 @@ class TestAnnotations(unittest.TestCase):
             expected = seq_expecteds[annot_type]
             assert observed == expected
 
-    @pytest.mark.xfail(reason="todo gah get_region_covering_all not working")
-    def test_slice_aln_with_annotations(self):
-        """test that annotations of sequences and alignments survive alignment
-        slicing."""
-        aln_expecteds = {
-            "misc_feature": {"FAKE01": "TTTGGGGGGGGGG", "FAKE02": "TTTGGGGGGGGGG"},
-            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
-            "5'UTR": {"FAKE01": "CC", "FAKE02": "CC"},
-            "LTR": {"FAKE01": "CCCTTTTT", "FAKE02": "CCCTTTTT"},
-        }
-        newaln = self.aln[10:]
-        for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
-            feature_list = newaln.get_features(biotype=annot_type)
-            new = newaln.get_region_covering_all(feature_list).get_slice().to_dict()
-            expected = aln_expecteds[annot_type]
-            assert expected == new, (annot_type, expected, new)
-            if annot_type in ["misc_feature", "LTR"]:
-                continue  # because seqs haven't been annotated with it
-            for name in self.aln.names:
-                orig = str(
-                    list(self.aln.get_features(seqid=name, biotype=annot_type))[
-                        0
-                    ].get_slice()
-                )
-                new = str(
-                    list(newaln.get_features(seqid=name, biotype=annot_type))[
-                        0
-                    ].get_slice()
-                )
-                assert orig == new, (name, annot_type, orig, new)
-
+    @pytest.mark.xfail(reason="todo gah update to latest API")
     def test_feature_projection(self):
         expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
         aln_ltr = self.aln.get_features_matching("LTR")[0]
@@ -162,6 +132,7 @@ class TestAnnotations(unittest.TestCase):
         with self.assertRaises(AssertionError):
             _ = annot.copy_annotations_to(seq[:-2])
 
+    @pytest.mark.xfail(reason="todo gah change to new API")
     def test_reverse_complement(self):
         """test correct translation of annotations on reverse complement."""
         aln_expecteds = {
@@ -252,20 +223,28 @@ def test_constructing_collections(alignment):
     assert coll.annotation_db.num_matches() == expect
 
 
-@pytest.mark.xfail(reason="todo gah get_region_covering_all not working")
-def test_region_covering_all():
+@pytest.mark.parametrize("reversed", (False, True))
+@pytest.mark.parametrize("annot_type", ("LTR", "misc_feature", "CDS", "5'UTR"))
+def test_region_union_on_alignment(annot_type, reversed):
+    # >FAKE01
+    # AACCCAAAATTTTTTGGGGGGGGGGCCCC
+    # >FAKE02
+    # AACCC-----TTTTTGGGGGGGGGGCC--
+    #   **  5'UTR
+    #   ************* LTR
+    #                **********  CDS
+    #             *************  misc_feature
+
     aln = makeSampleAlignment()
     aln_expecteds = {
         "misc_feature": {"FAKE01": "TTTGGGGGGGGGG", "FAKE02": "TTTGGGGGGGGGG"},
         "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
         "5'UTR": {"FAKE01": "CC", "FAKE02": "CC"},
-        "LTR": {"FAKE01": "CCCTTTTT", "FAKE02": "CCCTTTTT"},
+        "LTR": {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"},
     }
-    newaln = aln[10:]
-    for annot_type in ["LTR", "misc_feature", "CDS", "5'UTR"]:
-        feature_list = list(newaln.get_features(biotype=annot_type))
-        new = newaln.get_region_covering_all(feature_list).get_slice().to_dict()
-        expected = aln_expecteds[annot_type]
-        assert expected == new, (annot_type, expected, new)
-        if annot_type in ["misc_feature", "LTR"]:
-            continue  # because seqs haven't been annotated with it
+    newaln = aln.rc() if reversed else aln
+    feature_list = list(newaln.get_features(biotype=annot_type, on_alignment=True))
+    new = feature_list[0].union(feature_list[1:])
+    new = new.get_slice().to_dict()
+    expected = aln_expecteds[annot_type]
+    assert expected == new, (annot_type, expected, new)

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Unit tests for Range, Span and Point classes.
 """
 from unittest import TestCase, main
@@ -566,6 +564,34 @@ class MapTests(TestCase):
             got = gap_coords_to_map({20: 1}, len(seq))
 
 
-# run the following if invoked from command-line
-if __name__ == "__main__":
-    main()
+def test_map_plus_position():
+    # seq is 9 long
+    # plus coords  012345678
+    # +slice         **
+    # plus seq     AAACCCTGG
+
+    # orig = Aligned(*DNA.make_seq("AAACCCTGG", name="a").parse_out_gaps())
+    orig = Map([(0, 9)], parent_length=9)
+    assert orig.absolute_position(2) == 2
+    assert orig.absolute_position(6) == 6
+
+    assert orig.relative_position(2) == 2
+    assert orig.relative_position(6) == 6
+
+    subseq = orig[2:4]
+    assert subseq.absolute_position(0) == 2
+    assert subseq.absolute_position(4) == 6
+
+    assert subseq.relative_position(2) == 0
+    assert subseq.relative_position(6) == 4
+
+    # minus coords 012345678
+    # rel coord      01234
+    # -slice         *****
+    # minus seq    CCAGGGTTT
+    # plus coords  876543210
+    rc = orig.nucleic_reversed()
+    rcsubseq = rc[2:7]
+    abs_coord = rcsubseq.absolute_position(0)
+    abs_rc_coord = orig.convert_position_for_reversed(abs_coord)
+    assert abs_rc_coord == 6, (abs_coord, abs_rc_coord)
