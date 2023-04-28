@@ -20,7 +20,7 @@ import warnings
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Optional, Tuple, Union
+from typing import Generator, List, Optional, Tuple
 
 from numpy import (
     arange,
@@ -933,8 +933,14 @@ class Sequence(_Annotatable, SequenceI):
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
         query_end = self._seq.absolute_position(stop, include_boundary=True)
-        # todo gah check logic of handling of negative indices
-        query_start = max(query_start, 0)
+
+        # if the view is reversed, then (query_start > query_end)
+        query_start, query_end = (
+            (query_start, query_end)
+            if query_start < query_end
+            else (query_end, query_start)
+        )
+
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
             name=name,
@@ -946,7 +952,33 @@ class Sequence(_Annotatable, SequenceI):
             # spans need to be converted from absolute to relative positions
             # DO NOT do adjustment in make_feature since that's user facing,
             # and we expect them to make a feature manually
+
+            feature["spans"] = self._relative_spans(feature["spans"])
+
             yield self.make_feature(feature)
+
+    def _relative_spans(self, spans):
+        r_spans = []
+
+        for (s, e) in spans:
+            # reverse feature determined by absolute position
+            reverse = s > e
+
+            # todo: kath, think about logic of stop=true for reverse locations
+            # I think, we need to know the whether it is reverse so that the adjustment
+            # for step (given stop=True) is in the correct direction.
+            # However, we need to keep s > e for a reverse span because this information
+            # is used in the Map?
+            if reverse:
+                start = self._seq.relative_position(s, stop=True)
+                end = self._seq.relative_position(e)
+            else:
+                start = self._seq.relative_position(s)
+                end = self._seq.relative_position(e, stop=True)
+
+            r_spans += [(start, end)]
+
+        return r_spans
 
     @deprecated_callable(
         "2023.7", reason="simpler name", new="<instance>.get_features()"
@@ -962,7 +994,7 @@ class Sequence(_Annotatable, SequenceI):
         Parameters
         ----------
         feature
-            dict of key data to make a Annotation instance
+            dict of key data to make an Annotation instance
 
         Notes
         -----

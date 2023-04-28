@@ -549,3 +549,29 @@ def test_gff_update_existing_specify_seqid(gff_db, gff_small_db, seqids):
     )
     gff_db.update(gff_small_db, seqids=seqids)
     assert gff_db.num_matches() == expect
+
+
+def test_relative_position_negative_feature(seq_db):
+    orig_feat_span = list(seq_db.get_features(name="Transcript:B0019.1"))[0].map
+
+    view = seq_db[5:]
+    view_feat_span = list(view.get_features(name="Transcript:B0019.1"))[0].map
+
+    assert orig_feat_span[0].start - 5 == view_feat_span[0].start
+    assert orig_feat_span[0].end - 5 == view_feat_span[0].end
+
+
+def test_relative_position_positive_feature(anno_db):
+    seq = DNA.make_seq("AAAAGGGG", name="seq1")
+
+    seq.annotation_db = anno_db
+    anno_db.add_feature(
+        seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
+    )
+
+    orig_feat_span = list(seq.get_features_matching(name="exon1"))[0].map
+    view = seq[2:]
+    view_feat_span = list(view.get_features_matching(name="exon1"))[0].map
+
+    assert orig_feat_span[0].start - 2 == view_feat_span[0].start
+    assert orig_feat_span[0].end - 2 == view_feat_span[0].end
