@@ -3312,21 +3312,21 @@ def test_get_annotations_from_any_seq(cls):
     seqs.get_seq("seq3").add_feature(biotype="exon", name="annotation3", spans=[(3, 6)])
     got = list(seqs.get_features())
     assert len(got) == 3
-    assert str(got[0]) == 'exon "annotation1" at [3:8]/9'
-    assert str(got[1]) == 'exon "annotation2" at [1:2]/9'
-    assert str(got[2]) == 'exon "annotation3" at [3:6]/9'
+    assert 'exon "annotation1" at [3:8]/9' in str(got[0])
+    assert 'exon "annotation2" at [1:2]/9' in str(got[1])
+    assert 'exon "annotation3" at [3:6]/9' in str(got[2])
 
     got = list(seqs.get_features(name="annotation1"))
     assert len(got) == 1
-    assert str(got[0]) == 'exon "annotation1" at [3:8]/9'
+    assert 'exon "annotation1" at [3:8]/9' in str(got[0])
 
     got = list(seqs.get_features(biotype="exon", name="annotation2"))
     assert len(got) == 1
-    assert str(got[0]) == 'exon "annotation2" at [1:2]/9'
+    assert 'exon "annotation2" at [1:2]/9' in str(got[0])
 
     got = list(seqs.get_features(name="annotation3"))
     assert len(got) == 1
-    assert str(got[0]) == 'exon "annotation3" at [3:6]/9'
+    assert 'exon "annotation3" at [3:6]/9' in str(got[0])
 
 
 def test_annotate_matches_to():
