@@ -1670,7 +1670,7 @@ class SeqView:
         # add offset and handle reversed views, now absolute relative to annotation coordinates
         offset = 0 if self.offset is None else self.offset
         if self.reversed:
-            abs_index = offset + len(self.seq) + seq_index
+            abs_index = offset + len(self.seq) + seq_index + 1
         else:
             abs_index = offset + seq_index
 
@@ -1690,7 +1690,7 @@ class SeqView:
             offset = 0 if self.offset is None else self.offset
 
             if (
-                tmp := ((len(self.seq) - (abs_index - offset)) + self.start)
+                tmp := ((len(self.seq) - (abs_index - offset)) + self.start + 1)
             ) % self.step == 0 or stop:
                 rel_pos = tmp // abs(self.step)
             else:
