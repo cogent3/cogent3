@@ -934,12 +934,26 @@ class Sequence(_Annotatable, SequenceI):
         # i,e., the stop can be equal to the length of the view
         query_end = self._seq.absolute_position(stop, include_boundary=True)
 
-        # if the view is reversed, then (query_start > query_end)
-        query_start, query_end = (
-            (query_start, query_end)
-            if query_start < query_end
-            else (query_end, query_start)
-        )
+        reversed = query_end < query_start
+        if reversed:
+            query_start, query_end = query_end, query_start
+
+        query_start = max(query_start, 0)
+        # in the underlying db, features are always plus strand oriented
+        # (need to check that for user defined features)
+        # a '-' strand feature in the db may be [(2, 4), (6, 8)]
+        # so we would take 7-6, 3-2 and complement it
+        # if the current sequence is reverse complemented
+        # then a '+' feature from the db needs to be nucleic reversed
+        # and a '-' feature from the db needs to be nucleic reversed too
+
+        # making this more complicated is self.make_feature() assumes
+        # all coordinates are with respect to the current orientation
+        # so self.make_feature(data(spans=[(2,4)])) has different meaning if
+        # self is rc'ed, it would correspond to len(self)-2, etc...
+        # To piggy-back on that method we need to convert our feature spans
+        # into the current orientation. HOWEVER, we also have the reversed
+        # flag which comes back from the db
 
         for feature in self.annotation_db.get_features_matching(
             seqid=self.name,
@@ -952,9 +966,18 @@ class Sequence(_Annotatable, SequenceI):
             # spans need to be converted from absolute to relative positions
             # DO NOT do adjustment in make_feature since that's user facing,
             # and we expect them to make a feature manually
+            spans = array(feature.pop("spans"), dtype=int)
+            for i, v in enumerate(spans.ravel()):
+                rel_pos = self._seq.relative_position(v)
+                if rel_pos < 0 or rel_pos > len(self):
+                    raise NotImplementedError
+                spans.ravel()[i] = rel_pos
 
-            feature["spans"] = self._relative_spans(feature["spans"])
+            if reversed:
+                # see above comment
+                spans = len(self) - spans
 
+            feature["spans"] = spans.tolist()
             yield self.make_feature(feature)
 
     def _relative_spans(self, spans):
