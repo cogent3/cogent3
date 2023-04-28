@@ -4,7 +4,6 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -51,7 +50,8 @@ class FeaturesTest(TestCase):
 
         exons = list(self.s.get_features(biotype="exon"))
         self.assertEqual(
-            str(exons), '[exon "fred" at [10:15]/48, exon "trev" at [30:40]/48]'
+            str(exons),
+            '["Orig" exon "fred" at [10:15]/48, "Orig" exon "trev" at [30:40]/48]',
         )
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")

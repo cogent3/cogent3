@@ -506,7 +506,7 @@ class Annotation(_AnnotationCore, _Serialisable):
 
     def __repr__(self):
         name = f' "{self.name}"'
-        return f"{self.seqid!r} {self.biotype}{name} at {self.map}"
+        return f'"{self.seqid}" {self.biotype}{name} at {self.map}'
 
     def _projected_to_base(self, base):
         if self.parent == base:
