@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Unit tests for Range, Span and Point classes.
 """
 from unittest import TestCase, main
@@ -564,8 +562,3 @@ class MapTests(TestCase):
         # and gaps outside sequence
         with self.assertRaises(ValueError):
             got = gap_coords_to_map({20: 1}, len(seq))
-
-
-# run the following if invoked from command-line
-if __name__ == "__main__":
-    main()
