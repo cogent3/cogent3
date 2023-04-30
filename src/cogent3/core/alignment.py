@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -1894,12 +1893,6 @@ class _SequenceCollectionBase:
             new[new_name] = new_seq
         result = self.__class__(data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
-        # now try copying annotations
-        if isinstance(self, Alignment):
-            for new, old in name_map.items():
-                new_seq = result.named_seqs[new]
-                old_seq = self.named_seqs[old]
-                new_seq.copy_annotations(old_seq.data)
         return result
 
     @UI.display_wrap

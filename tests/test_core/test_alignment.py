@@ -858,37 +858,6 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
         self.assertEqual(aln.num_seqs, 3)
 
-    @pytest.mark.xfail(
-        reason="todo: gah remove test, annotate_from_gff only supports file types"
-    )
-    def test_annotate_from_gff(self):
-        """SequenceCollection.annotate_from_gff should read gff features"""
-        aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "C-GU"})
-        gff = [
-            ["seq1", "prog1", "snp", "1", "2", "1.0", "+", "1", '"abc"'],
-            ["seq3", "prog2", "del", "1", "3", "1.0", "+", "1", '"xyz"'],
-            ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
-        ]
-        gff = list(map("\t".join, gff))
-        if self.Class == ArrayAlignment:
-            return
-
-        aln.annotate_from_gff(gff)
-        aln_seq_1 = aln.named_seqs["seq1"]
-        if not hasattr(aln_seq_1, "annotations"):
-            aln_seq_1 = aln_seq_1.data
-        aln_seq_2 = aln.named_seqs["seq2"]
-        if not hasattr(aln_seq_2, "annotations"):
-            aln_seq_2 = aln_seq_2.data
-        self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].name, "abc")
-        self.assertEqual(len(aln_seq_2.annotations), 0)
-
-        if self.Class == Alignment:
-            aln_seq_3 = aln.get_seq("seq3")
-            matches = [m for m in aln_seq_3.get_features_matching("*")]
-            self.assertFalse("-" in matches[0].get_slice())
-
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
         align1 = self.Class({"a": "AAAA", "b": "TTTT", "c": "CCCC"})
@@ -2860,19 +2829,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual({s.data.moltype.label for s in rna.seqs}, {"rna"})
         self.assertEqual(rna.moltype.label, "rna")
 
-    @pytest.mark.xfail(reason="todo gah: delete this test, unsupported behaviour")
-    def test_rename_handles_annotations(self):
-        """rename seqs on Alignment preserves annotations"""
-        data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-        seqs = self.Class(data, moltype=DNA)
-        x = seqs.get_seq("seq1").add_feature(
-            biotype="exon", name="fred", spans=[(3, 8)]
-        )
-        expect = str(x.get_slice())
-        new = seqs.rename_seqs(lambda x: x.upper())
-        got = list(new.get_annotations_from_any_seq("exon"))[0]
-        self.assertEqual(got.get_slice().to_dict()["SEQ1"], expect)
-
     def test_construction(self):
         """correctly construct from list of sequences of length 2"""
         seq1 = make_seq("AC-", name="seq1")
@@ -3474,3 +3430,14 @@ def test_deepcopy_aligned(cls):
     assert id(copied) != id(seqs)
     for name in seqs.names:
         assert id(copied.named_seqs[name]) != copied.named_seqs[name]
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_seq_rename_drops_annotations(cls):
+    """rename seqs discards all annotations"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = cls(data, moltype=DNA)
+    seqs.add_feature(seqid="seq1", biotype="exon", name="fred", spans=[(3, 8)])
+    assert seqs.annotation_db is not None
+    new = seqs.rename_seqs(lambda x: x.upper())
+    assert new.annotation_db is None
