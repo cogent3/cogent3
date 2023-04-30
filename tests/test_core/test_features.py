@@ -4,7 +4,6 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -116,23 +115,6 @@ class FeaturesTest(TestCase):
         exon1 = exons.pop(0)
         shadow = exon1.union(exons).shadow()
         assert str(shadow.get_slice()) == expect
-
-    @pytest.mark.xfail(reason="todo gah delete test? or update to new API")
-    def test_feature_attach_detach(self):
-        """correctly associate, disassociate from seq"""
-
-        # Features are generally attached to the thing they annotate,
-        # but in those cases where a free-floating feature is created it can
-        # ater be attached:
-
-        exons = self.s.get_features(biotype="exon")
-        self.assertEqual(len(self.s.annotations), 2)
-        region = self.s.get_region_covering_all(exons)
-        self.assertEqual(len(self.s.annotations), 2)
-        region.attach()
-        self.assertEqual(len(self.s.annotations), 3)
-        region.detach()
-        self.assertEqual(len(self.s.annotations), 2)
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_feature_reverse(self):

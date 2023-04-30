@@ -613,10 +613,20 @@ class _Feature(_Annotatable, _Serialisable):
 
         return make_shape(type_=self)
 
-    def attach(self):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="no longer valid given usage of database to store annotations",
+        is_discontinued=True,
+    )
+    def attach(self):  # pragma: no cover
         self.parent.attach_annotations([self])
 
-    def detach(self):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="no longer valid given usage of database to store annotations",
+        is_discontinued=True,
+    )
+    def detach(self):  # pragma: no cover
         self.parent.detach_annotations([self])
 
     def _mapped(self, slicemap):
