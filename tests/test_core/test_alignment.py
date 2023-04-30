@@ -2829,19 +2829,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual({s.data.moltype.label for s in rna.seqs}, {"rna"})
         self.assertEqual(rna.moltype.label, "rna")
 
-    @pytest.mark.xfail(reason="todo gah: delete this test, unsupported behaviour")
-    def test_rename_handles_annotations(self):
-        """rename seqs on Alignment preserves annotations"""
-        data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-        seqs = self.Class(data, moltype=DNA)
-        x = seqs.get_seq("seq1").add_feature(
-            biotype="exon", name="fred", spans=[(3, 8)]
-        )
-        expect = str(x.get_slice())
-        new = seqs.rename_seqs(lambda x: x.upper())
-        got = list(new.get_annotations_from_any_seq("exon"))[0]
-        self.assertEqual(got.get_slice().to_dict()["SEQ1"], expect)
-
     def test_construction(self):
         """correctly construct from list of sequences of length 2"""
         seq1 = make_seq("AC-", name="seq1")
@@ -3443,3 +3430,14 @@ def test_deepcopy_aligned(cls):
     assert id(copied) != id(seqs)
     for name in seqs.names:
         assert id(copied.named_seqs[name]) != copied.named_seqs[name]
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_seq_rename_drops_annotations(cls):
+    """rename seqs discards all annotations"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = cls(data, moltype=DNA)
+    seqs.add_feature(seqid="seq1", biotype="exon", name="fred", spans=[(3, 8)])
+    assert seqs.annotation_db is not None
+    new = seqs.rename_seqs(lambda x: x.upper())
+    assert new.annotation_db is None
