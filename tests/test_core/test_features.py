@@ -628,7 +628,7 @@ def test_copy_annotations():
     aln = make_aligned_seqs(
         data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]], array_align=False
     )
-    db = GffAnnotationDb(data=[])
+    db = GffAnnotationDb()
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
     aln.copy_annotations(db)
     feat = list(aln.get_features(seqid="y", biotype="exon"))[0]

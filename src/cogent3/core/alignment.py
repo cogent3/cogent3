@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2116,9 +2115,7 @@ class SequenceCollection(_SequenceCollectionBase):
                 # no matching ID's, nothing to do
                 return
 
-            self.annotation_db = type(seq_db)(
-                data=[]
-            )  # make an empty db of the same type
+            self.annotation_db = type(seq_db)()  # make an empty db of the same type
 
         if not isinstance(seq_db, type(self.annotation_db)):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
@@ -2214,7 +2211,7 @@ class SequenceCollection(_SequenceCollectionBase):
         """
         if not self.annotation_db:
             # todo gah can we define the default in some better way?
-            self.annotation_db = DEFAULT_ANNOTATION_DB(data=[])
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
 
         if seqid and seqid not in self.names:
             raise ValueError(f"unknown {seqid=}")
@@ -5162,7 +5159,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         if not self.annotation_db:
             # probably need to define the default in some better way
-            self.annotation_db = DEFAULT_ANNOTATION_DB(data=[])
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
 
         feature = {k: v for k, v in locals().items() if k != "self"}
 
