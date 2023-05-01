@@ -55,41 +55,6 @@ class FeaturesTest(TestCase):
             '["Orig" exon "fred" at [10:15]/48, "Orig" exon "trev" at [30:40]/48]',
         )
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_get_nested_annotations_matching(self):
-        """correctly identifies all features of a given type when nested annotations"""
-
-        seq = DNA.make_seq("AAAAAAAAA", name="x")
-        exon = seq.add_annotation(Feature, "exon", "fred", [(3, 8)])
-        nested_exon = exon.add_annotation(Feature, "exon", "fred", [(3, 7)])
-        exons = seq.get_features(biotype="exon", extend_query=True)
-        self.assertEqual(len(exons), 2)
-        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5]')
-        # tests multiple layers of nested annotations
-        nested_exon.add_annotation(Feature, "exon", "fred", [(3, 6)])
-        exons = seq.get_features(biotype="exon", extend_query=True)
-        self.assertEqual(len(exons), 3)
-        self.assertEqual(
-            str(exons),
-            '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5, exon "fred" at [3:6]/4]',
-        )
-        # tests extend_query=False, and only get back the base exon
-        exons = seq.get_features(biotype="exon")
-        self.assertEqual(len(exons), 1)
-        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9]')
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_get_features_matching2(self):
-        """get_features_matching returns empty feature if no matches"""
-
-        # If the sequence does not have a matching feature
-        # you get back an empty list, and slicing the sequence
-        # with that returns a sequence of length 0.
-
-        dont_exist = self.s.get_features(biotype="dont_exist")
-        self.assertEqual(dont_exist, [])
-        self.assertEqual(str(self.s[dont_exist]), "")
-
     def test_union(self):
         """combines multiple features into one"""
 
@@ -703,3 +668,99 @@ def test_feature_residue():
 
     coords = all_exons[0].get_coordinates()
     assert coords == [(0, 1), (2, 5)]
+
+
+@pytest.fixture()
+def ann_seq():
+    # A Sequence with a couple of exons on it.
+    s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
+    exon1 = s.add_feature(biotype="gene", name="a-gene", spans=[(10, 40)])
+    exon1 = s.add_feature(
+        biotype="exon", name="fred", spans=[(10, 15), (30, 40)], parent_id="a-gene"
+    )
+    return s
+
+
+def test_get_features_no_matches(ann_seq):
+    """get_features returns empty list if no matches"""
+
+    # If the sequence does not have a matching feature
+    # you get back an empty list, and slicing the sequence
+    # with that returns a sequence of length 0.
+
+    dont_exist = list(ann_seq.get_features(biotype="dont_exist"))
+    assert dont_exist == []
+
+
+def _add_features(obj, on_alignment):
+    kwargs = dict(on_alignment=on_alignment) if on_alignment else {}
+    obj.add_feature(biotype="CDS", name="GG", spans=[(0, 10)], strand="+", **kwargs)
+    obj.add_feature(
+        biotype="exon",
+        name="child",
+        spans=[(3, 6)],
+        strand="+",
+        parent_id="GG",
+        **kwargs,
+    )
+    obj.add_feature(
+        biotype="exon",
+        name="not-child",
+        spans=[(3, 6)],
+        strand="+",
+        parent_id="AA",
+        **kwargs,
+    )
+    return obj
+
+
+def test_feature_query_child_seq():
+    s = DNA.make_seq("AAAGGGAAAA", name="s1")
+    s = _add_features(s, on_alignment=False)
+    gene = list(s.get_features(biotype="CDS"))[0]
+    child = list(gene.get_children())
+    assert len(child) == 1
+    child = child[0]
+    assert child.name == "child"
+    assert str(child.get_slice()) == str(s[3:6])
+
+
+def test_feature_query_parent_seq():
+    s = DNA.make_seq("AAAGGGAAAA", name="s1")
+    s = _add_features(s, on_alignment=False)
+    exon = list(s.get_features(name="child"))[0]
+    parent = list(exon.get_parent())
+    assert len(parent) == 1
+    parent = parent[0]
+    assert parent.name == "GG"
+    assert str(parent.get_slice()) == str(s[0:10])
+
+
+def test_feature_query_child_aln():
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
+        array_align=False,
+        moltype="dna",
+    )
+    aln = _add_features(aln, on_alignment=True)
+    gene = list(aln.get_features(biotype="CDS"))[0]
+    child = list(gene.get_children())
+    assert len(child) == 1
+    child = child[0]
+    assert child.name == "child"
+    assert child.get_slice().to_dict() == aln[3:6].to_dict()
+
+
+def test_feature_query_parent_aln():
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
+        array_align=False,
+        moltype="dna",
+    )
+    aln = _add_features(aln, on_alignment=True)
+    child = list(aln.get_features(name="child"))[0]
+    parent = list(child.get_parent())
+    assert len(parent) == 1
+    parent = parent[0]
+    assert parent.name == "GG"
+    assert parent.get_slice().to_dict() == aln[0:10].to_dict()
