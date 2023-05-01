@@ -4,8 +4,7 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
-from cogent3.core.annotation_db import GenbankAnnotationDb, GffAnnotationDb
-
+from cogent3.core.annotation_db import GffAnnotationDb
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -664,19 +663,14 @@ def test_feature_residue():
     rc_exons = list(aln_rc.get_features(biotype="exon"))[0]
     assert rc_exons.get_slice().to_dict() == dict(x="CCCC", y="----")
     assert rc_exons.as_one_span().get_slice().to_dict() == dict(x="C-CCC", y="-T---")
-    return
-    # Features can provide their coordinates, useful for custom analyses.
-
-    coords = all_exons[0].get_coordinates()
-    assert coords == [(0, 1), (2, 5)]
 
 
 @pytest.fixture()
 def ann_seq():
     # A Sequence with a couple of exons on it.
     s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
-    exon1 = s.add_feature(biotype="gene", name="a-gene", spans=[(10, 40)])
-    exon1 = s.add_feature(
+    s.add_feature(biotype="gene", name="a-gene", spans=[(10, 40)])
+    s.add_feature(
         biotype="exon", name="fred", spans=[(10, 15), (30, 40)], parent_id="a-gene"
     )
     return s
