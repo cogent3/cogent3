@@ -50,20 +50,6 @@ class TestAnnotations(unittest.TestCase):
         self.seq = makeSampleSequence("seq1")
         self.aln = makeSampleAlignment()
 
-    @pytest.mark.xfail(
-        reason="todo gah get_features() needs to convert span indices into relative indices"
-    )
-    def test_slice_seq_with_annotations(self):
-        # we make sure the slice contains both features intact
-        # for simplifying the test
-        newseq = self.seq[10:]
-        for annot_type in ["CDS", "5'UTR"]:
-            orig = list(self.seq.get_features(biotype=annot_type))[0]
-            new = list(newseq.get_features(biotype=annot_type))[0]
-            assert orig.name == new.name
-            assert len(orig) == len(new)
-            assert str(newseq[new]) == str(self.seq[orig]), annot_type
-
     def test_add_annotated_seqs_drops_annotations(self):
         # retain link to annotation db as long as a simple slice
         a = self.seq[:5]
@@ -272,3 +258,51 @@ def test_feature_projection_gapped(ann_aln):
     assert str(seq_ltr.get_slice()) == expected
     assert seq_ltr.seqid == seq_name
     assert seq_ltr.parent is ann_aln.get_seq(seq_name)
+
+
+@pytest.fixture()
+def ann_seq():
+    return makeSampleSequence("seq1")
+
+
+@pytest.mark.parametrize("annot_type", ("CDS", "5'UTR"))
+def test_slice_seq_with_full_annotations(ann_seq, annot_type):
+    # this slice contains both features intact
+    newseq = ann_seq[10:]
+    orig = list(ann_seq.get_features(biotype=annot_type))[0]
+    new = list(newseq.get_features(biotype=annot_type))[0]
+    assert orig.name == new.name
+    assert len(orig) == len(new)
+    assert str(newseq[new]) == str(ann_seq[orig]), annot_type
+
+
+@pytest.mark.parametrize("annot_type,num", (("CDS", 0), ("5'UTR", 1)))
+def test_slice_seq_with_partial_end(ann_seq, annot_type, num):
+    # this slice contains both features intact
+    newseq = ann_seq[:14]
+    # only UTR is present
+    new = list(newseq.get_features(biotype=annot_type, allow_partial=True))
+    assert len(new) == num, annot_type
+    if num:
+        feat = new[0]
+        # length of the feature is the same as the original
+        assert len(feat) == len(list(ann_seq.get_features(biotype=annot_type))[0])
+        gapless = feat.without_lost_spans()
+        # the sliced feature without gaps is shorter
+        assert len(gapless) < len(feat)
+
+
+@pytest.mark.parametrize("annot_type,num", (("CDS", 1), ("5'UTR", 0)))
+def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
+    # this slice contains both features intact
+    newseq = ann_seq[18:]
+    # only UTR is present
+    new = list(newseq.get_features(biotype=annot_type, allow_partial=True))
+    assert len(new) == num, annot_type
+    if num:
+        feat = new[0]
+        # length of the feature is the same as the original
+        assert len(feat) == len(list(ann_seq.get_features(biotype=annot_type))[0])
+        gapless = feat.without_lost_spans()
+        # the sliced feature without gaps is shorter
+        assert len(gapless) < len(feat)
