@@ -470,10 +470,11 @@ class Annotation(_AnnotationCore, _Serialisable):
         )
 
     def as_one_span(self):
+        """returns a feature that preserves any gaps"""
         new_map = self.map.get_covering_span()
         return self.__class__(
-            self.parent,
-            new_map,
+            parent=self.parent,
+            map=new_map,
             biotype=self.biotype,
             name=f"one-span {self.name}",
             seqid=self.seqid,

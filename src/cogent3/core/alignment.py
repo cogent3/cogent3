@@ -5150,8 +5150,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         """
         if seqid and on_alignment is None:
             on_alignment = False
-        else:
-            on_alignment = on_alignment or True
+        elif not on_alignment:
+            on_alignment = True if on_alignment is None else False
 
         if seqid and on_alignment:
             raise ValueError("seqid and on_alignment are incomatible")
