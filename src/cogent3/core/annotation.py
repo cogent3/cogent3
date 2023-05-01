@@ -462,18 +462,19 @@ class Annotation(_AnnotationCore, _Serialisable):
             return self
         keep = self.map.nongap()
         return self.__class__(
-            self.parent,
-            self.map[keep],
+            parent=self.parent,
+            map=self.map[keep],
             biotype=self.biotype,
             name=self.name,
             seqid=self.seqid,
         )
 
     def as_one_span(self):
+        """returns a feature that preserves any gaps"""
         new_map = self.map.get_covering_span()
         return self.__class__(
-            self.parent,
-            new_map,
+            parent=self.parent,
+            map=new_map,
             biotype=self.biotype,
             name=f"one-span {self.name}",
             seqid=self.seqid,
@@ -516,7 +517,7 @@ class Annotation(_AnnotationCore, _Serialisable):
     def remapped_to(self, grandparent, gmap):
         kwargs = {
             **self._serialisable,
-            **{"map": gmap[self.map], "parent": grandparent},
+            **{"map": gmap[self.map], "parent": grandparent, "seqid": grandparent.name},
         }
         return self.__class__(**kwargs)
 
@@ -530,7 +531,15 @@ class Annotation(_AnnotationCore, _Serialisable):
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
         for child in db.get_feature_children(biotype=biotype, name=self.name):
-            yield make_feature(child)
+            yield make_feature(feature=child)
+
+    def get_parent(self, biotype: Optional[str] = None):
+        """generator returns parent features of self optionally matching biotype"""
+        make_feature = self.parent.make_feature
+        db = self.parent.annotation_db
+        for child in db.get_feature_parent(biotype=biotype, name=self.name):
+
+            yield make_feature(feature=child)
 
     def union(self, features):
         """return as a single Annotation
@@ -613,10 +622,20 @@ class _Feature(_Annotatable, _Serialisable):
 
         return make_shape(type_=self)
 
-    def attach(self):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="no longer valid given usage of database to store annotations",
+        is_discontinued=True,
+    )
+    def attach(self):  # pragma: no cover
         self.parent.attach_annotations([self])
 
-    def detach(self):
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="no longer valid given usage of database to store annotations",
+        is_discontinued=True,
+    )
+    def detach(self):  # pragma: no cover
         self.parent.detach_annotations([self])
 
     def _mapped(self, slicemap):

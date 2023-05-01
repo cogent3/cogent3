@@ -299,6 +299,28 @@ def test_gav2():
     assert str(got) == str(expect)
 
 
+def test_add_feature_with_parent():
+    db = GffAnnotationDb(data=[])
+    db.add_feature(
+        seqid="s1",
+        biotype="cds",
+        name="GG",
+        spans=[(0, 100)],
+        strand="+",
+    )
+    db.add_feature(
+        seqid="s1",
+        biotype="exon",
+        name="child",
+        spans=[(10, 30)],
+        strand="+",
+        parent_id="GG",
+    )
+    got = list(db.get_features_matching(name="GG"))[0]
+    child = list(db.get_feature_children(got["name"]))[0]
+    assert child["name"] == "child"
+
+
 def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
     """
     Test that `get_features_matching` returns a list with all matching features in the annotation database.

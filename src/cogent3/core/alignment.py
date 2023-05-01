@@ -2063,6 +2063,31 @@ class _SequenceCollectionBase:
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences"""
 
+    def _apply_annotation_db_to_seqs(self) -> None:
+        """propagates the db bound to self across all sequences
+
+        Raises
+        ------
+        ValueError if a sequence has a different instance
+        """
+        attr = "annotation_db"
+        self_db = self.annotation_db
+        type_self_db = type(self_db)
+        for seq in self.seqs:
+            if hasattr(seq, "data"):
+                seq = seq.data
+            seq_db = seq.annotation_db
+            if seq_db and not isinstance(seq_db, type_self_db):
+                raise ValueError(
+                    f"inconsistent state with self db {type_self_db} and {seq.name!r} db {type(seq_db)}"
+                )
+            elif seq_db and seq_db is not self_db:
+                raise ValueError(
+                    f"inconsistent state {seq.name!r} has a different instance of {type(seq_db)}"
+                )
+
+            seq.annotation_db = self_db
+
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
 
@@ -2099,6 +2124,7 @@ class SequenceCollection(_SequenceCollectionBase):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
         self.annotation_db.update(seq_db, seqids=self.names)
+        self._apply_annotation_db_to_seqs()
 
     def annotate_from_gff(
         self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
@@ -2161,6 +2187,7 @@ class SequenceCollection(_SequenceCollectionBase):
         biotype: str,
         name: str,
         spans: List[Tuple[int, int]],
+        parent_id: Optional[str] = None,
         strand: str = "+",
     ) -> Annotation:
         """
@@ -2170,6 +2197,8 @@ class SequenceCollection(_SequenceCollectionBase):
         ----------
         seqid
             seq name to associate with
+        parent_id
+            name of the parent feature
         biotype
             biological type
         name
@@ -2193,6 +2222,7 @@ class SequenceCollection(_SequenceCollectionBase):
         feature = {k: v for k, v in locals().items() if k != "self"}
 
         self.annotation_db.add_feature(**feature)
+        feature.pop("parent_id", None)
         return self.make_feature(feature=feature)
 
     def get_features(
@@ -5085,6 +5115,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         name: str,
         spans: List[Tuple[int, int]],
         seqid: Optional[str] = None,
+        parent_id: Optional[str] = None,
         strand: str = "+",
         on_alignment: Optional[bool] = None,
     ) -> Annotation:
@@ -5095,6 +5126,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         ----------
         seqid
             sequence name, incompatible with on_alignment
+        parent_id
+            name of the parent feature
         biotype
             biological type, e.g. CDS
         name
@@ -5118,8 +5151,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         """
         if seqid and on_alignment is None:
             on_alignment = False
-        else:
-            on_alignment = on_alignment or True
+        elif not on_alignment:
+            on_alignment = True if on_alignment is None else False
 
         if seqid and on_alignment:
             raise ValueError("seqid and on_alignment are incomatible")
@@ -5134,7 +5167,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         feature = {k: v for k, v in locals().items() if k != "self"}
 
         self.annotation_db.add_feature(**feature)
-        feature.pop("on_alignment", None)
+        for discard in ("on_alignment", "parent_id"):
+            feature.pop(discard, None)
         return self.make_feature(feature=feature, on_alignment=on_alignment)
 
     def make_feature(
@@ -5167,6 +5201,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         -----
         To get a feature AND add it to annotation_db, use add_feature().
         """
+        if on_alignment is None:
+            on_alignment = feature.pop("on_alignment", None)
+
         if not on_alignment:
             return self.named_seqs[feature["seqid"]].make_feature(feature, self)
 

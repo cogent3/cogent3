@@ -37,15 +37,17 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Annotation, Map, _Annotatable
+from cogent3.core.annotation import Annotation, _Annotatable
 from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
     GffAnnotationDb,
+    SupportsFeatures,
     load_annotations,
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
+from cogent3.core.location import LostSpan, Map
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
@@ -969,8 +971,6 @@ class Sequence(_Annotatable, SequenceI):
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
                 rel_pos = self._seq.relative_position(v)
-                if rel_pos < 0 or rel_pos > len(self):
-                    raise NotImplementedError
                 spans.ravel()[i] = rel_pos
 
             if reversed:
@@ -1033,7 +1033,37 @@ class Sequence(_Annotatable, SequenceI):
         # (a string) into a bool?
         revd = feature.pop("reversed", None) or feature.pop("strand", None) == "-"
         spans = feature.pop("spans", None)
-        fmap = Map(locations=spans, parent_length=len(self))
+
+        vals = array(spans)
+        pre = abs(vals.min()) if vals.min() < 0 else 0
+        post = abs(vals.max() - len(self)) if vals.max() > len(self) else 0
+
+        # we find the spans > len(self)
+        new_spans = []
+        for coord in vals:
+            new = coord[:]
+            if coord.min() < 0 < coord.max():
+                new = coord[:]
+                new[new < 0] = 0
+            elif coord.min() < len(self) < coord.max():
+                new[new > len(self)] = len(self)
+
+            if coord[0] == coord[1]:
+                # would really to adjust pre and post to be up to the next span
+                continue
+            new_spans.append(new.tolist())
+
+        fmap = Map(locations=new_spans, parent_length=len(self))
+        if pre or post:
+            # create a lost span to represent the segment missing from
+            # the instance
+            spans = fmap.spans
+            if pre:
+                spans.insert(0, LostSpan(pre))
+            if post:
+                spans.append(LostSpan(post))
+            fmap = Map(spans=spans, parent_length=len(self))
+
         if revd and not seq_rced:
             # the sequence is on the plus strand, and the
             # feature coordinates are also for the plus strand
@@ -1080,7 +1110,8 @@ class Sequence(_Annotatable, SequenceI):
         biotype: str,
         name: str,
         spans: List[Tuple[int, int]],
-        strand: str = None,
+        parent_id: Optional[str] = None,
+        strand: Optional[str] = None,
         on_alignment: bool = False,
     ) -> Annotation:
         if self.annotation_db is None:
@@ -1091,7 +1122,8 @@ class Sequence(_Annotatable, SequenceI):
         )
 
         self.annotation_db.add_feature(**feature_data)
-        feature_data.pop("on_alignment")
+        for discard in ("on_alignment", "parent_id"):
+            feature_data.pop(discard)
         return self.make_feature(feature_data)
 
     def to_moltype(self, moltype):
@@ -1122,8 +1154,35 @@ class Sequence(_Annotatable, SequenceI):
         """Returns filtered seq; used to do DNA/RNA conversions."""
         return seq
 
-    def copy_annotations(self, other):
-        self.annotations = other.annotations[:]
+    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+        """copy annotations into attached annotation db
+
+        Parameters
+        ----------
+        seq_db
+            compatible annotation db
+
+        Notes
+        -----
+        Only copies annotations for records with seqid self.name
+        """
+        if not isinstance(seq_db, SupportsFeatures):
+            raise TypeError(
+                f"type {type(seq_db)} does not match SupportsFeatures interface"
+            )
+
+        if not seq_db.num_matches(seqid=self.name):
+            return
+
+        if not self.annotation_db:
+            # todo gah add ability to query multiple values in Annotation db
+            self.annotation_db = type(seq_db)(
+                data=[]
+            )  # make an empty db of the same type
+        elif not isinstance(seq_db, type(self.annotation_db)):
+            raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
+
+        self.annotation_db.update(seq_db, seqids=self.name)
 
     def copy(self):
         """returns a copy of self"""

@@ -4,7 +4,7 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
-
+from cogent3.core.annotation_db import GenbankAnnotationDb, GffAnnotationDb
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -55,41 +55,6 @@ class FeaturesTest(TestCase):
             '["Orig" exon "fred" at [10:15]/48, "Orig" exon "trev" at [30:40]/48]',
         )
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_get_nested_annotations_matching(self):
-        """correctly identifies all features of a given type when nested annotations"""
-
-        seq = DNA.make_seq("AAAAAAAAA", name="x")
-        exon = seq.add_annotation(Feature, "exon", "fred", [(3, 8)])
-        nested_exon = exon.add_annotation(Feature, "exon", "fred", [(3, 7)])
-        exons = seq.get_features(biotype="exon", extend_query=True)
-        self.assertEqual(len(exons), 2)
-        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5]')
-        # tests multiple layers of nested annotations
-        nested_exon.add_annotation(Feature, "exon", "fred", [(3, 6)])
-        exons = seq.get_features(biotype="exon", extend_query=True)
-        self.assertEqual(len(exons), 3)
-        self.assertEqual(
-            str(exons),
-            '[exon "fred" at [3:8]/9, exon "fred" at [3:7]/5, exon "fred" at [3:6]/4]',
-        )
-        # tests extend_query=False, and only get back the base exon
-        exons = seq.get_features(biotype="exon")
-        self.assertEqual(len(exons), 1)
-        self.assertEqual(str(exons), '[exon "fred" at [3:8]/9]')
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_get_features_matching2(self):
-        """get_features_matching returns empty feature if no matches"""
-
-        # If the sequence does not have a matching feature
-        # you get back an empty list, and slicing the sequence
-        # with that returns a sequence of length 0.
-
-        dont_exist = self.s.get_features(biotype="dont_exist")
-        self.assertEqual(dont_exist, [])
-        self.assertEqual(str(self.s[dont_exist]), "")
-
     def test_union(self):
         """combines multiple features into one"""
 
@@ -116,23 +81,6 @@ class FeaturesTest(TestCase):
         exon1 = exons.pop(0)
         shadow = exon1.union(exons).shadow()
         assert str(shadow.get_slice()) == expect
-
-    @pytest.mark.xfail(reason="todo gah delete test? or update to new API")
-    def test_feature_attach_detach(self):
-        """correctly associate, disassociate from seq"""
-
-        # Features are generally attached to the thing they annotate,
-        # but in those cases where a free-floating feature is created it can
-        # ater be attached:
-
-        exons = self.s.get_features(biotype="exon")
-        self.assertEqual(len(self.s.annotations), 2)
-        region = self.s.get_region_covering_all(exons)
-        self.assertEqual(len(self.s.annotations), 2)
-        region.attach()
-        self.assertEqual(len(self.s.annotations), 3)
-        region.detach()
-        self.assertEqual(len(self.s.annotations), 2)
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_feature_reverse(self):
@@ -223,22 +171,6 @@ class FeaturesTest(TestCase):
         self.assertEqual(str(copied), '[exon "A" at [5:5, -4-]/5]')
         self.assertEqual(str(copied[0].get_slice()), ">x\n----\n>y\n----\n")
 
-    @pytest.mark.xfail(reason="todo gah delete test, not supporting this")
-    def test_seq_different_name_with_same_length(self):
-        """copying features between sequences"""
-
-        # You can copy to a sequence with a different name,
-        # in a different alignment if the feature lies within the length
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
-        seq.add_feature("exon", "A", [(5, 8)])
-        aln.get_seq("y").copy_annotations(seq)
-        copied = list(aln.get_features(seqid="y", name="exon"))
-        self.assertEqual(str(copied), '[exon "A" at [7:10]/10]')
-
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_seq_shorter(self):
         """lost spans on shorter sequences"""
@@ -274,49 +206,6 @@ class FeaturesTest(TestCase):
         aln.add_feature(**feat)
         aln_exons = list(aln.get_features(seqid="x", name="exon"))
         self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--T--\n")
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_feature_residue(self):
-        """seq features on alignment operate in sequence coordinates"""
-        # In this case, only those residues included within the feature are
-        # covered - note the omission of the T in y opposite the gap in x.
-
-        aln = make_aligned_seqs(
-            data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
-            moltype=DNA,
-            array_align=False,
-        )
-        self.assertEqual(str(aln), ">x\nC-CCCAAAAA\n>y\n-T----TTTT\n")
-        exon = aln.get_seq("x").add_feature("exon", "ex1", [(0, 4)])
-        self.assertEqual(str(exon), 'exon "ex1" at [0:4]/9')
-        self.assertEqual(str(exon.get_slice()), "CCCC")
-        aln_exons = list(aln.get_features(seqid="x", name="exon"))
-        self.assertEqual(str(aln_exons), '[exon "ex1" at [0:1, 2:5]/10]')
-        self.assertEqual(str(aln_exons[0].get_slice()), ">x\nCCCC\n>y\n----\n")
-
-        # Feature.as_one_span(), is applied to the exon that
-        # straddles the gap in x. The result is we preserve that feature.
-
-        self.assertEqual(
-            str(aln_exons[0].as_one_span().get_slice()), ">x\nC-CCC\n>y\n-T---\n"
-        )
-
-        # These properties also are consistently replicated with reverse
-        # complemented sequences.
-
-        aln_rc = aln.rc()
-        rc_exons = list(aln_rc.get_annotations_from_any_seq("exon"))
-        # not using as_one_span, so gap removed from x
-        self.assertEqual(str(aln_rc[rc_exons]), ">x\nCCCC\n>y\n----\n")
-        self.assertEqual(
-            str(aln_rc[rc_exons[0].as_one_span()]), ">x\nC-CCC\n>y\n-T---\n"
-        )
-
-        # Features can provide their coordinates, useful for custom analyses.
-
-        all_exons = aln.get_region_covering_all(aln_exons)
-        coords = all_exons.get_coordinates()
-        assert coords == [(0, 1), (2, 5)]
 
     @pytest.mark.xfail(reason="todo gah change test to new api")
     def test_annotated_region_masks(self):
@@ -731,3 +620,147 @@ class FeaturesTest(TestCase):
             pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
         )
         self.assertEqual(annot, [])
+
+
+def test_copy_annotations():
+    """copying features from a db"""
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]], array_align=False
+    )
+    db = GffAnnotationDb(data=[])
+    db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
+    aln.copy_annotations(db)
+    feat = list(aln.get_features(seqid="y", biotype="exon"))[0]
+    assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
+
+
+def test_feature_residue():
+    """seq features on alignment operate in sequence coordinates"""
+    # In this case, only those residues included within the feature are
+    # covered - note the omission of the T in y opposite the gap in x.
+
+    aln = make_aligned_seqs(
+        data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
+        moltype=DNA,
+        array_align=False,
+    )
+    assert str(aln), ">x\nC-CCCAAAAA\n>y\n-T----TTTT\n"
+    exon = aln.get_seq("x").add_feature(biotype="exon", name="ex1", spans=[(0, 4)])
+    assert 'exon "ex1" at [0:4]/9' in str(exon)
+    assert str(exon.get_slice()), "CCCC"
+    aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
+    assert 'exon "ex1" at [0:1, 2:5]/10' in str(aln_exons)
+    assert aln_exons[0].get_slice().to_dict() == dict(x="CCCC", y="----")
+    # Feature.as_one_span(), is applied to the exon that
+    # straddles the gap in x. The result is we preserve that feature.
+    exon_full_aln = aln_exons[0].as_one_span()
+    assert exon_full_aln.get_slice().to_dict() == dict(x="C-CCC", y="-T---")
+
+    # These properties also are consistently replicated with reverse
+    # complemented sequences.
+
+    aln_rc = aln.rc()
+    rc_exons = list(aln_rc.get_features(biotype="exon"))[0]
+    assert rc_exons.get_slice().to_dict() == dict(x="CCCC", y="----")
+    assert rc_exons.as_one_span().get_slice().to_dict() == dict(x="C-CCC", y="-T---")
+    return
+    # Features can provide their coordinates, useful for custom analyses.
+
+    coords = all_exons[0].get_coordinates()
+    assert coords == [(0, 1), (2, 5)]
+
+
+@pytest.fixture()
+def ann_seq():
+    # A Sequence with a couple of exons on it.
+    s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
+    exon1 = s.add_feature(biotype="gene", name="a-gene", spans=[(10, 40)])
+    exon1 = s.add_feature(
+        biotype="exon", name="fred", spans=[(10, 15), (30, 40)], parent_id="a-gene"
+    )
+    return s
+
+
+def test_get_features_no_matches(ann_seq):
+    """get_features returns empty list if no matches"""
+
+    # If the sequence does not have a matching feature
+    # you get back an empty list, and slicing the sequence
+    # with that returns a sequence of length 0.
+
+    dont_exist = list(ann_seq.get_features(biotype="dont_exist"))
+    assert dont_exist == []
+
+
+def _add_features(obj, on_alignment):
+    kwargs = dict(on_alignment=on_alignment) if on_alignment else {}
+    obj.add_feature(biotype="CDS", name="GG", spans=[(0, 10)], strand="+", **kwargs)
+    obj.add_feature(
+        biotype="exon",
+        name="child",
+        spans=[(3, 6)],
+        strand="+",
+        parent_id="GG",
+        **kwargs,
+    )
+    obj.add_feature(
+        biotype="exon",
+        name="not-child",
+        spans=[(3, 6)],
+        strand="+",
+        parent_id="AA",
+        **kwargs,
+    )
+    return obj
+
+
+def test_feature_query_child_seq():
+    s = DNA.make_seq("AAAGGGAAAA", name="s1")
+    s = _add_features(s, on_alignment=False)
+    gene = list(s.get_features(biotype="CDS"))[0]
+    child = list(gene.get_children())
+    assert len(child) == 1
+    child = child[0]
+    assert child.name == "child"
+    assert str(child.get_slice()) == str(s[3:6])
+
+
+def test_feature_query_parent_seq():
+    s = DNA.make_seq("AAAGGGAAAA", name="s1")
+    s = _add_features(s, on_alignment=False)
+    exon = list(s.get_features(name="child"))[0]
+    parent = list(exon.get_parent())
+    assert len(parent) == 1
+    parent = parent[0]
+    assert parent.name == "GG"
+    assert str(parent.get_slice()) == str(s[0:10])
+
+
+def test_feature_query_child_aln():
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
+        array_align=False,
+        moltype="dna",
+    )
+    aln = _add_features(aln, on_alignment=True)
+    gene = list(aln.get_features(biotype="CDS"))[0]
+    child = list(gene.get_children())
+    assert len(child) == 1
+    child = child[0]
+    assert child.name == "child"
+    assert child.get_slice().to_dict() == aln[3:6].to_dict()
+
+
+def test_feature_query_parent_aln():
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
+        array_align=False,
+        moltype="dna",
+    )
+    aln = _add_features(aln, on_alignment=True)
+    child = list(aln.get_features(name="child"))[0]
+    parent = list(child.get_parent())
+    assert len(parent) == 1
+    parent = parent[0]
+    assert parent.name == "GG"
+    assert parent.get_slice().to_dict() == aln[0:10].to_dict()

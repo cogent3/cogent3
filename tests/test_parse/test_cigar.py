@@ -76,10 +76,11 @@ class TestCigar(unittest.TestCase):
         i = 1
         for start, end in self.slices:
             self.aln.get_seq("FAKE01").add_feature(
-                "annot%d" % i, "annot", [(start, end)]
+                biotype=f"annot{i}", name="annot", spans=[(start, end)]
             )
-            annot = self.aln.get_annotations_from_any_seq("annot%d" % i)
-            slice_aln = aln.get_region_covering_all(annot).as_one_span().get_slice()
+            annot = list(self.aln.get_features(biotype=f"annot{i}"))
+            annot = annot[0].union(annot[1:])
+            slice_aln = annot.as_one_span().get_slice()
             i += 1
 
             cmp_aln = CigarParser(
@@ -90,7 +91,7 @@ class TestCigar(unittest.TestCase):
                 start=start,
                 end=end,
             )
-            assert cmp_aln == slice_aln
+            assert cmp_aln.to_dict() == slice_aln.to_dict()
 
 
 if __name__ == "__main__":
