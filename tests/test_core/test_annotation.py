@@ -105,19 +105,6 @@ class TestAnnotations(unittest.TestCase):
             expected = seq_expecteds[annot_type]
             assert observed == expected
 
-    @pytest.mark.xfail(reason="todo gah update to latest API")
-    def test_feature_projection(self):
-        expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
-        aln_ltr = self.aln.get_features_matching("LTR")[0]
-        for seq_name in ["FAKE01", "FAKE02"]:
-            expected = expecteds[seq_name]
-            seq_ltr = self.aln.project_annotation(seq_name, aln_ltr)
-            if "-" in expected:
-                self.assertRaises(ValueError, seq_ltr.get_slice)
-                seq_ltr = seq_ltr.without_lost_spans()
-                expected = expected.replace("-", "")
-            self.assertEqual(seq_ltr.get_slice(), expected)
-
     def test_feature_copy_annotations_to(self):
         """test correct copy of annotations"""
         orig = DnaSequence("TTTTTTTTTTAAAA", name="Orig")
@@ -248,3 +235,40 @@ def test_region_union_on_alignment(annot_type, reversed):
     new = new.get_slice().to_dict()
     expected = aln_expecteds[annot_type]
     assert expected == new, (annot_type, expected, new)
+
+
+@pytest.fixture()
+def ann_aln():
+    # synthetic annotated alignment
+    return makeSampleAlignment()
+
+
+def test_feature_projection_ungapped(ann_aln):
+    # projection onto ungapped sequence
+    expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
+    aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
+    seq_name = "FAKE01"
+    expected = expecteds[seq_name]
+    seq_ltr = ann_aln.project_annotation(seq_name, aln_ltr)
+    assert str(seq_ltr.get_slice()) == expected
+    assert seq_ltr.seqid == seq_name
+    assert seq_ltr.parent is ann_aln.get_seq(seq_name)
+
+
+def test_feature_projection_gapped(ann_aln):
+    # projection onto gapped sequence
+    expecteds = {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"}
+    aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
+    seq_name = "FAKE02"
+    expected = expecteds[seq_name]
+    seq_ltr = ann_aln.project_annotation(seq_name, aln_ltr)
+
+    with pytest.raises(ValueError):
+        seq_ltr.get_slice()
+
+    # to get the annotation on the seq coord
+    seq_ltr = seq_ltr.without_lost_spans()
+    expected = expected.replace("-", "")
+    assert str(seq_ltr.get_slice()) == expected
+    assert seq_ltr.seqid == seq_name
+    assert seq_ltr.parent is ann_aln.get_seq(seq_name)

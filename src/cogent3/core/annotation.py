@@ -462,8 +462,8 @@ class Annotation(_AnnotationCore, _Serialisable):
             return self
         keep = self.map.nongap()
         return self.__class__(
-            self.parent,
-            self.map[keep],
+            parent=self.parent,
+            map=self.map[keep],
             biotype=self.biotype,
             name=self.name,
             seqid=self.seqid,
@@ -517,7 +517,7 @@ class Annotation(_AnnotationCore, _Serialisable):
     def remapped_to(self, grandparent, gmap):
         kwargs = {
             **self._serialisable,
-            **{"map": gmap[self.map], "parent": grandparent},
+            **{"map": gmap[self.map], "parent": grandparent, "seqid": grandparent.name},
         }
         return self.__class__(**kwargs)
 
