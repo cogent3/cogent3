@@ -1081,7 +1081,8 @@ class Sequence(_Annotatable, SequenceI):
         biotype: str,
         name: str,
         spans: List[Tuple[int, int]],
-        strand: str = None,
+        parent_id: Optional[str] = None,
+        strand: Optional[str] = None,
         on_alignment: bool = False,
     ) -> Annotation:
         if self.annotation_db is None:
@@ -1092,7 +1093,8 @@ class Sequence(_Annotatable, SequenceI):
         )
 
         self.annotation_db.add_feature(**feature_data)
-        feature_data.pop("on_alignment")
+        for discard in ("on_alignment", "parent_id"):
+            feature_data.pop(discard)
         return self.make_feature(feature_data)
 
     def to_moltype(self, moltype):

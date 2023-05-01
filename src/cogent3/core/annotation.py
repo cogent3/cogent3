@@ -530,7 +530,15 @@ class Annotation(_AnnotationCore, _Serialisable):
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
         for child in db.get_feature_children(biotype=biotype, name=self.name):
-            yield make_feature(child)
+            yield make_feature(feature=child)
+
+    def get_parent(self, biotype: Optional[str] = None):
+        """generator returns parent features of self optionally matching biotype"""
+        make_feature = self.parent.make_feature
+        db = self.parent.annotation_db
+        for child in db.get_feature_parent(biotype=biotype, name=self.name):
+
+            yield make_feature(feature=child)
 
     def union(self, features):
         """return as a single Annotation

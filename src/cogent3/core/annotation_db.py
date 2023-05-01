@@ -123,6 +123,7 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
         name: str,
         spans: typing.List[typing.Tuple[int, int]],
         seqid: OptionalStr = None,
+        parent_id: OptionalStr = None,
         strand: OptionalStr = None,
         on_alignment: bool = False,
     ) -> None:
@@ -434,12 +435,14 @@ class SqliteAnnotationDbMixin:
 
     def add_feature(
         self,
+        *,
         seqid: str,
         biotype: str,
         name: str,
         spans: typing.List[typing.Tuple[int, int]],
-        strand: str = None,
-        on_alignment: bool = False,
+        parent_id: OptionalStr = None,
+        strand: OptionalStr = None,
+        on_alignment: OptionalBool = False,
     ) -> None:
         """adds a record to user table
 
@@ -735,22 +738,25 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         return reduced
 
     def _get_feature_by_id(
-        self, table_name: str, column: str, name: str, biotype: OptionalStr = None
+        self,
+        table_name: str,
+        columns: list[str],
+        column: str,
+        name: str,
+        biotype: OptionalStr = None,
     ) -> typing.List[FeatureDataType]:
         # we return the parent_id because `get_feature_parent()` requires it
         sql, vals = _select_records_sql(
             table_name=table_name,
             conditions={column: name, "biotype": biotype},
-            columns=["biotype", "spans", "strand", "name", "parent_id"],
+            columns=columns,
         )
         for result in self._execute_sql(sql, values=vals):
-            yield {
-                "biotype": result["biotype"],
-                "name": result["name"],
-                "spans": [tuple(c) for c in result["spans"]],
-                "reversed": result["strand"] == "-",
-                "parent_id": result["parent_id"],
-            }
+            result = dict(zip(result.keys(), result))
+            result["on_alignment"] = result.get("on_alignment", None)
+            result["spans"] = [tuple(c) for c in result["spans"]]
+            result["reversed"] = result.pop("strand", None) == "-"
+            yield result
 
     def get_feature_children(
         self, name: str, biotype: OptionalStr = None, **kwargs
@@ -759,8 +765,12 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # kwargs is used because other classes need start / end
         # just uses search matching
         for table_name in self.table_names:
+            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
+            if table_name == "user":
+                columns += ("on_alignment",)
             for result in self._get_feature_by_id(
                 table_name=table_name,
+                columns=columns,
                 column="parent_id",
                 name=f"%{name}%",
                 biotype=biotype,
@@ -773,8 +783,11 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
         for table_name in self.table_names:
+            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
+            if table_name == "user":
+                columns += ("on_alignment",)
             for result in self._get_feature_by_id(
-                table_name=table_name, column="name", name=f"%{name}%"
+                table_name=table_name, columns=columns, column="name", name=f"%{name}%"
             ):
                 # multiple values for parent means this is better expressed
                 # as an OR clause
@@ -783,6 +796,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
                     if parent := list(
                         self._get_feature_by_id(
                             table_name=table_name,
+                            columns=columns,
                             column="name",
                             name=name,
                         )
