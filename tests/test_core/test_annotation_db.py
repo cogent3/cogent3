@@ -56,7 +56,7 @@ def seq() -> Sequence:
 @pytest.fixture()
 def anno_db() -> GffAnnotationDb:
     # an empty db that we can add to
-    return GffAnnotationDb([])
+    return GffAnnotationDb()
 
 
 @pytest.fixture()
@@ -146,7 +146,7 @@ def test_to_rich_dict(gff_db):
 
 
 def test_empty_data():
-    _ = GffAnnotationDb([])
+    _ = GffAnnotationDb()
 
 
 # testing GenBank files
@@ -244,7 +244,7 @@ def test_gav():
     minus_seq = "".join(raw_seq[s:e] for s, e in minus_spans)
     minus_seq = "".join([{"T": "A", "A": "T"}[b] for b in minus_seq[::-1]])
     seq = make_seq(raw_seq, name="s1", moltype="dna")
-    db = GffAnnotationDb(data=[])
+    db = GffAnnotationDb()
     db.add_feature(
         seqid="s1",
         biotype="cds",
@@ -300,7 +300,7 @@ def test_gav2():
 
 
 def test_add_feature_with_parent():
-    db = GffAnnotationDb(data=[])
+    db = GffAnnotationDb()
     db.add_feature(
         seqid="s1",
         biotype="cds",

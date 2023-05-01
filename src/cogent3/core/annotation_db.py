@@ -628,7 +628,7 @@ class SqliteAnnotationDbMixin:
     @classmethod
     def from_dict(cls, data: dict):
         # make an empty db
-        db = cls(data=[])
+        db = cls()
         db._update_db_from_rich_dict(data)
         return db
 
@@ -670,7 +670,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         "parent_id": "TEXT",
     }
 
-    def __init__(self, data, db=None, source=":memory:"):
+    def __init__(self, *, data=None, db=None, source=":memory:"):
+        data = data or []
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
@@ -837,7 +838,15 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         "attributes": "json",
     }
 
-    def __init__(self, data: typing.List[dict], seqid: str, source=":memory:", db=None):
+    def __init__(
+        self,
+        *,
+        data: typing.Optional[typing.List[dict]] = None,
+        seqid: OptionalStr = None,
+        source=":memory:",
+        db=None,
+    ):
+        data = data or []
         # note that data is destroyed
         self._db = db
         self._num_fakeids = 0
@@ -981,7 +990,7 @@ def _db_from_genbank(path, db):
     with open_(path) as infile:
         data = list(MinimalGenbankParser(infile))
 
-    return GenbankAnnotationDb(data[0]["features"], data[0]["locus"], db=db)
+    return GenbankAnnotationDb(data=data[0]["features"], seqid=data[0]["locus"], db=db)
 
 
 def _leave_attributes(*attrs):

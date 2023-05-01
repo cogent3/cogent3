@@ -1115,7 +1115,7 @@ class Sequence(_Annotatable, SequenceI):
         on_alignment: bool = False,
     ) -> Annotation:
         if self.annotation_db is None:
-            self.annotation_db = GffAnnotationDb([])
+            self.annotation_db = GffAnnotationDb()
 
         feature_data = FeatureDataType(
             seqid=self.name, **{n: v for n, v in locals().items() if n != "self"}
@@ -1176,9 +1176,7 @@ class Sequence(_Annotatable, SequenceI):
 
         if not self.annotation_db:
             # todo gah add ability to query multiple values in Annotation db
-            self.annotation_db = type(seq_db)(
-                data=[]
-            )  # make an empty db of the same type
+            self.annotation_db = type(seq_db)()  # make an empty db of the same type
         elif not isinstance(seq_db, type(self.annotation_db)):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
