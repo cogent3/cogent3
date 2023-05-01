@@ -42,6 +42,7 @@ from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
     GffAnnotationDb,
+    SupportsFeatures,
     load_annotations,
 )
 from cogent3.core.genetic_code import get_code
@@ -1122,8 +1123,35 @@ class Sequence(_Annotatable, SequenceI):
         """Returns filtered seq; used to do DNA/RNA conversions."""
         return seq
 
-    def copy_annotations(self, other):
-        self.annotations = other.annotations[:]
+    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+        """copy annotations into attached annotation db
+
+        Parameters
+        ----------
+        seq_db
+            compatible annotation db
+
+        Notes
+        -----
+        Only copies annotations for records with seqid self.name
+        """
+        if not isinstance(seq_db, SupportsFeatures):
+            raise TypeError(
+                f"type {type(seq_db)} does not match SupportsFeatures interface"
+            )
+
+        if not seq_db.num_matches(seqid=self.name):
+            return
+
+        if not self.annotation_db:
+            # todo gah add ability to query multiple values in Annotation db
+            self.annotation_db = type(seq_db)(
+                data=[]
+            )  # make an empty db of the same type
+        elif not isinstance(seq_db, type(self.annotation_db)):
+            raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
+
+        self.annotation_db.update(seq_db, seqids=self.name)
 
     def copy(self):
         """returns a copy of self"""

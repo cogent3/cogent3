@@ -2062,6 +2062,31 @@ class _SequenceCollectionBase:
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences"""
 
+    def _apply_annotation_db_to_seqs(self) -> None:
+        """propagates the db bound to self across all sequences
+
+        Raises
+        ------
+        ValueError if a sequence has a different instance
+        """
+        attr = "annotation_db"
+        self_db = self.annotation_db
+        type_self_db = type(self_db)
+        for seq in self.seqs:
+            if hasattr(seq, "data"):
+                seq = seq.data
+            seq_db = seq.annotation_db
+            if seq_db and not isinstance(seq_db, type_self_db):
+                raise ValueError(
+                    f"inconsistent state with self db {type_self_db} and {seq.name!r} db {type(seq_db)}"
+                )
+            elif seq_db and seq_db is not self_db:
+                raise ValueError(
+                    f"inconsistent state {seq.name!r} has a different instance of {type(seq_db)}"
+                )
+
+            seq.annotation_db = self_db
+
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
 
@@ -2098,6 +2123,7 @@ class SequenceCollection(_SequenceCollectionBase):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
         self.annotation_db.update(seq_db, seqids=self.names)
+        self._apply_annotation_db_to_seqs()
 
     def annotate_from_gff(
         self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None

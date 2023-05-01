@@ -4,6 +4,7 @@ import pytest
 
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
+from cogent3.core.annotation_db import GenbankAnnotationDb, GffAnnotationDb
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -204,22 +205,6 @@ class FeaturesTest(TestCase):
         copied = list(aln.get_features(seqid="x", name="exon"))
         self.assertEqual(str(copied), '[exon "A" at [5:5, -4-]/5]')
         self.assertEqual(str(copied[0].get_slice()), ">x\n----\n>y\n----\n")
-
-    @pytest.mark.xfail(reason="todo gah delete test, not supporting this")
-    def test_seq_different_name_with_same_length(self):
-        """copying features between sequences"""
-
-        # You can copy to a sequence with a different name,
-        # in a different alignment if the feature lies within the length
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
-        seq.add_feature("exon", "A", [(5, 8)])
-        aln.get_seq("y").copy_annotations(seq)
-        copied = list(aln.get_features(seqid="y", name="exon"))
-        self.assertEqual(str(copied), '[exon "A" at [7:10]/10]')
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_seq_shorter(self):
@@ -713,3 +698,15 @@ class FeaturesTest(TestCase):
             pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
         )
         self.assertEqual(annot, [])
+
+
+def test_copy_annotations():
+    """copying features from a db"""
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]], array_align=False
+    )
+    db = GffAnnotationDb(data=[])
+    db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
+    aln.copy_annotations(db)
+    feat = list(aln.get_features(seqid="y", biotype="exon"))[0]
+    assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
