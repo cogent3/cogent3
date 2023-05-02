@@ -509,11 +509,6 @@ class Annotation(_AnnotationCore, _Serialisable):
         name = f' "{self.name}"'
         return f'"{self.seqid}" {self.biotype}{name} at {self.map}'
 
-    def _projected_to_base(self, base):
-        if self.parent == base:
-            return self.__class__(base, self.map)
-        return self.remapped_to(base, self.parent._projected_to_base(base).map)
-
     def remapped_to(self, grandparent, gmap):
         kwargs = {
             **self._serialisable,

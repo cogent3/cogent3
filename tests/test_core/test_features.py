@@ -311,31 +311,6 @@ class FeaturesTest(TestCase):
             ">x\nC-CCC?????GGG??\n>y\n-?----????G-G??\n",
         )
 
-    @pytest.mark.xfail(reason="todo gah implement support for projection")
-    def test_projected_to_base(self):
-        """tests a given annotation is correctly projected on the base sequence"""
-
-        seq = DNA.make_seq("AAAAAAAAATTTTTTTTT", name="x")
-        layer_one = seq.add_feature("repeat", "frog", [(1, 17)])
-        layer_two = layer_one.add_feature("repeat", "frog", [(2, 16)])
-        got = layer_two._projected_to_base(seq)
-        self.assertEqual(got.map.start, 3)
-        self.assertEqual(got.map.end, 17)
-        self.assertEqual(got.map.parent_length, len(seq))
-
-        layer_three = layer_two.add_feature("repeat", "frog", [(5, 10)])
-        got = layer_three._projected_to_base(seq)
-        self.assertEqual(got.map.start, 8)
-        self.assertEqual(got.map.end, 13)
-        self.assertEqual(got.map.parent_length, len(seq))
-
-        layer_four = layer_three.add_feature("repeat", "frog", [(0, 4)])
-        layer_five = layer_four.add_feature("repeat", "frog", [(1, 2)])
-        got = layer_five._projected_to_base(seq)
-        self.assertEqual(got.map.start, 9)
-        self.assertEqual(got.map.end, 10)
-        self.assertEqual(got.map.parent_length, len(seq))
-
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_nested_annotated_region_masks(self):
         """masking a sequence with specific features when nested annotations"""
