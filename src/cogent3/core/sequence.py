@@ -1027,7 +1027,6 @@ class Sequence(_Annotatable, SequenceI):
         """
         feature = dict(feature)
         seq_rced = self._seq.reversed
-        feature.pop("seqid", None)  # not required here as provided
         # todo gah check consistency of relationship between reversed and strand
         # i.e. which object has responsibility for transforming the strand value
         # (a string) into a bool?

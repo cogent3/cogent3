@@ -506,7 +506,7 @@ class SqliteAnnotationDbMixin:
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
             for result in self._get_records_matching(table_name, **kwargs):
-                yield {k: result[k] for k in result.keys()}
+                yield dict(zip(result.keys(), result))
 
     def get_features_matching(
         self,
@@ -532,18 +532,11 @@ class SqliteAnnotationDbMixin:
             for result in self._get_records_matching(
                 table_name=table_name, columns=columns, **kwargs
             ):
-                if "on_alignment" in result.keys():
-                    on_alignment = result["on_alignment"]
-                else:
-                    on_alignment = None
-                yield FeatureDataType(
-                    seqid=result["seqid"],
-                    biotype=result["biotype"],
-                    name=result["name"],
-                    spans=[tuple(c) for c in result["spans"]],
-                    reversed=result["strand"] == "-",
-                    on_alignment=on_alignment,
-                )
+                result = dict(zip(result.keys(), result))
+                result["on_alignment"] = result.get("on_alignment", None)
+                result["spans"] = [tuple(c) for c in result["spans"]]
+                result["reversed"] = result.pop("strand", None) == "-"
+                yield result
 
     def num_matches(
         self,

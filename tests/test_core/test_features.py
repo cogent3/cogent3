@@ -186,27 +186,6 @@ class FeaturesTest(TestCase):
         copied = list(aln.get_features(seqid="y", name="repeat"))
         self.assertEqual(str(copied), '[repeat "A" at [10:10, -6-]/10]')
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_terminal_gaps(self):
-        """features in cases of terminal gaps"""
-
-        # We consider cases where there are terminal gaps.
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
-        )
-        feat = dict(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
-        aln.add_feature(**feat)
-        aln_exons = list(aln.get_features(seqid="x", name="exon"))
-        self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
-        self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--TTT\n")
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
-        )
-        aln.add_feature(**feat)
-        aln_exons = list(aln.get_features(seqid="x", name="exon"))
-        self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--T--\n")
-
     @pytest.mark.xfail(reason="todo gah change test to new api")
     def test_annotated_region_masks(self):
         """masking a sequence with specific features"""
@@ -734,3 +713,25 @@ def test_feature_query_parent_aln():
     parent = parent[0]
     assert parent.name == "GG"
     assert parent.get_slice().to_dict() == aln[0:10].to_dict()
+
+
+def test_terminal_gaps():
+    """features in cases of terminal gaps"""
+
+    # We consider cases where there are terminal gaps.
+    db = GffAnnotationDb()
+    feat = dict(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    db.add_feature(**feat)
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
+    )
+    aln.annotation_db = db
+    aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
+    assert 'exon "fred" at [4:9]/10' in str(aln_exons)
+    assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--TTT")
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
+    )
+    aln.annotation_db = db
+    aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
+    assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--T--")
