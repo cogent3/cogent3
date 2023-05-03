@@ -890,6 +890,7 @@ class Sequence(_Annotatable, SequenceI):
     )
     def get_features(
         self,
+        *,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
         start: Optional[int] = None,
