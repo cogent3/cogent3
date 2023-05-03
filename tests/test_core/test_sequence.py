@@ -1313,6 +1313,16 @@ class ModelSequenceTests(SequenceTests):
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1, "-": 1})
 
 
+@pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
+def test_translation(seq, rc):
+    seq = DNA.make_seq(seq)
+    if rc:
+        seq = seq.rc()
+    assert str(seq) == "ATGTTT"
+    aa = seq.get_translation()
+    assert str(aa) == "MF"
+
+
 @pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
 @pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
 @pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
@@ -2122,3 +2132,19 @@ def test_annotate_gff_nested_features():
     assert len(ann) == 2
     exon_seqs = ("TTTTTTTTT", "GGGGG")
     assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs
+
+
+def test_to_moltype_dna():
+    """to_moltype("dna") ensures conversion from T to U"""
+    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
+    rna = seq.to_moltype("rna")
+
+    assert "T" not in rna
+
+
+def test_to_moltype_rna():
+    """to_moltype("rna") ensures conversion from U to T"""
+    seq = RNA.make_seq("AAAAGGGGUUU", name="seq1")
+    rna = seq.to_moltype("dna")
+
+    assert "U" not in rna

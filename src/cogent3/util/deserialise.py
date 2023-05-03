@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 import json
+import re
 
 from importlib import import_module
 
@@ -60,6 +60,14 @@ def _get_class(provenance):
     mod = import_module(provenance[:index])
     klass = getattr(mod, klass)
     return klass
+
+
+_pat = re.compile("[a-z]")
+
+
+def str_to_version(v):
+    letter = _pat.search(v)
+    return tuple(f"{v[:letter.start()]}.{letter.group()}.{letter.end():}".split("."))
 
 
 @register_deserialiser(
@@ -215,6 +223,11 @@ def deserialise_seq(data, aligned=False):
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
+    if annotations:
+        annotation_db = {"type": "annotation_to_annotation_db", "data": annotations}
+    else:
+        annotation_db = data.pop("annotation_db", None)
+
     make_seq = data["moltype"].make_seq
     _ = data.pop("type")
     if "-" in data["seq"]:
@@ -225,11 +238,14 @@ def deserialise_seq(data, aligned=False):
     if aligned:
         map_, result = result.parse_out_gaps()
 
-    if annotations:
-        deserialise_annotation(annotations, result)
+    if annotation_db:
+        annotation_db = deserialise_object(annotation_db)
 
     if aligned:
         result = Aligned(map_, result)
+        result.data.annotation_db = annotation_db
+    else:
+        result.annotation_db = annotation_db
 
     return result
 
@@ -243,6 +259,11 @@ def deserialise_seq_collections(data):
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
+    if annotations:
+        annotation_db = {"type": "annotation_to_annotation_db", "data": annotations}
+    else:
+        annotation_db = data.pop("annotation_db", None)
+
     type_ = data.pop("type")
     klass = _get_class(type_)
     assert "alignment" in type_.lower(), "not alignment type"
@@ -255,8 +276,8 @@ def deserialise_seq_collections(data):
 
     result = klass(seqs, **data)
 
-    if annotations:
-        deserialise_annotation(annotations, result)
+    if annotation_db:
+        result.annotation_db = deserialise_object(annotation_db)
 
     return result
 

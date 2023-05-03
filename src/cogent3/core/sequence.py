@@ -10,8 +10,8 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
-
 import contextlib
+import copy
 import json
 import os
 import re
@@ -128,7 +128,7 @@ class SequenceI(object):
             label = self.name
         return alignment_to_fasta({label: str(self)}, block_size=block_size)
 
-    def to_rich_dict(self):
+    def to_rich_dict(self, exclude_annotations=False):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         info = {} if self.info is None else self.info
         if not info.get("Refs", None) is None and "Refs" in info:
@@ -144,13 +144,12 @@ class SequenceI(object):
             version=__version__,
         )
 
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-        except AttributeError:
-            annotations = []
-
-        if annotations:
-            data["annotations"] = annotations
+        if (
+            hasattr(self, "annotation_db")
+            and self.annotation_db
+            and not exclude_annotations
+        ):
+            data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
 
@@ -1183,15 +1182,11 @@ class Sequence(_Annotatable, SequenceI):
 
         self.annotation_db.update(seq_db, seqids=self.name)
 
-    def copy(self):
+    def copy(self, exclude_annotations=False):
         """returns a copy of self"""
         new = self.__class__(self._seq[:], name=self.name, info=self.info)
-        if self.is_annotated():
-            for annot in self.annotations:
-                annot.copy_annotations_to(new)
-
-        # todo gah revisit copying and how are we handling _seq too
-        new._annotation_db = self._annotation_db
+        db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
+        new._annotation_db = db
         return new
 
     def _get_feature_start(self, feature):
@@ -1221,9 +1216,6 @@ class Sequence(_Annotatable, SequenceI):
         shadow
             whether to mask the annotated regions, or everything but
             the annotated regions
-        extend_query : boolean
-            queries sub-annotations if True
-
         """
         if mask_char is None:
             ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
@@ -1232,7 +1224,7 @@ class Sequence(_Annotatable, SequenceI):
         assert mask_char in self.moltype, f"Invalid mask_char {mask_char}"
 
         annotations = []
-        annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
+        annot_types = [annot_types] if isinstance(annot_types, str) else annot_types
         for annot_type in annot_types:
             annotations += list(
                 self.get_features(biotype=annot_type, allow_partial=True)
@@ -1254,15 +1246,15 @@ class Sequence(_Annotatable, SequenceI):
 
         i = 0
         segments = []
-        for b, e in region.get_coordinates():
-            segments.extend((str(self._seq[i:b]), mask_char * (e - b)))
+        fmap = region.map.reversed() if region.map.reverse else region.map
+        for b, e in fmap.get_coordinates():
+            segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
-        segments.append(str(self._seq[i:]))
+        segments.append(str(self[i:]))
 
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        new.annotations = self.annotations[:]
         return new
 
     def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
@@ -1625,8 +1617,8 @@ class NucleicAcidSequence(Sequence):
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
-        for posn in range(0, len(self._seq) - 2, 3):
-            orig_codon = str(self._seq[posn : posn + 3])
+        for posn in range(0, len(self) - 2, 3):
+            orig_codon = str(self[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:

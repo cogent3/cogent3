@@ -630,22 +630,34 @@ class _SequenceCollectionBase:
 
     def copy(self):
         """Returns deep copy of self."""
-        return self.__class__(self, moltype=self.moltype, info=self.info)
+        result = self.__class__(self, moltype=self.moltype, info=self.info)
+        result._annotation_db = deepcopy(self.annotation_db)
+        return result
 
-    def deepcopy(self, sliced=True):
-        """Returns deep copy of self."""
+    def deepcopy(self, sliced: bool = True):
+        """returns deep copy of self.
+
+        Parameters
+        ----------
+        sliced
+            if True, reduces the sequence to current
+            interval. This also causes dropping
+            annotations.
+        """
         new_seqs = dict()
+        db = None if sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
             try:
-                new_seq = seq.deepcopy(sliced=sliced)
+                new_seq = seq.deepcopy(sliced=sliced, exclude_annotations=True)
             except AttributeError:
-                new_seq = seq.copy()
+                new_seq = seq.copy(exclude_annotations=True)
             new_seqs[seq.name] = new_seq
 
         info = deepcopy(self.info)
         result = self.__class__(
             new_seqs, moltype=self.moltype, info=info, force_same_data=True
         )
+        result.annotation_db = db
         result._repr_policy.update(self._repr_policy)
         return result
 
@@ -2326,19 +2338,21 @@ class Aligned:
         """Returns a shallow copy of self"""
         return self.__class__(self.map, self.data)
 
-    def deepcopy(self, sliced=True):
+    def deepcopy(self, sliced=True, exclude_annotations=False):
         """
         Parameters
         -----------
         sliced : bool
             Slices underlying sequence with start/end of self coordinates. This
             has the effect of breaking the connection to any longer parent sequence.
+        exclude_annotations
+            drops annotation_db when True
 
         Returns
         -------
         a copy of self
         """
-        new_seq = self.data.copy()
+        new_seq = self.data.copy(exclude_annotations=exclude_annotations)
         if sliced:
             span = self.map.get_covering_span()
             new_seq = type(new_seq)(
@@ -5205,7 +5219,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         if on_alignment is None:
             on_alignment = feature.pop("on_alignment", None)
 
-        if not on_alignment:
+        if not on_alignment and feature["seqid"]:
             return self.named_seqs[feature["seqid"]].make_feature(feature, self)
 
         # there's no sequence to bind to, the feature is directly on self
@@ -5273,20 +5287,17 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             on_alignment=on_alignment,
             allow_partial=allow_partial,
         ):
-            if on_al := feature.pop("on_alignment", on_alignment):
-                if seq_map is None:
-                    seq_map = self.seqs[0].map
-                # gah todo use the Aligned map to transform the absolute
-                # index from the db into a relative index
-                spans = numpy.array(feature["spans"])
-                spans = seq_map.relative_position(spans)
-                feature["spans"] = spans.tolist()
-                # and if i've been reversed...?
-                feature["reversed"] = seq_map.reverse
-                yield self.make_feature(feature=feature, on_alignment=on_al)
+            if feature["seqid"]:
                 continue
+            on_al = feature.pop("on_alignment", on_alignment)
+            if feature["seqid"]:
+                raise RuntimeError(f"{on_alignment=} {feature=}")
+            if seq_map is None:
+                seq_map = self.seqs[0].map
 
-                seqid = feature["seqid"]
-                seq = self.named_seqs[seqid]
-                # passing self only used when self is an Alignment
-                yield seq.make_feature(feature, self)
+            spans = numpy.array(feature["spans"])
+            spans = seq_map.relative_position(spans)
+            feature["spans"] = spans.tolist()
+            # and if i've been reversed...?
+            feature["reversed"] = seq_map.reverse
+            yield self.make_feature(feature=feature, on_alignment=on_al)

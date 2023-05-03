@@ -1,4 +1,5 @@
 import collections
+import inspect
 import json
 import os
 import pathlib
@@ -403,6 +404,36 @@ class SqliteAnnotationDbMixin:
         "spans": "array",
         "on_alignment": "INT",
     }
+    # args to exclude from serialisation init
+    _exclude_init = "db", "data"
+
+    def __new__(klass, *args, **kwargs):
+        obj = object.__new__(klass)
+        init_sig = inspect.signature(klass.__init__)
+        bargs = init_sig.bind_partial(klass, *args, **kwargs)
+        bargs.apply_defaults()
+        init_vals = bargs.arguments
+        for param in klass._exclude_init:
+            init_vals.pop(param)
+        init_vals.pop("self", None)
+
+        obj._serialisable = init_vals
+        return obj
+
+    def __deepcopy__(self, memodict=None):
+        memodict = memodict or {}
+        new = self.__class__(source=self.source)
+        new._db.deserialize(self._db.serialize())
+        return new
+
+    def __getstate__(self):
+        return {"data": self._db.serialize(), "source": self.source}
+
+    def __setstate__(self, state):
+        new = self.__class__(source=state.pop("source", None))
+        new._db.deserialize(state["data"])
+        self.__dict__.update(new.__dict__)
+        return self
 
     @property
     def table_names(self) -> tuple[str]:
@@ -598,7 +629,25 @@ class SqliteAnnotationDbMixin:
                 counts.update(v for r in result if (v := r["biotype"]))
         return counts
 
-    def to_rich_dict(self):
+    def to_rich_dict(self) -> dict:
+        """returns a dict suitable for json serialisation"""
+        result = {
+            "type": get_object_provenance(self),
+            "version": __version__,
+            "tables": {},
+            "init_args": {**self._serialisable},
+        }
+        tables = result["tables"]
+        for table_name in self.table_names:
+            table_data = []
+            for record in self._get_records_matching(table_name):
+                store = {k: v for k, v in zip(record.keys(), record) if v is not None}
+                store["spans"] = store["spans"].tolist()
+                table_data.append(store)
+            tables[table_name] = table_data
+        return result
+
+    def _to_rich_dict(self):
         # todo drop columns from records with no value
         # top level dict for each table_name
         records = {}
@@ -626,19 +675,21 @@ class SqliteAnnotationDbMixin:
     @classmethod
     def from_dict(cls, data: dict):
         # make an empty db
-        db = cls()
+        init_args = data.pop("init_args")
+        db = cls(**init_args)
         db._update_db_from_rich_dict(data)
         return db
 
     def _update_db_from_rich_dict(self, data: dict, seqids: OptionalStr = None):
         data.pop("type", None)
+        data.pop("version")
         if isinstance(seqids, str):
             seqids = {seqids}
         elif seqids is not None:
             seqids = set(seqids) - {None}  # make sure None is not part of this!
 
         # todo gah prevent duplication of existing records
-        for table_name, records in data.items():
+        for table_name, records in data["tables"].items():
             for record in records:
                 if seqids and record["seqid"] not in seqids:
                     continue
@@ -647,6 +698,9 @@ class SqliteAnnotationDbMixin:
                     table_name, {k: v for k, v in record.items() if v is not None}
                 )
                 self._execute_sql(sql, vals)
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_rich_dict())
 
 
 class GffAnnotationDb(SqliteAnnotationDbMixin):
@@ -979,6 +1033,28 @@ def deserialise_gff_db(data: dict):
 @register_deserialiser(get_object_provenance(GenbankAnnotationDb))
 def deserialise_gb_db(data: dict):
     return GenbankAnnotationDb.from_dict(data)
+
+
+@register_deserialiser("annotation_to_annotation_db")
+def convert_annotation_to_annotation_db(data: dict) -> dict:
+    from cogent3.util.deserialise import deserialise_map_spans
+
+    db = GffAnnotationDb()
+
+    seqid = data.pop("name", None)
+    anns = data.pop("data")
+    for ann in anns:
+        ann = ann.pop("annotation_construction")
+        m = deserialise_map_spans(ann.pop("map"))
+        spans = m.get_coordinates()
+        strand = "-" if m.reverse else "+"
+        biotype = ann.pop("type")
+        name = ann.pop("name")
+        db.add_feature(
+            seqid=seqid, biotype=biotype, name=name, spans=spans, strand=strand
+        )
+
+    return db
 
 
 def _db_from_genbank(path, db):
