@@ -1313,6 +1313,16 @@ class ModelSequenceTests(SequenceTests):
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1, "-": 1})
 
 
+@pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
+def test_translation(seq, rc):
+    seq = DNA.make_seq(seq)
+    if rc:
+        seq = seq.rc()
+    assert str(seq) == "ATGTTT"
+    aa = seq.get_translation()
+    assert str(aa) == "MF"
+
+
 @pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
 @pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
 @pytest.mark.parametrize("step", (None, 1, 2, -1, -2))

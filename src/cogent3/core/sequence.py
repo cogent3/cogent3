@@ -1625,8 +1625,8 @@ class NucleicAcidSequence(Sequence):
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
-        for posn in range(0, len(self._seq) - 2, 3):
-            orig_codon = str(self._seq[posn : posn + 3])
+        for posn in range(0, len(self) - 2, 3):
+            orig_codon = str(self[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:
