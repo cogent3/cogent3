@@ -2132,3 +2132,19 @@ def test_annotate_gff_nested_features():
     assert len(ann) == 2
     exon_seqs = ("TTTTTTTTT", "GGGGG")
     assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs
+
+
+def test_to_moltype_dna():
+    """to_moltype("dna") ensures conversion from T to U"""
+    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
+    rna = seq.to_moltype("rna")
+
+    assert "T" not in rna
+
+
+def test_to_moltype_rna():
+    """to_moltype("rna") ensures conversion from U to T"""
+    seq = RNA.make_seq("AAAAGGGGUUU", name="seq1")
+    rna = seq.to_moltype("dna")
+
+    assert "U" not in rna

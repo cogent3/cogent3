@@ -12,6 +12,7 @@ from cogent3.core.annotation_db import (
     load_annotations,
 )
 from cogent3.core.sequence import Sequence
+from cogent3.util import deserialise
 
 
 __author__ = "Gavin Huttley"
@@ -197,7 +198,7 @@ def test_get_features_matching_no_annotation_db(seq):
     """
     Test that `get_features_matching` returns an empty list when no annotation database is attached to the sequence.
     """
-    assert not list(seq.get_features_matching())
+    assert not list(seq.get_features())
 
 
 def test_get_features_matching_no_matching_feature(seq, anno_db):
@@ -209,8 +210,8 @@ def test_get_features_matching_no_matching_feature(seq, anno_db):
         seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
     )
 
-    assert not list(seq.get_features_matching(feature_type="exon", name="non_matching"))
-    assert not list(seq.get_features_matching(feature_type="CDS"))
+    assert not list(seq.get_features(biotype="exon", name="non_matching"))
+    assert not list(seq.get_features(biotype="CDS"))
 
 
 def test_get_features_matching_matching_feature(seq, anno_db):
@@ -221,7 +222,7 @@ def test_get_features_matching_matching_feature(seq, anno_db):
     anno_db.add_feature(
         seqid=seq.name, biotype="exon", name="exon1", spans=[(1, 4)], strand="+"
     )
-    got = list(seq.get_features_matching(feature_type="exon"))
+    got = list(seq.get_features(biotype="exon"))
 
     assert got[0].biotype == "exon"
     assert got[0].name == "exon1"
@@ -281,7 +282,6 @@ def test_gav():
     plus = list(rced.get_features(name="plus"))[0]
     assert str(plus.get_slice()) == plus_seq
     minus = list(rced.get_features(name="minus"))[0]
-    print(rf, minus)
     assert str(minus.get_slice()) == minus_seq
 
 
@@ -333,7 +333,7 @@ def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
     anno_db.add_feature(
         seqid=seq.name, biotype="exon", name="exon2", spans=[(6, 10)], strand="+"
     )
-    got = list(seq.get_features_matching(feature_type="exon"))
+    got = list(seq.get_features(biotype="exon"))
 
     assert len(got) == 2
 
@@ -341,20 +341,20 @@ def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
 def test_annotate_from_gff(seq):
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
 
-    got = list(seq.get_features_matching(feature_type="exon"))
+    got = list(seq.get_features(biotype="exon"))
     assert len(got) == 2
 
-    got = list(seq.get_features_matching(feature_type="CDS"))
+    got = list(seq.get_features(biotype="CDS"))
     assert len(got) == 2
 
-    got = list(seq.get_features_matching(feature_type="CpG"))
+    got = list(seq.get_features(biotype="CpG"))
     assert len(got) == 1
 
 
 def test_get_features_matching_start_stop(seq):
     # todo: need to implement LostSpans()
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
-    got = list(seq.get_features_matching(start=2, stop=10, allow_partial=True))
+    got = list(seq.get_features(start=2, stop=10, allow_partial=True))
     assert len(got) == 4
 
 
@@ -367,7 +367,7 @@ def test_matching_conditions():
 def test_get_features_matching_start_stop_seqview(seq):
     """testing that get_features_matching adjusts"""
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
-    seq_features = list(seq.get_features_matching(start=0, stop=3, allow_partial=True))
+    seq_features = list(seq.get_features(start=0, stop=3, allow_partial=True))
     assert len(seq_features) == 3
 
     # edge case, only 1 features that overlaps with index 12
@@ -375,7 +375,7 @@ def test_get_features_matching_start_stop_seqview(seq):
     # possibly a bug in the SQL generating code
     subseq = seq[9:]
     seq_features_features = list(
-        subseq.get_features_matching(start=3, stop=10, allow_partial=True)
+        subseq.get_features(start=3, stop=10, allow_partial=True)
     )
     assert len(seq_features_features) == 1
 
@@ -397,7 +397,7 @@ def test_get_slice():
 
 
 def test_feature_get_children(seq_db):
-    feat = list(seq_db.get_features_matching(name="Transcript:B0019.1"))[0]
+    feat = list(seq_db.get_features(name="Transcript:B0019.1"))[0]
     new_feat_5pUTR = list(feat.get_children(biotype="five_prime_UTR"))
     assert len(new_feat_5pUTR) == 1
 
@@ -435,9 +435,9 @@ def test_rc_get_slice_positive_feature(anno_db):
         seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
     )
 
-    feat = list(seq.get_features_matching(name="exon1"))[0]
+    feat = list(seq.get_features(name="exon1"))[0]
     r_seq = seq.rc()
-    r_feat = list(r_seq.get_features_matching(name="exon1"))[0]
+    r_feat = list(r_seq.get_features(name="exon1"))[0]
 
     assert feat.get_slice() == r_feat.get_slice()
 
@@ -446,7 +446,7 @@ def test_add_feature(seq):
     """Sequence supports manual adding of features for a seq with no bound AnnotationDb"""
     record = dict(name="gene-01", biotype="gene", spans=[(12, 16)], strand="+")
     seq.add_feature(**record)
-    feats = list(seq.get_features_matching(feature_type="gene"))
+    feats = list(seq.get_features(biotype="gene"))
 
     assert seq.annotation_db is not None
     assert len(feats) == 1
@@ -459,7 +459,7 @@ def test_add_feature_existing_db(simple_seq_gff_db):
     simple_seq_gff_db.add_feature(**record)
 
     # total features should be 5+1=6
-    all_feats = list(simple_seq_gff_db.get_features_matching())
+    all_feats = list(simple_seq_gff_db.get_features())
     assert len(all_feats) == 6
 
 
@@ -478,27 +478,11 @@ def test__getitem__(simple_seq_gff_db):
     )
 
 
-def test_to_moltype_dna():
-    """to_moltype("dna") ensures conversion from T to U"""
-    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
-    rna = seq.to_moltype("rna")
-
-    assert "T" not in rna
-
-
-def test_to_moltype_rna():
-    """to_moltype("rna") ensures conversion from U to T"""
-    seq = RNA.make_seq("AAAAGGGGUUU", name="seq1")
-    rna = seq.to_moltype("dna")
-
-    assert "U" not in rna
-
-
 def test_annotate_from_gff_multiple_calls(seq):
     """5 records in each gff file, total features on seq should be 10"""
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     seq.annotate_from_gff(DATA_DIR / "simple2.gff")
-    assert len(list(seq.get_features_matching())) == 10
+    assert len(list(seq.get_features())) == 10
 
 
 def test_sequence_collection_annotate_from_gff():
@@ -517,17 +501,17 @@ def test_sequence_collection_annotate_from_gff():
     assert seq_coll.get_seq("test_seq").annotation_db is seq_coll.annotation_db
     got = list(seq_coll.get_seq("test_seq").get_features(allow_partial=True))
     assert len(got) == 5
-    got = list(seq.get_features(feature_type="CDS"))
+    got = list(seq.get_features(biotype="CDS"))
     assert len(got) == 2
 
-    got = list(seq.get_features(feature_type="CpG"))
+    got = list(seq.get_features(biotype="CpG"))
     assert len(got) == 1
 
     # the seq for which the seqid was NOT provided also has a reference to the same db
     seq2 = seq_coll.get_seq("test_seq2")
     assert seq2.annotation_db is not None
     # querying on that sequence returns []
-    got = list(seq2.get_features(feature_type="CDS"))
+    got = list(seq2.get_features(biotype="CDS"))
     assert not got
 
 
@@ -553,10 +537,10 @@ def test_seq_coll_query():
     assert got == expect
     # the annotation_db on the seq and the seq collection are the same object
     assert seq.annotation_db is seq_coll.annotation_db
-    got = list(seq.get_features_matching(feature_type="CDS"))
+    got = list(seq.get_features(biotype="CDS"))
     assert len(got) == 2
 
-    got = list(seq.get_features_matching(feature_type="CpG"))
+    got = list(seq.get_features(biotype="CpG"))
     assert len(got) == 1
 
 
@@ -593,9 +577,9 @@ def test_relative_position_positive_feature(anno_db):
         seqid=seq.name, biotype="exon", name="exon1", spans=[(2, 6)], strand="+"
     )
 
-    orig_feat_span = list(seq.get_features_matching(name="exon1"))[0].map
+    orig_feat_span = list(seq.get_features(name="exon1"))[0].map
     view = seq[2:]
-    view_feat_span = list(view.get_features_matching(name="exon1"))[0].map
+    view_feat_span = list(view.get_features(name="exon1"))[0].map
 
     assert orig_feat_span[0].start - 2 == view_feat_span[0].start
     assert orig_feat_span[0].end - 2 == view_feat_span[0].end
@@ -622,3 +606,22 @@ def test_pickling(gff_db):
         seqid="s1", biotype="exon", name="copied-exon", spans=[(2, 6)], strand="+"
     )
     assert recon.num_matches() == gff_db.num_matches() + 1
+
+
+@pytest.mark.parametrize("db_name", ("gff_db", "gb_db"))
+def test_to_rich_dict(db_name, request):
+    db = request.getfixturevalue(db_name)
+    data = db.to_rich_dict()
+    assert data["init_args"]["source"] == ":memory:"
+    if db_name == "gb_db":
+        assert "seqid" in data["init_args"]
+
+
+@pytest.mark.parametrize("db_name", ("gff_db", "gb_db"))
+def test_deserialise(db_name, request):
+    db = request.getfixturevalue(db_name)
+    data = db.to_json()
+    got = deserialise.deserialise_object(data)
+    assert got is not db
+    assert isinstance(got, type(db))
+    assert got.num_matches() == db.num_matches()
