@@ -121,21 +121,6 @@ class FeaturesTest(TestCase):
         self.assertEqual(str(copied[0].get_slice()), ">x\n----\n>y\n----\n")
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_seq_shorter(self):
-        """lost spans on shorter sequences"""
-
-        # If the sequence is shorter, again you get a lost span.
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        diff_len_seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCCCCCCCCCC", "x")
-        diff_len_seq.add_feature("repeat", "A", [(12, 14)])
-        aln.get_seq("y").copy_annotations(diff_len_seq)
-        copied = list(aln.get_features(seqid="y", name="repeat"))
-        self.assertEqual(str(copied), '[repeat "A" at [10:10, -6-]/10]')
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_nested_annotated_region_masks(self):
         """masking a sequence with specific features when nested annotations"""
 
@@ -558,6 +543,19 @@ def test_feature_query_parent_aln():
     parent = parent[0]
     assert parent.name == "GG"
     assert parent.get_slice().to_dict() == aln[0:10].to_dict()
+
+
+def test_aln_feature_lost_spans():
+    """features outside the sequence should not be returned"""
+    db = GffAnnotationDb(data=[])
+    db.add_feature(seqid="y", biotype="repeat", name="A", spans=[(12, 14)])
+    # If the sequence is shorter, again you get a lost span.
+    aln = make_aligned_seqs(
+        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, array_align=False
+    )
+    aln.annotation_db = db
+    copied = list(aln.get_features(seqid="y", biotype="repeat"))
+    assert not copied
 
 
 def test_terminal_gaps():

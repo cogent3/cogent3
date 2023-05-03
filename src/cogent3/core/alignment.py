@@ -2252,6 +2252,9 @@ class SequenceCollection(_SequenceCollectionBase):
         of strand of the current instance.
         """
         if self.annotation_db is None:
+            # todo gah this should not be required
+            # the annotation db attribute should be defined on creation,
+            # or when annotation_db is assigned
             anno_db = merged_db_collection(self.seqs)
             self.annotation_db = anno_db
 
@@ -2259,32 +2262,27 @@ class SequenceCollection(_SequenceCollectionBase):
             return None
 
         seqids = [seqid] if isinstance(seqid, str) else seqid
+        if seqids is None:
+            seqids = self.names
 
         if seqid and not set(seqids) & set(self.names):
             raise ValueError(f"unknown {seqid=}")
 
-        if seqids is None:
-            seq_map = None
-            for feature in self.annotation_db.get_features_matching(
-                biotype=biotype,
-                name=name,
-                on_alignment=False,
-                allow_partial=allow_partial,
-            ):
-                seqid = feature["seqid"]
-                seq = self.named_seqs[seqid]
-                # passing self only used when self is an Alignment
-                yield seq.make_feature(feature, self)
-            return
-
         for seqid in seqids:
             seq = self.named_seqs[seqid]
+            if isinstance(seq, Aligned):
+                start, end = seq.map.start, seq.map.end
+            else:
+                start, end = 0, len(seq)
+
             for feature in self.annotation_db.get_features_matching(
                 seqid=seqid,
                 biotype=biotype,
                 name=name,
                 on_alignment=False,
                 allow_partial=allow_partial,
+                start=start,
+                end=end,
             ):
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
