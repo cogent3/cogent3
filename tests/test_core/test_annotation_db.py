@@ -599,3 +599,26 @@ def test_relative_position_positive_feature(anno_db):
 
     assert orig_feat_span[0].start - 2 == view_feat_span[0].start
     assert orig_feat_span[0].end - 2 == view_feat_span[0].end
+
+
+def test_deepcopy(gff_db):
+    import copy
+
+    new = copy.deepcopy(gff_db)
+    new.add_feature(
+        seqid="s1", biotype="exon", name="copied-exon", spans=[(2, 6)], strand="+"
+    )
+    assert new.num_matches() == gff_db.num_matches() + 1
+    assert len(list(new.get_features_matching(name="copied-exon"))) == 1
+    assert len(list(gff_db.get_features_matching(name="copied-exon"))) == 0
+
+
+def test_pickling(gff_db):
+    import pickle
+
+    recon = pickle.loads(pickle.dumps(gff_db))
+    assert isinstance(recon, type(gff_db))
+    recon.add_feature(
+        seqid="s1", biotype="exon", name="copied-exon", spans=[(2, 6)], strand="+"
+    )
+    assert recon.num_matches() == gff_db.num_matches() + 1

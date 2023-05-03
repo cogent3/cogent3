@@ -404,6 +404,21 @@ class SqliteAnnotationDbMixin:
         "on_alignment": "INT",
     }
 
+    def __deepcopy__(self, memodict=None):
+        memodict = memodict or {}
+        new = self.__class__(source=self.source)
+        new._db.deserialize(self._db.serialize())
+        return new
+
+    def __getstate__(self):
+        return {"data": self._db.serialize(), "source": self.source}
+
+    def __setstate__(self, state):
+        new = self.__class__(source=state.pop("source", None))
+        new._db.deserialize(state["data"])
+        self.__dict__.update(new.__dict__)
+        return self
+
     @property
     def table_names(self) -> tuple[str]:
         return self._table_names
