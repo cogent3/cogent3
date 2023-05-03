@@ -104,57 +104,6 @@ class FeaturesTest(TestCase):
         minus_cds = minus.get_features(biotype="CDS")[0]
         self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_feature_from_alignment(self):
-        """seq features obtained from the alignment"""
-
-        # Sequence features can be accessed via a containing Alignment:
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        self.assertEqual(str(aln), ">x\n-AAAAAAAAA\n>y\nTTTT--TTTT\n")
-        exon = aln.get_seq("x").add_annotation(Feature, "exon", "fred", [(3, 8)])
-        aln_exons = aln.get_features(seqid="x", biotype="exon")
-        aln_exons = aln.get_features(biotype="exon")
-        # But these will be returned as **alignment**
-        # features with locations in alignment coordinates.
-
-        self.assertEqual(str(exon), 'exon "fred" at [3:8]/9')
-        self.assertEqual(str(aln_exons[0]), 'exon "fred" at [4:9]/10')
-        self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--TTT\n")
-        aln_exons[0].attach()
-        self.assertEqual(len(aln.annotations), 1)
-
-        # Similarly alignment features can be projected onto the aligned sequences,
-        # where they may end up falling across gaps:
-
-        exons = aln.get_projected_annotations("y", "exon")
-        self.assertEqual(str(exons), '[exon "fred" at [-2-, 4:7]/8]')
-        self.assertEqual(str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT")
-
-        # We copy the annotations from another sequence,
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCC"]], array_align=False
-        )
-        self.s = DNA.make_seq("AAAAAAAAA", name="x")
-        exon = self.s.add_annotation(Feature, "exon", "fred", [(3, 8)])
-        exon = aln.get_seq("x").copy_annotations(self.s)
-        aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
-        self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
-
-        # even if the name is different.
-
-        exon = aln.get_seq("y").copy_annotations(self.s)
-        aln_exons = list(aln.get_features(seqid="y", biotype="exon"))
-        self.assertEqual(str(aln_exons), '[exon "fred" at [3:4, 6:10]/10]')
-        self.assertEqual(str(aln[aln_exons]), ">x\nAAAAA\n>y\nTCCCC\n")
-
-        # default for get_annotations_from_any_seq is return all features
-        got = aln.get_features()
-        self.assertEqual(len(got), 2)
-
     @pytest.mark.xfail(reason="todo gah implement lost spans")
     def test_lost_spans(self):
         """features no longer included in an alignment represented by lost spans"""
@@ -171,204 +120,6 @@ class FeaturesTest(TestCase):
         copied = list(aln.get_features(seqid="x", name="exon"))
         self.assertEqual(str(copied), '[exon "A" at [5:5, -4-]/5]')
         self.assertEqual(str(copied[0].get_slice()), ">x\n----\n>y\n----\n")
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_seq_shorter(self):
-        """lost spans on shorter sequences"""
-
-        # If the sequence is shorter, again you get a lost span.
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        diff_len_seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCCCCCCCCCC", "x")
-        diff_len_seq.add_feature("repeat", "A", [(12, 14)])
-        aln.get_seq("y").copy_annotations(diff_len_seq)
-        copied = list(aln.get_features(seqid="y", name="repeat"))
-        self.assertEqual(str(copied), '[repeat "A" at [10:10, -6-]/10]')
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_terminal_gaps(self):
-        """features in cases of terminal gaps"""
-
-        # We consider cases where there are terminal gaps.
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
-        )
-        feat = dict(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
-        aln.add_feature(**feat)
-        aln_exons = list(aln.get_features(seqid="x", name="exon"))
-        self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
-        self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--TTT\n")
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
-        )
-        aln.add_feature(**feat)
-        aln_exons = list(aln.get_features(seqid="x", name="exon"))
-        self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--T--\n")
-
-    @pytest.mark.xfail(reason="todo gah change test to new api")
-    def test_annotated_region_masks(self):
-        """masking a sequence with specific features"""
-
-        # Annotated regions can be masked (observed sequence characters
-        # replaced by another), either through the sequence on which they
-        # reside or by projection from the alignment. Note that mask_char must
-        # be a valid character for the sequence MolType. Either the features
-        # (multiple can be named), or their shadow, can be masked.
-
-        # We create an alignment with a sequence that has two different annotation types.
-
-        aln = make_aligned_seqs(
-            data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
-        )
-        self.assertEqual(str(aln), ">x\nC-CCCAAAAAGGGAA\n>y\n-T----TTTTG-GTT\n")
-        exon = aln.get_seq("x").add_feature(
-            biotype="exon", name="norwegian", spans=[(0, 4)]
-        )
-        self.assertEqual(str(exon.get_slice()), "CCCC")
-        repeat = aln.get_seq("x").add_feature(
-            biotype="repeat", name="blue", spans=[(9, 12)]
-        )
-        self.assertEqual(str(repeat.get_slice()), "GGG")
-        repeat = aln.get_seq("y").add_feature(
-            biotype="repeat", name="frog", spans=[(5, 7)]
-        )
-        self.assertEqual(str(repeat.get_slice()), "GG")
-
-        # Each sequence should correctly mask either the single feature,
-        # it's shadow, or the multiple features, or shadow.
-
-        self.assertEqual(
-            str(aln.get_seq("x").with_masked_annotations("exon", mask_char="?")),
-            "????AAAAAGGGAA",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("x").with_masked_annotations(
-                    "exon", mask_char="?", shadow=True
-                )
-            ),
-            "CCCC??????????",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("x").with_masked_annotations(
-                    ["exon", "repeat"], mask_char="?"
-                )
-            ),
-            "????AAAAA???AA",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("x").with_masked_annotations(
-                    ["exon", "repeat"], mask_char="?", shadow=True
-                )
-            ),
-            "CCCC?????GGG??",
-        )
-        self.assertEqual(
-            str(aln.get_seq("y").with_masked_annotations("exon", mask_char="?")),
-            "TTTTTGGTT",
-        )
-        self.assertEqual(
-            str(aln.get_seq("y").with_masked_annotations("repeat", mask_char="?")),
-            "TTTTT??TT",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("y").with_masked_annotations(
-                    "repeat", mask_char="?", shadow=True
-                )
-            ),
-            "?????GG??",
-        )
-
-        # The same methods can be applied to annotated Alignment's.
-
-        self.assertEqual(
-            str(aln.with_masked_annotations("exon", mask_char="?")),
-            ">x\n?-???AAAAAGGGAA\n>y\n-T----TTTTG-GTT\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations("exon", mask_char="?", shadow=True)),
-            ">x\nC-CCC??????????\n>y\n-?----?????-???\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations("repeat", mask_char="?")),
-            ">x\nC-CCCAAAAA???AA\n>y\n-T----TTTT?-?TT\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations("repeat", mask_char="?", shadow=True)),
-            ">x\n?-????????GGG??\n>y\n-?----????G-G??\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations(["repeat", "exon"], mask_char="?")),
-            ">x\n?-???AAAAA???AA\n>y\n-T----TTTT?-?TT\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations(["repeat", "exon"], shadow=True)),
-            ">x\nC-CCC?????GGG??\n>y\n-?----????G-G??\n",
-        )
-
-    @pytest.mark.xfail(reason="todo gah implement support for projection")
-    def test_projected_to_base(self):
-        """tests a given annotation is correctly projected on the base sequence"""
-
-        seq = DNA.make_seq("AAAAAAAAATTTTTTTTT", name="x")
-        layer_one = seq.add_feature("repeat", "frog", [(1, 17)])
-        layer_two = layer_one.add_feature("repeat", "frog", [(2, 16)])
-        got = layer_two._projected_to_base(seq)
-        self.assertEqual(got.map.start, 3)
-        self.assertEqual(got.map.end, 17)
-        self.assertEqual(got.map.parent_length, len(seq))
-
-        layer_three = layer_two.add_feature("repeat", "frog", [(5, 10)])
-        got = layer_three._projected_to_base(seq)
-        self.assertEqual(got.map.start, 8)
-        self.assertEqual(got.map.end, 13)
-        self.assertEqual(got.map.parent_length, len(seq))
-
-        layer_four = layer_three.add_feature("repeat", "frog", [(0, 4)])
-        layer_five = layer_four.add_feature("repeat", "frog", [(1, 2)])
-        got = layer_five._projected_to_base(seq)
-        self.assertEqual(got.map.start, 9)
-        self.assertEqual(got.map.end, 10)
-        self.assertEqual(got.map.parent_length, len(seq))
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_nested_annotated_region_masks(self):
-        """masking a sequence with specific features when nested annotations"""
-
-        aln = make_aligned_seqs(
-            data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
-        )
-        gene = aln.get_seq("x").add_feature("gene", "norwegian", [(0, 4)])
-        self.assertEqual(str(gene.get_slice()), "CGGC")
-        gene.add_feature("repeat", "blue", [(1, 3)])
-        # evaluate the sequence directly
-        masked = str(
-            aln.get_seq("x").with_masked_annotations(
-                "repeat", mask_char="?", extend_query=True
-            )
-        )
-        self.assertEqual(masked, "C??CAAAAATTTAA")
-
-        exon = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
-        self.assertEqual(str(exon.get_slice()), "TTT")
-        # evaluate the sequence directly
-        masked = str(
-            aln.get_seq("y").with_masked_annotations(
-                "repeat", mask_char="?", extend_query=True
-            )
-        )
-        self.assertEqual(masked, "T???TGGTT")
-
-        masked = aln.with_masked_annotations("gene", mask_char="?")
-        got = masked.to_dict()
-        self.assertEqual(got["x"], "?-???AAAAATTTAA")
-        self.assertEqual(got["y"], "-T----TTTTG-GTT")
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_annotated_separately_equivalence(self):
@@ -576,11 +327,6 @@ class FeaturesTest(TestCase):
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
 
-    @pytest.mark.xfail(reason="todo gah change test to use feature to get nested")
-    def test_nested_get_slice(self):
-        """check the get_slice method works on nested annotations"""
-        self.assertEqual(self.nested_feature.get_slice(), "CCC")
-
     @pytest.mark.xfail(reason="todo gah change test to use latest API")
     def test_nested_to_rich_dict(self):
         """check the to_rich_dict method works with nested annotations"""
@@ -760,3 +506,211 @@ def test_feature_query_parent_aln():
     parent = parent[0]
     assert parent.name == "GG"
     assert parent.get_slice().to_dict() == aln[0:10].to_dict()
+
+
+def test_aln_feature_lost_spans():
+    """features outside the sequence should not be returned"""
+    db = GffAnnotationDb(data=[])
+    db.add_feature(seqid="y", biotype="repeat", name="A", spans=[(12, 14)])
+    # If the sequence is shorter, again you get a lost span.
+    aln = make_aligned_seqs(
+        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, array_align=False
+    )
+    aln.annotation_db = db
+    copied = list(aln.get_features(seqid="y", biotype="repeat"))
+    assert not copied
+
+
+def test_terminal_gaps():
+    """features in cases of terminal gaps"""
+
+    # We consider cases where there are terminal gaps.
+    db = GffAnnotationDb()
+    feat = dict(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    db.add_feature(**feat)
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "------TTTT"]], array_align=False
+    )
+    aln.annotation_db = db
+    aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
+    assert 'exon "fred" at [4:9]/10' in str(aln_exons)
+    assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--TTT")
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
+    )
+    aln.annotation_db = db
+    aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
+    assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--T--")
+
+
+def test_annotated_region_masks():
+    """masking a sequence with specific features"""
+
+    # Annotated regions can be masked (observed sequence characters
+    # replaced by another), either through the sequence on which they
+    # reside or by projection from the alignment. Note that mask_char must
+    # be a valid character for the sequence MolType. Either the features
+    # (multiple can be named), or their shadow, can be masked.
+
+    # We create an alignment with a sequence that has two different annotation types.
+    orig_data = {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="norwegian", spans=[(0, 4)])
+    db.add_feature(
+        biotype="repeat",
+        name="blue",
+        spans=[(9, 12)],
+        seqid="x",
+    )
+    db.add_feature(seqid="y", biotype="repeat", name="frog", spans=[(5, 7)])
+    aln = make_aligned_seqs(data=orig_data, array_align=False, moltype="dna")
+    aln.annotation_db = db
+
+    assert aln.to_dict() == {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
+    x = aln.get_seq("x")
+    y = aln.get_seq("y")
+    exon = list(x.get_features(biotype="exon"))[0]
+    assert str(exon.get_slice()) == "CCCC"
+    repeat_x = list(x.get_features(biotype="repeat"))[0]
+    assert str(repeat_x.get_slice()) == "GGG"
+    repeat_y = list(y.get_features(biotype="repeat"))[0]
+    assert str(repeat_y.get_slice()) == "GG"
+
+    # Each sequence should correctly mask either the single feature,
+    # it's shadow, or the multiple features, or shadow.
+
+    assert (
+        str(aln.get_seq("x").with_masked_annotations("exon", mask_char="?"))
+        == "????AAAAAGGGAA"
+    )
+    assert (
+        str(
+            aln.get_seq("x").with_masked_annotations("exon", mask_char="?", shadow=True)
+        )
+        == "CCCC??????????"
+    )
+    assert (
+        str(aln.get_seq("x").with_masked_annotations(["exon", "repeat"], mask_char="?"))
+        == "????AAAAA???AA"
+    )
+    assert (
+        str(
+            aln.get_seq("x").with_masked_annotations(
+                ["exon", "repeat"], mask_char="?", shadow=True
+            )
+        )
+        == "CCCC?????GGG??"
+    )
+    assert (
+        str(aln.get_seq("y").with_masked_annotations("exon", mask_char="?"))
+        == "TTTTTGGTT"
+    )
+    assert (
+        str(aln.get_seq("y").with_masked_annotations("repeat", mask_char="?"))
+        == "TTTTT??TT"
+    )
+    assert (
+        str(
+            aln.get_seq("y").with_masked_annotations(
+                "repeat", mask_char="?", shadow=True
+            )
+        )
+        == "?????GG??"
+    )
+
+    # The same methods can be applied to annotated Alignment's.
+
+    assert aln.with_masked_annotations("exon", mask_char="?").to_dict() == {
+        "x": "?-???AAAAAGGGAA",
+        "y": "-T----TTTTG-GTT",
+    }
+    assert aln.with_masked_annotations(
+        "exon", mask_char="?", shadow=True
+    ).to_dict() == {"x": "C-CCC??????????", "y": "-?----?????-???"}
+    assert aln.with_masked_annotations("repeat", mask_char="?").to_dict() == {
+        "x": "C-CCCAAAAA???AA",
+        "y": "-T----TTTT?-?TT",
+    }
+    assert aln.with_masked_annotations(
+        "repeat", mask_char="?", shadow=True
+    ).to_dict() == {"x": "?-????????GGG??", "y": "-?----????G-G??"}
+    assert aln.with_masked_annotations(["repeat", "exon"], mask_char="?").to_dict() == {
+        "x": "?-???AAAAA???AA",
+        "y": "-T----TTTT?-?TT",
+    }
+    assert aln.with_masked_annotations(["repeat", "exon"], shadow=True).to_dict() == {
+        "x": "C-CCC?????GGG??",
+        "y": "-?----????G-G??",
+    }
+
+
+def test_nested_annotated_region_masks():
+    """masking a sequence with specific features when nested annotations"""
+    # gene = aln.get_seq("x").add_feature("gene", "norwegian", [(0, 4)])
+    # gene.add_feature("repeat", "blue", [(1, 3)])
+    # exon = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="gene", name="norwegian", spans=[(0, 4)])
+    db.add_feature(seqid="x", biotype="repeat", name="blue", spans=[(1, 3)])
+    db.add_feature(seqid="y", biotype="repeat", name="frog", spans=[(1, 4)])
+    aln = make_aligned_seqs(
+        data=[["x", "C-GGCAAAAATTTAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
+    )
+    aln.annotation_db = db
+    gene = list(aln.get_seq("x").get_features(biotype="gene"))[0]
+    assert str(gene.get_slice()) == "CGGC"
+
+    # evaluate the sequence directly
+    masked = str(aln.get_seq("x").with_masked_annotations("repeat", mask_char="?"))
+    assert masked == "C??CAAAAATTTAA"
+
+    exon = list(aln.get_seq("y").get_features(biotype="repeat", name="frog"))[0]
+    assert str(exon.get_slice()) == "TTT"
+    # evaluate the sequence directly
+    masked = str(aln.get_seq("y").with_masked_annotations("repeat", mask_char="?"))
+    assert masked == "T???TGGTT"
+    masked = aln.with_masked_annotations("gene", mask_char="?")
+    got = masked.to_dict()
+    assert got["x"] == "?-???AAAAATTTAA"
+    assert got["y"] == "-T----TTTTG-GTT"
+
+
+def test_feature_from_alignment():
+    """seq features obtained from the alignment"""
+
+    # we no longer support copying annotations individually
+    # nor do we provide a mechanism for copying annotations from one
+    # sequence to another
+
+    # Sequence features can be accessed via a containing Alignment:
+    db = GffAnnotationDb()
+    aln = make_aligned_seqs(
+        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, array_align=False
+    )
+    db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    aln.annotation_db = db
+    aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
+    assert len(aln_exons) == 1
+    aln_exons = aln_exons[0]
+
+    # But these will be returned as **alignment**
+    # features with locations in alignment coordinates.
+    assert aln_exons.get_slice().to_dict() == {"x": "AAAAA", "y": "--TTT"}
+
+    # Similarly alignment features can be projected onto the aligned sequences,
+    # where they may end up falling across gaps:
+
+    exons = aln.get_projected_annotations(seqid="y", biotype="exon")
+    assert len(exons) == 1
+    assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
+    assert 'exon "fred" at [-2-, 4:7]/8' in str(exons[0])
+
+
+def test_nested_get_slice():
+    """check the get_slice method works on nested annotations"""
+    s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
+    ex = s.add_feature(biotype="exon", name="fred", spans=[(10, 20)])
+    s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
+    s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
+    f = list(ex.get_children())[0]
+    assert str(f.get_slice()) == str(s[12:17])

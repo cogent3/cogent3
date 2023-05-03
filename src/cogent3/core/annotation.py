@@ -447,14 +447,34 @@ class Annotation(_AnnotationCore, _Serialisable):
         }
         return self.__class__(**kwargs)
 
-    def get_slice(self, complete=True):
-        """The corresponding sequence fragment.  If 'complete' is true
-        and the full length of this feature is not present in the sequence
-        then this method will fail."""
+    def get_slice(self, complete: bool = True, allow_gaps: bool = False):
+        """
+        The corresponding sequence fragment.
+
+        Parameters
+        ----------
+        complete
+            if feature not complete on parent,causes an exception to be
+            raised. If False, gaps are removed.
+        allow_gaps
+            if on an alignment, includes the gap positions
+
+        Returns
+        -------
+        a slice of self.parent
+
+        Notes
+        -----
+        If 'complete' is true and the full length of this feature is not
+        present in the sequence, then this method will fail.
+        """
+        # todo gah set allow_gaps=True as the default
         map = self.map
         if not (complete or map.complete):
             map = map.without_gaps()
-        return self.parent[map]
+        if not allow_gaps:
+            return self.parent[map]
+        return self.parent[map.start : map.end]
 
     def without_lost_spans(self):
         """Keeps only the parts which are actually present in the underlying sequence"""
@@ -508,11 +528,6 @@ class Annotation(_AnnotationCore, _Serialisable):
     def __repr__(self):
         name = f' "{self.name}"'
         return f'"{self.seqid}" {self.biotype}{name} at {self.map}'
-
-    def _projected_to_base(self, base):
-        if self.parent == base:
-            return self.__class__(base, self.map)
-        return self.remapped_to(base, self.parent._projected_to_base(base).map)
 
     def remapped_to(self, grandparent, gmap):
         kwargs = {

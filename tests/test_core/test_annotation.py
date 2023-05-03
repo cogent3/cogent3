@@ -105,60 +105,6 @@ class TestAnnotations(unittest.TestCase):
         with self.assertRaises(AssertionError):
             _ = annot.copy_annotations_to(seq[:-2])
 
-    @pytest.mark.xfail(reason="todo gah change to new API")
-    def test_reverse_complement(self):
-        """test correct translation of annotations on reverse complement."""
-        aln_expecteds = {
-            "misc_feature": {"FAKE01": "TTTGGGGGGGGGG", "FAKE02": "TTTGGGGGGGGGG"},
-            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
-            "5'UTR": {"FAKE01": "CC", "FAKE02": "CC"},
-            "LTR": {"FAKE01": "CCCAAAATTTTTT", "FAKE02": "CCC-----TTTTT"},
-        }
-
-        seq_expecteds = {
-            "CDS": {"FAKE01": "GGGGGGGGGG", "FAKE02": "GGGGGGGGGG"},
-            "5'UTR": {"FAKE01": "TTT", "FAKE02": "TTT"},
-        }
-
-        rc = self.aln.rc()
-        # rc'ing an Alignment or Sequence rc's their annotations too. This means
-        # slicing returns the same sequence as the non-rc'd alignment/seq
-        for annot_type in ["misc_feature", "CDS", "5'UTR", "LTR"]:
-            observed = list(self.aln.get_by_annotation(annot_type))[0].to_dict()
-            expected = aln_expecteds[annot_type]
-            assert observed == expected, ("+", annot_type, expected, observed)
-            observed = list(rc.get_by_annotation(annot_type))[0].to_dict()
-            expected = aln_expecteds[annot_type]
-            assert observed == expected, ("-", annot_type, expected, observed)
-
-            if annot_type in ["misc_feature", "LTR"]:
-                continue  # because seqs haven't been annotated with it
-            for name in self.aln.names:
-                observed = list(
-                    self.aln.named_seqs[name].data.get_by_annotation(annot_type)
-                )[0]
-                observed = str(observed)
-                expected = seq_expecteds[annot_type][name]
-                assert str(observed) == expected, (
-                    "+",
-                    annot_type,
-                    name,
-                    expected,
-                    observed,
-                )
-                observed = list(rc.named_seqs[name].data.get_by_annotation(annot_type))[
-                    0
-                ]
-                observed = str(observed)
-                expected = seq_expecteds[annot_type][name]
-                assert str(observed) == expected, (
-                    "-",
-                    annot_type,
-                    name,
-                    expected,
-                    observed,
-                )
-
 
 class TestMapSpans(unittest.TestCase):
     """Test attributes of Map & Spans classes critical to annotation

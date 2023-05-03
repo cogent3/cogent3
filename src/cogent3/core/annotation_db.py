@@ -230,7 +230,7 @@ def _matching_conditions(
             # todo gah FIX this excludes a False value from being a condition!
             # conditions are filtered for None before here, so we should add
             # an else where the op is assigned !=
-            if val:
+            if val is not None:
                 op = "LIKE" if isinstance(val, str) and "%" in val else "="
                 conds.append(f"{col} {op} ?")
                 vals.append(val)
@@ -506,7 +506,7 @@ class SqliteAnnotationDbMixin:
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
             for result in self._get_records_matching(table_name, **kwargs):
-                yield {k: result[k] for k in result.keys()}
+                yield dict(zip(result.keys(), result))
 
     def get_features_matching(
         self,
@@ -527,23 +527,21 @@ class SqliteAnnotationDbMixin:
         table_names = ["user"] if on_alignment else self.table_names
         for table_name in table_names:
             columns = ("seqid", "biotype", "spans", "strand", "name")
+            query_args = {**kwargs}
+
             if table_name == "user":
                 columns += ("on_alignment",)
+            else:
+                query_args.pop("on_alignment", None)
+
             for result in self._get_records_matching(
-                table_name=table_name, columns=columns, **kwargs
+                table_name=table_name, columns=columns, **query_args
             ):
-                if "on_alignment" in result.keys():
-                    on_alignment = result["on_alignment"]
-                else:
-                    on_alignment = None
-                yield FeatureDataType(
-                    seqid=result["seqid"],
-                    biotype=result["biotype"],
-                    name=result["name"],
-                    spans=[tuple(c) for c in result["spans"]],
-                    reversed=result["strand"] == "-",
-                    on_alignment=on_alignment,
-                )
+                result = dict(zip(result.keys(), result))
+                result["on_alignment"] = result.get("on_alignment", None)
+                result["spans"] = [tuple(c) for c in result["spans"]]
+                result["reversed"] = result.pop("strand", None) == "-"
+                yield result
 
     def num_matches(
         self,

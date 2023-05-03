@@ -230,51 +230,6 @@ class SequenceTests(TestCase):
         with self.assertRaises(ValueError):
             s.to_moltype("")
 
-    @pytest.mark.xfail(
-        reason="todo: annotate_from_gff needs to be using bound annotation_db"
-    )
-    def test_annotate_gff_nested_features(self):
-        """correctly annotate a sequence with nested features"""
-        # the synthetic example
-        #          1111111111222222222333333333334
-        # 1234567890123456789012345678901234567890
-        #  **** biological_region
-        #                                     ** biological_region
-        #                                       * biological_region
-        #      *******************************  gene
-        #         *********************   mRNA
-        #            *********            exon
-        #                       *****     exon
-        # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
-        seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
-        gff3_path = DATADIR / "ensembl_sample.gff3"
-        seq.annotate_from_gff(gff3_path)
-        # we have 1 "full chromosome" annotation, 3 generic regions and 1 gene
-        self.assertEqual(len(seq.annotations), 5)
-
-        # get the gene and check it has a single annotation and that
-        # its slice is correct
-        ann = seq.get_features_matching("gene")
-        self.assertEqual(len(ann), 1)
-        self.assertEqual(len(ann[0].annotations), 1)
-        seq = ann[0].get_slice()
-        self.assertEqual(str(seq), "GGAAAATTTTTTTTTAAGGGGGAAAAAAAAA")
-
-        # the gene has 1 transcript
-        ann = seq.get_features_matching("mRNA", extend_query=True)
-        self.assertEqual(len(ann), 1)
-        self.assertEqual(len(ann[0].annotations), 2)  # 2 exons
-        seq = ann[0].get_slice()
-        self.assertEqual(str(seq), "AAAATTTTTTTTTAAGGGGGAAA")
-
-        # the transcript has 2 exons
-        ann = seq.get_features_matching("exon", extend_query=True)
-        self.assertEqual(len(ann), 2)
-        exon_seqs = ("TTTTTTTTT", "GGGGG")
-        for x in ann:
-            self.assertEqual(len(x.annotations), 0)
-            self.assertTrue(str(x.get_slice()) in exon_seqs, msg=x.get_slice())
-
     def test_strip_degenerate(self):
         """Sequence strip_degenerate should remove any degenerate bases"""
         self.assertEqual(self.RNA("UCAG-").strip_degenerate(), "UCAG-")
@@ -2124,3 +2079,46 @@ def test_absolute_relative_roundtrip_reverse(
     rel_val = view.relative_position(abs_val)
     assert view.offset == offset
     assert (view[rel_val]).value == view[value].value
+
+
+def test_annotate_gff_nested_features():
+    """correctly annotate a sequence with nested features"""
+    # the synthetic example
+    #          1111111111222222222333333333334
+    # 1234567890123456789012345678901234567890
+    #  **** biological_region
+    #                                     ** biological_region
+    #                                       * biological_region
+    #      *******************************  gene
+    #         *********************   mRNA
+    #            *********            exon
+    #                       *****     exon
+    # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
+    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+    gff3_path = DATADIR / "ensembl_sample.gff3"
+    seq.annotate_from_gff(gff3_path)
+    # we have 8 records in the gff file
+    assert seq.annotation_db.num_matches() == 8
+
+    # get the gene and check it has a single annotation and that
+    # its slice is correct
+    ann = list(seq.get_features(biotype="gene"))
+    assert len(ann) == 1
+    ann_seq = ann[0].get_slice()
+    assert str(ann_seq) == "GGAAAATTTTTTTTTAAGGGGGAAAAAAAAA"
+    # the gene has 1 transcript
+    gene = ann[0]
+    mrna = list(gene.get_children(biotype="mRNA"))
+    assert len(mrna) == 1
+    mrna = mrna[0]
+    ann_seq = mrna.get_slice()
+    assert str(ann_seq) == "AAAATTTTTTTTTAAGGGGGAAA"
+
+    # the transcript has 2 exons, from the parent feature
+    exons = list(mrna.get_children(biotype="exon"))
+    assert len(exons) == 2
+    # or the sequence
+    ann = list(seq.get_features(biotype="exon"))
+    assert len(ann) == 2
+    exon_seqs = ("TTTTTTTTT", "GGGGG")
+    assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs

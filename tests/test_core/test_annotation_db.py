@@ -501,33 +501,34 @@ def test_annotate_from_gff_multiple_calls(seq):
     assert len(list(seq.get_features_matching())) == 10
 
 
-@pytest.mark.xfail(reason="todo gah implement lost spans")
 def test_sequence_collection_annotate_from_gff():
     """providing a seqid to SequenceCollection.annotate_from_gff will
     annotate the SequenceCollection, and the Sequence. Both of these will point
     to the same AnnotationDb instance
     """
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
-    seq_collection = SequenceCollection(seqs)
-    seq_collection.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
+    seq_coll = SequenceCollection(seqs)
+    seq_coll.annotate_from_gff(DATA_DIR / "simple.gff", seq_ids="test_seq")
 
     # the seq for which the seqid was provided is annotated
-    seq = seq_collection.get_seq("test_seq")
-    assert seq_collection.get_seq("test_seq").annotation_db is not None
-    got = list(seq_collection.get_seq("test_seq").get_features(allow_partial=True))
-    assert len(got) == 5
-
-    # the seq for which the seqid was NOT provided is NOT annotated
-    assert seq_collection.get_seq("test_seq2").annotation_db is None
+    seq = seq_coll.get_seq("test_seq")
+    assert seq_coll.get_seq("test_seq").annotation_db is not None
     # the annotation_db on the seq and the seq collection are the same object
-    assert (
-        seq_collection.get_seq("test_seq").annotation_db is seq_collection.annotation_db
-    )
+    assert seq_coll.get_seq("test_seq").annotation_db is seq_coll.annotation_db
+    got = list(seq_coll.get_seq("test_seq").get_features(allow_partial=True))
+    assert len(got) == 5
     got = list(seq.get_features(feature_type="CDS"))
     assert len(got) == 2
 
     got = list(seq.get_features(feature_type="CpG"))
     assert len(got) == 1
+
+    # the seq for which the seqid was NOT provided also has a reference to the same db
+    seq2 = seq_coll.get_seq("test_seq2")
+    assert seq2.annotation_db is not None
+    # querying on that sequence returns []
+    got = list(seq2.get_features(feature_type="CDS"))
+    assert not got
 
 
 def test_seq_coll_query():
@@ -539,10 +540,17 @@ def test_seq_coll_query():
     seq = seq_coll.get_seq("test_seq")
     # the seq for which the seqid was provided is annotated
     assert seq.annotation_db is not None
-    expect = list(seq.get_features_matching())
-    got = seq_coll.get_features(seqid="test_seq")
-    # the seq for which the seqid was NOT provided is NOT annotated
-    assert seq_coll.get_seq("test_seq2").annotation_db is None
+    # todo gah this test fails when allow_partial=False because start / stop
+    # not used by seqcoll method
+    expect = set(
+        (f.seqid, f.biotype, f.name, str(f.map))
+        for f in seq.get_features(allow_partial=True)
+    )
+    got = set(
+        (f.seqid, f.biotype, f.name, str(f.map))
+        for f in seq_coll.get_features(seqid="test_seq", allow_partial=True)
+    )
+    assert got == expect
     # the annotation_db on the seq and the seq collection are the same object
     assert seq.annotation_db is seq_coll.annotation_db
     got = list(seq.get_features_matching(feature_type="CDS"))

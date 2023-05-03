@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -389,7 +388,7 @@ def merged_db_collection(seqs) -> SupportsFeatures:
                 f"annotation db types must be equal: {type(first)} != {type(db)}"
             )
 
-        if first is None or db is None:
+        if first is None or db is None or first is db:
             continue
         first.update(db)
 
@@ -597,6 +596,8 @@ class _SequenceCollectionBase:
         if value and not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
+        for seq in self.seqs:
+            seq.annotation_db = value
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -2229,7 +2230,7 @@ class SequenceCollection(_SequenceCollectionBase):
         seqid: Optional[str] = None,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
-        on_alignment: Optional[bool] = None,
+        allow_partial: bool = False,
     ) -> Iterator[Annotation]:
         """yields Annotation instances
 
@@ -2241,9 +2242,8 @@ class SequenceCollection(_SequenceCollectionBase):
             biotype of the feature, e.g. CDS, gene
         name
             name of the feature
-        on_alignment
-            limit query to features on Alignment, ignores sequences. Ignored on
-            SequenceCollection instances.
+        allow_partial
+            allow features partially overlaping self
 
         Notes
         -----
@@ -2251,8 +2251,10 @@ class SequenceCollection(_SequenceCollectionBase):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-        on_alignment = None if not isinstance(self, Alignment) else on_alignment
         if self.annotation_db is None:
+            # todo gah this should not be required
+            # the annotation db attribute should be defined on creation,
+            # or when annotation_db is assigned
             anno_db = merged_db_collection(self.seqs)
             self.annotation_db = anno_db
 
@@ -2260,41 +2262,27 @@ class SequenceCollection(_SequenceCollectionBase):
             return None
 
         seqids = [seqid] if isinstance(seqid, str) else seqid
-
-        if seqid and not set(seqid) & set(self.names):
-            raise ValueError(f"unknown {seqid=}")
-
-        if seqids and on_alignment:
-            raise ValueError(f"cannot provide seqids with on_alignment")
-
         if seqids is None:
-            seq_map = None
-            for feature in self.annotation_db.get_features_matching(
-                biotype=biotype, name=name, on_alignment=on_alignment
-            ):
-                if on_al := feature.pop("on_alignment", on_alignment):
-                    if seq_map is None:
-                        seq_map = self.seqs[0].map
-                    # gah todo use the Aligned map to transform the absolute
-                    # index from the db into a relative index
-                    spans = numpy.array(feature["spans"])
-                    spans = seq_map.relative_position(spans)
-                    feature["spans"] = spans.tolist()
-                    # and if i've been reversed...?
-                    feature["reversed"] = seq_map.reverse
-                    yield self.make_feature(feature=feature, on_alignment=on_al)
-                    continue
+            seqids = self.names
 
-                seqid = feature["seqid"]
-                seq = self.named_seqs[seqid]
-                # passing self only used when self is an Alignment
-                yield seq.make_feature(feature, self)
-            return
+        if seqid and not set(seqids) & set(self.names):
+            raise ValueError(f"unknown {seqid=}")
 
         for seqid in seqids:
             seq = self.named_seqs[seqid]
+            if isinstance(seq, Aligned):
+                start, end = seq.map.start, seq.map.end
+            else:
+                start, end = 0, len(seq)
+
             for feature in self.annotation_db.get_features_matching(
-                seqid=seqid, biotype=biotype, name=name, on_alignment=None
+                seqid=seqid,
+                biotype=biotype,
+                name=name,
+                on_alignment=False,
+                allow_partial=allow_partial,
+                start=start,
+                end=end,
             ):
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
@@ -4747,6 +4735,20 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if value and not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
+        for seq in self.seqs:
+            seq.data.annotation_db = value
+
     def _mapped(self, slicemap):
         align = []
         for name in self.names:
@@ -4769,9 +4771,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             raise ValueError("Annotation does not belong to this alignment")
         return annot.remapped_to(target_aligned.data, target_aligned.map)
 
-    def get_projected_annotations(self, seq_name, *args):
-        aln_annots = self.get_features_matching(*args)
-        return [self.project_annotation(seq_name, a) for a in aln_annots]
+    def get_projected_annotations(self, *, seqid: str, **kwargs):
+        aln_annots = list(self.get_features(**kwargs))
+        return [self.project_annotation(seqid, a) for a in aln_annots]
 
     @c3warn.deprecated_callable(
         "2023.7",
@@ -5213,3 +5215,77 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             fmap = fmap.nucleic_reversed()
         feature.pop("strand", None)
         return Annotation(parent=self, map=fmap, **feature)
+
+    def get_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        on_alignment: Optional[bool] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Annotation]:
+        """yields Annotation instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        on_alignment
+            limit query to features on Alignment, ignores sequences. Ignored on
+            SequenceCollection instances.
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        # we only do on-alignment in here
+        if not on_alignment:
+            kwargs = {
+                k: v for k, v in locals().items() if k not in ("self", "__class__")
+            }
+            kwargs.pop("on_alignment")
+            yield from super().get_features(**kwargs)
+
+        if on_alignment == False:
+            return
+
+        if self.annotation_db is None:
+            anno_db = merged_db_collection(self.seqs)
+            self.annotation_db = anno_db
+
+        if self.annotation_db is None:
+            return None
+
+        seq_map = None
+        for feature in self.annotation_db.get_features_matching(
+            biotype=biotype,
+            name=name,
+            on_alignment=on_alignment,
+            allow_partial=allow_partial,
+        ):
+            if on_al := feature.pop("on_alignment", on_alignment):
+                if seq_map is None:
+                    seq_map = self.seqs[0].map
+                # gah todo use the Aligned map to transform the absolute
+                # index from the db into a relative index
+                spans = numpy.array(feature["spans"])
+                spans = seq_map.relative_position(spans)
+                feature["spans"] = spans.tolist()
+                # and if i've been reversed...?
+                feature["reversed"] = seq_map.reverse
+                yield self.make_feature(feature=feature, on_alignment=on_al)
+                continue
+
+                seqid = feature["seqid"]
+                seq = self.named_seqs[seqid]
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)

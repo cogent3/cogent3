@@ -890,6 +890,7 @@ class Sequence(_Annotatable, SequenceI):
     )
     def get_features(
         self,
+        *,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
         start: Optional[int] = None,
@@ -1027,7 +1028,6 @@ class Sequence(_Annotatable, SequenceI):
         """
         feature = dict(feature)
         seq_rced = self._seq.reversed
-        feature.pop("seqid", None)  # not required here as provided
         # todo gah check consistency of relationship between reversed and strand
         # i.e. which object has responsibility for transforming the strand value
         # (a string) into a bool?
@@ -1081,6 +1081,7 @@ class Sequence(_Annotatable, SequenceI):
             fmap = fmap.nucleic_reversed().reversed()
 
         feature.pop("on_alignment", None)
+        feature.pop("seqid", None)
         return Annotation(parent=self, seqid=self.name, map=fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
@@ -1233,13 +1234,23 @@ class Sequence(_Annotatable, SequenceI):
         annotations = []
         annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
         for annot_type in annot_types:
-            annotations += self.get_annotations_matching(
-                annot_type, extend_query=extend_query
+            annotations += list(
+                self.get_features(biotype=annot_type, allow_partial=True)
             )
 
-        region = self.get_region_covering_all(annotations, extend_query=extend_query)
+        if not annotations:
+            region = Annotation(
+                parent=self,
+                seqid=self.name,
+                name=None,
+                biotype=None,
+                map=Map(locations=[], parent_length=len(self)),
+            )
+        else:
+            region = annotations[0].union(annotations[1:])
+
         if shadow:
-            region = region.get_shadow()
+            region = region.shadow()
 
         i = 0
         segments = []
