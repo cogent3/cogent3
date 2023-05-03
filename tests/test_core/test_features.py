@@ -186,110 +186,6 @@ class FeaturesTest(TestCase):
         copied = list(aln.get_features(seqid="y", name="repeat"))
         self.assertEqual(str(copied), '[repeat "A" at [10:10, -6-]/10]')
 
-    @pytest.mark.xfail(reason="todo gah change test to new api")
-    def test_annotated_region_masks(self):
-        """masking a sequence with specific features"""
-
-        # Annotated regions can be masked (observed sequence characters
-        # replaced by another), either through the sequence on which they
-        # reside or by projection from the alignment. Note that mask_char must
-        # be a valid character for the sequence MolType. Either the features
-        # (multiple can be named), or their shadow, can be masked.
-
-        # We create an alignment with a sequence that has two different annotation types.
-
-        aln = make_aligned_seqs(
-            data=[["x", "C-CCCAAAAAGGGAA"], ["y", "-T----TTTTG-GTT"]], array_align=False
-        )
-        self.assertEqual(str(aln), ">x\nC-CCCAAAAAGGGAA\n>y\n-T----TTTTG-GTT\n")
-        exon = aln.get_seq("x").add_feature(
-            biotype="exon", name="norwegian", spans=[(0, 4)]
-        )
-        self.assertEqual(str(exon.get_slice()), "CCCC")
-        repeat = aln.get_seq("x").add_feature(
-            biotype="repeat", name="blue", spans=[(9, 12)]
-        )
-        self.assertEqual(str(repeat.get_slice()), "GGG")
-        repeat = aln.get_seq("y").add_feature(
-            biotype="repeat", name="frog", spans=[(5, 7)]
-        )
-        self.assertEqual(str(repeat.get_slice()), "GG")
-
-        # Each sequence should correctly mask either the single feature,
-        # it's shadow, or the multiple features, or shadow.
-
-        self.assertEqual(
-            str(aln.get_seq("x").with_masked_annotations("exon", mask_char="?")),
-            "????AAAAAGGGAA",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("x").with_masked_annotations(
-                    "exon", mask_char="?", shadow=True
-                )
-            ),
-            "CCCC??????????",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("x").with_masked_annotations(
-                    ["exon", "repeat"], mask_char="?"
-                )
-            ),
-            "????AAAAA???AA",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("x").with_masked_annotations(
-                    ["exon", "repeat"], mask_char="?", shadow=True
-                )
-            ),
-            "CCCC?????GGG??",
-        )
-        self.assertEqual(
-            str(aln.get_seq("y").with_masked_annotations("exon", mask_char="?")),
-            "TTTTTGGTT",
-        )
-        self.assertEqual(
-            str(aln.get_seq("y").with_masked_annotations("repeat", mask_char="?")),
-            "TTTTT??TT",
-        )
-        self.assertEqual(
-            str(
-                aln.get_seq("y").with_masked_annotations(
-                    "repeat", mask_char="?", shadow=True
-                )
-            ),
-            "?????GG??",
-        )
-
-        # The same methods can be applied to annotated Alignment's.
-
-        self.assertEqual(
-            str(aln.with_masked_annotations("exon", mask_char="?")),
-            ">x\n?-???AAAAAGGGAA\n>y\n-T----TTTTG-GTT\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations("exon", mask_char="?", shadow=True)),
-            ">x\nC-CCC??????????\n>y\n-?----?????-???\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations("repeat", mask_char="?")),
-            ">x\nC-CCCAAAAA???AA\n>y\n-T----TTTT?-?TT\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations("repeat", mask_char="?", shadow=True)),
-            ">x\n?-????????GGG??\n>y\n-?----????G-G??\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations(["repeat", "exon"], mask_char="?")),
-            ">x\n?-???AAAAA???AA\n>y\n-T----TTTT?-?TT\n",
-        )
-        self.assertEqual(
-            str(aln.with_masked_annotations(["repeat", "exon"], shadow=True)),
-            ">x\nC-CCC?????GGG??\n>y\n-?----????G-G??\n",
-        )
-
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_nested_annotated_region_masks(self):
         """masking a sequence with specific features when nested annotations"""
@@ -735,3 +631,104 @@ def test_terminal_gaps():
     aln.annotation_db = db
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
     assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--T--")
+
+
+def test_annotated_region_masks():
+    """masking a sequence with specific features"""
+
+    # Annotated regions can be masked (observed sequence characters
+    # replaced by another), either through the sequence on which they
+    # reside or by projection from the alignment. Note that mask_char must
+    # be a valid character for the sequence MolType. Either the features
+    # (multiple can be named), or their shadow, can be masked.
+
+    # We create an alignment with a sequence that has two different annotation types.
+    orig_data = {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="norwegian", spans=[(0, 4)])
+    db.add_feature(
+        biotype="repeat",
+        name="blue",
+        spans=[(9, 12)],
+        seqid="x",
+    )
+    db.add_feature(seqid="y", biotype="repeat", name="frog", spans=[(5, 7)])
+    aln = make_aligned_seqs(data=orig_data, array_align=False, moltype="dna")
+    aln.annotation_db = db
+
+    assert aln.to_dict() == {"x": "C-CCCAAAAAGGGAA", "y": "-T----TTTTG-GTT"}
+    x = aln.get_seq("x")
+    y = aln.get_seq("y")
+    exon = list(x.get_features(biotype="exon"))[0]
+    assert str(exon.get_slice()) == "CCCC"
+    repeat_x = list(x.get_features(biotype="repeat"))[0]
+    assert str(repeat_x.get_slice()) == "GGG"
+    repeat_y = list(y.get_features(biotype="repeat"))[0]
+    assert str(repeat_y.get_slice()) == "GG"
+
+    # Each sequence should correctly mask either the single feature,
+    # it's shadow, or the multiple features, or shadow.
+
+    assert (
+        str(aln.get_seq("x").with_masked_annotations("exon", mask_char="?"))
+        == "????AAAAAGGGAA"
+    )
+    assert (
+        str(
+            aln.get_seq("x").with_masked_annotations("exon", mask_char="?", shadow=True)
+        )
+        == "CCCC??????????"
+    )
+    assert (
+        str(aln.get_seq("x").with_masked_annotations(["exon", "repeat"], mask_char="?"))
+        == "????AAAAA???AA"
+    )
+    assert (
+        str(
+            aln.get_seq("x").with_masked_annotations(
+                ["exon", "repeat"], mask_char="?", shadow=True
+            )
+        )
+        == "CCCC?????GGG??"
+    )
+    assert (
+        str(aln.get_seq("y").with_masked_annotations("exon", mask_char="?"))
+        == "TTTTTGGTT"
+    )
+    assert (
+        str(aln.get_seq("y").with_masked_annotations("repeat", mask_char="?"))
+        == "TTTTT??TT"
+    )
+    assert (
+        str(
+            aln.get_seq("y").with_masked_annotations(
+                "repeat", mask_char="?", shadow=True
+            )
+        )
+        == "?????GG??"
+    )
+
+    # The same methods can be applied to annotated Alignment's.
+
+    assert aln.with_masked_annotations("exon", mask_char="?").to_dict() == {
+        "x": "?-???AAAAAGGGAA",
+        "y": "-T----TTTTG-GTT",
+    }
+    assert aln.with_masked_annotations(
+        "exon", mask_char="?", shadow=True
+    ).to_dict() == {"x": "C-CCC??????????", "y": "-?----?????-???"}
+    assert aln.with_masked_annotations("repeat", mask_char="?").to_dict() == {
+        "x": "C-CCCAAAAA???AA",
+        "y": "-T----TTTT?-?TT",
+    }
+    assert aln.with_masked_annotations(
+        "repeat", mask_char="?", shadow=True
+    ).to_dict() == {"x": "?-????????GGG??", "y": "-?----????G-G??"}
+    assert aln.with_masked_annotations(["repeat", "exon"], mask_char="?").to_dict() == {
+        "x": "?-???AAAAA???AA",
+        "y": "-T----TTTT?-?TT",
+    }
+    assert aln.with_masked_annotations(["repeat", "exon"], shadow=True).to_dict() == {
+        "x": "C-CCC?????GGG??",
+        "y": "-?----????G-G??",
+    }

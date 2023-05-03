@@ -596,6 +596,8 @@ class _SequenceCollectionBase:
         if value and not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value
+        for seq in self.seqs:
+            seq.annotation_db = value
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
@@ -2228,6 +2230,7 @@ class SequenceCollection(_SequenceCollectionBase):
         seqid: Optional[str] = None,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
+        allow_partial: bool = False,
     ) -> Iterator[Annotation]:
         """yields Annotation instances
 
@@ -2239,6 +2242,8 @@ class SequenceCollection(_SequenceCollectionBase):
             biotype of the feature, e.g. CDS, gene
         name
             name of the feature
+        allow_partial
+            allow features partially overlaping self
 
         Notes
         -----
@@ -2261,7 +2266,10 @@ class SequenceCollection(_SequenceCollectionBase):
         if seqids is None:
             seq_map = None
             for feature in self.annotation_db.get_features_matching(
-                biotype=biotype, name=name, on_alignment=False
+                biotype=biotype,
+                name=name,
+                on_alignment=False,
+                allow_partial=allow_partial,
             ):
                 seqid = feature["seqid"]
                 seq = self.named_seqs[seqid]
@@ -2272,7 +2280,11 @@ class SequenceCollection(_SequenceCollectionBase):
         for seqid in seqids:
             seq = self.named_seqs[seqid]
             for feature in self.annotation_db.get_features_matching(
-                seqid=seqid, biotype=biotype, name=name, on_alignment=False
+                seqid=seqid,
+                biotype=biotype,
+                name=name,
+                on_alignment=False,
+                allow_partial=allow_partial,
             ):
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
@@ -4725,6 +4737,20 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        from cogent3.core.annotation_db import SupportsFeatures
+
+        if value and not isinstance(value, SupportsFeatures):
+            raise TypeError
+        self._annotation_db = value
+        for seq in self.seqs:
+            seq.data.annotation_db = value
+
     def _mapped(self, slicemap):
         align = []
         for name in self.names:
@@ -5199,6 +5225,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         biotype: Optional[str] = None,
         name: Optional[str] = None,
         on_alignment: Optional[bool] = None,
+        allow_partial: bool = False,
     ) -> Iterator[Annotation]:
         """yields Annotation instances
 
@@ -5213,6 +5240,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         on_alignment
             limit query to features on Alignment, ignores sequences. Ignored on
             SequenceCollection instances.
+        allow_partial
+            allow features partially overlaping self
 
         Notes
         -----
@@ -5240,7 +5269,10 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         seq_map = None
         for feature in self.annotation_db.get_features_matching(
-            biotype=biotype, name=name, on_alignment=on_alignment
+            biotype=biotype,
+            name=name,
+            on_alignment=on_alignment,
+            allow_partial=allow_partial,
         ):
             if on_al := feature.pop("on_alignment", on_alignment):
                 if seq_map is None:
