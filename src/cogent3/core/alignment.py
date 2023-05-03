@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2229,7 +2228,6 @@ class SequenceCollection(_SequenceCollectionBase):
         seqid: Optional[str] = None,
         biotype: Optional[str] = None,
         name: Optional[str] = None,
-        on_alignment: Optional[bool] = None,
     ) -> Iterator[Annotation]:
         """yields Annotation instances
 
@@ -2241,9 +2239,6 @@ class SequenceCollection(_SequenceCollectionBase):
             biotype of the feature, e.g. CDS, gene
         name
             name of the feature
-        on_alignment
-            limit query to features on Alignment, ignores sequences. Ignored on
-            SequenceCollection instances.
 
         Notes
         -----
@@ -2251,7 +2246,6 @@ class SequenceCollection(_SequenceCollectionBase):
         yield a sequence segment that is consistently oriented irrespective
         of strand of the current instance.
         """
-        on_alignment = None if not isinstance(self, Alignment) else on_alignment
         if self.annotation_db is None:
             anno_db = merged_db_collection(self.seqs)
             self.annotation_db = anno_db
@@ -2261,30 +2255,14 @@ class SequenceCollection(_SequenceCollectionBase):
 
         seqids = [seqid] if isinstance(seqid, str) else seqid
 
-        if seqid and not set(seqid) & set(self.names):
+        if seqid and not set(seqids) & set(self.names):
             raise ValueError(f"unknown {seqid=}")
-
-        if seqids and on_alignment:
-            raise ValueError(f"cannot provide seqids with on_alignment")
 
         if seqids is None:
             seq_map = None
             for feature in self.annotation_db.get_features_matching(
-                biotype=biotype, name=name, on_alignment=on_alignment
+                biotype=biotype, name=name, on_alignment=False
             ):
-                if on_al := feature.pop("on_alignment", on_alignment):
-                    if seq_map is None:
-                        seq_map = self.seqs[0].map
-                    # gah todo use the Aligned map to transform the absolute
-                    # index from the db into a relative index
-                    spans = numpy.array(feature["spans"])
-                    spans = seq_map.relative_position(spans)
-                    feature["spans"] = spans.tolist()
-                    # and if i've been reversed...?
-                    feature["reversed"] = seq_map.reverse
-                    yield self.make_feature(feature=feature, on_alignment=on_al)
-                    continue
-
                 seqid = feature["seqid"]
                 seq = self.named_seqs[seqid]
                 # passing self only used when self is an Alignment
@@ -2294,7 +2272,7 @@ class SequenceCollection(_SequenceCollectionBase):
         for seqid in seqids:
             seq = self.named_seqs[seqid]
             for feature in self.annotation_db.get_features_matching(
-                seqid=seqid, biotype=biotype, name=name, on_alignment=None
+                seqid=seqid, biotype=biotype, name=name, on_alignment=False
             ):
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
@@ -5213,3 +5191,71 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             fmap = fmap.nucleic_reversed()
         feature.pop("strand", None)
         return Annotation(parent=self, map=fmap, **feature)
+
+    def get_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        on_alignment: Optional[bool] = None,
+    ) -> Iterator[Annotation]:
+        """yields Annotation instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        on_alignment
+            limit query to features on Alignment, ignores sequences. Ignored on
+            SequenceCollection instances.
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        # we only do on-alignment in here
+        if not on_alignment:
+            kwargs = {
+                k: v for k, v in locals().items() if k not in ("self", "__class__")
+            }
+            kwargs.pop("on_alignment")
+            yield from super().get_features(**kwargs)
+
+        if on_alignment == False:
+            return
+
+        if self.annotation_db is None:
+            anno_db = merged_db_collection(self.seqs)
+            self.annotation_db = anno_db
+
+        if self.annotation_db is None:
+            return None
+
+        seq_map = None
+        for feature in self.annotation_db.get_features_matching(
+            biotype=biotype, name=name, on_alignment=on_alignment
+        ):
+            if on_al := feature.pop("on_alignment", on_alignment):
+                if seq_map is None:
+                    seq_map = self.seqs[0].map
+                # gah todo use the Aligned map to transform the absolute
+                # index from the db into a relative index
+                spans = numpy.array(feature["spans"])
+                spans = seq_map.relative_position(spans)
+                feature["spans"] = spans.tolist()
+                # and if i've been reversed...?
+                feature["reversed"] = seq_map.reverse
+                yield self.make_feature(feature=feature, on_alignment=on_al)
+                continue
+
+                seqid = feature["seqid"]
+                seq = self.named_seqs[seqid]
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)

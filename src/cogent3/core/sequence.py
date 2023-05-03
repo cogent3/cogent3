@@ -1080,6 +1080,7 @@ class Sequence(_Annotatable, SequenceI):
             fmap = fmap.nucleic_reversed().reversed()
 
         feature.pop("on_alignment", None)
+        feature.pop("seqid", None)
         return Annotation(parent=self, seqid=self.name, map=fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
