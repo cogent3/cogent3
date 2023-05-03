@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
@@ -291,28 +291,6 @@ class FeaturesTest(TestCase):
         x = got.named_seqs["x"]
         self.assertEqual(str(x.data.annotations[0].get_slice()), "GGGGG")
         self.assertEqual(str(x.data.annotations[1].get_slice()), "C")
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_roundtrip_rc_annotated_align(self):
-        """should work for an alignment that has been reverse complemented"""
-        # the key that exposed the bug was a gap in the middle of the sequence
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
-            array_align=False,
-            moltype="dna",
-        )
-        aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
-        aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
-
-        raln = aln.rc()
-        json = raln.to_json()
-        got = deserialise_object(json)
-        self.assertEqual(got.to_dict(), raln.to_dict())
-        orig_annots = {
-            a.name: a.get_slice() for a in raln.get_annotations_from_any_seq()
-        }
-        got_annots = {a.name: a.get_slice() for a in got.get_annotations_from_any_seq()}
-        self.assertEqual(got_annots, orig_annots)
 
     @pytest.mark.xfail(reason="todo gah delete test not supporting Variable class")
     def test_roundtrip_variable(self):
@@ -713,3 +691,37 @@ def test_nested_get_slice():
     s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
     f = list(ex.get_children())[0]
     assert str(f.get_slice()) == str(s[12:17])
+
+
+def test_roundtrip_annotated_seq():
+    """should work for an alignment that has been reverse complemented"""
+    # the key that exposed the bug was a gap in the middle of the sequence
+    seq = DNA.make_seq(
+        "AAAGGGGGAACCT",
+        name="x",
+    )
+    seq.add_feature(biotype="exon", name="E1", spans=[(3, 8)])
+    seq.add_feature(biotype="exon", name="E2", spans=[(10, 13)])
+    rd = seq.to_rich_dict()
+    ...
+
+
+def test_roundtrip_rc_annotated_align():
+    """should work for an alignment that has been reverse complemented"""
+    # the key that exposed the bug was a gap in the middle of the sequence
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAGGGGGAAC-CT"], ["y", "TTTT--TTTTAGGGA"]],
+        array_align=False,
+        moltype="dna",
+    )
+    aln.get_seq("x").add_feature(biotype="exon", name="E1", spans=[(3, 8)])
+    aln.get_seq("x").add_feature(biotype="exon", name="E2", spans=[(10, 13)])
+
+    raln = aln.rc()
+    rd = raln.to_rich_dict()
+    json = raln.to_json()
+    got = deserialise_object(json)
+    assert got.to_dict() == raln.to_dict()
+    orig_annots = {a.name: a.get_slice() for a in raln.get_features()}
+    got_annots = {a.name: a.get_slice() for a in got.get_features()}
+    assert got_annots == orig_annots

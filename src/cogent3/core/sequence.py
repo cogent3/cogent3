@@ -128,7 +128,7 @@ class SequenceI(object):
             label = self.name
         return alignment_to_fasta({label: str(self)}, block_size=block_size)
 
-    def to_rich_dict(self):
+    def to_rich_dict(self, exclude_annotations=False):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         info = {} if self.info is None else self.info
         if not info.get("Refs", None) is None and "Refs" in info:
@@ -144,13 +144,12 @@ class SequenceI(object):
             version=__version__,
         )
 
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-        except AttributeError:
-            annotations = []
-
-        if annotations:
-            data["annotations"] = annotations
+        if (
+            hasattr(self, "annotation_db")
+            and self.annotation_db
+            and not exclude_annotations
+        ):
+            data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
 

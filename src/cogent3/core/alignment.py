@@ -5218,7 +5218,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         if on_alignment is None:
             on_alignment = feature.pop("on_alignment", None)
 
-        if not on_alignment:
+        if not on_alignment and feature["seqid"]:
             return self.named_seqs[feature["seqid"]].make_feature(feature, self)
 
         # there's no sequence to bind to, the feature is directly on self
@@ -5286,20 +5286,17 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             on_alignment=on_alignment,
             allow_partial=allow_partial,
         ):
-            if on_al := feature.pop("on_alignment", on_alignment):
-                if seq_map is None:
-                    seq_map = self.seqs[0].map
-                # gah todo use the Aligned map to transform the absolute
-                # index from the db into a relative index
-                spans = numpy.array(feature["spans"])
-                spans = seq_map.relative_position(spans)
-                feature["spans"] = spans.tolist()
-                # and if i've been reversed...?
-                feature["reversed"] = seq_map.reverse
-                yield self.make_feature(feature=feature, on_alignment=on_al)
+            if feature["seqid"]:
                 continue
+            on_al = feature.pop("on_alignment", on_alignment)
+            if feature["seqid"]:
+                raise RuntimeError(f"{on_alignment=} {feature=}")
+            if seq_map is None:
+                seq_map = self.seqs[0].map
 
-                seqid = feature["seqid"]
-                seq = self.named_seqs[seqid]
-                # passing self only used when self is an Alignment
-                yield seq.make_feature(feature, self)
+            spans = numpy.array(feature["spans"])
+            spans = seq_map.relative_position(spans)
+            feature["spans"] = spans.tolist()
+            # and if i've been reversed...?
+            feature["reversed"] = seq_map.reverse
+            yield self.make_feature(feature=feature, on_alignment=on_al)

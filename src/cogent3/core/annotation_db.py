@@ -1035,6 +1035,28 @@ def deserialise_gb_db(data: dict):
     return GenbankAnnotationDb.from_dict(data)
 
 
+@register_deserialiser("annotation_to_annotation_db")
+def convert_annotation_to_annotation_db(data: dict) -> dict:
+    from cogent3.util.deserialise import deserialise_map_spans
+
+    db = GffAnnotationDb()
+
+    seqid = data.pop("name", None)
+    anns = data.pop("data")
+    for ann in anns:
+        ann = ann.pop("annotation_construction")
+        m = deserialise_map_spans(ann.pop("map"))
+        spans = m.get_coordinates()
+        strand = "-" if m.reverse else "+"
+        biotype = ann.pop("type")
+        name = ann.pop("name")
+        db.add_feature(
+            seqid=seqid, biotype=biotype, name=name, spans=spans, strand=strand
+        )
+
+    return db
+
+
 def _db_from_genbank(path, db):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
