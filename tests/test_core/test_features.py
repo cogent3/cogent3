@@ -169,32 +169,6 @@ class FeaturesTest(TestCase):
             'cpgsite "cpg" at [8:10]/10',
         )
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_constructor_equivalence(self):
-        # These different constructions should generate the same output.
-        data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]
-        as_series = make_aligned_seqs(data=data, array_align=False)
-        as_items = make_aligned_seqs(data=data, array_align=False)
-
-        serial = as_series.with_masked_annotations(["cpgsite"])
-        itemwise = as_items.with_masked_annotations(["cpgsite"])
-        self.assertEqual(str(serial), str(itemwise))
-
-        # Annotations should be correctly masked,
-        # whether the sequence has been reverse complemented or not.
-        # We use the plus/minus strand CDS containing sequences created above.
-        plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
-        _ = plus.add_annotation(Feature, "CDS", "gene", [(2, 6), (10, 15), (25, 35)])
-        minus = plus.rc()
-        self.assertEqual(
-            str(plus.with_masked_annotations("CDS")),
-            "AA????AAAA?????AAAAAAAAAA??????????AAA",
-        )
-        self.assertEqual(
-            str(minus.with_masked_annotations("CDS")),
-            "TTT??????????TTTTTTTTTT?????TTTT????TT",
-        )
-
     @pytest.mark.xfail(
         reason="todo gah implement support for annotation_db serialisation"
     )
@@ -725,3 +699,50 @@ def test_roundtrip_rc_annotated_align():
     orig_annots = {a.name: a.get_slice() for a in raln.get_features()}
     got_annots = {a.name: a.get_slice() for a in got.get_features()}
     assert got_annots == orig_annots
+
+
+def test_masking_strand_agnostic_seq():
+    db = GffAnnotationDb()
+    db.add_feature(
+        seqid="plus", biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+    )
+
+    # Annotations should be correctly masked,
+    # whether the sequence has been reverse complemented or not.
+    # We use the plus/minus strand CDS containing sequences created above.
+    plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
+    plus.annotation_db = db
+    masked = plus.with_masked_annotations("CDS")
+    assert len(masked) == len(plus)
+    assert str(masked) == "AA????AAAA?????AAAAAAAAAA??????????AAA"
+    minus = plus.rc()
+    masked = minus.with_masked_annotations("CDS")
+    assert len(masked) == len(minus)
+    assert str(masked) == "TTT??????????TTTTTTTTTT?????TTTT????TT"
+
+
+def test_masking_strand_agnostic_aln():
+    db = GffAnnotationDb()
+    db.add_feature(
+        seqid="x", biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+    )
+    aln = make_aligned_seqs(
+        {
+            "x": "AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA",
+            "y": "AAGGGGAAAACCCCCGGGGGGGGGGTTTTTTTTTTAAA",
+        },
+        moltype="dna",
+        array_align=False,
+    )
+    aln.annotation_db = db
+    masked = aln.with_masked_annotations("CDS")
+    assert masked.to_dict() == {
+        "x": "AA????AAAA?????AAAAAAAAAA??????????AAA",
+        "y": str(aln.named_seqs["y"]),
+    }
+    rc = aln.rc()
+    masked = rc.with_masked_annotations("CDS")
+    assert masked.to_dict() == {
+        "x": "TTT??????????TTTTTTTTTT?????TTTT????TT",
+        "y": str(rc.named_seqs["y"]),
+    }

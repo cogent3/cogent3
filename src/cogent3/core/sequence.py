@@ -1216,9 +1216,6 @@ class Sequence(_Annotatable, SequenceI):
         shadow
             whether to mask the annotated regions, or everything but
             the annotated regions
-        extend_query : boolean
-            queries sub-annotations if True
-
         """
         if mask_char is None:
             ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
@@ -1227,7 +1224,7 @@ class Sequence(_Annotatable, SequenceI):
         assert mask_char in self.moltype, f"Invalid mask_char {mask_char}"
 
         annotations = []
-        annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
+        annot_types = [annot_types] if isinstance(annot_types, str) else annot_types
         for annot_type in annot_types:
             annotations += list(
                 self.get_features(biotype=annot_type, allow_partial=True)
@@ -1249,15 +1246,15 @@ class Sequence(_Annotatable, SequenceI):
 
         i = 0
         segments = []
-        for b, e in region.get_coordinates():
-            segments.extend((str(self._seq[i:b]), mask_char * (e - b)))
+        fmap = region.map.reversed() if region.map.reverse else region.map
+        for b, e in fmap.get_coordinates():
+            segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
-        segments.append(str(self._seq[i:]))
+        segments.append(str(self[i:]))
 
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        new.annotations = self.annotations[:]
         return new
 
     def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
