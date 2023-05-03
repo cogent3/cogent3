@@ -103,57 +103,6 @@ class FeaturesTest(TestCase):
         minus_cds = minus.get_features(biotype="CDS")[0]
         self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_feature_from_alignment(self):
-        """seq features obtained from the alignment"""
-
-        # Sequence features can be accessed via a containing Alignment:
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        self.assertEqual(str(aln), ">x\n-AAAAAAAAA\n>y\nTTTT--TTTT\n")
-        exon = aln.get_seq("x").add_annotation(Feature, "exon", "fred", [(3, 8)])
-        aln_exons = aln.get_features(seqid="x", biotype="exon")
-        aln_exons = aln.get_features(biotype="exon")
-        # But these will be returned as **alignment**
-        # features with locations in alignment coordinates.
-
-        self.assertEqual(str(exon), 'exon "fred" at [3:8]/9')
-        self.assertEqual(str(aln_exons[0]), 'exon "fred" at [4:9]/10')
-        self.assertEqual(str(aln_exons[0].get_slice()), ">x\nAAAAA\n>y\n--TTT\n")
-        aln_exons[0].attach()
-        self.assertEqual(len(aln.annotations), 1)
-
-        # Similarly alignment features can be projected onto the aligned sequences,
-        # where they may end up falling across gaps:
-
-        exons = aln.get_projected_annotations("y", "exon")
-        self.assertEqual(str(exons), '[exon "fred" at [-2-, 4:7]/8]')
-        self.assertEqual(str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT")
-
-        # We copy the annotations from another sequence,
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCC"]], array_align=False
-        )
-        self.s = DNA.make_seq("AAAAAAAAA", name="x")
-        exon = self.s.add_annotation(Feature, "exon", "fred", [(3, 8)])
-        exon = aln.get_seq("x").copy_annotations(self.s)
-        aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
-        self.assertEqual(str(aln_exons), '[exon "fred" at [4:9]/10]')
-
-        # even if the name is different.
-
-        exon = aln.get_seq("y").copy_annotations(self.s)
-        aln_exons = list(aln.get_features(seqid="y", biotype="exon"))
-        self.assertEqual(str(aln_exons), '[exon "fred" at [3:4, 6:10]/10]')
-        self.assertEqual(str(aln[aln_exons]), ">x\nAAAAA\n>y\nTCCCC\n")
-
-        # default for get_annotations_from_any_seq is return all features
-        got = aln.get_features()
-        self.assertEqual(len(got), 2)
-
     @pytest.mark.xfail(reason="todo gah implement lost spans")
     def test_lost_spans(self):
         """features no longer included in an alignment represented by lost spans"""
@@ -732,3 +681,34 @@ def test_annotated_region_masks():
         "x": "C-CCC?????GGG??",
         "y": "-?----????G-G??",
     }
+
+
+def test_feature_from_alignment():
+    """seq features obtained from the alignment"""
+
+    # we no longer support copying annotations individually
+    # nor do we provide a mechanism for copying annotations from one
+    # sequence to another
+
+    # Sequence features can be accessed via a containing Alignment:
+    db = GffAnnotationDb()
+    aln = make_aligned_seqs(
+        data={"x": "-AAAAAAAAA", "y": "TTTT--TTTT"}, array_align=False
+    )
+    db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    aln.annotation_db = db
+    aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
+    assert len(aln_exons) == 1
+    aln_exons = aln_exons[0]
+
+    # But these will be returned as **alignment**
+    # features with locations in alignment coordinates.
+    assert aln_exons.get_slice().to_dict() == {"x": "AAAAA", "y": "--TTT"}
+
+    # Similarly alignment features can be projected onto the aligned sequences,
+    # where they may end up falling across gaps:
+
+    exons = aln.get_projected_annotations(seqid="y", biotype="exon")
+    assert len(exons) == 1
+    assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
+    assert 'exon "fred" at [-2-, 4:7]/8' in str(exons[0])

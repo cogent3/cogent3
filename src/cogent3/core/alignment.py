@@ -388,7 +388,7 @@ def merged_db_collection(seqs) -> SupportsFeatures:
                 f"annotation db types must be equal: {type(first)} != {type(db)}"
             )
 
-        if first is None or db is None:
+        if first is None or db is None or first is db:
             continue
         first.update(db)
 
@@ -4773,9 +4773,9 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             raise ValueError("Annotation does not belong to this alignment")
         return annot.remapped_to(target_aligned.data, target_aligned.map)
 
-    def get_projected_annotations(self, seq_name, *args):
-        aln_annots = self.get_features_matching(*args)
-        return [self.project_annotation(seq_name, a) for a in aln_annots]
+    def get_projected_annotations(self, *, seqid: str, **kwargs):
+        aln_annots = list(self.get_features(**kwargs))
+        return [self.project_annotation(seqid, a) for a in aln_annots]
 
     @c3warn.deprecated_callable(
         "2023.7",
