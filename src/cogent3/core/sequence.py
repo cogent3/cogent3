@@ -10,8 +10,8 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
-
 import contextlib
+import copy
 import json
 import os
 import re
@@ -1183,15 +1183,11 @@ class Sequence(_Annotatable, SequenceI):
 
         self.annotation_db.update(seq_db, seqids=self.name)
 
-    def copy(self):
+    def copy(self, exclude_annotations=False):
         """returns a copy of self"""
         new = self.__class__(self._seq[:], name=self.name, info=self.info)
-        if self.is_annotated():
-            for annot in self.annotations:
-                annot.copy_annotations_to(new)
-
-        # todo gah revisit copying and how are we handling _seq too
-        new._annotation_db = self._annotation_db
+        db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
+        new._annotation_db = db
         return new
 
     def _get_feature_start(self, feature):

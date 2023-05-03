@@ -629,22 +629,34 @@ class _SequenceCollectionBase:
 
     def copy(self):
         """Returns deep copy of self."""
-        return self.__class__(self, moltype=self.moltype, info=self.info)
+        result = self.__class__(self, moltype=self.moltype, info=self.info)
+        result._annotation_db = deepcopy(self.annotation_db)
+        return result
 
-    def deepcopy(self, sliced=True):
-        """Returns deep copy of self."""
+    def deepcopy(self, sliced: bool = True):
+        """returns deep copy of self.
+
+        Parameters
+        ----------
+        sliced
+            if True, reduces the sequence to current
+            interval. This also causes dropping
+            annotations.
+        """
         new_seqs = dict()
+        db = None if sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
             try:
-                new_seq = seq.deepcopy(sliced=sliced)
+                new_seq = seq.deepcopy(sliced=sliced, exclude_annotations=True)
             except AttributeError:
-                new_seq = seq.copy()
+                new_seq = seq.copy(exclude_annotations=True)
             new_seqs[seq.name] = new_seq
 
         info = deepcopy(self.info)
         result = self.__class__(
             new_seqs, moltype=self.moltype, info=info, force_same_data=True
         )
+        result.annotation_db = db
         result._repr_policy.update(self._repr_policy)
         return result
 
@@ -2325,19 +2337,21 @@ class Aligned:
         """Returns a shallow copy of self"""
         return self.__class__(self.map, self.data)
 
-    def deepcopy(self, sliced=True):
+    def deepcopy(self, sliced=True, exclude_annotations=False):
         """
         Parameters
         -----------
         sliced : bool
             Slices underlying sequence with start/end of self coordinates. This
             has the effect of breaking the connection to any longer parent sequence.
+        exclude_annotations
+            drops annotation_db when True
 
         Returns
         -------
         a copy of self
         """
-        new_seq = self.data.copy()
+        new_seq = self.data.copy(exclude_annotations=exclude_annotations)
         if sliced:
             span = self.map.get_covering_span()
             new_seq = type(new_seq)(
