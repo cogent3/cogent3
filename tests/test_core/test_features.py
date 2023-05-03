@@ -326,11 +326,6 @@ class FeaturesTest(TestCase):
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
 
-    @pytest.mark.xfail(reason="todo gah change test to use feature to get nested")
-    def test_nested_get_slice(self):
-        """check the get_slice method works on nested annotations"""
-        self.assertEqual(self.nested_feature.get_slice(), "CCC")
-
     @pytest.mark.xfail(reason="todo gah change test to use latest API")
     def test_nested_to_rich_dict(self):
         """check the to_rich_dict method works with nested annotations"""
@@ -708,3 +703,13 @@ def test_feature_from_alignment():
     assert len(exons) == 1
     assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
     assert 'exon "fred" at [-2-, 4:7]/8' in str(exons[0])
+
+
+def test_nested_get_slice():
+    """check the get_slice method works on nested annotations"""
+    s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
+    ex = s.add_feature(biotype="exon", name="fred", spans=[(10, 20)])
+    s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
+    s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
+    f = list(ex.get_children())[0]
+    assert str(f.get_slice()) == str(s[12:17])
