@@ -126,10 +126,10 @@ def test_feature_residue():
         moltype=DNA,
         array_align=False,
     )
+    db = GffAnnotationDb()
+    aln.annotation_db = db
     assert str(aln), ">x\nC-CCCAAAAA\n>y\n-T----TTTT\n"
-    exon = aln.get_seq("x").add_feature(biotype="exon", name="ex1", spans=[(0, 4)])
-    assert 'exon "ex1" at [0:4]/9' in str(exon)
-    assert str(exon.get_slice()), "CCCC"
+    db.add_feature(seqid="x", biotype="exon", name="ex1", spans=[(0, 4)])
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
     assert 'exon "ex1" at [0:1, 2:5]/10' in str(aln_exons)
     assert aln_exons[0].get_slice().to_dict() == dict(x="CCCC", y="----")
@@ -381,9 +381,6 @@ def test_annotated_region_masks():
 
 def test_nested_annotated_region_masks():
     """masking a sequence with specific features when nested annotations"""
-    # gene = aln.get_seq("x").add_feature("gene", "norwegian", [(0, 4)])
-    # gene.add_feature("repeat", "blue", [(1, 3)])
-    # exon = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="gene", name="norwegian", spans=[(0, 4)])
     db.add_feature(seqid="x", biotype="repeat", name="blue", spans=[(1, 3)])

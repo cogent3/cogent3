@@ -3221,9 +3221,11 @@ def test_get_annotations_from_any_seq(cls):
     """get_annotations_from_any_seq returns correct annotations"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = cls(data, moltype=DNA)
-    seqs.get_seq("seq1").add_feature(biotype="exon", name="annotation1", spans=[(3, 8)])
-    seqs.get_seq("seq2").add_feature(biotype="exon", name="annotation2", spans=[(1, 2)])
-    seqs.get_seq("seq3").add_feature(biotype="exon", name="annotation3", spans=[(3, 6)])
+    db = GffAnnotationDb()
+    db.add_feature(seqid="seq1", biotype="exon", name="annotation1", spans=[(3, 8)])
+    db.add_feature(seqid="seq2", biotype="exon", name="annotation2", spans=[(1, 2)])
+    db.add_feature(seqid="seq3", biotype="exon", name="annotation3", spans=[(3, 6)])
+    seqs.annotation_db = db
     got = list(seqs.get_features())
     assert len(got) == 3
     assert 'exon "annotation1" at [3:8]/9' in str(got[0])
@@ -3247,6 +3249,7 @@ def test_annotate_matches_to():
     """Aligned.annotate_matches_to correctly delegates to sequence"""
 
     aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln.annotation_db = GffAnnotationDb()
     seq = aln.named_seqs["x"]
     pattern = "CCRC"
     annot = seq.annotate_matches_to(
@@ -3263,6 +3266,7 @@ def test_annotate_matches_to():
 
     # handles regex from aa
     aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln.annotation_db = GffAnnotationDb()
     gc = get_code(1)
     aa_regex = gc.to_regex("FHF")
     s = aln.named_seqs["x"].annotate_matches_to(

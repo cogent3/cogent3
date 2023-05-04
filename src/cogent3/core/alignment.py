@@ -2259,13 +2259,6 @@ class SequenceCollection(_SequenceCollectionBase):
         of strand of the current instance.
         """
         if self.annotation_db is None:
-            # todo gah this should not be required
-            # the annotation db attribute should be defined on creation,
-            # or when annotation_db is assigned
-            anno_db = merged_db_collection(self.seqs)
-            self.annotation_db = anno_db
-
-        if self.annotation_db is None:
             return None
 
         seqids = [seqid] if isinstance(seqid, str) else seqid
