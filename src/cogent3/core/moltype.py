@@ -759,7 +759,7 @@ class MolType(object):
         name = name or getattr(seq, "name", None)
         if isinstance(seq, ArraySequence):
             seq = str(seq)
-        return self._make_seq(self.coerce_str(seq), name, **kwargs)
+        return self._make_seq(seq=self.coerce_str(seq), name=name, **kwargs)
 
     def make_array_seq(self, seq, name=None, **kwargs):
         """
