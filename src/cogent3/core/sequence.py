@@ -144,7 +144,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self.annotation_offset or self._seq.start
+            offset = self._seq.offset + self._seq.start
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -1309,21 +1309,24 @@ class Sequence(_Annotatable, SequenceI):
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
+        preserve_offset = False
         if hasattr(index, "map"):
             index = index.map
 
-        # todo: kath preserve the offset?
-
         if isinstance(index, Map):
             new = self._mapped(index)
+            preserve_offset = not index.reverse
 
         elif isinstance(index, (int, slice)):
             new = self.__class__(
                 self._seq[index], name=self.name, check=False, info=self.info
             )
+            stride = getattr(index, "step", 1) or 1
+            preserve_offset = stride > 0
 
-        if self.annotation_db is not None:
+        if self.annotation_db is not None and preserve_offset:
             new.annotation_db = self.annotation_db
+            new.annotation_offset = self.annotation_offset
 
         if hasattr(self, "_repr_policy"):
             new._repr_policy.update(self._repr_policy)

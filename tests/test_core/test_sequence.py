@@ -2158,3 +2158,20 @@ def test_to_json(cls, with_offset):
         expect["annotation_offset"] = 0
 
     assert got == expect
+
+
+def test_offset_with_multiple_slices():
+    from cogent3.util.deserialise import deserialise_object
+
+    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+    gff3_path = DATADIR / "ensembl_sample.gff3"
+    seq.annotate_from_gff(gff3_path)
+    rd = seq[2:].to_rich_dict()
+    s1 = deserialise_object(rd)
+    assert s1.annotation_offset == 2
+    rd = s1[3:].to_rich_dict()
+    s2 = deserialise_object(rd)
+    assert s2.annotation_offset == 5
+    expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
+    got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
+    assert got == expect
