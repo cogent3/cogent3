@@ -447,7 +447,7 @@ class Annotation(_AnnotationCore, _Serialisable):
         }
         return self.__class__(**kwargs)
 
-    def get_slice(self, complete: bool = True, allow_gaps: bool = False):
+    def get_slice(self, complete: bool = False, allow_gaps: bool = False):
         """
         The corresponding sequence fragment.
 
