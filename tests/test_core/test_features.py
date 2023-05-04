@@ -5,7 +5,6 @@ import pytest
 from cogent3 import ASCII, DNA, make_aligned_seqs
 from cogent3.core.annotation import Feature, Variable
 from cogent3.core.annotation_db import GffAnnotationDb
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -169,57 +168,6 @@ class FeaturesTest(TestCase):
             str(as_items.get_seq("mouse").add_feature("cpgsite", "cpg", [(8, 10)])),
             'cpgsite "cpg" at [8:10]/10',
         )
-
-    @pytest.mark.xfail(
-        reason="todo gah update test to use latest API plus support serialisation"
-    )
-    def test_roundtripped_alignment(self):
-        """Alignment with annotations roundtrips correctly"""
-        # annotations just on member sequences
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        _ = aln.get_seq("x").add_annotation(Feature, "exon", "fred", [(3, 8)])
-        seq_exon = list(aln.get_features(seqid="x", name="exon"))[0]
-        expect = seq_exon.get_slice()
-
-        json = aln.to_json()
-        new = deserialise_object(json)
-        got_exons = list(new.get_features(seqid="x", name="exon"))[0]
-        self.assertEqual(got_exons.get_slice().to_dict(), expect.to_dict())
-
-        # annotations just on alignment
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
-        )
-        f = aln.add_annotation(Feature, "generic", "no name", [(1, 4), (6, 10)])
-        expect = f.get_slice().to_dict()
-        json = aln.to_json()
-        new = deserialise_object(json)
-        got = list(new.get_features(biotype="generic"))[0]
-        self.assertEqual(got.get_slice().to_dict(), expect)
-
-        # annotations on both alignment and sequence
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
-        )
-        f = aln.add_annotation(Feature, "generic", "no name", [(1, 4), (6, 10)])
-        _ = aln.get_seq("x").add_annotation(Feature, "exon", "1", [(3, 8)])
-        json = aln.to_json()
-        new = deserialise_object(json)
-        ## get back the exon
-        seq_exon = list(aln.get_features(seqid="x", name="exon"))[0]
-        expect = seq_exon.get_slice().to_dict()
-        got_exons = list(new.get_features(seqid="x", name="exon"))[0]
-        self.assertEqual(got_exons.get_slice().to_dict(), expect)
-        ## get back the generic
-        expect = f.get_slice().to_dict()
-        got = list(new.get_features(biotype="generic"))[0]
-        self.assertEqual(got.get_slice().to_dict(), expect)
-
-        # check masking of seq features still works
-        new = new.with_masked_annotations("exon", mask_char="?")
-        self.assertEqual(new[4:9].to_dict(), dict(x="?????", y="--CCC"))
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_roundtripped_alignment2(self):
@@ -747,3 +695,62 @@ def test_roundtrip_json():
     assert new.annotation_offset == 3
     feat = list(new.get_features(biotype="exon", allow_partial=True))[0]
     assert str(feat.get_slice()) == "AA"
+
+
+def test_roundtripped_alignment():
+    """Alignment with annotations roundtrips correctly"""
+    # annotations just on member sequences
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
+    )
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    aln.annotation_db = db
+    seq_exon = list(aln.get_features(seqid="x", biotype="exon"))[0]
+    expect = seq_exon.get_slice()
+
+    json = aln.to_json()
+    new = deserialise_object(json)
+    got_exons = list(new.get_features(seqid="x", biotype="exon"))[0]
+    assert got_exons.get_slice().to_dict() == expect.to_dict()
+
+    # annotations just on alignment
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
+    )
+
+    f = aln.add_feature(biotype="generic", name="no name", spans=[(1, 4), (6, 10)])
+    expect = f.get_slice().to_dict()
+    json = aln.to_json()
+    new = deserialise_object(json)
+    got = list(new.get_features(biotype="generic"))[0]
+    assert got.get_slice().to_dict() == expect
+    # annotations on both alignment and sequence
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
+    )
+    db = GffAnnotationDb()
+    db.add_feature(
+        seqid=None,
+        biotype="generic",
+        name="no name",
+        spans=[(1, 4), (6, 10)],
+        on_alignment=True,
+    )
+    db.add_feature(seqid="x", biotype="exon", name="1", spans=[(3, 8)])
+    aln.annotation_db = db
+    json = aln.to_json()
+    new = deserialise_object(json)
+    ## get back the exon
+    seq_exon = list(aln.get_features(seqid="x", biotype="exon"))[0]
+    expect = seq_exon.get_slice().to_dict()
+    got_exons = list(new.get_features(seqid="x", biotype="exon"))[0]
+    assert got_exons.get_slice().to_dict() == expect
+    ## get back the generic
+    expect = f.get_slice().to_dict()
+    got = list(new.get_features(biotype="generic"))[0]
+    assert got.get_slice().to_dict() == expect
+
+    # check masking of seq features still works
+    new = new.with_masked_annotations("exon", mask_char="?")
+    assert new[4:9].to_dict() == dict(x="?????", y="--CCC")
