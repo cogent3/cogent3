@@ -884,10 +884,16 @@ class Sequence(_Annotatable, SequenceI):
 
     @annotation_db.setter
     def annotation_db(self, value):
-        from cogent3.core.annotation_db import SupportsFeatures
-
         if value and not isinstance(value, SupportsFeatures):
             raise TypeError
+        # Without knowing the contents of the db we cannot
+        # establish whether self.moltype is compatible, so
+        # we rely on the user to get that correct
+        # one approach to support validation might be to add
+        # to the SupportsFeatures protocol a is_nucleic flag,
+        # for both DNA and RNA. But if a user trys get_slice()
+        # on a '-' strand feature, they will get a TypError.
+        # I think that's enough.
         self._annotation_db = value
 
     @deprecated_args(

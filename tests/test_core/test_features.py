@@ -2,8 +2,7 @@ from unittest import TestCase
 
 import pytest
 
-from cogent3 import ASCII, DNA, make_aligned_seqs
-from cogent3.core.annotation import Feature, Variable
+from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
 from cogent3.core.annotation_db import GffAnnotationDb
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
@@ -659,3 +658,14 @@ def test_feature_reverse():
     minus = plus.rc()
     minus_cds = list(minus.get_features(biotype="CDS"))[0]
     assert str(minus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
+
+
+@pytest.mark.parametrize("moltype", ("protein", "bytes", "text"))
+def test_rc_feature_on_wrong_moltype(moltype):
+    moltype = get_moltype(moltype)
+    seq = moltype.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="s1")
+    cds = seq.add_feature(
+        biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)], strand="-"
+    )
+    with pytest.raises(TypeError):
+        cds.get_slice()

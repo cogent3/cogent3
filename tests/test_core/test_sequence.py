@@ -1922,16 +1922,6 @@ def test_seq_repr(one_seq, rc):
     assert expect.startswith(got), (expect, got)
 
 
-@pytest.mark.xfail(reason="todo: to be implemented")
-def test_db_bind_fails_with_incompatible_moltype(worm_seq_path, worm_gff_path):
-    from cogent3.core.annotation_db import load_annotations
-
-    seq = cogent3.load_seq(worm_seq_path, moltype="text")
-    db = load_annotations(worm_gff_path)
-    with pytest.raises(TypeError):
-        seq.annotation_db = db
-
-
 def test_annotation_from_slice_with_stride():
     seq = DNA.make_seq("AAACGCGCGAAAAAAA", name="s1")
     seq.add_feature(biotype="exon", name="ex1", spans=[(3, 9)])
