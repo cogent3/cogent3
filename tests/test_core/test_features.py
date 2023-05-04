@@ -103,23 +103,6 @@ class FeaturesTest(TestCase):
         minus_cds = minus.get_features(biotype="CDS")[0]
         self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
 
-    @pytest.mark.xfail(reason="todo gah implement lost spans")
-    def test_lost_spans(self):
-        """features no longer included in an alignment represented by lost spans"""
-
-        # If the feature lies outside the sequence being copied to, you get a
-        # lost span
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False
-        )
-        seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
-        seq.add_feature("exon", "A", [(5, 8)])
-        aln.get_seq("x").copy_annotations(seq)
-        copied = list(aln.get_features(seqid="x", name="exon"))
-        self.assertEqual(str(copied), '[exon "A" at [5:5, -4-]/5]')
-        self.assertEqual(str(copied[0].get_slice()), ">x\n----\n>y\n----\n")
-
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""
@@ -735,3 +718,12 @@ def test_roundtripped_alignment():
     # check masking of seq features still works
     new = new.with_masked_annotations("exon", mask_char="?")
     assert new[4:9].to_dict() == dict(x="?????", y="--CCC")
+
+
+def test_feature_out_range():
+    """features no longer included in an alignment will not be returned"""
+    aln = make_aligned_seqs(data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False)
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="A", spans=[(5, 8)])
+    f = list(aln.get_features(seqid="x", biotype="exon"))
+    assert not f
