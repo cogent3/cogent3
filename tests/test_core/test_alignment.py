@@ -803,49 +803,6 @@ class SequenceCollectionBaseTests(object):
         got = align_norm.to_nexus("protein")
         self.assertEqual(got, expect)
 
-    def test_to_rich_dict(self):
-        """to_rich_dict produces correct dict"""
-        aln = self.Class({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
-        try:
-            seq_type = get_object_provenance(aln.seqs[0].data)
-        except AttributeError:
-            seq_type = get_object_provenance(aln.seqs[0])
-
-        got = aln.to_rich_dict()
-        expect = {
-            "seqs": {
-                "seq1": {
-                    "name": "seq1",
-                    "seq": "ACGG",
-                    "info": None,
-                    "type": seq_type,
-                    "moltype": aln.moltype.label,
-                    "version": __version__,
-                },
-                "seq2": {
-                    "name": "seq2",
-                    "seq": "CGCA",
-                    "info": None,
-                    "type": seq_type,
-                    "moltype": aln.moltype.label,
-                    "version": __version__,
-                },
-                "seq3": {
-                    "name": "seq3",
-                    "seq": "CCG-",
-                    "info": None,
-                    "type": seq_type,
-                    "moltype": aln.moltype.label,
-                    "version": __version__,
-                },
-            },
-            "moltype": aln.moltype.label,
-            "info": None,
-            "type": get_object_provenance(aln),
-            "version": __version__,
-        }
-        self.assertEqual(got, expect)
-
     def test_to_json(self):
         """roundtrip of to_json produces correct dict"""
         aln = self.Class({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
@@ -3441,3 +3398,54 @@ def test_seq_rename_drops_annotations(cls):
     assert seqs.annotation_db is not None
     new = seqs.rename_seqs(lambda x: x.upper())
     assert new.annotation_db is None
+
+
+@pytest.mark.parametrize(
+    "cls,with_offset",
+    ((SequenceCollection, True), (Alignment, True), (ArrayAlignment, False)),
+)
+def test_to_rich_dict(cls, with_offset):
+    """to_rich_dict produces correct dict"""
+    aln = cls({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
+    try:
+        seq_type = get_object_provenance(aln.seqs[0].data)
+    except AttributeError:
+        seq_type = get_object_provenance(aln.seqs[0])
+
+    got = aln.to_rich_dict()
+    expect = {
+        "seqs": {
+            "seq1": {
+                "name": "seq1",
+                "seq": "ACGG",
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+            "seq2": {
+                "name": "seq2",
+                "seq": "CGCA",
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+            "seq3": {
+                "name": "seq3",
+                "seq": "CCG-",
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+        },
+        "moltype": aln.moltype.label,
+        "info": None,
+        "type": get_object_provenance(aln),
+        "version": __version__,
+    }
+    assert got == expect

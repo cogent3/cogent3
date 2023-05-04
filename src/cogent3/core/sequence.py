@@ -143,6 +143,9 @@ class SequenceI(object):
             type=get_object_provenance(self),
             version=__version__,
         )
+        if hasattr(self, "annotation_offset"):
+            offset = self.annotation_offset or self._seq.start
+            data.update(dict(annotation_offset=offset))
 
         if (
             hasattr(self, "annotation_db")
@@ -804,16 +807,20 @@ class Sequence(_Annotatable, SequenceI):
         preserve_case=False,
         gaps_allowed=True,
         wildcards_allowed=True,
+        annotation_offset=0,
     ):
         """Initialize a sequence.
 
         Parameters
         ----------
-            seq: the raw sequence string, default is ''
-
-            name: the sequence name
-
-            check: if True (the default), validates against the MolType
+        seq
+            the raw sequence string, default is ''
+        name
+            the sequence name
+        check
+            if True (the default), validates against the MolType
+        annotation_offset
+            integer indicating start position relative to annotations
         """
 
         if name is None and hasattr(seq, "name"):
@@ -846,6 +853,7 @@ class Sequence(_Annotatable, SequenceI):
         self._repr_policy = dict(num_pos=60)
 
         self._annotation_db = None
+        self.annotation_offset = annotation_offset
 
     @property
     def annotation_offset(self):
@@ -2088,9 +2096,16 @@ class ABSequence(Sequence):
 class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
-    def __init__(self, seq="", name=None, info=None, check=False, preserve_case=True):
-        super(ByteSequence, self).__init__(
-            seq, name=name, info=info, check=check, preserve_case=preserve_case
+    def __init__(
+        self, seq="", name=None, info=None, check=False, preserve_case=True, **kwargs
+    ):
+        super().__init__(
+            seq=seq,
+            name=name,
+            info=info,
+            check=check,
+            preserve_case=preserve_case,
+            **kwargs,
         )
 
 

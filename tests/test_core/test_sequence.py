@@ -159,34 +159,6 @@ class SequenceTests(TestCase):
         r = self.RNA("ugagg")
         assert dumps(r)
 
-    def test_to_rich_dict(self):
-        """Sequence to_dict works"""
-        r = self.SEQ("AAGGCC", name="seq1")
-        got = r.to_rich_dict()
-        expect = {
-            "name": "seq1",
-            "seq": "AAGGCC",
-            "moltype": r.moltype.label,
-            "info": None,
-            "type": get_object_provenance(r),
-            "version": __version__,
-        }
-        self.assertEqual(got, expect)
-
-    def test_to_json(self):
-        """to_json roundtrip recreates to_dict"""
-        r = self.SEQ("AAGGCC", name="seq1")
-        got = json.loads(r.to_json())
-        expect = {
-            "name": "seq1",
-            "seq": "AAGGCC",
-            "moltype": r.moltype.label,
-            "info": None,
-            "type": get_object_provenance(r),
-            "version": __version__,
-        }
-        self.assertEqual(got, expect)
-
     def test_sequence_to_moltype(self):
         """correctly convert to specified moltype"""
         s = Sequence("TTTTTTTTTTAAAA", name="test1")
@@ -2148,3 +2120,41 @@ def test_to_moltype_rna():
     rna = seq.to_moltype("dna")
 
     assert "U" not in rna
+
+
+@pytest.mark.parametrize("cls,with_offset", ((ArraySequence, False), (Sequence, True)))
+def test_to_rich_dict(cls, with_offset):
+    """Sequence to_dict works"""
+    r = cls("AAGGCC", name="seq1")
+    got = r.to_rich_dict()
+    expect = {
+        "name": "seq1",
+        "seq": "AAGGCC",
+        "moltype": r.moltype.label,
+        "info": None,
+        "type": get_object_provenance(r),
+        "version": __version__,
+    }
+    if with_offset:
+        expect["annotation_offset"] = 0
+
+    assert got == expect
+
+
+@pytest.mark.parametrize("cls,with_offset", ((ArraySequence, False), (Sequence, True)))
+def test_to_json(cls, with_offset):
+    """to_json roundtrip recreates to_dict"""
+    r = cls("AAGGCC", name="seq1")
+    got = json.loads(r.to_json())
+    expect = {
+        "name": "seq1",
+        "seq": "AAGGCC",
+        "moltype": r.moltype.label,
+        "info": None,
+        "type": get_object_provenance(r),
+        "version": __version__,
+    }
+    if with_offset:
+        expect["annotation_offset"] = 0
+
+    assert got == expect

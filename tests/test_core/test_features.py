@@ -170,27 +170,6 @@ class FeaturesTest(TestCase):
         )
 
     @pytest.mark.xfail(
-        reason="todo gah implement support for annotation_db serialisation"
-    )
-    def test_roundtrip_json(self):
-        """features can roundtrip from json"""
-
-        seq = DNA.make_seq("AAAAATATTATTGGGT")
-        seq.add_annotation(Feature, "exon", "myname", [(0, 5)])
-        got = seq.to_json()
-        new = deserialise_object(got)
-        feat = new.get_features(biotype="exon")[0]
-        self.assertEqual(str(feat.get_slice()), "AAAAA")
-
-        # now with a list span
-        seq = seq[3:]
-        feat = seq.get_features(biotype="exon")[0]
-        got = seq.to_json()
-        new = deserialise_object(got)
-        feat = new.get_features(biotype="exon")[0]
-        self.assertEqual(str(feat.get_slice(complete=False)), "AA")
-
-    @pytest.mark.xfail(
         reason="todo gah update test to use latest API plus support serialisation"
     )
     def test_roundtripped_alignment(self):
@@ -748,3 +727,22 @@ def test_masking_strand_agnostic_aln():
         "x": "TTT??????????TTTTTTTTTT?????TTTT????TT",
         "y": str(rc.named_seqs["y"]),
     }
+
+
+def test_roundtrip_json():
+    """features can roundtrip from json"""
+
+    seq = DNA.make_seq("AAAAATATTATTGGGT")
+    seq.add_feature(biotype="exon", name="myname", spans=[(0, 5)])
+    got = seq.to_json()
+    new = deserialise_object(got)
+    feat = list(new.get_features(biotype="exon"))[0]
+    assert str(feat.get_slice()) == "AAAAA"
+
+    # now with a list span
+    seq = seq[3:]
+    got = seq.to_json()
+    new = deserialise_object(got)
+    assert new.annotation_offset == 3
+    feat = list(new.get_features(biotype="exon", allow_partial=True))[0]
+    assert str(feat.get_slice()) == "AA"
