@@ -1932,11 +1932,14 @@ def test_db_bind_fails_with_incompatible_moltype(worm_seq_path, worm_gff_path):
         seq.annotation_db = db
 
 
-@pytest.mark.xfail(reason="todo: write test")
 def test_annotation_from_slice_with_stride():
-    raise NotImplementedError(
-        "check annotations get correct sequence when there's a stride"
-    )
+    seq = DNA.make_seq("AAACGCGCGAAAAAAA", name="s1")
+    seq.add_feature(biotype="exon", name="ex1", spans=[(3, 9)])
+    f = list(seq.get_features(name="ex1"))[0]
+    assert str(f.get_slice()) == "CGCGCG"
+    s1 = seq[1::2]
+    f = list(s1.get_features(name="ex1"))[0]
+    assert str(f.get_slice()) == "CCC"
 
 
 def test_absolute_position_base_cases(one_seq):
