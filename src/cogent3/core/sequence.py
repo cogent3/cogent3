@@ -1751,7 +1751,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step", "offset")
+    __slots__ = ("seq", "start", "stop", "step", "_offset")
 
     def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
         if step == 0:
@@ -1763,8 +1763,16 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
-        self.offset = None  # todo gah this should default to 0
+        self._offset = 0
         self.step = step
+
+    @property
+    def offset(self) -> int:
+        return self._offset
+
+    @offset.setter
+    def offset(self, value: int):
+        self._offset = value or 0
 
     @property
     def reversed(self):
@@ -1791,7 +1799,7 @@ class SeqView:
         seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
 
         # add offset and handle reversed views, now absolute relative to annotation coordinates
-        offset = 0 if self.offset is None else self.offset
+        offset = self.offset
         if self.reversed:
             abs_index = offset + len(self.seq) + seq_index + 1
         else:
@@ -1810,7 +1818,7 @@ class SeqView:
             raise IndexError("Index must be +ve and relative to the + strand")
 
         if self.reversed:
-            offset = 0 if self.offset is None else self.offset
+            offset = self.offset
 
             if (
                 tmp := ((len(self.seq) - (abs_index - offset)) + self.start + 1)
@@ -1820,7 +1828,7 @@ class SeqView:
                 rel_pos = (tmp // abs(self.step)) + 1
 
         else:
-            offset = self.start if self.offset is None else self.offset + self.start
+            offset = self.offset + self.start
 
             if (tmp := abs_index - offset) % self.step == 0 or stop:
                 rel_pos = tmp // self.step

@@ -2040,7 +2040,7 @@ def test_relative_position_with_remainder(integer_seq):
 def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
-    view.annotation_offset = offset
+    view.annotation_offset = offset or 0
     abs_val = view._seq.absolute_position(value)
     rel_val = view._seq.relative_position(abs_val)
     assert rel_val == value
@@ -2056,10 +2056,10 @@ def test_absolute_relative_roundtrip_reverse(
 ):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
-    view.offset = offset
+    view.offset = offset or 0
     abs_val = view.absolute_position(value)
     rel_val = view.relative_position(abs_val)
-    assert view.offset == offset
+    assert view.offset == (offset or 0)
     assert (view[rel_val]).value == view[value].value
 
 
