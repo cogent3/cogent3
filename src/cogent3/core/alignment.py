@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -1160,13 +1159,8 @@ class _SequenceCollectionBase:
             version=__version__,
         )
 
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-        except AttributeError:
-            annotations = []
-
-        if annotations:
-            data["annotations"] = annotations
+        if hasattr(self, "annotation_db") and self.annotation_db:
+            data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
 
@@ -2450,10 +2444,7 @@ class Aligned:
             raise NotImplementedError
         start, end = coords[0]
         data = self.data[start:end]
-        # drop any lost spans
-        for i, a in enumerate(data.annotations):
-            data.annotations[i] = a.without_lost_spans()
-        data = data.to_rich_dict()
+        data = data.to_rich_dict(exclude_annotations=True)
         data["seq"] = str(self)
         data["version"] = __version__
         return data

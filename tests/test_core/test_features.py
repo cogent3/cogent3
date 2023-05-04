@@ -152,31 +152,6 @@ class FeaturesTest(TestCase):
             'cpgsite "cpg" at [8:10]/10',
         )
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_roundtripped_alignment2(self):
-        """Sliced Alignment with annotations roundtrips correctly"""
-        # annotations just on member sequences
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
-        )
-        aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
-        aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
-        # at the alignment level
-        sub_aln = aln[:-3]
-        s = sub_aln.named_seqs["x"]
-        d = s.data[:11]
-        json = s.to_json()
-        new = deserialise_object(json)
-        gf1, gf2 = list(new.data.get_features(biotype="exon"))
-        self.assertEqual(str(gf1.get_slice()), "GGGGG")
-        self.assertEqual(str(gf2.get_slice()), "C")
-        # the sliced alignment
-        json = sub_aln.to_json()
-        got = deserialise_object(json)
-        x = got.named_seqs["x"]
-        self.assertEqual(str(x.data.annotations[0].get_slice()), "GGGGG")
-        self.assertEqual(str(x.data.annotations[1].get_slice()), "C")
-
     @pytest.mark.xfail(reason="todo gah delete test not supporting Variable class")
     def test_roundtrip_variable(self):
         """should recover the Variable feature type"""
@@ -727,3 +702,21 @@ def test_feature_out_range():
     db.add_feature(seqid="x", biotype="exon", name="A", spans=[(5, 8)])
     f = list(aln.get_features(seqid="x", biotype="exon"))
     assert not f
+
+
+def test_roundtripped_alignment_with_slices():
+    """Sliced Alignment with annotations roundtrips correctly"""
+    # annotations just on member sequences
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
+    )
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="E1", spans=[(3, 8)])
+    db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
+    aln.annotation_db = db
+    # at the alignment level
+    sub_aln = aln[:-3]
+    new = deserialise_object(sub_aln.to_json())
+    gf1, gf2 = list(new.get_features(biotype="exon", allow_partial=True))
+    assert gf1.get_slice().to_dict() == {"x": "GGGGG", "y": "--TTT"}
+    assert gf2.get_slice().to_dict() == {"x": "C", "y": "G"}
