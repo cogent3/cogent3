@@ -196,7 +196,7 @@ def test_feature_projection_gapped(ann_aln):
     seq_ltr = ann_aln.project_annotation(seq_name, aln_ltr)
 
     with pytest.raises(ValueError):
-        seq_ltr.get_slice()
+        seq_ltr.get_slice(complete=True)
 
     # to get the annotation on the seq coord
     seq_ltr = seq_ltr.without_lost_spans()
