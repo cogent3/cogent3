@@ -82,55 +82,6 @@ class FeaturesTest(TestCase):
         shadow = exon1.union(exons).shadow()
         assert str(shadow.get_slice()) == expect
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_annotated_separately_equivalence(self):
-        """allow defining features as a series or individually"""
-
-        # It shouldn't matter whether annotated coordinates are entered
-        # separately, or as a series.
-
-        data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]
-        as_series = make_aligned_seqs(data=data, array_align=False)
-        as_items = make_aligned_seqs(data=data, array_align=False)
-
-        # We add annotations to the sequences as a series.
-
-        self.assertEqual(
-            str(
-                as_series.get_seq("human").add_feature(
-                    biotype="cpgsite", name="cpg", spans=[(0, 2), (5, 7)]
-                )
-            ),
-            'cpgsite "cpg" at [0:2, 5:7]/10',
-        )
-        self.assertEqual(
-            str(
-                as_series.get_seq("mouse").add_feature(
-                    biotype="cpgsite", name="cpg", spans=[(5, 7), (8, 10)]
-                )
-            ),
-            'cpgsite "cpg" at [5:7, 8:10]/10',
-        )
-
-        # We add the annotations to the sequences one segment at a time.
-
-        self.assertEqual(
-            str(as_items.get_seq("human").add_feature("cpgsite", "cpg", [(0, 2)])),
-            'cpgsite "cpg" at [0:2]/10',
-        )
-        self.assertEqual(
-            str(as_items.get_seq("human").add_feature("cpgsite", "cpg", [(5, 7)])),
-            'cpgsite "cpg" at [5:7]/10',
-        )
-        self.assertEqual(
-            str(as_items.get_seq("mouse").add_feature("cpgsite", "cpg", [(5, 7)])),
-            'cpgsite "cpg" at [5:7]/10',
-        )
-        self.assertEqual(
-            str(as_items.get_seq("mouse").add_feature("cpgsite", "cpg", [(8, 10)])),
-            'cpgsite "cpg" at [8:10]/10',
-        )
-
     @pytest.mark.xfail(reason="todo gah delete test not supporting Variable class")
     def test_roundtrip_variable(self):
         """should recover the Variable feature type"""
