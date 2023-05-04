@@ -83,27 +83,6 @@ class FeaturesTest(TestCase):
         assert str(shadow.get_slice()) == expect
 
     @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_feature_reverse(self):
-        """reverse complement of features"""
-
-        # When dealing with sequences that can be reverse complemented
-        # (e.g. DnaSequence) features are **not** reversed.
-        # Features are considered to have strand specific meaning
-        # (.e.g CDS, exons) and so stay on their original strands.
-        # We create a sequence with a CDS that spans multiple exons,
-        # and show that after getting the reverse complement we have
-        # exactly the same result from getting the CDS annotation.
-
-        plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
-        plus_cds = plus.add_annotation(
-            Feature, "CDS", "gene", [(2, 6), (10, 15), (25, 35)]
-        )
-        self.assertEqual(str(plus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
-        minus = plus.rc()
-        minus_cds = minus.get_features(biotype="CDS")[0]
-        self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
     def test_annotated_separately_equivalence(self):
         """allow defining features as a series or individually"""
 
@@ -720,3 +699,24 @@ def test_roundtripped_alignment_with_slices():
     gf1, gf2 = list(new.get_features(biotype="exon", allow_partial=True))
     assert gf1.get_slice().to_dict() == {"x": "GGGGG", "y": "--TTT"}
     assert gf2.get_slice().to_dict() == {"x": "C", "y": "G"}
+
+
+def test_feature_reverse():
+    """reverse complement of features"""
+
+    # When dealing with sequences that can be reverse complemented
+    # (e.g. DnaSequence) features are **not** reversed.
+    # Features are considered to have strand specific meaning
+    # (.e.g CDS, exons) and so stay on their original strands.
+    # We create a sequence with a CDS that spans multiple exons,
+    # and show that after getting the reverse complement we have
+    # exactly the same result from getting the CDS annotation.
+
+    plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
+    plus_cds = plus.add_feature(
+        biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+    )
+    assert str(plus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
+    minus = plus.rc()
+    minus_cds = list(minus.get_features(biotype="CDS"))[0]
+    assert str(minus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
