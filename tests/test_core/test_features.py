@@ -82,18 +82,6 @@ class FeaturesTest(TestCase):
         shadow = exon1.union(exons).shadow()
         assert str(shadow.get_slice()) == expect
 
-    @pytest.mark.xfail(reason="todo gah delete test not supporting Variable class")
-    def test_roundtrip_variable(self):
-        """should recover the Variable feature type"""
-        seq = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
-        xx_y = [[[2, 6], 2.4], [[10, 15], 5.1], [[25, 35], 1.3]]
-        y_valued = seq.add_annotation(Variable, "SNP", "freq", xx_y)
-        json = seq.to_json()
-        new = deserialise_object(json)
-        got = list(new.get_features(biotype="SNP"))[0]
-        # annoyingly, comes back as list of lists
-        self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
-
     def test_annotate_matches_to(self):
         """annotate_matches_to attaches annotations correctly to a Sequence"""
         seq = DNA.make_seq("TTCCACTTCCGCTT", name="x")
