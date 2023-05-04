@@ -206,25 +206,6 @@ class FeaturesTest(TestCase):
         # annoyingly, comes back as list of lists
         self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
 
-    @pytest.mark.xfail(reason="todo gah change test to use latest API")
-    def test_nested_to_rich_dict(self):
-        """check the to_rich_dict method works with nested annotations"""
-        self.assertEqual(
-            self.exon1.to_rich_dict()["annotations"][0],
-            self.nested_feature.to_rich_dict(),
-        )
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_nested_deserialise_annotation(self):
-        """nested annotations can be deserialised"""
-        got = self.s.to_json()
-        new = deserialise_object(got)
-        new_exon1 = new.annotations[0]
-        new_nested_feature = new_exon1.annotations[0]
-        self.assertEqual(
-            new_nested_feature.to_rich_dict(), self.nested_feature.to_rich_dict()
-        )
-
     def test_annotate_matches_to(self):
         """annotate_matches_to attaches annotations correctly to a Sequence"""
         seq = DNA.make_seq("TTCCACTTCCGCTT", name="x")
