@@ -668,7 +668,7 @@ def test_nested_get_slice():
 
 
 def test_roundtrip_annotated_seq():
-    """should work for an alignment that has been reverse complemented"""
+    """should work for a seq that has been reverse complemented"""
     # the key that exposed the bug was a gap in the middle of the sequence
     seq = DNA.make_seq(
         "AAAGGGGGAACCT",
@@ -676,8 +676,11 @@ def test_roundtrip_annotated_seq():
     )
     seq.add_feature(biotype="exon", name="E1", spans=[(3, 8)])
     seq.add_feature(biotype="exon", name="E2", spans=[(10, 13)])
-    rd = seq.to_rich_dict()
-    ...
+
+    rseq = deserialise_object(seq.to_json())
+    orig_annots = {a.name: str(a.get_slice()) for a in seq.get_features()}
+    got_annots = {a.name: str(a.get_slice()) for a in rseq.get_features()}
+    assert got_annots == orig_annots
 
 
 def test_roundtrip_rc_annotated_align():
@@ -692,7 +695,6 @@ def test_roundtrip_rc_annotated_align():
     aln.get_seq("x").add_feature(biotype="exon", name="E2", spans=[(10, 13)])
 
     raln = aln.rc()
-    rd = raln.to_rich_dict()
     json = raln.to_json()
     got = deserialise_object(json)
     assert got.to_dict() == raln.to_dict()

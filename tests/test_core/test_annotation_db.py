@@ -139,13 +139,6 @@ def test_gff_find_user_features(gff_db):
     assert found
 
 
-def test_to_rich_dict(gff_db):
-    # not a very good test! needs to be serialise / deserialize
-    rd = gff_db.to_rich_dict()
-    assert "type" in rd
-    _ = GffAnnotationDb.from_dict(rd)
-
-
 def test_empty_data():
     _ = GffAnnotationDb()
 
