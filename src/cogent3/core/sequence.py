@@ -1192,7 +1192,10 @@ class Sequence(_Annotatable, SequenceI):
 
     def copy(self, exclude_annotations=False):
         """returns a copy of self"""
-        new = self.__class__(self._seq[:], name=self.name, info=self.info)
+        offset = self._seq.offset + self._seq.start
+        new = self.__class__(
+            self._seq[:], name=self.name, info=self.info, annotation_offset=offset
+        )
         db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
         new._annotation_db = db
         return new
@@ -1464,7 +1467,7 @@ class Sequence(_Annotatable, SequenceI):
     def is_annotated(self):
         """returns True if sequence has any annotations"""
         num = self.annotation_db.num_matches() if self.annotation_db else 0
-        return num != 0 or len(self.annotations) != 0
+        return num != 0
 
     def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
         """Adds an annotation at sequence positions matching pattern.

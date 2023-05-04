@@ -47,6 +47,7 @@ from cogent3.core.alignment import (
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
+from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
 from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
 from cogent3.maths.util import safe_p_log_p
@@ -3320,59 +3321,31 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
         seqcoll_db.copy_annotations({"a": "ACGGT"})
 
 
-@pytest.mark.xfail(reason="todo gah to be implemented")
 def test_deepcopy_with_features():
     """correctly deepcopy Aligned objects in an alignment"""
     path = DATA_DIR / "brca1_5.paml"
     # generates an annotatable Alignment object
     aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+    db = GffAnnotationDb()
     # when the annotation is outside(before) boundary of the slice
-    aln.add_feature(seqid="NineBande", biotype="exon", name="annot1", spans=[(0, 10)])
+    db.add_feature(seqid="NineBande", biotype="exon", name="annot1", spans=[(0, 10)])
     # when the annotation is across boundary of the slice
-    aln.add_feature(seqid="Mouse", biotype="exon", name="annot2", spans=[(10, 21)])
+    db.add_feature(seqid="Mouse", biotype="exon", name="annot2", spans=[(10, 21)])
     # when the annotation is within boundary of the slice
-    aln.add_feature(seqid="Human", biotype="exon", name="annot3", spans=[(20, 25)])
+    db.add_feature(seqid="Human", biotype="exon", name="annot3", spans=[(20, 25)])
     # when the annotation is across boundary of the slice
-    aln.add_feature(seqid="HowlerMon", biotype="exon", name="annot4", spans=[(25, 32)])
+    db.add_feature(seqid="HowlerMon", biotype="exon", name="annot4", spans=[(25, 32)])
     # when the annotation is outside(after) boundary of the slice
-    aln.add_feature(seqid="DogFaced", biotype="exon", name="annot5", spans=[(40, 45)])
+    db.add_feature(seqid="DogFaced", biotype="exon", name="annot5", spans=[(40, 45)])
+    aln.annotation_db = db
     aln = aln[20:30]
-
-    # for these species, each has an annotation spanning slice boundary or within it
-    for name in ["Mouse", "Human", "HowlerMon"]:
-        new_seq = aln.named_seqs[name].deepcopy(sliced=True)
-        seq = aln.named_seqs[name]
-        assert new_seq.map.parent_length, seq.map.parent_length
-
-        assert len(new_seq.data) == 10
-        assert new_seq.data.is_annotated()
-        assert len(new_seq.data.annotations) == 1
-        # tests the case when sliced argument if False
-        new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-        assert new_seq.map.parent_length == seq.map.parent_length
-        assert len(new_seq.data) == len(aln.named_seqs[name].data)
-        assert new_seq.data.is_annotated()
-
-    # for these species, each has an annotation outside slice
-    for name in ["NineBande", "DogFaced"]:
-        new_seq = aln.named_seqs[name].deepcopy(sliced=True)
-        assert len(new_seq.data) == 10
-        assert new_seq.data.is_annotated()
-        # tests the case when sliced argument if False
-        new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-        assert len(new_seq.data) == len(aln.named_seqs[name].data)
-        assert new_seq.data.is_annotated()
-        assert len(new_seq.data.annotations) == 1
-
-    # add another human annotation that is outside slice
-    aln.named_seqs["Human"].data.add_feature(
-        biotype="exon", name="annot6", spans=[(40, 45)]
-    )
-    # tests the case when sliced argument if False regarding the Human sequence
-    new_seq = aln.named_seqs["Human"].deepcopy(sliced=False)
-    assert len(new_seq.data) == len(aln.named_seqs["Human"].data)
-    assert new_seq.data.is_annotated()
-    assert len(new_seq.data.annotations) == 2
+    copied = aln.deepcopy(sliced=False)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3  # overlap is Mouse, Human, HowlerMon
+    rced = aln.rc()
+    copied = rced.deepcopy(sliced=False)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3  # overlap is Mouse, Human, HowlerMon
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
