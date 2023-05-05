@@ -921,11 +921,9 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
             store = {"seqid": seqid}
             # we create the location data directly
             if location := record.get("location", None):
-                store["spans"] = numpy.array(
-                    sorted([sorted((s.start, s.stop)) for s in location]), dtype=int
-                )
+                store["spans"] = numpy.array(location.get_coordinates(), dtype=int)
                 if strand := location.strand:
-                    store["strand"] = strand
+                    store["strand"] = "-" if strand == -1 else "+"
                 store["start"] = int(store["spans"].min())
                 store["end"] = int(store["spans"].max())
 
@@ -1059,12 +1057,12 @@ def convert_annotation_to_annotation_db(data: dict) -> dict:
 
 def _db_from_genbank(path, db):
     from cogent3 import open_
-    from cogent3.parse.genbank import MinimalGenbankParser
+    from cogent3.parse.genbank import RichGenbankParser
 
     with open_(path) as infile:
-        data = list(MinimalGenbankParser(infile))
+        data = list(RichGenbankParser(infile, db=db))[0][1]
 
-    return GenbankAnnotationDb(data=data[0]["features"], seqid=data[0]["locus"], db=db)
+    return data.annotation_db
 
 
 def _leave_attributes(*attrs):
