@@ -53,7 +53,7 @@ from numpy.random import choice, permutation, randint
 
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
-from cogent3.core.annotation import Annotation, Map, _Annotatable
+from cogent3.core.annotation import Annotation, Map
 from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
@@ -4717,7 +4717,7 @@ class Alignment(AlignmentI, SequenceCollection):
     def _coerce_seqs(self, seqs, is_array):
         if any(isinstance(seq, ArraySequence) for seq in seqs):
             seqs = [self.moltype.make_seq(str(seq), name=seq.name) for seq in seqs]
-        elif not any(isinstance(seq, (_Annotatable, Aligned)) for seq in seqs):
+        elif not any(isinstance(seq, (Sequence, Aligned)) for seq in seqs):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 

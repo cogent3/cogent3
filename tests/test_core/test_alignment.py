@@ -2289,14 +2289,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue("-" not in found_motifs)
         self.assertEqual(lengths, {2})
 
-    def test_get_seq_entropy(self):
-        """ArrayAlignment get_seq_entropy should get entropy of each seq"""
-        seqs = [AB.make_seq(s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
-        a = self.Class(seqs, alphabet=AB.alphabet)
-        entropy = a.entropy_per_seq()
-        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
-        assert_allclose(entropy, array([1, 0, e]))
-
     def test_seq_entropy_just_gaps(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""
         a = self.Class(dict(a="A---", b="----"), moltype=DNA)
@@ -2765,11 +2757,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         for name in rna.names:
             orig_seq = aln.get_seq(name)
             new_seq = rna.get_seq(name)
-            self.assertEqual(len(orig_seq.annotations), len(new_seq.annotations))
-            for src, dest in zip(orig_seq.annotations, new_seq.annotations):
-                self.assertEqual(src.get_coordinates(), dest.get_coordinates())
-                self.assertIsInstance(src, dest.__class__)
-                self.assertIs(dest.parent, new_seq)
         # check the sequence moltypes
         self.assertEqual({s.data.moltype.label for s in rna.seqs}, {"rna"})
         self.assertEqual(rna.moltype.label, "rna")
@@ -3431,3 +3418,13 @@ def test_dotplot_annotated(cls):
     seqs.annotation_db = db
     seqs = seqs.take_seqs(["Human", "Mouse"])
     _ = seqs.dotplot(show_progress=False)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_get_seq_entropy(cls):
+    """ArrayAlignment get_seq_entropy should get entropy of each seq"""
+    seqs = [AB.make_seq(s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
+    a = cls(seqs, alphabet=AB.alphabet)
+    entropy = a.entropy_per_seq()
+    e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+    assert_allclose(entropy, array([1, 0, e]))

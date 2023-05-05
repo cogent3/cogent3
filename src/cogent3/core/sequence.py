@@ -38,7 +38,7 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Annotation, _Annotatable
+from cogent3.core.annotation import Annotation
 from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
@@ -794,7 +794,7 @@ class SequenceI(object):
 
 
 @total_ordering
-class Sequence(_Annotatable, SequenceI):
+class Sequence(SequenceI):
     """Holds the standard Sequence object. Immutable."""
 
     moltype = None  # connected to ACSII when moltype is imported
