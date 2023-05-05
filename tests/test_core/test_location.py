@@ -593,5 +593,3 @@ def test_map_plus_position():
     rc = orig.nucleic_reversed()
     rcsubseq = rc[2:7]
     abs_coord = rcsubseq.absolute_position(0)
-    abs_rc_coord = orig.convert_position_for_reversed(abs_coord)
-    assert abs_rc_coord == 6, (abs_coord, abs_rc_coord)

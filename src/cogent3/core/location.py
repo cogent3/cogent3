@@ -886,20 +886,6 @@ class Map(object):
             raise ValueError(f"must positive, not {abs_pos=}")
         return abs_pos - self.start
 
-    def convert_position_for_reversed(self, rel_pos: T) -> T:
-        """adjusts a relative position for changed orientation
-
-        Raises
-        ------
-        raises ValueError if rel_pos < 0 or rel_pos > len(self)
-        """
-        check = array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
-        if check.min() < 0 or check.max() > len(self):
-            raise ValueError(
-                f"must be a relative position within [0,{len(self)}], not {rel_pos=}"
-            )
-        return len(self) - rel_pos - 1
-
 
 class SpansOnly(ConstrainedList):
     """List that converts elements to Spans on addition."""
