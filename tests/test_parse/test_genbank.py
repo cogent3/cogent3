@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for the GenBank database parsers.
 """
 from unittest import TestCase, main
@@ -539,40 +538,32 @@ def test_Location_start():
 class LocationListTests(TestCase):
     """Tests of the LocationList class."""
 
-    def test_extract(self):
-        """LocationList extract should return correct sequence"""
-        l = Location(3)
-        l2_a = Location(5)
-        l2_b = Location(7)
-        l2 = Location([l2_a, l2_b], strand=-1)
-        l3_a = Location(10)
-        l3_b = Location(12)
-        l3 = Location([l3_a, l3_b])
-        ll = LocationList([l, l2, l3])
-        s = ll.extract("ACGTGCAGTCAGTAGCAT")
-        #               123456789012345678
-        self.assertEqual(s, "G" + "TGC" + "CAG")
-        # check a case where it wraps around
-        l5_a = Location(16)
-        l5_b = Location(4)
-        l5 = Location([l5_a, l5_b])
-        ll = LocationList([l5])
-        s = ll.extract("ACGTGCAGTCAGTAGCAT")
-        self.assertEqual(s, "CATACGT")
+
+def test_locationlist_extract():
+    """LocationList extract should return correct sequence"""
+    l = Location(3)
+    l2_a = Location(5)
+    l2_b = Location(7)
+    l2 = Location([l2_a, l2_b], strand=-1)
+    l3_a = Location(10)
+    l3_b = Location(12)
+    l3 = Location([l3_a, l3_b])
+    ll = LocationList([l, l2, l3])
+    s = ll.extract("ACGTGCAGTCAGTAGCAT")
+    #               123456789012345678
+    assert s == "G" + "TGC" + "CAG"
+    # check a case where it wraps around
+    l5_a = Location(16)
+    l5_b = Location(4)
+    l5 = Location([l5_a, l5_b])
+    ll = LocationList([l5])
+    s = ll.extract("ACGTGCAGTCAGTAGCAT")
+    assert s == "CATACGT"
 
 
-if __name__ == "__main__":
-    from sys import argv
-
-    if len(argv) > 2 and argv[1] == "x":
-        filename = argv[2]
-        lines = open(filename)
-        for i in indent_splitter(lines):
-            print("******")
-            print(i[0])
-            for j in indent_splitter(i[1:]):
-                print("?????")
-                for line in j:
-                    print(line)
-    else:
-        main()
+def test_location_list_get_coordinates():
+    l = "complement(join(5670..5918,5965..6126))"
+    l = location_line_tokenizer([l])
+    g = parse_location_line(l)
+    spans = g.get_coordinates()
+    assert spans == [(5669, 5918), (5964, 6126)]

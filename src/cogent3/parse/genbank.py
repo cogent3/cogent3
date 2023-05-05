@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+from typing import List, Tuple
 from cogent3.core.annotation import Feature
 from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
@@ -485,13 +485,8 @@ class LocationList(list):
     @property
     def strand(self):
         """Returns strand of components: 1=forward, -1=reverse, 0=both"""
-        curr = {}
-        for i in self:
-            curr[i.strand] = 1
-        if len(curr) >= 2:  # found stuff on both strands
-            return 0
-        else:
-            return list(curr.keys())[0]
+        curr = {i.strand: 1 for i in self}
+        return 0 if len(curr) >= 2 else list(curr.keys())[0]
 
     def __str__(self):
         """Returns (normalized) string representation of self."""
@@ -517,6 +512,10 @@ class LocationList(list):
                 curr = curr.translate(trans_table)[::-1]
             result.append(curr)
         return "".join(result)
+
+    def get_coordinates(self) -> List[Tuple[int,int]]:
+        """returns the segments in python coordinates"""
+        return sorted((i.start, i.stop + 1) for i in self)
 
 
 def parse_feature_table(lines):
