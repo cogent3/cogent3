@@ -1770,6 +1770,7 @@ class SeqView:
     def offset(self, value: int):
         self._offset = value or 0
 
+    # todo gah rename to reverse for compatability with Map
     @property
     def reversed(self):
         return self.step < 0
