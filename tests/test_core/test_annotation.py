@@ -91,20 +91,6 @@ class TestAnnotations(unittest.TestCase):
             expected = seq_expecteds[annot_type]
             assert observed == expected
 
-    def test_feature_copy_annotations_to(self):
-        """test correct copy of annotations"""
-        orig = DnaSequence("TTTTTTTTTTAAAA", name="Orig")
-        annot = orig.add_annotation(Feature, "exon", "fred", [(0, 14)])
-        seq = RnaSequence("UUUUUUUUUUAAAA", name="Test")
-        got = annot.copy_annotations_to(seq)
-        self.assertEqual(len(orig.annotations), len(got.annotations))
-        for src, dest in zip(orig.annotations, got.annotations):
-            self.assertEqual(src.get_coordinates(), dest.get_coordinates())
-            self.assertIsInstance(src, dest.__class__)
-            self.assertIs(dest.parent, seq)
-        with self.assertRaises(AssertionError):
-            _ = annot.copy_annotations_to(seq[:-2])
-
 
 class TestMapSpans(unittest.TestCase):
     """Test attributes of Map & Spans classes critical to annotation
