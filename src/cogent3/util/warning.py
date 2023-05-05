@@ -131,11 +131,12 @@ def deprecated_args(
     """
 
     discontinued = [discontinued] if isinstance(discontinued, str) else discontinued
+    old_args = dict(old_new).keys() if old_new else set()
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
-            if old_new:
+            if old_args & kwargs.keys():
                 for old, new in old_new:
                     if old in kwargs:
                         kwargs[new] = kwargs.pop(old)
