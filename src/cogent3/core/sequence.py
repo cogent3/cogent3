@@ -1036,7 +1036,7 @@ class Sequence(SequenceI):
         We assume that spans represent the coordinates for this instance!
         """
         feature = dict(feature)
-        seq_rced = self._seq.reversed
+        seq_rced = self._seq.reverse
         # todo gah check consistency of relationship between reversed and strand
         # i.e. which object has responsibility for transforming the strand value
         # (a string) into a bool?
@@ -1347,7 +1347,7 @@ class Sequence(SequenceI):
 
     def __str__(self):
         result = str(self._seq)
-        if self._seq.reversed:
+        if self._seq.reverse:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
         return result
@@ -1812,7 +1812,7 @@ class SeqView:
         self._offset = value or 0
 
     @property
-    def reversed(self):
+    def reverse(self):
         return self.step < 0
 
     def absolute_position(self, rel_index: int, include_boundary=False):
@@ -1837,7 +1837,7 @@ class SeqView:
 
         # add offset and handle reversed views, now absolute relative to annotation coordinates
         offset = self.offset
-        if self.reversed:
+        if self.reverse:
             abs_index = offset + len(self.seq) + seq_index + 1
         else:
             abs_index = offset + seq_index
@@ -1854,7 +1854,7 @@ class SeqView:
         if abs_index < 0:
             raise IndexError("Index must be +ve and relative to the + strand")
 
-        if self.reversed:
+        if self.reverse:
             offset = self.offset
 
             if (
