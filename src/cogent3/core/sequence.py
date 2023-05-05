@@ -846,10 +846,6 @@ class Sequence(_Annotatable, SequenceI):
                 info.update(orig_seq.info)
         self.info = info
 
-        if isinstance(orig_seq, _Annotatable):
-            for ann in orig_seq.annotations:
-                ann.copy_annotations_to(self)
-
         self._repr_policy = dict(num_pos=60)
 
         self._annotation_db = None
