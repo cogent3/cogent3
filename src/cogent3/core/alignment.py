@@ -929,10 +929,14 @@ class _SequenceCollectionBase:
             # copy only the specified seqs
             for r in seqs:
                 result[r] = get(r)
-        if result:
-            return self.__class__(result, names=seqs, info=self.info, **kwargs)
-        else:
+        if not result:
             return {}  # safe value; can't construct empty alignment
+
+        result = self.__class__(result, names=seqs, info=self.info, **kwargs)
+        if self.annotation_db:
+            result.annotation_db = self.annotation_db.__class__()
+            result.annotation_db.update(self.annotation_db, seqids=result.names)
+        return result
 
     def get_seq_indices(self, f, negate=False):
         """Returns list of keys of seqs where f(row) is True.
