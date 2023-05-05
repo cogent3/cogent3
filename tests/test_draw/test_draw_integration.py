@@ -372,7 +372,7 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
     def test_coevo_annotated(self):
         """coevolution on alignment with annotated seqs should add to heatmap plot"""
         aln = load_alignment(True, False)
-        aln = aln[30:]
+        aln = aln[:30]
         coevo = aln.coevolution(show_progress=False, drawable="heatmap")
         drawable = coevo.drawable
         self.assertIsInstance(drawable, AnnotatedDrawable)
@@ -395,10 +395,12 @@ class AlignmentDrawablesTests(BaseDrawablesTests):
         aln = make_aligned_seqs(
             data=dict(a="AAACGGTTT", b="CAA--GTAA"), array_align=False
         )
-        _ = aln.get_seq("b").add_feature("domain", "1", [(1, 5)])
-        _ = aln.get_seq("b").add_feature("variation", "1", [(1, 5)])
-        _ = aln.get_seq("b").add_feature("gene", "1", [(1, 5)])
-        _ = aln.get_seq("b").add_feature("gene", "1", [(5, 1)])
+        db = GffAnnotationDb()
+        db.add_feature(seqid="b", biotype="domain", name="1", spans=[(1, 5)])
+        db.add_feature(seqid="b", biotype="variation", name="1", spans=[(1, 5)])
+        db.add_feature(seqid="b", biotype="gene", name="1", spans=[(1, 5)])
+        db.add_feature(seqid="b", biotype="gene", name="1", spans=[(5, 1)])
+        aln.annotation_db = db
         aln.get_drawable()
 
 

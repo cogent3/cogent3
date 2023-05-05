@@ -3816,6 +3816,45 @@ class AlignmentI(object):
             width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
         )
 
+    def get_drawable(self, width=600, vertical=False):
+        """returns Drawable instance"""
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables()
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
@@ -5121,12 +5160,8 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def get_drawables(self):
         """returns a dict of drawables, keyed by type"""
         result = defaultdict(list)
-        for a in self.get_annotations_from_any_seq():
-            d = a.get_drawable()
-            if not d:
-                continue
-            result[a.type].append(d)
-
+        for f in self.get_features():
+            result[f.biotype].append(f.get_drawable())
         return result
 
     def add_feature(
