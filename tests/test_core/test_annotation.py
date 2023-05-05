@@ -3,9 +3,7 @@ import unittest
 import pytest
 
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
-from cogent3.core.annotation import Feature, _Feature
 from cogent3.core.location import Map, Span, as_map
-from cogent3.core.sequence import DnaSequence, RnaSequence
 
 
 __author__ = "Gavin Huttley"
