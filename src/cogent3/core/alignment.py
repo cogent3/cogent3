@@ -1677,39 +1677,24 @@ class _SequenceCollectionBase:
             raise ValueError(f"unknown moltype '{moltype}'")
 
         data = [s.to_moltype(moltype) for s in self.seqs]
-        return self.__class__(
+        result = self.__class__(
             data=data, moltype=moltype, name=self.name, info=self.info
         )
+        if self.annotation_db:
+            result.annotation_db = deepcopy(self.annotation_db)
+        return result
 
     def to_dna(self):
         """returns copy of self as an alignment of DNA moltype seqs"""
-        data = [s.to_moltype("dna") for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.DNA, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("dna")
 
     def to_rna(self):
         """returns copy of self as an alignment of RNA moltype seqs"""
-        data = [s.to_moltype("rna") for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.RNA, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("rna")
 
     def to_protein(self):
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
-        data = [s.to_moltype("protein") for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.PROTEIN, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("protein")
 
     def rc(self):
         """Returns the reverse complement alignment"""
@@ -1717,9 +1702,7 @@ class _SequenceCollectionBase:
         rc = self.__class__(
             data=seqs, names=self.names[:], name=self.name, info=self.info
         )
-        if isinstance(self, _Annotatable) and self.annotations:
-            self._annotations_nucleic_reversed_on(rc)
-        rc.annotation_db = self.annotation_db
+        rc.annotation_db = deepcopy(self.annotation_db)
         return rc
 
     def reverse_complement(self):
