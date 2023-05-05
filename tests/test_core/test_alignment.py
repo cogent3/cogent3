@@ -3343,9 +3343,15 @@ def test_deepcopy_with_features():
     db.add_feature(seqid="DogFaced", biotype="exon", name="annot5", spans=[(40, 45)])
     aln.annotation_db = db
     aln = aln[20:30]
+    # no slice
     copied = aln.deepcopy(sliced=False)
     feats = list(copied.get_features(biotype="exon", allow_partial=True))
     assert len(feats) == 3  # overlap is Mouse, Human, HowlerMon
+    # with slice
+    copied = aln.deepcopy(sliced=True)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3
+    # rc drops annotations only when sliced is True
     rced = aln.rc()
     copied = rced.deepcopy(sliced=False)
     feats = list(copied.get_features(biotype="exon", allow_partial=True))

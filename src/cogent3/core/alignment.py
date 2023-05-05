@@ -643,8 +643,12 @@ class _SequenceCollectionBase:
             interval. This also causes dropping
             annotations.
         """
+        if isinstance(self, Alignment):
+            reversed = self.seqs[0].map.reverse
+        else:
+            reversed = self.seqs[0]._seq.reversed
         new_seqs = dict()
-        db = None if sliced else deepcopy(self.annotation_db)
+        db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
             try:
                 new_seq = seq.deepcopy(sliced=sliced, exclude_annotations=True)
@@ -2345,7 +2349,11 @@ class Aligned:
             new_seq = type(new_seq)(
                 str(new_seq[span.start : span.end]), info=new_seq.info, name=self.name
             )
-            new_seq.annotation_db = None
+            new_seq.annotation_offset = self.map.start
+            if self.map.reverse or exclude_annotations:
+                new_seq.annotation_db = None
+            else:
+                new_seq.annotation_offset = self.map.start
             new_map = self.map.zeroed()
         else:
             new_map = self.map
