@@ -2276,8 +2276,10 @@ class SequenceCollection(_SequenceCollectionBase):
             seq = self.named_seqs[seqid]
             if isinstance(seq, Aligned):
                 start, end = seq.map.start, seq.map.end
+                offset = seq.data.annotation_offset
             else:
                 start, end = 0, len(seq)
+                offset = seq.annotation_offset
 
             for feature in self.annotation_db.get_features_matching(
                 seqid=seqid,
@@ -2288,6 +2290,8 @@ class SequenceCollection(_SequenceCollectionBase):
                 start=start,
                 end=end,
             ):
+                if offset:
+                    feature["spans"] = (array(feature["spans"]) - offset).tolist()
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
 
