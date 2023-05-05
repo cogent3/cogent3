@@ -38,7 +38,7 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Annotation
+from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
@@ -906,7 +906,7 @@ class Sequence(SequenceI):
         stop: Optional[int] = None,
         allow_partial: bool = False,
     ):
-        """yields Annotation instances
+        """yields Feature instances
 
         Parameters
         ----------
@@ -1020,14 +1020,14 @@ class Sequence(SequenceI):
         """use .get_features()"""
         return self.get_features(**kwargs)
 
-    def make_feature(self, feature: FeatureDataType, *args) -> Annotation:
+    def make_feature(self, feature: FeatureDataType, *args) -> Feature:
         """
-        return an Annotation instance from feature data
+        return an Feature instance from feature data
 
         Parameters
         ----------
         feature
-            dict of key data to make an Annotation instance
+            dict of key data to make an Feature instance
 
         Notes
         -----
@@ -1091,7 +1091,7 @@ class Sequence(SequenceI):
 
         feature.pop("on_alignment", None)
         feature.pop("seqid", None)
-        return Annotation(parent=self, seqid=self.name, map=fmap, **feature)
+        return Feature(parent=self, seqid=self.name, map=fmap, **feature)
 
     def annotate_from_gff(self, f: os.PathLike, offset=None):
         """copies annotations from a gff file to self,
@@ -1123,7 +1123,7 @@ class Sequence(SequenceI):
         parent_id: Optional[str] = None,
         strand: Optional[str] = None,
         on_alignment: bool = False,
-    ) -> Annotation:
+    ) -> Feature:
         if self.annotation_db is None:
             self.annotation_db = GffAnnotationDb()
 
@@ -1182,7 +1182,7 @@ class Sequence(SequenceI):
             return
 
         if not self.annotation_db:
-            # todo gah add ability to query multiple values in Annotation db
+            # todo gah add ability to query multiple values in Feature db
             self.annotation_db = type(seq_db)()  # make an empty db of the same type
         elif not isinstance(seq_db, type(self.annotation_db)):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
@@ -1241,7 +1241,7 @@ class Sequence(SequenceI):
             )
 
         if not annotations:
-            region = Annotation(
+            region = Feature(
                 parent=self,
                 seqid=self.name,
                 name=None,
@@ -1487,7 +1487,7 @@ class Sequence(SequenceI):
 
         Returns
         -------
-        Returns a list of Annotation instances.
+        Returns a list of Feature instances.
         """
         try:
             pattern = self.moltype.to_regex(seq=pattern)

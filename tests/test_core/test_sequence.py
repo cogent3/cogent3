@@ -1,7 +1,5 @@
 """Unit tests for Sequence class and its subclasses.
 """
-
-import contextlib
 import json
 import os
 import pathlib
@@ -17,7 +15,6 @@ from numpy.testing import assert_allclose, assert_equal
 
 import cogent3
 
-from cogent3.core.annotation import Feature, SimpleVariable, Variable
 from cogent3.core.moltype import (
     ASCII,
     BYTES,

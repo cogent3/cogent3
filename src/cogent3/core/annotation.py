@@ -23,7 +23,7 @@ __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
 
 
-class _AnnotationMixin:
+class _AnnotationMixin:  # pragma: no cover
     # todo gah add a _anotatable_getitem_()? which can be checked
     # for to deliver the old behaviour
     def get_features_matching(self, feature_type, name=None, extend_query=False):
@@ -178,7 +178,7 @@ class _AnnotationCore:
         new.attach_annotations(annotations)
 
 
-class _Annotatable(_AnnotationCore, _AnnotationMixin):
+class _Annotatable(_AnnotationCore, _AnnotationMixin):  # pragma: no cover
     # default
     annotations = ()
 
@@ -402,7 +402,7 @@ class _Serialisable:
 
 
 # todo gah implement __repr__ and __str__ methods
-class Annotation(_AnnotationCore, _Serialisable):
+class Feature(_AnnotationCore, _Serialisable):
     """new style annotation, created on demand"""
 
     __slots__ = (
@@ -557,7 +557,7 @@ class Annotation(_AnnotationCore, _Serialisable):
             yield make_feature(feature=child)
 
     def union(self, features):
-        """return as a single Annotation
+        """return as a single Feature
 
         Notes
         -----
@@ -602,7 +602,7 @@ class Annotation(_AnnotationCore, _Serialisable):
 # https://pythonspeed.com/products/filmemoryprofiler/
 
 
-class _Feature(_Annotatable, _Serialisable):
+class _Feature(_Annotatable, _Serialisable):  # pragma: no cover
     qualifier_names = ["type", "name"]
     __slots__ = ["parent", "map", "original", "_serialisable", "base", "base_map"]
 
@@ -771,7 +771,7 @@ class _Feature(_Annotatable, _Serialisable):
         return feature_class(self, map, type="region", name=name)
 
 
-class AnnotatableFeature(_Feature):
+class AnnotatableFeature(_Feature):  # pragma: no cover
     """These features can themselves be annotated."""
 
     def _mapped(self, slicemap):
@@ -784,7 +784,7 @@ class AnnotatableFeature(_Feature):
         return new
 
 
-class Source(_Feature):
+class Source(_Feature):  # pragma: no cover
     # Has two maps - where it is on the sequence it annotates, and
     # where it is on the original sequence.
     type = "source"
@@ -814,16 +814,7 @@ class Source(_Feature):
         return self
 
 
-def Feature(parent, type, name, spans, value=None):
-    if isinstance(spans, Map):
-        map = spans
-        assert map.parent_length == len(parent), (map, len(parent))
-    else:
-        map = Map(locations=spans, parent_length=len(parent))
-    return AnnotatableFeature(parent, map, type=type, name=name)
-
-
-class _Variable(_Feature):
+class _Variable(_Feature):  # pragma: no cover
     qualifier_names = _Feature.qualifier_names + ["xxy_list"]
 
     def without_lost_spans(self):
@@ -832,7 +823,7 @@ class _Variable(_Feature):
         raise NotImplementedError
 
 
-def Variable(parent, type, name, xxy_list):
+def Variable(parent, type, name, xxy_list):  # pragma: no cover
     """A variable that has 2 x-components (start, end) and a single y component.
     Currently used by Vestige - BMC Bioinformatics, 6:130, 2005."""
     start = min(min(x1, x2) for ((x1, x2), y) in xxy_list)
@@ -845,7 +836,7 @@ def Variable(parent, type, name, xxy_list):
     return _Variable(parent, map, type=type, name=name, xxy_list=xxy_list)
 
 
-class _SimpleVariable(_Feature):
+class _SimpleVariable(_Feature):  # pragma: no cover
     qualifier_names = _Feature.qualifier_names + ["data"]
 
     def without_lost_spans(self):
@@ -857,13 +848,9 @@ class _SimpleVariable(_Feature):
         return self.__class__(self.parent, self.map[keep], data=data, original=self)
 
 
-def SimpleVariable(parent, type, name, data):
+def SimpleVariable(parent, type, name, data):  # pragma: no cover
     """A simple variable type of annotation, such as a computed property of
     a sequence that varies spatially."""
     assert len(data) == len(parent), (len(data), len(parent))
     map = Map([(0, len(data))], parent_length=len(parent))
     return _SimpleVariable(parent, map, type=type, name=name, data=data)
-
-
-def make_annotation_for_seq(seq, feature):
-    ...
