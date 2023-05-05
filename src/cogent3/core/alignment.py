@@ -2348,6 +2348,7 @@ class Aligned:
         a copy of self
         """
         new_seq = self.data.copy(exclude_annotations=exclude_annotations)
+        db = new_seq.annotation_db
         if sliced:
             span = self.map.get_covering_span()
             new_seq = type(new_seq)(
@@ -2358,6 +2359,7 @@ class Aligned:
                 new_seq.annotation_db = None
             else:
                 new_seq.annotation_offset = self.map.start
+                new_seq.annotation_db = db
             new_map = self.map.zeroed()
         else:
             new_map = self.map
