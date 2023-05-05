@@ -17,6 +17,7 @@ import os
 import re
 import warnings
 
+from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
@@ -37,7 +38,7 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Annotation, _Annotatable
+from cogent3.core.annotation import Annotation
 from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
@@ -144,7 +145,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self.annotation_offset or self._seq.start
+            offset = self._seq.offset + self._seq.start
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -793,7 +794,7 @@ class SequenceI(object):
 
 
 @total_ordering
-class Sequence(_Annotatable, SequenceI):
+class Sequence(SequenceI):
     """Holds the standard Sequence object. Immutable."""
 
     moltype = None  # connected to ACSII when moltype is imported
@@ -846,12 +847,7 @@ class Sequence(_Annotatable, SequenceI):
                 info.update(orig_seq.info)
         self.info = info
 
-        if isinstance(orig_seq, _Annotatable):
-            for ann in orig_seq.annotations:
-                ann.copy_annotations_to(self)
-
         self._repr_policy = dict(num_pos=60)
-
         self._annotation_db = None
         self.annotation_offset = annotation_offset
 
@@ -884,10 +880,16 @@ class Sequence(_Annotatable, SequenceI):
 
     @annotation_db.setter
     def annotation_db(self, value):
-        from cogent3.core.annotation_db import SupportsFeatures
-
         if value and not isinstance(value, SupportsFeatures):
             raise TypeError
+        # Without knowing the contents of the db we cannot
+        # establish whether self.moltype is compatible, so
+        # we rely on the user to get that correct
+        # one approach to support validation might be to add
+        # to the SupportsFeatures protocol a is_nucleic flag,
+        # for both DNA and RNA. But if a user trys get_slice()
+        # on a '-' strand feature, they will get a TypError.
+        # I think that's enough.
         self._annotation_db = value
 
     @deprecated_args(
@@ -1152,10 +1154,7 @@ class Sequence(_Annotatable, SequenceI):
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
         sv = SeqView(s)
         new = moltype.make_seq(sv, name=self.name, info=self.info)
-
-        new.clear_annotations()
-        for ann in self.annotations:
-            ann.copy_annotations_to(new)
+        new.annotation_db = self.annotation_db
         return new
 
     def _seq_filter(self, seq):
@@ -1192,7 +1191,10 @@ class Sequence(_Annotatable, SequenceI):
 
     def copy(self, exclude_annotations=False):
         """returns a copy of self"""
-        new = self.__class__(self._seq[:], name=self.name, info=self.info)
+        offset = self._seq.offset + self._seq.start
+        new = self.__class__(
+            self._seq[:], name=self.name, info=self.info, annotation_offset=offset
+        )
         db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
         new._annotation_db = db
         return new
@@ -1286,12 +1288,11 @@ class Sequence(_Annotatable, SequenceI):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
+        # todo gah do we propagate annotations here?
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        annots = self._sliced_annotations(new, map)
-        new.annotations = annots
         return new
 
     def _mapped(self, map):
@@ -1309,21 +1310,24 @@ class Sequence(_Annotatable, SequenceI):
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
+        preserve_offset = False
         if hasattr(index, "map"):
             index = index.map
 
-        # todo: kath preserve the offset?
-
         if isinstance(index, Map):
             new = self._mapped(index)
+            preserve_offset = not index.reverse
 
         elif isinstance(index, (int, slice)):
             new = self.__class__(
                 self._seq[index], name=self.name, check=False, info=self.info
             )
+            stride = getattr(index, "step", 1) or 1
+            preserve_offset = stride > 0
 
-        if self.annotation_db is not None:
+        if self.annotation_db is not None and preserve_offset:
             new.annotation_db = self.annotation_db
+            new.annotation_offset = self.annotation_offset
 
         if hasattr(self, "_repr_policy"):
             new._repr_policy.update(self._repr_policy)
@@ -1449,8 +1453,8 @@ class Sequence(_Annotatable, SequenceI):
         seq = self.__class__(
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )
-        if self.annotations:
-            seq.annotations = [a.remapped_to(seq, map) for a in self.annotations]
+        if self.annotation_db:
+            seq.annotation_db = self.annotation_db
         return (map, seq)
 
     def replace(self, oldchar, newchar):
@@ -1461,7 +1465,7 @@ class Sequence(_Annotatable, SequenceI):
     def is_annotated(self):
         """returns True if sequence has any annotations"""
         num = self.annotation_db.num_matches() if self.annotation_db else 0
-        return num != 0 or len(self.annotations) != 0
+        return num != 0
 
     def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
         """Adds an annotation at sequence positions matching pattern.
@@ -1506,24 +1510,55 @@ class Sequence(_Annotatable, SequenceI):
     def __add__(self, other):
         """Adds two sequences (other can be a string as well)"""
         new_seq = super(Sequence, self).__add__(other)
-        # Annotations which extend past the right end of the left sequence
-        # or past the left end of the right sequence are dropped because
-        # otherwise they will annotate the wrong part of the constructed
-        # sequence.
-        left = [
-            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
-        ]
-        if hasattr(other, "_shifted_annotations"):
-            right = [
-                a
-                for a in other._shifted_annotations(new_seq, len(self))
-                if a.map.start >= len(self)
-            ]
-            new_seq.annotations = left + right
-        else:
-            new_seq.annotations = left
-
+        new_seq.annotation_db = None
+        # annotations are dropped in this case
         return new_seq
+
+    def get_drawables(self):
+        """returns a dict of drawables, keyed by type"""
+        result = defaultdict(list)
+        for f in self.get_features():
+            result[f.biotype].append(f.get_drawable())
+        return result
+
+    def get_drawable(self, width=600, vertical=False):
+        """returns Drawable instance"""
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables()
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
 
 
 class ProteinSequence(Sequence):
@@ -1751,7 +1786,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step", "offset")
+    __slots__ = ("seq", "start", "stop", "step", "_offset")
 
     def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
         if step == 0:
@@ -1763,9 +1798,18 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
-        self.offset = None  # todo gah this should default to 0
+        self._offset = 0
         self.step = step
 
+    @property
+    def offset(self) -> int:
+        return self._offset
+
+    @offset.setter
+    def offset(self, value: int):
+        self._offset = value or 0
+
+    # todo gah rename to reverse for compatability with Map
     @property
     def reversed(self):
         return self.step < 0
@@ -1791,7 +1835,7 @@ class SeqView:
         seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
 
         # add offset and handle reversed views, now absolute relative to annotation coordinates
-        offset = 0 if self.offset is None else self.offset
+        offset = self.offset
         if self.reversed:
             abs_index = offset + len(self.seq) + seq_index + 1
         else:
@@ -1810,7 +1854,7 @@ class SeqView:
             raise IndexError("Index must be +ve and relative to the + strand")
 
         if self.reversed:
-            offset = 0 if self.offset is None else self.offset
+            offset = self.offset
 
             if (
                 tmp := ((len(self.seq) - (abs_index - offset)) + self.start + 1)
@@ -1820,7 +1864,7 @@ class SeqView:
                 rel_pos = (tmp // abs(self.step)) + 1
 
         else:
-            offset = self.start if self.offset is None else self.offset + self.start
+            offset = self.offset + self.start
 
             if (tmp := abs_index - offset) % self.step == 0 or stop:
                 rel_pos = tmp // self.step

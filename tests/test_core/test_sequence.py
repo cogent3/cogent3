@@ -162,38 +162,13 @@ class SequenceTests(TestCase):
     def test_sequence_to_moltype(self):
         """correctly convert to specified moltype"""
         s = Sequence("TTTTTTTTTTAAAA", name="test1")
-        annot1 = s.add_annotation(Feature, "exon", "fred", [(0, 10)])
-        annot2 = s.add_annotation(Feature, "exon", "trev", [(10, 14)])
+        s.add_feature(biotype="exon", name="fred", spans=[(0, 10)])
+        s.add_feature(biotype="exon", name="trev", spans=[(10, 14)])
         got = s.to_moltype("rna")
-        annot1_slice = str(annot1.get_slice())
-        annot2_slice = str(annot2.get_slice())
-        got1_slice = str(got.annotations[0].get_slice())
-        got2_slice = str(got.annotations[1].get_slice())
-        self.assertNotEqual(annot1_slice, got1_slice)
-        self.assertEqual(annot2_slice, got2_slice)
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test1")
-
-        s = Sequence("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="test2")
-        xx_y = [[[2, 6], 2.4], [[10, 15], 5.1], [[25, 35], 1.3]]
-        y_valued = s.add_annotation(Variable, "SNP", "freq", xx_y)
-        got = s.to_moltype("rna")
-        y_valued_slice = str(y_valued.get_slice())
-        got_slice = str(str(got.annotations[0].get_slice()))
-        self.assertNotEqual(y_valued_slice, got_slice)
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test2")
-
-        s = Sequence("TTTTTTTTTTAAAAAAAAAA", name="test3")
-        data = [i for i in range(20)]
-        annot4 = s.add_annotation(SimpleVariable, "SNP", "freq", data)
-        got = s.to_moltype(RNA)
-        annot4_slice = str(annot4.get_slice())
-        got_slice = str(str(got.annotations[0].get_slice()))
-        self.assertNotEqual(annot4_slice[:10], got_slice[:10])
-        self.assertEqual(annot4_slice[10:20], got_slice[10:20])
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test3")
+        fred = list(got.get_features(name="fred"))[0]
+        assert str(got[fred]) == "UUUUUUUUUU"
+        trev = list(got.get_features(name="trev"))[0]
+        assert str(got[trev]) == "AAAA"
 
         # calling with a null object should raise an exception
         with self.assertRaises(ValueError):
@@ -1922,21 +1897,14 @@ def test_seq_repr(one_seq, rc):
     assert expect.startswith(got), (expect, got)
 
 
-@pytest.mark.xfail(reason="todo: to be implemented")
-def test_db_bind_fails_with_incompatible_moltype(worm_seq_path, worm_gff_path):
-    from cogent3.core.annotation_db import load_annotations
-
-    seq = cogent3.load_seq(worm_seq_path, moltype="text")
-    db = load_annotations(worm_gff_path)
-    with pytest.raises(TypeError):
-        seq.annotation_db = db
-
-
-@pytest.mark.xfail(reason="todo: write test")
 def test_annotation_from_slice_with_stride():
-    raise NotImplementedError(
-        "check annotations get correct sequence when there's a stride"
-    )
+    seq = DNA.make_seq("AAACGCGCGAAAAAAA", name="s1")
+    seq.add_feature(biotype="exon", name="ex1", spans=[(3, 9)])
+    f = list(seq.get_features(name="ex1"))[0]
+    assert str(f.get_slice()) == "CGCGCG"
+    s1 = seq[1::2]
+    f = list(s1.get_features(name="ex1"))[0]
+    assert str(f.get_slice()) == "CCC"
 
 
 def test_absolute_position_base_cases(one_seq):
@@ -2040,7 +2008,7 @@ def test_relative_position_with_remainder(integer_seq):
 def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = one_seq[start:stop:step]
-    view.annotation_offset = offset
+    view.annotation_offset = offset or 0
     abs_val = view._seq.absolute_position(value)
     rel_val = view._seq.relative_position(abs_val)
     assert rel_val == value
@@ -2056,10 +2024,10 @@ def test_absolute_relative_roundtrip_reverse(
 ):
     # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
     view = integer_seq[start:stop:step]
-    view.offset = offset
+    view.offset = offset or 0
     abs_val = view.absolute_position(value)
     rel_val = view.relative_position(abs_val)
-    assert view.offset == offset
+    assert view.offset == (offset or 0)
     assert (view[rel_val]).value == view[value].value
 
 
@@ -2157,4 +2125,21 @@ def test_to_json(cls, with_offset):
     if with_offset:
         expect["annotation_offset"] = 0
 
+    assert got == expect
+
+
+def test_offset_with_multiple_slices():
+    from cogent3.util.deserialise import deserialise_object
+
+    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+    gff3_path = DATADIR / "ensembl_sample.gff3"
+    seq.annotate_from_gff(gff3_path)
+    rd = seq[2:].to_rich_dict()
+    s1 = deserialise_object(rd)
+    assert s1.annotation_offset == 2
+    rd = s1[3:].to_rich_dict()
+    s2 = deserialise_object(rd)
+    assert s2.annotation_offset == 5
+    expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
+    got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
     assert got == expect

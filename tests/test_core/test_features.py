@@ -2,10 +2,8 @@ from unittest import TestCase
 
 import pytest
 
-from cogent3 import ASCII, DNA, make_aligned_seqs
-from cogent3.core.annotation import Feature, Variable
+from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
 from cogent3.core.annotation_db import GffAnnotationDb
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -83,200 +81,6 @@ class FeaturesTest(TestCase):
         shadow = exon1.union(exons).shadow()
         assert str(shadow.get_slice()) == expect
 
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_feature_reverse(self):
-        """reverse complement of features"""
-
-        # When dealing with sequences that can be reverse complemented
-        # (e.g. DnaSequence) features are **not** reversed.
-        # Features are considered to have strand specific meaning
-        # (.e.g CDS, exons) and so stay on their original strands.
-        # We create a sequence with a CDS that spans multiple exons,
-        # and show that after getting the reverse complement we have
-        # exactly the same result from getting the CDS annotation.
-
-        plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
-        plus_cds = plus.add_annotation(
-            Feature, "CDS", "gene", [(2, 6), (10, 15), (25, 35)]
-        )
-        self.assertEqual(str(plus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
-        minus = plus.rc()
-        minus_cds = minus.get_features(biotype="CDS")[0]
-        self.assertEqual(str(minus_cds.get_slice()), "GGGGCCCCCTTTTTTTTTT")
-
-    @pytest.mark.xfail(reason="todo gah implement lost spans")
-    def test_lost_spans(self):
-        """features no longer included in an alignment represented by lost spans"""
-
-        # If the feature lies outside the sequence being copied to, you get a
-        # lost span
-
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False
-        )
-        seq = DNA.make_seq("CCCCCCCCCCCCCCCCCCCC", "x")
-        seq.add_feature("exon", "A", [(5, 8)])
-        aln.get_seq("x").copy_annotations(seq)
-        copied = list(aln.get_features(seqid="x", name="exon"))
-        self.assertEqual(str(copied), '[exon "A" at [5:5, -4-]/5]')
-        self.assertEqual(str(copied[0].get_slice()), ">x\n----\n>y\n----\n")
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_annotated_separately_equivalence(self):
-        """allow defining features as a series or individually"""
-
-        # It shouldn't matter whether annotated coordinates are entered
-        # separately, or as a series.
-
-        data = [["human", "CGAAACGTTT"], ["mouse", "CTAAACGTCG"]]
-        as_series = make_aligned_seqs(data=data, array_align=False)
-        as_items = make_aligned_seqs(data=data, array_align=False)
-
-        # We add annotations to the sequences as a series.
-
-        self.assertEqual(
-            str(
-                as_series.get_seq("human").add_feature(
-                    biotype="cpgsite", name="cpg", spans=[(0, 2), (5, 7)]
-                )
-            ),
-            'cpgsite "cpg" at [0:2, 5:7]/10',
-        )
-        self.assertEqual(
-            str(
-                as_series.get_seq("mouse").add_feature(
-                    biotype="cpgsite", name="cpg", spans=[(5, 7), (8, 10)]
-                )
-            ),
-            'cpgsite "cpg" at [5:7, 8:10]/10',
-        )
-
-        # We add the annotations to the sequences one segment at a time.
-
-        self.assertEqual(
-            str(as_items.get_seq("human").add_feature("cpgsite", "cpg", [(0, 2)])),
-            'cpgsite "cpg" at [0:2]/10',
-        )
-        self.assertEqual(
-            str(as_items.get_seq("human").add_feature("cpgsite", "cpg", [(5, 7)])),
-            'cpgsite "cpg" at [5:7]/10',
-        )
-        self.assertEqual(
-            str(as_items.get_seq("mouse").add_feature("cpgsite", "cpg", [(5, 7)])),
-            'cpgsite "cpg" at [5:7]/10',
-        )
-        self.assertEqual(
-            str(as_items.get_seq("mouse").add_feature("cpgsite", "cpg", [(8, 10)])),
-            'cpgsite "cpg" at [8:10]/10',
-        )
-
-    @pytest.mark.xfail(
-        reason="todo gah update test to use latest API plus support serialisation"
-    )
-    def test_roundtripped_alignment(self):
-        """Alignment with annotations roundtrips correctly"""
-        # annotations just on member sequences
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
-        )
-        _ = aln.get_seq("x").add_annotation(Feature, "exon", "fred", [(3, 8)])
-        seq_exon = list(aln.get_features(seqid="x", name="exon"))[0]
-        expect = seq_exon.get_slice()
-
-        json = aln.to_json()
-        new = deserialise_object(json)
-        got_exons = list(new.get_features(seqid="x", name="exon"))[0]
-        self.assertEqual(got_exons.get_slice().to_dict(), expect.to_dict())
-
-        # annotations just on alignment
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
-        )
-        f = aln.add_annotation(Feature, "generic", "no name", [(1, 4), (6, 10)])
-        expect = f.get_slice().to_dict()
-        json = aln.to_json()
-        new = deserialise_object(json)
-        got = list(new.get_features(biotype="generic"))[0]
-        self.assertEqual(got.get_slice().to_dict(), expect)
-
-        # annotations on both alignment and sequence
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
-        )
-        f = aln.add_annotation(Feature, "generic", "no name", [(1, 4), (6, 10)])
-        _ = aln.get_seq("x").add_annotation(Feature, "exon", "1", [(3, 8)])
-        json = aln.to_json()
-        new = deserialise_object(json)
-        ## get back the exon
-        seq_exon = list(aln.get_features(seqid="x", name="exon"))[0]
-        expect = seq_exon.get_slice().to_dict()
-        got_exons = list(new.get_features(seqid="x", name="exon"))[0]
-        self.assertEqual(got_exons.get_slice().to_dict(), expect)
-        ## get back the generic
-        expect = f.get_slice().to_dict()
-        got = list(new.get_features(biotype="generic"))[0]
-        self.assertEqual(got.get_slice().to_dict(), expect)
-
-        # check masking of seq features still works
-        new = new.with_masked_annotations("exon", mask_char="?")
-        self.assertEqual(new[4:9].to_dict(), dict(x="?????", y="--CCC"))
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_roundtripped_alignment2(self):
-        """Sliced Alignment with annotations roundtrips correctly"""
-        # annotations just on member sequences
-        aln = make_aligned_seqs(
-            data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
-        )
-        aln.get_seq("x").add_annotation(Feature, "exon", "E1", [(3, 8)])
-        aln.get_seq("x").add_annotation(Feature, "exon", "E2", [(10, 13)])
-        # at the alignment level
-        sub_aln = aln[:-3]
-        s = sub_aln.named_seqs["x"]
-        d = s.data[:11]
-        json = s.to_json()
-        new = deserialise_object(json)
-        gf1, gf2 = list(new.data.get_features(biotype="exon"))
-        self.assertEqual(str(gf1.get_slice()), "GGGGG")
-        self.assertEqual(str(gf2.get_slice()), "C")
-        # the sliced alignment
-        json = sub_aln.to_json()
-        got = deserialise_object(json)
-        x = got.named_seqs["x"]
-        self.assertEqual(str(x.data.annotations[0].get_slice()), "GGGGG")
-        self.assertEqual(str(x.data.annotations[1].get_slice()), "C")
-
-    @pytest.mark.xfail(reason="todo gah delete test not supporting Variable class")
-    def test_roundtrip_variable(self):
-        """should recover the Variable feature type"""
-        seq = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
-        xx_y = [[[2, 6], 2.4], [[10, 15], 5.1], [[25, 35], 1.3]]
-        y_valued = seq.add_annotation(Variable, "SNP", "freq", xx_y)
-        json = seq.to_json()
-        new = deserialise_object(json)
-        got = list(new.get_features(biotype="SNP"))[0]
-        # annoyingly, comes back as list of lists
-        self.assertEqual(got.xxy_list, [[list(xx), y] for xx, y in y_valued.xxy_list])
-
-    @pytest.mark.xfail(reason="todo gah change test to use latest API")
-    def test_nested_to_rich_dict(self):
-        """check the to_rich_dict method works with nested annotations"""
-        self.assertEqual(
-            self.exon1.to_rich_dict()["annotations"][0],
-            self.nested_feature.to_rich_dict(),
-        )
-
-    @pytest.mark.xfail(reason="todo gah update test to use latest API")
-    def test_nested_deserialise_annotation(self):
-        """nested annotations can be deserialised"""
-        got = self.s.to_json()
-        new = deserialise_object(got)
-        new_exon1 = new.annotations[0]
-        new_nested_feature = new_exon1.annotations[0]
-        self.assertEqual(
-            new_nested_feature.to_rich_dict(), self.nested_feature.to_rich_dict()
-        )
-
     def test_annotate_matches_to(self):
         """annotate_matches_to attaches annotations correctly to a Sequence"""
         seq = DNA.make_seq("TTCCACTTCCGCTT", name="x")
@@ -322,10 +126,10 @@ def test_feature_residue():
         moltype=DNA,
         array_align=False,
     )
+    db = GffAnnotationDb()
+    aln.annotation_db = db
     assert str(aln), ">x\nC-CCCAAAAA\n>y\n-T----TTTT\n"
-    exon = aln.get_seq("x").add_feature(biotype="exon", name="ex1", spans=[(0, 4)])
-    assert 'exon "ex1" at [0:4]/9' in str(exon)
-    assert str(exon.get_slice()), "CCCC"
+    db.add_feature(seqid="x", biotype="exon", name="ex1", spans=[(0, 4)])
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
     assert 'exon "ex1" at [0:1, 2:5]/10' in str(aln_exons)
     assert aln_exons[0].get_slice().to_dict() == dict(x="CCCC", y="----")
@@ -577,9 +381,6 @@ def test_annotated_region_masks():
 
 def test_nested_annotated_region_masks():
     """masking a sequence with specific features when nested annotations"""
-    # gene = aln.get_seq("x").add_feature("gene", "norwegian", [(0, 4)])
-    # gene.add_feature("repeat", "blue", [(1, 3)])
-    # exon = aln.get_seq("y").add_feature("repeat", "frog", [(1, 4)])
     db = GffAnnotationDb()
     db.add_feature(seqid="x", biotype="gene", name="norwegian", spans=[(0, 4)])
     db.add_feature(seqid="x", biotype="repeat", name="blue", spans=[(1, 3)])
@@ -747,3 +548,121 @@ def test_roundtrip_json():
     assert new.annotation_offset == 3
     feat = list(new.get_features(biotype="exon", allow_partial=True))[0]
     assert str(feat.get_slice()) == "AA"
+
+
+def test_roundtripped_alignment():
+    """Alignment with annotations roundtrips correctly"""
+    # annotations just on member sequences
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--TTTT"]], array_align=False
+    )
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="fred", spans=[(3, 8)])
+    aln.annotation_db = db
+    seq_exon = list(aln.get_features(seqid="x", biotype="exon"))[0]
+    expect = seq_exon.get_slice()
+
+    json = aln.to_json()
+    new = deserialise_object(json)
+    got_exons = list(new.get_features(seqid="x", biotype="exon"))[0]
+    assert got_exons.get_slice().to_dict() == expect.to_dict()
+
+    # annotations just on alignment
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
+    )
+
+    f = aln.add_feature(biotype="generic", name="no name", spans=[(1, 4), (6, 10)])
+    expect = f.get_slice().to_dict()
+    json = aln.to_json()
+    new = deserialise_object(json)
+    got = list(new.get_features(biotype="generic"))[0]
+    assert got.get_slice().to_dict() == expect
+    # annotations on both alignment and sequence
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAGGGG"], ["y", "TTTT--CCCC"]], array_align=False
+    )
+    db = GffAnnotationDb()
+    db.add_feature(
+        seqid=None,
+        biotype="generic",
+        name="no name",
+        spans=[(1, 4), (6, 10)],
+        on_alignment=True,
+    )
+    db.add_feature(seqid="x", biotype="exon", name="1", spans=[(3, 8)])
+    aln.annotation_db = db
+    json = aln.to_json()
+    new = deserialise_object(json)
+    ## get back the exon
+    seq_exon = list(aln.get_features(seqid="x", biotype="exon"))[0]
+    expect = seq_exon.get_slice().to_dict()
+    got_exons = list(new.get_features(seqid="x", biotype="exon"))[0]
+    assert got_exons.get_slice().to_dict() == expect
+    ## get back the generic
+    expect = f.get_slice().to_dict()
+    got = list(new.get_features(biotype="generic"))[0]
+    assert got.get_slice().to_dict() == expect
+
+    # check masking of seq features still works
+    new = new.with_masked_annotations("exon", mask_char="?")
+    assert new[4:9].to_dict() == dict(x="?????", y="--CCC")
+
+
+def test_feature_out_range():
+    """features no longer included in an alignment will not be returned"""
+    aln = make_aligned_seqs(data=[["x", "-AAAA"], ["y", "TTTTT"]], array_align=False)
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="A", spans=[(5, 8)])
+    f = list(aln.get_features(seqid="x", biotype="exon"))
+    assert not f
+
+
+def test_roundtripped_alignment_with_slices():
+    """Sliced Alignment with annotations roundtrips correctly"""
+    # annotations just on member sequences
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAGGGGGAACCCT"], ["y", "TTTT--TTTTAGGGA"]], array_align=False
+    )
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="E1", spans=[(3, 8)])
+    db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
+    aln.annotation_db = db
+    # at the alignment level
+    sub_aln = aln[:-3]
+    new = deserialise_object(sub_aln.to_json())
+    gf1, gf2 = list(new.get_features(biotype="exon", allow_partial=True))
+    assert gf1.get_slice().to_dict() == {"x": "GGGGG", "y": "--TTT"}
+    assert gf2.get_slice().to_dict() == {"x": "C", "y": "G"}
+
+
+def test_feature_reverse():
+    """reverse complement of features"""
+
+    # When dealing with sequences that can be reverse complemented
+    # (e.g. DnaSequence) features are **not** reversed.
+    # Features are considered to have strand specific meaning
+    # (.e.g CDS, exons) and so stay on their original strands.
+    # We create a sequence with a CDS that spans multiple exons,
+    # and show that after getting the reverse complement we have
+    # exactly the same result from getting the CDS annotation.
+
+    plus = DNA.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="plus")
+    plus_cds = plus.add_feature(
+        biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)]
+    )
+    assert str(plus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
+    minus = plus.rc()
+    minus_cds = list(minus.get_features(biotype="CDS"))[0]
+    assert str(minus_cds.get_slice()) == "GGGGCCCCCTTTTTTTTTT"
+
+
+@pytest.mark.parametrize("moltype", ("protein", "bytes", "text"))
+def test_rc_feature_on_wrong_moltype(moltype):
+    moltype = get_moltype(moltype)
+    seq = moltype.make_seq("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="s1")
+    cds = seq.add_feature(
+        biotype="CDS", name="gene", spans=[(2, 6), (10, 15), (25, 35)], strand="-"
+    )
+    with pytest.raises(TypeError):
+        cds.get_slice()

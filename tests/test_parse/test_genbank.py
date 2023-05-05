@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 """Unit tests for the GenBank database parsers.
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.genbank import (
     Location,
@@ -433,20 +432,11 @@ ORIGIN
 
     def test_rich_parser(self):
         """correctly constructs +/- strand features"""
-        # a custom annotation function
-        from cogent3.core.annotation import Feature
+        with open("data/annotated_seq.gb") as infile:
+            parser = RichGenbankParser(infile)
+            seq = [s for l, s in parser][0]
 
-        def add_annotation(seq, feature, spans):
-            if feature["type"] != "CDS":
-                return
-            name = feature["locus_tag"][0]
-            seq.add_annotation(Feature, "CDS", name, spans)
-
-        infile = open("data/annotated_seq.gb")
-        parser = RichGenbankParser(infile, add_annotation=add_annotation)
-
-        seq = [s for l, s in parser][0]
-        cds = dict([(f.name, f) for f in seq.get_features_matching("CDS")])
+        cds = dict([(f.name, f) for f in seq.get_features(biotype="CDS")])
         expects = {
             "CNA00110": "MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD"
             "SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL"
@@ -469,7 +459,6 @@ ORIGIN
         for locus in cds:
             got = cds[locus].get_slice().trim_stop_codon().get_translation()
             self.assertEqual(str(got), expects[locus])
-        infile.close()
 
     def test_rich_parser_moltype(self):
         """correctly handles moltypes"""
@@ -478,8 +467,9 @@ ORIGIN
             got_1 = [s for _, s in parser][0]
 
         # name formed from /product value
-        got = {f.name for f in got_1.get_features_matching("mRNA")}
-        self.assertEqual(got, {"conserved hypothetical protein", "chaperone, putative"})
+        feature_ids = {"CNA00110", "CNA00120"}
+        got = {f.name for f in got_1.get_features(biotype="mRNA")}
+        self.assertEqual(got, {"CNA00110", "CNA00120"})
 
         # the file defines itself as DNA
         self.assertEqual(got_1.moltype.label, "dna")
@@ -489,13 +479,12 @@ ORIGIN
             with open("data/annotated_seq.gb") as infile:
                 parser = RichGenbankParser(infile, moltype=moltype)
                 got_2 = [s for _, s in parser][0]
-
-            self.assertEqual(len(got_1.annotations), len(got_2.annotations))
-            self.assertEqual(got_2.moltype.label, moltype)
-            got = {f.name for f in got_1.get_features_matching("mRNA")}
             self.assertEqual(
-                got, {"conserved hypothetical protein", "chaperone, putative"}
+                got_1.annotation_db.num_matches(), got_2.annotation_db.num_matches()
             )
+            self.assertEqual(got_2.moltype.label, moltype)
+            got = {f.name for f in got_1.get_features(biotype="mRNA")}
+            self.assertEqual(got, feature_ids)
 
 
 class LocationTests(TestCase):
@@ -539,40 +528,32 @@ def test_Location_start():
 class LocationListTests(TestCase):
     """Tests of the LocationList class."""
 
-    def test_extract(self):
-        """LocationList extract should return correct sequence"""
-        l = Location(3)
-        l2_a = Location(5)
-        l2_b = Location(7)
-        l2 = Location([l2_a, l2_b], strand=-1)
-        l3_a = Location(10)
-        l3_b = Location(12)
-        l3 = Location([l3_a, l3_b])
-        ll = LocationList([l, l2, l3])
-        s = ll.extract("ACGTGCAGTCAGTAGCAT")
-        #               123456789012345678
-        self.assertEqual(s, "G" + "TGC" + "CAG")
-        # check a case where it wraps around
-        l5_a = Location(16)
-        l5_b = Location(4)
-        l5 = Location([l5_a, l5_b])
-        ll = LocationList([l5])
-        s = ll.extract("ACGTGCAGTCAGTAGCAT")
-        self.assertEqual(s, "CATACGT")
+
+def test_locationlist_extract():
+    """LocationList extract should return correct sequence"""
+    l = Location(3)
+    l2_a = Location(5)
+    l2_b = Location(7)
+    l2 = Location([l2_a, l2_b], strand=-1)
+    l3_a = Location(10)
+    l3_b = Location(12)
+    l3 = Location([l3_a, l3_b])
+    ll = LocationList([l, l2, l3])
+    s = ll.extract("ACGTGCAGTCAGTAGCAT")
+    #               123456789012345678
+    assert s == "G" + "TGC" + "CAG"
+    # check a case where it wraps around
+    l5_a = Location(16)
+    l5_b = Location(4)
+    l5 = Location([l5_a, l5_b])
+    ll = LocationList([l5])
+    s = ll.extract("ACGTGCAGTCAGTAGCAT")
+    assert s == "CATACGT"
 
 
-if __name__ == "__main__":
-    from sys import argv
-
-    if len(argv) > 2 and argv[1] == "x":
-        filename = argv[2]
-        lines = open(filename)
-        for i in indent_splitter(lines):
-            print("******")
-            print(i[0])
-            for j in indent_splitter(i[1:]):
-                print("?????")
-                for line in j:
-                    print(line)
-    else:
-        main()
+def test_location_list_get_coordinates():
+    l = "complement(join(5670..5918,5965..6126))"
+    l = location_line_tokenizer([l])
+    g = parse_location_line(l)
+    spans = g.get_coordinates()
+    assert spans == [(5669, 5918), (5964, 6126)]

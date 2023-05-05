@@ -592,6 +592,12 @@ class Annotation(_AnnotationCore, _Serialisable):
             parent=self.parent, seqid=seqid, map=map, biotype=biotype, name=name
         )
 
+    def get_drawable(self):
+        """returns plotly trace"""
+        from cogent3.draw.drawable import make_shape
+
+        return make_shape(type_=self)
+
 
 # https://pythonspeed.com/products/filmemoryprofiler/
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import xml.dom.minidom
 
 from unittest import TestCase, main
@@ -185,10 +184,4 @@ class ParseGBseq(TestCase):
         ]:
             self.assertEqual(name, "AY286018.1")
             self.assertEqual(sample_seq, seq.to_fasta(block_size=len(sample_seq)))
-            self.assertEqual(str(seq.annotations), sample_annotations)
-
-    pass
-
-
-if __name__ == "__main__":
-    main()
+            self.assertEqual(seq.annotation_db.num_matches(), 4)

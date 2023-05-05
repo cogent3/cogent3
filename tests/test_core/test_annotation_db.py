@@ -222,10 +222,8 @@ def test_get_features_matching_matching_feature(seq, anno_db):
     assert len(got) == 1
 
 
-def test_gav():
-    # gah todo also need to check a slice with stride
+def test_feature_strand():
     from cogent3 import make_seq
-    from cogent3.core.annotation import Feature
 
     #            ++   ++++
     #              ---    --
@@ -261,24 +259,15 @@ def test_gav():
     minus = list(seq.get_features(name="minus"))[0]
     assert str(minus.get_slice()) == minus_seq
 
-    f = Feature(seq, "cds", "minus", reversed([reversed(s) for s in minus_spans]))
-    s = f.get_slice()
-    assert str(s) == minus_seq
-
     # now reverse complement the sequence
     rced = seq.rc()
-
-    rced_spans = [(5, 9), (12, 14)]
-    rf = Feature(rced, "cds", "minus", [reversed(s) for s in rced_spans])
-    got = rf.get_slice()
-
     plus = list(rced.get_features(name="plus"))[0]
     assert str(plus.get_slice()) == plus_seq
     minus = list(rced.get_features(name="minus"))[0]
     assert str(minus.get_slice()) == minus_seq
 
 
-def test_gav2():
+def test_feature_nucleic():
     from cogent3 import make_seq
     from cogent3.core import location as loc
 

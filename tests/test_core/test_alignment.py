@@ -47,6 +47,7 @@ from cogent3.core.alignment import (
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
+from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
 from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
 from cogent3.maths.util import safe_p_log_p
@@ -1166,19 +1167,6 @@ class SequenceCollectionBaseTests(object):
         _ = seqs.dotplot()
         with self.assertRaises(AssertionError):
             seqs.dotplot(window=5, k=11)
-
-    def test_dotplot_annotated(self):
-        """exercising dotplot method with annotated sequences"""
-        seqs = self.Class(data={"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"})
-
-        seqs = seqs.take_seqs(["Human", "Mouse"])
-
-        if type(self.Class) != ArrayAlignment:
-            # we annotated Human
-            seq = seqs.get_seq("Human")
-            _ = seq.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
-
-        _ = seqs.dotplot(show_progress=False)
 
     def test_rename_seqs(self):
         """successfully rename sequences"""
@@ -2301,14 +2289,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue("-" not in found_motifs)
         self.assertEqual(lengths, {2})
 
-    def test_get_seq_entropy(self):
-        """ArrayAlignment get_seq_entropy should get entropy of each seq"""
-        seqs = [AB.make_seq(s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
-        a = self.Class(seqs, alphabet=AB.alphabet)
-        entropy = a.entropy_per_seq()
-        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
-        assert_allclose(entropy, array([1, 0, e]))
-
     def test_seq_entropy_just_gaps(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""
         a = self.Class(dict(a="A---", b="----"), moltype=DNA)
@@ -2777,11 +2757,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         for name in rna.names:
             orig_seq = aln.get_seq(name)
             new_seq = rna.get_seq(name)
-            self.assertEqual(len(orig_seq.annotations), len(new_seq.annotations))
-            for src, dest in zip(orig_seq.annotations, new_seq.annotations):
-                self.assertEqual(src.get_coordinates(), dest.get_coordinates())
-                self.assertIsInstance(src, dest.__class__)
-                self.assertIs(dest.parent, new_seq)
         # check the sequence moltypes
         self.assertEqual({s.data.moltype.label for s in rna.seqs}, {"rna"})
         self.assertEqual(rna.moltype.label, "rna")
@@ -3220,9 +3195,11 @@ def test_get_annotations_from_any_seq(cls):
     """get_annotations_from_any_seq returns correct annotations"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = cls(data, moltype=DNA)
-    seqs.get_seq("seq1").add_feature(biotype="exon", name="annotation1", spans=[(3, 8)])
-    seqs.get_seq("seq2").add_feature(biotype="exon", name="annotation2", spans=[(1, 2)])
-    seqs.get_seq("seq3").add_feature(biotype="exon", name="annotation3", spans=[(3, 6)])
+    db = GffAnnotationDb()
+    db.add_feature(seqid="seq1", biotype="exon", name="annotation1", spans=[(3, 8)])
+    db.add_feature(seqid="seq2", biotype="exon", name="annotation2", spans=[(1, 2)])
+    db.add_feature(seqid="seq3", biotype="exon", name="annotation3", spans=[(3, 6)])
+    seqs.annotation_db = db
     got = list(seqs.get_features())
     assert len(got) == 3
     assert 'exon "annotation1" at [3:8]/9' in str(got[0])
@@ -3246,6 +3223,7 @@ def test_annotate_matches_to():
     """Aligned.annotate_matches_to correctly delegates to sequence"""
 
     aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln.annotation_db = GffAnnotationDb()
     seq = aln.named_seqs["x"]
     pattern = "CCRC"
     annot = seq.annotate_matches_to(
@@ -3262,6 +3240,7 @@ def test_annotate_matches_to():
 
     # handles regex from aa
     aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln.annotation_db = GffAnnotationDb()
     gc = get_code(1)
     aa_regex = gc.to_regex("FHF")
     s = aln.named_seqs["x"].annotate_matches_to(
@@ -3320,59 +3299,37 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
         seqcoll_db.copy_annotations({"a": "ACGGT"})
 
 
-@pytest.mark.xfail(reason="todo gah to be implemented")
 def test_deepcopy_with_features():
     """correctly deepcopy Aligned objects in an alignment"""
     path = DATA_DIR / "brca1_5.paml"
     # generates an annotatable Alignment object
     aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+    db = GffAnnotationDb()
     # when the annotation is outside(before) boundary of the slice
-    aln.add_feature(seqid="NineBande", biotype="exon", name="annot1", spans=[(0, 10)])
+    db.add_feature(seqid="NineBande", biotype="exon", name="annot1", spans=[(0, 10)])
     # when the annotation is across boundary of the slice
-    aln.add_feature(seqid="Mouse", biotype="exon", name="annot2", spans=[(10, 21)])
+    db.add_feature(seqid="Mouse", biotype="exon", name="annot2", spans=[(10, 21)])
     # when the annotation is within boundary of the slice
-    aln.add_feature(seqid="Human", biotype="exon", name="annot3", spans=[(20, 25)])
+    db.add_feature(seqid="Human", biotype="exon", name="annot3", spans=[(20, 25)])
     # when the annotation is across boundary of the slice
-    aln.add_feature(seqid="HowlerMon", biotype="exon", name="annot4", spans=[(25, 32)])
+    db.add_feature(seqid="HowlerMon", biotype="exon", name="annot4", spans=[(25, 32)])
     # when the annotation is outside(after) boundary of the slice
-    aln.add_feature(seqid="DogFaced", biotype="exon", name="annot5", spans=[(40, 45)])
+    db.add_feature(seqid="DogFaced", biotype="exon", name="annot5", spans=[(40, 45)])
+    aln.annotation_db = db
     aln = aln[20:30]
-
-    # for these species, each has an annotation spanning slice boundary or within it
-    for name in ["Mouse", "Human", "HowlerMon"]:
-        new_seq = aln.named_seqs[name].deepcopy(sliced=True)
-        seq = aln.named_seqs[name]
-        assert new_seq.map.parent_length, seq.map.parent_length
-
-        assert len(new_seq.data) == 10
-        assert new_seq.data.is_annotated()
-        assert len(new_seq.data.annotations) == 1
-        # tests the case when sliced argument if False
-        new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-        assert new_seq.map.parent_length == seq.map.parent_length
-        assert len(new_seq.data) == len(aln.named_seqs[name].data)
-        assert new_seq.data.is_annotated()
-
-    # for these species, each has an annotation outside slice
-    for name in ["NineBande", "DogFaced"]:
-        new_seq = aln.named_seqs[name].deepcopy(sliced=True)
-        assert len(new_seq.data) == 10
-        assert new_seq.data.is_annotated()
-        # tests the case when sliced argument if False
-        new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-        assert len(new_seq.data) == len(aln.named_seqs[name].data)
-        assert new_seq.data.is_annotated()
-        assert len(new_seq.data.annotations) == 1
-
-    # add another human annotation that is outside slice
-    aln.named_seqs["Human"].data.add_feature(
-        biotype="exon", name="annot6", spans=[(40, 45)]
-    )
-    # tests the case when sliced argument if False regarding the Human sequence
-    new_seq = aln.named_seqs["Human"].deepcopy(sliced=False)
-    assert len(new_seq.data) == len(aln.named_seqs["Human"].data)
-    assert new_seq.data.is_annotated()
-    assert len(new_seq.data.annotations) == 2
+    # no slice
+    copied = aln.deepcopy(sliced=False)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3  # overlap is Mouse, Human, HowlerMon
+    # with slice
+    copied = aln.deepcopy(sliced=True)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3
+    # rc drops annotations only when sliced is True
+    rced = aln.rc()
+    copied = rced.deepcopy(sliced=False)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3  # overlap is Mouse, Human, HowlerMon
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
@@ -3449,3 +3406,25 @@ def test_to_rich_dict(cls, with_offset):
         "version": __version__,
     }
     assert got == expect
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_dotplot_annotated(cls):
+    """exercising dotplot method with annotated sequences"""
+    db = GffAnnotationDb()
+    db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
+
+    seqs = cls(data={"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"})
+    seqs.annotation_db = db
+    seqs = seqs.take_seqs(["Human", "Mouse"])
+    _ = seqs.dotplot(show_progress=False)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_get_seq_entropy(cls):
+    """ArrayAlignment get_seq_entropy should get entropy of each seq"""
+    seqs = [AB.make_seq(s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
+    a = cls(seqs, alphabet=AB.alphabet)
+    entropy = a.entropy_per_seq()
+    e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+    assert_allclose(entropy, array([1, 0, e]))

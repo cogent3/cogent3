@@ -1,7 +1,7 @@
-#!/usr/bin/env python
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
+from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.parse.cigar import (
     CigarParser,
     aligned_from_cigar,
@@ -73,12 +73,15 @@ class TestCigar(unittest.TestCase):
         aln = aln.to_type(array_align=False)
         assert aln == self.aln
         # test slice
+        db = GffAnnotationDb()
+        aln.annotation_db = db
         i = 1
         for start, end in self.slices:
-            self.aln.get_seq("FAKE01").add_feature(
-                biotype=f"annot{i}", name="annot", spans=[(start, end)]
+            db.add_feature(
+                seqid="FAKE01", biotype=f"annot{i}", name="annot", spans=[(start, end)]
             )
-            annot = list(self.aln.get_features(biotype=f"annot{i}"))
+
+            annot = list(aln.get_features(biotype=f"annot{i}"))
             annot = annot[0].union(annot[1:])
             slice_aln = annot.as_one_span().get_slice()
             i += 1

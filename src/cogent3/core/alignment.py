@@ -53,7 +53,7 @@ from numpy.random import choice, permutation, randint
 
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
-from cogent3.core.annotation import Annotation, Map, _Annotatable
+from cogent3.core.annotation import Annotation, Map
 from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -644,8 +643,12 @@ class _SequenceCollectionBase:
             interval. This also causes dropping
             annotations.
         """
+        if isinstance(self, Alignment):
+            reversed = self.seqs[0].map.reverse
+        else:
+            reversed = self.seqs[0]._seq.reversed
         new_seqs = dict()
-        db = None if sliced else deepcopy(self.annotation_db)
+        db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
             try:
                 new_seq = seq.deepcopy(sliced=sliced, exclude_annotations=True)
@@ -926,10 +929,14 @@ class _SequenceCollectionBase:
             # copy only the specified seqs
             for r in seqs:
                 result[r] = get(r)
-        if result:
-            return self.__class__(result, names=seqs, info=self.info, **kwargs)
-        else:
+        if not result:
             return {}  # safe value; can't construct empty alignment
+
+        result = self.__class__(result, names=seqs, info=self.info, **kwargs)
+        if self.annotation_db:
+            result.annotation_db = self.annotation_db.__class__()
+            result.annotation_db.update(self.annotation_db, seqids=result.names)
+        return result
 
     def get_seq_indices(self, f, negate=False):
         """Returns list of keys of seqs where f(row) is True.
@@ -1160,13 +1167,8 @@ class _SequenceCollectionBase:
             version=__version__,
         )
 
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-        except AttributeError:
-            annotations = []
-
-        if annotations:
-            data["annotations"] = annotations
+        if hasattr(self, "annotation_db") and self.annotation_db:
+            data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
 
@@ -1224,17 +1226,8 @@ class _SequenceCollectionBase:
             data=list(zip(self.names, concatenated)),
             info=self.info,
         )
-
-        if aligned:
-            left = [
-                a for a in self._shifted_annotations(new, 0) if a.map.end <= len(self)
-            ]
-            right = [
-                a
-                for a in other._shifted_annotations(new, len(self))
-                if a.map.start >= len(self)
-            ]
-            new.annotations = left + right
+        # cannot copy annotations on addition
+        new.annotation_db = None
         return new
 
     def add_seqs(self, other, before_name=None, after_name=None):
@@ -1684,39 +1677,24 @@ class _SequenceCollectionBase:
             raise ValueError(f"unknown moltype '{moltype}'")
 
         data = [s.to_moltype(moltype) for s in self.seqs]
-        return self.__class__(
+        result = self.__class__(
             data=data, moltype=moltype, name=self.name, info=self.info
         )
+        if self.annotation_db:
+            result.annotation_db = deepcopy(self.annotation_db)
+        return result
 
     def to_dna(self):
         """returns copy of self as an alignment of DNA moltype seqs"""
-        data = [s.to_moltype("dna") for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.DNA, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("dna")
 
     def to_rna(self):
         """returns copy of self as an alignment of RNA moltype seqs"""
-        data = [s.to_moltype("rna") for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.RNA, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("rna")
 
     def to_protein(self):
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
-        data = [s.to_moltype("protein") for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.PROTEIN, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("protein")
 
     def rc(self):
         """Returns the reverse complement alignment"""
@@ -1724,9 +1702,7 @@ class _SequenceCollectionBase:
         rc = self.__class__(
             data=seqs, names=self.names[:], name=self.name, info=self.info
         )
-        if isinstance(self, _Annotatable) and self.annotations:
-            self._annotations_nucleic_reversed_on(rc)
-        rc.annotation_db = self.annotation_db
+        rc.annotation_db = deepcopy(self.annotation_db)
         return rc
 
     def reverse_complement(self):
@@ -2265,13 +2241,6 @@ class SequenceCollection(_SequenceCollectionBase):
         of strand of the current instance.
         """
         if self.annotation_db is None:
-            # todo gah this should not be required
-            # the annotation db attribute should be defined on creation,
-            # or when annotation_db is assigned
-            anno_db = merged_db_collection(self.seqs)
-            self.annotation_db = anno_db
-
-        if self.annotation_db is None:
             return None
 
         seqids = [seqid] if isinstance(seqid, str) else seqid
@@ -2285,8 +2254,10 @@ class SequenceCollection(_SequenceCollectionBase):
             seq = self.named_seqs[seqid]
             if isinstance(seq, Aligned):
                 start, end = seq.map.start, seq.map.end
+                offset = seq.data.annotation_offset
             else:
                 start, end = 0, len(seq)
+                offset = seq.annotation_offset
 
             for feature in self.annotation_db.get_features_matching(
                 seqid=seqid,
@@ -2297,6 +2268,8 @@ class SequenceCollection(_SequenceCollectionBase):
                 start=start,
                 end=end,
             ):
+                if offset:
+                    feature["spans"] = (array(feature["spans"]) - offset).tolist()
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
 
@@ -2353,12 +2326,18 @@ class Aligned:
         a copy of self
         """
         new_seq = self.data.copy(exclude_annotations=exclude_annotations)
+        db = new_seq.annotation_db
         if sliced:
             span = self.map.get_covering_span()
             new_seq = type(new_seq)(
                 str(new_seq[span.start : span.end]), info=new_seq.info, name=self.name
             )
-            new_seq.annotation_db = None
+            new_seq.annotation_offset = self.map.start
+            if self.map.reverse or exclude_annotations:
+                new_seq.annotation_db = None
+            else:
+                new_seq.annotation_offset = self.map.start
+                new_seq.annotation_db = db
             new_map = self.map.zeroed()
         else:
             new_map = self.map
@@ -2450,10 +2429,7 @@ class Aligned:
             raise NotImplementedError
         start, end = coords[0]
         data = self.data[start:end]
-        # drop any lost spans
-        for i, a in enumerate(data.annotations):
-            data.annotations[i] = a.without_lost_spans()
-        data = data.to_rich_dict()
+        data = data.to_rich_dict(exclude_annotations=True)
         data["seq"] = str(self)
         data["version"] = __version__
         return data
@@ -3818,6 +3794,45 @@ class AlignmentI(object):
             width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
         )
 
+    def get_drawable(self, width=600, vertical=False):
+        """returns Drawable instance"""
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables()
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
@@ -4668,7 +4683,7 @@ def make_gap_filter(template, gap_fraction, gap_run):
     return result
 
 
-class Alignment(_Annotatable, AlignmentI, SequenceCollection):
+class Alignment(AlignmentI, SequenceCollection):
     """An annotatable alignment class"""
 
     moltype = None  # note: this is reset to ASCII in moltype module
@@ -4702,7 +4717,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def _coerce_seqs(self, seqs, is_array):
         if any(isinstance(seq, ArraySequence) for seq in seqs):
             seqs = [self.moltype.make_seq(str(seq), name=seq.name) for seq in seqs]
-        elif not any(isinstance(seq, (_Annotatable, Aligned)) for seq in seqs):
+        elif not any(isinstance(seq, (Sequence, Aligned)) for seq in seqs):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
@@ -4756,10 +4771,18 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
     @annotation_db.setter
     def annotation_db(self, value):
-        from cogent3.core.annotation_db import SupportsFeatures
-
         if value and not isinstance(value, SupportsFeatures):
             raise TypeError
+
+        # Without knowing the contents of the db we cannot
+        # establish whether self.moltype is compatible, so
+        # we rely on the user to get that correct
+        # one approach to support validation might be to add
+        # to the SupportsFeatures protocol a is_nucleic flag,
+        # for both DNA and RNA. But if a user trys get_slice()
+        # on a '-' strand feature, they will get a TypError.
+        # I think that's enough.
+
         self._annotation_db = value
         for seq in self.seqs:
             seq.data.annotation_db = value
@@ -5108,19 +5131,14 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
         new = super().to_moltype(moltype)
-        for annot in self.annotations:
-            new = annot.copy_annotations_to(new)
+        new.annotation_db = self.annotation_db
         return new
 
     def get_drawables(self):
         """returns a dict of drawables, keyed by type"""
         result = defaultdict(list)
-        for a in self.get_annotations_from_any_seq():
-            d = a.get_drawable()
-            if not d:
-                continue
-            result[a.type].append(d)
-
+        for f in self.get_features():
+            result[f.biotype].append(f.get_drawable())
         return result
 
     def add_feature(
