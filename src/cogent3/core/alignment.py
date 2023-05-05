@@ -53,7 +53,7 @@ from numpy.random import choice, permutation, randint
 
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
-from cogent3.core.annotation import Annotation, Map
+from cogent3.core.annotation import Feature, Map
 from cogent3.core.annotation_db import (
     FeatureDataType,
     GenbankAnnotationDb,
@@ -65,7 +65,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2106,7 +2105,7 @@ class SequenceCollection(_SequenceCollectionBase):
             )
 
         if not self.annotation_db:
-            # todo gah add ability to query multiple values in Annotation db
+            # todo gah add ability to query multiple values in Feature db
             num = 0
             for seqid in self.names:
                 num += seq_db.num_matches(seqid=seqid)
@@ -2159,7 +2158,7 @@ class SequenceCollection(_SequenceCollectionBase):
         self,
         *,
         feature: FeatureDataType,
-    ) -> Annotation:
+    ) -> Feature:
         """
         create a feature on named sequence, or on the alignment itself
 
@@ -2170,7 +2169,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
         Returns
         -------
-        Annotation
+        Feature
 
         Notes
         -----
@@ -2187,7 +2186,7 @@ class SequenceCollection(_SequenceCollectionBase):
         spans: List[Tuple[int, int]],
         parent_id: Optional[str] = None,
         strand: str = "+",
-    ) -> Annotation:
+    ) -> Feature:
         """
         add feature on named sequence
 
@@ -2208,7 +2207,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
         Returns
         -------
-        Annotation
+        Feature
         """
         if not self.annotation_db:
             # todo gah can we define the default in some better way?
@@ -2230,8 +2229,8 @@ class SequenceCollection(_SequenceCollectionBase):
         biotype: Optional[str] = None,
         name: Optional[str] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Annotation]:
-        """yields Annotation instances
+    ) -> Iterator[Feature]:
+        """yields Feature instances
 
         Parameters
         ----------
@@ -2456,9 +2455,7 @@ class Aligned:
     def remapped_to(self, map):
         return Aligned(map[self.map.inverse()].inverse(), self.data)
 
-    def make_feature(
-        self, feature: FeatureDataType, alignment: "Alignment"
-    ) -> Annotation:
+    def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
         """returns a feature, not written into annotation_db"""
         annot = self.data.make_feature(feature)
         return annot.remapped_to(alignment, self.map.inverse())
@@ -4816,7 +4813,7 @@ class Alignment(AlignmentI, SequenceCollection):
     def project_annotation(self, seq_name, annot):
         target_aligned = self.named_seqs[seq_name]
         if annot.parent is not self:
-            raise ValueError("Annotation does not belong to this alignment")
+            raise ValueError("Feature does not belong to this alignment")
         return annot.remapped_to(target_aligned.data, target_aligned.map)
 
     def get_projected_annotations(self, *, seqid: str, **kwargs):
@@ -5155,7 +5152,7 @@ class Alignment(AlignmentI, SequenceCollection):
         parent_id: Optional[str] = None,
         strand: str = "+",
         on_alignment: Optional[bool] = None,
-    ) -> Annotation:
+    ) -> Feature:
         """
         add feature on named sequence, or on the alignment itself
 
@@ -5179,7 +5176,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         Returns
         -------
-        Annotation
+        Feature
 
         Raises
         ------
@@ -5213,7 +5210,7 @@ class Alignment(AlignmentI, SequenceCollection):
         *,
         feature: FeatureDataType,
         on_alignment: Optional[bool] = None,
-    ) -> Annotation:
+    ) -> Feature:
         """
         create a feature on named sequence, or on the alignment itself
 
@@ -5227,7 +5224,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         Returns
         -------
-        Annotation
+        Feature
 
         Raises
         ------
@@ -5251,7 +5248,7 @@ class Alignment(AlignmentI, SequenceCollection):
         if feature.pop("reversed", None):
             fmap = fmap.nucleic_reversed()
         feature.pop("strand", None)
-        return Annotation(parent=self, map=fmap, **feature)
+        return Feature(parent=self, map=fmap, **feature)
 
     def get_features(
         self,
@@ -5261,8 +5258,8 @@ class Alignment(AlignmentI, SequenceCollection):
         name: Optional[str] = None,
         on_alignment: Optional[bool] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Annotation]:
-        """yields Annotation instances
+    ) -> Iterator[Feature]:
+        """yields Feature instances
 
         Parameters
         ----------

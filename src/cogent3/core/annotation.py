@@ -402,7 +402,7 @@ class _Serialisable:
 
 
 # todo gah implement __repr__ and __str__ methods
-class Annotation(_AnnotationCore, _Serialisable):
+class Feature(_AnnotationCore, _Serialisable):
     """new style annotation, created on demand"""
 
     __slots__ = (
@@ -557,7 +557,7 @@ class Annotation(_AnnotationCore, _Serialisable):
             yield make_feature(feature=child)
 
     def union(self, features):
-        """return as a single Annotation
+        """return as a single Feature
 
         Notes
         -----
