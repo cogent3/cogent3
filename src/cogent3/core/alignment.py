@@ -631,7 +631,7 @@ class _SequenceCollectionBase:
     def copy(self):
         """Returns deep copy of self."""
         result = self.__class__(self, moltype=self.moltype, info=self.info)
-        result._annotation_db = deepcopy(self.annotation_db)
+        result.annotation_db = deepcopy(self.annotation_db)
         return result
 
     def deepcopy(self, sliced: bool = True):
@@ -647,7 +647,7 @@ class _SequenceCollectionBase:
         if isinstance(self, Alignment):
             reversed = self.seqs[0].map.reverse
         else:
-            reversed = self.seqs[0]._seq.reversed
+            reversed = self.seqs[0]._seq.reverse
         new_seqs = dict()
         db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
@@ -935,8 +935,10 @@ class _SequenceCollectionBase:
 
         result = self.__class__(result, names=seqs, info=self.info, **kwargs)
         if self.annotation_db:
-            result.annotation_db = self.annotation_db.__class__()
-            result.annotation_db.update(self.annotation_db, seqids=result.names)
+            result.annotation_db = type(self.annotation_db)()
+            result.annotation_db.update(
+                annot_db=self.annotation_db, seqids=result.names
+            )
         return result
 
     def get_seq_indices(self, f, negate=False):
@@ -1430,7 +1432,11 @@ class _SequenceCollectionBase:
         for name in self.names:
             seq = self.named_seqs[name].with_termini_unknown()
             seqs.append((name, seq))
-        return self.__class__(moltype=self.moltype, data=seqs, info=self.info)
+        result = self.__class__(moltype=self.moltype, data=seqs, info=self.info)
+
+        if self.annotation_db:
+            result.annotation_db = deepcopy(self.annotation_db)
+        return result
 
     def has_terminal_stops(self, gc=None, allow_partial=False):
         """Returns True if any sequence has a terminal stop codon.
@@ -1474,9 +1480,12 @@ class _SequenceCollectionBase:
             new_seq = old_seq.trim_stop_codon(gc=gc, allow_partial=allow_partial)
             new_seqs.append((seq_name, new_seq))
 
-        return self.__class__(
+        result = self.__class__(
             moltype=self.moltype, data=new_seqs, info=self.info, **kwargs
         )
+        if self.annotation_db:
+            result.annotation_db = deepcopy(self.annotation_db)
+        return result
 
     def get_lengths(self, include_ambiguity=False, allow_gap=False):
         """returns {name: seq length, ...}
@@ -2112,7 +2121,7 @@ class SequenceCollection(_SequenceCollectionBase):
         if not isinstance(seq_db, type(self.annotation_db)):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
-        self.annotation_db.update(seq_db, seqids=self.names)
+        self.annotation_db.update(annot_db=seq_db, seqids=self.names)
         self._apply_annotation_db_to_seqs()
 
     def annotate_from_gff(
@@ -5128,12 +5137,6 @@ class Alignment(AlignmentI, SequenceCollection):
             new_seqs.append((label, Aligned(aligned.map * scale, seq)))
 
         return self.__class__(new_seqs, info=self.info)
-
-    def to_moltype(self, moltype):
-        """returns copy of self with moltype seqs"""
-        new = super().to_moltype(moltype)
-        new.annotation_db = self.annotation_db
-        return new
 
     def get_drawables(self):
         """returns a dict of drawables, keyed by type"""

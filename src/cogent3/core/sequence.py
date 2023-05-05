@@ -1036,7 +1036,7 @@ class Sequence(SequenceI):
         We assume that spans represent the coordinates for this instance!
         """
         feature = dict(feature)
-        seq_rced = self._seq.reversed
+        seq_rced = self._seq.reverse
         # todo gah check consistency of relationship between reversed and strand
         # i.e. which object has responsibility for transforming the strand value
         # (a string) into a bool?
@@ -1265,6 +1265,7 @@ class Sequence(SequenceI):
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
+        new.annotation_db = copy.deepcopy(self.annotation_db)
         return new
 
     def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
@@ -1346,7 +1347,7 @@ class Sequence(SequenceI):
 
     def __str__(self):
         result = str(self._seq)
-        if self._seq.reversed:
+        if self._seq.reverse:
             with contextlib.suppress(TypeError):
                 result = self.moltype.complement(result)
         return result
@@ -1453,14 +1454,15 @@ class Sequence(SequenceI):
         seq = self.__class__(
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )
-        if self.annotation_db:
-            seq.annotation_db = self.annotation_db
+        seq.annotation_db = copy.deepcopy(self.annotation_db)
         return (map, seq)
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
         new = self._seq.replace(oldchar, newchar)
-        return self.__class__(new, name=self.name, info=self.info)
+        result = self.__class__(new, name=self.name, info=self.info)
+        result.annotation_db = copy.deepcopy(self.annotation_db)
+        return result
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
@@ -1588,9 +1590,7 @@ class NucleicAcidSequence(Sequence):
         rc = self.__class__(
             self._seq[::-1], name=self.name, check=False, info=self.info
         )
-        if self.annotation_db is not None:
-            rc.annotation_db = self.annotation_db
-
+        rc.annotation_db = copy.deepcopy(self.annotation_db)
         return rc
 
     def has_terminal_stop(self, gc=None, allow_partial=False):
@@ -1639,7 +1639,9 @@ class NucleicAcidSequence(Sequence):
         if divisible_by_3 and codons and gc.is_stop(str(codons[-3:])):
             codons = codons[:-3]
 
-        return self.__class__(codons, name=self.name, info=self.info)
+        result = self.__class__(codons, name=self.name, info=self.info)
+        result.annotation_db = copy.deepcopy(self.annotation_db)
+        return result
 
     def get_translation(self, gc=None, incomplete_ok=False, include_stop=False):
         """translate to amino acid sequence
@@ -1809,9 +1811,8 @@ class SeqView:
     def offset(self, value: int):
         self._offset = value or 0
 
-    # todo gah rename to reverse for compatability with Map
     @property
-    def reversed(self):
+    def reverse(self):
         return self.step < 0
 
     def absolute_position(self, rel_index: int, include_boundary=False):
@@ -1836,7 +1837,7 @@ class SeqView:
 
         # add offset and handle reversed views, now absolute relative to annotation coordinates
         offset = self.offset
-        if self.reversed:
+        if self.reverse:
             abs_index = offset + len(self.seq) + seq_index + 1
         else:
             abs_index = offset + seq_index
@@ -1853,7 +1854,7 @@ class SeqView:
         if abs_index < 0:
             raise IndexError("Index must be +ve and relative to the + strand")
 
-        if self.reversed:
+        if self.reverse:
             offset = self.offset
 
             if (
