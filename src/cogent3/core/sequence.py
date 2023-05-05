@@ -17,6 +17,7 @@ import os
 import re
 import warnings
 
+from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
@@ -1512,6 +1513,13 @@ class Sequence(_Annotatable, SequenceI):
         new_seq.annotation_db = None
         # annotations are dropped in this case
         return new_seq
+
+    def get_drawables(self):
+        """returns a dict of drawables, keyed by type"""
+        result = defaultdict(list)
+        for f in self.get_features():
+            result[f.biotype].append(f.get_drawable())
+        return result
 
 
 class ProteinSequence(Sequence):
