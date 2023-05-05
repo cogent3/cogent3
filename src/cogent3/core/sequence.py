@@ -1287,12 +1287,11 @@ class Sequence(_Annotatable, SequenceI):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
+        # todo gah do we propagate annotations here?
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        annots = self._sliced_annotations(new, map)
-        new.annotations = annots
         return new
 
     def _mapped(self, map):
