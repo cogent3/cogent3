@@ -847,7 +847,6 @@ class Sequence(_Annotatable, SequenceI):
         self.info = info
 
         self._repr_policy = dict(num_pos=60)
-
         self._annotation_db = None
         self.annotation_offset = annotation_offset
 
@@ -1154,10 +1153,7 @@ class Sequence(_Annotatable, SequenceI):
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
         sv = SeqView(s)
         new = moltype.make_seq(sv, name=self.name, info=self.info)
-
-        new.clear_annotations()
-        for ann in self.annotations:
-            ann.copy_annotations_to(new)
+        new.annotation_db = self.annotation_db
         return new
 
     def _seq_filter(self, seq):
@@ -1457,8 +1453,8 @@ class Sequence(_Annotatable, SequenceI):
         seq = self.__class__(
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )
-        if self.annotations:
-            seq.annotations = [a.remapped_to(seq, map) for a in self.annotations]
+        if self.annotation_db:
+            seq.annotation_db = self.annotation_db
         return (map, seq)
 
     def replace(self, oldchar, newchar):

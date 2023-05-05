@@ -162,38 +162,13 @@ class SequenceTests(TestCase):
     def test_sequence_to_moltype(self):
         """correctly convert to specified moltype"""
         s = Sequence("TTTTTTTTTTAAAA", name="test1")
-        annot1 = s.add_annotation(Feature, "exon", "fred", [(0, 10)])
-        annot2 = s.add_annotation(Feature, "exon", "trev", [(10, 14)])
+        s.add_feature(biotype="exon", name="fred", spans=[(0, 10)])
+        s.add_feature(biotype="exon", name="trev", spans=[(10, 14)])
         got = s.to_moltype("rna")
-        annot1_slice = str(annot1.get_slice())
-        annot2_slice = str(annot2.get_slice())
-        got1_slice = str(got.annotations[0].get_slice())
-        got2_slice = str(got.annotations[1].get_slice())
-        self.assertNotEqual(annot1_slice, got1_slice)
-        self.assertEqual(annot2_slice, got2_slice)
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test1")
-
-        s = Sequence("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="test2")
-        xx_y = [[[2, 6], 2.4], [[10, 15], 5.1], [[25, 35], 1.3]]
-        y_valued = s.add_annotation(Variable, "SNP", "freq", xx_y)
-        got = s.to_moltype("rna")
-        y_valued_slice = str(y_valued.get_slice())
-        got_slice = str(str(got.annotations[0].get_slice()))
-        self.assertNotEqual(y_valued_slice, got_slice)
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test2")
-
-        s = Sequence("TTTTTTTTTTAAAAAAAAAA", name="test3")
-        data = [i for i in range(20)]
-        annot4 = s.add_annotation(SimpleVariable, "SNP", "freq", data)
-        got = s.to_moltype(RNA)
-        annot4_slice = str(annot4.get_slice())
-        got_slice = str(str(got.annotations[0].get_slice()))
-        self.assertNotEqual(annot4_slice[:10], got_slice[:10])
-        self.assertEqual(annot4_slice[10:20], got_slice[10:20])
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test3")
+        fred = list(got.get_features(name="fred"))[0]
+        assert str(got[fred]) == "UUUUUUUUUU"
+        trev = list(got.get_features(name="trev"))[0]
+        assert str(got[trev]) == "AAAA"
 
         # calling with a null object should raise an exception
         with self.assertRaises(ValueError):
