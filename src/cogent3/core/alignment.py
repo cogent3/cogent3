@@ -4696,7 +4696,7 @@ def make_gap_filter(template, gap_fraction, gap_run):
     return result
 
 
-class Alignment(_Annotatable, AlignmentI, SequenceCollection):
+class Alignment(AlignmentI, SequenceCollection):
     """An annotatable alignment class"""
 
     moltype = None  # note: this is reset to ASCII in moltype module
