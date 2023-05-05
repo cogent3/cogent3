@@ -1521,6 +1521,45 @@ class Sequence(_Annotatable, SequenceI):
             result[f.biotype].append(f.get_drawable())
         return result
 
+    def get_drawable(self, width=600, vertical=False):
+        """returns Drawable instance"""
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables()
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
+
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""

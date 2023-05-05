@@ -1168,19 +1168,6 @@ class SequenceCollectionBaseTests(object):
         with self.assertRaises(AssertionError):
             seqs.dotplot(window=5, k=11)
 
-    def test_dotplot_annotated(self):
-        """exercising dotplot method with annotated sequences"""
-        seqs = self.Class(data={"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"})
-
-        seqs = seqs.take_seqs(["Human", "Mouse"])
-
-        if type(self.Class) != ArrayAlignment:
-            # we annotated Human
-            seq = seqs.get_seq("Human")
-            _ = seq.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
-
-        _ = seqs.dotplot(show_progress=False)
-
     def test_rename_seqs(self):
         """successfully rename sequences"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -3432,3 +3419,15 @@ def test_to_rich_dict(cls, with_offset):
         "version": __version__,
     }
     assert got == expect
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_dotplot_annotated(cls):
+    """exercising dotplot method with annotated sequences"""
+    db = GffAnnotationDb()
+    db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
+
+    seqs = cls(data={"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"})
+    seqs.annotation_db = db
+    seqs = seqs.take_seqs(["Human", "Mouse"])
+    _ = seqs.dotplot(show_progress=False)
