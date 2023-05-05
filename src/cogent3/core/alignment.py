@@ -1222,17 +1222,8 @@ class _SequenceCollectionBase:
             data=list(zip(self.names, concatenated)),
             info=self.info,
         )
-
-        if aligned:
-            left = [
-                a for a in self._shifted_annotations(new, 0) if a.map.end <= len(self)
-            ]
-            right = [
-                a
-                for a in other._shifted_annotations(new, len(self))
-                if a.map.start >= len(self)
-            ]
-            new.annotations = left + right
+        # cannot copy annotations on addition
+        new.annotation_db = None
         return new
 
     def add_seqs(self, other, before_name=None, after_name=None):
@@ -5153,8 +5144,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
         new = super().to_moltype(moltype)
-        for annot in self.annotations:
-            new = annot.copy_annotations_to(new)
+        new.annotation_db = self.annotation_db
         return new
 
     def get_drawables(self):
