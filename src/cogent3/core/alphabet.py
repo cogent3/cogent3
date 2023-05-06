@@ -280,23 +280,6 @@ class Enumeration(tuple):
         stack_level=4,
     )
     def counts(self, a):  # pragma: no cover
-        """Returns array containing counts of each item in a.
-
-        For example, on the enumeration 'UCAG', the sequence 'CCUG' would
-        return the array [1,2,0,1] reflecting one count for the first item
-        in the enumeration ('U'), two counts for the second item ('C'), no
-        counts for the third item ('A'), and one count for the last item ('G').
-
-        The result will always be a vector of Int with length equal to
-        the length of the enumeration. We return Int and non an unsigned
-        type because it's common to subtract counts, which produces surprising
-        results on unit types (i.e. wrapraround to maxint) unless the type
-        is explicitly coerced by the user.
-
-        Sliently ignores any unrecognized indices, e.g. if your enumeration
-        contains 'TCAG' and you get an 'X', the 'X' will be ignored because
-        it has no index in the enumeration.
-        """
         try:
             data = ravel(a)
         except ValueError:  # ravel failed; try coercing to array

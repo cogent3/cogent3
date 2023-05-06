@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests of the Enumeration and Alphabet objects.
 
 Note: individual alphabets are typically in MolType and are tested there.
