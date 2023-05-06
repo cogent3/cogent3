@@ -313,7 +313,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         seq1 = DNA.make_seq("aagaagaagaccccca")
         seq2 = DNA.make_seq("aagaagaagaccccct")
-        seq2.add_feature("exon", "fred", [(10, 15)])
+        seq2.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
         aln = make_aligned_seqs(data={"a": seq1, "b": seq2})
         # TODO the ability to pickle/unpickle depends on the protocol
         # in Py3 for reasons that are not clear. This needs to be looked
@@ -992,6 +992,38 @@ class SequenceTestMethods(unittest.TestCase):
         # unless explicitly over-ride length issue using allow_partial
         # in which case, returns False
         self.assertFalse(seq.has_terminal_stop(allow_partial=True))
+
+
+def test_load_seq_new():
+    """load single sequence"""
+    from cogent3 import Sequence
+
+    paths = (
+        "c_elegans_WS199_dna_shortened.fasta",
+        "annotated_seq.gb",
+        "brca1_5.250.paml",
+    )
+    seq_names = ("I", "AE017341", "NineBande")
+    data_dir = pathlib.Path(data_path)
+
+    for i, path in enumerate(paths):
+        got = load_seq(data_dir / path)
+        assert isinstance(got, Sequence)
+        assert got.info.source == str(data_dir / path)
+        assert got.name == seq_names[i]
+
+    # annotated with gb
+    got = load_seq(data_dir / "annotated_seq.gb")
+    assert isinstance(got, Sequence)
+    assert got.annotation_db is not None
+
+    # annotated with gff
+    got = load_seq(
+        data_dir / "annotated_seq.gb",
+        annotation_path=data_dir / "c_elegans_WS199_shortened_gff.gff3",
+    )
+    assert isinstance(got, Sequence)
+    assert got.annotation_db is not None
 
 
 if __name__ == "__main__":

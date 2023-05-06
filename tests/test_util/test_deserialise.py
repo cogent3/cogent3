@@ -88,11 +88,12 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGTA", B="GGCT")
         seqs = make_unaligned_seqs(data=data, moltype="dna")
 
-        f = seqs.named_seqs["A"].add_feature("gene", "n1", [(2, 5)])
+        f = seqs.named_seqs["A"].add_feature(biotype="gene", name="n1", spans=[(2, 5)])
         data = seqs.to_json()
         expect = str(f.get_slice())
         got = deserialise_object(data)
-        self.assertEqual(str(got.named_seqs["A"].annotations[0].get_slice()), expect)
+        feat = list(got.get_features(seqid="A"))[0]
+        self.assertEqual(str(feat.get_slice()), expect)
 
     def test_roundtrip_arrayalign(self):
         """ArrayAlignment to_json enables roundtrip"""
@@ -542,5 +543,117 @@ class TestDeserialising(TestCase):
                 return tuple(data["data"])
 
 
-if __name__ == "__main__":
-    main()
+def test_convert_annotation_to_annotation_db():
+    from cogent3.core.annotation_db import (
+        GffAnnotationDb,
+        convert_annotation_to_annotation_db,
+    )
+
+    data = {
+        "name": "A",
+        "data": [
+            {
+                "annotation_construction": {
+                    "type": "gene",
+                    "name": "n1",
+                    "map": {
+                        "spans": [
+                            {
+                                "start": 2,
+                                "end": 5,
+                                "tidy_start": False,
+                                "tidy_end": False,
+                                "value": None,
+                                "reverse": False,
+                                "type": "cogent3.core.location.Span",
+                                "version": "2023.2.12a1",
+                            }
+                        ],
+                        "tidy": False,
+                        "parent_length": 5,
+                        "termini_unknown": False,
+                        "type": "cogent3.core.location.Map",
+                        "version": "2023.2.12a1",
+                    },
+                },
+                "type": "cogent3.core.annotation.AnnotatableFeature",
+                "version": "2023.2.12a1",
+            }
+        ],
+    }
+    data = convert_annotation_to_annotation_db(data)
+    # which can be turned back into an annotation db
+    db = deserialise_object(data)
+    assert isinstance(db, GffAnnotationDb)
+    assert db.num_matches() == 1
+
+
+def test_deser_annotated_aln():
+    data = {
+        "seqs": {
+            "A": {
+                "name": "A",
+                "seq": "--TTGTAGTTGA",
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2023.2.12a1",
+            },
+            "B": {
+                "name": "B",
+                "seq": "AATTGTAGTTGA",
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2023.2.12a1",
+            },
+        },
+        "moltype": "dna",
+        "info": {"source": "unknown"},
+        "type": "cogent3.core.alignment.Alignment",
+        "version": "2023.2.12a1",
+        "annotations": [
+            {
+                "annotation_construction": {
+                    "type": "CDS",
+                    "name": "norwegian",
+                    "map": {
+                        "spans": [
+                            {
+                                "start": 0,
+                                "end": 3,
+                                "tidy_start": False,
+                                "tidy_end": False,
+                                "value": None,
+                                "reverse": False,
+                                "type": "cogent3.core.location.Span",
+                                "version": "2023.2.12a1",
+                            },
+                            {
+                                "start": 5,
+                                "end": 9,
+                                "tidy_start": False,
+                                "tidy_end": False,
+                                "value": None,
+                                "reverse": False,
+                                "type": "cogent3.core.location.Span",
+                                "version": "2023.2.12a1",
+                            },
+                        ],
+                        "tidy": False,
+                        "parent_length": 12,
+                        "termini_unknown": False,
+                        "type": "cogent3.core.location.Map",
+                        "version": "2023.2.12a1",
+                    },
+                },
+                "type": "cogent3.core.annotation.AnnotatableFeature",
+                "version": "2023.2.12a1",
+            }
+        ],
+    }
+    aln = deserialise_object(data)
+    assert aln.annotation_db.num_matches() == 1
+    feat = list(aln.get_features(biotype="CDS"))
+    assert len(feat) == 1
+    print(feat)

@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-from cogent3.core.annotation import Feature
+from typing import List, Optional, Tuple
+
+from cogent3.core.annotation_db import GenbankAnnotationDb
 from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
 from cogent3.core.moltype import get_moltype
@@ -8,6 +9,7 @@ from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
 )
+from cogent3.util import warning as c3warn
 
 
 __author__ = "Rob Knight"
@@ -485,13 +487,8 @@ class LocationList(list):
     @property
     def strand(self):
         """Returns strand of components: 1=forward, -1=reverse, 0=both"""
-        curr = {}
-        for i in self:
-            curr[i.strand] = 1
-        if len(curr) >= 2:  # found stuff on both strands
-            return 0
-        else:
-            return list(curr.keys())[0]
+        curr = {i.strand: 1 for i in self}
+        return 0 if len(curr) >= 2 else list(curr.keys())[0]
 
     def __str__(self):
         """Returns (normalized) string representation of self."""
@@ -517,6 +514,10 @@ class LocationList(list):
                 curr = curr.translate(trans_table)[::-1]
             result.append(curr)
         return "".join(result)
+
+    def get_coordinates(self) -> List[Tuple[int, int]]:
+        """returns the segments in python coordinates"""
+        return sorted((i.start, i.stop + 1) for i in self)
 
 
 def parse_feature_table(lines):
@@ -678,8 +679,16 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         print("s :", seq)
 
 
+@c3warn.deprecated_args(
+    "2023.7", reason="no longer relevant", discontinued="add_annotation"
+)
 def RichGenbankParser(
-    handle, info_excludes=None, moltype=None, skip_contigs=False, add_annotation=None
+    handle,
+    info_excludes=None,
+    moltype=None,
+    skip_contigs=False,
+    add_annotation=None,
+    db: Optional[GenbankAnnotationDb] = None,
 ):
     """Returns annotated sequences from GenBank formatted file.
 
@@ -692,11 +701,9 @@ def RichGenbankParser(
     skip_contigs
         ignores records with no actual sequence data, typically
         a genomic contig.
-    add_annotation
-        a callback function to create an new annotation from a
-        GenBank feature. Function is called with the sequence, a feature dict
-        and the feature spans.
-
+    db
+        a GenbankAnnotationDb instance to which feature data will be
+        added
     """
     info_excludes = info_excludes or []
     moltype = get_moltype(moltype) if moltype else None
@@ -731,42 +738,8 @@ def RichGenbankParser(
                     yield rec["locus"], None
             continue
 
-        for feature in rec["features"]:
-            spans = []
-            reversed = None
-            if feature["location"] is None or feature["type"] in ["source", "organism"]:
-                continue
-            for location in feature["location"]:
-                (lo, hi) = (location.start, location.stop + 1)
-                if location.strand == -1:
-                    (lo, hi) = (hi, lo)
-                    assert reversed is not False
-                    reversed = True
-                else:
-                    assert reversed is not True
-                    reversed = False
-                # ensure we don't put in a span that starts beyond the sequence
-                if lo > len(seq):
-                    continue
-                # or that's longer than the sequence
-                hi = [hi, len(seq)][hi > len(seq)]
-                spans.append((lo, hi))
-
-            if add_annotation:
-                add_annotation(seq, feature, spans)
-            else:
-                for id_field in ["gene", "product", "clone", "note"]:
-                    if id_field in feature:
-                        name = feature[id_field]
-                        if not isinstance(name, str):
-                            name = " ".join(name)
-                        break
-                else:
-                    name = None
-                seq.add_annotation(Feature, feature["type"], name, spans)
-
+        db = getattr(db, "db", None)
+        seq.annotation_db = GenbankAnnotationDb(
+            data=rec["features"], seqid=rec["locus"], db=db
+        )
         yield (rec["locus"], seq)
-
-
-def parse(*args):
-    return RichGenbankParser(*args).next()[1]

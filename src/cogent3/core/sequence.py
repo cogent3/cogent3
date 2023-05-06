@@ -10,15 +10,18 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
+import contextlib
+import copy
 import json
+import os
 import re
 import warnings
 
 from collections import defaultdict
-from functools import total_ordering
+from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Tuple
+from typing import Generator, List, Optional, Tuple
 
 from numpy import (
     arange,
@@ -35,13 +38,20 @@ from numpy import (
 from numpy.random import permutation
 
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Map, _Annotatable
+from cogent3.core.annotation import Feature
+from cogent3.core.annotation_db import (
+    FeatureDataType,
+    GenbankAnnotationDb,
+    GffAnnotationDb,
+    SupportsFeatures,
+    load_annotations,
+)
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
+from cogent3.core.location import LostSpan, Map
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse import gff
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import (
     DistanceFromMatrix,
@@ -50,7 +60,11 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import deprecated
+from cogent3.util.warning import (
+    deprecated,
+    deprecated_args,
+    deprecated_callable,
+)
 
 
 __author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
@@ -115,7 +129,7 @@ class SequenceI(object):
             label = self.name
         return alignment_to_fasta({label: str(self)}, block_size=block_size)
 
-    def to_rich_dict(self):
+    def to_rich_dict(self, exclude_annotations=False):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         info = {} if self.info is None else self.info
         if not info.get("Refs", None) is None and "Refs" in info:
@@ -130,14 +144,16 @@ class SequenceI(object):
             type=get_object_provenance(self),
             version=__version__,
         )
+        if hasattr(self, "annotation_offset"):
+            offset = self._seq.offset + self._seq.start
+            data.update(dict(annotation_offset=offset))
 
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-        except AttributeError:
-            annotations = []
-
-        if annotations:
-            data["annotations"] = annotations
+        if (
+            hasattr(self, "annotation_db")
+            and self.annotation_db
+            and not exclude_annotations
+        ):
+            data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
 
@@ -774,12 +790,11 @@ class SequenceI(object):
         else:
             name = None
 
-        new_seq = self.__class__(str(self) + other_seq, name=name)
-        return new_seq
+        return self.__class__(str(self) + other_seq, name=name)
 
 
 @total_ordering
-class Sequence(_Annotatable, SequenceI):
+class Sequence(SequenceI):
     """Holds the standard Sequence object. Immutable."""
 
     moltype = None  # connected to ACSII when moltype is imported
@@ -793,48 +808,34 @@ class Sequence(_Annotatable, SequenceI):
         preserve_case=False,
         gaps_allowed=True,
         wildcards_allowed=True,
+        annotation_offset=0,
     ):
         """Initialize a sequence.
 
         Parameters
         ----------
-            seq: the raw sequence string, default is ''
-
-            name: the sequence name
-
-            check: if True (the default), validates against the MolType
+        seq
+            the raw sequence string, default is ''
+        name
+            the sequence name
+        check
+            if True (the default), validates against the MolType
+        annotation_offset
+            integer indicating start position relative to annotations
         """
+
         if name is None and hasattr(seq, "name"):
             name = seq.name
         self.name = name
         orig_seq = seq
-        if isinstance(seq, Sequence):
-            seq = str(seq)
-        elif isinstance(seq, ArraySequence):
-            seq = str(seq)
-        elif isinstance(seq, bytes):
-            seq = seq.decode("utf-8")
-        elif not isinstance(seq, str):
-            try:
-                seq = "".join(seq)
-            except TypeError:
-                seq = "".join(map(str, seq))
 
-        seq = self._seq_filter(seq)
+        checker = (
+            (lambda x: self.moltype.verify_sequence(x, gaps_allowed, wildcards_allowed))
+            if check
+            else (lambda x: x)
+        )
 
-        if isinstance(seq, SeqView):
-            if not preserve_case and not str(seq).isupper():
-                seq.seq = seq.seq.upper()
-            self._seq = seq
-
-        elif not preserve_case and not seq.isupper():
-            seq = seq.upper()
-
-        if isinstance(seq, str):
-            self._seq = SeqView(seq)
-
-        if check:
-            self.moltype.verify_sequence(str(self), gaps_allowed, wildcards_allowed)
+        self._seq = _coerce_seq(seq, preserve_case, checker)
 
         if not isinstance(info, InfoClass):
             try:
@@ -842,17 +843,298 @@ class Sequence(_Annotatable, SequenceI):
             except TypeError:
                 info = InfoClass()
         if hasattr(orig_seq, "info"):
-            try:
+            with contextlib.suppress(Exception):
                 info.update(orig_seq.info)
-            except:
-                pass
         self.info = info
 
-        if isinstance(orig_seq, _Annotatable):
-            for ann in orig_seq.annotations:
-                ann.copy_annotations_to(self)
-
         self._repr_policy = dict(num_pos=60)
+        self._annotation_db = None
+        self.annotation_offset = annotation_offset
+
+    @property
+    def annotation_offset(self):
+        """
+        The offset between annotation coordinates and sequence coordinates.
+
+        The offset can be used to adjust annotation coordinates to match the position
+        of the given Sequence within a larger genomic context. For example, if the
+        Annotations are with respect to a chromosome, and the sequence represents
+        a gene that is 100 bp from the start of a chromosome, the offset can be set to
+        100 to ensure that the gene's annotations are aligned with the appropriate
+        genomic positions.
+
+
+        Returns:
+            int: The offset between annotation coordinates and sequence coordinates.
+        """
+
+        return self._seq.offset
+
+    @annotation_offset.setter
+    def annotation_offset(self, value):
+        self._seq.offset = value
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        if value and not isinstance(value, SupportsFeatures):
+            raise TypeError
+        # Without knowing the contents of the db we cannot
+        # establish whether self.moltype is compatible, so
+        # we rely on the user to get that correct
+        # one approach to support validation might be to add
+        # to the SupportsFeatures protocol a is_nucleic flag,
+        # for both DNA and RNA. But if a user trys get_slice()
+        # on a '-' strand feature, they will get a TypError.
+        # I think that's enough.
+        self._annotation_db = value
+
+    @deprecated_args(
+        "2023.7",
+        reason="consistent nomenclature",
+        old_new=[("feature_type", "biotype")],
+    )
+    def get_features(
+        self,
+        *,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        allow_partial: bool = False,
+    ):
+        """yields Feature instances
+
+        Parameters
+        ----------
+        biotype
+            biotype of the feature
+        name
+            name of the feature
+        start, stop
+            start, end positions to search between, relative to offset
+            of this sequence. If not provided, entire span of sequence is used.
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+
+        if self._annotation_db is None:
+            return None
+
+        start = start or 0
+        stop = stop or len(self)
+
+        # handle negative start / stop
+        start = start + len(self) if start < 0 else start
+        stop = stop + len(self) if stop < 0 else stop
+
+        # sort start / stop
+        start, stop = (start, stop) if start < stop else (stop, start)
+
+        # note: offset is handled by absolute_position
+        # we set include_boundary=False because start is inclusive indexing,
+        # i,e., the start cannot be equal to the length of the view
+        query_start = self._seq.absolute_position(start, include_boundary=False)
+        # we set include_boundary=True because stop is exclusive indexing,
+        # i,e., the stop can be equal to the length of the view
+        query_end = self._seq.absolute_position(stop, include_boundary=True)
+
+        reversed = query_end < query_start
+        if reversed:
+            query_start, query_end = query_end, query_start
+
+        query_start = max(query_start, 0)
+        # in the underlying db, features are always plus strand oriented
+        # (need to check that for user defined features)
+        # a '-' strand feature in the db may be [(2, 4), (6, 8)]
+        # so we would take 7-6, 3-2 and complement it
+        # if the current sequence is reverse complemented
+        # then a '+' feature from the db needs to be nucleic reversed
+        # and a '-' feature from the db needs to be nucleic reversed too
+
+        # making this more complicated is self.make_feature() assumes
+        # all coordinates are with respect to the current orientation
+        # so self.make_feature(data(spans=[(2,4)])) has different meaning if
+        # self is rc'ed, it would correspond to len(self)-2, etc...
+        # To piggy-back on that method we need to convert our feature spans
+        # into the current orientation. HOWEVER, we also have the reversed
+        # flag which comes back from the db
+
+        for feature in self.annotation_db.get_features_matching(
+            seqid=self.name,
+            name=name,
+            biotype=biotype,
+            start=query_start,
+            end=query_end,  # todo gah end should be stop
+            allow_partial=allow_partial,
+        ):
+            # spans need to be converted from absolute to relative positions
+            # DO NOT do adjustment in make_feature since that's user facing,
+            # and we expect them to make a feature manually
+            spans = array(feature.pop("spans"), dtype=int)
+            for i, v in enumerate(spans.ravel()):
+                rel_pos = self._seq.relative_position(v)
+                spans.ravel()[i] = rel_pos
+
+            if reversed:
+                # see above comment
+                spans = len(self) - spans
+
+            feature["spans"] = spans.tolist()
+            yield self.make_feature(feature)
+
+    def _relative_spans(self, spans):
+        r_spans = []
+
+        for (s, e) in spans:
+            # reverse feature determined by absolute position
+            reverse = s > e
+
+            # todo: kath, think about logic of stop=true for reverse locations
+            # I think, we need to know the whether it is reverse so that the adjustment
+            # for step (given stop=True) is in the correct direction.
+            # However, we need to keep s > e for a reverse span because this information
+            # is used in the Map?
+            if reverse:
+                start = self._seq.relative_position(s, stop=True)
+                end = self._seq.relative_position(e)
+            else:
+                start = self._seq.relative_position(s)
+                end = self._seq.relative_position(e, stop=True)
+
+            r_spans += [(start, end)]
+
+        return r_spans
+
+    @deprecated_callable(
+        "2023.7", reason="simpler name", new="<instance>.get_features()"
+    )
+    def get_features_matching(self, **kwargs):
+        """use .get_features()"""
+        return self.get_features(**kwargs)
+
+    def make_feature(self, feature: FeatureDataType, *args) -> Feature:
+        """
+        return an Feature instance from feature data
+
+        Parameters
+        ----------
+        feature
+            dict of key data to make an Feature instance
+
+        Notes
+        -----
+        Unlike add_feature(), this method does not add the feature to the
+        database.
+        We assume that spans represent the coordinates for this instance!
+        """
+        feature = dict(feature)
+        seq_rced = self._seq.reverse
+        # todo gah check consistency of relationship between reversed and strand
+        # i.e. which object has responsibility for transforming the strand value
+        # (a string) into a bool?
+        revd = feature.pop("reversed", None) or feature.pop("strand", None) == "-"
+        spans = feature.pop("spans", None)
+
+        vals = array(spans)
+        pre = abs(vals.min()) if vals.min() < 0 else 0
+        post = abs(vals.max() - len(self)) if vals.max() > len(self) else 0
+
+        # we find the spans > len(self)
+        new_spans = []
+        for coord in vals:
+            new = coord[:]
+            if coord.min() < 0 < coord.max():
+                new = coord[:]
+                new[new < 0] = 0
+            elif coord.min() < len(self) < coord.max():
+                new[new > len(self)] = len(self)
+
+            if coord[0] == coord[1]:
+                # would really to adjust pre and post to be up to the next span
+                continue
+            new_spans.append(new.tolist())
+
+        fmap = Map(locations=new_spans, parent_length=len(self))
+        if pre or post:
+            # create a lost span to represent the segment missing from
+            # the instance
+            spans = fmap.spans
+            if pre:
+                spans.insert(0, LostSpan(pre))
+            if post:
+                spans.append(LostSpan(post))
+            fmap = Map(spans=spans, parent_length=len(self))
+
+        if revd and not seq_rced:
+            # the sequence is on the plus strand, and the
+            # feature coordinates are also for the plus strand
+            # but their order needs to be changed to indicate
+            # reverse complement is required
+            fmap = fmap.reversed()
+        elif seq_rced and not revd:
+            # plus strand feature, but the sequence reverse complemented
+            # so we need to nucleic-reverse the map
+            fmap = fmap.nucleic_reversed()
+        elif seq_rced:
+            # sequence is rc'ed, the feature was minus strand of
+            # original, so needs to be both nucleic reversed and
+            # then reversed
+            fmap = fmap.nucleic_reversed().reversed()
+
+        feature.pop("on_alignment", None)
+        feature.pop("seqid", None)
+        return Feature(parent=self, seqid=self.name, map=fmap, **feature)
+
+    def annotate_from_gff(self, f: os.PathLike, offset=None):
+        """copies annotations from a gff file to self,
+
+        Parameters
+        ----------
+        f : path to gff annotation file.
+        offset : Optional, the offset between annotation coordinates and sequence coordinates.
+
+        """
+        if self.annotation_db is None:
+            self.annotation_db = load_annotations(f, self.name)
+        elif isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
+        else:
+            self.annotation_db = load_annotations(
+                f, self.name, db=self.annotation_db._db
+            )
+
+        if offset:
+            self.annotation_offset = offset
+
+    def add_feature(
+        self,
+        *,
+        biotype: str,
+        name: str,
+        spans: List[Tuple[int, int]],
+        parent_id: Optional[str] = None,
+        strand: Optional[str] = None,
+        on_alignment: bool = False,
+    ) -> Feature:
+        if self.annotation_db is None:
+            self.annotation_db = GffAnnotationDb()
+
+        feature_data = FeatureDataType(
+            seqid=self.name, **{n: v for n, v in locals().items() if n != "self"}
+        )
+
+        self.annotation_db.add_feature(**feature_data)
+        for discard in ("on_alignment", "parent_id"):
+            feature_data.pop(discard)
+        return self.make_feature(feature_data)
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seq
@@ -868,26 +1150,53 @@ class Sequence(_Annotatable, SequenceI):
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = get_moltype(moltype)
-        make_seq = moltype.make_seq
-        new = make_seq(self, name=self.name)
-        new.clear_annotations()
-        for ann in self.annotations:
-            ann.copy_annotations_to(new)
+        s = moltype.coerce_str(self._seq.value)
+        moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
+        sv = SeqView(s)
+        new = moltype.make_seq(sv, name=self.name, info=self.info)
+        new.annotation_db = self.annotation_db
         return new
 
     def _seq_filter(self, seq):
         """Returns filtered seq; used to do DNA/RNA conversions."""
         return seq
 
-    def copy_annotations(self, other):
-        self.annotations = other.annotations[:]
+    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+        """copy annotations into attached annotation db
 
-    def copy(self):
+        Parameters
+        ----------
+        seq_db
+            compatible annotation db
+
+        Notes
+        -----
+        Only copies annotations for records with seqid self.name
+        """
+        if not isinstance(seq_db, SupportsFeatures):
+            raise TypeError(
+                f"type {type(seq_db)} does not match SupportsFeatures interface"
+            )
+
+        if not seq_db.num_matches(seqid=self.name):
+            return
+
+        if not self.annotation_db:
+            # todo gah add ability to query multiple values in Feature db
+            self.annotation_db = type(seq_db)()  # make an empty db of the same type
+        elif not isinstance(seq_db, type(self.annotation_db)):
+            raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
+
+        self.annotation_db.update(seq_db, seqids=self.name)
+
+    def copy(self, exclude_annotations=False):
         """returns a copy of self"""
-        new = self.__class__(self._seq, name=self.name, info=self.info)
-        if self.is_annotated():
-            for annot in self.annotations:
-                annot.copy_annotations_to(new)
+        offset = self._seq.offset + self._seq.start
+        new = self.__class__(
+            self._seq[:], name=self.name, info=self.info, annotation_offset=offset
+        )
+        db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
+        new._annotation_db = db
         return new
 
     def _get_feature_start(self, feature):
@@ -900,58 +1209,6 @@ class Sequence(_Annotatable, SequenceI):
                 offset += feature.map.start
 
         return offset + start
-
-    def annotate_from_gff(self, f, pre_parsed=False):
-        """annotates a Sequence from a gff file where each entry has the same SeqID"""
-        # only features with parent features included in the 'features' dict
-        gff_contents = f if pre_parsed else gff.gff_parser(f)
-        top_level = defaultdict(list)
-        grouped = defaultdict(list)
-        num_no_id = 0
-        for gff_dict in gff_contents:
-            if gff_dict["SeqID"] != self.name:
-                # we can only handle features for this sequence
-                continue
-
-            id_ = gff_dict["Attributes"]["ID"]
-            parents = gff_dict["Attributes"].get("Parent", None)
-            if parents is None and id_:
-                assert id_ not in top_level, f"non-unique id {id_}"
-                top_level[id_].append(
-                    self.add_feature(
-                        gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                    )
-                )
-            elif parents is None:
-                id_ = f"no-id-{num_no_id}"
-                num_no_id += 1
-                self.add_feature(
-                    gff_dict["Type"], id_, [(gff_dict["Start"], gff_dict["End"])]
-                )
-            else:
-                for parent in parents:
-                    grouped[parent].append(gff_dict)
-
-        # we annotate the annotations
-        while grouped:
-            for key, features in top_level.items():
-                child_features = grouped.pop(key, [])
-                if child_features:
-                    break
-
-            for feature in features:
-                feature_start = self._get_feature_start(feature)
-                for gff_dict in child_features:
-                    id_ = gff_dict["Attributes"]["ID"]
-                    b = gff_dict["Start"]
-                    e = gff_dict["End"]
-                    type_ = gff_dict["Type"]
-                    sub_feat = feature.add_feature(
-                        type_,
-                        id_,
-                        [(b - feature_start, e - feature_start)],
-                    )
-                    top_level[gff_dict["Attributes"]["ID"]].append(sub_feat)
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False
@@ -969,9 +1226,6 @@ class Sequence(_Annotatable, SequenceI):
         shadow
             whether to mask the annotated regions, or everything but
             the annotated regions
-        extend_query : boolean
-            queries sub-annotations if True
-
         """
         if mask_char is None:
             ambigs = [(len(v), c) for c, v in list(self.moltype.ambiguities.items())]
@@ -980,27 +1234,38 @@ class Sequence(_Annotatable, SequenceI):
         assert mask_char in self.moltype, f"Invalid mask_char {mask_char}"
 
         annotations = []
-        annot_types = [annot_types, [annot_types]][isinstance(annot_types, str)]
+        annot_types = [annot_types] if isinstance(annot_types, str) else annot_types
         for annot_type in annot_types:
-            annotations += self.get_annotations_matching(
-                annot_type, extend_query=extend_query
+            annotations += list(
+                self.get_features(biotype=annot_type, allow_partial=True)
             )
 
-        region = self.get_region_covering_all(annotations, extend_query=extend_query)
+        if not annotations:
+            region = Feature(
+                parent=self,
+                seqid=self.name,
+                name=None,
+                biotype=None,
+                map=Map(locations=[], parent_length=len(self)),
+            )
+        else:
+            region = annotations[0].union(annotations[1:])
+
         if shadow:
-            region = region.get_shadow()
+            region = region.shadow()
 
         i = 0
         segments = []
-        for b, e in region.get_coordinates():
-            segments.extend((str(self._seq[i:b]), mask_char * (e - b)))
+        fmap = region.map.reversed() if region.map.reverse else region.map
+        for b, e in fmap.get_coordinates():
+            segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
-        segments.append(str(self._seq[i:]))
+        segments.append(str(self[i:]))
 
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        new.annotations = self.annotations[:]
+        new.annotation_db = copy.deepcopy(self.annotation_db)
         return new
 
     def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
@@ -1012,7 +1277,7 @@ class Sequence(_Annotatable, SequenceI):
                 else:
                     raise ValueError(f"gap(s) in map {map}")
             else:
-                seg = str(self._seq[span.start : span.end])
+                seg = str(self[span.start : span.end])
                 if span.reverse:
                     complement = self.moltype.complement
                     seg = [complement(base) for base in seg[::-1]]
@@ -1024,12 +1289,11 @@ class Sequence(_Annotatable, SequenceI):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
+        # todo gah do we propagate annotations here?
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        annots = self._sliced_annotations(new, map)
-        new.annotations = annots
         return new
 
     def _mapped(self, map):
@@ -1041,10 +1305,38 @@ class Sequence(_Annotatable, SequenceI):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = f"{str(self._seq[:7])}... {len(self)}"
+            seq = f"{str(self[:7])}... {len(self)}"
         else:
             seq = str(self)
         return f"{myclass}({seq})"
+
+    def __getitem__(self, index):
+        preserve_offset = False
+        if hasattr(index, "map"):
+            index = index.map
+
+        if isinstance(index, Map):
+            new = self._mapped(index)
+            preserve_offset = not index.reverse
+
+        elif isinstance(index, (int, slice)):
+            new = self.__class__(
+                self._seq[index], name=self.name, check=False, info=self.info
+            )
+            stride = getattr(index, "step", 1) or 1
+            preserve_offset = stride > 0
+
+        if self.annotation_db is not None and preserve_offset:
+            new.annotation_db = self.annotation_db
+            new.annotation_offset = self.annotation_offset
+
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
+
+        return new
+
+    def __iter__(self):
+        yield from iter(str(self))
 
     def get_name(self):
         """Return the sequence name -- should just use name instead."""
@@ -1053,8 +1345,12 @@ class Sequence(_Annotatable, SequenceI):
     def __len__(self):
         return len(self._seq)
 
-    def __iter__(self):
-        return iter(self._seq)
+    def __str__(self):
+        result = str(self._seq)
+        if self._seq.reverse:
+            with contextlib.suppress(TypeError):
+                result = self.moltype.complement(result)
+        return result
 
     def gettype(self):  # pragma: no cover
         """Return the sequence type."""
@@ -1167,18 +1463,20 @@ class Sequence(_Annotatable, SequenceI):
         seq = self.__class__(
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )
-        if self.annotations:
-            seq.annotations = [a.remapped_to(seq, map) for a in self.annotations]
+        seq.annotation_db = copy.deepcopy(self.annotation_db)
         return (map, seq)
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
         new = self._seq.replace(oldchar, newchar)
-        return self.__class__(new, name=self.name, info=self.info)
+        result = self.__class__(new, name=self.name, info=self.info)
+        result.annotation_db = copy.deepcopy(self.annotation_db)
+        return result
 
     def is_annotated(self):
         """returns True if sequence has any annotations"""
-        return len(self.annotations) != 0
+        num = self.annotation_db.num_matches() if self.annotation_db else 0
+        return num != 0
 
     def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
         """Adds an annotation at sequence positions matching pattern.
@@ -1198,7 +1496,7 @@ class Sequence(_Annotatable, SequenceI):
 
         Returns
         -------
-        Returns a list of Annotation instances.
+        Returns a list of Feature instances.
         """
         try:
             pattern = self.moltype.to_regex(seq=pattern)
@@ -1213,7 +1511,9 @@ class Sequence(_Annotatable, SequenceI):
         num_match = len(pos) if allow_multiple else 1
         return [
             self.add_feature(
-                annot_type, f"{name}:{i}" if allow_multiple else name, [pos[i]]
+                biotype=annot_type,
+                name=f"{name}:{i}" if allow_multiple else name,
+                spans=[pos[i]],
             )
             for i in range(num_match)
         ]
@@ -1221,24 +1521,55 @@ class Sequence(_Annotatable, SequenceI):
     def __add__(self, other):
         """Adds two sequences (other can be a string as well)"""
         new_seq = super(Sequence, self).__add__(other)
-        # Annotations which extend past the right end of the left sequence
-        # or past the left end of the right sequence are dropped because
-        # otherwise they will annotate the wrong part of the constructed
-        # sequence.
-        left = [
-            a for a in self._shifted_annotations(new_seq, 0) if a.map.end <= len(self)
-        ]
-        if hasattr(other, "_shifted_annotations"):
-            right = [
-                a
-                for a in other._shifted_annotations(new_seq, len(self))
-                if a.map.start >= len(self)
-            ]
-            new_seq.annotations = left + right
-        else:
-            new_seq.annotations = left
-
+        new_seq.annotation_db = None
+        # annotations are dropped in this case
         return new_seq
+
+    def get_drawables(self):
+        """returns a dict of drawables, keyed by type"""
+        result = defaultdict(list)
+        for f in self.get_features():
+            result[f.biotype].append(f.get_drawable())
+        return result
+
+    def get_drawable(self, width=600, vertical=False):
+        """returns Drawable instance"""
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables()
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
 
 
 class ProteinSequence(Sequence):
@@ -1265,9 +1596,10 @@ class NucleicAcidSequence(Sequence):
 
     def rc(self):
         """Converts a nucleic acid sequence to its reverse complement."""
-        complement = self.moltype.rc(self)
-        rc = self.__class__(complement, name=self.name, info=self.info)
-        self._annotations_nucleic_reversed_on(rc)
+        rc = self.__class__(
+            self._seq[::-1], name=self.name, check=False, info=self.info
+        )
+        rc.annotation_db = copy.deepcopy(self.annotation_db)
         return rc
 
     def has_terminal_stop(self, gc=None, allow_partial=False):
@@ -1316,7 +1648,9 @@ class NucleicAcidSequence(Sequence):
         if divisible_by_3 and codons and gc.is_stop(str(codons[-3:])):
             codons = codons[:-3]
 
-        return self.__class__(codons, name=self.name, info=self.info)
+        result = self.__class__(codons, name=self.name, info=self.info)
+        result.annotation_db = copy.deepcopy(self.annotation_db)
+        return result
 
     def get_translation(self, gc=None, incomplete_ok=False, include_stop=False):
         """translate to amino acid sequence
@@ -1337,8 +1671,8 @@ class NucleicAcidSequence(Sequence):
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
-        for posn in range(0, len(self._seq) - 2, 3):
-            orig_codon = str(self._seq[posn : posn + 3])
+        for posn in range(0, len(self) - 2, 3):
+            orig_codon = str(self[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:
@@ -1388,11 +1722,11 @@ class NucleicAcidSequence(Sequence):
 
     def to_rna(self):
         """Returns copy of self as RNA."""
-        return RnaSequence(self)
+        return self.to_moltype("rna")
 
     def to_dna(self):
         """Returns copy of self as DNA."""
-        return DnaSequence(self)
+        return self.to_moltype("dna")
 
     def strand_symmetry(self, motif_length=1):
         """returns G-test for strand symmetry"""
@@ -1463,7 +1797,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step")
+    __slots__ = ("seq", "start", "stop", "step", "_offset")
 
     def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
         if step == 0:
@@ -1475,37 +1809,110 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
+        self._offset = 0
         self.step = step
 
-    def _get_index(self, val):
+    @property
+    def offset(self) -> int:
+        return self._offset
+
+    @offset.setter
+    def offset(self, value: int):
+        self._offset = value or 0
+
+    @property
+    def reverse(self):
+        return self.step < 0
+
+    def absolute_position(self, rel_index: int, include_boundary=False):
+        """Converts an index relative to the current view to be with respect to the coordinates of the sequence's annotations
+
+        Parameters
+        ----------
+        rel_index    int
+                relative position with respect to the current view
+
+        Returns
+        -------
+        the absolute index with respect to the coordinates of the sequence's annotations
+
+        """
+
+        if rel_index < 0:
+            raise IndexError("only positive indexing supported!")
+
+        # _get_index return the absolute position relative to the underlying sequence
+        seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
+
+        # add offset and handle reversed views, now absolute relative to annotation coordinates
+        offset = self.offset
+        if self.reverse:
+            abs_index = offset + len(self.seq) + seq_index + 1
+        else:
+            abs_index = offset + seq_index
+
+        return abs_index
+
+    def relative_position(self, abs_index, stop=False):
+        """converts an index relative to annotation coordinates to be with respect to the current sequence view
+
+        NOTE: the returned value DOES NOT reflect python indexing. Importantly, negative values represent positions that
+        precede the current view.
+        """
+
+        if abs_index < 0:
+            raise IndexError("Index must be +ve and relative to the + strand")
+
+        if self.reverse:
+            offset = self.offset
+
+            if (
+                tmp := ((len(self.seq) - (abs_index - offset)) + self.start + 1)
+            ) % self.step == 0 or stop:
+                rel_pos = tmp // abs(self.step)
+            else:
+                rel_pos = (tmp // abs(self.step)) + 1
+
+        else:
+            offset = self.offset + self.start
+
+            if (tmp := abs_index - offset) % self.step == 0 or stop:
+                rel_pos = tmp // self.step
+            else:
+                rel_pos = (tmp // self.step) + 1
+
+        return rel_pos
+
+    def _get_index(self, val, include_boundary=False):
         if len(self) == 0:
             raise IndexError(val)
 
+        if val > 0 and include_boundary and val > len(self):
+            raise IndexError(val)
+        elif val > 0 and not include_boundary and val >= len(self):
+            raise IndexError(val)
+        elif val < 0 and include_boundary and abs(val) > (len(self) + 1):
+            raise IndexError(val)
+        elif val < 0 and not include_boundary and abs(val) > len(self):
+            raise IndexError(val)
+
         if self.step > 0:
-            if val > 0 and val >= len(self):
-                raise IndexError(val)
-            elif val < 0 and abs(val) > len(self):
-                raise IndexError(val)
 
             if val >= 0:
                 val = self.start + val * self.step
             else:
                 val = self.start + len(self) * self.step + val * abs(self.step)
 
-            return self.__class__(self.seq, start=val, stop=val + 1)
+            return val, val + 1, 1
 
         elif self.step < 0:
-            if val > 0 and val >= len(self):
-                raise IndexError(val)
-            elif val < 0 and abs(val) > len(self):
-                raise IndexError(val)
 
             if val >= 0:
                 val = self.start + val * self.step
             else:
                 val = self.start + len(self) * self.step + val * self.step
 
-            return self.__class__(self.seq, start=val, stop=val - 1, step=-1)
+            return val, val - 1, -1
 
     def _get_slice(self, segment, step):
         slice_start = segment.start if segment.start is not None else 0
@@ -1671,7 +2078,9 @@ class SeqView:
 
     def __getitem__(self, segment):
         if isinstance(segment, int):
-            return self._get_index(segment)
+            start, stop, step = self._get_index(segment)
+            return self.__class__(self.seq, start=start, stop=stop, step=step)
+
         if len(self) == 0:
             return self
 
@@ -1741,9 +2150,16 @@ class ABSequence(Sequence):
 class ByteSequence(Sequence):
     """Used for storing arbitrary bytes."""
 
-    def __init__(self, seq="", name=None, info=None, check=False, preserve_case=True):
-        super(ByteSequence, self).__init__(
-            seq, name=name, info=info, check=check, preserve_case=preserve_case
+    def __init__(
+        self, seq="", name=None, info=None, check=False, preserve_case=True, **kwargs
+    ):
+        super().__init__(
+            seq=seq,
+            name=name,
+            info=info,
+            check=check,
+            preserve_case=preserve_case,
+            **kwargs,
         )
 
 
@@ -2291,3 +2707,54 @@ class ArrayProteinSequence(ArraySequence):
 class ArrayProteinWithStopSequence(ArraySequence):
     moltype = None  # set to PROTEIN_WITH_STOP in moltype.py
     alphabet = None  # set to PROTEIN_WITH_STOP.alphabets.degen_gapped in moltype.py
+
+
+@singledispatch
+def _coerce_seq(data, preserve_case, checker):
+    from cogent3.core.alignment import Aligned
+
+    if isinstance(data, Aligned):
+        return _coerce_seq(str(data), preserve_case, checker)
+    raise NotImplementedError(f"{type(data)}")
+
+
+@_coerce_seq.register
+def _(data: SeqView, preserve_case, checker):
+    return data
+
+
+@_coerce_seq.register
+def _(data: Sequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: ArraySequence, preserve_case, checker):
+    return _coerce_seq(str(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: str, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    checker(data)
+    return SeqView(data)
+
+
+@_coerce_seq.register
+def _(data: bytes, preserve_case, checker):
+    if not preserve_case:
+        data = data.upper()
+    data = data.decode("utf8")
+    checker(data)
+    return SeqView(data)
+
+
+@_coerce_seq.register
+def _(data: tuple, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)
+
+
+@_coerce_seq.register
+def _(data: list, preserve_case, checker):
+    return _coerce_seq("".join(data), preserve_case, checker)

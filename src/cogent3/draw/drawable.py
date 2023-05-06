@@ -776,21 +776,21 @@ class _MakeShape:
     def __call__(self, type_=None, name=None, coords=None, **kwargs):
         from cogent3.core.annotation import _Annotatable
 
-        if isinstance(type_, _Annotatable):
+        if hasattr(type_, "map"):
             if not type_.map.useful:
                 return None
 
             name = type_.name
             coords = type_.map.get_coordinates()
             reverse = type_.map.get_covering_span().reverse
-            type_ = type_.type
+            type_ = type_.biotype
         else:
             if coords[0][0] > coords[-1][1]:
                 reverse = True
             else:
                 reverse = False
             if coords is None:
-                raise Exception("No coordinates defined")
+                raise ValueError("No coordinates defined")
         kwargs.update(dict(reverse=reverse))
 
         klass = self._shapes.get(type_.lower(), Rectangle)
