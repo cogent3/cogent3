@@ -2319,4 +2319,3 @@ def test_offset_with_multiple_slices():
     expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
     got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
     assert got == expect
-
