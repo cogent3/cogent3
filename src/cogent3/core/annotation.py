@@ -412,8 +412,6 @@ class Feature(_AnnotationCore, _Serialisable):
         "biotype",
         "name",
         "_serialisable",
-        "base",  # todo gah do we need this?
-        "base_map",  # todo gah do we need this?
     )
 
     # todo gah implement a __new__ to trap args for serialisation purposes?
@@ -431,15 +429,6 @@ class Feature(_AnnotationCore, _Serialisable):
             map = Map(locations=map, parent_length=len(parent))
 
         self.map = map
-
-    def _mapped(self, slicemap):
-        # the self._serialisable dict is used for serialisation, so we need to
-        # use a copy to create the new instance
-        kwargs = {
-            **self._serialisable,
-            **{"map": slicemap, "name": f"{repr(slicemap)} of {self.name}"},
-        }
-        return self.__class__(**kwargs)
 
     def get_slice(self, complete: bool = False, allow_gaps: bool = False):
         """
