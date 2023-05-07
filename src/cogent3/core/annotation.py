@@ -432,12 +432,6 @@ class Feature(_AnnotationCore, _Serialisable):
 
         self.map = map
 
-    def get_drawable(self):
-        """returns plotly trace"""
-        from cogent3.draw.drawable import make_shape
-
-        return make_shape(type_=self)
-
     def _mapped(self, slicemap):
         # the self._serialisable dict is used for serialisation, so we need to
         # use a copy to create the new instance
