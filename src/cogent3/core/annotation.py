@@ -424,11 +424,7 @@ class Feature:
         self.name = name
         self.parent = parent
         self.seqid = seqid
-        if isinstance(map, Map):
-            assert map.parent_length == len(parent), (map, len(parent))
-        else:
-            map = Map(locations=map, parent_length=len(parent))
-
+        assert map.parent_length == len(parent), (map, len(parent))
         self.map = map
 
     def get_slice(self, complete: bool = False, allow_gaps: bool = False):
