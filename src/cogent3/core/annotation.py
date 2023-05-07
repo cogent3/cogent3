@@ -402,7 +402,7 @@ class _Serialisable:
 
 
 # todo gah implement __repr__ and __str__ methods
-class Feature(_AnnotationCore, _Serialisable):
+class Feature:
     """new style annotation, created on demand"""
 
     __slots__ = (
