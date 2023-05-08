@@ -203,7 +203,6 @@ class Info(MappedRecord, Delegator):
 
     def update(self, item):
         """updates with another info object and warns when overwriting keys"""
-        overwrites = (set(self) ^ set(["Refs"])) & ((set(item)) ^ set(["Refs"]))
-        if overwrites:
+        if overwrites := (set(self) ^ {"Refs"}) & ((set(item)) ^ {"Refs"}):
             warn("Keys overwritten by other sequence: " + "".join(overwrites))
         return super(Info, self).update(item)

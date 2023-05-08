@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import json
 import os
 import pathlib
@@ -1024,7 +1023,3 @@ def test_load_seq_new():
     )
     assert isinstance(got, Sequence)
     assert got.annotation_db is not None
-
-
-if __name__ == "__main__":
-    unittest.main()
