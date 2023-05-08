@@ -95,6 +95,7 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
         start: OptionalInt = None,
         end: OptionalInt = None,
         strand: OptionalStr = None,
+        attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
     ) -> typing.Iterator[FeatureDataType]:
         ...
@@ -111,10 +112,12 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 
     def num_matches(
         self,
+        *,
         seqid: OptionalStr = None,
         biotype: OptionalStr = None,
         name: OptionalStr = None,
         strand: OptionalStr = None,
+        attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
     ) -> int:
         ...
@@ -130,6 +133,7 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
         spans: typing.List[typing.Tuple[int, int]],
         seqid: OptionalStr = None,
         parent_id: OptionalStr = None,
+        attributes: OptionalStr = None,
         strand: OptionalStr = None,
         on_alignment: bool = False,
     ) -> None:
@@ -393,9 +397,6 @@ def _count_records_sql(
     return sql, vals
 
 
-# todo gah add support for querying for text within the additional feature,
-# for example, add a "attrs_like" argument which users can provide text
-# that will be treated as surrounded by wild-cards
 class SqliteAnnotationDbMixin:
     # table schema for user provided annotations
     _user_schema = {
@@ -407,18 +408,19 @@ class SqliteAnnotationDbMixin:
         "end": "INTEGER",
         "strand": "TEXT",
         "spans": "array",
+        "attributes": "TEXT",
         "on_alignment": "INT",
     }
     # args to exclude from serialisation init
     _exclude_init = "db", "data"
 
-    def __new__(klass, *args, **kwargs):
-        obj = object.__new__(klass)
-        init_sig = inspect.signature(klass.__init__)
-        bargs = init_sig.bind_partial(klass, *args, **kwargs)
+    def __new__(cls, *args, **kwargs):
+        obj = object.__new__(cls)
+        init_sig = inspect.signature(cls.__init__)
+        bargs = init_sig.bind_partial(cls, *args, **kwargs)
         bargs.apply_defaults()
         init_vals = bargs.arguments
-        for param in klass._exclude_init:
+        for param in cls._exclude_init:
             init_vals.pop(param)
         init_vals.pop("self", None)
 
@@ -492,6 +494,7 @@ class SqliteAnnotationDbMixin:
         spans: typing.List[typing.Tuple[int, int]],
         parent_id: OptionalStr = None,
         strand: OptionalStr = None,
+        attributes: OptionalStr = None,
         on_alignment: OptionalBool = False,
     ) -> None:
         """adds a record to user table
@@ -508,6 +511,8 @@ class SqliteAnnotationDbMixin:
             this will be sorted
         strand : str, optional
             either +, -. Defaults to '+'
+        attributes : str, optional
+            additional attributes as a string
         on_alignment : bool, optional
             whether the annotation is an alignment annotation
         """
@@ -526,6 +531,8 @@ class SqliteAnnotationDbMixin:
         self, table_name: str, **kwargs
     ) -> typing.Iterator[sqlite3.Row]:
         """return all fields"""
+        if kwargs.get("attributes", None) and "%%" not in kwargs["attributes"]:
+            kwargs["attributes"] = f'%{kwargs["attributes"]}%'
         columns = kwargs.pop("columns", None)
         allow_partial = kwargs.pop("allow_partial", False)
         sql, vals = _select_records_sql(
@@ -544,6 +551,7 @@ class SqliteAnnotationDbMixin:
         start: int = None,
         end: int = None,
         strand: bool = None,
+        attributes: OptionalStr = None,
         on_alignment: bool = None,
         allow_partial: bool = False,
     ) -> typing.Iterator[dict]:
@@ -560,12 +568,14 @@ class SqliteAnnotationDbMixin:
 
     def get_features_matching(
         self,
+        *,
         biotype: str = None,
         seqid: str = None,
         name: str = None,
         start: int = None,
         end: int = None,
         strand: bool = None,
+        attributes: OptionalStr = None,
         on_alignment: bool = None,
         allow_partial: bool = False,
     ) -> typing.Iterator[FeatureDataType]:
@@ -595,10 +605,12 @@ class SqliteAnnotationDbMixin:
 
     def num_matches(
         self,
+        *,
         seqid: OptionalStr = None,
         biotype: OptionalStr = None,
         name: OptionalStr = None,
         strand: OptionalStr = None,
+        attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
     ) -> int:
         """return the number of records matching condition"""
@@ -665,24 +677,6 @@ class SqliteAnnotationDbMixin:
                 table_data.append(store)
             tables[table_name] = table_data
         return result
-
-    def _to_rich_dict(self):
-        # todo drop columns from records with no value
-        # top level dict for each table_name
-        records = {}
-        for table in self.table_names:
-            records[table] = []
-            for record in self._execute_sql(f"SELECT * from {table};"):
-                record = {k: record[k] for k in record.keys()}
-                record["spans"] = record[
-                    "spans"
-                ].tolist()  # required for json serialisation
-                records[table].append(
-                    {k: v for k, v in record.items() if v is not None}
-                )
-
-        records["type"] = get_object_provenance(self)
-        return records
 
     def update(self, annot_db, seqids: OptionalStrList = None) -> None:
         """update records with those from an instance of the same type"""
