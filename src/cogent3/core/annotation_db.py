@@ -948,7 +948,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
 
             record_keys = col_key_map.keys() & record.keys()
             attrs_keys = record.keys() - col_key_map.keys() - exclude
-            store |= {col_key_map[k]: record[k] for k in record_keys}
+            store.update({col_key_map[k]: record[k] for k in record_keys})
             store["attributes"] = {k: record[k] for k in attrs_keys}
             if "name" not in store:
                 store["name"] = [f"fakeid-{self._num_fakeids}"]
