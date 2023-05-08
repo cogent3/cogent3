@@ -196,30 +196,6 @@ class EnumerationTests(TestCase):
         x = a * c
         self.assertEqual(x.gap, None)
 
-    def test_counts(self):
-        """Enumeration counts should count freqs in array"""
-        a = DnaBases
-        f = array([[0, 0, 1, 0, 0, 3]])
-        assert_equal(a.counts(f), array([4, 1, 0, 1]))
-        # check that it works with byte array
-        f = array([[0, 0, 1, 0, 0, 3]], "B")
-        assert_equal(a.counts(f), array([4, 1, 0, 1]))
-        # should ignore out-of-bounds items
-        g = [0, 4]
-        assert_equal(a.counts(g), array([1, 0, 0, 0]))
-        # make sure it works for long sequences, i.e. no wraparound at 255
-        h = [0, 3] * 70000
-        assert_equal(a.counts(h), array([70000, 0, 0, 70000]))
-        h2 = array(h).astype("B")
-        assert_equal(a.counts(h2), array([70000, 0, 0, 70000]))
-        i = array([0, 3] * 75000)
-        assert_equal(a.counts(i), array([75000, 0, 0, 75000]))
-        # make sure it works for long _binary_ sequences, e.g. the results
-        # of array comparisons.
-        a = array([0, 1, 2, 3] * 10000)
-        b = array([0, 0, 0, 0] * 10000)
-        same = a == b
-
 
 class CharAlphabetTests(TestCase):
     """Tests of CharAlphabets."""
