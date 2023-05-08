@@ -237,7 +237,6 @@ def _matching_conditions(
         conds = []
         vals = []
         for col, val in conditions.items():
-            # todo gah FIX this excludes a False value from being a condition!
             # conditions are filtered for None before here, so we should add
             # an else where the op is assigned !=
             if val is not None:
