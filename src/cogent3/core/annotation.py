@@ -24,8 +24,6 @@ __status__ = "Production"
 
 
 class _AnnotationMixin:  # pragma: no cover
-    # todo gah add a _anotatable_getitem_()? which can be checked
-    # for to deliver the old behaviour
     def get_features_matching(self, feature_type, name=None, extend_query=False):
         """
 
@@ -371,8 +369,6 @@ class _Annotatable(_AnnotationCore, _AnnotationMixin):  # pragma: no cover
 
 
 class _Serialisable:
-    # todo gah will need a version check in util/deserialise to allow transforming
-    # old style annotations to new from json
     def to_rich_dict(self):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         data = copy.deepcopy(self._serialisable)
@@ -402,6 +398,7 @@ class _Serialisable:
 
 
 # todo gah implement __repr__ and __str__ methods
+# todo gah write docstrings!
 class Feature:
     """new style annotation, created on demand"""
 
