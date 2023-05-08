@@ -607,3 +607,25 @@ def test_deserialise(db_name, request):
     assert got is not db
     assert isinstance(got, type(db))
     assert got.num_matches() == db.num_matches()
+
+
+def test_querying_attributes_gb(gb_db):
+    r = list(gb_db.get_records_matching(attributes="lysine biosynthesis"))
+    assert "lysine biosynthesis" in r[0]["attributes"]["note"][0]
+
+
+def test_querying_attributes_gff(gff_db):
+    r = list(gff_db.get_records_matching(attributes="amx-2"))
+    assert "amx-2" in r[0]["attributes"]
+
+
+def test_writing_attributes_gff(gff_db):
+    gff_db.add_feature(
+        biotype="gene",
+        seqid="blah",
+        name="cancer-gene",
+        attributes="description=cancer",
+        spans=[(0, 10)],
+    )
+    r = list(gff_db.get_records_matching(attributes="cancer"))[0]
+    assert r["name"] == "cancer-gene"
