@@ -19,7 +19,6 @@ from cogent3.core.alignment import (
 )
 from cogent3.core.annotation_db import load_annotations
 from cogent3.core.genetic_code import available_codes, get_code
-
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (
@@ -286,9 +285,10 @@ def load_seq(
     result = make_seq(seq, name, moltype=moltype)
     result.info.update(info)
 
-    if "gb" in file_format:
-        result.annotation_db = load_annotations(filename, seqids=[name])
-    elif annotation_path is not None:
+    if getattr(seq, "annotation_db", None):
+        result.annotation_db = seq.annotation_db
+
+    if annotation_path is not None:
         result.annotation_db = load_annotations(annotation_path, seqids=[name])
     return result
 
