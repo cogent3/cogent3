@@ -402,7 +402,7 @@ class _Serialisable:
 
 
 # todo gah implement __repr__ and __str__ methods
-class Feature(_AnnotationCore, _Serialisable):
+class Feature:
     """new style annotation, created on demand"""
 
     __slots__ = (
@@ -412,12 +412,11 @@ class Feature(_AnnotationCore, _Serialisable):
         "biotype",
         "name",
         "_serialisable",
-        "base",  # todo gah do we need this?
-        "base_map",  # todo gah do we need this?
     )
 
     # todo gah implement a __new__ to trap args for serialisation purposes?
     def __init__(self, *, parent, seqid: str, map: Map, biotype: str, name: str):
+        # _serialisable is used for creating derivative instances
         d = locals()
         exclude = ("self", "__class__", "kw")
         self._serialisable = {k: v for k, v in d.items() if k not in exclude}
@@ -425,27 +424,8 @@ class Feature(_AnnotationCore, _Serialisable):
         self.name = name
         self.parent = parent
         self.seqid = seqid
-        if isinstance(map, Map):
-            assert map.parent_length == len(parent), (map, len(parent))
-        else:
-            map = Map(locations=map, parent_length=len(parent))
-
+        assert map.parent_length == len(parent), (map, len(parent))
         self.map = map
-
-    def get_drawable(self):
-        """returns plotly trace"""
-        from cogent3.draw.drawable import make_shape
-
-        return make_shape(type_=self)
-
-    def _mapped(self, slicemap):
-        # the self._serialisable dict is used for serialisation, so we need to
-        # use a copy to create the new instance
-        kwargs = {
-            **self._serialisable,
-            **{"map": slicemap, "name": f"{repr(slicemap)} of {self.name}"},
-        }
-        return self.__class__(**kwargs)
 
     def get_slice(self, complete: bool = False, allow_gaps: bool = False):
         """
@@ -481,46 +461,34 @@ class Feature(_AnnotationCore, _Serialisable):
         if self.map.complete:
             return self
         keep = self.map.nongap()
-        return self.__class__(
-            parent=self.parent,
-            map=self.map[keep],
-            biotype=self.biotype,
-            name=self.name,
-            seqid=self.seqid,
-        )
+        kwargs = {**self._serialisable, **dict(map=self.map[keep])}
+        return self.__class__(**kwargs)
 
     def as_one_span(self):
         """returns a feature that preserves any gaps"""
-        new_map = self.map.get_covering_span()
-        return self.__class__(
-            parent=self.parent,
-            map=new_map,
-            biotype=self.biotype,
-            name=f"one-span {self.name}",
-            seqid=self.seqid,
-        )
+        kwargs = {
+            **self._serialisable,
+            **dict(map=self.map.get_covering_span(), name=f"one-span {self.name}"),
+        }
+        return self.__class__(**kwargs)
 
     def shadow(self):
         """returns new instance corresponding to disjoint of self coordinates"""
-        return self.__class__(
-            parent=self.parent,
-            map=self.map.shadow(),
-            biotype=f"not {self.biotype}",
-            name=f"not {self.name}",
-            seqid=self.seqid,
-        )
+        kwargs = {
+            **self._serialisable,
+            **{
+                "map": self.map.shadow(),
+                "biotype": f"not {self.biotype}",
+                "name": f"not {self.name}",
+            },
+        }
+        return self.__class__(**kwargs)
 
     @c3warn.deprecated_callable(
         "2023.7", reason="new method", new="<instance>.shadow()"
     )
-    def get_shadow(self):
-        return self.__class__(
-            self.parent,
-            self.map.shadow(),
-            type="region",
-            name=f"not {self.name}",
-            seqid=self.seqid,
-        )
+    def get_shadow(self):  # pragma: no cover
+        return self.shadow()
 
     def __len__(self):
         return len(self.map)
@@ -553,7 +521,6 @@ class Feature(_AnnotationCore, _Serialisable):
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
         for child in db.get_feature_parent(biotype=biotype, name=self.name):
-
             yield make_feature(feature=child)
 
     def union(self, features):
@@ -588,18 +555,18 @@ class Feature(_AnnotationCore, _Serialisable):
             map = map.reversed()
         seqid = ", ".join(seqids) if seqids else None
         biotype = ", ".join(biotypes)
-        return self.__class__(
-            parent=self.parent, seqid=seqid, map=map, biotype=biotype, name=name
-        )
+        kwargs = {
+            **self._serialisable,
+            **{"map": map, "seqid": seqid, "biotype": biotype, "name": name},
+        }
+
+        return self.__class__(**kwargs)
 
     def get_drawable(self):
         """returns plotly trace"""
         from cogent3.draw.drawable import make_shape
 
         return make_shape(type_=self)
-
-
-# https://pythonspeed.com/products/filmemoryprofiler/
 
 
 class _Feature(_Annotatable, _Serialisable):  # pragma: no cover
