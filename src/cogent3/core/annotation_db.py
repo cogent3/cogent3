@@ -393,9 +393,6 @@ def _count_records_sql(
     return sql, vals
 
 
-# todo gah add support for querying for text within the additional feature,
-# for example, add a "attrs_like" argument which users can provide text
-# that will be treated as surrounded by wild-cards
 class SqliteAnnotationDbMixin:
     # table schema for user provided annotations
     _user_schema = {
@@ -665,24 +662,6 @@ class SqliteAnnotationDbMixin:
                 table_data.append(store)
             tables[table_name] = table_data
         return result
-
-    def _to_rich_dict(self):
-        # todo drop columns from records with no value
-        # top level dict for each table_name
-        records = {}
-        for table in self.table_names:
-            records[table] = []
-            for record in self._execute_sql(f"SELECT * from {table};"):
-                record = {k: record[k] for k in record.keys()}
-                record["spans"] = record[
-                    "spans"
-                ].tolist()  # required for json serialisation
-                records[table].append(
-                    {k: v for k, v in record.items() if v is not None}
-                )
-
-        records["type"] = get_object_provenance(self)
-        return records
 
     def update(self, annot_db, seqids: OptionalStrList = None) -> None:
         """update records with those from an instance of the same type"""
