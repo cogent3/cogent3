@@ -7,6 +7,7 @@ import os
 import pathlib
 import re
 import sqlite3
+import sys
 import typing
 
 import numpy
@@ -32,6 +33,8 @@ OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
 OptionalBool = typing.Optional[bool]
 ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
 
+# used for presence of sqlite feature
+_is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
 
 # Define custom types for storage in sqlite
 # https://stackoverflow.com/questions/18621513/python-insert-numpy-array-into-sqlite3-database
@@ -424,17 +427,31 @@ class SqliteAnnotationDbMixin:
 
     def __deepcopy__(self, memodict=None):
         memodict = memodict or {}
-        new = self.__class__(source=self.source)
-        new._db.deserialize(self._db.serialize())
-        return new
+        if _is_ge_3_11:
+            new = self.__class__(source=self.source)
+            new._db.deserialize(self._db.serialize())
+            return new
+
+        # use rich dict
+        rd = self.to_rich_dict()
+        return type(self).from_dict(rd)
 
     def __getstate__(self):
-        return {"data": self._db.serialize(), "source": self.source}
+        if _is_ge_3_11:
+            return {"data": self._db.serialize(), "source": self.source}
+
+        return self.to_rich_dict()
 
     def __setstate__(self, state):
-        new = self.__class__(source=state.pop("source", None))
-        new._db.deserialize(state["data"])
-        self.__dict__.update(new.__dict__)
+        if _is_ge_3_11:
+            new = self.__class__(source=state.pop("source", None))
+            new._db.deserialize(state["data"])
+            self.__dict__.update(new.__dict__)
+            return self
+
+        # from the rich dict method
+        data = type(self).from_dict(state)
+        self.__dict__.update(data.__dict__)
         return self
 
     @property
