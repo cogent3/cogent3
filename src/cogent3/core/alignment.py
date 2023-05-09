@@ -31,7 +31,7 @@ from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
-from typing import Iterator, List, Optional, Tuple, Union
+from typing import Callable, Iterator, List, Optional, Tuple, Union
 
 import numpy
 
@@ -67,7 +67,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -110,6 +109,20 @@ __status__ = "Production"
 
 
 DEFAULT_ANNOTATION_DB = GffAnnotationDb
+JACCARD_POLYFIT_COEFFS = [
+    2271.7714153914335,
+    -11998.34362001251,
+    27525.142573445955,
+    -35922.0159776342,
+    29337.5102940838,
+    -15536.693064681693,
+    5346.929667208838,
+    -1165.616998965176,
+    151.8581396241204,
+    -10.489082251524346,
+    0.3334853259953467,
+    0.0,
+]
 
 
 class DataError(Exception):
@@ -2284,6 +2297,103 @@ class SequenceCollection(_SequenceCollectionBase):
                     feature["spans"] = (array(feature["spans"]) - offset).tolist()
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
+
+    def distance_matrix(self, calc="jaccard", k: int = 7):
+        """estimated pairwise distance between sequences.
+
+        Parameters
+        ----------
+        calc : str | Callable[[set, set], float]
+            str
+                The distance calculation method to use, by default "jaccard".
+            Callable[[set, set], float]
+                A distance calculator instance. Must compare sets of kmers and return float.
+        k : int, optional
+            The length of kmers to use in the distance calculation, by default 7.
+
+        Returns
+        -------
+        DistanceMatrix
+            Pairwise distances between sequences in the collection
+        """
+
+        from cogent3.evolve.fast_distance import DistanceMatrix
+
+        # todo: kath should be updated to use fast_kmer from divergent / or hash the kmer
+        kmers = {name: set(seq.get_kmers(k)) for name, seq in self.named_seqs.items()}
+
+        seq_names = sorted(kmers.keys())
+        num_seqs = len(seq_names)
+
+        # Not hard coded for Jaccard distance in case we want to
+        # include other distance measures in the future.
+
+        if isinstance(calc, str):
+            metric = _get_metric(calc)
+        else:
+            metric = calc
+
+        dists_dict = {}
+        # this assumes distance measure are commutative, i.e, dist(a, b) == dist(b, a)
+
+        for i in range(num_seqs):
+            for j in range(i):
+                name1, name2 = seq_names[i], seq_names[j]
+                dist = metric(kmers[name1], kmers[name2])
+                dists_dict[(name1, name2)] = dist
+                dists_dict[(name2, name1)] = dist
+
+        return DistanceMatrix(dists_dict)
+
+
+def _jaccard_transform(kmers_1: set, kmers_2: set):
+    """Calculates the Jaccard distance between two sets of kmers and returns
+    the estimated fraction of sites different using linear equation (estimated
+    previously).
+
+    Parameters
+    ----------
+    kmers_1 : set
+        The set of kmers for the first sequence.
+    kmers_2 : set
+        The set of kmers for the second sequence.
+
+    Returns
+    -------
+    float
+        The estimated fraction of sites different between the two sequences.
+    """
+
+    from cogent3.maths.distance_transform import jaccard
+
+    jcrd = jaccard(kmers_1, kmers_2)
+
+    return numpy.polyval(JACCARD_POLYFIT_COEFFS, jcrd)
+
+
+def _get_metric(metric: str) -> Callable[[set, set], float]:
+    """Returns a callable distance function for a given string.
+
+    Parameters
+    ----------
+    metric : str
+        The metric to use for distance calculation.
+
+    Returns
+    -------
+    Callable[[set, set], float]
+        The callable metric function.
+    """
+
+    get_callable_metric = {"jaccard": _jaccard_transform}
+
+    try:
+        got = get_callable_metric[metric]
+    except KeyError:
+        raise ValueError(
+            f"{metric} not supported, use one of: {get_callable_metric.keys()}"
+        )
+    return got
 
 
 @total_ordering
