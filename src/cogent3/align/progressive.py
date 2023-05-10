@@ -4,16 +4,6 @@ from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 @UI.display_wrap
 def tree_align(
     model,

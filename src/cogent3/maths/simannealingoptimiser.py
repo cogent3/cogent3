@@ -18,16 +18,6 @@ import numpy
 from cogent3.util import checkpointing
 
 
-__author__ = "Andrew Butterfield and Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class AnnealingSchedule(object):
     """Responsible for the shape of the simulated annealing temperature profile"""
 

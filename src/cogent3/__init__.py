@@ -10,6 +10,7 @@ import warnings
 
 from typing import Callable, Optional, Union
 
+from cogent3._version import __version__
 from cogent3.app import app_help, available_apps, get_app, open_data_store
 from cogent3.core.alignment import (
     Alignment,
@@ -19,7 +20,6 @@ from cogent3.core.alignment import (
 )
 from cogent3.core.annotation_db import load_annotations
 from cogent3.core.genetic_code import available_codes, get_code
-
 # note that moltype has to be imported last, because it sets the moltype in
 # the objects created by the other modules.
 from cogent3.core.moltype import (
@@ -46,35 +46,9 @@ from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
 
 
-__author__ = ""
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Gavin Huttley",
-    "Rob Knight",
-    "Peter Maxwell",
-    "Jeremy Widmann",
-    "Catherine Lozupone",
-    "Matthew Wakefield",
-    "Edward Lang",
-    "Greg Caporaso",
-    "Mike Robeson",
-    "Micah Hamady",
-    "Sandra Smit",
-    "Zongzhi Liu",
-    "Andrew Butterfield",
-    "Amanda Birmingham",
-    "Brett Easton",
-    "Hua Ying",
-    "Jason Carnes",
-    "Raymond Sammut",
-    "Helen Lindsay",
-    "Daniel McDonald",
-]
+__copyright__ = "Copyright 2007-2023, The Cogent Project"
+__credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 _min_version = (3, 8)

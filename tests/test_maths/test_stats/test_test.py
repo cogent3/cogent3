@@ -17,6 +17,7 @@ from numpy import (
     testing,
     tril,
 )
+from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.test import (
@@ -77,26 +78,6 @@ from cogent3.maths.stats.test import (
     tail,
     z_test,
 )
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Catherine Lozupone",
-    "Gavin Huttley",
-    "Sandra Smit",
-    "Daniel McDonald",
-    "Jai Ram Rideout",
-    "Michael Dwan",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_equal
 
 
 def is_prob(value):

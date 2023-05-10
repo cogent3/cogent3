@@ -10,15 +10,6 @@ from cogent3.parse.record import FileFormatError
 from cogent3.util.io import atomic_write
 
 
-__author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 # todo convert formatters so str(formatter) returns correctly formatted
 # string, and rename method names, rename base class name (sequences, not
 # alignment)

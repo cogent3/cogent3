@@ -22,16 +22,6 @@ from cogent3.util.dict_array import DictArray
 Float = numpy.core.numerictypes.sctype2char(float)
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class UPGMATests(TestCase):
     """test the functions to cluster using UPGMA using numpy"""
 

@@ -10,16 +10,6 @@ from cogent3.core.tree import TreeBuilder
 from cogent3.util.misc import extend_docstring_from
 
 
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
-
 def majority_rule(trees, strict=False):
     """Determines the consensus tree from a list of rooted trees using the
      majority rules method of Margush and McMorris 1981

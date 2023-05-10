@@ -2,20 +2,10 @@
 from io import StringIO
 from unittest import TestCase, main
 
+from numpy.testing import assert_equal
+
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 from cogent3.parse.paml_matrix import PamlMatrixParser
-
-
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_equal
 
 
 data = """

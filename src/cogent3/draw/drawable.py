@@ -7,15 +7,6 @@ from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Rahul Ghangas and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rahul Ghangas", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
 # user specified environment variable for plotly renderer
 PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
 

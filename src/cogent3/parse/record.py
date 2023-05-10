@@ -6,16 +6,6 @@ from copy import deepcopy
 from cogent3.util.misc import iterable
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Development"
-
-
 class FileFormatError(Exception):
     """Exception raised when a file can not be parsed."""
 

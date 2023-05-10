@@ -8,15 +8,6 @@ import re
 import click
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__contributors__ = ["Gavin Huttley", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2020.2.7a"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 not_wsp = re.compile(r"^\S+")
 code_eval = re.compile(r"(?<=\s{4})([>]{3}|[.]{3})\s")
 code_block = re.compile(r".. (jupyter-execute|doctest)::")

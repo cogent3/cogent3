@@ -3,16 +3,6 @@ from cogent3.core.alignment import Alignment
 from cogent3.parse.record import RecordError
 
 
-__author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Micah Hamady", "Peter Maxwell", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Micah Hamady"
-__email__ = "hamady@colorado.edu"
-__status__ = "Prototype"
-
-
 def is_blank(x):
     """Checks if x is blank."""
     return not x.strip()

@@ -9,16 +9,6 @@ from cogent3.draw.drawable import Drawable
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Peter Maxwell", "Rahul Ghangas"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 def suitable_threshold(window, desired_probability):
     """Use cumulative binomial distribution to find the number of identical
     bases which we expect a nucleotide window-mer to have with the desired

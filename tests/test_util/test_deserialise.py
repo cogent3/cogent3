@@ -29,16 +29,6 @@ from cogent3.util.deserialise import (
 )
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class TestDeserialising(TestCase):
     def test_roundtrip_codon_alphabet(self):
         """codon alphabet to_json enables roundtrip"""

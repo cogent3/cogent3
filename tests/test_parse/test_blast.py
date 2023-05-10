@@ -1,5 +1,7 @@
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3.parse.blast import (
     FastacmdTaxonomyParser,
     GenericBlastParser9,
@@ -19,18 +21,6 @@ from cogent3.parse.blast import (
     make_label,
     query_finder,
 )
-
-
-__author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
-__credits__ = ["Micah Hamady", "Rob Knight"]
-__license__ = "GPL"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Micah Hamady"
-__email__ = "hamady@colorado.edu"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_equal
 
 
 class BlastTests(TestCase):

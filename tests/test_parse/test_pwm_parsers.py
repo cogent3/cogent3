@@ -7,16 +7,6 @@ from cogent3.core.moltype import get_moltype
 from cogent3.parse import cisbp, jaspar
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class TestPwmParsers(TestCase):
     def test_jaspar(self):
         """correctly load jaspar formatted counts matrix"""

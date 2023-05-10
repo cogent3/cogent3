@@ -14,22 +14,13 @@ from uuid import uuid4
 
 from scitrack import CachingLogger
 
+from cogent3._version import __version__
 from cogent3.app.typing import get_constraint_names, type_tree
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
 
 from .data_store_new import DataMember, get_data_source, get_unique_id
-
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 
 _builtin_seqs = list, set, tuple

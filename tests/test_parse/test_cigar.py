@@ -11,16 +11,6 @@ from cogent3.parse.cigar import (
 )
 
 
-__author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Hua Ying", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Hua Ying"
-__email__ = "hua.ying@anu.edu.au"
-__status__ = "Production"
-
-
 class TestCigar(unittest.TestCase):
     def setUp(self):
         self.cigar_text = "3D2M3D6MDM2D3MD"

@@ -5,16 +5,6 @@
 from cogent3.format.util import _AlignmentFormatter
 
 
-__author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Jeremy Widmann"
-__email__ = "jeremy.widmann@colorado.edu"
-__status__ = "Production"
-
-
 def alignment_to_fasta(alignment_dict, block_size=60, order=None):
     """Returns a Fasta string given an alignment."""
     order = order or []

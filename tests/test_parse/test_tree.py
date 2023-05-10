@@ -15,14 +15,6 @@ from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
 #        return NodeClass(children = list(children or []), name=name, params=attribs)
 #    return parse_string(data, constructor)
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Daniel McDonald"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 sample = """
 (

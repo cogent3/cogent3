@@ -12,19 +12,10 @@ import typing
 
 import numpy
 
+from cogent3._version import __version__
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
-
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 OptionalInt = typing.Optional[int]

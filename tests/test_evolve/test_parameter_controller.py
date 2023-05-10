@@ -3,22 +3,12 @@ import warnings
 
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose, assert_almost_equal
+
 import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
 
 from cogent3 import make_aligned_seqs, make_tree
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_almost_equal
 
 
 base_path = os.getcwd()

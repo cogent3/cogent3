@@ -18,15 +18,6 @@ from cogent3.parse.nexus import (
 )
 
 
-__author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Catherine Lozupone", "Rob Knight", "Micah Hamady"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Catherine Lozupone"
-__email__ = "lozupone@colorado.edu"
-__status__ = "Production"
-
 Nexus_tree = """#NEXUS 
 
 Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]

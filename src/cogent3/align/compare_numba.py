@@ -1,16 +1,6 @@
 import numpy as np
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def segments_from_diagonal(
     seq1, seq2, window, threshold, min_gap_length, diagonal
 ):  # pragma: no cover

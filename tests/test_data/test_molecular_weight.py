@@ -3,19 +3,9 @@
 """
 from unittest import TestCase, main
 
-from cogent3.data.molecular_weight import ProteinMW, RnaMW
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
 from numpy.testing import assert_allclose
+
+from cogent3.data.molecular_weight import ProteinMW, RnaMW
 
 
 class WeightCalculatorTests(TestCase):

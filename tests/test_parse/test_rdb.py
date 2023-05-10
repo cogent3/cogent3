@@ -16,16 +16,6 @@ from cogent3.parse.rdb import (
 from cogent3.parse.record import RecordError
 
 
-__author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
-__status__ = "Production"
-
-
 class RdbTests(TestCase):
     """Tests for top-level functions in Rdb.py"""
 

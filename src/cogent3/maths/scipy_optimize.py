@@ -50,14 +50,9 @@ abs = absolute
 
 pymin = builtins.min
 pymax = builtins.max
-__version__ = "2023.2.12a1"
 
 
 _epsilon = sqrt(numpy.finfo(float).eps)
-
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
 
 
 def wrap_function(function, args):
