@@ -12,15 +12,7 @@ from numpy import log
 from cogent3 import make_aligned_seqs
 
 
-__author__ = "Helen Lindsay, Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Helen Lindsay", "Gavin Huttley", "Daniel McDonald"]
 cite = "Goldman, N. (1993).  Statistical tests of models of DNA substitution.  J Mol Evol, 36: 182-98"
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def _transpose(array):

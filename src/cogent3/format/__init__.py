@@ -16,20 +16,3 @@ __all__ = [
     "phylip",
     "table",
 ]
-
-__author__ = ""
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Jeremy Widmann",
-    "Gavin Huttley",
-    "Matthew Wakefield",
-    "Rob Knight",
-    "Sandra Smit",
-    "Peter Maxwell",
-    "Marcin Cieslik",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"

@@ -11,15 +11,6 @@ from .util import (
 )
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
 # This is a fairly slow implementation and NOT suitable for large trees.
 
 # Trees are represented as "ancestry" matricies in which A[i,j] iff j is an

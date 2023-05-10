@@ -5,16 +5,6 @@ by a parameter controller"""
 from cogent3.util.misc import adjusted_gt_minprob
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 class Setting(object):
     def get_param_rule_dict(self, names=None, is_probs=False):
         """returns component for a param rule dict"""

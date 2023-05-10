@@ -6,16 +6,6 @@ from cogent3.app.composable import NotCompleted
 from cogent3.core import alignment
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class TranslateTests(TestCase):
     def _codon_positions(self, array_align):
         """correctly return codon positions"""

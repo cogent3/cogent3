@@ -23,16 +23,6 @@ from cogent3.maths.geometry import (
 )
 
 
-__author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight", "Helmut Simon"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
-__status__ = "Production"
-
-
 class CenterOfMassTests(TestCase):
     """Tests for the center of mass functions"""
 

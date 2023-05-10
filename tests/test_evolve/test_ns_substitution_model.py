@@ -23,16 +23,6 @@ from cogent3.evolve.predicate import MotifChange
 from cogent3.evolve.substitution_model import TimeReversibleNucleotide
 
 
-__author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Ananias Iliadis"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def _make_likelihood(model, tree, results, is_discrete=False):
     """creates the likelihood function"""
     # discrete model fails to make a likelihood function if tree has

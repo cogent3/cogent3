@@ -14,15 +14,6 @@ from .simannealingoptimiser import SimulatedAnnealing
 GlobalOptimiser = SimulatedAnnealing
 LocalOptimiser = Powell
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 
 def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
     template = "f = % #10.6g  ±  % 9.3e   evals = %6i "

@@ -37,6 +37,7 @@ from numpy import (
 )
 from numpy.random import permutation
 
+from cogent3._version import __version__
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
@@ -65,23 +66,6 @@ from cogent3.util.warning import (
     deprecated_args,
     deprecated_callable,
 )
-
-
-__author__ = "Rob Knight, Gavin Huttley, and Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Peter Maxwell",
-    "Gavin Huttley",
-    "Matthew Wakefield",
-    "Daniel McDonald",
-    "Katherine Caley",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 ARRAY_TYPE = type(array(1))

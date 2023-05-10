@@ -7,16 +7,6 @@ from copy import copy
 from cogent3.core.alignment import SequenceCollection
 
 
-__author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Jeremy Widmann"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Jeremy Widmann"
-__email__ = "jeremy.widmann@colorado.edu"
-__status__ = "Development"
-
-
 def clustal_from_alignment(aln, wrap=None):
     """
     Parameters

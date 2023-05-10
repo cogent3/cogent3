@@ -12,16 +12,6 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Gavin Huttley and Rahul Ghangas"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Rahul Ghangas"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class TestDendro(TestCase):
     def test_geometry(self):
         """tree geometry class get_edge_names works"""

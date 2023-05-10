@@ -10,16 +10,6 @@ from cogent3.util.warning import discontinued
 Float = numpy.core.numerictypes.sctype2char(float)
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def dotplot(seq1, seq2, window, threshold, **kw):
     discontinued(
         "function",

@@ -7,17 +7,6 @@ import time
 from tqdm import notebook, tqdm
 
 from cogent3.util import parallel as PAR
-
-
-__author__ = "Sheng Han Moses Koh"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Sheng Han Moses Koh"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
 from cogent3.util.misc import in_jupyter
 
 

@@ -14,31 +14,11 @@ from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import load_tree, make_tree, open_
+from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Catherine Lozupone",
-    "Daniel McDonald",
-    "Peter Maxwell",
-    "Gavin Huttley",
-    "Andrew Butterfield",
-    "Matthew Wakefield",
-    "Justin Kuczynski",
-    "Jens Reeder",
-    "Jose Carlos Clemente Litran",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 base_path = os.path.dirname(os.path.dirname(__file__))

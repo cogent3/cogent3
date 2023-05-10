@@ -23,6 +23,7 @@ from cogent3 import (
     make_seq,
     open_,
 )
+from cogent3._version import __version__
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -53,23 +54,6 @@ from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Jeremy Widmann",
-    "Catherine Lozuopone",
-    "Gavin Huttley",
-    "Rob Knight",
-    "Daniel McDonald",
-    "Jan Kosinski",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"

@@ -3,22 +3,11 @@ from unittest import TestCase, main
 import numpy as np
 
 from numpy import array, diag, dot, exp
+from numpy.testing import assert_allclose
 
 import cogent3.maths.matrix_exponentiation as cmme
 
 from cogent3.maths import matrix_exponential_integration as expm
-
-
-__author__ = "Ben Kaehler"
-__copyright__ = "Copyright 2007-2014, The Cogent Project"
-__credits__ = ["Ben Kaehler", "Ananias Iliadis", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Ben Kaehler"
-__email__ = "benjamin.kaehler@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose
 
 
 class TestIntegratingExponentiator(TestCase):

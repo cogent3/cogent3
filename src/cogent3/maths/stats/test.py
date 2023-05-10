@@ -43,26 +43,6 @@ from cogent3.maths.stats.special import (
 )
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Gavin Huttley",
-    "Rob Knight",
-    "Catherine Lozupone",
-    "Sandra Smit",
-    "Micah Hamady",
-    "Daniel McDonald",
-    "Greg Caporaso",
-    "Jai Ram Rideout",
-    "Michael Dwan",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 # defining globals for the alternate hypotheses
 ALT_TWO_SIDED = "2"
 ALT_LOW = "low"

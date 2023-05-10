@@ -10,16 +10,6 @@ from cogent3.parse.record import DelimitedSplitter, GenericRecord
 from cogent3.parse.record_finder import DelimitedRecordFinder
 
 
-__author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Daniel McDonald"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Daniel McDonald"
-__email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Prototype"
-
-
 def make_ignore_f(start_line):
     """Make an ignore function that ignores bad gg lines"""
 

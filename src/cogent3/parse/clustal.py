@@ -21,15 +21,6 @@ the number of chars in the sequence printed so far.
 from cogent3.parse.record import DelimitedSplitter, RecordError
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Development"
-
 strip = str.strip
 
 

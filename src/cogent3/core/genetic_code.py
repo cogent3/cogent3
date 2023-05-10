@@ -12,15 +12,6 @@ from itertools import product
 from cogent3.util.table import Table
 
 
-__author__ = "Greg Caporaso and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Greg Caporaso"
-__email__ = "caporaso@colorado.edu"
-__status__ = "Production"
-
 maketrans = str.maketrans
 
 

@@ -5,6 +5,8 @@ import math
 
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose
+
 from cogent3.maths.stats.special import (
     combinations,
     combinations_exact,
@@ -20,18 +22,6 @@ from cogent3.maths.stats.special import (
     permutations,
     permutations_exact,
 )
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose
 
 
 class SpecialTests(TestCase):

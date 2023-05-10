@@ -26,18 +26,9 @@ from itertools import combinations, product
 
 import numpy
 
+from cogent3._version import __version__
 from cogent3.util.io import atomic_write
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
 
 
 def convert_1D_dict(data, row_order=None):

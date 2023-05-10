@@ -10,16 +10,6 @@ from cogent3.util import checkpointing
 from cogent3.util import progress_display as UI
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def ismallest(data, size):
     """There are many ways to get the k smallest items from an N sequence, and
     which one performs best depends on k, N and k/N.  This algorithm appears to

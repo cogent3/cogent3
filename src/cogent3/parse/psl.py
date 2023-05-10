@@ -6,16 +6,6 @@
 from cogent3.util.table import Table
 
 
-__author__ = "Gavin Huttley, Anuj Pahwa"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Gavin Huttley", "Anuj Pahwa"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Development"
-
-
 def make_header(lines):
     """returns one header line from multiple header lines"""
     lengths = list(map(len, lines))

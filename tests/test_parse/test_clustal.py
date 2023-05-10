@@ -12,15 +12,6 @@ from cogent3.parse.clustal import (
 from cogent3.parse.record import RecordError
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
 # Note: the data are all strings and hence immutable, so it's OK to define
 # them here instead of in setUp and then subclassing everything from that
 # base class. If the data were mutable, we'd need to take more precautions

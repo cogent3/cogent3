@@ -2,15 +2,6 @@
 """Alignment formatter template class
 """
 
-__author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Jeremy Widmann", "Rob Knight", "Gavin Huttley", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
 
 class _AlignmentFormatter:
     """A virtual class for formatting alignments."""

@@ -12,15 +12,6 @@ from cogent3.parse.record_finder import (
 from cogent3.util import warning as c3warn
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
 maketrans = str.maketrans
 strip = str.strip
 rstrip = str.rstrip

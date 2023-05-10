@@ -11,16 +11,6 @@ the MolType. It is thus essential that the connection between these other
 types and the MolType can be made after the objects are created.
 """
 
-__author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 import json
 import re
 
@@ -29,6 +19,7 @@ from copy import deepcopy
 from random import choice
 from string import ascii_letters as letters
 
+from cogent3._version import __version__
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,

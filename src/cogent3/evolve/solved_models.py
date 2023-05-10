@@ -15,16 +15,6 @@ from cogent3.maths.matrix_exponentiation import FastExponentiator
 from . import solved_models_numba as _solved_models
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 class PredefinedNucleotide(TimeReversibleNucleotide):
     _default_expm_setting = None
 

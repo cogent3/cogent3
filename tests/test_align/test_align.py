@@ -22,16 +22,6 @@ dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
 )
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def matchedColumns(align):
     """Count the matched columns in an alignment"""
 

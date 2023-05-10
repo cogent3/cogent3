@@ -7,21 +7,6 @@ from cogent3 import load_aligned_seqs, load_tree
 from cogent3.evolve import bootstrap, substitution_model
 
 
-__author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Peter Maxwell",
-    "Gavin Huttley",
-    "Matthew Wakefield",
-    "Helen Lindsay",
-    "Andrew Butterfield",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")
 

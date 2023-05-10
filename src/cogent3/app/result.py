@@ -9,19 +9,10 @@ import numpy
 
 from scipy.stats.distributions import chi2
 
+from cogent3._version import __version__
 from cogent3.app.data_store import get_data_source
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.table import Table
-
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 
 class generic_result(MutableMapping):

@@ -8,16 +8,6 @@ from cogent3 import DNA
 from cogent3.align.align import classic_align_pairwise, make_dna_scoring_dict
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def _s2i(s):
     return numpy.array(["ATCG".index(c) for c in s])
 

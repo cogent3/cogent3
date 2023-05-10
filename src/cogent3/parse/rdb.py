@@ -11,15 +11,6 @@ from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import DelimitedRecordFinder
 
 
-__author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
-__status__ = "Development"
-
 strip = str.strip
 maketrans = str.maketrans
 

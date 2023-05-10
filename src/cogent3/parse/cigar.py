@@ -21,15 +21,6 @@ from cogent3 import DNA, make_aligned_seqs
 from cogent3.core.location import LostSpan, Map, Span
 
 
-__author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Hua Ying"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Hua Ying"
-__email__ = "hua.ying@anu.edu.au"
-__status__ = "Production"
-
 _pattern = re.compile("([0-9]*)([DM])")
 
 

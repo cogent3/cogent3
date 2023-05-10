@@ -15,21 +15,6 @@ from cogent3.parse.record_finder import (
 from cogent3.util.misc import NestedSplitter, curry, list_flatten
 
 
-__author__ = "Zongzhi Liu and Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Zongzhi Liu",
-    "Sandra Smit",
-    "Rob Knight",
-    "Gavin Huttley",
-    "Daniel McDonald",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Zongzhi Liu"
-__email__ = "zongzhi.liu@gmail.com"
-__status__ = "Development"
-
 maketrans = str.maketrans
 
 

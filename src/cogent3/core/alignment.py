@@ -55,6 +55,7 @@ from numpy.random import choice, permutation, randint
 
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
+from cogent3._version import __version__
 from cogent3.core.annotation import Feature, Map
 from cogent3.core.annotation_db import (
     FeatureDataType,
@@ -67,7 +68,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -87,26 +87,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.union_dict import UnionDict
-
-
-__author__ = "Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Peter Maxwell",
-    "Rob Knight",
-    "Gavin Huttley",
-    "Jeremy Widmann",
-    "Catherine Lozupone",
-    "Matthew Wakefield",
-    "Micah Hamady",
-    "Daniel McDonald",
-    "Jan Kosinski",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 DEFAULT_ANNOTATION_DB = GffAnnotationDb

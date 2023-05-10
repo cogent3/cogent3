@@ -5,15 +5,6 @@ import numpy as np
 from numba import njit
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Stephen Ma"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
 # turn off code coverage as njit-ted code not accessible to coverage
 
 

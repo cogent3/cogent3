@@ -14,15 +14,6 @@ The SYM term is added into the entropy or enthalpy calculation IFF the
 sequence is self-complementary (seq = Reverse Comp of seq)
 """
 
-__author__ = "Amanda Birmingham"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Amanda Birmingham", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Amanda Birmingham"
-__email__ = "amanda.birmingham@thermofisher.com"
-__status__ = "Production"
-
 
 class EnergyParams(object):
     """A data structure to hold parameters used in energy calculations"""

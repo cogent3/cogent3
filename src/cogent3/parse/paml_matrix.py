@@ -4,15 +4,6 @@ import numpy
 Float = numpy.core.numerictypes.sctype2char(float)
 
 
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
 three_letter_order = "ARNDCQEGHILKMFPSTWYV"
 aa_order = numpy.array([ord(aa) for aa in three_letter_order])
 reorder = numpy.argsort(aa_order)

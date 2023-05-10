@@ -34,18 +34,9 @@ from numpy import (
 )
 from numpy.testing import assert_allclose
 
+from cogent3._version import __version__
 from cogent3.util import warning as c3warns
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Andrew Butterfield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class AlphabetError(Exception):
