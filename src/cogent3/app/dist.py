@@ -156,16 +156,20 @@ def get_fast_slow_calc(distance, **kwargs):
 
 @define_app
 def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceType:
-    """returns a PairwiseDistanceType (DistanceMatrix) of jaccard distances
+    """ Calculates the pairwise Jaccard distance between the sets of kmers generated from
+    sequences in the collection. A measure of distance for unaligned sequences.
 
     Parameters
     ----------
-    seq_coll
-    k
+    seq_coll: UnalignedSeqsType
+        a collection of unaligned sequences
+    k:  int
+        size of kmer to use for
 
     Returns
     -------
-
+    DistanceMatrix
+        returns pairwise Jaccard distance between sequences in the collection.
     """
 
     kmers = {name: set(seq.get_kmers(k)) for name, seq in seq_coll.named_seqs.items()}
@@ -189,8 +193,8 @@ def approx_pdist(j_dists: PairwiseDistanceType) -> PairwiseDistanceType:
     """Converts Jaccard distances to approximate pairwise distances using coefficient from
     a pre-determined polynomial fit.
 
-    NOTE: coefficients are derived from a polynomial fit between Jaccard distance
-    and the proportion of sites different for mammalian DNA sequences. kmer size was 10nt.
+    NOTE: coefficients are derived from a polynomial fit between Jaccard distance of kmers
+    with k=10 and the proportion of sites different for mammalian DNA sequences.
 
     Parameters
     ----------
