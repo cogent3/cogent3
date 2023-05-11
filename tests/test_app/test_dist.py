@@ -1,11 +1,24 @@
+import itertools
+
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
+import pytest
+
+from numpy import polyval
 from numpy.testing import assert_allclose
 
 from cogent3 import DNA, PROTEIN, get_app, make_unaligned_seqs, open_data_store
 from cogent3.app.composable import WRITER
+from cogent3.app.dist import (
+    JACCARD_PDIST_POLY_COEFFS,
+    _jc69_from_pdist,
+    approx_jc69,
+    approx_pdist,
+    jaccard_dist,
+)
 from cogent3.evolve.fast_distance import HammingPair, TN93Pair
+from cogent3.maths.distance_transform import jaccard
 
 
 __author__ = "Gavin Huttley"
@@ -41,6 +54,11 @@ _seqs4 = {
 }
 
 _seqs5 = {"Human": "ASSLQHENSSLLLT", "Bandicoot": "XSLMLETSSLLSN"}
+
+
+@pytest.fixture(scope="function")
+def _seqs1_collection():
+    return make_unaligned_seqs(data=_seqs1, moltype="dna")
 
 
 def _get_all_composable_apps():
@@ -242,3 +260,119 @@ class FastSlowDistTests(TestCase):
 
 if __name__ == "__main__":
     main()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_collection_distance_matrix_same_seq(moltype):
+    """Identical seqs should return distance measure of 0.0"""
+    data = dict(
+        [("s1", "ACGTACGTAGTCGCG"), ("s2", "GTGTACGTATCGCG"), ("s3", "GTGTACGTATCGCG")]
+    )
+    collection = make_unaligned_seqs(data=data, moltype=moltype)
+    dists = collection.distance_matrix(calc="pdist")
+
+    # all comparison of a sequence to itself should be zero
+    for seq in collection.names:
+        assert dists[(seq, seq)] == 0.0
+
+    # s2 and s3 are identical, so should be zero
+    assert dists[("s2", "s3")] == 0.0
+    assert dists[("s3", "s2")] == 0.0
+
+
+def test_approx_pdist():
+    """comparisons between seqs with the same position different should be equal.
+    comparison between seqs with more positions different should yield a higher
+    measure than comparisons between seqs with fewer positions different.
+
+    NOTE: the coefficients used in Jaccard to Pdist fit
+        were generated using k=10, here I used k=3
+
+    ("s1", "ACGTA"),
+    ("s2", "----C"),
+    ("s3", "----T"),
+    ("s4", "---AT"),
+    """
+
+    data = dict(
+        [
+            ("s1", "ACGTA"),
+            ("s2", "ACGTC"),
+            ("s3", "ACGTT"),
+            ("s4", "ACGAT"),
+        ]
+    )
+    pdist_app = jaccard_dist(k=3) + approx_pdist()
+    collection = make_unaligned_seqs(data=data, moltype="dna")
+    dists = pdist_app(collection)
+
+    # comparisons with one position different should be smaller than those with two
+    assert dists[("s1", "s2")] < dists[("s1", "s4")]
+    assert dists[("s1", "s3")] < dists[("s1", "s4")]
+    assert dists[("s1", "s2")] < dists[("s1", "s4")]
+    assert dists[("s2", "s3")] < dists[("s2", "s4")]
+
+    # both (s1 and s2) and (s2 and s3) have the same position different
+    assert dists[("s1", "s2")] == dists[("s1", "s3")]
+
+
+def test_jaccard_dist_vals(_seqs1_collection):
+    """values in the DistanceMatrix should match individually calculating the jaccard
+    distance for pairs of sequence.
+    """
+    seqs = _seqs1_collection
+    jaccard_dist_app = jaccard_dist(k=10)
+    jdists = jaccard_dist_app(seqs)
+    names = jdists.names
+
+    for i, j in itertools.combinations(range(len(names)), 2):
+        seq1, seq2 = names[i], names[j]
+        got = jdists[(seq1, seq2)]
+        expect = jaccard(
+            set(seqs.get_seq(seq1).get_kmers(k=10)),
+            set(seqs.get_seq(seq2).get_kmers(k=10)),
+        )
+        assert got == expect
+
+
+def test_approx_pdist_vals(_seqs1_collection):
+    """values in the DistanceMatrix should match individually calculating the pdist
+    for pairs of sequence.
+    """
+
+    seqs = _seqs1_collection
+    jaccard_dist_app = jaccard_dist(k=10)
+    jdists = jaccard_dist_app(seqs)
+    names = jdists.names
+
+    pdist_app = approx_pdist()
+    pdists = pdist_app(jdists)
+
+    for i, j in itertools.combinations(range(len(names)), 2):
+        seq1, seq2 = names[i], names[j]
+        got = pdists[(seq1, seq2)]
+        expect = polyval(JACCARD_PDIST_POLY_COEFFS, jdists[(seq1, seq2)])
+        assert got == expect
+
+
+def test_approx_jc69_vals(_seqs1_collection):
+    """values in the DistanceMatrix should match individually calculating the jc distance
+    for pairs of sequence.
+    """
+
+    seqs = _seqs1_collection
+    jaccard_dist_app = jaccard_dist(k=10)
+    jdists = jaccard_dist_app(seqs)
+    names = jdists.names
+
+    pdist_app = approx_pdist()
+    pdists = pdist_app(jdists)
+
+    jc_app = approx_jc69()
+    jc_dists = jc_app(pdists)
+
+    for i, j in itertools.combinations(range(len(names)), 2):
+        seq1, seq2 = names[i], names[j]
+        got = jc_dists[(seq1, seq2)]
+        expect = _jc69_from_pdist(pdists[(seq1, seq2)])
+        assert got == expect

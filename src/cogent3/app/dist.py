@@ -2,15 +2,23 @@ import itertools
 
 from typing import Union
 
+from numpy import fill_diagonal, log, polyval, triu_indices, zeros_like
+
 from cogent3 import get_moltype, make_tree
 from cogent3.evolve.fast_distance import (
     DistanceMatrix,
     get_distance_calculator,
 )
 from cogent3.evolve.models import get_model
+from cogent3.maths.distance_transform import jaccard
 
 from .composable import define_app
-from .typing import AlignedSeqsType, PairwiseDistanceType, SerialisableType
+from .typing import (
+    AlignedSeqsType,
+    PairwiseDistanceType,
+    SerialisableType,
+    UnalignedSeqsType,
+)
 
 
 __author__ = "Gavin Huttley"
@@ -21,6 +29,25 @@ __version__ = "2023.2.12a1"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "Alpha"
+
+
+# The following coefficients are derived from a polynomial fit between Jaccard distance
+# and the proportion of different sites for mammalian DNA sequences. NOTE: the Jaccard
+# distance used kmers where k=10.
+JACCARD_PDIST_POLY_COEFFS = [
+    2271.7714153914335,
+    -11998.34362001251,
+    27525.142573445955,
+    -35922.0159776342,
+    29337.5102940838,
+    -15536.693064681693,
+    5346.929667208838,
+    -1165.616998965176,
+    151.8581396241204,
+    -10.489082251524346,
+    0.3334853259953467,
+    0.0,
+]
 
 
 @define_app
@@ -125,3 +152,128 @@ class fast_slow_dist:
 def get_fast_slow_calc(distance, **kwargs):
     """returns FastSlow instance for a given distance name"""
     return fast_slow_dist(distance, **kwargs)
+
+
+@define_app
+def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceType:
+    """returns a PairwiseDistanceType (DistanceMatrix) of jaccard distances
+
+    Parameters
+    ----------
+    seq_coll
+    k
+
+    Returns
+    -------
+
+    """
+
+    kmers = {name: set(seq.get_kmers(k)) for name, seq in seq_coll.named_seqs.items()}
+    seq_names = sorted(kmers.keys())
+    num_seqs = len(seq_names)
+
+    jaccard_dict = {}
+
+    for i in range(num_seqs):
+        for j in range(i):
+            name1, name2 = seq_names[i], seq_names[j]
+            dist = jaccard(kmers[name1], kmers[name2])
+            jaccard_dict[(name1, name2)] = dist
+            jaccard_dict[(name2, name1)] = dist
+
+    return DistanceMatrix(jaccard_dict)
+
+
+@define_app()
+def approx_pdist(j_dists: PairwiseDistanceType) -> PairwiseDistanceType:
+    """Converts Jaccard distances to approximate pairwise distances using coefficient from
+    a pre-determined polynomial fit.
+
+    NOTE: coefficients are derived from a polynomial fit between Jaccard distance
+    and the proportion of sites different for mammalian DNA sequences. kmer size was 10nt.
+
+    Parameters
+    ----------
+    j_dists : DistanceMatrix
+    The pairwise Jaccard distance matrix
+
+    Returns
+    -------
+    DistanceMatrix
+    The pairwise approximate PDist matrix
+    """
+    j_dists_array = j_dists.array
+
+    # Initialise an array of the same size as j_dists_array with all values = 0.0
+    p_dists_array = zeros_like(j_dists_array)
+
+    # The matrix is symmetric across the diagonal, and we only want
+    # to do calculations once, so grab the indices of the upper triangle,
+    # setting k=1 will exclude the diagonal
+    upper_indices = triu_indices(n=j_dists_array.shape[0], k=1)
+
+    # Convert only the upper indices from Jaccard distance to approximate PDist
+    upper_vals = polyval(JACCARD_PDIST_POLY_COEFFS, j_dists_array[upper_indices])
+    p_dists_array[upper_indices] = upper_vals
+
+    # Reflect the upper triangle to the lower triangle
+    lower_indices = (upper_indices[1], upper_indices[0])
+    p_dists_array[lower_indices] = upper_vals
+
+    # Set diagonal to 0.0
+    fill_diagonal(p_dists_array, 0.0)
+    #
+    # add dists to dictionary where {(seq, seq) : dist}
+    names = j_dists.names
+    data = {
+        (names[i], names[j]): p_dists_array[i, j]
+        for i, j in itertools.combinations(range(len(names)), 2)
+    }
+
+    return DistanceMatrix(data)
+
+
+@define_app
+def approx_jc69(
+    pdist_predicted: PairwiseDistanceType,
+) -> PairwiseDistanceType:
+    """takes pairwise predicted p-distances and returns pairwise JC69 distances
+
+    Parameters
+    ----------
+    pdist_predicted
+        The pairwise approximate PDist matrix
+
+    Returns
+    -------
+    DistanceMatrix of pairwise JC69 distances
+
+    """
+    pdist_array = pdist_predicted.array
+    jc_dists_array = zeros_like(pdist_array)
+
+    # calculate approx jc dist from approx pdist for upper triangle of matrix
+    upper_indices = triu_indices(n=pdist_array.shape[0], k=1)
+    upper_vals = _jc69_from_pdist(pdist_array[upper_indices])
+    jc_dists_array[upper_indices] = upper_vals
+
+    # reflect into lower triangle of matrix
+    lower_indices = (upper_indices[1], upper_indices[0])
+    jc_dists_array[lower_indices] = upper_vals
+
+    # Set diagonal to 0.0
+    fill_diagonal(jc_dists_array, 0.0)
+
+    # add dists to dictionary where {(seq, seq) : dist}, so can be wrapped in DistanceMatrix
+    names = pdist_predicted.names
+    data = {
+        (names[i], names[j]): jc_dists_array[i, j]
+        for i, j in itertools.combinations(range(len(names)), 2)
+    }
+
+    return DistanceMatrix(data)
+
+
+def _jc69_from_pdist(p):
+    """convert proportion of sites different to Jukes Cantor distance"""
+    return -3.0 * log(1 - (4 / 3) * p) / 4
