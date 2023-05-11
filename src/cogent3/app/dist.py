@@ -156,7 +156,7 @@ def get_fast_slow_calc(distance, **kwargs):
 
 @define_app
 def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceType:
-    """ Calculates the pairwise Jaccard distance between the sets of kmers generated from
+    """Calculates the pairwise Jaccard distance between the sets of kmers generated from
     sequences in the collection. A measure of distance for unaligned sequences.
 
     Parameters

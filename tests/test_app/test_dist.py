@@ -61,6 +61,11 @@ def _seqs1_collection():
     return make_unaligned_seqs(data=_seqs1, moltype="dna")
 
 
+@pytest.fixture(scope="function")
+def _seqs2_collection():
+    return make_unaligned_seqs(data=_seqs2, moltype="dna")
+
+
 def _get_all_composable_apps():
     out_dstore = open_data_store(":memory:", mode="w")
     return [
@@ -260,24 +265,6 @@ class FastSlowDistTests(TestCase):
 
 if __name__ == "__main__":
     main()
-
-
-@pytest.mark.parametrize("moltype", ("dna", "rna"))
-def test_collection_distance_matrix_same_seq(moltype):
-    """Identical seqs should return distance measure of 0.0"""
-    data = dict(
-        [("s1", "ACGTACGTAGTCGCG"), ("s2", "GTGTACGTATCGCG"), ("s3", "GTGTACGTATCGCG")]
-    )
-    collection = make_unaligned_seqs(data=data, moltype=moltype)
-    dists = collection.distance_matrix(calc="pdist")
-
-    # all comparison of a sequence to itself should be zero
-    for seq in collection.names:
-        assert dists[(seq, seq)] == 0.0
-
-    # s2 and s3 are identical, so should be zero
-    assert dists[("s2", "s3")] == 0.0
-    assert dists[("s3", "s2")] == 0.0
 
 
 def test_approx_pdist():

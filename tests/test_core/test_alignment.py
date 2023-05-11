@@ -3429,3 +3429,29 @@ def test_get_seq_entropy(cls):
     entropy = a.entropy_per_seq()
     e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
     assert_allclose(entropy, array([1, 0, e]))
+
+
+def test_distance_matrix_singleton_collection():
+    """SequenceCollection.distance_matrix() should raise error if collection
+    only contains a single sequence"""
+    collection = make_unaligned_seqs(data={"s1": "ACGTACGTAGTCGCG"}, moltype="dna")
+    with pytest.raises(ValueError):
+        _ = collection.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_collection_distance_matrix_same_seq(moltype):
+    """Identical seqs should return distance measure of 0.0"""
+    data = dict(
+        [("s1", "ACGTACGTAGTCGCG"), ("s2", "GTGTACGTATCGCG"), ("s3", "GTGTACGTATCGCG")]
+    )
+    collection = make_unaligned_seqs(data=data, moltype=moltype)
+    dists = collection.distance_matrix(calc="pdist")
+
+    # all comparison of a sequence to itself should be zero
+    for seq in collection.names:
+        assert dists[(seq, seq)] == 0.0
+
+    # s2 and s3 are identical, so should be zero
+    assert dists[("s2", "s3")] == 0.0
+    assert dists[("s3", "s2")] == 0.0

@@ -2308,6 +2308,12 @@ class SequenceCollection(_SequenceCollectionBase):
         if self.moltype.label not in ["dna", "rna"]:
             raise TypeError("Sequences must be either DNA or RNA")
 
+        # assert we have more than one sequence in the SequenceCollection
+        if self.num_seqs == 1:
+            raise ValueError(
+                "Pairwise distance cannot be computed for a single sequence. Please provide at least two sequences."
+            )
+
         jdist = cogent3.get_app("jaccard_dist")
         pdist = cogent3.get_app("approx_pdist")
 
