@@ -5267,6 +5267,7 @@ class Alignment(AlignmentI, SequenceCollection):
         if not on_alignment and feature["seqid"]:
             return self.named_seqs[feature["seqid"]].make_feature(feature, self)
 
+        feature["seqid"] = feature.get("seqid", None)
         # there's no sequence to bind to, the feature is directly on self
         # todo gah check handling of strand etc..., maybe reuse code
         # in Sequence?
