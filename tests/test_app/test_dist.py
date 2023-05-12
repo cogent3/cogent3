@@ -5,7 +5,7 @@ from unittest import TestCase, main
 
 import pytest
 
-from numpy import log, polyval
+from numpy import polyval
 from numpy.testing import assert_allclose
 
 from cogent3 import (
