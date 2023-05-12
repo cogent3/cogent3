@@ -460,7 +460,7 @@ def _class_from_func(func):
 
 def define_app(
     klass=None, *, app_type: AppType = GENERIC, skip_not_completed: bool = True
-):
+) -> type:
     """decorator for building callable apps
 
     Parameters
