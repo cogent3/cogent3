@@ -489,9 +489,10 @@ class Feature:
         return f"{name}({txt})"
 
     def remapped_to(self, grandparent, gmap):
+        seqid = grandparent.name or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,
-            **{"map": gmap[self.map], "parent": grandparent, "seqid": grandparent.name},
+            **{"map": gmap[self.map], "parent": grandparent, "seqid": seqid},
         }
         return self.__class__(**kwargs)
 
