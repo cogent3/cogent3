@@ -481,13 +481,18 @@ class Feature:
         return len(self.map)
 
     def __repr__(self):
-        name = f' "{self.name}"'
-        return f'"{self.seqid}" {self.biotype}{name} at {self.map}'
+        name = self.__class__.__name__
+        txt = ", ".join(
+            f"{attr}={getattr(self, attr)!r}"
+            for attr in ("seqid", "biotype", "name", "map", "parent")
+        )
+        return f"{name}({txt})"
 
     def remapped_to(self, grandparent, gmap):
+        seqid = grandparent.name or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,
-            **{"map": gmap[self.map], "parent": grandparent, "seqid": grandparent.name},
+            **{"map": gmap[self.map], "parent": grandparent, "seqid": seqid},
         }
         return self.__class__(**kwargs)
 
@@ -554,6 +559,19 @@ class Feature:
         from cogent3.draw.drawable import make_shape
 
         return make_shape(type_=self)
+
+    def to_dict(self):
+        """returns"""
+        result = {
+            **self._serialisable,
+            **dict(
+                spans=self.map.get_coordinates(),
+                strand="-" if self.map.reverse else "+",
+            ),
+        }
+        for key in ("map", "parent"):
+            result.pop(key, None)
+        return result
 
 
 class _Feature(_Annotatable, _Serialisable):  # pragma: no cover

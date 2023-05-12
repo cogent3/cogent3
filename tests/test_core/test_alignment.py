@@ -3187,21 +3187,21 @@ def test_get_annotations_from_any_seq(cls):
     seqs.annotation_db = db
     got = list(seqs.get_features())
     assert len(got) == 3
-    assert 'exon "annotation1" at [3:8]/9' in str(got[0])
-    assert 'exon "annotation2" at [1:2]/9' in str(got[1])
-    assert 'exon "annotation3" at [3:6]/9' in str(got[2])
+    assert "biotype='exon', name='annotation1', map=[3:8]/9" in str(got[0])
+    assert "biotype='exon', name='annotation2', map=[1:2]/9" in str(got[1])
+    assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[2])
 
     got = list(seqs.get_features(name="annotation1"))
     assert len(got) == 1
-    assert 'exon "annotation1" at [3:8]/9' in str(got[0])
+    assert "biotype='exon', name='annotation1', map=[3:8]/9" in str(got[0])
 
     got = list(seqs.get_features(biotype="exon", name="annotation2"))
     assert len(got) == 1
-    assert 'exon "annotation2" at [1:2]/9' in str(got[0])
+    assert "biotype='exon', name='annotation2', map=[1:2]/9" in str(got[0])
 
     got = list(seqs.get_features(name="annotation3"))
     assert len(got) == 1
-    assert 'exon "annotation3" at [3:6]/9' in str(got[0])
+    assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[0])
 
 
 def test_annotate_matches_to():

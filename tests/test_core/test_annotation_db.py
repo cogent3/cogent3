@@ -3,8 +3,7 @@ import pathlib
 import numpy
 import pytest
 
-from cogent3 import DNA, RNA, SequenceCollection, _Table, load_seq
-from cogent3.core.annotation import Feature
+from cogent3 import DNA, SequenceCollection, _Table, load_seq
 from cogent3.core.annotation_db import (
     GffAnnotationDb,
     SupportsFeatures,

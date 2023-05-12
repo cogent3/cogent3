@@ -4836,13 +4836,69 @@ class Alignment(AlignmentI, SequenceCollection):
             seqs.append((seq_name, seq))
         return self.__class__(moltype=self.moltype, data=seqs, **kwargs)
 
-    def project_annotation(self, seq_name, annot):
-        target_aligned = self.named_seqs[seq_name]
+    def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
+        """returns an alignment feature projected onto the seqid sequence
+
+        Parameters
+        ----------
+        seqid
+            name of the sequence to project the feature onto
+        feature
+            a Feature, bound to self, that will be projected
+
+        Returns
+        -------
+        a new Feature bound to seqid
+
+        Notes
+        -----
+        The alignment coordinates of feature are converted into the seqid
+        sequence coordinates and the object is bound to that sequence.
+
+        The feature is added to the annotation_db.
+        """
+        target_aligned = self.named_seqs[seqid]
+        if feature.parent is not self:
+            raise ValueError("Feature does not belong to this alignment")
+        result = feature.remapped_to(target_aligned.data, target_aligned.map)
+
+        if not self.annotation_db:
+            # todo gah improve bound db initialisation
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        self.annotation_db.add_feature(**feature.to_dict())
+        return result
+
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="use <collection>.get_projected_feature()",
+        is_discontinued=True,
+    )
+    def project_annotation(self, seqid, annot):
+        """projects the alignment coordinate annotation onto seq"""
+        target_aligned = self.named_seqs[seqid]
         if annot.parent is not self:
             raise ValueError("Feature does not belong to this alignment")
         return annot.remapped_to(target_aligned.data, target_aligned.map)
 
+    def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
+        """projects all features from other sequences onto seqid"""
+        # todo gah should there be a generator version,
+        # iter_projected_features()?
+        annots = []
+        for name in self.names:
+            if name == seqid:
+                continue
+            annots.extend(list(self.get_features(seqid=name, **kwargs)))
+        return [self.get_projected_feature(seqid=seqid, feature=a) for a in annots]
+
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="use <collection>.get_projected_features()",
+        is_discontinued=True,
+    )
     def get_projected_annotations(self, *, seqid: str, **kwargs):
+        # todo gah make sure the original sequence is not the seqid
         aln_annots = list(self.get_features(**kwargs))
         return [self.project_annotation(seqid, a) for a in aln_annots]
 
@@ -4854,10 +4910,7 @@ class Alignment(AlignmentI, SequenceCollection):
     def get_annotations_from_seq(
         self, seq_name, annotation_type="*", **kwargs
     ):  # pragma: no cover
-        aligned = self.named_seqs[seq_name]
-        return aligned.get_features_matching(
-            self, annotation_type=annotation_type, **kwargs
-        )
+        return self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
 
     @c3warn.deprecated_callable(
         "2023.7", reason="use <collection>.get_features()", is_discontinued=True
@@ -4867,8 +4920,8 @@ class Alignment(AlignmentI, SequenceCollection):
     ):  # pragma: no cover
         result = []
         for seq_name in self.names:
-            a = self.get_annotations_from_seq(
-                seq_name, annotation_type=annotation_type, **kwargs
+            a = list(
+                self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
             )
             result.extend(a)
         return result
@@ -4880,10 +4933,10 @@ class Alignment(AlignmentI, SequenceCollection):
     )
     def get_by_seq_annotation(self, seq_name, *args):  # pragma: no cover
         result = []
-        for feature in self.get_annotations_from_seq(seq_name, *args):
-            segment = self[feature.map.start : feature.map.end]
+        for feature in self.get_features(seqid=seq_name):
+            segment = self[feature]
             segment.name = '%s "%s" %s to %s of %s' % (
-                feature.type,
+                feature.biotype,
                 feature.name,
                 feature.map.start,
                 feature.map.end,
@@ -4892,13 +4945,18 @@ class Alignment(AlignmentI, SequenceCollection):
             result.append(segment)
         return result
 
-    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
+    @c3warn.deprecated_args(
+        "2023.7",
+        reason="consistency with new API",
+        old_new=[("annot_types", "biotypes")],
+    )
+    def with_masked_annotations(self, biotypes, mask_char=None, shadow=False):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
         Parameters
         ----------
-        annot_types
+        biotypes
             annotation type(s)
         mask_char
             must be a character valid for the seq moltype. The
@@ -4910,9 +4968,11 @@ class Alignment(AlignmentI, SequenceCollection):
         """
         masked_seqs = []
         for seq in self.seqs:
-            # we mask each sequence using these spans
-            masked_seqs += [seq._masked_annotations(annot_types, mask_char, shadow)]
+            # todo gah why is _masked_annotations semi-private? add public method
+            # on Aligned
+            masked_seqs += [seq._masked_annotations(biotypes, mask_char, shadow)]
         new = self.__class__(data=masked_seqs, info=self.info, name=self.name)
+        new.annotation_db = deepcopy(self.annotation_db)
         return new
 
     @extend_docstring_from(ArrayAlignment.filtered)
@@ -5267,6 +5327,7 @@ class Alignment(AlignmentI, SequenceCollection):
         if not on_alignment and feature["seqid"]:
             return self.named_seqs[feature["seqid"]].make_feature(feature, self)
 
+        feature["seqid"] = feature.get("seqid", None)
         # there's no sequence to bind to, the feature is directly on self
         # todo gah check handling of strand etc..., maybe reuse code
         # in Sequence?
