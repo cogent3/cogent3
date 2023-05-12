@@ -555,6 +555,19 @@ class Feature:
 
         return make_shape(type_=self)
 
+    def to_dict(self):
+        """returns"""
+        result = {
+            **self._serialisable,
+            **dict(
+                spans=self.map.get_coordinates(),
+                strand="-" if self.map.reverse else "+",
+            ),
+        }
+        for key in ("map", "parent"):
+            result.pop(key, None)
+        return result
+
 
 class _Feature(_Annotatable, _Serialisable):  # pragma: no cover
     qualifier_names = ["type", "name"]

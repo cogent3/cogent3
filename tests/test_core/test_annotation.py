@@ -3,7 +3,7 @@ import unittest
 import pytest
 
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
-from cogent3.core.location import Map, Span, as_map
+from cogent3.core.location import Map, Span
 
 
 def makeSampleSequence(name, with_gaps=False):
@@ -226,3 +226,48 @@ def test_slice_seq_with_partial_start(ann_seq, annot_type, num):
         gapless = feat.without_lost_spans()
         # the sliced feature without gaps is shorter
         assert len(gapless) < len(feat)
+
+
+def test_seq_feature_to_dict():
+    """create the attributes necessary to write into the user table"""
+    seq = DNA.make_seq("ATTGTACGCCCCTGA", name="test_seq")
+    feature_data = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 10),
+        ],
+        "strand": "+",
+        "seqid": "test_seq",
+        "on_alignment": False,
+    }
+    expect = {k: v for k, v in feature_data.items() if k != "on_alignment"}
+    f = seq.make_feature(feature_data)
+    got = f.to_dict()
+    assert got == expect
+    c = seq.add_feature(**got)
+    assert c.to_dict() == expect
+    assert str(f.get_slice()) == str(c.get_slice())
+
+
+def test_aln_feature_to_dict():
+    seqs = [
+        makeSampleSequence("s1", with_gaps=False),
+        makeSampleSequence("s2", with_gaps=True),
+    ]
+    aln = make_aligned_seqs(seqs, array_align=False)
+    feature_data = {
+        "biotype": "CDS",
+        "name": "fake",
+        "spans": [
+            (5, 10),
+        ],
+        "strand": "+",
+        "seqid": None,
+        "on_alignment": True,
+    }
+    # copy this now because modified by the method
+    expect = {k: v for k, v in feature_data.items() if k != "on_alignment"}
+    f = aln.make_feature(feature=feature_data)
+    d = f.to_dict()
+    assert d == expect
