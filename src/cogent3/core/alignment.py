@@ -67,6 +67,7 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2305,8 +2306,8 @@ class SequenceCollection(_SequenceCollectionBase):
         """
 
         # check moltype
-        if self.moltype.label not in ["dna", "rna"]:
-            raise TypeError("Sequences must be either DNA or RNA")
+        if not len(self.moltype.alphabet) == 4:
+            raise NotImplementedError("only defined for DNA/RNA molecular types")
 
         # assert we have more than one sequence in the SequenceCollection
         if self.num_seqs == 1:
