@@ -30,6 +30,7 @@ _MEMORY = ":memory:"
 _mem_pattern = re.compile(r"^\s*[:]{0,1}memory[:]{0,1}\s*$")
 NoneType = type(None)
 
+
 # create db
 def open_sqlite_db_rw(path: Union[str, Path]):
     """creates a new sqlitedb for read/write at path, can be an in-memory db

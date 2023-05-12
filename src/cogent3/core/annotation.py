@@ -335,7 +335,6 @@ class _Annotatable(_AnnotationCore, _AnnotationMixin):  # pragma: no cover
         from cogent3.core.sequence import Sequence
 
         if isinstance(self, Sequence):
-
             from cogent3.util.warning import deprecated
 
             deprecated(

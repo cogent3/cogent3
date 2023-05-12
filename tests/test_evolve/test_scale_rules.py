@@ -53,7 +53,7 @@ class ScaleRuleTests(unittest.TestCase):
         LF.set_param_rule("k", value=6.0, bin="bin0", is_constant=True)
         LF.set_param_rule("k", value=1.0, bin="bin1", is_constant=True)
 
-        for (bin, expected) in [("bin0", 3.0), ("bin1", 4.0 / 3), (None, 13.0 / 6)]:
+        for bin, expected in [("bin0", 3.0), ("bin1", 4.0 / 3), (None, 13.0 / 6)]:
             self.assertEqual(LF.get_scaled_lengths("ts", bin=bin)["a"], expected)
 
     def test_scaled_or(self):

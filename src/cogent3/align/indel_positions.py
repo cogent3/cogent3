@@ -3,7 +3,7 @@ def pog_traceback(pogs, aligned_positions):
     align_builder = POGBuilder(pogs)
     for posn in aligned_positions:
         assert len(posn) == 2
-        for (dim, pos) in enumerate(posn):
+        for dim, pos in enumerate(posn):
             if pos is not None:
                 align_builder.add_skipped(dim, upto[dim], pos)
                 upto[dim] = pos + 1
@@ -37,7 +37,7 @@ class POGBuilder(object):
     def add_aligned(self, posn, old_gap=False):
         pre_merged = set()
         assert len(posn) == 2
-        for (dim, pos) in enumerate(posn):
+        for dim, pos in enumerate(posn):
             if pos is None:
                 continue
             self.remap[dim][pos] = len(self.aligned_positions)
@@ -61,7 +61,7 @@ class POGBuilder(object):
         # Build a list of gaps (ie: segments of X or Y state) in
         # the alignment and a dict which maps from seq posn to the
         # start of the surrounding gap.
-        for (i, state) in enumerate(self.states + ["."]):
+        for i, state in enumerate(self.states + ["."]):
             gap = state in "XYxy"
             if gap and not ingap:
                 start = i
@@ -73,16 +73,16 @@ class POGBuilder(object):
                 gapmap[i] = start
 
         # in case of tail gap
-        for (dim, child) in enumerate(self.children):
+        for dim, child in enumerate(self.children):
             pos = len(child)
             self.remap[dim][pos] = len(self.aligned_positions)
 
         # Keep only those child gaps which sit entirely within a gap
         # in this alignment
         child_jumps = []
-        for (dim, pog) in enumerate(self.children):
+        for dim, pog in enumerate(self.children):
             r = self.remap[dim]
-            for (i, j) in pog.jumps:
+            for i, j in pog.jumps:
                 (i, j) = (r[i], r[j])
                 if i in gapmap and j in gapmap and gapmap[i] == gapmap[j]:
                     child_jumps.append((i, j))
@@ -116,7 +116,7 @@ class POG(object):
         self.all_jumps = self.jumps + self.child_jumps
         self.all_jumps.sort(key=lambda i_j: i_j[1])
         self.length = length
-        for (i, j) in self.all_jumps:
+        for i, j in self.all_jumps:
             assert i <= j, (length, jumps, child_jumps)
             assert 0 <= i <= length, (length, jumps, child_jumps)
             assert 0 <= j <= length, (length, jumps, child_jumps)
@@ -138,7 +138,7 @@ class POG(object):
         # j could have been ajacent to one of i's predecessors in
         # the ancestral sequence. This depends on all_jumps being sorted
         # by j.
-        for (i, j) in self.all_jumps:
+        for i, j in self.all_jumps:
             if i == j:
                 continue
             assert i < j
@@ -192,7 +192,7 @@ class POG(object):
     def write_to_dot(self, dot):
         pred_sets = self.as_list_of_pred_lists()
         print("digraph POG {", file=dot)
-        for (i, preds) in enumerate(pred_sets):
+        for i, preds in enumerate(pred_sets):
             # print i, preds
             for pred in preds:
                 print("  ", (f"node{pred} -> node{i}"), file=dot)

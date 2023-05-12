@@ -292,7 +292,7 @@ class DictArrayTemplate(object):
                 r, h = self.names[0], None
             array, _, _ = convert_for_dictarray(array, h, r)
         array = numpy.asarray(array, dtype=dtype)
-        for (dim, categories) in enumerate(self.names):
+        for dim, categories in enumerate(self.names):
             assert len(categories) == numpy.shape(array)[dim], "cats=%s; dim=%s" % (
                 categories,
                 dim,
@@ -309,7 +309,7 @@ class DictArrayTemplate(object):
 
         index = []
         remaining = []
-        for (ordinals, allnames, name) in zip(self.ordinals, self.names, names):
+        for ordinals, allnames, name in zip(self.ordinals, self.names, names):
             if type(name) not in (int, slice, list, numpy.ndarray):
                 name = ordinals[name]
             elif isinstance(name, slice):

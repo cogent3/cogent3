@@ -45,7 +45,7 @@ class General(Parametric):
         N = len(alphabet)
         self.param_pick = numpy.zeros([N, N], int)
         self.parameter_order = []
-        for (i, x) in enumerate(alphabet):
+        for i, x in enumerate(alphabet):
             for j in numpy.flatnonzero(mask[i]):
                 y = alphabet[j]
                 self.parameter_order.append(f"{x}/{y}")
@@ -82,7 +82,7 @@ class GeneralStationary(Stationary):
 
             inst = [(d, j) for j in row] + [(i, d) for i in col]
 
-            for (i, j) in inst:
+            for i, j in inst:
                 (x, y) = [alphabet[k] for k in [i, j]]
                 predicates.append(MotifChange(x, y, forward_only=True))
                 param_pick[i, j] = len(predicates)
@@ -107,7 +107,7 @@ class GeneralStationary(Stationary):
 
     def calc_exchangeability_matrix(self, mprobs, *params):
         R = numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
-        for (i, j) in self.last_in_column:
+        for i, j in self.last_in_column:
             assert i > j
             row_total = numpy.dot(mprobs, R[j])
             col_total = numpy.dot(mprobs, R[:, j])

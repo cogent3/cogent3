@@ -4,7 +4,6 @@ import pytest
 
 from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
 from cogent3.core.annotation_db import GffAnnotationDb
-
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 

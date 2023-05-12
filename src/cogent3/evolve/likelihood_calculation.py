@@ -124,7 +124,6 @@ class LikelihoodTreeDefn(CalculationDefn):
 def make_total_loglikelihood_defn(
     tree, leaves, psubs, mprobs, bprobs, bin_names, locus_names, sites_independent
 ):
-
     fixed_motifs = NonParamDefn("fixed_motif", ["edge"])
 
     lht = LikelihoodTreeDefn(leaves, tree=tree)
@@ -171,7 +170,7 @@ class BinnedSiteDistribution(object):
     def get_weighted_sum_lh(self, lhs):
         result = numpy.zeros(lhs[0].shape, lhs[0].dtype.char)
         temp = numpy.empty(result.shape, result.dtype.char)
-        for (bprob, lh) in zip(self.bprobs, lhs):
+        for bprob, lh in zip(self.bprobs, lhs):
             temp[:] = lh
             temp *= bprob
             result += temp
@@ -193,7 +192,7 @@ class PatchSiteDistribution(object):
         self.alloc = [0] * half + [1] * (len(bprobs) - half)
 
         pprobs = numpy.zeros([max(self.alloc) + 1], Float)
-        for (b, p) in zip(self.alloc, bprobs):
+        for b, p in zip(self.alloc, bprobs):
             pprobs[b] += p
 
         self.bprobs = [p / pprobs[self.alloc[i]] for (i, p) in enumerate(bprobs)]
@@ -202,7 +201,7 @@ class PatchSiteDistribution(object):
     def get_weighted_sum_lhs(self, lhs):
         result = numpy.zeros((2,) + lhs[0].shape, lhs[0].dtype.char)
         temp = numpy.empty(lhs[0].shape, result.dtype.char)
-        for (patch, weight, lh) in zip(self.alloc, self.bprobs, lhs):
+        for patch, weight, lh in zip(self.alloc, self.bprobs, lhs):
             temp[:] = lh
             temp *= weight
             result[patch] += temp
@@ -276,10 +275,10 @@ class SiteHmm(object):
         )
 
         binsum = numpy.zeros(pprobs.shape, Float)
-        for (patch, data) in zip(self.distrib.alloc, blhs):
+        for patch, data in zip(self.distrib.alloc, blhs):
             binsum[patch] += data
 
-        for (patch, data) in zip(self.distrib.alloc, blhs):
+        for patch, data in zip(self.distrib.alloc, blhs):
             data *= pprobs[patch] / binsum[patch]
 
         return blhs

@@ -27,6 +27,7 @@ ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding val
 # used for presence of sqlite feature
 _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
 
+
 # Define custom types for storage in sqlite
 # https://stackoverflow.com/questions/18621513/python-insert-numpy-array-into-sqlite3-database
 def array_to_sqlite(data):

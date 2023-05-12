@@ -26,7 +26,7 @@ def _ancestry2paths(A):
     the correct order in A"""
     tips = [i for i in range(A.shape[0]) if sum(A[:, i]) == 1]
     paths = []
-    for (tip1, tip2) in triangular_order(tips):
+    for tip1, tip2 in triangular_order(tips):
         path = A[tip1] ^ A[tip2]
         paths.append(path)
     return numpy.array(paths)
@@ -77,7 +77,7 @@ class WLS(TreeEvaluator):
                 lengths = solve(X, y)
                 lengths = maximum(lengths, 0.0)
             diffs = dot(A, lengths) - dists
-            err = sum(diffs ** 2)
+            err = sum(diffs**2)
             return (err, lengths)
 
         return evaluate

@@ -122,6 +122,6 @@ def kendalls_tau(x, y, return_p=True):
             + v2 / (9 * n * (n - 1) * (n - 2))
         )
     if return_p:
-        return tau, zprob(stat / variance ** 0.5)
+        return tau, zprob(stat / variance**0.5)
     else:
         return tau
