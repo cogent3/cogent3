@@ -141,7 +141,6 @@ exclude = '''
   | \.venv
   | _build
   | build
-  | doc
   | dist
   | tests/data
 )/
