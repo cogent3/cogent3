@@ -25,21 +25,6 @@ from cogent3.util.io import remove_files
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Peter Maxwell",
-    "Gavin Huttley",
-    "Matthew Wakefield",
-    "Daniel McDonald",
-    "Ben Kaehler",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 base_path = os.path.dirname(__file__)
 data_path = os.path.join(base_path, "data")
 

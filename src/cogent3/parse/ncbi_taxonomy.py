@@ -6,15 +6,6 @@ from functools import total_ordering
 from cogent3.core.tree import TreeNode
 
 
-__author__ = "Jason Carnes"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Jason Carnes", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Jason Carnes"
-__email__ = "jason.carnes@sbri.org"
-__status__ = "Development"
-
 strip = str.strip
 
 

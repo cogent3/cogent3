@@ -6,16 +6,6 @@ from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.annotation import Map
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def seq_traceback(s1, s2, aligned_positions, gap_value):
     """gapped sequences from state matrix and ending point
     gaps are signified by 'gap_value' inserted in the sequences.

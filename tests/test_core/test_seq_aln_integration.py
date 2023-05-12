@@ -4,22 +4,11 @@
 from unittest import TestCase, main
 
 from numpy import alltrue, array, transpose
+from numpy.testing import assert_equal
 
 from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.moltype import RNA
 from cogent3.core.sequence import ArraySequence, RnaSequence
-
-
-__author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Sandra Smit", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
-__status__ = "Production"
-
-from numpy.testing import assert_equal
 
 
 class AllTests(TestCase):

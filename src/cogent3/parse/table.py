@@ -6,16 +6,6 @@ from cogent3.util.io import open_
 from .record_finder import is_empty
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class FilteringParser:
     """A parser for a delimited tabular file that returns records matching a condition."""
 

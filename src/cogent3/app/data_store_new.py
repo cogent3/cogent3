@@ -27,15 +27,6 @@ from cogent3.util.parallel import is_master_process
 from cogent3.util.table import Table
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
 _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"

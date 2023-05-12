@@ -45,6 +45,7 @@ from typing import Union
 
 from numpy import array, ndarray
 
+from cogent3._version import __version__
 from cogent3.util.misc import (
     ClassChecker,
     ConstrainedList,
@@ -53,15 +54,6 @@ from cogent3.util.misc import (
     iterable,
 )
 
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Prototype"
 
 strip = str.strip
 

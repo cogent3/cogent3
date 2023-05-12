@@ -6,16 +6,6 @@ import bisect
 import numpy
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def argpicks(freqs, random_series):
     partition = numpy.add.accumulate(freqs)
     assert abs(partition[-1] - 1.0) < 1e-6, (freqs, partition)

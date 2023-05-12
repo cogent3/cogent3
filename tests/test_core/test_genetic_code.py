@@ -17,16 +17,6 @@ from cogent3.core.genetic_code import (
 )
 
 
-__author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Greg Caporaso"
-__email__ = "caporaso@colorado.edu"
-__status__ = "Production"
-
-
 class GeneticCodeTests(TestCase):
     """Tests of the GeneticCode class."""
 

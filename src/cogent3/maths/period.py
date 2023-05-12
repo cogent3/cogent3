@@ -15,16 +15,6 @@ from numpy import (
 from .period_numba import autocorr_inner, goertzel_inner, ipdft_inner
 
 
-__author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def _goertzel_inner(x, N, period):
     coeff = 2.0 * cos(2 * pi / period)
     s_prev = 0.0

@@ -4,16 +4,6 @@ import pickle
 import time
 
 
-__author__ = ["Peter Maxwell", "Gavin Huttley"]
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class Checkpointer(object):
     def __init__(self, filename, interval=None, noisy=True):
         if interval is None:

@@ -19,16 +19,6 @@ from cogent3.recalculation.scope import _indexed
 from cogent3.util.misc import adjusted_gt_minprob
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley", "Helen Lindsay"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.ed.au"
-__status__ = "Production"
-
-
 def _category_names(dimension, specified):
     if type(specified) is int:
         cats = [f"{dimension}{i}" for i in range(specified)]

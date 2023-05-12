@@ -39,6 +39,7 @@ import numpy
 
 from numpy.linalg import svd
 
+from cogent3._version import __version__
 from cogent3.core import genetic_code, moltype
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
@@ -63,24 +64,6 @@ from cogent3.recalculation.definition import (
     WeightedPartitionDefn,
 )
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
-
-
-__author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__contributors__ = [
-    "Gavin Huttley",
-    "Andrew Butterfield",
-    "Peter Maxwell",
-    "Matthew Wakefield",
-    "Brett Easton",
-    "Rob Knight",
-    "Von Bing Yap",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def predicate2matrix(alphabet, pred, mask=None):

@@ -21,16 +21,6 @@ from .typing import (
 )
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 # The following coefficients are derived from a polynomial fit between Jaccard distance
 # and the proportion of different sites for mammalian DNA sequences. NOTE: the Jaccard
 # distance used kmers where k=10.

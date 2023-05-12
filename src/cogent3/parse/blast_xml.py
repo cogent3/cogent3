@@ -1,16 +1,6 @@
 """Parsers for XML output of blast, psi-blast and blat.
 """
 
-__author__ = "Kristian Rother"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__contributors__ = ["Micah Hamady"]
-__credits__ = ["Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Kristian Rother"
-__email__ = "krother@rubor.de"
-__status__ = "Prototype"
-
 import xml.dom.minidom
 
 from operator import gt as _gt

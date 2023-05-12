@@ -5,15 +5,6 @@ from cogent3.util.io import atomic_write
 from . import consensus
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-
-
 class _UserList(list):
     def __getitem__(self, index):
         # Helpful to keep type after truncation like [self[:10]],

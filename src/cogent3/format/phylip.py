@@ -5,16 +5,6 @@
 from cogent3.format.util import _AlignmentFormatter
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def alignment_to_phylip(alignment_dict, block_size=60, order=None):
     """Returns a Phylip string given an alignment."""
     return PhylipFormatter().format(

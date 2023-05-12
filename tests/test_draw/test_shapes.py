@@ -5,16 +5,6 @@ from numpy.testing import assert_allclose
 from cogent3.draw import drawable
 
 
-__author__ = "Gavin Huttley and Rahul Ghangas"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Rahul Ghangas"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class Test_Shapes(TestCase):
     def test_shift(self):
         """Tests if the shape remains consistent with a shift of coordinate system along the line x=y"""

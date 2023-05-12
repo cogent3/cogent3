@@ -9,16 +9,6 @@ from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.util.deserialise import deserialise_object
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class FeaturesTest(TestCase):
     """Tests of features in core"""
 

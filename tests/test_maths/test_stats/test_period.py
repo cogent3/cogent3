@@ -2,6 +2,8 @@ from unittest import TestCase, main
 
 import numpy
 
+from numpy.testing import assert_allclose, assert_equal
+
 from cogent3.maths.period import AutoCorrelation, Hybrid, Ipdft, ipdft
 from cogent3.maths.stats.period import (
     SeqToSymbols,
@@ -12,18 +14,6 @@ from cogent3.maths.stats.period import (
     g_statistic,
     seq_to_symbols,
 )
-
-
-__author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_equal
 
 
 class TestPeriodStat(TestCase):

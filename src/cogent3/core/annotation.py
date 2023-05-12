@@ -7,20 +7,11 @@ from typing import Optional
 
 import numpy
 
+from cogent3._version import __version__
 from cogent3.util import warning as c3warn
 from cogent3.util.misc import get_object_provenance
 
 from .location import Map, as_map
-
-
-__author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Katherine Caley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class _AnnotationMixin:  # pragma: no cover

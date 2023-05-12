@@ -21,16 +21,6 @@ from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util.table import Table
 
 
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "James Kondilios"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
-
 nucleotide_models = []
 codon_models = []
 protein_models = []

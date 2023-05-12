@@ -12,15 +12,6 @@ import pytest
 from cogent3.parse.gff import gff_parser, parse_attributes_gff2
 
 
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 headers = [

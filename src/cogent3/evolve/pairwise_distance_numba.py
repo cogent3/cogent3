@@ -1,15 +1,6 @@
 from numba import njit
 
 
-__author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2019, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler", "Stephen Ma"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
 # turn off code coverage as njit-ted code not accessible to coverage
 
 # fills in a diversity matrix from sequences of integers

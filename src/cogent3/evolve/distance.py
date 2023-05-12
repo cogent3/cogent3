@@ -11,16 +11,6 @@ from cogent3.util import progress_display as UI
 from cogent3.util import table
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def get_name_combinations(names, group_size):
     """returns combinations of names"""
     combined = list(tuple(sorted(p)) for p in combinations(names, group_size))

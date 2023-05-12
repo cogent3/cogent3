@@ -20,21 +20,6 @@ from cogent3.parse.record import FileFormatError
 from cogent3.util.io import get_format_suffixes, open_
 
 
-__author__ = "Cath Lawrence"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Cath Lawrence",
-    "Gavin Huttley",
-    "Peter Maxwell",
-    "Matthew Wakefield",
-    "Rob Knight",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
 _compression = re.compile(r"\.(gz|bz2)$")
 

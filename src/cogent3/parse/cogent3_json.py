@@ -8,16 +8,6 @@ from cogent3.util.io import open_
 from cogent3.util.misc import get_object_provenance
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Stephen Ma"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Development"
-
-
 def load_from_json(filename, classes):
     """Loads objects from json files.
 

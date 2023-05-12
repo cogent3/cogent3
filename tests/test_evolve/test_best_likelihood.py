@@ -4,6 +4,8 @@ import math
 
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose
+
 from cogent3 import DNA, make_aligned_seqs
 from cogent3.evolve.best_likelihood import (
     BestLogLikelihood,
@@ -14,18 +16,6 @@ from cogent3.evolve.best_likelihood import (
     get_G93_lnL_from_array,
     get_ML_probs,
 )
-
-
-__author__ = "Helen Lindsay"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Helen Lindsay"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Helen Lindsay"
-__email__ = "helen.lindsay@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose
 
 
 IUPAC_DNA_ambiguities = "NRYWSKMBDHV"

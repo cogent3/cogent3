@@ -9,16 +9,6 @@ from .composable import NotCompleted, define_app
 from .typing import SeqsCollectionType, SerialisableType
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
     """returns reading frame start that has either no stops or a single
     terminal stop codon

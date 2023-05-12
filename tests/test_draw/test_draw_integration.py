@@ -9,16 +9,6 @@ from cogent3.draw.drawable import AnnotatedDrawable, Drawable, get_domain
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 def load_alignment(annotate1=False, annotate2=False):
     """creates an alignment with None, one or two sequences annotated"""
     db = GffAnnotationDb()

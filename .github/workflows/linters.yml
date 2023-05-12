@@ -4,15 +4,15 @@ name: Format code using black and isort
 # black integration https://black.readthedocs.io/en/stable/integrations/github_actions.html
 # isort integration https://pycqa.github.io/isort/docs/configuration/github_action.html
 
-
-
 on:
   push:
     branches-ignore:
-          - master
+      - master
+
 jobs:
   linters:
     runs-on: ubuntu-latest
+    if: github.repository == 'cogent/cogent3'
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python

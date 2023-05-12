@@ -6,6 +6,7 @@ from copy import deepcopy
 
 import numpy
 
+from cogent3._version import __version__
 from cogent3.core.alignment import ArrayAlignment
 from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
@@ -19,25 +20,6 @@ from cogent3.recalculation.definition import ParameterController
 from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Gavin Huttley",
-    "Andrew Butterfield",
-    "Peter Maxwell",
-    "Matthew Wakefield",
-    "Rob Knight",
-    "Brett Easton",
-    "Ben Kaehler",
-    "Ananias Iliadis",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 # cogent3.evolve.parameter_controller.LikelihoodParameterController tells the

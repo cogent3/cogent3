@@ -47,16 +47,6 @@ warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 numpy.seterr(invalid="ignore")
 
 
-__author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class TestPair(TestCase):
     dna_char_indices = get_moltype_index_array(DNA)
     rna_char_indices = get_moltype_index_array(RNA)

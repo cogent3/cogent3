@@ -23,23 +23,6 @@ from numpy import (
 )
 
 
-__author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Sandra Smit",
-    "Gavin Huttley",
-    "Rob Knight",
-    "Daniel McDonald",
-    "Marcin Cieslik",
-    "Helmut Simon",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
-__status__ = "Production"
-
-
 def center_of_mass(coordinates, weights=-1):
     """Calculates the center of mass for a dataset.
 

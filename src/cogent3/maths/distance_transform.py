@@ -88,24 +88,6 @@ from numpy import (
 from numpy.linalg import norm
 
 
-__author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Micah Hamady",
-    "Justin Kuczynski",
-    "Zongzhi Liu",
-    "Catherine Lozupone",
-    "Antonio Gonzalez Pena",
-    "Greg Caporaso",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Justin Kuczynski"
-__email__ = "justinak@gmail.com"
-__status__ = "Prototype"
-
-
 def _rankdata(a):
     """Ranks the data in a, dealing with ties appropritely.  First ravels
     a.  Adapted from Gary Perlman's |Stat ranksort.

@@ -15,16 +15,6 @@ from cogent3.util.recode_alignment import (
 )
 
 
-__author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Greg Caporaso"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Greg Caporaso"
-__email__ = "gregcaporaso@gmail.com"
-__status__ = "Beta"
-
-
 class RecodeAlignmentTests(TestCase):
     """Tests of functions in recode_alphabet.py
 

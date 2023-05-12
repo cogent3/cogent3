@@ -8,16 +8,6 @@ from unittest import TestCase, main
 from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
 
 
-__author__ = "Micah Hamady"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Micah Hamady", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Micah Hamady"
-__email__ = "hamady@colorado.edu"
-__status__ = "Production"
-
-
 class PhylipGenericTest(TestCase):
     """Setup data for Phylip parsers."""
 

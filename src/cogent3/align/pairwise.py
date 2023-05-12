@@ -28,16 +28,6 @@ def _as_combined_arrays(preds):
     return i_sources, i_sources_offsets, j_sources, j_sources_offsets
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 class PointerEncoding(object):
     """Pack very small ints into a byte.  The last field, state, is assigned
     whatever bits are left over after the x and y pointers have claimed what

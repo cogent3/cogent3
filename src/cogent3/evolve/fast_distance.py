@@ -6,6 +6,7 @@ import numpy
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
+from cogent3._version import __version__
 from cogent3.core.moltype import DNA, RNA, get_moltype
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
@@ -14,14 +15,7 @@ from cogent3.util.progress_display import display_wrap
 from .pairwise_distance_numba import fill_diversity_matrix
 
 
-__author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"  # pending addition of protein distance metrics
+# pending addition of protein distance metrics
 
 
 def _same_moltype(ref, query):

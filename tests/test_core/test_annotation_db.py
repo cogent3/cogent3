@@ -15,15 +15,6 @@ from cogent3.core.sequence import Sequence
 from cogent3.util import deserialise
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Katherine Caley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 

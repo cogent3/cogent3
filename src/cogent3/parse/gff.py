@@ -6,20 +6,6 @@ import typing
 from cogent3.util.io import open_
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Peter Maxwell",
-    "Matthew Wakefield",
-    "Gavin Huttley",
-    "Christopher Bradley",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
 OptionalCallable = typing.Optional[typing.Callable]
 OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
 

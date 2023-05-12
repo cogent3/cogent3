@@ -36,30 +36,10 @@ from random import choice, shuffle
 
 from numpy import argsort, ceil, log, zeros
 
+from cogent3._version import __version__
 from cogent3.maths.stats.test import correlation
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Gavin Huttley",
-    "Peter Maxwell",
-    "Rob Knight",
-    "Andrew Butterfield",
-    "Catherine Lozupone",
-    "Micah Hamady",
-    "Jeremy Widmann",
-    "Zongzhi Liu",
-    "Daniel McDonald",
-    "Justin Kuczynski",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def distance_from_r_squared(m1, m2):

@@ -14,16 +14,6 @@ from cogent3.maths.measure import (
 )
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Stephen Ka-Wah Ma"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 def gen_q_p():
     q1 = random((4, 4))
     indices = diag_indices(4)

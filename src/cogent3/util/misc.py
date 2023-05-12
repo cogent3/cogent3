@@ -14,25 +14,6 @@ import numpy
 from numpy import array, finfo, float64
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Peter Maxwell",
-    "Amanda Birmingham",
-    "Sandra Smit",
-    "Zongzhi Liu",
-    "Daniel McDonald",
-    "Kyle Bittinger",
-    "Marcin Cieslik",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def _adjusted_gt_minprob_vector(probs, minprob):
     # operates on a 1D numpy vector
     total = probs.sum()

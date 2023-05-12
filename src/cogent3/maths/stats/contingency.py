@@ -7,16 +7,6 @@ from cogent3.maths.stats.test import G_fit
 from cogent3.util.dict_array import DictArray
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 # todo this should probably go into different module
 def shuffled_matrix(matrix):
     """returns a randomly sampled matrix with same marginals"""
