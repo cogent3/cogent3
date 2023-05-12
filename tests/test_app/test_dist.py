@@ -413,15 +413,19 @@ def test_jaccard_dist_vals(_seqs1_collection):
 def test_approx_pdist_vals(_seqs1_collection):
     """values in the DistanceMatrix should match individually calculating the pdist
     for pairs of sequence.
+
+    testing integration of jaccard_dist() + approx_pdist() is identical to
+    step-by-step calculation
     """
 
     seqs = _seqs1_collection
+
     jaccard_dist_app = jaccard_dist(k=10)
     jdists = jaccard_dist_app(seqs)
-    names = jdists.names
 
-    pdist_app = approx_pdist()
-    pdists = pdist_app(jdists)
+    pdist_app = jaccard_dist(k=10) + approx_pdist()
+    pdists = pdist_app(seqs)
+    names = pdists.names
 
     for i, j in itertools.combinations(range(len(names)), 2):
         seq1, seq2 = names[i], names[j]
@@ -433,6 +437,9 @@ def test_approx_pdist_vals(_seqs1_collection):
 def test_approx_jc69_vals(_seqs1_collection):
     """values in the DistanceMatrix should match individually calculating the jc distance
     for pairs of sequence.
+
+    testing integration of jaccard_dist() + approx_pdist() + approx_jc69() is identical to
+    step-by-step calculation
     """
 
     seqs = _seqs1_collection
@@ -443,8 +450,8 @@ def test_approx_jc69_vals(_seqs1_collection):
     pdist_app = approx_pdist()
     pdists = pdist_app(jdists)
 
-    jc_app = approx_jc69()
-    jc_dists = jc_app(pdists)
+    jc_app = jaccard_dist(k=10) + approx_pdist() + approx_jc69()
+    jc_dists = jc_app(seqs)
 
     for i, j in itertools.combinations(range(len(names)), 2):
         seq1, seq2 = names[i], names[j]
