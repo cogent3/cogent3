@@ -107,7 +107,7 @@ class RecalculationTest(TestCase):
         # maximum:
 
         def curve(x, y):
-            return 0 - (x ** 2 + y ** 2)
+            return 0 - (x**2 + y**2)
 
         top = CalcDefn(curve)(ParamDefn("X"), ParamDefn("Y"))
         pc = top.make_likelihood_function()

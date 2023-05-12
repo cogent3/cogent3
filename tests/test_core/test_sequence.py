@@ -1068,7 +1068,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
 class CodonSequenceTests(SequenceTests, TestCase):
     class SequenceClass(ArrayCodonSequence):
-        alphabet = DNA.alphabets.base ** 3
+        alphabet = DNA.alphabets.base**3
 
     def test_init(self):
         """Sequence should do round-trip from string"""
@@ -2138,7 +2138,8 @@ def test_relative_position(integer_seq):
 
 def test_relative_position_step_GT_one(integer_seq):
     """This test checks if the method returns the correct relative positions when
-    the given index precedes or exceeds the range of the SeqView with a step greater than one."""
+    the given index precedes or exceeds the range of the SeqView with a step greater than one.
+    """
 
     # precedes the view, with step > 1
     view = integer_seq[2:7:2]

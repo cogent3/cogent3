@@ -68,7 +68,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -1385,7 +1384,7 @@ class _SequenceCollectionBase:
         result = {}
         for name in self.names:
             result[name] = ambig = {}
-            for (i, motif) in enumerate(self.named_seqs[name]):
+            for i, motif in enumerate(self.named_seqs[name]):
                 if self.moltype.is_ambiguity(motif):
                     ambig[i] = motif
         return result
@@ -1623,7 +1622,7 @@ class _SequenceCollectionBase:
             for motif in alphabet:
                 probs[motif] = pseudocount
 
-        for (motif, count) in list(counts.items()):
+        for motif, count in list(counts.items()):
             motif_set = alphabet.resolve_ambiguity(motif)
             if len(motif_set) > 1:
                 if include_ambiguity:
@@ -2733,7 +2732,6 @@ class AlignmentI(object):
         exclude_unobserved=False,
         alert=False,
     ):
-
         """return MotifFreqsArray per sequence
 
         Parameters
@@ -4234,7 +4232,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         seqs = []
         limit = 10
         delimiter = ""
-        for (count, name) in enumerate(self.names):
+        for count, name in enumerate(self.names):
             if count == 3:
                 seqs.append("...")
                 break
@@ -4765,7 +4763,6 @@ class Alignment(AlignmentI, SequenceCollection):
         return Aligned(map, seq)
 
     def __getitem__(self, index):
-
         if hasattr(index, "get_slice"):
             return index.get_slice()
 
@@ -4789,7 +4786,7 @@ class Alignment(AlignmentI, SequenceCollection):
         seqs = []
         limit = 10
         delimiter = ""
-        for (count, name) in enumerate(self.names):
+        for count, name in enumerate(self.names):
             if count == 3:
                 seqs.append("...")
                 break
@@ -4933,7 +4930,7 @@ class Alignment(AlignmentI, SequenceCollection):
         ]
 
         positions = list(zip(*seqs))
-        for (position, column) in enumerate(positions):
+        for position, column in enumerate(positions):
             keep = predicate(column)
             if kept != keep:
                 gv.append(position * motif_length)
@@ -5004,7 +5001,7 @@ class Alignment(AlignmentI, SequenceCollection):
             gsq = template.get_gapped_seq(name)
             assert len(gsq) == len(seq)
             combo = []
-            for (s, g) in zip(seq, gsq):
+            for s, g in zip(seq, gsq):
                 if g == tgp:
                     combo.append(gap)
                 else:

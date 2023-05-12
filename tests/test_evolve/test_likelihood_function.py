@@ -349,7 +349,7 @@ class LikelihoodFunctionTests(TestCase):
         return lf
 
     def _setLengthsAndBetas(self, likelihood_function):
-        for (species, length) in [
+        for species, length in [
             ("DogFaced", 0.1),
             ("NineBande", 0.2),
             ("Human", 0.3),
@@ -359,7 +359,7 @@ class LikelihoodFunctionTests(TestCase):
             likelihood_function.set_param_rule(
                 "length", value=length, edge=species, is_constant=True
             )
-        for (species1, species2, length) in [
+        for species1, species2, length in [
             ("Human", "HowlerMon", 0.7),
             ("Human", "Mouse", 0.6),
         ]:

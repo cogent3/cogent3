@@ -45,9 +45,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "black==21.12b",
-    "isort==5.10.1",
-    "click==8.0.4", # black needs this pinned
+    "black==23.3.0",
+    "isort==5.12.0",
+    "click==8.1.3", # black needs this pinned
     "kaleido",
     "pandas",
     "plotly",
@@ -56,7 +56,7 @@ test = [
     "pytest-cov",
     "pytest-xdist",
     "nox"]
-doc  = ["click==8.0.4",
+doc  = ["click==8.1.3",
         "ipykernel",
         "ipython",
         "ipywidgets",
@@ -82,13 +82,13 @@ doc  = ["click==8.0.4",
         "sphinx_panels",
         "sphinxcontrib-bibtex"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["black==21.12b",
+dev = ["black==23.3.0",
        "click==8.0.4",
        "flit",
        "ipykernel",
        "ipython",
        "ipywidgets",
-       "isort==5.10.1",
+       "isort==5.12.0",
        "jupyter-sphinx",
        "jupyter_client",
        "jupyterlab",

@@ -80,7 +80,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
     cladecounts = {}
     edgelengths = {}
     total = 0
-    for (weight, tree) in weighted_trees:
+    for weight, tree in weighted_trees:
         total += weight
         edges = tree.get_edge_vector()
         for edge in edges:
@@ -108,7 +108,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
     # Remove conflicts
     accepted_clades = set()
     counts = {}
-    for (count, clade) in cladecounts:
+    for count, clade in cladecounts:
         for accepted_clade in accepted_clades:
             if clade.intersection(accepted_clade) and not (
                 clade.issubset(accepted_clade) or clade.issuperset(accepted_clade)
@@ -135,7 +135,7 @@ def weighted_rooted_majority_rule(weighted_trees, strict=False, attr="support"):
         queue.sort()
         (size, clade) = queue.pop(0)
         new_queue = []
-        for (size2, ancestor) in queue:
+        for size2, ancestor in queue:
             if clade.issubset(ancestor):
                 new_ancestor = (ancestor - clade) | frozenset([clade])
                 counts[new_ancestor] = counts.pop(ancestor)
@@ -161,7 +161,7 @@ def weighted_unrooted_majority_rule(weighted_trees, strict=False, attr="support"
     split_weights = defaultdict(float)
     split_lengths = defaultdict(float)
     tips = None
-    for (weight, tree) in weighted_trees:
+    for weight, tree in weighted_trees:
         for split, params in list(get_splits(tree).items()):
             split_weights[split] += weight
             if params["length"] is None:

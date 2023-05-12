@@ -3,6 +3,7 @@ from numba import njit
 
 # turn off code coverage as njit-ted code not accessible to coverage
 
+
 # fills in a diversity matrix from sequences of integers
 @njit(cache=True)
 def fill_diversity_matrix(matrix, seq1, seq2):  # pragma: no cover

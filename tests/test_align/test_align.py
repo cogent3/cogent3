@@ -147,7 +147,6 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         return aln
 
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
-
         orig = {n: s.replace("-", "") for (n, s) in list(seqs.items())}
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
         result = {n: s.lower() for (n, s) in list(aln.to_dict().items())}

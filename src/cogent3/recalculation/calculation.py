@@ -53,7 +53,7 @@ class OptPar(object):
         self.clients = []
         self.client_ranks = []
         self.name = name
-        for (attr, v) in zip(["lower", "default_value", "upper"], bounds):
+        for attr, v in zip(["lower", "default_value", "upper"], bounds):
             setattr(self, attr, float(v))
 
         # controls order in optimiser - group for LF
@@ -167,7 +167,7 @@ class EvaluatedCell(object):
             print("Additional failures of this type will not be reported.")
         if self.failure_count < 2:
             print("%s inputs were:", len(self.arg_ranks))
-            for (i, arg) in enumerate(self.arg_ranks):
+            for i, arg in enumerate(self.arg_ranks):
                 print(f"{i}: " + repr(data[arg]))
 
 
@@ -207,7 +207,7 @@ class Calculator(object):
         data_sets = [[0], [0, 1]][self.with_undo]
         self.cell_values = [[None] * len(self._cells) for _ in data_sets]
         self.arg_ranks = [[] for _ in self._cells]
-        for (i, cell) in enumerate(self._cells):
+        for i, cell in enumerate(self._cells):
             cell.rank = i
             cell.consequences = {}
             if isinstance(cell, OptPar):
@@ -342,11 +342,11 @@ class Calculator(object):
                 groupd[cell.name].append(cell)
 
             widths = []
-            for (name, cells) in groups:
+            for name, cells in groups:
                 width = 4 + len(cells)
                 widths.append(min(15, width))
             self._cellsGroupedForDisplay = list(zip(groups, widths))
-            for ((name, cells), width) in self._cellsGroupedForDisplay:
+            for (name, cells), width in self._cellsGroupedForDisplay:
                 print(name[:width].ljust(width), "|", end=" ")
             print()
             for width in widths:
@@ -368,7 +368,7 @@ class Calculator(object):
         """2 arrays: minimums, maximums"""
         lower = numpy.zeros([len(self.opt_pars)], Float)
         upper = numpy.zeros([len(self.opt_pars)], Float)
-        for (i, opt_par) in enumerate(self.opt_pars):
+        for i, opt_par in enumerate(self.opt_pars):
             (lb, ub) = opt_par.get_optimiser_bounds()
             lower[i] = lb
             upper[i] = ub
@@ -384,7 +384,7 @@ class Calculator(object):
         if seed is not None:
             random_series.seed(seed)
         X = self.get_value_array()
-        for (i, (l, u)) in enumerate(zip(*self.get_bounds_vectors())):
+        for i, (l, u) in enumerate(zip(*self.get_bounds_vectors())):
             sign = random_series.choice([-1, +1])
             step = random_series.uniform(+0.05, +0.025)
             X[i] = max(l, min(u, (1.0 + sign * step * X[i])))
@@ -421,13 +421,13 @@ class Calculator(object):
         # then it is safe to undo them first, taking advantage of the 1-deep
         # cache.
         if self.with_undo and self.last_undo:
-            for (i, v) in self.last_undo:
+            for i, v in self.last_undo:
                 if (i, v) not in changes:
                     break
             else:
                 changes = [ch for ch in changes if ch not in self.last_undo]
                 self._switch = not self._switch
-                for (i, v) in self.last_undo:
+                for i, v in self.last_undo:
                     self.last_values[i] = v
 
         self.last_undo = []
@@ -453,7 +453,7 @@ class Calculator(object):
 
         # Set new OptPar values
         changed_optpars = []
-        for (i, v) in changes:
+        for i, v in changes:
             if i < len(self.opt_pars):
                 assert isinstance(v * 1.0, float), v
                 changed_optpars.append((i, self.last_values[i]))
@@ -477,7 +477,7 @@ class Calculator(object):
         except CalculationInterupted as detail:
             if self.with_undo:
                 self._switch = not self._switch
-            for (i, v) in changed_optpars:
+            for i, v in changed_optpars:
                 self.last_values[i] = v
             self.last_undo = []
             (cell, exception) = detail.args
@@ -535,7 +535,7 @@ class Calculator(object):
             elapsed[cell.rank] = t1 - t0
 
         tds = []
-        for ((_, cells), width) in self._cellsGroupedForDisplay:
+        for (_, cells), width in self._cellsGroupedForDisplay:
             text = "".join(" +"[cell.rank in elapsed] for cell in cells)
             elap = sum(elapsed.get(cell.rank, 0) for cell in cells)
             if len(text) > width - 4:
@@ -545,7 +545,7 @@ class Calculator(object):
             tds.append("%s%4s" % (text, int(TRACE_SCALE * elap + 0.5) or ""))
 
         par_descs = []
-        for (i, v) in changes:
+        for i, v in changes:
             cell = self._cells[i]
             if isinstance(cell, OptPar):
                 par_descs.append(f"{cell.name}={v:8.6f}")
@@ -580,7 +580,7 @@ class Calculator(object):
             t0 = now()
             last = []
             for j in range(rounds_per_sample):
-                for (i, v) in enumerate(x):
+                for i, v in enumerate(x):
                     # Not a real change, but works like one.
                     self.change(last + [(i, v)])
                     if sa and (i + j) % 2:

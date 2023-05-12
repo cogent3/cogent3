@@ -232,7 +232,7 @@ class EstimateDistances(object):
             result = self._doset(comp, dist_opt_args, aln_opt_args)
             return (comp, result)
 
-        for (comp, value) in ui.imap(_one_alignment, combination_aligns, labels=labels):
+        for comp, value in ui.imap(_one_alignment, combination_aligns, labels=labels):
             self._param_ests[comp] = value
 
     def get_pairwise_param(self, param, summary_function="mean"):

@@ -5,7 +5,7 @@ produced by the same code."""
 
 # How many cells before using linear space alignment algorithm.
 # Should probably set to about half of physical memory / PointerEncoder.bytes
-HIRSCHBERG_LIMIT = 10 ** 8
+HIRSCHBERG_LIMIT = 10**8
 
 import warnings
 
@@ -40,9 +40,9 @@ class PointerEncoding(object):
         assert x > 0 and y > 0, (x, y)
         (x, y) = (numpy.ceil(numpy.log2([x + 1, y + 1]))).astype(int)
         s = 8 * self.bytes - sum([x, y])
-        assert s ** 2 >= 4 + 1, (x, y, s)  # min states required
+        assert s**2 >= 4 + 1, (x, y, s)  # min states required
         self.widths = numpy.array([x, y, s]).astype(int)
-        self.limits = 2 ** self.widths
+        self.limits = 2**self.widths
         self.max_states = self.limits[-1]
         if DEBUG:
             print(self.max_states, "states allowed in viterbi traceback")
@@ -112,16 +112,16 @@ def py_calc_rows(
         for j in range(j_low, j_high):
             y = y_index[j]
             j_sources = preds[1][j]
-            for (state, bin, dx, dy) in state_directions:
+            for state, bin, dx, dy in state_directions:
                 if local and dx and dy:
                     cumulative_score = T[BEGIN, state]
                     pointer = (dx, dy, BEGIN)
                 else:
                     cumulative_score = impossible
                     pointer = (0, 0, ERROR)
-                for (a, prev_i) in enumerate([[i], i_sources][dx]):
+                for a, prev_i in enumerate([[i], i_sources][dx]):
                     source_row = rows[plan[prev_i]]
-                    for (b, prev_j) in enumerate([[j], j_sources][dy]):
+                    for b, prev_j in enumerate([[j], j_sources][dy]):
                         source_posn = source_row[prev_j]
                         for prev_state in source_states:
                             prev_value = source_posn[prev_state]
@@ -189,7 +189,7 @@ class TrackBack(object):
     def as_bin_pos_tuples(self, state_directions):
         bin_map = dict((state, bin) for (state, bin, dx, dy) in state_directions)
         result = []
-        for (state, posn, (dx, dy)) in self.tlist:
+        for state, posn, (dx, dy) in self.tlist:
             pos = [[None, i - 1][d] for (i, d) in zip(posn, [dx, dy])]
             result.append((bin_map.get(int(state), None), pos))
         return result
@@ -475,8 +475,8 @@ class AlignablePOG(_Alignable):
         word_length = self.alphabet.get_motif_len()
         (starts, ends, maps) = map_traceback(self.pog.get_full_aligned_positions())
         aligneds = []
-        for (dim, child) in enumerate(children):
-            for (seq_name, aligned) in child.aligneds:
+        for dim, child in enumerate(children):
+            for seq_name, aligned in child.aligneds:
                 aligned = aligned.remapped_to((maps[dim] * word_length).inverse())
                 aligneds.append((seq_name, aligned))
         return aligneds
@@ -509,11 +509,11 @@ class AlignablePOG(_Alignable):
         # for score row caching
         last_successor = {}
         discard_list = {}
-        for (successor, ps) in enumerate(self):
+        for successor, ps in enumerate(self):
             for i in ps:
                 last_successor[i] = successor
             discard_list[successor] = []
-        for (i, successor) in list(last_successor.items()):
+        for i, successor in list(last_successor.items()):
             discard_list[successor].append(i)
         return discard_list
 
@@ -602,7 +602,7 @@ def adapt_pair_tm(pairTM, finite=False):
     # sorting into desirable order (sort may not be necessary)
 
     state_directions = numpy.zeros([len(state_directions_list), 4], int)
-    for (i, (state, emit)) in enumerate(state_directions_list):
+    for i, (state, emit) in enumerate(state_directions_list):
         (dx, dy) = emit
         assert dx == 0 or dy == 0 or dx == dy
         bin = max(dx, dy) - 1
@@ -625,7 +625,7 @@ class PairEmissionProbs(object):
         plhs = [[], []]
         gap_plhs = [[], []]
         for bin in self.bins:
-            for (dim, pred) in enumerate(self.pair.children):
+            for dim, pred in enumerate(self.pair.children):
                 # first and last should be special START and END nodes
                 plh = numpy.inner(pred.plh, bin.ppsubs[dim])
                 gap_plh = numpy.inner(pred.plh, bin.mprobs)
@@ -644,7 +644,7 @@ class PairEmissionProbs(object):
     def _makeEmissionProbs(self, use_cost_function):
         (plhs, gap_scores) = self.make_partial_likelihoods(use_cost_function)
         match_scores = numpy.zeros([len(self.bins)] + self.pair.uniq_size, float)
-        for (b, (x, y, bin)) in enumerate(zip(plhs[0], plhs[1], self.bins)):
+        for b, (x, y, bin) in enumerate(zip(plhs[0], plhs[1], self.bins)):
             match_scores[b] = numpy.inner(x * bin.mprobs, y)
         match_scores[:, 0, 0] = match_scores[:, -1, -1] = 1.0
         return (match_scores, gap_scores)
@@ -675,7 +675,7 @@ class PairEmissionProbs(object):
         probs = []
         last_i = -1
         to_end = numpy.array([(len(T) - 1, 0, 0, 0)])
-        for (state, (i, j)) in cells:
+        for state, (i, j) in cells:
             if i > last_i:
                 _ = pair.calc_rows(
                     last_i + 1,
@@ -803,7 +803,7 @@ class PairEmissionProbs(object):
             encoder = self.pair.get_pointer_encoding(len(T))
             problem_dimensions = self.pair.size + [len(T)]
             problem_size = numpy.product(problem_dimensions)
-            memory = problem_size * encoder.bytes / 10 ** 6
+            memory = problem_size * encoder.bytes / 10**6
             if dp_options.local:
                 msg = "Local alignment"
             elif (

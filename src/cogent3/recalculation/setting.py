@@ -54,7 +54,7 @@ class Var(Setting):
 
     def __repr__(self):
         constraints = []
-        for (template, bound) in [
+        for template, bound in [
             ("%s<", self.lower),
             ("(%s)", self.value),
             ("<%s", self.upper),

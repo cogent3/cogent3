@@ -23,7 +23,7 @@ def _goertzel_inner(x, N, period):
         s = x[n] + coeff * s_prev - s_prev2
         s_prev2 = s_prev
         s_prev = s
-    return sqrt(s_prev2 ** 2 + s_prev ** 2 - coeff * s_prev2 * s_prev)
+    return sqrt(s_prev2**2 + s_prev**2 - coeff * s_prev2 * s_prev)
 
 
 def _ipdft_inner(x, X, W, ulim, N):  # naive python

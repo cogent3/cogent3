@@ -977,7 +977,7 @@ class Sequence(SequenceI):
     def _relative_spans(self, spans):
         r_spans = []
 
-        for (s, e) in spans:
+        for s, e in spans:
             # reverse feature determined by absolute position
             reverse = s > e
 
@@ -1690,7 +1690,7 @@ class NucleicAcidSequence(Sequence):
         orfs = []
         start = None
         protein = self.get_translation(gc=gc)
-        for (posn, aa) in enumerate(protein):
+        for posn, aa in enumerate(protein):
             posn *= 3
             if aa == "*":
                 if start is not None:
@@ -1881,7 +1881,6 @@ class SeqView:
             raise IndexError(val)
 
         if self.step > 0:
-
             if val >= 0:
                 val = self.start + val * self.step
             else:
@@ -1890,7 +1889,6 @@ class SeqView:
             return val, val + 1, 1
 
         elif self.step < 0:
-
             if val >= 0:
                 val = self.start + val * self.step
             else:
@@ -2574,7 +2572,7 @@ class ArrayNucleicAcidSequence(ArraySequence):
             alpha_len * (alpha_len * self._data[::3] + self._data[1::3])
             + self._data[2::3],
             name=self.name,
-            alphabet=self.alphabet ** 3,
+            alphabet=self.alphabet**3,
         )
 
     def complement(self):

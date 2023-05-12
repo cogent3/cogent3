@@ -11,7 +11,7 @@ class MapTest(unittest.TestCase):
         # a simple two part map of length 10
         map = Map([(0, 5), (5, 10)], parent_length=10)
         # try different spans on the above map
-        for ((start, end), expected) in [
+        for (start, end), expected in [
             ((0, 4), "[0:4]"),
             ((0, 5), "[0:5]"),
             ((0, 6), "[0:5, 5:6]"),

@@ -115,7 +115,6 @@ def test_method_deprecated_args_docstring():
 
 @pytest.mark.parametrize("kwargs", (dict(x=5, y=3), dict(a=5, y=3), dict(x=5, b=3)))
 def test_method_deprecated_args_warn(kwargs):
-
     with pytest.deprecated_call():
         foo().changed(**kwargs)  # pylint: disable=no-value-for-parameter
 
@@ -129,7 +128,6 @@ def test_method_correct_args_do_not_warn():
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_method_deprecated_args_pickled():
-
     foo_instance = foo()
     assert foo_instance.a == 0
     assert foo_instance.b == 0
@@ -155,7 +153,7 @@ class foo2:
     # noting that new_meth does not exist
     @deprecated_callable("2023.9", reason="test meth", new="new_meth")
     def old_meth(self, v):
-        return v ** 2
+        return v**2
 
     @deprecated_callable("2023.9", reason="redundant", is_discontinued=True)
     def squared(self, v):
@@ -164,7 +162,7 @@ class foo2:
 
 @deprecated_callable("2023.9", reason="test func", new="new_func")
 def old_func(v):
-    return v ** 3
+    return v**3
 
 
 @deprecated_callable("2023.9", reason="redundant", is_discontinued=True)
