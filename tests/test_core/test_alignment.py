@@ -3431,10 +3431,11 @@ def test_get_seq_entropy(cls):
     assert_allclose(entropy, array([1, 0, e]))
 
 
-def test_distance_matrix_singleton_collection():
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_distance_matrix_singleton_collection(moltype):
     """SequenceCollection.distance_matrix() should raise error if collection
     only contains a single sequence"""
-    collection = make_unaligned_seqs(data={"s1": "ACGTACGTAGTCGCG"}, moltype="dna")
+    collection = make_unaligned_seqs(data={"s1": "ACGTACGTAGTCGCG"}, moltype=moltype)
     with pytest.raises(ValueError):
         _ = collection.distance_matrix()
 
@@ -3455,3 +3456,18 @@ def test_collection_distance_matrix_same_seq(moltype):
     # s2 and s3 are identical, so should be zero
     assert dists[("s2", "s3")] == 0.0
     assert dists[("s3", "s2")] == 0.0
+
+
+@pytest.mark.parametrize("moltype", ("protein", "text", "bytes"))
+def test_distance_matrix_fails_wrong_moltype(moltype):
+    data = [("s1", "ACGTA"), ("s2", "ACGTA")]
+    seqs = make_unaligned_seqs(data=data, moltype=moltype)
+    with pytest.raises(NotImplementedError):
+        seqs.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_distance_matrix_passes_correct_moltype(moltype):
+    data = [("s1", "ACGTA"), ("s2", "ACGTA")]
+    seqs = make_unaligned_seqs(data=data, moltype=moltype)
+    seqs.distance_matrix()

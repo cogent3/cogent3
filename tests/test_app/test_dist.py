@@ -274,7 +274,8 @@ if __name__ == "__main__":
     main()
 
 
-def test_jaccard_dist():
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_jaccard_dist(moltype):
     """jaccard_dist app should work for the simple case
 
     ("s1", "ACGTA"),
@@ -291,7 +292,7 @@ def test_jaccard_dist():
     J(s1, s2) = 0.4
     """
     data = dict([("s1", "ACGTA"), ("s2", "ACGTC")])
-    collection = make_unaligned_seqs(data=data, moltype="dna")
+    collection = make_unaligned_seqs(data=data, moltype=moltype)
 
     jdist_k2 = jaccard_dist(k=2)
     dists = jdist_k2(collection)
@@ -330,10 +331,11 @@ def test_approx_pdist():
     assert pdists[("s2", "s2")] == expect_same
 
 
-def test_approx_jc69():
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_approx_jc69(moltype):
     """approx_jc69 should work the same as exact jc69 when given exact pdist"""
-    seq_data = dict([("s1", "ACGTA"), ("s2", "ACGTC")])
-    aln = make_aligned_seqs(data=seq_data, moltype="dna")
+    seq_data = dict([("s1", "ACGAA"), ("s2", "ACGAC")])
+    aln = make_aligned_seqs(data=seq_data, moltype=moltype)
     expected = aln.distance_matrix(calc="jc69")
 
     data = dict(
@@ -355,7 +357,8 @@ def test_approx_jc69():
     assert got[("s2", "s2")] == expected[("s2", "s2")]
 
 
-def test_approx_pdist_same_diff():
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_approx_pdist_same_diff(moltype):
     """comparisons between seqs with the same position different should be equal.
     comparison between seqs with more positions different should yield a higher
     measure than comparisons between seqs with fewer positions different.
@@ -378,7 +381,7 @@ def test_approx_pdist_same_diff():
         ]
     )
     pdist_app = jaccard_dist(k=3) + approx_pdist()
-    collection = make_unaligned_seqs(data=data, moltype="dna")
+    collection = make_unaligned_seqs(data=data, moltype=moltype)
     dists = pdist_app(collection)
 
     # comparisons with one position different should be smaller than those with two
