@@ -1107,12 +1107,38 @@ class Sequence(SequenceI):
         parent_id: Optional[str] = None,
         strand: Optional[str] = None,
         on_alignment: bool = False,
+        seqid: Optional[str] = None,
     ) -> Feature:
+        """
+        add a feature to annotation_db
+
+        Parameters
+        ----------
+        biotype
+            biological type
+        name
+            name of the feature
+        spans
+            coordinates for this sequence
+        parent_id
+            name of the feature parent
+        strand
+            '+' or '-', defaults to '+'
+        on_alignment
+            whether the feature spans are alignment coordinates
+        seqid
+            ignored since the feature is added to this sequence
+
+        Returns
+        -------
+        Feature instance
+        """
         if self.annotation_db is None:
             self.annotation_db = GffAnnotationDb()
 
         feature_data = FeatureDataType(
-            seqid=self.name, **{n: v for n, v in locals().items() if n != "self"}
+            seqid=self.name,
+            **{n: v for n, v in locals().items() if n not in ("self", "seqid")},
         )
 
         self.annotation_db.add_feature(**feature_data)
