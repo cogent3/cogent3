@@ -1474,7 +1474,7 @@ class Sequence(SequenceI):
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )
         seq.annotation_db = copy.deepcopy(self.annotation_db)
-        return (map, seq)
+        return map, seq
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""

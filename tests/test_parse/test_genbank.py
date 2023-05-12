@@ -2,6 +2,8 @@
 """
 from unittest import TestCase
 
+import pytest
+
 from cogent3.parse.genbank import (
     Location,
     LocationList,
@@ -420,62 +422,6 @@ ORIGIN
             ],
         )
 
-    def test_rich_parser(self):
-        """correctly constructs +/- strand features"""
-        with open("data/annotated_seq.gb") as infile:
-            parser = RichGenbankParser(infile)
-            seq = [s for l, s in parser][0]
-
-        cds = dict([(f.name, f) for f in seq.get_features(biotype="CDS")])
-        expects = {
-            "CNA00110": "MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD"
-            "SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL"
-            "SEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGMLARGGACEFCKRRKLKCSAEL"
-            "PACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRLEQGQAGAASASGGDSGAHAASSVYTAP"
-            "SLGSGGGSELTVEQTLVHNVDPSLLPPSEYDEAFILHDFDSFADMRKQETQLEPDLMTLADAAAA"
-            "DTPAAAAAETNDPWAKMSPEEIVKEIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMD"
-            "LVSRVSRTTPDPIHPTLLLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDT"
-            "IIAGVSRAYSFFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAG"
-            "LRALMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDYKSVQ"
-            "ALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTPEKTHRLLGLTE"
-            "GYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGADQVSITRVVAAADKVLEL"
-            "VSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLRVQDSALVSTLRAKTESFKRALIDQG"
-            "ERLVFAQVAAQMLENYHVGAEWKAGEWERADGGDWRGV",
-            "CNA00120": "MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD"
-            "FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP"
-            "DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF",
-        }
-
-        for locus in cds:
-            got = cds[locus].get_slice().trim_stop_codon().get_translation()
-            self.assertEqual(str(got), expects[locus])
-
-    def test_rich_parser_moltype(self):
-        """correctly handles moltypes"""
-        with open("data/annotated_seq.gb") as infile:
-            parser = RichGenbankParser(infile)
-            got_1 = [s for _, s in parser][0]
-
-        # name formed from /product value
-        feature_ids = {"CNA00110", "CNA00120"}
-        got = {f.name for f in got_1.get_features(biotype="mRNA")}
-        self.assertEqual(got, {"CNA00110", "CNA00120"})
-
-        # the file defines itself as DNA
-        self.assertEqual(got_1.moltype.label, "dna")
-
-        # but that is overridden by user setting moltype explicitly
-        for moltype in ("dna", "rna", "text"):
-            with open("data/annotated_seq.gb") as infile:
-                parser = RichGenbankParser(infile, moltype=moltype)
-                got_2 = [s for _, s in parser][0]
-            self.assertEqual(
-                got_1.annotation_db.num_matches(), got_2.annotation_db.num_matches()
-            )
-            self.assertEqual(got_2.moltype.label, moltype)
-            got = {f.name for f in got_1.get_features(biotype="mRNA")}
-            self.assertEqual(got, feature_ids)
-
 
 class LocationTests(TestCase):
     """Tests of the Location class."""
@@ -547,3 +493,69 @@ def test_location_list_get_coordinates():
     g = parse_location_line(l)
     spans = g.get_coordinates()
     assert spans == [(5669, 5918), (5964, 6126)]
+
+
+@pytest.fixture(scope="session")
+def rich_gb():
+    with open("data/annotated_seq.gb") as infile:
+        parser = RichGenbankParser(infile)
+        seq = [s for l, s in parser][0]
+    return seq
+
+
+def test_rich_parser(rich_gb):
+    """correctly constructs +/- strand features"""
+    cds = dict([(f.name, f) for f in rich_gb.get_features(biotype="CDS")])
+    expects = {
+        "CNA00110": "MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD"
+        "SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL"
+        "SEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGMLARGGACEFCKRRKLKCSAEL"
+        "PACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRLEQGQAGAASASGGDSGAHAASSVYTAP"
+        "SLGSGGGSELTVEQTLVHNVDPSLLPPSEYDEAFILHDFDSFADMRKQETQLEPDLMTLADAAAA"
+        "DTPAAAAAETNDPWAKMSPEEIVKEIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMD"
+        "LVSRVSRTTPDPIHPTLLLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDT"
+        "IIAGVSRAYSFFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAG"
+        "LRALMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDYKSVQ"
+        "ALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTPEKTHRLLGLTE"
+        "GYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGADQVSITRVVAAADKVLEL"
+        "VSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLRVQDSALVSTLRAKTESFKRALIDQG"
+        "ERLVFAQVAAQMLENYHVGAEWKAGEWERADGGDWRGV",
+        "CNA00120": "MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD"
+        "FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP"
+        "DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF",
+    }
+
+    for locus in cds:
+        got = cds[locus].get_slice().trim_stop_codon().get_translation()
+        assert str(got) == expects[locus]
+
+
+def test_rich_parser_moltype(rich_gb):
+    """correctly handles moltypes"""
+
+    # name formed from /product value
+    feature_ids = {"CNA00110", "CNA00120"}
+    got = {f.name for f in rich_gb.get_features(biotype="mRNA")}
+    assert got == {"CNA00110", "CNA00120"}
+    # the file defines itself as DNA
+    assert rich_gb.moltype.label == "dna"
+    got = {f.name for f in rich_gb.get_features(biotype="mRNA")}
+    assert got == feature_ids
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna", "text"))
+def test_moltype_overrides(moltype, rich_gb):
+    # moltype is overridden by user setting moltype explicitly
+    with open("data/annotated_seq.gb") as infile:
+        parser = RichGenbankParser(infile, moltype=moltype)
+        got_2 = [s for _, s in parser][0]
+
+    assert rich_gb.annotation_db.num_matches() == got_2.annotation_db.num_matches()
+
+    assert got_2.moltype.label == moltype
+
+
+def test_rich_parser_info(rich_gb):
+    """seq.info stores genbank_record"""
+    assert "genbank_record" in rich_gb.info
+    assert rich_gb.info.genbank_record["locus"] == rich_gb.name
