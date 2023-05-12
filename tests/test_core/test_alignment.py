@@ -6,7 +6,7 @@ import re
 
 from os import remove
 from tempfile import TemporaryDirectory, mktemp
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy
 import pytest
@@ -21,6 +21,7 @@ from cogent3 import (
     load_unaligned_seqs,
     make_aligned_seqs,
     make_seq,
+    make_unaligned_seqs,
     open_,
 )
 from cogent3._version import __version__
@@ -3412,3 +3413,45 @@ def test_get_seq_entropy(cls):
     entropy = a.entropy_per_seq()
     e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
     assert_allclose(entropy, array([1, 0, e]))
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_distance_matrix_singleton_collection(moltype):
+    """SequenceCollection.distance_matrix() should raise error if collection
+    only contains a single sequence"""
+    collection = make_unaligned_seqs(data={"s1": "ACGTACGTAGTCGCG"}, moltype=moltype)
+    with pytest.raises(ValueError):
+        _ = collection.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_collection_distance_matrix_same_seq(moltype):
+    """Identical seqs should return distance measure of 0.0"""
+    data = dict(
+        [("s1", "ACGTACGTAGTCGCG"), ("s2", "GTGTACGTATCGCG"), ("s3", "GTGTACGTATCGCG")]
+    )
+    collection = make_unaligned_seqs(data=data, moltype=moltype)
+    dists = collection.distance_matrix(calc="pdist")
+
+    # all comparison of a sequence to itself should be zero
+    for seq in collection.names:
+        assert dists[(seq, seq)] == 0.0
+
+    # s2 and s3 are identical, so should be zero
+    assert dists[("s2", "s3")] == 0.0
+    assert dists[("s3", "s2")] == 0.0
+
+
+@pytest.mark.parametrize("moltype", ("protein", "text", "bytes"))
+def test_distance_matrix_fails_wrong_moltype(moltype):
+    data = [("s1", "ACGTA"), ("s2", "ACGTA")]
+    seqs = make_unaligned_seqs(data=data, moltype=moltype)
+    with pytest.raises(NotImplementedError):
+        seqs.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_distance_matrix_passes_correct_moltype(moltype):
+    data = [("s1", "ACGTA"), ("s2", "ACGTA")]
+    seqs = make_unaligned_seqs(data=data, moltype=moltype)
+    seqs.distance_matrix()

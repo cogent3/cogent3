@@ -2266,6 +2266,51 @@ class SequenceCollection(_SequenceCollectionBase):
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
 
+    def distance_matrix(self, calc="pdist"):
+        """estimated pairwise distance between sequences. Distance calculation can be either:
+
+        pdist:  an approximation of the Proportional Sites Different, estimated by calculating
+                the Jaccard distance using kmers with k=10, then transforming with coefficients
+                from a pre-determined polynomial fit between Jaccard distance and pdist.
+        jc69:   an approximation of the Jukes Cantor distance using the approx pdist. i.e.,
+                a transformation of the above using Jukes Cantor distance.
+
+        Parameters
+        ----------
+        calc : str
+            The distance calculation method to use, either "pdist" or "jc69"
+
+        Returns
+        -------
+        DistanceMatrix
+            Estimated pairwise distances between sequences in the collection
+        """
+
+        # check moltype
+        if not len(self.moltype.alphabet) == 4:
+            raise NotImplementedError("only defined for DNA/RNA molecular types")
+
+        # assert we have more than one sequence in the SequenceCollection
+        if self.num_seqs == 1:
+            raise ValueError(
+                "Pairwise distance cannot be computed for a single sequence. Please provide at least two sequences."
+            )
+
+        jdist = cogent3.get_app("jaccard_dist")
+        pdist = cogent3.get_app("approx_pdist")
+
+        if calc == "pdist":
+            dist_calc_app = jdist + pdist
+        elif calc == "jc69":
+            jc69dist = cogent3.get_app("approx_jc69")
+            dist_calc_app = jdist + pdist + jc69dist
+        else:
+            raise ValueError(
+                f"No support for calc={calc}. Use either 'pdist' or 'jc69'"
+            )
+
+        return dist_calc_app(self)
+
 
 @total_ordering
 class Aligned:
