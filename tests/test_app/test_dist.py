@@ -5,10 +5,17 @@ from unittest import TestCase, main
 
 import pytest
 
-from numpy import polyval
+from numpy import log, polyval
 from numpy.testing import assert_allclose
 
-from cogent3 import DNA, PROTEIN, get_app, make_unaligned_seqs, open_data_store
+from cogent3 import (
+    DNA,
+    PROTEIN,
+    get_app,
+    make_aligned_seqs,
+    make_unaligned_seqs,
+    open_data_store,
+)
 from cogent3.app.composable import WRITER
 from cogent3.app.dist import (
     JACCARD_PDIST_POLY_COEFFS,
@@ -17,7 +24,7 @@ from cogent3.app.dist import (
     approx_pdist,
     jaccard_dist,
 )
-from cogent3.evolve.fast_distance import HammingPair, TN93Pair
+from cogent3.evolve.fast_distance import DistanceMatrix, HammingPair, TN93Pair
 from cogent3.maths.distance_transform import jaccard
 
 
@@ -267,7 +274,88 @@ if __name__ == "__main__":
     main()
 
 
+def test_jaccard_dist():
+    """jaccard_dist app should work for the simple case
+
+    ("s1", "ACGTA"),
+    ("s2", "----C"),
+
+    with k=2
+    s1 kmers = "AC", "CG", "GT", "TA"
+    s2 kmers = "AC", "CG", "GT", "TC"
+
+    J(A,B) = 1 - |A ∩ B| / |A ∪ B|
+
+    J(s1, s2) = 1 - |{"AC", "CG", "GT"}| / |{"AC", "CG", "GT", "TA", "TC"}|
+    J(s1, s2) = 1 - 3 / 5
+    J(s1, s2) = 0.4
+    """
+    data = dict([("s1", "ACGTA"), ("s2", "ACGTC")])
+    collection = make_unaligned_seqs(data=data, moltype="dna")
+
+    jdist_k2 = jaccard_dist(k=2)
+    dists = jdist_k2(collection)
+
+    assert dists[("s1", "s2")] == 0.4
+    assert dists[("s2", "s1")] == 0.4
+    assert dists[("s1", "s1")] == 0.0
+    assert dists[("s2", "s2")] == 0.0
+
+
 def test_approx_pdist():
+    """approx_pdist should work for the simple case
+
+    y = polyval(JACCARD_PDIST_POLY_COEFFS, x)
+    """
+
+    data = dict(
+        [
+            (("s1", "s1"), 0.0),
+            (("s1", "s2"), 0.4),
+            (("s2", "s1"), 0.4),
+            (("s2", "s2"), 0.0),
+        ]
+    )
+    dm = DistanceMatrix(data)
+
+    pdist_app = approx_pdist()
+    pdists = pdist_app(dm)
+
+    expect_diff = polyval(JACCARD_PDIST_POLY_COEFFS, 0.4)
+    expect_same = polyval(JACCARD_PDIST_POLY_COEFFS, 0.0)
+
+    assert pdists[("s1", "s2")] == expect_diff
+    assert pdists[("s2", "s1")] == expect_diff
+    assert pdists[("s1", "s1")] == expect_same
+    assert pdists[("s2", "s2")] == expect_same
+
+
+def test_approx_jc69():
+    """approx_jc69 should work the same as exact jc69 when given exact pdist"""
+    seq_data = dict([("s1", "ACGTA"), ("s2", "ACGTC")])
+    aln = make_aligned_seqs(data=seq_data, moltype="dna")
+    expected = aln.distance_matrix(calc="jc69")
+
+    data = dict(
+        [
+            (("s1", "s1"), 0.0),
+            (("s1", "s2"), 1 / 5),
+            (("s2", "s1"), 1 / 5),
+            (("s2", "s2"), 0.0),
+        ]
+    )
+
+    dm = DistanceMatrix(data)
+    jc_dist_app = approx_jc69()
+    got = jc_dist_app(dm)
+
+    assert got[("s1", "s2")] == expected[("s1", "s2")]
+    assert got[("s2", "s1")] == expected[("s2", "s1")]
+    assert got[("s1", "s1")] == expected[("s1", "s1")]
+    assert got[("s2", "s2")] == expected[("s2", "s2")]
+
+
+def test_approx_pdist_same_diff():
     """comparisons between seqs with the same position different should be equal.
     comparison between seqs with more positions different should yield a higher
     measure than comparisons between seqs with fewer positions different.
