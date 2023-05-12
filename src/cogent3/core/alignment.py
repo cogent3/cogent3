@@ -4910,10 +4910,7 @@ class Alignment(AlignmentI, SequenceCollection):
     def get_annotations_from_seq(
         self, seq_name, annotation_type="*", **kwargs
     ):  # pragma: no cover
-        aligned = self.named_seqs[seq_name]
-        return aligned.get_features_matching(
-            self, annotation_type=annotation_type, **kwargs
-        )
+        return self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
 
     @c3warn.deprecated_callable(
         "2023.7", reason="use <collection>.get_features()", is_discontinued=True
@@ -4923,8 +4920,8 @@ class Alignment(AlignmentI, SequenceCollection):
     ):  # pragma: no cover
         result = []
         for seq_name in self.names:
-            a = self.get_annotations_from_seq(
-                seq_name, annotation_type=annotation_type, **kwargs
+            a = list(
+                self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
             )
             result.extend(a)
         return result
@@ -4936,10 +4933,10 @@ class Alignment(AlignmentI, SequenceCollection):
     )
     def get_by_seq_annotation(self, seq_name, *args):  # pragma: no cover
         result = []
-        for feature in self.get_annotations_from_seq(seq_name, *args):
-            segment = self[feature.map.start : feature.map.end]
+        for feature in self.get_features(seqid=seq_name):
+            segment = self[feature]
             segment.name = '%s "%s" %s to %s of %s' % (
-                feature.type,
+                feature.biotype,
                 feature.name,
                 feature.map.start,
                 feature.map.end,
@@ -4948,13 +4945,18 @@ class Alignment(AlignmentI, SequenceCollection):
             result.append(segment)
         return result
 
-    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
+    @c3warn.deprecated_args(
+        "2023.7",
+        reason="consistency with new API",
+        old_new=[("annot_types", "biotypes")],
+    )
+    def with_masked_annotations(self, biotypes, mask_char=None, shadow=False):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
         Parameters
         ----------
-        annot_types
+        biotypes
             annotation type(s)
         mask_char
             must be a character valid for the seq moltype. The
@@ -4966,9 +4968,11 @@ class Alignment(AlignmentI, SequenceCollection):
         """
         masked_seqs = []
         for seq in self.seqs:
-            # we mask each sequence using these spans
-            masked_seqs += [seq._masked_annotations(annot_types, mask_char, shadow)]
+            # todo gah why is _masked_annotations semi-private? add public method
+            # on Aligned
+            masked_seqs += [seq._masked_annotations(biotypes, mask_char, shadow)]
         new = self.__class__(data=masked_seqs, info=self.info, name=self.name)
+        new.annotation_db = deepcopy(self.annotation_db)
         return new
 
     @extend_docstring_from(ArrayAlignment.filtered)
