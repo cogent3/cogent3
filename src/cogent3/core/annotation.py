@@ -481,8 +481,12 @@ class Feature:
         return len(self.map)
 
     def __repr__(self):
-        name = f' "{self.name}"'
-        return f'"{self.seqid}" {self.biotype}{name} at {self.map}'
+        name = self.__class__.__name__
+        txt = ", ".join(
+            f"{attr}={getattr(self, attr)!r}"
+            for attr in ("seqid", "biotype", "name", "map", "parent")
+        )
+        return f"{name}({txt})"
 
     def remapped_to(self, grandparent, gmap):
         kwargs = {

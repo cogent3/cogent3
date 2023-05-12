@@ -39,9 +39,8 @@ class FeaturesTest(TestCase):
         # annotations by type and optionally by name:
 
         exons = list(self.s.get_features(biotype="exon"))
-        self.assertEqual(
-            str(exons),
-            '["Orig" exon "fred" at [10:15]/48, "Orig" exon "trev" at [30:40]/48]',
+        assert str(exons).startswith(
+            "[Feature(seqid='Orig', biotype='exon', name='fred', map=[10:15]/48, parent=DnaSequence"
         )
 
     def test_union(self):
@@ -121,7 +120,7 @@ def test_feature_residue():
     assert str(aln), ">x\nC-CCCAAAAA\n>y\n-T----TTTT\n"
     db.add_feature(seqid="x", biotype="exon", name="ex1", spans=[(0, 4)])
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
-    assert 'exon "ex1" at [0:1, 2:5]/10' in str(aln_exons)
+    assert "biotype='exon', name='ex1', map=[0:1, 2:5]/10" in str(aln_exons)
     assert aln_exons[0].get_slice().to_dict() == dict(x="CCCC", y="----")
     # Feature.as_one_span(), is applied to the exon that
     # straddles the gap in x. The result is we preserve that feature.
@@ -258,7 +257,7 @@ def test_terminal_gaps():
     )
     aln.annotation_db = db
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
-    assert 'exon "fred" at [4:9]/10' in str(aln_exons)
+    assert "biotype='exon', name='fred', map=[4:9]/10" in str(aln_exons)
     assert aln_exons[0].get_slice().to_dict() == dict(x="AAAAA", y="--TTT")
     aln = make_aligned_seqs(
         data=[["x", "-AAAAAAAAA"], ["y", "TTTT--T---"]], array_align=False
@@ -425,7 +424,7 @@ def test_feature_from_alignment():
     exons = aln.get_projected_features(seqid="y", biotype="exon")
     assert len(exons) == 1
     assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
-    assert 'exon "fred" at [-2-, 4:7]/8' in str(exons[0])
+    assert "biotype='exon', name='fred', map=[-2-, 4:7]/8" in str(exons[0])
 
 
 def test_nested_get_slice():
