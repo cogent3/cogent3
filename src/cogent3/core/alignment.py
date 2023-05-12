@@ -4836,13 +4836,69 @@ class Alignment(AlignmentI, SequenceCollection):
             seqs.append((seq_name, seq))
         return self.__class__(moltype=self.moltype, data=seqs, **kwargs)
 
-    def project_annotation(self, seq_name, annot):
-        target_aligned = self.named_seqs[seq_name]
+    def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
+        """returns an alignment feature projected onto the seqid sequence
+
+        Parameters
+        ----------
+        seqid
+            name of the sequence to project the feature onto
+        feature
+            a Feature, bound to self, that will be projected
+
+        Returns
+        -------
+        a new Feature bound to seqid
+
+        Notes
+        -----
+        The alignment coordinates of feature are converted into the seqid
+        sequence coordinates and the object is bound to that sequence.
+
+        The feature is added to the annotation_db.
+        """
+        target_aligned = self.named_seqs[seqid]
+        if feature.parent is not self:
+            raise ValueError("Feature does not belong to this alignment")
+        result = feature.remapped_to(target_aligned.data, target_aligned.map)
+
+        if not self.annotation_db:
+            # todo gah improve bound db initialisation
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        self.annotation_db.add_feature(**feature.to_dict())
+        return result
+
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="use <collection>.get_projected_feature()",
+        is_discontinued=True,
+    )
+    def project_annotation(self, seqid, annot):
+        """projects the alignment coordinate annotation onto seq"""
+        target_aligned = self.named_seqs[seqid]
         if annot.parent is not self:
             raise ValueError("Feature does not belong to this alignment")
         return annot.remapped_to(target_aligned.data, target_aligned.map)
 
+    def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
+        """projects all features from other sequences onto seqid"""
+        # todo gah should there be a generator version,
+        # iter_projected_features()?
+        annots = []
+        for name in self.names:
+            if name == seqid:
+                continue
+            annots.extend(list(self.get_features(seqid=name, **kwargs)))
+        return [self.get_projected_feature(seqid=seqid, feature=a) for a in annots]
+
+    @c3warn.deprecated_callable(
+        "2023.7",
+        reason="use <collection>.get_projected_features()",
+        is_discontinued=True,
+    )
     def get_projected_annotations(self, *, seqid: str, **kwargs):
+        # todo gah make sure the original sequence is not the seqid
         aln_annots = list(self.get_features(**kwargs))
         return [self.project_annotation(seqid, a) for a in aln_annots]
 

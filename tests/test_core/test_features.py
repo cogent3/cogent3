@@ -422,7 +422,7 @@ def test_feature_from_alignment():
     # Similarly alignment features can be projected onto the aligned sequences,
     # where they may end up falling across gaps:
 
-    exons = aln.get_projected_annotations(seqid="y", biotype="exon")
+    exons = aln.get_projected_features(seqid="y", biotype="exon")
     assert len(exons) == 1
     assert str(aln.get_seq("y")[exons[0].map.without_gaps()]), "TTT"
     assert 'exon "fred" at [-2-, 4:7]/8' in str(exons[0])

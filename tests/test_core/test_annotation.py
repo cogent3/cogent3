@@ -155,7 +155,9 @@ def test_feature_projection_ungapped(ann_aln):
     aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
     seq_name = "FAKE01"
     expected = expecteds[seq_name]
-    seq_ltr = ann_aln.project_annotation(seq_name, aln_ltr)
+    num = ann_aln.annotation_db.num_matches()
+    seq_ltr = ann_aln.get_projected_feature(seqid=seq_name, feature=aln_ltr)
+    assert ann_aln.annotation_db.num_matches() == num + 1
     assert str(seq_ltr.get_slice()) == expected
     assert seq_ltr.seqid == seq_name
     assert seq_ltr.parent is ann_aln.get_seq(seq_name)
@@ -167,7 +169,7 @@ def test_feature_projection_gapped(ann_aln):
     aln_ltr = list(ann_aln.get_features(biotype="LTR"))[0]
     seq_name = "FAKE02"
     expected = expecteds[seq_name]
-    seq_ltr = ann_aln.project_annotation(seq_name, aln_ltr)
+    seq_ltr = ann_aln.get_projected_feature(seqid=seq_name, feature=aln_ltr)
 
     with pytest.raises(ValueError):
         seq_ltr.get_slice(complete=True)
