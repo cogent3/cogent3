@@ -8,14 +8,11 @@ on:
   push:
     branches-ignore:
       - master
-  pull_request:
-    branches-ignore:
-      - master
 
 jobs:
   linters:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'cogent3'
+    if: github.repository == 'cogent/cogent3'
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
