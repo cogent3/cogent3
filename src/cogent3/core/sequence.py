@@ -10,6 +10,8 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
+from __future__ import annotations
+
 import contextlib
 import copy
 import json
@@ -1669,14 +1671,23 @@ class NucleicAcidSequence(Sequence):
         ----------
         gc
             name or ID of genetic code
-        incomplete_ok : bool
+        incomplete_ok
             codons that are mixes of nucleotide and gaps converted to '?'.
             raises a ValueError if False
+        include_stop
+            allows stop codons in translation
 
         Returns
         -------
         sequence of PROTEIN moltype
+
+        Raises
+        ------
+        AlphabetError if include_stop is False and a stop codon occurs
         """
+        from cogent3.core.moltype import get_moltype
+
+        protein = get_moltype("protein_with_stop" if include_stop else "protein")
         gc = get_code(gc)
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
@@ -1699,17 +1710,15 @@ class NucleicAcidSequence(Sequence):
                         raise AlphabetError(f"incomplete codon {codon} in {self.name}")
                 else:
                     aa = gc[codon]
-                    if aa == "*":
+                    if aa == "*" and not include_stop:
                         continue
                 trans.append(aa)
             if not trans:
                 raise ValueError(orig_codon)
-            aa = self.protein.what_ambiguity(trans)
+            aa = protein.what_ambiguity(trans)
             translation.append(aa)
 
-        translation = self.protein.make_seq(seq="".join(translation), name=self.name)
-
-        return translation
+        return protein.make_seq(seq="".join(translation), name=self.name)
 
     def get_orf_positions(self, gc=None, atg=False):
         gc = get_code(gc)
