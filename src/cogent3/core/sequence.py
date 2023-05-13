@@ -1721,25 +1721,6 @@ class NucleicAcidSequence(Sequence):
 
         return protein.make_seq(seq="".join(translation), name=self.name)
 
-    def get_orf_positions(self, gc=None, atg=False):
-        gc = get_code(gc)
-        orfs = []
-        start = None
-        protein = self.get_translation(gc=gc)
-        for posn, aa in enumerate(protein):
-            posn *= 3
-            if aa == "*":
-                if start is not None:
-                    orfs.append((start, posn))
-                start = None
-            else:
-                if start is None:
-                    if (not atg) or gc.is_start(self[posn : posn + 3]):
-                        start = posn
-        if start is not None:
-            orfs.append((start, posn + 3))
-        return orfs
-
     def to_rna(self):
         """Returns copy of self as RNA."""
         return self.to_moltype("rna")
