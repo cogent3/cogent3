@@ -894,23 +894,6 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
         self.assertEqual(len(aln), 4)
 
-    def test_get_translation(self):
-        """SequenceCollection.get_translation translates each seq"""
-        for seqs in [
-            {"seq1": "GATTTT", "seq2": "GATC??"},
-            {"seq1": "GAT---", "seq2": "?GATCT"},
-        ]:
-            alignment = self.Class(data=seqs, moltype=DNA)
-            got = alignment.get_translation()
-            self.assertEqual(len(got), 2)
-            self.assertEqual(got.moltype, PROTEIN)
-            # check for a failure when no moltype specified
-            alignment = self.Class(data=seqs)
-            try:
-                alignment.get_translation()
-            except AttributeError:
-                pass
-
     def test_get_translation_info(self):
         """SequenceCollection.get_translation preserves info attribute"""
         for seqs in [
@@ -3455,3 +3438,36 @@ def test_distance_matrix_passes_correct_moltype(moltype):
     data = [("s1", "ACGTA"), ("s2", "ACGTA")]
     seqs = make_unaligned_seqs(data=data, moltype=moltype)
     seqs.distance_matrix()
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "seqs", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
+)
+def test_get_translation2(cls, seqs):
+    """SequenceCollection.get_translation translates each seq"""
+    alignment = cls(data=seqs, moltype=DNA)
+    got = alignment.get_translation()
+    assert len(got) == 2
+    assert got.moltype == PROTEIN
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_get_translation_with_stop(cls):
+    """SequenceCollection.get_translation translates each seq"""
+    seqs = {"seq1": "GATTAG", "seq2": "?GATCT"}
+    alignment = cls(data=seqs, moltype=DNA)
+    got = alignment.get_translation(include_stop=True)
+    assert got.to_dict() == {"seq1": "D*", "seq2": "XS"}
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "seqs", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
+)
+def test_get_translation_error(cls, seqs):
+    """SequenceCollection.get_translation translates each seq"""
+    # check for a failure when no moltype specified
+    alignment = cls(data=seqs)
+    with pytest.raises(TypeError):
+        alignment.get_translation()
