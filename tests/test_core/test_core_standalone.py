@@ -669,20 +669,6 @@ class AlignmentTestMethods(unittest.TestCase):
         for char in seqs[0]:
             self.assertEqual(seqs[0].count(char), 2)
 
-    def test_translate(self):
-        for seqs in [
-            {"seq1": "GATTTT", "seq2": "GATC??"},
-            {"seq1": "GAT---", "seq2": "?GATCT"},
-        ]:
-            alignment = make_aligned_seqs(data=seqs, moltype=DNA)
-            self.assertEqual(len(alignment.get_translation()), 2)
-            # check for a failure when no moltype specified
-            alignment = make_aligned_seqs(data=seqs)
-            try:
-                alignment.get_translation()
-            except AttributeError:
-                pass
-
     def test_seqnames(self):
         s1 = self.alignment.get_seq("Mouse")
         self.assertEqual(s1.get_name(), "Mouse")

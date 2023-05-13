@@ -286,7 +286,7 @@ class GeneticCode:
 
     def is_start(self, codon):
         """Returns True if codon is a start codon, False otherwise."""
-        fixed_codon = codon.upper().replace("U", "T")
+        fixed_codon = str(codon).upper().replace("U", "T")
         return fixed_codon in self.start_codons
 
     def is_stop(self, codon):

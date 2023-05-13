@@ -1326,7 +1326,9 @@ class _SequenceCollectionBase:
         """len of SequenceCollection returns length of longest sequence."""
         return self.seq_len
 
-    def get_translation(self, gc=None, incomplete_ok=False, **kwargs):
+    def get_translation(
+        self, gc=None, incomplete_ok=False, include_stop=False, **kwargs
+    ):
         """translate from nucleic acid to protein
 
         Parameters
@@ -1334,9 +1336,11 @@ class _SequenceCollectionBase:
         gc
             genetic code, either the number or name
             (use cogent3.core.genetic_code.available_codes)
-        incomplete_ok : bool
+        incomplete_ok
             codons that are mixes of nucleotide and gaps converted to '?'.
             raises a ValueError if False
+        include_stop
+            whether to allow a stops in the translated sequence
         kwargs
             related to construction of the resulting object
 
@@ -1344,21 +1348,22 @@ class _SequenceCollectionBase:
         -------
         A new instance of self translated into protein
         """
+        if len(self.moltype.alphabet) != 4:
+            raise TypeError("Must be a DNA/RNA")
+
         translated = []
-        aligned = isinstance(self, Alignment)
-        kwargs["moltype"] = cogent3.PROTEIN
         # do the translation
-        try:
-            for seqname in self.names:
-                if aligned:
-                    seq = self.get_gapped_seq(seqname)
-                else:
-                    seq = self.named_seqs[seqname]
-                pep = seq.get_translation(gc, incomplete_ok=incomplete_ok)
-                translated.append((seqname, pep))
-            return self.__class__(translated, info=self.info, **kwargs)
-        except AttributeError as msg:
-            raise AttributeError(f"{msg} -- {'Did you set a DNA moltype?'}")
+        for seqname in self.names:
+            try:
+                seq = self.get_gapped_seq(seqname)
+            except AttributeError:
+                seq = self.named_seqs[seqname]
+            pep = seq.get_translation(
+                gc, incomplete_ok=incomplete_ok, include_stop=include_stop
+            )
+            translated.append((seqname, pep))
+        kwargs["moltype"] = pep.moltype
+        return self.__class__(translated, info=self.info, **kwargs)
 
     def get_seq(self, seqname):
         """Return a sequence object for the specified seqname."""
