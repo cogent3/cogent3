@@ -696,10 +696,10 @@ def RichGenbankParser(
         a GenbankAnnotationDb instance to which feature data will be
         added
     """
-    info_excludes = info_excludes or []
+    info_excludes = info_excludes or ["sequence", "features"]
     moltype = get_moltype(moltype) if moltype else None
     for rec in MinimalGenbankParser(handle):
-        info = Info()
+        info = {}
         # populate the info object, excluding the sequence
         for label, value in list(rec.items()):
             if label in info_excludes:
@@ -715,6 +715,7 @@ def RichGenbankParser(
         else:
             rec_moltype = moltype
 
+        info = Info(genbank_record=info)
         try:
             seq = rec_moltype.make_seq(
                 rec["sequence"].upper(), info=info, name=rec["locus"]
@@ -731,6 +732,6 @@ def RichGenbankParser(
 
         db = getattr(db, "db", None)
         seq.annotation_db = GenbankAnnotationDb(
-            data=rec["features"], seqid=rec["locus"], db=db
+            data=rec.pop("features", None), seqid=rec["locus"], db=db
         )
-        yield (rec["locus"], seq)
+        yield rec["locus"], seq
