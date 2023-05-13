@@ -1465,6 +1465,7 @@ class Sequence(SequenceI):
         ]
 
     def parse_out_gaps(self):
+        """returns Map corresponding to gap locations and ungapped Sequence"""
         gapless = []
         segments = []
         nongap = re.compile(f"([^{re.escape('-')}]+)")
