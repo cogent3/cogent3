@@ -613,17 +613,45 @@ class SqliteAnnotationDbMixin:
             num += result
         return num
 
+    def count_distinct(
+        self,
+        *,
+        seqid: bool = False,
+        biotype: bool = False,
+        name: bool = False,
+    ) -> typing.Optional[Table]:
+        """return table of counts of distinct values"""
+        conditions = {k for k, v in locals().items() if k != "self" and v}
+        header = list(conditions)
+        columns = ", ".join(conditions)
+        if not columns:
+            return
+        placeholder = "{}"
+        if len(conditions) == 1:
+            sql_template = f"SELECT {columns}, COUNT(DISTINCT {columns}) FROM {placeholder} GROUP BY {columns};"
+        else:
+            sql_template = f"SELECT {columns}, COUNT(*) as count FROM {placeholder} GROUP BY {columns};"
+
+        data = []
+        for table in self.table_names:
+            sql = sql_template.format(table)
+            if result := self._execute_sql(sql).fetchall():
+                data.extend(tuple(r) for r in result)
+        return Table(header=header + ["count"], data=data)
+
     @property
     def describe(self) -> Table:
         """top level description of the annotation db"""
-        sql_template = "SELECT DISTINCT {} FROM {};"
+        sql_template = "SELECT {}, COUNT(DISTINCT {}) FROM {} GROUP BY {};"
         data = {}
         for column in ("seqid", "biotype"):
-            data[column] = set()
             for table in self.table_names:
-                sql = sql_template.format(column, table)
+                sql = sql_template.format(column, column, table, column)
                 if result := self._execute_sql(sql).fetchall():
-                    data[column] |= {r[column] for r in result}
+                    counts = dict(tuple(r) for r in result)
+                    for distinct, count in counts.items():
+                        key = f"{column}({distinct!r})"
+                        data[key] = data.get(key, 0) + count
 
         row_counts = []
         for table in self.table_names:
@@ -634,9 +662,8 @@ class SqliteAnnotationDbMixin:
 
         table = make_table(
             data={
-                "biotype": list(data.keys())
-                + [f"num_rows({t!r})" for t in self.table_names],
-                "count": [len(v) for v in data.values()] + row_counts,
+                "": list(data.keys()) + [f"num_rows({t!r})" for t in self.table_names],
+                "count": [v for v in data.values()] + row_counts,
             }
         )
         return table

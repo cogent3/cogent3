@@ -62,6 +62,22 @@ def test_gff_describe(gff_db):
     assert isinstance(result, _Table)
 
 
+def test_count_distinct(gff_db):
+    # no arguments, returns None
+    assert gff_db.count_distinct() is None
+
+    # there are 8 biotypes in the c.elegans gff sample, 2 columns
+    # all arguments returns, from our example, all the rows
+    got = gff_db.count_distinct(biotype=True)
+    assert got.shape == (
+        8,
+        2,
+    )
+    # all names unique, 11 records, 4 columns
+    got = gff_db.count_distinct(biotype=True, seqid=True, name=True)
+    assert got.shape == (11, 4)
+
+
 def test_gff_features_matching(gff_db):
     result = list(gff_db.get_features_matching(biotype="CDS"))
     assert len(result)
