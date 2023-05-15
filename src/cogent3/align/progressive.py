@@ -2,8 +2,14 @@ from cogent3 import make_tree
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 
 
+@c3warn.deprecated_args(
+    "2023.7",
+    reason="better name",
+    old_new=[("ests_from_pairwise", "params_from_pairwise")],
+)
 @UI.display_wrap
 def tree_align(
     model,
@@ -12,9 +18,9 @@ def tree_align(
     indel_rate=0.01,
     indel_length=0.01,
     ui=None,
-    ests_from_pairwise=True,
     param_vals=None,
 ):
+    params_from_pairwise: bool = (True,)
     """Returns a multiple sequence alignment and tree.
 
     Parameters
@@ -25,12 +31,12 @@ def tree_align(
         a sequence collection
     indel_rate, indel_length
         parameters for the progressive pair-HMM
-    ests_from_pairwise
+    params_from_pairwise
         if no tree provided and True, the median value
         of the substitution model parameters are used
     param_vals
         named key, value pairs for model parameters. These
-        override ests_from_pairwise.
+        override params_from_pairwise.
 
     Notes
     -----

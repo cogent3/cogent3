@@ -197,7 +197,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             HKY85(),
             seqs,
             show_progress=False,
-            ests_from_pairwise=True,
+            params_from_pairwise=True,
         )
 
         expect = {
