@@ -177,7 +177,7 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     return DistanceMatrix(jaccard_dists)
 
 
-@define_app()
+@define_app
 def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
     """approximate the proportion sites different from Jaccard distances
 
