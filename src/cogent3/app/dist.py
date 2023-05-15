@@ -1,6 +1,9 @@
 import itertools
 
+from copy import deepcopy
 from typing import Union
+
+import numpy
 
 from numpy import log, polyval, triu_indices, zeros_like
 
@@ -201,26 +204,16 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
     arr = result.array
 
     # Convert only the upper indices from Jaccard distance to approximate PDist
-    upper_vals = polyval(JACCARD_PDIST_POLY_COEFFS, j_dists[upper_indices])
-    p_dists[upper_indices] = upper_vals
-
+    arr[upper_indices] = polyval(JACCARD_PDIST_POLY_COEFFS, arr[upper_indices])
     # Reflect the upper triangle to the lower triangle
-    lower_indices = (upper_indices[1], upper_indices[0])
-    p_dists[lower_indices] = upper_vals
-
-    # add dists to dictionary where {(seq, seq) : dist}
-    names = jaccard_dists.names
-    named_dists = {
-        (names[i], names[j]): p_dists[i, j]
-        for i, j in itertools.combinations(range(len(names)), 2)
-    }
-
-    return DistanceMatrix(named_dists)
+    arr.T[upper_indices] = arr[upper_indices]
+    result.array = arr
+    return result
 
 
 @define_app
 def approx_jc69(
-    pdist_predicted: PairwiseDistanceType,
+    pdists: PairwiseDistanceType, num_states: int = 4
 ) -> PairwiseDistanceType:
     """converts p-distances and returns pairwise JC69 distances
 
@@ -235,30 +228,14 @@ def approx_jc69(
     Returns
     -------
     DistanceMatrix of pairwise JC69 distances
-
     """
-    pdists = pdist_predicted.array
-    jc_dists = zeros_like(pdists)
-
-    # calculate approx jc dist from approx pdist for upper triangle of matrix
     upper_indices = triu_indices(n=pdists.shape[0], k=1)
-    upper_vals = _jc69_from_pdist(pdists[upper_indices])
-    jc_dists[upper_indices] = upper_vals
-
-    # reflect into lower triangle of matrix
-    lower_indices = (upper_indices[1], upper_indices[0])
-    jc_dists[lower_indices] = upper_vals
-
-    # add dists to dictionary where {(seq, seq) : dist}, so can be wrapped in DistanceMatrix
-    names = pdist_predicted.names
-    named_dists = {
-        (names[i], names[j]): jc_dists[i, j]
-        for i, j in itertools.combinations(range(len(names)), 2)
-    }
-
-    return DistanceMatrix(named_dists)
-
-
-def _jc69_from_pdist(p):
-    """convert proportion of sites different to Jukes Cantor distance"""
-    return -3.0 * log(1 - (4 / 3) * p) / 4
+    result = deepcopy(pdists)  # so the original matrix not modified
+    arr = result.array
+    n_1 = num_states - 1
+    arr[upper_indices] = (
+        -n_1 / num_states * numpy.log(1 - (num_states / n_1 * arr[upper_indices]))
+    )
+    arr.T[upper_indices] = arr[upper_indices]
+    result.array = arr
+    return result

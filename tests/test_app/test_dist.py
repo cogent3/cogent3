@@ -1,17 +1,19 @@
 import itertools
+import pathlib
 
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
 import pytest
 
-from numpy import polyval
+from numpy import log, polyval
 from numpy.testing import assert_allclose
 
 from cogent3 import (
     DNA,
     PROTEIN,
     get_app,
+    load_aligned_seqs,
     make_aligned_seqs,
     make_unaligned_seqs,
     open_data_store,
@@ -19,7 +21,6 @@ from cogent3 import (
 from cogent3.app.composable import WRITER
 from cogent3.app.dist import (
     JACCARD_PDIST_POLY_COEFFS,
-    _jc69_from_pdist,
     approx_jc69,
     approx_pdist,
     jaccard_dist,
@@ -27,6 +28,8 @@ from cogent3.app.dist import (
 from cogent3.evolve.fast_distance import DistanceMatrix, HammingPair, TN93Pair
 from cogent3.maths.distance_transform import jaccard
 
+
+DATADIR = pathlib.Path(__file__).parent.parent / "data"
 
 _seqs1 = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
@@ -447,5 +450,14 @@ def test_approx_jc69_vals(_seqs1_collection):
     for i, j in itertools.combinations(range(len(names)), 2):
         seq1, seq2 = names[i], names[j]
         got = jc_dists[(seq1, seq2)]
-        expect = _jc69_from_pdist(pdists[(seq1, seq2)])
+        expect = -3 / 4 * log(1 - 4 / 3 * pdists[(seq1, seq2)])
         assert got == expect
+
+
+def test_symmetry_of_dists():
+    """distances are symmetric"""
+    seqs = load_aligned_seqs(DATADIR / "primate_brca1.fasta", moltype="dna")
+    dists = seqs.distance_matrix(calc="percent")
+    app = approx_jc69()
+    got = app(dists)
+    assert_allclose(got.array, got.array.T)
