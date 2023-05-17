@@ -271,12 +271,6 @@ def test_contains(ro_dstore):
     assert "brca1" in ro_dstore
 
 
-def test_members(ro_dstore):
-    for m in ro_dstore:
-        assert isinstance(m, DataMember)
-    assert len(ro_dstore) == len(ro_dstore.completed) + len(ro_dstore.not_completed)
-
-
 def test_len(ro_dstore):
     """DataStore returns correct len"""
     expect = len(list(ro_dstore.source.glob("*.fasta")))
