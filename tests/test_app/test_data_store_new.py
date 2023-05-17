@@ -1,4 +1,5 @@
 import json
+import pathlib
 import shutil
 
 from itertools import product
@@ -20,6 +21,7 @@ from cogent3.app.data_store_new import (
     READONLY,
     DataMember,
     DataStoreDirectory,
+    ReadOnlyDataStoreZipped,
     convert_directory_datastore,
     convert_tinydb_to_sqlite,
     get_data_source,
@@ -35,8 +37,8 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 @pytest.fixture(scope="function")
-def tmp_dir(tmpdir_factory):
-    return Path(tmpdir_factory.mktemp("datastore"))
+def tmp_dir(tmp_path_factory):
+    return Path(tmp_path_factory.mktemp("datastore"))
 
 
 @pytest.fixture(autouse=True)
@@ -269,18 +271,6 @@ def test_contains(ro_dstore):
     assert "brca1" in ro_dstore
 
 
-def test_iter(ro_dstore):
-    """DataStore objects allow iteration over members"""
-    members = list(ro_dstore)
-    assert members == ro_dstore.members
-
-
-def test_members(ro_dstore):
-    for m in ro_dstore:
-        assert isinstance(m, DataMember)
-    assert len(ro_dstore) == len(ro_dstore.completed) + len(ro_dstore.not_completed)
-
-
 def test_len(ro_dstore):
     """DataStore returns correct len"""
     expect = len(list(ro_dstore.source.glob("*.fasta")))
@@ -459,19 +449,6 @@ def test_summary_logs_missing_field(nc_dstore):
     assert isinstance(nc_dstore.summary_logs, Table)
 
 
-def test_summary_logs(full_dstore):
-    # log summary has a row per log file and a column for each property
-    got = full_dstore.summary_logs
-    assert got.shape == (1, 6)
-    assert isinstance(got, Table)
-
-
-def test_summary_not_completed(full_dstore):
-    got = full_dstore.summary_not_completed
-    assert got.shape >= (1, 1)
-    assert isinstance(got, Table)
-
-
 @pytest.mark.parametrize("use_dser", (False, True))
 def test_summary_not_completed_func(nc_objects, use_dser):
     dstore = io_app.open_data_store(":memory:", mode="w")
@@ -486,31 +463,6 @@ def test_summary_not_completed_func(nc_objects, use_dser):
         assert got.shape[0] >= 1
     else:
         assert got.shape[0] == 0
-
-
-def test_describe(full_dstore):
-    got = full_dstore.describe
-    assert got.shape >= (3, 2)
-    assert isinstance(got, Table)
-
-
-def test_iter(full_dstore):
-    members = list(full_dstore)
-    assert members == full_dstore.members
-
-
-def test_members(full_dstore):
-    completed = full_dstore.completed
-    not_completed = full_dstore.not_completed
-    assert full_dstore.members == completed + not_completed
-
-
-def test_validate(full_dstore):
-    validation_table = full_dstore.validate()
-    assert isinstance(validation_table, Table)
-    assert validation_table["Num md5sum correct", "Value"] == len(full_dstore)
-    assert validation_table["Num md5sum incorrect", "Value"] == 0
-    assert validation_table["Has log", "Value"] == True
 
 
 def test_write_if_member_exists(full_dstore, write_dir):  # new changes
@@ -604,3 +556,146 @@ def test_write_read_not_completed(nc_dstore):
     assert len(nc_dstore.not_completed) == 1
     got = nc_dstore.not_completed[0].read()
     assert nc.to_json() == got
+
+
+@pytest.fixture
+def zipped_basic(fasta_dir):
+    # converts the fasta_dir into a zipped archive
+
+    path = shutil.make_archive(
+        base_name=fasta_dir.name,
+        format="zip",
+        base_dir=fasta_dir.name,
+        root_dir=fasta_dir.parent,
+    )
+    return pathlib.Path(path)
+
+
+@pytest.fixture
+def zipped_full(full_dstore):
+    # converts the fasta_dir into a zipped archive
+    source = pathlib.Path(full_dstore.source)
+    path = shutil.make_archive(
+        base_name=source.name,
+        format="zip",
+        base_dir=source.name,
+        root_dir=source.parent,
+    )
+    return ReadOnlyDataStoreZipped(pathlib.Path(path), suffix="fasta")
+
+
+def test_zipped_ro_fail(zipped_basic):
+    with pytest.raises(ValueError):
+        ReadOnlyDataStoreZipped(zipped_basic, suffix="fasta", mode="w")
+
+
+def test_zipped_ro_ioerror():
+    with pytest.raises(IOError):
+        ReadOnlyDataStoreZipped("blah-1234.zip", suffix="fasta")
+
+
+def _get_member_data(members) -> dict:
+    return {m.unique_id: m.read() for m in members}
+
+
+def test_zipped_ro_basic(zipped_basic, ro_dstore):
+    dstore = ReadOnlyDataStoreZipped(zipped_basic, suffix="fasta")
+    assert len(dstore.completed) == len(ro_dstore.completed)
+    assert len(dstore) == len(ro_dstore)
+    expect = _get_member_data(ro_dstore.completed)
+    got = _get_member_data(dstore.completed)
+    assert expect == got
+    # there are no not-completeds in a basic dstore
+    expect = _get_member_data(ro_dstore.not_completed)
+    got = _get_member_data(dstore.not_completed)
+    assert expect == got
+
+
+def test_zipped_ro_full(zipped_full, full_dstore):
+    got_ids = {m.unique_id for m in zipped_full.completed}
+    expect_ids = {m.unique_id for m in full_dstore.completed}
+    assert got_ids == expect_ids
+
+    got_ids = {m.unique_id for m in zipped_full.not_completed}
+    expect_ids = {m.unique_id for m in full_dstore.not_completed}
+    assert got_ids == expect_ids
+    assert len(zipped_full) == len(full_dstore)
+
+    expect = _get_member_data(full_dstore.completed)
+    got = _get_member_data(zipped_full.completed)
+    assert expect == got
+    # there are not-completeds in the full dstore
+    expect = _get_member_data(full_dstore.not_completed)
+    got = _get_member_data(zipped_full.not_completed)
+    assert expect == got
+
+
+def test_zipped_logs(zipped_full, full_dstore):
+    assert len(zipped_full.logs) == len(full_dstore.logs)
+    expect = _get_member_data(full_dstore.logs)
+    got = _get_member_data(zipped_full.logs)
+    assert expect == got
+
+
+def test_zipped_md5(zipped_full, full_dstore):
+    expect = {m.unique_id: full_dstore.md5(m.unique_id) for m in full_dstore.completed}
+    got = {m.unique_id: zipped_full.md5(m.unique_id) for m in zipped_full.completed}
+    assert got == expect
+
+
+@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+def test_zipped_contains(dstore, request):
+    full_dstore = request.getfixturevalue(dstore)
+    assert "formattest.fasta" in full_dstore
+    # following line does not work, should it?
+    # assert "id_2.json" in full_dstore
+
+
+@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+def test_members(dstore, request):
+    full_dstore = request.getfixturevalue(dstore)
+    completed = full_dstore.completed
+    not_completed = full_dstore.not_completed
+    assert full_dstore.members == completed + not_completed
+
+
+@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+def test_describe(dstore, request):
+    full_dstore = request.getfixturevalue(dstore)
+    got = full_dstore.describe
+    assert got.shape >= (3, 2)
+    assert isinstance(got, Table)
+
+
+@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+def test_iter(dstore, request):
+    full_dstore = request.getfixturevalue(dstore)
+    members = list(full_dstore)
+    assert members == full_dstore.members
+
+
+@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+def test_validate(dstore, request):
+    full_dstore = request.getfixturevalue(dstore)
+    validation_table = full_dstore.validate()
+    assert isinstance(validation_table, Table)
+    assert validation_table["Num md5sum correct", "Value"] == len(full_dstore)
+    assert validation_table["Num md5sum incorrect", "Value"] == 0
+    assert validation_table["Has log", "Value"] == True
+
+
+@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+def test_summary_logs(dstore, request):
+    full_dstore = request.getfixturevalue(dstore)
+    # log summary has a row per log file and a column for each property
+    got = full_dstore.summary_logs
+    assert got.shape == (1, 6)
+    assert isinstance(got, Table)
+
+
+@pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))
+def test_summary_not_completed(dstore, request):
+    full_dstore = request.getfixturevalue(dstore)
+    got = full_dstore.summary_not_completed
+    assert got.shape >= (1, 1)
+    assert isinstance(got, Table)

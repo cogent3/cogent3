@@ -3,15 +3,18 @@ from __future__ import annotations
 import contextlib
 import inspect
 import json
+import pathlib
 import re
 import reprlib
+import zipfile
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
+from os import PathLike
 from pathlib import Path
-from typing import Optional, Union
+from typing import Iterator, Optional, Union
 
 from scitrack import get_text_hexdigest
 
@@ -30,6 +33,9 @@ from cogent3.util.table import Table
 _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"
+
+# used for log files, not-completed results
+_special_suffixes = re.compile(r"\.(log|json)$")
 
 StrOrBytes = Union[str, bytes]
 NoneType = type(None)
@@ -138,7 +144,9 @@ class DataStoreABC(ABC):
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
-        return any(identifier == m.unique_id for m in self)
+        # following breaks some tests, what is the expected behaviour?
+        # return any(m.unique_id.endswith(identifier) for m in self)
+        return any(m.unique_id == identifier for m in self)
 
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes:
@@ -379,7 +387,8 @@ class DataStoreDirectory(DataStoreABC):
         self._limit = limit
 
     def __contains__(self, item: str):
-        item = f"{item}.{self.suffix}" if self.suffix not in item else item
+        if not _special_suffixes.search(item):
+            item = f"{item}.{self.suffix}" if self.suffix not in item else item
         return super().__contains__(item)
 
     def _source_check_create(self, mode: Mode) -> None:
@@ -446,7 +455,8 @@ class DataStoreDirectory(DataStoreABC):
     def completed(self) -> list[DataMember]:
         if not self._completed:
             self._completed = []
-            for i, m in enumerate(self.source.glob(f"*.{self.suffix}")):
+            suffix = f"*.{self.suffix}" if self.suffix else "*"
+            for i, m in enumerate(self.source.glob(suffix)):
                 if self.limit and i == self.limit:
                     break
                 self._completed.append(DataMember(data_store=self, unique_id=m.name))
@@ -541,6 +551,131 @@ class DataStoreDirectory(DataStoreABC):
         path = self.source / _MD5_TABLE / unique_id
 
         return path.read_text() if path.exists() else None
+
+
+class ReadOnlyDataStoreZipped(DataStoreABC):
+    def __init__(
+        self,
+        source: Union[str, Path],
+        mode: Mode = READONLY,
+        suffix: Optional[str] = None,
+        limit: int = None,
+        verbose=False,
+    ):
+        self._mode = Mode(mode)
+        if self._mode is not READONLY:
+            raise ValueError("this is a read only data store")
+
+        suffix = suffix or ""
+        if suffix != "*":  # wild card search for all
+            suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+        source = Path(source)
+        self._source = source.expanduser()
+        if not self._source.exists():
+            raise IOError(f"{str(self._source)} does not exit")
+        self.suffix = suffix
+        self._verbose = verbose
+        self._limit = limit
+
+    @property
+    def limit(self):
+        return self._limit
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @property
+    def source(self) -> str | Path:
+        return self._source
+
+    def read(self, unique_id: str) -> StrOrBytes:
+        unique_id = str(pathlib.Path(self.source.stem, unique_id)).replace("\\", "/")
+        with zipfile.ZipFile(self.source) as archive:
+            record = archive.open(unique_id)
+            return record.read().decode("utf8")
+
+    def _iter_matches(self, subdir: str, pattern: str) -> Iterator[PathLike]:
+        with zipfile.ZipFile(self._source) as archive:
+            names = archive.namelist()
+            for name in names:
+                name = pathlib.Path(name)
+                if subdir and name.parent.name != subdir:
+                    continue
+                if name.match(pattern):
+                    yield name
+
+    @property
+    def completed(self) -> list[DataMember]:
+        if not self._completed:
+            pattern = f"*.{self.suffix}" if self.suffix else "*"
+            self._completed = []
+            num_matches = 0
+            for name in self._iter_matches("", pattern):
+                num_matches += 1
+                member = DataMember(data_store=self, unique_id=name.name)
+                self._completed.append(member)
+
+                if self.limit and num_matches >= self.limit:
+                    break
+
+        return self._completed
+
+    @property
+    def not_completed(self):
+        if not self._not_completed:
+            self._not_completed = []
+            num_matches = 0
+            nc_dir_path = pathlib.Path(_NOT_COMPLETED_TABLE)
+            for name in self._iter_matches(_NOT_COMPLETED_TABLE, "*.json"):
+                num_matches += 1
+                member = DataMember(
+                    data_store=self, unique_id=str(nc_dir_path / name.name)
+                )
+                self._not_completed.append(member)
+                if self.limit and num_matches >= self.limit:
+                    break
+
+        return self._not_completed
+
+    @property
+    def logs(self) -> list[DataMemberABC]:
+        log_dir = pathlib.Path(_LOG_TABLE)
+        logs = []
+        for name in self._iter_matches(_LOG_TABLE, "*"):
+            m = DataMember(data_store=self, unique_id=str(log_dir / name.name))
+            logs.append(m)
+        return logs
+
+    def md5(self, unique_id: str) -> Union[str, NoneType]:
+        """
+        Parameters
+        ----------
+        unique_id
+            name of data store member
+
+        Returns
+        -------
+        md5 checksum for the member, if available, None otherwise
+        """
+        unique_id = Path(unique_id)
+        unique_id = re.sub(rf"[.]({self.suffix}|json)$", ".txt", unique_id.name)
+        md5_dir = pathlib.Path(_MD5_TABLE)
+        for name in self._iter_matches(_MD5_TABLE, unique_id):
+            m = DataMember(data_store=self, unique_id=str(md5_dir / name.name))
+            return m.read()
+
+    def drop_not_completed(self):
+        raise TypeError("zip data stores are read only")
+
+    def write(self, *, unique_id: str, data: StrOrBytes) -> None:
+        raise TypeError("zip data stores are read only")
+
+    def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> None:
+        raise TypeError("zip data stores are read only")
+
+    def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
+        raise TypeError("zip data stores are read only")
 
 
 def get_unique_id(name: str) -> str:
