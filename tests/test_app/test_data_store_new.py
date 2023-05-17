@@ -605,7 +605,7 @@ def test_zipped_ro_ioerror():
 
 
 def _get_member_data(members) -> dict:
-    return {m.unique_id: m.read() for m in members}
+    return {m.unique_id: m.read().splitlines() for m in members}
 
 
 def test_zipped_ro_basic(zipped_basic, ro_dstore):
