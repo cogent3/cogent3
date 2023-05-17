@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 import os
 import pathlib
 import unittest
@@ -516,7 +515,6 @@ class TreeReconstructionTests(unittest.TestCase):
         self.assertTreeDistancesEqual(self.tree, reconstructed)
 
         # Results should be a TreeCollection
-        len(results)
         results.get_consensus_tree()
 
         # From GNJ paper. Pearson, Robins, Zhang 1999.
@@ -579,5 +577,23 @@ class TreeReconstructionTests(unittest.TestCase):
         self.assertTrue(tree.same_topology(make_tree("(Mouse,Rat,(Human,Dog));")))
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_gnj_two():
+    """testing gnj when just 2 taxa"""
+    dists = {("a", "b"): 1, ("b", "a"): 1}
+    results = gnj(dists, keep=1, show_progress=False)
+    length, got = results[0]
+    assert set(got.get_tip_names()) == {"a", "b"}
+    assert length == 1.0
+    assert got.name == "root"
+    assert len(got.children) == 2
+    assert {e.length for e in got.postorder(include_self=False)} == {0.5}
+
+
+def test_nj_two():
+    """testing gnj when just 2 taxa"""
+    dists = {("a", "b"): 1, ("b", "a"): 1}
+    got = nj(dists, show_progress=False)
+    assert set(got.get_tip_names()) == {"a", "b"}
+    assert got.name == "root"
+    assert len(got.children) == 2
+    assert {e.length for e in got.postorder(include_self=False)} == {0.5}
