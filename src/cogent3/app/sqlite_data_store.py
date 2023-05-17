@@ -267,8 +267,14 @@ class DataStoreSqlite(DataStoreABC):
 
         return DataMember(data_store=self, unique_id=unique_id)
 
-    def drop_not_completed(self) -> None:
-        self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")
+    def drop_not_completed(self, *, unique_id: str = "") -> None:
+        if not unique_id:
+            cmnd = f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=?"
+            vals = (0,)
+        else:
+            cmnd = f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=? AND record_id=?"
+            vals = (0, unique_id)
+        self.db.execute(cmnd, vals)
         self._not_completed = []
 
     @property
@@ -330,6 +336,9 @@ class DataStoreSqlite(DataStoreABC):
             unique_id = Path(unique_id).name
 
         super().write(unique_id=unique_id, data=data)
+
+        self.drop_not_completed(unique_id=unique_id)
+
         member = self._write(
             table_name=_RESULT_TABLE,
             unique_id=unique_id,

@@ -481,6 +481,16 @@ def test_write_if_member_exists(full_dstore, write_dir):  # new changes
     assert got == expect
 
 
+def test_write_success_replaces_not_completed(full_dstore):
+    """correctly write content"""
+    nc = full_dstore.not_completed[0].unique_id
+    data = full_dstore.completed[0].read()
+    new_id = Path(nc.replace(".json", f".{full_dstore.suffix}")).name
+    num = len(full_dstore)
+    full_dstore.write(unique_id=new_id, data=data)
+    assert len(full_dstore) == num
+
+
 @pytest.mark.parametrize("klass", (str, Path))
 def test_get_data_source_attr(klass):
     """handles case where input has source attribute string object or pathlib object"""
@@ -647,8 +657,6 @@ def test_zipped_md5(zipped_full, full_dstore):
 def test_zipped_contains(dstore, request):
     full_dstore = request.getfixturevalue(dstore)
     assert "formattest.fasta" in full_dstore
-    # following line does not work, should it?
-    # assert "id_2.json" in full_dstore
 
 
 @pytest.mark.parametrize("dstore", ("full_dstore", "zipped_full"))

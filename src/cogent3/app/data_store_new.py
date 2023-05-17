@@ -250,7 +250,7 @@ class DataStoreABC(ABC):
         )
 
     @abstractmethod
-    def drop_not_completed(self):
+    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None:
         ...
 
     def validate(self) -> TabularType:
@@ -428,16 +428,25 @@ class DataStoreDirectory(DataStoreABC):
             data = infile.read()
         return data
 
-    def drop_not_completed(self):
+    def drop_not_completed(self, *, unique_id: str = "") -> None:
+        unique_id = unique_id.replace(f".{self.suffix}", "")
+        unique_id = f"{unique_id}.json"
         nc_dir = self.source / _NOT_COMPLETED_TABLE
         md5_dir = self.source / _MD5_TABLE
-        for file in nc_dir.glob("*.json"):
+        for m in list(self.not_completed):
+            if unique_id and not m.unique_id.endswith(unique_id):
+                continue
+
+            file = nc_dir / unique_id
             file.unlink()
             md5_file = md5_dir / f"{file.stem}.txt"
             md5_file.unlink()
-        Path(self.source / _NOT_COMPLETED_TABLE).rmdir()
-        # reset _not_completed list to force not_completed function to make it again
-        self._not_completed = []
+            self.not_completed.remove(m)
+
+        if not unique_id:
+            Path(self.source / _NOT_COMPLETED_TABLE).rmdir()
+            # reset _not_completed list to force not_completed function to make it again
+            self._not_completed = []
 
     @property
     def logs(self) -> list[DataMember]:
@@ -535,6 +544,7 @@ class DataStoreDirectory(DataStoreABC):
         member = self._write(
             subdir="", unique_id=unique_id, suffix=self.suffix, data=data
         )
+        self.drop_not_completed(unique_id=unique_id)
         if member is not None:
             self._completed.append(member)
         return member
@@ -695,7 +705,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             m = DataMember(data_store=self, unique_id=str(md5_dir / name.name))
             return m.read()
 
-    def drop_not_completed(self):
+    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None:
         raise TypeError("zip data stores are read only")
 
     def write(self, *, unique_id: str, data: StrOrBytes) -> None:
