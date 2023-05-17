@@ -450,7 +450,8 @@ class DataStoreDirectory(DataStoreABC):
     def completed(self) -> list[DataMember]:
         if not self._completed:
             self._completed = []
-            for i, m in enumerate(self.source.glob(f"*.{self.suffix}")):
+            suffix = f"*.{self.suffix}" if self.suffix else "*"
+            for i, m in enumerate(self.source.glob(suffix)):
                 if self.limit and i == self.limit:
                     break
                 self._completed.append(DataMember(data_store=self, unique_id=m.name))
