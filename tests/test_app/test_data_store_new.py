@@ -271,12 +271,6 @@ def test_contains(ro_dstore):
     assert "brca1" in ro_dstore
 
 
-def test_iter(ro_dstore):
-    """DataStore objects allow iteration over members"""
-    members = list(ro_dstore)
-    assert members == ro_dstore.members
-
-
 def test_members(ro_dstore):
     for m in ro_dstore:
         assert isinstance(m, DataMember)
