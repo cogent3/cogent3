@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
+from io import TextIOWrapper
 from os import PathLike
 from pathlib import Path
 from typing import Iterator, Optional, Union
@@ -250,7 +251,7 @@ class DataStoreABC(ABC):
         )
 
     @abstractmethod
-    def drop_not_completed(self):
+    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None:
         ...
 
     def validate(self) -> TabularType:
@@ -428,16 +429,25 @@ class DataStoreDirectory(DataStoreABC):
             data = infile.read()
         return data
 
-    def drop_not_completed(self):
+    def drop_not_completed(self, *, unique_id: str = "") -> None:
+        unique_id = unique_id.replace(f".{self.suffix}", "")
+        unique_id = f"{unique_id}.json" if unique_id else unique_id
         nc_dir = self.source / _NOT_COMPLETED_TABLE
         md5_dir = self.source / _MD5_TABLE
-        for file in nc_dir.glob("*.json"):
+        for m in list(self.not_completed):
+            if unique_id and not m.unique_id.endswith(unique_id):
+                continue
+
+            file = nc_dir / Path(m.unique_id).name
             file.unlink()
             md5_file = md5_dir / f"{file.stem}.txt"
             md5_file.unlink()
-        Path(self.source / _NOT_COMPLETED_TABLE).rmdir()
-        # reset _not_completed list to force not_completed function to make it again
-        self._not_completed = []
+            self.not_completed.remove(m)
+
+        if not unique_id:
+            Path(self.source / _NOT_COMPLETED_TABLE).rmdir()
+            # reset _not_completed list to force not_completed function to make it again
+            self._not_completed = []
 
     @property
     def logs(self) -> list[DataMember]:
@@ -494,7 +504,7 @@ class DataStoreDirectory(DataStoreABC):
         if suffix != "log" and unique_id in self:
             return None
 
-        with open_(self.source / subdir / unique_id, mode="w") as out:
+        with open_(self.source / subdir / unique_id, mode="w", newline="\n") as out:
             out.write(data)
 
         if subdir == _LOG_TABLE:
@@ -515,14 +525,45 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write(self, *, unique_id: str, data: str) -> DataMember:
+        """writes a completed record ending with .suffix
+
+        Parameters
+        ----------
+        unique_id
+            unique identifier
+        data
+            text data to be written
+
+        Returns
+        -------
+        a member for this record
+
+        Notes
+        -----
+        Drops any not-completed member corresponding to this identifier
+        """
         member = self._write(
             subdir="", unique_id=unique_id, suffix=self.suffix, data=data
         )
+        self.drop_not_completed(unique_id=unique_id)
         if member is not None:
             self._completed.append(member)
         return member
 
     def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+        """writes a not completed record as json
+
+        Parameters
+        ----------
+        unique_id
+            unique identifier
+        data
+            text data to be written
+
+        Returns
+        -------
+        a member for this record
+        """
         (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         member = self._write(
             subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
@@ -593,7 +634,8 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         unique_id = str(pathlib.Path(self.source.stem, unique_id)).replace("\\", "/")
         with zipfile.ZipFile(self.source) as archive:
             record = archive.open(unique_id)
-            return record.read().decode("utf8")
+            record = TextIOWrapper(record, encoding="latin-1")
+            return record.read()
 
     def _iter_matches(self, subdir: str, pattern: str) -> Iterator[PathLike]:
         with zipfile.ZipFile(self._source) as archive:
@@ -665,7 +707,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             m = DataMember(data_store=self, unique_id=str(md5_dir / name.name))
             return m.read()
 
-    def drop_not_completed(self):
+    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None:
         raise TypeError("zip data stores are read only")
 
     def write(self, *, unique_id: str, data: StrOrBytes) -> None:

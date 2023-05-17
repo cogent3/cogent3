@@ -285,6 +285,15 @@ def test_read(full_dstore_sqlite):
         assert isinstance(r.read(), str)
 
 
+def test_write_success_replaces_not_completed(full_dstore_sqlite):
+    """correctly write content"""
+    new_id = full_dstore_sqlite.not_completed[0].unique_id
+    data = full_dstore_sqlite.completed[0].read()
+    num = len(full_dstore_sqlite)
+    full_dstore_sqlite.write(unique_id=new_id, data=data)
+    assert len(full_dstore_sqlite) == num
+
+
 def test_read_log(sql_dstore, log_data):
     """correctly read content"""
     sql_dstore.write_log(unique_id="brca1.fasta", data=log_data)

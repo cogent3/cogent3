@@ -20,9 +20,11 @@ from cogent3.app.data_store_new import (
     DataMember,
     DataMemberABC,
     DataStoreABC,
+    DataStoreDirectory,
     Mode,
     StrOrBytes,
 )
+from cogent3.util.misc import extend_docstring_from
 
 
 _RESULT_TABLE = "results"
@@ -265,8 +267,14 @@ class DataStoreSqlite(DataStoreABC):
 
         return DataMember(data_store=self, unique_id=unique_id)
 
-    def drop_not_completed(self) -> None:
-        self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")
+    def drop_not_completed(self, *, unique_id: str = "") -> None:
+        if not unique_id:
+            cmnd = f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=?"
+            vals = (0,)
+        else:
+            cmnd = f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=? AND record_id=?"
+            vals = (0, unique_id)
+        self.db.execute(cmnd, vals)
         self._not_completed = []
 
     @property
@@ -322,11 +330,15 @@ class DataStoreSqlite(DataStoreABC):
 
         return
 
+    @extend_docstring_from(DataStoreDirectory.write)
     def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         if unique_id.startswith(_RESULT_TABLE):
             unique_id = Path(unique_id).name
 
         super().write(unique_id=unique_id, data=data)
+
+        self.drop_not_completed(unique_id=unique_id)
+
         member = self._write(
             table_name=_RESULT_TABLE,
             unique_id=unique_id,
@@ -339,6 +351,7 @@ class DataStoreSqlite(DataStoreABC):
             self._completed.append(member)
         return member
 
+    @extend_docstring_from(DataStoreDirectory.write_log)
     def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
         if unique_id.startswith(_LOG_TABLE):
             unique_id = Path(unique_id).name
@@ -348,6 +361,7 @@ class DataStoreSqlite(DataStoreABC):
             table_name=_LOG_TABLE, unique_id=unique_id, data=data, is_completed=False
         )
 
+    @extend_docstring_from(DataStoreDirectory.write_not_completed)
     def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         if unique_id.startswith(_RESULT_TABLE):
             unique_id = Path(unique_id).name
