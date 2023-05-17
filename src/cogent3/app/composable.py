@@ -754,7 +754,9 @@ def _apply_to(
         input_id = id_from_source(input_id)
         if input_id in inputs:
             raise ValueError("non-unique identifier detected in data")
-        if input_id in self.data_store:  # todo write a test
+        if input_id in self.data_store:
+            # we are assuming that this query returns True only when
+            # an input_id is completed, we will not hit this if not_completed
             continue
         inputs[input_id] = m
 
