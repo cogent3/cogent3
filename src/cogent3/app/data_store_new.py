@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from functools import singledispatch
+from io import TextIOWrapper
 from os import PathLike
 from pathlib import Path
 from typing import Iterator, Optional, Union
@@ -503,7 +504,7 @@ class DataStoreDirectory(DataStoreABC):
         if suffix != "log" and unique_id in self:
             return None
 
-        with open_(self.source / subdir / unique_id, mode="w") as out:
+        with open_(self.source / subdir / unique_id, mode="w", newline="\n") as out:
             out.write(data)
 
         if subdir == _LOG_TABLE:
@@ -633,7 +634,8 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         unique_id = str(pathlib.Path(self.source.stem, unique_id)).replace("\\", "/")
         with zipfile.ZipFile(self.source) as archive:
             record = archive.open(unique_id)
-            return record.read().decode("utf8")
+            record = TextIOWrapper(record, encoding="latin-1")
+            return record.read()
 
     def _iter_matches(self, subdir: str, pattern: str) -> Iterator[PathLike]:
         with zipfile.ZipFile(self._source) as archive:
