@@ -430,14 +430,14 @@ class DataStoreDirectory(DataStoreABC):
 
     def drop_not_completed(self, *, unique_id: str = "") -> None:
         unique_id = unique_id.replace(f".{self.suffix}", "")
-        unique_id = f"{unique_id}.json"
+        unique_id = f"{unique_id}.json" if unique_id else unique_id
         nc_dir = self.source / _NOT_COMPLETED_TABLE
         md5_dir = self.source / _MD5_TABLE
         for m in list(self.not_completed):
             if unique_id and not m.unique_id.endswith(unique_id):
                 continue
 
-            file = nc_dir / unique_id
+            file = nc_dir / Path(m.unique_id).name
             file.unlink()
             md5_file = md5_dir / f"{file.stem}.txt"
             md5_file.unlink()
