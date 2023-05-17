@@ -144,7 +144,9 @@ class DataStoreABC(ABC):
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
-        return any(m.unique_id.endswith(identifier) for m in self)
+        # following breaks some tests, what is the expected behaviour?
+        # return any(m.unique_id.endswith(identifier) for m in self)
+        return any(m.unique_id == identifier for m in self)
 
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes:
