@@ -37,8 +37,8 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 @pytest.fixture(scope="function")
-def tmp_dir(tmpdir_factory):
-    return Path(tmpdir_factory.mktemp("datastore"))
+def tmp_dir(tmp_path_factory):
+    return Path(tmp_path_factory.mktemp("datastore"))
 
 
 @pytest.fixture(autouse=True)
@@ -569,7 +569,10 @@ def zipped_basic(fasta_dir):
     # converts the fasta_dir into a zipped archive
 
     path = shutil.make_archive(
-        base_name=fasta_dir, format="zip", base_dir=fasta_dir, root_dir=fasta_dir.parent
+        base_name=fasta_dir.name,
+        format="zip",
+        base_dir=fasta_dir.name,
+        root_dir=fasta_dir.parent,
     )
     return pathlib.Path(path)
 
@@ -579,7 +582,10 @@ def zipped_full(full_dstore):
     # converts the fasta_dir into a zipped archive
     source = pathlib.Path(full_dstore.source)
     path = shutil.make_archive(
-        base_name=source, format="zip", base_dir=source, root_dir=source.parent
+        base_name=source.name,
+        format="zip",
+        base_dir=source.name,
+        root_dir=source.parent,
     )
     return ReadOnlyDataStoreZipped(pathlib.Path(path), suffix="fasta")
 
