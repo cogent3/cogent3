@@ -31,6 +31,9 @@ _NOT_COMPLETED_TABLE = "not_completed"
 _LOG_TABLE = "logs"
 _MD5_TABLE = "md5"
 
+# used for log files, not-completed results
+_special_suffixes = re.compile(r"\.(log|json)$")
+
 StrOrBytes = Union[str, bytes]
 NoneType = type(None)
 
@@ -138,7 +141,7 @@ class DataStoreABC(ABC):
 
     def __contains__(self, identifier):
         """whether relative identifier has been stored"""
-        return any(identifier == m.unique_id for m in self)
+        return any(m.unique_id.endswith(identifier) for m in self)
 
     @abstractmethod
     def read(self, unique_id: str) -> StrOrBytes:
@@ -379,7 +382,8 @@ class DataStoreDirectory(DataStoreABC):
         self._limit = limit
 
     def __contains__(self, item: str):
-        item = f"{item}.{self.suffix}" if self.suffix not in item else item
+        if not _special_suffixes.search(item):
+            item = f"{item}.{self.suffix}" if self.suffix not in item else item
         return super().__contains__(item)
 
     def _source_check_create(self, mode: Mode) -> None:
