@@ -515,6 +515,23 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write(self, *, unique_id: str, data: str) -> DataMember:
+        """writes a completed record ending with .suffix
+
+        Parameters
+        ----------
+        unique_id
+            unique identifier
+        data
+            text data to be written
+
+        Returns
+        -------
+        a member for this record
+
+        Notes
+        -----
+        Drops any not-completed member corresponding to this identifier
+        """
         member = self._write(
             subdir="", unique_id=unique_id, suffix=self.suffix, data=data
         )
@@ -523,6 +540,19 @@ class DataStoreDirectory(DataStoreABC):
         return member
 
     def write_not_completed(self, *, unique_id: str, data: str) -> DataMember:
+        """writes a not completed record as json
+
+        Parameters
+        ----------
+        unique_id
+            unique identifier
+        data
+            text data to be written
+
+        Returns
+        -------
+        a member for this record
+        """
         (self.source / _NOT_COMPLETED_TABLE).mkdir(parents=True, exist_ok=True)
         member = self._write(
             subdir=_NOT_COMPLETED_TABLE, unique_id=unique_id, suffix="json", data=data
