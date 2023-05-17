@@ -1,6 +1,9 @@
 import itertools
 
+from copy import deepcopy
 from typing import Union
+
+import numpy
 
 from numpy import log, polyval, triu_indices, zeros_like
 
@@ -153,13 +156,12 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     ----------
     seq_coll: UnalignedSeqsType
         a collection of unaligned sequences
-    k:  int
+    k: int
         size of kmer to use for
 
     Returns
     -------
-    DistanceMatrix
-        returns pairwise Jaccard distance between sequences in the collection.
+    Pairwise Jaccard distance between sequences in the collection.
     """
 
     kmers = {name: set(seq.get_kmers(k)) for name, seq in seq_coll.named_seqs.items()}
@@ -178,90 +180,62 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     return DistanceMatrix(jaccard_dists)
 
 
-@define_app()
+@define_app
 def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
-    """Converts Jaccard distances to approximate pairwise distances using coefficient from
-    a pre-determined polynomial fit.
-
-    NOTE: coefficients are derived from a polynomial fit between Jaccard distance of kmers
-    with k=10 and the proportion of sites different for mammalian DNA sequences.
+    """approximate the proportion sites different from Jaccard distances
 
     Parameters
     ----------
-    jaccard_dists : DistanceMatrix
-    The pairwise Jaccard distance matrix
+    jaccard_dists
+        The pairwise Jaccard distance matrix
 
     Returns
     -------
-    DistanceMatrix
-    The pairwise approximate PDist matrix
+    DistanceMatrix of approximated proportion sites different
+
+    Notes
+    -----
+    Coefficients were derived from a polynomial fit between Jaccard distance
+    of kmers with k=10 and the proportion of sites different using mammalian
+    106 protein coding gene DNA sequence alignments.
     """
-    j_dists = jaccard_dists.array
-
-    # Initialise an array of the same size as j_dists with all values = 0.0
-    p_dists = zeros_like(j_dists)
-
-    # The matrix is symmetric across the diagonal, and we only want
-    # to do calculations once, so grab the indices of the upper triangle,
-    # setting k=1 will exclude the diagonal
-    upper_indices = triu_indices(n=j_dists.shape[0], k=1)
+    upper_indices = triu_indices(n=jaccard_dists.shape[0], k=1)
+    result = deepcopy(jaccard_dists)  # so the original matrix not modified
+    arr = result.array
 
     # Convert only the upper indices from Jaccard distance to approximate PDist
-    upper_vals = polyval(JACCARD_PDIST_POLY_COEFFS, j_dists[upper_indices])
-    p_dists[upper_indices] = upper_vals
-
+    arr[upper_indices] = polyval(JACCARD_PDIST_POLY_COEFFS, arr[upper_indices])
     # Reflect the upper triangle to the lower triangle
-    lower_indices = (upper_indices[1], upper_indices[0])
-    p_dists[lower_indices] = upper_vals
-
-    # add dists to dictionary where {(seq, seq) : dist}
-    names = jaccard_dists.names
-    named_dists = {
-        (names[i], names[j]): p_dists[i, j]
-        for i, j in itertools.combinations(range(len(names)), 2)
-    }
-
-    return DistanceMatrix(named_dists)
+    arr.T[upper_indices] = arr[upper_indices]
+    result.array = arr
+    return result
 
 
 @define_app
 def approx_jc69(
-    pdist_predicted: PairwiseDistanceType,
+    pdists: PairwiseDistanceType, num_states: int = 4
 ) -> PairwiseDistanceType:
-    """takes pairwise predicted p-distances and returns pairwise JC69 distances
+    """converts p-distances and returns pairwise JC69 distances
 
     Parameters
     ----------
-    pdist_predicted
-        The pairwise approximate PDist matrix
+    pdists
+        The pairwise PDist matrix
+    num_states
+        Number of sequence states, default is for the traditional
+        JC69 modelling of DNA substitutions
 
     Returns
     -------
     DistanceMatrix of pairwise JC69 distances
-
     """
-    pdists = pdist_predicted.array
-    jc_dists = zeros_like(pdists)
-
-    # calculate approx jc dist from approx pdist for upper triangle of matrix
     upper_indices = triu_indices(n=pdists.shape[0], k=1)
-    upper_vals = _jc69_from_pdist(pdists[upper_indices])
-    jc_dists[upper_indices] = upper_vals
-
-    # reflect into lower triangle of matrix
-    lower_indices = (upper_indices[1], upper_indices[0])
-    jc_dists[lower_indices] = upper_vals
-
-    # add dists to dictionary where {(seq, seq) : dist}, so can be wrapped in DistanceMatrix
-    names = pdist_predicted.names
-    named_dists = {
-        (names[i], names[j]): jc_dists[i, j]
-        for i, j in itertools.combinations(range(len(names)), 2)
-    }
-
-    return DistanceMatrix(named_dists)
-
-
-def _jc69_from_pdist(p):
-    """convert proportion of sites different to Jukes Cantor distance"""
-    return -3.0 * log(1 - (4 / 3) * p) / 4
+    result = deepcopy(pdists)  # so the original matrix not modified
+    arr = result.array
+    n_1 = num_states - 1
+    arr[upper_indices] = (
+        -n_1 / num_states * numpy.log(1 - (num_states / n_1 * arr[upper_indices]))
+    )
+    arr.T[upper_indices] = arr[upper_indices]
+    result.array = arr
+    return result

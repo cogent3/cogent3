@@ -1,12 +1,13 @@
-#!/usr/bin/env python
-
 import itertools
+import pathlib
 import unittest
+
+import pytest
 
 import cogent3.align.progressive
 import cogent3.evolve.substitution_model
 
-from cogent3 import DNA, make_unaligned_seqs
+from cogent3 import DNA, load_aligned_seqs, load_tree, make_unaligned_seqs
 from cogent3.align.align import (
     classic_align_pairwise,
     global_pairwise,
@@ -16,6 +17,8 @@ from cogent3.align.align import (
 )
 from cogent3.evolve.models import HKY85, get_model
 
+
+DATADIR = pathlib.Path(__file__).parent.parent / "data"
 
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
     model_gaps=False, equal_motif_probs=True
@@ -197,7 +200,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             HKY85(),
             seqs,
             show_progress=False,
-            ests_from_pairwise=True,
+            params_from_pairwise=True,
         )
 
         expect = {
@@ -297,5 +300,41 @@ class HirschbergTestCase(MultipleAlignmentTestCase):
         return result
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.fixture(scope="session")
+def seqs():
+    tree = load_tree(DATADIR / "brca1_5.tree")
+    aln = load_aligned_seqs(DATADIR / "brca1.fasta", moltype="dna")
+    seqs = aln[200:1200].take_seqs(tree.get_tip_names()).degap()
+    return seqs
+
+
+def test_tree_align_pwise_iter(seqs):
+    aln, tree = cogent3.align.progressive.tree_align(
+        model="F81", seqs=seqs, show_progress=False, iters=None
+    )
+    one = aln.alignment_quality()
+    aln, tree = cogent3.align.progressive.tree_align(
+        model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
+    )
+    two = aln.alignment_quality()
+    assert two > one
+
+
+def test_tree_align_dists_from_pairwise_align(seqs):
+    # difficult to test reliably so only exercising use of option
+    aln, tree = cogent3.align.progressive.tree_align(
+        model="F81", seqs=seqs, show_progress=False, approx_dists=False
+    )
+    assert aln
+
+
+def test_tree_align_two(seqs):
+    seqs = seqs.take_seqs(["Human", "NineBande"])
+    aln, tree = cogent3.align.progressive.tree_align(
+        model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
+    )
+    # the tree should have equal branch lengths
+    dist = set(tree.get_distances().values())
+    assert len(dist) == 1
+    assert isinstance(list(dist)[0], float)
+    assert len(aln) >= seqs.get_lengths().array.min()

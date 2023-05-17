@@ -179,6 +179,16 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
 
     (names, d) = distance_dict_to_2D(dists)
 
+    if len(names) == 2:
+        # only one tree
+        tips = [frozenset([n]) for n in names]
+        dist = d.max() / 2
+        tips = [LightweightTreeTip(name) for name in names]
+        root = LightweightTreeNode(list(zip([dist, dist], tips)))
+        tree = root.convert()
+        tree.name = "root"
+        return ScoredTreeCollection([(dist * 2, tree)])
+
     if keep is None:
         keep = len(names) * 5
     all_keep = keep + dkeep
