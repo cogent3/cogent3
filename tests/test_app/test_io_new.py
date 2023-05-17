@@ -4,6 +4,7 @@ import json
 import os
 import pathlib
 import pickle
+import shutil
 
 from pathlib import Path
 
@@ -15,7 +16,12 @@ from numpy.testing import assert_allclose
 from cogent3 import DNA, get_app, open_data_store
 from cogent3.app import io_new as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
-from cogent3.app.data_store_new import DataMember, DataStoreDirectory, Mode
+from cogent3.app.data_store_new import (
+    DataMember,
+    DataStoreDirectory,
+    Mode,
+    ReadOnlyDataStoreZipped,
+)
 from cogent3.app.io_new import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
@@ -30,8 +36,8 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 @pytest.fixture(scope="function")
-def tmp_dir(tmpdir_factory):
-    return Path(tmpdir_factory.mktemp("io"))
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("io")
 
 
 @pytest.fixture(scope="function")
@@ -56,6 +62,16 @@ def fasta_dir(tmp_dir):
         dest = fasta_dir / fn.name
         dest.write_text(fn.read_text())
     return fasta_dir
+
+
+@pytest.fixture
+def zipped_full(fasta_dir):
+    # converts the fasta_dir into a zipped archive
+    source = fasta_dir
+    path = shutil.make_archive(
+        base_name=source, format="zip", base_dir=source, root_dir=source.parent
+    )
+    return ReadOnlyDataStoreZipped(pathlib.Path(path), suffix="fasta")
 
 
 def _get_generic_result(source):
@@ -618,3 +634,9 @@ def test_to_from_json():
 def test_to_json_combines():
     app = get_app("to_primitive") + get_app("to_json")
     assert app(DNA) == DNA.to_json()
+
+
+def test_open_zipped(zipped_full):
+    got = open_data_store(zipped_full.source, mode="r", suffix="fasta")
+    assert len(got) == len(zipped_full)
+    assert isinstance(got, type(zipped_full))

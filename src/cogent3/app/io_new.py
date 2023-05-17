@@ -26,12 +26,12 @@ from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
-from .data_store import ReadOnlyTinyDbDataStore, ReadOnlyZippedDataStore
 from .data_store_new import (
     READONLY,
     DataStoreABC,
     DataStoreDirectory,
     Mode,
+    ReadOnlyDataStoreZipped,
     get_unique_id,
     load_record_from_json,
     make_record_for_json,
@@ -96,8 +96,7 @@ class register_datastore_reader:
 
 
 # register the main readers
-register_datastore_reader("zip")(ReadOnlyZippedDataStore)
-register_datastore_reader("tinydb")(ReadOnlyTinyDbDataStore)
+register_datastore_reader("zip")(ReadOnlyDataStoreZipped)
 register_datastore_reader(None)(DataStoreDirectory)
 register_datastore_reader("sqlitedb")(DataStoreSqlite)
 
@@ -138,7 +137,6 @@ def open_data_store(
         kwargs.pop("suffix")
     elif zipfile.is_zipfile(base_path):
         ds_suffix = ".zip"
-        kwargs.pop("mode")
     elif base_path.suffix:
         ds_suffix = base_path.suffix
     else:
