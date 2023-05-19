@@ -518,3 +518,27 @@ def test_information_content_score(cls):
     aln = cls(["----", "AAAA"])
     got = app_not_equifreq(aln)
     assert_allclose(got, -2)
+
+
+@pytest.fixture(scope="function")
+def aln():
+    aligner = align_app.progressive_align(model="TN93", distance="TN93")
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA)
+    return aligner(seqs)
+
+
+def test_cogent3_score(aln):
+    get_score = get_app("cogent3_score")
+    score = get_score(aln)
+    assert score < -100
+
+
+@pytest.mark.parametrize("del_all_params", (True, False))
+def test_cogent3_score_missing(aln, del_all_params):
+    get_score = get_app("cogent3_score")
+    if del_all_params:
+        aln.info.pop("align_params")
+    else:
+        aln.info["align_params"].pop("lnL")
+    score = get_score(aln)
+    assert score == 0.0

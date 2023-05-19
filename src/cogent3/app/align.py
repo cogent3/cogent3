@@ -588,3 +588,33 @@ class ic_score:
         log_f = safe_log(frequency / p)
         I_seq = log_f * frequency
         return I_seq.sum()
+
+
+@define_app
+def cogent3_score(aln: AlignedSeqsType) -> float:
+    """returns the cogent3 log-likelihood as an alignment quality score
+
+    Parameters
+    ----------
+    aln
+        An alignment instance.
+
+    Returns
+    -------
+    returns the log-likelihood, or 0.0 if the alignment does not have the
+    score
+
+    Notes
+    -----
+    The cogent3 tree_align algorithm is a progressive-HMM. It records
+    the log-likelihood of the alignment (in addition to all other
+    the parameter values, including the guide tree) in
+    ``alignment.info['align_params']``. This can be used as a measure of
+    alignment quality.
+
+    The instance must have been aligned using cogent3 tree_align. In addition,
+    if the alignment has been saved, it has must have been serialised
+    using a format that preserves the score.
+    """
+    align_params = aln.info.get("align_params", {})
+    return align_params.get("lnL", 0.0)
