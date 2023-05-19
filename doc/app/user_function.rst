@@ -82,6 +82,6 @@ In this example, we make a function that returns a ``DistanceMatrix`` from an al
     def get_dists(aln: AlignedSeqsType, calc="hamming") -> PairwiseDistanceType:
         return aln.distance_matrix(calc=calc, show_progress=False)
 
-    percent_dist = get_dists(calc="percent")
+    percent_dist = get_dists(calc="pdist")
     result = percent_dist(aln)
     result
