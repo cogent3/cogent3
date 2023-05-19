@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os
 import warnings
 
@@ -23,7 +22,7 @@ from cogent3.evolve.fast_distance import (
     JC69Pair,
     LogDetPair,
     ParalinearPair,
-    PercentIdentityPair,
+    ProportionIdenticalPair,
     TN93Pair,
     _calculators,
     _fill_diversity_matrix,
@@ -144,9 +143,9 @@ class TestPair(TestCase):
         self.assertEqual(list(dists.keys()), list(expect.keys()))
         assert_allclose(list(dists.values()), list(expect.values()))
 
-    def test_percent_pair(self):
+    def test_prop_pair(self):
         """get distances dict"""
-        calc = PercentIdentityPair(DNA, alignment=self.alignment)
+        calc = ProportionIdenticalPair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
         dists = calc.get_pairwise_distances()
         dists = dists.to_dict()

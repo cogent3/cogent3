@@ -3467,7 +3467,7 @@ class AlignmentI(object):
                 moltype = self.moltype
         return klass(data=data, moltype=moltype, info=self.info, names=self.names)
 
-    def distance_matrix(self, calc="percent", show_progress=False, drop_invalid=False):
+    def distance_matrix(self, calc="pdist", show_progress=False, drop_invalid=False):
         """Returns pairwise distances between sequences.
 
         Parameters

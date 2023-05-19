@@ -78,7 +78,7 @@ class fast_slow_dist:
             fast_calc = distance
             slow_calc = distance
 
-        d = {"hamming", "percent", "paralinear", "logdet"} & {slow_calc, fast_calc}
+        d = {"hamming", "pdist", "paralinear", "logdet"} & {slow_calc, fast_calc}
         if d and not self._moltype:
             raise ValueError(f"you must provide a moltype for {d}")
 

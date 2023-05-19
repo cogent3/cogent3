@@ -410,7 +410,7 @@ class progressive_align:
         unique_guides=False,
         indel_length=1e-1,
         indel_rate=1e-10,
-        distance="percent",
+        distance="pdist",
     ):
         """
         Parameters

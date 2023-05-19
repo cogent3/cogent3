@@ -457,7 +457,7 @@ def test_approx_jc69_vals(_seqs1_collection):
 def test_symmetry_of_dists():
     """distances are symmetric"""
     seqs = load_aligned_seqs(DATADIR / "primate_brca1.fasta", moltype="dna")
-    dists = seqs.distance_matrix(calc="percent")
+    dists = seqs.distance_matrix(calc="pdist")
     app = approx_jc69()
     got = app(dists)
     assert_allclose(got.array, got.array.T)
