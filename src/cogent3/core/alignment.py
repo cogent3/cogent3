@@ -2560,23 +2560,20 @@ class AlignmentI(object):
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
 
-    def alignment_quality(self, equifreq_mprobs=True):
+    def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
-        Computes the alignment quality for an alignment based on eq. (2) in noted reference.
+        Computes the alignment quality using the indicated app
 
         Parameters
         ----------
-        equifreq_mprobs : bool
-            If true, specifies equally frequent motif probabilities.
+        app_name
+            name of an alignment score calculating app
 
-        Notes
-        -----
-        G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
-
-        The alignment quality statistic is a log-likelihood ratio (computed using log2)
-        of the observed alignment column freqs versus the expected.
+        kwargs
+            keyword arguments to be passed to the app. Use
+            ``cogent3.app_help(app_name)`` to see the available options.
         """
-        app = cogent3.get_app("ic_score", equifreq_mprobs=equifreq_mprobs)
+        app = cogent3.get_app(app_name, **kwargs)
         return app(self)
 
     def iter_positions(self, pos_order=None):
