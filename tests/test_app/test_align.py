@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+import numpy
 import pytest
 
 from numpy import log2
@@ -542,3 +543,40 @@ def test_cogent3_score_missing(aln, del_all_params):
         aln.info["align_params"].pop("lnL")
     score = get_score(aln)
     assert score == 0.0
+
+
+def test_sp_score_exclude_gap():
+    # no gap penalty
+    app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
+    data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
+    # prop unchanged s1-s2, s1-s3
+    expect = sum([6 * 3 / 6, 0, 5 * 2 / 5])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, expect)
+
+
+def test_sp_score_additive_gap():
+    # additive gap score
+    app = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=0)
+    data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
+    # match score
+    mscore = numpy.array([6 * 3 / 6, 0, 5 * 2 / 5])
+    # gap score
+    gscore = numpy.array([2, 1, 3])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, (mscore - gscore).sum())
+
+
+def test_sp_score_affine_gap():
+    # affine gap score
+    app = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=2)
+    data = {"a": "AAGAA-A", "b": "-ATAATG", "c": "C-TGG-G"}
+    # match score
+    mscore = numpy.array([6 * 3 / 6, 0, 5 * 2 / 5])
+    # gap score
+    gscore = numpy.array([2 + 4, 2 + 1, 3 + 6])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, (mscore - gscore).sum())

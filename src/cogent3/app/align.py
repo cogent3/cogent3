@@ -1,7 +1,6 @@
 import warnings
 
 from bisect import bisect_left
-from copy import deepcopy
 from itertools import combinations
 from typing import Union
 
@@ -18,17 +17,13 @@ from cogent3.app import dist
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
+from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
 from cogent3.maths.util import safe_log
 
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
-from .typing import (
-    AlignedSeqsType,
-    PairwiseDistanceType,
-    SerialisableType,
-    UnalignedSeqsType,
-)
+from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
 
 
 class _GapOffset:
@@ -618,3 +613,72 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     """
     align_params = aln.info.get("align_params", {})
     return align_params.get("lnL", 0.0)
+
+
+@define_app
+class sp_score:
+    """Compute a variant of Sum of Pairs alignment quality score
+
+    Returns
+    -------
+    The score or 0.0 if it cannot be computed.
+
+    Notes
+    -----
+    We first compute pairwise genetic distances by the user specified
+    method. For each pair, this genetic distance is converted into an
+    estimate of the number of unchanged positions (with the minimum being
+    zero). The result is a sequence similarity matrix.
+
+    We compute pairwise affine gap distance using the user specified
+    values. The first matrix minus the second gives the statistic for
+    individual pairs and their sum is the Sum of Pairs score.
+
+    Carrillo, H. & Lipman, D. The Multiple Sequence Alignment Problem in
+    Biology. Siam J Appl Math 48, 1073–1082 (1988).
+    """
+
+    def __init__(
+        self, calc: str = "JC69", gap_insert: float = 12.0, gap_extend: float = 1.0
+    ):
+        """
+        Parameters
+        ----------
+        calc
+            name of the pairwise distance calculator
+        gap_insert
+            gap insertion penalty
+        gap_extend
+            gap extension penalty
+
+        Notes
+        -----
+        see available_distances() for the list of available methods.
+        """
+        self._insert = gap_insert
+        self._extend = gap_extend
+        self._calc = get_distance_calculator(calc)
+        self._gap_calc = dist.gap_dist(gap_insert=gap_insert, gap_extend=gap_extend)
+
+    def main(self, aln: AlignedSeqsType) -> float:
+        # this is a distance matrix, we want a similarity matrix
+        # because genetic distances can exceed 1, we need to adjust by
+        # multiplying by the length of the alignment to get the estimated
+        # number of changes and subtract that from the alignment length
+        self._calc(aln, show_progress=False)
+        dmat = self._calc.dists
+        lengths = self._calc.lengths
+        for i, j in combinations(range(aln.num_seqs), 2):
+            n1, n2 = dmat.names[i], dmat.names[j]
+            length = lengths[n1, n2]
+            unchanged = length - dmat[i, j] * length
+            # for very divergent cases, unchanged could be < 0,
+            # limit this to 0
+            dmat[i, j] = dmat[j, i] = max(unchanged, 0.0)
+        # compute the pairwise gap as number of gaps * gap_insert + length
+        # of gaps * gap_extend
+        gap_scores = self._gap_calc(aln)
+        # make sure the two dmats in same name order
+        gap_scores = gap_scores.take_dists(dmat.names)
+        dmat.array -= gap_scores
+        return dmat.array.sum() / 2
