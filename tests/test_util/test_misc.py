@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-
 """Unit tests for utility functions and classes.
 """
 
 from copy import copy, deepcopy
 from os import remove, rmdir
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
@@ -1252,7 +1250,3 @@ _body_expect = ["Notes", "-----", "body"]
 def test_docstring_to_summary_rest(foo, sum_exp, body_exp):
     summary, body = docstring_to_summary_rest(foo.__doc__)
     assert summary == sum_exp and body.split() == body_exp
-
-
-if __name__ == "__main__":
-    main()
