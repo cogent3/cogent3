@@ -50,9 +50,3 @@ Convert integers to a sequence
     seq = DNA.alphabet.from_indices([0, 2, 3, 0])
     seq
 
-or
-
-.. jupyter-execute::
-
-    seq = DNA.alphabet.from_ordinals_to_seq([0, 2, 3, 0])
-    seq

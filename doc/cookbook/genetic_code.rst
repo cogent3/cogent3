@@ -88,11 +88,11 @@ Converting the ``CodonAlphabet`` to codon series
 
 .. jupyter-execute::
 
-    from cogent3 import make_seq
+    from cogent3 import get_code
 
-    my_seq = make_seq("AGTACACTGGTT", moltype="dna")
-    sorted(my_seq.codon_alphabet())
-    len(my_seq.codon_alphabet())
+    gc = get_code(1)
+    alphabet = gc.get_alphabet()
+    alphabet
 
 Obtaining the codons from a ``DnaSequence`` object
 --------------------------------------------------

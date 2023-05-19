@@ -172,13 +172,11 @@ Getting 3rd positions from codons
 
 The easiest approach is to work off the ``cogent3`` ``ArrayAlignment`` object.
 
-We'll do this by specifying the position indices of interest, creating a sequence ``Feature`` and using that to extract the positions.
-
 .. jupyter-execute::
 
     from cogent3 import DNA
 
-    seq = DNA.make_array_seq("ATGATGATGATG")
+    seq = DNA.make_seq("ATGATGATGATG")
     pos3 = seq[2::3]
     assert str(pos3) == "GGGG"
 
@@ -193,7 +191,7 @@ In this instance we can use the annotatable sequence classes.
 
     seq = DNA.make_seq("ATGATGATGATG")
     indices = [(i, i + 2) for i in range(len(seq))[::3]]
-    pos12 = seq.add_feature("pos12", "pos12", indices)
+    pos12 = seq.add_feature(biotype="pos12", name="pos12", spans=indices)
     pos12 = pos12.get_slice()
     assert str(pos12) == "ATATATAT"
 

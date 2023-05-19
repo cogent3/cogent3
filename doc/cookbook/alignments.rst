@@ -422,7 +422,7 @@ We'll do this by specifying the position indices of interest, creating a sequenc
     list(range(len(aln))[2::3])
     indices = [(i, i + 1) for i in range(len(aln))[2::3]]
     indices
-    pos3 = aln.add_feature("pos3", "pos3", indices)
+    pos3 = aln.add_feature(biotype="pos3", name="pos3", spans=indices)
     pos3 = pos3.get_slice()
     print(pos3)
 
