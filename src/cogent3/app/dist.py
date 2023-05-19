@@ -1,11 +1,12 @@
 import itertools
 
 from copy import deepcopy
+from itertools import combinations
 from typing import Union
 
 import numpy
 
-from numpy import log, polyval, triu_indices, zeros_like
+from numpy import polyval, triu_indices
 
 from cogent3 import get_moltype, make_tree
 from cogent3.evolve.fast_distance import (
@@ -14,6 +15,7 @@ from cogent3.evolve.fast_distance import (
 )
 from cogent3.evolve.models import get_model
 from cogent3.maths.distance_transform import jaccard
+from cogent3.util.misc import get_true_spans
 
 from .composable import define_app
 from .typing import (
@@ -239,3 +241,42 @@ def approx_jc69(
     arr.T[upper_indices] = arr[upper_indices]
     result.array = arr
     return result
+
+
+@define_app
+class gap_dist:
+    """compute the pairwise difference in gaps using affine gap score"""
+
+    def __init__(self, gap_insert: float = 12.0, gap_extend: float = 1.0):
+        """
+        Parameters
+        ----------
+        gap_insert
+            gap insertion penalty
+        gap_extend
+            gap extension penalty
+        """
+        self._insert = gap_insert
+        self._extend = gap_extend
+
+    def main(self, aln: AlignedSeqsType) -> PairwiseDistanceType:
+        gap_diffs = {}
+        gap_data = dict(zip(aln.names, aln.get_gap_array()))
+        # convert each gap vector to gap spans
+        for k, gap_vector in gap_data.items():
+            gap_data[k] = set(tuple(pr) for pr in get_true_spans(gap_vector).tolist())
+
+        for i, j in combinations(range(aln.num_seqs), 2):
+            n1, n2 = aln.names[i], aln.names[j]
+
+            # unique gaps
+            unique = gap_data[n1] ^ gap_data[n2]
+
+            # compute the score as
+            # number of gaps * gap_insert + total length of gaps * gap_extend
+            score = self._insert * len(unique) + self._extend * sum(
+                l for p, l in unique
+            )
+            gap_diffs[(n1, n2)] = gap_diffs[(n2, n1)] = score
+
+        return DistanceMatrix(gap_diffs)

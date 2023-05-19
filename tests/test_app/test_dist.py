@@ -461,3 +461,64 @@ def test_symmetry_of_dists():
     app = approx_jc69()
     got = app(dists)
     assert_allclose(got.array, got.array.T)
+
+
+def test_gap_dist():
+    app = get_app("gap_dist", gap_insert=10, gap_extend=1)
+    # two sequences share a gap
+    data = {
+        "a": "TG----AATATGT------GAAAGAG",
+        "b": "TTGAAGAATATGT------GAAAGAG",
+        "c": "CTGAAGAACCTGTGAAAGTGAAAGAG",
+    }
+    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    expect = {
+        ("a", "b"): 14.0,  # one gap diff of size 4
+        ("a", "c"): 30.0,
+        ("b", "c"): 16.0,
+    }
+    expect = DistanceMatrix(expect)
+    dmat = app.main(aln)
+    assert dmat.to_dict() == expect.to_dict()
+
+    # shared gap actually not shared, 3 events
+    data = {
+        "a": "TG----AATATGTA-----GAAAGAG",
+        "b": "TTGAAGAATATGTA------AAAGAG",
+        "c": "CTGAAGAACCTGTGAAAGTGAAAGAG",
+    }
+    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    expect = {
+        ("a", "b"): 45.0,  # 3 gaps diff of size 15
+        ("a", "c"): 29.0,
+        ("b", "c"): 16.0,
+    }
+    expect = DistanceMatrix(expect)
+    dmat = app.main(aln)
+    assert dmat.to_dict() == expect.to_dict()
+
+    # additional gaps on either side of shared gap is two events
+    data = {
+        "a": "G--AG----A",
+        "b": "TGGAGT--GA",
+        "c": "TGGAGTGTGA",
+    }
+    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    expect = {
+        ("a", "b"): 38,  # 3 gaps diff of size 8
+        ("a", "c"): 26.0,
+        ("b", "c"): 12.0,
+    }
+    expect = DistanceMatrix(expect)
+    dmat = app.main(aln)
+    assert dmat.to_dict() == expect.to_dict()
+    data = {"a": "AAGAA-A", "b": "-ATAATG", "c": "C-TGG-G"}
+    aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    expect = {
+        ("a", "b"): 22.0,  # 2 gaps diff of size 2
+        ("a", "c"): 11.0,
+        ("b", "c"): 33.0,  # 3 gaps diff of size 2
+    }
+    expect = DistanceMatrix(expect)
+    dmat = app.main(aln)
+    assert dmat.to_dict() == expect.to_dict()
