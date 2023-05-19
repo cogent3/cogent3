@@ -1,7 +1,11 @@
 import warnings
 
 from bisect import bisect_left
+from copy import deepcopy
+from itertools import combinations
 from typing import Union
+
+from numpy import array
 
 from cogent3 import make_tree
 from cogent3.align import (
@@ -15,10 +19,16 @@ from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.models import get_model
+from cogent3.maths.util import safe_log
 
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
-from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
+from .typing import (
+    AlignedSeqsType,
+    PairwiseDistanceType,
+    SerialisableType,
+    UnalignedSeqsType,
+)
 
 
 class _GapOffset:
@@ -528,3 +538,53 @@ class progressive_align:
                 result = NotCompleted("ERROR", self, err.args[0], source=seqs)
                 return result
         return result
+
+
+@define_app
+class ic_score:
+    """compute the Information Content alignment quality score
+
+    Returns
+    -------
+    The score or 0.0 if it cannot be computed.
+
+    Notes
+    -----
+    Based on eq. (2) in noted reference.
+
+    Hertz, G. Z. & Stormo, G. D. Identifying DNA and protein patterns with
+    statistically significant alignments of multiple sequences.
+    Bioinformatics vol. 15 563–577 (Oxford University Press, 1999)
+    """
+
+    def __init__(self, equifreq_mprobs=True):
+        """
+        Parameters
+        ----------
+        equifreq_mprobs : bool
+            If true, specifies equally frequent motif probabilities.
+        """
+        self._equi_frequent = equifreq_mprobs
+
+    def main(self, aln: AlignedSeqsType) -> float:
+        counts = aln.counts_per_pos(include_ambiguity=False, allow_gap=False)
+        if counts.array.max() == 0 or aln.num_seqs == 1:
+            return 0.0
+
+        motif_probs = aln.get_motif_probs(include_ambiguity=False, allow_gap=False)
+
+        if self._equi_frequent:
+            # we reduce motif_probs to observed states
+            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
+            num_motifs = len(motif_probs)
+            motif_probs = {m: 1 / num_motifs for m in motif_probs}
+
+        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
+
+        cols = p != 0
+        p = p[cols]
+        counts = counts.array[:, cols]
+        frequency = counts / aln.num_seqs
+        log_f = safe_log(frequency / p)
+        I_seq = log_f * frequency
+        return I_seq.sum()

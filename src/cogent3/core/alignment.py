@@ -2576,27 +2576,8 @@ class AlignmentI(object):
         The alignment quality statistic is a log-likelihood ratio (computed using log2)
         of the observed alignment column freqs versus the expected.
         """
-        counts = self.counts_per_pos()
-        if counts.array.max() == 0 or len(self.seqs) == 1:
-            return None
-
-        motif_probs = self.get_motif_probs()
-
-        if equifreq_mprobs:
-            # we reduce motif_probs to observed states
-            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
-            num_motifs = len(motif_probs)
-            motif_probs = {m: 1 / num_motifs for m in motif_probs}
-
-        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
-
-        cols = p != 0
-        p = p[cols]
-        counts = counts.array[:, cols]
-        frequency = counts / self.num_seqs
-        log_f = safe_log(frequency / p)
-        I_seq = log_f * frequency
-        return I_seq.sum()
+        app = cogent3.get_app("ic_score", equifreq_mprobs=equifreq_mprobs)
+        return app(self)
 
     def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.

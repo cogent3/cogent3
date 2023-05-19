@@ -1409,18 +1409,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     """
 
     def test_alignment_quality(self):
-        """Tests that the alignment_quality generates the right alignment quality
-        value based on the Hertz-Stormo metric. expected values are hand calculated
-        using the formula in the paper."""
-        aln = self.Class(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
-        assert_allclose(got, expect)
-        # should be the same with the default moltype too
-        aln = self.Class(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        assert_allclose(got, expect)
-
+        """check alignment method correctly invokes underlying app"""
         aln = self.Class(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
         got = aln.alignment_quality(equifreq_mprobs=False)
         expect = (
@@ -1430,26 +1419,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             + (1 / 4) * log2(1 / (4 / 15))
         )
         assert_allclose(got, expect)
-
-        # 1. Alignment just gaps - alignment_quality returns None
-        aln = self.Class(["----", "----"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        self.assertIsNone(got)
-
-        # 2 Just one sequence - alignment_quality returns None
-        aln = self.Class(["AAAC"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        self.assertIsNone(got)
-
-        # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
-        aln = self.Class(["----", "ACAT"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        assert_allclose(got, 1.1699250014423124)
-
-        # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
-        aln = self.Class(["----", "AAAA"])
-        got = aln.alignment_quality(equifreq_mprobs=False)
-        assert_allclose(got, -2)
 
     def make_and_filter(self, raw, expected, motif_length, drop_remainder):
         # a simple filter func

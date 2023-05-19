@@ -1,7 +1,13 @@
-from unittest import TestCase, main
+from unittest import TestCase
+
+import pytest
+
+from numpy import log2
+from numpy.testing import assert_allclose
 
 from cogent3 import (
     DNA,
+    get_app,
     get_moltype,
     make_aligned_seqs,
     make_tree,
@@ -19,7 +25,7 @@ from cogent3.app.align import (
     pairwise_to_multiple,
 )
 from cogent3.app.composable import NotCompleted
-from cogent3.core.alignment import Aligned, ArrayAlignment
+from cogent3.core.alignment import Aligned, Alignment, ArrayAlignment
 from cogent3.core.location import gap_coords_to_map
 
 
@@ -466,5 +472,49 @@ class GapOffsetTests(TestCase):
             self.assertEqual(aln_pos - aln2seq[aln_pos], seq_pos)
 
 
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_information_content_score(cls):
+    """Tests that the alignment_quality generates the right alignment quality
+    value based on the Hertz-Stormo metric. expected values are hand calculated
+    using the formula in the paper."""
+    app_equifreq = get_app("ic_score", equifreq_mprobs=True)
+    app_not_equifreq = get_app("ic_score", equifreq_mprobs=False)
+
+    aln = cls(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
+    got = app_equifreq(aln)
+    expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
+    assert_allclose(got, expect)
+    # should be the same with the default moltype too
+    aln = cls(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"])
+    got = app_equifreq(aln)
+    assert_allclose(got, expect)
+
+    aln = cls(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
+    got = app_not_equifreq(aln)
+    expect = (
+        2 * log2(1 / 0.4)
+        + log2(1 / (4 * 0.4))
+        + (1 / 2) * log2(1 / (8 / 15))
+        + (1 / 4) * log2(1 / (4 / 15))
+    )
+    assert_allclose(got, expect)
+
+    # 1. Alignment just gaps - alignment_quality returns 0.0
+    aln = cls(["----", "----"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 0.0)
+
+    # 2 Just one sequence - alignment_quality returns 0.0
+    aln = cls(["AAAC"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 0.0)
+
+    # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
+    aln = cls(["----", "ACAT"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 1.1699250014423124)
+
+    # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
+    aln = cls(["----", "AAAA"])
+    got = app_not_equifreq(aln)
+    assert_allclose(got, -2)
