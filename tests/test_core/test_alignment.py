@@ -15,6 +15,7 @@ from numpy import array, log2, nan, transpose
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import (
+    get_app,
     get_code,
     load_aligned_seqs,
     load_seq,
@@ -3440,3 +3441,69 @@ def test_get_translation_error(cls, seqs):
     alignment = cls(data=seqs)
     with pytest.raises(TypeError):
         alignment.get_translation()
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+@pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
+def test_alignment_quality_methods(cls, method):
+    data = {
+        "DogFaced": "TG----AATATGT------GAAAGAG",
+        "FreeTaile": "TTGAAGAATATGT------GAAAGAG",
+        "LittleBro": "CTGAAGAACCTGTGAAAGTGAAAGAG",
+    }
+    expected_score = dict(
+        cogent3_score=-123.0, ic_score=32.93032499, sp_score=-25.25687109
+    )[method]
+    aln = cls(
+        data,
+        moltype="dna",
+        info=dict(align_params=dict(lnL=-123.0)),
+    )
+    app = get_app(method)
+    score = app(aln)
+    assert_allclose(score, expected_score)
+
+
+@pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
+def test_alignment_quality_methods_oneseq(method):
+    data = {
+        "DogFaced": "TG----AATATGT------GAAAGAG",
+    }
+    aln = make_aligned_seqs(
+        data,
+        moltype="dna",
+        info=dict(align_params=dict(lnL=-123.0)),
+    )
+    app = get_app(method)
+    score = app(aln)
+    assert_allclose(score, 0.0)
+
+
+@pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
+def test_alignment_quality_methods_zero_length(method):
+    data = {
+        "a": "",
+        "b": "",
+        "c": "",
+    }
+    aln = make_aligned_seqs(
+        data,
+        moltype="dna",
+        info=dict(align_params=dict(lnL=-123.0)),
+    )
+    app = get_app(method)
+    score = app(aln)
+    assert_allclose(score, 0.0)
+
+
+def test_get_gap_array_equivalence():
+    # make sure produced gap arrays are identical between the
+    # two Alignment classes
+    data = {
+        "DogFaced": "TG----AATATGT------GAAAGAG",
+        "FreeTaile": "TTGAAGAATATGT------GAAAGAG",
+        "LittleBro": "CTGAAGAACCTGTGAAAGTGAAAGAG",
+    }
+    array_aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    aln = make_aligned_seqs(data, moltype="dna", array_align=False)
+    assert_allclose(array_aln.get_gap_array(), aln.get_gap_array())

@@ -2567,7 +2567,8 @@ class AlignmentI(object):
         Parameters
         ----------
         app_name
-            name of an alignment score calculating app
+            name of an alignment score calculating app, e.g. 'ic_score',
+            'cogent3_score', 'sp_score'
 
         kwargs
             keyword arguments to be passed to the app. Use
