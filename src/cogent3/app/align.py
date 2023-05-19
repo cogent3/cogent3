@@ -611,6 +611,9 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     if the alignment has been saved, it has must have been serialised
     using a format that preserves the score.
     """
+    if aln.num_seqs == 1 or len(aln) == 0:
+        return 0.0
+
     align_params = aln.info.get("align_params", {})
     return align_params.get("lnL", 0.0)
 
@@ -665,6 +668,8 @@ class sp_score:
         # because genetic distances can exceed 1, we need to adjust by
         # multiplying by the length of the alignment to get the estimated
         # number of changes and subtract that from the alignment length
+        if aln.num_seqs == 1 or len(aln) == 0:
+            return 0.0
         self._calc(aln, show_progress=False)
         dmat = self._calc.dists
         lengths = self._calc.lengths
