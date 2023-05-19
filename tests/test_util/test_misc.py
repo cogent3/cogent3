@@ -7,6 +7,7 @@ from unittest import TestCase
 
 import pytest
 
+from numpy import array
 from numpy.testing import assert_allclose
 
 from cogent3.util.misc import (
@@ -33,6 +34,7 @@ from cogent3.util.misc import (
     get_object_provenance,
     get_run_start_indices,
     get_setting_from_environ,
+    get_true_spans,
     identity,
     is_char,
     is_char_or_noniterable,
@@ -1250,3 +1252,35 @@ _body_expect = ["Notes", "-----", "body"]
 def test_docstring_to_summary_rest(foo, sum_exp, body_exp):
     summary, body = docstring_to_summary_rest(foo.__doc__)
     assert summary == sum_exp and body.split() == body_exp
+
+
+def test_get_true_spans_absolute():
+    got = get_true_spans(array([0, 1, 1, 0, 1]))
+    assert_allclose(got, array([[1, 2], [4, 1]]))
+    got = get_true_spans(array([0, 0]))
+    assert not len(got)
+
+    got = get_true_spans(array([0, 0, 1, 1]))
+    assert_allclose(got, array([[2, 2]]))
+    got = get_true_spans(array([1, 0, 0, 1, 1]))
+    assert_allclose(got, array([[0, 1], [3, 2]]))
+    got = get_true_spans(array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]))
+    assert_allclose(got, array([[0, 1], [3, 4], [8, 2]]))
+    got = get_true_spans(
+        # abs  0  1  2  3  4  5  6  7  8  9
+        array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]),
+        absolute_pos=False
+        # u       0  1              2
+    )
+    assert_allclose(got, array([[0, 1], [2, 4], [3, 2]]))
+
+    got = get_true_spans(array([0, 0, 0, 1, 1, 1, 0, 0]))
+    assert_allclose(got, array([(3, 3)]))
+
+
+def test_get_true_spans_not_absolute():
+    got = get_true_spans(array([0, 1, 1, 0, 1]), absolute_pos=False)
+    assert_allclose(got, array([[1, 2], [2, 1]]))
+
+    got = get_true_spans(array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]), absolute_pos=False)
+    assert_allclose(got, array([[0, 1], [2, 4], [3, 2]]))

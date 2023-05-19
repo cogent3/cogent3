@@ -1,5 +1,7 @@
 """Generally useful utility classes and methods.
 """
+from __future__ import annotations
+
 import inspect
 import os
 import re
@@ -11,7 +13,7 @@ from warnings import warn
 
 import numpy
 
-from numpy import array, finfo, float64
+from numpy import array, finfo, float64, ndarray, zeros
 
 
 def _adjusted_gt_minprob_vector(probs, minprob):
@@ -1034,3 +1036,45 @@ def in_jupyter() -> bool:
         val = False
 
     return val
+
+
+def get_true_spans(arr: ndarray, absolute_pos: bool = True) -> ndarray:
+    """
+    returns array of [[start position, length],...] of True runs
+
+    Parameters
+    ----------
+    arr
+        bool array
+    absolute_pos
+        the absolute position in self, otherwise the position
+        represents the index in the underlying series of False values
+        between which the True run occurs.
+
+    Notes
+    -----
+    Designed for use with individual records from Alignment.get_gap_array(). This
+    method returns a bool array with the gap state as True.
+    """
+    result = zeros((arr.shape[0], 2), dtype=int)
+    true_run = False
+    num_runs = 0
+    cum_sum = 0
+    for i, v in enumerate(arr):
+        if v and true_run:
+            result[num_runs][1] += 1
+            cum_sum += 1
+        elif not v and true_run:
+            # we just ended a run of False values
+            num_runs += 1
+            true_run = False
+        elif v:
+            result[num_runs][:] = [i if absolute_pos else i - cum_sum, 1]
+            true_run = True
+            cum_sum += 1
+
+    if true_run:
+        # finished in a run
+        num_runs += 1
+
+    return result[:num_runs]
