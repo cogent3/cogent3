@@ -2560,43 +2560,22 @@ class AlignmentI(object):
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
 
-    def alignment_quality(self, equifreq_mprobs=True):
+    def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
-        Computes the alignment quality for an alignment based on eq. (2) in noted reference.
+        Computes the alignment quality using the indicated app
 
         Parameters
         ----------
-        equifreq_mprobs : bool
-            If true, specifies equally frequent motif probabilities.
+        app_name
+            name of an alignment score calculating app, e.g. 'ic_score',
+            'cogent3_score', 'sp_score'
 
-        Notes
-        -----
-        G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
-
-        The alignment quality statistic is a log-likelihood ratio (computed using log2)
-        of the observed alignment column freqs versus the expected.
+        kwargs
+            keyword arguments to be passed to the app. Use
+            ``cogent3.app_help(app_name)`` to see the available options.
         """
-        counts = self.counts_per_pos()
-        if counts.array.max() == 0 or len(self.seqs) == 1:
-            return None
-
-        motif_probs = self.get_motif_probs()
-
-        if equifreq_mprobs:
-            # we reduce motif_probs to observed states
-            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
-            num_motifs = len(motif_probs)
-            motif_probs = {m: 1 / num_motifs for m in motif_probs}
-
-        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
-
-        cols = p != 0
-        p = p[cols]
-        counts = counts.array[:, cols]
-        frequency = counts / self.num_seqs
-        log_f = safe_log(frequency / p)
-        I_seq = log_f * frequency
-        return I_seq.sum()
+        app = cogent3.get_app(app_name, **kwargs)
+        return app(self)
 
     def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.

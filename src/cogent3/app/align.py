@@ -1,7 +1,10 @@
 import warnings
 
 from bisect import bisect_left
+from itertools import combinations
 from typing import Union
+
+from numpy import array
 
 from cogent3 import make_tree
 from cogent3.align import (
@@ -14,7 +17,9 @@ from cogent3.app import dist
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
+from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
+from cogent3.maths.util import safe_log
 
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
@@ -528,3 +533,157 @@ class progressive_align:
                 result = NotCompleted("ERROR", self, err.args[0], source=seqs)
                 return result
         return result
+
+
+@define_app
+class ic_score:
+    """compute the Information Content alignment quality score
+
+    Returns
+    -------
+    The score or 0.0 if it cannot be computed.
+
+    Notes
+    -----
+    Based on eq. (2) in noted reference.
+
+    Hertz, G. Z. & Stormo, G. D. Identifying DNA and protein patterns with
+    statistically significant alignments of multiple sequences.
+    Bioinformatics vol. 15 563–577 (Oxford University Press, 1999)
+    """
+
+    def __init__(self, equifreq_mprobs=True):
+        """
+        Parameters
+        ----------
+        equifreq_mprobs : bool
+            If true, specifies equally frequent motif probabilities.
+        """
+        self._equi_frequent = equifreq_mprobs
+
+    def main(self, aln: AlignedSeqsType) -> float:
+        counts = aln.counts_per_pos(include_ambiguity=False, allow_gap=False)
+        if counts.array.max() == 0 or aln.num_seqs == 1:
+            return 0.0
+
+        motif_probs = aln.get_motif_probs(include_ambiguity=False, allow_gap=False)
+
+        if self._equi_frequent:
+            # we reduce motif_probs to observed states
+            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
+            num_motifs = len(motif_probs)
+            motif_probs = {m: 1 / num_motifs for m in motif_probs}
+
+        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
+
+        cols = p != 0
+        p = p[cols]
+        counts = counts.array[:, cols]
+        frequency = counts / aln.num_seqs
+        log_f = safe_log(frequency / p)
+        I_seq = log_f * frequency
+        return I_seq.sum()
+
+
+@define_app
+def cogent3_score(aln: AlignedSeqsType) -> float:
+    """returns the cogent3 log-likelihood as an alignment quality score
+
+    Parameters
+    ----------
+    aln
+        An alignment instance.
+
+    Returns
+    -------
+    returns the log-likelihood, or 0.0 if the alignment does not have the
+    score
+
+    Notes
+    -----
+    The cogent3 tree_align algorithm is a progressive-HMM. It records
+    the log-likelihood of the alignment (in addition to all other
+    the parameter values, including the guide tree) in
+    ``alignment.info['align_params']``. This can be used as a measure of
+    alignment quality.
+
+    The instance must have been aligned using cogent3 tree_align. In addition,
+    if the alignment has been saved, it has must have been serialised
+    using a format that preserves the score.
+    """
+    if aln.num_seqs == 1 or len(aln) == 0:
+        return 0.0
+
+    align_params = aln.info.get("align_params", {})
+    return align_params.get("lnL", 0.0)
+
+
+@define_app
+class sp_score:
+    """Compute a variant of Sum of Pairs alignment quality score
+
+    Returns
+    -------
+    The score or 0.0 if it cannot be computed.
+
+    Notes
+    -----
+    We first compute pairwise genetic distances by the user specified
+    method. For each pair, this genetic distance is converted into an
+    estimate of the number of unchanged positions (with the minimum being
+    zero). The result is a sequence similarity matrix.
+
+    We compute pairwise affine gap distance using the user specified
+    values. The first matrix minus the second gives the statistic for
+    individual pairs and their sum is the Sum of Pairs score.
+
+    Carrillo, H. & Lipman, D. The Multiple Sequence Alignment Problem in
+    Biology. Siam J Appl Math 48, 1073–1082 (1988).
+    """
+
+    def __init__(
+        self, calc: str = "JC69", gap_insert: float = 12.0, gap_extend: float = 1.0
+    ):
+        """
+        Parameters
+        ----------
+        calc
+            name of the pairwise distance calculator
+        gap_insert
+            gap insertion penalty
+        gap_extend
+            gap extension penalty
+
+        Notes
+        -----
+        see available_distances() for the list of available methods.
+        """
+        self._insert = gap_insert
+        self._extend = gap_extend
+        self._calc = get_distance_calculator(calc)
+        self._gap_calc = dist.gap_dist(gap_insert=gap_insert, gap_extend=gap_extend)
+
+    def main(self, aln: AlignedSeqsType) -> float:
+        # this is a distance matrix, we want a similarity matrix
+        # because genetic distances can exceed 1, we need to adjust by
+        # multiplying by the length of the alignment to get the estimated
+        # number of changes and subtract that from the alignment length
+        if aln.num_seqs == 1 or len(aln) == 0:
+            return 0.0
+        self._calc(aln, show_progress=False)
+        dmat = self._calc.dists
+        lengths = self._calc.lengths
+        for i, j in combinations(range(aln.num_seqs), 2):
+            n1, n2 = dmat.names[i], dmat.names[j]
+            length = lengths[n1, n2]
+            unchanged = length - dmat[i, j] * length
+            # for very divergent cases, unchanged could be < 0,
+            # limit this to 0
+            dmat[i, j] = dmat[j, i] = max(unchanged, 0.0)
+        # compute the pairwise gap as number of gaps * gap_insert + length
+        # of gaps * gap_extend
+        gap_scores = self._gap_calc(aln)
+        # make sure the two dmats in same name order
+        gap_scores = gap_scores.take_dists(dmat.names)
+        dmat.array -= gap_scores
+        return dmat.array.sum() / 2

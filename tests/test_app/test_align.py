@@ -1,7 +1,14 @@
-from unittest import TestCase, main
+from unittest import TestCase
+
+import numpy
+import pytest
+
+from numpy import log2
+from numpy.testing import assert_allclose
 
 from cogent3 import (
     DNA,
+    get_app,
     get_moltype,
     make_aligned_seqs,
     make_tree,
@@ -19,7 +26,7 @@ from cogent3.app.align import (
     pairwise_to_multiple,
 )
 from cogent3.app.composable import NotCompleted
-from cogent3.core.alignment import Aligned, ArrayAlignment
+from cogent3.core.alignment import Aligned, Alignment, ArrayAlignment
 from cogent3.core.location import gap_coords_to_map
 
 
@@ -466,5 +473,110 @@ class GapOffsetTests(TestCase):
             self.assertEqual(aln_pos - aln2seq[aln_pos], seq_pos)
 
 
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_information_content_score(cls):
+    """Tests that the alignment_quality generates the right alignment quality
+    value based on the Hertz-Stormo metric. expected values are hand calculated
+    using the formula in the paper."""
+    app_equifreq = get_app("ic_score", equifreq_mprobs=True)
+    app_not_equifreq = get_app("ic_score", equifreq_mprobs=False)
+
+    aln = cls(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
+    got = app_equifreq(aln)
+    expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
+    assert_allclose(got, expect)
+    # should be the same with the default moltype too
+    aln = cls(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"])
+    got = app_equifreq(aln)
+    assert_allclose(got, expect)
+
+    aln = cls(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
+    got = app_not_equifreq(aln)
+    expect = (
+        2 * log2(1 / 0.4)
+        + log2(1 / (4 * 0.4))
+        + (1 / 2) * log2(1 / (8 / 15))
+        + (1 / 4) * log2(1 / (4 / 15))
+    )
+    assert_allclose(got, expect)
+
+    # 1. Alignment just gaps - alignment_quality returns 0.0
+    aln = cls(["----", "----"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 0.0)
+
+    # 2 Just one sequence - alignment_quality returns 0.0
+    aln = cls(["AAAC"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 0.0)
+
+    # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
+    aln = cls(["----", "ACAT"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 1.1699250014423124)
+
+    # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
+    aln = cls(["----", "AAAA"])
+    got = app_not_equifreq(aln)
+    assert_allclose(got, -2)
+
+
+@pytest.fixture(scope="function")
+def aln():
+    aligner = align_app.progressive_align(model="TN93", distance="TN93")
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA)
+    return aligner(seqs)
+
+
+def test_cogent3_score(aln):
+    get_score = get_app("cogent3_score")
+    score = get_score(aln)
+    assert score < -100
+
+
+@pytest.mark.parametrize("del_all_params", (True, False))
+def test_cogent3_score_missing(aln, del_all_params):
+    get_score = get_app("cogent3_score")
+    if del_all_params:
+        aln.info.pop("align_params")
+    else:
+        aln.info["align_params"].pop("lnL")
+    score = get_score(aln)
+    assert score == 0.0
+
+
+def test_sp_score_exclude_gap():
+    # no gap penalty
+    app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
+    data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
+    # prop unchanged s1-s2, s1-s3
+    expect = sum([6 * 3 / 6, 0, 5 * 2 / 5])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, expect)
+
+
+def test_sp_score_additive_gap():
+    # additive gap score
+    app = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=0)
+    data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
+    # match score
+    mscore = numpy.array([6 * 3 / 6, 0, 5 * 2 / 5])
+    # gap score
+    gscore = numpy.array([2, 1, 3])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, (mscore - gscore).sum())
+
+
+def test_sp_score_affine_gap():
+    # affine gap score
+    app = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=2)
+    data = {"a": "AAGAA-A", "b": "-ATAATG", "c": "C-TGG-G"}
+    # match score
+    mscore = numpy.array([6 * 3 / 6, 0, 5 * 2 / 5])
+    # gap score
+    gscore = numpy.array([2 + 4, 2 + 1, 3 + 6])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, (mscore - gscore).sum())
