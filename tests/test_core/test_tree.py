@@ -2201,3 +2201,12 @@ def test_get_distances_endpoints(num_tips):
     dists = tree.get_distances(endpoints=names[:num_tips] or None)
     num = 4 if num_tips == 0 else num_tips
     assert len(dists) == (num**2 - num)
+
+
+def test_lrm_method():
+    # this test just exercises the method, the tests on the underlying
+    # function are in test_tree_distance.py
+    a = make_tree(treestring="(1,(((2,3),4),(5,((6,(7,(8,9))),(10,11)))),12);")
+    b = make_tree(treestring="(1,((((2,3),4),5),((6,7),((8,9),(10,11)))),12);")
+    distance = a.lin_rajan_moret(b)
+    assert distance == 8

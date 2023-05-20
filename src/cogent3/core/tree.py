@@ -1596,6 +1596,27 @@ class TreeNode(object):
         tip = self.get_node_matching_name(outgroup_name)
         return tip.parent.unrooted_deepcopy()
 
+    def lin_rajan_moret(self, tree2) -> float:
+        """return the lin-rajan-moret distance between trees
+
+        float
+            the Lin-Rajan-Moret distance
+
+        Notes
+        -----
+        This is a distance measure that exhibits superior statistical
+        properties compared to Robinson-Foulds. It can only be applied to
+        unrooted trees.
+
+        see: Lin et al. 2012
+        A Metric for Phylogenetic Trees Based on Matching
+        IEEE/ACM Transactions on Computational Biology and Bioinformatics
+        vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
+        """
+        from cogent3.phylo.tree_distance import lin_rajan_moret
+
+        return lin_rajan_moret(self, tree2)
+
 
 class PhyloNode(TreeNode):
     def __init__(self, *args, **kwargs):

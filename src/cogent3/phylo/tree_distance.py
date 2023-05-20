@@ -5,33 +5,27 @@ import numpy
 
 from scipy.optimize import linear_sum_assignment
 
-from cogent3.core.tree import PhyloNode
 
-
-def lin_rajan_moret(tree1: PhyloNode, tree2: PhyloNode) -> float:
-    """calculate the lin-rajan-moret distance (matchign distance) between two trees
+def lin_rajan_moret(tree1: "PhyloNode", tree2: "PhyloNode") -> float:
+    """calculate the lin-rajan-moret distance (matching distance) between trees
 
     trees should have matching tips and must not be rooted.
 
     Parameters
     ----------
-    tree1: PhyloNode
-    tree2: PhyloNode
+    tree1, tree2: PhyloNode
         trees to calculate distance between
 
     Returns
     -------
     float
-        the lin-rajan-moret distance
+        the Lin-Rajan-Moret distance
 
     Notes
     -----
-    see:
-    Lin et al. 2012
-    A Metric for Phylogenetic Trees Based on Matching
+    see: Lin et al. 2012 A Metric for Phylogenetic Trees Based on Matching
     IEEE/ACM Transactions on Computational Biology and Bioinformatics
     vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
-
     """
     names = tree1.get_tip_names()
 
@@ -50,7 +44,7 @@ def lin_rajan_moret(tree1: PhyloNode, tree2: PhyloNode) -> float:
     return float(matching_distance)
 
 
-def _convert_tree_to_vectors(tree: PhyloNode, tip_names: List) -> numpy.ndarray:
+def _convert_tree_to_vectors(tree: "PhyloNode", tip_names: List) -> numpy.ndarray:
     ref_tip = tip_names[0]
     name_set = set(tip_names)
     name_index = {n: i for i, n in enumerate(tip_names)}
