@@ -564,7 +564,13 @@ class ic_score:
     def main(self, aln: AlignedSeqsType) -> float:
         counts = aln.counts_per_pos(include_ambiguity=False, allow_gap=False)
         if counts.array.max() == 0 or aln.num_seqs == 1:
-            return 0.0
+            msg = "zero length" if len(aln) == 0 else "single sequence"
+            return NotCompleted(
+                "FAL",
+                self,
+                f"cannot compute alignment quality because {msg}",
+                source=aln.info,
+            )
 
         motif_probs = aln.get_motif_probs(include_ambiguity=False, allow_gap=False)
 
@@ -612,10 +618,21 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     using a format that preserves the score.
     """
     if aln.num_seqs == 1 or len(aln) == 0:
-        return 0.0
+        msg = "zero length" if len(aln) == 0 else "single sequence"
+        return NotCompleted(
+            "FAL",
+            "cogent3_score",
+            f"cannot compute alignment quality because {msg}",
+            source=aln.info,
+        )
 
     align_params = aln.info.get("align_params", {})
-    return align_params.get("lnL", 0.0)
+    return align_params.get(
+        "lnL",
+        NotCompleted(
+            "FAL", "cogent3_score", "no alignment quality score", source=aln.info
+        ),
+    )
 
 
 @define_app
@@ -669,7 +686,14 @@ class sp_score:
         # multiplying by the length of the alignment to get the estimated
         # number of changes and subtract that from the alignment length
         if aln.num_seqs == 1 or len(aln) == 0:
-            return 0.0
+            msg = "zero length" if len(aln) == 0 else "single sequence"
+            return NotCompleted(
+                "FAL",
+                self,
+                f"cannot compute alignment quality because {msg}",
+                source=aln.info,
+            )
+
         self._calc(aln, show_progress=False)
         dmat = self._calc.dists
         lengths = self._calc.lengths

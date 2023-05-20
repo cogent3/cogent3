@@ -2573,6 +2573,10 @@ class AlignmentI(object):
         kwargs
             keyword arguments to be passed to the app. Use
             ``cogent3.app_help(app_name)`` to see the available options.
+
+        Returns
+        -------
+        float or a NotCompleted instance if the score could not be computed
         """
         app = cogent3.get_app(app_name, **kwargs)
         return app(self)
