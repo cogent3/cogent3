@@ -542,7 +542,7 @@ def test_cogent3_score_missing(aln, del_all_params):
     else:
         aln.info["align_params"].pop("lnL")
     score = get_score(aln)
-    assert score == 0.0
+    assert isinstance(score, NotCompleted)
 
 
 def test_sp_score_exclude_gap():
