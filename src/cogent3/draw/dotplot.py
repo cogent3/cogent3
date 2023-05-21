@@ -256,7 +256,7 @@ class Dotplot(Drawable):
         sk = SeqKmers(seq1, k=k, canonical=set(seq1.moltype))
         seq2 = None if seq1 == seq2 else seq2
         fwd = find_matched_paths(
-            sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+            seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
         )
         fwd.name = "+ strand"
         if rc:
@@ -266,7 +266,7 @@ class Dotplot(Drawable):
             seq2 = seq1.rc() if seq2 is None else seq2.rc()
             seq2.name = f"{seq2.name}-rc"
             rev = find_matched_paths(
-                sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+                seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
             )
             rev.name = "- strand"
         else:
