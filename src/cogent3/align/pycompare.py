@@ -555,13 +555,14 @@ def _calc_seed_size(w: int, t: int) -> int:
 
 
 def find_matched_paths(
+    *,
     seq_kmers: SeqKmers,
     seq1: Sequence,
     seq2: Optional[Sequence] = None,
     window: int = 20,
     threshold: int = 17,
 ) -> MatchedSeqPaths:
-    """determine all matches between seq1 and seq21
+    """determine all matches between seq1 and seq2
 
     Parameters
     ----------
