@@ -438,6 +438,16 @@ class SqliteAnnotationDbMixin:
         obj._serialisable = init_vals
         return obj
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        total_records = len(self)
+        args = ", ".join(
+            f"{k}={repr(v) if isinstance(v, str) else v}"
+            for k, v in self._serialisable.items()
+            if k != "data"
+        )
+        return f"{name}({args}, total_records={total_records})"
+
     def __deepcopy__(self, memodict=None):
         memodict = memodict or {}
         if _is_ge_3_11:
