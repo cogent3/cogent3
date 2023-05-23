@@ -488,8 +488,15 @@ class SqliteAnnotationDbMixin:
     @property
     def db(self) -> sqlite3.Connection:
         if self._db is None:
+            # todo gah understand serialisation issue
+            # the check_same_thread=False is required for multiprocess, even
+            # when the db is empty (tests fail). This  appears unrelated to
+            # our code, and does not affect pickling/unpickling on the same
+            # thread
             self._db = sqlite3.connect(
-                self.source, detect_types=sqlite3.PARSE_DECLTYPES
+                self.source,
+                detect_types=sqlite3.PARSE_DECLTYPES,
+                check_same_thread=False,
             )
             self._db.row_factory = sqlite3.Row
 
