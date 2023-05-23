@@ -576,6 +576,9 @@ class _SequenceCollectionBase:
     def annotation_db(self, value):
         from cogent3.core.annotation_db import SupportsFeatures
 
+        if value == self._annotation_db:
+            return
+
         if value and not isinstance(value, SupportsFeatures):
             raise TypeError
         self._annotation_db = value

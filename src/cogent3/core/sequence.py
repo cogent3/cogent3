@@ -866,6 +866,9 @@ class Sequence(SequenceI):
 
     @annotation_db.setter
     def annotation_db(self, value):
+        if value == self._annotation_db:
+            return
+
         if value and not isinstance(value, SupportsFeatures):
             raise TypeError
         # Without knowing the contents of the db we cannot

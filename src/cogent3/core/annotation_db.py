@@ -158,6 +158,10 @@ class SupportsFeatures(
         # the number of records
         ...
 
+    def __eq__(self):
+        # equality based on class and identity of the bound db
+        ...
+
 
 def _make_table_sql(
     table_name: str,
@@ -458,6 +462,9 @@ class SqliteAnnotationDbMixin:
 
     def __len__(self):
         return self.num_matches()
+
+    def __eq__(self, other):
+        return type(self) == type(other) and other.db is self.db
 
     @property
     def table_names(self) -> tuple[str]:
