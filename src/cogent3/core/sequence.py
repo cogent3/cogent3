@@ -43,6 +43,7 @@ from cogent3._version import __version__
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
     FeatureDataType,
     GenbankAnnotationDb,
     GffAnnotationDb,
@@ -834,7 +835,7 @@ class Sequence(SequenceI):
         self.info = info
 
         self._repr_policy = dict(num_pos=60)
-        self._annotation_db = None
+        self._annotation_db = BasicAnnotationDb()
         self.annotation_offset = annotation_offset
 
     @property
@@ -866,8 +867,12 @@ class Sequence(SequenceI):
 
     @annotation_db.setter
     def annotation_db(self, value):
+        if value == self._annotation_db:
+            return
+
         if value and not isinstance(value, SupportsFeatures):
-            raise TypeError
+            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
@@ -876,7 +881,11 @@ class Sequence(SequenceI):
         # for both DNA and RNA. But if a user trys get_slice()
         # on a '-' strand feature, they will get a TypError.
         # I think that's enough.
-        self._annotation_db = value
+        if self._annotation_db and len(self._annotation_db):
+            # we take the union
+            self._annotation_db = self._annotation_db.union(value)
+        else:
+            self._annotation_db = value
 
     @deprecated_args(
         "2023.7",
@@ -1086,15 +1095,18 @@ class Sequence(SequenceI):
         ----------
         f : path to gff annotation file.
         offset : Optional, the offset between annotation coordinates and sequence coordinates.
-
         """
-        if self.annotation_db is None:
-            self.annotation_db = load_annotations(f, self.name)
+        if isinstance(self.annotation_db, GffAnnotationDb):
+            # the db is updated directly
+            self.annotation_db = load_annotations(
+                path=f, seqids=self.name, db=self.annotation_db.db
+            )
         elif isinstance(self.annotation_db, GenbankAnnotationDb):
             raise ValueError("GenbankAnnotationDb already attached")
         else:
-            self.annotation_db = load_annotations(
-                f, self.name, db=self.annotation_db._db
+            db = load_annotations(path=f, seqids=self.name)
+            self.annotation_db = (
+                db.update(self.annotation_db) if len(self.annotation_db) else db
             )
 
         if offset:
@@ -1135,9 +1147,6 @@ class Sequence(SequenceI):
         -------
         Feature instance
         """
-        if self.annotation_db is None:
-            self.annotation_db = GffAnnotationDb()
-
         feature_data = FeatureDataType(
             seqid=self.name,
             **{n: v for n, v in locals().items() if n not in ("self", "seqid")},
@@ -1183,7 +1192,7 @@ class Sequence(SequenceI):
 
         Notes
         -----
-        Only copies annotations for records with seqid self.name
+        Only copies annotations for records with seqid equal to self.name
         """
         if not isinstance(seq_db, SupportsFeatures):
             raise TypeError(
@@ -1193,13 +1202,13 @@ class Sequence(SequenceI):
         if not seq_db.num_matches(seqid=self.name):
             return
 
-        if not self.annotation_db:
-            # todo gah add ability to query multiple values in Feature db
-            self.annotation_db = type(seq_db)()  # make an empty db of the same type
-        elif not isinstance(seq_db, type(self.annotation_db)):
+        if self.annotation_db and not self.annotation_db.compatible(seq_db):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
-        self.annotation_db.update(seq_db, seqids=self.name)
+        if not self.annotation_db:
+            self.annotation_db = type(seq_db)()
+
+        self.annotation_db.union(seq_db, seqids=self.name)
 
     def copy(self, exclude_annotations=False):
         """returns a copy of self"""
@@ -1210,17 +1219,6 @@ class Sequence(SequenceI):
         db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
         new._annotation_db = db
         return new
-
-    def _get_feature_start(self, feature):
-        """returns feature offset relative to parent feature(s)"""
-        start = feature.map.start
-        offset = 0
-        while feature.parent is not self:
-            feature = feature.parent
-            if feature.map.start - start:
-                offset += feature.map.start
-
-        return offset + start
 
     def with_masked_annotations(
         self, annot_types, mask_char=None, shadow=False, extend_query=False

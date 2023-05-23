@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import copy
 import inspect
 import json
 import os
@@ -14,7 +15,7 @@ import numpy
 
 from cogent3._version import __version__
 from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.table import Table
 
 
@@ -22,7 +23,10 @@ OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
 OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
 OptionalBool = typing.Optional[bool]
+OptionalDbCursor = typing.Optional[sqlite3.Cursor]
 ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
+# data type for sqlitedb constructors
+T = typing.Optional[typing.Iterable[dict]]
 
 # used for presence of sqlite feature
 _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
@@ -144,10 +148,27 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
         # update records with those from an instance of the same type
         ...
 
+    def union(self, annot_db):
+        # returns a new instance of the more complex class
+        ...
+
 
 @typing.runtime_checkable
-class SupportsFeatures(SupportsQueryFeatures, SupportsWriteFeatures, typing.Protocol):
-    ...
+class SupportsFeatures(
+    SupportsQueryFeatures, SupportsWriteFeatures, SerialisableType, typing.Protocol
+):
+    @property
+    def db(self):
+        # pointer to the actual db
+        ...
+
+    def __len__(self):
+        # the number of records
+        ...
+
+    def __eq__(self, other):
+        # equality based on class and identity of the bound db
+        ...
 
 
 def _make_table_sql(
@@ -418,11 +439,21 @@ class SqliteAnnotationDbMixin:
         obj._serialisable = init_vals
         return obj
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        total_records = len(self)
+        args = ", ".join(
+            f"{k}={repr(v) if isinstance(v, str) else v}"
+            for k, v in self._serialisable.items()
+            if k != "data"
+        )
+        return f"{name}({args}, total_records={total_records})"
+
     def __deepcopy__(self, memodict=None):
         memodict = memodict or {}
         if _is_ge_3_11:
             new = self.__class__(source=self.source)
-            new._db.deserialize(self._db.serialize())
+            new.db.deserialize(self._db.serialize())
             return new
 
         # use rich dict
@@ -447,6 +478,12 @@ class SqliteAnnotationDbMixin:
         self.__dict__.update(data.__dict__)
         return self
 
+    def __len__(self):
+        return self.num_matches()
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and other.db is self.db
+
     @property
     def table_names(self) -> tuple[str]:
         return self._table_names
@@ -462,8 +499,15 @@ class SqliteAnnotationDbMixin:
     @property
     def db(self) -> sqlite3.Connection:
         if self._db is None:
+            # todo gah understand serialisation issue
+            # the check_same_thread=False is required for multiprocess, even
+            # when the db is empty (tests fail). This  appears unrelated to
+            # our code, and does not affect pickling/unpickling on the same
+            # thread
             self._db = sqlite3.connect(
-                self.source, detect_types=sqlite3.PARSE_DECLTYPES
+                self.source,
+                detect_types=sqlite3.PARSE_DECLTYPES,
+                check_same_thread=False,
             )
             self._db.row_factory = sqlite3.Row
 
@@ -533,6 +577,81 @@ class SqliteAnnotationDbMixin:
             allow_partial=allow_partial,
         )
         yield from self._execute_sql(sql, values=vals)
+
+    def _get_feature_by_id(
+        self,
+        table_name: str,
+        columns: list[str],
+        column: str,
+        name: str,
+        start: OptionalInt = None,
+        end: OptionalInt = None,
+        biotype: OptionalStr = None,
+        allow_partial: bool = False,
+    ) -> typing.List[FeatureDataType]:
+        # we return the parent_id because `get_feature_parent()` requires it
+        sql, vals = _select_records_sql(
+            table_name=table_name,
+            conditions={column: name, "biotype": biotype},
+            columns=columns,
+            start=start,
+            end=end,
+        )
+        for result in self._execute_sql(sql, values=vals):
+            result = dict(zip(result.keys(), result))
+            result["on_alignment"] = result.get("on_alignment", None)
+            result["spans"] = [tuple(c) for c in result["spans"]]
+            result["reversed"] = result.pop("strand", None) == "-"
+            yield result
+
+    def get_feature_children(
+        self, name: str, biotype: OptionalStr = None, **kwargs
+    ) -> typing.Iterator[FeatureDataType]:
+        """yields children of name"""
+        # kwargs is used because other classes need start / end
+        # just uses search matching
+        for table_name in self.table_names:
+            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
+            if table_name == "user":
+                columns += ("on_alignment",)
+            for result in self._get_feature_by_id(
+                table_name=table_name,
+                columns=columns,
+                column="parent_id",
+                name=f"%{name}%",
+                biotype=biotype,
+            ):
+                result.pop("parent_id")  # remove invalid field for the FeatureDataType
+                yield result
+
+    def get_feature_parent(
+        self, name: str, **kwargs
+    ) -> typing.Iterator[FeatureDataType]:
+        """yields parents of name"""
+        for table_name in self.table_names:
+            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
+            if table_name == "user":
+                columns += ("on_alignment",)
+            for result in self._get_feature_by_id(
+                table_name=table_name, columns=columns, column="name", name=f"%{name}%"
+            ):
+                # multiple values for parent means this is better expressed
+                # as an OR clause
+                # todo modify the conditional SQL generation
+                for name in result["parent_id"].replace(" ", "").split(","):
+                    if parent := list(
+                        self._get_feature_by_id(
+                            table_name=table_name,
+                            columns=columns,
+                            column="name",
+                            name=name,
+                        )
+                    ):
+                        parent = parent[0]
+                        parent.pop(
+                            "parent_id"
+                        )  # remove invalid field for the FeatureDataType
+                        yield parent
 
     def get_records_matching(
         self,
@@ -642,6 +761,8 @@ class SqliteAnnotationDbMixin:
     @property
     def describe(self) -> Table:
         """top level description of the annotation db"""
+        from cogent3 import make_table
+
         sql_template = "SELECT {}, COUNT(DISTINCT {}) FROM {} GROUP BY {};"
         data = {}
         for column in ("seqid", "biotype"):
@@ -657,8 +778,6 @@ class SqliteAnnotationDbMixin:
         for table in self.table_names:
             result = self._execute_sql(f"SELECT COUNT(*) FROM {table}").fetchone()
             row_counts.append(result["COUNT(*)"])
-
-        from cogent3 import make_table
 
         table = make_table(
             data={
@@ -696,12 +815,66 @@ class SqliteAnnotationDbMixin:
             tables[table_name] = table_data
         return result
 
-    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+    def compatible(self, other_db: SupportsFeatures, symmetric=True) -> bool:
+        """checks whether table_names are compatible
+
+        Parameters
+        ----------
+        other_db
+            the other annotation db instance
+        symmetric
+            checks only that tables of other_db equal, or are a subset, of
+            mine
+        """
+        mine = set(self.table_names)
+        theirs = set(other_db.table_names)
+        return mine <= theirs or mine > theirs if symmetric else mine >= theirs
+
+    def update(
+        self, annot_db: SupportsFeatures, seqids: OptionalStrList = None
+    ) -> None:
         """update records with those from an instance of the same type"""
-        if not isinstance(annot_db, type(self)):
-            raise TypeError(f"{type(annot_db)} != {type(self)}")
+        if not isinstance(annot_db, SupportsFeatures):
+            raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
+        elif not self.compatible(annot_db, symmetric=False):
+            raise TypeError(f"{type(self)} cannot be updated from {type(annot_db)}")
+
+        if not annot_db or not len(annot_db):
+            return
 
         self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
+
+    def union(self, annot_db: SupportsFeatures) -> SupportsFeatures:
+        """returns a new instance with merged records with other
+
+        Parameters
+        ----------
+        annot_db
+            an annotation db whose schema is either a subset, or superset of
+            self
+
+        Returns
+        -------
+        The class whose schema contains the other
+        """
+        if annot_db and not isinstance(annot_db, SupportsFeatures):
+            raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
+        elif not annot_db:
+            return copy.deepcopy(self)
+
+        if self.compatible(annot_db, symmetric=False):
+            cls = type(self)
+        elif self.compatible(annot_db, symmetric=True):
+            cls = type(annot_db)
+        else:
+            raise TypeError(
+                f"cannot make a union between {type(self)} and {type(annot_db)}"
+            )
+
+        db = cls()
+        db.update(self)
+        db.update(annot_db)
+        return db
 
     @classmethod
     def from_dict(cls, data: dict):
@@ -734,9 +907,61 @@ class SqliteAnnotationDbMixin:
         return json.dumps(self.to_rich_dict())
 
 
+class BasicAnnotationDb(SqliteAnnotationDbMixin):
+    """Provides a user table for annotations. This can be merged with
+    either the Gff or Genbank versions.
+
+    Notes
+    -----
+    This is the default db on Sequence, SequenceCollection and Alignment
+    """
+
+    _table_names = ("user",)
+
+    def __init__(
+        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+    ):
+        """
+        Parameters
+        ----------
+        data
+            data for entry into the database
+        db
+            an existing SQLite cursor
+        source
+            location to store the db, defaults to in memory only
+        """
+        data = data or []
+        # note that data is destroyed
+        self._num_fakeids = 0
+        self.source = source
+        self._db = db
+        if db is None:
+            self._init_tables()
+
+        self.add_records(data)
+
+    def add_records(self, data: T) -> None:
+        table_name = self.table_names[0]  # only one name for this class
+        for record in data:
+            record["spans"] = numpy.array(record["spans"], dtype=int)
+            cmnd, vals = _add_record_sql(
+                table_name,
+                {
+                    k: v
+                    for k, v in record.items()
+                    if isinstance(v, numpy.ndarray) or v not in (".", None)
+                },
+            )
+            self._execute_sql(cmnd=cmnd, values=vals)
+
+
 class GffAnnotationDb(SqliteAnnotationDbMixin):
+    """Support for annotations from gff files. Records that span multiple
+    rows in the gff are merged into a single record."""
+
     _table_names = "gff", "user"
-    # am relying on name structured as _<table name>_schema
+    # We are relying on an attribute name structured as _<table name>_schema
     _gff_schema = {
         "seqid": "TEXT",
         "source": "TEXT",
@@ -753,7 +978,10 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         "parent_id": "TEXT",
     }
 
-    def __init__(self, *, data=None, db=None, source=":memory:"):
+    @extend_docstring_from(BasicAnnotationDb.__init__)
+    def __init__(
+        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+    ):
         data = data or []
         # note that data is destroyed
         self._num_fakeids = 0
@@ -764,7 +992,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         data = self._merged_data(data)
         self.add_records(data)
 
-    def add_records(self, reduced):
+    def add_records(self, reduced: dict) -> None:
         # Can we really trust text case of "ID" and "Parent" to be consistent
         # across sources of gff?? I doubt it, so more robust regex likely
         # required
@@ -821,76 +1049,6 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             reduced[record_id]["spans"].append((record["Start"], record["End"]))
         return reduced
 
-    def _get_feature_by_id(
-        self,
-        table_name: str,
-        columns: list[str],
-        column: str,
-        name: str,
-        biotype: OptionalStr = None,
-    ) -> typing.List[FeatureDataType]:
-        # we return the parent_id because `get_feature_parent()` requires it
-        sql, vals = _select_records_sql(
-            table_name=table_name,
-            conditions={column: name, "biotype": biotype},
-            columns=columns,
-        )
-        for result in self._execute_sql(sql, values=vals):
-            result = dict(zip(result.keys(), result))
-            result["on_alignment"] = result.get("on_alignment", None)
-            result["spans"] = [tuple(c) for c in result["spans"]]
-            result["reversed"] = result.pop("strand", None) == "-"
-            yield result
-
-    def get_feature_children(
-        self, name: str, biotype: OptionalStr = None, **kwargs
-    ) -> typing.Iterator[FeatureDataType]:
-        """yields children of name"""
-        # kwargs is used because other classes need start / end
-        # just uses search matching
-        for table_name in self.table_names:
-            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
-            if table_name == "user":
-                columns += ("on_alignment",)
-            for result in self._get_feature_by_id(
-                table_name=table_name,
-                columns=columns,
-                column="parent_id",
-                name=f"%{name}%",
-                biotype=biotype,
-            ):
-                result.pop("parent_id")  # remove invalid field for the FeatureDataType
-                yield result
-
-    def get_feature_parent(
-        self, name: str, **kwargs
-    ) -> typing.Iterator[FeatureDataType]:
-        """yields parents of name"""
-        for table_name in self.table_names:
-            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
-            if table_name == "user":
-                columns += ("on_alignment",)
-            for result in self._get_feature_by_id(
-                table_name=table_name, columns=columns, column="name", name=f"%{name}%"
-            ):
-                # multiple values for parent means this is better expressed
-                # as an OR clause
-                # todo modify the conditional SQL generation
-                for name in result["parent_id"].replace(" ", "").split(","):
-                    if parent := list(
-                        self._get_feature_by_id(
-                            table_name=table_name,
-                            columns=columns,
-                            column="name",
-                            name=name,
-                        )
-                    ):
-                        parent = parent[0]
-                        parent.pop(
-                            "parent_id"
-                        )  # remove invalid field for the FeatureDataType
-                        yield parent
-
 
 # The GenBank format is less clear on the relationship between identifiers,
 # e.g. it can be gene -> SRP_RNA -> exon, gene -> CDS, etc... Without having
@@ -904,8 +1062,15 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
 
 class GenbankAnnotationDb(SqliteAnnotationDbMixin):
+    """Support for annotations from Genbank files.
+
+    Notes
+    -----
+    Extended attributes are stored as json in the gb, attributes column.
+    """
+
     _table_names = "gb", "user"
-    # am relying on name structured as _<table name>_schema
+    # We are relying on an attribute name structured as _<table name>_schema
     _gb_schema = {
         "seqid": "TEXT",
         "source": "TEXT",
@@ -921,14 +1086,19 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         "attributes": "json",
     }
 
+    @extend_docstring_from(BasicAnnotationDb.__init__)
     def __init__(
         self,
         *,
-        data: typing.Optional[typing.List[dict]] = None,
+        data: T = None,
         seqid: OptionalStr = None,
+        db: OptionalDbCursor = None,
         source=":memory:",
-        db=None,
     ):
+        """
+        seqid
+            name of the sequence data is associated with
+        """
         data = data or []
         # note that data is destroyed
         self._db = db
@@ -938,11 +1108,6 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
-        # Can we really trust case to be consistent across sources of gff??
-        # I doubt it, so more robust regex likely required
-        # Can we even rely on these concepts being represented by the text
-        # ID and Parent?
-
         # need to capture genetic code from genbank, but what a
 
         col_key_map = {"type": "biotype", "locus_tag": "name"}
@@ -973,34 +1138,6 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
             )
             self._execute_sql(cmnd=cmnd, values=vals)
 
-    def _get_feature_by_id(
-        self,
-        table_name: str,
-        name: str,
-        start: int,
-        end: int,
-        biotype: OptionalStr = None,
-        allow_partial: bool = False,
-    ) -> typing.List[FeatureDataType]:
-        # we return the parent_id because `get_feature_parent()` requires it
-        sql, vals = _select_records_sql(
-            table_name=table_name,
-            conditions={"name": name, "biotype": biotype},
-            start=start,
-            end=end,
-            columns=["biotype", "start", "end", "spans", "strand", "name", "parent_id"],
-            allow_partial=allow_partial,
-        )
-        for result in self._execute_sql(sql, values=vals):
-            yield {
-                "biotype": result["biotype"],
-                "name": name,
-                "start": result["start"],
-                "end": result["end"],
-                "spans": [tuple(c) for c in result["spans"]],
-                "reverse": result["strand"] == "-",
-            }
-
     def get_feature_children(
         self,
         name: str,
@@ -1011,9 +1148,24 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # children must lie within the parent coordinates
-        for table in self.table_names:
+        for table_name in self.table_names:
+            columns = (
+                "seqid",
+                "biotype",
+                "spans",
+                "strand",
+                "name",
+                "parent_id",
+                "start",
+                "end",
+            )
+            if table_name == "user":
+                columns += ("on_alignment",)
+
             for feat in self._get_feature_by_id(
-                table_name=table,
+                table_name=table_name,
+                columns=columns,
+                column="name",
                 name=name,
                 biotype=biotype,
                 start=int(start),
@@ -1036,9 +1188,23 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
         # parent must match or lie outside the coordinates
-        for table in self.table_names:
+        for table_name in self.table_names:
+            columns = (
+                "seqid",
+                "biotype",
+                "spans",
+                "strand",
+                "name",
+                "parent_id",
+                "start",
+                "end",
+            )
+            if table_name == "user":
+                columns += ("on_alignment",)
             for feat in self._get_feature_by_id(
-                table_name=table,
+                table_name=table_name,
+                columns=columns,
+                column="name",
                 name=name,
                 start=int(start),
                 end=int(end),
@@ -1052,6 +1218,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 if cstart > start or end > cend:
                     continue
                 yield feat
+
+
+@register_deserialiser(get_object_provenance(BasicAnnotationDb))
+def deserialise_basic_db(data: dict):
+    return BasicAnnotationDb.from_dict(data)
 
 
 @register_deserialiser(get_object_provenance(GffAnnotationDb))
@@ -1068,7 +1239,7 @@ def deserialise_gb_db(data: dict):
 def convert_annotation_to_annotation_db(data: dict) -> dict:
     from cogent3.util.deserialise import deserialise_map_spans
 
-    db = GffAnnotationDb()
+    db = BasicAnnotationDb()
 
     seqid = data.pop("name", None)
     anns = data.pop("data")
@@ -1113,7 +1284,9 @@ def _db_from_gff(path, seqids, db):
     return GffAnnotationDb(data=data, db=db)
 
 
-def load_annotations(path: os.PathLike, seqids=None, db=None) -> SupportsFeatures:
+def load_annotations(
+    path: os.PathLike, seqids: OptionalStr = None, db: OptionalDbCursor = None
+) -> SupportsFeatures:
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path)

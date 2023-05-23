@@ -58,6 +58,7 @@ import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 from cogent3._version import __version__
 from cogent3.core.annotation import Feature, Map
 from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
     FeatureDataType,
     GenbankAnnotationDb,
     GffAnnotationDb,
@@ -89,7 +90,7 @@ from cogent3.util.misc import (
 from cogent3.util.union_dict import UnionDict
 
 
-DEFAULT_ANNOTATION_DB = GffAnnotationDb
+DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 
 class DataError(Exception):
@@ -566,7 +567,7 @@ class _SequenceCollectionBase:
         self._set_additional_attributes(curr_seqs)
 
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
-        self._annotation_db = anno_db or None
+        self._annotation_db = anno_db or DEFAULT_ANNOTATION_DB()
 
     @property
     def annotation_db(self):
@@ -576,9 +577,14 @@ class _SequenceCollectionBase:
     def annotation_db(self, value):
         from cogent3.core.annotation_db import SupportsFeatures
 
+        if value == self._annotation_db:
+            return
+
         if value and not isinstance(value, SupportsFeatures):
-            raise TypeError
+            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+
         self._annotation_db = value
+
         for seq in self.seqs:
             seq.annotation_db = value
 
@@ -2050,31 +2056,6 @@ class _SequenceCollectionBase:
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences"""
 
-    def _apply_annotation_db_to_seqs(self) -> None:
-        """propagates the db bound to self across all sequences
-
-        Raises
-        ------
-        ValueError if a sequence has a different instance
-        """
-        attr = "annotation_db"
-        self_db = self.annotation_db
-        type_self_db = type(self_db)
-        for seq in self.seqs:
-            if hasattr(seq, "data"):
-                seq = seq.data
-            seq_db = seq.annotation_db
-            if seq_db and not isinstance(seq_db, type_self_db):
-                raise ValueError(
-                    f"inconsistent state with self db {type_self_db} and {seq.name!r} db {type(seq_db)}"
-                )
-            elif seq_db and seq_db is not self_db:
-                raise ValueError(
-                    f"inconsistent state {seq.name!r} has a different instance of {type(seq_db)}"
-                )
-
-            seq.annotation_db = self_db
-
     def copy_annotations(self, seq_db: SupportsFeatures) -> None:
         """copy annotations into attached annotation db
 
@@ -2085,31 +2066,30 @@ class SequenceCollection(_SequenceCollectionBase):
 
         Notes
         -----
-        Only copies annotations for records with seqid self.names
+        Only copies annotations for records with seqid in self.names
         """
         if not isinstance(seq_db, SupportsFeatures):
             raise TypeError(
                 f"type {type(seq_db)} does not match SupportsFeatures interface"
             )
 
-        if not self.annotation_db:
-            # todo gah add ability to query multiple values in Feature db
-            num = 0
-            for seqid in self.names:
-                num += seq_db.num_matches(seqid=seqid)
-                if num > 0:
-                    break
-            else:
-                # no matching ID's, nothing to do
-                return
+        num = 0
+        for seqid in self.names:
+            num += seq_db.num_matches(seqid=seqid)
+            if num > 0:
+                break
+        else:
+            # no matching ID's, nothing to do
+            return
 
-            self.annotation_db = type(seq_db)()  # make an empty db of the same type
-
-        if not isinstance(seq_db, type(self.annotation_db)):
-            raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
-
-        self.annotation_db.update(annot_db=seq_db, seqids=self.names)
-        self._apply_annotation_db_to_seqs()
+        if self.annotation_db.compatible(seq_db, symmetric=False):
+            # our db contains the tables in other, so we update in place
+            self.annotation_db.update(annot_db=seq_db, seqids=self.names)
+        else:
+            # we use the union method to define a new one
+            # the setter handles propagation of the new instance to bound
+            # sequences
+            self.annotation_db = self.annotation_db.union(seq_db)
 
     def annotate_from_gff(
         self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
@@ -2124,23 +2104,21 @@ class SequenceCollection(_SequenceCollectionBase):
 
         """
         if isinstance(self.annotation_db, GenbankAnnotationDb):
-            raise ValueError(
-                "GenbankAnnotationDb already attached, is incompatible with GffAnnotationDb"
-            )
+            raise ValueError("GenbankAnnotationDb already attached")
 
         if isinstance(seq_ids, str):
             seq_ids = [seq_ids]
         else:
             seq_ids = self.names
 
-        if self.annotation_db is None:
-            self.annotation_db = load_annotations(f, seq_ids)
+        if isinstance(self.annotation_db, GffAnnotationDb):
+            self.annotation_db = load_annotations(
+                path=f, seqids=seq_ids, db=self.annotation_db.db
+            )
         else:
-            self.annotation_db = load_annotations(f, seq_ids, db=self.annotation_db._db)
-
-        # add reference to this annotation_db on each sequence that was provided in seq_ids
-        for seq in seq_ids:
-            self.get_seq(seq).annotation_db = self.annotation_db
+            db = load_annotations(path=f, seqids=seq_ids)
+            db.update(self.annotation_db)
+            self.annotation_db = db
 
     def make_feature(
         self,

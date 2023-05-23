@@ -3227,8 +3227,13 @@ def test_assign_none(cls, gff_db):
 
 def test_copy_annotations_incompat_fails(seqcoll_db, gb_db):
     """copy_annotations copies records from annotation db"""
+    db = seqcoll_db.annotation_db
+    seqcoll = seqcoll_db.rename_seqs(
+        lambda x: "AE017341" if x == seqcoll_db.names[0] else seqcoll_db.names[0]
+    )
+    seqcoll.annotation_db = db
     with pytest.raises(TypeError):
-        seqcoll_db.copy_annotations(gb_db)
+        seqcoll.copy_annotations(gb_db)
 
 
 def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
@@ -3292,7 +3297,7 @@ def test_seq_rename_drops_annotations(cls):
     seqs.add_feature(seqid="seq1", biotype="exon", name="fred", spans=[(3, 8)])
     assert seqs.annotation_db is not None
     new = seqs.rename_seqs(lambda x: x.upper())
-    assert new.annotation_db is None
+    assert not len(new.annotation_db)
 
 
 @pytest.mark.parametrize(

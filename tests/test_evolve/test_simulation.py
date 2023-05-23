@@ -33,8 +33,8 @@ def _est_simulations():
 
     new_lf = sm.make_likelihood_function(t)
     new_lf = new_lf.set_alignment(simulated)
-    new_lf.optimise(tolerance=1.0)
-    new_lf.optimise(local=True)
+    new_lf.optimise(tolerance=1.0, show_progress=False)
+    new_lf.optimise(local=True, show_progress=False)
     new_lf.set_name("True JC model")
     print(new_lf)
 
@@ -60,7 +60,7 @@ def _est_simulations():
     new_lf = sm.make_likelihood_function(t)
     new_lf.set_param_rule("kappa", is_independent=True)
     new_lf.set_alignment(simulated)
-    new_lf.optimise(tolerance=1.0)
-    new_lf.optimise(local=True)
+    new_lf.optimise(tolerance=1.0, show_progress=False)
+    new_lf.optimise(local=True, show_progress=False)
     new_lf.set_name("Estimated Kappa model")
     print(new_lf)

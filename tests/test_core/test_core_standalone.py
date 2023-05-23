@@ -995,7 +995,7 @@ def test_load_seq_new():
 
     # annotated with gff
     got = load_seq(
-        data_dir / "annotated_seq.gb",
+        data_dir / "c_elegans_WS199_dna_shortened.fasta",
         annotation_path=data_dir / "c_elegans_WS199_shortened_gff.gff3",
     )
     assert isinstance(got, Sequence)

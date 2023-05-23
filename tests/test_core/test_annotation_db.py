@@ -5,6 +5,8 @@ import pytest
 
 from cogent3 import DNA, SequenceCollection, _Table, load_seq
 from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
+    GenbankAnnotationDb,
     GffAnnotationDb,
     SupportsFeatures,
     _matching_conditions,
@@ -44,10 +46,10 @@ def seq() -> Sequence:
     return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
 
 
-@pytest.fixture()
-def anno_db() -> GffAnnotationDb:
+@pytest.fixture(scope="function")
+def anno_db() -> BasicAnnotationDb:
     # an empty db that we can add to
-    return GffAnnotationDb()
+    return BasicAnnotationDb()
 
 
 @pytest.fixture()
@@ -635,3 +637,40 @@ def test_writing_attributes_gff(gff_db):
     )
     r = list(gff_db.get_records_matching(attributes="cancer"))[0]
     assert r["name"] == "cancer-gene"
+
+
+def test_equal():
+    db1 = BasicAnnotationDb()
+    db2 = BasicAnnotationDb()
+    db3 = BasicAnnotationDb()
+    assert db1 != db2
+    # we define equality by same class AND same db instance
+    db3._db = db2._db
+    assert db2 == db3
+
+
+@pytest.mark.parametrize("other", (GenbankAnnotationDb, GffAnnotationDb))
+def test_compatible_symmetric(other):
+    basic = BasicAnnotationDb()
+    other = other()
+    assert basic.compatible(basic)
+    assert basic.compatible(other)
+    assert other.compatible(other)
+    assert other.compatible(basic)
+
+
+@pytest.mark.parametrize("other", (GenbankAnnotationDb, GffAnnotationDb))
+def test_compatible_not_symmetric(other):
+    basic = BasicAnnotationDb()
+    other = other()
+    assert basic.compatible(basic, symmetric=False)
+    assert not basic.compatible(other, symmetric=False)
+    assert other.compatible(other, symmetric=False)
+    assert other.compatible(basic, symmetric=False)
+
+
+def test_incompatible():
+    gff = GffAnnotationDb()
+    gb = GenbankAnnotationDb()
+    assert not gff.compatible(gb)
+    assert not gb.compatible(gff)
