@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import copy
 import inspect
 import json
 import os
@@ -452,7 +453,7 @@ class SqliteAnnotationDbMixin:
         memodict = memodict or {}
         if _is_ge_3_11:
             new = self.__class__(source=self.source)
-            new._db.deserialize(self._db.serialize())
+            new.db.deserialize(self._db.serialize())
             return new
 
         # use rich dict
@@ -823,6 +824,9 @@ class SqliteAnnotationDbMixin:
         elif not (set(annot_db.table_names) <= set(self.table_names)):
             raise TypeError(f"{type(self)} cannot be updated from {type(annot_db)}")
 
+        if not annot_db or not len(annot_db):
+            return
+
         self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
 
     def union(self, annot_db: SupportsFeatures) -> SupportsFeatures:
@@ -840,6 +844,8 @@ class SqliteAnnotationDbMixin:
         """
         if not isinstance(annot_db, SupportsFeatures):
             raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
+        elif not annot_db:
+            return copy.deepcopy(self)
 
         if set(annot_db.table_names) <= set(self.table_names):
             cls = type(self)
