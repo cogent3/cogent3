@@ -147,6 +147,10 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
         # update records with those from an instance of the same type
         ...
 
+    def union(self, annot_db):
+        # returns a new instance of the more complex class
+        ...
+
 
 @typing.runtime_checkable
 class SupportsFeatures(
@@ -801,6 +805,36 @@ class SqliteAnnotationDbMixin:
             raise TypeError(f"{type(annot_db)} != {type(self)}")
 
         self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
+
+    def union(self, annot_db: SupportsFeatures) -> SupportsFeatures:
+        """returns a new instance with merged records with other
+
+        Parameters
+        ----------
+        annot_db
+            an annotation db whose schema is either a subset, or superset of
+            self
+
+        Returns
+        -------
+        The class whose schema contains the other
+        """
+        if not isinstance(annot_db, SupportsFeatures):
+            raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
+
+        if set(annot_db.table_names) <= set(self.table_names):
+            cls = type(self)
+        elif set(self.table_names) <= set(annot_db.table_names):
+            cls = type(annot_db)
+        else:
+            raise TypeError(
+                f"cannot make a union between {type(self)} and {type(annot_db)}"
+            )
+
+        db = cls()
+        db.update(self)
+        db.update(annot_db)
+        return db
 
     @classmethod
     def from_dict(cls, data: dict):
