@@ -580,7 +580,8 @@ class _SequenceCollectionBase:
             return
 
         if value and not isinstance(value, SupportsFeatures):
-            raise TypeError
+            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+
         self._annotation_db = value
         for seq in self.seqs:
             seq.annotation_db = value

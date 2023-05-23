@@ -870,7 +870,8 @@ class Sequence(SequenceI):
             return
 
         if value and not isinstance(value, SupportsFeatures):
-            raise TypeError
+            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct

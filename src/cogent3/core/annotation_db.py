@@ -801,8 +801,10 @@ class SqliteAnnotationDbMixin:
         self, annot_db: SupportsFeatures, seqids: OptionalStrList = None
     ) -> None:
         """update records with those from an instance of the same type"""
-        if not isinstance(annot_db, type(self)):
-            raise TypeError(f"{type(annot_db)} != {type(self)}")
+        if not isinstance(annot_db, SupportsFeatures):
+            raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
+        elif not (set(annot_db.table_names) <= set(self.table_names)):
+            raise TypeError(f"{type(self)} cannot be updated from {type(annot_db)}")
 
         self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
 
