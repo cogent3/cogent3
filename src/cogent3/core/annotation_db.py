@@ -736,6 +736,8 @@ class SqliteAnnotationDbMixin:
     @property
     def describe(self) -> Table:
         """top level description of the annotation db"""
+        from cogent3 import make_table
+
         sql_template = "SELECT {}, COUNT(DISTINCT {}) FROM {} GROUP BY {};"
         data = {}
         for column in ("seqid", "biotype"):
@@ -751,8 +753,6 @@ class SqliteAnnotationDbMixin:
         for table in self.table_names:
             result = self._execute_sql(f"SELECT COUNT(*) FROM {table}").fetchone()
             row_counts.append(result["COUNT(*)"])
-
-        from cogent3 import make_table
 
         table = make_table(
             data={
@@ -829,8 +829,11 @@ class SqliteAnnotationDbMixin:
 
 
 class GffAnnotationDb(SqliteAnnotationDbMixin):
+    """Support for annotations from gff files. Records that span multiple
+    rows in the gff are merged into a single record."""
+
     _table_names = "gff", "user"
-    # am relying on name structured as _<table name>_schema
+    # We are relying on an attribute name structured as _<table name>_schema
     _gff_schema = {
         "seqid": "TEXT",
         "source": "TEXT",
@@ -928,8 +931,15 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
 
 class GenbankAnnotationDb(SqliteAnnotationDbMixin):
+    """Support for annotations from Genbank files.
+
+    Notes
+    -----
+    Extended attributes are stored as json in the gb, attributes column.
+    """
+
     _table_names = "gb", "user"
-    # am relying on name structured as _<table name>_schema
+    # We are relying on an attribute name structured as _<table name>_schema
     _gb_schema = {
         "seqid": "TEXT",
         "source": "TEXT",
@@ -962,11 +972,6 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
-        # Can we really trust case to be consistent across sources of gff??
-        # I doubt it, so more robust regex likely required
-        # Can we even rely on these concepts being represented by the text
-        # ID and Parent?
-
         # need to capture genetic code from genbank, but what a
 
         col_key_map = {"type": "biotype", "locus_tag": "name"}
