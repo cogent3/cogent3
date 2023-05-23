@@ -1202,8 +1202,8 @@ class Sequence(SequenceI):
         if not seq_db.num_matches(seqid=self.name):
             return
 
-        if self.annotation_db and not isinstance(seq_db, type(db)):
-            raise TypeError(f"type {type(seq_db)} != {type(db)}")
+        if self.annotation_db and not self.annotation_db.compatible(seq_db):
+            raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
         if not self.annotation_db:
             self.annotation_db = type(seq_db)()

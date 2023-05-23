@@ -2082,7 +2082,7 @@ class SequenceCollection(_SequenceCollectionBase):
             # no matching ID's, nothing to do
             return
 
-        if set(self.annotation_db.table_names) >= set(seq_db.table_names):
+        if self.annotation_db.compatible(seq_db, symmetric=False):
             # our db contains the tables in other, so we update in place
             self.annotation_db.update(annot_db=seq_db, seqids=self.names)
         else:

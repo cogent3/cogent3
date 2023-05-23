@@ -482,7 +482,7 @@ class SqliteAnnotationDbMixin:
         return self.num_matches()
 
     def __eq__(self, other):
-        return type(self) == type(other) and other.db is self.db
+        return isinstance(other, self.__class__) and other.db is self.db
 
     @property
     def table_names(self) -> tuple[str]:
@@ -836,7 +836,7 @@ class SqliteAnnotationDbMixin:
         """update records with those from an instance of the same type"""
         if not isinstance(annot_db, SupportsFeatures):
             raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
-        elif not (set(annot_db.table_names) <= set(self.table_names)):
+        elif not self.compatible(annot_db, symmetric=False):
             raise TypeError(f"{type(self)} cannot be updated from {type(annot_db)}")
 
         if not annot_db or not len(annot_db):
@@ -862,9 +862,9 @@ class SqliteAnnotationDbMixin:
         elif not annot_db:
             return copy.deepcopy(self)
 
-        if set(annot_db.table_names) <= set(self.table_names):
+        if self.compatible(annot_db, symmetric=False):
             cls = type(self)
-        elif set(self.table_names) <= set(annot_db.table_names):
+        elif self.compatible(annot_db, symmetric=True):
             cls = type(annot_db)
         else:
             raise TypeError(
