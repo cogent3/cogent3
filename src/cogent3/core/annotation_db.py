@@ -842,7 +842,7 @@ class SqliteAnnotationDbMixin:
         -------
         The class whose schema contains the other
         """
-        if not isinstance(annot_db, SupportsFeatures):
+        if annot_db and not isinstance(annot_db, SupportsFeatures):
             raise TypeError(f"{type(annot_db)} does not satisfy SupportsFeatures")
         elif not annot_db:
             return copy.deepcopy(self)
