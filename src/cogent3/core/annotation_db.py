@@ -22,7 +22,10 @@ OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
 OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
 OptionalBool = typing.Optional[bool]
+OptionalDbCursor = typing.Optional[sqlite3.Cursor]
 ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
+# data type for sqlitedb constructors
+T = typing.Optional[typing.Iterable[dict]]
 
 # used for presence of sqlite feature
 _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
@@ -790,7 +793,9 @@ class SqliteAnnotationDbMixin:
             tables[table_name] = table_data
         return result
 
-    def update(self, annot_db, seqids: OptionalStrList = None) -> None:
+    def update(
+        self, annot_db: SupportsFeatures, seqids: OptionalStrList = None
+    ) -> None:
         """update records with those from an instance of the same type"""
         if not isinstance(annot_db, type(self)):
             raise TypeError(f"{type(annot_db)} != {type(self)}")
@@ -850,7 +855,9 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         "parent_id": "TEXT",
     }
 
-    def __init__(self, *, data=None, db=None, source=":memory:"):
+    def __init__(
+        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+    ):
         data = data or []
         # note that data is destroyed
         self._num_fakeids = 0
@@ -861,7 +868,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         data = self._merged_data(data)
         self.add_records(data)
 
-    def add_records(self, reduced):
+    def add_records(self, reduced: dict) -> None:
         # Can we really trust text case of "ID" and "Parent" to be consistent
         # across sources of gff?? I doubt it, so more robust regex likely
         # required
@@ -958,10 +965,10 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     def __init__(
         self,
         *,
-        data: typing.Optional[typing.List[dict]] = None,
+        data: T = None,
         seqid: OptionalStr = None,
+        db: OptionalDbCursor = None,
         source=":memory:",
-        db=None,
     ):
         data = data or []
         # note that data is destroyed
@@ -1143,7 +1150,9 @@ def _db_from_gff(path, seqids, db):
     return GffAnnotationDb(data=data, db=db)
 
 
-def load_annotations(path: os.PathLike, seqids=None, db=None) -> SupportsFeatures:
+def load_annotations(
+    path: os.PathLike, seqids: OptionalStr = None, db: OptionalDbCursor = None
+) -> SupportsFeatures:
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path)
