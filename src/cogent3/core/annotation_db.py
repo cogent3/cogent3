@@ -815,6 +815,21 @@ class SqliteAnnotationDbMixin:
             tables[table_name] = table_data
         return result
 
+    def compatible(self, other_db: SupportsFeatures, symmetric=True) -> bool:
+        """checks whether table_names are compatible
+
+        Parameters
+        ----------
+        other_db
+            the other annotation db instance
+        symmetric
+            checks only that tables of other_db equal, or are a subset, of
+            mine
+        """
+        mine = set(self.table_names)
+        theirs = set(other_db.table_names)
+        return mine <= theirs or mine > theirs if symmetric else mine >= theirs
+
     def update(
         self, annot_db: SupportsFeatures, seqids: OptionalStrList = None
     ) -> None:

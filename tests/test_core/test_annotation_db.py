@@ -6,6 +6,7 @@ import pytest
 from cogent3 import DNA, SequenceCollection, _Table, load_seq
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
+    GenbankAnnotationDb,
     GffAnnotationDb,
     SupportsFeatures,
     _matching_conditions,
@@ -646,3 +647,30 @@ def test_equal():
     # we define equality by same class AND same db instance
     db3._db = db2._db
     assert db2 == db3
+
+
+@pytest.mark.parametrize("other", (GenbankAnnotationDb, GffAnnotationDb))
+def test_compatible_symmetric(other):
+    basic = BasicAnnotationDb()
+    other = other()
+    assert basic.compatible(basic)
+    assert basic.compatible(other)
+    assert other.compatible(other)
+    assert other.compatible(basic)
+
+
+@pytest.mark.parametrize("other", (GenbankAnnotationDb, GffAnnotationDb))
+def test_compatible_not_symmetric(other):
+    basic = BasicAnnotationDb()
+    other = other()
+    assert basic.compatible(basic, symmetric=False)
+    assert not basic.compatible(other, symmetric=False)
+    assert other.compatible(other, symmetric=False)
+    assert other.compatible(basic, symmetric=False)
+
+
+def test_incompatible():
+    gff = GffAnnotationDb()
+    gb = GenbankAnnotationDb()
+    assert not gff.compatible(gb)
+    assert not gb.compatible(gff)
