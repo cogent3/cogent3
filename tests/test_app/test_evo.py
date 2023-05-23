@@ -2,7 +2,7 @@ import pathlib
 
 from os.path import dirname, join
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
@@ -845,19 +845,6 @@ class TestBootstrap(TestCase):
         # correct message being relayed
         self.assertTrue("ValueError: '-' at" in result.message)
 
-    def test_bstrap_parallel(self):
-        """exercising bootstrap with parallel"""
-        aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
-        aln = aln.take_seqs(aln.names[:3])
-        aln = aln.omit_gap_pos(allowed_gap_frac=0)
-        opt_args = dict(max_evaluations=20, limit_action="ignore")
-        m1 = evo_app.model("F81", opt_args=opt_args)
-        m2 = evo_app.model("HKY85", opt_args=opt_args)
-        hyp = evo_app.hypothesis(m1, m2)
-        strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
-        result = strapper(aln)
-        self.assertIsInstance(result, evo_app.bootstrap_result)
-
     def test_bootstrap_composability(self):
         """can be composed with load_db and write_db"""
         m1 = evo_app.model("F81")
@@ -870,5 +857,15 @@ class TestBootstrap(TestCase):
             _ = io_new.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
 
 
-if __name__ == "__main__":
-    main()
+def test_bstrap_parallel():
+    """exercising bootstrap with parallel"""
+    aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
+    aln = aln.take_seqs(aln.names[:3])
+    aln = aln.omit_gap_pos(allowed_gap_frac=0)
+    opt_args = dict(max_evaluations=20, limit_action="ignore")
+    m1 = evo_app.model("F81", opt_args=opt_args)
+    m2 = evo_app.model("HKY85", opt_args=opt_args)
+    hyp = evo_app.hypothesis(m1, m2)
+    strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
+    result = strapper(aln)
+    assert isinstance(result, evo_app.bootstrap_result)
