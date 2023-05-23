@@ -836,7 +836,7 @@ DogFaced     root      1.0000    1.0000
         tree = self.tree.get_sub_tree(aln.names)
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
-        lf.optimise(max_evaluations=100, limit_action="ignore")
+        lf.optimise(max_evaluations=100, limit_action="ignore", show_progress=False)
         rules = lf.get_param_rules()
 
         new_lf = sm.make_likelihood_function(tree)
@@ -2107,8 +2107,6 @@ class ComparisonTests(TestCase):
         lf.set_param_rule("length", is_independent=False)
         lf.set_param_rule("kappa", loci=ALL)
         lf.set_alignment(loci)
-        # lf.optimise()
-        # rules = lf.get_param_rules()
         rules = [
             {
                 "par_name": "kappa",

@@ -646,4 +646,3 @@ def test_deser_annotated_aln():
     assert aln.annotation_db.num_matches() == 1
     feat = list(aln.get_features(biotype="CDS"))
     assert len(feat) == 1
-    print(feat)

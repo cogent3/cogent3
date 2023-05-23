@@ -121,7 +121,7 @@ def test_source_proxy_simple(fasta_dir):
     assert isinstance(got, source_proxy)
     # calling with list of data that doesn't have a source should
     # also return source_proxy
-    got = list(reader.as_completed([path]))
+    got = list(reader.as_completed([path], show_progress=False))
     assert isinstance(got[0], source_proxy)
 
 
