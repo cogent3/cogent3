@@ -546,6 +546,81 @@ class SqliteAnnotationDbMixin:
         )
         yield from self._execute_sql(sql, values=vals)
 
+    def _get_feature_by_id(
+        self,
+        table_name: str,
+        columns: list[str],
+        column: str,
+        name: str,
+        start: OptionalInt = None,
+        end: OptionalInt = None,
+        biotype: OptionalStr = None,
+        allow_partial: bool = False,
+    ) -> typing.List[FeatureDataType]:
+        # we return the parent_id because `get_feature_parent()` requires it
+        sql, vals = _select_records_sql(
+            table_name=table_name,
+            conditions={column: name, "biotype": biotype},
+            columns=columns,
+            start=start,
+            end=end,
+        )
+        for result in self._execute_sql(sql, values=vals):
+            result = dict(zip(result.keys(), result))
+            result["on_alignment"] = result.get("on_alignment", None)
+            result["spans"] = [tuple(c) for c in result["spans"]]
+            result["reversed"] = result.pop("strand", None) == "-"
+            yield result
+
+    def get_feature_children(
+        self, name: str, biotype: OptionalStr = None, **kwargs
+    ) -> typing.Iterator[FeatureDataType]:
+        """yields children of name"""
+        # kwargs is used because other classes need start / end
+        # just uses search matching
+        for table_name in self.table_names:
+            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
+            if table_name == "user":
+                columns += ("on_alignment",)
+            for result in self._get_feature_by_id(
+                table_name=table_name,
+                columns=columns,
+                column="parent_id",
+                name=f"%{name}%",
+                biotype=biotype,
+            ):
+                result.pop("parent_id")  # remove invalid field for the FeatureDataType
+                yield result
+
+    def get_feature_parent(
+        self, name: str, **kwargs
+    ) -> typing.Iterator[FeatureDataType]:
+        """yields parents of name"""
+        for table_name in self.table_names:
+            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
+            if table_name == "user":
+                columns += ("on_alignment",)
+            for result in self._get_feature_by_id(
+                table_name=table_name, columns=columns, column="name", name=f"%{name}%"
+            ):
+                # multiple values for parent means this is better expressed
+                # as an OR clause
+                # todo modify the conditional SQL generation
+                for name in result["parent_id"].replace(" ", "").split(","):
+                    if parent := list(
+                        self._get_feature_by_id(
+                            table_name=table_name,
+                            columns=columns,
+                            column="name",
+                            name=name,
+                        )
+                    ):
+                        parent = parent[0]
+                        parent.pop(
+                            "parent_id"
+                        )  # remove invalid field for the FeatureDataType
+                        yield parent
+
     def get_records_matching(
         self,
         biotype: str = None,
@@ -833,76 +908,6 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             reduced[record_id]["spans"].append((record["Start"], record["End"]))
         return reduced
 
-    def _get_feature_by_id(
-        self,
-        table_name: str,
-        columns: list[str],
-        column: str,
-        name: str,
-        biotype: OptionalStr = None,
-    ) -> typing.List[FeatureDataType]:
-        # we return the parent_id because `get_feature_parent()` requires it
-        sql, vals = _select_records_sql(
-            table_name=table_name,
-            conditions={column: name, "biotype": biotype},
-            columns=columns,
-        )
-        for result in self._execute_sql(sql, values=vals):
-            result = dict(zip(result.keys(), result))
-            result["on_alignment"] = result.get("on_alignment", None)
-            result["spans"] = [tuple(c) for c in result["spans"]]
-            result["reversed"] = result.pop("strand", None) == "-"
-            yield result
-
-    def get_feature_children(
-        self, name: str, biotype: OptionalStr = None, **kwargs
-    ) -> typing.Iterator[FeatureDataType]:
-        """yields children of name"""
-        # kwargs is used because other classes need start / end
-        # just uses search matching
-        for table_name in self.table_names:
-            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
-            if table_name == "user":
-                columns += ("on_alignment",)
-            for result in self._get_feature_by_id(
-                table_name=table_name,
-                columns=columns,
-                column="parent_id",
-                name=f"%{name}%",
-                biotype=biotype,
-            ):
-                result.pop("parent_id")  # remove invalid field for the FeatureDataType
-                yield result
-
-    def get_feature_parent(
-        self, name: str, **kwargs
-    ) -> typing.Iterator[FeatureDataType]:
-        """yields parents of name"""
-        for table_name in self.table_names:
-            columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
-            if table_name == "user":
-                columns += ("on_alignment",)
-            for result in self._get_feature_by_id(
-                table_name=table_name, columns=columns, column="name", name=f"%{name}%"
-            ):
-                # multiple values for parent means this is better expressed
-                # as an OR clause
-                # todo modify the conditional SQL generation
-                for name in result["parent_id"].replace(" ", "").split(","):
-                    if parent := list(
-                        self._get_feature_by_id(
-                            table_name=table_name,
-                            columns=columns,
-                            column="name",
-                            name=name,
-                        )
-                    ):
-                        parent = parent[0]
-                        parent.pop(
-                            "parent_id"
-                        )  # remove invalid field for the FeatureDataType
-                        yield parent
-
 
 # The GenBank format is less clear on the relationship between identifiers,
 # e.g. it can be gene -> SRP_RNA -> exon, gene -> CDS, etc... Without having
@@ -985,34 +990,6 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
             )
             self._execute_sql(cmnd=cmnd, values=vals)
 
-    def _get_feature_by_id(
-        self,
-        table_name: str,
-        name: str,
-        start: int,
-        end: int,
-        biotype: OptionalStr = None,
-        allow_partial: bool = False,
-    ) -> typing.List[FeatureDataType]:
-        # we return the parent_id because `get_feature_parent()` requires it
-        sql, vals = _select_records_sql(
-            table_name=table_name,
-            conditions={"name": name, "biotype": biotype},
-            start=start,
-            end=end,
-            columns=["biotype", "start", "end", "spans", "strand", "name", "parent_id"],
-            allow_partial=allow_partial,
-        )
-        for result in self._execute_sql(sql, values=vals):
-            yield {
-                "biotype": result["biotype"],
-                "name": name,
-                "start": result["start"],
-                "end": result["end"],
-                "spans": [tuple(c) for c in result["spans"]],
-                "reverse": result["strand"] == "-",
-            }
-
     def get_feature_children(
         self,
         name: str,
@@ -1023,9 +1000,24 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # children must lie within the parent coordinates
-        for table in self.table_names:
+        for table_name in self.table_names:
+            columns = (
+                "seqid",
+                "biotype",
+                "spans",
+                "strand",
+                "name",
+                "parent_id",
+                "start",
+                "end",
+            )
+            if table_name == "user":
+                columns += ("on_alignment",)
+
             for feat in self._get_feature_by_id(
-                table_name=table,
+                table_name=table_name,
+                columns=columns,
+                column="name",
                 name=name,
                 biotype=biotype,
                 start=int(start),
@@ -1048,9 +1040,23 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
         # parent must match or lie outside the coordinates
-        for table in self.table_names:
+        for table_name in self.table_names:
+            columns = (
+                "seqid",
+                "biotype",
+                "spans",
+                "strand",
+                "name",
+                "parent_id",
+                "start",
+                "end",
+            )
+            if table_name == "user":
+                columns += ("on_alignment",)
             for feat in self._get_feature_by_id(
-                table_name=table,
+                table_name=table_name,
+                columns=columns,
+                column="name",
                 name=name,
                 start=int(start),
                 end=int(end),
