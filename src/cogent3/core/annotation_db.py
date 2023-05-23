@@ -14,7 +14,7 @@ import numpy
 
 from cogent3._version import __version__
 from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.table import Table
 
 
