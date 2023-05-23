@@ -535,7 +535,7 @@ class TestDeserialising(TestCase):
 
 def test_convert_annotation_to_annotation_db():
     from cogent3.core.annotation_db import (
-        GffAnnotationDb,
+        BasicAnnotationDb,
         convert_annotation_to_annotation_db,
     )
 
@@ -574,7 +574,7 @@ def test_convert_annotation_to_annotation_db():
     data = convert_annotation_to_annotation_db(data)
     # which can be turned back into an annotation db
     db = deserialise_object(data)
-    assert isinstance(db, GffAnnotationDb)
+    assert isinstance(db, BasicAnnotationDb)
     assert db.num_matches() == 1
 
 

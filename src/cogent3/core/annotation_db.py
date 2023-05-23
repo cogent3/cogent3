@@ -867,6 +867,55 @@ class SqliteAnnotationDbMixin:
         return json.dumps(self.to_rich_dict())
 
 
+class BasicAnnotationDb(SqliteAnnotationDbMixin):
+    """Provides a user table for annotations. This can be merged with
+    either the Gff or Genbank versions.
+
+    Notes
+    -----
+    This is the default db on Sequence, SequenceCollection and Alignment
+    """
+
+    _table_names = ("user",)
+
+    def __init__(
+        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+    ):
+        """
+        Parameters
+        ----------
+        data
+            data for entry into the database
+        db
+            an existing SQLite cursor
+        source
+            location to store the db, defaults to in memory only
+        """
+        data = data or []
+        # note that data is destroyed
+        self._num_fakeids = 0
+        self.source = source
+        self._db = db
+        if db is None:
+            self._init_tables()
+
+        self.add_records(data)
+
+    def add_records(self, data: T) -> None:
+        table_name = self.table_names[0]  # only one name for this class
+        for record in data:
+            record["spans"] = numpy.array(record["spans"], dtype=int)
+            cmnd, vals = _add_record_sql(
+                table_name,
+                {
+                    k: v
+                    for k, v in record.items()
+                    if isinstance(v, numpy.ndarray) or v not in (".", None)
+                },
+            )
+            self._execute_sql(cmnd=cmnd, values=vals)
+
+
 class GffAnnotationDb(SqliteAnnotationDbMixin):
     """Support for annotations from gff files. Records that span multiple
     rows in the gff are merged into a single record."""
@@ -889,6 +938,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         "parent_id": "TEXT",
     }
 
+    @extend_docstring_from(BasicAnnotationDb.__init__)
     def __init__(
         self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
     ):
@@ -996,6 +1046,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         "attributes": "json",
     }
 
+    @extend_docstring_from(BasicAnnotationDb.__init__)
     def __init__(
         self,
         *,
@@ -1004,6 +1055,10 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         db: OptionalDbCursor = None,
         source=":memory:",
     ):
+        """
+        seqid
+            name of the sequence data is associated with
+        """
         data = data or []
         # note that data is destroyed
         self._db = db
@@ -1125,6 +1180,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 yield feat
 
 
+@register_deserialiser(get_object_provenance(BasicAnnotationDb))
+def deserialise_basic_db(data: dict):
+    return BasicAnnotationDb.from_dict(data)
+
+
 @register_deserialiser(get_object_provenance(GffAnnotationDb))
 def deserialise_gff_db(data: dict):
     return GffAnnotationDb.from_dict(data)
@@ -1139,7 +1199,7 @@ def deserialise_gb_db(data: dict):
 def convert_annotation_to_annotation_db(data: dict) -> dict:
     from cogent3.util.deserialise import deserialise_map_spans
 
-    db = GffAnnotationDb()
+    db = BasicAnnotationDb()
 
     seqid = data.pop("name", None)
     anns = data.pop("data")

@@ -5,6 +5,7 @@ import pytest
 
 from cogent3 import DNA, SequenceCollection, _Table, load_seq
 from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
     GffAnnotationDb,
     SupportsFeatures,
     _matching_conditions,
@@ -44,10 +45,10 @@ def seq() -> Sequence:
     return Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
 
 
-@pytest.fixture()
-def anno_db() -> GffAnnotationDb:
+@pytest.fixture(scope="function")
+def anno_db() -> BasicAnnotationDb:
     # an empty db that we can add to
-    return GffAnnotationDb()
+    return BasicAnnotationDb()
 
 
 @pytest.fixture()
