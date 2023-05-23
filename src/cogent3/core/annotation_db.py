@@ -146,8 +146,17 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
 
 
 @typing.runtime_checkable
-class SupportsFeatures(SupportsQueryFeatures, SupportsWriteFeatures, typing.Protocol):
-    ...
+class SupportsFeatures(
+    SupportsQueryFeatures, SupportsWriteFeatures, SerialisableType, typing.Protocol
+):
+    @property
+    def db(self):
+        # pointer to the actual db
+        ...
+
+    def __len__(self):
+        # the number of records
+        ...
 
 
 def _make_table_sql(
@@ -446,6 +455,9 @@ class SqliteAnnotationDbMixin:
         data = type(self).from_dict(state)
         self.__dict__.update(data.__dict__)
         return self
+
+    def __len__(self):
+        return self.num_matches()
 
     @property
     def table_names(self) -> tuple[str]:
