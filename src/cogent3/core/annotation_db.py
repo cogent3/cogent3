@@ -166,7 +166,7 @@ class SupportsFeatures(
         # the number of records
         ...
 
-    def __eq__(self):
+    def __eq__(self, other):
         # equality based on class and identity of the bound db
         ...
 
