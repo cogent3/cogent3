@@ -82,7 +82,7 @@ class DataMemberABC(ABC):
     def __eq__(self, other):
         """to check equality of members and check existence of a
         member in a list of members"""
-        return type(self) == type(other) and (self.data_store, self.unique_id) == (
+        return isinstance(other, type(self)) and (self.data_store, self.unique_id) == (
             other.data_store,
             other.unique_id,
         )
@@ -476,7 +476,7 @@ class DataStoreDirectory(DataStoreABC):
     def not_completed(self) -> list[DataMember]:
         if not self._not_completed:
             self._not_completed = []
-            for i, m in enumerate((self.source / _NOT_COMPLETED_TABLE).glob(f"*.json")):
+            for i, m in enumerate((self.source / _NOT_COMPLETED_TABLE).glob("*.json")):
                 if self.limit and i == self.limit:
                     break
                 self._not_completed.append(
@@ -830,10 +830,10 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
 
     dstore = DataStoreSqlite(source=dest, mode=OVERWRITE)
     writer = write_db(data_store=dstore)
-    for id, data, is_completed in data_list:
-        if id.endswith(".log"):
+    for id_, data, _ in data_list:
+        if id_.endswith(".log"):
             cmnd = f"UPDATE {_LOG_TABLE} SET data =?, log_name =?"
-            values = (data, id)
+            values = (data, id_)
             with contextlib.suppress(ValueError):
                 date = datetime.strptime(
                     data.split("\t", maxsplit=1)[0], "%Y-%m-%d %H:%M:%S"
@@ -846,7 +846,7 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
 
             dstore.db.execute(cmnd, values)
         else:
-            writer.main(data, identifier=id)
+            writer.main(data, identifier=id_)
 
     # add a new log, recording this conversion
     LOGGER.shutdown()
@@ -855,7 +855,7 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
     dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
     log_file_path.unlink()
     if lock_id is not None or dstore._lock_id:
-        cmnd = f"UPDATE state SET lock_pid =? WHERE state_id == 1"
+        cmnd = "UPDATE state SET lock_pid =? WHERE state_id == 1"
         dstore.db.execute(cmnd, (lock_id,))
 
     return dstore
@@ -863,10 +863,8 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
 
 def make_record_for_json(identifier, data, completed):
     """returns a dict for storage as json"""
-    try:
+    with contextlib.suppress(AttributeError):
         data = data.to_rich_dict()
-    except AttributeError:
-        pass
 
     data = json.dumps(data)
     return dict(identifier=identifier, data=data, completed=completed)
@@ -874,14 +872,11 @@ def make_record_for_json(identifier, data, completed):
 
 def load_record_from_json(data):
     """returns identifier, data, completed status from json string"""
-    if type(data) == str:
+    if isinstance(data, str):
         data = json.loads(data)
 
     value = data["data"]
     if isinstance(value, str):
-        try:
+        with contextlib.suppress(json.JSONDecodeError):
             value = json.loads(value)
-        except json.JSONDecodeError:
-            pass
-
     return data["identifier"], value, data["completed"]

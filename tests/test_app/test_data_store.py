@@ -19,7 +19,6 @@ from cogent3.app.data_store import (
     APPEND,
     OVERWRITE,
     READONLY,
-    DataMember,
     DataStoreDirectory,
     ReadOnlyDataStoreZipped,
     convert_directory_datastore,
