@@ -10,51 +10,6 @@ import cogent3.util.progress_display as UI
 from cogent3.core.sequence import Sequence
 
 
-# deprecated code block
-@UI.display_wrap
-def dotplot(
-    seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None
-):  # pragma: no cover
-    """A list of line segments covering the window-mers with identical matches > threshold
-
-    gaps of size less than min_gap will be hidden, which saves on line segments.
-    if 'band' is not None then it limits the searched area
-    """
-    from cogent3.util.warning import discontinued
-
-    from . import compare_numba
-
-    discontinued(
-        "function",
-        "dotplot",
-        "2023.5",
-        "replaced by much faster find_matched_paths",
-    )
-
-    segments_from_diagonal = compare_numba.segments_from_diagonal
-
-    def one_diagonal(dia):
-        segs = segments_from_diagonal(
-            seq1, seq2, window, threshold, min_gap_length, dia
-        )
-        return [((start, start + dia), (end, end + dia)) for (start, end) in segs]
-
-    if band is None:
-        band = max(len(seq1), len(seq2))
-
-    if isinstance(seq1, str):
-        seq1 = seq1.encode("utf8")
-
-    if isinstance(seq2, str):
-        seq2 = seq2.encode("utf8")
-
-    diagonals = list(range(-min(len(seq1), band), min(len(seq2), band) + 1))
-    result = []
-    for diag_segments in ui.imap(one_diagonal, diagonals, noun="offset"):
-        result.extend(diag_segments)
-    return result
-
-
 @dataclass
 class segment:
     """coordinates of a segment of a linear series"""
