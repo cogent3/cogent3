@@ -161,7 +161,7 @@ class SequenceI(object):
         discontinued(
             "function",
             "cogent3.core.sequence.Sequence.translate",
-            "2023.6",
+            "2023.7",
             "Better if user just converts sequence to string.",
         )
         return str(self).translate(*args, **kwargs)
@@ -1364,7 +1364,7 @@ class Sequence(SequenceI):
 
     def gettype(self):  # pragma: no cover
         """Return the sequence type."""
-        deprecated("method", "gettype", "get_type", "2023.6", "pep8")
+        deprecated("method", "gettype", "get_type", "2023.7", "pep8")
         return self.get_type()
 
     def get_type(self):
@@ -1377,7 +1377,7 @@ class Sequence(SequenceI):
             "method",
             "resolveambiguities",
             "resolved_ambiguities",
-            "2023.6",
+            "2023.7",
             "pep8",
         )
         return self.resolved_ambiguities()
