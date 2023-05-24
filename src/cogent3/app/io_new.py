@@ -26,7 +26,7 @@ from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
 from .composable import LOADER, WRITER, NotCompleted, define_app
-from .data_store_new import (
+from .data_store import (
     READONLY,
     DataStoreABC,
     DataStoreDirectory,

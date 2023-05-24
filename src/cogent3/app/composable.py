@@ -20,7 +20,7 @@ from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest, get_object_provenance
 
-from .data_store_new import DataMember, get_data_source, get_unique_id
+from .data_store import DataMember, get_data_source, get_unique_id
 
 
 _builtin_seqs = list, set, tuple

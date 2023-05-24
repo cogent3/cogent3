@@ -13,7 +13,7 @@ from scitrack import get_text_hexdigest
 import cogent3.app.io_new as io_app
 
 from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
     APPEND,

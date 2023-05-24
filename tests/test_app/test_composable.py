@@ -31,7 +31,7 @@ from cogent3.app.composable import (
     get_object_provenance,
     is_composable,
 )
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     APPEND,
     OVERWRITE,
     READONLY,

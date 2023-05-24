@@ -4,7 +4,7 @@ from unittest import TestCase, main
 
 from cogent3 import make_aligned_seqs, make_table
 from cogent3.app import evo as evo_app
-from cogent3.app.data_store_new import DataMember
+from cogent3.app.data_store import DataMember
 from cogent3.app.result import (
     generic_result,
     hypothesis_result,

@@ -16,7 +16,7 @@ from numpy.testing import assert_allclose
 from cogent3 import DNA, get_app, open_data_store
 from cogent3.app import io_new as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     DataMember,
     DataStoreDirectory,
     Mode,
@@ -565,7 +565,7 @@ def db_dstore(tmp_dir):
 )
 def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     def uniqid(source):
-        from cogent3.app.data_store_new import get_data_source
+        from cogent3.app.data_store import get_data_source
 
         name = pathlib.Path(get_data_source(source)).name
         return name.split(".")[0]

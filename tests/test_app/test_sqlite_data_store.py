@@ -8,7 +8,7 @@ from scitrack import get_text_hexdigest
 
 from cogent3 import get_app, open_data_store
 from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     APPEND,
     OVERWRITE,
     READONLY,
