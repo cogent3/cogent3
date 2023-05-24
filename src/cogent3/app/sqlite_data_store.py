@@ -422,7 +422,7 @@ class DataStoreSqlite(DataStoreABC):
     def summary_not_completed(self) -> c3_types.TabularType:
         """returns a table summarising not completed results"""
         from .data_store import summary_not_completeds
-        from .io_new import DEFAULT_DESERIALISER
+        from .io import DEFAULT_DESERIALISER
 
         return summary_not_completeds(
             self.not_completed, deserialise=DEFAULT_DESERIALISER

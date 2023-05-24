@@ -10,7 +10,7 @@ import pytest
 
 from scitrack import get_text_hexdigest
 
-import cogent3.app.io_new as io_app
+import cogent3.app.io as io_app
 
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import (

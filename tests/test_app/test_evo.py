@@ -14,7 +14,7 @@ from cogent3 import (
     open_data_store,
 )
 from cogent3.app import evo as evo_app
-from cogent3.app import io_new
+from cogent3.app import io
 from cogent3.app.composable import NotCompleted
 from cogent3.app.result import (
     hypothesis_result,
@@ -853,8 +853,8 @@ class TestBootstrap(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             dirname = pathlib.Path(dirname)
             out_dstore = open_data_store(dirname / "delme.sqlitedb", mode="w")
-            writer = io_new.write_db(out_dstore)
-            _ = io_new.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
+            writer = io.write_db(out_dstore)
+            _ = io.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
 
 
 def test_bstrap_parallel():

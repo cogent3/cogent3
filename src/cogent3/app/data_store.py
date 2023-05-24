@@ -790,7 +790,7 @@ def convert_tinydb_to_sqlite(source: Path, dest: Optional[Path] = None) -> DataS
 
     from .composable import CachingLogger, _make_logfile_name
     from .data_store import load_record_from_json
-    from .io_new import write_db
+    from .io import write_db
     from .sqlite_data_store import _LOG_TABLE, DataStoreSqlite
 
     try:

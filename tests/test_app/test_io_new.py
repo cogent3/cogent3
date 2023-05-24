@@ -14,7 +14,7 @@ import pytest
 from numpy.testing import assert_allclose
 
 from cogent3 import DNA, get_app, open_data_store
-from cogent3.app import io_new as io_app
+from cogent3.app import io as io_app
 from cogent3.app.composable import NotCompleted, source_proxy
 from cogent3.app.data_store import (
     DataMember,
@@ -22,7 +22,7 @@ from cogent3.app.data_store import (
     Mode,
     ReadOnlyDataStoreZipped,
 )
-from cogent3.app.io_new import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
+from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.evolve.fast_distance import DistanceMatrix

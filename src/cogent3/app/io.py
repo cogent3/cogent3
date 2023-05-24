@@ -1,13 +1,16 @@
+import contextlib
 import json
-import os
-import pathlib
+import pickle
 import zipfile
 
-from typing import Union
+from enum import Enum
+from gzip import compress as gzip_compress
+from gzip import decompress as gzip_decompress
+from pathlib import Path
+from typing import Any, Optional, Union
 
 import numpy
 
-from cogent3.app.io_new import _datastore_reader_map, register_datastore_reader
 from cogent3.core.alignment import ArrayAlignment, SequenceCollection
 from cogent3.core.moltype import get_moltype
 from cogent3.core.profile import (
@@ -19,23 +22,21 @@ from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.format.alignment import FORMATTERS
 from cogent3.parse.sequence import PARSERS
 from cogent3.util.deserialise import deserialise_object
+from cogent3.util.misc import extend_docstring_from
 from cogent3.util.table import Table
 
-from .composable import (
-    LOADER,
-    WRITER,
-    NotCompleted,
-    _checkpointable,
-    define_app,
-)
+from .composable import LOADER, WRITER, NotCompleted, define_app
 from .data_store import (
-    SKIP,
-    SingleReadDataStore,
-    WritableTinyDbDataStore,
-    get_data_source,
+    READONLY,
+    DataStoreABC,
+    DataStoreDirectory,
+    Mode,
+    ReadOnlyDataStoreZipped,
+    get_unique_id,
     load_record_from_json,
     make_record_for_json,
 )
+from .sqlite_data_store import _MEMORY, DataStoreSqlite
 from .typing import (
     AlignedSeqsType,
     IdentifierType,
@@ -46,68 +47,235 @@ from .typing import (
 )
 
 
-def findall(base_path, suffix="fa", limit=None, verbose=False):
-    """returns glob match to suffix, path is relative to base_path
+_datastore_reader_map = {}
+
+
+class register_datastore_reader:
+    """
+    registration decorator for read only data store classes
+
+    The registration key must be a string that of the file format suffix
+    (more than one suffix can be registered at a time).
 
     Parameters
     ----------
-    base_path : str
-        path to directory or zipped archive
-    suffix : str
-        suffix of filenames
-    limit : int or None
-        the number of matches to return
+    args: str or sequence of str
+        must be unique, a preceding '.' will be added if not already present
     """
-    from cogent3.util.warning import discontinued
 
-    discontinued(
-        "function", "findall", "2023.3", "use the new cogent3.open_data_store()"
+    def __init__(self, *args):
+        args = list(args)
+        for i, suffix in enumerate(args):
+            if suffix is None:
+                assert (
+                    suffix not in _datastore_reader_map
+                ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+                continue
+
+            if not isinstance(suffix, str):
+                raise TypeError(f"{suffix!r} is not a string")
+
+            if suffix.strip() == suffix and not suffix:
+                raise ValueError("cannot have white-space suffix")
+
+            suffix = suffix.strip()
+            if suffix:
+                suffix = suffix if suffix[0] == "." else f".{suffix}"
+
+            assert (
+                suffix not in _datastore_reader_map
+            ), f"{suffix!r} already in {list(_datastore_reader_map)}"
+            args[i] = suffix
+
+        self._type_str = tuple(args)
+
+    def __call__(self, func):
+        for type_str in self._type_str:
+            _datastore_reader_map[type_str] = func
+        return func
+
+
+# register the main readers
+register_datastore_reader("zip")(ReadOnlyDataStoreZipped)
+register_datastore_reader(None)(DataStoreDirectory)
+register_datastore_reader("sqlitedb")(DataStoreSqlite)
+
+
+def open_data_store(
+    base_path: Union[str, Path],
+    suffix: Optional[str] = None,
+    limit: Optional[int] = None,
+    mode: Union[str, Mode] = READONLY,
+    **kwargs,
+) -> DataStoreABC:
+    """returns DataStore instance of a type specified by the path suffix
+
+    Parameters
+    ----------
+    base_path
+        path to directory or db
+    suffix
+        suffix of filenames
+    limit
+        the number of matches to return
+    mode
+        opening mode, either r, w, a as per file opening modes
+    """
+    mode = Mode(mode)
+    if not isinstance(suffix, (str, type(None))):
+        raise ValueError(f"suffix {type(suffix)} not one of string or None")
+
+    kwargs = {"limit": limit, "mode": mode, "suffix": suffix, **kwargs}
+    base_path = Path(base_path)
+    base_path = (
+        base_path if base_path.name == ":memory:" else base_path.expanduser().absolute()
     )
+    if base_path.is_dir():
+        ds_suffix = None
+    elif base_path.suffix == ".sqlitedb" or base_path.name == _MEMORY:
+        ds_suffix = ".sqlitedb"
+        kwargs.pop("suffix")
+    elif zipfile.is_zipfile(base_path):
+        ds_suffix = ".zip"
+    elif base_path.suffix:
+        ds_suffix = base_path.suffix
+    else:
+        # triggered when mode="w"
+        ds_suffix = None
 
-    if not os.path.exists(base_path):
-        raise ValueError(f"'{base_path}' does not exist")
+    if base_path.name == _MEMORY and mode is READONLY:
+        raise NotImplementedError("in memory readonly sqlitedb")
 
-    zipped = zipfile.is_zipfile(base_path)
-    klass = _datastore_reader_map.get(".zip" if zipped else None)
-    data_store = klass(base_path, suffix=suffix, limit=limit, verbose=verbose)
-    return data_store.members
+    if ds_suffix is None and suffix is None:
+        raise ValueError("a suffix is required if using a directory data store")
 
+    klass = _datastore_reader_map[ds_suffix]
 
-def get_data_store(
-    base_path: Union[str, pathlib.Path], suffix=None, limit=None, verbose=False
-):  # pragma: no cover
-    """DEPRECATED, use top level open_data_store"""
-    from cogent3 import open_data_store
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "get_data_store",
-        "cogent3.open_data_store",
-        "2023.3",
-        "renamed and now a top-level import",
-    )
-
-    return open_data_store(base_path=base_path, suffix=suffix, limit=limit)
+    return klass(base_path, **kwargs)
 
 
-def _load_seqs(path, klass, parser, moltype):  # pragma: no cover
-    abs_path = str(path)
-    if not hasattr(path, "read"):
-        # we use a DataStoreMember as it's read() handles zipped compression
-        path = SingleReadDataStore(str(path))[0]
-    data = path.read().splitlines()
+@define_app(skip_not_completed=False)
+def pickle_it(data: SerialisableType) -> bytes:
+    """Serialises data using pickle."""
+    return pickle.dumps(data)
+
+
+@define_app(skip_not_completed=False)
+def unpickle_it(data: bytes) -> SerialisableType:
+    "Deserialises pickle data."
+    return pickle.loads(data)
+
+
+@define_app(skip_not_completed=False)
+class compress:
+    """Compresses bytes data."""
+
+    def __init__(self, compressor: callable = gzip_compress):
+        """
+        Parameters
+        ----------
+        compressor
+            function for compressing bytes data, defaults to gzip
+        """
+        self.compressor = compressor
+
+    def main(self, data: bytes) -> bytes:
+        return self.compressor(data)
+
+
+@define_app(skip_not_completed=False)
+class decompress:
+    """Decompresses data."""
+
+    def __init__(self, decompressor: callable = gzip_decompress):
+        """
+        Parameters
+        ----------
+        decompressor
+            a function for decompression, defaults to the gzip decompress
+            function
+        """
+        self.decompressor = decompressor
+
+    def main(self, data: bytes) -> bytes:
+        return self.decompressor(data)
+
+
+def as_dict(obj: Any) -> dict:
+    """returns result of to_rich_dict method if it exists"""
+    with contextlib.suppress(AttributeError):
+        obj = obj.to_rich_dict()
+    return obj
+
+
+@define_app(skip_not_completed=False)
+class to_primitive:
+    """convert an object to primitive python types suitable for serialisation"""
+
+    def __init__(self, convertor: callable = as_dict):
+        self.convertor = convertor
+
+    def main(self, data: SerialisableType) -> SerialisableType:
+        """returns dict from a cogent3 object"""
+        return self.convertor(data)
+
+
+@define_app(skip_not_completed=False)
+class from_primitive:
+    """deserialises from primitive python types"""
+
+    def __init__(self, deserialiser: callable = deserialise_object):
+        self.deserialiser = deserialiser
+
+    def main(self, data: SerialisableType) -> SerialisableType:
+        """either json or a dict from a cogent3 object"""
+        return self.deserialiser(data)
+
+
+@define_app
+def to_json(data: SerialisableType) -> str:
+    """Convert primitive python types to json string."""
+    return json.dumps(data)
+
+
+@define_app
+def from_json(data: str) -> SerialisableType:
+    """Convert json string to primitive python types."""
+    return json.loads(data)
+
+
+class tabular(Enum):
+    table = "table"
+    distances = "distances"
+    motif_counts = "motif_counts"
+    motif_freqs = "motif_freqs"
+    pssm = "pssm"
+
+
+def _read_it(path):
+    path = Path(path) if isinstance(path, str) else path
+    try:
+        data = path.read()
+    except AttributeError:
+        try:
+            data = path.read_text()
+        except AttributeError:
+            raise IOError(f"unexpected type {type(path)}")
+    return data
+
+
+def _load_seqs(path, klass, parser, moltype):
+    data = _read_it(path)
+    data = data.splitlines()
     data = dict(iter(parser(data)))
     seqs = klass(data=data, moltype=moltype)
-    seqs.info.source = abs_path
+    seqs.info.source = str(path)
     return seqs
 
 
 @define_app(app_type=LOADER)
-class load_aligned:  # pragma: no cover
+class load_aligned:
     """Loads aligned sequences. Returns an Alignment object."""
-
-    klass = ArrayAlignment
 
     def __init__(self, moltype=None, format="fasta"):
         """
@@ -118,35 +286,21 @@ class load_aligned:  # pragma: no cover
         format : str
             sequence file format
         """
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "load_aligned",
-            "use cogent3.get_app('load_aligned')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
-        if moltype:
-            moltype = get_moltype(moltype)
-        self.moltype = moltype
+        self.moltype = moltype if moltype is None else get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = Union[SerialisableType, AlignedSeqsType]
 
     def main(self, path: IdentifierType) -> T:
         """returns alignment"""
-        return _load_seqs(path, self.klass, self._parser, self.moltype)
+        return _load_seqs(path, ArrayAlignment, self._parser, self.moltype)
 
 
 @define_app(app_type=LOADER)
-class load_unaligned:  # pragma: no cover
+class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
-    klass = SequenceCollection
-
-    def __init__(self, moltype=None, format="fasta"):
+    def __init__(self, *, moltype=None, format="fasta"):
         """
         Parameters
         ----------
@@ -155,31 +309,19 @@ class load_unaligned:  # pragma: no cover
         format : str
             sequence file format
         """
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "load_unaligned",
-            "use cogent3.get_app('load_unaligned')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
-        if moltype:
-            moltype = get_moltype(moltype)
-        self.moltype = moltype
+        self.moltype = moltype if moltype is None else get_moltype(moltype)
         self._parser = PARSERS[format.lower()]
 
     T = Union[SerialisableType, UnalignedSeqsType]
 
     def main(self, path: IdentifierType) -> T:
         """returns sequence collection"""
-        seqs = _load_seqs(path, self.klass, self._parser, self.moltype)
+        seqs = _load_seqs(path, SequenceCollection, self._parser, self.moltype)
         return seqs.degap()
 
 
 @define_app(app_type=LOADER)
-class load_tabular:  # pragma: no coverv
+class load_tabular:
     """Loads delimited data. Returns a Table."""
 
     def __init__(
@@ -189,7 +331,7 @@ class load_tabular:  # pragma: no coverv
         limit=None,
         sep="\t",
         strict=True,
-        as_type="table",
+        as_type: tabular = "table",
     ):
         """
         Parameters
@@ -202,59 +344,44 @@ class load_tabular:  # pragma: no coverv
             number of records to read
         sep
             field delimiter
+        as_type
+            cogent3 type of tabular data
         strict
             all rows MUST have the same number of records
         """
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "load_tabular",
-            "use cogent3.get_app('load_tabular')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
         self._sep = sep
         self._with_title = with_title
         self._with_header = with_header
         self._limit = limit
         self.strict = strict
-        self.as_type = as_type
+        self.as_type = tabular(as_type)
 
     def _parse(self, data):
         """returns header, records, title"""
         title = header = None
         sep = self._sep
         strict = self.strict
-        read = data.open()
-        if self._with_title or self._with_header:
-            for line in read:
-                line = line.strip()
-                if not line:
-                    continue
-                if self._with_title and title is None:
-                    title = line
-                elif self._with_header and header is None:
-                    line = [e.strip() for e in line.split(sep)]
-                    header = line
-                    break
+        lines = _read_it(data).splitlines()
+        if self._limit:
+            lines = lines[: self._limit]
+        if self._with_title:
+            title = lines.pop(0).strip()
+        if self._with_header:
+            header = [e.strip() for e in lines.pop(0).strip().split(sep)]
+
         num_records = None if header is None else len(header)
         rows = []
-        for i, line in enumerate(read):
-            if i == self._limit:
-                break
+        for line in lines:
             line = line.strip()
             line = [e.strip() for e in line.split(sep)]
             if num_records is None:
                 num_records = len(line)
             if strict and len(line) != num_records:
-                read.close()
                 raise AssertionError(
                     f"Inconsistent number of fields: {len(line)} != {num_records}"
                 )
             rows.append(line)
-        data.close()
+
         records = []
         for record in zip(*rows):
             record = numpy.array(record, dtype="O")
@@ -270,196 +397,37 @@ class load_tabular:  # pragma: no coverv
         return header, records, title
 
     def main(self, path: IdentifierType) -> TabularType:
-        if type(path) == str:
-            # we use a data store as it's read() handles compression
-            path = SingleReadDataStore(path)[0]
-
         try:
             header, data, title = self._parse(path)
         except Exception as err:
             return NotCompleted("ERROR", self, err.args[0], source=str(path))
 
-        if self.as_type == "table":
+        if self.as_type is tabular.table:
             return Table(header=header, data=data, title=title)
 
         assert data.shape[1] == 3, "Invalid tabular data"
 
-        if self.as_type == "distances":
+        if self.as_type is tabular.distances:
             # records is of the form [ [dim-1, dim-2, value] for entries in DistanceMatrix ]
             return DistanceMatrix({(e[0], e[1]): e[2] for e in data})
 
-        if self.as_type == "motif_counts":
-            return make_motif_counts_from_tabular(data)
-        if self.as_type == "motif_freqs":
-            return make_motif_freqs_from_tabular(data)
-        if self.as_type == "pssm":
-            return make_pssm_from_tabular(data)
+        func = {
+            tabular.motif_counts: make_motif_counts_from_tabular,
+            tabular.motif_freqs: make_motif_freqs_from_tabular,
+            tabular.pssm: make_pssm_from_tabular,
+        }
 
-        return None
-
-
-@define_app(app_type=WRITER)
-class write_tabular(_checkpointable):  # pragma: no cover
-    """writes tabular data"""
-
-    def __init__(
-        self, data_path, format="tsv", name_callback=None, create=False, if_exists=SKIP
-    ):
-        """
-        Parameters
-        ----------
-        data_path
-            path to write output, if ends with .zip will be a compressed zip
-            archive
-        format : str
-            one of 'tsv', 'csv', 'tex', 'md'
-        name_callback
-            function that takes the data object and returns a base
-            file name
-        create : bool
-            whether to create the output directory
-        if_exists : str
-            behaviour if output exists. Either 'skip', 'raise' (raises an
-            exception), 'overwrite'
-        """
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "write_tabular",
-            "use cogent3.get_app('write_tabular')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
-        super().__init__(
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix=format,
-        )
-        self._format = format
-
-    def main(self, data: TabularType, identifier=None) -> IdentifierType:
-        if isinstance(data, NotCompleted):
-            return self.data_store.write_incomplete(identifier, data)
-
-        if not data:
-            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
-            raise NotImplementedError(msg)
-
-        if identifier is None:
-            identifier = self._make_output_identifier(data)
-
-        output = data.to_string(format=self._format)
-        return self.data_store.write(identifier, output)
-
-
-@define_app(app_type=WRITER)
-class write_seqs(_checkpointable):  # pragma: no cover
-    """Writes sequences to text files in standard format."""
-
-    def __init__(
-        self,
-        data_path,
-        format="fasta",
-        suffix="fa",
-        name_callback=None,
-        create=False,
-        if_exists=SKIP,
-    ):
-        """
-        Parameters
-        ----------
-        data_path
-            path to write output, if ends with .zip will be a compressed zip
-            archive
-        format : str
-            sequence file format
-        suffix : str
-            filename suffix for output
-        name_callback
-            function that takes the data object and returns a base
-            file name
-        create : bool
-            whether to create the output directory
-        if_exists : str
-            behaviour if output exists. Either 'skip', 'raise' (raises an
-            exception), 'overwrite'
-        """
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "write_seqs",
-            "use cogent3.get_app('write_seqs')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
-        super().__init__(
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix=suffix,
-        )
-        self._format = format
-        self._formatter = FORMATTERS[format]
-
-    def _set_checkpoint_loader(self):
-        loader = {"sequences": load_unaligned}.get(self._out._type, load_aligned)
-        loader = loader(format=self._format)
-        self._load_checkpoint = loader
-
-    def main(self, data: SeqsCollectionType, identifier=None) -> IdentifierType:
-        from cogent3.app.composable import NotCompleted
-
-        if isinstance(data, NotCompleted):
-            return self.data_store.write_incomplete(identifier, data)
-
-        if not data:
-            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
-            raise NotImplementedError(msg)
-
-        if identifier is None:
-            identifier = self._make_output_identifier(data)
-
-        stored = self.data_store.write(identifier, self._formatter(data.to_dict()))
-        if hasattr(data, "info"):
-            data.info["stored"] = stored
-        else:
-            try:
-                data.stored = stored
-            except AttributeError:
-                pass
-
-        return stored
+        return func[self.as_type](data)
 
 
 @define_app(app_type=LOADER)
-class load_json:  # pragma: no cover
+class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
-    def __init__(self):
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "load_json",
-            "use cogent3.get_app('load_json')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
     def main(self, path: IdentifierType) -> SerialisableType:
         """returns object deserialised from json at path"""
-        if type(path) == str:
-            path = SingleReadDataStore(path)[0]
-
-        data = path.read()
+        data = _read_it(path)
         identifier, data, completed = load_record_from_json(data)
 
         result = deserialise_object(data)
@@ -474,178 +442,179 @@ class load_json:  # pragma: no cover
         return result
 
 
-@define_app(app_type=WRITER)
-class write_json(_checkpointable):  # pragma: no cover
-    """Writes json serialised objects to individual json files."""
-
-    def __init__(self, data_path, name_callback=None, create=False, if_exists=SKIP):
-        """
-        Parameters
-        ----------
-        data_path
-            path to write output, if ends with .zip will be a compressed zip
-            archive
-        name_callback
-            function that takes the data object and returns a base
-            file name
-        create : bool
-            whether to create the output directory
-        if_exists : str
-            behaviour if output exists. Either 'skip', 'raise' (raises an
-            exception), 'overwrite'
-        """
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "write_json",
-            "use cogent3.get_app('write_json')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
-        super().__init__(
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix="json",
-        )
-        self._format = "json"
-
-    def _set_checkpoint_loader(self):
-        self._load_checkpoint = self
-
-    def main(self, data: SerialisableType, identifier=None) -> IdentifierType:
-        if isinstance(data, NotCompleted):
-            return self.data_store.write_incomplete(identifier, data)
-
-        if not data:
-            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
-            raise NotImplementedError(msg)
-
-        if identifier is None:
-            identifier = self._make_output_identifier(data)
-
-        out = make_record_for_json(os.path.basename(identifier), data, True)
-        out = json.dumps(out)
-        stored = self.data_store.write(identifier, out)
-        # todo is anything actually using this stored attribute? if not, delete this
-        #  code and all other cases
-        if hasattr(data, "info"):
-            data.info["stored"] = stored
-        else:
-            try:
-                data.stored = stored
-            except AttributeError:
-                pass
-        return stored
+DEFAULT_DESERIALISER = unpickle_it() + from_primitive()
 
 
 @define_app(app_type=LOADER)
-class load_db:  # pragma: no cover
-    """Loads json serialised cogent3 objects from a TinyDB file.
+class load_db:
+    """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
 
-    def __init__(self):
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "load_db",
-            "use cogent3.get_app('load_db')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
+    def __init__(self, deserialiser: callable = DEFAULT_DESERIALISER):
+        self.deserialiser = deserialiser
 
     def main(self, identifier: IdentifierType) -> SerialisableType:
-        """returns object deserialised from a TinyDb"""
-        id_ = getattr(identifier, "id", None)
-        if id_ is None:
-            raise TypeError(
-                f"{identifier} not connected to a TinyDB. If a json file path, use io.load_json()"
+        """returns deserialised object"""
+        try:
+            data = identifier.read()
+        except AttributeError:
+            raise AttributeError(
+                f"{identifier} failed because its of type {type(identifier)}"
             )
-        data = identifier.read()
 
-        result = deserialise_object(data)
+        # do we need to inject identifier attribute?
+        result = self.deserialiser(data)
         if hasattr(result, "info"):
             result.info["source"] = result.info.get("source", identifier)
         else:
-            try:
+            with contextlib.suppress(AttributeError):
                 identifier = getattr(result, "source", identifier)
                 setattr(result, "source", identifier)
-            except AttributeError:
-                pass
         return result
 
 
 @define_app(app_type=WRITER)
-class write_db(_checkpointable):  # pragma: no cover
-    """Writes json serialised objects to a TinyDB instance."""
+class write_json:
+    """Writes data in json format."""
 
-    def __init__(self, data_path, name_callback=None, create=False, if_exists=SKIP):
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "class",
-            "write_db",
-            "use cogent3.get_app('write_db')",
-            "2023.3",
-            "use cogent3.get_app()",
-        )
-
-        super().__init__(
-            data_path=data_path,
-            name_callback=name_callback,
-            create=create,
-            if_exists=if_exists,
-            suffix="json",
-            writer_class=WritableTinyDbDataStore,
-        )
-
-    def _set_checkpoint_loader(self):
-        self._load_checkpoint = self
-
-    T = Union[SerialisableType, IdentifierType]
-
-    def main(self, data: SerialisableType, identifier=None) -> T:
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
+    ):
         """
         Parameters
         ----------
-        data
-            object that has a `to_json()` method, or can be json serialised
-        identifier : str
-            if not provided, taken from data.source or data.info.source
-
-        Returns
-        -------
-        identifier
+        data_store
+            A writeable data store.
+        id_from_source
+            A function for creating a unique identifier based on the data
+            source. The default function removes path information and
+            filename + compression suffixes.
         """
-        identifier = identifier or get_data_source(data)
-        identifier = self._make_output_identifier(identifier)
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+        self.data_store = data_store
+        self._format = "json"
+        self._id_from_source = id_from_source
+
+    def main(
+        self, /, data: SerialisableType, *, identifier: Optional[str] = None
+    ) -> IdentifierType:
+        identifier = identifier or self._id_from_source(data)
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_not_completed(
+                unique_id=f"{identifier}.json", data=data.to_json()
+            )
+
+        out = make_record_for_json(identifier, data, True)
+        data = json.dumps(out)
+        return self.data_store.write(unique_id=identifier, data=data)
+
+
+@define_app(app_type=WRITER)
+class write_seqs:
+    """Write sequences in standard formats."""
+
+    @extend_docstring_from(write_json.__init__, pre=False)
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
+        format: str = "fasta",
+    ):
+        """
+        format
+            sequence format
+        """
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+        self.data_store = data_store
+        self._formatter = FORMATTERS[format]
+        self._id_from_source = id_from_source
+
+    def main(
+        self, /, data: SeqsCollectionType, *, identifier: Optional[str] = None
+    ) -> IdentifierType:
+        identifier = identifier or self._id_from_source(data)
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_not_completed(
+                unique_id=f"{identifier}.json", data=data.to_json()
+            )
+
+        data = self._formatter(data.to_dict())
+        return self.data_store.write(unique_id=identifier, data=data)
+
+
+@define_app(app_type=WRITER)
+class write_tabular:
+    """Writes tabular data in text format supported by the cogent3 Table object."""
+
+    @extend_docstring_from(write_json.__init__, pre=False)
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
+        format: str = "tsv",
+    ):
+        """
+        format
+            tabular format, e.g. 'csv' or 'tsv'
+        """
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+        self.data_store = data_store
+        self._id_from_source = id_from_source
+        self._format = format
+
+    def main(
+        self, /, data: TabularType, *, identifier: Optional[str] = None
+    ) -> IdentifierType:
+        identifier = identifier or self._id_from_source(data)
+        if isinstance(data, NotCompleted):
+            return self.data_store.write_not_completed(
+                unique_id=f"{identifier}.json", data=data.to_json()
+            )
+
+        output = data.to_string(format=self._format)
+        return self.data_store.write(unique_id=identifier, data=output)
+
+
+DEFAULT_SERIALISER = to_primitive() + pickle_it()
+
+
+@define_app(app_type=WRITER, skip_not_completed=False)
+class write_db:
+    """Write serialised objects to a database instance."""
+
+    @extend_docstring_from(write_json.__init__, pre=False)
+    def __init__(
+        self,
+        data_store: DataStoreABC,
+        id_from_source: callable = get_unique_id,
+        serialiser: callable = DEFAULT_SERIALISER,
+    ):
+        """
+        serialiser
+            A callable for serialising input data. By default, it converts
+            data into primitive python data types, pickling the result.
+        """
+        if not isinstance(data_store, DataStoreABC):
+            raise TypeError(f"invalid type {type(data_store)!r} for data_store")
+        self.data_store = data_store
+        self._serialiser = serialiser
+        self._id_from_source = id_from_source
+
+    def main(
+        self, /, data: SerialisableType, *, identifier: Optional[str] = None
+    ) -> IdentifierType:
+        identifier = identifier or self._id_from_source(data)
+        blob = self._serialiser(data)
 
         if isinstance(data, NotCompleted):
-            return self.data_store.write_incomplete(identifier, data)
+            return self.data_store.write_not_completed(unique_id=identifier, data=blob)
 
-        if not data:
-            msg = f"{self.__class__.__name__!r} does not support writing {data!r}"
-            raise NotImplementedError(msg)
+        if self.data_store.record_type is None:
+            self.data_store.record_type = data
 
-        identifier = identifier or get_data_source(data)
-        identifier = self._make_output_identifier(identifier)
-        # todo revisit this when we establish immutability behaviour of database
-        try:
-            out = data.to_json()
-        except AttributeError:
-            out = json.dumps(data)
-        stored = self.data_store.write(identifier, out)
-        # todo is anything actually using this stored attribute? if not, delete this
-        #  code and all other cases
-        if hasattr(data, "info"):
-            data.info["stored"] = stored
-        else:
-            try:
-                data.stored = stored
-            except AttributeError:
-                pass
-        return stored
+        return self.data_store.write(unique_id=identifier, data=blob)
