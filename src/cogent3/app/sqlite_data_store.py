@@ -12,7 +12,7 @@ from typing import Optional, Union
 from scitrack import get_text_hexdigest
 
 from cogent3.app import typing as c3_types
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     _LOG_TABLE,
     APPEND,
     OVERWRITE,
@@ -421,8 +421,8 @@ class DataStoreSqlite(DataStoreABC):
     @property
     def summary_not_completed(self) -> c3_types.TabularType:
         """returns a table summarising not completed results"""
-        from .data_store_new import summary_not_completeds
-        from .io_new import DEFAULT_DESERIALISER
+        from .data_store import summary_not_completeds
+        from .io import DEFAULT_DESERIALISER
 
         return summary_not_completeds(
             self.not_completed, deserialise=DEFAULT_DESERIALISER

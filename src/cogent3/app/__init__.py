@@ -6,7 +6,7 @@ import inspect
 import re
 import textwrap
 
-from .io_new import open_data_store
+from .io import open_data_store
 
 
 __all__ = [
@@ -14,7 +14,7 @@ __all__ = [
     "composable",
     "dist",
     "evo",
-    "io_new",
+    "io",
     "sample",
     "translate",
     "tree",
@@ -61,7 +61,7 @@ def available_apps():
         importlib.import_module(f"cogent3.app.{name}")
 
     # exclude apps from deprecated modules
-    deprecated = ["cogent3.app.io."]
+    deprecated = []
 
     rows = []
     for app, is_comp in __app_registry.items():

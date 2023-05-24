@@ -35,7 +35,6 @@ from cogent3.maths.stats.test import (
     _get_rank,
     _permute_observations,
     bayes_updates,
-    combinations,
     correlation,
     correlation_matrix,
     correlation_test,

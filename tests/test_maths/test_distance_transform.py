@@ -13,7 +13,6 @@ from cogent3.maths.distance_transform import (
     binary_dist_chord,
     binary_dist_euclidean,
     binary_dist_hamming,
-    binary_dist_jaccard,
     binary_dist_lennon,
     binary_dist_ochiai,
     binary_dist_otu_gain,

@@ -16,7 +16,7 @@ from scitrack import CachingLogger
 
 from cogent3 import get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
-from cogent3.app import io_new as io_app
+from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app import typing as c3types
@@ -31,7 +31,7 @@ from cogent3.app.composable import (
     get_object_provenance,
     is_composable,
 )
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     APPEND,
     OVERWRITE,
     READONLY,

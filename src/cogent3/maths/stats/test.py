@@ -1275,19 +1275,6 @@ def tail(prob, test):
         return 1 - prob
 
 
-def combinations(n, k):  # pragma: no cover
-    """Returns the number of ways of choosing k items from n."""
-    from scipy.special import binom
-
-    from cogent3.util.warning import discontinued
-
-    discontinued(
-        "function", "combinations", "2022.11", "use scipy.special.binom instead"
-    )
-
-    return binom(n, k)
-
-
 def multiple_comparisons(p, n):
     """Corrects P-value for n multiple comparisons.
 

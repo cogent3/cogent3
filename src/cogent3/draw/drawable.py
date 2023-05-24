@@ -765,8 +765,6 @@ class _MakeShape:
     )
 
     def __call__(self, type_=None, name=None, coords=None, **kwargs):
-        from cogent3.core.annotation import _Annotatable
-
         if hasattr(type_, "map"):
             if not type_.map.useful:
                 return None
