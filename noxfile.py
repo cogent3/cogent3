@@ -49,7 +49,7 @@ def testdocs(session):
     py = pathlib.Path(session.bin_paths[0]) / "python"
     session.install(".[doc]")
     session.chdir("doc")
-    for docdir in ("app", "cookbook", "examples"):
+    for docdir in ("app", "cookbook", "draw", "examples"):
         session.run(
             str(py),
             "doctest_rsts.py",
