@@ -581,7 +581,7 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: list[str],
+        columns: typing.Optional[list[str], tuple[str]],
         column: str,
         name: str,
         start: OptionalInt = None,
@@ -919,7 +919,7 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
     _table_names = ("user",)
 
     def __init__(
-        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
     ):
         """
         Parameters
