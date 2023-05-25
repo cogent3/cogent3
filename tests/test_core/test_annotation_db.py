@@ -59,6 +59,30 @@ def simple_seq_gff_db() -> Sequence:
     return seq
 
 
+@pytest.mark.parametrize(
+    "db_name,cls", (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb))
+)
+def test_constructor_db_fail(db_name, cls, request):
+    db = request.getfixturevalue(db_name)
+    with pytest.raises(TypeError):
+        cls(db=db)
+
+
+@pytest.mark.parametrize(
+    "db_name,cls",
+    (
+        ("gff_db", GffAnnotationDb),
+        ("anno_db", GffAnnotationDb),
+        ("gb_db", GenbankAnnotationDb),
+        ("anno_db", GenbankAnnotationDb),
+    ),
+)
+def test_constructor_db_works(db_name, cls, request):
+    # only compatible db's used to init
+    db = request.getfixturevalue(db_name)
+    cls(db=db)
+
+
 def test_gff_describe(gff_db):
     result = gff_db.describe
     assert isinstance(result, _Table)

@@ -1096,18 +1096,12 @@ class Sequence(SequenceI):
         f : path to gff annotation file.
         offset : Optional, the offset between annotation coordinates and sequence coordinates.
         """
-        if isinstance(self.annotation_db, GffAnnotationDb):
-            # the db is updated directly
-            self.annotation_db = load_annotations(
-                path=f, seqids=self.name, db=self.annotation_db.db
-            )
-        elif isinstance(self.annotation_db, GenbankAnnotationDb):
+        if isinstance(self.annotation_db, GenbankAnnotationDb):
             raise ValueError("GenbankAnnotationDb already attached")
-        else:
-            db = load_annotations(path=f, seqids=self.name)
-            self.annotation_db = (
-                db.update(self.annotation_db) if len(self.annotation_db) else db
-            )
+
+        self.annotation_db = load_annotations(
+            path=f, seqids=self.name, db=self.annotation_db
+        )
 
         if offset:
             self.annotation_offset = offset

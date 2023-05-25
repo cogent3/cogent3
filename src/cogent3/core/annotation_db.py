@@ -488,7 +488,22 @@ class SqliteAnnotationDbMixin:
     def table_names(self) -> tuple[str]:
         return self._table_names
 
-    def _init_tables(self):
+    def _setup_db(self, db: typing.Optional[SupportsFeatures]) -> None:
+        """initialises the db, using the db passed to the constructor"""
+        if isinstance(db, self.__class__):
+            self._db = db.db
+            return
+
+        if db and not self.compatible(db):
+            raise TypeError(f"cannot initialise annotation db from {type(db)}")
+
+        self._init_tables()
+
+        if db and len(db):
+            # update self with data from other
+            self.update(db)
+
+    def _init_tables(self) -> None:
         # bit of magic
         # assumes schema attributes named as `_<table name>_schema`
         for table_name in self.table_names:
@@ -929,7 +944,8 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
         data
             data for entry into the database
         db
-            an existing SQLite cursor
+            a compatible annotation db instance. If db is the same class, it's
+            db will be bound to self and directly modified.
         source
             location to store the db, defaults to in memory only
         """
@@ -937,9 +953,8 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
-        self._db = db
-        if db is None:
-            self._init_tables()
+        self._db = None
+        self._setup_db(db)
 
         self.add_records(data)
 
@@ -988,9 +1003,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
-        self._db = db
-        if db is None:
-            self._init_tables()
+        self._db = None
+        self._setup_db(db)
         data = self._merged_data(data)
         self.add_records(data)
 
@@ -1103,10 +1117,10 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         """
         data = data or []
         # note that data is destroyed
-        self._db = db
         self._num_fakeids = 0
         self.source = source
-        self._init_tables()
+        self._db = None
+        self._setup_db(db)
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
