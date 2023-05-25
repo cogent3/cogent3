@@ -756,7 +756,11 @@ class SqliteAnnotationDbMixin:
             sql = sql_template.format(table)
             if result := self._execute_sql(sql).fetchall():
                 data.extend(tuple(r) for r in result)
-        return Table(header=header + ["count"], data=data)
+        return Table(
+            header=header + ["count"],
+            data=data,
+            column_templates=dict(count=lambda x: f"{x:,}"),
+        )
 
     @property
     def describe(self) -> Table:
@@ -776,16 +780,18 @@ class SqliteAnnotationDbMixin:
 
         row_counts = []
         for table in self.table_names:
-            result = self._execute_sql(f"SELECT COUNT(*) FROM {table}").fetchone()
-            row_counts.append(result["COUNT(*)"])
+            result = self._execute_sql(
+                f"SELECT COUNT(*) as count FROM {table}"
+            ).fetchone()
+            row_counts.append(result["count"])
 
-        table = make_table(
+        return Table(
             data={
                 "": list(data.keys()) + [f"num_rows({t!r})" for t in self.table_names],
-                "count": [v for v in data.values()] + row_counts,
-            }
+                "count": list(data.values()) + row_counts,
+            },
+            column_templates=dict(count=lambda x: f"{x:,}"),
         )
-        return table
 
     def biotype_counts(self) -> dict:
         """return counts of biological types across all tables and seqids"""
