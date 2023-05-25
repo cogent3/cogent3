@@ -80,6 +80,16 @@ def test_count_distinct(gff_db):
     assert got.shape == (11, 4)
 
 
+def test_count_distinct_values(gb_db):
+    # there are 8 biotypes in the c.elegans gff sample, 2 columns
+    # all arguments returns, from our example, all the rows
+    got = {tuple(r) for r in gb_db.count_distinct(name=True).tolist()}
+    expect = set(
+        [(f"fakeid-{i}", 1) for i in range(3)] + [("CNA00110", 4), ("CNA00120", 3)]
+    )
+    assert got == expect
+
+
 def test_gff_features_matching(gff_db):
     result = list(gff_db.get_features_matching(biotype="CDS"))
     assert len(result)

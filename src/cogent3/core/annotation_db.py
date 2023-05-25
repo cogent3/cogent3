@@ -746,11 +746,7 @@ class SqliteAnnotationDbMixin:
         if not columns:
             return
         placeholder = "{}"
-        if len(conditions) == 1:
-            sql_template = f"SELECT {columns}, COUNT(DISTINCT {columns}) FROM {placeholder} GROUP BY {columns};"
-        else:
-            sql_template = f"SELECT {columns}, COUNT(*) as count FROM {placeholder} GROUP BY {columns};"
-
+        sql_template = f"SELECT {columns}, COUNT(*) as count FROM {placeholder} GROUP BY {columns};"
         data = []
         for table in self.table_names:
             sql = sql_template.format(table)
@@ -765,13 +761,11 @@ class SqliteAnnotationDbMixin:
     @property
     def describe(self) -> Table:
         """top level description of the annotation db"""
-        from cogent3 import make_table
-
-        sql_template = "SELECT {}, COUNT(DISTINCT {}) FROM {} GROUP BY {};"
+        sql_template = "SELECT {}, COUNT(*) FROM {} GROUP BY {};"
         data = {}
         for column in ("seqid", "biotype"):
             for table in self.table_names:
-                sql = sql_template.format(column, column, table, column)
+                sql = sql_template.format(column, table, column)
                 if result := self._execute_sql(sql).fetchall():
                     counts = dict(tuple(r) for r in result)
                     for distinct, count in counts.items():
