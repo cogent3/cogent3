@@ -39,7 +39,7 @@ class TestModel(TestCase):
             "model(sm='HKY85', tree=None, unique_trees=False, "
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, "
-            "opt_args=None, upper=50, split_codons=False, "
+            "opt_args=None, lower=1e-06, upper=50, split_codons=False, "
             "show_progress=False, verbose=False)"
         )
         self.assertEqual(
@@ -189,6 +189,27 @@ class TestModel(TestCase):
         expect_nfp = 11 * 2 + 3 + 3
         self.assertEqual(result.lf.nfp, expect_nfp)
 
+    def test_setting_model_bounds(self):
+        upper = 10.0
+        lower = 0.5
+        app = evo_app.model(
+            "HKY85",
+            optimise_motif_probs=True,
+            show_progress=False,
+            unique_trees=True,
+            time_het="max",
+            lower=lower,
+            upper=upper,
+        )
+
+        aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+        result = app(aln)
+        rules = result.lf.get_param_rules()
+        kappa_bounds = {
+            (r["lower"], r["upper"]) for r in rules if r["par_name"] == "kappa"
+        }
+        assert kappa_bounds == set([(lower, upper)])
+
     def test_model_param_rules(self):
         """applies upper bound if sensible"""
         mod = evo_app.model(
@@ -268,11 +289,11 @@ class TestModel(TestCase):
         expect = (
             "hypothesis(null=model(sm='HKY85', tree=None, unique_trees=False, "
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
-            "time_het=None, param_rules=None, opt_args=None, upper=50, "
+            "time_het=None, param_rules=None, opt_args=None, lower=1e-06, upper=50, "
             "split_codons=False, show_progress=False, verbose=False), "
             "alternates=(model(sm='HKY85', tree=None, unique_trees=False, "
             "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
-            "time_het='max', param_rules=None, opt_args=None, upper=50,"
+            "time_het='max', param_rules=None, opt_args=None, lower=1e-06, upper=50,"
             " split_codons=False, show_progress=False, verbose=False),),"
             " sequential=True, init_alt=None)"
         )
