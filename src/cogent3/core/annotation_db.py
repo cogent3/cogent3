@@ -826,6 +826,8 @@ class SqliteAnnotationDbMixin:
             checks only that tables of other_db equal, or are a subset, of
             mine
         """
+        if not isinstance(other_db, SupportsFeatures):
+            raise TypeError(f"{type(other_db)} does not support features")
         mine = set(self.table_names)
         theirs = set(other_db.table_names)
         return mine <= theirs or mine > theirs if symmetric else mine >= theirs

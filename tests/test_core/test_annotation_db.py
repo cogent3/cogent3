@@ -684,3 +684,10 @@ def test_incompatible():
     gb = GenbankAnnotationDb()
     assert not gff.compatible(gb)
     assert not gb.compatible(gff)
+
+
+@pytest.mark.parametrize("wrong_type", ({}, BasicAnnotationDb().db))
+def test_incompatible_invalid_type(wrong_type):
+    db = BasicAnnotationDb()
+    with pytest.raises(TypeError):
+        db.compatible(wrong_type)
