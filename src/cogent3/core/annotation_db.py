@@ -599,7 +599,7 @@ class SqliteAnnotationDbMixin:
         )
         for result in self._execute_sql(sql, values=vals):
             result = dict(zip(result.keys(), result))
-            result["on_alignment"] = result.get("on_alignment", None)
+            result["on_alignment"] = result.get("on_alignment")
             result["spans"] = [tuple(c) for c in result["spans"]]
             result["reversed"] = result.pop("strand", None) == "-"
             yield result
@@ -708,7 +708,7 @@ class SqliteAnnotationDbMixin:
                 table_name=table_name, columns=columns, **query_args
             ):
                 result = dict(zip(result.keys(), result))
-                result["on_alignment"] = result.get("on_alignment", None)
+                result["on_alignment"] = result.get("on_alignment")
                 result["spans"] = [tuple(c) for c in result["spans"]]
                 result["reversed"] = result.pop("strand", None) == "-"
                 yield result
