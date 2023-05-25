@@ -27,6 +27,24 @@ from .typing import (
 )
 
 
+def _config_rules(param_rules, lower, upper):
+    param_rules = deepcopy(param_rules)
+    for rule in param_rules:
+        if rule.get("par_name", None) in (
+            "mprobs",
+            "psubs",
+            "bprobs",
+            "dpsubs",
+            "rate",
+        ) or rule.get("is_constant"):
+            continue
+
+        rule["lower"] = rule.get("lower", lower)  # default lower bound
+        rule["upper"] = rule.get("upper", upper)  # default upper bound
+
+    return param_rules
+
+
 @define_app
 class model:
     """Define a substitution model + tree for maximum likelihood evaluation."""
@@ -43,6 +61,7 @@ class model:
         time_het=None,
         param_rules=None,
         opt_args=None,
+        lower=1e-6,
         upper=50,
         split_codons=False,
         show_progress=False,
@@ -72,20 +91,23 @@ class model:
         lf_args : dict
             arguments to be passed to the likelihood function constructor
         time_het
-            'max' or a list of dicts corresponding to edge_sets, e.g.
+            Affects whether substitution model rate parameters are
+            heterogeneous between branches on the tree. A value 'max'
+            makes all rate parameters unique for all edges. More restricted
+            time-heterogeneity can be specified using a list of dicts
+            corresponding to edge_sets, e.g.
             [dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)].
-            Passed to the likelihood function .set_time_heterogeneity()
-            method.
+            This value is passed to <likelihood function>.set_time_heterogeneity()
         param_rules : list
-            other parameter rules, passed to the likelihood function
-            set_param_rule() method
+            other parameter rules, passed to
+            <likelihood function>.set_param_rule()
         opt_args : dict
             arguments for the numerical optimiser, e.g.
             dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
             limit_action='ignore')
-        upper
-            Upper bound for all rate and length parameters. Overrides
-            values defined in ``time_het`` or ``param_rules``.
+        lower, upper
+            bounds for all rate and length parameters. Ignored if a
+            rule in ``param_rules`` or ``time_het`` has a value defined.
         split_codons : bool
             if True, incoming alignments are split into the 3 frames and each
             frame is fit separately
@@ -101,6 +123,7 @@ class model:
         the result object has a separate entry for each codon position.
         """
         self._verbose = verbose
+        self._lower = lower
         self._upper = upper
         assert not (
             tree and unique_trees
@@ -134,20 +157,19 @@ class model:
         if not name:
             name = sm.name or "unnamed model"
         self.name = name
-        self._opt_args = deepcopy(
-            opt_args or dict(max_restarts=5, show_progress=show_progress)
-        )
-        self._opt_args["show_progress"] = self._opt_args.get(
-            "show_progress", show_progress
-        )
-        param_rules = deepcopy(param_rules or [])
+
+        opt_args = deepcopy(opt_args or {})
+        self._opt_args = dict(max_restarts=5, show_progress=show_progress, **opt_args)
+
+        param_rules = param_rules or []
         if param_rules:
-            for rule in param_rules:
-                if rule.get("is_constant"):
-                    continue
-                rule["upper"] = rule.get("upper", upper)  # default upper bound
+            param_rules = _config_rules(param_rules, lower, upper)
         self._param_rules = param_rules
-        self._time_het = deepcopy(time_het)
+
+        if time_het and not isinstance(time_het, str):
+            time_het = _config_rules(time_het, lower, upper)
+        self._time_het = time_het
+
         self._split_codons = split_codons
 
     def _configure_lf(self, aln, identifier, initialise=None):
@@ -169,21 +191,18 @@ class model:
                 if self._verbose:
                     print(lf)
             if self._time_het == "max":
-                lf.set_time_heterogeneity(is_independent=True, upper=self._upper)
+                lf.set_time_heterogeneity(
+                    is_independent=True, lower=self._lower, upper=self._upper
+                )
             else:
-                lf.set_time_heterogeneity(edge_sets=self._time_het, upper=self._upper)
-        else:
+                lf.set_time_heterogeneity(
+                    edge_sets=self._time_het, lower=self._lower, upper=self._upper
+                )
+        elif not self._param_rules:
+            # just use the likelihood function instance to give us the rules
+            # which we can then impose the lower/upper bounds
             rules = lf.get_param_rules()
-            for rule in rules:
-                if rule["par_name"] in (
-                    "mprobs",
-                    "psubs",
-                    "bprobs",
-                    "dpsubs",
-                ) or rule.get("is_constant"):
-                    continue
-                rule["upper"] = min(rule.get("upper") or self._upper + 1, self._upper)
-
+            rules = _config_rules(rules, self._lower, self._upper)
             lf.apply_param_rules(rules)
 
         if initialise:
