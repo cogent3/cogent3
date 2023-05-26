@@ -13,6 +13,7 @@ from cogent3.core.annotation_db import (
     load_annotations,
 )
 from cogent3.core.sequence import Sequence
+from cogent3.parse.genbank import MinimalGenbankParser
 from cogent3.util import deserialise
 
 
@@ -108,9 +109,7 @@ def test_count_distinct_values(gb_db):
     # there are 8 biotypes in the c.elegans gff sample, 2 columns
     # all arguments returns, from our example, all the rows
     got = {tuple(r) for r in gb_db.count_distinct(name=True).tolist()}
-    expect = set(
-        [(f"fakeid-{i}", 1) for i in range(3)] + [("CNA00110", 4), ("CNA00120", 3)]
-    )
+    expect = {("CNA00110", 4), ("CNA00120", 3), (f"cgg", 1), ("cat", 1), ("JEC21", 1)}
     assert got == expect
 
 
@@ -715,3 +714,19 @@ def test_incompatible_invalid_type(wrong_type):
     db = BasicAnnotationDb()
     with pytest.raises(TypeError):
         db.compatible(wrong_type)
+
+
+def _custom_namer(data):
+    for key in ("gene", "locus_tag", "strain"):
+        if key in data:
+            return data[key]
+    return ["default name"]
+
+
+def test_gb_namer():
+    path = DATA_DIR / "annotated_seq.gb"
+    got = list(MinimalGenbankParser(path.read_text().splitlines()))
+    data = got[0]["features"]
+    db = GenbankAnnotationDb(data=data, namer=_custom_namer, seqid=got[0]["locus"])
+    # there are 2 repeat regions, which we don't catch with our namer
+    assert db.num_matches(name="default name") == 2

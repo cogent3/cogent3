@@ -1110,10 +1110,14 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         seqid: OptionalStr = None,
         db: OptionalDbCursor = None,
         source=":memory:",
+        namer: typing.Callable = None,
     ):
         """
         seqid
             name of the sequence data is associated with
+        namer
+            callable that takes a record dict and returns a
+            [name]
         """
         data = data or []
         # note that data is destroyed
@@ -1125,13 +1129,12 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
             # guessing there's multiple seqid's
             self._serialisable["seqid"] = "<multiple seqids>"
 
+        self._namer = namer if callable(namer) else self._default_namer
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
-        # need to capture genetic code from genbank, but what a
-
-        col_key_map = {"type": "biotype", "locus_tag": "name"}
-        exclude = {"translation", "location"}  # location is grabbed directly
+        # need to capture genetic code from genbank
+        exclude = {"translation", "location", "type"}  # location is grabbed directly
         for record in records:
             # our Feature code assumes start always < end,
             store = {"seqid": seqid}
@@ -1143,20 +1146,44 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 store["start"] = int(store["spans"].min())
                 store["end"] = int(store["spans"].max())
 
-            record_keys = col_key_map.keys() & record.keys()
-            attrs_keys = record.keys() - col_key_map.keys() - exclude
-            store.update({col_key_map[k]: record[k] for k in record_keys})
+            attrs_keys = record.keys() - exclude
+            store["biotype"] = record["type"]
+            name = self._namer(record)
+            if name is None:
+                name = self._make_fake_id(record)
             store["attributes"] = {k: record[k] for k in attrs_keys}
-            if "name" not in store:
-                store["name"] = [f"fakeid-{self._num_fakeids}"]
-                self._num_fakeids += 1
-
-            store["name"] = ",".join(store["name"])
+            store["name"] = ",".join(name)
             cmnd, vals = _add_record_sql(
                 self.table_names[0],
                 store,
             )
             self._execute_sql(cmnd=cmnd, values=vals)
+
+    def _default_namer(self, record: dict) -> typing.Union[typing.List[str], None]:
+        # we evaluate potential tokens in the genbank record in order of
+        # preference for naming. If none of these are found, a fake name
+        # will be generated
+        for key in (
+            "gene",
+            "locus_tag",
+            "strain",
+            "rpt_unit_seq",
+            "db_xref",
+            "bound_moiety",
+            "regulatory_class",
+        ):
+            if key in record:
+                return record[key]
+
+        if element := record.get("mobile_element_type"):
+            return element[0].split(":")[-1:]
+
+        return None
+
+    def _make_fake_id(self, record: dict) -> typing.List[str]:
+        name = [f"{record.get('type', 'fakeid')}-{self._num_fakeids}"]
+        self._num_fakeids += 1
+        return name
 
     def get_feature_children(
         self,
