@@ -13,6 +13,7 @@ from cogent3.core.annotation_db import (
     load_annotations,
 )
 from cogent3.core.sequence import Sequence
+from cogent3.parse.genbank import MinimalGenbankParser
 from cogent3.util import deserialise
 
 
@@ -59,6 +60,30 @@ def simple_seq_gff_db() -> Sequence:
     return seq
 
 
+@pytest.mark.parametrize(
+    "db_name,cls", (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb))
+)
+def test_constructor_db_fail(db_name, cls, request):
+    db = request.getfixturevalue(db_name)
+    with pytest.raises(TypeError):
+        cls(db=db)
+
+
+@pytest.mark.parametrize(
+    "db_name,cls",
+    (
+        ("gff_db", GffAnnotationDb),
+        ("anno_db", GffAnnotationDb),
+        ("gb_db", GenbankAnnotationDb),
+        ("anno_db", GenbankAnnotationDb),
+    ),
+)
+def test_constructor_db_works(db_name, cls, request):
+    # only compatible db's used to init
+    db = request.getfixturevalue(db_name)
+    cls(db=db)
+
+
 def test_gff_describe(gff_db):
     result = gff_db.describe
     assert isinstance(result, _Table)
@@ -78,6 +103,14 @@ def test_count_distinct(gff_db):
     # all names unique, 11 records, 4 columns
     got = gff_db.count_distinct(biotype=True, seqid=True, name=True)
     assert got.shape == (11, 4)
+
+
+def test_count_distinct_values(gb_db):
+    # there are 8 biotypes in the c.elegans gff sample, 2 columns
+    # all arguments returns, from our example, all the rows
+    got = {tuple(r) for r in gb_db.count_distinct(name=True).tolist()}
+    expect = {("CNA00110", 4), ("CNA00120", 3), (f"cgg", 1), ("cat", 1), ("JEC21", 1)}
+    assert got == expect
 
 
 def test_gff_features_matching(gff_db):
@@ -674,3 +707,26 @@ def test_incompatible():
     gb = GenbankAnnotationDb()
     assert not gff.compatible(gb)
     assert not gb.compatible(gff)
+
+
+@pytest.mark.parametrize("wrong_type", ({}, BasicAnnotationDb().db))
+def test_incompatible_invalid_type(wrong_type):
+    db = BasicAnnotationDb()
+    with pytest.raises(TypeError):
+        db.compatible(wrong_type)
+
+
+def _custom_namer(data):
+    for key in ("gene", "locus_tag", "strain"):
+        if key in data:
+            return data[key]
+    return ["default name"]
+
+
+def test_gb_namer():
+    path = DATA_DIR / "annotated_seq.gb"
+    got = list(MinimalGenbankParser(path.read_text().splitlines()))
+    data = got[0]["features"]
+    db = GenbankAnnotationDb(data=data, namer=_custom_namer, seqid=got[0]["locus"])
+    # there are 2 repeat regions, which we don't catch with our namer
+    assert db.num_matches(name="default name") == 2

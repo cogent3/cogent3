@@ -730,7 +730,6 @@ def RichGenbankParser(
                     yield rec["locus"], None
             continue
 
-        db = getattr(db, "db", None)
         seq.annotation_db = GenbankAnnotationDb(
             data=rec.pop("features", None), seqid=rec["locus"], db=db
         )

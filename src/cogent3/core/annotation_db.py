@@ -488,7 +488,22 @@ class SqliteAnnotationDbMixin:
     def table_names(self) -> tuple[str]:
         return self._table_names
 
-    def _init_tables(self):
+    def _setup_db(self, db: typing.Optional[SupportsFeatures]) -> None:
+        """initialises the db, using the db passed to the constructor"""
+        if isinstance(db, self.__class__):
+            self._db = db.db
+            return
+
+        if db and not self.compatible(db):
+            raise TypeError(f"cannot initialise annotation db from {type(db)}")
+
+        self._init_tables()
+
+        if db and len(db):
+            # update self with data from other
+            self.update(db)
+
+    def _init_tables(self) -> None:
         # bit of magic
         # assumes schema attributes named as `_<table name>_schema`
         for table_name in self.table_names:
@@ -581,7 +596,7 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: list[str],
+        columns: typing.Optional[list[str], tuple[str]],
         column: str,
         name: str,
         start: OptionalInt = None,
@@ -599,7 +614,7 @@ class SqliteAnnotationDbMixin:
         )
         for result in self._execute_sql(sql, values=vals):
             result = dict(zip(result.keys(), result))
-            result["on_alignment"] = result.get("on_alignment", None)
+            result["on_alignment"] = result.get("on_alignment")
             result["spans"] = [tuple(c) for c in result["spans"]]
             result["reversed"] = result.pop("strand", None) == "-"
             yield result
@@ -708,7 +723,7 @@ class SqliteAnnotationDbMixin:
                 table_name=table_name, columns=columns, **query_args
             ):
                 result = dict(zip(result.keys(), result))
-                result["on_alignment"] = result.get("on_alignment", None)
+                result["on_alignment"] = result.get("on_alignment")
                 result["spans"] = [tuple(c) for c in result["spans"]]
                 result["reversed"] = result.pop("strand", None) == "-"
                 yield result
@@ -746,28 +761,26 @@ class SqliteAnnotationDbMixin:
         if not columns:
             return
         placeholder = "{}"
-        if len(conditions) == 1:
-            sql_template = f"SELECT {columns}, COUNT(DISTINCT {columns}) FROM {placeholder} GROUP BY {columns};"
-        else:
-            sql_template = f"SELECT {columns}, COUNT(*) as count FROM {placeholder} GROUP BY {columns};"
-
+        sql_template = f"SELECT {columns}, COUNT(*) as count FROM {placeholder} GROUP BY {columns};"
         data = []
         for table in self.table_names:
             sql = sql_template.format(table)
             if result := self._execute_sql(sql).fetchall():
                 data.extend(tuple(r) for r in result)
-        return Table(header=header + ["count"], data=data)
+        return Table(
+            header=header + ["count"],
+            data=data,
+            column_templates=dict(count=lambda x: f"{x:,}"),
+        )
 
     @property
     def describe(self) -> Table:
         """top level description of the annotation db"""
-        from cogent3 import make_table
-
-        sql_template = "SELECT {}, COUNT(DISTINCT {}) FROM {} GROUP BY {};"
+        sql_template = "SELECT {}, COUNT(*) FROM {} GROUP BY {};"
         data = {}
         for column in ("seqid", "biotype"):
             for table in self.table_names:
-                sql = sql_template.format(column, column, table, column)
+                sql = sql_template.format(column, table, column)
                 if result := self._execute_sql(sql).fetchall():
                     counts = dict(tuple(r) for r in result)
                     for distinct, count in counts.items():
@@ -776,16 +789,18 @@ class SqliteAnnotationDbMixin:
 
         row_counts = []
         for table in self.table_names:
-            result = self._execute_sql(f"SELECT COUNT(*) FROM {table}").fetchone()
-            row_counts.append(result["COUNT(*)"])
+            result = self._execute_sql(
+                f"SELECT COUNT(*) as count FROM {table}"
+            ).fetchone()
+            row_counts.append(result["count"])
 
-        table = make_table(
+        return Table(
             data={
                 "": list(data.keys()) + [f"num_rows({t!r})" for t in self.table_names],
-                "count": [v for v in data.values()] + row_counts,
-            }
+                "count": list(data.values()) + row_counts,
+            },
+            column_templates=dict(count=lambda x: f"{x:,}"),
         )
-        return table
 
     def biotype_counts(self) -> dict:
         """return counts of biological types across all tables and seqids"""
@@ -826,6 +841,8 @@ class SqliteAnnotationDbMixin:
             checks only that tables of other_db equal, or are a subset, of
             mine
         """
+        if not isinstance(other_db, SupportsFeatures):
+            raise TypeError(f"{type(other_db)} does not support features")
         mine = set(self.table_names)
         theirs = set(other_db.table_names)
         return mine <= theirs or mine > theirs if symmetric else mine >= theirs
@@ -919,7 +936,7 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
     _table_names = ("user",)
 
     def __init__(
-        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
     ):
         """
         Parameters
@@ -927,7 +944,8 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
         data
             data for entry into the database
         db
-            an existing SQLite cursor
+            a compatible annotation db instance. If db is the same class, it's
+            db will be bound to self and directly modified.
         source
             location to store the db, defaults to in memory only
         """
@@ -935,9 +953,8 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
-        self._db = db
-        if db is None:
-            self._init_tables()
+        self._db = None
+        self._setup_db(db)
 
         self.add_records(data)
 
@@ -986,9 +1003,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # note that data is destroyed
         self._num_fakeids = 0
         self.source = source
-        self._db = db
-        if db is None:
-            self._init_tables()
+        self._db = None
+        self._setup_db(db)
         data = self._merged_data(data)
         self.add_records(data)
 
@@ -1094,24 +1110,31 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         seqid: OptionalStr = None,
         db: OptionalDbCursor = None,
         source=":memory:",
+        namer: typing.Callable = None,
     ):
         """
         seqid
             name of the sequence data is associated with
+        namer
+            callable that takes a record dict and returns a
+            [name]
         """
         data = data or []
         # note that data is destroyed
-        self._db = db
         self._num_fakeids = 0
         self.source = source
-        self._init_tables()
+        self._db = None
+        self._setup_db(db)
+        if db:
+            # guessing there's multiple seqid's
+            self._serialisable["seqid"] = "<multiple seqids>"
+
+        self._namer = namer if callable(namer) else self._default_namer
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
-        # need to capture genetic code from genbank, but what a
-
-        col_key_map = {"type": "biotype", "locus_tag": "name"}
-        exclude = {"translation", "location"}  # location is grabbed directly
+        # need to capture genetic code from genbank
+        exclude = {"translation", "location", "type"}  # location is grabbed directly
         for record in records:
             # our Feature code assumes start always < end,
             store = {"seqid": seqid}
@@ -1123,20 +1146,44 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 store["start"] = int(store["spans"].min())
                 store["end"] = int(store["spans"].max())
 
-            record_keys = col_key_map.keys() & record.keys()
-            attrs_keys = record.keys() - col_key_map.keys() - exclude
-            store.update({col_key_map[k]: record[k] for k in record_keys})
+            attrs_keys = record.keys() - exclude
+            store["biotype"] = record["type"]
+            name = self._namer(record)
+            if name is None:
+                name = self._make_fake_id(record)
             store["attributes"] = {k: record[k] for k in attrs_keys}
-            if "name" not in store:
-                store["name"] = [f"fakeid-{self._num_fakeids}"]
-                self._num_fakeids += 1
-
-            store["name"] = ",".join(store["name"])
+            store["name"] = ",".join(name)
             cmnd, vals = _add_record_sql(
                 self.table_names[0],
                 store,
             )
             self._execute_sql(cmnd=cmnd, values=vals)
+
+    def _default_namer(self, record: dict) -> typing.Union[typing.List[str], None]:
+        # we evaluate potential tokens in the genbank record in order of
+        # preference for naming. If none of these are found, a fake name
+        # will be generated
+        for key in (
+            "gene",
+            "locus_tag",
+            "strain",
+            "rpt_unit_seq",
+            "db_xref",
+            "bound_moiety",
+            "regulatory_class",
+        ):
+            if key in record:
+                return record[key]
+
+        if element := record.get("mobile_element_type"):
+            return element[0].split(":")[-1:]
+
+        return None
+
+    def _make_fake_id(self, record: dict) -> typing.List[str]:
+        name = [f"{record.get('type', 'fakeid')}-{self._num_fakeids}"]
+        self._num_fakeids += 1
+        return name
 
     def get_feature_children(
         self,

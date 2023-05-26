@@ -2111,14 +2111,9 @@ class SequenceCollection(_SequenceCollectionBase):
         else:
             seq_ids = self.names
 
-        if isinstance(self.annotation_db, GffAnnotationDb):
-            self.annotation_db = load_annotations(
-                path=f, seqids=seq_ids, db=self.annotation_db.db
-            )
-        else:
-            db = load_annotations(path=f, seqids=seq_ids)
-            db.update(self.annotation_db)
-            self.annotation_db = db
+        self.annotation_db = load_annotations(
+            path=f, seqids=seq_ids, db=self.annotation_db
+        )
 
     def make_feature(
         self,
