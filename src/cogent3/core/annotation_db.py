@@ -1121,6 +1121,10 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self.source = source
         self._db = None
         self._setup_db(db)
+        if db:
+            # guessing there's multiple seqid's
+            self._serialisable["seqid"] = "<multiple seqids>"
+
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
