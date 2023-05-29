@@ -776,3 +776,11 @@ def test_gb_namer():
     db = GenbankAnnotationDb(data=data, namer=_custom_namer, seqid=got[0]["locus"])
     # there are 2 repeat regions, which we don't catch with our namer
     assert db.num_matches(name="default name") == 2
+
+
+def test_write(gb_db, tmp_path):
+    outpath = tmp_path / "ondisk.gbkdb"
+    gb_db.write(outpath)
+    got = GenbankAnnotationDb(source=outpath)
+    assert got.to_rich_dict()["tables"] == gb_db.to_rich_dict()["tables"]
+    assert isinstance(got, GenbankAnnotationDb)

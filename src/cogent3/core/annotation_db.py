@@ -155,13 +155,12 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
 
 @typing.runtime_checkable
 class SupportsFeatures(
-    SupportsQueryFeatures, SupportsWriteFeatures, SerialisableType, typing.Protocol
+    SupportsQueryFeatures,
+    SupportsWriteFeatures,
+    SerialisableType,
+    typing.Sized,
+    typing.Protocol,
 ):
-    @property
-    def db(self):
-        # pointer to the actual db
-        ...
-
     def __len__(self):
         # the number of records
         ...
@@ -986,6 +985,13 @@ class SqliteAnnotationDbMixin:
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
 
+    def write(self, path: os.PathLike) -> None:
+        """writes db as bytes to path"""
+        backup = sqlite3.connect(path)
+        with self.db:
+            self.db.backup(backup)
+        backup.close()
+
 
 class BasicAnnotationDb(SqliteAnnotationDbMixin):
     """Provides a user table for annotations. This can be merged with
@@ -1402,6 +1408,6 @@ def load_annotations(
     path = pathlib.Path(path)
     return (
         _db_from_genbank(path, db=db)
-        if ".gb" in path.suffixes
+        if {".gb", ".gbk"} & set(path.suffixes)
         else _db_from_gff(path, seqids=seqids, db=db)
     )
