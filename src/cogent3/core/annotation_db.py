@@ -409,6 +409,26 @@ def _count_records_sql(
     return sql, vals
 
 
+def _compatible_schema(db: sqlite3.Connection, schema: dict[str, set]) -> bool:
+    """ensures the db instance is compatible with schema"""
+    for table in db.execute(
+        "SELECT name FROM sqlite_master WHERE type='table'"
+    ).fetchall():
+        table = table["name"]
+        if table not in schema:
+            return False
+
+        db_schema = {
+            (row["name"], row["type"])
+            for row in db.execute(f"pragma table_info({table!r})").fetchall()
+        }
+
+        if len(db_schema & schema[table]) != len(db_schema):
+            return False
+
+    return True
+
+
 class SqliteAnnotationDbMixin:
     # table schema for user provided annotations
     _user_schema = {
@@ -488,10 +508,23 @@ class SqliteAnnotationDbMixin:
     def table_names(self) -> tuple[str]:
         return self._table_names
 
-    def _setup_db(self, db: typing.Optional[SupportsFeatures]) -> None:
+    def _setup_db(self, db: typing.Union[SupportsFeatures, sqlite3.Connection]) -> None:
         """initialises the db, using the db passed to the constructor"""
         if isinstance(db, self.__class__):
             self._db = db.db
+            return
+
+        if isinstance(db, sqlite3.Connection):
+            schema = {}
+            for table_name in self.table_names:
+                attr = getattr(self, f"_{table_name}_schema")
+                schema[table_name] = set(attr.items())
+
+            if not _compatible_schema(db, schema):
+                raise TypeError("incompatible schema")
+
+            self._db = db
+            self._init_tables()
             return
 
         if db and not self.compatible(db):

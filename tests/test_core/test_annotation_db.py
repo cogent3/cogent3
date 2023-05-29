@@ -70,6 +70,15 @@ def test_constructor_db_fail(db_name, cls, request):
 
 
 @pytest.mark.parametrize(
+    "db_name,cls", (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb))
+)
+def test_constructor_wrong_db_schema(db_name, cls, request):
+    db = request.getfixturevalue(db_name)
+    with pytest.raises(TypeError):
+        cls(db=db.db)
+
+
+@pytest.mark.parametrize(
     "db_name,cls",
     (
         ("gff_db", GffAnnotationDb),
@@ -78,10 +87,25 @@ def test_constructor_db_fail(db_name, cls, request):
         ("anno_db", GenbankAnnotationDb),
     ),
 )
-def test_constructor_db_works(db_name, cls, request):
+def test_constructor_db_instance_works(db_name, cls, request):
     # only compatible db's used to init
     db = request.getfixturevalue(db_name)
     cls(db=db)
+
+
+@pytest.mark.parametrize(
+    "db_name,cls",
+    (
+        ("gff_db", GffAnnotationDb),
+        ("anno_db", GffAnnotationDb),
+        ("gb_db", GenbankAnnotationDb),
+        ("anno_db", GenbankAnnotationDb),
+    ),
+)
+def test_constructor_db_connection_works(db_name, cls, request):
+    # only compatible db's used to init
+    db = request.getfixturevalue(db_name)
+    cls(db=db.db)
 
 
 def test_gff_describe(gff_db):
