@@ -155,13 +155,12 @@ class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
 
 @typing.runtime_checkable
 class SupportsFeatures(
-    SupportsQueryFeatures, SupportsWriteFeatures, SerialisableType, typing.Protocol
+    SupportsQueryFeatures,
+    SupportsWriteFeatures,
+    SerialisableType,
+    typing.Sized,
+    typing.Protocol,
 ):
-    @property
-    def db(self):
-        # pointer to the actual db
-        ...
-
     def __len__(self):
         # the number of records
         ...
