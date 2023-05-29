@@ -747,26 +747,56 @@ class SqliteAnnotationDbMixin:
             num += result
         return num
 
+    StrOrBool = typing.Union[str, bool]
+
     def count_distinct(
         self,
         *,
-        seqid: bool = False,
-        biotype: bool = False,
-        name: bool = False,
+        seqid: StrOrBool = False,
+        biotype: StrOrBool = False,
+        name: StrOrBool = False,
     ) -> typing.Optional[Table]:
-        """return table of counts of distinct values"""
-        conditions = {k for k, v in locals().items() if k != "self" and v}
-        header = list(conditions)
-        columns = ", ".join(conditions)
+        """return table of counts of distinct values
+
+        Parameters
+        ----------
+        seqid, biotype, name
+            if a string, selects the subset of rows matching the provided values
+            and counts distinct values for the other fields whose value is True.
+
+        Returns
+        -------
+        Table with columns corresponding to argument whose value was True
+
+        Examples
+        --------
+        To compute copy number by gene name within each genome
+
+        >>> counts_table = db.count_distinct(seqid=True, biotype='gene', name=True)
+        """
+        columns = {k for k, v in locals().items() if v is True}
         if not columns:
             return
+
+        if constraints := {k: v for k, v in locals().items() if isinstance(v, str)}:
+            where_clause, values = _matching_conditions(constraints)
+            where_clause = f"WHERE {where_clause}"
+        else:
+            where_clause = ""
+            values = ()
+
+        header = list(columns)
         placeholder = "{}"
-        sql_template = f"SELECT {columns}, COUNT(*) as count FROM {placeholder} GROUP BY {columns};"
+        sql_template = (
+            f"SELECT {', '.join(header)}, COUNT(*) as count FROM {placeholder}"
+            f" {where_clause} GROUP BY {', '.join(header)};"
+        )
         data = []
         for table in self.table_names:
             sql = sql_template.format(table)
-            if result := self._execute_sql(sql).fetchall():
+            if result := self._execute_sql(sql, values).fetchall():
                 data.extend(tuple(r) for r in result)
+
         return Table(
             header=header + ["count"],
             data=data,
