@@ -1408,6 +1408,6 @@ def load_annotations(
     path = pathlib.Path(path)
     return (
         _db_from_genbank(path, db=db)
-        if ".gb" in path.suffixes
+        if {".gb", ".gbk"} & set(path.suffixes)
         else _db_from_gff(path, seqids=seqids, db=db)
     )
