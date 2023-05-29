@@ -109,8 +109,30 @@ def test_count_distinct_values(gb_db):
     # there are 8 biotypes in the c.elegans gff sample, 2 columns
     # all arguments returns, from our example, all the rows
     got = {tuple(r) for r in gb_db.count_distinct(name=True).tolist()}
-    expect = {("CNA00110", 4), ("CNA00120", 3), (f"cgg", 1), ("cat", 1), ("JEC21", 1)}
+    expect = {("CNA00110", 4), ("CNA00120", 3), ("cgg", 1), ("cat", 1), ("JEC21", 1)}
     assert got == expect
+
+
+def test_count_distinct_gene_name(gb_db):
+    expect = {("CNA00110", 1), ("CNA00120", 1)}
+    assert {
+        tuple(r) for r in gb_db.count_distinct(biotype="gene", name=True).tolist()
+    } == expect
+
+    assert {
+        tuple(r)
+        for r in gb_db.count_distinct(
+            seqid="AE017341", biotype="gene", name=True
+        ).tolist()
+    } == expect
+
+
+def test_count_distinct_no_match(gb_db):
+    # return a table with 0 rows, 2 columns
+    got = gb_db.count_distinct(biotype=True, name="blah")
+    assert got.shape == (0, 2)
+    got = gb_db.count_distinct(biotype="madeup", name=True)
+    assert got.shape == (0, 2)
 
 
 def test_gff_features_matching(gff_db):
