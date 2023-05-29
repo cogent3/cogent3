@@ -986,6 +986,13 @@ class SqliteAnnotationDbMixin:
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
 
+    def write(self, path: os.PathLike) -> None:
+        """writes db as bytes to path"""
+        backup = sqlite3.connect(path)
+        with self.db:
+            self.db.backup(backup)
+        backup.close()
+
 
 class BasicAnnotationDb(SqliteAnnotationDbMixin):
     """Provides a user table for annotations. This can be merged with
