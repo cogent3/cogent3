@@ -1365,8 +1365,9 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
     def test_info_source(self):
         """info.source exists if load seqs given a filename"""
-        seqs = load_unaligned_seqs("data/brca1.fasta")
-        self.assertEqual(seqs.info.source, "data/brca1.fasta")
+        path = pathlib.Path("data/brca1.fasta")
+        seqs = load_unaligned_seqs(path)
+        self.assertEqual(seqs.info.source, str(path))
 
     def test_apply_pssm2(self):
         """apply_pssm fail if ragged sequences"""

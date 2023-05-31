@@ -60,6 +60,27 @@ def simple_seq_gff_db() -> Sequence:
     return seq
 
 
+def test_assign_valid_db(seq, anno_db):
+    # should not fail
+    seq.annotation_db = anno_db
+    assert seq.annotation_db is anno_db
+
+
+def test_assign_invalid_db(seq):
+    with pytest.raises(TypeError):
+        seq.annotation_db = 2
+
+
+def test_replace_annotation_db_check_invalid(seq):
+    with pytest.raises(TypeError):
+        seq.replace_annotation_db(2, check=True)
+
+
+def test_replace_annotation_db_nocheck_invalid(seq):
+    seq.replace_annotation_db(2, check=False)
+    assert seq.annotation_db == 2
+
+
 @pytest.mark.parametrize(
     "db_name,cls", (("gff_db", GenbankAnnotationDb), ("gb_db", GffAnnotationDb))
 )
@@ -234,6 +255,14 @@ def test_empty_data():
 @pytest.fixture(scope="session")
 def gb_db():
     return load_annotations(DATA_DIR / "annotated_seq.gb")
+
+
+def test_load_annotations_multi():
+    one = load_annotations(DATA_DIR / "simple.gff")
+    two = load_annotations(DATA_DIR / "simple2.gff")
+    expect = len(one) + len(two)
+    got = load_annotations(DATA_DIR / "simple*.gff")
+    assert len(got) == expect
 
 
 @pytest.mark.parametrize("parent_biotype, name", (("gene", "CNA00110"),))

@@ -42,6 +42,7 @@ from cogent3.parse.sequence import FromFilenameParser
 from cogent3.parse.table import load_delimited
 from cogent3.parse.tree_xml import parse_string as tree_xml_parse_string
 from cogent3.util.io import get_format_suffixes, open_
+from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table as _Table
 from cogent3.util.table import cast_str_to_array
 
@@ -194,6 +195,38 @@ def make_aligned_seqs(
     )
 
 
+def _load_files_to_unaligned_seqs(
+    *,
+    path: os.PathLike,
+    format: Optional[str] = None,
+    moltype: Optional[str] = None,
+    label_to_name: Optional[Callable] = None,
+    parser_kw: Optional[dict] = None,
+    info: Optional[dict] = None,
+    ui=None,
+) -> SequenceCollection:
+    """loads multiple files and returns as a sequence collection"""
+
+    file_names = list(path.parent.glob(path.name))
+    seqs = [
+        load_seq(
+            fn,
+            format=format,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            parser_kw=parser_kw,
+        )
+        for fn in ui.series(file_names)
+    ]
+    return make_unaligned_seqs(
+        seqs,
+        label_to_name=label_to_name,
+        moltype=moltype,
+        source=path,
+        info=info,
+    )
+
+
 def _load_seqs(file_format, filename, fmt, kw, parser_kw):
     """utility function for loading sequences"""
     fmt = fmt or file_format
@@ -208,13 +241,13 @@ def _load_seqs(file_format, filename, fmt, kw, parser_kw):
 
 
 def load_seq(
-    filename: Union[str, pathlib.Path],
-    annotation_path=None,
+    filename: os.PathLike,
+    annotation_path: Optional[os.PathLike] = None,
     format: Optional[str] = None,
     moltype: Optional[str] = None,
     label_to_name: Optional[Callable] = None,
-    parser_kw: dict = None,
-    info: dict = None,
+    parser_kw: Optional[dict] = None,
+    info: Optional[dict] = None,
     **kw,
 ) -> Sequence:
     """
@@ -268,22 +301,24 @@ def load_seq(
     return result
 
 
+@display_wrap
 def load_unaligned_seqs(
     filename: Union[str, pathlib.Path],
     format=None,
     moltype=None,
     label_to_name=None,
-    parser_kw=None,
-    info=None,
+    parser_kw: Optional[dict] = None,
+    info: Optional[dict] = None,
     **kw,
-):
+) -> SequenceCollection:
     """
     loads unaligned sequences from file
 
     Parameters
     ----------
     filename : str
-        path to sequence file
+        path to sequence file or glob pattern. If a glob we assume a single
+        sequence per file. All seqs returned in one SequenceCollection.
     format : str
         sequence file format, if not specified tries to guess from the path suffix
     moltype
@@ -295,13 +330,29 @@ def load_unaligned_seqs(
     info
         a dict from which to make an info object
     **kw
-        other keyword arguments passed to SequenceCollection
+        other keyword arguments passed to SequenceCollection, or show_progress.
+        The latter induces a progress bar for number of files processed when
+        filename is a glob pattern.
 
     Returns
     -------
     ``SequenceCollection``
     """
+    ui = kw.pop("ui")
+    filename = pathlib.Path(filename)
     file_format, _ = get_format_suffixes(filename)
+
+    if "*" in filename.name:
+        return _load_files_to_unaligned_seqs(
+            path=filename,
+            format=file_format,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            parser_kw=parser_kw,
+            info=info,
+            ui=ui,
+        )
+
     if file_format == "json":
         return load_from_json(filename, (SequenceCollection,))
 
