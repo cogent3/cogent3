@@ -602,7 +602,7 @@ def MinimalGenbankParser(lines, handlers=handlers, default_handler=generic_adapt
 
             try:
                 handler(field, curr)
-            except:
+            except Exception:
                 bad_record = True
                 break
 
@@ -680,6 +680,7 @@ def RichGenbankParser(
     skip_contigs=False,
     add_annotation=None,
     db: Optional[GenbankAnnotationDb] = None,
+    just_seq: bool = False,
 ):
     """Returns annotated sequences from GenBank formatted file.
 
@@ -695,6 +696,9 @@ def RichGenbankParser(
     db
         a GenbankAnnotationDb instance to which feature data will be
         added
+    just_seq
+        return only the sequence, excludes include any feature data and
+        does not create an annotation_db. Overrides db argument.
     """
     info_excludes = info_excludes or ["sequence", "features"]
     moltype = get_moltype(moltype) if moltype else None
@@ -730,7 +734,8 @@ def RichGenbankParser(
                     yield rec["locus"], None
             continue
 
-        seq.annotation_db = GenbankAnnotationDb(
-            data=rec.pop("features", None), seqid=rec["locus"], db=db
-        )
+        if not just_seq:
+            seq.annotation_db = GenbankAnnotationDb(
+                data=rec.pop("features", None), seqid=rec["locus"], db=db
+            )
         yield rec["locus"], seq

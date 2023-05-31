@@ -559,3 +559,11 @@ def test_rich_parser_info(rich_gb):
     """seq.info stores genbank_record"""
     assert "genbank_record" in rich_gb.info
     assert rich_gb.info.genbank_record["locus"] == rich_gb.name
+
+
+def test_rich_genbank_just_seq():
+    with open("data/annotated_seq.gb") as infile:
+        parser = RichGenbankParser(infile, just_seq=True)
+        seq = [s for l, s in parser][0]
+
+    assert not len(seq.annotation_db)
