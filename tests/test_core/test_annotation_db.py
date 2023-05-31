@@ -257,6 +257,14 @@ def gb_db():
     return load_annotations(DATA_DIR / "annotated_seq.gb")
 
 
+def test_load_annotations_multi():
+    one = load_annotations(DATA_DIR / "simple.gff")
+    two = load_annotations(DATA_DIR / "simple2.gff")
+    expect = len(one) + len(two)
+    got = load_annotations(DATA_DIR / "simple*.gff")
+    assert len(got) == expect
+
+
 @pytest.mark.parametrize("parent_biotype, name", (("gene", "CNA00110"),))
 def test_gb_get_children(gb_db, parent_biotype, name):
     parent = list(gb_db.get_features_matching(biotype=parent_biotype, name=name))[0]

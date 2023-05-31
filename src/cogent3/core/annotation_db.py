@@ -16,6 +16,7 @@ import numpy
 from cogent3._version import __version__
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
+from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table
 
 
@@ -1373,41 +1374,65 @@ def convert_annotation_to_annotation_db(data: dict) -> dict:
     return db
 
 
-def _db_from_genbank(path, db):
+@display_wrap
+def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, **kwargs):
     from cogent3 import open_
-    from cogent3.parse.genbank import RichGenbankParser
+    from cogent3.parse.genbank import MinimalGenbankParser
 
-    with open_(path) as infile:
-        data = list(RichGenbankParser(infile, db=db))[0][1]
+    paths = pathlib.Path(path)
+    paths = list(paths.parent.glob(paths.name))
 
-    return data.annotation_db
+    ui = kwargs.pop("ui")
+    for path in ui.series(paths):
+        with open_(path) as infile:
+            rec = list(MinimalGenbankParser(infile))[0]
+            db = GenbankAnnotationDb(
+                data=rec.pop("features", None), seqid=rec["locus"], db=db
+            )
+
+    return db
 
 
 def _leave_attributes(*attrs):
     return attrs[0]
 
 
-def _db_from_gff(path, seqids, db):
+OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
+
+
+@display_wrap
+def _db_from_gff(
+    path: os.PathLike, seqids: OptionalStrContainer, db: SupportsFeatures, **kwargs
+):
     from cogent3.parse.gff import gff_parser
 
-    data = list(
-        gff_parser(
-            path,
-            seqids=seqids,
-            attribute_parser=_leave_attributes,
+    paths = pathlib.Path(path)
+    paths = list(paths.parent.glob(paths.name))
+
+    ui = kwargs.pop("ui")
+    for path in ui.series(paths):
+        data = list(
+            gff_parser(
+                path,
+                seqids=seqids,
+                attribute_parser=_leave_attributes,
+            )
         )
-    )
-    return GffAnnotationDb(data=data, db=db)
+        db = GffAnnotationDb(data=data, db=db)
+    return db
 
 
 def load_annotations(
-    path: os.PathLike, seqids: OptionalStr = None, db: OptionalDbCursor = None
+    path: os.PathLike,
+    seqids: OptionalStr = None,
+    db: OptionalDbCursor = None,
+    show_progress: bool = False,
 ) -> SupportsFeatures:
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path)
     return (
-        _db_from_genbank(path, db=db)
+        _db_from_genbank(path, db=db, show_progress=show_progress)
         if {".gb", ".gbk"} & set(path.suffixes)
-        else _db_from_gff(path, seqids=seqids, db=db)
+        else _db_from_gff(path, seqids=seqids, db=db, show_progress=show_progress)
     )
