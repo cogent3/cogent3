@@ -6,6 +6,8 @@ import unittest
 
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from cogent3 import (
     DNA,
     PROTEIN,
@@ -28,8 +30,7 @@ from cogent3.core.alphabet import AlphabetError
 from cogent3.parse.record import FileFormatError
 
 
-base_path = os.path.dirname(os.path.dirname(__file__))
-data_path = os.path.join(base_path, "data")
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 class TestConstructorFunctions(unittest.TestCase):
@@ -100,7 +101,7 @@ class TestConstructorFunctions(unittest.TestCase):
             "brca1_5.250.paml",
         )
         seq_names = ("I", "AE017341", "NineBande")
-        data_dir = pathlib.Path(data_path)
+        data_dir = pathlib.Path(DATA_DIR)
         for i, path in enumerate(paths):
             got = load_seq(data_dir / path)
             assert isinstance(got, Sequence)
@@ -118,7 +119,7 @@ class TestConstructorFunctions(unittest.TestCase):
 
     def test_load_unaligned_seqs(self):
         """test loading unaligned from file"""
-        path = os.path.join(data_path, "brca1_5.paml")
+        path = os.path.join(DATA_DIR, "brca1_5.paml")
         got = load_unaligned_seqs(path)
         self.assertIsInstance(got, SequenceCollection)
         self.assertTrue("Human" in got.to_dict())
@@ -131,7 +132,7 @@ class TestConstructorFunctions(unittest.TestCase):
 
     def test_load_aligned_seqs(self):
         """test loading aligned from file"""
-        path = os.path.join(data_path, "brca1_5.paml")
+        path = os.path.join(DATA_DIR, "brca1_5.paml")
         got = load_aligned_seqs(path)
         self.assertIsInstance(got, ArrayAlignment)
         self.assertTrue("Human" in got.to_dict())
@@ -151,7 +152,7 @@ class TestConstructorFunctions(unittest.TestCase):
         """test loading an unaligned object from json file"""
         with TemporaryDirectory(dir=".") as dirname:
             json_path = os.path.join(dirname, "unaligned.json")
-            path = os.path.join(data_path, "brca1_5.paml")
+            path = os.path.join(DATA_DIR, "brca1_5.paml")
             unaligned = load_unaligned_seqs(path)
             unaligned.write(json_path)
 
@@ -180,7 +181,7 @@ class TestConstructorFunctions(unittest.TestCase):
     def test_load_aligned_seqs_from_json(self):
         """tests loading an aligned object from json file"""
         with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(data_path, "brca1_5.paml")
+            path = os.path.join(DATA_DIR, "brca1_5.paml")
             alignment = load_aligned_seqs(path, array_align=False, moltype="dna")
             alignment_json_path = os.path.join(dirname, "alignment.json")
             alignment.write(alignment_json_path)
@@ -219,7 +220,7 @@ class TestConstructorFunctions(unittest.TestCase):
             self.assertEqual(got.info["source"], path)
             # tests wrong input json file
             json_path = os.path.join(dirname, "unaligned.json")
-            path = os.path.join(data_path, "brca1_5.paml")
+            path = os.path.join(DATA_DIR, "brca1_5.paml")
             unaligned = load_unaligned_seqs(path)
             unaligned.write(json_path)
             with self.assertRaises(TypeError):
@@ -230,7 +231,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
     """Testing ability to read file formats."""
 
     def _loadfromfile(self, filename, test_write=True, **kw):
-        filename = os.path.join(data_path, filename)
+        filename = os.path.join(DATA_DIR, filename)
         aln = load_aligned_seqs(filename, **kw)
         if test_write:
             suffix, cmpr = get_format_suffixes(filename)
@@ -245,7 +246,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
 
     def test_write_unknown_raises(self):
         """writing unknown format raises FileFormatError"""
-        filename = os.path.join(data_path, "primates_brca1.fasta")
+        filename = os.path.join(DATA_DIR, "primates_brca1.fasta")
         aln = load_aligned_seqs(filename)
         self.assertRaises(FileFormatError, aln.write, filename="blah")
         self.assertRaises(FileFormatError, aln.write, filename="blah.txt")
@@ -290,7 +291,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def setUp(self):
         self.alignment = load_aligned_seqs(
-            filename=os.path.join(data_path, "brca1_5.paml")
+            filename=os.path.join(DATA_DIR, "brca1_5.paml")
         )
 
     def test_picklability(self):
@@ -980,7 +981,7 @@ def test_load_seq_new():
         "brca1_5.250.paml",
     )
     seq_names = ("I", "AE017341", "NineBande")
-    data_dir = pathlib.Path(data_path)
+    data_dir = pathlib.Path(DATA_DIR)
 
     for i, path in enumerate(paths):
         got = load_seq(data_dir / path)
@@ -1000,3 +1001,26 @@ def test_load_seq_new():
     )
     assert isinstance(got, Sequence)
     assert got.annotation_db is not None
+
+
+@pytest.fixture(scope="function")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("datastore")
+
+
+@pytest.fixture
+def multi_fasta(tmp_dir):
+    brca1 = load_aligned_seqs(DATA_DIR / "brca1_5.paml")
+    brca1 = brca1.degap()
+    for seq in brca1.seqs:
+        with open(tmp_dir / f"{seq.name}.fa", mode="w") as outfile:
+            outfile.write(seq.to_fasta())
+    yield tmp_dir
+
+
+def test_load_multi_files_collection(multi_fasta):
+    # loads a directory of files matching a glob to a sequence collection
+    collection = load_unaligned_seqs(
+        multi_fasta / "*.fa", moltype="dna", show_progress=False
+    )
+    assert collection.num_seqs == 5
