@@ -867,12 +867,6 @@ class Sequence(SequenceI):
 
     @annotation_db.setter
     def annotation_db(self, value):
-        if value == self._annotation_db:
-            return
-
-        if value and not isinstance(value, SupportsFeatures):
-            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
-
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
@@ -881,11 +875,32 @@ class Sequence(SequenceI):
         # for both DNA and RNA. But if a user trys get_slice()
         # on a '-' strand feature, they will get a TypError.
         # I think that's enough.
-        if self._annotation_db and len(self._annotation_db):
-            # we take the union
-            self._annotation_db = self._annotation_db.union(value)
-        else:
-            self._annotation_db = value
+        self.replace_annotation_db(value, check=True)
+
+    def replace_annotation_db(
+        self, value: SupportsFeatures, check: bool = True
+    ) -> None:
+        """public interface to assigning the annotation_db
+
+        Parameters
+        ----------
+        value
+            the annotation db instance
+        check
+            whether to check value supports the feature interface
+
+        Notes
+        -----
+        The check can be very expensive, so if you're confident set it to False
+        """
+        if value == self._annotation_db:
+            return
+
+        if check and value:
+            if not isinstance(value, SupportsFeatures):
+                raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
+
+        self._annotation_db = value
 
     @deprecated_args(
         "2023.7",

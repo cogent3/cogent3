@@ -586,7 +586,7 @@ class _SequenceCollectionBase:
         self._annotation_db = value
 
         for seq in self.seqs:
-            seq.annotation_db = value
+            seq.replace_annotation_db(value, check=False)
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
