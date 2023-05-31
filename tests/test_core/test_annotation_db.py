@@ -78,7 +78,7 @@ def test_replace_annotation_db_check_invalid(seq):
 
 def test_replace_annotation_db_nocheck_invalid(seq):
     seq.replace_annotation_db(2, check=False)
-    seq.annotation_db == 2
+    assert seq.annotation_db == 2
 
 
 @pytest.mark.parametrize(
