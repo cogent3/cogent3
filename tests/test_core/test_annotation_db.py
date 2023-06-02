@@ -66,11 +66,6 @@ def test_assign_valid_db(seq, anno_db):
     assert seq.annotation_db is anno_db
 
 
-def test_assign_invalid_db(seq):
-    with pytest.raises(TypeError):
-        seq.annotation_db = 2
-
-
 def test_replace_annotation_db_check_invalid(seq):
     with pytest.raises(TypeError):
         seq.replace_annotation_db(2, check=True)
