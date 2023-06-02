@@ -4771,7 +4771,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         self._annotation_db = value
         for seq in self.seqs:
-            seq.data.annotation_db = value
+            seq.data.replace_annotation_db(value, check=False)
 
     def _mapped(self, slicemap):
         align = []
