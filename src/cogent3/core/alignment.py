@@ -1819,9 +1819,11 @@ class _SequenceCollectionBase:
 
         # Deep copying Aligned instance to ensure only region specified by Aligned.map is displayed.
         if isinstance(seq1, Aligned):
-            seq1 = seq1.deepcopy(sliced=True)
+            seq1 = seq1.deepcopy(sliced=True, exclude_annotations=True)
+            seq1.data.annotation_db = self.annotation_db
         if isinstance(seq2, Aligned):
-            seq2 = seq2.deepcopy(sliced=True)
+            seq2 = seq2.deepcopy(sliced=True, exclude_annotations=True)
+            seq2.data.annotation_db = self.annotation_db
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
