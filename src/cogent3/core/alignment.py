@@ -1428,7 +1428,7 @@ class _SequenceCollectionBase:
         result = self.__class__(moltype=self.moltype, data=seqs, info=self.info)
 
         if self.annotation_db:
-            result.annotation_db = deepcopy(self.annotation_db)
+            result.annotation_db = self.annotation_db
         return result
 
     def has_terminal_stops(self, gc=None, allow_partial=False):
@@ -1477,7 +1477,7 @@ class _SequenceCollectionBase:
             moltype=self.moltype, data=new_seqs, info=self.info, **kwargs
         )
         if self.annotation_db:
-            result.annotation_db = deepcopy(self.annotation_db)
+            result.annotation_db = self.annotation_db
         return result
 
     def get_lengths(self, include_ambiguity=False, allow_gap=False):
@@ -1684,7 +1684,7 @@ class _SequenceCollectionBase:
             data=data, moltype=moltype, name=self.name, info=self.info
         )
         if self.annotation_db:
-            result.annotation_db = deepcopy(self.annotation_db)
+            result.annotation_db = self.annotation_db
         return result
 
     def to_dna(self):
@@ -1705,7 +1705,7 @@ class _SequenceCollectionBase:
         rc = self.__class__(
             data=seqs, names=self.names[:], name=self.name, info=self.info
         )
-        rc.annotation_db = deepcopy(self.annotation_db)
+        rc.annotation_db = self.annotation_db
         return rc
 
     def reverse_complement(self):
@@ -4933,7 +4933,7 @@ class Alignment(AlignmentI, SequenceCollection):
             # on Aligned
             masked_seqs += [seq._masked_annotations(biotypes, mask_char, shadow)]
         new = self.__class__(data=masked_seqs, info=self.info, name=self.name)
-        new.annotation_db = deepcopy(self.annotation_db)
+        new.annotation_db = self.annotation_db
         return new
 
     @extend_docstring_from(ArrayAlignment.filtered)
