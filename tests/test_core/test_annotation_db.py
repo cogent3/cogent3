@@ -457,6 +457,67 @@ def test_matching_conditions():
     assert got == expect
 
 
+def test_matching_conditions_IN():
+    got, cond = _matching_conditions({"biotype": ("CDS", "mRNA", "exon")}, allow_partial=True)
+    expect = "biotype IN (?,?,?)"
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "biotype_value_1", ["CDS", "mRNA", "exon", "three_prime_UTR", "intron"]
+)
+@pytest.mark.parametrize(
+    "biotype_value_2", ["CDS", "mRNA", "exon", "five_prime_UTR", "intron"]
+)
+def test_get_features_matching_multiple_biotype_tuple(
+    seq_db, biotype_value_1, biotype_value_2
+):
+    """querying for features with multiple values should return the
+    same result as the sum of querying for each value seperately"""
+    where_1 = list(seq_db.get_features(biotype=biotype_value_1))
+    where_2 = list(seq_db.get_features(biotype=biotype_value_2))
+    in_both = list(seq_db.get_features(biotype=(biotype_value_1, biotype_value_2)))
+
+    if biotype_value_1 == biotype_value_2:
+        assert len(where_1) == len(in_both) and len(where_2) == len(in_both)
+    else:
+        assert len(where_1) + len(where_2) == len(in_both)
+
+
+@pytest.mark.parametrize("biotype_value_1", ["CDS", "mRNA", "exon", "intron"])
+@pytest.mark.parametrize("biotype_value_2", ["CDS", "mRNA", "exon", "intron"])
+def test_get_features_matching_multiple_biotype_list(
+    seq_db, biotype_value_1, biotype_value_2
+):
+    """querying for features with multiple values should return the
+    same result as the sum of querying for each value seperately"""
+    where_1 = list(seq_db.get_features(biotype=biotype_value_1))
+    where_2 = list(seq_db.get_features(biotype=biotype_value_2))
+    in_both = list(seq_db.get_features(biotype=[biotype_value_1, biotype_value_2]))
+
+    if biotype_value_1 == biotype_value_2:
+        assert len(where_1) == len(in_both) and len(where_2) == len(in_both)
+    else:
+        assert len(where_1) + len(where_2) == len(in_both)
+
+
+@pytest.mark.parametrize("biotype_value_1", ["CDS", "mRNA", "exon", "intron"])
+@pytest.mark.parametrize("biotype_value_2", ["CDS", "mRNA", "exon", "intron"])
+def test_get_features_matching_multiple_biotype_set(
+    seq_db, biotype_value_1, biotype_value_2
+):
+    """querying for features with multiple values should return the
+    same result as the sum of querying for each value seperately"""
+    where_1 = list(seq_db.get_features(biotype=biotype_value_1))
+    where_2 = list(seq_db.get_features(biotype=biotype_value_2))
+    in_both = list(seq_db.get_features(biotype={biotype_value_1, biotype_value_2}))
+
+    if biotype_value_1 == biotype_value_2:
+        assert len(where_1) == len(in_both) and len(where_2) == len(in_both)
+    else:
+        assert len(where_1) + len(where_2) == len(in_both)
+
+
 def test_get_features_matching_start_stop_seqview(seq):
     """testing that get_features_matching adjusts"""
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
