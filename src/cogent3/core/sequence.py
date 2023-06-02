@@ -1346,7 +1346,7 @@ class Sequence(SequenceI):
             preserve_offset = stride > 0
 
         if self.annotation_db is not None and preserve_offset:
-            new.annotation_db = self.annotation_db
+            new.replace_annotation_db(self.annotation_db, check=False)
             new.annotation_offset = self.annotation_offset
 
         if hasattr(self, "_repr_policy"):
