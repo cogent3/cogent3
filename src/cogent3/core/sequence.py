@@ -875,7 +875,7 @@ class Sequence(SequenceI):
         # for both DNA and RNA. But if a user trys get_slice()
         # on a '-' strand feature, they will get a TypError.
         # I think that's enough.
-        self.replace_annotation_db(value, check=True)
+        self.replace_annotation_db(value, check=False)
 
     def replace_annotation_db(
         self, value: SupportsFeatures, check: bool = True

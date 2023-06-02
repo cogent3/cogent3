@@ -575,13 +575,8 @@ class _SequenceCollectionBase:
 
     @annotation_db.setter
     def annotation_db(self, value):
-        from cogent3.core.annotation_db import SupportsFeatures
-
         if value == self._annotation_db:
             return
-
-        if value and not isinstance(value, SupportsFeatures):
-            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
 
         self._annotation_db = value
 
@@ -4765,9 +4760,6 @@ class Alignment(AlignmentI, SequenceCollection):
 
     @annotation_db.setter
     def annotation_db(self, value):
-        if value and not isinstance(value, SupportsFeatures):
-            raise TypeError
-
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
