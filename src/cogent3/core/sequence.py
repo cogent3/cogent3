@@ -1407,8 +1407,9 @@ class Sequence(SequenceI):
             raise ValueError(f"k must be an int, not {k}")
 
         canonical = set(self.moltype)
-        for i in range(len(self) - k + 1):
-            kmer = self[i : i + k]
+        seq = str(self)
+        for i in range(len(seq) - k + 1):
+            kmer = seq[i : i + k]
             if not strict:
                 yield kmer
             else:
