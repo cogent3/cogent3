@@ -648,7 +648,7 @@ class SequenceI(object):
             result = self.__class__([missing for _ in len(self)], info=self.info)
         else:
             prefix = missing * first_nongap
-            mid = str(self[first_nongap : last_nongap + 1])
+            mid = str(self)[first_nongap : last_nongap + 1]
             suffix = missing * (len(self) - last_nongap - 1)
             result = self.__class__(prefix + mid + suffix, info=self.info)
         return result
