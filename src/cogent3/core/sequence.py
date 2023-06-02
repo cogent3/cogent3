@@ -1324,7 +1324,7 @@ class Sequence(SequenceI):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = f"{str(self[:7])}... {len(self)}"
+            seq = f"{str(self)[:7]}... {len(self)}"
         else:
             seq = str(self)
         return f"{myclass}({seq})"
