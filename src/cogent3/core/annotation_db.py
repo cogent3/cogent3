@@ -252,7 +252,12 @@ def _matching_conditions(
         for col, val in conditions.items():
             # conditions are filtered for None before here, so we should add
             # an else where the op is assigned !=
-            if val is not None:
+            if isinstance(val, (tuple, set, list)):
+                placeholders = ",".join(["?" for _ in val])
+                op = "IN"
+                conds.append(f"{col} {op} ({placeholders})")
+                vals.extend(val)
+            elif val is not None:
                 op = "LIKE" if isinstance(val, str) and "%" in val else "="
                 conds.append(f"{col} {op} ?")
                 vals.append(val)
