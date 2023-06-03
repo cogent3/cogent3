@@ -648,7 +648,7 @@ class SequenceI(object):
             result = self.__class__([missing for _ in len(self)], info=self.info)
         else:
             prefix = missing * first_nongap
-            mid = str(self[first_nongap : last_nongap + 1])
+            mid = str(self)[first_nongap : last_nongap + 1]
             suffix = missing * (len(self) - last_nongap - 1)
             result = self.__class__(prefix + mid + suffix, info=self.info)
         return result
@@ -875,7 +875,7 @@ class Sequence(SequenceI):
         # for both DNA and RNA. But if a user trys get_slice()
         # on a '-' strand feature, they will get a TypError.
         # I think that's enough.
-        self.replace_annotation_db(value, check=True)
+        self.replace_annotation_db(value, check=False)
 
     def replace_annotation_db(
         self, value: SupportsFeatures, check: bool = True
@@ -1284,7 +1284,7 @@ class Sequence(SequenceI):
         new = self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        new.annotation_db = copy.deepcopy(self.annotation_db)
+        new.annotation_db = self.annotation_db
         return new
 
     def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
@@ -1324,7 +1324,7 @@ class Sequence(SequenceI):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = f"{str(self[:7])}... {len(self)}"
+            seq = f"{str(self)[:7]}... {len(self)}"
         else:
             seq = str(self)
         return f"{myclass}({seq})"
@@ -1346,7 +1346,7 @@ class Sequence(SequenceI):
             preserve_offset = stride > 0
 
         if self.annotation_db is not None and preserve_offset:
-            new.annotation_db = self.annotation_db
+            new.replace_annotation_db(self.annotation_db, check=False)
             new.annotation_offset = self.annotation_offset
 
         if hasattr(self, "_repr_policy"):
@@ -1407,8 +1407,9 @@ class Sequence(SequenceI):
             raise ValueError(f"k must be an int, not {k}")
 
         canonical = set(self.moltype)
-        for i in range(len(self) - k + 1):
-            kmer = self[i : i + k]
+        seq = str(self)
+        for i in range(len(seq) - k + 1):
+            kmer = seq[i : i + k]
             if not strict:
                 yield kmer
             else:
@@ -1483,14 +1484,14 @@ class Sequence(SequenceI):
         seq = self.__class__(
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )
-        seq.annotation_db = copy.deepcopy(self.annotation_db)
+        seq.annotation_db = self.annotation_db
         return map, seq
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
         new = self._seq.replace(oldchar, newchar)
         result = self.__class__(new, name=self.name, info=self.info)
-        result.annotation_db = copy.deepcopy(self.annotation_db)
+        result.annotation_db = self.annotation_db
         return result
 
     def is_annotated(self):
@@ -1619,7 +1620,7 @@ class NucleicAcidSequence(Sequence):
         rc = self.__class__(
             self._seq[::-1], name=self.name, check=False, info=self.info
         )
-        rc.annotation_db = copy.deepcopy(self.annotation_db)
+        rc.annotation_db = self.annotation_db
         return rc
 
     def has_terminal_stop(self, gc=None, allow_partial=False):
@@ -1669,7 +1670,7 @@ class NucleicAcidSequence(Sequence):
             codons = codons[:-3]
 
         result = self.__class__(codons, name=self.name, info=self.info)
-        result.annotation_db = copy.deepcopy(self.annotation_db)
+        result.annotation_db = self.annotation_db
         return result
 
     def get_translation(self, gc=None, incomplete_ok=False, include_stop=False):
@@ -1700,8 +1701,9 @@ class NucleicAcidSequence(Sequence):
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
-        for posn in range(0, len(self) - 2, 3):
-            orig_codon = str(self[posn : posn + 3])
+        seq = str(self)
+        for posn in range(0, len(seq) - 2, 3):
+            orig_codon = str(seq[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:

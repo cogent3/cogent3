@@ -575,13 +575,8 @@ class _SequenceCollectionBase:
 
     @annotation_db.setter
     def annotation_db(self, value):
-        from cogent3.core.annotation_db import SupportsFeatures
-
         if value == self._annotation_db:
             return
-
-        if value and not isinstance(value, SupportsFeatures):
-            raise TypeError(f"{type(value)} does not satisfy SupportsFeatures")
 
         self._annotation_db = value
 
@@ -1428,7 +1423,7 @@ class _SequenceCollectionBase:
         result = self.__class__(moltype=self.moltype, data=seqs, info=self.info)
 
         if self.annotation_db:
-            result.annotation_db = deepcopy(self.annotation_db)
+            result.annotation_db = self.annotation_db
         return result
 
     def has_terminal_stops(self, gc=None, allow_partial=False):
@@ -1477,7 +1472,7 @@ class _SequenceCollectionBase:
             moltype=self.moltype, data=new_seqs, info=self.info, **kwargs
         )
         if self.annotation_db:
-            result.annotation_db = deepcopy(self.annotation_db)
+            result.annotation_db = self.annotation_db
         return result
 
     def get_lengths(self, include_ambiguity=False, allow_gap=False):
@@ -1684,7 +1679,7 @@ class _SequenceCollectionBase:
             data=data, moltype=moltype, name=self.name, info=self.info
         )
         if self.annotation_db:
-            result.annotation_db = deepcopy(self.annotation_db)
+            result.annotation_db = self.annotation_db
         return result
 
     def to_dna(self):
@@ -1705,7 +1700,7 @@ class _SequenceCollectionBase:
         rc = self.__class__(
             data=seqs, names=self.names[:], name=self.name, info=self.info
         )
-        rc.annotation_db = deepcopy(self.annotation_db)
+        rc.annotation_db = self.annotation_db
         return rc
 
     def reverse_complement(self):
@@ -1824,9 +1819,11 @@ class _SequenceCollectionBase:
 
         # Deep copying Aligned instance to ensure only region specified by Aligned.map is displayed.
         if isinstance(seq1, Aligned):
-            seq1 = seq1.deepcopy(sliced=True)
+            seq1 = seq1.deepcopy(sliced=True, exclude_annotations=True)
+            seq1.data.annotation_db = self.annotation_db
         if isinstance(seq2, Aligned):
-            seq2 = seq2.deepcopy(sliced=True)
+            seq2 = seq2.deepcopy(sliced=True, exclude_annotations=True)
+            seq2.data.annotation_db = self.annotation_db
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
@@ -4765,9 +4762,6 @@ class Alignment(AlignmentI, SequenceCollection):
 
     @annotation_db.setter
     def annotation_db(self, value):
-        if value and not isinstance(value, SupportsFeatures):
-            raise TypeError
-
         # Without knowing the contents of the db we cannot
         # establish whether self.moltype is compatible, so
         # we rely on the user to get that correct
@@ -4779,7 +4773,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         self._annotation_db = value
         for seq in self.seqs:
-            seq.data.annotation_db = value
+            seq.data.replace_annotation_db(value, check=False)
 
     def _mapped(self, slicemap):
         align = []
@@ -4933,7 +4927,7 @@ class Alignment(AlignmentI, SequenceCollection):
             # on Aligned
             masked_seqs += [seq._masked_annotations(biotypes, mask_char, shadow)]
         new = self.__class__(data=masked_seqs, info=self.info, name=self.name)
-        new.annotation_db = deepcopy(self.annotation_db)
+        new.annotation_db = self.annotation_db
         return new
 
     @extend_docstring_from(ArrayAlignment.filtered)

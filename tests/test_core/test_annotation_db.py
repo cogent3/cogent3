@@ -66,11 +66,6 @@ def test_assign_valid_db(seq, anno_db):
     assert seq.annotation_db is anno_db
 
 
-def test_assign_invalid_db(seq):
-    with pytest.raises(TypeError):
-        seq.annotation_db = 2
-
-
 def test_replace_annotation_db_check_invalid(seq):
     with pytest.raises(TypeError):
         seq.replace_annotation_db(2, check=True)
@@ -460,6 +455,68 @@ def test_matching_conditions():
     got, _ = _matching_conditions({"start": 1, "end": 5}, allow_partial=True)
     expect = "((start >= 1 AND end <= 5) OR (start <= 1 AND end > 1) OR (start < 5 AND end >= 5) OR (start <= 1 AND end >= 5))"
     assert got == expect
+
+
+def test_matching_conditions_IN():
+    got, cond = _matching_conditions({"biotype": ("CDS", "mRNA", "exon")}, allow_partial=True)
+    expect = "biotype IN (?,?,?)"
+    assert got == expect
+    assert cond == ("CDS", "mRNA", "exon")
+
+
+@pytest.mark.parametrize(
+    "biotype_value_1", ["CDS", "mRNA", "exon", "three_prime_UTR", "intron"]
+)
+@pytest.mark.parametrize(
+    "biotype_value_2", ["CDS", "mRNA", "exon", "five_prime_UTR", "intron"]
+)
+def test_get_features_matching_multiple_biotype_tuple(
+    seq_db, biotype_value_1, biotype_value_2
+):
+    """querying for features with multiple values should return the
+    same result as the sum of querying for each value seperately"""
+    where_1 = list(seq_db.get_features(biotype=biotype_value_1))
+    where_2 = list(seq_db.get_features(biotype=biotype_value_2))
+    in_both = list(seq_db.get_features(biotype=(biotype_value_1, biotype_value_2)))
+
+    if biotype_value_1 == biotype_value_2:
+        assert len(where_1) == len(in_both) and len(where_2) == len(in_both)
+    else:
+        assert len(where_1) + len(where_2) == len(in_both)
+
+
+@pytest.mark.parametrize("biotype_value_1", ["CDS", "mRNA", "exon", "intron"])
+@pytest.mark.parametrize("biotype_value_2", ["CDS", "mRNA", "exon", "intron"])
+def test_get_features_matching_multiple_biotype_list(
+    seq_db, biotype_value_1, biotype_value_2
+):
+    """querying for features with multiple values should return the
+    same result as the sum of querying for each value seperately"""
+    where_1 = list(seq_db.get_features(biotype=biotype_value_1))
+    where_2 = list(seq_db.get_features(biotype=biotype_value_2))
+    in_both = list(seq_db.get_features(biotype=[biotype_value_1, biotype_value_2]))
+
+    if biotype_value_1 == biotype_value_2:
+        assert len(where_1) == len(in_both) and len(where_2) == len(in_both)
+    else:
+        assert len(where_1) + len(where_2) == len(in_both)
+
+
+@pytest.mark.parametrize("biotype_value_1", ["CDS", "mRNA", "exon", "intron"])
+@pytest.mark.parametrize("biotype_value_2", ["CDS", "mRNA", "exon", "intron"])
+def test_get_features_matching_multiple_biotype_set(
+    seq_db, biotype_value_1, biotype_value_2
+):
+    """querying for features with multiple values should return the
+    same result as the sum of querying for each value seperately"""
+    where_1 = list(seq_db.get_features(biotype=biotype_value_1))
+    where_2 = list(seq_db.get_features(biotype=biotype_value_2))
+    in_both = list(seq_db.get_features(biotype={biotype_value_1, biotype_value_2}))
+
+    if biotype_value_1 == biotype_value_2:
+        assert len(where_1) == len(in_both) and len(where_2) == len(in_both)
+    else:
+        assert len(where_1) + len(where_2) == len(in_both)
 
 
 def test_get_features_matching_start_stop_seqview(seq):
