@@ -5292,6 +5292,63 @@ class Alignment(AlignmentI, SequenceCollection):
         feature.pop("strand", None)
         return Feature(parent=self, map=fmap, **feature)
 
+    def _get_seq_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        if self.annotation_db is None:
+            return None
+
+        seqids = [seqid] if isinstance(seqid, str) else seqid
+        if seqids is None:
+            seqids = self.names
+
+        if seqid and not set(seqids) & set(self.names):
+            raise ValueError(f"unknown {seqid=}")
+
+        for seqid in seqids:
+            seq = self.named_seqs[seqid]
+
+            start, end = seq.map.start, seq.map.end
+            offset = seq.data.annotation_offset
+
+            for feature in self.annotation_db.get_features_matching(
+                seqid=seqid,
+                biotype=biotype,
+                name=name,
+                on_alignment=False,
+                allow_partial=allow_partial,
+                start=start,
+                end=end,
+            ):
+                if offset:
+                    feature["spans"] = (array(feature["spans"]) - offset).tolist()
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)
+
     def get_features(
         self,
         *,
@@ -5329,7 +5386,7 @@ class Alignment(AlignmentI, SequenceCollection):
                 k: v for k, v in locals().items() if k not in ("self", "__class__")
             }
             kwargs.pop("on_alignment")
-            yield from super().get_features(**kwargs)
+            yield from self._get_seq_features(**kwargs)
 
         if on_alignment == False:
             return
