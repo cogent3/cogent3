@@ -458,7 +458,9 @@ def test_matching_conditions():
 
 
 def test_matching_conditions_IN():
-    got, cond = _matching_conditions({"biotype": ("CDS", "mRNA", "exon")}, allow_partial=True)
+    got, cond = _matching_conditions(
+        {"biotype": ("CDS", "mRNA", "exon")}, allow_partial=True
+    )
     expect = "biotype IN (?,?,?)"
     assert got == expect
     assert cond == ("CDS", "mRNA", "exon")
