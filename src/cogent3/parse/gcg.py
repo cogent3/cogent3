@@ -1,3 +1,4 @@
+import contextlib
 import warnings
 
 
@@ -6,7 +7,10 @@ def MsfParser(f):
     # parse optional header
     # parse optional text information
     # file header and sequence header are seperated by a line ending in '..'
-    _ = f.readline()
+    with contextlib.suppress(AttributeError):
+        f = f.read().splitlines()
+
+    f.pop(0)
     for line in f:
         line = line.strip()
         if line.endswith(".."):
@@ -23,8 +27,7 @@ def MsfParser(f):
     # parse sequences
     sequences = {}
     for line in f:
-        line = line.strip().split()
-        if line:
+        if line := line.strip().split():
             if line[0] in sequences:
                 sequences[line[0]] += "".join(line[1:])
             elif line[0] in seqinfo:
