@@ -29,9 +29,13 @@ def FromFilenameParser(filename, format=None, **kw):
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
     """
-    format, _ = get_format_suffixes(filename)
-    f = open_(filename, newline=None, mode="rt")
-    return FromFileParser(f, format, **kw)
+    if format is None:
+        format, _ = get_format_suffixes(filename)
+
+    with open_(filename, newline=None, mode="rt") as f:
+        data = f.read()
+
+    return FromFileParser(data.splitlines(), format, **kw)
 
 
 def FromFileParser(f, format, dialign_recode=False, **kw):
@@ -59,9 +63,7 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
                 seq = seq.translate(_lc_to_wc)
             if not seq.isupper():
                 seq = seq.upper()
-        yield (name, seq)
-
-    f.close()
+        yield name, seq
 
 
 def format_from_filename(filename, format=None):  # pragma: no cover
