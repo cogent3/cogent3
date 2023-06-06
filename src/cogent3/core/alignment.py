@@ -914,8 +914,8 @@ class _SequenceCollectionBase:
         result = self.__class__(result, names=seqs, info=self.info, **kwargs)
         if self.annotation_db:
             result.annotation_db = type(self.annotation_db)()
-            result.annotation_db._update_db_from_other_db(
-                other_db=self.annotation_db, seqids=result.names
+            result.annotation_db.update(
+                annot_db=self.annotation_db, seqids=result.names
             )
         return result
 

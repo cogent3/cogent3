@@ -927,7 +927,7 @@ class SqliteAnnotationDbMixin:
         if not annot_db or not len(annot_db):
             return
 
-        self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
+        self._update_db_from_other_db(annot_db, seqids=seqids)
 
     def union(self, annot_db: SupportsFeatures) -> SupportsFeatures:
         """returns a new instance with merged records with other
