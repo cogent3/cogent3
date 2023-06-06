@@ -722,7 +722,9 @@ def test_gff_update_db_from_other_db_existing(gff_db, gff_small_db):
     assert gff_db.num_matches() == expect
 
 
-@pytest.mark.parametrize("seqids", ("test_seq",["test_seq"], "test_seq2",["test_seq2"], None))
+@pytest.mark.parametrize(
+    "seqids", ("test_seq", ["test_seq"], "test_seq2", ["test_seq2"], None)
+)
 def test_gff_update_db_from_other_db_existing_specify_seqid(
     gff_db, gff_small_db, seqids
 ):
@@ -733,7 +735,7 @@ def test_gff_update_db_from_other_db_existing_specify_seqid(
 
 def test_gff_update_db_from_other_db_existing_none_seqid(gff_db, gff_small_db):
     expect = gff_db.num_matches() + gff_small_db.num_matches()
-    gff_db._update_db_from_other_db(other_db=gff_small_db, seqids = None)
+    gff_db._update_db_from_other_db(other_db=gff_small_db, seqids=None)
     assert gff_db.num_matches() == expect
 
 

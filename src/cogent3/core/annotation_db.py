@@ -1016,7 +1016,7 @@ class SqliteAnnotationDbMixin:
 
                     target_cursor.executemany(insert_sql, cursor)
 
-                    self.db.commit() # not sure if this is needed...
+                    self.db.commit()  # not sure if this is needed...
 
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
