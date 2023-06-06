@@ -988,6 +988,36 @@ class SqliteAnnotationDbMixin:
                 )
                 self._execute_sql(sql, vals)
 
+    def _update_db_from_other_db(
+        self, other_db: SupportsFeatures, seqids: OptionalStr = None
+    ):
+        if isinstance(seqids, str):
+            seqids = {seqids}
+        elif seqids is not None:
+            seqids = set(seqids) - {None}  # Make sure None is not part of this!
+
+        table_names = other_db.table_names
+
+        with other_db.db:
+            for table_name in table_names:
+                sql, values = _select_records_sql(
+                    table_name=table_name, conditions={"seqid": seqids}
+                )
+
+                cursor = other_db._execute_sql(sql, values)
+
+                with self.db:
+                    target_cursor = self.db.cursor()
+                    columns = ", ".join([desc[0] for desc in cursor.description])
+                    placeholders = ", ".join(["?"] * len(cursor.description))
+                    insert_sql = (
+                        f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+                    )
+
+                    target_cursor.executemany(insert_sql, cursor)
+
+                    self.db.commit() # not sure if this is needed...
+
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
 
