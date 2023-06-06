@@ -634,7 +634,7 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: typing.Optional[list[str], tuple[str]],
+        columns: typing.Optional[typing.Union[list[str], tuple[str]]],
         column: str,
         name: str,
         start: OptionalInt = None,
