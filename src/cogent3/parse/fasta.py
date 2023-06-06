@@ -1,6 +1,8 @@
 """Parsers for FASTA and related formats.
 """
+import os
 import re
+import typing
 
 from collections.abc import Callable
 
@@ -11,6 +13,7 @@ from cogent3.core.moltype import ASCII, BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
 from cogent3.util.io import open_
+from cogent3.util.warning import deprecated_args
 
 
 strip = str.strip
@@ -40,49 +43,79 @@ def is_blank(x):
 
 FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 
+PathOrIterableType = typing.Union[os.PathLike, typing.List[str], typing.Tuple[str]]
 
+
+@deprecated_args("2023.8", "faster implementation", discontinued=["finder"])
 def MinimalFastaParser(
-    infile, strict=True, label_to_name=str, finder=FastaFinder, label_characters=">"
-):
-    """Yields successive sequences from infile as (label, seq) tuples.
-
-    If strict is True (default), raises RecordError when label or seq missing.
+    path: PathOrIterableType,
+    strict: bool = True,
+    label_to_name: typing.Callable = str,
+    label_characters: str = ">",
+) -> typing.Iterable[typing.Tuple[str, str]]:
     """
+    Yields successive sequences from infile as (label, seq) tuples.
+
+    If strict is True (default), .
+    Parameters
+    ----------
+    path
+    strict
+        raises RecordError when label or seq missing
+    label_to_name
+        function for converting a label to a name
+    label_characters
+        the characters the indicate a line is a label line
+
+    Returns
+    -------
+
+    """
+    if not path:
+        return []
     try:
-        infile = open_(infile)
-        close_at_end = True
-    except (ValueError, TypeError, AttributeError):
-        close_at_end = False
+        with open_(path) as infile:
+            data = infile.read().splitlines()
+    except (AttributeError, TypeError, ValueError):
+        data = path
 
-    for rec in finder(infile):
-        # first line must be a label line
-        if rec[0][0] not in label_characters:
-            if strict:
-                raise RecordError(f"Found Fasta record without label line: {rec}")
+    label_char = re.compile(f"^[{label_characters}]")
+    seq = []
+    label = None
+    for line in data:
+        if line.startswith("#"):
+            # comment lines ignored
             continue
-        if len(rec) < 2:
-            if strict:
-                raise RecordError(f"Found label line without sequences: {rec}")
-            else:
-                continue
 
-        label = rec[0][1:].strip()
-        label = label_to_name(label)
-        seq = "".join(rec[1:])
+        if label_char.search(line):
+            if label is not None:
+                if strict and not seq:
+                    raise RecordError(f"{label} has no data")
+                if strict and label is None:
+                    raise RecordError("missing a label")
+                if seq:
+                    yield label_to_name(label.strip()), "".join(seq)
 
-        yield label, seq
+            label = line[1:].strip()
+            seq = []
+        elif line := line.strip():
+            seq.append(line)
 
-    if close_at_end:
-        infile.close()
+    if strict:
+        if not seq:
+            raise RecordError(f"{label} has no data")
+        if label is None:
+            raise RecordError("missing a label")
+
+    if seq:
+        yield label_to_name(label.strip()), "".join(seq)
 
 
 GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
 
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
-    return MinimalFastaParser(
-        infile, strict, label_to_name, finder=GdeFinder, label_characters="%#"
-    )
+    return MinimalFastaParser(infile, strict, label_to_name, label_characters="%#")
 
 
 def xmfa_label_to_name(line):
@@ -106,9 +139,7 @@ XmfaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_xmfa_blank_or_comment
 
 def MinimalXmfaParser(infile, strict=True):
     # Fasta-like but with header info like ">1:10-1000 + chr1"
-    return MinimalFastaParser(
-        infile, strict, label_to_name=xmfa_label_to_name, finder=XmfaFinder
-    )
+    return MinimalFastaParser(infile, strict, label_to_name=xmfa_label_to_name)
 
 
 def MinimalInfo(label):
@@ -151,7 +182,7 @@ def FastaParser(infile, seq_maker=None, info_maker=MinimalInfo, strict=True):
             # not strict: just skip any record that raises an exception
             try:
                 name, info = info_maker(label)
-                yield (name, seq_maker(seq, name=name, info=info))
+                yield name, seq_maker(seq, name=name, info=info)
             except Exception:
                 continue
 
@@ -282,7 +313,7 @@ def GroupFastaParser(
     """
 
     done_groups = [[], done_groups][done_groups is not None]
-    parser = MinimalFastaParser(data, label_to_name=label_to_name, finder=XmfaFinder)
+    parser = MinimalFastaParser(data, label_to_name=label_to_name)
     group_ids = []
     current_collection = {}
     for label, seq in parser:
