@@ -1,6 +1,5 @@
 """Parsers for FASTA and related formats.
 """
-import contextlib
 import os
 import re
 import typing
