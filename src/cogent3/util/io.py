@@ -1,3 +1,5 @@
+import contextlib
+import os
 import shutil
 import uuid
 
@@ -24,7 +26,7 @@ _urls = compile("^(http[s]*|file)")
 
 
 def _get_compression_open(
-    path: Union[str, Path] = None, compression: Optional[str] = None
+    path: Optional[os.PathLike] = None, compression: Optional[str] = None
 ) -> Optional[Callable]:
     """returns function for opening compression formats
 
@@ -45,7 +47,7 @@ def _get_compression_open(
     return {"gz": gzip_open, "bz2": bzip_open, "zip": open_zip}.get(compression, None)
 
 
-def open_zip(filename: Union[str, Path], mode: str = "r", **kwargs) -> IO:
+def open_zip(filename: os.PathLike, mode: str = "r", **kwargs) -> IO:
     """open a single member zip-compressed file
 
     Note
@@ -79,7 +81,7 @@ def open_zip(filename: Union[str, Path], mode: str = "r", **kwargs) -> IO:
         return TextIOWrapper(opened, encoding=encoding)
 
 
-def open_(filename: Union[str, Path], mode="rt", **kwargs) -> IO:
+def open_(filename: os.PathLike, mode="rt", **kwargs) -> IO:
     """open that handles different compression
 
     Parameters
@@ -184,7 +186,7 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(
-        self, path: Union[str, Path], tmpdir=None, in_zip=None, mode="w", encoding=None
+        self, path: os.PathLike, tmpdir=None, in_zip=None, mode="w", encoding=None
     ):
         """
 
@@ -306,7 +308,7 @@ class atomic_write:
 T = Optional[str]
 
 
-def get_format_suffixes(filename: Union[str, Path]) -> Tuple[T, T]:
+def get_format_suffixes(filename: os.PathLike) -> Tuple[T, T]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
@@ -341,12 +343,8 @@ def remove_files(list_of_filepaths, error_on_missing=True):
         raise OSError("Some filepaths were not accessible: %s" % "\t".join(missing))
 
 
-def path_exists(path):
+def path_exists(path: os.PathLike) -> bool:
     """whether path is a valid path and it exists"""
-    if not (isinstance(path, str) or isinstance(path, Path)):
-        return False
-    try:
-        is_path = os_path.exists(str(path))
-    except (ValueError, TypeError):
-        is_path = False
-    return is_path
+    with contextlib.suppress(ValueError, TypeError):
+        return os_path.exists(str(path))
+    return False
