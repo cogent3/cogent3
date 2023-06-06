@@ -716,6 +716,27 @@ def test_gff_update_existing_specify_seqid(gff_db, gff_small_db, seqids):
     assert gff_db.num_matches() == expect
 
 
+def test_gff_update_db_from_other_db_existing(gff_db, gff_small_db):
+    expect = gff_db.num_matches() + gff_small_db.num_matches()
+    gff_db._update_db_from_other_db(other_db=gff_small_db)
+    assert gff_db.num_matches() == expect
+
+
+@pytest.mark.parametrize("seqids", ("test_seq",["test_seq"], "test_seq2",["test_seq2"], None))
+def test_gff_update_db_from_other_db_existing_specify_seqid(
+    gff_db, gff_small_db, seqids
+):
+    expect = gff_db.num_matches() + gff_small_db.num_matches(seqid=seqids)
+    gff_db._update_db_from_other_db(other_db=gff_small_db, seqids=seqids)
+    assert gff_db.num_matches() == expect
+
+
+def test_gff_update_db_from_other_db_existing_none_seqid(gff_db, gff_small_db):
+    expect = gff_db.num_matches() + gff_small_db.num_matches()
+    gff_db._update_db_from_other_db(other_db=gff_small_db, seqids = None)
+    assert gff_db.num_matches() == expect
+
+
 def test_relative_position_negative_feature(seq_db):
     orig_feat_span = list(seq_db.get_features(name="Transcript:B0019.1"))[0].map
 
