@@ -343,12 +343,8 @@ def remove_files(list_of_filepaths, error_on_missing=True):
         raise OSError("Some filepaths were not accessible: %s" % "\t".join(missing))
 
 
-def path_exists(path):
+def path_exists(path: os.PathLike) -> bool:
     """whether path is a valid path and it exists"""
-    if not (isinstance(path, str) or isinstance(path, Path)):
-        return False
-    try:
-        is_path = os_path.exists(str(path))
-    except (ValueError, TypeError):
-        is_path = False
-    return is_path
+    with contextlib.suppress(ValueError, TypeError):
+        return os_path.exists(str(path))
+    return False
