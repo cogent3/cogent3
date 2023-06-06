@@ -367,11 +367,6 @@ def merged_db_collection(seqs) -> SupportsFeatures:
             merged = first
             continue
 
-        if first and db and type(first) != type(db):
-            raise TypeError(
-                f"annotation db types must be equal: {type(first)} != {type(db)}"
-            )
-
         if first is None or db is None or first is db:
             continue
         first.update(db)
