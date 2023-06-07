@@ -1013,7 +1013,7 @@ class SqliteAnnotationDbMixin:
             data = other_db._execute_sql(sql, vals)
             val_placeholder = ", ".join("?" * len(col_order[tname]))
             sql = f"INSERT INTO {tname} ({', '.join(col_order[tname])}) VALUES ({val_placeholder})"
-            
+
             self.db.executemany(sql, data)
 
     def to_json(self) -> str:
