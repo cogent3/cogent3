@@ -998,25 +998,23 @@ class SqliteAnnotationDbMixin:
 
         table_names = other_db.table_names
 
-        with other_db.db:
-            for table_name in table_names:
-                sql, values = _select_records_sql(
-                    table_name=table_name, conditions={"seqid": seqids}
-                )
+        col_order = {
+            tname: [
+                row[1]
+                for row in other_db.db.execute(f"PRAGMA table_info({tname})").fetchall()
+            ]
+            for tname in table_names
+        }
 
-                cursor = other_db._execute_sql(sql, values)
-
-                with self.db:
-                    target_cursor = self.db.cursor()
-                    columns = ", ".join([desc[0] for desc in cursor.description])
-                    placeholders = ", ".join(["?"] * len(cursor.description))
-                    insert_sql = (
-                        f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-                    )
-
-                    target_cursor.executemany(insert_sql, cursor)
-
-                    self.db.commit()  # not sure if this is needed...
+        for tname in other_db.table_names:
+            sql, vals = _select_records_sql(
+                table_name=tname, conditions={"seqid": seqids}
+            )
+            data = other_db._execute_sql(sql, vals)
+            val_placeholder = ", ".join("?" * len(col_order[tname]))
+            sql = f"INSERT INTO {tname} ({', '.join(col_order[tname])}) VALUES ({val_placeholder})"
+            
+            self.db.executemany(sql, data)
 
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
