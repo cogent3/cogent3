@@ -634,7 +634,7 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: typing.Optional[list[str], tuple[str]],
+        columns: typing.Optional[typing.Union[list[str], tuple[str]]],
         column: str,
         name: str,
         start: OptionalInt = None,
@@ -927,7 +927,7 @@ class SqliteAnnotationDbMixin:
         if not annot_db or not len(annot_db):
             return
 
-        self._update_db_from_rich_dict(annot_db.to_rich_dict(), seqids=seqids)
+        self._update_db_from_other_db(annot_db, seqids=seqids)
 
     def union(self, annot_db: SupportsFeatures) -> SupportsFeatures:
         """returns a new instance with merged records with other
@@ -987,6 +987,36 @@ class SqliteAnnotationDbMixin:
                     table_name, {k: v for k, v in record.items() if v is not None}
                 )
                 self._execute_sql(sql, vals)
+
+    def _update_db_from_other_db(
+        self, other_db: SupportsFeatures, seqids: OptionalStr = None
+    ):
+        if isinstance(seqids, str):
+            seqids = {seqids}
+        elif seqids is not None:
+            seqids = None if len(set(seqids) - {None}) == 0 else set(seqids) - {None}
+
+        table_names = other_db.table_names
+
+        with other_db.db:
+            for table_name in table_names:
+                sql, values = _select_records_sql(
+                    table_name=table_name, conditions={"seqid": seqids}
+                )
+
+                cursor = other_db._execute_sql(sql, values)
+
+                with self.db:
+                    target_cursor = self.db.cursor()
+                    columns = ", ".join([desc[0] for desc in cursor.description])
+                    placeholders = ", ".join(["?"] * len(cursor.description))
+                    insert_sql = (
+                        f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+                    )
+
+                    target_cursor.executemany(insert_sql, cursor)
+
+                    self.db.commit()  # not sure if this is needed...
 
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
