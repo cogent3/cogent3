@@ -653,8 +653,6 @@ def test_deser_annotated_aln():
 @pytest.mark.parametrize("rate_matrix_required", (True, False))
 def test_roundtrip_TN93_model(rate_matrix_required):
     """model_result of split codon correct type after roundtrip"""
-    from cogent3 import get_model, make_tree
-
     _data = {
         "a": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
         "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
