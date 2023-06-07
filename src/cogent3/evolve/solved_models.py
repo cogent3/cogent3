@@ -17,7 +17,6 @@ from . import solved_models_numba as _solved_models
 
 class PredefinedNucleotide(TimeReversibleNucleotide):
     _default_expm_setting = None
-
     # Instead of providing calc_exchangeability_matrix this subclass overrrides
     # make_continuous_psub_defn to bypass the Q / Qd step.
 
@@ -28,8 +27,8 @@ class PredefinedNucleotide(TimeReversibleNucleotide):
         assert word_probs is mprobs_matrix
         # Order of bases is assumed later, so check it really is Y,Y,R,R:
         alphabet = self.get_alphabet()
-        assert set(list(alphabet)[:2]) == set(["T", "C"])
-        assert set(list(alphabet)[2:]) == set(["G", "A"])
+        assert set(list(alphabet)[:2]) == {"T", "C"}
+        assert set(list(alphabet)[2:]) == {"G", "A"}
         # Should produce the same P as an ordinary Q based model would:
         self.check_psub_calculations_match()
         return CalcDefn(self.calc_psub_matrix, name="psubs")(
