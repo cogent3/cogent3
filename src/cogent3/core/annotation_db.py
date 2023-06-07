@@ -989,13 +989,9 @@ class SqliteAnnotationDbMixin:
                 self._execute_sql(sql, vals)
 
     def _update_db_from_other_db(
-        self, other_db: SupportsFeatures, seqids: OptionalStr = None
+        self, other_db: SupportsFeatures, seqids: OptionalStrContainer = None
     ):
-        if isinstance(seqids, str):
-            seqids = {seqids}
-        elif seqids is not None:
-            seqids = None if len(set(seqids) - {None}) == 0 else set(seqids) - {None}
-
+        conditions = {"seqid": seqids} if seqids else {}
         table_names = other_db.table_names
 
         col_order = {
@@ -1008,7 +1004,7 @@ class SqliteAnnotationDbMixin:
 
         for tname in other_db.table_names:
             sql, vals = _select_records_sql(
-                table_name=tname, conditions={"seqid": seqids}
+                table_name=tname, conditions=conditions
             )
             data = other_db._execute_sql(sql, vals)
             val_placeholder = ", ".join("?" * len(col_order[tname]))
