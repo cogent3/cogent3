@@ -2,13 +2,15 @@ import json
 import os
 
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy
+import pytest
 
 from numpy.testing import assert_allclose
 
 from cogent3 import (
+    get_app,
     load_aligned_seqs,
     load_tree,
     make_aligned_seqs,
@@ -646,3 +648,36 @@ def test_deser_annotated_aln():
     assert aln.annotation_db.num_matches() == 1
     feat = list(aln.get_features(biotype="CDS"))
     assert len(feat) == 1
+
+
+@pytest.mark.parametrize("rate_matrix_required", (True, False))
+def test_roundtrip_TN93_model(rate_matrix_required):
+    """model_result of split codon correct type after roundtrip"""
+    _data = {
+        "a": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+    }
+    aln = make_aligned_seqs(data=_data, moltype="dna")
+    tree = make_tree(tip_names=["a", "b", "c"])
+    tn93 = get_model(
+        "TN93", rate_matrix_required=rate_matrix_required
+    ).make_likelihood_function(tree)
+    tn93.set_alignment(aln)
+
+    got = deserialise_object(tn93.to_rich_dict())
+    assert_allclose(got.lnL, tn93.lnL)
+
+
+def test_roundtrip_TN93_model_result():
+    _data = {
+        "a": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+    }
+    aln = make_aligned_seqs(data=_data, moltype="dna")
+    tn93 = get_app("model", "TN93")
+    result = tn93(aln)
+
+    got = deserialise_object(result.to_rich_dict())
+    assert_allclose(got.lnL, result.lnL)

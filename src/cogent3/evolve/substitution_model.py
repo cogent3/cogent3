@@ -66,6 +66,10 @@ from cogent3.recalculation.definition import (
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 
+kappa_y = predicate.MotifChange("T", "C").aliased("kappa_y")
+kappa_r = predicate.MotifChange("A", "G").aliased("kappa_r")
+
+
 def predicate2matrix(alphabet, pred, mask=None):
     """From a test like istransition() produce an MxM boolean matrix"""
     M = len(alphabet)
@@ -904,7 +908,9 @@ class _TimeReversibleNucleotide(TimeReversible):
             "transition": predicate.parse("R/R") | predicate.parse("Y/Y"),
             "transversion": predicate.parse("R/Y"),
             "indel": predicate.parse("-/?"),
-            "kappa": (predicate.parse("R/R") | predicate.parse("Y/Y")).aliased("kappa"),
+            "kappa": (kappa_y | kappa_r).aliased("kappa"),
+            "kappa_y": kappa_y,
+            "kappa_r": kappa_r,
         }
 
 

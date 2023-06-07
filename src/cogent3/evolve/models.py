@@ -18,6 +18,8 @@ from cogent3.evolve import ns_substitution_model, substitution_model
 from cogent3.evolve.predicate import MotifChange, omega
 from cogent3.evolve.solved_models import _solved_nucleotide
 from cogent3.evolve.substitution_model import _SubstitutionModel
+from cogent3.evolve.substitution_model import kappa_r as _kappa_r
+from cogent3.evolve.substitution_model import kappa_y as _kappa_y
 from cogent3.util.table import Table
 
 
@@ -68,8 +70,6 @@ class register_model:
 
 _gtr_preds = [MotifChange(x, y) for x, y in ["AC", "AG", "AT", "CG", "CT"]]
 _omega = omega
-_kappa_y = MotifChange("T", "C").aliased("kappa_y")
-_kappa_r = MotifChange("A", "G").aliased("kappa_r")
 _kappa = (_kappa_y | _kappa_r).aliased("kappa")
 _cg = MotifChange("CG").aliased("G")
 _cg_k = (_cg & _kappa).aliased("G.K")
