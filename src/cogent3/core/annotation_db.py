@@ -989,34 +989,28 @@ class SqliteAnnotationDbMixin:
                 self._execute_sql(sql, vals)
 
     def _update_db_from_other_db(
-        self, other_db: SupportsFeatures, seqids: OptionalStr = None
+        self, other_db: SupportsFeatures, seqids: OptionalStrContainer = None
     ):
-        if isinstance(seqids, str):
-            seqids = {seqids}
-        elif seqids is not None:
-            seqids = None if len(set(seqids) - {None}) == 0 else set(seqids) - {None}
-
+        conditions = {"seqid": seqids} if seqids else {}
         table_names = other_db.table_names
 
-        with other_db.db:
-            for table_name in table_names:
-                sql, values = _select_records_sql(
-                    table_name=table_name, conditions={"seqid": seqids}
-                )
+        col_order = {
+            tname: [
+                row[1]
+                for row in other_db.db.execute(f"PRAGMA table_info({tname})").fetchall()
+            ]
+            for tname in table_names
+        }
 
-                cursor = other_db._execute_sql(sql, values)
+        for tname in other_db.table_names:
+            sql, vals = _select_records_sql(
+                table_name=tname, conditions=conditions
+            )
+            data = other_db._execute_sql(sql, vals)
+            val_placeholder = ", ".join("?" * len(col_order[tname]))
+            sql = f"INSERT INTO {tname} ({', '.join(col_order[tname])}) VALUES ({val_placeholder})"
 
-                with self.db:
-                    target_cursor = self.db.cursor()
-                    columns = ", ".join([desc[0] for desc in cursor.description])
-                    placeholders = ", ".join(["?"] * len(cursor.description))
-                    insert_sql = (
-                        f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-                    )
-
-                    target_cursor.executemany(insert_sql, cursor)
-
-                    self.db.commit()  # not sure if this is needed...
+            self.db.executemany(sql, data)
 
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())

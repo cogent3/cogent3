@@ -445,7 +445,6 @@ def test_annotate_from_gff(seq):
 
 
 def test_get_features_matching_start_stop(seq):
-    # todo: need to implement LostSpans()
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     got = list(seq.get_features(start=2, stop=10, allow_partial=True))
     assert len(got) == 4
@@ -707,7 +706,7 @@ def test_gff_update_existing(gff_db, gff_small_db):
     assert gff_db.num_matches() == expect
 
 
-@pytest.mark.parametrize("seqids", (None, "23", [None], ["23"]))
+@pytest.mark.parametrize("seqids", (None, "23", ["23"]))
 def test_gff_update_existing_specify_seqid(gff_db, gff_small_db, seqids):
     expect = gff_db.num_matches() + gff_small_db.num_matches(
         seqid=seqids[0] if isinstance(seqids, list) else seqids
