@@ -994,7 +994,7 @@ class SqliteAnnotationDbMixin:
         if isinstance(seqids, str):
             seqids = {seqids}
         elif seqids is not None:
-            seqids = set(seqids) - {None}  # Make sure None is not part of this!
+            seqids = None if len(set(seqids) - {None}) == 0 else set(seqids) - {None}
 
         table_names = other_db.table_names
 
