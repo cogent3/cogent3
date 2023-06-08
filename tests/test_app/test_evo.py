@@ -890,3 +890,13 @@ def test_bstrap_parallel():
     strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
     result = strapper(aln)
     assert isinstance(result, evo_app.bootstrap_result)
+
+
+def test_model_opt_args():
+    opt_args = {"max_restarts": 10, "tolerance": 1e-8}
+
+    model = evo_app.model(
+        "GN",
+        opt_args=opt_args,
+    )
+    assert model._opt_args == {**opt_args, **{"show_progress": False}}
