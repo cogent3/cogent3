@@ -159,7 +159,10 @@ class model:
         self.name = name
 
         opt_args = deepcopy(opt_args or {})
-        self._opt_args = dict(max_restarts=5, show_progress=show_progress, **opt_args)
+        self._opt_args = {
+            **{"max_restarts": 5, "show_progress": show_progress},
+            **opt_args,
+        }
 
         param_rules = param_rules or []
         if param_rules:
