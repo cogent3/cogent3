@@ -23,19 +23,19 @@ DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 @pytest.fixture(scope="function")
 def gff_db():
     path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
-    return load_annotations(path)
+    return load_annotations(path=path)
 
 
 @pytest.fixture(scope="function")
 def gff_small_db():
     path = DATA_DIR / "simple.gff"
-    return load_annotations(path)
+    return load_annotations(path=path)
 
 
 @pytest.fixture()
 def seq_db():
     seq = load_seq(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta", moltype="dna")
-    db = load_annotations(DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
+    db = load_annotations(path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
 
     seq.annotation_db = db
 
@@ -249,14 +249,14 @@ def test_empty_data():
 # testing GenBank files
 @pytest.fixture(scope="session")
 def gb_db():
-    return load_annotations(DATA_DIR / "annotated_seq.gb")
+    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
 
 def test_load_annotations_multi():
-    one = load_annotations(DATA_DIR / "simple.gff")
-    two = load_annotations(DATA_DIR / "simple2.gff")
+    one = load_annotations(path=DATA_DIR / "simple.gff")
+    two = load_annotations(path=DATA_DIR / "simple2.gff")
     expect = len(one) + len(two)
-    got = load_annotations(DATA_DIR / "simple*.gff")
+    got = load_annotations(path=DATA_DIR / "simple*.gff")
     assert len(got) == expect
 
 

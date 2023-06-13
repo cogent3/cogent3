@@ -1464,6 +1464,7 @@ def _db_from_gff(
 
 
 def load_annotations(
+    *,
     path: os.PathLike,
     seqids: OptionalStr = None,
     db: SupportsFeatures = None,
