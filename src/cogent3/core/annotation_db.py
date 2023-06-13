@@ -634,7 +634,7 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: typing.Optional[typing.Union[list[str], tuple[str]]],
+        columns: typing.Optional[typing.Iterable[str]],
         column: str,
         name: str,
         start: OptionalInt = None,
@@ -1094,39 +1094,43 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
     @extend_docstring_from(BasicAnnotationDb.__init__)
     def __init__(
-        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
     ):
         data = data or []
         # note that data is destroyed
         self._num_fakeids = 0
-        self.source = source
+        # if a db instance is passed in, we use that for source
+        self.source = getattr(db, "source", source)
+        # ensure serialisable state reflects this
+        self._serialisable["source"] = self.source
         self._db = None
         self._setup_db(db)
         data = self._merged_data(data)
         self.add_records(data)
 
     def add_records(self, reduced: dict) -> None:
+        col_order = [
+            r["name"] for r in self.db.execute("PRAGMA table_info(gff)").fetchall()
+        ]
+        val_placeholder = ", ".join("?" * len(col_order))
+        sql = f"INSERT INTO gff ({', '.join(col_order)}) VALUES ({val_placeholder})"
+
         # Can we really trust text case of "ID" and "Parent" to be consistent
         # across sources of gff?? I doubt it, so more robust regex likely
         # required
+        rows = []
         for record in reduced.values():
             # our Feature code assumes start always < end,
             # we record direction using Strand
             spans = numpy.array(sorted(record["spans"]), dtype=int)  # sorts the rows
             spans.sort(axis=1)
-            record["Start"] = int(spans.min())
-            record["End"] = int(spans.max())
+            record["start"] = int(spans.min())
+            record["end"] = int(spans.max())
             record["spans"] = spans
-            cmnd, vals = _add_record_sql(
-                self.table_names[0],
-                {
-                    k: v
-                    for k, v in record.items()
-                    if isinstance(v, numpy.ndarray) or v not in (".", None)
-                },
-            )
-            self._execute_sql(cmnd=cmnd, values=vals)
+            rows.append(tuple(record.get(c) for c in col_order))
 
+        self.db.executemany(sql, rows)
+        self.db.commit()
         del reduced
 
     def _merged_data(self, records) -> dict:
@@ -1140,10 +1144,17 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # extract the name from ID and add this into the table
         # I am not convinced we can rely on gff files to be ordered,
         # if we could, we could do this as one pass over the data
-        while records:
-            record = records.pop(0)
+        # all keys need to be lower case
+        for record in records:
             record["biotype"] = record.pop("Type")
-            attrs = record["Attributes"] or ""
+
+            # we force all keys that map to table column names to be lower case
+            for key in tuple(record):
+                if key.lower() not in self._gff_schema:
+                    continue
+                record[key.lower()] = record.pop(key)
+
+            attrs = record["attributes"] or ""
             if match := name.search(attrs):
                 record_id = match.group()
             else:
@@ -1159,7 +1170,10 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
                 reduced[record_id]["spans"] = []
 
             # should this just be an append?
-            reduced[record_id]["spans"].append((record["Start"], record["End"]))
+            reduced[record_id]["spans"].append((record["start"], record["end"]))
+
+        del records
+
         return reduced
 
 
@@ -1205,7 +1219,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         *,
         data: T = None,
         seqid: OptionalStr = None,
-        db: OptionalDbCursor = None,
+        db: SupportsFeatures = None,
         source=":memory:",
         namer: typing.Callable = None,
     ):
@@ -1230,7 +1244,14 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
+        col_order = [
+            r["name"] for r in self.db.execute("PRAGMA table_info(gb)").fetchall()
+        ]
+        val_placeholder = ", ".join("?" * len(col_order))
+        sql = f"INSERT INTO gb ({', '.join(col_order)}) VALUES ({val_placeholder})"
+
         # need to capture genetic code from genbank
+        rows = []
         exclude = {"translation", "location", "type"}  # location is grabbed directly
         for record in records:
             # our Feature code assumes start always < end,
@@ -1250,11 +1271,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 name = self._make_fake_id(record)
             store["attributes"] = {k: record[k] for k in attrs_keys}
             store["name"] = ",".join(name)
-            cmnd, vals = _add_record_sql(
-                self.table_names[0],
-                store,
-            )
-            self._execute_sql(cmnd=cmnd, values=vals)
+            rows.append(tuple(store.get(c) for c in col_order))
+
+        self.db.executemany(sql, rows)
+        self.db.commit()
+        del records
 
     def _default_namer(self, record: dict) -> typing.Union[typing.List[str], None]:
         # we evaluate potential tokens in the genbank record in order of
@@ -1380,7 +1401,7 @@ def deserialise_gb_db(data: dict):
 
 
 @register_deserialiser("annotation_to_annotation_db")
-def convert_annotation_to_annotation_db(data: dict) -> dict:
+def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
     from cogent3.util.deserialise import deserialise_map_spans
 
     db = BasicAnnotationDb()
@@ -1402,7 +1423,7 @@ def convert_annotation_to_annotation_db(data: dict) -> dict:
 
 
 @display_wrap
-def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, **kwargs):
+def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwargs):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
 
@@ -1414,7 +1435,10 @@ def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, **kwargs):
         with open_(path) as infile:
             rec = list(MinimalGenbankParser(infile))[0]
             db = GenbankAnnotationDb(
-                data=rec.pop("features", None), seqid=rec["locus"], db=db
+                source=write_path,
+                data=rec.pop("features", None),
+                seqid=rec["locus"],
+                db=db,
             )
 
     return db
@@ -1429,7 +1453,11 @@ OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
 
 @display_wrap
 def _db_from_gff(
-    path: os.PathLike, seqids: OptionalStrContainer, db: SupportsFeatures, **kwargs
+    path: os.PathLike,
+    seqids: OptionalStrContainer,
+    db: SupportsFeatures,
+    write_path,
+    **kwargs,
 ):
     from cogent3.parse.gff import gff_parser
 
@@ -1445,21 +1473,53 @@ def _db_from_gff(
                 attribute_parser=_leave_attributes,
             )
         )
-        db = GffAnnotationDb(data=data, db=db)
+        db = GffAnnotationDb(source=write_path, data=data, db=db)
     return db
 
 
 def load_annotations(
+    *,
     path: os.PathLike,
     seqids: OptionalStr = None,
-    db: OptionalDbCursor = None,
+    db: SupportsFeatures = None,
+    write_path: os.PathLike = ":memory:",
     show_progress: bool = False,
 ) -> SupportsFeatures:
+    """loads annotations from flatfile into a db
+
+    Parameters
+    ----------
+    path
+        path to a plain text file containing features
+    seqids
+        only features whose seqid matches a provided identifier are returned,
+        the default is all features.
+    db
+        an existing feature db to add these records to. Must be of a
+        compatible type.
+    write_path
+        where the constructed database should be written, defaults to
+        memory only
+    show_progress
+        applied only if loading features from multiple files
+
+    Notes
+    -----
+    We DO NOT check if a provided db already contains records from a flatfile.
+    """
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path)
     return (
-        _db_from_genbank(path, db=db, show_progress=show_progress)
+        _db_from_genbank(
+            path, db=db, write_path=write_path, show_progress=show_progress
+        )
         if {".gb", ".gbk"} & set(path.suffixes)
-        else _db_from_gff(path, seqids=seqids, db=db, show_progress=show_progress)
+        else _db_from_gff(
+            path,
+            seqids=seqids,
+            db=db,
+            write_path=write_path,
+            show_progress=show_progress,
+        )
     )
