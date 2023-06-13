@@ -1003,9 +1003,7 @@ class SqliteAnnotationDbMixin:
         }
 
         for tname in other_db.table_names:
-            sql, vals = _select_records_sql(
-                table_name=tname, conditions=conditions
-            )
+            sql, vals = _select_records_sql(table_name=tname, conditions=conditions)
             data = other_db._execute_sql(sql, vals)
             val_placeholder = ", ".join("?" * len(col_order[tname]))
             sql = f"INSERT INTO {tname} ({', '.join(col_order[tname])}) VALUES ({val_placeholder})"
