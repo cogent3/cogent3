@@ -1416,7 +1416,7 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
 
 @display_wrap
-def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, **kwargs):
+def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwargs):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
 
@@ -1428,7 +1428,10 @@ def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, **kwargs):
         with open_(path) as infile:
             rec = list(MinimalGenbankParser(infile))[0]
             db = GenbankAnnotationDb(
-                data=rec.pop("features", None), seqid=rec["locus"], db=db
+                source=write_path,
+                data=rec.pop("features", None),
+                seqid=rec["locus"],
+                db=db,
             )
 
     return db
@@ -1443,7 +1446,11 @@ OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
 
 @display_wrap
 def _db_from_gff(
-    path: os.PathLike, seqids: OptionalStrContainer, db: SupportsFeatures, **kwargs
+    path: os.PathLike,
+    seqids: OptionalStrContainer,
+    db: SupportsFeatures,
+    write_path,
+    **kwargs,
 ):
     from cogent3.parse.gff import gff_parser
 
@@ -1459,7 +1466,7 @@ def _db_from_gff(
                 attribute_parser=_leave_attributes,
             )
         )
-        db = GffAnnotationDb(data=data, db=db)
+        db = GffAnnotationDb(source=write_path, data=data, db=db)
     return db
 
 
@@ -1468,13 +1475,44 @@ def load_annotations(
     path: os.PathLike,
     seqids: OptionalStr = None,
     db: SupportsFeatures = None,
+    write_path: os.PathLike = ":memory:",
     show_progress: bool = False,
 ) -> SupportsFeatures:
+    """loads annotations from flatfile into a db
+
+    Parameters
+    ----------
+    path
+        path to a plain text file containing features
+    seqids
+        only features whose seqid matches a provided identifier are returned,
+        the default is all features.
+    db
+        an existing feature db to add these records to. Must be of a
+        compatible type.
+    write_path
+        where the constructed database should be written, defaults to
+        memory only
+    show_progress
+        applied only if loading features from multiple files
+
+    Notes
+    -----
+    We DO NOT check if a provided db already contains records from a flatfile.
+    """
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
     path = pathlib.Path(path)
     return (
-        _db_from_genbank(path, db=db, show_progress=show_progress)
+        _db_from_genbank(
+            path, db=db, write_path=write_path, show_progress=show_progress
+        )
         if {".gb", ".gbk"} & set(path.suffixes)
-        else _db_from_gff(path, seqids=seqids, db=db, show_progress=show_progress)
+        else _db_from_gff(
+            path,
+            seqids=seqids,
+            db=db,
+            write_path=write_path,
+            show_progress=show_progress,
+        )
     )

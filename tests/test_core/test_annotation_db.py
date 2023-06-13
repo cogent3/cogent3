@@ -894,3 +894,21 @@ def test_write(gb_db, tmp_path):
     got = GenbankAnnotationDb(source=outpath)
     assert got.to_rich_dict()["tables"] == gb_db.to_rich_dict()["tables"]
     assert isinstance(got, GenbankAnnotationDb)
+
+
+@pytest.fixture(scope="function")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("annotations")
+
+
+def test_load_anns_with_write(tmp_dir):
+    inpath = DATA_DIR / "simple.gff"
+    outpath = tmp_dir / "simple.gffdb"
+    orig = load_annotations(path=inpath, write_path=outpath)
+    orig.db.close()
+    expect = load_annotations(path=inpath)
+    got = GffAnnotationDb(source=outpath)
+    assert len(got) == len(expect)
+    got_data = got.to_rich_dict()
+    expect_data = expect.to_rich_dict()
+    assert got_data["tables"] == expect_data["tables"]
