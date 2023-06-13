@@ -634,7 +634,7 @@ class SqliteAnnotationDbMixin:
     def _get_feature_by_id(
         self,
         table_name: str,
-        columns: typing.Optional[typing.Union[list[str], tuple[str]]],
+        columns: typing.Optional[typing.Iterable[str]],
         column: str,
         name: str,
         start: OptionalInt = None,
@@ -1094,7 +1094,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
     @extend_docstring_from(BasicAnnotationDb.__init__)
     def __init__(
-        self, *, data: T = None, db: OptionalDbCursor = None, source=":memory:"
+        self, *, data: T = None, db: SupportsFeatures = None, source=":memory:"
     ):
         data = data or []
         # note that data is destroyed
@@ -1219,7 +1219,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         *,
         data: T = None,
         seqid: OptionalStr = None,
-        db: OptionalDbCursor = None,
+        db: SupportsFeatures = None,
         source=":memory:",
         namer: typing.Callable = None,
     ):
@@ -1394,7 +1394,7 @@ def deserialise_gb_db(data: dict):
 
 
 @register_deserialiser("annotation_to_annotation_db")
-def convert_annotation_to_annotation_db(data: dict) -> dict:
+def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
     from cogent3.util.deserialise import deserialise_map_spans
 
     db = BasicAnnotationDb()
@@ -1466,7 +1466,7 @@ def _db_from_gff(
 def load_annotations(
     path: os.PathLike,
     seqids: OptionalStr = None,
-    db: OptionalDbCursor = None,
+    db: SupportsFeatures = None,
     show_progress: bool = False,
 ) -> SupportsFeatures:
     if seqids is not None:
