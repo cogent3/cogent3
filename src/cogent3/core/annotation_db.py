@@ -1110,7 +1110,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
     def add_records(self, reduced: dict) -> None:
         col_order = [
-            r[1] for r in self.db.execute(f"PRAGMA table_info(gff)").fetchall()
+            r["name"] for r in self.db.execute("PRAGMA table_info(gff)").fetchall()
         ]
         val_placeholder = ", ".join("?" * len(col_order))
         sql = f"INSERT INTO gff ({', '.join(col_order)}) VALUES ({val_placeholder})"
@@ -1127,10 +1127,10 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             record["start"] = int(spans.min())
             record["end"] = int(spans.max())
             record["spans"] = spans
-            rows.append(tuple(record.get(c, None) for c in col_order))
+            rows.append(tuple(record.get(c) for c in col_order))
 
         self.db.executemany(sql, rows)
-
+        self.db.commit()
         del reduced
 
     def _merged_data(self, records) -> dict:
@@ -1244,7 +1244,14 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self.add_records(data, seqid)
 
     def add_records(self, records, seqid):
+        col_order = [
+            r["name"] for r in self.db.execute("PRAGMA table_info(gb)").fetchall()
+        ]
+        val_placeholder = ", ".join("?" * len(col_order))
+        sql = f"INSERT INTO gb ({', '.join(col_order)}) VALUES ({val_placeholder})"
+
         # need to capture genetic code from genbank
+        rows = []
         exclude = {"translation", "location", "type"}  # location is grabbed directly
         for record in records:
             # our Feature code assumes start always < end,
@@ -1264,11 +1271,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 name = self._make_fake_id(record)
             store["attributes"] = {k: record[k] for k in attrs_keys}
             store["name"] = ",".join(name)
-            cmnd, vals = _add_record_sql(
-                self.table_names[0],
-                store,
-            )
-            self._execute_sql(cmnd=cmnd, values=vals)
+            rows.append(tuple(store.get(c) for c in col_order))
+
+        self.db.executemany(sql, rows)
+        self.db.commit()
+        del records
 
     def _default_namer(self, record: dict) -> typing.Union[typing.List[str], None]:
         # we evaluate potential tokens in the genbank record in order of
