@@ -158,7 +158,7 @@ src_paths = ["src", "tests","doc","noxfile.py"]
 
 [tool.scriv]
 format="md"
-categories=["Contributers","ENH","BUG","DOC","Deprecations","Discontinued"]
+categories=["Contributors", "ENH", "BUG", "DOC", "Deprecations", "Discontinued"]
 output_file="changelog.md"
 version="literal: src/cogent3/__init__.py:__version__"
 skip_fragments="README.*"
