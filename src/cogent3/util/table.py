@@ -942,7 +942,7 @@ class Table:
         for key in ("title", "index_name"):
             attrs.pop(key, None)
 
-        attrs |= kwargs
+        attrs.update(kwargs)
         joined = self.__class__(**attrs)
         for c in new_header:
             joined.columns[c] = joined_data[c]
