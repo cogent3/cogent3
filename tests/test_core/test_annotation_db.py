@@ -23,19 +23,19 @@ DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 @pytest.fixture(scope="function")
 def gff_db():
     path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
-    return load_annotations(path)
+    return load_annotations(path=path)
 
 
 @pytest.fixture(scope="function")
 def gff_small_db():
     path = DATA_DIR / "simple.gff"
-    return load_annotations(path)
+    return load_annotations(path=path)
 
 
 @pytest.fixture()
 def seq_db():
     seq = load_seq(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta", moltype="dna")
-    db = load_annotations(DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
+    db = load_annotations(path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
 
     seq.annotation_db = db
 
@@ -249,14 +249,14 @@ def test_empty_data():
 # testing GenBank files
 @pytest.fixture(scope="session")
 def gb_db():
-    return load_annotations(DATA_DIR / "annotated_seq.gb")
+    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
 
 def test_load_annotations_multi():
-    one = load_annotations(DATA_DIR / "simple.gff")
-    two = load_annotations(DATA_DIR / "simple2.gff")
+    one = load_annotations(path=DATA_DIR / "simple.gff")
+    two = load_annotations(path=DATA_DIR / "simple2.gff")
     expect = len(one) + len(two)
-    got = load_annotations(DATA_DIR / "simple*.gff")
+    got = load_annotations(path=DATA_DIR / "simple*.gff")
     assert len(got) == expect
 
 
@@ -894,3 +894,21 @@ def test_write(gb_db, tmp_path):
     got = GenbankAnnotationDb(source=outpath)
     assert got.to_rich_dict()["tables"] == gb_db.to_rich_dict()["tables"]
     assert isinstance(got, GenbankAnnotationDb)
+
+
+@pytest.fixture(scope="function")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("annotations")
+
+
+def test_load_anns_with_write(tmp_dir):
+    inpath = DATA_DIR / "simple.gff"
+    outpath = tmp_dir / "simple.gffdb"
+    orig = load_annotations(path=inpath, write_path=outpath)
+    orig.db.close()
+    expect = load_annotations(path=inpath)
+    got = GffAnnotationDb(source=outpath)
+    assert len(got) == len(expect)
+    got_data = got.to_rich_dict()
+    expect_data = expect.to_rich_dict()
+    assert got_data["tables"] == expect_data["tables"]

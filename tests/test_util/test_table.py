@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Unit tests for table.
 """
 import json
@@ -9,7 +7,7 @@ import pickle
 
 from collections import defaultdict
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main, skipIf
+from unittest import TestCase, skipIf
 
 import numpy
 import pytest
@@ -1974,5 +1972,51 @@ def test_mixed_row_lengths(data):
         _ = Table(header=["a", "b", "c"], data=data)
 
 
-if __name__ == "__main__":
-    main()
+@pytest.fixture
+def t2():
+    header = ["id", "foo", "bar"]
+    rows = [
+        [1, "abc", 11],
+        [2, "bca", 22],
+        [3, "cab", 33],
+        [4, "abc", 44],
+        [5, "bca", 55],
+    ]
+    return Table(header=header, data=rows, index_name="id")
+
+
+@pytest.fixture
+def t3():
+    header = ["id", "foo2", "bar2"]
+    rows = [[6, "abc", 66], [7, "bca", 77]]
+    return Table(header=header, data=rows, index_name="id")
+
+
+@pytest.fixture
+def t4():
+    header = ["id", "foo2", "bar2"]
+    rows = [[6, "abc", 66], [7, "bca", 77]]
+    return Table(header=header, data=rows, index_name="id")
+
+
+def test_inner_join_col_naming(t2, t3):
+    """test the table joined method"""
+    # inner join with defaults
+    got = t2.inner_join(t3)
+    expect = list(t2.header) + [f"right_{c}" for c in t3.header[1:]]
+    assert list(got.header) == expect
+
+    # inner join with no col_prefix
+    got = t2.inner_join(t3, col_prefix="")
+    expect = list(t2.header) + list(t3.header[1:])
+    assert list(got.header) == expect
+
+
+def test_outer_join_col_naming(t2, t3):
+    """test the table joined method"""
+    # cross join with a new col prefix
+    col_prefix = "cp_"
+    got = t2.cross_join(t3, col_prefix=col_prefix)
+    expect = list(t2.header) + [f"{col_prefix}{c}" for c in t3.header]
+    assert list(got.header) == expect
+    assert got.shape[0] == t2.shape[0] * t3.shape[0]

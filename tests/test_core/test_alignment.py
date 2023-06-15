@@ -3193,14 +3193,14 @@ def test_annotate_matches_to():
 def gb_db():
     from cogent3.core.annotation_db import load_annotations
 
-    return load_annotations(DATA_DIR / "annotated_seq.gb")
+    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
 
 @pytest.fixture(scope="function")
 def gff_db():
     from cogent3.core.annotation_db import load_annotations
 
-    return load_annotations(DATA_DIR / "simple.gff")
+    return load_annotations(path=DATA_DIR / "simple.gff")
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))

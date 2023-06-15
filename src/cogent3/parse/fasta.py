@@ -5,6 +5,7 @@ import re
 import typing
 
 from collections.abc import Callable
+from functools import singledispatch
 
 import cogent3
 
@@ -46,6 +47,76 @@ FastaFinder = LabeledRecordFinder(is_fasta_label, ignore=is_blank_or_comment)
 PathOrIterableType = typing.Union[os.PathLike, typing.List[str], typing.Tuple[str]]
 
 
+@singledispatch
+def _prep_data(data) -> typing.Iterable[str]:
+    return data
+
+
+@_prep_data.register
+def _(data: str):
+    with open_(data) as infile:
+        return infile.read().splitlines()
+
+
+@_prep_data.register
+def _(data: os.PathLike):
+    return _prep_data(str(data))
+
+
+def _faster_parser(
+    data: typing.Iterable[str], label_to_name: typing.Callable, label_char: str
+) -> typing.Iterable[typing.Tuple[str, str]]:
+    label = None
+    seq = []
+    for line in data:
+        if not line:
+            # ignore empty lines
+            continue
+
+        if line[0] in label_char:
+            if seq:
+                yield label_to_name(label or ""), "".join(seq)
+
+            label = line[1:].strip()
+            seq = []
+        else:
+            seq.append(line.strip())
+
+    if seq:
+        yield label_to_name(label or ""), "".join(seq)
+
+
+def _strict_parser(
+    data: typing.Iterable[str], label_to_name: typing.Callable, label_char: str
+) -> typing.Iterable[typing.Tuple[str, str]]:
+    seq = []
+    label = None
+    for line in data:
+        if not line or line.startswith("#"):
+            # ignore empty or comment lines
+            continue
+
+        if line[0] in label_char:
+            if label is not None:
+                if not seq:
+                    raise RecordError(f"{label} has no data")
+                yield label_to_name(label), "".join(seq)
+            elif seq:
+                raise RecordError("missing a label")
+
+            label = line[1:].strip()
+            seq = []
+        else:
+            seq.append(line.strip())
+
+    if not seq:
+        raise RecordError(f"{label} has no data")
+    if label is None:
+        raise RecordError("missing a label")
+
+    yield label_to_name(label), "".join(seq)
+
+
 @deprecated_args("2023.8", "faster implementation", discontinued=["finder"])
 def MinimalFastaParser(
     path: PathOrIterableType,
@@ -65,50 +136,17 @@ def MinimalFastaParser(
     label_to_name
         function for converting a label to a name
     label_characters
-        the characters the indicate a line is a label line
-
-    Returns
-    -------
-
+        character(s) at the start of a label line
     """
     if not path:
         return []
-    try:
-        with open_(path) as infile:
-            data = infile.read().splitlines()
-    except (AttributeError, TypeError, ValueError):
-        data = path
 
-    label_char = re.compile(f"^[{label_characters}]")
-    seq = []
-    label = None
-    for line in data:
-        if line.startswith("#"):
-            # comment lines ignored
-            continue
-
-        if label_char.search(line):
-            if label is not None:
-                if strict and not seq:
-                    raise RecordError(f"{label} has no data")
-                if strict and label is None:
-                    raise RecordError("missing a label")
-                if seq:
-                    yield label_to_name(label.strip()), "".join(seq)
-
-            label = line[1:].strip()
-            seq = []
-        elif line := line.strip():
-            seq.append(line)
-
+    data = _prep_data(path)
+    label_char = set(label_characters)
     if strict:
-        if not seq:
-            raise RecordError(f"{label} has no data")
-        if label is None:
-            raise RecordError("missing a label")
-
-    if seq:
-        yield label_to_name(label.strip()), "".join(seq)
+        yield from _strict_parser(data, label_to_name, label_char)
+    else:
+        yield from _faster_parser(data, label_to_name, label_char)
 
 
 GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank)
