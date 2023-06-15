@@ -297,7 +297,7 @@ def load_seq(
         result.annotation_db = seq.annotation_db
 
     if annotation_path is not None:
-        result.annotation_db = load_annotations(annotation_path, seqids=[name])
+        result.annotation_db = load_annotations(path=annotation_path, seqids=[name])
     return result
 
 

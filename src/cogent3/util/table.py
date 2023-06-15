@@ -911,31 +911,38 @@ class Table:
     def array(self):
         return self.columns.array
 
-    def cross_join(self, other, **kwargs):
+    def cross_join(self, other, col_prefix="right_", **kwargs):
         """cross join, or full outer join, of self with other
 
-        Notes
-        -----
-        The column headers of the output are made unique by prepending
-        other column headers with _, e.g. 'Name' becomes _Name'.
+        Parameters
+        ----------
+        other
+            A table object which will be joined with this
+            table. other must have a title.
+        col_prefix
+            ensure <other> columns are unique by prepending col_prefix
         """
         self_range = range(self.shape[0])
         other_range = range(other.shape[0])
         self_selected, other_selected = list(zip(*product(self_range, other_range)))
         joined_data = {c: self.columns[c].take(self_selected) for c in self.columns}
-        col_prefix = "right" if not other.title else other.title
         other_data = {
-            f"{col_prefix}_{c}": other.columns[c].take(other_selected)
+            f"{col_prefix}{c}": other.columns[c].take(other_selected)
             for c in other.columns
         }
 
         joined_data.update(other_data)
         new_header = list(self.columns.order) + [
-            f"{col_prefix}_{c}" for c in other.columns
+            f"{col_prefix}{c}" for c in other.columns
         ]
-        attrs = self._get_persistent_attrs()
-        attrs.pop("title", None)
-        attrs |= kwargs
+        attrs = {**self._get_persistent_attrs()}
+        # we do not propagate current title as it is likely incorrect
+        # we also drop self.index_name since a cross-join generates duplicated
+        # values of that column
+        for key in ("title", "index_name"):
+            attrs.pop(key, None)
+
+        attrs.update(kwargs)
         joined = self.__class__(**attrs)
         for c in new_header:
             joined.columns[c] = joined_data[c]
@@ -947,6 +954,7 @@ class Table:
         columns_self=None,
         columns_other=None,
         use_index=True,
+        col_prefix="right_",
         **kwargs,
     ):
         """inner join of self with other
@@ -965,14 +973,9 @@ class Table:
         use_index
             if no columns specified and both self and other have a nominated
             index_name, this will be used.
-
-        Notes
-        -----
-        The column headers of the output are made unique by prepending
-        other column headers with _, e.g. 'Name' becomes _Name'.
+        col_prefix
+            ensure <other> columns are unique by prepending col_prefix
         """
-        col_prefix = "right" if not other.title else other.title
-
         if columns_self:
             columns_self = self.columns._get_keys_(columns_self)
 
@@ -1032,12 +1035,12 @@ class Table:
 
         joined_data = {c: self.columns[c][self_selected] for c in self.columns}
         other_data = {
-            f"{col_prefix}_{c}": other.columns[c][other_selected] for c in output_mask
+            f"{col_prefix}{c}": other.columns[c][other_selected] for c in output_mask
         }
 
         joined_data.update(other_data)
         new_header = list(self.columns.order) + [
-            f"{col_prefix}_{c}" for c in output_mask
+            f"{col_prefix}{c}" for c in output_mask
         ]
         attr = self._get_persistent_attrs()
         attr.pop("title", None)
@@ -1053,6 +1056,7 @@ class Table:
         columns_self=None,
         columns_other=None,
         inner_join=True,
+        col_prefix="right_",
         **kwargs,
     ):
         """returns a new table containing the join of this table and
@@ -1069,6 +1073,7 @@ class Table:
             columns_self=columns_self,
             columns_other=columns_other,
             use_index=False,
+            col_prefix=col_prefix,
             **kwargs,
         )
 

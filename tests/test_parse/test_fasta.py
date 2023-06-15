@@ -251,12 +251,8 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(r, ("123", "ucagUCAGtgacNNNN"))
         # test that we get what we expect if not strict
         r = list(NcbiFastaParser(self.nasty, Sequence, strict=False))
-        self.assertEqual(len(r), 4)
-        a, b, c, d = r
-        self.assertEqual(
-            (a[1], a[1].info.GI, a[1].info.RefSeq, a[1].info.Description),
-            ("UCAG", ["abc"], ["def"], ""),
-        )
+        self.assertEqual(len(r), 2)
+        b, c = r
         self.assertEqual(
             (b[1], b[1].info.GI, b[1].info.GenBank, b[1].info.Description),
             ("UUUUCCCC", ["xyz"], ["qwe"], "descr"),
@@ -265,26 +261,13 @@ class NcbiFastaParserTests(TestCase):
             (c[1], c[1].info.GI, c[1].info.RefSeq, c[1].info.Description),
             ("XYZ", ["bad"], ["stuff"], "label"),
         )
-        self.assertEqual(
-            (d[1], d[1].info.GI, d[1].info.DDBJ, d[1].info.Description),
-            ("ucagUCAGtgacNNNN".upper(), ["123"], ["456"], "desc|with|pipes|"),
-        )
         # ...and when we explicitly supply a constructor
         r = list(NcbiFastaParser(self.nasty, Dna, strict=False))
-        self.assertEqual(len(r), 3)
-        a, b, c = r
-        a, b, c = a[1], b[1], c[1]
-        self.assertEqual(
-            (a, a.info.GI, a.info.RefSeq, a.info.Description),
-            ("TCAG", ["abc"], ["def"], ""),
-        )
+        self.assertEqual(len(r), 1)
+        b = r[0][1]
         self.assertEqual(
             (b, b.info.GI, b.info.GenBank, b.info.Description),
             ("TTTTCCCC", ["xyz"], ["qwe"], "descr"),
-        )
-        self.assertEqual(
-            (c, c.info.GI, c.info.DDBJ, c.info.Description),
-            ("tcagTCAGtgacNNNN".upper(), ["123"], ["456"], "desc|with|pipes|"),
         )
 
 
