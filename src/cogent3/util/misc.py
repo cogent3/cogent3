@@ -9,6 +9,7 @@ import warnings
 
 from random import randint
 from typing import Tuple
+from urllib.parse import urlparse
 from warnings import warn
 
 import numpy
@@ -174,6 +175,12 @@ def is_char(obj):
 
 def is_char_or_noniterable(x):
     return is_char(x) or not is_iterable(x)
+
+
+def is_url(text: str) -> bool:
+    _urls = re.compile("^(http[s]*|file)")
+    r = urlparse(text)
+    return _urls.search(r.scheme) is not None
 
 
 def recursive_flatten(

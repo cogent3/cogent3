@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import (
+    get_app,
     load_aligned_seqs,
     make_aligned_seqs,
     make_tree,
@@ -900,3 +901,10 @@ def test_model_opt_args():
         opt_args=opt_args,
     )
     assert model._opt_args == {**opt_args, **{"show_progress": False}}
+
+
+def test_get_app_tree_is_url():
+    """A check that the model app can use a url for the tree"""
+    tree_url = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/brca1_5.tree"
+    mod = get_app("model", "F81", tree=tree_url)
+    assert isinstance(mod, evo_app.model)

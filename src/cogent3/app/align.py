@@ -444,7 +444,7 @@ class progressive_align:
         indel_length : float
             probability of gap extension
         distance : string
-            the distance measure for building a guide tree. Default is 'percent',
+            the distance measure for building a guide tree. Default is 'pdist',
             the proportion of differences. This is applicable for any moltype,
             and sequences with very high percent identity. For more diverged
             sequences we recommend 'paralinear'.
