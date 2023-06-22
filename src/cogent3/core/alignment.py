@@ -2225,23 +2225,30 @@ class SequenceCollection(_SequenceCollectionBase):
             yield seq.make_feature(feature, self)
 
     def distance_matrix(self, calc="pdist"):
-        """estimated pairwise distance between sequences. Distance calculation can be either:
-
-        pdist:  an approximation of the Proportional Sites Different, estimated by calculating
-                the Jaccard distance using kmers with k=10, then transforming with coefficients
-                from a pre-determined polynomial fit between Jaccard distance and pdist.
-        jc69:   an approximation of the Jukes Cantor distance using the approx pdist. i.e.,
-                a transformation of the above using Jukes Cantor distance.
+        """Estimated pairwise distance between sequences
 
         Parameters
         ----------
         calc : str
             The distance calculation method to use, either "pdist" or "jc69"
+            "pdist" is an approximation of the proportion sites different
+            "jc69" is an approximation of the Jukes Cantor distance
 
         Returns
         -------
         DistanceMatrix
             Estimated pairwise distances between sequences in the collection
+
+        Notes
+        -----
+        pdist approximates the proportion sites different from the Jaccard
+        distance. Coefficients for the approximation were derived from a
+        polynomial fit between Jaccard distance of kmers with k=10 and the
+        proportion of sites different using mammalian 106 protein coding
+        gene DNA sequence alignments.
+
+        jc69 approximates the Jukes Cantor distance using the approximated
+        proportion sites different, i.e., a transformation of the above.
         """
 
         # check moltype
