@@ -2250,6 +2250,7 @@ class SequenceCollection(_SequenceCollectionBase):
         jc69 approximates the Jukes Cantor distance using the approximated
         proportion sites different, i.e., a transformation of the above.
         """
+        from cogent3.app.dist import get_approx_dist_calc
 
         # check moltype
         if not len(self.moltype.alphabet) == 4:
@@ -2261,18 +2262,9 @@ class SequenceCollection(_SequenceCollectionBase):
                 "Pairwise distance cannot be computed for a single sequence. Please provide at least two sequences."
             )
 
-        jdist = cogent3.get_app("jaccard_dist")
-        pdist = cogent3.get_app("approx_pdist")
-
-        if calc == "pdist":
-            dist_calc_app = jdist + pdist
-        elif calc == "jc69":
-            jc69dist = cogent3.get_app("approx_jc69")
-            dist_calc_app = jdist + pdist + jc69dist
-        else:
-            raise ValueError(
-                f"No support for calc={calc}. Use either 'pdist' or 'jc69'"
-            )
+        dist_calc_app = get_approx_dist_calc(
+            dist=calc, num_states=len(self.moltype.alphabet)
+        )
 
         return dist_calc_app(self)
 
