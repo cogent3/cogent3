@@ -2,7 +2,7 @@ import warnings
 
 from bisect import bisect_left
 from itertools import combinations
-from typing import Union, Optional
+from typing import Optional, Union
 
 from numpy import array
 
@@ -482,10 +482,10 @@ class progressive_align:
             self._make_tree = guide_tree
             guide_tree = None  # callback takes precedence
         elif approx_dists and len(moltype.alphabet) == 4:
-            dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)        
+            dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)
             est_tree = quick_tree()
             self._make_tree = dist_app + est_tree
-        else: 
+        else:
             al_to_ref = align_to_ref(moltype=self._moltype)
             dist_calc = dist.fast_slow_dist(
                 distance=self._distance, moltype=self._moltype
@@ -508,7 +508,7 @@ class progressive_align:
             tree=self._guide_tree,
             param_vals=self._param_vals,
             show_progress=False,
-            iters = self._iters,
+            iters=self._iters,
         )
 
     def _build_guide(self, seqs):

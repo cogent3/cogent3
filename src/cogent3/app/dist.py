@@ -2,7 +2,7 @@ import itertools
 
 from copy import deepcopy
 from itertools import combinations
-from typing import Union, Callable
+from typing import Callable, Union
 
 import numpy
 
@@ -244,7 +244,7 @@ def approx_jc69(
 
 
 def get_approx_dist_calc(dist: str, num_states: int = 4) -> Callable:
-    """Return the corresponding callable approximate distance calculator  
+    """Return the corresponding callable approximate distance calculator
 
     Parameters
     ----------
@@ -256,7 +256,7 @@ def get_approx_dist_calc(dist: str, num_states: int = 4) -> Callable:
 
     Returns
     -------
-    cogent3.app for calculating DistanceMatrix for a SequenceCollection 
+    cogent3.app for calculating DistanceMatrix for a SequenceCollection
     """
     if dist == "pdist":
         dist_calc_app = jaccard_dist() + approx_pdist()
