@@ -5,8 +5,6 @@ from dataclasses import InitVar, dataclass, field
 from itertools import product
 from typing import Generator, Optional
 
-import cogent3.util.progress_display as UI
-
 from cogent3.core.sequence import Sequence
 
 
@@ -165,8 +163,6 @@ def _extend_from_position(
         positions to evaluate
     threshold : int
         minimum number of matches
-    total : int
-        total number of True values in matches
 
     Returns
     -------
@@ -280,6 +276,7 @@ class SeqKmers:
 
         self.kmers = kmers
         self.num_seqs = 1
+        self.other_name = None
 
     def add_seq(self, seq: Sequence) -> None:
         """transforms seq into k-mers, adds indices of matches
@@ -304,10 +301,14 @@ class SeqKmers:
 
         self.num_seqs += 1
 
-    def drop_seq(self, seq_name: str) -> None:
+    def drop_seq(self, seq_name: Optional[str] = None) -> None:
         """removes other seq from all k-mers"""
+        seq_name = seq_name if seq_name else self.other_name
+        if seq_name is None:
+            return
+
         for kmer in self.kmers:
-            kmer.indices.pop(self.other_name, None)
+            kmer.indices.pop(seq_name, None)
 
         self.other_name = None
         self.num_seqs = 1
