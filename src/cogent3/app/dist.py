@@ -2,7 +2,7 @@ import itertools
 
 from copy import deepcopy
 from itertools import combinations
-from typing import Union
+from typing import Callable, Union
 
 import numpy
 
@@ -184,7 +184,7 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
 
 @define_app
 def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
-    """approximate the proportion sites different from Jaccard distances
+    """Approximate the proportion sites different from Jaccard distances
 
     Parameters
     ----------
@@ -217,7 +217,7 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
 def approx_jc69(
     pdists: PairwiseDistanceType, num_states: int = 4
 ) -> PairwiseDistanceType:
-    """converts p-distances and returns pairwise JC69 distances
+    """Converts p-distances and returns pairwise JC69 distances
 
     Parameters
     ----------
@@ -241,6 +241,32 @@ def approx_jc69(
     arr.T[upper_indices] = arr[upper_indices]
     result.array = arr
     return result
+
+
+def get_approx_dist_calc(dist: str, num_states: int = 4) -> Callable:
+    """Return the corresponding callable approximate distance calculator
+
+    Parameters
+    ----------
+    dist : str
+        The distance measure for the calculator, either "pdist" or "jc69"
+    num_states
+        Number of sequence states, default is for the traditional
+        JC69 modelling of DNA substitutions
+
+    Returns
+    -------
+    cogent3.app for calculating DistanceMatrix for a SequenceCollection
+    """
+    if dist == "pdist":
+        dist_calc_app = jaccard_dist() + approx_pdist()
+    elif dist == "jc69":
+        dist_calc_app = (
+            jaccard_dist() + approx_pdist() + approx_jc69(num_states=num_states)
+        )
+    else:
+        raise ValueError(f"No support for calc={dist}. Use either 'pdist' or 'jc69'")
+    return dist_calc_app
 
 
 @define_app

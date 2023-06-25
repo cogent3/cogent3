@@ -528,6 +528,12 @@ def aln():
     return aligner(seqs)
 
 
+@pytest.fixture(scope="function")
+def seqs():
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA)
+    return seqs
+
+
 def test_cogent3_score(aln):
     get_score = get_app("cogent3_score")
     score = get_score(aln)
@@ -580,3 +586,32 @@ def test_sp_score_affine_gap():
     aln = make_aligned_seqs(data, moltype="dna")
     got = app.main(aln)
     assert_allclose(got, (mscore - gscore).sum())
+
+
+def test_progressive_align_tree_from_reference(seqs):
+    """progressive alignment with no provided tree and approx_dists=False
+    will use a quick alignment to build the tree"""
+    aligner = align_app.progressive_align(model="TN93", approx_dists=False)
+    aln = aligner(seqs)
+    assert isinstance(aln, ArrayAlignment)
+    assert len(aln) == 42
+    assert aln.moltype == aligner._moltype
+
+
+def test_progressive_align_tree_from_approx_dist(seqs):
+    """progressive alignment with no provided tree and approx_dists=True
+    will use an approximated distance measure to build the tree"""
+    aligner = align_app.progressive_align(model="TN93", approx_dists=True)
+    aln = aligner(seqs)
+    assert isinstance(aln, ArrayAlignment)
+    assert len(aln) == 42
+    assert aln.moltype == aligner._moltype
+
+
+def test_progressive_align_iters(seqs):
+    """progressive alignment works with iters>1"""
+    aligner = align_app.progressive_align(model="TN93")
+    aln = aligner(seqs)
+    assert isinstance(aln, ArrayAlignment)
+    assert len(aln) == 42
+    assert aln.moltype == aligner._moltype

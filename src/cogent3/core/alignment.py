@@ -2225,24 +2225,32 @@ class SequenceCollection(_SequenceCollectionBase):
             yield seq.make_feature(feature, self)
 
     def distance_matrix(self, calc="pdist"):
-        """estimated pairwise distance between sequences. Distance calculation can be either:
-
-        pdist:  an approximation of the Proportional Sites Different, estimated by calculating
-                the Jaccard distance using kmers with k=10, then transforming with coefficients
-                from a pre-determined polynomial fit between Jaccard distance and pdist.
-        jc69:   an approximation of the Jukes Cantor distance using the approx pdist. i.e.,
-                a transformation of the above using Jukes Cantor distance.
+        """Estimated pairwise distance between sequences
 
         Parameters
         ----------
         calc : str
             The distance calculation method to use, either "pdist" or "jc69"
+            "pdist" is an approximation of the proportion sites different
+            "jc69" is an approximation of the Jukes Cantor distance
 
         Returns
         -------
         DistanceMatrix
             Estimated pairwise distances between sequences in the collection
+
+        Notes
+        -----
+        pdist approximates the proportion sites different from the Jaccard
+        distance. Coefficients for the approximation were derived from a
+        polynomial fit between Jaccard distance of kmers with k=10 and the
+        proportion of sites different using mammalian 106 protein coding
+        gene DNA sequence alignments.
+
+        jc69 approximates the Jukes Cantor distance using the approximated
+        proportion sites different, i.e., a transformation of the above.
         """
+        from cogent3.app.dist import get_approx_dist_calc
 
         # check moltype
         if not len(self.moltype.alphabet) == 4:
@@ -2254,18 +2262,9 @@ class SequenceCollection(_SequenceCollectionBase):
                 "Pairwise distance cannot be computed for a single sequence. Please provide at least two sequences."
             )
 
-        jdist = cogent3.get_app("jaccard_dist")
-        pdist = cogent3.get_app("approx_pdist")
-
-        if calc == "pdist":
-            dist_calc_app = jdist + pdist
-        elif calc == "jc69":
-            jc69dist = cogent3.get_app("approx_jc69")
-            dist_calc_app = jdist + pdist + jc69dist
-        else:
-            raise ValueError(
-                f"No support for calc={calc}. Use either 'pdist' or 'jc69'"
-            )
+        dist_calc_app = get_approx_dist_calc(
+            dist=calc, num_states=len(self.moltype.alphabet)
+        )
 
         return dist_calc_app(self)
 

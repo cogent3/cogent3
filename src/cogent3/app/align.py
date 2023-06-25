@@ -2,7 +2,7 @@ import warnings
 
 from bisect import bisect_left
 from itertools import combinations
-from typing import Union
+from typing import Optional, Union
 
 from numpy import array
 
@@ -416,6 +416,8 @@ class progressive_align:
         indel_length=1e-1,
         indel_rate=1e-10,
         distance="pdist",
+        iters: Optional[int] = None,
+        approx_dists: bool = True,
     ):
         """
         Parameters
@@ -448,6 +450,15 @@ class progressive_align:
             the proportion of differences. This is applicable for any moltype,
             and sequences with very high percent identity. For more diverged
             sequences we recommend 'paralinear'.
+        iters
+            the number of times the alignment process is repeated. The guide tree
+            is updated on each iteration from pairwise distances computed from the
+            alignment produced by the previous iteration. If None, does not do any
+            iterations.
+        approx_dists
+            if no guide tree, and model is for DNA / Codons, estimates pairwise
+            distances using an approximation and JC69. Otherwise, estimates
+            genetic distances from pairwise alignments (which is slower).
         """
         self._param_vals = {
             "codon": dict(omega=0.4, kappa=3),
@@ -466,9 +477,14 @@ class progressive_align:
         self._moltype = moltype
         self._unique_guides = unique_guides
         self._distance = distance
+        self._iters = iters
         if callable(guide_tree):
             self._make_tree = guide_tree
             guide_tree = None  # callback takes precedence
+        elif approx_dists and len(moltype.alphabet) == 4:
+            dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)
+            est_tree = quick_tree()
+            self._make_tree = dist_app + est_tree
         else:
             al_to_ref = align_to_ref(moltype=self._moltype)
             dist_calc = dist.fast_slow_dist(
@@ -492,6 +508,7 @@ class progressive_align:
             tree=self._guide_tree,
             param_vals=self._param_vals,
             show_progress=False,
+            iters=self._iters,
         )
 
     def _build_guide(self, seqs):
