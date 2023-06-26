@@ -253,6 +253,25 @@ def test_seqkmers_2seqs_dropseq(smallseq):
     assert sk.num_seqs == 1
 
 
+def test_dropseq_default(smallseq):
+    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
+    seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
+    sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
+    sk.add_seq(seq2)
+    sk.drop_seq()
+    assert sk.other_name is None
+
+
+def test_one_seq_dropseq(smallseq):
+    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
+    sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
+    assert sk.other_name is None
+    assert sk.num_seqs == 1
+    sk.drop_seq()
+    assert sk.other_name is None
+    assert sk.num_seqs == 1
+
+
 def test_seqkmers_iter_matching_kmers(smallseq):
     seq1 = make_seq(smallseq, name="seq1", moltype="dna")
     seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
