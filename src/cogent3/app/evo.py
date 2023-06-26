@@ -17,6 +17,7 @@ from .result import (
     model_result,
     tabular_result,
 )
+from .tree import interpret_tree_arg
 from .typing import (
     AlignedSeqsType,
     BootstrapResultType,
@@ -145,16 +146,7 @@ class model:
         if len(sm.get_motifs()[0]) > 1:
             split_codons = False
 
-        if isinstance(tree, str):
-            if cogent3.util.io.path_exists(tree) or is_url(tree):
-                tree = load_tree(filename=tree, underscore_unmunge=True)
-            else:
-                tree = make_tree(treestring=tree, underscore_unmunge=True)
-
-        if tree and not isinstance(tree, TreeNode):
-            raise TypeError(f"invalid tree type {type(tree)}")
-
-        self._tree = tree
+        self._tree = interpret_tree_arg(tree)
         self._lf_args = deepcopy(lf_args or {})
         if not name:
             name = sm.name or "unnamed model"
