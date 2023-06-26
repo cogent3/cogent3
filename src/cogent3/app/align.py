@@ -14,6 +14,7 @@ from cogent3.align import (
 )
 from cogent3.align.progressive import tree_align
 from cogent3.app import dist
+from cogent3.app.tree import interpret_tree_arg
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
@@ -494,10 +495,9 @@ class progressive_align:
             self._make_tree = al_to_ref + dist_calc + est_tree
 
         if guide_tree is not None:
-            if type(guide_tree) == str:
-                guide_tree = make_tree(treestring=guide_tree, underscore_unmunge=True)
-                if guide_tree.children[0].length is None:
-                    raise ValueError("Guide tree must have branch lengths")
+            guide_tree = interpret_tree_arg(guide_tree)
+            if guide_tree.children[0].length is None:
+                raise ValueError("Guide tree must have branch lengths")
             # make sure no zero lengths
             guide_tree = scale_branches()(guide_tree)
 

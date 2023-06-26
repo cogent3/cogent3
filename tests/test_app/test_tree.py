@@ -1,17 +1,18 @@
-import os
+import pathlib
 
-from unittest import TestCase, main
+from unittest import TestCase
+
+import pytest
 
 from cogent3 import DNA, load_aligned_seqs, make_aligned_seqs, make_tree
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.app.composable import NotCompleted
-from cogent3.core.tree import PhyloNode
+from cogent3.core.tree import PhyloNode, TreeNode
 from cogent3.evolve.fast_distance import DistanceMatrix
 
 
-base_path = os.path.dirname(os.path.dirname(__file__))
-data_path = os.path.join(base_path, "data")
+DATADIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 class TestTree(TestCase):
@@ -20,7 +21,6 @@ class TestTree(TestCase):
         with self.assertRaises(AssertionError):
             _ = tree_app.scale_branches(nuc_to_codon=True, codon_to_nuc=True)
 
-        scale_to_codon = tree_app.scale_branches(nuc_to_codon=True)
         tree = make_tree(treestring="(a:3,b:6,c:9)")
         scale_to_codon = tree_app.scale_branches(nuc_to_codon=True)
         d = scale_to_codon(tree)
@@ -50,7 +50,7 @@ class TestTree(TestCase):
 
     def test_quick_tree(self):
         """correctly calc a nj tree"""
-        path = os.path.join(data_path, "brca1_5.paml")
+        path = DATADIR / "brca1_5.paml"
         aln = load_aligned_seqs(path, moltype=DNA)
         fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         dist_matrix = fast_slow_dist(aln)
@@ -60,7 +60,7 @@ class TestTree(TestCase):
 
     def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
-        path = os.path.join(data_path, "brca1_5.paml")
+        path = DATADIR / "brca1_5.paml"
         aln1 = load_aligned_seqs(path, moltype=DNA)
         calc_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
@@ -236,5 +236,31 @@ class TestTree(TestCase):
         self.assertFalse(u_a == u_c)
 
 
-if __name__ == "__main__":
-    main()
+def test_interpret_tree_arg_none():
+    assert tree_app.interpret_tree_arg(None) is None
+
+
+@pytest.mark.parametrize(
+    "tree",
+    (
+        DATADIR / "brca1_5.tree",
+        str(DATADIR / "brca1_5.tree"),
+        "(a,b,c)",
+        make_tree(tip_names=["a", "b", "c"]),
+    ),
+)
+def test_interpret_tree_arg_valid(tree):
+    got = tree_app.interpret_tree_arg(tree)
+    assert isinstance(got, TreeNode)
+
+
+@pytest.mark.parametrize(
+    "tree",
+    (
+        1,
+        make_tree,
+    ),
+)
+def test_interpret_tree_arg_invalid(tree):
+    with pytest.raises(TypeError):
+        tree_app.interpret_tree_arg(tree)
