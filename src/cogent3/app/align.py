@@ -4,9 +4,8 @@ from bisect import bisect_left
 from itertools import combinations
 from typing import Optional, Union
 
-from numpy import array
+from numpy import array, isnan
 
-from cogent3 import make_tree
 from cogent3.align import (
     global_pairwise,
     make_dna_scoring_dict,
@@ -713,6 +712,18 @@ class sp_score:
 
         self._calc(aln, show_progress=False)
         dmat = self._calc.dists
+
+        if isnan(dmat.array).sum():
+            nans = isnan(dmat.array).sum(axis=0) > 0
+            names = ", ".join(f"{n!r}" for n in array(dmat.names)[nans])
+            return NotCompleted(
+                "ERROR",
+                self,
+                f"Some genetic distances involving {names} were NaN's. "
+                "Using calc='pdist' will prevent this issue.",
+                source=aln,
+            )
+
         lengths = self._calc.lengths
         for i, j in combinations(range(aln.num_seqs), 2):
             n1, n2 = dmat.names[i], dmat.names[j]

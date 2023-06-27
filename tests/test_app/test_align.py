@@ -562,6 +562,16 @@ def test_sp_score_exclude_gap():
     assert_allclose(got, expect)
 
 
+def test_sp_fail():
+    aln = make_aligned_seqs(
+        data={"a": "ATG---------AATCGAAGA", "b": "GTG---------GAAAAGCAG"}, moltype="dna"
+    )
+    app = get_app("sp_score")
+    got = app.main(aln)
+    assert isinstance(got, NotCompleted)
+    assert "NaN" in got.message
+
+
 def test_sp_score_additive_gap():
     # additive gap score
     app = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=0)
