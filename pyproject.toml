@@ -120,6 +120,10 @@ include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
 exclude = ["doc/*.html"]
 
 [tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    ]
+
 addopts = ["--strict-config", "-ra"]
 testpaths = "tests"
 filterwarnings = [
