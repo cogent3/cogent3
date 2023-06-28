@@ -310,13 +310,14 @@ def seqs():
 
 
 def test_tree_align_pwise_iter(seqs):
-    aln, tree = cogent3.align.progressive.tree_align(
-        model="F81", seqs=seqs, show_progress=False, iters=None
+    kwargs = dict(
+        model="F81", seqs=seqs, show_progress=False, indel_rate=1e-3, indel_length=1e-1
     )
+    aln, tree = cogent3.align.progressive.tree_align(iters=None, **kwargs)
     one = aln.alignment_quality(app_name="sp_score", calc="pdist")
     for _ in range(10):
         aln, tree = cogent3.align.progressive.tree_align(
-            model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
+            iters=1, approx_dists=True, **kwargs
         )
         two = aln.alignment_quality(app_name="sp_score", calc="pdist")
         # the quality scores will differ, but they're not deterministic
