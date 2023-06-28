@@ -398,10 +398,10 @@ def test_jaccard_dist_vals(_seqs1_collection):
         seq1, seq2 = names[i], names[j]
         got = jdists[(seq1, seq2)]
         expect = jaccard(
-            set(seqs.get_seq(seq1).get_kmers(k=10)),
-            set(seqs.get_seq(seq2).get_kmers(k=10)),
+            set(seqs.get_seq(seq1).get_kmers(k=10, strict=True)),
+            set(seqs.get_seq(seq2).get_kmers(k=10, strict=True)),
         )
-        assert got == expect
+        assert_allclose(got, expect)
 
 
 def test_approx_pdist_vals(_seqs1_collection):
