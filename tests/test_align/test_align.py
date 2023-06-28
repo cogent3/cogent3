@@ -312,11 +312,11 @@ def test_tree_align_pwise_iter(seqs):
     aln, tree = cogent3.align.progressive.tree_align(
         model="F81", seqs=seqs, show_progress=False, iters=None
     )
-    one = aln.alignment_quality()
+    one = aln.alignment_quality(app_name="sp_score")
     aln, tree = cogent3.align.progressive.tree_align(
         model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
     )
-    two = aln.alignment_quality()
+    two = aln.alignment_quality(app_name="sp_score")
     assert two > one
 
 
