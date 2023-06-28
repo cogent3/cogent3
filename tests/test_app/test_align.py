@@ -598,6 +598,15 @@ def test_sp_score_affine_gap():
     assert_allclose(got, (mscore - gscore).sum())
 
 
+def test_progressive_align_one_seq(seqs):
+    """progressive alignment with no provided tree and approx_dists=False
+    will use a quick alignment to build the tree"""
+    aligner = align_app.progressive_align(model="TN93", approx_dists=True)
+    seqs = seqs.take_seqs(seqs.names[0])
+    got = aligner(seqs)
+    assert isinstance(got, NotCompleted)
+
+
 def test_progressive_align_tree_from_reference(seqs):
     """progressive alignment with no provided tree and approx_dists=False
     will use a quick alignment to build the tree"""
