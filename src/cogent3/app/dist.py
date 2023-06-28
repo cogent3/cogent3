@@ -17,7 +17,7 @@ from cogent3.evolve.models import get_model
 from cogent3.maths.distance_transform import jaccard
 from cogent3.util.misc import get_true_spans
 
-from .composable import define_app
+from .composable import NotCompleted, define_app
 from .typing import (
     AlignedSeqsType,
     PairwiseDistanceType,
@@ -166,20 +166,30 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     Pairwise Jaccard distance between sequences in the collection.
     """
 
-    kmers = {name: set(seq.get_kmers(k)) for name, seq in seq_coll.named_seqs.items()}
+    kmers = {
+        name: set(seq.iter_kmers(k, strict=True))
+        for name, seq in seq_coll.named_seqs.items()
+    }
     seq_names = sorted(kmers.keys())
     num_seqs = len(seq_names)
 
-    jaccard_dists = {}
+    dists = {}
 
     for i in range(num_seqs):
         for j in range(i):
             name1, name2 = seq_names[i], seq_names[j]
             dist = jaccard(kmers[name1], kmers[name2])
-            jaccard_dists[(name1, name2)] = dist
-            jaccard_dists[(name2, name1)] = dist
-
-    return DistanceMatrix(jaccard_dists)
+            dists[(name1, name2)] = dist
+            dists[(name2, name1)] = dist
+    if not dists:
+        names = ", ".join(f"{n!r}" for n in seq_coll.names)
+        return NotCompleted(
+            "ERROR",
+            jaccard_dist.__name__,
+            f"could not compute distances between {names}",
+            source=seq_coll,
+        )
+    return DistanceMatrix(dists)
 
 
 @define_app

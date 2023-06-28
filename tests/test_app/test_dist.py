@@ -18,7 +18,7 @@ from cogent3 import (
     make_unaligned_seqs,
     open_data_store,
 )
-from cogent3.app.composable import WRITER
+from cogent3.app.composable import WRITER, NotCompleted
 from cogent3.app.dist import (
     JACCARD_PDIST_POLY_COEFFS,
     approx_jc69,
@@ -402,6 +402,17 @@ def test_jaccard_dist_vals(_seqs1_collection):
             set(seqs.get_seq(seq2).get_kmers(k=10, strict=True)),
         )
         assert_allclose(got, expect)
+
+
+def test_jaccard_dist_one_seq(_seqs1_collection):
+    """values in the DistanceMatrix should match individually calculating the jaccard
+    distance for pairs of sequence.
+    """
+    seqs = _seqs1_collection.take_seqs(_seqs1_collection.names[0])
+    jaccard_dist_app = jaccard_dist(k=10)
+    got = jaccard_dist_app(seqs)
+    assert isinstance(got, NotCompleted)
+    assert got.origin == "jaccard_dist"
 
 
 def test_approx_pdist_vals(_seqs1_collection):
