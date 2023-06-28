@@ -1396,7 +1396,7 @@ class Sequence(SequenceI):
         ambigs = self.moltype.ambiguities
         return [ambigs[motif] for motif in self._seq]
 
-    def iter_kmers(self, k: int, strict: bool = False) -> Generator[str, None, None]:
+    def iter_kmers(self, k: int, strict: bool = True) -> Generator[str, None, None]:
         """generates all overlapping k-mers.
         When strict is True, the characters in the k-mer must be
         a subset of the canonical characters for the moltype"""
@@ -1416,7 +1416,7 @@ class Sequence(SequenceI):
                 if all(char in canonical for char in kmer):
                     yield kmer
 
-    def get_kmers(self, k: int, strict: bool = False) -> List[str]:
+    def get_kmers(self, k: int, strict: bool = True) -> List[str]:
         """return all overlapping k-mers"""
         return list(self.iter_kmers(k, strict))
 

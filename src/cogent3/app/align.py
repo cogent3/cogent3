@@ -526,6 +526,8 @@ class progressive_align:
 
         if self._guide_tree is None or self._unique_guides:
             self._guide_tree = self._build_guide(seqs)
+            if not self._guide_tree:
+                return self._guide_tree
             self._kwargs["tree"] = self._guide_tree
             diff = set(self._guide_tree.get_tip_names()) ^ set(seqs.names)
             if diff:
