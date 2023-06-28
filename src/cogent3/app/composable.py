@@ -700,7 +700,7 @@ def _apply_to(
     parallel=False,
     par_kw=None,
     logger=None,
-    cleanup=False,
+    cleanup=True,
     show_progress=False,
 ):
     """invokes self composable function on the provided data store
