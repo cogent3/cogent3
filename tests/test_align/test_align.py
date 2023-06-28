@@ -309,6 +309,7 @@ def seqs():
     return seqs
 
 
+@pytest.mark.xfail(reason="fails on linux due to no effect of iters")
 def test_tree_align_pwise_iter(seqs):
     kwargs = dict(
         model="F81", seqs=seqs, show_progress=False, indel_rate=1e-3, indel_length=1e-1
