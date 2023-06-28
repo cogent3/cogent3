@@ -314,13 +314,17 @@ def test_tree_align_pwise_iter(seqs):
         model="F81", seqs=seqs, show_progress=False, iters=None
     )
     one = aln.alignment_quality(app_name="sp_score", calc="pdist")
-    aln, tree = cogent3.align.progressive.tree_align(
-        model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
-    )
-    two = aln.alignment_quality(app_name="sp_score", calc="pdist")
-    # the quality scores will differ, but they're not deterministic
-    # because the alignments are not deterministic
-    assert not numpy.allclose(two, one)
+    for _ in range(10):
+        aln, tree = cogent3.align.progressive.tree_align(
+            model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
+        )
+        two = aln.alignment_quality(app_name="sp_score", calc="pdist")
+        # the quality scores will differ, but they're not deterministic
+        # because the alignments are not deterministic
+        if not numpy.allclose(two, one):
+            break
+    else:
+        raise AssertionError("all attempts produced alignments with identical quality")
 
 
 def test_tree_align_dists_from_pairwise_align(seqs):
