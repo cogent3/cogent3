@@ -584,7 +584,7 @@ class ic_score:
         if counts.array.max() == 0 or aln.num_seqs == 1:
             msg = "zero length" if len(aln) == 0 else "single sequence"
             return NotCompleted(
-                "FAL",
+                "FAIL",
                 self,
                 f"cannot compute alignment quality because {msg}",
                 source=aln.info,
@@ -706,7 +706,7 @@ class sp_score:
         if aln.num_seqs == 1 or len(aln) == 0:
             msg = "zero length" if len(aln) == 0 else "single sequence"
             return NotCompleted(
-                "FAL",
+                "FAIL",
                 self,
                 f"cannot compute alignment quality because {msg}",
                 source=aln.info,
