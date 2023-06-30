@@ -708,6 +708,7 @@ class SqliteAnnotationDbMixin:
 
     def get_records_matching(
         self,
+        *,
         biotype: str = None,
         seqid: str = None,
         name: str = None,

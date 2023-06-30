@@ -1,9 +1,6 @@
-#!/usr/bin/env python
-
 import numpy
 
 
-Float = numpy.core.numerictypes.sctype2char(float)
 # Distance matricies are presently represented as simple dictionaries, which
 # need to be converted into numpy arrays before being fed into phylogenetic
 # reconstruction algorithms.
@@ -45,7 +42,7 @@ def distance_dict_to_2D(dists):
     matrix"""
     names = names_from_distance_dict(dists)
     L = len(names)
-    d = numpy.zeros([L, L], Float)
+    d = numpy.zeros([L, L], float)
     for i, a in enumerate(names):
         for j, b in enumerate(names):
             if i != j:

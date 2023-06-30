@@ -7,8 +7,6 @@
 from unittest import TestCase, main
 from warnings import filterwarnings
 
-import numpy
-
 from numpy import array, transpose
 from numpy.testing import assert_allclose, assert_equal
 
@@ -23,9 +21,6 @@ from cogent3.maths.util import (
 
 
 filterwarnings("ignore", "invalid value encountered in", category=RuntimeWarning)
-
-
-Float = numpy.core.numerictypes.sctype2char(float)
 
 
 class ArrayMathTests(TestCase):

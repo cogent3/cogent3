@@ -1,12 +1,7 @@
-#!/usr/bin/env python
-
 import numpy
 
 from cogent3.align import indel_model, pairwise
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
-
-
-Float = numpy.core.numerictypes.sctype2char(float)
 
 
 def make_dna_scoring_dict(match, transition, transversion):
@@ -75,12 +70,12 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     TM = indel_model.classic_gap_scores(d, e)
     a1 = s1.moltype.alphabet
     a2 = s2.moltype.alphabet
-    S = numpy.zeros([len(a1), len(a2)], Float)
+    S = numpy.zeros([len(a1), len(a2)], float)
     for i, m1 in enumerate(a1):
         for j, m2 in enumerate(a2):
             S[i, j] = Sd[m1, m2]
     psub = numpy.exp(S)
-    mprobs = numpy.ones(len(psub), Float) / len(psub)
+    mprobs = numpy.ones(len(psub), float) / len(psub)
     return _align_pairwise(
         s1, s2, mprobs, psub, TM, local, return_score=return_score, **kw
     )

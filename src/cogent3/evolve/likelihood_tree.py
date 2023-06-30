@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Leaf and Edge classes that can calculate their likelihoods.
 Each leaf holds a sequence.  Used by a likelihood function."""
 
@@ -10,7 +9,6 @@ from . import likelihood_tree_numba as likelihood_tree
 
 numpy.seterr(all="ignore")
 
-numerictypes = numpy.core.numerictypes.sctype2char
 
 
 class _LikelihoodTreeEdge(object):
@@ -53,19 +51,19 @@ class _LikelihoodTreeEdge(object):
         uniq.append(tuple([len(c.uniq) - 1 for c in children]))
         counts.append(0)
 
-        self.uniq = numpy.asarray(uniq, self.integer_type)
+        self.uniq = numpy.asarray(uniq, int)
 
         # For faster math, a contiguous index array for each child
         self.indexes = numpy.ascontiguousarray(
             [
-                numpy.array(list(ch), self.integer_type)
+                numpy.array(list(ch), int)
                 for ch in numpy.transpose(self.uniq)
             ]
         )
 
         # If this is the root it will need to weight the total
         # log likelihoods by these counts:
-        self.counts = numpy.array(counts, self.float_type)
+        self.counts = numpy.array(counts, float)
 
         # For product of child likelihoods
         self._indexed_children = list(zip(self.indexes, children))
@@ -85,7 +83,7 @@ class _LikelihoodTreeEdge(object):
 
     def restrict_motif(self, input_likelihoods, fixed_motif):
         # for reconstruct_ancestral_seqs
-        mask = numpy.zeros([input_likelihoods.shape[-1]], self.float_type)
+        mask = numpy.zeros([input_likelihoods.shape[-1]], float)
         mask[fixed_motif] = 1.0
         input_likelihoods *= mask
 
@@ -133,10 +131,10 @@ class _LikelihoodTreeEdge(object):
         return None
 
     def make_partial_likelihoods_array(self):
-        return numpy.ones(self.shape, self.float_type)
+        return numpy.ones(self.shape, float)
 
     def sum_input_likelihoods(self, *likelihoods):
-        result = numpy.ones(self.shape, self.float_type)
+        result = numpy.ones(self.shape, float)
         self.sum_input_likelihoodsR(result, *likelihoods)
         return result
 
@@ -156,8 +154,6 @@ class _LikelihoodTreeEdge(object):
 class LikelihoodTreeEdge(_LikelihoodTreeEdge):
     # Should be a subclass of regular tree edge?
 
-    float_type = numerictypes(float)
-    integer_type = numerictypes(int)
 
     # For scaling very very small numbers
     BASE = 2.0**100
@@ -194,14 +190,12 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
         return likelihood_tree.get_log_sum_across_sites(lhs, self.counts)
 
 
-FLOAT_TYPE = LikelihoodTreeEdge.float_type
-INTEGER_TYPE = LikelihoodTreeEdge.integer_type
 
 
 def _indexed(values):
     # >>> _indexed(['a', 'b', 'c', 'a', 'a'])
     # (['a', 'b', 'c'], [3, 1, 1], [0, 1, 2, 0, 0])
-    index = numpy.zeros([len(values)], INTEGER_TYPE)
+    index = numpy.zeros([len(values)], int)
     unique = []
     counts = []
     seen = {}
@@ -234,11 +228,11 @@ def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
     uniq_motifs.append("?" * motif_len)
     counts.append(0)
 
-    counts = numpy.array(counts, FLOAT_TYPE)
+    counts = numpy.array(counts, float)
 
     # Convert list of unique motifs to array of unique profiles
     try:
-        likelihoods = alphabet.get_matched_array(uniq_motifs, FLOAT_TYPE)
+        likelihoods = alphabet.get_matched_array(uniq_motifs, float)
     except alphabet.AlphabetError as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len
@@ -302,7 +296,7 @@ class LikelihoodTreeLeaf(object):
         (keep, counts, index) = _indexed(sub_index)
         keep.append(len(self.uniq) - 1)  # extra column for gap
         counts.append(0)
-        counts = numpy.array(counts, FLOAT_TYPE)
+        counts = numpy.array(counts, float)
         uniq = [self.uniq[u] for u in keep]
         likelihoods = self.input_likelihoods[keep]
         return self.__class__(

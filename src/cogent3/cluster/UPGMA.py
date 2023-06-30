@@ -18,8 +18,6 @@ from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray
 
 
-numerictypes = numpy.core.numerictypes.sctype2char
-Float = numerictypes(float)
 BIG_NUM = 1e305
 
 
