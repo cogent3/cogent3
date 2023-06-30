@@ -7,8 +7,6 @@
 from unittest import TestCase, main
 from warnings import filterwarnings
 
-import numpy
-
 from numpy import array, transpose
 from numpy.testing import assert_allclose, assert_equal
 
