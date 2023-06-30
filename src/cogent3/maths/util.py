@@ -5,9 +5,6 @@ import numpy
 from numpy import array, clip, cumsum, searchsorted, sort, sum
 
 
-numerictypes = numpy.core.numerictypes.sctype2char
-Float = numerictypes(float)
-Int = numerictypes(int)
 err = numpy.seterr(divide="raise")
 
 

@@ -25,9 +25,6 @@ from cogent3.maths.util import (
 filterwarnings("ignore", "invalid value encountered in", category=RuntimeWarning)
 
 
-Float = numpy.core.numerictypes.sctype2char(float)
-
-
 class ArrayMathTests(TestCase):
     def test_safe_p_log_p(self):
         """safe_p_log_p: should handle pos/neg/zero/empty arrays"""

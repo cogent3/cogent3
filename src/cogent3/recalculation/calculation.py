@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 import time
 import warnings
@@ -8,9 +6,6 @@ import numpy
 
 from cogent3.maths.optimisers import ParameterOutOfBoundsError, maximise
 from cogent3.maths.solve import find_root
-
-
-Float = numpy.core.numerictypes.sctype2char(float)
 
 
 TRACE_DEFAULT = "COGENT3_TRACE" in os.environ
@@ -366,8 +361,8 @@ class Calculator(object):
 
     def get_bounds_vectors(self):
         """2 arrays: minimums, maximums"""
-        lower = numpy.zeros([len(self.opt_pars)], Float)
-        upper = numpy.zeros([len(self.opt_pars)], Float)
+        lower = numpy.zeros([len(self.opt_pars)], float)
+        upper = numpy.zeros([len(self.opt_pars)], float)
         for i, opt_par in enumerate(self.opt_pars):
             (lb, ub) = opt_par.get_optimiser_bounds()
             lower[i] = lb

@@ -1,11 +1,6 @@
-#!/usr/bin/env python
-
 import bisect
 
 import numpy
-
-
-Float = numpy.core.numerictypes.sctype2char(float)
 
 
 class TransitionMatrix(object):
@@ -20,7 +15,7 @@ class TransitionMatrix(object):
     """
 
     def __init__(self, matrix, tags, stationary_probs=None):
-        self.Matrix = numpy.array(matrix, Float)
+        self.Matrix = numpy.array(matrix, float)
         self.Tags = list(tags)
         self.size = len(matrix)
         assert matrix.shape == (self.size, self.size)
@@ -31,7 +26,7 @@ class TransitionMatrix(object):
             # Could recalculate, but if it is provided then faster to
             # just trust it
             assert len(stationary_probs) == self.size
-            self._stationary_probs = numpy.array(stationary_probs, Float)
+            self._stationary_probs = numpy.array(stationary_probs, float)
 
     def _getStationaryProbs(self):
         if self._stationary_probs is None:
@@ -73,11 +68,11 @@ class TransitionMatrix(object):
         """An equivalent matrix without any of the states that have a
         false tag value"""
         N = self.size
-        silent = numpy.array([(not max(tag)) for tag in self.Tags], Float)
-        matrix = numpy.zeros([N, N], Float)
+        silent = numpy.array([(not max(tag)) for tag in self.Tags], float)
+        matrix = numpy.zeros([N, N], float)
         for i in range(N):
-            row = numpy.zeros([N], Float)
-            emt = numpy.zeros([N], Float)
+            row = numpy.zeros([N], float)
+            emt = numpy.zeros([N], float)
             row[i] = 1.0
             while max((row + emt) - emt):
                 row = numpy.dot(row, self.Matrix)
@@ -93,7 +88,7 @@ class TransitionMatrix(object):
 
     def getLikelihoodOfSequence(self, obs, backward=False):
         """Just for testing really"""
-        profile = numpy.zeros([len(obs), self.size], Float)
+        profile = numpy.zeros([len(obs), self.size], float)
         for i, a in enumerate(obs):
             # This is suspiciously alphabet-like!
             profile[i, self.Tags.index(obs[i])] = 1.0
@@ -107,14 +102,14 @@ class TransitionMatrix(object):
                 state_probs = numpy.dot(state_probs, self.Matrix) * obs[i]
             return sum(state_probs)
         else:
-            state_probs = numpy.ones([self.size], Float)
+            state_probs = numpy.ones([self.size], float)
             for i in range(len(obs) - 1, -1, -1):
                 state_probs = numpy.dot(self.Matrix, state_probs * obs[i])
             return sum(state_probs * self.StationaryProbs)
 
     def get_posterior_probs(self, obs):
         """'obs' is a sequence of state probability vectors"""
-        result = numpy.zeros([len(obs), self.size], Float)
+        result = numpy.zeros([len(obs), self.size], float)
 
         # Forward
         state_probs = self.StationaryProbs.copy()
@@ -124,7 +119,7 @@ class TransitionMatrix(object):
             result[i] = state_probs
 
         # and Backward
-        state_probs = numpy.ones([self.size], Float)
+        state_probs = numpy.ones([self.size], float)
         for i in range(len(obs) - 1, -1, -1):
             state_probs = numpy.dot(self.Matrix, state_probs)
             state_probs /= sum(state_probs)
@@ -155,7 +150,7 @@ class TransitionMatrix(object):
             if result is None:
                 tags = a.Tags
                 c = len(tags)
-                result = numpy.zeros([c * n, c * n], Float)
+                result = numpy.zeros([c * n, c * n], float)
             else:
                 assert a.Tags == tags, (a.Tags, tags)
             a = a.Matrix
@@ -175,7 +170,7 @@ def SiteClassTransitionMatrix(switch, probs):
     ie: zero-order markov process"""
     probs = numpy.asarray(probs)
     assert numpy.allclose(sum(probs), 1.0), probs
-    I = numpy.identity(len(probs), Float)
+    I = numpy.identity(len(probs), float)
     switch_probs = (1.0 - I) * (probs * switch) + I * (1.0 - (1.0 - probs) * switch)
     tags = [i + 1 for i in range(len(switch_probs))]
     return TransitionMatrix(switch_probs, tags, stationary_probs=probs.copy())

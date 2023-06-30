@@ -23,9 +23,6 @@ from cogent3.recalculation.definition import (
 )
 
 
-Float = numpy.core.numerictypes.sctype2char(float)
-
-
 class _PartialLikelihoodDefn(CalculationDefn):
     def setup(self, edge_name):
         self.edge_name = edge_name
@@ -191,7 +188,7 @@ class PatchSiteDistribution(object):
         half = len(bprobs) // 2
         self.alloc = [0] * half + [1] * (len(bprobs) - half)
 
-        pprobs = numpy.zeros([max(self.alloc) + 1], Float)
+        pprobs = numpy.zeros([max(self.alloc) + 1], float)
         for b, p in zip(self.alloc, bprobs):
             pprobs[b] += p
 
@@ -274,7 +271,7 @@ class SiteHmm(object):
             ]
         )
 
-        binsum = numpy.zeros(pprobs.shape, Float)
+        binsum = numpy.zeros(pprobs.shape, float)
         for patch, data in zip(self.distrib.alloc, blhs):
             binsum[patch] += data
 

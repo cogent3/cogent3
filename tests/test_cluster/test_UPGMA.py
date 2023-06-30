@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 from unittest import TestCase, main
-
-import numpy
 
 from numpy import array
 from numpy.testing import assert_allclose
@@ -17,9 +14,6 @@ from cogent3.cluster.UPGMA import (
 )
 from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray
-
-
-Float = numpy.core.numerictypes.sctype2char(float)
 
 
 class UPGMATests(TestCase):
@@ -51,7 +45,7 @@ class UPGMATests(TestCase):
                 [20, 21, 10, 9999999, 2],
                 [22, 23, 12, 2, 9999999],
             ),
-            Float,
+            float,
         )
         # create a numpy matrix with zero diagonals to test diagonal mask
         self.matrix_zeros = array(
@@ -62,7 +56,7 @@ class UPGMATests(TestCase):
                 [20, 21, 10, 0, 2],
                 [22, 23, 12, 2, 0],
             ),
-            Float,
+            float,
         )
 
         # create a numpy matrix with zero diagonals to test diagonal mask
@@ -74,7 +68,7 @@ class UPGMATests(TestCase):
                 [20, 21, 10, 5, 2],
                 [22, 23, 12, 2, 5],
             ),
-            Float,
+            float,
         )
 
     def test_UPGMA_cluster(self):
