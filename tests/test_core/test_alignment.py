@@ -3215,6 +3215,32 @@ def test_copy_annotations(cls, gff_db):
     assert seq_coll.annotation_db.num_matches() == expect
 
 
+def _make_seq(name):
+    raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
+    cds = (15, 25)
+    utr = (12, 15)
+    # name is required for creating annotations
+    seq = DNA.make_seq(raw_seq, name=name)
+    seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
+    seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
+    return seq
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_init_seqs_have_annotations(cls, gff_db):
+    """annotations on input seqs correctly merged and propagated"""
+
+    seq_coll = cls({"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")})
+    coll_db = seq_coll.annotation_db
+    assert len(coll_db) == 4
+    for seq in seq_coll.seqs:
+        if cls == Alignment:
+            db = seq.data.annotation_db
+        else:
+            db = seq.annotation_db
+        assert db is coll_db
+
+
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
 def test_assign_none(cls, gff_db):
     """assigning None to annotation_db breaks conection"""
