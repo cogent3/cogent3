@@ -98,7 +98,7 @@ class DataStoreSqlite(DataStoreABC):
     def __init__(
         self,
         source,
-        mode: Mode = READONLY,
+        mode: Union[Mode, str] = READONLY,
         limit=None,
         verbose=False,
     ):

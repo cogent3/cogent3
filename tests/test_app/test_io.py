@@ -5,6 +5,7 @@ import os
 import pathlib
 import pickle
 import shutil
+import tempfile
 
 from pathlib import Path
 
@@ -640,3 +641,23 @@ def test_open_zipped(zipped_full):
     got = open_data_store(zipped_full.source, mode="r", suffix="fasta")
     assert len(got) == len(zipped_full)
     assert isinstance(got, type(zipped_full))
+
+
+@pytest.fixture(scope="function")
+def relpath():
+    # express the data path as relative to user home
+    # have to make a tempdir for this to work in github actions
+    data = (DATA_DIR / "brca1_5.paml").read_text()
+    user = pathlib.Path("~")
+    with tempfile.TemporaryDirectory(dir=user.expanduser()) as dirname:
+        out_path = pathlib.Path(dirname) / "brca1_5.paml"
+        out_path.write_text(data)
+        yield str(user / out_path.parent.name / "brca1_5.paml")
+
+
+@pytest.mark.parametrize("type_", (str, pathlib.Path))
+def test_expand_user(relpath, type_):
+    loader = get_app("load_aligned", format="paml")
+    # define path using the "~" prefix
+    seqs = loader(type_(relpath))
+    assert isinstance(seqs, ArrayAlignment)
