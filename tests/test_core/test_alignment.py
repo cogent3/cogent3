@@ -52,7 +52,7 @@ from cogent3.core.alignment import (
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
-from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
+from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence, SeqView
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
@@ -3242,6 +3242,18 @@ def test_init_seqs_have_annotations(cls, gff_db):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_add_to_seq_updates_coll(cls, gff_db):
+    """annotating a seq updates the db of the propagated"""
+    seq_coll = cls(
+        {"x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC", "y": "AACCCAAAATTTTTTGGGGGGGGGGCCCC"}
+    )
+    x = seq_coll.get_seq("x")
+    assert len(seq_coll.annotation_db) == len(x.annotation_db) == 0
+    x.add_feature(biotype="exon", name="E1", spans=[(3, 8)])
+    assert len(seq_coll.annotation_db) == len(x.annotation_db) == 1
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
 def test_assign_none(cls, gff_db):
     """assigning None to annotation_db breaks conection"""
 
@@ -3328,23 +3340,27 @@ def test_seq_rename_drops_annotations(cls):
 
 
 @pytest.mark.parametrize(
-    "cls,with_offset",
-    ((SequenceCollection, True), (Alignment, True), (ArrayAlignment, False)),
+    "cls",
+    (SequenceCollection, ArrayAlignment),
 )
-def test_to_rich_dict(cls, with_offset):
+def test_to_rich_dict_not_alignment(cls):
     """to_rich_dict produces correct dict"""
-    aln = cls({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    aln = cls(data, moltype="dna")
     try:
         seq_type = get_object_provenance(aln.seqs[0].data)
     except AttributeError:
         seq_type = get_object_provenance(aln.seqs[0])
 
     got = aln.to_rich_dict()
+
+    data = {k: SeqView(s).to_rich_dict() for k, s in data.items()}
+
     expect = {
         "seqs": {
             "seq1": {
                 "name": "seq1",
-                "seq": "ACGG",
+                "seq": data["seq1"],
                 "info": None,
                 "type": seq_type,
                 "moltype": aln.moltype.label,
@@ -3353,7 +3369,7 @@ def test_to_rich_dict(cls, with_offset):
             },
             "seq2": {
                 "name": "seq2",
-                "seq": "CGCA",
+                "seq": data["seq2"],
                 "info": None,
                 "type": seq_type,
                 "moltype": aln.moltype.label,
@@ -3362,13 +3378,43 @@ def test_to_rich_dict(cls, with_offset):
             },
             "seq3": {
                 "name": "seq3",
-                "seq": "CCG-",
+                "seq": data["seq3"],
                 "info": None,
                 "type": seq_type,
                 "moltype": aln.moltype.label,
                 "version": __version__,
                 "annotation_offset": 0,
             },
+        },
+        "moltype": aln.moltype.label,
+        "info": None,
+        "type": get_object_provenance(aln),
+        "version": __version__,
+    }
+    assert got == expect
+
+
+def test_to_rich_dict_alignment():
+    """to_rich_dict produces correct dict"""
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    aln = Alignment(data, moltype="dna")
+    try:
+        seq_type = get_object_provenance(aln.seqs[0].data)
+    except AttributeError:
+        seq_type = get_object_provenance(aln.seqs[0])
+
+    got = aln.to_rich_dict()
+
+    data = {
+        k: Aligned(*make_seq(s, name=k, moltype="dna").parse_out_gaps()).to_rich_dict()
+        for k, s in data.items()
+    }
+
+    expect = {
+        "seqs": {
+            "seq1": data["seq1"],
+            "seq2": data["seq2"],
+            "seq3": data["seq3"],
         },
         "moltype": aln.moltype.label,
         "info": None,
@@ -3539,3 +3585,17 @@ def test_get_gap_array_equivalence():
     array_aln = make_aligned_seqs(data, moltype="dna", array_align=True)
     aln = make_aligned_seqs(data, moltype="dna", array_align=False)
     assert_allclose(array_aln.get_gap_array(), aln.get_gap_array())
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_aligned_rich_dict(reverse):
+    map, s = make_seq(
+        "TTGAAGAATATGT------GAAAGAG", name="s1", moltype="dna"
+    ).parse_out_gaps()
+    seq = Aligned(map, s)
+    if reverse:
+        seq = seq.rc()
+
+    rd = seq.to_rich_dict()
+    got = Aligned.from_rich_dict(rd)
+    assert str(seq) == str(got)

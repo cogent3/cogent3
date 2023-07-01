@@ -205,6 +205,12 @@ def _from_seqview(data):
     return data
 
 
+@register_deserialiser("cogent3.core.alignment.Aligned")
+def deserialise_aligned(data):
+    klass = _get_class(data.pop("type"))
+    return klass.from_rich_dict(data)
+
+
 @register_deserialiser("cogent3.core.sequence")
 def deserialise_seq(data, aligned=False):
     """deserialises sequence and any annotations
@@ -279,7 +285,10 @@ def deserialise_seq_collections(data):
     seqs = []
     for v in data.pop("seqs").values():
         v["moltype"] = data["moltype"]
-        seq = deserialise_seq(v, aligned=aligned)
+        if v["type"].endswith("Aligned"):
+            seq = deserialise_aligned(v)
+        else:
+            seq = deserialise_seq(v, aligned=aligned)
         seqs.append(seq)
 
     result = klass(seqs, **data)
