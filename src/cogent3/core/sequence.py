@@ -46,7 +46,6 @@ from cogent3.core.annotation_db import (
     BasicAnnotationDb,
     FeatureDataType,
     GenbankAnnotationDb,
-    GffAnnotationDb,
     SupportsFeatures,
     load_annotations,
 )
