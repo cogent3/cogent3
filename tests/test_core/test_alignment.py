@@ -3398,11 +3398,6 @@ def test_to_rich_dict_alignment():
     """to_rich_dict produces correct dict"""
     data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
     aln = Alignment(data, moltype="dna")
-    try:
-        seq_type = get_object_provenance(aln.seqs[0].data)
-    except AttributeError:
-        seq_type = get_object_provenance(aln.seqs[0])
-
     got = aln.to_rich_dict()
 
     data = {
@@ -3589,10 +3584,10 @@ def test_get_gap_array_equivalence():
 
 @pytest.mark.parametrize("reverse", (False, True))
 def test_aligned_rich_dict(reverse):
-    map, s = make_seq(
+    map_, s = make_seq(
         "TTGAAGAATATGT------GAAAGAG", name="s1", moltype="dna"
     ).parse_out_gaps()
-    seq = Aligned(map, s)
+    seq = Aligned(map_, s)
     if reverse:
         seq = seq.rc()
 
