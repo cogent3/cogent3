@@ -95,6 +95,13 @@ def deserialise_tabular(data):
     return result
 
 
+@register_deserialiser("cogent3.core.sequence.SeqView")
+def deserialise_seqview(data):
+    """deserialising SeqView"""
+    klass = _get_class(data["type"])
+    return klass.from_rich_dict(data)
+
+
 @register_deserialiser("cogent3.app.composable.NotCompleted")
 def deserialise_not_completed(data):
     """deserialising NotCompletedResult"""
@@ -193,6 +200,11 @@ def deserialise_alphabet(data):
     return result
 
 
+def _from_seqview(data):
+    data["seq"] = deserialise_seqview(data["seq"])
+    return data
+
+
 @register_deserialiser("cogent3.core.sequence")
 def deserialise_seq(data, aligned=False):
     """deserialises sequence and any annotations
@@ -219,20 +231,21 @@ def deserialise_seq(data, aligned=False):
     else:
         annotation_db = data.pop("annotation_db", None)
 
-    make_seq = data["moltype"].make_seq
+    make_seq = data.pop("moltype").make_seq
     _ = data.pop("type")
     if "-" in data["seq"]:
         aligned = True
 
-    data.pop("moltype")
+    if isinstance(data["seq"], dict):
+        data = _from_seqview(data)
+
     result = make_seq(**data)
-    if aligned:
-        map_, result = result.parse_out_gaps()
 
     if annotation_db:
         annotation_db = deserialise_object(annotation_db)
 
     if aligned:
+        map_, result = result.parse_out_gaps()
         result = Aligned(map_, result)
         result.data.annotation_db = annotation_db
     else:
