@@ -1,9 +1,11 @@
 import contextlib
 import json
+import os
 import pickle
 import zipfile
 
 from enum import Enum
+from functools import singledispatch
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 from pathlib import Path
@@ -252,16 +254,24 @@ class tabular(Enum):
     pssm = "pssm"
 
 
-def _read_it(path):
-    path = Path(path) if isinstance(path, str) else path
+@singledispatch
+def _read_it(path) -> str:
     try:
         data = path.read()
     except AttributeError:
-        try:
-            data = path.read_text()
-        except AttributeError:
-            raise IOError(f"unexpected type {type(path)}")
+        raise IOError(f"unexpected type {type(path)}")
     return data
+
+
+@_read_it.register
+def _(path: os.PathLike) -> str:
+    path = path.expanduser().absolute()
+    return path.read_text()
+
+
+@_read_it.register
+def _(path: str) -> os.PathLike:
+    return _read_it(Path(path))
 
 
 def _load_seqs(path, klass, parser, moltype):

@@ -640,3 +640,20 @@ def test_open_zipped(zipped_full):
     got = open_data_store(zipped_full.source, mode="r", suffix="fasta")
     assert len(got) == len(zipped_full)
     assert isinstance(got, type(zipped_full))
+
+
+@pytest.fixture(scope="function")
+def relpath():
+    # express the data path as relative to user home
+    orig = DATA_DIR / "brca1_5.paml"
+    user = pathlib.Path("~")
+    path = orig.relative_to(user.expanduser())
+    return str(user / path)
+
+
+@pytest.mark.parametrize("type_", (str, pathlib.Path))
+def test_expand_user(relpath, type_):
+    loader = get_app("load_aligned", format="paml")
+    # define path using the "~" prefix
+    seqs = loader(type_(relpath))
+    assert isinstance(seqs, ArrayAlignment)
