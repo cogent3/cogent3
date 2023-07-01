@@ -5,6 +5,7 @@ import os
 import pathlib
 import pickle
 import shutil
+import tempfile
 
 from pathlib import Path
 
@@ -645,10 +646,13 @@ def test_open_zipped(zipped_full):
 @pytest.fixture(scope="function")
 def relpath():
     # express the data path as relative to user home
-    orig = DATA_DIR / "brca1_5.paml"
+    # have to make a tempdir for this to work in github actions
+    data = (DATA_DIR / "brca1_5.paml").read_text()
     user = pathlib.Path("~")
-    path = orig.relative_to(user.expanduser())
-    return str(user / path)
+    with tempfile.TemporaryDirectory(dir=user.expanduser()) as dirname:
+        out_path = pathlib.Path(dirname) / "brca1_5.paml"
+        out_path.write_text(data)
+        yield str(user / out_path.parent.name / "brca1_5.paml")
 
 
 @pytest.mark.parametrize("type_", (str, pathlib.Path))
