@@ -1407,7 +1407,7 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
     db = BasicAnnotationDb()
 
-    seqid = data.pop("name", None)
+    seqid = data.pop("name", data.pop("seqid", None))
     anns = data.pop("data")
     for ann in anns:
         ann = ann.pop("annotation_construction")

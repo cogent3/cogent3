@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -29,6 +30,9 @@ from cogent3.util.deserialise import (
     deserialise_likelihood_function,
     deserialise_object,
 )
+
+
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 class TestDeserialising(TestCase):
@@ -578,6 +582,18 @@ def test_convert_annotation_to_annotation_db():
     db = deserialise_object(data)
     assert isinstance(db, BasicAnnotationDb)
     assert db.num_matches() == 1
+
+
+def test_deserialise_old_style_annotated():
+    from cogent3.core.alignment import SequenceCollection
+
+    data = (DATA_DIR / "old_annotation_style.json").read_text()
+    data = json.loads(data)["data"]
+    got = deserialise_object(data)
+    assert isinstance(got, SequenceCollection)
+    raw_seqs = json.loads(data)["seqs"]
+    num_anns = sum(len(v["annotations"]) for v in raw_seqs.values())
+    assert len(got.annotation_db) == num_anns
 
 
 def test_deser_annotated_aln():

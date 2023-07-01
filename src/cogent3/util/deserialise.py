@@ -251,7 +251,11 @@ def deserialise_seq_collections(data):
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
     if annotations:
-        annotation_db = {"type": "annotation_to_annotation_db", "data": annotations}
+        annotation_db = {
+            "type": "annotation_to_annotation_db",
+            "data": annotations,
+            "seqid": data.get("name", None),
+        }
     else:
         annotation_db = data.pop("annotation_db", None)
 
@@ -370,8 +374,8 @@ def deserialise_object(data):
         with open_(data) as infile:
             data = json.load(infile)
 
-    if type(data) is str:
-        data = json.loads(data)
+    if isinstance(data, str):
+        data = json.loads(str(data))
 
     type_ = data.get("type", None) if hasattr(data, "get") else None
     if type_ is None:
