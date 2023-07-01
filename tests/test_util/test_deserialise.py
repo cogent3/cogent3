@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -31,6 +32,9 @@ from cogent3.util.deserialise import (
 )
 
 
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
+
+
 class TestDeserialising(TestCase):
     def test_roundtrip_codon_alphabet(self):
         """codon alphabet to_json enables roundtrip"""
@@ -55,17 +59,6 @@ class TestDeserialising(TestCase):
         self.assertEqual(type(got), type(dna))
         self.assertEqual(list(got), list(dna))
         self.assertEqual(dna, got)
-
-    def test_roundtrip_seq(self):
-        """seq to_json enables roundtrip"""
-        for mtype in ("dna", "protein"):
-            mtype = moltype.get_moltype(mtype)
-            seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
-            got = deserialise_object(seq.to_json())
-            self.assertEqual(got.info.something, 3)
-            self.assertEqual(got.name, "label")
-            self.assertEqual(got.moltype, seq.moltype)
-            self.assertEqual(str(got), str(seq))
 
     def test_roundtrip_seqcoll(self):
         """SequenceCollection to_json enables roundtrip"""
@@ -580,6 +573,20 @@ def test_convert_annotation_to_annotation_db():
     assert db.num_matches() == 1
 
 
+def test_deserialise_old_style_annotated():
+    from cogent3.core.alignment import SequenceCollection
+
+    data = (DATA_DIR / "old_annotation_style.json").read_text()
+    data = json.loads(data)["data"]
+    got = deserialise_object(data)
+    assert isinstance(got, SequenceCollection)
+    raw_seqs = json.loads(data)["seqs"]
+    num_anns = sum(len(v["annotations"]) for v in raw_seqs.values())
+    assert len(got.annotation_db) == num_anns
+    for feature in got.annotation_db.get_features_matching():
+        assert feature["seqid"] is not None
+
+
 def test_deser_annotated_aln():
     data = {
         "seqs": {
@@ -681,3 +688,15 @@ def test_roundtrip_TN93_model_result():
 
     got = deserialise_object(result.to_rich_dict())
     assert_allclose(got.lnL, result.lnL)
+
+
+@pytest.mark.parametrize("mtype", ("dna", "protein"))
+def test_roundtrip_seq(mtype):
+    """seq to_json enables roundtrip"""
+    mtype = moltype.get_moltype(mtype)
+    seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
+    got = deserialise_object(seq.to_json())
+    assert got.info.something == 3
+    assert got.name == "label"
+    assert got.moltype == seq.moltype
+    assert str(got) == str(seq)

@@ -115,8 +115,7 @@ def test_feature_residue():
         moltype=DNA,
         array_align=False,
     )
-    db = GffAnnotationDb()
-    aln.annotation_db = db
+    db = aln.annotation_db
     assert str(aln), ">x\nC-CCCAAAAA\n>y\n-T----TTTT\n"
     db.add_feature(seqid="x", biotype="exon", name="ex1", spans=[(0, 4)])
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
@@ -463,11 +462,11 @@ def test_roundtrip_rc_annotated_align():
     )
     aln.get_seq("x").add_feature(biotype="exon", name="E1", spans=[(3, 8)])
     aln.get_seq("x").add_feature(biotype="exon", name="E2", spans=[(10, 13)])
-
     raln = aln.rc()
+    assert len(aln.annotation_db) == len(raln.annotation_db)
     json = raln.to_json()
     got = deserialise_object(json)
-    assert got.to_dict() == raln.to_dict()
+    assert got.to_rich_dict() == raln.to_rich_dict()
     orig_annots = {a.name: a.get_slice() for a in raln.get_features()}
     got_annots = {a.name: a.get_slice() for a in got.get_features()}
     assert got_annots == orig_annots

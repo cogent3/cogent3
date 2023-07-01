@@ -562,7 +562,11 @@ class _SequenceCollectionBase:
         self._set_additional_attributes(curr_seqs)
 
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
-        self._annotation_db = anno_db or DEFAULT_ANNOTATION_DB()
+
+        self._annotation_db = None
+
+        if not isinstance(self, ArrayAlignment):
+            self.annotation_db = anno_db or DEFAULT_ANNOTATION_DB()
 
     @property
     def annotation_db(self):
@@ -2422,12 +2426,22 @@ class Aligned:
         coords = self.map.get_covering_span().get_coordinates()
         if len(coords) != 1:
             raise NotImplementedError
-        start, end = coords[0]
-        data = self.data[start:end]
-        data = data.to_rich_dict(exclude_annotations=True)
-        data["seq"] = str(self)
-        data["version"] = __version__
+        data = dict(version=__version__, type=get_object_provenance(self))
+        # we are resetting the stored data to begin at 0
+        data["map_init"] = self.map.zeroed().to_rich_dict()
+        data["seq_init"] = self.data.to_rich_dict(exclude_annotations=True)
         return data
+
+    @classmethod
+    def from_rich_dict(cls, data: dict):
+        from cogent3.util.deserialise import (
+            deserialise_map_spans,
+            deserialise_seq,
+        )
+
+        map_ = deserialise_map_spans(data["map_init"])
+        seq = deserialise_seq(data["seq_init"])
+        return cls(map_, seq)
 
     def to_json(self):
         """returns a json formatted string"""
@@ -4698,9 +4712,11 @@ class Alignment(AlignmentI, SequenceCollection):
 
     def _seq_to_aligned(self, seq, key):
         """Converts seq to Aligned object -- override in subclasses"""
+        db = getattr(seq, "annotation_db", None)
         (map, seq) = self.moltype.make_seq(
             seq, key, preserve_case=True
         ).parse_out_gaps()
+        seq.annotation_db = db
         return Aligned(map, seq)
 
     def __getitem__(self, index):
@@ -4756,7 +4772,8 @@ class Alignment(AlignmentI, SequenceCollection):
 
         self._annotation_db = value
         for seq in self.seqs:
-            seq.data.replace_annotation_db(value, check=False)
+            seq = getattr(seq, "data", seq)
+            seq.replace_annotation_db(value, check=False)
 
     def _mapped(self, slicemap):
         align = []

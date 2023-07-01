@@ -2270,9 +2270,14 @@ def test_to_rich_dict(cls, with_offset):
     """Sequence to_dict works"""
     r = cls("AAGGCC", name="seq1")
     got = r.to_rich_dict()
+    seq = "AAGGCC"
+
+    if cls == Sequence:
+        seq = SeqView(seq).to_rich_dict()
+
     expect = {
         "name": "seq1",
-        "seq": "AAGGCC",
+        "seq": seq,
         "moltype": r.moltype.label,
         "info": None,
         "type": get_object_provenance(r),
@@ -2289,9 +2294,14 @@ def test_to_json(cls, with_offset):
     """to_json roundtrip recreates to_dict"""
     r = cls("AAGGCC", name="seq1")
     got = json.loads(r.to_json())
+
+    seq = "AAGGCC"
+    if cls == Sequence:
+        seq = SeqView(seq).to_rich_dict()
+
     expect = {
         "name": "seq1",
-        "seq": "AAGGCC",
+        "seq": seq,
         "moltype": r.moltype.label,
         "info": None,
         "type": get_object_provenance(r),
@@ -2318,3 +2328,47 @@ def test_offset_with_multiple_slices():
     expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
     got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
     assert got == expect
+
+
+def test_seqview_to_rich_dict():
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sv = SeqView(seq=parent)
+    plus = sv.to_rich_dict()
+    minus = sv[::-1].to_rich_dict()
+    for attr in ("type", "offset", "version"):
+        assert plus.pop(attr) == minus.pop(attr)
+
+    plus = plus.pop("init_args")
+    minus = minus.pop("init_args")
+    assert plus.pop("seq") == minus.pop("seq")
+    assert plus["step"] == -minus["step"]
+    for coord in ("start", "stop"):
+        assert coord not in plus
+        assert coord not in minus
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_seqview_round_trip(reverse):
+    from cogent3.util.deserialise import deserialise_object
+
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sv = SeqView(seq=parent)
+    if reverse:
+        sv = sv[::-1]
+
+    rd = sv.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, SeqView)
+    assert got.to_rich_dict() == sv.to_rich_dict()
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_sliced_seqview_rich_dict(reverse):
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sl = slice(2, 13)
+    sv = SeqView(seq=parent)[sl]
+    if reverse:
+        sv = sv[::-1]
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seq"] == parent[sl]
+    assert rd["offset"] == 2
