@@ -233,7 +233,11 @@ def deserialise_seq(data, aligned=False):
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
     if annotations:
-        annotation_db = {"type": "annotation_to_annotation_db", "data": annotations}
+        annotation_db = {
+            "type": "annotation_to_annotation_db",
+            "data": annotations,
+            "seqid": data.get("name", None),
+        }
     else:
         annotation_db = data.pop("annotation_db", None)
 
@@ -273,7 +277,6 @@ def deserialise_seq_collections(data):
         annotation_db = {
             "type": "annotation_to_annotation_db",
             "data": annotations,
-            "seqid": data.get("name", None),
         }
     else:
         annotation_db = data.pop("annotation_db", None)

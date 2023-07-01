@@ -583,6 +583,8 @@ def test_deserialise_old_style_annotated():
     raw_seqs = json.loads(data)["seqs"]
     num_anns = sum(len(v["annotations"]) for v in raw_seqs.values())
     assert len(got.annotation_db) == num_anns
+    for feature in got.annotation_db.get_features_matching():
+        assert feature["seqid"] is not None
 
 
 def test_deser_annotated_aln():
