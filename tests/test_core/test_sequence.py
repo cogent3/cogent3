@@ -2270,9 +2270,14 @@ def test_to_rich_dict(cls, with_offset):
     """Sequence to_dict works"""
     r = cls("AAGGCC", name="seq1")
     got = r.to_rich_dict()
+    seq = "AAGGCC"
+
+    if cls == Sequence:
+        seq = SeqView(seq).to_rich_dict()
+
     expect = {
         "name": "seq1",
-        "seq": "AAGGCC",
+        "seq": seq,
         "moltype": r.moltype.label,
         "info": None,
         "type": get_object_provenance(r),
@@ -2289,9 +2294,14 @@ def test_to_json(cls, with_offset):
     """to_json roundtrip recreates to_dict"""
     r = cls("AAGGCC", name="seq1")
     got = json.loads(r.to_json())
+
+    seq = "AAGGCC"
+    if cls == Sequence:
+        seq = SeqView(seq).to_rich_dict()
+
     expect = {
         "name": "seq1",
-        "seq": "AAGGCC",
+        "seq": seq,
         "moltype": r.moltype.label,
         "info": None,
         "type": get_object_provenance(r),

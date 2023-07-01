@@ -122,9 +122,10 @@ class SequenceI(object):
             info.pop("Refs")
 
         info = info or None
+        seq = self._seq.to_rich_dict() if hasattr(self, "_seq") else str(self)
         data = dict(
             name=self.name,
-            seq=str(self),
+            seq=seq,
             moltype=self.moltype.label,
             info=info,
             type=get_object_provenance(self),
@@ -1834,12 +1835,13 @@ class SeqView:
         return self.step < 0
 
     def absolute_position(self, rel_index: int, include_boundary=False):
-        """Converts an index relative to the current view to be with respect to the coordinates of the sequence's annotations
+        """Converts an index relative to the current view to be with respect
+        to the coordinates of the sequence's annotations
 
         Parameters
         ----------
-        rel_index    int
-                relative position with respect to the current view
+        rel_index
+            relative position with respect to the current view
 
         Returns
         -------

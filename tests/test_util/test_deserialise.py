@@ -60,17 +60,6 @@ class TestDeserialising(TestCase):
         self.assertEqual(list(got), list(dna))
         self.assertEqual(dna, got)
 
-    def test_roundtrip_seq(self):
-        """seq to_json enables roundtrip"""
-        for mtype in ("dna", "protein"):
-            mtype = moltype.get_moltype(mtype)
-            seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
-            got = deserialise_object(seq.to_json())
-            self.assertEqual(got.info.something, 3)
-            self.assertEqual(got.name, "label")
-            self.assertEqual(got.moltype, seq.moltype)
-            self.assertEqual(str(got), str(seq))
-
     def test_roundtrip_seqcoll(self):
         """SequenceCollection to_json enables roundtrip"""
         data = dict(A="TTGT", B="GGCT")
@@ -697,3 +686,15 @@ def test_roundtrip_TN93_model_result():
 
     got = deserialise_object(result.to_rich_dict())
     assert_allclose(got.lnL, result.lnL)
+
+
+@pytest.mark.parametrize("mtype", ("dna", "protein"))
+def test_roundtrip_seq(mtype):
+    """seq to_json enables roundtrip"""
+    mtype = moltype.get_moltype(mtype)
+    seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
+    got = deserialise_object(seq.to_json())
+    assert got.info.something == 3
+    assert got.name == "label"
+    assert got.moltype == seq.moltype
+    assert str(got) == str(seq)
