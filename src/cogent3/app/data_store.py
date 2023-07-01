@@ -371,7 +371,7 @@ class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
         source: Union[str, Path],
-        mode: Mode = READONLY,
+        mode: Union[Mode, str] = READONLY,
         suffix: Optional[str] = None,
         limit: int = None,
         verbose=False,
@@ -598,7 +598,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
     def __init__(
         self,
         source: Union[str, Path],
-        mode: Mode = READONLY,
+        mode: Union[Mode, str] = READONLY,
         suffix: Optional[str] = None,
         limit: int = None,
         verbose=False,
