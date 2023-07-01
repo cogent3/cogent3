@@ -10,7 +10,6 @@ from . import likelihood_tree_numba as likelihood_tree
 numpy.seterr(all="ignore")
 
 
-
 class _LikelihoodTreeEdge(object):
     def __init__(self, children, edge_name, alignment=None):
         self.edge_name = edge_name
@@ -55,10 +54,7 @@ class _LikelihoodTreeEdge(object):
 
         # For faster math, a contiguous index array for each child
         self.indexes = numpy.ascontiguousarray(
-            [
-                numpy.array(list(ch), int)
-                for ch in numpy.transpose(self.uniq)
-            ]
+            [numpy.array(list(ch), int) for ch in numpy.transpose(self.uniq)]
         )
 
         # If this is the root it will need to weight the total
@@ -154,7 +150,6 @@ class _LikelihoodTreeEdge(object):
 class LikelihoodTreeEdge(_LikelihoodTreeEdge):
     # Should be a subclass of regular tree edge?
 
-
     # For scaling very very small numbers
     BASE = 2.0**100
     LOG_BASE = numpy.log(BASE)
@@ -188,8 +183,6 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
 
     def get_log_sum_across_sites(self, lhs):
         return likelihood_tree.get_log_sum_across_sites(lhs, self.counts)
-
-
 
 
 def _indexed(values):
