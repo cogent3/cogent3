@@ -3,7 +3,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
-from cogent3.core.annotation_db import GffAnnotationDb
+from cogent3.core.annotation_db import BasicAnnotationDb, GffAnnotationDb
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
 
@@ -101,6 +101,19 @@ def test_copy_annotations():
     db = GffAnnotationDb()
     db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
     aln.copy_annotations(db)
+    feat = list(aln.get_features(seqid="y", biotype="exon"))[0]
+    assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
+
+
+def test_copy_annotations_onto_seq():
+    """copying features onto a sequence"""
+    aln = make_aligned_seqs(
+        data=[["x", "-AAAAAAAAA"], ["y", "TTTT--CCCT"]], array_align=False
+    )
+    db = BasicAnnotationDb()
+    db.add_feature(seqid="y", biotype="exon", name="A", spans=[(5, 8)])
+    y = aln.get_seq("y")
+    y.copy_annotations(db)
     feat = list(aln.get_features(seqid="y", biotype="exon"))[0]
     assert feat.get_slice().to_dict() == dict(x="AAA", y="CCT")
 

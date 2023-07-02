@@ -1214,10 +1214,10 @@ class Sequence(SequenceI):
         if self.annotation_db and not self.annotation_db.compatible(seq_db):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
-        if not self.annotation_db:
+        if self.annotation_db is None:
             self.annotation_db = type(seq_db)()
 
-        self.annotation_db.union(seq_db, seqids=self.name)
+        self.annotation_db.update(seq_db, seqids=self.name)
 
     def copy(self, exclude_annotations=False):
         """returns a copy of self"""
@@ -1331,6 +1331,11 @@ class Sequence(SequenceI):
 
     def __getitem__(self, index):
         preserve_offset = False
+        if hasattr(index, "get_slice"):
+            if index.parent is not self:
+                raise ValueError("cannot slice Feature not bound to self")
+            return index.get_slice()
+
         if hasattr(index, "map"):
             index = index.map
 
@@ -1344,6 +1349,9 @@ class Sequence(SequenceI):
             )
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
+
+        if isinstance(index, (list, tuple)):
+            raise TypeError("cannot slice using list or tuple")
 
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)

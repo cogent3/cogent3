@@ -1,7 +1,7 @@
 import copy
 import json
 
-from typing import Optional
+from typing import Iterable, Optional
 
 from cogent3._version import __version__
 from cogent3.util import warning as c3warn
@@ -167,7 +167,7 @@ class Feature:
         for child in db.get_feature_parent(biotype=biotype, name=self.name):
             yield make_feature(feature=child)
 
-    def union(self, features):
+    def union(self, features: Iterable):
         """return as a single Feature
 
         Notes
@@ -175,16 +175,16 @@ class Feature:
         Overlapping spans are merged
         """
         combined = self.map.spans[:]
-        feat_names = set()
-        biotypes = set()
-        seqids = set()
+        feat_names = [self.name] if self.name else set()
+        biotypes = {self.biotype} if self.biotype else set()
+        seqids = {self.seqid} if self.seqid else set()
         for feature in features:
             if feature.parent is not self.parent:
                 raise ValueError(f"cannot merge annotations from different objects")
 
             combined.extend(feature.map.spans)
             if feature.name:
-                feat_names.add(feature.name)
+                feat_names.append(feature.name)
             if feature.seqid:
                 seqids.add(feature.seqid)
             if feature.biotype:
