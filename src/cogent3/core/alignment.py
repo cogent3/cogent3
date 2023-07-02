@@ -2078,6 +2078,9 @@ class SequenceCollection(_SequenceCollectionBase):
             # no matching ID's, nothing to do
             return
 
+        if self.annotation_db is None:
+            self.annotation_db = type(seq_db)()
+
         if self.annotation_db.compatible(seq_db, symmetric=False):
             # our db contains the tables in other, so we update in place
             self.annotation_db.update(annot_db=seq_db, seqids=self.names)
@@ -4722,7 +4725,7 @@ class Alignment(AlignmentI, SequenceCollection):
     def __getitem__(self, index):
         if hasattr(index, "get_slice"):
             if index.parent is not self:
-                raise ValueError("cannot slice Feature not bound to self")
+                raise ValueError(f"feature.parent {index.seqid!r} is not self")
             return index.get_slice()
 
         if isinstance(index, Map):
@@ -4734,7 +4737,7 @@ class Alignment(AlignmentI, SequenceCollection):
             new = self.__class__(seqs, name=self.name, info=self.info)
 
         if isinstance(index, (list, tuple)):
-            raise TypeError("cannot slice using list or tuple")
+            raise TypeError(f"cannot slice using {type(index)}")
 
         if self.annotation_db is not None:
             new.annotation_db = self.annotation_db

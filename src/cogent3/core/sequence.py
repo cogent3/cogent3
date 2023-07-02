@@ -1214,7 +1214,7 @@ class Sequence(SequenceI):
         if self.annotation_db and not self.annotation_db.compatible(seq_db):
             raise TypeError(f"type {type(seq_db)} != {type(self.annotation_db)}")
 
-        if not self.annotation_db:
+        if self.annotation_db is None:
             self.annotation_db = type(seq_db)()
 
         self.annotation_db.update(seq_db, seqids=self.name)
