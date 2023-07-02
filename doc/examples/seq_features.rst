@@ -16,8 +16,8 @@ For illustrative purposes we define a sequence with 2 exons and grab the 1\ :sup
     from cogent3 import DNA
 
     s = DNA.make_seq("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa", name="Orig")
-    exon1 = s.add_feature("exon", "exon1", [(10, 15)])
-    exon2 = s.add_feature("exon", "exon2", [(30, 40)])
+    exon1 = s.add_feature(biotype="exon", name="exon1", spans=[(10, 15)])
+    exon2 = s.add_feature(biotype="exon", name="exon2", spans=[(30, 40)])
 
 Here, '``exon``' is the feature type, and '``exon#``' the feature name. The feature type is used for the display formatting, which won't be illustrated here, and also for selecting all features of the same type, shown below.
 
@@ -28,7 +28,7 @@ We could also have created an annotation using the ``add_annotation`` method:
     from cogent3.core.annotation import Feature
 
     s2 = DNA.make_seq("aagaagaagacccccaaaaaaaaaattttttttttaaaaaaaaaaaaa", name="Orig2")
-    exon3 = s2.add_annotation(Feature, "exon", "exon1", [(35, 40)])
+    exon3 = s2.add_feature(biotype="exon", name="exon1", spans=[(35, 40)])
 
 We can use the features (eg ``exon1``) to get the corresponding sequence region.
 
@@ -40,26 +40,21 @@ You can query annotations by type and optionally by label, receiving a list of f
 
 .. jupyter-execute::
 
-    exons = s.get_annotations_matching("exon")
+    exons = list(s.get_features(biotype="exon"))
     print(exons)
 
 We can use this list to construct a pseudo-feature covering (or excluding) multiple features using ``get_region_covering_all``. For instance, getting all exons,
 
 .. jupyter-execute::
 
-    print(s.get_region_covering_all(exons))
-    s.get_region_covering_all(exons).get_slice()
+    all_exons = exons[0].union(exons[1:])
+    print(exons)
+    all_exons.get_slice()
 
 or not exons (the exon *shadow*):
 
 .. jupyter-execute::
 
-    print(s.get_region_covering_all(exons).get_shadow().get_slice())
+    print(all_exons.get_shadow().get_slice())
 
 The first of these essentially returns the CDS of the gene.
-
-Features are themselves sliceable:
-
-.. jupyter-execute::
-
-    exon1[0:3].get_slice()
