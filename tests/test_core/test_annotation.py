@@ -281,7 +281,7 @@ def test_aln_slice_feat_invalid(type_, fix, request):
     # incorrect parent
     obj = request.getfixturevalue(fix)
     with pytest.raises(TypeError):
-        obj[type_(obj.get_features(biotype="exon"))]
+        _ = obj[type_(obj.get_features(biotype="exon"))]
 
 
 def test_seq_slice_seqfeat_invalid(ann_aln):
@@ -289,4 +289,4 @@ def test_seq_slice_seqfeat_invalid(ann_aln):
     seq1 = ann_aln.get_seq("FAKE01")
     seq2 = ann_aln.get_seq("FAKE02")
     with pytest.raises(ValueError):
-        seq2[list(seq1.get_features(biotype="CDS"))[0]]
+        _ = seq2[list(seq1.get_features(biotype="CDS"))[0]]
