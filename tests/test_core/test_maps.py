@@ -43,7 +43,7 @@ class MapTest(unittest.TestCase):
         sliced_seq = seq[:17]
         answer = list(sliced_seq.get_features(biotype="test_type", allow_partial=False))
         self.assertEqual(len(answer), 1)
-        self.assertEqual(str(seq[answer[0]]), "TCGAT")
+        self.assertEqual(str(sliced_seq[answer[0]]), "TCGAT")
 
 
 def test_get_by_seq_annotation_allow_gaps():

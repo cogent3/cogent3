@@ -4721,6 +4721,8 @@ class Alignment(AlignmentI, SequenceCollection):
 
     def __getitem__(self, index):
         if hasattr(index, "get_slice"):
+            if index.parent is not self:
+                raise ValueError("cannot slice Feature not bound to self")
             return index.get_slice()
 
         if isinstance(index, Map):
@@ -4730,6 +4732,9 @@ class Alignment(AlignmentI, SequenceCollection):
             seqs = [s[index] for s in self.seqs]
 
             new = self.__class__(seqs, name=self.name, info=self.info)
+
+        if isinstance(index, (list, tuple)):
+            raise TypeError("cannot slice using list or tuple")
 
         if self.annotation_db is not None:
             new.annotation_db = self.annotation_db

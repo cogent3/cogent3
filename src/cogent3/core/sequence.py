@@ -1331,6 +1331,11 @@ class Sequence(SequenceI):
 
     def __getitem__(self, index):
         preserve_offset = False
+        if hasattr(index, "get_slice"):
+            if index.parent is not self:
+                raise ValueError("cannot slice Feature not bound to self")
+            return index.get_slice()
+
         if hasattr(index, "map"):
             index = index.map
 
@@ -1344,6 +1349,9 @@ class Sequence(SequenceI):
             )
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
+
+        if isinstance(index, (list, tuple)):
+            raise TypeError("cannot slice using list or tuple")
 
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
