@@ -1217,7 +1217,7 @@ class Sequence(SequenceI):
         if not self.annotation_db:
             self.annotation_db = type(seq_db)()
 
-        self.annotation_db.union(seq_db, seqids=self.name)
+        self.annotation_db.update(seq_db, seqids=self.name)
 
     def copy(self, exclude_annotations=False):
         """returns a copy of self"""
