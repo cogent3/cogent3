@@ -164,7 +164,7 @@ Alternatively, if you want to extract the aligned (i.e., gapped) sequence from a
     seq.is_gapped()
     print(seq)
 
-To see the names of the sequences in a sequence collection, you can use either the ``Names`` attribute or ``get_seq_names`` method.
+To see the names of the sequences in a sequence collection, use the ``names`` attribute.
 
 .. jupyter-execute::
 
@@ -202,7 +202,7 @@ Getting a subset of sequences from the alignment
     new = aln.take_seqs(["Human", "HowlerMon"])
     new.names
 
-Note, if you set ``array_align=False``, then the subset contain references to the original sequences, not copies.
+.. note:: The ``Alignment`` class (which you get if you set ``array_align=False``) is more memory efficient. The subset contain references to the original sequences, not copies.
 
 .. jupyter-execute::
 

@@ -45,7 +45,7 @@ To construct a pseudo-feature covering (or excluding) multiple features, use ``F
 
     all_exons = exon1.union([exon2])
     print(all_exons)
-    print(all_exons.get_shadow())
+    print(all_exons.shadow())
 
 eg: all the exon sequence:
 
