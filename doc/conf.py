@@ -1,34 +1,31 @@
 import datetime
-import os
 import pathlib
-import shutil
-import sys
-
-from glob import glob
-
-import sphinx_bootstrap_theme
-
-
-sys.path.append("../src")
 
 
 def make_nbsphinx_thumbnails():
     """returns dict of {path: '_images/{path.stem}'"""
-    gallery = sorted(
-        p
-        for p in pathlib.Path("draw").glob("**/*.rst")
-        if p.stem not in ("index", "README")
-    )
+    gallery = [
+        p for p in pathlib.Path("doc/draw").glob("**/*.rst") if p.stem != "README"
+    ]
 
     return {str(n).split(".")[0]: f"_images/{n.stem}.png" for n in gallery}
 
 
-# Allow autosummary to generate stub files
-autosummary_generate = True
-add_module_names = False  # don't include module path to module/func names
+# sphinx_navtree
+today = datetime.date.today()
+year = today.strftime("%Y")
+project = "cogent3"
+copyright = f"2020-{year}, cogent3 Team"
+author = "Gavin Huttley"
 
-# Prevent numpydoc from requiring stub files for methods
-numpydoc_class_members_toctree = False
+# The full version, including alpha/beta/rc tags
+# Use clanedar versioning
+release = today.strftime("%Y.%m.%d")
+version = ""
+
+
+# -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
     "jupyter_sphinx",
@@ -40,18 +37,33 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.mathjax",
     "sphinx.ext.todo",
-    "sphinx_gallery.load_style",
+    "sphinxcontrib.bibtex",
     "sphinx_panels",
-    # "sphinxcontrib.spelling",
 ]
 
-# todo_include_todos=True # to expose the TODOs, uncomment this line
+# stop sphinx-panels from including css
+panels_add_bootstrap_css = False
 
-# Add any paths that contain templates here, relative to this directory.
+
+# Allow autosummary to generate stub files
+autosummary_generate = True
+add_module_names = False  # don't include module path to module/func names
+# Prevent numpydoc from requiring stub files for methods
+numpydoc_class_members_toctree = False
+
+bibtex_bibfiles = ["cogent3.bib"]
+
 templates_path = ["templates"]
 
-# The suffix of source filenames.
-source_suffix = ".rst", ".ipynb"
+# The master toctree document.
+master_doc = "index"
+show_authors = True
+pygments_style = "sphinx"
+
+todo_include_todos = False
+todo_emit_warnings = True
+htmlhelp_basename = "cogent3doc"
+
 
 # ignoring the cookbook/union_dict.rst file as it's specifically included
 exclude_patterns = [
@@ -65,61 +77,31 @@ exclude_patterns = [
     "*tmp*",
 ]
 
-# The encoding of source files.
+# -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-# The master toctree document.
-master_doc = "index"
+html_theme = "sphinx_book_theme"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
-# General information about the project.
-today = datetime.date.today()
-year = today.strftime("%Y")
-project = "cogent3"
-copyright = f"2020-{year}, cogent3 Team"
-
-release = "2023.2.12a1"
-
-version = ""
-
-# exclude_trees = ["_build"]
-
-show_authors = True
-
-pygments_style = "sphinx"
-
-# -- Options for HTML output ---------------------------------------------------
-html_theme = "bootstrap"
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-
+sidebar_collapse = False
 
 html_theme_options = {
-    "navbar_title": "Docs",
-    "navbar_site_name": "Sections",
-    "navbar_links": [
-        ("Install", "install"),
-        ("Gallery", "draw/index.html", True),
-    ],
-    "navbar_class": "navbar navbar-inverse",
-    "navbar_fixed_top": "true",
-    "source_link_position": "skipped",
-    "bootswatch_theme": "cerulean",
-    "bootstrap_version": "3",
+    "navigation_depth": 1,
+    "show_navbar_depth": 1,
+    "repository_provider": "github",
+    "repository_url": "https://github.com/cogent3/cogent3",
+    "use_repository_button": True,
+    # turns off the secondary side-bar
+    # it's default value is ["page-toc", "edit-this-page", "sourcelink"]
+    "secondary_sidebar_items": [],
+    # "navbar_end": ["header_buttons.html"],
+    # "use_sidenotes": True,
 }
 
-html_static_path = ["_static"]
-
-htmlhelp_basename = "cogent3doc"
-
-# -- Options for Gallery
-
-nbsphinx_requirejs_path = "require.js"
 nbsphinx_thumbnails = make_nbsphinx_thumbnails()
-
 
 # -- Options for LaTeX output --------------------------------------------------
 latex_documents = [
     ("index", "cogent3.tex", "cogent3 Documentation", "cogent3 Team", "manual")
 ]
-
-
-def setup(app):
-    app.add_js_file("plotly-latest.min.js")
