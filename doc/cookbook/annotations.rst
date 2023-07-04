@@ -426,8 +426,8 @@ these persist.
 
     rc.with_masked_annotations("exon", mask_char="?")
 
-You can take mask of the shadow
-"""""""""""""""""""""""""""""""
+You can mask the shadow
+"""""""""""""""""""""""
 
 .. jupyter-execute::
 
