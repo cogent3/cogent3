@@ -55,6 +55,6 @@ or not exons (the exon *shadow*):
 
 .. jupyter-execute::
 
-    print(all_exons.get_shadow().get_slice())
+    print(all_exons.shadow().get_slice())
 
 The first of these essentially returns the CDS of the gene.
