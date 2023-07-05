@@ -371,7 +371,7 @@ def test_make_dna_scoring_dict():
         == scoring_matrix[("T", "G")]
         == scoring_matrix[("C", "A")]
         == scoring_matrix[("C", "G")]
-        == -8 
+        == -8
     )
 
     # all matches equal
@@ -382,4 +382,3 @@ def test_make_dna_scoring_dict():
         == scoring_matrix[("T", "T")]
         == 10
     )
-
