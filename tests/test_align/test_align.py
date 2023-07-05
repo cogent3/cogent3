@@ -379,3 +379,6 @@ def test_make_dna_scoring_dict():
         == scoring_matrix[("C", "C")]
         == scoring_matrix[("T", "T")]
     )
+
+    # transition != transversions 
+    assert scoring_matrix[("A", "T")] != scoring_matrix[("A", "G")]
