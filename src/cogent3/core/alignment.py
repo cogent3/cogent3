@@ -3202,6 +3202,7 @@ class AlignmentI(object):
 
         text = [
             "<style>",
+            ".c3align table {margin: 10px 0;}",
             ".c3align td { border: none !important; text-align: left !important; }",
             ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3align tr:nth-child(even) {background: #f7f7f7;}",

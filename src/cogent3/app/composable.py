@@ -503,6 +503,9 @@ def define_app(
     - type hint the first argument of ``main``
     - type hint the return type for ``main``
 
+    While you can have more than one argument in ``main``, this is currently not
+    supported in composable apps.
+
     Overlap between the return type hint and first argument hint is required
     for two apps to be composed together.
 
