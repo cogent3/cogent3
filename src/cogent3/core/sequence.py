@@ -741,12 +741,13 @@ class SequenceI(object):
         table.append("</table>")
         class_name = self.__class__.__name__
         if limit and limit < len(self):
-            summary = f"{len(self)} (truncated to {limit if limit else len(self)}) {class_name}"
+            summary = f"{class_name}, length={len(self)} (truncated to {limit if limit else len(self)})"
         else:
-            summary = f"{len(self)} {class_name}"
+            summary = f"{class_name}, length={len(self)}"
 
         text = [
             "<style>",
+            ".c3seq table {margin: 10px 0;}",
             ".c3seq td { border: none !important; text-align: left !important; }",
             ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
