@@ -8,6 +8,8 @@ You need two things:
 1. your function
 2. Type hints on the function first argument and the function return type.
 
+.. note:: At present, your function can have only one required argument.
+
 A simple example
 ----------------
 

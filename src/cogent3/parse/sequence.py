@@ -100,6 +100,7 @@ PARSERS = {
     "clustal": clustal.ClustalParser,
     "gb": genbank.RichGenbankParser,
     "gbk": genbank.RichGenbankParser,
+    "gbff": genbank.RichGenbankParser,
     "genbank": genbank.RichGenbankParser,
     "msf": gcg.MsfParser,
     "nex": nexus.MinimalNexusAlignParser,
