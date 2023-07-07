@@ -1024,3 +1024,16 @@ def test_load_multi_files_collection(multi_fasta):
         multi_fasta / "*.fa", moltype="dna", show_progress=False
     )
     assert collection.num_seqs == 5
+
+
+@pytest.fixture(scope="function", params=("gb", "gbk", "gbff"))
+def gb_file(tmp_dir, request):
+    inpath = DATA_DIR / "annotated_seq.gb"
+    outpath = tmp_dir / f"{inpath.stem}.{request.param}"
+    outpath.write_text(inpath.read_text())
+    return outpath
+
+
+def test_gb_suffixes(gb_file):
+    seqs = load_unaligned_seqs(gb_file)
+    isinstance(seqs, SequenceCollection)
