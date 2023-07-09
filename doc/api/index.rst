@@ -24,6 +24,11 @@ These are all top level imports. For example,
     __init__/cogent3.__init__.load_delimited
     __init__/cogent3.__init__.load_table
     __init__/cogent3.__init__.load_tree
+    __init__/cogent3.__init__.load_annotations
+    __init__/cogent3.__init__.open_data_store
+    __init__/cogent3.__init__.open_
+    
+    
 
 Making cogent3 types from standard Python types
 ===============================================
@@ -91,6 +96,7 @@ The Major cogent3 Data Types
     alphabet/alphabet
     table/table
     tree/tree
+    cogent3.core.annotation.Feature
 
 ************************
 Defining Composable Apps
@@ -100,3 +106,7 @@ Defining Composable Apps
     :maxdepth: 1
 
     apps/composable.define_app
+    apps/datastore/DataMember
+    apps/datastore/DataStoreDirectory
+    apps/datastore/ReadOnlyDataStoreZipped
+    apps/datastore/DataStoreSqlite
