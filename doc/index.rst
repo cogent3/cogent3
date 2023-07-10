@@ -61,6 +61,9 @@ Documentation
         :text:
         :classes: stretched-link
 
+
+.. note:: See :ref:`data_links` for data the files used.
+
 .. toctree::
     :hidden:
     :maxdepth: 3
