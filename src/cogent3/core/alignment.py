@@ -2479,9 +2479,6 @@ class Aligned:
         for annot in self.data.get_features(biotype=annotation_type, **kwargs):
             yield annot.remapped_to(alignment, self.map.inverse())
 
-    def get_drawables(self):
-        return self.data.get_drawables()
-
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
         return self.get_gapped_seq().gap_vector()
@@ -3786,45 +3783,6 @@ class AlignmentI(object):
         return freqs.logo(
             width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
         )
-
-    def get_drawable(self, width=600, vertical=False):
-        """returns Drawable instance"""
-        from cogent3.draw.drawable import Drawable
-
-        drawables = self.get_drawables()
-        if not drawables:
-            return None
-        # we order by tracks
-        top = 0
-        space = 0.25
-        annotes = []
-        for feature_type in drawables:
-            new_bottom = top + space
-            for i, annott in enumerate(drawables[feature_type]):
-                annott.shift(y=new_bottom - annott.bottom)
-                if i > 0:
-                    annott._showlegend = False
-                annotes.append(annott)
-
-            top = annott.top
-
-        top += space
-        height = max((top / len(self)) * width, 300)
-        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
-        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
-
-        if vertical:
-            all_traces = [t.T.as_trace() for t in annotes]
-            width, height = height, width
-            xaxis, yaxis = yaxis, xaxis
-        else:
-            all_traces = [t.as_trace() for t in annotes]
-
-        drawer = Drawable(
-            title=self.name, traces=all_traces, width=width, height=height
-        )
-        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
-        return drawer
 
 
 def _one_length(seqs):
@@ -5185,12 +5143,84 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return self.__class__(new_seqs, info=self.info)
 
-    def get_drawables(self):
-        """returns a dict of drawables, keyed by type"""
+    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+        """returns a dict of drawables, keyed by type
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        """
         result = defaultdict(list)
-        for f in self.get_features():
+        for f in self.get_features(biotype=biotype, allow_partial=True):
             result[f.biotype].append(f.get_drawable())
         return result
+
+    def get_drawable(
+        self,
+        *,
+        biotype: Optional[str, Iterable[str]] = None,
+        width: int = 600,
+        vertical: int = False,
+    ):
+        """make a figure from sequence features
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        width
+            width in pixels
+        vertical
+            rotates the drawable
+
+        Returns
+        -------
+        a Drawable instance
+        """
+        # todo gah I think this needs to be modified to make row-blocks
+        # for each sequence in the alignment, or are we displaying the
+        # sequence name in the feature label?
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables(biotype=biotype)
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    # todo modify the api on annott, we should not be using
+                    # a private attribute!
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
 
     def add_feature(
         self,
