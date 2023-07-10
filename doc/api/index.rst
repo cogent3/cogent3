@@ -89,6 +89,7 @@ The Major cogent3 Data Types
     :maxdepth: 1
 
     alignment/alignment
+    annotation/annotation
     annotation_db/annotation_db
     sequence/sequence
     genetic_code/genetic_code
@@ -96,7 +97,6 @@ The Major cogent3 Data Types
     alphabet/alphabet
     table/table
     tree/tree
-    cogent3.core.annotation.Feature
 
 ************************
 Defining Composable Apps
@@ -106,7 +106,24 @@ Defining Composable Apps
     :maxdepth: 1
 
     apps/composable.define_app
-    apps/datastore/DataMember
-    apps/datastore/DataStoreDirectory
-    apps/datastore/ReadOnlyDataStoreZipped
-    apps/datastore/DataStoreSqlite
+
+
+*********
+Datastore
+*********
+
+.. toctree::
+    :maxdepth: 1
+
+    apps/data_store/data_store
+    
+*************
+Deserialising
+*************
+
+.. toctree::
+    :maxdepth: 1
+
+    utils/deserialise/deserialise_object    
+    utils/deserialise/register_deserialiser
+
