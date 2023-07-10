@@ -2,8 +2,6 @@
 Tutorials
 #########
 
-.. note:: See :ref:`data_links` for data the files used.
-
 *****************
 Data manipulation
 *****************

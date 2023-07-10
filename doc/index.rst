@@ -61,8 +61,7 @@ Documentation
         :text:
         :classes: stretched-link
 
-
-.. note:: See :ref:`data_links` for data the files used.
+.. note:: Click :ref:`here <data_links>` to download the data files used in the documentation.
 
 .. toctree::
     :hidden:
