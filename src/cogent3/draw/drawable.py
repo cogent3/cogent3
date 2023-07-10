@@ -747,6 +747,8 @@ class _MakeShape:
 
     _colors = dict(
         cds="rgba(0,0,150,0.75)",
+        rrna="rgba(0,0,150,0.75)",
+        trna="rgba(0,0,150,0.75)",
         exon="rgba(0,0,100,0.75)",
         gene="rgba(161,0,0,0.75)",
         transcript="rgba(140,102,139,0.75)",
@@ -756,6 +758,8 @@ class _MakeShape:
     )
     _shapes = dict(
         cds=Arrow,
+        rrna=Arrow,
+        trna=Arrow,
         exon=Arrow,
         transcript=Arrow,
         mrna=Arrow,
