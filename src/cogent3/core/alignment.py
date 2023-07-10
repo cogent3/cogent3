@@ -2479,9 +2479,6 @@ class Aligned:
         for annot in self.data.get_features(biotype=annotation_type, **kwargs):
             yield annot.remapped_to(alignment, self.map.inverse())
 
-    def get_drawables(self):
-        return self.data.get_drawables()
-
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
         return self.get_gapped_seq().gap_vector()
