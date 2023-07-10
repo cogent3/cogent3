@@ -84,6 +84,7 @@ The Major cogent3 Data Types
     :maxdepth: 1
 
     alignment/alignment
+    annotation_db/annotation_db
     sequence/sequence
     genetic_code/genetic_code
     moltype/moltype

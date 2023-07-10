@@ -5,10 +5,11 @@ import os
 import pathlib
 
 
+current = pathlib.Path(__file__).absolute().parent
+
 def get_data_dir():
     """returns path to cogent3 doc data directory"""
-    current = pathlib.Path(".").absolute().parent
-    for path in current.glob("**/*"):
+    for path in current.glob("*/*"):
         if "doc" not in path.parts:
             continue
 
