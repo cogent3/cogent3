@@ -23,7 +23,7 @@ from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, List, Optional, Tuple
+from typing import Generator, Iterable, List, Optional, Tuple
 
 from numpy import (
     arange,
@@ -1067,8 +1067,7 @@ class Sequence(SequenceI):
                 new[new < 0] = 0
             elif coord.min() < len(self) < coord.max():
                 new[new > len(self)] = len(self)
-
-            if coord[0] == coord[1]:
+            elif coord[0] == coord[1] or coord.min() > len(self) or coord.max() < 0:
                 # would really to adjust pre and post to be up to the next span
                 continue
             new_spans.append(new.tolist())
@@ -1555,18 +1554,46 @@ class Sequence(SequenceI):
         # annotations are dropped in this case
         return new_seq
 
-    def get_drawables(self):
-        """returns a dict of drawables, keyed by type"""
+    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+        """returns a dict of drawables, keyed by type
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        """
         result = defaultdict(list)
-        for f in self.get_features():
+        for f in self.get_features(biotype=biotype, allow_partial=True):
             result[f.biotype].append(f.get_drawable())
         return result
 
-    def get_drawable(self, width=600, vertical=False):
-        """returns Drawable instance"""
+    def get_drawable(
+        self,
+        *,
+        biotype: Optional[str, Iterable[str]] = None,
+        width: int = 600,
+        vertical: bool = False,
+    ):
+        """make a figure from sequence features
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        width
+            width in pixels
+        vertical
+            rotates the drawable
+
+        Returns
+        -------
+        a Drawable instance
+        """
         from cogent3.draw.drawable import Drawable
 
-        drawables = self.get_drawables()
+        drawables = self.get_drawables(biotype=biotype)
         if not drawables:
             return None
         # we order by tracks

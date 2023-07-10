@@ -2372,3 +2372,19 @@ def test_sliced_seqview_rich_dict(reverse):
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
     assert rd["offset"] == 2
+
+
+def test_get_drawable():
+    seq = cogent3.load_seq(DATADIR / "annotated_seq.gb")
+    seq = seq[2000:4000]
+    biotypes = "CDS", "gene", "mRNA"
+    for feat in seq.get_features(biotype=biotypes, allow_partial=True):
+        draw = feat.get_drawable()
+        assert "(incomplete)" in draw.text
+
+    full = seq.get_drawable(biotype=biotypes)
+    # should only include elements that overlap the segment
+    assert len(full.traces) == len(biotypes)
+    # and their names should indicate they're incomplete
+    for trace in full.traces:
+        assert "(incomplete)" in trace.text
