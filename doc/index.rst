@@ -1,15 +1,17 @@
-#############
-Documentation
-#############
+##########
+User Guide
+##########
+
+*The individual data files used in the User Guides can be downloaded from* :ref:`here <data_links>`.
 
 .. panels::
     :header: text-white bg-primary font-weight-bold
-    
+
     ---
 
     cogent3 apps
     ^^^^^^^^^^^^
-    
+
     Pre-defined "apps" simplify complex tasks. They provide capabilities that can be used by themselves, or added together to define a pipeline.
 
     +++++++++++
@@ -39,7 +41,7 @@ Documentation
     ^^^^^^^^^
 
     Code for solving more extensive problems.
-    
+
     +++++++++++
 
     .. link-button:: examples/index
@@ -53,15 +55,13 @@ Documentation
     ^^^
 
     The API for major ``cogent3`` objects.
-    
+
     +++++++++++
 
     .. link-button:: api/index
         :type: ref
         :text:
         :classes: stretched-link
-
-.. note:: Click :ref:`here <data_links>` to download the data files used in the documentation.
 
 .. toctree::
     :hidden:
