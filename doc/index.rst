@@ -1,6 +1,8 @@
-###########
-User Guides
-###########
+##########
+User Guide
+##########
+
+*The individual data files used in the User Guides can be downloaded from* :ref:`here <data_links>`.
 
 .. panels::
     :header: text-white bg-primary font-weight-bold
@@ -60,8 +62,6 @@ User Guides
         :type: ref
         :text:
         :classes: stretched-link
-
-.. note:: Click :ref:`here <data_links>` to download the data files used in the documentation.
 
 .. toctree::
     :hidden:
