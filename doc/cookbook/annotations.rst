@@ -1,3 +1,5 @@
+.. _intro-annotations:
+
 .. jupyter-execute::
     :hide-code:
 
