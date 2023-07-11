@@ -4,7 +4,7 @@
     import set_working_directory
 
 ``natsel_neutral`` – a test for selective neutrality
-====================================================
+----------------------------------------------------
 
 We employ codon models to test hypotheses regarding the mode of natural selection that has operated on a gene.
 
@@ -19,7 +19,7 @@ Noting that ω (omega) is the ratio of nonsynonymous substitutions to synonymous
     loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
-    omega_eq_1 = get_app("natsel_neutral", 
+    omega_eq_1 = get_app("natsel_neutral",
         "GNC", tree="data/primate_brca1.tree", optimise_motif_probs=False
     )
     result = omega_eq_1(aln)

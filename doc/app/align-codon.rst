@@ -4,7 +4,7 @@
     import set_working_directory
 
 Using a codon model
--------------------
+===================
 
 We load the unaligned sequences we will use in our examples.
 
@@ -18,7 +18,7 @@ We load the unaligned sequences we will use in our examples.
 .. note:: We use an app loader, but since this is just a single file we could have used the ``cogent3.load_unaligned_seqs()`` function.
 
 Codon alignment with default settings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
 The default settings will result in estimation of a guide tree (using percent identity between the sequences). The default "codon" model is MG94HKY.
 
@@ -33,9 +33,9 @@ The default settings will result in estimation of a guide tree (using percent id
 .. note:: If you specify ``unique_guides=True``, a guide tree will be estimated for every alignment.
 
 Specify a different distance measure for estimating the guide tree
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------------------
 
-The distance measures available are the same as for the nucleotide case (percent, TN93 or paralinear). 
+The distance measures available are the same as for the nucleotide case (percent, TN93 or paralinear).
 
 .. note:: An estimated guide tree has its branch lengths scaled so they are consistent with usage in a codon model.
 
@@ -46,7 +46,7 @@ The distance measures available are the same as for the nucleotide case (percent
     aligned
 
 Providing a guide tree
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 .. jupyter-execute::
 
@@ -58,7 +58,7 @@ Providing a guide tree
 .. warning:: The guide tree must have branch lengths, otherwise a ``ValueError`` is raised.
 
 Specifying the gap parameters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 .. jupyter-execute::
 
@@ -69,9 +69,9 @@ Specifying the gap parameters
     aligned
 
 Specifying the substitution model and parameters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------
 
-Any ``cogent3`` codon substitution model can be used. (See ``cogent3.available_models()``.) 
+Any ``cogent3`` codon substitution model can be used. (See ``cogent3.available_models()``.)
 
 .. jupyter-execute::
 
@@ -84,7 +84,7 @@ Any ``cogent3`` codon substitution model can be used. (See ``cogent3.available_m
 .. note:: If you provide parameter values, those must be consistent with the model definition.
 
 Alignment settings and file provenance are recorded in the ``info`` attribute
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------------------------------
 
 The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 

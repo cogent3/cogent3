@@ -4,7 +4,7 @@
     import set_working_directory
 
 Apply a non-stationary nucleotide model to an alignment with 3 sequences
-========================================================================
+------------------------------------------------------------------------
 
 We load some sample data first and select just 3 sequences.
 
@@ -35,7 +35,7 @@ We apply this to ``aln``.
     type(fitted)
 
 ``model_result``
-----------------
+^^^^^^^^^^^^^^^^
 
 As the output above indicates, ``fitted`` is a ``model_result`` object.
 
@@ -74,7 +74,7 @@ We can access the sum of all branch lengths. Either as "ENS" or "paralinear" usi
     fitted.total_length(length_as="paralinear")
 
 Fitting a separate nucleotide model to each codon position
-----------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Controlled by setting ``split_codons=True``.
 
