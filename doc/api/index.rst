@@ -98,9 +98,9 @@ The Major cogent3 Data Types
     table/table
     tree/tree
 
-************************
-Defining Composable Apps
-************************
+***************
+Composable Apps
+***************
 
 .. toctree::
     :maxdepth: 1
