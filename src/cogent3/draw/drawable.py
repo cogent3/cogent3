@@ -746,17 +746,23 @@ class _MakeShape:
     """container class that builds annotation shapes"""
 
     _colors = dict(
-        cds="rgba(0,0,150,0.5)",
-        exon="rgba(0,0,100,0.5)",
-        gene="rgba(0,0,150,0.5)",
-        transcript="rgba(0,0,200,0.5)",
-        snp="rgba(200,0,0,0.5)",
-        snv="rgba(200,0,0,0.5)",
+        cds="rgba(0,0,150,0.75)",
+        rrna="rgba(0,0,150,0.75)",
+        trna="rgba(0,0,150,0.75)",
+        exon="rgba(0,0,100,0.75)",
+        gene="rgba(161,0,0,0.75)",
+        transcript="rgba(140,102,139,0.75)",
+        mrna="rgba(140,102,139,0.75)",
+        snp="rgba(200,0,0,0.75)",
+        snv="rgba(200,0,0,0.75)",
     )
     _shapes = dict(
         cds=Arrow,
+        rrna=Arrow,
+        trna=Arrow,
         exon=Arrow,
         transcript=Arrow,
+        mrna=Arrow,
         gene=Arrow,
         repeat=Rectangle,
         snp=Point,
@@ -769,7 +775,7 @@ class _MakeShape:
             if not type_.map.useful:
                 return None
 
-            name = type_.name
+            name = type_.name if type_.map.complete else f"{type_.name} (incomplete)"
             coords = type_.map.get_coordinates()
             reverse = type_.map.get_covering_span().reverse
             type_ = type_.biotype

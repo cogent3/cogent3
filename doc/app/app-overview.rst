@@ -180,3 +180,10 @@ All of the above
 .. code-block:: python
 
     process.apply_to(dstore, parallel=True, show_progress=True)
+
+.. jupyter-execute::
+    :hide-code:
+
+    import shutil
+
+    shutil.rmtree(path_to_dir, ignore_errors=True)
