@@ -1,9 +1,9 @@
-.. _intro_annotations:
-
 .. jupyter-execute::
     :hide-code:
 
     import set_working_directory
+
+.. _intro_annotations:
 
 Annotations
 ^^^^^^^^^^^
