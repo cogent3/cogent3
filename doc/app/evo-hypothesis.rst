@@ -4,7 +4,7 @@
     import set_working_directory
 
 Testing a hypothesis – non-stationary or time-reversible
-========================================================
+--------------------------------------------------------
 
 We test the hypothesis that the GTR model is sufficient for a data set, compared with the GN (non-stationary general nucleotide model).
 
@@ -32,7 +32,7 @@ We test the hypothesis that the GTR model is sufficient for a data set, compared
 In this case, we accept the null given the p-value is > 0.05. We use this object to demonstrate the properties of a ``hypothesis_result``.
 
 ``hypothesis_result`` has attributes and keys
----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Accessing the test statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,7 +62,7 @@ The alternate hypothesis
     result.alt.lf
 
 Saving hypothesis results
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You are advised to save these results as serialised data since this provides maximum flexibility for downstream analyses.
 
@@ -71,7 +71,7 @@ The following would write the result into a ``sqlitedb``.
 .. code-block:: python
 
     from cogent3 import get_app, open_data_store
-    
+
     output = open_data_store("path/to/myresults.sqlitedb", mode="w")
     writer = get_app("write_db", data_store=output)
     writer(result)

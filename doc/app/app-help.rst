@@ -1,7 +1,7 @@
 .. _app_help:
 
 Getting help on an app
-======================
+----------------------
 
 The ``app_help()`` function is a top-level import. It provides you with detailed help on an individual app. You pass the name of the app you want information on (:ref:`see available apps <available_apps>`) as a string. Below, I request help for the app ``omit_degenerates`` by passing that name as a string.
 

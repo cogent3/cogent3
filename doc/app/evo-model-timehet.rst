@@ -4,7 +4,7 @@
     import set_working_directory
 
 Specifying a non-stationary model with time-heterogeneous parameters
-====================================================================
+--------------------------------------------------------------------
 
 A model is considered time-heterogeneous if rate matrix terms differ between edges on a tree.
 
@@ -23,7 +23,7 @@ In this example, we load and display our sample primate tree, highlighting the e
     fig.show(width=500, height=500)
 
 Specify a distinct rate matrix for the great apes
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As illustrated above, this is done by specifying the names of two “ingroup” tips (their last common ancestor is the ancestor of all edges of interest) and an “outgroup” tip. We can define the clade by Orangutan and one of Human, Chimpanzee or Gorilla. Any tip not a member of the clade outside suffices as an outgroup.
 
@@ -31,7 +31,7 @@ To construct a ``model`` with this information, we create a dictionary that we a
 
 .. jupyter-execute::
 
-    time_het = get_app("model", 
+    time_het = get_app("model",
         "GN",
         tree=tree,
         time_het=[dict(tip_names=["Human", "Orangutan"], outgroup_name="Galago")],

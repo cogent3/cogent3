@@ -4,7 +4,7 @@
     import set_working_directory
 
 Applying GNC, a non-stationary codon model
-==========================================
+------------------------------------------
 
 See `Kaehler et al <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`__ for the formal description of this model. Note that perform hypothesis testing using this model elsewhere.
 
@@ -30,7 +30,7 @@ The model is specified using it’s abbreviation.
     result.lf
 
 We can obtain the tree with branch lengths as ENS
--------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If this tree is written to newick (using the ``write()`` method), the lengths will now be ENS.
 
