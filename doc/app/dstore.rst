@@ -10,6 +10,11 @@ Data stores -- collections of data records
 
 If you download :download:`raw.zip <data/raw.zip>` and unzip it, you will see it contains 1,035 files ending with a ``.fa`` filename suffix. (It also contains a tab delimited file and a log file, which we ignore for now.) The directory ``raw`` is a "data store" and the ``.fa`` files are "members" of it. In summary, a :index:`data store` is a collection of members of the same "type". This means we can apply the same application to every member.
 
+How do I use a data store?
+--------------------------
+
+A data store is just a "container". To open a data store you use the ``open_data_store()`` function. To load the data for a member of a data store you need an appropriately selected :ref:`loader <app_types>` type of app.
+
 Types of data store
 -------------------
 
@@ -74,31 +79,39 @@ The ``.describe`` property demonstrates that there are only completed members.
 
     dstore.describe
 
-Looping over a data store
--------------------------
-
-.. jupyter-execute::
-
-    for m in dstore[:5]:
-        print(m)
-
 .. _data_member:
 
 Data store “members”
 --------------------
 
-These are able to read their own raw data.
+Get one member
+^^^^^^^^^^^^^^
+
+You can index a data store like other Python series, in the folowing case the first member.
 
 .. jupyter-execute::
 
     m = dstore[0]
     m
 
+Looping over a data store
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This gives you one member at a time.
+
 .. jupyter-execute::
 
-    m.read()[:20]  # truncating
+    for m in dstore[:5]:
+        print(m)
 
-.. note:: For a ``DataStoreSqlite`` member, the default data storage format is as bytes. So reading the content of an individual record is best done using the ``load_db`` app.
+Members can read their own data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    m.read()[:20] # truncating
+
+.. note:: For a ``DataStoreSqlite`` member, the default data storage format is bytes. So reading the content of an individual record is best done using the ``load_db`` app.
 
 Making a writeable data store
 -----------------------------
@@ -144,7 +157,7 @@ Each element in that list is a ``DataMember`` which you can use to get the data 
 
 .. jupyter-execute::
 
-    print(dstore.logs[0].read()[:225])  # truncated for clarity
+    print(dstore.logs[0].read()[:225]) # truncated for clarity
 
 Pulling it all together
 =======================
