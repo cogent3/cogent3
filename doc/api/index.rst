@@ -114,11 +114,11 @@ Datastore
 .. toctree::
     :maxdepth: 1
 
-    app/io/register_datastore_reader
-    app/data_store/DataMember
-    app/data_store/DataStoreDirectory
-    app/data_store/ReadOnlyDataStoreZipped
-    app/sqlite_data_store/DataStoreSqlite
+    app/io/classes/cogent3.app.io.register_datastore_reader
+    app/data_store/classes/cogent3.app.data_store.DataMember
+    app/data_store/classes/cogent3.app.data_store.DataStoreDirectory
+    app/data_store/classes/cogent3.app.data_store.ReadOnlyDataStoreZipped
+    app/sqlite_data_store/classes/cogent3.app.sqlite_data_store.DataStoreSqlite
     
 *************
 Deserialising
@@ -128,4 +128,4 @@ Deserialising
     :maxdepth: 1
 
     util/deserialise/deserialise_object    
-    util/deserialise/register_deserialiser
+    util/deserialise/classes/cogent3.util.deserialise.register_deserialiser
