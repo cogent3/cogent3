@@ -94,11 +94,12 @@ class model:
             arguments to be passed to the likelihood function constructor
         time_het
             Affects whether substitution model rate parameters are
-            heterogeneous between branches on the tree. A value 'max'
-            makes all rate parameters unique for all edges. More restricted
-            time-heterogeneity can be specified using a list of dicts
-            corresponding to edge_sets, e.g.
-            [dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)].
+            heterogeneous between branches on the tree. To define a maximally
+            time-heterogeneous model, set the string value 'max', which
+            makes all rate matrix exchangeability parameters unique for all
+            edges. More restricted time-heterogeneity can be specified
+            using a list of dicts corresponding to edge_sets, e.g.
+            ``[dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)]``.
             This value is passed to <likelihood function>.set_time_heterogeneity()
         param_rules : list
             other parameter rules, passed to
