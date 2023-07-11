@@ -238,7 +238,11 @@ What? 🤯
 How to find the "children" of a Feature
 """""""""""""""""""""""""""""""""""""""
 
-Achieved via ``get_feature_children``
+To find the "children" of a feature, you can use the ``get_feature_children()`` method. A "child" refers to a feature that is nested within or contained by another "parent" feature. For example, a child feature could be an exon contained within a gene or a CDS contained within a transcript.
+
+This method returns a generator that yields all the child features of the specified feature.
+
+For example, let's find the children of "gene-MG_RS00035":
 
 .. jupyter-execute::
     :raises:
@@ -249,7 +253,9 @@ Achieved via ``get_feature_children``
 How to find the "parent" of a Feature
 """""""""""""""""""""""""""""""""""""
 
-Achieved via ``get_feature_parent``
+To find the "parent" of a feature, we can use the ``get_feature_parent()`` method, which achieves the inverse of the above method.
+
+For example, we can use the "child" we returned above ``"cds-WP_009885556.1"``, to find the original parent gene!
 
 .. jupyter-execute::
     :raises:
@@ -308,7 +314,7 @@ The ``update()`` method will update records of a given database with another and
 Initialise a ``AnnotationDb`` with another database
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
-You can assign a compatible database to the ``db`` argument in the ``AnnotationDb`` constructor. If its the same class, it's db will be bound to self and directly modified.
+You can assign a compatible database to the ``db`` argument in the ``AnnotationDb`` constructor. If it's the same class, its db will be bound to self and directly modified.
 
 .. jupyter-execute::
     :raises:
@@ -359,8 +365,6 @@ Loading a sequence from a Genbank file will automatically create a database inst
 
     gb_seq = load_seq("data/mycoplasma-genitalium.gb")
     gb_seq.annotation_db
-
-.. note:: Only single sequence Genbank files are supported. To load multiple sequences with annotations, first load the sequences (using ``load_aligned_seqs`` or ``load_unaligned_seqs``), then annotate from a gff file.
 
 For a single sequence FASTA file and an associated GFF annotation file
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
