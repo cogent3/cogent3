@@ -380,6 +380,7 @@ def deserialise_likelihood_function(data):
 def deserialise_object(data):
     """
     deserialises from json
+    
     Parameters
     ----------
     data
