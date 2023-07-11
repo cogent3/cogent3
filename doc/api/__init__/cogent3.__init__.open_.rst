@@ -1,5 +1,5 @@
-``open_``
-=========
+open_
+=====
 
 .. currentmodule:: cogent3.__init__
 
