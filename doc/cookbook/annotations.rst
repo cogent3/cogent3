@@ -1,4 +1,4 @@
-.. _intro-annotations:
+.. _intro_annotations:
 
 .. jupyter-execute::
     :hide-code:

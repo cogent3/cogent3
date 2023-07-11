@@ -6,9 +6,9 @@
 Annotation Databases
 --------------------
 
-This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the features (also known as annotations) of one or more biological sequences. 
+This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the features (also known as annotations) of one or more biological sequences.
 
-For more extensive documentation about annotations see :ref:`intro-annotations` and :ref:`seq-annotations`.
+For more extensive documentation about features see :ref:`intro_annotations` and :ref:`seq-annotations`.
 
 What are the different types of ``AnnotationDb``?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -56,9 +56,9 @@ To load features from a Genbank file, you can once again use the ``load_annotati
 .. jupyter-execute::
     :raises:
 
-    from cogent3 import load_annotations
+                from cogent3 import load_annotations
 
-    gb_db = load_annotations(path="data/mycoplasma-genitalium.gb")
+                gb_db = load_annotations(path="data/mycoplasma-genitalium.gb")
     gb_db
 
 How to generate a summary of an ``AnnotationDb``
@@ -75,7 +75,7 @@ To generate a summary of an ``AnnotationDb``, you can access the ``describe`` at
 How to add custom features to an ``AnnotationDb``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is achieved via the ``add_features`` method and for all three types of ``AnnotationDb`` it will be added to the "user" table. The method requires information about the feature, such as its biotype, name, genomic location (spans), and the seqid. The seqid is necessary when linking an ``AnnotationDb`` to a ``Sequence`` object, see :ref:`How to assign an AnnotationDb to a sequence <assign_db_to_seq>` for more information. 
+This is achieved via the ``add_features`` method and for all three types of ``AnnotationDb`` it will be added to the "user" table. The method requires information about the feature, such as its biotype, name, genomic location (spans), and the seqid. The seqid is necessary when linking an ``AnnotationDb`` to a ``Sequence`` object, see :ref:`How to assign an AnnotationDb to a sequence <assign_db_to_seq>` for more information.
 
 We can add a feature to the empty ``BasicAnnotationDb`` we created above. Now the database has one record!
 
@@ -103,7 +103,7 @@ We can also add a feature to our ``GffAnnotationDb`` or ``GenbankAnnotationDb``.
         spans=[(1, 4)],
         strand="+",
     )
-    gff_db.describe[-2:, :]  # showing just last two rows
+    gff_db.describe[-2:, :] # showing just last two rows
 
 How to write an ``AnnotationDb`` to disk for efficient re-loading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -161,7 +161,7 @@ For example, querying the ``GffAnnotationDb`` for all pseudogenes:
     :raises:
 
     pseudogenes = list(gff_db.get_features_matching(biotype="pseudogene"))
-    pseudogenes[:2]  # showing just the first two
+    pseudogenes[:2] # showing just the first two
 
 Querying via region of interest
 """""""""""""""""""""""""""""""
@@ -191,7 +191,7 @@ For example, you can query for all CDS related to replication:
     replication_records = list(
         gff_db.get_records_matching(attributes="replication", biotype="CDS")
     )
-    replication_records[0]  # showing just the first match
+    replication_records[0] # showing just the first match
 
 .. note:: Extended attribute querying only works for GFF databases!
 
@@ -245,8 +245,8 @@ Achieved via ``get_feature_children``
     children = list(gff_db.get_feature_children(name="gene-MG_RS00035"))
     children
 
-How to find the "parents" of a Feature
-""""""""""""""""""""""""""""""""""""""
+How to find the "parent" of a Feature
+"""""""""""""""""""""""""""""""""""""
 
 Achieved via ``get_feature_parent``
 
@@ -304,17 +304,27 @@ The ``update()`` method will update records of a given database with another and
     gff_db.update(anno_db)
     gff_db.describe[-2:, :]
 
+Initialise a ``AnnotationDb`` with another database
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You can assign a compatible database to the ``db`` argument in the ``AnnotationDb`` constructor. If its the same class, it's db will be bound to self and directly modified.
+.. jupyter-execute::
+    :raises:
+
+    new_gb_db = GenbankAnnotationDb(source="m-genitalium-database.gbdb", db=anno_db)
+    new_gb_db
+
 .. _assign_db_to_seq:
 
 How to assign an ``AnnotationDb`` to a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For more extensive documentation about annotations see :ref:`seq-intro_annotations` and :ref:`seq-annotations`.
+For more extensive documentation about annotations see :ref:`intro_annotations` and :ref:`seq-annotations`.
 
 Directly assign an ``AnnotationDb`` to a Sequence
 """""""""""""""""""""""""""""""""""""""""""""""""
 
-Assign the AnnotationDb to the Sequence  ``annotation_db`` attribute 
+Assign the AnnotationDb to the ``annotation_db`` attribute of a Sequence
 
 .. jupyter-execute::
     :raises:
@@ -330,13 +340,13 @@ Assign the AnnotationDb to the Sequence  ``annotation_db`` attribute
     seq1.annotation_db = anno_db
     seq1.annotation_db
 
-Loading ``AnnotationDb`` and sequence data using the ``load_seq()`` function
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Loading an ``AnnotationDb`` and ``Sequence`` using the ``load_seq()`` function
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For a single sequence Genbank file
 ++++++++++++++++++++++++++++++++++
 
-Loading a sequence from a Genbank file will automatically create a database instance containing all features present in the file. This database instance will be bound to the ``Sequence`` instance via the ``.annotation_db`` attribute, accessing this attribute displays a representation of the bound annotations. 
+Loading a sequence from a Genbank file will automatically create a database instance containing all features present in the file. This database instance will be bound to the ``Sequence`` instance via the ``.annotation_db`` attribute, accessing this attribute displays a representation of the bound annotations.
 
 .. jupyter-execute::
     :raises:
@@ -346,12 +356,12 @@ Loading a sequence from a Genbank file will automatically create a database inst
     gb_seq = load_seq("data/mycoplasma-genitalium.gb")
     gb_seq.annotation_db
 
-.. note:: Only single sequence Genbank files are supported. To load multiple sequences with annotations, first load the sequences (using ``load_aligned_seqs`` or ``load_unaligned_seqs``), then annotate from a gff file. 
+.. note:: Only single sequence Genbank files are supported. To load multiple sequences with annotations, first load the sequences (using ``load_aligned_seqs`` or ``load_unaligned_seqs``), then annotate from a gff file.
 
 For a single sequence FASTA file and an associated GFF annotation file
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Data can be loaded by providing the path to the gff file to the ``annotation_path`` argument of ``load_seq()``. 
+Data can be loaded by providing the path to the gff file to the ``annotation_path`` argument of ``load_seq()``.
 
 .. jupyter-execute::
     :raises:
@@ -362,9 +372,9 @@ Data can be loaded by providing the path to the gff file to the ``annotation_pat
     )
     gff_seq.annotation_db
 
-.. note:: This assumes an exact match of the sequence name between files! 
+.. note:: This assumes an exact match of the sequence name between files!
 
-In the above example, the sequence name in the fasta file does not match any records in the gff3 file (its "NC_000908.2 Mycoplasmoides genitalium G37, complete sequence" in the former, and "NC_000908.2" in the latter). If you are confident that they are related, then you can use the ``label_to_name`` argument of ``load_seq()`` to change the sequence name as follows:
+In the above example, the sequence name in the fasta file does not match any records in the gff3 file (it is ``"NC_000908.2 Mycoplasmoides genitalium G37, complete sequence"`` in the former, and ``"NC_000908.2"`` in the latter). However, if you are confident that they are related, then you can use the ``label_to_name`` argument of ``load_seq()`` to change the sequence name as follows:
 
 .. jupyter-execute::
     :raises:
