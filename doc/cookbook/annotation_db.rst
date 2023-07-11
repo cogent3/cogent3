@@ -3,6 +3,7 @@
 
     import set_working_directory
 
+
 Annotation Databases
 --------------------
 
@@ -27,7 +28,7 @@ Achieved by creating an ``BasicAnnotationDb`` instance. This is an empty databas
 
     anno_db = BasicAnnotationDb()
     anno_db
-
+    
 How to load an standalone ``AnnotationDb`` from a data file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -56,9 +57,9 @@ To load features from a Genbank file, you can once again use the ``load_annotati
 .. jupyter-execute::
     :raises:
 
-                from cogent3 import load_annotations
+    from cogent3 import load_annotations
 
-                gb_db = load_annotations(path="data/mycoplasma-genitalium.gb")
+    gb_db = load_annotations(path="data/mycoplasma-genitalium.gb")
     gb_db
 
 How to generate a summary of an ``AnnotationDb``
@@ -308,10 +309,21 @@ Initialise a ``AnnotationDb`` with another database
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
 You can assign a compatible database to the ``db`` argument in the ``AnnotationDb`` constructor. If its the same class, it's db will be bound to self and directly modified.
+
 .. jupyter-execute::
     :raises:
 
-    new_gb_db = GenbankAnnotationDb(source="m-genitalium-database.gbdb", db=anno_db)
+    from cogent3.core.annotation_db import GenbankAnnotationDb
+    
+    data = {'seqid': 'NC_000908.2',
+            'biotype': 'pseudogene',
+            'spans': [(85561, 86589)],
+            'name': 'gene-MG_RS02910',
+            'on_alignment': None,
+            'reversed': False,
+            }
+            
+    new_gb_db = GenbankAnnotationDb(data=data, db=gb_db)
     new_gb_db
 
 .. _assign_db_to_seq:
