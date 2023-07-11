@@ -287,7 +287,6 @@ def test_gb_get_children(gb_db, parent_biotype, name):
     assert child["biotype"] != parent["biotype"]
     assert child["name"] == parent["name"]
 
-
 def test_gb_get_parent(gb_db):
     cds_id = "CNA00110"
     cds = list(gb_db.get_features_matching(biotype="CDS", name=cds_id))[0]
@@ -303,6 +302,18 @@ def test_gb_get_parent(gb_db):
     assert parent["biotype"] != cds["biotype"]
     assert parent["biotype"] == "gene"
     assert parent["name"] == cds["name"]
+
+
+def test_gb_get_parent_empty(gb_db):
+    """if feature has no parent then should return []"""
+    got = list(gb_db.get_feature_parent(name="CNA00110"))
+    assert got == []
+
+
+def test_gb_get_child_empty(gb_db):
+    """if feature has no child then should return []"""
+    got = list(gb_db.get_feature_parent(name="CNA00110"))
+    assert got == []
 
 
 def test_protocol_adherence(gff_db, gb_db):
