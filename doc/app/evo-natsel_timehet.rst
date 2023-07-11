@@ -4,7 +4,7 @@
     import set_working_directory
 
 ``natsel_timehet`` – a test of branch heterogeneity
-===================================================
+---------------------------------------------------
 
 We employ codon models to test whether the mode of natural selection affecting human and chimpanzee lineages is distinctive. This is done by specifying the edges of interest (`Yang 1998 <https://www.ncbi.nlm.nih.gov/pubmed/9580986>`__).
 

@@ -4,7 +4,7 @@
     import set_working_directory
 
 Using a protein model
----------------------
+=====================
 
 We use apps to load unaligned DNA sequences and to translate them into amino acids.
 
@@ -18,7 +18,7 @@ We use apps to load unaligned DNA sequences and to translate them into amino aci
     seqs = process("data/SCA1-cds.fasta")
 
 Protein alignment with default settings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------
 
 The default setting for "protein" is a WG01 model.
 
@@ -31,7 +31,7 @@ The default setting for "protein" is a WG01 model.
     aligned
 
 Specify a different distance measure for estimating the guide tree
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------------------
 
 The distance measures available are percent or paralinear.
 
@@ -44,7 +44,7 @@ The distance measures available are percent or paralinear.
     aligned
 
 Alignment settings and file provenance are recorded in the ``info`` attribute
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------------------------------
 
 .. jupyter-execute::
 

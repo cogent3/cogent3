@@ -4,7 +4,7 @@
     import set_working_directory
 
 Applying a discrete-time, non-stationary nucleotide model
-=========================================================
+---------------------------------------------------------
 
 We fit a discrete-time Markov nucleotide model. This corresponds to a Barry and Hartigan 1987 model.
 
@@ -27,7 +27,7 @@ Looking at the likelihood function, we see these maximum likelihood estimated va
     result.lf
 
 Get a tree with branch lengths as paralinear
---------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is the only possible length metric for a discrete-time process.
 
@@ -39,7 +39,7 @@ This is the only possible length metric for a discrete-time process.
     fig.show(width=500, height=500)
 
 Getting parameter estimates
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For a discrete-time model, aside from the root motif probabilities, everything is edge specific. But note that the ``tabular_result`` has different keys from the continuous-time case, as demonstrated below.
 

@@ -4,7 +4,7 @@
     import set_working_directory
 
 ``natsel_zhang`` – a branch-site test
-=====================================
+-------------------------------------
 
 This is the hypothesis test presented in `Zhang et al <https://www.ncbi.nlm.nih.gov/pubmed/16107592>`__. It evaluates the hypothesis that a set of sites have undergone positive natural selection on a pre-specified set of lineages.
 
@@ -35,7 +35,7 @@ For this model class, there are groups of branches for which all positions are e
     loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
-    zhang_test = get_app("natsel_zhang", 
+    zhang_test = get_app("natsel_zhang",
         "GNC",
         tree="data/primate_brca1.tree",
         optimise_motif_probs=False,
@@ -51,7 +51,7 @@ For this model class, there are groups of branches for which all positions are e
     result.alt.lf
 
 Getting the posterior probabilities of site-class membership
-------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
@@ -59,7 +59,7 @@ Getting the posterior probabilities of site-class membership
     bprobs[:, :20]
 
 Getting all the statistics in tabular form
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 

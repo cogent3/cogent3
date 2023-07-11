@@ -4,7 +4,7 @@
     import set_working_directory
 
 Apply a non-stationary nucleotide model to an alignment with a tree
-===================================================================
+-------------------------------------------------------------------
 
 We analyse an alignment with sequences from 6 primates.
 
@@ -17,7 +17,7 @@ We analyse an alignment with sequences from 6 primates.
     aln.names
 
 Specify the tree via a tree instance
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
@@ -29,7 +29,7 @@ Specify the tree via a tree instance
     gn
 
 Specify the tree via a path.
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
@@ -37,7 +37,7 @@ Specify the tree via a path.
     gn
 
 Apply the model to an alignment
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
