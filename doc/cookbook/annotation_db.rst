@@ -315,15 +315,7 @@ You can assign a compatible database to the ``db`` argument in the ``AnnotationD
 
     from cogent3.core.annotation_db import GenbankAnnotationDb
     
-    data = {'seqid': 'NC_000908.2',
-            'biotype': 'pseudogene',
-            'spans': [(85561, 86589)],
-            'name': 'gene-MG_RS02910',
-            'on_alignment': None,
-            'reversed': False,
-            }
-            
-    new_gb_db = GenbankAnnotationDb(data=data, db=gb_db)
+    new_gb_db = GenbankAnnotationDb(source="m-genitalium-database.gbdb", db=anno_db)
     new_gb_db
 
 .. _assign_db_to_seq:
