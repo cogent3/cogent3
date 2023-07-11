@@ -75,11 +75,11 @@ class FeaturesTest(TestCase):
         seq = DNA.make_seq("TTCCACTTCCGCTT", name="x")
         pattern = "CCRC"
         annot = seq.annotate_matches_to(
-            pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
+            pattern=pattern, biotype="domain", name="fred", allow_multiple=True
         )
         self.assertEqual([a.get_slice() for a in annot], ["CCAC", "CCGC"])
         annot = seq.annotate_matches_to(
-            pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
+            pattern=pattern, biotype="domain", name="fred", allow_multiple=False
         )
         self.assertEqual(len(annot), 1)
         fred = annot[0].get_slice()
@@ -88,7 +88,7 @@ class FeaturesTest(TestCase):
         # should return an empty annotation.
         seq = ASCII.make_seq(seq="TTCCACTTCCGCTT")
         annot = seq.annotate_matches_to(
-            pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
+            pattern=pattern, biotype="domain", name="fred", allow_multiple=False
         )
         self.assertEqual(annot, [])
 

@@ -1507,20 +1507,22 @@ class Sequence(SequenceI):
         num = self.annotation_db.num_matches() if self.annotation_db else 0
         return num != 0
 
-    def annotate_matches_to(self, pattern, annot_type, name, allow_multiple=False):
+    def annotate_matches_to(
+        self, pattern: str, biotype: str, name: str, allow_multiple: bool = False
+    ):
         """Adds an annotation at sequence positions matching pattern.
 
         Parameters
         ----------
-        pattern : string
+        pattern
             The search string for which annotations are made. IUPAC ambiguities
             are converted to regex on sequences with the appropriate MolType.
-        annot_type : string
+        biotype
             The type of the annotation (e.g. "domain").
-        name : string
+        name
             The name of the annotation.
-        allow_multiple : boolean
-            If True, allows multiple occurrences of the input pattern. Otherwise
+        allow_multiple
+            If True, allows multiple occurrences of the input pattern. Otherwise,
             only the first match is used.
 
         Returns
@@ -1540,7 +1542,7 @@ class Sequence(SequenceI):
         num_match = len(pos) if allow_multiple else 1
         return [
             self.add_feature(
-                biotype=annot_type,
+                biotype=biotype,
                 name=f"{name}:{i}" if allow_multiple else name,
                 spans=[pos[i]],
             )

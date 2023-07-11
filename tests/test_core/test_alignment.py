@@ -3166,13 +3166,13 @@ def test_annotate_matches_to():
     seq = aln.named_seqs["x"]
     pattern = "CCRC"
     annot = seq.annotate_matches_to(
-        pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
+        pattern=pattern, biotype="domain", name="fred", allow_multiple=True
     )
     got = [a.get_slice() for a in annot]
     matches = ["CCAC", "CCGC"]
     assert got == matches
     annot = seq.annotate_matches_to(
-        pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
+        pattern=pattern, biotype="domain", name="fred", allow_multiple=False
     )
     got = [a.get_slice() for a in annot]
     assert got == matches[:1]
