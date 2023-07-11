@@ -204,6 +204,18 @@ def test_gff_get_parent(gff_db, name, expected):
     assert {g["name"] for g in got} == set(expected)
 
 
+def test_gff_get_children_empty(gff_db):
+    """if feature has no children then should return []"""
+    got = list(gff_db.get_feature_children(name="CDS:B0019.1"))
+    assert got == []
+
+
+def test_gff_get_parent_empty(gff_db):
+    """if feature has no parent then should return []"""
+    got = list(gff_db.get_feature_parent(name="Gene:WBGene00000138"))
+    assert got == []
+
+
 def test_gff_counts(gff_db):
     got = gff_db.biotype_counts()
     assert len(got) > 0
