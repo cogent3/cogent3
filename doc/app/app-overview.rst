@@ -16,7 +16,7 @@ There are 3 top-level functions that provide the major means for identifying wha
 
 Two other crucial concepts concern :ref:`data stores <data_stores>` and :ref:`tracking failures <not_completed>`.
 
-.. app_types:
+.. _app_types:
 
 Types of apps
 -------------
