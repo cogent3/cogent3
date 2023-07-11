@@ -105,8 +105,7 @@ Defining Composable Apps
 .. toctree::
     :maxdepth: 1
 
-    apps/composable.define_app
-
+    app/composable/define_app
 
 *********
 Datastore
@@ -115,7 +114,11 @@ Datastore
 .. toctree::
     :maxdepth: 1
 
-    apps/data_store/data_store
+    app/io/register_datastore_reader
+    app/data_store/DataMember
+    app/data_store/DataStoreDirectory
+    app/data_store/ReadOnlyDataStoreZipped
+    app/sqlite_data_store/DataStoreSqlite
     
 *************
 Deserialising
@@ -124,6 +127,5 @@ Deserialising
 .. toctree::
     :maxdepth: 1
 
-    utils/deserialise/deserialise_object    
-    utils/deserialise/register_deserialiser
-
+    util/deserialise/deserialise_object    
+    util/deserialise/register_deserialiser
