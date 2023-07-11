@@ -61,7 +61,6 @@ from cogent3.core.annotation_db import (
     BasicAnnotationDb,
     FeatureDataType,
     GenbankAnnotationDb,
-    GffAnnotationDb,
     SupportsFeatures,
     load_annotations,
 )
@@ -2295,11 +2294,11 @@ class Aligned:
 
     @extend_docstring_from(Sequence.annotate_matches_to)
     def annotate_matches_to(
-        self, pattern, annot_type, name, allow_multiple=False
+        self, pattern: str, biotype: str, name: str, allow_multiple: bool = False
     ):  # noqa
         return self.data.annotate_matches_to(
             pattern=pattern,
-            annot_type=annot_type,
+            biotype=biotype,
             name=name,
             allow_multiple=allow_multiple,
         )
