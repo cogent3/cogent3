@@ -39,7 +39,7 @@ Typically, we want to load a collection of features from a genomic annotation fi
 From a GFF file
 """""""""""""""
 
-To load features from a GFF file, you can use the ``load_annotations`` function and provide the path to the GFF file. The function automatically determines the file type based on the file extension, and it returns a ``GffAnnotationDb`` object.
+To load features from a GFF file, we can use the ``load_annotations`` function and provide the path to the GFF file. The function automatically determines the file type based on the file extension, and it returns a ``GffAnnotationDb`` object.
 
 .. jupyter-execute::
     :raises:
@@ -52,7 +52,7 @@ To load features from a GFF file, you can use the ``load_annotations`` function 
 From a Genbank file
 """""""""""""""""""
 
-To load features from a Genbank file, you can once again use the ``load_annotations`` function and provide the path to the Genbank file. The function detects the file type based on the file extension, and it returns a ``GenbankAnnotationDb`` object.
+To load features from a Genbank file, we can once again use the ``load_annotations`` function and provide the path to the Genbank file. The function detects the file type based on the file extension, and it returns a ``GenbankAnnotationDb`` object.
 
 .. jupyter-execute::
     :raises:
@@ -65,7 +65,7 @@ To load features from a Genbank file, you can once again use the ``load_annotati
 How to generate a summary of an ``AnnotationDb``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To generate a summary of an ``AnnotationDb``, you can access the ``describe`` attribute of the database. This attribute returns a ``cogent3.util.table.Table`` instance that shows the number of records for each seqid, the count for each biotype, and the number of rows in each table (in this example there is a "gff" table with 1,169 rows and an empty "user" table).
+To generate a summary of an ``AnnotationDb``, we can access the ``describe`` attribute of the database. This attribute returns a ``cogent3.util.table.Table`` instance that shows the number of records for each seqid, the count for each biotype, and the number of rows in each table (in this example there is a "gff" table with 1,169 rows and an empty "user" table).
 
 .. jupyter-execute::
     :raises:
@@ -182,9 +182,9 @@ For example, the adhesin protein of *M. genitalium* is organised in an operon be
 Querying via the extended attributes field
 """"""""""""""""""""""""""""""""""""""""""
 
-A particularly useful functionality of a ``GffAnnotationDb`` is the ability to search the extended attributes field. This allows you to query for records that have matches to a specific string provided to the ``attributes`` argument within their extended attributes field.
+A particularly useful functionality of a ``GffAnnotationDb`` is the ability to search the extended attributes field. This allows querying for records that have matches to a specific string provided to the ``attributes`` argument within their extended attributes field.
 
-For example, you can query for all CDS related to replication:
+For example, we can query for all CDS related to replication:
 
 .. jupyter-execute::
     :raises:
@@ -238,7 +238,7 @@ What? 🤯
 How to find the "children" of a Feature
 """""""""""""""""""""""""""""""""""""""
 
-To find the "children" of a feature, you can use the ``get_feature_children()`` method. A "child" refers to a feature that is nested within or contained by another "parent" feature. For example, a child feature could be an exon contained within a gene or a CDS contained within a transcript.
+To find the "children" of a feature, we can use the ``get_feature_children()`` method. A "child" refers to a feature that is nested within or contained by another "parent" feature. For example, a child feature could be an exon contained within a gene or a CDS contained within a transcript.
 
 This method returns a generator that yields all the child features of the specified feature.
 
