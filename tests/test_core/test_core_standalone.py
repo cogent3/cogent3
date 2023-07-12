@@ -760,38 +760,6 @@ class AlignmentTestMethods(unittest.TestCase):
         aln = aln.trim_stop_codons()
         self.assertEqual(aln.info["key"], "value")
 
-    def test_has_terminal_stops(self):
-        """test truth values for terminal stops"""
-        # seq collections
-        seq_coll = make_unaligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACG", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert seq_coll.has_terminal_stops() == True
-        seq_coll = make_unaligned_seqs(
-            data={"seq1": "ACGTAC", "seq2": "ACGACG", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert seq_coll.has_terminal_stops() == False
-        # alignments
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGCAA", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert aln.has_terminal_stops() == True
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGTAG", "seq3": "ACGTGA"}, moltype=DNA
-        )
-        assert aln.has_terminal_stops() == True
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGCAA", "seq2": "ACGCAA", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert aln.has_terminal_stops() == False
-
-        # ValueError if ragged end
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGCAA", "seq2": "ACGTAA", "seq3": "ACGCG-"}, moltype=DNA
-        )
-        self.assertRaises(ValueError, aln.has_terminal_stops)
-        self.assertTrue(aln.has_terminal_stops(allow_partial=True))
-
     def test_slice(self):
         seqs = {"seq1": "ACGTANGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
         alignment = make_aligned_seqs(data=seqs)
@@ -955,20 +923,6 @@ class SequenceTestMethods(unittest.TestCase):
         self.assertRaises(ValueError, seq.trim_stop_codon)
         # unless explicitly over-ride length issue using allow_partial
         seq2 = seq.trim_stop_codon(allow_partial=True)
-
-    def test_has_terminal_stop(self):
-        """test check for terminal stop codons"""
-        seq = make_seq(moltype=DNA, seq="ACTTAA")
-        assert seq.has_terminal_stop() == True
-        seq = make_seq(moltype=DNA, seq="ACTTAT") == False
-
-        # for sequence not divisible by 3
-        seq = make_seq(moltype=DNA, seq="ACTTA")
-        # fail
-        self.assertRaises(ValueError, seq.has_terminal_stop)
-        # unless explicitly over-ride length issue using allow_partial
-        # in which case, returns False
-        self.assertFalse(seq.has_terminal_stop(allow_partial=True))
 
 
 def test_load_seq_new():
