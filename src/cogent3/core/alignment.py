@@ -1325,7 +1325,7 @@ class _SequenceCollectionBase:
         return self.seq_len
 
     def get_translation(
-        self, gc=None, incomplete_ok=False, include_stop=False, **kwargs
+        self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
     ):
         """translate from nucleic acid to protein
 
@@ -1339,6 +1339,8 @@ class _SequenceCollectionBase:
             raises a ValueError if False
         include_stop
             whether to allow a stops in the translated sequence
+        trim_stop
+            exclude terminal stop codons if they exist
         kwargs
             related to construction of the resulting object
 
@@ -1350,14 +1352,18 @@ class _SequenceCollectionBase:
             raise TypeError("Must be a DNA/RNA")
 
         translated = []
+        if trim_stop and not include_stop:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        else:
+            seqs = self
         # do the translation
-        for seqname in self.names:
+        for seqname in seqs.names:
             try:
-                seq = self.get_gapped_seq(seqname)
+                seq = seqs.get_gapped_seq(seqname)
             except AttributeError:
-                seq = self.named_seqs[seqname]
+                seq = seqs.named_seqs[seqname]
             pep = seq.get_translation(
-                gc, incomplete_ok=incomplete_ok, include_stop=include_stop
+                gc, incomplete_ok=True, include_stop=include_stop, trim_stop=trim_stop
             )
             translated.append((seqname, pep))
         kwargs["moltype"] = pep.moltype
@@ -1393,7 +1399,13 @@ class _SequenceCollectionBase:
         return result
 
     def degap(self, **kwargs):
-        """Returns copy in which sequences have no gaps."""
+        """Returns copy in which sequences have no gaps.
+
+        Parameters
+        ----------
+        kwargs
+            passed to class constructor
+        """
         new_seqs = []
         aligned = isinstance(self, Alignment)
         for seq_name in self.names:
@@ -1454,25 +1466,27 @@ class _SequenceCollectionBase:
         """deprecated"""
         return self.has_terminal_stop(**kwargs)
 
-    def trim_stop_codons(self, gc=None, allow_partial=False, **kwargs):
+    @c3warn.deprecated_args(
+        "2023.10", "logically inconsistent", discontinued="allow_partial"
+    )
+    def trim_stop_codons(
+        self, gc: Any = None, strict: bool = False, allow_partial=False, **kwargs
+    ):
         """Removes any terminal stop codons from the sequences
 
         Parameters
         ----------
         gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not divisible
-            by 3, ignores the 3' terminal incomplete codon
-
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if a seq length not divisible by 3
         """
-        gc = get_code(gc)
-        new_seqs = []
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
 
-        for seq_name in self.names:
-            old_seq = self.named_seqs[seq_name]
-            new_seq = old_seq.trim_stop_codon(gc=gc, allow_partial=allow_partial)
-            new_seqs.append((seq_name, new_seq))
+        gc = get_code(gc)
+        new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
 
         result = self.__class__(
             moltype=self.moltype, data=new_seqs, info=self.info, **kwargs
@@ -3791,6 +3805,63 @@ class AlignmentI(object):
             width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
         )
 
+    @c3warn.deprecated_args(
+        "2023.10", "logically inconsistent", discontinued="allow_partial"
+    )
+    @extend_docstring_from(_SequenceCollectionBase.trim_stop_codons)
+    def trim_stop_codons(
+        self, gc: Any = None, strict: bool = False, allow_partial=False, **kwargs
+    ):
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
+        # define a regex for finding stop codons followed by terminal gaps
+        gc = get_code(gc)
+        gaps = "".join(self.moltype.gaps)
+        pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
+        terminal_stop = re.compile(pattern)
+
+        data = self.to_dict()
+        for name, seq in data.items():
+            if match := terminal_stop.search(seq):
+                diff = len(seq) - match.start()
+                seq = terminal_stop.sub("-" * diff, seq)
+            data[name] = seq
+
+        result = self.__class__(
+            data=data, info=self.info, moltype=self.moltype, **kwargs
+        )
+
+        if hasattr(self, "annotation_db"):
+            result.annotation_db = self.annotation_db
+
+        return result
+
+    @extend_docstring_from(_SequenceCollectionBase.get_translation)
+    def get_translation(
+        self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
+    ):
+        if len(self.moltype.alphabet) != 4:
+            raise TypeError("Must be a DNA/RNA")
+
+        translated = []
+        if not trim_stop or include_stop:
+            seqs = self
+        else:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        # do the translation
+        for seqname in seqs.names:
+            try:
+                seq = seqs.get_gapped_seq(seqname)
+            except AttributeError:
+                seq = seqs.named_seqs[seqname]
+            pep = seq.get_translation(
+                gc, incomplete_ok=incomplete_ok, include_stop=include_stop
+            )
+            translated.append((seqname, pep))
+        kwargs["moltype"] = pep.moltype
+        return self.__class__(translated, info=self.info, **kwargs)
+
 
 def _one_length(seqs):
     """raises ValueError if seqs not all same length"""
@@ -4299,71 +4370,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             for gapchar in moltype.gaps:
                 s = s.replace(gapchar, ambig)
         return s
-
-    def trim_stop_codons(self, gc=1, allow_partial=False, **kwargs):
-        """Removes any terminal stop codons from the sequences
-
-        Parameters
-        ----------
-        gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not divisible
-            by 3, ignores the 3' terminal incomplete codon
-
-        """
-        gc = get_code(gc)
-        if len(self) % 3 != 0 and not allow_partial:
-            raise ValueError("alignment length not divisible by 3")
-
-        stops = gc["*"]
-        get_index = self.alphabet.degen.index
-        stop_indices = {tuple(map(get_index, stop)) for stop in stops}
-        new_data = self.array_seqs.copy()
-
-        gap_indices = {get_index(gap) for gap in self.moltype.gaps}
-        gap_index = get_index(self.moltype.gap)
-
-        trim_length = len(self)
-        seqs_with_stops = 0
-        for seq_num, seq in enumerate(new_data):
-            # reverse find first non-gap character
-            nondegen_index = None
-            for i in range(len(self) - 1, -1, -1):
-                e = seq[i]
-                if e not in gap_indices:
-                    nondegen_index = i + 1
-                    if nondegen_index % 3 != 0 and not allow_partial:
-                        raise ValueError(
-                            f"{self.names[seq_num]!r} length not divisible by 3"
-                        )
-                    break
-
-            if nondegen_index is None or nondegen_index < 3:
-                continue
-
-            # slice last three valid positions and see if stop
-            end_codon = tuple(seq[nondegen_index - 3 : nondegen_index])
-            if end_codon in stop_indices:
-                seqs_with_stops += 1
-                seq[nondegen_index - 3 : nondegen_index] = gap_index
-                trim_length = min([trim_length, nondegen_index - 3])
-
-        result = self.__class__(
-            new_data.T, moltype=self.moltype, names=self.names, info=self.info
-        )
-        # this is an ugly hack for rather odd standard behaviour
-        # we find the last alignment column to have not just gap chars
-        # and trim up to that
-        i = 0
-        for i in range(len(result) - 1, -1, -1):
-            col = set(result.array_seqs[:, i])
-            if not col <= gap_indices:
-                break
-        if len(result) != i:
-            result = result[: i + 1]
-
-        return result
 
     def get_degapped_relative_to(self, name):
         """Remove all columns with gaps in sequence with given name.

@@ -1676,54 +1676,90 @@ class NucleicAcidSequence(Sequence):
             If True, raises an exception if length not divisible by 3
         """
         gc = get_code(gc)
-        divisible_by_3 = len(self) % 3 == 0
+        _, s = self.parse_out_gaps()
+
+        divisible_by_3 = len(s) % 3 == 0
         if divisible_by_3:
-            end3 = str(self[-3:])
+            end3 = str(s[-3:])
             return gc.is_stop(end3)
 
         if strict:
-            raise ValueError(f"{self.name!r} length not divisible by 3")
+            raise AlphabetError(f"{self.name!r} length not divisible by 3")
 
         return False
 
-    def trim_stop_codon(self, gc=None, allow_partial=False):
+    @deprecated_args("2023.10", "replaced by strict", discontinued="allow_partial")
+    def trim_stop_codon(
+        self, gc: Any = None, strict: bool = False, allow_partial=False
+    ):
         """Removes a terminal stop codon from the sequence
 
         Parameters
         ----------
         gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not divisible
-            by 3, ignores the 3' terminal incomplete codon
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if length not divisible by 3
 
+        Notes
+        -----
+        If sequence contains gap characters, the result preserves the sequence
+        length by adding gap characters at the end.
         """
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
         gc = get_code(gc)
-        codons = self._seq
-        divisible_by_3 = len(codons) % 3 == 0
+        m, s = self.parse_out_gaps()
 
-        if not allow_partial and not divisible_by_3:
-            raise ValueError("seq length not divisible by 3")
+        divisible_by_3 = len(s) % 3 == 0
+        if not divisible_by_3:
+            return self
 
-        if divisible_by_3 and codons and gc.is_stop(str(codons[-3:])):
-            codons = codons[:-3]
+        end = str(s[-3:])
 
-        result = self.__class__(codons, name=self.name, info=self.info)
+        if not gc.is_stop(end):
+            return self
+
+        if not len(m.gaps()):
+            # has zero length if no gaps
+            return self[:-3]
+
+        # determine terminal gap needed to fill in the sequence
+        s = str(self)
+        gaps = "".join(self.moltype.gaps)
+        pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
+        terminal_stop = re.compile(pattern)
+        if match := terminal_stop.search(s):
+            diff = len(s) - match.start()
+            s = terminal_stop.sub("-" * diff, s)
+
+        result = self.__class__(s, name=self.name, info=self.info)
         result.annotation_db = self.annotation_db
         return result
 
-    def get_translation(self, gc=None, incomplete_ok=False, include_stop=False):
+    def get_translation(
+        self,
+        gc: Any = None,
+        incomplete_ok: bool = False,
+        include_stop: bool = False,
+        trim_stop: bool = True,
+    ):
         """translate to amino acid sequence
 
         Parameters
         ----------
         gc
-            name or ID of genetic code
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
         incomplete_ok
             codons that are mixes of nucleotide and gaps converted to '?'.
             raises a ValueError if False
         include_stop
             allows stop codons in translation
+        trim_stop
+            trims a terminal stop codon if it exists
 
         Returns
         -------
@@ -1740,14 +1776,21 @@ class NucleicAcidSequence(Sequence):
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
-        seq = str(self)
+        if include_stop or not trim_stop:
+            # we just deal with sequence as is
+            seq = str(self)
+        else:
+            seq = str(self.trim_stop_codon(gc=gc, strict=not incomplete_ok))
+
         for posn in range(0, len(seq) - 2, 3):
             orig_codon = str(seq[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:
                 if not incomplete_ok or "-" not in orig_codon:
-                    raise
+                    raise AlphabetError(
+                        f"unresolvable codon {orig_codon!r} in {self.name}"
+                    )
                 resolved = (orig_codon,)
             trans = []
             for codon in resolved:
@@ -1763,7 +1806,7 @@ class NucleicAcidSequence(Sequence):
                         continue
                 trans.append(aa)
             if not trans:
-                raise ValueError(orig_codon)
+                raise AlphabetError(orig_codon)
             aa = protein.what_ambiguity(trans)
             translation.append(aa)
 
