@@ -2411,3 +2411,47 @@ def test_has_terminal_stop_strict():
     seq = cogent3.make_seq("TCCAG", moltype="dna")
     with pytest.raises(AlphabetError):
         seq.has_terminal_stop(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize(
+    "gc,seq",
+    (
+        (2, "TCCAGG"),
+        (1, "TAATGA"),
+        (1, "ACGTGA---"),
+        (1, "--AT-CTGA"),
+    ),
+)
+def test_trim_terminal_stop_true(gc, seq):
+    gc = cogent3.get_code(gc)
+    expect = re.sub("(TGA|AGG)(?=[-]*$)", "---" if "-" in seq else "", seq)
+
+    seq = cogent3.make_seq(seq, moltype="dna")
+    got = str(seq.trim_stop_codon(gc=gc))
+    assert got == expect
+
+
+@pytest.mark.parametrize("gc,seq", ((1, "T?CTGC"), (2, "TCCAAG")))
+def test_trim_terminal_stop_nostop(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    got = seq.trim_stop_codon(gc=gc)
+    assert str(got) == str(seq)
+    # since there's no stop, we just return the same object
+    assert got is seq
+
+
+@pytest.mark.parametrize(
+    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+)
+def test_trim_terminal_stop_false(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    assert str(seq.trim_stop_codon(gc=gc)) == str(seq)
+
+
+def test_trim_terminal_stop_strict():
+    gc = cogent3.get_code(1)
+    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    with pytest.raises(AlphabetError):
+        seq.trim_stop_codon(gc=gc, strict=True)

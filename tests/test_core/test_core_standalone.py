@@ -905,24 +905,10 @@ class SequenceTestMethods(unittest.TestCase):
         seq = make_seq(moltype=DNA, seq="ACTG-TAA")
         rev = seq.reverse_complement()
         self.assertEqual(str(rev), "TTA-CAGT")
-        # try amigbuities
+        # try ambiguities
         seq = make_seq(moltype=DNA, seq="ACHNRTAA")
         rev = seq.reverse_complement()
         self.assertEqual(str(rev), "TTAYNDGT")
-
-    def test_without_terminal_stop_sodon(self):
-        """testing deleting terminal stop"""
-        # for standard code
-        seq = make_seq(moltype=DNA, seq="ACTTAA")
-        seq2 = seq.trim_stop_codon()
-        self.assertEqual(str(seq2), "ACT")
-
-        # for sequence not divisible by 3
-        seq = make_seq(moltype=DNA, seq="ACTTA")
-        # fail
-        self.assertRaises(ValueError, seq.trim_stop_codon)
-        # unless explicitly over-ride length issue using allow_partial
-        seq2 = seq.trim_stop_codon(allow_partial=True)
 
 
 def test_load_seq_new():
