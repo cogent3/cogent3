@@ -1,9 +1,38 @@
 .. _dna-rna-seqs:
 
-``Sequence``
-============
+Sequences
+=========
 
 The ``Sequence`` object provides generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
+
+Generic molecular types
+-----------------------
+
+Sequence properties are affected by the moltype you specify. The default type for a sequence is ``"text"``.
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    my_seq = make_seq("AGTACACTGGT")
+    my_seq.moltype.label
+
+.. jupyter-execute::
+
+    my_seq
+
+In some circumstances you can also have a ``"bytes"`` moltype, which I'll explicitly construct here.
+
+.. jupyter-execute::
+
+    my_seq = make_seq("AGTACACTGGT", moltype="bytes")
+    my_seq.moltype.label
+
+.. jupyter-execute::
+
+    my_seq
+    
+
 
 DNA and RNA sequences
 ---------------------

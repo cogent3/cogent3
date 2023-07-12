@@ -130,7 +130,7 @@ Converting the ``CodonAlphabet`` to codon series
 
     gc = get_code(1)
     alphabet = gc.get_alphabet()
-    alphabet
+    print(alphabet)
 
 Obtaining the codons from a ``DnaSequence`` object
 """"""""""""""""""""""""""""""""""""""""""""""""""
@@ -153,6 +153,7 @@ The defaults for ``get_translation()`` include using the standard genetic code a
 .. jupyter-execute::
 
     pep = my_seq.get_translation()
+    pep
 
 Translating a DNA sequence containing stop codons
 """""""""""""""""""""""""""""""""""""""""""""""""
@@ -169,8 +170,7 @@ Making a sequence that contains both internal and terminating stop codons.
 
     from cogent3 import make_seq
 
-    my_seq = make_seq("ATGTGATGGTAA", name="s1", moltype="dna")
-    pep = seq.get_translation()
+    seq = make_seq("ATGTGATGGTAA", name="s1", moltype="dna")
 
 Translating this will fail with default settings.
 
