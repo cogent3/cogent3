@@ -13,10 +13,16 @@ This guide provides instructions on creating, querying, and utilising Features t
 Creating custom Features
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+Via ``add_features``
+""""""""""""""""""""
+
 One way to create a ``Feature`` is via the ``add_feature()`` method, which allows you to associate a custom feature with an existing sequence, sequence within an alignment, or alignment.
 
+
 On a ``Sequence``
-"""""""""""""""""
++++++++++++++++++
+
 
 Given a ``Sequence``, we can use the ``add_feature`` method to create a ``Feature`` by providing the biotype, name/id, and a list of start and stop indices. The new feature will be added to the sequence's ``annotation_db`` attribute. A ``Feature`` instance will be returned.
 
@@ -44,9 +50,10 @@ A feature can also be added as a series of non-overlapping genomic segments:
 
 
 On a ``Sequence`` within an ``Alignment``
-"""""""""""""""""""""""""""""""""""""""""
++++++++++++++++++++++++++++++++++++++++++
 
-We use ``add_feature`` to add a ``Feature`` to a sequence within an alignment. 
+We use ``add_feature`` to add a ``Feature`` to a sequence within an alignment. The resulting feature is in **alignment coordinates**!
+
 
 .. jupyter-execute::
     :raises:
@@ -61,24 +68,45 @@ We use ``add_feature`` to add a ``Feature`` to a sequence within an alignment.
     )
    
 On an ``Alignment``
-"""""""""""""""""""
++++++++++++++++++++
 
-We add an annotation directly onto an alignment. The resulting annotation (``shared`` here) is in **alignment coordinates**!
+We use ``add_feature`` to add a ``Feature`` to an alignment. The resulting feature is in **alignment coordinates**!
 
 .. jupyter-execute::
     :raises:
-    aln1.annotation_db.add_feature(
+    
+    aln1.add_feature(
         seqid=None,
         biotype="shared",
         name="demo",
-        spans=[(0, 15), (15, 30), (30, 45)],
+        spans=[(0, 8)],
         on_alignment=True,
     )
+
+
+Via an annotation database
+""""""""""""""""""""""""""
+
+Directly into an annotation db and assigning it to the sequence attribute.
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+    from cogent3.core.annotation_db import BasicAnnotationDb
+
+    db = BasicAnnotationDb()
+
+    db.add_feature(seqid="seq1", biotype="exon", name="C", spans=[(45, 48)])
+    s1 = make_seq(
+        "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT", name="seq1", moltype="dna"
+    )
+    s1.annotation_db = db
+
 
 Loading Features from a File
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Typically, we actually want to load features from a genomic annotation file, such as a GFF or Genbank file. For the following examples, we will use data from *Caenorhabditis elegans* chromosome I.
+Typically, we want to load features from a genomic annotation file, such as a GFF or Genbank file. For the following examples, we will use data from *Caenorhabditis elegans* chromosome I.
 
 .. note:: See the list of :ref:`data_links` to download the data used in the following examples.
 
@@ -184,4 +212,22 @@ If the features precede the sequence, we can still use the ``annotate_from_gff()
     sub_seq.annotate_from_gff("data/C-elegans-chromosome-I.gff", offset=600)
     sub_seq.annotation_db
     
+    
+How to load features and associate them with an existing alignment
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To annotate one or more sequences in an alignment, call ``annotate_from_gff()`` on the ``Alignment`` instance, passing in the path to the GFF annotation file and a list of sequence names to annotate:
+
+This will create an annotation database that is accessible via the ``annotation_db`` attribute on both the ``Alignment`` and named ``Sequence`` instances. 
+
+.. code-block:: python
+
+    aln = < loaded / created the alignment>
+    aln.annotate_from_gff("path/to/annotations.gff", seq_ids=["seq1"])
+
+.. note:: ``Alignment.annotate_from_gff()`` does not support setting an offset. If you need to set the offset for a sequence within an alignment, you can do so directly using the ``Sequence.annotation_offset`` attribute.
+
+Querying for Features
+^^^^^^^^^^^^^^^^^^^^^
+
 
