@@ -460,11 +460,12 @@ For evolutionary analyses that use codon models we need to exclude terminating s
         moltype="dna",
     )
     new = aln.trim_stop_codons()
-    print(new)
+    new
 
-If the alignment contains sequences not divisible by 3, use the ``allow_partial`` argument.
+To detect if the alignment contains sequences not divisible by 3, use the ``strict`` argument. This argument covers both allowing partial terminating codons / not divisible by 3.
 
 .. jupyter-execute::
+    :raises:
 
     aln = make_aligned_seqs(
         data={
@@ -474,8 +475,8 @@ If the alignment contains sequences not divisible by 3, use the ``allow_partial`
         },
         moltype="dna",
     )
-    new = aln.trim_stop_codons(allow_partial=True)
-    print(new)
+    new = aln.trim_stop_codons(strict=True)
+
 
 Eliminating columns with non-nucleotide characters
 ++++++++++++++++++++++++++++++++++++++++++++++++++
