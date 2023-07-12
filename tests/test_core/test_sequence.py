@@ -2390,7 +2390,7 @@ def test_get_drawable():
         assert "(incomplete)" in trace.text
 
 
-@pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (2, "TCCAGG")))
+@pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")))
 def test_has_terminal_stop_true(gc, seq):
     gc = cogent3.get_code(gc)
     seq = cogent3.make_seq(seq, moltype="dna")
@@ -2409,5 +2409,5 @@ def test_has_terminal_stop_false(gc, seq):
 def test_has_terminal_stop_strict():
     gc = cogent3.get_code(1)
     seq = cogent3.make_seq("TCCAG", moltype="dna")
-    with pytest.raises(ValueError):
+    with pytest.raises(AlphabetError):
         seq.has_terminal_stop(gc=gc, strict=True)

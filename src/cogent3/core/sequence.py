@@ -1676,13 +1676,15 @@ class NucleicAcidSequence(Sequence):
             If True, raises an exception if length not divisible by 3
         """
         gc = get_code(gc)
-        divisible_by_3 = len(self) % 3 == 0
+        _, s = self.parse_out_gaps()
+
+        divisible_by_3 = len(s) % 3 == 0
         if divisible_by_3:
-            end3 = str(self[-3:])
+            end3 = str(s[-3:])
             return gc.is_stop(end3)
 
         if strict:
-            raise ValueError(f"{self.name!r} length not divisible by 3")
+            raise AlphabetError(f"{self.name!r} length not divisible by 3")
 
         return False
 
