@@ -1,15 +1,14 @@
-****************************
 Manipulating biological data
-****************************
+============================
 
 .. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
 
 Sequences and Alignments
-========================
+------------------------
 
 .. toctree::
     :maxdepth: 1
-    
+
     loading_sequences
     alignments
     DNA_and_RNA_sequences
@@ -20,7 +19,7 @@ Sequences and Alignments
     alphabet
 
 Genetic code
-============
+------------
 
 .. toctree::
     :maxdepth: 1
@@ -29,7 +28,7 @@ Genetic code
     genetic_code
 
 Trees
-=====
+-----
 
 .. toctree::
     :maxdepth: 1

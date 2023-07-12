@@ -13,22 +13,37 @@ Creating a ProteinSequence with a name
 
 .. jupyter-execute::
 
-    from cogent3 import PROTEIN
+    from cogent3 import make_seq
 
-    p = PROTEIN.make_seq("THISISAPRQTEIN", "myProtein")
+    p = make_seq("THISISAPRQTEIN", "myProtein", moltype="protein")
     type(p)
-    str(p)
+
+.. jupyter-execute::
+
+    p
 
 Converting a DNA sequence string to protein sequence string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3.core.genetic_code import DEFAULT as standard_code
+    from cogent3 import get_code
 
+    standard_code = get_code(1)
     standard_code.translate("TTTGCAAAC")
 
 Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown in :ref:`translation`.
+
+Converting a nucleic acid sequence object to protein
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+    
+    nuc = make_seq("TTTGCAAAC", moltype="dna")
+    pep = nuc.get_translation()
+    pep
 
 Loading protein sequences from a Phylip file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

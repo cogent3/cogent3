@@ -19,14 +19,14 @@ First I'm going to construct an artificial example, using the seqs dict as a mea
         "rat": "CTGAACAAGCAGCCACTTTCAAACAAGAAA",
     }
     unaligned_DNA = make_unaligned_seqs(seqs, moltype="dna")
-    print(unaligned_DNA.to_fasta())
+    unaligned_DNA
 
 In order to ensure the alignment algorithm preserves the coding frame, we align the translation of the sequences. We need to translate them first, but note that because the seqs are unaligned they we have to set ``aligned=False``, or we'll get an error.
 
 .. jupyter-execute::
 
     unaligned_aa = unaligned_DNA.get_translation()
-    print(unaligned_aa.to_fasta())
+    unaligned_aa
 
 The translated seqs can then be written to file, using the method ``write``. That file then serves as input for an alignment program. The resulting alignment file can be read back in. (We won't write to file in this example.) For this example we will specify the aligned sequences in the dict, rather than from file.
 
