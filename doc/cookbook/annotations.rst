@@ -8,23 +8,22 @@
 Annotations
 -----------
 
-This guide provides instructions on creating, querying, and utilising Features to manipulate biological sequence data. For more extensive documentation about annotations, please see :ref:`seq-annotations`.
+This guide provides instructions on creating, querying, and utilising Features to manipulate biological sequence data. For more extensive documentation about annotations, see :ref:`seq-annotations`.
 
 Creating custom Features
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 Via ``add_features``
 """"""""""""""""""""
 
-One way to create a ``Feature`` is via the ``add_feature()`` method, which allows you to associate a custom feature with an existing sequence, sequence within an alignment, or alignment.
+One way to dynamically create a ``Feature`` is via the ``add_feature()`` method, providing the biotype, name/id, and a list of start and stop indices. 
 
+The new feature will be added to the ``annotation_db`` attribute of the ``Sequence`` and or ``Alignment``. A ``Feature`` instance will be returned.
 
 On a ``Sequence``
 +++++++++++++++++
 
-
-Given a ``Sequence``, we can use the ``add_feature`` method to create a ``Feature`` by providing the biotype, name/id, and a list of start and stop indices. The new feature will be added to the sequence's ``annotation_db`` attribute. A ``Feature`` instance will be returned.
+We use ``add_feature`` to add a feature to a sequence.
 
 .. jupyter-execute::
     :raises:
@@ -36,7 +35,7 @@ Given a ``Sequence``, we can use the ``add_feature`` method to create a ``Featur
         name="seq1",
         moltype="dna",
     )
-    
+
     # Add a feature item-wise
     seq.add_feature(biotype="gene", name="a_gene", spans=[(12, 48)], seqid="seq1")
 
@@ -46,14 +45,17 @@ A feature can also be added as a series of non-overlapping genomic segments:
     :raises:
 
     # Add a feature as a series
-    seq.add_feature(biotype="cpgsite", name="a_cpgsite", spans=[(12, 18), (21, 29), (35, 48)], seqid="seq1")
-
+    seq.add_feature(
+        biotype="cpgsite",
+        name="a_cpgsite",
+        spans=[(12, 18), (21, 29), (35, 48)],
+        seqid="seq1",
+    )
 
 On a ``Sequence`` within an ``Alignment``
 +++++++++++++++++++++++++++++++++++++++++
 
-We use ``add_feature`` to add a ``Feature`` to a sequence within an alignment. The resulting feature is in **alignment coordinates**!
-
+We use ``add_feature`` to add a feature to a sequence within an alignment. The resulting feature is in **alignment coordinates**!
 
 .. jupyter-execute::
     :raises:
@@ -66,15 +68,15 @@ We use ``add_feature`` to add a ``Feature`` to a sequence within an alignment. T
     aln1.add_feature(
         seqid="x", biotype="exon", name="A", spans=[(3, 8)], on_alignment=False
     )
-   
+
 On an ``Alignment``
 +++++++++++++++++++
 
-We use ``add_feature`` to add a ``Feature`` to an alignment. The resulting feature is in **alignment coordinates**!
+We use ``add_feature`` to add a feature to an alignment. The resulting feature is in **alignment coordinates**!
 
 .. jupyter-execute::
     :raises:
-    
+
     aln1.add_feature(
         seqid=None,
         biotype="shared",
@@ -83,11 +85,10 @@ We use ``add_feature`` to add a ``Feature`` to an alignment. The resulting featu
         on_alignment=True,
     )
 
+Via an ``AnnotationDb``
++++++++++++++++++++++++
 
-Via an annotation database
-""""""""""""""""""""""""""
-
-Directly into an annotation db and assigning it to the sequence attribute.
+We use ``add_feature`` to add a feature directly into into an annotation database, and assign it to the ``annotation_db`` attribute of the sequence. We could also assign it to the ``annotation_db`` attribute of an alignment.
 
 .. jupyter-execute::
 
@@ -101,7 +102,6 @@ Directly into an annotation db and assigning it to the sequence attribute.
         "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT", name="seq1", moltype="dna"
     )
     s1.annotation_db = db
-
 
 Loading Features from a File
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -123,7 +123,7 @@ To load the sequence and all 40,578 features from *C. elegans* Chromosome 1, use
     from cogent3 import load_seq
     
     %timeit load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
-    
+
 .. jupyter-execute::
     :hide-code:
 
@@ -158,7 +158,7 @@ If you have the FASTA file for the sequence, you can use ``load_seq`` and provid
 
 .. warning:: This assumes an exact match between the names in the files! If the names are different, you need to provide a ``label_to_name`` argument. 
 
-As the names are different in our example (``"I dna:chromosome chromosome:WBcel235:I:1:15072434:1 REF"`` in the FASTA file and ``"I"`` in the gff file) we need to provide a ``label_to_name`` argument as follows:
+``total_records=0``? 🧐 As the names are different in our example (``"I dna:chromosome chromosome:WBcel235:I:1:15072434:1 REF"`` in the FASTA file and ``"I"`` in the gff file) we need to provide a ``label_to_name`` argument as follows:
 
 .. jupyter-execute::
     :raises:
@@ -190,7 +190,6 @@ If we know that the features lie within the sequence coordinates, we can use the
     loaded_seq.annotate_from_gff("data/C-elegans-chromosome-I.gff")
     loaded_seq.annotation_db
 
-
 If the features precede the sequence, we can still use the ``annotate_from_gff()`` method, but we need to provide the offset value. For example, given a sequence that starts 600 base pairs from the beginning of chromosome 1, we can adjust the features as follows:
 
 .. jupyter-execute::
@@ -211,8 +210,7 @@ If the features precede the sequence, we can still use the ``annotate_from_gff()
     # sub_seq = <genomic region starting at the 600th nt>
     sub_seq.annotate_from_gff("data/C-elegans-chromosome-I.gff", offset=600)
     sub_seq.annotation_db
-    
-    
+
 How to load features and associate them with an existing alignment
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -230,4 +228,52 @@ This will create an annotation database that is accessible via the ``annotation_
 Querying for Features
 ^^^^^^^^^^^^^^^^^^^^^
 
+The method ``get_features`` yields all features that match the given arguments. You can provide conditions for the name, biotype, and start/stop location of a feature. 
 
+Querying via Feature Name
+"""""""""""""""""""""""""
+
+We can search for the a gene given its unique ID ``"WBGene00021661"``
+
+.. jupyter-execute::
+    :raises:
+
+    mbtr_1 = list(seq.get_features(name="WBGene00021661", biotype="gene"))
+    mbtr_1
+    seq.annotation_db
+
+Querying via Feature Biotype
+""""""""""""""""""""""""""""
+
+We can search for all CDS 
+
+.. jupyter-execute::
+    :raises:
+
+    cds = list(seq.get_features(biotype="CDS"))
+    cds[:3]
+
+Querying via region of interest
+"""""""""""""""""""""""""""""""
+
+We can provide ``start`` and ``end`` arguments to ``get_features()`` and all features within the coordinates will be returned.
+
+.. jupyter-execute::
+    :raises:
+
+    cds = list(seq.get_features(start=10148, end=26732))
+    cds
+
+We can also provide a combination of conditions, for example, querying for CpG sites within a certain range
+
+.. jupyter-execute::
+    :raises:
+
+    cds = list(seq.get_features(start=10148, end=26732, biotype="cpgsite"))
+    cds
+
+Useful methods on Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Manipulating Sequences with Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
