@@ -249,6 +249,4 @@ class translate_seqs:
         if self._moltype and self._moltype != seqs.moltype:
             seqs = seqs.to_moltype(self._moltype)
 
-        if self._trim_terminal_stop:
-            seqs = seqs.trim_stop_codons(gc=self._gc)
-        return seqs.get_translation(gc=self._gc)
+        return seqs.get_translation(gc=self._gc, trim_stop=self._trim_terminal_stop)

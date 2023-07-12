@@ -895,24 +895,6 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
         self.assertEqual(len(aln), 4)
 
-    def test_get_translation_info(self):
-        """SequenceCollection.get_translation preserves info attribute"""
-        for seqs in [
-            {"seq1": "GATTTT", "seq2": "GATC??"},
-            {"seq1": "GAT---", "seq2": "?GATCT"},
-        ]:
-            alignment = self.Class(data=seqs, moltype=DNA, info={"key": "value"})
-            got = alignment.get_translation()
-            self.assertEqual(got.info["key"], "value")
-
-    def test_get_translation_incomplete(self):
-        """get translation works on incomplete codons"""
-        alignment = self.Class(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
-        got = alignment.get_translation(incomplete_ok=True)
-        self.assertEqual(got.to_dict(), {"seq1": "D?", "seq2": "XS"})
-        with self.assertRaises(AlphabetError):
-            got = alignment.get_translation(incomplete_ok=False)
-
     def test_get_seq(self):
         """SequenceCollection.get_seq should return specified seq"""
         aln = self.Class({"seq1": "GATTTT", "seq2": "GATC??"})
@@ -3497,11 +3479,22 @@ def test_get_translation2(cls, seqs):
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
 def test_get_translation_with_stop(cls):
-    """SequenceCollection.get_translation translates each seq"""
     seqs = {"seq1": "GATTAG", "seq2": "?GATCT"}
     alignment = cls(data=seqs, moltype=DNA)
     got = alignment.get_translation(include_stop=True)
     assert got.to_dict() == {"seq1": "D*", "seq2": "XS"}
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
+def test_get_translation_trim_stop(cls):
+    seqs = {"seq1": "GATTCCTAG", "seq2": "GATTCCTCC"}
+    alignment = cls(data=seqs, moltype=DNA)
+    expect = {"seq1": "DS", "seq2": "DSS"}
+    if cls != SequenceCollection:
+        expect = {"seq1": "DS-", "seq2": "DSS"}
+
+    got = alignment.get_translation(trim_stop=True)
+    assert got.to_dict() == expect
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
@@ -3598,7 +3591,27 @@ def test_aligned_rich_dict(reverse):
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
 @pytest.mark.parametrize(
-    "gc,seqs", ((1, ("TCCTGA", "GATTT?")), (2, ("GATTTT", "TCCAGG")))
+    "seqs",
+    (
+        {"seq1": "GATTTT", "seq2": "GATC??"},
+        {"seq1": "GAT---", "seq2": "?GATCT"},
+    ),
+)
+def test_get_translation_info(cls, seqs):
+    """SequenceCollection.get_translation preserves info attribute"""
+    alignment = cls(data=seqs, moltype=DNA, info={"key": "value"})
+    got = alignment.get_translation()
+    assert got.info["key"] == "value"
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    (
+        (1, ("TCCTGA", "GATTT?")),
+        (1, ("ACGTAA---", "ACGAC----", "ACGCAATGA")),
+        (2, ("GATTTT", "TCCAGG")),
+    ),
 )
 def test_has_terminal_stop_true(cls, gc, seqs):
     gc = get_code(gc)
@@ -3689,3 +3702,13 @@ def test_trim_stop_codons_info(cls):
     )
     coll = coll.trim_stop_codons()
     assert coll.info["key"] == "value"
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_get_translation_incomplete(cls):
+    """get translation works on incomplete codons"""
+    alignment = cls(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
+    got = alignment.get_translation(incomplete_ok=True)
+    assert got.to_dict() == {"seq1": "D?", "seq2": "XS"}
+    with pytest.raises(AlphabetError):
+        _ = alignment.get_translation(incomplete_ok=False)

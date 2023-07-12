@@ -1265,6 +1265,16 @@ def test_get_translation_include_stop():
     assert str(aa) == "I*L"
 
 
+def test_get_translation_trim_stop():
+    s = DNA.make_seq("ATTTCCTGA", name="s1")
+    aa = s.get_translation(trim_stop=True)
+    assert str(aa) == "IS"
+    # no effect on internal stops
+    s = DNA.make_seq("ATTTAACTT", name="s1")
+    aa = s.get_translation(include_stop=True, trim_stop=True)
+    assert str(aa) == "I*L"
+
+
 @pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
 @pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
 @pytest.mark.parametrize("step", (None, 1, 2, -1, -2))

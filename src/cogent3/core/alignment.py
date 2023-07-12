@@ -1325,7 +1325,7 @@ class _SequenceCollectionBase:
         return self.seq_len
 
     def get_translation(
-        self, gc=None, incomplete_ok=False, include_stop=False, **kwargs
+        self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
     ):
         """translate from nucleic acid to protein
 
@@ -1339,6 +1339,8 @@ class _SequenceCollectionBase:
             raises a ValueError if False
         include_stop
             whether to allow a stops in the translated sequence
+        trim_stop
+            exclude terminal stop codons if they exist
         kwargs
             related to construction of the resulting object
 
@@ -1350,14 +1352,18 @@ class _SequenceCollectionBase:
             raise TypeError("Must be a DNA/RNA")
 
         translated = []
+        if trim_stop and not include_stop:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        else:
+            seqs = self
         # do the translation
-        for seqname in self.names:
+        for seqname in seqs.names:
             try:
-                seq = self.get_gapped_seq(seqname)
+                seq = seqs.get_gapped_seq(seqname)
             except AttributeError:
-                seq = self.named_seqs[seqname]
+                seq = seqs.named_seqs[seqname]
             pep = seq.get_translation(
-                gc, incomplete_ok=incomplete_ok, include_stop=include_stop
+                gc, incomplete_ok=True, include_stop=include_stop, trim_stop=trim_stop
             )
             translated.append((seqname, pep))
         kwargs["moltype"] = pep.moltype
@@ -1393,7 +1399,13 @@ class _SequenceCollectionBase:
         return result
 
     def degap(self, **kwargs):
-        """Returns copy in which sequences have no gaps."""
+        """Returns copy in which sequences have no gaps.
+
+        Parameters
+        ----------
+        kwargs
+            passed to class constructor
+        """
         new_seqs = []
         aligned = isinstance(self, Alignment)
         for seq_name in self.names:
@@ -3824,6 +3836,31 @@ class AlignmentI(object):
             result.annotation_db = self.annotation_db
 
         return result
+
+    @extend_docstring_from(_SequenceCollectionBase.get_translation)
+    def get_translation(
+        self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
+    ):
+        if len(self.moltype.alphabet) != 4:
+            raise TypeError("Must be a DNA/RNA")
+
+        translated = []
+        if not trim_stop or include_stop:
+            seqs = self
+        else:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        # do the translation
+        for seqname in seqs.names:
+            try:
+                seq = seqs.get_gapped_seq(seqname)
+            except AttributeError:
+                seq = seqs.named_seqs[seqname]
+            pep = seq.get_translation(
+                gc, incomplete_ok=incomplete_ok, include_stop=include_stop
+            )
+            translated.append((seqname, pep))
+        kwargs["moltype"] = pep.moltype
+        return self.__class__(translated, info=self.info, **kwargs)
 
 
 def _one_length(seqs):

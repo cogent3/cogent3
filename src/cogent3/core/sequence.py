@@ -1739,18 +1739,27 @@ class NucleicAcidSequence(Sequence):
         result.annotation_db = self.annotation_db
         return result
 
-    def get_translation(self, gc=None, incomplete_ok=False, include_stop=False):
+    def get_translation(
+        self,
+        gc: Any = None,
+        incomplete_ok: bool = False,
+        include_stop: bool = False,
+        trim_stop: bool = True,
+    ):
         """translate to amino acid sequence
 
         Parameters
         ----------
         gc
-            name or ID of genetic code
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
         incomplete_ok
             codons that are mixes of nucleotide and gaps converted to '?'.
             raises a ValueError if False
         include_stop
             allows stop codons in translation
+        trim_stop
+            trims a terminal stop codon if it exists
 
         Returns
         -------
@@ -1767,14 +1776,21 @@ class NucleicAcidSequence(Sequence):
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         # translate the codons
         translation = []
-        seq = str(self)
+        if include_stop or not trim_stop:
+            # we just deal with sequence as is
+            seq = str(self)
+        else:
+            seq = str(self.trim_stop_codon(gc=gc, strict=not incomplete_ok))
+
         for posn in range(0, len(seq) - 2, 3):
             orig_codon = str(seq[posn : posn + 3])
             try:
                 resolved = codon_alphabet.resolve_ambiguity(orig_codon)
             except AlphabetError:
                 if not incomplete_ok or "-" not in orig_codon:
-                    raise
+                    raise AlphabetError(
+                        f"unresolvable codon {orig_codon!r} in {self.name}"
+                    )
                 resolved = (orig_codon,)
             trans = []
             for codon in resolved:
@@ -1790,7 +1806,7 @@ class NucleicAcidSequence(Sequence):
                         continue
                 trans.append(aa)
             if not trans:
-                raise ValueError(orig_codon)
+                raise AlphabetError(orig_codon)
             aa = protein.what_ambiguity(trans)
             translation.append(aa)
 
