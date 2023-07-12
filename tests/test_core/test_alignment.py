@@ -3624,5 +3624,68 @@ def test_has_terminal_stop_strict(cls):
     gc = get_code(1)
     data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
     seqs = cls(data=data, moltype="dna")
-    with pytest.raises(ValueError):
+    with pytest.raises(AlphabetError):
         seqs.has_terminal_stop(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    (
+        (1, ("--AT-CTGA", "GATAAATT?")),
+        (1, ("ACGTGA---", "ACGAC----", "ACGCAATGA")),
+        (1, ("CCTCA-", "ATTTTA")),
+        (2, ("GATTTT", "TCCAGG")),
+    ),
+)
+def test_trim_stops_true(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+
+    expect = {}
+    for k, v in data.items():
+        if cls != SequenceCollection or "-" in v:
+            v = re.sub("(TGA|AGG)(?=[-]*$)", "---", v)
+        else:
+            v = re.sub("(TGA|AGG)", "", v)
+        expect[k] = v
+
+    seqs = cls(data=data, moltype="dna")
+    got = seqs.trim_stop_codons(gc=gc).to_dict()
+
+    assert got == expect
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    ((1, ("T-CTGC", "GATAA?")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTGC", "GATAA"))),
+)
+def test_trim_terminal_stops_nostop(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    got = seqs.trim_stop_codons(gc=gc)
+    assert got is seqs
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize("seqs", (("CCTCA", "ATTTT"), ("CCTCA-", "ATTTTA")))
+def test_trim_terminal_stops_strict(cls, seqs):
+    gc = get_code(1)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    with pytest.raises(AlphabetError):
+        seqs.trim_stop_codons(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_trim_stop_codons_info(cls):
+    """trim_stop_codons should preserve info attribute"""
+    coll = cls(
+        data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"},
+        moltype=DNA,
+        info={"key": "value"},
+    )
+    coll = coll.trim_stop_codons()
+    assert coll.info["key"] == "value"
