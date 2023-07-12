@@ -23,7 +23,7 @@ from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Generator, Iterable, List, Optional, Tuple
+from typing import Any, Generator, Iterable, List, Optional, Tuple
 
 from numpy import (
     arange,
@@ -1661,29 +1661,30 @@ class NucleicAcidSequence(Sequence):
         rc.annotation_db = self.annotation_db
         return rc
 
-    def has_terminal_stop(self, gc=None, allow_partial=False):
+    @deprecated_args("2023.10", "replaced by strict", discontinued="allow_partial")
+    def has_terminal_stop(
+        self, gc: Any = None, strict: bool = False, allow_partial=False
+    ) -> bool:
         """Return True if the sequence has a terminal stop codon.
 
         Parameters
         ----------
         gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not dividisble
-            by 3, ignores the 3' terminal incomplete codon
-
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if length not divisible by 3
         """
         gc = get_code(gc)
-        codons = self._seq
-        divisible_by_3 = len(codons) % 3 == 0
-        end3 = self.__class__(self._seq[-3:]).degap()
-        if not allow_partial and (not divisible_by_3 or len(end3) != 3):
-            raise ValueError("seq length not divisible by 3")
+        divisible_by_3 = len(self) % 3 == 0
+        if divisible_by_3:
+            end3 = str(self[-3:])
+            return gc.is_stop(end3)
 
-        if not divisible_by_3:
-            return False
+        if strict:
+            raise ValueError(f"{self.name!r} length not divisible by 3")
 
-        return codons and gc.is_stop(codons[-3:])
+        return False
 
     def trim_stop_codon(self, gc=None, allow_partial=False):
         """Removes a terminal stop codon from the sequence

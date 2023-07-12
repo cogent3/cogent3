@@ -2388,3 +2388,26 @@ def test_get_drawable():
     # and their names should indicate they're incomplete
     for trace in full.traces:
         assert "(incomplete)" in trace.text
+
+
+@pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (2, "TCCAGG")))
+def test_has_terminal_stop_true(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    assert seq.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.parametrize(
+    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+)
+def test_has_terminal_stop_false(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    assert not seq.has_terminal_stop(gc=gc)
+
+
+def test_has_terminal_stop_strict():
+    gc = cogent3.get_code(1)
+    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    with pytest.raises(ValueError):
+        seq.has_terminal_stop(gc=gc, strict=True)

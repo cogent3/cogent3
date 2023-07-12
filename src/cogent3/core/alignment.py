@@ -31,7 +31,7 @@ from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
-from typing import Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy
 
@@ -74,7 +74,6 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.maths.util import safe_log
 from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
@@ -1424,27 +1423,36 @@ class _SequenceCollectionBase:
             result.annotation_db = self.annotation_db
         return result
 
-    def has_terminal_stops(self, gc=None, allow_partial=False):
+    @c3warn.deprecated_args(
+        "2023.10", "replaced by strict", discontinued="allow_partial"
+    )
+    def has_terminal_stop(
+        self, gc: Any = None, strict: bool = False, allow_partial=False
+    ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
         ----------
         gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not divisible
-            by 3, ignores the 3' terminal incomplete codon
-
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if a seq length not divisible by 3
         """
-        stops = []
         aligned = isinstance(self, Alignment)
         for seq_name in self.names:
             if aligned:
                 seq = self.named_seqs[seq_name].data
             else:
                 seq = self.named_seqs[seq_name]
-            stops.append(seq.has_terminal_stop(gc=gc, allow_partial=allow_partial))
-        return max(stops)
+            if seq.has_terminal_stop(gc=gc, strict=strict):
+                return True
+        return False
+
+    @c3warn.deprecated_callable("2023.10", "better name", new="has_terminal_stop")
+    def has_terminal_stops(self, **kwargs) -> bool:
+        """deprecated"""
+        return self.has_terminal_stop(**kwargs)
 
     def trim_stop_codons(self, gc=None, allow_partial=False, **kwargs):
         """Removes any terminal stop codons from the sequences

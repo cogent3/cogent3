@@ -3594,3 +3594,35 @@ def test_aligned_rich_dict(reverse):
     rd = seq.to_rich_dict()
     got = Aligned.from_rich_dict(rd)
     assert str(seq) == str(got)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs", ((1, ("TCCTGA", "GATTT?")), (2, ("GATTTT", "TCCAGG")))
+)
+def test_has_terminal_stop_true(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    assert seqs.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    ((1, ("TCCTCA", "GATTTT")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTCA", "ATTTT"))),
+)
+def test_has_terminal_stop_false(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    assert not seqs.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_has_terminal_stop_strict(cls):
+    gc = get_code(1)
+    data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
+    seqs = cls(data=data, moltype="dna")
+    with pytest.raises(ValueError):
+        seqs.has_terminal_stop(gc=gc, strict=True)
