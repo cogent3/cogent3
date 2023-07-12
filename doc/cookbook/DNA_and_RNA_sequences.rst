@@ -1,11 +1,38 @@
 .. _dna-rna-seqs:
 
-``Sequence``
-============
+Sequences
+=========
 
-The ``Sequence`` object contains classes that represent biological sequence data. These provide generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
+The ``Sequence`` object provides generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
 
-.. warning:: Do not import sequence classes directly! It is expected that you will access them through ``MolType`` objects. The molecular types can be accessed via the ``cogent3.get_moltype()`` function. Sequence classes depend on information from the ``MolType`` that is **only** available after ``MolType`` has been imported. Sequences are intended to be immutable. This is not enforced by the code for performance reasons, but don't alter the ``MolType`` or the sequence data after creation.
+Generic molecular types
+-----------------------
+
+Sequence properties are affected by the moltype you specify. The default type for a sequence is ``"text"``.
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    my_seq = make_seq("AGTACACTGGT")
+    my_seq.moltype.label
+
+.. jupyter-execute::
+
+    my_seq
+
+In some circumstances you can also have a ``"bytes"`` moltype, which I'll explicitly construct here.
+
+.. jupyter-execute::
+
+    my_seq = make_seq("AGTACACTGGT", moltype="bytes")
+    my_seq.moltype.label
+
+.. jupyter-execute::
+
+    my_seq
+    
+
 
 DNA and RNA sequences
 ---------------------
@@ -15,45 +42,43 @@ DNA and RNA sequences
 Creating a DNA sequence from a string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-All sequence and alignment objects have a molecular type, or ``MolType`` which provides key properties for validating sequence characters. Here we use the ``DNA`` ``MolType`` to create a DNA sequence.
+Sequence properties are affected by the moltype you specify. Here we specify the ``DNA`` ``MolType``.
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    my_seq = DNA.make_seq("AGTACACTGGT")
+    my_seq = make_seq("AGTACACTGGT", moltype="dna")
     my_seq
-    print(my_seq)
-    str(my_seq)
 
 Creating a RNA sequence from a string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3 import RNA
+    from cogent3 import make_seq
 
-    rnaseq = RNA.make_seq("ACGUACGUACGUACGU")
+    rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
 
 Converting to FASTA format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    my_seq = DNA.make_seq("AGTACACTGGT")
-    print(my_seq.to_fasta())
+    my_seq = make_seq("AGTACACTGGT", moltype="dna")
+    my_seq
 
 Convert a RNA sequence to FASTA format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3 import RNA
+    from cogent3 import make_seq
 
-    rnaseq = RNA.make_seq("ACGUACGUACGUACGU")
-    rnaseq.to_fasta()
+    rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
+    rnaseq
 
 Creating a named sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -84,23 +109,17 @@ Complementing a DNA sequence
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    my_seq = DNA.make_seq("AGTACACTGGT")
-    print(my_seq.complement())
+    my_seq = make_seq("AGTACACTGGT", moltype="dna")
+    my_seq.complement()
 
 Reverse complementing a DNA sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    print(my_seq.rc())
-
-The ``rc`` method name is easier to type
-
-.. jupyter-execute::
-
-    print(my_seq.rc())
+    my_seq.rc()
 
 .. _translation:
 
@@ -109,42 +128,50 @@ Translate a ``DnaSequence`` to protein
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    my_seq = DNA.make_seq("GCTTGGGAAAGTCAAATGGAA", "protein-X")
+    my_seq = make_seq("GCTTGGGAAAGTCAAATGGAA", name="s1", moltype="dna")
     pep = my_seq.get_translation()
     type(pep)
-    print(pep.to_fasta())
+
+.. jupyter-execute::
+
+    pep
 
 Converting a DNA sequence to RNA
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    my_seq = DNA.make_seq("ACGTACGTACGTACGT")
-    print(my_seq.to_rna())
+    my_seq = make_seq("ACGTACGTACGTACGT", moltype="dna")
+    rnaseq = my_seq.to_rna()
+    rnaseq
 
 Convert an RNA sequence to DNA
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3 import RNA
+    from cogent3 import make_seq
 
-    rnaseq = RNA.make_seq("ACGUACGUACGUACGU")
-    print(rnaseq.to_dna())
+    rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
+    dnaseq = rnaseq.to_dna()
+    dnaseq
 
 Testing complementarity
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    a = DNA.make_seq("AGTACACTGGT")
+    a = make_seq("AGTACACTGGT", moltype="dna")
     a.can_pair(a.complement())
+
+.. jupyter-execute::
+
     a.can_pair(a.rc())
 
 Joining two DNA sequences
@@ -152,13 +179,12 @@ Joining two DNA sequences
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    my_seq = DNA.make_seq("AGTACACTGGT")
-    extra_seq = DNA.make_seq("CTGAC")
+    my_seq = make_seq("AGTACACTGGT", moltype="dna")
+    extra_seq = make_seq("CTGAC", moltype="dna")
     long_seq = my_seq + extra_seq
     long_seq
-    str(long_seq)
 
 Slicing DNA sequences
 ^^^^^^^^^^^^^^^^^^^^^
@@ -174,22 +200,22 @@ The easiest approach is to work off the ``cogent3`` ``ArrayAlignment`` object.
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    seq = DNA.make_seq("ATGATGATGATG")
+    seq = make_seq("ATGATGATGATG", moltype="dna")
     pos3 = seq[2::3]
     assert str(pos3) == "GGGG"
 
 Getting 1st and 2nd positions from codons
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In this instance we can use the annotatable sequence classes.
+In this instance we can use features.
 
 .. jupyter-execute::
 
-    from cogent3 import DNA
+    from cogent3 import make_seq
 
-    seq = DNA.make_seq("ATGATGATGATG")
+    seq = make_seq("ATGATGATGATG", moltype="dna")
     indices = [(i, i + 2) for i in range(len(seq))[::3]]
     pos12 = seq.add_feature(biotype="pos12", name="pos12", spans=indices)
     pos12 = pos12.get_slice()
@@ -198,17 +224,16 @@ In this instance we can use the annotatable sequence classes.
 Return a randomized version of the sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-::
+.. jupyter-execute::
 
-   print rnaseq.shuffle()
-   ACAACUGGCUCUGAUG
+    rnaseq.shuffle()
 
 Remove gaps from a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
-    from cogent3 import RNA
+    from cogent3 import make_seq
 
-    s = RNA.make_seq("--AUUAUGCUAU-UAu--")
-    print(s.degap())
+    s = make_seq("--AUUAUGCUAU-UAu--", moltype="rna")
+    s.degap()

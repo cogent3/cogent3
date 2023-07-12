@@ -3,6 +3,29 @@
 
     import set_working_directory
 
+.. _load_seq:
+
+Loading a sequence from a file
+------------------------------
+
+It's also possible to load a sequence from a :ref:`url <load_url>`.
+
+.. jupyter-execute::
+
+    from cogent3 import load_seq
+    
+    seq = load_seq("data/mycoplasma-genitalium.fa", moltype="dna")
+    seq
+
+.. warning:: If a file has more than one sequence, only the first one is loaded.
+
+.. jupyter-execute::
+
+    seq = load_seq("data/brca1-bats.fasta", moltype="dna")
+    seq
+
+.. note:: The filename suffix is used to infer the data format.
+
 .. _load-seqs:
 
 Loading an alignment from a file or url
@@ -42,6 +65,7 @@ The ``load_unaligned_seqs()`` function returns a sequence collection.
     seqs = load_unaligned_seqs("data/long_testseqs.fasta", moltype="dna")
     type(seqs)
 
+.. _load_url:
 
 Loading from a url
 ^^^^^^^^^^^^^^^^^^
