@@ -1,6 +1,6 @@
-########
-``apps``
-########
+####
+apps
+####
 
 Apps are designed to enable usage without requiring detailed understanding of programming and so they can be applied in batch to a large amount of data. In other words, being able to use them as functions without writing loops or conditionals.
 
