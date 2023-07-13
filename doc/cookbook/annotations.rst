@@ -3,6 +3,8 @@
 
     import set_working_directory
 
+.. _intro_annotations:
+
 Annotations
 ^^^^^^^^^^^
 

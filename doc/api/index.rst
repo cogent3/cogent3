@@ -24,6 +24,11 @@ These are all top level imports. For example,
     __init__/cogent3.__init__.load_delimited
     __init__/cogent3.__init__.load_table
     __init__/cogent3.__init__.load_tree
+    __init__/cogent3.__init__.load_annotations
+    __init__/cogent3.__init__.open_data_store
+    __init__/cogent3.__init__.open_
+    
+    
 
 Making cogent3 types from standard Python types
 ===============================================
@@ -84,6 +89,7 @@ The Major cogent3 Data Types
     :maxdepth: 1
 
     alignment/alignment
+    annotation/annotation
     annotation_db/annotation_db
     sequence/sequence
     genetic_code/genetic_code
@@ -92,11 +98,34 @@ The Major cogent3 Data Types
     table/table
     tree/tree
 
-************************
-Defining Composable Apps
-************************
+***************
+Composable Apps
+***************
 
 .. toctree::
     :maxdepth: 1
 
-    apps/composable.define_app
+    app/composable/define_app
+
+*********
+Datastore
+*********
+
+.. toctree::
+    :maxdepth: 1
+
+    app/io/classes/cogent3.app.io.register_datastore_reader
+    app/data_store/classes/cogent3.app.data_store.DataMember
+    app/data_store/classes/cogent3.app.data_store.DataStoreDirectory
+    app/data_store/classes/cogent3.app.data_store.ReadOnlyDataStoreZipped
+    app/sqlite_data_store/classes/cogent3.app.sqlite_data_store.DataStoreSqlite
+    
+*************
+Deserialising
+*************
+
+.. toctree::
+    :maxdepth: 1
+
+    util/deserialise/deserialise_object    
+    util/deserialise/classes/cogent3.util.deserialise.register_deserialiser

@@ -83,11 +83,11 @@ We load some unaligned DNA sequences and show their translation.
         ("rat", "CTGAACAAGCAGCCACTTTCAAACAAGAAA"),
     ]
     unaligned_DNA = make_unaligned_seqs(seqs, moltype="dna")
-    print(unaligned_DNA)
+    unaligned_DNA
 
 .. jupyter-execute::
 
-    print(unaligned_DNA.get_translation())
+    unaligned_DNA.get_translation()
 
 We load an alignment of these protein sequences.
 

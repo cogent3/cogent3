@@ -4,7 +4,7 @@
     import set_working_directory
 
 Using a nucleotide model
-------------------------
+========================
 
 We load the unaligned sequences we will use in our examples.
 
@@ -18,7 +18,7 @@ We load the unaligned sequences we will use in our examples.
 .. note:: We use an app loader, but since this is just a single file we could have used the ``cogent3.load_unaligned_seqs()`` function.
 
 Nucleotide alignment with default settings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------
 
 The default setting for "nucleotide" is a HKY85 model.
 
@@ -33,7 +33,7 @@ The default setting for "nucleotide" is a HKY85 model.
 .. note:: If you specify ``unique_guides=True``, a guide tree will be estimated for every alignment.
 
 Specify a different distance measure for estimating the guide tree
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------------------
 
 For the nucleotide case, you can use TN93 or paralinear.
 
@@ -44,7 +44,7 @@ For the nucleotide case, you can use TN93 or paralinear.
     aligned
 
 Providing a guide tree
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 .. jupyter-execute::
 
@@ -56,7 +56,7 @@ Providing a guide tree
 .. warning:: The guide tree must have branch lengths, otherwise a ``ValueError`` is raised.
 
 Specifying the substitution model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 You can use any ``cogent3`` nucleotide substitution model. For a list of all available, see ``cogent3.available_models()``.
 
@@ -68,7 +68,7 @@ You can use any ``cogent3`` nucleotide substitution model. For a list of all ava
     aligned
 
 Alignment settings and file provenance are recorded in the ``info`` attribute
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------------------------------
 
 .. jupyter-execute::
 

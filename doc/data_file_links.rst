@@ -13,6 +13,12 @@ All data files referred to in the documentation can be download by clicking on t
 
 :download:`long_testseqs.fasta <data/long_testseqs.fasta>`
 
+:download:`mycoplasma-genitalium.fa <data/mycoplasma-genitalium.fa>`
+
+:download:`mycoplasma-genitalium.gbff <data/mycoplasma-genitalium.gbff>`
+
+:download:`mycoplasma-genitalium.gff <data/mycoplasma-genitalium.gff>`
+
 :download:`primate_brca1.fasta <data/primate_brca1.fasta>`
 
 :download:`primate_brca1.tree <data/primate_brca1.tree>`

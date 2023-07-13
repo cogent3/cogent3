@@ -7,11 +7,24 @@ import pathlib
 
 current = pathlib.Path(__file__).absolute().parent
 
+
+def _data_path(path: os.PathLike) -> os.PathLike:
+    if path.name != "data":
+        path = _data_path(path.parent)
+    return path
+
+
 def get_data_dir():
     """returns path to cogent3 doc data directory"""
     for path in current.glob("*/*"):
         if "doc" not in path.parts:
             continue
+
+        if "data" in path.parts:
+            if path.parts.index("doc") > path.parts.index("doc"):
+                continue
+
+            path = _data_path(path)
 
         if path.is_dir() and str(path.name) == "data":
             return path.parent

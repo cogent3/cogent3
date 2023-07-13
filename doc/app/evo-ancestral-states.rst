@@ -4,7 +4,7 @@
     import set_working_directory
 
 Reconstructing ancestral states
-===============================
+-------------------------------
 
 This app takes a ``model_result`` and returns a ``tabular_result`` consisting of the posterior probabilities of ancestral states for each node of a tree. These probabilities are computed using the marginal reconstruction algorithm.
 
@@ -20,7 +20,7 @@ We first fit a model to the sample data.
     result = gn(aln)
 
 Define the ``ancestral_states`` app
------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 

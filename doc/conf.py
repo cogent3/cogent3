@@ -42,7 +42,7 @@ extensions = [
 ]
 
 # stop sphinx-panels from including css
-panels_add_bootstrap_css = False
+# panels_add_bootstrap_css = False
 
 
 # Allow autosummary to generate stub files

@@ -4,7 +4,7 @@
     import set_working_directory
 
 ``natsel_sitehet`` – a test of site heterogeneity
-=================================================
+-------------------------------------------------
 
 This app evaluates evidence for whether sites differ in their mode of
 natural selection (`Nielsen and Yang
@@ -17,7 +17,7 @@ natural selection (`Nielsen and Yang
     loader = get_app("load_aligned", format="fasta", moltype="dna")
     aln = loader("data/primate_brca1.fasta")
 
-    sites_differ = get_app("natsel_sitehet", 
+    sites_differ = get_app("natsel_sitehet",
         "GNC", tree="data/primate_brca1.tree", optimise_motif_probs=False
     )
 
@@ -31,7 +31,7 @@ The models have been constructed such that site-class bins have names indicating
     result.alt.lf
 
 Getting the individual site posterior probabilities
----------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 I’m just displaying the posterior-probabilities from the first 20 positions only.
 

@@ -105,7 +105,7 @@ Similarly alignment features can be projected onto the aligned sequences, where 
 
 .. jupyter-execute::
 
-    exons = list(aln.get_projected_annotations(seqid="y", biotype="exon"))
+    exons = list(aln.get_projected_features(seqid="y", biotype="exon"))
     print(exons)
     print(aln.get_seq("y")[exons[0].map.without_gaps()])
 
