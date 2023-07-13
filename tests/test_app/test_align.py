@@ -662,7 +662,9 @@ def test_smith_waterman_matches_local_pairwise(seqs):
 
 def test_smith_waterman_score(seqs):
     aligner = smith_waterman()
-    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")], moltype="dna")
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")], moltype="dna"
+    )
     aln = aligner(coll)
     got = aln.info["align_params"]["sw_score"]
     s = make_dna_scoring_dict(10, -1, -8)
@@ -688,10 +690,14 @@ def test_smith_waterman_generic_moltype():
             10, get_moltype(test_moltype)
         )
 
+
 def test_smith_waterman_raises(seqs):
     """SW should fail when given a SequenceCollection that deos not contain 2 seqs"""
     aligner = smith_waterman()
-    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot"), seqs.get_seq("Rhesus")], moltype="dna")
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot"), seqs.get_seq("Rhesus")],
+        moltype="dna",
+    )
     aln = aligner(coll)
     assert isinstance(aln, NotCompleted)
 

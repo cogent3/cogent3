@@ -24,12 +24,7 @@ from cogent3.maths.util import safe_log
 
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
-from .typing import (
-    AlignedSeqsType,
-    SeqType,
-    SerialisableType,
-    UnalignedSeqsType,
-)
+from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
 
 
 class _GapOffset:
@@ -600,17 +595,22 @@ class smith_waterman:
 
     def main(self, seqs: UnalignedSeqsType) -> AlignedSeqsType:
         if seqs.num_seqs > 2:
-            return NotCompleted("ERROR", self, message="maximum number of two seqs per collection", source=seqs)
+            return NotCompleted(
+                "ERROR",
+                self,
+                message="maximum number of two seqs per collection",
+                source=seqs,
+            )
         seq1, seq2 = seqs.seqs
         aln, score = classic_align_pairwise(
-                seq1,
-                seq2,
-                self._score_matrix,
-                self._insertion_penalty,
-                self._extension_penalty,
-                True,
-                return_score=True,
-            )
+            seq1,
+            seq2,
+            self._score_matrix,
+            self._insertion_penalty,
+            self._extension_penalty,
+            True,
+            return_score=True,
+        )
 
         aln.info["align_params"] = dict(
             score_matrix=self._score_matrix,
