@@ -224,11 +224,13 @@ def test_gff_get_children_non_existent():
     got = list(db.get_feature_children(name="nonexistendID"))
     assert got == []
 
+
 def test_gff_get_parent_non_existent():
     """if feature does not exist then should return []"""
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_parent(name="nonexistendID"))
     assert got == []
+
 
 def test_gff_counts(gff_db):
     got = gff_db.biotype_counts()
@@ -300,6 +302,7 @@ def test_gb_get_children(gb_db, parent_biotype, name):
     )[0]
     assert child["biotype"] != parent["biotype"]
     assert child["name"] == parent["name"]
+
 
 def test_gb_get_parent(gb_db):
     cds_id = "CNA00110"
