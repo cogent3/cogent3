@@ -440,7 +440,6 @@ We can display all the features on a sequence using ``.get_drawable()``. We show
     fig = subseq.get_drawable()
     fig.show()
 
-
 How to find the coordinates of a feature
 """"""""""""""""""""""""""""""""""""""""
 
@@ -519,7 +518,6 @@ We first need to query our sequence for all genes. Using the ``union()`` method 
     genes = genes[0].union(genes[1:])
     genes
     
-    
 Taking the "shadow" of all genes will return the intergenic region as a valid ``Feature``
 
 .. jupyter-execute::
@@ -588,7 +586,6 @@ these persist.
     :raises:
 
     rc.with_masked_annotations("exon", mask_char="?")
-
 
 How to find the "children" of a Feature
 """""""""""""""""""""""""""""""""""""""
@@ -689,5 +686,3 @@ Reverse complementing a sequence **does not** reverse annotations, that is they 
 
     minus_rpt = list(minus.get_features(biotype="blah"))[0]
     minus[minus_rpt]
-
-
