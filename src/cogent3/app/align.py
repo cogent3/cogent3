@@ -571,10 +571,10 @@ class smith_waterman:
 
     def __init__(
         self,
-        score_matrix=None,
-        insertion_penalty=20,
-        extension_penalty=2,
-        moltype="dna",
+        score_matrix: dict = None,
+        insertion_penalty: int = 20,
+        extension_penalty: int = 2,
+        moltype: str = "dna",
     ):
         """
         Parameters
@@ -590,24 +590,27 @@ class smith_waterman:
             molecular type of sequences
         """
         moltype = get_moltype(moltype)
-        self.score_matrix = score_matrix or (
+        self._score_matrix = score_matrix or (
             make_dna_scoring_dict(10, -1, -8)
             if moltype.label == "dna"
             else make_generic_scoring_dict(10, moltype)
         )
-        self.insertion_penalty = insertion_penalty
-        self.extension_penalty = extension_penalty
+        self._insertion_penalty = insertion_penalty
+        self._extension_penalty = extension_penalty
 
-    def main(self, seq1: SeqType, seq2: SeqType) -> AlignedSeqsType:
+    def main(self, seqs: UnalignedSeqsType) -> AlignedSeqsType:
+        if seqs.num_seqs > 2:
+            return NotCompleted("ERROR", self, message="maximum number of two seqs per collection", source=seqs)
+        seq1, seq2 = seqs.seqs
         aln, score = classic_align_pairwise(
-            seq1,
-            seq2,
-            self.score_matrix,
-            self.insertion_penalty,
-            self.extension_penalty,
-            True,
-            return_score=True,
-        )
+                seq1,
+                seq2,
+                self._score_matrix,
+                self._insertion_penalty,
+                self._extension_penalty,
+                True,
+                return_score=True,
+            )
 
         aln.info["align_params"] = dict(
             score_matrix=self.score_matrix,
