@@ -156,9 +156,9 @@ If you have the FASTA file for the sequence, you can use ``load_seq`` and provid
     )
     seq.annotation_db
 
-.. warning:: This assumes an exact match between the names in the files! If the names are different, you need to provide a ``label_to_name`` argument. 
+.. warning:: ``total_records=0``? 🧐 Note that this method assumes an exact match between the names in the files! If the names are different, you need to provide a ``label_to_name`` argument. 
 
-``total_records=0``? 🧐 As the names are different in our example (``"I dna:chromosome chromosome:WBcel235:I:1:15072434:1 REF"`` in the FASTA file and ``"I"`` in the gff file) we need to provide a ``label_to_name`` argument as follows:
+As the names are different in our example (``"I dna:chromosome chromosome:WBcel235:I:1:15072434:1 REF"`` in the FASTA file and ``"I"`` in the gff file) we need to provide a ``label_to_name`` argument as follows:
 
 .. jupyter-execute::
     :raises:
@@ -167,6 +167,7 @@ If you have the FASTA file for the sequence, you can use ``load_seq`` and provid
         "data/C-elegans-chromosome-I.fa",
         annotation_path="data/C-elegans-chromosome-I.gff",
         label_to_name=lambda x: x.split()[0],
+        moltype="dna",
     )
     seq.annotation_db
 
@@ -181,6 +182,7 @@ If we know that the features lie within the sequence coordinates, we can use the
     loaded_seq = load_seq(
         "data/C-elegans-chromosome-I.fa",
         label_to_name=lambda x: x.split()[0],
+        moltype="dna",
     )
 
 .. jupyter-execute::
@@ -218,32 +220,51 @@ To annotate one or more sequences in an alignment, call ``annotate_from_gff()`` 
 
 This will create an annotation database that is accessible via the ``annotation_db`` attribute on both the ``Alignment`` and named ``Sequence`` instances. 
 
-.. code-block:: python
+For example, we can grab the sequence alignment of the brca1 gene in primates, and an annotation file for human chromosome 17. 
 
-    aln = < loaded / created the alignment>
-    aln.annotate_from_gff("path/to/annotations.gff", seq_ids=["seq1"])
+todo: check for bug in the below.
+
+.. jupyter-execute::
+    :raises:
+
+    from cogent3 import load_aligned_seqs
+    
+    brca1_aln = load_aligned_seqs("data/primate_brca1.fasta", array_align=False, moltype="dna")
+    brca1_aln.annotate_from_gff("data/human_annotations.gff", seq_ids=["Human"])
+    brca1_aln.annotation_db
 
 .. note:: ``Alignment.annotate_from_gff()`` does not support setting an offset. If you need to set the offset for a sequence within an alignment, you can do so directly using the ``Sequence.annotation_offset`` attribute.
 
+
+Our annotation file includes features for the whole of chromosome 17, so we need to set the offset. The start location of the brca1 gene in humans is position 43,044,295 so we set this as the annotation offset.
+
+.. jupyter-execute::
+    :raises:
+    
+    brca1_aln.get_seq("Human").annotation_offset = 43044295
+    brca1_aln
+    
 Querying for Features
 ^^^^^^^^^^^^^^^^^^^^^
 
 The method ``get_features`` yields all features that match the given arguments. You can provide conditions for the name, biotype, and start/stop location of a feature. 
 
-Querying via Feature Name
-"""""""""""""""""""""""""
+Querying a Sequence for Features
+""""""""""""""""""""""""""""""""
 
-We can search for the a gene given its unique ID ``"WBGene00021661"``
+Querying via Feature Name
++++++++++++++++++++++++++
+
+We can search for the a gene given its unique ID ``"WBGene00021661"``. We wrap the method call in a ``list()`` as it is a generator object.
 
 .. jupyter-execute::
     :raises:
 
     mbtr_1 = list(seq.get_features(name="WBGene00021661", biotype="gene"))
     mbtr_1
-    seq.annotation_db
-
+    
 Querying via Feature Biotype
-""""""""""""""""""""""""""""
+++++++++++++++++++++++++++++
 
 We can search for all CDS 
 
@@ -253,27 +274,210 @@ We can search for all CDS
     cds = list(seq.get_features(biotype="CDS"))
     cds[:3]
 
+We can search for all CDS for a given gene
+
+.. jupyter-execute::
+    :raises:
+
+    cds = list(seq.get_features(biotype="CDS", name="CDS:Y74C9A.3.1"))
+    cds
+
+
 Querying via region of interest
-"""""""""""""""""""""""""""""""
++++++++++++++++++++++++++++++++
 
 We can provide ``start`` and ``end`` arguments to ``get_features()`` and all features within the coordinates will be returned.
 
 .. jupyter-execute::
     :raises:
 
-    cds = list(seq.get_features(start=10148, end=26732))
-    cds
+    region_features = list(seq.get_features(start=10148, stop=26732))
+    region_features[:3]
 
-We can also provide a combination of conditions, for example, querying for CpG sites within a certain range
+
+We can also provide a combination of conditions, for example, querying for all pseudogenes within a certain range, and returning the first match.
 
 .. jupyter-execute::
     :raises:
 
-    cds = list(seq.get_features(start=10148, end=26732, biotype="cpgsite"))
-    cds
+    pseudogene = list(seq.get_features(start=10148, stop=26732, biotype="pseudogene"))[0]
+    pseudogene
+    
+Querying a Sequence (via an Alignment) for Features
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Useful methods on Features
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+#need data C elegans aln of gene
 
-Manipulating Sequences with Features
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+To query for a particular sequence within and Alignment, we can use the ``get_features`` as above, but providing the seqid for the sequence of interest.
+
+We can query for CDS features on sequence "x" in our example alignment:
+
+.. jupyter-execute::
+    :raises:
+
+    seq_cds = list(aln1.get_features(seqid="x", biotype="CDS"))
+    seq_cds
+
+
+Querying an Alignment for Features
+""""""""""""""""""""""""""""""""""
+
+todo
+
+.. jupyter-execute::
+    :raises:
+
+    from cogent3 import load_aligned_seqs
+    
+    brca1 = load_aligned_seqs("data/primate_brca1.fasta", array_align=False, moltype="dna")
+    brca1.get_seq("Human").annotate_from_gff("/Users/u6096186/repos/cogent3/doc/data/human_annotations.gff")
+    
+    # Recall, human_annotations.gff includes annotation for chromosome 17, so we need to set the offset. 
+    # the start location of brca1 on the chromosome is 43,044,295 so we set this as the annotation offset.
+    brca1.get_seq("Human").annotation_offset = 43044295
+    
+    brca_exons = list(brca1.get_seq("Human").get_features(biotype="exon"))
+    brca_exons
+
+
+Example functionalities of Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A ``Feature`` has many methods that can manipulate the sequence or alignment that they are bound to. 
+
+How to slice a ``Sequence`` or ``Alignment`` by its features
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Given the pseudogene feature that we queried for above, we can directly slice its parent sequence to return its sequence information 
+
+.. jupyter-execute::
+    :raises:
+    
+    seq[pseudogene]
+
+.. note:: This only works for the ``Sequence`` that the ``Feature`` "belongs" to.
+
+We can also achieve this via ``get_slice()``
+
+.. jupyter-execute::
+    :raises:
+
+    pseudogene.get_slice()
+
+How to find the coordinates of a feature
+""""""""""""""""""""""""""""""""""""""""
+
+.. jupyter-execute::
+    :raises:
+
+    pseudogene.get_coordinates()
+
+These are useful for doing custom things, e.g. If the introns are not annotated for a gene, we can generate the introns from the coordinates of the exons
+
+.. jupyter-execute::
+    :raises:
+
+    cds = list(seq.get_features(biotype="CDS"))[0]
+    exon_coords = cds.get_coordinates()
+    
+    exon_coords
+    
+We generate the intron coordinates from the second element of the first tuple, and first element of the second tuple.   
+
+.. jupyter-execute::
+    :raises:
+
+    intron_coords = []
+    
+    for i in range(len(exon_coords)-1):
+        intron_coords.append((exon_coords[i][1], exon_coords[i+1][0]))
+        
+    intron_coords
+
+    
+We can then generate a custom feature for the introns
+
+.. jupyter-execute::
+    :raises:
+
+    seq.add_feature(biotype="intron", name="intron:Y74C9A.3.1", seqid="I", spans=intron_coords)
+
+How to get the shadow of a Feature
+""""""""""""""""""""""""""""""""""
+
+We first need to query the Sequence for all genes. Using the ``union()`` method we combine all genes into a single feature. Finally, taking the "shadow" of all genes will return the intergenic region as a valid ``Feature``
+
+.. jupyter-execute::
+    :raises:
+
+    genes = list(seq.get_features(biotype="gene"))
+    genes = genes[0].union(genes[1:])
+    intergenic = genes.shadow()
+    intergenic
+
+We can slice the sequence by this new Feautre
+
+.. jupyter-execute::
+    :raises:
+
+    intergenic.get_slice()
+
+Interrogating Features on a Sequence or Alignment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Querying features that span gaps in alignments
+""""""""""""""""""""""""""""""""""""""""""""""
+
+If you query for a feature from a sequence (i.e. the feature is in sequence coordinates), it's alignment coordinates may be discontinuous. leading to omission of data from other sequences
+
+.. jupyter-execute::
+
+    aln3 = make_aligned_seqs(
+        data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
+        array_align=False,
+        moltype="dna",
+    )
+    exon = aln3.add_feature(seqid="x", biotype="exon", name="ex1", spans=[(0, 4)], on_alignment=False)
+    exon.get_slice()
+
+.. jupyter-execute::
+
+    aln_exons = list(aln3.get_features(seqid="x", biotype="exon"))[0]
+    aln_exons
+
+.. note:: The ``T`` opposite the gap is missing since this approach only returns positions directly corresponding to the feature.
+
+To include the gaps, use the ``allow_gaps`` argument
+
+.. jupyter-execute::
+
+    exon.get_slice(allow_gaps=True)
+
+
+
+Methods on sequence to manipulate Features
+
+``copy_annotations()``
+
+
+``with_masked_annotations()``
+
+
+``is_annotated()``
+
+
+Methods on Features to manipulate Sequences
+
+
+``without_lost_spans()``
+
+
+
+``get_children()``
+
+``get_parent()``
+
+
+``get_drawable()``
+
+``to_dict()``
