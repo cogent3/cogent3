@@ -102,7 +102,7 @@ Setting or changing the name of a sequence
 
     my_seq = make_seq("AGTACACTGGT", moltype="dna")
     my_seq.name = "my_gene"
-    print(my_seq.to_fasta())
+    my_seq
 
 Complementing a DNA sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
