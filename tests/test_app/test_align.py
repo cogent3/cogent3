@@ -645,7 +645,6 @@ def test_smith_waterman_matches_local_pairwise(seqs):
     aligner = smith_waterman()
     coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")])
     got = aligner(coll)
-    print(got)
     s = make_dna_scoring_dict(10, -1, -8)
     insertion = 20
     extension = 2
@@ -681,14 +680,13 @@ def test_smith_waterman_score(seqs):
     assert got == expect
 
 
-def test_smith_waterman_generic_moltype():
+@pytest.mark.parametrize(
+    "moltype", ("text", "rna", "protein", "protein_with_stop", "bytes", "ab")
+)
+def test_smith_waterman_generic_moltype(moltype):
     """tests when the moltype is generic"""
-    test_moltypes = ["text", "rna", "protein", "protein_with_stop", "bytes", "ab"]
-    for test_moltype in test_moltypes:
-        aligner = smith_waterman(moltype=test_moltype)
-        assert aligner._score_matrix == make_generic_scoring_dict(
-            10, get_moltype(test_moltype)
-        )
+    aligner = smith_waterman(moltype=moltype)
+    assert aligner._score_matrix == make_generic_scoring_dict(10, get_moltype(moltype))
 
 
 def test_smith_waterman_raises(seqs):
