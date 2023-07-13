@@ -1,0 +1,14 @@
+##gff-version 3
+##sequence-region Human 1 83257441
+
+Human	Ensembl	exon	0	1507	.	-	.	Name=ENSE00001814242
+Human	Ensembl	exon	80976	81075	.	-	.	Name=ENSE00001871077
+Human	Ensembl	exon	79722	79820	.	-	.	Name=ENSE00003559512
+Human	Ensembl	exon	71431	71484	.	-	.	Name=ENSE00003510592
+Human	Ensembl	exon	62161	62238	.	-	.	Name=ENSE00003541068
+Human	Ensembl	exon	60573	60661	.	-	.	Name=ENSE00003531836
+Human	Ensembl	exon	59827	59966	.	-	.	Name=ENSE00003513709
+Human	Ensembl	exon	55480	55585	.	-	.	Name=ENSE00003642045
+Human	Ensembl	exon	52949	52994	.	-	.	Name=ENSE00003587679
+Human	Ensembl	exon	51551	51627	.	-	.	Name=ENSE00003787101
+Human	Ensembl	exon	46549	46637	.	-	.	Name=ENSE00003547126
