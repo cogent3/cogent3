@@ -643,8 +643,9 @@ def test_progressive_align_iters(seqs):
 
 def test_smith_waterman_matches_local_pairwise(seqs):
     aligner = smith_waterman()
-    coll = make_unaligned_seqs(seqs.get_seq("Human"), seqs.get_seq("Bandicoot"))
+    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")])
     got = aligner(coll)
+    print(got)
     s = make_dna_scoring_dict(10, -1, -8)
     insertion = 20
     extension = 2
@@ -661,7 +662,7 @@ def test_smith_waterman_matches_local_pairwise(seqs):
 
 def test_smith_waterman_score(seqs):
     aligner = smith_waterman()
-    coll = make_unaligned_seqs(seqs.get_seq("Human"), seqs.get_seq("Bandicoot"))
+    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")], moltype="dna")
     aln = aligner(coll)
     got = aln.info["align_params"]["sw_score"]
     s = make_dna_scoring_dict(10, -1, -8)
@@ -683,7 +684,7 @@ def test_smith_waterman_generic_moltype():
     test_moltypes = ["text", "rna", "protein", "protein_with_stop", "bytes", "ab"]
     for test_moltype in test_moltypes:
         aligner = smith_waterman(moltype=test_moltype)
-        assert aligner.score_matrix == make_generic_scoring_dict(
+        assert aligner._score_matrix == make_generic_scoring_dict(
             10, get_moltype(test_moltype)
         )
 

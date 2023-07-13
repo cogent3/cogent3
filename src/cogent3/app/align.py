@@ -613,9 +613,9 @@ class smith_waterman:
             )
 
         aln.info["align_params"] = dict(
-            score_matrix=self.score_matrix,
-            insertion_penalty=self.insertion_penalty,
-            extension_penalty=self.extension_penalty,
+            score_matrix=self._score_matrix,
+            insertion_penalty=self._insertion_penalty,
+            extension_penalty=self._extension_penalty,
             sw_score=score,
         )
         return aln
