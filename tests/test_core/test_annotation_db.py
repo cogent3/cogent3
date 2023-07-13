@@ -204,17 +204,31 @@ def test_gff_get_parent(gff_db, name, expected):
     assert {g["name"] for g in got} == set(expected)
 
 
-def test_gff_get_children_empty(gff_db):
+def test_gff_get_children_empty():
     """if feature has no children then should return []"""
-    got = list(gff_db.get_feature_children(name="CDS:B0019.1"))
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_children(name="childless"))
     assert got == []
 
 
-def test_gff_get_parent_empty(gff_db):
+def test_gff_get_parent_empty():
     """if feature has no parent then should return []"""
-    got = list(gff_db.get_feature_parent(name="Gene:WBGene00000138"))
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_parent(name="parentless"))
     assert got == []
 
+
+def test_gff_get_children_non_existent():
+    """if feature does not exist then should return []"""
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_children(name="nonexistendID"))
+    assert got == []
+
+def test_gff_get_parent_non_existent():
+    """if feature does not exist then should return []"""
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_parent(name="nonexistendID"))
+    assert got == []
 
 def test_gff_counts(gff_db):
     got = gff_db.biotype_counts()
@@ -302,18 +316,6 @@ def test_gb_get_parent(gb_db):
     assert parent["biotype"] != cds["biotype"]
     assert parent["biotype"] == "gene"
     assert parent["name"] == cds["name"]
-
-
-def test_gb_get_parent_empty(gb_db):
-    """if feature has no parent then should return []"""
-    got = list(gb_db.get_feature_parent(name="CNA00110"))
-    assert got == []
-
-
-def test_gb_get_child_empty(gb_db):
-    """if feature has no child then should return []"""
-    got = list(gb_db.get_feature_parent(name="CNA00110"))
-    assert got == []
 
 
 def test_protocol_adherence(gff_db, gb_db):
