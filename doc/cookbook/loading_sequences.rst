@@ -103,9 +103,12 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
     protein_seqs = [">seq1", "DEKQL-RG", ">seq2", "DDK--SRG"]
     proteins_loaded = make_aligned_seqs(protein_seqs)
     proteins_loaded.moltype
-    print(proteins_loaded)
+    proteins_loaded
+
+.. jupyter-execute::
+
     proteins_loaded = make_aligned_seqs(protein_seqs, moltype="protein")
-    print(proteins_loaded)
+    proteins_loaded
 
 .. note:: This applies to both the ``load_*`` or ``make_*`` functions.
 
@@ -131,7 +134,7 @@ From a series of strings
 
     seqs = [">seq1", "AATCG-A", ">seq2", "AATCGGA"]
     seqs_loaded = make_aligned_seqs(seqs)
-    print(seqs_loaded)
+    seqs_loaded
 
 Stripping label characters on loading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
