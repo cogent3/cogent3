@@ -13,8 +13,8 @@ Sequences and Alignments
     DNA_and_RNA_sequences
     protein_sequences
     alignments
-    annotation_db
     features
+    annotation_db
     moltypes
     alphabet
 

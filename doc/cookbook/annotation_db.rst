@@ -3,13 +3,13 @@
 
     import set_working_directory
 
+.. _anno_db:
 
 Annotation Databases
 --------------------
 
-This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the features (also known as annotations) of one or more biological sequences.
+This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the :ref:`howto-features` (also known as annotations) of one or more biological sequences.
 
-For more examples on how to use features see :ref:`intro_annotations`.
 
 What are the different types of ``AnnotationDb``?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -393,3 +393,15 @@ In the above example, the sequence name in the fasta file does not match any rec
         label_to_name=lambda x: x.split()[0],
     )
     seq.annotation_db
+    
+    
+    
+.. jupyter-execute::
+    :hide-code:
+
+    import pathlib
+
+    # clean up files
+
+    path = pathlib.Path("m-genitalium-database.gbdb")
+    path.unlink()
