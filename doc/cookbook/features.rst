@@ -90,14 +90,14 @@ We use ``add_feature`` to add a ``Feature`` to an ``Alignment``.
     aln1 = make_aligned_seqs(
         data=[["seq1", "-AAACCCCCA"], ["seq2", "TTTT--TTTT"]], array_align=False
     )
-    
+
     aln1.add_feature(
         biotype="exon",
         name="aligned_exon",
         spans=[(0, 8)],
         on_alignment=True,
     )
-    
+
 The ``Feature`` specifies that ``seqid=None``, indicating that it belongs to the alignment
 
 Via an ``AnnotationDb``
@@ -113,12 +113,12 @@ We can use ``add_feature`` to add a feature directly into an ``AnnotationDb``, a
     # init empty db and add feature
     db = BasicAnnotationDb()
     db.add_feature(seqid="seq1", biotype="exon", name="C", spans=[(45, 48)])
-    
+
     # make demo seq
     s1 = make_seq(
         "AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT", name="seq1", moltype="dna"
     )
-    
+
     # assign db to sequence
     s1.annotation_db = db
     s1.annotation_db
@@ -149,6 +149,7 @@ To load the sequence and all 40,578 features from *C. elegans* Chromosome 1, we 
 
 .. jupyter-execute::
     :raises:
+
     :hide-code:
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
@@ -206,7 +207,6 @@ We can use the ``annotate_from_gff()`` method to associate the features from a G
 
 If we know that the features and the sequence share the same coordinate space, then we only need to provide the path to the annotation file.
 
-
 .. jupyter-execute::
     :hide-code:
 
@@ -261,7 +261,7 @@ For example, first we load an alignment of the brca1 gene in primates.
         "data/primate_brca1.fasta", array_align=False, moltype="dna"
     )
     brca1_aln
-  
+
 Next, we annotate with a GFF file that contains features specific to the human gene.
     
 .. jupyter-execute::
@@ -269,7 +269,6 @@ Next, we annotate with a GFF file that contains features specific to the human g
 
     brca1_aln.annotate_from_gff("data/brca1_hsa_shortened.gff", seq_ids=["Human"])
     brca1_aln.annotation_db
-
 
 Note that the ``AnnotationDb`` is accessible via the ``Alignment`` (above) and ``Sequence`` (below) attribute.
 
@@ -301,7 +300,7 @@ We can search for a gene given its name (AKA its unique ID). For example we can 
     from cogent3 import load_seq
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
-    
+
     # note we wrap `get_features` in `list` as generator is returned
     gene = list(seq.get_features(name="WBGene00021661", biotype="gene"))
     gene
@@ -389,17 +388,16 @@ todo: ``on_alignment=False`` and dont provide seqid
 
     # add a feature to the alignment we created above on difference sequence
     aln.add_feature(biotype="gene", name="gene:101", spans=[(40, 387)], seqid="Rhesus")
-    
+
     any_feature = list(aln.get_features(on_alignment=False))
     any_feature
-      
+
 Note there are features from both Rhesus, which we just added, and Human, which we annotated above
 
 Querying for features on an ``Alignment``
 +++++++++++++++++++++++++++++++++++++++++
 
 todo: ``on_alignment=True`` and dont provide seqid
-
 
 Using ``add_feature`` we add a feature to the brca1 alignment we have been using above, by specifying ``on_alignment=True`` this feature will be on the ``Alignment``. 
 
@@ -411,14 +409,15 @@ To query for features on the alignment, we use ``get_features``, again specifyin
     from cogent3 import make_aligned_seqs
 
     # first we add the feature to the alignment
-    aln.add_feature(biotype="pseudogene", name="pseudogene1", spans=[(420, 666)], on_alignment=True)
+    aln.add_feature(
+        biotype="pseudogene", name="pseudogene1", spans=[(420, 666)], on_alignment=True
+    )
 
-    # query for features on the alignment 
+    # query for features on the alignment
     aln_features = list(aln.get_features(on_alignment=True))
     aln_features
 
 Note how even though we annotated the Human and Rhesus sequences in the above examples, only the pseudogene we added to ``Alignment`` is returned by this query.  
-
 
 Querying features that span gaps in alignments
 ++++++++++++++++++++++++++++++++++++++++++++++
@@ -476,8 +475,7 @@ Given a ``Feature``, we can directly slice its parent sequence to return its seq
         label_to_name=lambda x: x.split()[0],
         moltype="dna",
     )
-    pseudogene = list(seq.get_features(start=10148, stop=26732, biotype="pseudogene"))[0
-    ]
+    pseudogene = list(seq.get_features(start=10148, stop=26732, biotype="pseudogene"))[0]
     seq[pseudogene]
 
 .. note:: This only works for the ``Sequence`` that the ``Feature`` "belongs" to.
