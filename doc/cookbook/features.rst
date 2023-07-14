@@ -149,7 +149,6 @@ To load the sequence and all 40,578 features from *C. elegans* Chromosome 1, we 
 
 .. jupyter-execute::
     :raises:
-
     :hide-code:
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
