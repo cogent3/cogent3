@@ -12,8 +12,6 @@ import pytest
 from cogent3.parse.gff import gff_parser, parse_attributes_gff2
 
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-
 headers = [
     """##gff-version 2 
 ##source-version <source> <version text> 
@@ -151,7 +149,7 @@ class GffTest(TestCase):
 
 
 @pytest.fixture
-def multi_seqid_path(tmp_path):
+def multi_seqid_path(DATA_DIR, tmp_path):
     gff_path = DATA_DIR / "ensembl_sample.gff3"
     data = gff_path.read_text().splitlines()
     # add two new seqid's using the last 4 lines, twice
@@ -190,7 +188,7 @@ def test_no_seq_names(multi_seqid_path):
     assert got == expect
 
 
-def test_parse_field_spaces():
+def test_parse_field_spaces(DATA_DIR):
     path = DATA_DIR / "simple.gff"
     got = list(gff_parser(path))
     for record in got:

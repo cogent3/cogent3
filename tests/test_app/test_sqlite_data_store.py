@@ -25,9 +25,6 @@ from cogent3.app.sqlite_data_store import (
 from cogent3.util.table import Table
 
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture(scope="function")
 def tmp_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("sqldb")
@@ -40,7 +37,7 @@ def db_dir(tmp_dir):
 
 
 @pytest.fixture(scope="function")
-def ro_dir_dstore():
+def ro_dir_dstore(DATA_DIR):
     return DataStoreDirectory(DATA_DIR, suffix="fasta")
 
 

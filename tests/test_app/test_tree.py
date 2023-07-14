@@ -12,7 +12,7 @@ from cogent3.core.tree import PhyloNode, TreeNode
 from cogent3.evolve.fast_distance import DistanceMatrix
 
 
-DATADIR = pathlib.Path(__file__).parent.parent / "data"
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 class TestTree(TestCase):
@@ -50,7 +50,7 @@ class TestTree(TestCase):
 
     def test_quick_tree(self):
         """correctly calc a nj tree"""
-        path = DATADIR / "brca1_5.paml"
+        path = DATA_DIR / "brca1_5.paml"
         aln = load_aligned_seqs(path, moltype=DNA)
         fast_slow_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         dist_matrix = fast_slow_dist(aln)
@@ -60,7 +60,7 @@ class TestTree(TestCase):
 
     def test_composable_apps(self):
         """checks the ability of these two apps(fast_slow_dist and quick_tree) to communicate"""
-        path = DATADIR / "brca1_5.paml"
+        path = DATA_DIR / "brca1_5.paml"
         aln1 = load_aligned_seqs(path, moltype=DNA)
         calc_dist = dist.fast_slow_dist(fast_calc="hamming", moltype="dna")
         quick = tree_app.quick_tree(drop_invalid=False)
@@ -243,8 +243,8 @@ def test_interpret_tree_arg_none():
 @pytest.mark.parametrize(
     "tree",
     (
-        DATADIR / "brca1_5.tree",
-        str(DATADIR / "brca1_5.tree"),
+        DATA_DIR / "brca1_5.tree",
+        str(DATA_DIR / "brca1_5.tree"),
         "(a,b,c)",
         make_tree(tip_names=["a", "b", "c"]),
     ),

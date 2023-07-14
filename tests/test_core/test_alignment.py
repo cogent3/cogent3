@@ -58,9 +58,6 @@ from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
 
 
-DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
-
-
 class alignment_tests(TestCase):
     """Tests of top-level functions."""
 
@@ -3172,14 +3169,14 @@ def test_annotate_matches_to():
 
 
 @pytest.fixture(scope="function")
-def gb_db():
+def gb_db(DATA_DIR):
     from cogent3.core.annotation_db import load_annotations
 
     return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
 
 @pytest.fixture(scope="function")
-def gff_db():
+def gff_db(DATA_DIR):
     from cogent3.core.annotation_db import load_annotations
 
     return load_annotations(path=DATA_DIR / "simple.gff")
@@ -3263,7 +3260,7 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
         seqcoll_db.copy_annotations({"a": "ACGGT"})
 
 
-def test_deepcopy_with_features():
+def test_deepcopy_with_features(DATA_DIR):
     """correctly deepcopy Aligned objects in an alignment"""
     path = DATA_DIR / "brca1_5.paml"
     # generates an annotatable Alignment object

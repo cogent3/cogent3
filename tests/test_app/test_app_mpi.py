@@ -6,9 +6,6 @@ from cogent3 import get_app, open_data_store
 from cogent3.util import parallel
 
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture(scope="function")
 def tmp_dir(tmpdir_factory):
     return Path(tmpdir_factory.mktemp("mpirun"))
