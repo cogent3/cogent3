@@ -19,22 +19,19 @@ from cogent3.util.io import (
 )
 
 
-DATADIR = pathlib.Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture
 def tmp_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("test_io")
 
 
 @pytest.fixture
-def home_file() -> str:
+def home_file(DATA_DIR) -> str:
     """makes a temporary directory with file"""
     import tempfile
 
     HOME = pathlib.Path("~")
     fn = "sample.tsv"
-    contents = (DATADIR / fn).read_text()
+    contents = (DATA_DIR / fn).read_text()
     with tempfile.TemporaryDirectory(dir=HOME.expanduser()) as dn:
         outpath = HOME / pathlib.Path(dn).name / fn
         outpath.expanduser().write_text(contents)
@@ -42,9 +39,9 @@ def home_file() -> str:
 
 
 @pytest.mark.parametrize("transform", (str, pathlib.Path))
-def test_open_home(home_file, transform):
+def test_open_home(DATA_DIR, home_file, transform):
     """expands tilde for opening / writing to home"""
-    data_path = DATADIR / "sample.tsv"
+    data_path = DATA_DIR / "sample.tsv"
     expect = data_path.read_text()
     with open_(transform(home_file)) as infile:
         got = infile.read()
@@ -61,9 +58,9 @@ def test_does_not_write_if_exception(tmp_dir):
     assert not test_filepath.exists()
 
 
-def test_writes_compressed_formats(tmp_dir):
+def test_writes_compressed_formats(DATA_DIR, tmp_dir):
     """correctly writes / reads different compression formats"""
-    fpath = DATADIR / "sample.tsv"
+    fpath = DATA_DIR / "sample.tsv"
     expect = pathlib.Path(fpath).read_text()
     for suffix in ["gz", "bz2", "zip"]:
         outpath = tmp_dir / f"{fpath.name}.{suffix}"
@@ -312,7 +309,7 @@ def test_open_zip_multi(tmp_dir):
     "mode",
     ("r", "rb", "rt", None),
 )
-def test_open_url(mode):
+def test_open_url(DATA_DIR, mode):
     """different open mode's all work"""
     # None value for open_url mode defaults to "r"
     file_name = "gff2_test.gff"
@@ -320,7 +317,7 @@ def test_open_url(mode):
         "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
     )
 
-    with open_(DATADIR / file_name, mode=mode) as infile:
+    with open_(DATA_DIR / file_name, mode=mode) as infile:
         local_data = infile.read()
 
     with open_url(remote_root.format(file_name), mode=mode) as infile:
@@ -334,10 +331,10 @@ def test_open_url(mode):
     assert remote_data.splitlines() == local_data.splitlines()
 
 
-def test_open_url_local():
+def test_open_url_local(DATA_DIR):
     """using file:///"""
     file_name = "gff2_test.gff"
-    local_path = DATADIR / file_name
+    local_path = DATA_DIR / file_name
     with open_(local_path) as infile:
         local_data = infile.read()
 
@@ -348,14 +345,14 @@ def test_open_url_local():
     assert remote_data.splitlines() == local_data.splitlines()
 
 
-def test_open_url_compressed():
+def test_open_url_compressed(DATA_DIR):
     """comparing compressed file handling"""
     file_name = "formattest.fasta.gz"
     remote_root = (
         "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/{}"
     )
 
-    with open_(DATADIR / file_name) as infile:
+    with open_(DATA_DIR / file_name) as infile:
         local_data = infile.read()
 
     with open_url(remote_root.format(file_name)) as infile:

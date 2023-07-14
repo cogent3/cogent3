@@ -8,9 +8,6 @@ from cogent3.core.tree import PhyloNode
 from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
 
 
-DATADIR = pathlib.Path(__file__).parent.parent / "data"
-
-
 sample = """
 (
 (
@@ -279,9 +276,9 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(p), "((xyz):2)abc:3;")
 
 
-def test_stores_nhx_data():
+def test_stores_nhx_data(DATA_DIR):
     """capture extended newick data into <node>.params['other']"""
-    with open(DATADIR / "nhx.tree") as path:
+    with open(DATA_DIR / "nhx.tree") as path:
         got = DndParser(path)
         rodent = got.get_connecting_node("Mouse", "Rat")
         assert set(rodent.params["other"]) == {

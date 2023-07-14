@@ -32,9 +32,6 @@ from cogent3.util.table import Table
 from cogent3.util.union_dict import UnionDict
 
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture(scope="function")
 def tmp_dir(tmp_path_factory):
     return Path(tmp_path_factory.mktemp("datastore"))
@@ -48,7 +45,7 @@ def workingdir(tmp_dir, monkeypatch):
 
 
 @pytest.fixture(scope="function")
-def fasta_dir(tmp_dir):
+def fasta_dir(DATA_DIR, tmp_dir):
     tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
     fasta_dir = tmp_dir / "fasta"
@@ -88,7 +85,7 @@ def w_dstore(write_dir):
 
 
 @pytest.fixture(scope="function")
-def nc_dstore(nc_dir):
+def nc_dstore(DATA_DIR, nc_dir):
     dstore = DataStoreDirectory(nc_dir, suffix="fasta", mode=OVERWRITE)
     # write one log file
     log_filename = "scitrack.log"
@@ -126,7 +123,7 @@ def nc_objects():
 
 
 @pytest.fixture(scope="function")
-def Sample_oldDirectoryDataStore(tmp_dir):
+def Sample_oldDirectoryDataStore(DATA_DIR, tmp_dir):
     tmp_dir = Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
     old_dir = tmp_dir / "old_dir"
@@ -138,7 +135,7 @@ def Sample_oldDirectoryDataStore(tmp_dir):
 
 
 @pytest.fixture(scope="session")
-def log_data():
+def log_data(DATA_DIR):
     path = DATA_DIR / "scitrack.log"
     return path.read_text()
 
@@ -157,14 +154,14 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
 
 
 @pytest.fixture(scope="function")
-def tinydbfile_locked(tmp_dir):
+def tinydbfile_locked(DATA_DIR, tmp_dir):
     path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
     return Path(path)
 
 
 @pytest.fixture(scope="function")
-def tinydbfile_unlocked(tmp_dir):
+def tinydbfile_unlocked(DATA_DIR, tmp_dir):
     try:
         from tinydb import Query, TinyDB
         from tinydb.middlewares import CachingMiddleware
@@ -225,7 +222,7 @@ def test_convert_tinydb_unlocked_to_sqlite(tmp_dir, dest, tinydbfile_unlocked):
     assert dstore_sqlite._lock_id == None
 
 
-def test_convert_tinydb_to_sqlite_error(tmp_dir):
+def test_convert_tinydb_to_sqlite_error(DATA_DIR, tmp_dir):
     path = tmp_dir / "sample_locked.tinydb"
     shutil.copy(DATA_DIR / path.name, path)
     dest = tmp_dir / "data1.sqlitedb"
@@ -238,11 +235,12 @@ def test_convert_tinydb_to_sqlite_error(tmp_dir):
 @pytest.mark.parametrize(
     "orig,num_logs",
     (
-        (DATA_DIR / "sample_locked.tinydb", 1),
-        (DATA_DIR / "sample_locked_w_log.tinydb", 2),
+        ("sample_locked.tinydb", 1),
+        ("sample_locked_w_log.tinydb", 2),
     ),
 )
-def test_convert_tinydbs_to_sqlite(tmp_dir, orig, num_logs):
+def test_convert_tinydbs_to_sqlite(DATA_DIR, tmp_dir, orig, num_logs):
+    orig = DATA_DIR / orig
     src = tmp_dir / orig.name
     shutil.copy(orig, src)
     dest = tmp_dir / "data1.sqlitedb"

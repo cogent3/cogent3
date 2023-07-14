@@ -6,9 +6,6 @@ from cogent3 import make_tree
 from cogent3.phylo.tree_distance import lin_rajan_moret
 
 
-DATA_DIR = pathlib.Path(__file__).parent / "data"
-
-
 def test_different_trees():
     a = make_tree(treestring="(1,(((2,3),4),(5,((6,(7,(8,9))),(10,11)))),12);")
     b = make_tree(treestring="(1,((((2,3),4),5),((6,7),((8,9),(10,11)))),12);")
@@ -16,9 +13,9 @@ def test_different_trees():
     assert distance == 8
 
 
-def test_dist_matches_original_implementation_small_tree():
+def test_dist_matches_original_implementation_small_tree(DATA_DIR):
     path, expect = DATA_DIR / "match_dist_100.tree", 1402
-    data = pathlib.Path(path).read_text().splitlines()
+    data = path.read_text().splitlines()
     t1 = make_tree(data[0])
     t2 = make_tree(data[1])
     distance = lin_rajan_moret(t1, t2)
@@ -27,7 +24,7 @@ def test_dist_matches_original_implementation_small_tree():
 
 
 @pytest.mark.slow
-def test_dist_matches_original_implementation_bigtree():
+def test_dist_matches_original_implementation_bigtree(DATA_DIR):
     path, expect = DATA_DIR / "match_dist_2000.tree", 17037
     data = pathlib.Path(path).read_text().splitlines()
     t1 = make_tree(data[0])

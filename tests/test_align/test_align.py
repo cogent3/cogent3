@@ -19,8 +19,6 @@ from cogent3.align.align import (
 from cogent3.evolve.models import HKY85, get_model
 
 
-DATADIR = pathlib.Path(__file__).parent.parent / "data"
-
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
     model_gaps=False, equal_motif_probs=True
 )
@@ -302,9 +300,9 @@ class HirschbergTestCase(MultipleAlignmentTestCase):
 
 
 @pytest.fixture(scope="session")
-def seqs():
-    tree = load_tree(DATADIR / "brca1_5.tree")
-    aln = load_aligned_seqs(DATADIR / "brca1.fasta", moltype="dna")
+def seqs(DATA_DIR):
+    tree = load_tree(DATA_DIR / "brca1_5.tree")
+    aln = load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna")
     seqs = aln[200:1200].take_seqs(tree.get_tip_names()).degap()
     return seqs
 
