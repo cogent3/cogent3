@@ -153,11 +153,17 @@ class Feature:
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
 
-    def get_children(self, biotype: Optional[str] = None):
+    def get_children(self, biotype: Optional[str] = None, **kwargs):
         """generator returns sub-features of self optionally matching biotype"""
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_children(biotype=biotype, name=self.name):
+        for child in db.get_feature_children(
+            biotype=biotype,
+            name=self.name,
+            start=self.map.start,
+            end=self.map.end,
+            **kwargs,
+        ):
             yield make_feature(feature=child)
 
     def get_parent(self, biotype: Optional[str] = None):
