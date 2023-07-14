@@ -163,7 +163,8 @@ class SupportsFeatures(
     SerialisableType,
     typing.Sized,
     typing.Protocol,
-):  # should be defined centrally
+):  # pragma: no cover
+    # should be defined centrally
     def __len__(self):
         # the number of records
         ...
