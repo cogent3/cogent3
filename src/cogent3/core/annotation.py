@@ -10,35 +10,6 @@ from cogent3.util.misc import get_object_provenance
 from .location import Map
 
 
-class _Serialisable:
-    def to_rich_dict(self):
-        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
-        data = copy.deepcopy(self._serialisable)
-        # the first constructor argument will be the instance recreating
-        # so we pop out the two possible keys
-        data.pop("parent", None)
-        data.pop("seq", None)
-        if "original" in data:
-            data.pop("original")
-        # convert the map to coordinates
-        data["map"] = data.pop("map").to_rich_dict()
-        data = dict(annotation_construction=data)
-        data["type"] = get_object_provenance(self)
-        data["version"] = __version__
-
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-            if annotations:
-                data["annotations"] = annotations
-        except AttributeError:
-            pass
-
-        return data
-
-    def to_json(self):
-        return json.dumps(self.to_rich_dict())
-
-
 # todo gah implement __repr__ and __str__ methods
 # todo gah write docstrings!
 class Feature:
@@ -153,18 +124,26 @@ class Feature:
         [(start1, end1), ...]"""
         return self.map.get_coordinates()
 
-    def get_children(self, biotype: Optional[str] = None):
+    def get_children(self, biotype: Optional[str] = None, **kwargs):
         """generator returns sub-features of self optionally matching biotype"""
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_children(biotype=biotype, name=self.name):
+        for child in db.get_feature_children(
+            biotype=biotype,
+            name=self.name,
+            start=self.map.start,
+            end=self.map.end,
+            **kwargs,
+        ):
             yield make_feature(feature=child)
 
-    def get_parent(self, biotype: Optional[str] = None):
+    def get_parent(self, **kwargs):
         """generator returns parent features of self optionally matching biotype"""
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_parent(biotype=biotype, name=self.name):
+        for child in db.get_feature_parent(
+            name=self.name, start=self.map.start, end=self.map.end, **kwargs
+        ):
             yield make_feature(feature=child)
 
     def union(self, features: Iterable):

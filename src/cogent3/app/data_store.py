@@ -398,10 +398,11 @@ class DataStoreDirectory(DataStoreABC):
 
         sub_dirs = [_NOT_COMPLETED_TABLE, _LOG_TABLE, _MD5_TABLE]
         source = self.source
-        if mode is READONLY and not source.exists():
-            raise IOError(f"'{source}' does not exist")
-        elif mode is READONLY:
-            return
+        if mode is READONLY:
+            if not source.exists():
+                raise IOError(f"'{source}' does not exist")
+            else:
+                return
 
         if not source.exists():
             source.mkdir(parents=True, exist_ok=True)
@@ -411,12 +412,12 @@ class DataStoreDirectory(DataStoreABC):
 
     @property
     def source(self) -> str | Path:
-        """string that references connecting to data store, override in subclass constructor"""
+        """string that references the data store, override in subclass constructor"""
         return self._source
 
     @property
     def mode(self) -> Mode:
-        """string that references datastore mode, override in override in subclass constructor"""
+        """string that references datastore mode, override in subclass constructor"""
         return self._mode
 
     @property

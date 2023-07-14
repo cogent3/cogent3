@@ -70,7 +70,7 @@ class FeatureDataType(typing.TypedDict):
 
 
 @typing.runtime_checkable
-class SerialisableType(typing.Protocol):
+class SerialisableType(typing.Protocol):  # pragma: no cover
     def to_rich_dict(self) -> dict:
         ...
 
@@ -82,7 +82,8 @@ class SerialisableType(typing.Protocol):
 
 
 @typing.runtime_checkable
-class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
+class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
+    # should be defined centrally
     def get_features_matching(
         self,
         *,
@@ -98,12 +99,12 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
         ...
 
     def get_feature_children(
-        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None
+        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None, **kwargs
     ) -> typing.List[FeatureDataType]:
         ...
 
     def get_feature_parent(
-        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None
+        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None, **kwargs
     ) -> typing.List[FeatureDataType]:
         ...
 
@@ -121,7 +122,8 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 
 
 @typing.runtime_checkable
-class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
+class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
+    # should be defined centrally
     def add_feature(
         self,
         *,
@@ -161,7 +163,7 @@ class SupportsFeatures(
     SerialisableType,
     typing.Sized,
     typing.Protocol,
-):
+):  # should be defined centrally
     def __len__(self):
         # the number of records
         ...
@@ -673,6 +675,7 @@ class SqliteAnnotationDbMixin:
                 column="parent_id",
                 name=f"%{name}%",
                 biotype=biotype,
+                **kwargs,
             ):
                 result.pop("parent_id")  # remove invalid field for the FeatureDataType
                 yield result
@@ -686,7 +689,10 @@ class SqliteAnnotationDbMixin:
             if table_name == "user":
                 columns += ("on_alignment",)
             for result in self._get_feature_by_id(
-                table_name=table_name, columns=columns, column="name", name=f"%{name}%"
+                table_name=table_name,
+                columns=columns,
+                column="name",
+                name=f"%{name}%",
             ):
                 # multiple values for parent means this is better expressed
                 # as an OR clause
@@ -1187,7 +1193,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 # to establish the Parent of a feature is by knowing what other
 # features have the same ID and then which of those are candidates to contain
 # a feature based on the hierarchy of relationships.
-# In other words, we assume that children have the same ID as their parent BUT but
+# In other words, we assume that children have the same ID as their parent BUT
 # their span lies within the parents. Conversely, for a parent query, the parent
 # has the same ID as their child but their span contains the childs.
 
@@ -1317,6 +1323,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # children must lie within the parent coordinates
+        if start is None or end is None:
+            name = self.__class__.__name__
+            msg = f"coordinates required to query children for {name!r}"
+            raise ValueError(msg)
+
         for table_name in self.table_names:
             columns = (
                 "seqid",
@@ -1346,6 +1357,8 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 cstart, cend = feat.pop("start"), feat.pop("end")
                 if not (start <= cstart < end and start < cend <= end):
                     continue
+
+                feat.pop("parent_id")  # remove invalid field for the FeatureDataType
                 yield feat
 
     def get_feature_parent(
@@ -1356,6 +1369,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         end: OptionalInt = None,
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
+        if start is None or end is None:
+            name = self.__class__.__name__
+            msg = f"coordinates required to query parent for {name!r}"
+            raise ValueError(msg)
+
         # parent must match or lie outside the coordinates
         for table_name in self.table_names:
             columns = (
@@ -1386,6 +1404,8 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 cstart, cend = feat.pop("start"), feat.pop("end")
                 if cstart > start or end > cend:
                     continue
+
+                feat.pop("parent_id")  # remove invalid field for the FeatureDataType
                 yield feat
 
 

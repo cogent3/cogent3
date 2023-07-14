@@ -935,3 +935,13 @@ def test_load_anns_with_write(DATA_DIR, tmp_dir):
     got_data = got.to_rich_dict()
     expect_data = expect.to_rich_dict()
     assert got_data["tables"] == expect_data["tables"]
+
+
+def test_gbdb_get_children_fails_no_coords(gb_db):
+    with pytest.raises(ValueError):
+        _ = list(gb_db.get_feature_children(name="CNA00110"))
+
+
+def test_gbdb_get_parent_fails_no_coords(gb_db):
+    with pytest.raises(ValueError):
+        _ = list(gb_db.get_feature_parent(name="CNA00110"))
