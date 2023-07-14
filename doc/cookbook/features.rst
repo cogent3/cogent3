@@ -736,7 +736,7 @@ How to get the positions of a feature as one span
 Behaviour of annotations on nucleic acid sequences
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
-Reverse complementing a sequence **does not** reverse features. Features are considered to have strand specific meaning (.e.g CDS, exons) and so they retain the reference to the frame for which they were defined.
+Reverse complementing a sequence **does not** reverse features. Features are considered to have strand specific meaning (e.g. CDS, exons) and so they retain the reference to the frame for which they were defined.
 
 .. jupyter-execute::
     :raises:
