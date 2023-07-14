@@ -43,9 +43,6 @@ from cogent3.core.sequence import (
 from cogent3.util.misc import get_object_provenance
 
 
-DATADIR = pathlib.Path(__file__).parent.parent / "data"
-
-
 class SequenceTests(TestCase):
     """Tests of the Sequence class."""
 
@@ -2041,13 +2038,13 @@ def one_seq():
 
 
 @pytest.fixture(scope="session")
-def worm_seq_path():
-    return DATADIR / "c_elegans_WS199_dna_shortened.fasta"
+def worm_seq_path(DATA_DIR):
+    return DATA_DIR / "c_elegans_WS199_dna_shortened.fasta"
 
 
 @pytest.fixture(scope="session")
-def worm_gff_path():
-    return DATADIR / "c_elegans_WS199_shortened_gff.gff3"
+def worm_gff_path(DATA_DIR):
+    return DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
 
 
 def test_annotate_from_gff(worm_seq_path, worm_gff_path):
@@ -2216,7 +2213,7 @@ def test_absolute_relative_roundtrip_reverse(
     assert (view[rel_val]).value == view[value].value
 
 
-def test_annotate_gff_nested_features():
+def test_annotate_gff_nested_features(DATA_DIR):
     """correctly annotate a sequence with nested features"""
     # the synthetic example
     #          1111111111222222222333333333334
@@ -2230,7 +2227,7 @@ def test_annotate_gff_nested_features():
     #                       *****     exon
     # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
     seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
-    gff3_path = DATADIR / "ensembl_sample.gff3"
+    gff3_path = DATA_DIR / "ensembl_sample.gff3"
     seq.annotate_from_gff(gff3_path)
     # we have 8 records in the gff file
     assert seq.annotation_db.num_matches() == 8
@@ -2323,11 +2320,11 @@ def test_to_json(cls, with_offset):
     assert got == expect
 
 
-def test_offset_with_multiple_slices():
+def test_offset_with_multiple_slices(DATA_DIR):
     from cogent3.util.deserialise import deserialise_object
 
     seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
-    gff3_path = DATADIR / "ensembl_sample.gff3"
+    gff3_path = DATA_DIR / "ensembl_sample.gff3"
     seq.annotate_from_gff(gff3_path)
     rd = seq[2:].to_rich_dict()
     s1 = deserialise_object(rd)
@@ -2384,8 +2381,8 @@ def test_sliced_seqview_rich_dict(reverse):
     assert rd["offset"] == 2
 
 
-def test_get_drawable():
-    seq = cogent3.load_seq(DATADIR / "annotated_seq.gb")
+def test_get_drawable(DATA_DIR):
+    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
     seq = seq[2000:4000]
     biotypes = "CDS", "gene", "mRNA"
     for feat in seq.get_features(biotype=biotypes, allow_partial=True):

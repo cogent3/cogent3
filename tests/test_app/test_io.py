@@ -7,8 +7,6 @@ import pickle
 import shutil
 import tempfile
 
-from pathlib import Path
-
 import numpy
 import pytest
 
@@ -33,9 +31,6 @@ from cogent3.util.deserialise import deserialise_object
 from cogent3.util.table import Table
 
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture(scope="function")
 def tmp_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("io")
@@ -54,8 +49,8 @@ def workingdir(tmp_dir, monkeypatch):
 
 
 @pytest.fixture(scope="function")
-def fasta_dir(tmp_dir):
-    tmp_dir = Path(tmp_dir)
+def fasta_dir(DATA_DIR, tmp_dir):
+    tmp_dir = pathlib.Path(tmp_dir)
     filenames = DATA_DIR.glob("*.fasta")
     fasta_dir = tmp_dir / "fasta"
     fasta_dir.mkdir(parents=True, exist_ok=True)
@@ -107,7 +102,7 @@ def test_source_proxy_simple(fasta_dir):
 
     @define_app
     def get_bytes(path: IdentifierType) -> bytes:
-        path = Path(path)
+        path = pathlib.Path(path)
         return path.read_bytes()
 
     datastore = DataStoreDirectory(fasta_dir, suffix="fasta")
@@ -127,7 +122,7 @@ def test_source_proxy_simple(fasta_dir):
 
 
 @pytest.mark.parametrize("suffix", ("nex", "paml", "fasta"))
-def test_load_aligned(suffix):
+def test_load_aligned(DATA_DIR, suffix):
     """should handle nexus too"""
     nexus_paths = DataStoreDirectory(DATA_DIR, suffix=suffix, limit=2)
     loader = io_app.load_aligned(format=suffix)
@@ -136,7 +131,7 @@ def test_load_aligned(suffix):
         assert isinstance(result, ArrayAlignment)
 
 
-def test_load_unaligned():
+def test_load_unaligned(DATA_DIR):
     """load_unaligned returns degapped sequence collections"""
     fasta_paths = DataStoreDirectory(DATA_DIR, suffix=".fasta", limit=2)
     fasta_loader = io_app.load_unaligned(format="fasta")
@@ -497,11 +492,11 @@ def test_write_db_parallel(tmp_dir, fasta_dir):
     process = reader + aligner + writer
 
     _ = process.apply_to(members, show_progress=False, parallel=True, cleanup=True)
-    expect = [str(Path(m.data_store.source) / m.unique_id) for m in out_dstore]
+    expect = [str(pathlib.Path(m.data_store.source) / m.unique_id) for m in out_dstore]
 
     # now get read only and check what's in there
     result = open_data_store(out_dstore.source, suffix="fasta")
-    got = [str(Path(m.data_store.source) / m.unique_id) for m in result]
+    got = [str(pathlib.Path(m.data_store.source) / m.unique_id) for m in result]
     assert got != []
     assert got == expect
 
@@ -644,7 +639,7 @@ def test_open_zipped(zipped_full):
 
 
 @pytest.fixture(scope="function")
-def relpath():
+def relpath(DATA_DIR):
     # express the data path as relative to user home
     # have to make a tempdir for this to work in github actions
     data = (DATA_DIR / "brca1_5.paml").read_text()

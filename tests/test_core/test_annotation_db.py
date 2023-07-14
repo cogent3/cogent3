@@ -1,5 +1,3 @@
-import pathlib
-
 import numpy
 import pytest
 
@@ -17,23 +15,20 @@ from cogent3.parse.genbank import MinimalGenbankParser
 from cogent3.util import deserialise
 
 
-DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture(scope="function")
-def gff_db():
+def gff_db(DATA_DIR):
     path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
     return load_annotations(path=path)
 
 
 @pytest.fixture(scope="function")
-def gff_small_db():
+def gff_small_db(DATA_DIR):
     path = DATA_DIR / "simple.gff"
     return load_annotations(path=path)
 
 
 @pytest.fixture()
-def seq_db():
+def seq_db(DATA_DIR):
     seq = load_seq(DATA_DIR / "c_elegans_WS199_dna_shortened.fasta", moltype="dna")
     db = load_annotations(path=DATA_DIR / "c_elegans_WS199_shortened_gff.gff3")
 
@@ -54,7 +49,7 @@ def anno_db() -> BasicAnnotationDb:
 
 
 @pytest.fixture()
-def simple_seq_gff_db() -> Sequence:
+def simple_seq_gff_db(DATA_DIR) -> Sequence:
     seq = Sequence("ATTGTACGCCTTTTTTATTATT", name="test_seq")
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     return seq
@@ -204,28 +199,28 @@ def test_gff_get_parent(gff_db, name, expected):
     assert {g["name"] for g in got} == set(expected)
 
 
-def test_gff_get_children_empty():
+def test_gff_get_children_empty(DATA_DIR):
     """if feature has no children then should return []"""
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_children(name="childless"))
     assert got == []
 
 
-def test_gff_get_parent_empty():
+def test_gff_get_parent_empty(DATA_DIR):
     """if feature has no parent then should return []"""
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_parent(name="parentless"))
     assert got == []
 
 
-def test_gff_get_children_non_existent():
+def test_gff_get_children_non_existent(DATA_DIR):
     """if feature does not exist then should return []"""
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_children(name="nonexistendID"))
     assert got == []
 
 
-def test_gff_get_parent_non_existent():
+def test_gff_get_parent_non_existent(DATA_DIR):
     """if feature does not exist then should return []"""
     db = load_annotations(path=DATA_DIR / "simple2.gff")
     got = list(db.get_feature_parent(name="nonexistendID"))
@@ -276,11 +271,11 @@ def test_empty_data():
 
 # testing GenBank files
 @pytest.fixture(scope="session")
-def gb_db():
+def gb_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
 
-def test_load_annotations_multi():
+def test_load_annotations_multi(DATA_DIR):
     one = load_annotations(path=DATA_DIR / "simple.gff")
     two = load_annotations(path=DATA_DIR / "simple2.gff")
     expect = len(one) + len(two)
@@ -459,7 +454,7 @@ def test_get_features_matching_matching_features(anno_db: GffAnnotationDb, seq):
     assert len(got) == 2
 
 
-def test_annotate_from_gff(seq):
+def test_annotate_from_gff(DATA_DIR, seq):
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
 
     got = list(seq.get_features(biotype="exon"))
@@ -472,7 +467,7 @@ def test_annotate_from_gff(seq):
     assert len(got) == 1
 
 
-def test_get_features_matching_start_stop(seq):
+def test_get_features_matching_start_stop(DATA_DIR, seq):
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     got = list(seq.get_features(start=2, stop=10, allow_partial=True))
     assert len(got) == 4
@@ -548,7 +543,7 @@ def test_get_features_matching_multiple_biotype_set(
         assert len(where_1) + len(where_2) == len(in_both)
 
 
-def test_get_features_matching_start_stop_seqview(seq):
+def test_get_features_matching_start_stop_seqview(DATA_DIR, seq):
     """testing that get_features_matching adjusts"""
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     seq_features = list(seq.get_features(start=0, stop=3, allow_partial=True))
@@ -662,14 +657,14 @@ def test__getitem__(simple_seq_gff_db):
     )
 
 
-def test_annotate_from_gff_multiple_calls(seq):
+def test_annotate_from_gff_multiple_calls(DATA_DIR, seq):
     """5 records in each gff file, total features on seq should be 10"""
     seq.annotate_from_gff(DATA_DIR / "simple.gff")
     seq.annotate_from_gff(DATA_DIR / "simple2.gff")
     assert len(list(seq.get_features())) == 10
 
 
-def test_sequence_collection_annotate_from_gff():
+def test_sequence_collection_annotate_from_gff(DATA_DIR):
     """providing a seqid to SequenceCollection.annotate_from_gff will
     annotate the SequenceCollection, and the Sequence. Both of these will point
     to the same AnnotationDb instance
@@ -699,7 +694,7 @@ def test_sequence_collection_annotate_from_gff():
     assert not got
 
 
-def test_seq_coll_query():
+def test_seq_coll_query(DATA_DIR):
     """obtain same results when querying from collection as from seq"""
     seqs = {"test_seq": "ATCGATCGATCG", "test_seq2": "GATCGATCGATC"}
     seq_coll = SequenceCollection(seqs)
@@ -907,7 +902,7 @@ def _custom_namer(data):
     return ["default name"]
 
 
-def test_gb_namer():
+def test_gb_namer(DATA_DIR):
     path = DATA_DIR / "annotated_seq.gb"
     got = list(MinimalGenbankParser(path.read_text().splitlines()))
     data = got[0]["features"]
@@ -929,7 +924,7 @@ def tmp_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("annotations")
 
 
-def test_load_anns_with_write(tmp_dir):
+def test_load_anns_with_write(DATA_DIR, tmp_dir):
     inpath = DATA_DIR / "simple.gff"
     outpath = tmp_dir / "simple.gffdb"
     orig = load_annotations(path=inpath, write_path=outpath)
@@ -940,3 +935,13 @@ def test_load_anns_with_write(tmp_dir):
     got_data = got.to_rich_dict()
     expect_data = expect.to_rich_dict()
     assert got_data["tables"] == expect_data["tables"]
+
+
+def test_gbdb_get_children_fails_no_coords(gb_db):
+    with pytest.raises(ValueError):
+        _ = list(gb_db.get_feature_children(name="CNA00110"))
+
+
+def test_gbdb_get_parent_fails_no_coords(gb_db):
+    with pytest.raises(ValueError):
+        _ = list(gb_db.get_feature_parent(name="CNA00110"))

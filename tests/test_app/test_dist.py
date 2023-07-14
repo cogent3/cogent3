@@ -29,8 +29,6 @@ from cogent3.evolve.fast_distance import DistanceMatrix, HammingPair, TN93Pair
 from cogent3.maths.distance_transform import jaccard
 
 
-DATADIR = pathlib.Path(__file__).parent.parent / "data"
-
 _seqs1 = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
     "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
@@ -465,9 +463,9 @@ def test_approx_jc69_vals(_seqs1_collection):
         assert got == expect
 
 
-def test_symmetry_of_dists():
+def test_symmetry_of_dists(DATA_DIR):
     """distances are symmetric"""
-    seqs = load_aligned_seqs(DATADIR / "primate_brca1.fasta", moltype="dna")
+    seqs = load_aligned_seqs(DATA_DIR / "primate_brca1.fasta", moltype="dna")
     dists = seqs.distance_matrix(calc="pdist")
     app = approx_jc69()
     got = app(dists)

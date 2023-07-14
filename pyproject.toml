@@ -74,9 +74,9 @@ doc  = ["click==8.1.4",
         "pillow",
         "plotly",
         "psutil",
-        "sphinx>6.0",
+        "sphinx",
         "sphinx-autobuild",
-        "sphinx_book_theme",
+        "pydata_sphinx_theme",
         "sphinx_panels",
         "sphinxcontrib-bibtex"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
@@ -106,9 +106,9 @@ dev = ["black==23.3.0",
        "pytest-cov",
        "pytest-xdist",
        "scriv",
-       "sphinx>6.0",
+       "sphinx",
        "sphinx-autobuild",
-       "sphinx_book_theme",
+       "pydata_sphinx_theme",
        "sphinx_panels",
        "sphinxcontrib-bibtex"]
 

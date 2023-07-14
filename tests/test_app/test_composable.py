@@ -1,5 +1,4 @@
 import inspect
-import os
 import pickle
 import shutil
 
@@ -49,16 +48,13 @@ from cogent3.app.typing import (
 from cogent3.core.alignment import Alignment, SequenceCollection
 
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture(scope="function")
 def tmp_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("datastore")
 
 
 @pytest.fixture(scope="function")
-def fasta_dir(tmp_dir):
+def fasta_dir(DATA_DIR, tmp_dir):
     filenames = DATA_DIR.glob("*.fasta")
     fasta_dir = tmp_dir / "fasta"
     fasta_dir.mkdir(parents=True, exist_ok=True)
@@ -103,7 +99,7 @@ def nc_objects():
 
 
 @pytest.fixture(scope="function")
-def log_data():
+def log_data(DATA_DIR):
     path = DATA_DIR / "scitrack.log"
     return path.read_text()
 
@@ -296,7 +292,7 @@ def test_disconnect():
     __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
 
 
-def test_as_completed():
+def test_as_completed(DATA_DIR):
     """correctly applies iteratively"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = get_app("load_unaligned", format="fasta", moltype="dna")
@@ -328,7 +324,7 @@ def test_as_completed():
 
 
 @pytest.mark.parametrize("klass", (DataStoreDirectory,))
-def test_apply_to_strings(tmp_dir, klass):
+def test_apply_to_strings(DATA_DIR, tmp_dir, klass):
     """apply_to handles strings as paths"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     dstore = [str(m) for m in dstore]
@@ -359,7 +355,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
         process.apply_to(dstore)
 
 
-def test_apply_to_logging(tmp_dir):
+def test_apply_to_logging(DATA_DIR, tmp_dir):
     """correctly creates log file"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -372,7 +368,7 @@ def test_apply_to_logging(tmp_dir):
     assert len(process.data_store.logs) == 1
 
 
-def test_apply_to_logger(tmp_dir):
+def test_apply_to_logger(DATA_DIR, tmp_dir):
     """correctly uses user provided logger"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     LOGGER = CachingLogger()
@@ -386,7 +382,7 @@ def test_apply_to_logger(tmp_dir):
 
 
 @pytest.mark.parametrize("logger_val", (True, "somepath.log"))
-def test_apply_to_invalid_logger(tmp_dir, logger_val):
+def test_apply_to_invalid_logger(DATA_DIR, tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -398,7 +394,7 @@ def test_apply_to_invalid_logger(tmp_dir, logger_val):
         process.apply_to(dstore, show_progress=False, logger=logger_val)
 
 
-def test_apply_to_input_only_not_completed(nc_dstore, tmp_dir):
+def test_apply_to_input_only_not_completed(DATA_DIR, nc_dstore, tmp_dir):
     """correctly skips notcompleted"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     # trigger creation of notcompleted
@@ -414,7 +410,7 @@ def test_apply_to_input_only_not_completed(nc_dstore, tmp_dir):
     assert len(out_dstore.not_completed) == len(nc_dstore)
 
 
-def test_apply_to_makes_not_completed(tmp_dir):
+def test_apply_to_makes_not_completed(DATA_DIR, tmp_dir):
     """correctly creates notcompleted"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -427,7 +423,7 @@ def test_apply_to_makes_not_completed(tmp_dir):
     assert len(out_dstore.not_completed) == 3
 
 
-def test_apply_to_not_partially_done(tmp_dir):
+def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
     """correctly applies process when result already partially done"""
     dstore = open_data_store(DATA_DIR, suffix="fasta")
     num_records = len(dstore)
