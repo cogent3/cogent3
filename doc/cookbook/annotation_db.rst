@@ -9,7 +9,7 @@ Annotation Databases
 
 This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the features (also known as annotations) of one or more biological sequences.
 
-For more extensive documentation about features see :ref:`intro_annotations` and :ref:`seq-annotations`.
+For more examples on how to use features see :ref:`intro_annotations`.
 
 What are the different types of ``AnnotationDb``?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

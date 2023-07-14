@@ -8,7 +8,7 @@
 Annotations
 -----------
 
-This guide provides instructions on creating, querying, and utilising Features to manipulate biological sequence data. For more extensive documentation about annotations, see :ref:`seq-annotations`.
+This guide provides instructions on creating, querying, and utilising Features to manipulate biological sequence data. 
 
 Creating custom Features
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -78,7 +78,7 @@ We use ``add_feature`` to add a feature to an alignment.
     :raises:
 
     from cogent3 import make_aligned_seqs
-    
+
     aln1 = make_aligned_seqs(
         data=[["x", "-AAACCCCCA"], ["y", "TTTT--TTTT"]], array_align=False
     )
@@ -155,7 +155,7 @@ If you have the FASTA file for the sequence, you can use ``load_seq`` and provid
     :raises:
 
     from cogent3 import load_seq
-    
+
     seq = load_seq(
         "data/C-elegans-chromosome-I.fa",
         annotation_path="data/C-elegans-chromosome-I.gff",
@@ -171,7 +171,7 @@ As the names are different in our example (``"I dna:chromosome chromosome:WBcel2
     :raises:
 
     from cogent3 import load_seq
-    
+
     seq = load_seq(
         "data/C-elegans-chromosome-I.fa",
         annotation_path="data/C-elegans-chromosome-I.gff",
@@ -189,7 +189,7 @@ If we know that the features lie within the sequence coordinates, we can use the
     :hide-code:
 
     from cogent3 import load_seq
-    
+
     loaded_seq = load_seq(
         "data/C-elegans-chromosome-I.fa",
         label_to_name=lambda x: x.split()[0],
@@ -267,7 +267,7 @@ We can search for a gene given its unique ID ``"WBGene00021661"``. We wrap the m
     :raises:
 
     from cogent3 import load_seq
-    
+
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     gene = list(seq.get_features(name="WBGene00021661", biotype="gene"))
     gene
@@ -281,7 +281,7 @@ We can search for all CDS
     :raises:
 
     from cogent3 import load_seq
-    
+
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     cds = list(seq.get_features(biotype="CDS"))
     cds[:3]
@@ -303,7 +303,7 @@ We can provide ``start`` and ``end`` arguments to ``get_features()`` and all fea
     :raises:
 
     from cogent3 import load_seq
-    
+
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     region_features = list(seq.get_features(start=10148, stop=26732))
     region_features[:3]
@@ -332,9 +332,7 @@ We can query for human coding sequence from in our brca1 alignment:
     brca1 = load_aligned_seqs(
         "data/primate_brca1.fasta", array_align=False, moltype="dna"
     )
-    brca1.annotate_from_gff(
-        "data/brca1_hsa_shortened.gff", seq_ids=["Human"]
-    )
+    brca1.annotate_from_gff("data/brca1_hsa_shortened.gff", seq_ids=["Human"])
 
     # query alignment providing seqid of interest
     brca_exons = list(brca1.get_features(biotype="exon", seqid="Human"))
@@ -345,7 +343,7 @@ Querying an Alignment for Features
 
 .. jupyter-execute::
     :raises:
-    
+
     from cogent3 import make_aligned_seqs
 
     aln = make_aligned_seqs(
@@ -353,9 +351,7 @@ Querying an Alignment for Features
         moltype="dna",
         array_align=False,
     )
-    aln.add_feature(
-        biotype="exon", name="exon:007", spans=[(0, 4)], on_alignment=True
-    )
+    aln.add_feature(biotype="exon", name="exon:007", spans=[(0, 4)], on_alignment=True)
     aln_exon = list(aln.get_features(biotype="exon"))
     aln_exon
 
@@ -367,7 +363,7 @@ If you query for a feature from a sequence (i.e. the feature is in sequence coor
 .. jupyter-execute::
 
     from cogent3 import make_aligned_seqs
-    
+
     aln3 = make_aligned_seqs(
         data=[["x", "C-CCCAAAAA"], ["y", "-T----TTTT"]],
         array_align=False,
@@ -391,8 +387,6 @@ To include the gaps, use the ``allow_gaps`` argument
 
     exon.get_slice(allow_gaps=True)
 
-
-
 Examples using the methods available on Features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -405,16 +399,18 @@ Given a ``Feature``, we can directly slice its parent sequence to return its seq
 
 .. jupyter-execute::
     :raises:
-    
+
     from cogent3 import load_seq
-    
+
     seq = load_seq(
         "data/C-elegans-chromosome-I.fa",
         annotation_path="data/C-elegans-chromosome-I.gff",
         label_to_name=lambda x: x.split()[0],
         moltype="dna",
     )
-    pseudogene = list(seq.get_features(start=10148, stop=26732, biotype="pseudogene"))[0]
+    pseudogene = list(seq.get_features(start=10148, stop=26732, biotype="pseudogene"))[
+        0
+    ]
     seq[pseudogene]
 
 .. note:: This only works for the ``Sequence`` that the ``Feature`` "belongs" to.
@@ -452,9 +448,9 @@ These are useful for doing custom things, e.g. if the introns are not annotated 
 
 .. jupyter-execute::
     :raises:
-    
+
     from cogent3 import load_seq
-    
+
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     cds = list(seq.get_features(biotype="CDS"))[0]
     exon_coords = cds.get_coordinates()
@@ -490,13 +486,12 @@ We can create a feature that is the union of all coding sequence.
 
 .. jupyter-execute::
     :raises:
-    
+
     from cogent3 import load_seq
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     cds = list(seq.get_features(biotype="CDS"))
     union_cds = cds[0].union(cds[1:])
-
 
 How to get the shadow of a Feature
 """"""""""""""""""""""""""""""""""
@@ -510,14 +505,14 @@ We first need to query our sequence for all genes. Using the ``union()`` method 
 
 .. jupyter-execute::
     :raises:
-    
+
     from cogent3 import load_seq
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     genes = list(seq.get_features(biotype="gene"))
     genes = genes[0].union(genes[1:])
     genes
-    
+
 Taking the "shadow" of all genes will return the intergenic region as a valid ``Feature``
 
 .. jupyter-execute::
@@ -543,13 +538,13 @@ We can mask a certain annotation using ``with_masked_annotations()``
 
 .. jupyter-execute::
     :raises:
-    
+
     from cogent3 import load_seq
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     no_cds = seq.with_masked_annotations("CDS")
     no_cds[2575800:2575900]
-    
+
 The above sequence could then have positions filtered so no position with the ambiguous character '?' was present.
 
 Masking annotated regions on an Alignment
@@ -568,7 +563,11 @@ We can mask exons on an alignment.
         array_align=False,
     )
     exon = aln.add_feature(
-        seqid="x", biotype="exon", name="exon-be-gone", spans=[(0, 4)], on_alignment=False
+        seqid="x",
+        biotype="exon",
+        name="exon-be-gone",
+        spans=[(0, 4)],
+        on_alignment=False,
     )
     aln.with_masked_annotations("exon", mask_char="?")
 
@@ -576,7 +575,7 @@ After a reverse complement operation
 
 .. jupyter-execute::
     :raises:
-    
+
     rc = aln.rc()
     rc
 
@@ -598,9 +597,9 @@ For example, let's find the children of the gene "WBGene00021661":
 
 .. jupyter-execute::
     :raises:
-    
+
     from cogent3 import load_seq
-    
+
     seq = load_seq(
         "data/C-elegans-chromosome-I.fa",
         annotation_path="data/C-elegans-chromosome-I.gff",
@@ -669,7 +668,7 @@ How to get the positions of a feature as one span
 Behaviour of annotations on nucleic acid sequences
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
-Reverse complementing a sequence **does not** reverse annotations, that is they retain the reference to the frame for which they were defined.
+Reverse complementing a sequence **does not** reverse features. Features are considered to have strand specific meaning (.e.g CDS, exons) and so they retain the reference to the frame for which they were defined.
 
 .. jupyter-execute::
 
