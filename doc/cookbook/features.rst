@@ -10,8 +10,8 @@ Features
 
 This guide provides instructions on creating, querying, and utilising features to manipulate biological sequence data.
 
-Creating custom Features
-^^^^^^^^^^^^^^^^^^^^^^^^
+How to create a custom ``Feature``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Via ``add_feature``
 """"""""""""""""""""
@@ -123,8 +123,8 @@ We can use ``add_feature`` to add a feature directly into an ``AnnotationDb``, a
     s1.annotation_db = db
     s1.annotation_db
 
-Loading Features from a File
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to load bulk Features from a File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Typically, we want to load bulk features from a genomic annotation file, such as a GFF or Genbank file. For the following examples, we will use *Caenorhabditis elegans* chromosome I.
 
@@ -282,8 +282,8 @@ Note that the ``AnnotationDb`` is accessible via the ``Alignment`` (above) and `
 
 .. _query_for_features:
 
-Querying for ``Features``
-^^^^^^^^^^^^^^^^^^^^^^^^^
+How to query a Sequence or Alignment for Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The method ``get_features`` yields all features that match the given arguments. You can provide conditions for the name, biotype, and start/stop location of a feature.
 
