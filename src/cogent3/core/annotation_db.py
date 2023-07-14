@@ -70,7 +70,7 @@ class FeatureDataType(typing.TypedDict):
 
 
 @typing.runtime_checkable
-class SerialisableType(typing.Protocol):
+class SerialisableType(typing.Protocol):  # pragma: no cover
     def to_rich_dict(self) -> dict:
         ...
 
@@ -82,7 +82,8 @@ class SerialisableType(typing.Protocol):
 
 
 @typing.runtime_checkable
-class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
+class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
+    # should be defined centrally
     def get_features_matching(
         self,
         *,
@@ -121,7 +122,8 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
 
 
 @typing.runtime_checkable
-class SupportsWriteFeatures(typing.Protocol):  # should be defined centrally
+class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
+    # should be defined centrally
     def add_feature(
         self,
         *,
@@ -161,7 +163,7 @@ class SupportsFeatures(
     SerialisableType,
     typing.Sized,
     typing.Protocol,
-):
+):  # should be defined centrally
     def __len__(self):
         # the number of records
         ...
@@ -1188,7 +1190,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 # to establish the Parent of a feature is by knowing what other
 # features have the same ID and then which of those are candidates to contain
 # a feature based on the hierarchy of relationships.
-# In other words, we assume that children have the same ID as their parent BUT but
+# In other words, we assume that children have the same ID as their parent BUT
 # their span lies within the parents. Conversely, for a parent query, the parent
 # has the same ID as their child but their span contains the childs.
 
