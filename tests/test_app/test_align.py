@@ -14,7 +14,11 @@ from cogent3 import (
     make_tree,
     make_unaligned_seqs,
 )
-from cogent3.align.align import make_generic_scoring_dict
+from cogent3.align.align import (
+    local_pairwise,
+    make_dna_scoring_dict,
+    make_generic_scoring_dict,
+)
 from cogent3.app import align as align_app
 from cogent3.app.align import (
     _combined_refseq_gaps,
@@ -24,6 +28,7 @@ from cogent3.app.align import (
     _gaps_for_injection,
     _merged_gaps,
     pairwise_to_multiple,
+    smith_waterman,
 )
 from cogent3.app.composable import NotCompleted
 from cogent3.core.alignment import Aligned, Alignment, ArrayAlignment
@@ -634,3 +639,66 @@ def test_progressive_align_iters(seqs):
     assert isinstance(aln, ArrayAlignment)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
+
+
+def test_smith_waterman_matches_local_pairwise(seqs):
+    aligner = smith_waterman()
+    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")])
+    got = aligner(coll)
+    s = make_dna_scoring_dict(10, -1, -8)
+    insertion = 20
+    extension = 2
+    expect = local_pairwise(
+        seqs.get_seq("Human"),
+        seqs.get_seq("Bandicoot"),
+        s,
+        insertion,
+        extension,
+        return_score=False,
+    )
+    assert got.to_dict() == expect.to_dict()
+
+
+def test_smith_waterman_score(seqs):
+    aligner = smith_waterman()
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")], moltype="dna"
+    )
+    aln = aligner(coll)
+    got = aln.info["align_params"]["sw_score"]
+    s = make_dna_scoring_dict(10, -1, -8)
+    insertion = 20
+    extension = 2
+    _, expect = local_pairwise(
+        seqs.get_seq("Human"),
+        seqs.get_seq("Bandicoot"),
+        s,
+        insertion,
+        extension,
+        return_score=True,
+    )
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "moltype", ("text", "rna", "protein", "protein_with_stop", "bytes", "ab")
+)
+def test_smith_waterman_generic_moltype(moltype):
+    """tests when the moltype is generic"""
+    aligner = smith_waterman(moltype=moltype)
+    assert aligner._score_matrix == make_generic_scoring_dict(10, get_moltype(moltype))
+
+
+def test_smith_waterman_raises(seqs):
+    """SW should fail when given a SequenceCollection that deos not contain 2 seqs"""
+    aligner = smith_waterman()
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot"), seqs.get_seq("Rhesus")],
+        moltype="dna",
+    )
+    aln = aligner(coll)
+    assert isinstance(aln, NotCompleted)
+
+    coll = make_unaligned_seqs(data=[seqs.get_seq("Human")], moltype="dna")
+    aln = aligner(coll)
+    assert isinstance(aln, NotCompleted)

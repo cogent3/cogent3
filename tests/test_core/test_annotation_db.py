@@ -204,6 +204,34 @@ def test_gff_get_parent(gff_db, name, expected):
     assert {g["name"] for g in got} == set(expected)
 
 
+def test_gff_get_children_empty():
+    """if feature has no children then should return []"""
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_children(name="childless"))
+    assert got == []
+
+
+def test_gff_get_parent_empty():
+    """if feature has no parent then should return []"""
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_parent(name="parentless"))
+    assert got == []
+
+
+def test_gff_get_children_non_existent():
+    """if feature does not exist then should return []"""
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_children(name="nonexistendID"))
+    assert got == []
+
+
+def test_gff_get_parent_non_existent():
+    """if feature does not exist then should return []"""
+    db = load_annotations(path=DATA_DIR / "simple2.gff")
+    got = list(db.get_feature_parent(name="nonexistendID"))
+    assert got == []
+
+
 def test_gff_counts(gff_db):
     got = gff_db.biotype_counts()
     assert len(got) > 0

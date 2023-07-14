@@ -7,6 +7,7 @@ from typing import Optional, Union
 from numpy import array, isnan
 
 from cogent3.align import (
+    classic_align_pairwise,
     global_pairwise,
     make_dna_scoring_dict,
     make_generic_scoring_dict,
@@ -551,6 +552,73 @@ class progressive_align:
                 result = NotCompleted("ERROR", self, err.args[0], source=seqs)
                 return result
         return result
+
+
+@define_app
+class smith_waterman:
+    """Local alignment of two sequences using the Smith-Waterman algorithm
+
+    Notes
+    -----
+    It records the score of the alignment (in addition to all other the
+    parameter values) as "sw_score" in ``alignment.info['align_params']``.
+    """
+
+    def __init__(
+        self,
+        score_matrix: dict = None,
+        insertion_penalty: int = 20,
+        extension_penalty: int = 2,
+        moltype: str = "dna",
+    ):
+        """
+        Parameters
+        ----------
+        score_matrix : dict
+            scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for DNA
+            and `make_generic_scoring_dict(10, moltype)` for other moltype.
+        insertion_penalty : int
+            penalty for gap insertion
+        extension_penalty : int
+            penalty for gap extension
+        moltype
+            molecular type of sequences
+        """
+        moltype = get_moltype(moltype)
+        self._score_matrix = score_matrix or (
+            make_dna_scoring_dict(10, -1, -8)
+            if moltype.label == "dna"
+            else make_generic_scoring_dict(10, moltype)
+        )
+        self._insertion_penalty = insertion_penalty
+        self._extension_penalty = extension_penalty
+
+    def main(self, seqs: UnalignedSeqsType) -> AlignedSeqsType:
+        if seqs.num_seqs > 2:
+            return NotCompleted(
+                "ERROR",
+                self,
+                message="maximum number of two seqs per collection",
+                source=seqs,
+            )
+        seq1, seq2 = seqs.seqs
+        aln, score = classic_align_pairwise(
+            seq1,
+            seq2,
+            self._score_matrix,
+            self._insertion_penalty,
+            self._extension_penalty,
+            True,
+            return_score=True,
+        )
+
+        aln.info["align_params"] = dict(
+            score_matrix=self._score_matrix,
+            insertion_penalty=self._insertion_penalty,
+            extension_penalty=self._extension_penalty,
+            sw_score=score,
+        )
+        return aln
 
 
 @define_app

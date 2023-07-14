@@ -691,6 +691,9 @@ class SqliteAnnotationDbMixin:
                 # multiple values for parent means this is better expressed
                 # as an OR clause
                 # todo modify the conditional SQL generation
+                if not result["parent_id"]:
+                    return
+
                 for name in result["parent_id"].replace(" ", "").split(","):
                     if parent := list(
                         self._get_feature_by_id(

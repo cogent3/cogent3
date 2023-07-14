@@ -347,3 +347,38 @@ def test_tree_align_two(seqs):
     assert len(dist) == 1
     assert isinstance(list(dist)[0], float)
     assert len(aln) >= seqs.get_lengths().array.min()
+
+
+def test_make_dna_scoring_dict():
+    scoring_matrix = make_dna_scoring_dict(10, -1, -8)
+
+    # all transitions equal
+    assert (
+        scoring_matrix[("A", "G")]
+        == scoring_matrix[("G", "A")]
+        == scoring_matrix[("C", "T")]
+        == scoring_matrix[("T", "C")]
+        == -1
+    )
+
+    # all transversions equal
+    assert (
+        scoring_matrix[("A", "T")]
+        == scoring_matrix[("A", "C")]
+        == scoring_matrix[("G", "T")]
+        == scoring_matrix[("G", "C")]
+        == scoring_matrix[("T", "A")]
+        == scoring_matrix[("T", "G")]
+        == scoring_matrix[("C", "A")]
+        == scoring_matrix[("C", "G")]
+        == -8
+    )
+
+    # all matches equal
+    assert (
+        scoring_matrix[("A", "A")]
+        == scoring_matrix[("G", "G")]
+        == scoring_matrix[("C", "C")]
+        == scoring_matrix[("T", "T")]
+        == 10
+    )
