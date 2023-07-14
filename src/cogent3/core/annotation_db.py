@@ -1317,6 +1317,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # children must lie within the parent coordinates
+        if start is None or end is None:
+            name = self.__class__.__name__
+            msg = f"coordinates required to query children for {name!r}"
+            raise ValueError(msg)
+
         for table_name in self.table_names:
             columns = (
                 "seqid",
@@ -1356,6 +1361,11 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         end: OptionalInt = None,
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
+        if start is None or end is None:
+            name = self.__class__.__name__
+            msg = f"coordinates required to query parent for {name!r}"
+            raise ValueError(msg)
+
         # parent must match or lie outside the coordinates
         for table_name in self.table_names:
             columns = (
