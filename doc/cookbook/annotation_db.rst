@@ -3,13 +3,13 @@
 
     import set_working_directory
 
+.. _anno_db:
 
 Annotation Databases
 --------------------
 
-This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the features (also known as annotations) of one or more biological sequences.
+This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the :ref:`howto-features` (also known as annotations) of one or more biological sequences.
 
-For more extensive documentation about features see :ref:`intro_annotations` and :ref:`seq-annotations`.
 
 What are the different types of ``AnnotationDb``?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -128,7 +128,7 @@ How to query an ``AnnotationDb``
 
 Note, there are two methods with the same interface available to query an ``AnnotationDb``:
 
-1. ``get_features_matching()``. A generator that yields all features that matched the query. The **minimal information** required to create a ``cogent3`` ``Feature`` object is provided in the returned dictionary. For more information on Features see :ref:`seq-intro_annotations` and :ref:`seq-annotations`.
+1. ``get_features_matching()``. A generator that yields all features that matched the query. The **minimal information** required to create a ``cogent3`` ``Feature`` object is provided in the returned dictionary. For more information on Features see :ref:`seq-intro_annotations`.
 
 2. ``get_records_matching()``. A generator that yields all features that matched the query. The **complete record** for each matching feature is provided in the returned dictionary.
 
@@ -329,7 +329,7 @@ You can assign a compatible database to the ``db`` argument in the ``AnnotationD
 How to assign an ``AnnotationDb`` to a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For more extensive documentation about annotations see :ref:`intro_annotations` and :ref:`seq-annotations`.
+For more extensive documentation about annotating alignments and sequences see :ref:`howto-features`.
 
 Directly assign an ``AnnotationDb`` to a Sequence
 """""""""""""""""""""""""""""""""""""""""""""""""
@@ -393,3 +393,15 @@ In the above example, the sequence name in the fasta file does not match any rec
         label_to_name=lambda x: x.split()[0],
     )
     seq.annotation_db
+    
+    
+    
+.. jupyter-execute::
+    :hide-code:
+
+    import pathlib
+
+    # clean up files
+
+    path = pathlib.Path("m-genitalium-database.gbdb")
+    path.unlink()
