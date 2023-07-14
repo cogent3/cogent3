@@ -166,11 +166,13 @@ class Feature:
         ):
             yield make_feature(feature=child)
 
-    def get_parent(self, biotype: Optional[str] = None):
+    def get_parent(self, **kwargs):
         """generator returns parent features of self optionally matching biotype"""
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_parent(biotype=biotype, name=self.name):
+        for child in db.get_feature_parent(
+            name=self.name, start=self.map.start, end=self.map.end, **kwargs
+        ):
             yield make_feature(feature=child)
 
     def union(self, features: Iterable):

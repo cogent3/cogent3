@@ -103,7 +103,7 @@ class SupportsQueryFeatures(typing.Protocol):  # should be defined centrally
         ...
 
     def get_feature_parent(
-        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None
+        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None, **kwargs
     ) -> typing.List[FeatureDataType]:
         ...
 
@@ -1399,6 +1399,8 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 cstart, cend = feat.pop("start"), feat.pop("end")
                 if cstart > start or end > cend:
                     continue
+
+                feat.pop("parent_id")  # remove invalid field for the FeatureDataType
                 yield feat
 
 

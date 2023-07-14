@@ -2,7 +2,7 @@ import unittest
 
 import pytest
 
-from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
+from cogent3 import DNA, load_seq, make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.location import Map, Span
 
 
@@ -290,3 +290,12 @@ def test_seq_slice_seqfeat_invalid(ann_aln):
     seq2 = ann_aln.get_seq("FAKE02")
     with pytest.raises(ValueError):
         _ = seq2[list(seq1.get_features(biotype="CDS"))[0]]
+
+
+def test_gbdb_get_children_get_parent(DATA_DIR):
+    seq = load_seq(DATA_DIR / "annotated_seq.gb")
+    (orig,) = list(seq.get_features(biotype="gene", name="CNA00110"))
+    (child,) = list(orig.get_children("CDS"))
+    parent, *_ = list(child.get_parent(exclude_biotype=child.biotype))
+    assert parent.name == orig.name
+    assert parent.biotype != child.biotype
