@@ -689,7 +689,10 @@ class SqliteAnnotationDbMixin:
             if table_name == "user":
                 columns += ("on_alignment",)
             for result in self._get_feature_by_id(
-                table_name=table_name, columns=columns, column="name", name=f"%{name}%"
+                table_name=table_name,
+                columns=columns,
+                column="name",
+                name=f"%{name}%",
             ):
                 # multiple values for parent means this is better expressed
                 # as an OR clause
