@@ -9,8 +9,6 @@ Data manipulation
 .. toctree::
     :maxdepth: 1
 
-    seq_features
-    complete_seq_features
     align_codons_to_protein
     manipulating_tree_nodes
 
