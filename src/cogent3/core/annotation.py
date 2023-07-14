@@ -10,35 +10,6 @@ from cogent3.util.misc import get_object_provenance
 from .location import Map
 
 
-class _Serialisable:
-    def to_rich_dict(self):
-        """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
-        data = copy.deepcopy(self._serialisable)
-        # the first constructor argument will be the instance recreating
-        # so we pop out the two possible keys
-        data.pop("parent", None)
-        data.pop("seq", None)
-        if "original" in data:
-            data.pop("original")
-        # convert the map to coordinates
-        data["map"] = data.pop("map").to_rich_dict()
-        data = dict(annotation_construction=data)
-        data["type"] = get_object_provenance(self)
-        data["version"] = __version__
-
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-            if annotations:
-                data["annotations"] = annotations
-        except AttributeError:
-            pass
-
-        return data
-
-    def to_json(self):
-        return json.dumps(self.to_rich_dict())
-
-
 # todo gah implement __repr__ and __str__ methods
 # todo gah write docstrings!
 class Feature:
