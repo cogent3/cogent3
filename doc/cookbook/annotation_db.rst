@@ -329,7 +329,7 @@ You can assign a compatible database to the ``db`` argument in the ``AnnotationD
 How to assign an ``AnnotationDb`` to a sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For more extensive documentation about annotations see :ref:`intro_annotations`.
+For more extensive documentation about annotating alignments and sequences see :ref:`howto-features`.
 
 Directly assign an ``AnnotationDb`` to a Sequence
 """""""""""""""""""""""""""""""""""""""""""""""""

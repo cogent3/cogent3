@@ -14,7 +14,7 @@ Sequences and Alignments
     protein_sequences
     alignments
     annotation_db
-    annotations
+    features
     moltypes
     alphabet
 

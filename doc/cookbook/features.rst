@@ -5,8 +5,8 @@
 
 .. _intro_annotations:
 
-Annotations
------------
+Features
+========
 
 This guide provides instructions on creating, querying, and utilising Features to manipulate biological sequence data. 
 
