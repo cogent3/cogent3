@@ -19,9 +19,8 @@ copyright = f"2020-{year}, cogent3 Team"
 author = "Gavin Huttley"
 
 # The full version, including alpha/beta/rc tags
-# Use clanedar versioning
+# Use calendar versioning
 release = today.strftime("%Y.%m.%d")
-version = ""
 
 
 # -- General configuration ---------------------------------------------------
@@ -53,7 +52,8 @@ numpydoc_class_members_toctree = False
 
 bibtex_bibfiles = ["cogent3.bib"]
 
-templates_path = ["templates"]
+templates_path = ["doc/templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The master toctree document.
 master_doc = "index"
@@ -71,32 +71,34 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "**.ipynb_checkpoints",
-    "cookbook/union_dict.rst",
+    "cookbook/union_dict",
     "cookbook/loading_tabular",
-    "COGENT3_LICENSE.rst",
+    "COGENT3_LICENSE",
     "*tmp*",
 ]
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_book_theme"
+html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 
 sidebar_collapse = False
 
 html_theme_options = {
-    "navigation_depth": 1,
-    "show_navbar_depth": 1,
-    "repository_provider": "github",
-    "repository_url": "https://github.com/cogent3/cogent3",
-    "use_repository_button": True,
+    "navigation_depth": 6,
+    "show_toc_level": 4,
+    "show_nav_level": 0,
+    "github_url": "https://github.com/cogent3/cogent3",
     # turns off the secondary side-bar
     # it's default value is ["page-toc", "edit-this-page", "sourcelink"]
-    "secondary_sidebar_items": [],
-    # "navbar_end": ["header_buttons.html"],
-    # "use_sidenotes": True,
+    "logo": {
+        "text": "cogent3",
+        "alt_text": "cogent3",
+    },
+    "collapse_navigation": False,
 }
 
 nbsphinx_thumbnails = make_nbsphinx_thumbnails()
