@@ -741,9 +741,9 @@ class SequenceI(object):
         table.append("</table>")
         class_name = self.__class__.__name__
         if limit and limit < len(self):
-            summary = f"{class_name}, length={len(self)} (truncated to {limit if limit else len(self)})"
+            summary = f"{class_name}, length={len(self):,} (truncated to {limit if limit else len(self)})"
         else:
-            summary = f"{class_name}, length={len(self)}"
+            summary = f"{class_name}, length={len(self):,}"
 
         text = [
             "<style>",
@@ -1324,7 +1324,7 @@ class Sequence(SequenceI):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
         if len(self) > 10:
-            seq = f"{str(self)[:7]}... {len(self)}"
+            seq = f"{str(self)[:7]}... {len(self):,}"
         else:
             seq = str(self)
         return f"{myclass}({seq})"
