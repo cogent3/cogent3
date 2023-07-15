@@ -1,3 +1,5 @@
+.. _install:
+
 ************
 Installation
 ************
@@ -47,4 +49,3 @@ Activate your conda_ environment, then
 
 .. _conda: https://docs.conda.io/en/latest/miniconda.html
 .. _Plotly: https://pypi.org/project/plotly/
-.. _Jupyterlab: https://jupyter.org
