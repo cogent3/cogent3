@@ -1,5 +1,7 @@
 from typing import Iterable, Optional
 
+from numpy import array
+
 from cogent3.util import warning as c3warn
 
 from .location import Map
@@ -152,25 +154,50 @@ class Feature:
 
     def get_children(self, biotype: Optional[str] = None, **kwargs):
         """generator returns sub-features of self optionally matching biotype"""
+        offset = getattr(self.parent, "annotation_offset", 0)
+        start = self.map.start + offset
+        end = self.map.end + offset
+
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_children(
+        for record in db.get_feature_children(
             biotype=biotype,
             name=self.name,
-            start=self.map.start,
-            end=self.map.end,
+            start=start,
+            end=end,
             **kwargs,
         ):
-            yield make_feature(feature=child)
+            record["spans"] = array(record["spans"]) - offset
+            feature = make_feature(feature=record)
+            # For GenBank, the names can be shared between parent and child,
+            # but we don't want to return self. The cleanest way to not
+            # return self is to just check.
+            if feature == self:
+                continue
+            yield feature
 
     def get_parent(self, **kwargs):
         """generator returns parent features of self optionally matching biotype"""
+        offset = getattr(self.parent, "annotation_offset", 0)
+        start = self.map.start + offset
+        end = self.map.end + offset
+
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_parent(
-            name=self.name, start=self.map.start, end=self.map.end, **kwargs
+        for record in db.get_feature_parent(
+            name=self.name,
+            start=start,
+            end=end,
+            **kwargs,
         ):
-            yield make_feature(feature=child)
+            record["spans"] = array(record["spans"]) - offset
+            feature = make_feature(feature=record)
+            # For GenBank, the names can be shared between parent and child,
+            # but we don't want to return self. The cleanest way to not
+            # return self is to just check.
+            if feature == self:
+                continue
+            yield feature
 
     def union(self, features: Iterable):
         """return as a single Feature

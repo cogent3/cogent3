@@ -856,7 +856,7 @@ class Sequence(SequenceI):
             int: The offset between annotation coordinates and sequence coordinates.
         """
 
-        return self._seq.offset
+        return self._seq.offset + self._seq.start
 
     @annotation_offset.setter
     def annotation_offset(self, value):
