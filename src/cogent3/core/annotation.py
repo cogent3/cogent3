@@ -9,12 +9,13 @@ from .location import Map
 class Feature:
     """new style annotation, created on demand"""
 
+    # we make the object immutable by making public attributes a property
     __slots__ = (
-        "parent",
-        "seqid",
-        "map",
-        "biotype",
-        "name",
+        "_parent",
+        "_seqid",
+        "_map",
+        "_biotype",
+        "_name",
         "_serialisable",
     )
 
@@ -24,12 +25,32 @@ class Feature:
         d = locals()
         exclude = ("self", "__class__", "kw")
         self._serialisable = {k: v for k, v in d.items() if k not in exclude}
-        self.biotype = biotype
-        self.name = name
-        self.parent = parent
-        self.seqid = seqid
+        self._parent = parent
+        self._seqid = seqid
         assert map.parent_length == len(parent), (map, len(parent))
-        self.map = map
+        self._map = map
+        self._biotype = biotype
+        self._name = name
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def seqid(self):
+        return self._seqid
+
+    @property
+    def map(self):
+        return self._map
+
+    @property
+    def biotype(self):
+        return self._biotype
+
+    @property
+    def name(self):
+        return self._name
 
     def get_slice(self, complete: bool = False, allow_gaps: bool = False):
         """
