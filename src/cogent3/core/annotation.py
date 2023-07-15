@@ -1,16 +1,10 @@
-import copy
-import json
-
 from typing import Iterable, Optional
 
-from cogent3._version import __version__
 from cogent3.util import warning as c3warn
-from cogent3.util.misc import get_object_provenance
 
 from .location import Map
 
 
-# todo gah implement __repr__ and __str__ methods
 # todo gah write docstrings!
 class Feature:
     """new style annotation, created on demand"""
