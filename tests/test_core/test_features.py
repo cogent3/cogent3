@@ -3,6 +3,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
+from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import BasicAnnotationDb, GffAnnotationDb
 # Complete version of manipulating sequence annotations
 from cogent3.util.deserialise import deserialise_object
@@ -148,7 +149,7 @@ def test_feature_residue():
     assert rc_exons.as_one_span().get_slice().to_dict() == dict(x="C-CCC", y="-T---")
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def ann_seq():
     # A Sequence with a couple of exons on it.
     s = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA", name="Orig")
@@ -667,3 +668,40 @@ def test_rc_feature_on_wrong_moltype(moltype):
     )
     with pytest.raises(TypeError):
         cds.get_slice()
+
+
+def test_feature_equal(ann_seq):
+    (f1,) = list(ann_seq.get_features(biotype="gene"))
+    (f2,) = list(ann_seq.get_features(biotype="gene"))
+    assert f1 is not f2
+    assert f1 == f2
+
+
+def test_feature_not_equal(ann_seq):
+    (f1,) = list(ann_seq.get_features(biotype="gene"))
+    (f2,) = list(ann_seq.get_features(biotype="exon"))
+    assert f1 is not f2
+    assert f1 != f2
+    # same attributes except parent different parent seq
+    nseq = ann_seq.copy()
+    (nf1,) = list(nseq.get_features(biotype="gene"))
+    assert nf1 != f1
+
+
+@pytest.mark.parametrize("attr", ("seqid", "biotype", "name", "map"))
+def test_feature_not_equal_attr(ann_seq, attr):
+    (f1,) = list(ann_seq.get_features(biotype="gene"))
+    attrs = dict(
+        parent=f1.parent, seqid=f1.seqid, biotype=f1.biotype, map=f1.map, name=f1.name
+    )
+    value = attrs["map"][:4] if attr == "map" else "different"
+    attrs[attr] = value
+    f2 = Feature(**attrs)
+    assert f1 != f2
+
+
+def test_hash_feature(ann_seq):
+    (f1,) = list(ann_seq.get_features(biotype="gene"))
+    (f2,) = list(ann_seq.get_features(biotype="gene"))
+    got = {f1, f2}
+    assert len(got) == 1

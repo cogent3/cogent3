@@ -17,6 +17,7 @@ class Feature:
         "_biotype",
         "_name",
         "_serialisable",
+        "_id",
     )
 
     # todo gah implement a __new__ to trap args for serialisation purposes?
@@ -31,6 +32,16 @@ class Feature:
         self._map = map
         self._biotype = biotype
         self._name = name
+        data = [id(self.parent), tuple(self.map.get_coordinates())]
+        data.extend((self.seqid, self.biotype, self.name))
+        self._id = hash(tuple(data))
+
+    def __eq__(self, other):
+        return self._id == other._id
+
+    def __hash__(self):
+        """Features can be used in a dictionary!"""
+        return self._id
 
     @property
     def parent(self):
