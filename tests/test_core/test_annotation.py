@@ -294,8 +294,8 @@ def test_seq_slice_seqfeat_invalid(ann_aln):
 
 def test_gbdb_get_children_get_parent(DATA_DIR):
     seq = load_seq(DATA_DIR / "annotated_seq.gb")
+    seq = seq[2900:6000]
     (orig,) = list(seq.get_features(biotype="gene", name="CNA00110"))
     (child,) = list(orig.get_children("CDS"))
-    parent, *_ = list(child.get_parent(exclude_biotype=child.biotype))
-    assert parent.name == orig.name
-    assert parent.biotype != child.biotype
+    parent, *_ = list(child.get_parent())
+    assert parent == orig

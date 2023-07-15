@@ -1,27 +1,25 @@
-import copy
-import json
-
 from typing import Iterable, Optional
 
-from cogent3._version import __version__
+from numpy import array
+
 from cogent3.util import warning as c3warn
-from cogent3.util.misc import get_object_provenance
 
 from .location import Map
 
 
-# todo gah implement __repr__ and __str__ methods
 # todo gah write docstrings!
 class Feature:
     """new style annotation, created on demand"""
 
+    # we make the object immutable by making public attributes a property
     __slots__ = (
-        "parent",
-        "seqid",
-        "map",
-        "biotype",
-        "name",
+        "_parent",
+        "_seqid",
+        "_map",
+        "_biotype",
+        "_name",
         "_serialisable",
+        "_id",
     )
 
     # todo gah implement a __new__ to trap args for serialisation purposes?
@@ -30,12 +28,42 @@ class Feature:
         d = locals()
         exclude = ("self", "__class__", "kw")
         self._serialisable = {k: v for k, v in d.items() if k not in exclude}
-        self.biotype = biotype
-        self.name = name
-        self.parent = parent
-        self.seqid = seqid
+        self._parent = parent
+        self._seqid = seqid
         assert map.parent_length == len(parent), (map, len(parent))
-        self.map = map
+        self._map = map
+        self._biotype = biotype
+        self._name = name
+        data = [id(self.parent), tuple(self.map.get_coordinates())]
+        data.extend((self.seqid, self.biotype, self.name))
+        self._id = hash(tuple(data))
+
+    def __eq__(self, other):
+        return self._id == other._id
+
+    def __hash__(self):
+        """Features can be used in a dictionary!"""
+        return self._id
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def seqid(self):
+        return self._seqid
+
+    @property
+    def map(self):
+        return self._map
+
+    @property
+    def biotype(self):
+        return self._biotype
+
+    @property
+    def name(self):
+        return self._name
 
     def get_slice(self, complete: bool = False, allow_gaps: bool = False):
         """
@@ -126,25 +154,50 @@ class Feature:
 
     def get_children(self, biotype: Optional[str] = None, **kwargs):
         """generator returns sub-features of self optionally matching biotype"""
+        offset = getattr(self.parent, "annotation_offset", 0)
+        start = self.map.start + offset
+        end = self.map.end + offset
+
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_children(
+        for record in db.get_feature_children(
             biotype=biotype,
             name=self.name,
-            start=self.map.start,
-            end=self.map.end,
+            start=start,
+            end=end,
             **kwargs,
         ):
-            yield make_feature(feature=child)
+            record["spans"] = array(record["spans"]) - offset
+            feature = make_feature(feature=record)
+            # For GenBank, the names can be shared between parent and child,
+            # but we don't want to return self. The cleanest way to not
+            # return self is to just check.
+            if feature == self:
+                continue
+            yield feature
 
     def get_parent(self, **kwargs):
         """generator returns parent features of self optionally matching biotype"""
+        offset = getattr(self.parent, "annotation_offset", 0)
+        start = self.map.start + offset
+        end = self.map.end + offset
+
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
-        for child in db.get_feature_parent(
-            name=self.name, start=self.map.start, end=self.map.end, **kwargs
+        for record in db.get_feature_parent(
+            name=self.name,
+            start=start,
+            end=end,
+            **kwargs,
         ):
-            yield make_feature(feature=child)
+            record["spans"] = array(record["spans"]) - offset
+            feature = make_feature(feature=record)
+            # For GenBank, the names can be shared between parent and child,
+            # but we don't want to return self. The cleanest way to not
+            # return self is to just check.
+            if feature == self:
+                continue
+            yield feature
 
     def union(self, features: Iterable):
         """return as a single Feature
