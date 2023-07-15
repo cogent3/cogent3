@@ -1,8 +1,8 @@
-##########
-User Guide
-##########
+###########
+User Guides
+###########
 
-*The individual data files used in the User Guides can be downloaded from* :ref:`here <data_links>`.
+Our documentation shows code examples that have been computed within Jupyter notebooks during the documentation build. This shows what you would see if you were to do these examples yourself, interactively, in Jupyter_. To do that, you will need to :ref:`install cogent3 <install>` and download the individual data files used in the User Guides from :ref:`here <data_links>`.
 
 .. panels::
     :header: text-white bg-primary font-weight-bold
@@ -73,3 +73,4 @@ User Guide
     api/index
 
 .. _cogent3: https://cogent3.org
+.. _Jupyter: https://jupyter.org
