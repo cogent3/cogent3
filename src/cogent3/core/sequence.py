@@ -1565,8 +1565,10 @@ class Sequence(SequenceI):
             passed to get_features(biotype). Can be a single biotype or
             series. Only features matching this will be included.
         """
+        # make sure the drawables are unique by adding to a set
+        features = set(self.get_features(biotype=biotype, allow_partial=True))
         result = defaultdict(list)
-        for f in self.get_features(biotype=biotype, allow_partial=True):
+        for f in features:
             result[f.biotype].append(f.get_drawable())
         return result
 
@@ -1592,17 +1594,25 @@ class Sequence(SequenceI):
         Returns
         -------
         a Drawable instance
+
+        Notes
+        -----
+        If provided, the biotype is used for plot order.
         """
         from cogent3.draw.drawable import Drawable
 
         drawables = self.get_drawables(biotype=biotype)
         if not drawables:
             return None
+
+        biotype = list(drawables) if biotype is None else biotype
+        biotypes = (biotype,) if isinstance(biotype, str) else biotype
+
         # we order by tracks
         top = 0
         space = 0.25
         annotes = []
-        for feature_type in drawables:
+        for feature_type in biotypes:
             new_bottom = top + space
             for i, annott in enumerate(drawables[feature_type]):
                 annott.shift(y=new_bottom - annott.bottom)
