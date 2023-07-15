@@ -489,7 +489,7 @@ We can also achieve this via ``get_slice()``
 How to display the features of a Sequence
 """""""""""""""""""""""""""""""""""""""""
 
-We can display all the features on a sequence using ``.get_drawable()``. We show it for only the first 50,000 base pairs. The plotly figure returned, as displayed below, is interactive! 🤩
+We can display all the features on a sequence using ``.get_drawable()``, or a subset of biotypes. We do this for only the first 50,000 base pairs. The plotly figure returned, as displayed below, is interactive! 🤩 Zoom in on the dark vertical lines in the big gene and you will see small genes on the opposite strand. Hover your cursor over each block and the gene name is displayed.
 
 .. jupyter-execute::
 
@@ -497,8 +497,10 @@ We can display all the features on a sequence using ``.get_drawable()``. We show
 
     seq = load_seq("data/C-elegans-chromosome-I.gb", moltype="dna")
     subseq = seq[25000:35000]
-    fig = subseq.get_drawable()
+    fig = subseq.get_drawable(biotype=("gene", "mRNA", "CDS", "misc_RNA"))
     fig.show()
+
+.. note:: If a feature extends beyond the sequence region selected, its name includes the text "(incomplete)".
 
 How to find the coordinates of a feature
 """"""""""""""""""""""""""""""""""""""""

@@ -128,7 +128,7 @@ How to query an ``AnnotationDb``
 
 Note, there are two methods with the same interface available to query an ``AnnotationDb``:
 
-1. ``get_features_matching()``. A generator that yields all features that matched the query. The **minimal information** required to create a ``cogent3`` ``Feature`` object is provided in the returned dictionary. For more information on Features see :ref:`seq-intro_annotations`.
+1. ``get_features_matching()``. A generator that yields all features that matched the query. The **minimal information** required to create a ``cogent3`` ``Feature`` object is provided in the returned dictionary. For more information on Features see :ref:`howto-features`.
 
 2. ``get_records_matching()``. A generator that yields all features that matched the query. The **complete record** for each matching feature is provided in the returned dictionary.
 
