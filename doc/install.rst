@@ -16,12 +16,16 @@ Suitable for when you don't need plotting.
 Install with graphing tools
 ===========================
 
+The graphing dependency Plotly_ is installed too.
+
 .. code-block:: bash
 
    $ pip install "cogent3[extra]"
 
 Install with developer tools
 ============================
+
+Everything we use for ``cogent3`` development.
 
 .. code-block:: bash
 

@@ -123,7 +123,7 @@ class Feature:
         return self.__class__(**kwargs)
 
     @c3warn.deprecated_callable(
-        "2023.7", reason="new method", new="<instance>.shadow()"
+        "2023.8", reason="new method", new="<instance>.shadow()"
     )
     def get_shadow(self):  # pragma: no cover
         return self.shadow()

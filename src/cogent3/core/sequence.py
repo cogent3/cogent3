@@ -161,7 +161,7 @@ class SequenceI(object):
         discontinued(
             "function",
             "cogent3.core.sequence.Sequence.translate",
-            "2023.7",
+            "2023.8",
             "Better if user just converts sequence to string.",
         )
         return str(self).translate(*args, **kwargs)
@@ -904,7 +904,7 @@ class Sequence(SequenceI):
         self._annotation_db = value
 
     @deprecated_args(
-        "2023.7",
+        "2023.8",
         reason="consistent nomenclature",
         old_new=[("feature_type", "biotype")],
     )
@@ -1025,7 +1025,7 @@ class Sequence(SequenceI):
         return r_spans
 
     @deprecated_callable(
-        "2023.7", reason="simpler name", new="<instance>.get_features()"
+        "2023.8", reason="simpler name", new="<instance>.get_features()"
     )
     def get_features_matching(self, **kwargs):
         """use .get_features()"""
@@ -1381,7 +1381,7 @@ class Sequence(SequenceI):
 
     def gettype(self):  # pragma: no cover
         """Return the sequence type."""
-        deprecated("method", "gettype", "get_type", "2023.7", "pep8")
+        deprecated("method", "gettype", "get_type", "2023.8", "pep8")
         return self.get_type()
 
     def get_type(self):
@@ -1394,7 +1394,7 @@ class Sequence(SequenceI):
             "method",
             "resolveambiguities",
             "resolved_ambiguities",
-            "2023.7",
+            "2023.8",
             "pep8",
         )
         return self.resolved_ambiguities()
