@@ -562,7 +562,7 @@ class ProportionIdenticalPair(_PairwiseDistance):
 
 class PercentIdentityPair(ProportionIdenticalPair):
     @c3warn.deprecated_callable(
-        "2023.7",
+        "2023.8",
         reason="name is inaccurate, it's a proportion identy measure",
         new="ProportionIdenticalPair",
     )
@@ -679,7 +679,7 @@ def get_distance_calculator(name, *args, **kwargs):
             old="percent",
             new="pdist",
             reason="name is inaccurate, it's a proportion identy measure",
-            version="2023.7",
+            version="2023.8",
         )
 
     if "moltype" in kwargs and kwargs.get("moltype") is None:

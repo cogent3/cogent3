@@ -2374,7 +2374,7 @@ class Aligned:
         return self.__class__(self.map.with_termini_unknown(), self.data)
 
     @c3warn.deprecated_callable(
-        "2023.7",
+        "2023.8",
         reason="handled by <collection>.copy_annotations()",
         is_discontinued=True,
     )
@@ -4805,7 +4805,7 @@ class Alignment(AlignmentI, SequenceCollection):
         return result
 
     @c3warn.deprecated_callable(
-        "2023.7",
+        "2023.8",
         reason="use <collection>.get_projected_feature()",
         is_discontinued=True,
     )
@@ -4828,7 +4828,7 @@ class Alignment(AlignmentI, SequenceCollection):
         return [self.get_projected_feature(seqid=seqid, feature=a) for a in annots]
 
     @c3warn.deprecated_callable(
-        "2023.7",
+        "2023.8",
         reason="use <collection>.get_projected_features()",
         is_discontinued=True,
     )
@@ -4838,7 +4838,7 @@ class Alignment(AlignmentI, SequenceCollection):
         return [self.project_annotation(seqid, a) for a in aln_annots]
 
     @c3warn.deprecated_callable(
-        "2023.7",
+        "2023.8",
         reason="use <collection>.get_features(seqid=<seq_name>)",
         is_discontinued=True,
     )
@@ -4848,7 +4848,7 @@ class Alignment(AlignmentI, SequenceCollection):
         return self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
 
     @c3warn.deprecated_callable(
-        "2023.7", reason="use <collection>.get_features()", is_discontinued=True
+        "2023.8", reason="use <collection>.get_features()", is_discontinued=True
     )
     def get_annotations_from_any_seq(
         self, annotation_type="*", **kwargs
@@ -4862,7 +4862,7 @@ class Alignment(AlignmentI, SequenceCollection):
         return result
 
     @c3warn.deprecated_callable(
-        "2023.7",
+        "2023.8",
         reason="handled by <collection>.get_features(seqid=<seqid>)",
         is_discontinued=True,
     )
@@ -4881,7 +4881,7 @@ class Alignment(AlignmentI, SequenceCollection):
         return result
 
     @c3warn.deprecated_args(
-        "2023.7",
+        "2023.8",
         reason="consistency with new API",
         old_new=[("annot_types", "biotypes")],
     )

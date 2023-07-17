@@ -10,7 +10,7 @@ from cogent3.util import warning as c3warn
 
 
 @c3warn.deprecated_args(
-    "2023.7",
+    "2023.8",
     reason="better name",
     old_new=[("ests_from_pairwise", "params_from_pairwise")],
 )

@@ -363,7 +363,7 @@ class Location(object):
                     "argument",
                     dep_arg,
                     arg,
-                    "2023.7",
+                    "2023.8",
                     "changed to be PEP8 compliant",
                 )
 
@@ -430,7 +430,7 @@ class Location(object):
             "method",
             "Location.first",
             "Location.start",
-            "2023.7",
+            "2023.8",
             "Warning: '.start' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
         )
 
@@ -443,7 +443,7 @@ class Location(object):
             "method",
             "Location.last",
             "Location.stop",
-            "2023.7",
+            "2023.8",
             "Warning: '.stop' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
         )
         return self.stop
@@ -459,7 +459,7 @@ class LocationList(list):
         discontinued(
             "method",
             "LocationList.first",
-            "2023.7",
+            "2023.8",
         )
 
         return min(self, key=lambda x: x.start).start + 1
@@ -471,7 +471,7 @@ class LocationList(list):
         discontinued(
             "method",
             "LocationList.last",
-            "2023.7",
+            "2023.8",
         )
         return max(self, key=lambda x: x.stop).stop + 1
 
@@ -671,7 +671,7 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
 
 
 @c3warn.deprecated_args(
-    "2023.7", reason="no longer relevant", discontinued="add_annotation"
+    "2023.8", reason="no longer relevant", discontinued="add_annotation"
 )
 def RichGenbankParser(
     handle,
