@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Callable, Optional, Union
+from typing import Callable, Iterable, Optional, Union
 
 import cogent3.util.io
 
@@ -7,7 +7,6 @@ from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
 from cogent3.util import parallel
-from cogent3.util.misc import is_url
 
 from .composable import NotCompleted, define_app
 from .result import (
@@ -327,7 +326,13 @@ class _InitFrom:
 class _ModelCollectionBase:
     """Base class for fitting collections of models."""
 
-    def __init__(self, null, *alternates, sequential=True, init_alt=None):
+    def __init__(
+        self,
+        null: model,
+        *alternates: Iterable[model],
+        sequential: bool = True,
+        init_alt: Optional[Callable] = None,
+    ):
         """
         Parameters
         ----------
@@ -430,7 +435,13 @@ class hypothesis(_ModelCollectionBase):
 class bootstrap:
     """Parametric bootstrap for a provided hypothesis."""
 
-    def __init__(self, hyp, num_reps, parallel=False, verbose=False):
+    def __init__(
+        self,
+        hyp: hypothesis,
+        num_reps: int,
+        parallel: bool = False,
+        verbose: bool = False,
+    ):
         self._hyp = hyp
         self._num_reps = num_reps
         self._verbose = verbose
