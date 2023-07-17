@@ -6,7 +6,7 @@ The Cogent3 Team is passionate about science, the role of computing in science a
 
 Our mission is to produce high quality, sophisticated scientific software that addresses the incredible pace of change in genomics. We are rewarded when users choose ``cogent3`` and get value from it. Even better is when those users make suggestions on how we can improve it. And best yet is when those users feel enthusiastic about making contributions at any level. All contribution are gratefully received.
 
-Because we value the open and inclusive nature of our community, we have adopted a `code of conduct <https://github.com/cogent3/cogent3/blob/develop/CODE_OF_CONDUCT.md>`_ so newcomers understand our the standards we adhere to in our interactions with each other. Please read it and help us ensure our positive community culture remains as we grow.
+Because we value the open and inclusive nature of our community, we have adopted a `code of conduct <https://github.com/cogent3/cogent3/blob/develop/CODE_OF_CONDUCT.md>`_ so newcomers understand the standards we adhere to in our interactions with each other. Please read it and help us ensure our positive community culture remains as we grow.
 
 ************
 Contributing
@@ -32,7 +32,7 @@ Support
 
 We are grateful to Chan-Zuckerberg Initiative for funding continued development of ``cogent3``.
 
-We acknowledge the provision by `Wingware <https://wingware.com>`_ of free licenses for their professional IDE. Their commitment, over more than a decade, to supporting our development of Open Source software for science is greatly appreciated. (The port of PyCogent to Python 3 was made much easier by using Wing's refactor tools!)
+We acknowledge the provision by `Wingware <https://wingware.com>`_ of free licenses for their professional IDE. Their commitment, over more than a decade, to supporting our development of Open Source software for science is greatly appreciated. (The port of ``PyCogent`` to ``cogent3`` was made much easier by using Wing's refactor tools!)
 
 ********
 Citation
