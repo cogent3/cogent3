@@ -78,7 +78,8 @@ doc  = ["click==8.1.4",
         "sphinx-autobuild",
         "pydata_sphinx_theme",
         "sphinx_panels",
-        "sphinxcontrib-bibtex"]
+        "sphinxcontrib-bibtex",
+        "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
 dev = ["black==23.3.0",
        "click==8.1.4",
@@ -110,7 +111,8 @@ dev = ["black==23.3.0",
        "sphinx-autobuild",
        "pydata_sphinx_theme",
        "sphinx_panels",
-       "sphinxcontrib-bibtex"]
+       "sphinxcontrib-bibtex",
+       "sphinxcontrib-video"]
 
 [tool.flit.sdist]
 include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
