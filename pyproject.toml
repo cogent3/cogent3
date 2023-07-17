@@ -45,7 +45,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "black==23.3.0",
+    "black==23.7.0",
     "isort==5.12.0",
     "click==8.1.5", # black needs this pinned
     "kaleido",
@@ -81,7 +81,7 @@ doc  = ["click==8.1.5",
         "sphinxcontrib-bibtex",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["black==23.3.0",
+dev = ["black==23.7.0",
        "click==8.1.5",
        "flit",
        "ipykernel",
