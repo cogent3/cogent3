@@ -33,7 +33,12 @@ Drawing features is then limited to features within that segment.
     fig = seq.get_drawable()
     fig.show(height=400, width=700)
 
-We reduce the number of biotypes.
+.. note:: If a feature extends outside the displayed segment, it's hover text indicates it as "(incomplete)".
+
+Drawing selected feature biotypes
+---------------------------------
+
+We specify what biotypes we want to display.
 
 .. jupyter-execute::
 
