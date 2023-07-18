@@ -5,6 +5,8 @@ import math
 
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose
+
 from cogent3.maths.stats.special import (
     combinations,
     combinations_exact,
@@ -20,18 +22,6 @@ from cogent3.maths.stats.special import (
     permutations,
     permutations_exact,
 )
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Rob Knight", "Sandra Smit"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose
 
 
 class SpecialTests(TestCase):
@@ -185,7 +175,7 @@ class SpecialTests(TestCase):
             (9, 27, 0.0003): math.log(9.175389e-26),
             (1032, 2050, 0.5): math.log(0.01679804),
         }
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             assert_allclose(ln_binomial(*key), value, 1e-4)
 
     def test_ln_binomial_floats(self):
@@ -200,7 +190,7 @@ class SpecialTests(TestCase):
             (10, 100.5, 0.5): (math.log(7.578011e-18), math.log(1.365543e-17)),
         }
 
-        for (key, value) in list(expected.items()):
+        for key, value in list(expected.items()):
             min_val, max_val = value
             assert min_val < ln_binomial(*key) < max_val
             # self.assert_allclose(binomial_exact(*key), value, 1e-4)

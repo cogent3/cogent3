@@ -6,16 +6,6 @@ from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.annotation import Map
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def seq_traceback(s1, s2, aligned_positions, gap_value):
     """gapped sequences from state matrix and ending point
     gaps are signified by 'gap_value' inserted in the sequences.
@@ -24,7 +14,7 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
     alignments = [[], []]
 
     for posn in aligned_positions:
-        for (dimension, pos) in enumerate(posn):
+        for dimension, pos in enumerate(posn):
             if pos is not None:
                 c = seqs[dimension][pos]
             else:
@@ -46,7 +36,7 @@ def gap_traceback(aligned_positions):
     starts = [None, None]
     ends = [None, None]
     gap_vectors = [[], []]
-    for (a, posn) in enumerate(aligned_positions):
+    for a, posn in enumerate(aligned_positions):
         for dimension in [0, 1]:
             delta = posn[dimension] is not None
             if delta:
@@ -77,7 +67,7 @@ def alignment_traceback(seqs, aligned_positions, word_length):
     """Alignment object from state matrix and ending point."""
     (starts, ends, maps) = map_traceback(aligned_positions)
     aligneds = []
-    for (start, end, amap, (name, seq)) in zip(starts, ends, maps, seqs):
+    for start, end, amap, (name, seq) in zip(starts, ends, maps, seqs):
         gs = Aligned(amap * word_length, seq[start * word_length : end * word_length])
         aligneds.append((name, gs))
     return Alignment(moltype=None, data=aligneds)

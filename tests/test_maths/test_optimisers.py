@@ -1,29 +1,16 @@
-#!/usr/bin/env python
-
-
 import os
 import sys
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.maths.optimisers import MaximumEvaluationsReached, maximise
-
-
-__author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def quartic(x):
     # Has global maximum at -4 and local maximum at 2
     # http://www.wolframalpha.com/input/?i=x**2*%283*x**2%2B8*x-48%29
     # Scaled down 10-fold to avoid having to change init_temp
-    return x ** 2 * (3 * x ** 2 + 8 * x - 48)
+    return x**2 * (3 * x**2 + 8 * x - 48)
 
 
 class NullFile(object):
@@ -63,7 +50,7 @@ class OptimiserTestCase(TestCase):
         bounds = bounds or ([-10, 10])
         f, last, evals = MakeF()
 
-        x = quiet(maximise, f, [xinit], bounds, **kw)
+        x = quiet(maximise, f, [xinit], bounds, show_progress=False, **kw)
         self.assertEqual(x, last[0])  # important for Calculator
         error = abs(x[0] - target)
         self.assertTrue(error < 0.0001, (kw, x, target, x))
@@ -94,7 +81,12 @@ class OptimiserTestCase(TestCase):
         """return the evaluation count from optimisation"""
         f, last, evals = MakeF()
         x, e = quiet(
-            maximise, f, xinit=[1.0], bounds=([-10, 10]), return_eval_count=True
+            maximise,
+            f,
+            xinit=[1.0],
+            bounds=([-10, 10]),
+            return_eval_count=True,
+            show_progress=False,
         )
         # picking arbitrary numerical value
         self.assertGreaterEqual(e, 10)
@@ -114,7 +106,3 @@ class OptimiserTestCase(TestCase):
         )
         if os.path.exists(filename):
             os.remove(filename)
-
-
-if __name__ == "__main__":
-    main()

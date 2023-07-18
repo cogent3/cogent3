@@ -76,27 +76,11 @@ from cogent3.maths.stats.number import CategoryCounter, CategoryFreqs
 from cogent3.maths.stats.special import ROUND_ERROR
 
 
-__author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Greg Caporaso",
-    "Gavin Huttley",
-    "Brett Easton",
-    "Sandra Smit",
-    "Rob Knight",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Greg Caporaso"
-__email__ = "gregcaporaso@gmail.com"
-__status__ = "Beta"
-
 DEFAULT_EXCLUDES = "".join([IUPAC_gap, IUPAC_missing])
 DEFAULT_NULL_VALUE = nan
 
 
 def build_rate_matrix(count_matrix, freqs, aa_order="ACDEFGHIKLMNPQRSTVWY"):
-
     epm = EmpiricalProteinMatrix(count_matrix, freqs)
     word_probs = array([freqs[aa] for aa in aa_order])
     num = word_probs.shape[0]
@@ -1263,7 +1247,6 @@ def ancestral_state_alignment(
 def ancestral_state_position(
     aln, tree, position, ancestral_seqs=None, null_value=DEFAULT_NULL_VALUE
 ):
-
     ancestral_seqs = ancestral_seqs or get_ancestral_seqs(aln, tree)
     result = []
     for i in range(len(aln)):

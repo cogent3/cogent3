@@ -3,6 +3,8 @@
 """
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose
+
 from cogent3.util.transform import (
     KeepChars,
     first_index_in_set,
@@ -10,18 +12,6 @@ from cogent3.util.transform import (
     per_longest,
     per_shortest,
 )
-
-
-__author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Zongzhi Liu"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose
 
 
 class has_x(object):

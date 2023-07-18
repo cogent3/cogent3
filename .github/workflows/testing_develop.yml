@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "develop", "data_store_refactor" ]
+    branches: [ "develop", "issue_1328" ]
   pull_request:
-    branches: [ "develop", "data_store_refactor" ]
+    branches: [ "develop", "issue_1328" ]
 
 jobs:
   tests:
@@ -13,8 +13,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - uses: "actions/checkout@v2"

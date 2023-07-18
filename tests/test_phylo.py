@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 import os
 import pathlib
 import unittest
@@ -24,21 +23,6 @@ from cogent3.util.io import remove_files
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Peter Maxwell",
-    "Gavin Huttley",
-    "Matthew Wakefield",
-    "Daniel McDonald",
-    "Ben Kaehler",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 base_path = os.path.dirname(__file__)
 data_path = os.path.join(base_path, "data")
@@ -531,7 +515,6 @@ class TreeReconstructionTests(unittest.TestCase):
         self.assertTreeDistancesEqual(self.tree, reconstructed)
 
         # Results should be a TreeCollection
-        len(results)
         results.get_consensus_tree()
 
         # From GNJ paper. Pearson, Robins, Zhang 1999.
@@ -594,5 +577,23 @@ class TreeReconstructionTests(unittest.TestCase):
         self.assertTrue(tree.same_topology(make_tree("(Mouse,Rat,(Human,Dog));")))
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_gnj_two():
+    """testing gnj when just 2 taxa"""
+    dists = {("a", "b"): 1, ("b", "a"): 1}
+    results = gnj(dists, keep=1, show_progress=False)
+    length, got = results[0]
+    assert set(got.get_tip_names()) == {"a", "b"}
+    assert length == 1.0
+    assert got.name == "root"
+    assert len(got.children) == 2
+    assert {e.length for e in got.postorder(include_self=False)} == {0.5}
+
+
+def test_nj_two():
+    """testing gnj when just 2 taxa"""
+    dists = {("a", "b"): 1, ("b", "a"): 1}
+    got = nj(dists, show_progress=False)
+    assert set(got.get_tip_names()) == {"a", "b"}
+    assert got.name == "root"
+    assert len(got.children) == 2
+    assert {e.length for e in got.postorder(include_self=False)} == {0.5}

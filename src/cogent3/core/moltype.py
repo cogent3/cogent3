@@ -11,16 +11,6 @@ the MolType. It is thus essential that the connection between these other
 types and the MolType can be made after the objects are created.
 """
 
-__author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight", "Daniel McDonald"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 import json
 import re
 
@@ -29,8 +19,7 @@ from copy import deepcopy
 from random import choice
 from string import ascii_letters as letters
 
-import numpy
-
+from cogent3._version import __version__
 from cogent3.core.alignment import (
     Alignment,
     ArrayAlignment,
@@ -66,7 +55,6 @@ from cogent3.util.misc import (
     FunctionWrapper,
     add_lowercase,
     get_object_provenance,
-    iterable,
 )
 from cogent3.util.transform import KeepChars, first_index_in_set
 from cogent3.util.warning import deprecated
@@ -528,6 +516,10 @@ AA_COLORS = _expand_colors(
 )
 
 
+def _do_nothing(x):
+    return x
+
+
 class MolType(object):
     """MolType: Handles operations that depend on the sequence type (e.g. DNA).
 
@@ -559,6 +551,7 @@ class MolType(object):
         make_alphabet_group=False,
         array_seq_constructor=None,
         colors=None,
+        coerce_string=None,
     ):
         """Returns a new MolType object. Note that the parameters are in flux.
 
@@ -580,7 +573,7 @@ class MolType(object):
             dict of char:tuple, doesn't include gaps (these are
             hard-coded as - and ?, and added later.
         label
-            text label, don't know what this is used for. Unnecessary?
+            text label that is used to identify instances by `get_moltype()`
         complements
             dict of symbol:symbol showing how the non-degenerate
             single characters complement each other. Used for constructing
@@ -701,6 +694,8 @@ class MolType(object):
 
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
+        self._coerce_string = coerce_string or _do_nothing
+
     def __repr__(self):
         """String representation of MolType.
 
@@ -712,6 +707,9 @@ class MolType(object):
     def __getnewargs_ex__(self, *args, **kw):
         data = self.to_rich_dict(for_pickle=True)
         return (), data
+
+    def coerce_str(self, data: str) -> str:
+        return self._coerce_string(data)
 
     def to_rich_dict(self, for_pickle=False):
         data = deepcopy(self._serialisable)
@@ -739,7 +737,7 @@ class MolType(object):
 
     def gettype(self):  # pragma: no cover
         """Return the moltype label."""
-        deprecated("method", "gettype", "get_type", "2023.6", "pep8")
+        deprecated("method", "gettype", "get_type", "2023.8", "pep8")
         return self.label
 
     def get_type(self):  # pragma: no cover
@@ -748,7 +746,11 @@ class MolType(object):
 
     def make_seq(self, seq, name=None, **kwargs):
         """Returns sequence of correct type."""
-        return self._make_seq(seq, name, **kwargs)
+
+        name = name or getattr(seq, "name", None)
+        if isinstance(seq, ArraySequence):
+            seq = str(seq)
+        return self._make_seq(seq=self.coerce_str(seq), name=name, **kwargs)
 
     def make_array_seq(self, seq, name=None, **kwargs):
         """
@@ -766,6 +768,7 @@ class MolType(object):
         -------
         ArraySequence
         """
+        name = name or getattr(seq, "name", None)
         alphabet = kwargs.pop("alphabet", None)
         if alphabet is None and hasattr(self, "alphabets"):
             alphabet = self.alphabets.degen_gapped
@@ -816,7 +819,7 @@ class MolType(object):
         """
         most_specific = len(self.alphabet) + 1
         result = self.missing
-        for (code, motifs2) in list(self.ambiguities.items()):
+        for code, motifs2 in list(self.ambiguities.items()):
             for c in motifs:
                 if c not in motifs2:
                     break
@@ -887,16 +890,16 @@ class MolType(object):
         Always tries to return same type as item: if item looks like a dict,
         will return list of keys.
         """
+        if isinstance(item, (list, tuple)):
+            data = "".join(item)
+        else:
+            data = str(item)
+
         if not self.complements:
             raise TypeError(
                 "Tried to complement sequence using alphabet without complements."
             )
-        try:
-            return item.translate(self.ComplementTable)
-        except (AttributeError, TypeError):
-            item = iterable(item)
-            get = self.complements.get
-            return item.__class__([get(i, i) for i in item])
+        return item.__class__(data.translate(self.ComplementTable))
 
     def rc(self, item):
         """Returns reverse complement of item w/ data from self.complements.
@@ -1044,16 +1047,13 @@ class MolType(object):
 
     def degap(self, sequence):
         """Deletes all gap characters from sequence."""
-        try:
-            trans = dict([(i, None) for i in map(ord, self.gaps)])
-            return sequence.__class__(sequence.translate(trans))
-        except AttributeError:
-            gap = self.gaps
+        if isinstance(sequence, (tuple, list)):
+            data = "".join(sequence)
+        else:
+            data = str(sequence)
 
-            def not_gap(x):
-                return x not in gap
-
-            return sequence.__class__(list(filter(not_gap, sequence)))
+        trans = dict([(i, None) for i in map(ord, self.gaps)])
+        return sequence.__class__(data.translate(trans))
 
     def gap_indices(self, sequence):
         """Returns list of indices of all gaps in the sequence, or []."""
@@ -1298,6 +1298,14 @@ class MolType(object):
         return css, styles
 
 
+def _convert_to_rna(seq: str) -> str:
+    return seq.replace("t", "u").replace("T", "U")
+
+
+def _convert_to_dna(seq: str) -> str:
+    return seq.replace("u", "t").replace("U", "T")
+
+
 ASCII = MolType(
     # A default type for text read from a file etc. when we don't
     # want to prematurely assume DNA or Protein.
@@ -1319,6 +1327,7 @@ DNA = MolType(
     make_alphabet_group=True,
     array_seq_constructor=ArrayDnaSequence,
     colors=NT_COLORS,
+    coerce_string=_convert_to_dna,
 )
 
 RNA = MolType(
@@ -1332,6 +1341,7 @@ RNA = MolType(
     make_alphabet_group=True,
     array_seq_constructor=ArrayRnaSequence,
     colors=NT_COLORS,
+    coerce_string=_convert_to_rna,
 )
 
 PROTEIN = MolType(
@@ -1366,6 +1376,7 @@ BYTES = MolType(
     label="bytes",
 )
 
+
 # the None value catches cases where a moltype has no label attribute
 _style_defaults = {
     getattr(mt, "label", ""): defaultdict(
@@ -1382,6 +1393,10 @@ AB = MolType(
     array_seq_constructor=ArraySequence,
     label="ab",
 )
+
+# todo the _CodonAlphabet class should not exist,
+# the genetic code should have an alphabet, not
+# the alphabet has a genetic code
 
 
 class _CodonAlphabet(Alphabet):
@@ -1416,15 +1431,9 @@ def CodonAlphabet(gc=1, include_stop_codons=False):
     return a
 
 
-def _method_codon_alphabet(ignore, *args, **kwargs):
-    """If CodonAlphabet is set as a property, it gets self as extra 1st arg."""
-    return CodonAlphabet(*args, **kwargs)
-
-
 STANDARD_CODON = CodonAlphabet()
 
 # Modify NucleicAcidSequence to avoid circular import
-NucleicAcidSequence.codon_alphabet = _method_codon_alphabet
 NucleicAcidSequence.protein = PROTEIN
 ArrayRnaSequence.moltype = RNA
 ArrayRnaSequence.alphabet = RNA.alphabets.degen_gapped
@@ -1443,8 +1452,8 @@ ArraySequence.alphabet = BYTES.alphabet
 ArrayAlignment.alphabet = BYTES.alphabet
 ArrayAlignment.moltype = BYTES
 
-ArrayDnaCodonSequence.alphabet = DNA.alphabets.base ** 3
-ArrayRnaCodonSequence.alphabet = RNA.alphabets.base ** 3
+ArrayDnaCodonSequence.alphabet = DNA.alphabets.base**3
+ArrayRnaCodonSequence.alphabet = RNA.alphabets.base**3
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII

@@ -6,24 +6,15 @@ import inspect
 import re
 import textwrap
 
-from .io_new import open_data_store
+from .io import open_data_store
 
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 __all__ = [
     "align",
     "composable",
     "dist",
     "evo",
-    "io_new",
+    "io",
     "sample",
     "translate",
     "tree",
@@ -70,7 +61,7 @@ def available_apps():
         importlib.import_module(f"cogent3.app.{name}")
 
     # exclude apps from deprecated modules
-    deprecated = ["cogent3.app.io."]
+    deprecated = []
 
     rows = []
     for app, is_comp in __app_registry.items():
@@ -158,12 +149,12 @@ def _get_app_matching_name(name: str):
     return getattr(mod, name)
 
 
-def get_app(name: str, *args, **kwargs):
+def get_app(_app_name: str, *args, **kwargs):
     """returns app instance, use app_help() to display arguments
 
     Parameters
     ----------
-    name
+    _app_name
         app name, e.g. 'minlength', or can include module information,
         e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
         latter (qualified class name) style when there are multiple matches
@@ -180,7 +171,7 @@ def get_app(name: str, *args, **kwargs):
     NameError when multiple apps have the same name. In that case use a
     qualified class name, as shown above.
     """
-    return _get_app_matching_name(name)(*args, **kwargs)
+    return _get_app_matching_name(_app_name)(*args, **kwargs)
 
 
 def _make_head(text: str) -> list[str]:

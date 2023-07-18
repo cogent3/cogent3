@@ -11,15 +11,6 @@ from .util import (
 )
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
 # This is a fairly slow implementation and NOT suitable for large trees.
 
 # Trees are represented as "ancestry" matricies in which A[i,j] iff j is an
@@ -35,7 +26,7 @@ def _ancestry2paths(A):
     the correct order in A"""
     tips = [i for i in range(A.shape[0]) if sum(A[:, i]) == 1]
     paths = []
-    for (tip1, tip2) in triangular_order(tips):
+    for tip1, tip2 in triangular_order(tips):
         path = A[tip1] ^ A[tip2]
         paths.append(path)
     return numpy.array(paths)
@@ -86,7 +77,7 @@ class WLS(TreeEvaluator):
                 lengths = solve(X, y)
                 lengths = maximum(lengths, 0.0)
             diffs = dot(A, lengths) - dists
-            err = sum(diffs ** 2)
+            err = sum(diffs**2)
             return (err, lengths)
 
         return evaluate

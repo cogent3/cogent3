@@ -5,23 +5,24 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
-dynamic = ["version"]
+# remember to update cogent3/_version.py too!
+version = "2023.7.18a1"
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
 ]
 keywords = ["biology", "genomics", "statistics", "phylogeny", "evolution", "bioinformatics"]
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.8,<3.11"
+requires-python = ">=3.8,<3.12"
 dependencies = ["chardet",
         "numpy",
         "numba>0.48.0;python_version<'3.9'",
         "numba>0.53; python_version>='3.9'",
         "numba>0.54; python_version>='3.10'",
+        "numba>=0.57.0; python_version=='3.11'",
         "scipy",
         "scitrack",
         "tqdm",
-        "tinydb",
         "typing_extensions"]
 classifiers = [
         "Development Status :: 5 - Production/Stable",
@@ -43,8 +44,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "black",
-    "isort",
+    "black==23.7.0",
+    "isort==5.12.0",
+    "click==8.1.5", # black needs this pinned
     "kaleido",
     "pandas",
     "plotly",
@@ -52,8 +54,9 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
+    "tinydb",
     "nox"]
-doc  = ["click",
+doc  = ["click==8.1.5",
         "ipykernel",
         "ipython",
         "ipywidgets",
@@ -73,19 +76,18 @@ doc  = ["click",
         "psutil",
         "sphinx",
         "sphinx-autobuild",
-        "sphinx-gallery",
-        "sphinx>=1.6",
-        "sphinx_bootstrap_theme",
+        "pydata_sphinx_theme",
         "sphinx_panels",
-        "sphinxcontrib-bibtex"]
+        "sphinxcontrib-bibtex",
+        "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
-dev = ["black",
-       "click",
+dev = ["black==23.7.0",
+       "click==8.1.5",
        "flit",
        "ipykernel",
        "ipython",
        "ipywidgets",
-       "isort",
+       "isort==5.12.0",
        "jupyter-sphinx",
        "jupyter_client",
        "jupyterlab",
@@ -104,18 +106,25 @@ dev = ["black",
        "pytest",
        "pytest-cov",
        "pytest-xdist",
+       "scriv",
        "sphinx",
        "sphinx-autobuild",
-       "sphinx-gallery",
-       "sphinx_bootstrap_theme",
+       "pydata_sphinx_theme",
        "sphinx_panels",
-       "sphinxcontrib-bibtex"]
+       "sphinxcontrib-bibtex",
+       "sphinxcontrib-video",
+       "tinydb"
+]
 
 [tool.flit.sdist]
 include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
 exclude = ["doc/*.html"]
 
 [tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    ]
+
 addopts = ["--strict-config", "-ra"]
 testpaths = "tests"
 filterwarnings = [
@@ -137,7 +146,6 @@ exclude = '''
   | \.venv
   | _build
   | build
-  | doc
   | dist
   | tests/data
 )/
@@ -151,3 +159,13 @@ lines_after_imports=2
 lines_between_types=1
 multi_line_output=3
 use_parentheses=true
+src_paths = ["src", "tests","doc","noxfile.py"]
+
+[tool.scriv]
+format="md"
+categories=["Contributors", "ENH", "BUG", "DOC", "Deprecations", "Discontinued"]
+output_file="changelog.md"
+version="literal: src/cogent3/_version.py:__version__"
+skip_fragments="README.*"
+new_fragment_template="file: changelog.d/templates/new.md.j2"
+entry_title_template="file: changelog.d/templates/title.md.j2"

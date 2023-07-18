@@ -17,6 +17,7 @@ from numpy import (
     testing,
     tril,
 )
+from numpy.testing import assert_allclose, assert_equal
 
 from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.test import (
@@ -34,7 +35,6 @@ from cogent3.maths.stats.test import (
     _get_rank,
     _permute_observations,
     bayes_updates,
-    combinations,
     correlation,
     correlation_matrix,
     correlation_test,
@@ -79,26 +79,6 @@ from cogent3.maths.stats.test import (
 )
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Catherine Lozupone",
-    "Gavin Huttley",
-    "Sandra Smit",
-    "Daniel McDonald",
-    "Jai Ram Rideout",
-    "Michael Dwan",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_equal
-
-
 def is_prob(value):
     """helper function to establish a 0 <= value <= 1"""
     value = asarray(value)
@@ -114,7 +94,6 @@ def similar_means(observed, expected, pvalue=0.01):
 
     # handle case where all elements were the same
     if p is None or not isfinite(p):
-
         if not observed.shape:
             observed = observed.reshape((1,))
 
@@ -2083,6 +2062,7 @@ class TestDistMatrixPermutationTest(TestCase):
 
     def test_distance_matrix_permutation_test_return_scores(self):
         """return_scores=True functions as expected"""
+
         # use alt statistical test to make results simple
         def fake_stat_test(a, b, tails=None):
             return 42.0, 42.0

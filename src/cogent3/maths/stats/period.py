@@ -13,16 +13,6 @@ except ImportError:  # python version < 2.6
     factorial = lambda x: Gamma(x + 1)
 
 
-__author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def chi_square(x, p, df=1):
     """returns the chisquare statistic and it's probability"""
     N = len(x)

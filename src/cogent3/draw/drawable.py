@@ -7,15 +7,6 @@ from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Rahul Ghangas and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rahul Ghangas", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
 # user specified environment variable for plotly renderer
 PLOTLY_RENDERER = os.environ.get("PLOTLY_RENDERER", None)
 
@@ -755,17 +746,23 @@ class _MakeShape:
     """container class that builds annotation shapes"""
 
     _colors = dict(
-        cds="rgba(0,0,150,0.5)",
-        exon="rgba(0,0,100,0.5)",
-        gene="rgba(0,0,150,0.5)",
-        transcript="rgba(0,0,200,0.5)",
-        snp="rgba(200,0,0,0.5)",
-        snv="rgba(200,0,0,0.5)",
+        cds="rgba(0,0,150,0.75)",
+        rrna="rgba(0,0,150,0.75)",
+        trna="rgba(0,0,150,0.75)",
+        exon="rgba(0,0,100,0.75)",
+        gene="rgba(161,0,0,0.75)",
+        transcript="rgba(140,102,139,0.75)",
+        mrna="rgba(140,102,139,0.75)",
+        snp="rgba(200,0,0,0.75)",
+        snv="rgba(200,0,0,0.75)",
     )
     _shapes = dict(
         cds=Arrow,
+        rrna=Arrow,
+        trna=Arrow,
         exon=Arrow,
         transcript=Arrow,
+        mrna=Arrow,
         gene=Arrow,
         repeat=Rectangle,
         snp=Point,
@@ -774,23 +771,21 @@ class _MakeShape:
     )
 
     def __call__(self, type_=None, name=None, coords=None, **kwargs):
-        from cogent3.core.annotation import _Annotatable
-
-        if isinstance(type_, _Annotatable):
+        if hasattr(type_, "map"):
             if not type_.map.useful:
                 return None
 
-            name = type_.name
+            name = type_.name if type_.map.complete else f"{type_.name} (incomplete)"
             coords = type_.map.get_coordinates()
             reverse = type_.map.get_covering_span().reverse
-            type_ = type_.type
+            type_ = type_.biotype
         else:
             if coords[0][0] > coords[-1][1]:
                 reverse = True
             else:
                 reverse = False
             if coords is None:
-                raise Exception("No coordinates defined")
+                raise ValueError("No coordinates defined")
         kwargs.update(dict(reverse=reverse))
 
         klass = self._shapes.get(type_.lower(), Rectangle)

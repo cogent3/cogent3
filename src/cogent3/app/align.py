@@ -1,34 +1,30 @@
 import warnings
 
 from bisect import bisect_left
-from typing import Union
+from itertools import combinations
+from typing import Optional, Union
 
-from cogent3 import make_tree
+from numpy import array, isnan
+
 from cogent3.align import (
+    classic_align_pairwise,
     global_pairwise,
     make_dna_scoring_dict,
     make_generic_scoring_dict,
 )
-from cogent3.align.progressive import TreeAlign
+from cogent3.align.progressive import tree_align
 from cogent3.app import dist
+from cogent3.app.tree import interpret_tree_arg
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import get_moltype
+from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
+from cogent3.maths.util import safe_log
 
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
-
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 
 class _GapOffset:
@@ -420,7 +416,9 @@ class progressive_align:
         unique_guides=False,
         indel_length=1e-1,
         indel_rate=1e-10,
-        distance="percent",
+        distance="pdist",
+        iters: Optional[int] = None,
+        approx_dists: bool = True,
     ):
         """
         Parameters
@@ -449,10 +447,19 @@ class progressive_align:
         indel_length : float
             probability of gap extension
         distance : string
-            the distance measure for building a guide tree. Default is 'percent',
+            the distance measure for building a guide tree. Default is 'pdist',
             the proportion of differences. This is applicable for any moltype,
             and sequences with very high percent identity. For more diverged
             sequences we recommend 'paralinear'.
+        iters
+            the number of times the alignment process is repeated. The guide tree
+            is updated on each iteration from pairwise distances computed from the
+            alignment produced by the previous iteration. If None, does not do any
+            iterations.
+        approx_dists
+            if no guide tree, and model is for DNA / Codons, estimates pairwise
+            distances using an approximation and JC69. Otherwise, estimates
+            genetic distances from pairwise alignments (which is slower).
         """
         self._param_vals = {
             "codon": dict(omega=0.4, kappa=3),
@@ -471,9 +478,14 @@ class progressive_align:
         self._moltype = moltype
         self._unique_guides = unique_guides
         self._distance = distance
+        self._iters = iters
         if callable(guide_tree):
             self._make_tree = guide_tree
             guide_tree = None  # callback takes precedence
+        elif approx_dists and len(moltype.alphabet) == 4:
+            dist_app = dist.get_approx_dist_calc(dist="jc69", num_states=4)
+            est_tree = quick_tree()
+            self._make_tree = dist_app + est_tree
         else:
             al_to_ref = align_to_ref(moltype=self._moltype)
             dist_calc = dist.fast_slow_dist(
@@ -483,10 +495,9 @@ class progressive_align:
             self._make_tree = al_to_ref + dist_calc + est_tree
 
         if guide_tree is not None:
-            if type(guide_tree) == str:
-                guide_tree = make_tree(treestring=guide_tree, underscore_unmunge=True)
-                if guide_tree.children[0].length is None:
-                    raise ValueError("Guide tree must have branch lengths")
+            guide_tree = interpret_tree_arg(guide_tree)
+            if guide_tree.children[0].length is None:
+                raise ValueError("Guide tree must have branch lengths")
             # make sure no zero lengths
             guide_tree = scale_branches()(guide_tree)
 
@@ -497,6 +508,7 @@ class progressive_align:
             tree=self._guide_tree,
             param_vals=self._param_vals,
             show_progress=False,
+            iters=self._iters,
         )
 
     def _build_guide(self, seqs):
@@ -515,6 +527,8 @@ class progressive_align:
 
         if self._guide_tree is None or self._unique_guides:
             self._guide_tree = self._build_guide(seqs)
+            if not self._guide_tree:
+                return self._guide_tree
             self._kwargs["tree"] = self._guide_tree
             diff = set(self._guide_tree.get_tip_names()) ^ set(seqs.names)
             if diff:
@@ -528,7 +542,7 @@ class progressive_align:
         with warnings.catch_warnings(record=False):
             warnings.simplefilter("ignore")
             try:
-                result, tree = TreeAlign(self._model, seqs, **kwargs)
+                result, tree = tree_align(self._model, seqs, **kwargs)
                 if self._moltype and self._moltype != result.moltype:
                     result = result.to_moltype(self._moltype)
 
@@ -538,3 +552,260 @@ class progressive_align:
                 result = NotCompleted("ERROR", self, err.args[0], source=seqs)
                 return result
         return result
+
+
+@define_app
+class smith_waterman:
+    """Local alignment of two sequences using the Smith-Waterman algorithm
+
+    Notes
+    -----
+    It records the score of the alignment (in addition to all other the
+    parameter values) as "sw_score" in ``alignment.info['align_params']``.
+    """
+
+    def __init__(
+        self,
+        score_matrix: dict = None,
+        insertion_penalty: int = 20,
+        extension_penalty: int = 2,
+        moltype: str = "dna",
+    ):
+        """
+        Parameters
+        ----------
+        score_matrix : dict
+            scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for DNA
+            and `make_generic_scoring_dict(10, moltype)` for other moltype.
+        insertion_penalty : int
+            penalty for gap insertion
+        extension_penalty : int
+            penalty for gap extension
+        moltype
+            molecular type of sequences
+        """
+        moltype = get_moltype(moltype)
+        self._score_matrix = score_matrix or (
+            make_dna_scoring_dict(10, -1, -8)
+            if moltype.label == "dna"
+            else make_generic_scoring_dict(10, moltype)
+        )
+        self._insertion_penalty = insertion_penalty
+        self._extension_penalty = extension_penalty
+
+    def main(self, seqs: UnalignedSeqsType) -> AlignedSeqsType:
+        if seqs.num_seqs > 2:
+            return NotCompleted(
+                "ERROR",
+                self,
+                message="maximum number of two seqs per collection",
+                source=seqs,
+            )
+        seq1, seq2 = seqs.seqs
+        aln, score = classic_align_pairwise(
+            seq1,
+            seq2,
+            self._score_matrix,
+            self._insertion_penalty,
+            self._extension_penalty,
+            True,
+            return_score=True,
+        )
+
+        aln.info["align_params"] = dict(
+            score_matrix=self._score_matrix,
+            insertion_penalty=self._insertion_penalty,
+            extension_penalty=self._extension_penalty,
+            sw_score=score,
+        )
+        return aln
+
+
+@define_app
+class ic_score:
+    """compute the Information Content alignment quality score
+
+    Returns
+    -------
+    The score or 0.0 if it cannot be computed.
+
+    Notes
+    -----
+    Based on eq. (2) in noted reference.
+
+    Hertz, G. Z. & Stormo, G. D. Identifying DNA and protein patterns with
+    statistically significant alignments of multiple sequences.
+    Bioinformatics vol. 15 563–577 (Oxford University Press, 1999)
+    """
+
+    def __init__(self, equifreq_mprobs=True):
+        """
+        Parameters
+        ----------
+        equifreq_mprobs : bool
+            If true, specifies equally frequent motif probabilities.
+        """
+        self._equi_frequent = equifreq_mprobs
+
+    def main(self, aln: AlignedSeqsType) -> float:
+        counts = aln.counts_per_pos(include_ambiguity=False, allow_gap=False)
+        if counts.array.max() == 0 or aln.num_seqs == 1:
+            msg = "zero length" if len(aln) == 0 else "single sequence"
+            return NotCompleted(
+                "FAIL",
+                self,
+                f"cannot compute alignment quality because {msg}",
+                source=aln.info,
+            )
+
+        motif_probs = aln.get_motif_probs(include_ambiguity=False, allow_gap=False)
+
+        if self._equi_frequent:
+            # we reduce motif_probs to observed states
+            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
+            num_motifs = len(motif_probs)
+            motif_probs = {m: 1 / num_motifs for m in motif_probs}
+
+        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
+
+        cols = p != 0
+        p = p[cols]
+        counts = counts.array[:, cols]
+        frequency = counts / aln.num_seqs
+        log_f = safe_log(frequency / p)
+        I_seq = log_f * frequency
+        return I_seq.sum()
+
+
+@define_app
+def cogent3_score(aln: AlignedSeqsType) -> float:
+    """returns the cogent3 log-likelihood as an alignment quality score
+
+    Parameters
+    ----------
+    aln
+        An alignment instance.
+
+    Returns
+    -------
+    returns the log-likelihood, or 0.0 if the alignment does not have the
+    score
+
+    Notes
+    -----
+    The cogent3 tree_align algorithm is a progressive-HMM. It records
+    the log-likelihood of the alignment (in addition to all other
+    the parameter values, including the guide tree) in
+    ``alignment.info['align_params']``. This can be used as a measure of
+    alignment quality.
+
+    The instance must have been aligned using cogent3 tree_align. In addition,
+    if the alignment has been saved, it has must have been serialised
+    using a format that preserves the score.
+    """
+    if aln.num_seqs == 1 or len(aln) == 0:
+        msg = "zero length" if len(aln) == 0 else "single sequence"
+        return NotCompleted(
+            "FAL",
+            "cogent3_score",
+            f"cannot compute alignment quality because {msg}",
+            source=aln.info,
+        )
+
+    align_params = aln.info.get("align_params", {})
+    return align_params.get(
+        "lnL",
+        NotCompleted(
+            "FAL", "cogent3_score", "no alignment quality score", source=aln.info
+        ),
+    )
+
+
+@define_app
+class sp_score:
+    """Compute a variant of Sum of Pairs alignment quality score
+
+    Returns
+    -------
+    The score or 0.0 if it cannot be computed.
+
+    Notes
+    -----
+    We first compute pairwise genetic distances by the user specified
+    method. For each pair, this genetic distance is converted into an
+    estimate of the number of unchanged positions (with the minimum being
+    zero). The result is a sequence similarity matrix.
+
+    We compute pairwise affine gap distance using the user specified
+    values. The first matrix minus the second gives the statistic for
+    individual pairs and their sum is the Sum of Pairs score.
+
+    Carrillo, H. & Lipman, D. The Multiple Sequence Alignment Problem in
+    Biology. Siam J Appl Math 48, 1073–1082 (1988).
+    """
+
+    def __init__(
+        self, calc: str = "JC69", gap_insert: float = 12.0, gap_extend: float = 1.0
+    ):
+        """
+        Parameters
+        ----------
+        calc
+            name of the pairwise distance calculator
+        gap_insert
+            gap insertion penalty
+        gap_extend
+            gap extension penalty
+
+        Notes
+        -----
+        see available_distances() for the list of available methods.
+        """
+        self._insert = gap_insert
+        self._extend = gap_extend
+        self._calc = get_distance_calculator(calc)
+        self._gap_calc = dist.gap_dist(gap_insert=gap_insert, gap_extend=gap_extend)
+
+    def main(self, aln: AlignedSeqsType) -> float:
+        # this is a distance matrix, we want a similarity matrix
+        # because genetic distances can exceed 1, we need to adjust by
+        # multiplying by the length of the alignment to get the estimated
+        # number of changes and subtract that from the alignment length
+        if aln.num_seqs == 1 or len(aln) == 0:
+            msg = "zero length" if len(aln) == 0 else "single sequence"
+            return NotCompleted(
+                "FAIL",
+                self,
+                f"cannot compute alignment quality because {msg}",
+                source=aln.info,
+            )
+
+        self._calc(aln, show_progress=False)
+        dmat = self._calc.dists
+
+        if isnan(dmat.array).sum():
+            nans = isnan(dmat.array).sum(axis=0) > 0
+            names = ", ".join(f"{n!r}" for n in array(dmat.names)[nans])
+            return NotCompleted(
+                "ERROR",
+                self,
+                f"Some genetic distances involving {names} were NaN's. "
+                "Using calc='pdist' will prevent this issue.",
+                source=aln,
+            )
+
+        lengths = self._calc.lengths
+        for i, j in combinations(range(aln.num_seqs), 2):
+            n1, n2 = dmat.names[i], dmat.names[j]
+            length = lengths[n1, n2]
+            unchanged = length - dmat[i, j] * length
+            # for very divergent cases, unchanged could be < 0,
+            # limit this to 0
+            dmat[i, j] = dmat[j, i] = max(unchanged, 0.0)
+        # compute the pairwise gap as number of gaps * gap_insert + length
+        # of gaps * gap_extend
+        gap_scores = self._gap_calc(aln)
+        # make sure the two dmats in same name order
+        gap_scores = gap_scores.take_dists(dmat.names)
+        dmat.array -= gap_scores
+        return dmat.array.sum() / 2

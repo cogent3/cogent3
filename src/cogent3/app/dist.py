@@ -1,6 +1,12 @@
 import itertools
 
-from typing import Union
+from copy import deepcopy
+from itertools import combinations
+from typing import Callable, Union
+
+import numpy
+
+from numpy import polyval, triu_indices
 
 from cogent3 import get_moltype, make_tree
 from cogent3.evolve.fast_distance import (
@@ -8,19 +14,35 @@ from cogent3.evolve.fast_distance import (
     get_distance_calculator,
 )
 from cogent3.evolve.models import get_model
+from cogent3.maths.distance_transform import jaccard
+from cogent3.util.misc import get_true_spans
 
-from .composable import define_app
-from .typing import AlignedSeqsType, PairwiseDistanceType, SerialisableType
+from .composable import NotCompleted, define_app
+from .typing import (
+    AlignedSeqsType,
+    PairwiseDistanceType,
+    SerialisableType,
+    UnalignedSeqsType,
+)
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
+# The following coefficients are derived from a polynomial fit between Jaccard distance
+# and the proportion of different sites for mammalian DNA sequences. NOTE: the Jaccard
+# distance used kmers where k=10.
+JACCARD_PDIST_POLY_COEFFS = [
+    2271.7714153914335,
+    -11998.34362001251,
+    27525.142573445955,
+    -35922.0159776342,
+    29337.5102940838,
+    -15536.693064681693,
+    5346.929667208838,
+    -1165.616998965176,
+    151.8581396241204,
+    -10.489082251524346,
+    0.3334853259953467,
+    0.0,
+]
 
 
 @define_app
@@ -58,7 +80,7 @@ class fast_slow_dist:
             fast_calc = distance
             slow_calc = distance
 
-        d = {"hamming", "percent", "paralinear", "logdet"} & {slow_calc, fast_calc}
+        d = {"hamming", "pdist", "paralinear", "logdet"} & {slow_calc, fast_calc}
         if d and not self._moltype:
             raise ValueError(f"you must provide a moltype for {d}")
 
@@ -125,3 +147,172 @@ class fast_slow_dist:
 def get_fast_slow_calc(distance, **kwargs):
     """returns FastSlow instance for a given distance name"""
     return fast_slow_dist(distance, **kwargs)
+
+
+@define_app
+def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceType:
+    """Calculates the pairwise Jaccard distance between the sets of kmers generated from
+    sequences in the collection. A measure of distance for unaligned sequences.
+
+    Parameters
+    ----------
+    seq_coll: UnalignedSeqsType
+        a collection of unaligned sequences
+    k: int
+        size of kmer to use for
+
+    Returns
+    -------
+    Pairwise Jaccard distance between sequences in the collection.
+    """
+
+    kmers = {
+        name: set(seq.iter_kmers(k, strict=True))
+        for name, seq in seq_coll.named_seqs.items()
+    }
+    seq_names = sorted(kmers.keys())
+    num_seqs = len(seq_names)
+
+    dists = {}
+
+    for i in range(num_seqs):
+        for j in range(i):
+            name1, name2 = seq_names[i], seq_names[j]
+            dist = jaccard(kmers[name1], kmers[name2])
+            dists[(name1, name2)] = dist
+            dists[(name2, name1)] = dist
+    if not dists:
+        names = ", ".join(f"{n!r}" for n in seq_coll.names)
+        return NotCompleted(
+            "ERROR",
+            jaccard_dist.__name__,
+            f"could not compute distances between {names}",
+            source=seq_coll,
+        )
+    return DistanceMatrix(dists)
+
+
+@define_app
+def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
+    """Approximate the proportion sites different from Jaccard distances
+
+    Parameters
+    ----------
+    jaccard_dists
+        The pairwise Jaccard distance matrix
+
+    Returns
+    -------
+    DistanceMatrix of approximated proportion sites different
+
+    Notes
+    -----
+    Coefficients were derived from a polynomial fit between Jaccard distance
+    of kmers with k=10 and the proportion of sites different using mammalian
+    106 protein coding gene DNA sequence alignments.
+    """
+    upper_indices = triu_indices(n=jaccard_dists.shape[0], k=1)
+    result = deepcopy(jaccard_dists)  # so the original matrix not modified
+    arr = result.array
+
+    # Convert only the upper indices from Jaccard distance to approximate PDist
+    arr[upper_indices] = polyval(JACCARD_PDIST_POLY_COEFFS, arr[upper_indices])
+    # Reflect the upper triangle to the lower triangle
+    arr.T[upper_indices] = arr[upper_indices]
+    result.array = arr
+    return result
+
+
+@define_app
+def approx_jc69(
+    pdists: PairwiseDistanceType, num_states: int = 4
+) -> PairwiseDistanceType:
+    """Converts p-distances and returns pairwise JC69 distances
+
+    Parameters
+    ----------
+    pdists
+        The pairwise PDist matrix
+    num_states
+        Number of sequence states, default is for the traditional
+        JC69 modelling of DNA substitutions
+
+    Returns
+    -------
+    DistanceMatrix of pairwise JC69 distances
+    """
+    upper_indices = triu_indices(n=pdists.shape[0], k=1)
+    result = deepcopy(pdists)  # so the original matrix not modified
+    arr = result.array
+    n_1 = num_states - 1
+    arr[upper_indices] = (
+        -n_1 / num_states * numpy.log(1 - (num_states / n_1 * arr[upper_indices]))
+    )
+    arr.T[upper_indices] = arr[upper_indices]
+    result.array = arr
+    return result
+
+
+def get_approx_dist_calc(dist: str, num_states: int = 4) -> Callable:
+    """Return the corresponding callable approximate distance calculator
+
+    Parameters
+    ----------
+    dist : str
+        The distance measure for the calculator, either "pdist" or "jc69"
+    num_states
+        Number of sequence states, default is for the traditional
+        JC69 modelling of DNA substitutions
+
+    Returns
+    -------
+    cogent3.app for calculating DistanceMatrix for a SequenceCollection
+    """
+    if dist == "pdist":
+        dist_calc_app = jaccard_dist() + approx_pdist()
+    elif dist == "jc69":
+        dist_calc_app = (
+            jaccard_dist() + approx_pdist() + approx_jc69(num_states=num_states)
+        )
+    else:
+        raise ValueError(f"No support for calc={dist}. Use either 'pdist' or 'jc69'")
+    return dist_calc_app
+
+
+@define_app
+class gap_dist:
+    """compute the pairwise difference in gaps using affine gap score"""
+
+    def __init__(self, gap_insert: float = 12.0, gap_extend: float = 1.0):
+        """
+        Parameters
+        ----------
+        gap_insert
+            gap insertion penalty
+        gap_extend
+            gap extension penalty
+        """
+        self._insert = gap_insert
+        self._extend = gap_extend
+
+    def main(self, aln: AlignedSeqsType) -> PairwiseDistanceType:
+        gap_diffs = {}
+        gap_data = dict(zip(aln.names, aln.get_gap_array()))
+        # convert each gap vector to gap spans
+        for k, gap_vector in gap_data.items():
+            gap_data[k] = set(tuple(pr) for pr in get_true_spans(gap_vector).tolist())
+
+        for i, j in combinations(range(aln.num_seqs), 2):
+            n1, n2 = aln.names[i], aln.names[j]
+
+            # unique gaps
+            unique = gap_data[n1] ^ gap_data[n2]
+
+            # compute the score as
+            # number of gaps * gap_insert + total length of gaps * gap_extend
+            score = self._insert * len(unique) + self._extend * sum(
+                l for p, l in unique
+            )
+            gap_diffs[(n1, n2)] = gap_diffs[(n2, n1)] = score
+
+        return DistanceMatrix(gap_diffs)

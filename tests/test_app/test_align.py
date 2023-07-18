@@ -1,13 +1,24 @@
-from unittest import TestCase, main
+from unittest import TestCase
+
+import numpy
+import pytest
+
+from numpy import log2
+from numpy.testing import assert_allclose
 
 from cogent3 import (
     DNA,
+    get_app,
     get_moltype,
     make_aligned_seqs,
     make_tree,
     make_unaligned_seqs,
 )
-from cogent3.align.align import make_generic_scoring_dict
+from cogent3.align.align import (
+    local_pairwise,
+    make_dna_scoring_dict,
+    make_generic_scoring_dict,
+)
 from cogent3.app import align as align_app
 from cogent3.app.align import (
     _combined_refseq_gaps,
@@ -17,20 +28,12 @@ from cogent3.app.align import (
     _gaps_for_injection,
     _merged_gaps,
     pairwise_to_multiple,
+    smith_waterman,
 )
 from cogent3.app.composable import NotCompleted
-from cogent3.core.alignment import Aligned, ArrayAlignment
+from cogent3.core.alignment import Aligned, Alignment, ArrayAlignment
 from cogent3.core.location import gap_coords_to_map
 
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 _seqs = {
     "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
@@ -278,6 +281,7 @@ class RefalignmentTests(TestCase):
 
     def test_pairwise_to_multiple_2(self):
         """correctly handle alignments with gaps beyond end of query"""
+
         # cogent3.core.alignment.DataError: Not all sequences are the same length:
         # max is 425, min is 419
         def make_pwise(data, ref_name):
@@ -474,5 +478,227 @@ class GapOffsetTests(TestCase):
             self.assertEqual(aln_pos - aln2seq[aln_pos], seq_pos)
 
 
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_information_content_score(cls):
+    """Tests that the alignment_quality generates the right alignment quality
+    value based on the Hertz-Stormo metric. expected values are hand calculated
+    using the formula in the paper."""
+    app_equifreq = get_app("ic_score", equifreq_mprobs=True)
+    app_not_equifreq = get_app("ic_score", equifreq_mprobs=False)
+
+    aln = cls(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
+    got = app_equifreq(aln)
+    expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
+    assert_allclose(got, expect)
+    # should be the same with the default moltype too
+    aln = cls(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"])
+    got = app_equifreq(aln)
+    assert_allclose(got, expect)
+
+    aln = cls(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
+    got = app_not_equifreq(aln)
+    expect = (
+        2 * log2(1 / 0.4)
+        + log2(1 / (4 * 0.4))
+        + (1 / 2) * log2(1 / (8 / 15))
+        + (1 / 4) * log2(1 / (4 / 15))
+    )
+    assert_allclose(got, expect)
+
+    # 1. Alignment just gaps - alignment_quality returns 0.0
+    aln = cls(["----", "----"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 0.0)
+
+    # 2 Just one sequence - alignment_quality returns 0.0
+    aln = cls(["AAAC"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 0.0)
+
+    # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
+    aln = cls(["----", "ACAT"])
+    got = app_equifreq(aln)
+    assert_allclose(got, 1.1699250014423124)
+
+    # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
+    aln = cls(["----", "AAAA"])
+    got = app_not_equifreq(aln)
+    assert_allclose(got, -2)
+
+
+@pytest.fixture(scope="function")
+def aln():
+    aligner = align_app.progressive_align(model="TN93", distance="TN93")
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA)
+    return aligner(seqs)
+
+
+@pytest.fixture(scope="function")
+def seqs():
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA)
+    return seqs
+
+
+def test_cogent3_score(aln):
+    get_score = get_app("cogent3_score")
+    score = get_score(aln)
+    assert score < -100
+
+
+@pytest.mark.parametrize("del_all_params", (True, False))
+def test_cogent3_score_missing(aln, del_all_params):
+    get_score = get_app("cogent3_score")
+    if del_all_params:
+        aln.info.pop("align_params")
+    else:
+        aln.info["align_params"].pop("lnL")
+    score = get_score(aln)
+    assert isinstance(score, NotCompleted)
+
+
+def test_sp_score_exclude_gap():
+    # no gap penalty
+    app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
+    data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
+    # prop unchanged s1-s2, s1-s3
+    expect = sum([6 * 3 / 6, 0, 5 * 2 / 5])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, expect)
+
+
+def test_sp_fail():
+    aln = make_aligned_seqs(
+        data={"a": "ATG---------AATCGAAGA", "b": "GTG---------GAAAAGCAG"}, moltype="dna"
+    )
+    app = get_app("sp_score")
+    got = app.main(aln)
+    assert isinstance(got, NotCompleted)
+    assert "NaN" in got.message
+
+
+def test_sp_score_additive_gap():
+    # additive gap score
+    app = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=0)
+    data = {"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"}
+    # match score
+    mscore = numpy.array([6 * 3 / 6, 0, 5 * 2 / 5])
+    # gap score
+    gscore = numpy.array([2, 1, 3])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, (mscore - gscore).sum())
+
+
+def test_sp_score_affine_gap():
+    # affine gap score
+    app = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=2)
+    data = {"a": "AAGAA-A", "b": "-ATAATG", "c": "C-TGG-G"}
+    # match score
+    mscore = numpy.array([6 * 3 / 6, 0, 5 * 2 / 5])
+    # gap score
+    gscore = numpy.array([2 + 4, 2 + 1, 3 + 6])
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = app.main(aln)
+    assert_allclose(got, (mscore - gscore).sum())
+
+
+def test_progressive_align_one_seq(seqs):
+    """progressive alignment with no provided tree and approx_dists=False
+    will use a quick alignment to build the tree"""
+    aligner = align_app.progressive_align(model="TN93", approx_dists=True)
+    seqs = seqs.take_seqs(seqs.names[0])
+    got = aligner(seqs)
+    assert isinstance(got, NotCompleted)
+
+
+def test_progressive_align_tree_from_reference(seqs):
+    """progressive alignment with no provided tree and approx_dists=False
+    will use a quick alignment to build the tree"""
+    aligner = align_app.progressive_align(model="TN93", approx_dists=False)
+    aln = aligner(seqs)
+    assert isinstance(aln, ArrayAlignment)
+    assert len(aln) == 42
+    assert aln.moltype == aligner._moltype
+
+
+def test_progressive_align_tree_from_approx_dist(seqs):
+    """progressive alignment with no provided tree and approx_dists=True
+    will use an approximated distance measure to build the tree"""
+    aligner = align_app.progressive_align(model="TN93", approx_dists=True)
+    aln = aligner(seqs)
+    assert isinstance(aln, ArrayAlignment)
+    assert len(aln) == 42
+    assert aln.moltype == aligner._moltype
+
+
+def test_progressive_align_iters(seqs):
+    """progressive alignment works with iters>1"""
+    aligner = align_app.progressive_align(model="TN93")
+    aln = aligner(seqs)
+    assert isinstance(aln, ArrayAlignment)
+    assert len(aln) == 42
+    assert aln.moltype == aligner._moltype
+
+
+def test_smith_waterman_matches_local_pairwise(seqs):
+    aligner = smith_waterman()
+    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")])
+    got = aligner(coll)
+    s = make_dna_scoring_dict(10, -1, -8)
+    insertion = 20
+    extension = 2
+    expect = local_pairwise(
+        seqs.get_seq("Human"),
+        seqs.get_seq("Bandicoot"),
+        s,
+        insertion,
+        extension,
+        return_score=False,
+    )
+    assert got.to_dict() == expect.to_dict()
+
+
+def test_smith_waterman_score(seqs):
+    aligner = smith_waterman()
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")], moltype="dna"
+    )
+    aln = aligner(coll)
+    got = aln.info["align_params"]["sw_score"]
+    s = make_dna_scoring_dict(10, -1, -8)
+    insertion = 20
+    extension = 2
+    _, expect = local_pairwise(
+        seqs.get_seq("Human"),
+        seqs.get_seq("Bandicoot"),
+        s,
+        insertion,
+        extension,
+        return_score=True,
+    )
+    assert got == expect
+
+
+@pytest.mark.parametrize(
+    "moltype", ("text", "rna", "protein", "protein_with_stop", "bytes", "ab")
+)
+def test_smith_waterman_generic_moltype(moltype):
+    """tests when the moltype is generic"""
+    aligner = smith_waterman(moltype=moltype)
+    assert aligner._score_matrix == make_generic_scoring_dict(10, get_moltype(moltype))
+
+
+def test_smith_waterman_raises(seqs):
+    """SW should fail when given a SequenceCollection that deos not contain 2 seqs"""
+    aligner = smith_waterman()
+    coll = make_unaligned_seqs(
+        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot"), seqs.get_seq("Rhesus")],
+        moltype="dna",
+    )
+    aln = aligner(coll)
+    assert isinstance(aln, NotCompleted)
+
+    coll = make_unaligned_seqs(data=[seqs.get_seq("Human")], moltype="dna")
+    aln = aligner(coll)
+    assert isinstance(aln, NotCompleted)

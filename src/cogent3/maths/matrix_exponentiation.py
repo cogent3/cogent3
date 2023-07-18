@@ -16,16 +16,6 @@ import numpy
 from numpy.linalg import eig, inv, solve
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Zongzhi Liu"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class _Exponentiator:
     def __repr__(self):
         return f"{self.__class__.__name__}({repr(self.Q)})"
@@ -109,7 +99,7 @@ class PadeExponentiator(_Exponentiator):
         # Scale A so that norm is < 1/2
         norm = numpy.maximum.reduce(numpy.sum(numpy.absolute(A), axis=1))
         j = int(numpy.floor(numpy.log(max(norm, 0.5)) / numpy.log(2.0))) + 1
-        A = A / 2.0 ** j
+        A = A / 2.0**j
 
         # How many iterations required
         e = 1.0
@@ -118,8 +108,8 @@ class PadeExponentiator(_Exponentiator):
         while e > 1e-12:
             q += 1
             q2 = 2.0 * q
-            qf *= q ** 2 / (q2 * (q2 - 1) * q2 * (q2 + 1))
-            e = 8 * (norm / (2 ** j)) ** (2 * q) * qf
+            qf *= q**2 / (q2 * (q2 - 1) * q2 * (q2 + 1))
+            e = 8 * (norm / (2**j)) ** (2 * q) * qf
 
         # Pade Approximation for exp(A)
         X = A

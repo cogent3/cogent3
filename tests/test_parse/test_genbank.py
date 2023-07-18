@@ -1,7 +1,8 @@
-#!/usr/bin/env python
 """Unit tests for the GenBank database parsers.
 """
-from unittest import TestCase, main
+from unittest import TestCase
+
+import pytest
 
 from cogent3.parse.genbank import (
     Location,
@@ -20,16 +21,6 @@ from cogent3.parse.genbank import (
     parse_single_line,
     parse_source,
 )
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class GenBankTests(TestCase):
@@ -329,13 +320,13 @@ ORIGIN
         l = lsp("37")
         self.assertEqual(l._data, 37)
         self.assertEqual(str(l), "37")
-        self.assertEqual(l.Strand, 1)
+        self.assertEqual(l.strand, 1)
         l = lsp("40..50")
         first, second = l._data
         self.assertEqual(first._data, 40)
         self.assertEqual(second._data, 50)
         self.assertEqual(str(l), "40..50")
-        self.assertEqual(l.Strand, 1)
+        self.assertEqual(l.strand, 1)
         # should handle ambiguous starts and ends
         l = lsp(">37")
         self.assertEqual(l._data, 37)
@@ -431,72 +422,6 @@ ORIGIN
             ],
         )
 
-    def test_rich_parser(self):
-        """correctly constructs +/- strand features"""
-        # a custom annotation function
-        from cogent3.core.annotation import Feature
-
-        def add_annotation(seq, feature, spans):
-            if feature["type"] != "CDS":
-                return
-            name = feature["locus_tag"][0]
-            seq.add_annotation(Feature, "CDS", name, spans)
-
-        infile = open("data/annotated_seq.gb")
-        parser = RichGenbankParser(infile, add_annotation=add_annotation)
-
-        seq = [s for l, s in parser][0]
-        cds = dict([(f.name, f) for f in seq.get_annotations_matching("CDS")])
-        expects = {
-            "CNA00110": "MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD"
-            "SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL"
-            "SEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGMLARGGACEFCKRRKLKCSAEL"
-            "PACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRLEQGQAGAASASGGDSGAHAASSVYTAP"
-            "SLGSGGGSELTVEQTLVHNVDPSLLPPSEYDEAFILHDFDSFADMRKQETQLEPDLMTLADAAAA"
-            "DTPAAAAAETNDPWAKMSPEEIVKEIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMD"
-            "LVSRVSRTTPDPIHPTLLLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDT"
-            "IIAGVSRAYSFFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAG"
-            "LRALMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDYKSVQ"
-            "ALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTPEKTHRLLGLTE"
-            "GYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGADQVSITRVVAAADKVLEL"
-            "VSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLRVQDSALVSTLRAKTESFKRALIDQG"
-            "ERLVFAQVAAQMLENYHVGAEWKAGEWERADGGDWRGV",
-            "CNA00120": "MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD"
-            "FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP"
-            "DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF",
-        }
-
-        for locus in cds:
-            got = cds[locus].get_slice().trim_stop_codon().get_translation()
-            self.assertEqual(str(got), expects[locus])
-        infile.close()
-
-    def test_rich_parser_moltype(self):
-        """correctly handles moltypes"""
-        with open("data/annotated_seq.gb") as infile:
-            parser = RichGenbankParser(infile)
-            got_1 = [s for _, s in parser][0]
-
-        # name formed from /product value
-        got = {f.name for f in got_1.get_annotations_matching("mRNA")}
-        self.assertEqual(got, {"conserved hypothetical protein", "chaperone, putative"})
-
-        # the file defines itself as DNA
-        self.assertEqual(got_1.moltype.label, "dna")
-
-        # but that is overridden by user setting moltype explicitly
-        for moltype in ("dna", "rna", "text"):
-            with open("data/annotated_seq.gb") as infile:
-                parser = RichGenbankParser(infile, moltype=moltype)
-                got_2 = [s for _, s in parser][0]
-
-            self.assertEqual(len(got_1.annotations), len(got_2.annotations))
-            self.assertEqual(got_2.moltype.label, moltype)
-            got = {f.name for f in got_1.get_annotations_matching("mRNA")}
-            self.assertEqual(
-                got, {"conserved hypothetical protein", "chaperone, putative"}
-            )
-
 
 class LocationTests(TestCase):
     """Tests of the Location class."""
@@ -505,66 +430,140 @@ class LocationTests(TestCase):
         """Location should init with 1 or 2 values, plus params."""
         l = Location(37)
         self.assertEqual(str(l), "37")
-        l = Location(37, Ambiguity=">")
+        l = Location(37, ambiguity=">")
         self.assertEqual(str(l), ">37")
-        l = Location(37, Ambiguity="<")
+        l = Location(37, ambiguity="<")
         self.assertEqual(str(l), "<37")
-        l = Location(37, Accession="AB123")
+        l = Location(37, accession="AB123")
         self.assertEqual(str(l), "AB123:37")
-        l = Location(37, Accession="AB123", Db="Kegg")
+        l = Location(37, accession="AB123", db="Kegg")
         self.assertEqual(str(l), "Kegg::AB123:37")
 
         l1 = Location(37)
         l2 = Location(42)
         l = Location([l1, l2])
         self.assertEqual(str(l), "37..42")
-        l3 = Location([l1, l2], IsBounds=True)
+        l3 = Location([l1, l2], is_bounds=True)
         self.assertEqual(str(l3), "(37.42)")
-        l4 = Location([l1, l2], IsBetween=True)
+        l4 = Location([l1, l2], is_between=True)
         self.assertEqual(str(l4), "37^42")
         l5 = Location([l4, l3])
         self.assertEqual(str(l5), "37^42..(37.42)")
-        l5 = Location([l4, l3], Strand=-1)
+        l5 = Location([l4, l3], strand=-1)
         self.assertEqual(str(l5), "complement(37^42..(37.42))")
+
+
+def test_Location_start():
+    """the start and stop should reflect 0-based indexing (python style), not 1-based indexing (genbank style).
+    This means they should be 1 less than the data given"""
+    l = Location(37)
+    assert l.start == 36
+    assert l.stop == 36
 
 
 class LocationListTests(TestCase):
     """Tests of the LocationList class."""
 
-    def test_extract(self):
-        """LocationList extract should return correct sequence"""
-        l = Location(3)
-        l2_a = Location(5)
-        l2_b = Location(7)
-        l2 = Location([l2_a, l2_b], Strand=-1)
-        l3_a = Location(10)
-        l3_b = Location(12)
-        l3 = Location([l3_a, l3_b])
-        ll = LocationList([l, l2, l3])
-        s = ll.extract("ACGTGCAGTCAGTAGCAT")
-        #               123456789012345678
-        self.assertEqual(s, "G" + "TGC" + "CAG")
-        # check a case where it wraps around
-        l5_a = Location(16)
-        l5_b = Location(4)
-        l5 = Location([l5_a, l5_b])
-        ll = LocationList([l5])
-        s = ll.extract("ACGTGCAGTCAGTAGCAT")
-        self.assertEqual(s, "CATACGT")
+
+def test_locationlist_extract():
+    """LocationList extract should return correct sequence"""
+    l = Location(3)
+    l2_a = Location(5)
+    l2_b = Location(7)
+    l2 = Location([l2_a, l2_b], strand=-1)
+    l3_a = Location(10)
+    l3_b = Location(12)
+    l3 = Location([l3_a, l3_b])
+    ll = LocationList([l, l2, l3])
+    s = ll.extract("ACGTGCAGTCAGTAGCAT")
+    #               123456789012345678
+    assert s == "G" + "TGC" + "CAG"
+    # check a case where it wraps around
+    l5_a = Location(16)
+    l5_b = Location(4)
+    l5 = Location([l5_a, l5_b])
+    ll = LocationList([l5])
+    s = ll.extract("ACGTGCAGTCAGTAGCAT")
+    assert s == "CATACGT"
 
 
-if __name__ == "__main__":
-    from sys import argv
+def test_location_list_get_coordinates():
+    l = "complement(join(5670..5918,5965..6126))"
+    l = location_line_tokenizer([l])
+    g = parse_location_line(l)
+    spans = g.get_coordinates()
+    assert spans == [(5669, 5918), (5964, 6126)]
 
-    if len(argv) > 2 and argv[1] == "x":
-        filename = argv[2]
-        lines = open(filename)
-        for i in indent_splitter(lines):
-            print("******")
-            print(i[0])
-            for j in indent_splitter(i[1:]):
-                print("?????")
-                for line in j:
-                    print(line)
-    else:
-        main()
+
+@pytest.fixture(scope="session")
+def rich_gb():
+    with open("data/annotated_seq.gb") as infile:
+        parser = RichGenbankParser(infile)
+        seq = [s for l, s in parser][0]
+    return seq
+
+
+def test_rich_parser(rich_gb):
+    """correctly constructs +/- strand features"""
+    cds = dict([(f.name, f) for f in rich_gb.get_features(biotype="CDS")])
+    expects = {
+        "CNA00110": "MAGYDARYGNPLDPMSGGRPSPPETSQQDAYEYSKHGSSSGYLGQLPLGAD"
+        "SAQAETASALRTLFGEGADVQALQEPPNQINTLAEGAAVAETGGVLGGDTTRSDNEALAIDPSL"
+        "SEQAAPAPKDSTETPDDRSRSPSSGNHHHHHPAVKRKATSRAGMLARGGACEFCKRRKLKCSAEL"
+        "PACANCVKSGKECVYAQKKQRSRVKVLEDRLQELEKRLEQGQAGAASASGGDSGAHAASSVYTAP"
+        "SLGSGGGSELTVEQTLVHNVDPSLLPPSEYDEAFILHDFDSFADMRKQETQLEPDLMTLADAAAA"
+        "DTPAAAAAETNDPWAKMSPEEIVKEIIKVATGGKGEGERIISHLVQTYMNSTVNTWHPLVIPPMD"
+        "LVSRVSRTTPDPIHPTLLLSLIPALLPLSPIQSLRHPAIPLLLLPHARAHSVQAITQSDPRVLDT"
+        "IIAGVSRAYSFFNEAKNIDGWVDCVAATSLVRAAGLTKQGGVGERFVPEDRVPAERLAKRRREAG"
+        "LRALMHKGAIVPPPESWYQFGQRVNLFWTSYICDRAAAIGWGWPSSYNDEDITTPWPKDDYKSVQ"
+        "ALLDDTTIHTFLSPLAPAPAPATPDSDLCAQAKSITLLYHAQRLLDSPPELSTPEKTHRLLGLTE"
+        "GYMESLEKMRGPRMRAGKLSSVWMILYTTIAVLHSKDGFDKCDPDGADQVSITRVVAAADKVLEL"
+        "VSAVQNTGDTHLSSCDVISSVLFLHLARLMIQYTNRLRLRVQDSALVSTLRAKTESFKRALIDQG"
+        "ERLVFAQVAAQMLENYHVGAEWKAGEWERADGGDWRGV",
+        "CNA00120": "MDFSQFNGAEQAHMSKVIEKKQMQDFMRLYSGLVEKCFNACAQD"
+        "FTSKALTTNETTCVQNCTDKFLKHSERVGARFAEHNAGMLSPYGAASLMASQSKCRAP"
+        "DSNGLGVFCKWRRIKSTVVLYNHLACIKQMDNRF",
+    }
+
+    for locus in cds:
+        got = cds[locus].get_slice().trim_stop_codon().get_translation()
+        assert str(got) == expects[locus]
+
+
+def test_rich_parser_moltype(rich_gb):
+    """correctly handles moltypes"""
+
+    # name formed from /product value
+    feature_ids = {"CNA00110", "CNA00120"}
+    got = {f.name for f in rich_gb.get_features(biotype="mRNA")}
+    assert got == {"CNA00110", "CNA00120"}
+    # the file defines itself as DNA
+    assert rich_gb.moltype.label == "dna"
+    got = {f.name for f in rich_gb.get_features(biotype="mRNA")}
+    assert got == feature_ids
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna", "text"))
+def test_moltype_overrides(moltype, rich_gb):
+    # moltype is overridden by user setting moltype explicitly
+    with open("data/annotated_seq.gb") as infile:
+        parser = RichGenbankParser(infile, moltype=moltype)
+        got_2 = [s for _, s in parser][0]
+
+    assert rich_gb.annotation_db.num_matches() == got_2.annotation_db.num_matches()
+
+    assert got_2.moltype.label == moltype
+
+
+def test_rich_parser_info(rich_gb):
+    """seq.info stores genbank_record"""
+    assert "genbank_record" in rich_gb.info
+    assert rich_gb.info.genbank_record["locus"] == rich_gb.name
+
+
+def test_rich_genbank_just_seq():
+    with open("data/annotated_seq.gb") as infile:
+        parser = RichGenbankParser(infile, just_seq=True)
+        seq = [s for l, s in parser][0]
+
+    assert not len(seq.annotation_db)

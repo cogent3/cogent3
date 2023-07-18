@@ -15,16 +15,6 @@ from cogent3.align.pycompare import (
 )
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 def _brute_force(
     seq1,
     seq2,
@@ -65,7 +55,7 @@ def test_find_matched_k_eq_1():
     s2 = make_seq("CTGGAAGGGT", name="2")
     expect = _brute_force(s1, s2, window=5, threshold=3)
     sk = SeqKmers(s1, k=1, canonical=set("ACGT"))
-    got = find_matched_paths(sk, s1, s2, window=5, threshold=3)
+    got = find_matched_paths(seq_kmers=sk, seq1=s1, seq2=s2, window=5, threshold=3)
     assert got.paths == expect.paths
 
 
@@ -263,6 +253,25 @@ def test_seqkmers_2seqs_dropseq(smallseq):
     assert sk.num_seqs == 1
 
 
+def test_dropseq_default(smallseq):
+    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
+    seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
+    sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
+    sk.add_seq(seq2)
+    sk.drop_seq()
+    assert sk.other_name is None
+
+
+def test_one_seq_dropseq(smallseq):
+    seq1 = make_seq(smallseq, name="seq1", moltype="dna")
+    sk = SeqKmers(seq1, 2, canonical=set(seq1.moltype))
+    assert sk.other_name is None
+    assert sk.num_seqs == 1
+    sk.drop_seq()
+    assert sk.other_name is None
+    assert sk.num_seqs == 1
+
+
 def test_seqkmers_iter_matching_kmers(smallseq):
     seq1 = make_seq(smallseq, name="seq1", moltype="dna")
     seq2 = make_seq(smallseq[1:], name="seq2", moltype="dna")
@@ -305,9 +314,9 @@ def test_find_matched_paths_2seq(aseq1, aseq2):
     expect = _brute_force(aseq1, aseq2, 3, 3)
     sk = SeqKmers(aseq1, k=3, canonical=set("ACGT"))
     got = find_matched_paths(
-        sk,
-        aseq1,
-        aseq2,
+        seq_kmers=sk,
+        seq1=aseq1,
+        seq2=aseq2,
         window=3,
         threshold=3,
     )
@@ -355,9 +364,9 @@ def test_find_matched_paths_moltype(aseq1, aseq2, moltype):
     expect = _brute_force(s1, s2, 3, 3)
     sk = SeqKmers(aseq1, k=3, canonical="ACGT")
     got = find_matched_paths(
-        sk,
-        s1,
-        s2,
+        seq_kmers=sk,
+        seq1=s1,
+        seq2=s2,
         window=3,
         threshold=3,
     )
@@ -372,7 +381,7 @@ def test_find_matched_with_rc():
     expect = _brute_force(s, r, 4, 4)
     sk = SeqKmers(s, k=k, canonical="ACGT")
     # note there's a bug here, it creates a y_intercept at -11
-    got = find_matched_paths(sk, s, r, window=4, threshold=4)
+    got = find_matched_paths(seq_kmers=sk, seq1=s, seq2=r, window=4, threshold=4)
     assert got.paths == expect.paths
     x, y = got.paths[4][0]
     yrc = y.for_rc(len(s))
@@ -385,16 +394,16 @@ def test_find_matched_1seq(w, t):
     s = make_seq("CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
     expect = _brute_force(s, s, w, t)
     sk = SeqKmers(s, k=w, canonical=set("ACGT"))
-    got = find_matched_paths(sk, s, window=w, threshold=t)
+    got = find_matched_paths(seq_kmers=sk, seq1=s, window=w, threshold=t)
     assert got.paths == expect.paths
 
 
 def test_plotly_trace(aseq1, aseq2):
     sk = SeqKmers(aseq1, k=3, canonical=set("ACGT"))
     got = find_matched_paths(
-        sk,
-        aseq1,
-        aseq2,
+        seq_kmers=sk,
+        seq1=aseq1,
+        seq2=aseq2,
         window=3,
         threshold=3,
     )

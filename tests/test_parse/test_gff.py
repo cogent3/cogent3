@@ -1,23 +1,16 @@
-#!/usr/bin/env python
 """Unit tests for GFF and related parsers.
 """
 import os
+import re
 
 from io import StringIO
 from pathlib import Path
 from unittest import TestCase, main
 
-from cogent3.parse.gff import *
+import pytest
 
+from cogent3.parse.gff import gff_parser, parse_attributes_gff2
 
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
 
 headers = [
     """##gff-version 2 
@@ -94,7 +87,7 @@ class GffTest(TestCase):
 
     def testGffParserData(self):
         """Test gff_parser with valid data lines"""
-        for (line, canned_result) in data_lines:
+        for line, canned_result in data_lines:
             result = next(gff_parser(StringIO(line)))
             canned_result = list(canned_result)
             self.assertEqual(result.pop("Attributes")["Info"], canned_result.pop(8))
@@ -148,6 +141,57 @@ class GffTest(TestCase):
         # 15 total lines, but 2 comments
         self.assertEqual(i + 1, 15 - 2)
 
+    def test_custom_attr_func(self):
+        """user provided attr parser"""
+        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+        for result in gff_parser(gff3_path, attribute_parser=lambda x, y: x):
+            self.assertIsInstance(result["Attributes"], str)
 
-if __name__ == "__main__":
-    main()
+
+@pytest.fixture
+def multi_seqid_path(DATA_DIR, tmp_path):
+    gff_path = DATA_DIR / "ensembl_sample.gff3"
+    data = gff_path.read_text().splitlines()
+    # add two new seqid's using the last 4 lines, twice
+    change = data[-4:]
+    data.extend(_modify_lines(change, "3"))
+    data.extend(_modify_lines(change, "4"))
+    outpath = tmp_path / "ensembl-edited.gff3"
+    outpath.write_text("\n".join(data))
+    return outpath
+
+
+def _modify_lines(change, seqid: str) -> list:
+    ident = re.compile(r"ENS[GT]\d+")
+    result = []
+    for line in change:
+        # change all identifiers so each seqid has unique identifiers
+        for match in ident.findall(line):
+            line = line.replace(match, f"{match}{seqid}")
+        line = line.split("\t")
+        line[0] = seqid
+        line = "\t".join(line)
+        result.append(line)
+    return result
+
+
+@pytest.mark.parametrize("seqids", ("22", ("3",), ("3", "4")))
+def test_seq_names(multi_seqid_path, seqids):
+    got = {r["SeqID"] for r in gff_parser(multi_seqid_path, seqids=seqids)}
+    expect = {seqids} if isinstance(seqids, str) else set(seqids)
+    assert got == expect
+
+
+def test_no_seq_names(multi_seqid_path):
+    got = {r["SeqID"] for r in gff_parser(multi_seqid_path, seqids=None)}
+    expect = {"22", "3", "4"}
+    assert got == expect
+
+
+def test_parse_field_spaces(DATA_DIR):
+    path = DATA_DIR / "simple.gff"
+    got = list(gff_parser(path))
+    for record in got:
+        for value in record.values():
+            if isinstance(value, str):
+                assert value.strip() == value, "should not have spaces!"

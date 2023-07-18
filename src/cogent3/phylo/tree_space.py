@@ -10,16 +10,6 @@ from cogent3.util import checkpointing
 from cogent3.util import progress_display as UI
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def ismallest(data, size):
     """There are many ways to get the k smallest items from an N sequence, and
     which one performs best depends on k, N and k/N.  This algorithm appears to
@@ -66,7 +56,7 @@ def tree2ancestry(tree, order=None):
     n = len(nodes)
     A = numpy.zeros([n, n], int)
     seen = {}
-    for (i, node) in enumerate(nodes):
+    for i, node in enumerate(nodes):
         A[i, i] = 1
         seen[id(node)] = i
         for c in node.children:
@@ -223,7 +213,7 @@ class TreeEvaluator(object):
         # All trees of size a-1, no need to compare them
         for n in range(init_tree_size + 1, a):
             trees2 = []
-            for (err2, lengths2, ancestry) in trees:
+            for err2, lengths2, ancestry in trees:
                 for split_edge in range(len(ancestry)):
                     ancestry2 = grown(ancestry, split_edge)
                     trees2.append((None, None, ancestry2))

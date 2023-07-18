@@ -3,22 +3,12 @@ import warnings
 
 from unittest import TestCase, main
 
+from numpy.testing import assert_allclose, assert_almost_equal
+
 import cogent3.evolve.parameter_controller
 import cogent3.evolve.substitution_model
 
 from cogent3 import make_aligned_seqs, make_tree
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_almost_equal
 
 
 base_path = os.getcwd()
@@ -183,7 +173,7 @@ class test_parameter_controller(TestCase):
         lf = model.make_likelihood_function(tree)
         lf.set_local_clock("a", "b")
         lf.set_alignment(al)
-        lf.optimise(local=True)
+        lf.optimise(local=True, show_progress=False)
         rd = lf.get_param_value_dict(["edge"], params=["length"])
         self.assertAlmostEqual(lf.get_log_likelihood(), -10.1774488956)
         self.assertEqual(rd["length"]["a"], rd["length"]["b"])
@@ -192,7 +182,7 @@ class test_parameter_controller(TestCase):
         lf = self.model.make_likelihood_function(self.tree)
         lf.set_local_clock("c", "d")
         lf.set_alignment(self.al)
-        lf.optimise(local=True, tolerance=1e-8, max_restarts=2)
+        lf.optimise(local=True, tolerance=1e-8, max_restarts=2, show_progress=False)
         rd = lf.get_param_value_dict(["edge"], params=["length"])
         self.assertAlmostEqual(lf.get_log_likelihood(), -27.84254174)
         self.assertEqual(rd["length"]["c"], rd["length"]["d"])
@@ -210,7 +200,7 @@ class test_parameter_controller(TestCase):
         lf.set_constant_lengths(make_tree(treestring="((a:1,b:1):1,(c:2,d:1):1,e:1);"))
         # print self.pc
         lf.set_alignment(self.al)
-        lf.optimise(local=True)
+        lf.optimise(local=True, show_progress=False)
         rd = lf.get_param_value_dict(["edge"], params=["kappa"])
         self.assertAlmostEqual(lf.get_log_likelihood(), -27.3252, 3)
         self.assertEqual(rd["kappa"]["b"], rd["kappa"]["d"])

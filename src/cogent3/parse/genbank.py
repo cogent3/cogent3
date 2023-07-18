@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-from cogent3.core.annotation import Feature
+from typing import List, Optional, Tuple
+
+from cogent3.core.annotation_db import GenbankAnnotationDb
 from cogent3.core.genetic_code import GeneticCodes
 from cogent3.core.info import Info
 from cogent3.core.moltype import get_moltype
@@ -8,16 +9,8 @@ from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
 )
+from cogent3.util import warning as c3warn
 
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Matthew Wakefield", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 maketrans = str.maketrans
 strip = str.strip
@@ -260,15 +253,15 @@ def parse_simple_location_segment(segment):
 
         return Location(
             [
-                Location(first, Ambiguity=first_ambiguity),
-                Location(second, Ambiguity=second_ambiguity),
+                Location(first, ambiguity=first_ambiguity),
+                Location(second, ambiguity=second_ambiguity),
             ]
         )
     else:
         if not segment[0].isdigit():
             first_ambiguity = segment[0]
             segment = segment[1:]
-        return Location(int(segment), Ambiguity=first_ambiguity)
+        return Location(int(segment), ambiguity=first_ambiguity)
 
 
 def parse_location_line(tokens, parser=parse_simple_location_segment):
@@ -288,7 +281,7 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
             if type_ == "complement(":
                 children.reverse()
                 for c in children:
-                    c.Strand *= -1
+                    c.strand *= -1
             curr_index = parent.index(curr)
             del parent[curr_index]
             parent[curr_index:curr_index] = children[:]
@@ -301,45 +294,78 @@ def parse_location_line(tokens, parser=parse_simple_location_segment):
 class Location(object):
     """GenBank location object. Integer, or low, high, or 2-base bound.
 
-    data must either be a long, an object that can be coerced to a long, or a
+    Parameters
+    ----------
+    data : Numeric type
+        either a long, an object that can be coerced to a long, or a
         sequence of two BasePosition objects. It can _not_ be two numbers.
-    Ambiguity should be None (the default), '>', or '<'.
-    IsBetween should be False (the default), or True.
-    IsBounds should be False(the default, indicates range), or True.
-    Accession should be an accession, or None (default).
-    Db should be a database identifier, or None (default).
-    Strand should be 1 (forward, default) or -1 (reverse).
+    ambiguity : str
+        ambiguity can be '>', or '<', or default = None
+    is_between : bool
+        default = False
+    is_bounds : bool
+       default = False, which indicates range
+    accession : str
+        the accession number
+    db : str
+        database identifier
+    strand : int
+        strand should be 1 (forward, default) or -1 (reverse).
 
     WARNING: This Location will allow you to do things that can't happen in
     GenBank, such as having a start and stop that aren't from the same
     accession. No validation is performed to prevent this. All reasonable
     cases should work.
 
-    WARNING: Coordinates are based on 1, not 0, as in GenBank format.
+    WARNING: Coordinates are 0-based, not 1-based, thus no longer as in Genbank Format.
     """
 
     def __init__(
         self,
         data,
-        Ambiguity=None,
-        IsBetween=False,
-        IsBounds=False,
-        Accession=None,
-        Db=None,
-        Strand=1,
+        ambiguity=None,
+        is_between=False,
+        is_bounds=False,
+        accession=None,
+        db=None,
+        strand=1,
+        **kwargs,
     ):
         """Returns new LocalLocation object."""
+
         try:
             data = int(data)
         except TypeError:
             pass  # assume was two Location objects.
         self._data = data
-        self.Ambiguity = Ambiguity
-        self.IsBetween = IsBetween
-        self.IsBounds = IsBounds
-        self.Accession = Accession
-        self.Db = Db
-        self.Strand = Strand
+        self.ambiguity = ambiguity
+        self.is_between = is_between
+        self.is_bounds = is_bounds
+        self.accession = accession
+        self.db = db
+        self.strand = strand
+
+        dep_arg_map = {
+            "Ambiguity": "ambiguity",
+            "IsBetween": "is_between",
+            "IsBounds": "is_bounds",
+            "Accession": "accession",
+            "Db": "db",
+            "Strand": "strand",
+        }  # map between deprecated argument name and PEP8 compliant argument name
+        for dep_arg, arg in dep_arg_map.items():
+            if dep_arg in kwargs:
+                setattr(self, arg, kwargs.pop(dep_arg))
+
+                from cogent3.util.warning import deprecated
+
+                deprecated(
+                    "argument",
+                    dep_arg,
+                    arg,
+                    "2023.8",
+                    "changed to be PEP8 compliant",
+                )
 
     def __str__(self):
         """Returns self in string format.
@@ -348,89 +374,112 @@ class Location(object):
         you abuse this object, you'll get results that aren't valid GenBank
         locations.
         """
-        if self.IsBetween:  # between two bases
+        if self.is_between:  # between two bases
             try:
                 first, last = self._data
                 curr = f"{first}^{last}"
             except TypeError:  # only one base? must be this or the next
                 curr = f"{first}^{first + 1}"
-        else:  # not self.IsBetween
+        else:  # not self.is_between
             try:
                 data = int(self._data)
                 # if the above line succeeds, we've got a single item
-                if self.Ambiguity:
-                    curr = self.Ambiguity + str(data)
+                if self.ambiguity:
+                    curr = self.ambiguity + str(data)
                 else:
                     curr = str(data)
             except TypeError:
                 # if long conversion failed, should have two LocalLocation
                 # objects
                 first, last = self._data
-                if self.IsBounds:
+                if self.is_bounds:
                     curr = f"({first}{'.'}{last})"
                 else:
                     curr = f"{first}{'..'}{last}"
         # check if we need to add on the accession and database
-        if self.Accession:
-            curr = self.Accession + ":" + curr
-            # we're only going to add the Db if we got an accession
-            if self.Db:
-                curr = self.Db + "::" + curr
+        if self.accession:
+            curr = self.accession + ":" + curr
+            # we're only going to add the db if we got an accession
+            if self.db:
+                curr = self.db + "::" + curr
         # check if it's complemented
-        if self.Strand == -1:
+        if self.strand == -1:
             curr = f"complement({curr})"
         return curr
 
-    def first(self):
+    @property
+    def start(self):
         """Returns first base self could be."""
         try:
-            return int(self._data)
+            return int(self._data) - 1
         except TypeError:
-            return self._data[0].first()
+            return self._data[0].start
 
-    def last(self):
+    @property
+    def stop(self):
         """Returns last base self could be."""
         try:
-            return int(self._data)
+            return int(self._data) - 1
         except TypeError:
-            return self._data[-1].last()
+            return self._data[-1].stop
+
+    def first(self):  # pragma: no cover
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "Location.first",
+            "Location.start",
+            "2023.8",
+            "Warning: '.start' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
+        )
+
+        return self.start
+
+    def last(self):  # pragma: no cover
+        from cogent3.util.warning import deprecated
+
+        deprecated(
+            "method",
+            "Location.last",
+            "Location.stop",
+            "2023.8",
+            "Warning: '.stop' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
+        )
+        return self.stop
 
 
 class LocationList(list):
-    """List of Location objects.
+    """List of Location objects."""
 
-    WARNING: Coordinates are based on 1, not 0, to match GenBank format.
-    """
-
-    BIGNUM = 1e300
-
-    def first(self):
+    def first(self):  # pragma: no cover
         """Returns first base of self."""
-        curr = self.BIGNUM
-        for i in self:
-            first = i.first()
-            if curr > first:
-                curr = first
-        return curr
+        from cogent3.util.warning import discontinued
 
-    def last(self):
+        discontinued(
+            "method",
+            "LocationList.first",
+            "2023.8",
+        )
+
+        return min(self, key=lambda x: x.start).start + 1
+
+    def last(self):  # pragma: no cover
         """Returns last base of self."""
-        curr = 0
-        for i in self:
-            last = i.last()
-            if last > curr:
-                curr = last
-        return curr
+        from cogent3.util.warning import discontinued
 
+        discontinued(
+            "method",
+            "LocationList.last",
+            "2023.8",
+        )
+        return max(self, key=lambda x: x.stop).stop + 1
+
+    @property
     def strand(self):
         """Returns strand of components: 1=forward, -1=reverse, 0=both"""
-        curr = {}
-        for i in self:
-            curr[i.Strand] = 1
-        if len(curr) >= 2:  # found stuff on both strands
-            return 0
-        else:
-            return list(curr.keys())[0]
+        curr = {i.strand: 1 for i in self}
+        return 0 if len(curr) >= 2 else list(curr.keys())[0]
 
     def __str__(self):
         """Returns (normalized) string representation of self."""
@@ -445,17 +494,21 @@ class LocationList(list):
         """Extracts pieces of self from sequence."""
         result = []
         for i in self:
-            first, last = i.first() - 1, i.last()  # inclusive, not exclusive
+            start, stop = i.start, i.stop + 1  # inclusive, not exclusive
             # translate to 0-based indices and check if it wraps around
-            if first < last:
-                curr = sequence[first:last]
+            if start < stop:
+                curr = sequence[start:stop]
             else:
-                curr = sequence[first:] + sequence[:last]
+                curr = sequence[start:] + sequence[:stop]
             # reverse-complement if necessary
-            if i.Strand == -1:
+            if i.strand == -1:
                 curr = curr.translate(trans_table)[::-1]
             result.append(curr)
         return "".join(result)
+
+    def get_coordinates(self) -> List[Tuple[int, int]]:
+        """returns the segments in python coordinates"""
+        return sorted((i.start, i.stop + 1) for i in self)
 
 
 def parse_feature_table(lines):
@@ -549,7 +602,7 @@ def MinimalGenbankParser(lines, handlers=handlers, default_handler=generic_adapt
 
             try:
                 handler(field, curr)
-            except:
+            except Exception:
                 bad_record = True
                 break
 
@@ -581,7 +634,7 @@ def parse_location_segment(location_segment):
     # check if it's between two adjacent bases
     elif "^" in s:
         first, second = s.split("^")
-        return Location([lsp(first), lsp(second)], IsBetween=True)
+        return Location([lsp(first), lsp(second)], is_between=True)
     # check if it's a single base reference -- but don't be fooled by
     # accessions!
     elif "." in s and s.startswith("(") and s.endswith(")"):
@@ -594,7 +647,7 @@ def parse_location_atom(location_atom):
     a = location_atom
     if a.startswith("<") or a.startswith(">"):  # fuzzy
         position = int(a[1:])
-        return Location(position, Ambiguity=a[0])
+        return Location(position, ambiguity=a[0])
     # otherwise, should just be an integer
     return Location(int(a))
 
@@ -617,8 +670,17 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         print("s :", seq)
 
 
+@c3warn.deprecated_args(
+    "2023.8", reason="no longer relevant", discontinued="add_annotation"
+)
 def RichGenbankParser(
-    handle, info_excludes=None, moltype=None, skip_contigs=False, add_annotation=None
+    handle,
+    info_excludes=None,
+    moltype=None,
+    skip_contigs=False,
+    add_annotation=None,
+    db: Optional[GenbankAnnotationDb] = None,
+    just_seq: bool = False,
 ):
     """Returns annotated sequences from GenBank formatted file.
 
@@ -631,16 +693,17 @@ def RichGenbankParser(
     skip_contigs
         ignores records with no actual sequence data, typically
         a genomic contig.
-    add_annotation
-        a callback function to create an new annotation from a
-        GenBank feature. Function is called with the sequence, a feature dict
-        and the feature spans.
-
+    db
+        a GenbankAnnotationDb instance to which feature data will be
+        added
+    just_seq
+        return only the sequence, excludes include any feature data and
+        does not create an annotation_db. Overrides db argument.
     """
-    info_excludes = info_excludes or []
+    info_excludes = info_excludes or ["sequence", "features"]
     moltype = get_moltype(moltype) if moltype else None
     for rec in MinimalGenbankParser(handle):
-        info = Info()
+        info = {}
         # populate the info object, excluding the sequence
         for label, value in list(rec.items()):
             if label in info_excludes:
@@ -656,6 +719,7 @@ def RichGenbankParser(
         else:
             rec_moltype = moltype
 
+        info = Info(genbank_record=info)
         try:
             seq = rec_moltype.make_seq(
                 rec["sequence"].upper(), info=info, name=rec["locus"]
@@ -670,42 +734,8 @@ def RichGenbankParser(
                     yield rec["locus"], None
             continue
 
-        for feature in rec["features"]:
-            spans = []
-            reversed = None
-            if feature["location"] is None or feature["type"] in ["source", "organism"]:
-                continue
-            for location in feature["location"]:
-                (lo, hi) = (location.first() - 1, location.last())
-                if location.Strand == -1:
-                    (lo, hi) = (hi, lo)
-                    assert reversed is not False
-                    reversed = True
-                else:
-                    assert reversed is not True
-                    reversed = False
-                # ensure we don't put in a span that starts beyond the sequence
-                if lo > len(seq):
-                    continue
-                # or that's longer than the sequence
-                hi = [hi, len(seq)][hi > len(seq)]
-                spans.append((lo, hi))
-
-            if add_annotation:
-                add_annotation(seq, feature, spans)
-            else:
-                for id_field in ["gene", "product", "clone", "note"]:
-                    if id_field in feature:
-                        name = feature[id_field]
-                        if not isinstance(name, str):
-                            name = " ".join(name)
-                        break
-                else:
-                    name = None
-                seq.add_annotation(Feature, feature["type"], name, spans)
-
-        yield (rec["locus"], seq)
-
-
-def parse(*args):
-    return RichGenbankParser(*args).next()[1]
+        if not just_seq:
+            seq.annotation_db = GenbankAnnotationDb(
+                data=rec.pop("features", None), seqid=rec["locus"], db=db
+            )
+        yield rec["locus"], seq

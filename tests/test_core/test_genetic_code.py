@@ -3,6 +3,8 @@
 """
 from unittest import TestCase, main
 
+import pytest
+
 from cogent3 import DNA, RNA
 from cogent3.core.genetic_code import (
     DEFAULT,
@@ -13,16 +15,6 @@ from cogent3.core.genetic_code import (
     available_codes,
     get_code,
 )
-
-
-__author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Greg Caporaso"
-__email__ = "caporaso@colorado.edu"
-__status__ = "Production"
 
 
 class GeneticCodeTests(TestCase):
@@ -414,6 +406,15 @@ class GeneticCodeTests(TestCase):
         self.assertIn("Standard", got)
 
 
-# Run tests if called from command line
-if __name__ == "__main__":
-    main()
+# starting pytest versions
+@pytest.mark.parametrize("code", (1, 2))
+def test_get_alphabet(code):
+    from cogent3.core.alphabet import Alphabet
+
+    gc = get_code()
+    alpha_w_stop = gc.get_alphabet(include_stop=True)
+    assert tuple(alpha_w_stop) == tuple(gc.codons)
+    assert isinstance(alpha_w_stop, Alphabet)
+    alpha_wo_stop = gc.get_alphabet(include_stop=False)
+    assert tuple(alpha_wo_stop) == tuple(gc.sense_codons)
+    assert isinstance(alpha_wo_stop, Alphabet)

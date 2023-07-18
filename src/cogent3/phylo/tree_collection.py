@@ -5,15 +5,6 @@ from cogent3.util.io import atomic_write
 from . import consensus
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-
-
 class _UserList(list):
     def __getitem__(self, index):
         # Helpful to keep type after truncation like [self[:10]],
@@ -29,7 +20,7 @@ class ScoredTreeCollection(_UserList):
 
     def write(self, filename):
         with atomic_write(filename, mode="wt") as f:
-            for (score, tree) in self:
+            for score, tree in self:
                 f.writelines(
                     self.scored_tree_format(
                         tree.get_newick(with_distances=True), str(score)
@@ -113,7 +104,7 @@ class LogLikelihoodScoredTreeCollection(UsefullyScoredTreeCollection):
         weights.reverse()
         tail = (1.0 - cutoff) * sum(weights)
         dropped = 0.0
-        for (index, weight) in enumerate(weights):
+        for index, weight in enumerate(weights):
             dropped += weight
             if dropped > tail:
                 weights = weights[index:]

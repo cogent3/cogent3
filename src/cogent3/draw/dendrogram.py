@@ -9,16 +9,6 @@ from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rahul Ghangas"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class TreeGeometryBase(PhyloNode):
     """base class that computes geometric coordinates for display"""
 
@@ -418,7 +408,7 @@ class CircularTreeGeometry(TreeGeometryBase):
             textangle = 360 - self.theta
             value = value.ljust(max_attr_length)
 
-        radius = np.sqrt(self.x ** 2 + self.y ** 2) + padding
+        radius = np.sqrt(self.x**2 + self.y**2) + padding
         x, y = polar_2_cartesian(self.theta, radius)
 
         return UnionDict(

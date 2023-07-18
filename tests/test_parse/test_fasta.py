@@ -1,9 +1,10 @@
-#!/usr/bin/env python
 """Unit tests for FASTA and related parsers.
 """
 import os
 
-from unittest import TestCase, main
+from unittest import TestCase
+
+import pytest
 
 from cogent3.core.info import Info
 from cogent3.core.sequence import DnaSequence
@@ -20,15 +21,6 @@ from cogent3.parse.fasta import (
 )
 from cogent3.parse.record import RecordError
 
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 base_path = os.path.dirname(os.path.dirname(__file__))
 data_path = os.path.join(base_path, "data")
@@ -59,21 +51,6 @@ class GenericFastaTest(TestCase):
 class MinimalFastaParserTests(GenericFastaTest):
     """Tests of MinimalFastaParser: returns (label, seq) tuples."""
 
-    def test_empty(self):
-        """MinimalFastaParser should return empty list from 'file' w/o labels"""
-        self.assertEqual(list(MinimalFastaParser(self.empty)), [])
-        self.assertEqual(list(MinimalFastaParser(self.nolabels, strict=False)), [])
-        self.assertRaises(RecordError, list, MinimalFastaParser(self.nolabels))
-
-    def test_no_labels(self):
-        """MinimalFastaParser should return empty list from file w/o seqs"""
-        # should fail if strict (the default)
-        self.assertRaises(
-            RecordError, list, MinimalFastaParser(self.labels, strict=True)
-        )
-        # if not strict, should skip the records
-        self.assertEqual(list(MinimalFastaParser(self.labels, strict=False)), [])
-
     def test_single(self):
         """MinimalFastaParser should read single record as (label, seq) tuple"""
         f = list(MinimalFastaParser(self.oneseq))
@@ -86,30 +63,6 @@ class MinimalFastaParserTests(GenericFastaTest):
         a = f[0]
         self.assertEqual(a, ("xyz", "UUUUCCAAAAAG"))
 
-    def test_gt_bracket_in_seq(self):
-        """MinimalFastaParser handles alternate finder function
-
-        this test also illustrates how to use the MinimalFastaParser
-        to handle "sequences" that start with a > symbol, which can
-        happen when we abuse the MinimalFastaParser to parse
-        fasta-like sequence quality files.
-        """
-        oneseq_w_gt = ">abc\n>CAG\n".split("\n")
-
-        def get_two_line_records(infile):
-            line1 = None
-            for line in infile:
-                if line1 == None:
-                    line1 = line
-                else:
-                    yield (line1, line)
-                    line1 = None
-
-        f = list(MinimalFastaParser(oneseq_w_gt, finder=get_two_line_records))
-        self.assertEqual(len(f), 1)
-        a = f[0]
-        self.assertEqual(a, ("abc", ">CAG"))
-
     def test_multiple(self):
         """MinimalFastaParser should read multiline records correctly"""
         f = list(MinimalFastaParser(self.threeseq))
@@ -118,15 +71,6 @@ class MinimalFastaParserTests(GenericFastaTest):
         self.assertEqual(a, ("123", "a"))
         self.assertEqual(b, ("abc", "caggac"))
         self.assertEqual(c, ("456", "cg"))
-
-    def test_multiple_bad(self):
-        """MinimalFastaParser should complain or skip bad records"""
-        self.assertRaises(RecordError, list, MinimalFastaParser(self.twogood))
-        f = list(MinimalFastaParser(self.twogood, strict=False))
-        self.assertEqual(len(f), 2)
-        a, b = f
-        self.assertEqual(a, ("abc", "caggac"))
-        self.assertEqual(b, ("456", "cg"))
 
     def test_parser_from_file(self):
         """passing path should work"""
@@ -137,19 +81,6 @@ class MinimalFastaParserTests(GenericFastaTest):
 
 class FastaParserTests(GenericFastaTest):
     """Tests of FastaParser: returns sequence objects."""
-
-    def test_empty(self):
-        """FastaParser should return empty list from 'file' w/o labels"""
-        self.assertEqual(list(FastaParser(self.empty)), [])
-        self.assertEqual(list(FastaParser(self.nolabels, strict=False)), [])
-        self.assertRaises(RecordError, list, FastaParser(self.nolabels))
-
-    def test_no_labels(self):
-        """FastaParser should return empty list from file w/o seqs"""
-        # should fail if strict (the default)
-        self.assertRaises(RecordError, list, FastaParser(self.labels, strict=True))
-        # if not strict, should skip the records
-        self.assertEqual(list(FastaParser(self.labels, strict=False)), [])
 
     def test_single(self):
         """FastaParser should read single record as seq object"""
@@ -193,16 +124,6 @@ class FastaParserTests(GenericFastaTest):
         self.assertEqual((a[1].name, a[1]), ("123", "a"))
         self.assertEqual((b[1].name, b[1]), ("abc", "caggac"))
         self.assertEqual((c[1].name, c[1]), ("456", "cg"))
-
-    def test_multiple_bad(self):
-        """Parser should complain or skip bad records"""
-        self.assertRaises(RecordError, list, FastaParser(self.twogood))
-        f = list(FastaParser(self.twogood, strict=False))
-        self.assertEqual(len(f), 2)
-        a, b = f
-        a, b = a[1], b[1]  # field 0 is name
-        self.assertEqual((a.name, a), ("abc", "caggac"))
-        self.assertEqual((b.name, b), ("456", "cg"))
 
     def test_multiple_constructor_bad(self):
         """Parser should complain or skip bad records w/ constructor"""
@@ -330,12 +251,8 @@ class NcbiFastaParserTests(TestCase):
         self.assertEqual(r, ("123", "ucagUCAGtgacNNNN"))
         # test that we get what we expect if not strict
         r = list(NcbiFastaParser(self.nasty, Sequence, strict=False))
-        self.assertEqual(len(r), 4)
-        a, b, c, d = r
-        self.assertEqual(
-            (a[1], a[1].info.GI, a[1].info.RefSeq, a[1].info.Description),
-            ("UCAG", ["abc"], ["def"], ""),
-        )
+        self.assertEqual(len(r), 2)
+        b, c = r
         self.assertEqual(
             (b[1], b[1].info.GI, b[1].info.GenBank, b[1].info.Description),
             ("UUUUCCCC", ["xyz"], ["qwe"], "descr"),
@@ -344,26 +261,13 @@ class NcbiFastaParserTests(TestCase):
             (c[1], c[1].info.GI, c[1].info.RefSeq, c[1].info.Description),
             ("XYZ", ["bad"], ["stuff"], "label"),
         )
-        self.assertEqual(
-            (d[1], d[1].info.GI, d[1].info.DDBJ, d[1].info.Description),
-            ("ucagUCAGtgacNNNN".upper(), ["123"], ["456"], "desc|with|pipes|"),
-        )
         # ...and when we explicitly supply a constructor
         r = list(NcbiFastaParser(self.nasty, Dna, strict=False))
-        self.assertEqual(len(r), 3)
-        a, b, c = r
-        a, b, c = a[1], b[1], c[1]
-        self.assertEqual(
-            (a, a.info.GI, a.info.RefSeq, a.info.Description),
-            ("TCAG", ["abc"], ["def"], ""),
-        )
+        self.assertEqual(len(r), 1)
+        b = r[0][1]
         self.assertEqual(
             (b, b.info.GI, b.info.GenBank, b.info.Description),
             ("TTTTCCCC", ["xyz"], ["qwe"], "descr"),
-        )
-        self.assertEqual(
-            (c, c.info.GI, c.info.DDBJ, c.info.Description),
-            ("tcagTCAGtgacNNNN".upper(), ["123"], ["456"], "desc|with|pipes|"),
         )
 
 
@@ -469,5 +373,54 @@ class GroupFastaParsingTest(TestCase):
             self.assertEqual(group.info.Group, "group2")
 
 
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("parser", (MinimalFastaParser, FastaParser))
+def test_empty(parser):
+    """FastaParser should return empty list from 'file' w/o labels"""
+    assert not list(parser([]))
+
+
+@pytest.mark.parametrize("parser", (MinimalFastaParser, FastaParser))
+def test_missing_labels(parser):
+    nolabels = "GJ>DSJGSJDF\nSFHKLDFS>jkfs\n".split("\n")
+    with pytest.raises(RecordError):
+        list(parser(nolabels, strict=True))
+
+
+@pytest.mark.parametrize("parser", (MinimalFastaParser, FastaParser))
+def test_no_labels_strict(parser):
+    labels = ">abc\n>def\n>ghi\n".split("\n")
+    with pytest.raises(RecordError):
+        list(parser(labels, strict=True))
+
+
+@pytest.mark.parametrize("parser", (MinimalFastaParser, FastaParser))
+def test_no_labels(parser):
+    """MinimalFastaParser should return empty list from file w/o seqs"""
+    labels = ">abc\n>def\n>ghi\n".split("\n")
+    # if not strict, should skip the records
+    got = {l: str(v) for l, v in parser(labels, strict=False)}
+    assert not got
+
+
+@pytest.mark.parametrize("parser", (MinimalFastaParser, FastaParser))
+def test_multiple_bad_strict(parser):
+    """MinimalFastaParser should complain or skip bad records"""
+    twogood = ">123\n\n> \t abc  \t \ncag\ngac\n>456\nc\ng".split("\n")
+    with pytest.raises(RecordError):
+        list(parser(twogood, strict=True))
+
+
+@pytest.mark.parametrize("parser", (MinimalFastaParser, FastaParser))
+def test_multiple_bad_not_strict(parser):
+    twogood = ">123\n\n> \t abc  \t \ncag\ngac\n>456\nc\ng".split("\n")
+    f = list(MinimalFastaParser(twogood, strict=False))
+    assert len(f) == 2
+    expect = [("abc", "caggac"), ("456", "cg")]
+    assert f == expect
+
+
+def test_seq_startswith_gt_bracket_fail():
+    """as seq that starts with > will fail under strict"""
+    oneseq_w_gt = ">abc\n>CAG\n".split("\n")
+    with pytest.raises(RecordError):
+        list(MinimalFastaParser(oneseq_w_gt))

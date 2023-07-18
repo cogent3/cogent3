@@ -1,11 +1,166 @@
-# Changes since release "2022.10.31a1"
+
+<a id='changelog-2023.7.18a1'></a>
+# Changes since release "2023.7.18a1"
+
+## Contributers
+
+- Richard Morris
+- AoboHill made their first contribution!
+- pithirat-horvichien made their first contribution!
+- First contributions from Robert McArthur and Vijini Mallawaarachchi!
+- Kath Caley, massive contributions to the sequence annotation refactor And the documentation and ...!
+- Thanks to Dr Minh Bui, author of IQ-tree, for a sample extended newick output
+  from IQ-tree!
+
+## ENH
+
+- Added automated changelog management to the project
+- serializable deprecation of function and method arguments using decorator
+- Added `SequenceCollection.distance_matrix()` method. This method provides
+  a mechanism for k-mer based approximation of genetic distances
+  between sequence pairs. It is applicable only to DNA or RNA moltypes.
+  Sequences are converted into 10-mers and the Jaccard distance is computed
+  between them. This distance is converted into an estimate of a proportion
+  distance using a 10-th degree polynomial. (That polynomial was derived from
+  regression to distances from 116 mammal alignments.) The final step is applying
+  JC69 to these approximated proportion distances.
+
+- Robert and Vijini added a function for computing the matching distance
+  statistic between tree toplogies.
+
+  `from cogent3.phylo.tree_distance.lin_rajan_moret`
+
+  This is a better behaved statistic than Robinson-Foulds. The original
+  author was Dr Yu Lin who tragically passed away in 2022. He was our
+  dear friend, colleague and mentor.
+
+  Lin et al. 2012 "A Metric for Phylogenetic Trees Based on Matching"
+  IEEE/ACM Transactions on Computational Biology and Bioinformatics
+  vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
+
+- Major rewrite of annotation handling! In short, we now use an in-memory SQlite
+  database to store all annotations from data sources such as GFF or GenBank. New
+  classes provide an interface to this database to support adding, querying records
+  that match certain conditions. The new database is added to `Sequence` or `Alignment`
+  instances on a `.annotation_db` attribute. When sequences are part of a collection
+  (`SequenceCollection` or `Alignment`) they share the same data base. Features are now
+  created on demand via the `Sequence` or `Alignment` instances and behave much as the
+  original `_Annotatable` subclasses did. There are notable exception to this, as
+  outlined in the deprecated and discontinued sections.
+  This approach brings a massive performance boost in terms of both speed and memory
+  A microbial genome sequence and all it's annotates can be loaded in less than a second.
+- A new `cogent3.load_annotations()` function allows loading an annotation
+  db instance from one, or more, flatfiles. If you provide an existing annotation
+  db instance, the records are added to that db.
+
+- Capture extended newick formatted node data. This is stored in
+  `TreeNode.params["other"]` as a raw string.
+
+- The `tree_align()` function now uses new approximation method for faster
+  estimation of distances for a obtaining guide tree. This is controlled by
+  the `approx_dists` argument. The additional argument `iters` can be used to
+  do multiple iterations, using genetic distances computed from the alignment
+  produced by the preceding iteration to generate the new guide tree.
+
+  If `approx_dists` is `False`, or the moltype of chosen model is not a nucleic acid
+  compatible type, distances are computed by the slower method of performing
+  all pairwise alignments first to estimate the distances.
+
+- Added new alignment quality measures as apps, and the ability to invoke them
+  from the `Alignment.alignment_quality()` method. The new apps are the
+  Information content measure of Hertz and Stormo (denoted `ic_score`), a
+  variant on the the sum of pairs measure of Carillo and Lipman
+  (denoted `sp_score`), and the log-liklelihood produced by the cogent3
+  progressive-HMM aligner (denoted `cogent3_score`). If these apps cannot
+  compute a score (e.g. the alignment has only 1 sequence), the return a
+  `NotCompleted` instance. Instances of that class evaluates to `False`.
+
+- Added optional argument `lower` to `app.model()`. This provides a global
+  mechanism for setting the lower bound on rate and length parameters.
+
+- `load_unaligned_seqs()` now handles glob patterns. If the filename is a glob
+  pattern, assumes a listing of files containing a single sequence. The `load_seq()`
+  function is applied to each file and a single `SequenceCollection` is returned. To
+  see progress, set `show_progress=True`.
+
+- `Table.joined(col_prefix)` argument allows users to specify the prefix of
+  columns corresponding to the second table, i.e.
+  `result = table.inner_join(table2, col_prefix="")`
+  ensures result.header is the sum of table.header and table2.header
+  (minus the index column).
+
+- Added `trim_stop` argument to `get_translation()` methods. This means
+  translating DNA to protein can be done with one method call, instead of
+  two.
+
+## DOC
+
+- Thanks to Katherine Caley for awesome new docs describing the
+  new feature and annotation DB capabilities!
+
+## Deprecations
+
+- Removed the original Composable app classes and related decorators for
+  user based apps. `user_function` and `appify` are replaced by the
+  `define_app` decorator.
+
+- The function TreeAlign is to be deprecated in 2023.9 and replaced with tree_align
+
+- Every method that has "annotation" in it is now deprecated with a replacement
+  indicated by their deprecation warnings. Typically, there's a new method with the
+  name "feature" in it.
+
+- `<collection>.has_terminal_stops()` is being deprecated for
+  `<collection>.has_terminal_stop()`, because it returns True if a single
+  sequence has a terminal stop.
+
+## Discontinued
+
+- Removed methods on `TreeNode` that are a recursion variant of an
+  existing methods. `TreeNode.copy_recursive()`, `TreeNode.traverse_recursive()`
+  `TreeNode.get_newick_recursive()` all have standard implementations that can
+  be used instead.
+- `PhyloNode` inherits from `TreeNode` and is distinguished from it only by
+  have a length attribute on nodes. All methods that rely on length
+  have now been moved to `PhyloNode`. These methods are `PhyloNode.get_distances()`,
+  `PhyloNode.set_max_tip_tip_distance()`, `PhyloNode.get_max_tip_tip_distance()`,
+  `PhyloNode.max_tip_tip_distance()`, `PhyloNode.compare_by_tip_distances()`.
+  One exception is `TreeNode.get_newick()`. When `with_distance=True`, this
+  method grabs the "length" attribute from nodes.
+- All methods that do not depend on the length attribute are moved to `TreeNode`.
+  These methods are `TreeNode.balanced()`, `TreeNode.same_topology()`,
+  `TreeNode.unrooted_deepcopy()`, `TreeNode.unrooted()`, `TreeNode.rooted_at()`,
+  `TreeNode.rooted_with_tip()`.
+
+- The `SequenceCollection.annotate_from_gff()` method now accept file
+  paths only.
+
+- Renaming a sequence in a sequence collection is not applied
+  to annotations. Users need to modify names prior to binding
+  annotations.
+
+- Dropping support for attaching / detaching individual annotation
+  instances from an alignment.
+
+- Backwards incompatible change! `Sequence` and `Alignment` no longer inherit from
+  `_Annotatable`, so the methods and attributes from that mixin class are no longer
+  available. (As there was no migration strategy, please let us know if it broke
+  your code and need help in updating it.)
+
+  Major differences include: the `.annotations` attribute is gone; individual
+  annotations can no longer be copied; annotations are not updated on sequence
+  operations (you need to re-query).
+
+<a id='changelog-2023.2.12a1'></a>
+
+# Changes since release "2023.2.12a1"
 
 ## Contributors
 
 - Gavin Huttley
 - Katherine Caley
 - Nick Shahmaras
-- khiron
+- Richard Morris
 
 Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users active on the GitHub Discussions!
 
@@ -17,16 +172,16 @@ Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users
 ### Composable apps
 
 - app_help() and get_app() available as top-level imports.
-     - app_help() takes the name of the app as a string and displays its summary, parameters and how to create one using get_app().
-     - get_app() creates an app instance given its name as a string and constructor arguments.
+   - app_help() takes the name of the app as a string and displays its summary, parameters and how to create one using get_app().
+   - get_app() creates an app instance given its name as a string and constructor arguments.
 - added skip_not_completed keyword parameter to define_app decorator.
-    - Some apps need to process NotCompleted instances. The current `app.__call__` method returns these instances immediately without passing through to the apps `.main()` method. The change introduces a semi-private attribute `_skip_not_completed` to the class. If it's False, the instance will be passed to `main()`.
+   - Some apps need to process NotCompleted instances. The current `app.__call__` method returns these instances immediately without passing through to the apps `.main()` method. The change introduces a semi-private attribute `_skip_not_completed` to the class. If it's False, the instance will be passed to `main()`.
 - composable data validation now allows NotCompleted
-    - if <app>.input returned a NotCompleted, it was being treated as an invalid data type rather than preserving the original cause for failure. The data validation method now immediately returns a provided NotCompleted instance
+   - if <app>.input returned a NotCompleted, it was being treated as an invalid data type rather than preserving the original cause for failure. The data validation method now immediately returns a provided NotCompleted instance
 - add argument id_from_source to all writer apps for a naming callback
-    - It should be a callable that generates a unique ID from input data
-    - Defaults to new get_unique_id() function, which extracts base name by calling get_data_source() and processing the result, removing file suffixes identified by get_format_suffixes().
-    - this means filename suffixes are dropped more cleanly
+  - It should be a callable that generates a unique ID from input data
+  - Defaults to new get_unique_id() function, which extracts base name by calling get_data_source() and processing the result, removing file suffixes identified by get_format_suffixes().
+  - this means filename suffixes are dropped more cleanly
 - new app to_primitive(). This uses a to_rich_dict() method if available otherwise it just returns the original object.
 - new app from_primitive(). This takes a dict and deserialises the object using the standard cogent3 functions.
 - new app pickle_it(). Does as the name implies.
@@ -39,8 +194,8 @@ Thanks to dgslos who raised the issue regarding IUPAC consensus. Thanks to users
   - these are to_primitive() + pickle_it() (and the reverse)
 - app.typing.get_constraint_names() now supports all standard python Sequence built-ins (list, tuple, set).
 - add type resolver for nested types
-    - function resolves the type tree of nested types and also returns the depth of that type tree
-    - ensure custom apps don't have excessive nested types. The motivation for this check is it is difficult to efficiently resolve, so we advise the developer (via a TypeError message) to define a custom class for such complex types. They can then choose to validate construction of those class attributes themselves.
+  - function resolves the type tree of nested types and also returns the depth of that type tree
+  - ensure custom apps don't have excessive nested types. The motivation for this check is it is difficult to efficiently resolve, so we advise the developer (via a TypeError message) to define a custom class for such complex types. They can then choose to validate construction of those class attributes themselves.
 
 ### DataStores
 
@@ -158,17 +313,17 @@ We will drop support for python 3.7 by release 2022.10.
 ## ENH
 
 - new `cogent3.util.parallel.as_completed()` generator function
-    - `as_completed()` wraps MPI or `concurrent.futures` executors and delivers results as they are completed. In contrast, `parallel.imap()` / `parallel.map()` deliver results in the same order as the input series. The advantage of `as_completed()` is the interval of result arrival at the parent process is better distributed.
+  - `as_completed()` wraps MPI or `concurrent.futures` executors and delivers results as they are completed. In contrast, `parallel.imap()` / `parallel.map()` deliver results in the same order as the input series. The advantage of `as_completed()` is the interval of result arrival at the parent process is better distributed.
 - new function `cogent3.load_seq()` loads a single sequence from a file
 - convert substitution model `__str__` to `__repr__`; more useful since `__repr__` is called also by str().
 
 ## BUG
 
 - fixes to `annotation_from_gff()` method on annotatable sequence / alignment objects
-    - method would break if GFF records had no ID. This situation is quite common in some Ensembl gff3 files. We generate a "no-id-#" identifier in those cases.
-    - we now add features are added to their parent feature.
+  - method would break if GFF records had no ID. This situation is quite common in some Ensembl gff3 files. We generate a "no-id-#" identifier in those cases.
+  - we now add features are added to their parent feature.
 - improve consistency in setting motif_probs on likelihood function
-    - only apply a pseudocount if optimising motif probs and at least one state has zero frequency, default pseudocount is 0.5. Thanks to StephenRogers1 for finding this issue!
+  - only apply a pseudocount if optimising motif probs and at least one state has zero frequency, default pseudocount is 0.5. Thanks to StephenRogers1 for finding this issue!
 
 ## DOC
 
@@ -282,7 +437,7 @@ We will drop support for python 3.7 by release 2022.10.
 - removed WritableZippedDataStore, the zip archive format is inefficient for incremental inclusion of files. Use a tinydb instead.
 - replaced interleave_len argument with wrap in sequence format writers
 - removed Table.to_rich_html() method, use Table.to_html() instead
- 
+
 ## ENH
 
 - More robust alignment to reference algorithm. Builds a multiple sequence alignment from a series of pairwise alignments to a reference sequence. cogent3.app.align.align_to_ref() now retains gaps in the reference. This will be modestly slower than previously, but avoids losing information if the choice of reference sequence is a bad one.

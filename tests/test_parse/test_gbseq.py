@@ -1,19 +1,9 @@
-#!/usr/bin/env python
 import xml.dom.minidom
 
 from unittest import TestCase, main
 
 from cogent3.parse.gbseq import GbSeqXmlParser
 
-
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
 
 data = """<?xml version="1.0"?>
  <!DOCTYPE GBSet PUBLIC "-//NCBI//NCBI GBSeq/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_GBSeq.dtd">
@@ -185,10 +175,4 @@ class ParseGBseq(TestCase):
         ]:
             self.assertEqual(name, "AY286018.1")
             self.assertEqual(sample_seq, seq.to_fasta(block_size=len(sample_seq)))
-            self.assertEqual(str(seq.annotations), sample_annotations)
-
-    pass
-
-
-if __name__ == "__main__":
-    main()
+            self.assertEqual(seq.annotation_db.num_matches(), 4)

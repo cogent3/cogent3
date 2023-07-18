@@ -1,18 +1,21 @@
-#!/usr/bin/env python
 """Unit tests for Sequence class and its subclasses.
 """
-
 import json
 import os
+import pathlib
 import re
 
 from pickle import dumps
-from unittest import TestCase, main
+from unittest import TestCase
+
+import pytest
 
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
-from cogent3.core.annotation import Feature, SimpleVariable, Variable
+import cogent3
+
+from cogent3._version import __version__
 from cogent3.core.moltype import (
     ASCII,
     BYTES,
@@ -35,18 +38,9 @@ from cogent3.core.sequence import (
     ProteinSequence,
     RnaSequence,
     Sequence,
+    SeqView,
 )
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Rob Knight, Gavin Huttley and Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell", "Matthew Wakefield"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class SequenceTests(TestCase):
@@ -83,33 +77,29 @@ class SequenceTests(TestCase):
         """Sequence init with other seq should preserve name and info."""
         r = self.RNA("UCAGG", name="x", info={"z": 3})
         s = Sequence(r)
-        self.assertEqual(s._seq, "UCAGG")
+        self.assertEqual(str(s), "UCAGG")
         self.assertEqual(s.name, "x")
         self.assertEqual(s.info.z, 3)
 
     def test_copy(self):
         """correctly returns a copy version of self"""
         s = Sequence("TTTTTTTTTTAAAA", name="test_copy")
-        annot1 = s.add_annotation(Feature, "exon", "annot1", [(0, 10)])
-        annot2 = s.add_annotation(Feature, "exon", "annot2", [(10, 14)])
+        annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
+        annot2 = s.add_feature(biotype="exon", name="annot2", spans=[(10, 14)])
         got = s.copy()
-        got_annot1 = got.get_annotations_matching(
-            annotation_type="exon", name="annot1"
-        )[0]
-        got_annot2 = got.get_annotations_matching(
-            annotation_type="exon", name="annot2"
-        )[0]
+        got_annot1 = list(got.get_features(biotype="exon", name="annot1"))[0]
+        got_annot2 = list(got.get_features(biotype="exon", name="annot2"))[0]
         self.assertIsNot(got, s)
         self.assertIsNot(got_annot1, annot1)
         self.assertIsNot(got_annot2, annot2)
         self.assertEqual(got.name, s.name)
         self.assertEqual(got.info, s.info)
-        self.assertEqual(got._seq, s._seq)
+        self.assertEqual(str(got), str(s))
         self.assertEqual(got.moltype, s.moltype)
         annot1_slice = str(annot1.get_slice())
         annot2_slice = str(annot2.get_slice())
-        got1_slice = str(got.annotations[0].get_slice())
-        got2_slice = str(got.annotations[1].get_slice())
+        got1_slice = str(got_annot1.get_slice())
+        got2_slice = str(got_annot2.get_slice())
         self.assertEqual(annot1_slice, got1_slice)
         self.assertEqual(annot2_slice, got2_slice)
 
@@ -125,23 +115,15 @@ class SequenceTests(TestCase):
         self.assertEqual(r[-1], "G")
         self.assertEqual(r[1:3], "CA")
 
-    def test_conversion(self):
-        """Should convert t to u automatically"""
-        r = self.RNA("TCAtu")
-        self.assertEqual(str(r), "UCAUU")
-
-        d = self.DNA("UCAtu")
-        self.assertEqual(str(d), "TCATT")
-
     def test_to_dna(self):
         """Returns copy of self as DNA."""
-        r = self.RNA("TCA")
+        r = self.RNA("UCA")
         self.assertEqual(str(r), "UCA")
         self.assertEqual(str(r.to_dna()), "TCA")
 
     def test_to_rna(self):
         """Returns copy of self as RNA."""
-        r = self.DNA("UCA")
+        r = self.DNA("TCA")
         self.assertEqual(str(r), "TCA")
         self.assertEqual(str(r.to_rna()), "UCA")
 
@@ -163,69 +145,16 @@ class SequenceTests(TestCase):
         r = self.RNA("ugagg")
         assert dumps(r)
 
-    def test_to_rich_dict(self):
-        """Sequence to_dict works"""
-        r = self.SEQ("AAGGCC", name="seq1")
-        got = r.to_rich_dict()
-        expect = {
-            "name": "seq1",
-            "seq": "AAGGCC",
-            "moltype": r.moltype.label,
-            "info": None,
-            "type": get_object_provenance(r),
-            "version": __version__,
-        }
-        self.assertEqual(got, expect)
-
-    def test_to_json(self):
-        """to_json roundtrip recreates to_dict"""
-        r = self.SEQ("AAGGCC", name="seq1")
-        got = json.loads(r.to_json())
-        expect = {
-            "name": "seq1",
-            "seq": "AAGGCC",
-            "moltype": r.moltype.label,
-            "info": None,
-            "type": get_object_provenance(r),
-            "version": __version__,
-        }
-        self.assertEqual(got, expect)
-
     def test_sequence_to_moltype(self):
         """correctly convert to specified moltype"""
         s = Sequence("TTTTTTTTTTAAAA", name="test1")
-        annot1 = s.add_annotation(Feature, "exon", "fred", [(0, 10)])
-        annot2 = s.add_annotation(Feature, "exon", "trev", [(10, 14)])
+        s.add_feature(biotype="exon", name="fred", spans=[(0, 10)])
+        s.add_feature(biotype="exon", name="trev", spans=[(10, 14)])
         got = s.to_moltype("rna")
-        annot1_slice = str(annot1.get_slice())
-        annot2_slice = str(annot2.get_slice())
-        got1_slice = str(got.annotations[0].get_slice())
-        got2_slice = str(got.annotations[1].get_slice())
-        self.assertNotEqual(annot1_slice, got1_slice)
-        self.assertEqual(annot2_slice, got2_slice)
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test1")
-
-        s = Sequence("AAGGGGAAAACCCCCAAAAAAAAAATTTTTTTTTTAAA", name="test2")
-        xx_y = [[[2, 6], 2.4], [[10, 15], 5.1], [[25, 35], 1.3]]
-        y_valued = s.add_annotation(Variable, "SNP", "freq", xx_y)
-        got = s.to_moltype("rna")
-        y_valued_slice = str(y_valued.get_slice())
-        got_slice = str(str(got.annotations[0].get_slice()))
-        self.assertNotEqual(y_valued_slice, got_slice)
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test2")
-
-        s = Sequence("TTTTTTTTTTAAAAAAAAAA", name="test3")
-        data = [i for i in range(20)]
-        annot4 = s.add_annotation(SimpleVariable, "SNP", "freq", data)
-        got = s.to_moltype(RNA)
-        annot4_slice = str(annot4.get_slice())
-        got_slice = str(str(got.annotations[0].get_slice()))
-        self.assertNotEqual(annot4_slice[:10], got_slice[:10])
-        self.assertEqual(annot4_slice[10:20], got_slice[10:20])
-        self.assertEqual(got.moltype.label, "rna")
-        self.assertEqual(got.name, "test3")
+        fred = list(got.get_features(name="fred"))[0]
+        assert str(got[fred]) == "UUUUUUUUUU"
+        trev = list(got.get_features(name="trev"))[0]
+        assert str(got[trev]) == "AAAA"
 
         # calling with a null object should raise an exception
         with self.assertRaises(ValueError):
@@ -233,62 +162,6 @@ class SequenceTests(TestCase):
 
         with self.assertRaises(ValueError):
             s.to_moltype("")
-
-    def test_annotate_from_gff(self):
-        """correctly annotates a Sequence from a gff file"""
-        from cogent3.parse.fasta import FastaParser
-
-        fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-        name, seq = next(FastaParser(fasta_path))
-
-        sequence = Sequence(seq)
-        sequence.annotate_from_gff(gff3_path)
-        matches = [m for m in sequence.get_annotations_matching("*", extend_query=True)]
-        # 13 features with one having 2 parents, so 14 instances should be found
-        self.assertEqual(len(matches), 14)
-
-    def test_annotate_gff_nested_features(self):
-        """correctly annotate a sequence with nested features"""
-        # the synthetic example
-        #          1111111111222222222333333333334
-        # 1234567890123456789012345678901234567890
-        #  **** biological_region
-        #                                     ** biological_region
-        #                                       * biological_region
-        #      *******************************  gene
-        #         *********************   mRNA
-        #            *********            exon
-        #                       *****     exon
-        # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
-        seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
-        gff3_path = os.path.join("data/ensembl_sample.gff3")
-        seq.annotate_from_gff(gff3_path)
-        # we have 1 "full chromosome" annotation, 3 generic regions and 1 gene
-        self.assertEqual(len(seq.annotations), 5)
-
-        # get the gene and check it has a single annotation and that
-        # its slice is correct
-        ann = seq.get_annotations_matching("gene")
-        self.assertEqual(len(ann), 1)
-        self.assertEqual(len(ann[0].annotations), 1)
-        seq = ann[0].get_slice()
-        self.assertEqual(str(seq), "GGAAAATTTTTTTTTAAGGGGGAAAAAAAAA")
-
-        # the gene has 1 transcript
-        ann = seq.get_annotations_matching("mRNA", extend_query=True)
-        self.assertEqual(len(ann), 1)
-        self.assertEqual(len(ann[0].annotations), 2)  # 2 exons
-        seq = ann[0].get_slice()
-        self.assertEqual(str(seq), "AAAATTTTTTTTTAAGGGGGAAA")
-
-        # the transcript has 2 exons
-        ann = seq.get_annotations_matching("exon", extend_query=True)
-        self.assertEqual(len(ann), 2)
-        exon_seqs = ("TTTTTTTTT", "GGGGG")
-        for x in ann:
-            self.assertEqual(len(x.annotations), 0)
-            self.assertTrue(str(x.get_slice()) in exon_seqs, msg=x.get_slice())
 
     def test_strip_degenerate(self):
         """Sequence strip_degenerate should remove any degenerate bases"""
@@ -977,13 +850,10 @@ class SequenceTests(TestCase):
 
     def test_is_annotated(self):
         """is_annotated operates correctly"""
-        from cogent3.core.annotation import _Annotatable
-
         s = self.SEQ("ACGGCTGAAGCGCTCCGGGTTTAAAACG")
-        annotatable = isinstance(s, _Annotatable)
-        if annotatable:
+        if hasattr(s, "annotation_db"):
             self.assertFalse(s.is_annotated())
-            _ = s.add_feature("gene", "blah", [(0, 10)])
+            _ = s.add_feature(biotype="gene", name="blah", spans=[(0, 10)])
             self.assertTrue(s.is_annotated())
         else:
             with self.assertRaises(AttributeError):
@@ -1195,7 +1065,7 @@ class DnaSequenceTests(ModelSequenceTests, TestCase):
 
 class CodonSequenceTests(SequenceTests, TestCase):
     class SequenceClass(ArrayCodonSequence):
-        alphabet = DNA.alphabets.base ** 3
+        alphabet = DNA.alphabets.base**3
 
     def test_init(self):
         """Sequence should do round-trip from string"""
@@ -1376,6 +1246,1219 @@ class ModelSequenceTests(SequenceTests):
         self.assertEqual(c.to_dict(), {"a": 3, "b": 1, "-": 1})
 
 
-# run if called from command-line
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("seq,rc", (("ATGTTT", False), ("AAACAT", True)))
+def test_translation(seq, rc):
+    seq = DNA.make_seq(seq)
+    if rc:
+        seq = seq.rc()
+    assert str(seq) == "ATGTTT"
+    aa = seq.get_translation()
+    assert str(aa) == "MF"
+
+
+def test_get_translation_include_stop():
+    s = DNA.make_seq("ATTTAACTT", name="s1")
+    aa = s.get_translation(include_stop=True)
+    assert str(aa) == "I*L"
+
+
+def test_get_translation_trim_stop():
+    s = DNA.make_seq("ATTTCCTGA", name="s1")
+    aa = s.get_translation(trim_stop=True)
+    assert str(aa) == "IS"
+    # no effect on internal stops
+    s = DNA.make_seq("ATTTAACTT", name="s1")
+    aa = s.get_translation(include_stop=True, trim_stop=True)
+    assert str(aa) == "I*L"
+
+
+@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
+@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
+def test_seqview_initialisation(start, stop, step):
+    """Initialising a SeqView should work with range of provided values"""
+    seq_data = "0123456789"
+    got = SeqView(seq_data, start=start, stop=stop, step=step)
+    expected = seq_data[start:stop:step]
+    assert got.value == expected
+
+
+def test_seqview_invalid_step():
+    "Testing that SeqView raises Value error when initialised with step of 0"
+    with pytest.raises(ValueError):
+        _ = SeqView(seq="0123456789", step=0)
+
+
+@pytest.mark.parametrize("index", (-10, -5, 0, 5, 9))  # -10 and 9 are boundary
+def test_seqview_index(index):
+    """SeqView with default values can be sliced with a single index, when within the length of the sequence"""
+    seq_data = "0123456789"
+    sv = SeqView(seq_data)
+    got = sv[index]
+    expected = seq_data[index]
+    assert got.value == expected
+    assert len(got) == 1
+
+
+def test_seqview_index_null():
+    "Indexing a SeqView of length 0 should return an IndexError"
+    sv = SeqView("")
+    with pytest.raises(IndexError):
+        _ = sv[0]
+
+
+def test_seqview_step_0():
+    "Initialising or slicing a SeqView with a step of 0 should return an IndexError"
+    sv = SeqView("0123456789")
+    with pytest.raises(ValueError):
+        _ = sv[::0]
+    with pytest.raises(ValueError):
+        _ = SeqView("0123456789", step=0)
+
+
+@pytest.mark.parametrize("start", (0, 2, 4))
+def test_seqview_invalid_index(start):
+    "indexing out of bounds with a forward step should raise an IndexError"
+    seq = "0123456789"
+    length = abs(start - len(seq))
+    pos_boundary_index = length
+    neg_boundary_index = -length - 1
+
+    sv = SeqView(seq=seq, start=start)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("start", (0, 2, 4))
+def test_seqview_invalid_index_positive_step_gt_1(start):
+    "boundary condition for indexing out of bounds with a forward step greater than 1"
+    seq = "0123456789"
+    step = 2
+    length = abs((start - len(seq)) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = SeqView(seq=seq, start=start, step=step)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("stop", (0, 2, -11))
+def test_seqview_invalid_index_reverse_step(stop):
+    "boundary condition for indexing out of bounds with a reverse step"
+    seq = "0123456789"
+    step = -1
+    start = len(seq)
+    length = abs((start - stop) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = SeqView(seq=seq, start=start, stop=stop, step=step)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+@pytest.mark.parametrize("stop", (0, 2, -6))
+def test_seqview_invalid_index_reverse_step_gt_1(stop):
+    "boundary condition for indexing out of bounds with a reverse step less than -1"
+    seq = "0123456789"
+    step = -2
+    start = len(seq)
+    length = abs((start - stop) // step)
+    neg_boundary_index = -length - 1
+    pos_boundary_index = length
+
+    sv = SeqView(seq=seq, start=start, stop=stop, step=step)
+    with pytest.raises(IndexError):
+        _ = sv[pos_boundary_index]
+    with pytest.raises(IndexError):
+        _ = sv[neg_boundary_index]
+
+
+def test_seqview_slice_null():
+    sv = SeqView("")
+    assert len(sv) == 0
+    got = sv[2:]
+    assert len(got) == 0
+
+
+def test_seqview_start_out_of_bounds():
+    "boundary condition for start index out of bounds"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, 1
+    boundary = abs((init_start - init_stop) // init_step)
+    sv = SeqView(seq=seq, start=init_start, stop=init_stop, step=init_step)
+    got = sv[boundary::].value
+    assert got == ""
+
+
+def test_seqview_start_out_of_bounds_step_gt_1():
+    "boundary condition for start index out of bounds with step greater than 1"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, 2
+    boundary = abs((init_start - init_stop) // init_step)
+    sv = SeqView(seq=seq, start=init_start, stop=init_stop, step=init_step)
+    got = sv[boundary::].value
+    assert got == ""
+
+
+def test_seqview_start_out_of_bounds_reverse_step():
+    "boundary condition for start index out of bounds with reverse step"
+    seq = "0123456789"
+    init_start, init_stop, init_step = 2, 10, -2
+    boundary_pos = abs((init_start - init_stop) // init_step)
+    boundary_neg = -abs((init_start - init_stop) // init_step) - 1
+
+    sv = SeqView(seq=seq, start=init_start, stop=init_stop, step=init_step)
+
+    assert sv[boundary_pos::].value == ""
+    assert sv[boundary_neg::].value == ""
+
+
+@pytest.mark.parametrize(
+    "simple_slices",
+    (
+        slice(None, None, 1),
+        slice(None, 3, None),
+        slice(1, None, None),
+        slice(1, 3, None),
+        slice(None, None, None),
+    ),
+)
+def test_seqview_defaults(simple_slices):
+    """SeqView should accept slices with all combinations of default parameters"""
+    seq = "0123456789"
+    got = SeqView(seq)[simple_slices]
+    expected = seq[simple_slices]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("index", (-8, -5, 0, 5, 8))
+@pytest.mark.parametrize(
+    "simple_slices",
+    (
+        slice(None, None, 1),
+        slice(None, 10, None),
+        slice(1, None, None),
+        slice(1, 10, None),
+        slice(1, 10, 1),
+        slice(None, None, None),
+    ),
+)
+def test_seqview_sliced_index(index, simple_slices):
+    """SeqView that has been sliced with default parameters, can then be indexed"""
+    seq = "0123456789"
+    sv = SeqView(seq)
+    got = sv[simple_slices][index]
+    expected = seq[simple_slices][index]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("first_step", (1, 2, -1, -2))
+@pytest.mark.parametrize("second_step", (1, 2, -1, -2))
+def test_seqview_reverse_slice(first_step, second_step):
+    """subsequent slices may reverse the previous slice"""
+    seq = "0123456789"
+    sv = SeqView(seq=seq, step=first_step)
+    got = sv[::second_step]
+    expected = seq[::first_step][::second_step]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "01234567890"))
+@pytest.mark.parametrize("index", (-10, -4, 0, 6, 10))
+@pytest.mark.parametrize("start", (None, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 9, -10, -11))
+@pytest.mark.parametrize("step", (-1, -2))
+def test_seqview_rev_sliced_index(index, start, stop, step, seq):
+    """SeqView that has been reverse sliced, can then be sliced with a single index"""
+    seq_data = seq
+    try:  # if python slicing raises an index error, we expect SeqView to also throw error
+        expected = seq_data[start:stop:step][index]
+    except IndexError:
+        with pytest.raises(IndexError):
+            _ = SeqView(seq=seq_data, start=start, stop=stop, step=step)[index].value
+    else:  # if no index error, SeqView should match python slicing
+        got = SeqView(seq=seq_data, start=start, stop=stop, step=step)[index].value
+        assert got == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
+@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
+@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
+@pytest.mark.parametrize("step", (1, 2, -1, -2))
+def test_seqview_init_with_negatives(seq, start, stop, step):
+    "SeqView initialisation should handle any combination of positive and negative slices"
+    got = SeqView(seq, start=start, stop=stop, step=step)
+    expected = seq[start:stop:step]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("seq", ("0123456789", "012345678"))
+@pytest.mark.parametrize("start", (None, 0, 1, 9, -1, -10))
+@pytest.mark.parametrize("stop", (None, 0, 10, -7, -11))
+@pytest.mark.parametrize("step", (1, 2, -1, -2))
+def test_seqview_slice_with_negatives(seq, start, stop, step):
+    """SeqView should handle any combination of positive and negative slices"""
+    sv = SeqView(seq)
+    got = sv[start:stop:step]
+    expected = seq[start:stop:step]
+    assert got.value == expected
+
+
+@pytest.mark.parametrize("start", (None, 0, 2))
+@pytest.mark.parametrize("stop", (None, 5, 7, 10))
+@pytest.mark.parametrize("step", (1, 2))
+@pytest.mark.parametrize("start_2", (None, 0, 1, 2))
+@pytest.mark.parametrize("stop_2", (None, 2, 4, 10))
+@pytest.mark.parametrize("step_2", (1, 2))
+def test_subsequent_slice_forward(start, stop, step, start_2, stop_2, step_2):
+    """SeqView should handle subsequent forward slice"""
+    seq = "0123456789"
+    sv = SeqView(seq=seq)
+    got = sv[start:stop:step][start_2:stop_2:step_2]
+    expected = seq[start:stop:step][start_2:stop_2:step_2]
+    assert got.value == expected
+    assert len(got) == len(expected)
+
+
+@pytest.mark.parametrize(
+    "slice_1, slice_2",
+    (
+        # WITH DEFAULTS
+        # first stop -ve
+        (slice(None, -3, None), slice(None, None, None)),
+        # second stop -ve
+        (slice(None, None, None), slice(None, -1, None)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -3, None), slice(None, -5, None)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -5, None), slice(None, -3, None)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, None), slice(None, -8, None)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, None), slice(None, -3, None)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, None), slice(None, 7, None)),
+        # first stop -ve, second stop +ve, second slice OUTSIDE first
+        (slice(None, -6, None), slice(None, 7, None)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 6, None), slice(None, -2, None)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, None), slice(None, -7, None)),
+        # WITH FIRST STEP > 1
+        # first stop -ve
+        (slice(None, -3, 2), slice(None, None, None)),
+        # second stop -ve
+        (slice(None, None, 2), slice(None, -1, None)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -1, 2), slice(None, -3, None)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -3, 2), slice(None, -2, None)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, 2), slice(None, -8, None)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, 2), slice(None, -3, None)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, 2), slice(None, 3, None)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -6, 2), slice(None, 7, None)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 6, 2), slice(None, -2, None)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, 2), slice(None, -7, None)),
+        # WITH SECOND STEP > 1
+        # first stop -ve
+        (slice(None, -3, None), slice(None, None, 3)),
+        # second stop -ve
+        (slice(None, None, None), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -2, None), slice(None, -4, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -4, None), slice(None, -3, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, None), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, None), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, None), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -6, None), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 9, None), slice(None, -2, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, None), slice(None, -7, 3)),
+        # WITH BOTH STEP > 1
+        # first stop -ve
+        (slice(None, -3, 2), slice(None, None, 3)),
+        # second stop -ve
+        (slice(None, None, 2), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(None, -1, 3), slice(None, -2, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(None, -2, 2), slice(None, -1, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(None, -3, 3), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(None, -8, 2), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(None, -2, 3), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(None, -3, 3), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(None, 9, 2), slice(None, -1, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(None, 6, 2), slice(None, -7, 3)),
+        # NON-ZERO START
+        # first stop -ve
+        (slice(1, -3, 2), slice(None, None, 3)),
+        # second stop -ve
+        (slice(1, None, 2), slice(None, -1, 3)),
+        # both stop -ve, (first > second), second slice WITHIN first
+        (slice(1, -1, 3), slice(None, -2, 2)),
+        # both stop -ve, (first < second), second slice WITHIN first
+        (slice(1, -2, 2), slice(None, -1, 2)),
+        # both stop -ve, (first > second), second slice OUTSIDE first
+        (slice(1, -3, 3), slice(None, -8, 2)),
+        # both stop -ve, (first < second), second slice OUTSIDE first
+        (slice(1, -8, 2), slice(None, -3, 2)),
+        # first stop -ve, second stop +ve, second slice WITHIN first
+        (slice(1, -2, 3), slice(None, 7, 2)),
+        # first stop -ve, second stop +ve, second slice OVERLAP first
+        (slice(1, -3, 3), slice(None, 7, 2)),
+        # first stop +ve, second stop -ve, second slice WITHIN first
+        (slice(1, 10, 2), slice(None, -1, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+        (slice(1, 6, 2), slice(None, -7, 3)),
+        # first stop +ve, second stop -ve, second slice OUTSIDE first
+    ),
+)
+def test_subsequent_slice_neg_stop(slice_1, slice_2):
+    """SeqView should handle subsequence slices with >=1 negative stop values,
+    subsequent slices may overlap or be within previous slices
+    """
+    seq_data = "abcdefghijk"
+    sv = SeqView(seq_data)
+    assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
+    "slice_1, slice_2",
+    (
+        # WITH DEFAULTS
+        # first start -ve
+        (slice(-6, None, None), slice(None, None, None)),
+        # second start -ve
+        (slice(None, None, None), slice(-6, None, None)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-6, None, None), slice(-4, None, None)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-4, None, None), slice(-6, None, None)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-8, None, None), slice(2, None, None)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, None), slice(7, None, None)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, None), slice(-7, None, None)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(5, None, None), slice(-6, None, None)),
+        # WITH FIRST STEP > 1
+        # first start -ve
+        (slice(-6, None, 2), slice(None, None, None)),
+        # second start -ve
+        (slice(None, None, 2), slice(-6, None, None)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-8, None, 2), slice(-6, None, None)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, 2), slice(-9, None, None)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, 2), slice(2, None, None)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, 2), slice(7, None, None)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, 2), slice(-7, None, None)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, 2), slice(-9, None, None)),
+        # WITH SECOND STEP > 1
+        # first start -ve
+        (slice(-6, None, None), slice(None, None, 2)),
+        # second start -ve
+        (slice(None, None, None), slice(-6, None, 2)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-8, None, None), slice(-6, None, 2)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, None), slice(-9, None, 2)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, None), slice(2, None, 2)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, None), slice(7, None, 2)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, None), slice(-7, None, 2)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, None), slice(-9, None, 2)),
+        # WITH BOTH STEP > 1
+        # first start -ve
+        (slice(-6, None, 3), slice(None, None, 2)),
+        # second start -ve
+        (slice(None, None, 3), slice(-6, None, 2)),
+        # both start -ve, (first < second), second slice WITHIN first
+        (slice(-9, None, 3), slice(-7, None, 2)),
+        # both start -ve, (first > second), second slice OUTSIDE first
+        (slice(-7, None, 3), slice(-9, None, 2)),
+        # first start -ve, second start +ve, second slice WITHIN first
+        (slice(-9, None, 3), slice(2, None, 2)),
+        # first start -ve, second start +ve, second slice OUTSIDE first
+        (slice(-6, None, 2), slice(7, None, 2)),
+        # first start +ve, second start -ve, second slice WITHIN first
+        (slice(2, None, 3), slice(-7, None, 2)),
+        # first start +ve, second start -ve, second slice OUTSIDE first
+        (slice(3, None, 3), slice(-9, None, 2)),
+        (slice(-9, 7, 3), slice(-2, None, None)),
+    ),
+)
+def test_subsequent_slice_neg_start(slice_1, slice_2):
+    """SeqView should handle subsequence slices with >=1 negative start values,
+    subsequent slices may or may not overlap or be within previous slices
+    """
+    seq_data = "abcdefghijk"
+    sv = SeqView(seq_data)
+    assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
+    "slice_1, slice_2",
+    (
+        # WITH DEFAULTS
+        # first step -ve
+        (slice(None, None, -1), slice(None, None, None)),
+        # second step -ve
+        (slice(None, None, None), slice(None, None, -1)),
+        # both step -ve, start/stop -ve, second slice WITHIN first
+        (slice(-1, -11, -2), slice(-1, -5, -3)),
+        # both step -ve, start/stop -ve, second slice OUTSIDE first
+        (slice(-1, -11, -2), slice(-1, -11, -3)),
+        # both step -ve, start/stop +ve, second slice WITHIN first
+        (slice(10, 0, -2), slice(5, 0, -3)),
+        # both step -ve, start/stop +ve, second slice OUTSIDE first
+        (slice(10, 0, -2), slice(10, 0, -3)),
+        # first step -ve, second step +ve, second slice WITHIN first
+        (slice(10, 0, -2), slice(1, 5, 2)),
+        # first step -ve, second step +ve, second slice OUTSIDE first
+        (slice(10, 0, -2), slice(0, 10, 2)),
+        # first step +ve, second step -ve, second slice WITHIN first
+        (slice(0, 10, 2), slice(4, 0, -2)),
+        # first step +ve, second step -ve, second slice OUTSIDE first
+        (slice(0, 10, 3), slice(10, 0, -2)),
+        # first step -ve, second step +ve, second start/stop +ve
+        (slice(10, 1, -1), slice(-8, 11, 2)),
+        # first step -ve, second step +ve, second start/stop +ve
+        (slice(10, 1, -1), slice(-19, 0, -2)),
+    ),
+)
+def test_subsequent_slice_neg_step(slice_1, slice_2):
+    """SeqView should handle subsequence slices with negative step values,
+    subsequent slices may overlap or be within previous slices
+    """
+    seq_data = "0123456789"
+    sv = SeqView(seq_data)
+    assert sv[slice_1][slice_2].value == seq_data[slice_1][slice_2]
+
+
+@pytest.mark.parametrize(
+    "sub_slices_triple",
+    (
+        (slice(None, None, None), slice(None, None, None), slice(None, None, None)),
+        (slice(1, 9, 1), slice(2, 8, 1), slice(3, 7, 1)),
+        (slice(1, 9, 1), slice(2, 8, 1), slice(3, 9, 1)),
+        (slice(1, 9, 1), slice(2, 8, 2), slice(3, 7, -3)),
+    ),
+)
+def test_subslice_3(sub_slices_triple):
+    """SeqView should handle three subsequent slices"""
+    seq_data = "abcdefghijk"
+    sv = SeqView(seq_data)
+    slice_1, slice_2, slice_3 = sub_slices_triple
+    assert sv[slice_1][slice_2][slice_3].value == seq_data[slice_1][slice_2][slice_3]
+
+
+@pytest.mark.parametrize("start", (0, 2, -1))
+@pytest.mark.parametrize("stop", (7, 10, -11))
+@pytest.mark.parametrize("step", (1, -2))
+@pytest.mark.parametrize("start_2", (0, 2, -8))
+@pytest.mark.parametrize("stop_2", (2, 4))
+@pytest.mark.parametrize("step_2", (2, -1))
+@pytest.mark.parametrize("start_3", (0, 1, -6))
+@pytest.mark.parametrize("stop_3", (4, 10, -10))
+@pytest.mark.parametrize("step_3", (2, -2))
+def test_triple_slice(
+    start, stop, step, start_2, stop_2, step_2, start_3, stop_3, step_3
+):
+    """SeqView should handle subsequent forward slice"""
+    seq = "0123456789"
+    sv = SeqView(seq=seq)
+    got = sv[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
+    expected = seq[start:stop:step][start_2:stop_2:step_2][start_3:stop_3:step_3]
+
+    assert got.value == expected
+    assert len(got) == len(expected)
+
+
+def test_seqview_replace():
+    """SeqView supports replacements of substrings, however overriding the sequence data"""
+    seq_data = "abcdefghijk"
+    sv = SeqView(seq_data)
+    sv_replaced = sv.replace("a", "u")
+    assert sv_replaced.value == seq_data.replace("a", "u")
+    assert sv_replaced.replace("u", "a").value == seq_data
+    assert sv_replaced.seq == seq_data.replace("a", "u")
+
+
+def test_seqview_remove_gaps():
+    """Replacing strings of different lengths should work, although any previous slices will be lost"""
+    seq_data = "abc----def"
+    sv = SeqView(seq_data)
+    sliced = sv[2:4]
+    assert sliced.start == 2
+    replaced = sliced.replace("-", "")
+    assert replaced.value == seq_data.replace("-", "")
+    assert replaced.start == 0  # start should now be zero,
+    assert replaced.stop == len(seq_data.replace("-", ""))
+
+
+def test_seqview_repr():
+    # case 1: Short sequence, defaults
+    seq = "ACGT"
+    view = SeqView(seq)
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1)"
+    assert repr(view) == expected
+
+    # case 2: Long sequence
+    seq = "ACGT" * 10
+    view = SeqView(seq)
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1)"
+    assert repr(view) == expected
+
+    # case 3: Non-zero start, stop, and step values
+    seq = "ACGT" * 10
+    view = SeqView(seq, start=5, stop=35, step=2)
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2)"
+    assert repr(view) == expected
+
+
+def test_get_kmers_strict():
+    orig = "TCAGGAN"
+    r = DnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["T", "C", "A", "G", "G", "A"]
+    assert r.get_kmers(2, strict=True) == ["TC", "CA", "AG", "GG", "GA"]
+    assert r.get_kmers(3, strict=True) == ["TCA", "CAG", "AGG", "GGA"]
+    assert r.get_kmers(4, strict=True) == ["TCAG", "CAGG", "AGGA"]
+    assert r.get_kmers(5, strict=True) == ["TCAGG", "CAGGA"]
+    assert r.get_kmers(6, strict=True) == ["TCAGGA"]
+    assert r.get_kmers(7, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["T", "C", "A", "G", "G", "A", "N"]
+    assert r.get_kmers(2, strict=False) == ["TC", "CA", "AG", "GG", "GA", "AN"]
+    assert r.get_kmers(3, strict=False) == ["TCA", "CAG", "AGG", "GGA", "GAN"]
+    assert r.get_kmers(4, strict=False) == ["TCAG", "CAGG", "AGGA", "GGAN"]
+    assert r.get_kmers(5, strict=False) == ["TCAGG", "CAGGA", "AGGAN"]
+    assert r.get_kmers(6, strict=False) == ["TCAGGA", "CAGGAN"]
+    assert r.get_kmers(7, strict=False) == ["TCAGGAN"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_RNA():
+    orig = "UCAGGAN"
+    r = RnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["U", "C", "A", "G", "G", "A"]
+    assert r.get_kmers(2, strict=True) == ["UC", "CA", "AG", "GG", "GA"]
+    assert r.get_kmers(3, strict=True) == ["UCA", "CAG", "AGG", "GGA"]
+    assert r.get_kmers(4, strict=True) == ["UCAG", "CAGG", "AGGA"]
+    assert r.get_kmers(5, strict=True) == ["UCAGG", "CAGGA"]
+    assert r.get_kmers(6, strict=True) == ["UCAGGA"]
+    assert r.get_kmers(7, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["U", "C", "A", "G", "G", "A", "N"]
+    assert r.get_kmers(2, strict=False) == ["UC", "CA", "AG", "GG", "GA", "AN"]
+    assert r.get_kmers(3, strict=False) == ["UCA", "CAG", "AGG", "GGA", "GAN"]
+    assert r.get_kmers(4, strict=False) == ["UCAG", "CAGG", "AGGA", "GGAN"]
+    assert r.get_kmers(5, strict=False) == ["UCAGG", "CAGGA", "AGGAN"]
+    assert r.get_kmers(6, strict=False) == ["UCAGGA", "CAGGAN"]
+    assert r.get_kmers(7, strict=False) == ["UCAGGAN"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_protein():
+    orig = "CEFGMNX"
+    r = ProteinSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["C", "E", "F", "G", "M", "N"]
+    assert r.get_kmers(2, strict=True) == ["CE", "EF", "FG", "GM", "MN"]
+    assert r.get_kmers(3, strict=True) == ["CEF", "EFG", "FGM", "GMN"]
+    assert r.get_kmers(4, strict=True) == ["CEFG", "EFGM", "FGMN"]
+    assert r.get_kmers(5, strict=True) == ["CEFGM", "EFGMN"]
+    assert r.get_kmers(6, strict=True) == ["CEFGMN"]
+
+    assert r.get_kmers(1, strict=False) == ["C", "E", "F", "G", "M", "N", "X"]
+    assert r.get_kmers(2, strict=False) == ["CE", "EF", "FG", "GM", "MN", "NX"]
+    assert r.get_kmers(3, strict=False) == ["CEF", "EFG", "FGM", "GMN", "MNX"]
+    assert r.get_kmers(4, strict=False) == ["CEFG", "EFGM", "FGMN", "GMNX"]
+    assert r.get_kmers(5, strict=False) == ["CEFGM", "EFGMN", "FGMNX"]
+    assert r.get_kmers(6, strict=False) == ["CEFGMN", "EFGMNX"]
+    assert r.get_kmers(7, strict=False) == ["CEFGMNX"]
+
+
+def test_get_kmers_strict_DNA_gaps():
+    orig = "TCA-GAT"
+    r = DnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["T", "C", "A", "G", "A", "T"]
+    assert r.get_kmers(2, strict=True) == ["TC", "CA", "GA", "AT"]
+    assert r.get_kmers(3, strict=True) == ["TCA", "GAT"]
+    assert r.get_kmers(4, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["T", "C", "A", "-", "G", "A", "T"]
+    assert r.get_kmers(2, strict=False) == ["TC", "CA", "A-", "-G", "GA", "AT"]
+    assert r.get_kmers(3, strict=False) == ["TCA", "CA-", "A-G", "-GA", "GAT"]
+    assert r.get_kmers(4, strict=False) == ["TCA-", "CA-G", "A-GA", "-GAT"]
+    assert r.get_kmers(5, strict=False) == ["TCA-G", "CA-GA", "A-GAT"]
+    assert r.get_kmers(6, strict=False) == ["TCA-GA", "CA-GAT"]
+    assert r.get_kmers(7, strict=False) == ["TCA-GAT"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_RNA_gaps():
+    orig = "UCA-GAU"
+    r = RnaSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["U", "C", "A", "G", "A", "U"]
+    assert r.get_kmers(2, strict=True) == ["UC", "CA", "GA", "AU"]
+    assert r.get_kmers(3, strict=True) == ["UCA", "GAU"]
+    assert r.get_kmers(4, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["U", "C", "A", "-", "G", "A", "U"]
+    assert r.get_kmers(2, strict=False) == ["UC", "CA", "A-", "-G", "GA", "AU"]
+    assert r.get_kmers(3, strict=False) == ["UCA", "CA-", "A-G", "-GA", "GAU"]
+    assert r.get_kmers(4, strict=False) == ["UCA-", "CA-G", "A-GA", "-GAU"]
+    assert r.get_kmers(5, strict=False) == ["UCA-G", "CA-GA", "A-GAU"]
+    assert r.get_kmers(6, strict=False) == ["UCA-GA", "CA-GAU"]
+    assert r.get_kmers(7, strict=False) == ["UCA-GAU"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_protein_gaps():
+    orig = "CEF-GMN"
+    r = ProteinSequence(orig)
+
+    assert r.get_kmers(1, strict=True) == ["C", "E", "F", "G", "M", "N"]
+    assert r.get_kmers(2, strict=True) == ["CE", "EF", "GM", "MN"]
+    assert r.get_kmers(3, strict=True) == ["CEF", "GMN"]
+    assert r.get_kmers(4, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["C", "E", "F", "-", "G", "M", "N"]
+    assert r.get_kmers(2, strict=False) == ["CE", "EF", "F-", "-G", "GM", "MN"]
+    assert r.get_kmers(3, strict=False) == ["CEF", "EF-", "F-G", "-GM", "GMN"]
+    assert r.get_kmers(4, strict=False) == ["CEF-", "EF-G", "F-GM", "-GMN"]
+    assert r.get_kmers(5, strict=False) == ["CEF-G", "EF-GM", "F-GMN"]
+    assert r.get_kmers(6, strict=False) == ["CEF-GM", "EF-GMN"]
+    assert r.get_kmers(7, strict=False) == ["CEF-GMN"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+def test_get_kmers_strict_DNA_RNA_Protein_allgap():
+    orig = "-------"
+
+    r = DnaSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-", "-", "-", "-", "-", "-", "-"]
+
+    r = RnaSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-", "-", "-", "-", "-", "-", "-"]
+
+    r = ProteinSequence(orig)
+    assert r.get_kmers(1, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["-", "-", "-", "-", "-", "-", "-"]
+
+
+def test_get_kmers_strict_DNA_RNA_Protein_mixed_ambiguities():
+    r = DnaSequence("NGASTAH")
+    assert r.get_kmers(1, strict=True) == ["G", "A", "T", "A"]
+    assert r.get_kmers(2, strict=True) == ["GA", "TA"]
+    assert r.get_kmers(3, strict=True) == []
+
+    assert r.get_kmers(1, strict=False) == ["N", "G", "A", "S", "T", "A", "H"]
+    assert r.get_kmers(2, strict=False) == ["NG", "GA", "AS", "ST", "TA", "AH"]
+    assert r.get_kmers(3, strict=False) == ["NGA", "GAS", "AST", "STA", "TAH"]
+    assert r.get_kmers(4, strict=False) == ["NGAS", "GAST", "ASTA", "STAH"]
+    assert r.get_kmers(5, strict=False) == ["NGAST", "GASTA", "ASTAH"]
+    assert r.get_kmers(6, strict=False) == ["NGASTA", "GASTAH"]
+    assert r.get_kmers(7, strict=False) == ["NGASTAH"]
+    assert r.get_kmers(8, strict=False) == []
+
+    r = RnaSequence("RGAWUAD")
+    assert r.get_kmers(1, strict=True) == ["G", "A", "U", "A"]
+    assert r.get_kmers(2, strict=True) == ["GA", "UA"]
+    assert r.get_kmers(3, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["R", "G", "A", "W", "U", "A", "D"]
+    assert r.get_kmers(2, strict=False) == ["RG", "GA", "AW", "WU", "UA", "AD"]
+    assert r.get_kmers(3, strict=False) == ["RGA", "GAW", "AWU", "WUA", "UAD"]
+    assert r.get_kmers(4, strict=False) == ["RGAW", "GAWU", "AWUA", "WUAD"]
+    assert r.get_kmers(5, strict=False) == ["RGAWU", "GAWUA", "AWUAD"]
+    assert r.get_kmers(6, strict=False) == ["RGAWUA", "GAWUAD"]
+    assert r.get_kmers(7, strict=False) == ["RGAWUAD"]
+    assert r.get_kmers(8, strict=False) == []
+
+    r = ProteinSequence("BQMXNRZ")
+    assert r.get_kmers(1, strict=True) == ["Q", "M", "N", "R"]
+    assert r.get_kmers(2, strict=True) == ["QM", "NR"]
+    assert r.get_kmers(3, strict=True) == []
+    assert r.get_kmers(1, strict=False) == ["B", "Q", "M", "X", "N", "R", "Z"]
+    assert r.get_kmers(2, strict=False) == ["BQ", "QM", "MX", "XN", "NR", "RZ"]
+    assert r.get_kmers(3, strict=False) == ["BQM", "QMX", "MXN", "XNR", "NRZ"]
+    assert r.get_kmers(4, strict=False) == ["BQMX", "QMXN", "MXNR", "XNRZ"]
+    assert r.get_kmers(5, strict=False) == ["BQMXN", "QMXNR", "MXNRZ"]
+    assert r.get_kmers(6, strict=False) == ["BQMXNR", "QMXNRZ"]
+    assert r.get_kmers(7, strict=False) == ["BQMXNRZ"]
+    assert r.get_kmers(8, strict=False) == []
+
+
+@pytest.fixture(scope="function")
+def one_seq():
+    from cogent3 import make_seq
+
+    return make_seq("AACCTGGAACC", moltype="dna")
+
+
+@pytest.fixture(scope="session")
+def worm_seq_path(DATA_DIR):
+    return DATA_DIR / "c_elegans_WS199_dna_shortened.fasta"
+
+
+@pytest.fixture(scope="session")
+def worm_gff_path(DATA_DIR):
+    return DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+
+
+def test_annotate_from_gff(worm_seq_path, worm_gff_path):
+    """correctly annotates a Sequence from a gff file"""
+    # duplicated in test_alignment on seq collection
+    seq = cogent3.load_seq(worm_seq_path, moltype="dna")
+
+    seq.annotate_from_gff(worm_gff_path)
+    matches = list(seq.get_features())
+    assert len(matches) == 11
+    matches = list(seq.get_features(biotype="gene"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="mRNA"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="exon"))
+    assert len(matches) == 3
+
+
+@pytest.mark.parametrize("rc", (False, True))
+def test_seq_repr(one_seq, rc):
+    pat = re.compile("[ACGT]+")
+    dna = one_seq.moltype
+    if rc:
+        expect = dna.rc(str(one_seq))
+        seq = one_seq.rc()
+    else:
+        expect = str(one_seq)
+        seq = one_seq
+
+    got = pat.findall(repr(seq))[0]
+    assert expect.startswith(got), (expect, got)
+
+
+def test_annotation_from_slice_with_stride():
+    seq = DNA.make_seq("AAACGCGCGAAAAAAA", name="s1")
+    seq.add_feature(biotype="exon", name="ex1", spans=[(3, 9)])
+    f = list(seq.get_features(name="ex1"))[0]
+    assert str(f.get_slice()) == "CGCGCG"
+    s1 = seq[1::2]
+    f = list(s1.get_features(name="ex1"))[0]
+    assert str(f.get_slice()) == "CCC"
+
+
+def test_absolute_position_base_cases(one_seq):
+    """with no offset or view, the absolute index should remain unchanged"""
+    got = one_seq._seq.absolute_position(5)
+    assert got == 5
+
+    # an index outside the range of the sequence should raise an IndexError
+    with pytest.raises(IndexError):
+        one_seq._seq.absolute_position(20)
+
+    with pytest.raises(IndexError):
+        one_seq._seq.absolute_position(-20)
+
+
+def test_absolute_position_positive(one_seq):
+    # with an offset, the abs index should be offset + index
+    one_seq.annotation_offset = 2
+    got = one_seq._seq.absolute_position(2)
+    assert got == 2 + 2
+
+    # with an offset and start, the abs index should be offset + start + index
+    view = one_seq[2::]
+    view.annotation_offset = 2  # todo: do we want the annotation_offset to be preserved when slicing? I think yes
+    got = view._seq.absolute_position(2)
+    assert got == 2 + 2 + 2
+
+    # with an offset, start and step, the abs index should be offset + start + index * step
+    view = one_seq[2::2]
+    view.annotation_offset = 2
+    got = view._seq.absolute_position(2)
+    assert got == 2 + 2 + 2 * 2
+
+
+def test_relative_position_base_cases(one_seq):
+    """with no offset or view, the absolute index should remain unchanged"""
+    got = one_seq._seq.relative_position(5)
+    assert got == 5
+
+    # a -ve index  should raise an IndexError
+    with pytest.raises(IndexError):
+        one_seq._seq.relative_position(-5)
+
+
+@pytest.fixture(scope="function")
+def integer_seq():
+    return SeqView("0123456789")
+
+
+def test_relative_position(integer_seq):
+    """This test checks if the method returns the correct relative positions when
+    the given index precedes or exceeds the range of the SeqView."""
+
+    view = integer_seq[1:9:]
+    # view = "12345678"
+    got = view.relative_position(0)
+    # precedes the view, so should return -1
+    assert got == -1
+    # exceeds the view, but still returns a value
+    got = view.relative_position(10)
+    assert got == 9
+
+
+def test_relative_position_step_GT_one(integer_seq):
+    """This test checks if the method returns the correct relative positions when
+    the given index precedes or exceeds the range of the SeqView with a step greater than one.
+    """
+
+    # precedes the view, with step > 1
+    view = integer_seq[2:7:2]
+    # view = "246", precedes the view by 1 step
+    got = view.relative_position(0)
+    assert got == -1
+    # precedes the view by 0.5 step, default behaviour is to round up to 0
+    got = view.relative_position(1)
+    assert got == 0
+    # exceeds the view by two steps, len(view) + 2 = 4
+    got = view.relative_position(10)
+    assert got == 4
+
+
+def test_relative_position_with_remainder(integer_seq):
+    """tests relative_position when the index given is excluded from the view as it falls on
+    a position that is 'stepped over'"""
+    view = integer_seq[1:9:2]
+    # view = "1357"
+    got = view.relative_position(2)
+    # 2 is stepped over in the view, so we return the index of 3 (which is 1)
+    assert got == 1
+
+    # setting the arg stop=True will adjust to the largest number, smaller than the given abs value, that is in the view
+    got = view.relative_position(8, stop=True)
+    # 8 is excluded from the view, so we return the index of 7 (which is 3)
+    assert got == 3
+
+
+@pytest.mark.parametrize("value", (0, 3))
+@pytest.mark.parametrize("offset", (None, 1, 2))
+@pytest.mark.parametrize("start", (None, 1, 2))
+@pytest.mark.parametrize("stop", (None, 10, 11))
+@pytest.mark.parametrize("step", (None, 1, 2))
+def test_absolute_relative_roundtrip(one_seq, value, offset, start, stop, step):
+    # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
+    view = one_seq[start:stop:step]
+    view.annotation_offset = offset or 0
+    abs_val = view._seq.absolute_position(value)
+    rel_val = view._seq.relative_position(abs_val)
+    assert rel_val == value
+
+
+@pytest.mark.parametrize("value", (0, 2))
+@pytest.mark.parametrize("offset", (None, 1, 2))
+@pytest.mark.parametrize("start", (None, -1, -2))
+@pytest.mark.parametrize("stop", (None, -10))
+@pytest.mark.parametrize("step", (-1, -2))
+def test_absolute_relative_roundtrip_reverse(
+    integer_seq, value, offset, start, stop, step
+):
+    # a round trip from relative to absolute then from absolute to relative, should return the same value we began with
+    view = integer_seq[start:stop:step]
+    view.offset = offset or 0
+    abs_val = view.absolute_position(value)
+    rel_val = view.relative_position(abs_val)
+    assert view.offset == (offset or 0)
+    assert (view[rel_val]).value == view[value].value
+
+
+def test_annotate_gff_nested_features(DATA_DIR):
+    """correctly annotate a sequence with nested features"""
+    # the synthetic example
+    #          1111111111222222222333333333334
+    # 1234567890123456789012345678901234567890
+    #  **** biological_region
+    #                                     ** biological_region
+    #                                       * biological_region
+    #      *******************************  gene
+    #         *********************   mRNA
+    #            *********            exon
+    #                       *****     exon
+    # ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC...
+    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+    gff3_path = DATA_DIR / "ensembl_sample.gff3"
+    seq.annotate_from_gff(gff3_path)
+    # we have 8 records in the gff file
+    assert seq.annotation_db.num_matches() == 8
+
+    # get the gene and check it has a single annotation and that
+    # its slice is correct
+    ann = list(seq.get_features(biotype="gene"))
+    assert len(ann) == 1
+    ann_seq = ann[0].get_slice()
+    assert str(ann_seq) == "GGAAAATTTTTTTTTAAGGGGGAAAAAAAAA"
+    # the gene has 1 transcript
+    gene = ann[0]
+    mrna = list(gene.get_children(biotype="mRNA"))
+    assert len(mrna) == 1
+    mrna = mrna[0]
+    ann_seq = mrna.get_slice()
+    assert str(ann_seq) == "AAAATTTTTTTTTAAGGGGGAAA"
+
+    # the transcript has 2 exons, from the parent feature
+    exons = list(mrna.get_children(biotype="exon"))
+    assert len(exons) == 2
+    # or the sequence
+    ann = list(seq.get_features(biotype="exon"))
+    assert len(ann) == 2
+    exon_seqs = ("TTTTTTTTT", "GGGGG")
+    assert tuple(str(ex.get_slice()) for ex in exons) == exon_seqs
+
+
+def test_to_moltype_dna():
+    """to_moltype("dna") ensures conversion from T to U"""
+    seq = DNA.make_seq("AAAAGGGGTTT", name="seq1")
+    rna = seq.to_moltype("rna")
+
+    assert "T" not in rna
+
+
+def test_to_moltype_rna():
+    """to_moltype("rna") ensures conversion from U to T"""
+    seq = RNA.make_seq("AAAAGGGGUUU", name="seq1")
+    rna = seq.to_moltype("dna")
+
+    assert "U" not in rna
+
+
+@pytest.mark.parametrize("cls,with_offset", ((ArraySequence, False), (Sequence, True)))
+def test_to_rich_dict(cls, with_offset):
+    """Sequence to_dict works"""
+    r = cls("AAGGCC", name="seq1")
+    got = r.to_rich_dict()
+    seq = "AAGGCC"
+
+    if cls == Sequence:
+        seq = SeqView(seq).to_rich_dict()
+
+    expect = {
+        "name": "seq1",
+        "seq": seq,
+        "moltype": r.moltype.label,
+        "info": None,
+        "type": get_object_provenance(r),
+        "version": __version__,
+    }
+    if with_offset:
+        expect["annotation_offset"] = 0
+
+    assert got == expect
+
+
+@pytest.mark.parametrize("cls,with_offset", ((ArraySequence, False), (Sequence, True)))
+def test_to_json(cls, with_offset):
+    """to_json roundtrip recreates to_dict"""
+    r = cls("AAGGCC", name="seq1")
+    got = json.loads(r.to_json())
+
+    seq = "AAGGCC"
+    if cls == Sequence:
+        seq = SeqView(seq).to_rich_dict()
+
+    expect = {
+        "name": "seq1",
+        "seq": seq,
+        "moltype": r.moltype.label,
+        "info": None,
+        "type": get_object_provenance(r),
+        "version": __version__,
+    }
+    if with_offset:
+        expect["annotation_offset"] = 0
+
+    assert got == expect
+
+
+def test_offset_with_multiple_slices(DATA_DIR):
+    from cogent3.util.deserialise import deserialise_object
+
+    seq = DNA.make_seq("ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC", name="22")
+    gff3_path = DATA_DIR / "ensembl_sample.gff3"
+    seq.annotate_from_gff(gff3_path)
+    rd = seq[2:].to_rich_dict()
+    s1 = deserialise_object(rd)
+    assert s1.annotation_offset == 2
+    rd = s1[3:].to_rich_dict()
+    s2 = deserialise_object(rd)
+    assert s2.annotation_offset == 5
+    expect = {(f.seqid, f.biotype, f.name) for f in seq.get_features(start=5)}
+    got = {(f.seqid, f.biotype, f.name) for f in s2.get_features()}
+    assert got == expect
+
+
+def test_seqview_to_rich_dict():
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sv = SeqView(seq=parent)
+    plus = sv.to_rich_dict()
+    minus = sv[::-1].to_rich_dict()
+    for attr in ("type", "offset", "version"):
+        assert plus.pop(attr) == minus.pop(attr)
+
+    plus = plus.pop("init_args")
+    minus = minus.pop("init_args")
+    assert plus.pop("seq") == minus.pop("seq")
+    assert plus["step"] == -minus["step"]
+    for coord in ("start", "stop"):
+        assert coord not in plus
+        assert coord not in minus
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_seqview_round_trip(reverse):
+    from cogent3.util.deserialise import deserialise_object
+
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sv = SeqView(seq=parent)
+    if reverse:
+        sv = sv[::-1]
+
+    rd = sv.to_rich_dict()
+    got = deserialise_object(rd)
+    assert isinstance(got, SeqView)
+    assert got.to_rich_dict() == sv.to_rich_dict()
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_sliced_seqview_rich_dict(reverse):
+    parent = "ACCCCGGAAAATTTTTTTTTAAGGGGGAAAAAAAAACCCCCCC"
+    sl = slice(2, 13)
+    sv = SeqView(seq=parent)[sl]
+    if reverse:
+        sv = sv[::-1]
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seq"] == parent[sl]
+    assert rd["offset"] == 2
+
+
+def test_get_drawable(DATA_DIR):
+    seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
+    seq = seq[2000:4000]
+    biotypes = "CDS", "gene", "mRNA"
+    for feat in seq.get_features(biotype=biotypes, allow_partial=True):
+        draw = feat.get_drawable()
+        assert "(incomplete)" in draw.text
+
+    full = seq.get_drawable(biotype=biotypes)
+    # should only include elements that overlap the segment
+    assert len(full.traces) == len(biotypes)
+    # and their names should indicate they're incomplete
+    for trace in full.traces:
+        assert "(incomplete)" in trace.text
+
+
+@pytest.mark.parametrize("gc,seq", ((1, "TCCTGA"), (1, "ACGTAA---"), (2, "TCCAGG")))
+def test_has_terminal_stop_true(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    assert seq.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.parametrize(
+    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+)
+def test_has_terminal_stop_false(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    assert not seq.has_terminal_stop(gc=gc)
+
+
+def test_has_terminal_stop_strict():
+    gc = cogent3.get_code(1)
+    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    with pytest.raises(AlphabetError):
+        seq.has_terminal_stop(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize(
+    "gc,seq",
+    (
+        (2, "TCCAGG"),
+        (1, "TAATGA"),
+        (1, "ACGTGA---"),
+        (1, "--AT-CTGA"),
+    ),
+)
+def test_trim_terminal_stop_true(gc, seq):
+    gc = cogent3.get_code(gc)
+    expect = re.sub("(TGA|AGG)(?=[-]*$)", "---" if "-" in seq else "", seq)
+
+    seq = cogent3.make_seq(seq, moltype="dna")
+    got = str(seq.trim_stop_codon(gc=gc))
+    assert got == expect
+
+
+@pytest.mark.parametrize("gc,seq", ((1, "T?CTGC"), (2, "TCCAAG")))
+def test_trim_terminal_stop_nostop(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    got = seq.trim_stop_codon(gc=gc)
+    assert str(got) == str(seq)
+    # since there's no stop, we just return the same object
+    assert got is seq
+
+
+@pytest.mark.parametrize(
+    "gc,seq", ((1, "TCCAGG"), (2, "TCCAAA"), (1, "CCTGA"), (2, "CCAGG"))
+)
+def test_trim_terminal_stop_false(gc, seq):
+    gc = cogent3.get_code(gc)
+    seq = cogent3.make_seq(seq, moltype="dna")
+    assert str(seq.trim_stop_codon(gc=gc)) == str(seq)
+
+
+def test_trim_terminal_stop_strict():
+    gc = cogent3.get_code(1)
+    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    with pytest.raises(AlphabetError):
+        seq.trim_stop_codon(gc=gc, strict=True)

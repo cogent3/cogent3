@@ -5,64 +5,7 @@ from dataclasses import InitVar, dataclass, field
 from itertools import product
 from typing import Generator, Optional
 
-import cogent3.util.progress_display as UI
-
 from cogent3.core.sequence import Sequence
-
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
-# deprecated code block
-@UI.display_wrap
-def dotplot(
-    seq1, seq2, window, threshold, min_gap_length=0, band=None, ui=None
-):  # pragma: no cover
-    """A list of line segments covering the window-mers with identical matches > threshold
-
-    gaps of size less than min_gap will be hidden, which saves on line segments.
-    if 'band' is not None then it limits the searched area
-    """
-    from cogent3.util.warning import discontinued
-
-    from . import compare_numba
-
-    discontinued(
-        "function",
-        "dotplot",
-        "2023.5",
-        "replaced by much faster find_matched_paths",
-    )
-
-    segments_from_diagonal = compare_numba.segments_from_diagonal
-
-    def one_diagonal(dia):
-        segs = segments_from_diagonal(
-            seq1, seq2, window, threshold, min_gap_length, dia
-        )
-        return [((start, start + dia), (end, end + dia)) for (start, end) in segs]
-
-    if band is None:
-        band = max(len(seq1), len(seq2))
-
-    if isinstance(seq1, str):
-        seq1 = seq1.encode("utf8")
-
-    if isinstance(seq2, str):
-        seq2 = seq2.encode("utf8")
-
-    diagonals = list(range(-min(len(seq1), band), min(len(seq2), band) + 1))
-    result = []
-    for diag_segments in ui.imap(one_diagonal, diagonals, noun="offset"):
-        result.extend(diag_segments)
-    return result
 
 
 @dataclass
@@ -220,8 +163,6 @@ def _extend_from_position(
         positions to evaluate
     threshold : int
         minimum number of matches
-    total : int
-        total number of True values in matches
 
     Returns
     -------
@@ -335,6 +276,7 @@ class SeqKmers:
 
         self.kmers = kmers
         self.num_seqs = 1
+        self.other_name = None
 
     def add_seq(self, seq: Sequence) -> None:
         """transforms seq into k-mers, adds indices of matches
@@ -359,10 +301,14 @@ class SeqKmers:
 
         self.num_seqs += 1
 
-    def drop_seq(self, seq_name: str) -> None:
+    def drop_seq(self, seq_name: Optional[str] = None) -> None:
         """removes other seq from all k-mers"""
+        seq_name = seq_name if seq_name else self.other_name
+        if seq_name is None:
+            return
+
         for kmer in self.kmers:
-            kmer.indices.pop(self.other_name, None)
+            kmer.indices.pop(seq_name, None)
 
         self.other_name = None
         self.num_seqs = 1
@@ -565,13 +511,14 @@ def _calc_seed_size(w: int, t: int) -> int:
 
 
 def find_matched_paths(
+    *,
     seq_kmers: SeqKmers,
     seq1: Sequence,
     seq2: Optional[Sequence] = None,
     window: int = 20,
     threshold: int = 17,
 ) -> MatchedSeqPaths:
-    """determine all matches between seq1 and seq21
+    """determine all matches between seq1 and seq2
 
     Parameters
     ----------
@@ -610,9 +557,9 @@ def find_matched_paths(
         s1_coord, _ = paths.last_on_path(seq1_idx, seq2_idx)
         left_limit = min(abs(s1_coord.end - seq1_idx), delta)
         ref_coord, other_coord = _extend_from_position(
-            seq1._seq,
+            str(seq1),
             seq1_idx,
-            seq2._seq,
+            str(seq2),
             seq2_idx,
             window=window,
             threshold=threshold,

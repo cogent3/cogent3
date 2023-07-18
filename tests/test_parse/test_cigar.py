@@ -1,7 +1,7 @@
-#!/usr/bin/env python
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
+from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.parse.cigar import (
     CigarParser,
     aligned_from_cigar,
@@ -9,16 +9,6 @@ from cogent3.parse.cigar import (
     map_to_cigar,
     slice_cigar,
 )
-
-
-__author__ = "Hua Ying"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Hua Ying", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Hua Ying"
-__email__ = "hua.ying@anu.edu.au"
-__status__ = "Production"
 
 
 class TestCigar(unittest.TestCase):
@@ -73,13 +63,17 @@ class TestCigar(unittest.TestCase):
         aln = aln.to_type(array_align=False)
         assert aln == self.aln
         # test slice
+        db = GffAnnotationDb()
+        aln.annotation_db = db
         i = 1
         for start, end in self.slices:
-            self.aln.get_seq("FAKE01").add_feature(
-                "annot%d" % i, "annot", [(start, end)]
+            db.add_feature(
+                seqid="FAKE01", biotype=f"annot{i}", name="annot", spans=[(start, end)]
             )
-            annot = self.aln.get_annotations_from_any_seq("annot%d" % i)
-            slice_aln = aln.get_region_covering_all(annot).as_one_span().get_slice()
+
+            annot = list(aln.get_features(biotype=f"annot{i}"))
+            annot = annot[0].union(annot[1:])
+            slice_aln = annot.as_one_span().get_slice()
             i += 1
 
             cmp_aln = CigarParser(
@@ -90,7 +84,7 @@ class TestCigar(unittest.TestCase):
                 start=start,
                 end=end,
             )
-            assert cmp_aln == slice_aln
+            assert cmp_aln.to_dict() == slice_aln.to_dict()
 
 
 if __name__ == "__main__":

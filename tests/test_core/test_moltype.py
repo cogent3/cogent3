@@ -3,12 +3,14 @@ import pickle
 
 from unittest import TestCase, main
 
+# ind some of the standard alphabets to reduce typing
+from numpy.testing import assert_allclose
+
 from cogent3.core import sequence
 from cogent3.core.moltype import (
     DNA,
     PROTEIN,
     RNA,
-    STANDARD_CODON,
     AlphabetError,
     AlphabetGroup,
     CodonAlphabet,
@@ -28,19 +30,6 @@ from cogent3.core.moltype import (
     make_pairs,
 )
 from cogent3.data.molecular_weight import DnaMW, RnaMW
-
-
-__author__ = "Gavin Huttley, Peter Maxwell, and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Gavin Huttley", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-# ind some of the standard alphabets to reduce typing
-from numpy.testing import assert_allclose
 
 
 RnaBases = RNA.alphabets.base
@@ -975,6 +964,8 @@ class DinucAlphabet(_AlphabetTestCase):
 
 class TestCodonAlphabet(_AlphabetTestCase):
     def setUp(self):
+        from cogent3.core.moltype import STANDARD_CODON
+
         self.alpha = STANDARD_CODON
 
     def test_ambiguous_gaps(self):

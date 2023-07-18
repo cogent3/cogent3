@@ -1,0 +1,43 @@
+name: Format code using black and isort
+# modified from https://towardsdatascience.com/black-with-git-hub-actions-4ffc5c61b5fe
+# caching https://stackoverflow.com/questions/59127258/how-can-i-use-pip-cache-in-github-actions
+# black integration https://black.readthedocs.io/en/stable/integrations/github_actions.html
+# isort integration https://pycqa.github.io/isort/docs/configuration/github_action.html
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  linters:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cogent/cogent3'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tomli
+          export click_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "click" in line][0])')
+          export black_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "black" in line][0])')
+          export isort_version=$(python -c 'import tomli; print([line for line in tomli.load(open("pyproject.toml","rb"))["project"]["optional-dependencies"]["dev"] if "isort" in line][0])')
+          echo "Click version: $click_version"
+          echo "Black version: $black_version"
+          echo "Isort version: $isort_version"
+          python -m pip install $click_version $black_version $isort_version
+      - name: Format code using black
+        run: black .
+      - name: Sort import statements using isort
+        run: isort
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: ${{ github.actor }}
+          author_email: ${{ github.actor }}@users.noreply.github.com
+          message: "STY: pre-commit linting with black and isort"
+          add: "."

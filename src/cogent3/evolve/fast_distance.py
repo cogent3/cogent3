@@ -6,7 +6,9 @@ import numpy
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
+from cogent3._version import __version__
 from cogent3.core.moltype import DNA, RNA, get_moltype
+from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
@@ -14,14 +16,7 @@ from cogent3.util.progress_display import display_wrap
 from .pairwise_distance_numba import fill_diversity_matrix
 
 
-__author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"  # pending addition of protein distance metrics
+# pending addition of protein distance metrics
 
 
 def _same_moltype(ref, query):
@@ -185,9 +180,9 @@ def _tn93_from_matrix(
         + (coeff3 * v3 / (2 * freq_purs * freq_pyrs))
     )
     var = (
-        v1 ** 2 * pur_ts_diffs
-        + v2 ** 2 * pyr_ts_diffs
-        + v4 ** 2 * tv_diffs
+        v1**2 * pur_ts_diffs
+        + v2**2 * pyr_ts_diffs
+        + v4**2 * tv_diffs
         - (v1 * pur_ts_diffs + v2 * pyr_ts_diffs + v4 * tv_diffs) ** 2
     )
     var /= total
@@ -236,7 +231,7 @@ def _paralinear(matrix):
 
     r = matrix.shape[0]
     d_xy = -log(det(frequency) / sqrt((freqs[0] * freqs[1]).prod())) / r
-    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r ** 2 * total)
+    var = (var_term - (1 / sqrt(freqs[0] * freqs[1])).sum()) / (r**2 * total)
 
     return total, p, d_xy, var
 
@@ -264,7 +259,7 @@ def _logdet(matrix, use_tk_adjustment=True):
         var = None
     else:
         d_xy = -log(det(frequency)) / r - log(r)
-        var = (var_term / r ** 2 - 1) / total
+        var = (var_term / r**2 - 1) / total
 
     return total, p, d_xy, var
 
@@ -306,13 +301,13 @@ def _make_stat_table(stats, names, **kwargs):
     )
 
 
-class _PairwiseDistance(object):
+class _PairwiseDistance:
     """base class for computing pairwise distances"""
 
     valid_moltypes = ()
 
     def __init__(self, moltype, invalid=-9, alignment=None, invalid_raises=False):
-        super(_PairwiseDistance, self).__init__()
+        super().__init__()
         moltype = get_moltype(moltype)
         if moltype.label not in self.valid_moltypes:
             name = self.__class__.__name__
@@ -380,10 +375,10 @@ class _PairwiseDistance(object):
         off_diag = [
             (i, j) for i in range(self._dim) for j in range(self._dim) if i != j
         ]
-        off_diag = tuple([tuple(a) for a in zip(*off_diag)])
+        off_diag = tuple(tuple(a) for a in zip(*off_diag))
 
         done = 0.0
-        to_do = (len(names) * len(names) - 1) / 2
+        to_do = (len(names) ** 2 - 1) / 2
         for i in range(len(names) - 1):
             if i in dupes:
                 continue
@@ -532,18 +527,18 @@ class HammingPair(_PairwiseDistance):
 
     def __init__(self, moltype="text", *args, **kwargs):
         """states: the valid sequence states"""
-        super(HammingPair, self).__init__(moltype, *args, **kwargs)
+        super().__init__(moltype, *args, **kwargs)
         self.func = _hamming
 
 
-class PercentIdentityPair(_PairwiseDistance):
-    """Percent identity distance calculator for pairwise alignments"""
+class ProportionIdenticalPair(_PairwiseDistance):
+    """Proportion sites identical distance calculator for pairwise alignments"""
 
     valid_moltypes = ("dna", "rna", "protein", "text", "bytes")
 
     def __init__(self, moltype="text", *args, **kwargs):
         """states: the valid sequence states"""
-        super(PercentIdentityPair, self).__init__(moltype, *args, **kwargs)
+        super().__init__(moltype, *args, **kwargs)
         self.func = _hamming
 
     def get_pairwise_distances(self, include_duplicates=True):
@@ -565,13 +560,23 @@ class PercentIdentityPair(_PairwiseDistance):
         return DistanceMatrix(dists)
 
 
+class PercentIdentityPair(ProportionIdenticalPair):
+    @c3warn.deprecated_callable(
+        "2023.8",
+        reason="name is inaccurate, it's a proportion identy measure",
+        new="ProportionIdenticalPair",
+    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class _NucleicSeqPair(_PairwiseDistance):
     """base class pairwise distance calculator for nucleic acid seqs"""
 
     valid_moltypes = ("dna", "rna")
 
     def __init__(self, moltype="dna", *args, **kwargs):
-        super(_NucleicSeqPair, self).__init__(moltype, *args, **kwargs)
+        super().__init__(moltype, *args, **kwargs)
         if not _same_moltype(DNA, self.moltype) and not _same_moltype(
             RNA, self.moltype
         ):
@@ -583,7 +588,7 @@ class JC69Pair(_NucleicSeqPair):
 
     def __init__(self, moltype="dna", *args, **kwargs):
         """states: the valid sequence states"""
-        super(JC69Pair, self).__init__(moltype, *args, **kwargs)
+        super().__init__(moltype, *args, **kwargs)
         self.func = _jc69_from_matrix
 
 
@@ -592,7 +597,7 @@ class TN93Pair(_NucleicSeqPair):
 
     def __init__(self, moltype="dna", *args, **kwargs):
         """states: the valid sequence states"""
-        super(TN93Pair, self).__init__(moltype, *args, **kwargs)
+        super().__init__(moltype, *args, **kwargs)
         self._freqs = zeros(self._dim, float64)
         self.pur_indices = get_purine_indices(self.moltype)
         self.pyr_indices = get_pyrimidine_indices(self.moltype)
@@ -639,7 +644,7 @@ class LogDetPair(_PairwiseDistance):
         if use_tk_adjustment is not None:
             self._func_args = [use_tk_adjustment]
 
-        super(LogDetPair, self).run(*args, **kwargs)
+        super().run(*args, **kwargs)
 
 
 class ParalinearPair(_PairwiseDistance):
@@ -648,7 +653,7 @@ class ParalinearPair(_PairwiseDistance):
     valid_moltypes = ("dna", "rna", "protein")
 
     def __init__(self, moltype="dna", *args, **kwargs):
-        super(ParalinearPair, self).__init__(moltype, *args, **kwargs)
+        super().__init__(moltype, *args, **kwargs)
         self.func = _paralinear
 
 
@@ -658,7 +663,7 @@ _calculators = {
     "jc69": JC69Pair,
     "tn93": TN93Pair,
     "hamming": HammingPair,
-    "percent": PercentIdentityPair,
+    "pdist": ProportionIdenticalPair,
 }
 
 
@@ -667,6 +672,16 @@ def get_distance_calculator(name, *args, **kwargs):
 
     name is converted to lower case"""
     name = name.lower()
+    if name == "percent":
+        name = "pdist"
+        c3warn.deprecated(
+            "value",
+            old="percent",
+            new="pdist",
+            reason="name is inaccurate, it's a proportion identy measure",
+            version="2023.8",
+        )
+
     if "moltype" in kwargs and kwargs.get("moltype") is None:
         kwargs.pop("moltype")
     if name not in _calculators:
@@ -771,6 +786,9 @@ class DistanceMatrix(DictArray):
         """
         if type(names) == str:
             names = [names]
+
+        if list(self.names) == list(names):
+            return self
 
         current_names = array(self.names)
         if negate:

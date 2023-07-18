@@ -2,11 +2,12 @@
 Cookbook
 ********
 
-.. note:: See :ref:`data_links` for data the files used.
+*How-to's, small code snippets to solve individual problems. Select from the menu on the left.*
 
 .. toctree::
-    :maxdepth: 1
-    
+    :maxdepth: 2
+    :hidden:
+
     manipulating_biological_data
     tables
     building_alignments

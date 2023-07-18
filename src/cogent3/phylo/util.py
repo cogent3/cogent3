@@ -1,21 +1,9 @@
-#!/usr/bin/env python
-
 import numpy
 
 
-Float = numpy.core.numerictypes.sctype2char(float)
 # Distance matricies are presently represented as simple dictionaries, which
 # need to be converted into numpy arrays before being fed into phylogenetic
 # reconstruction algorithms.
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "pm67nz@gmail.com"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def names_from_distance_dict(dists):
@@ -54,9 +42,9 @@ def distance_dict_to_2D(dists):
     matrix"""
     names = names_from_distance_dict(dists)
     L = len(names)
-    d = numpy.zeros([L, L], Float)
-    for (i, a) in enumerate(names):
-        for (j, b) in enumerate(names):
+    d = numpy.zeros([L, L], float)
+    for i, a in enumerate(names):
+        for j, b in enumerate(names):
             if i != j:
                 d[i, j] = lookup_symmetric_dict(dists, a, b)
     return (names, d)
@@ -77,7 +65,7 @@ def distance_dict_and_names_to_1D(dists, names):
     where j > i and i is the inner dimension:
     d[0,1], d[0, 2], d[1, 2], d[0, 3]..."""
     d = []
-    for (name_i, name_j) in triangular_order(names):
+    for name_i, name_j in triangular_order(names):
         d.append(lookup_symmetric_dict(dists, name_i, name_j))
     return numpy.array(d)
 

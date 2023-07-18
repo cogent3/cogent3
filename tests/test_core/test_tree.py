@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests of classes for dealing with trees and phylogeny.
 """
 import json
@@ -9,35 +8,17 @@ from copy import copy, deepcopy
 from tempfile import TemporaryDirectory
 from unittest import TestCase, main
 
+import pytest
+
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import load_tree, make_tree, open_
+from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeError, TreeNode
 from cogent3.maths.stats.test import correlation
 from cogent3.parse.tree import DndParser
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Catherine Lozupone",
-    "Daniel McDonald",
-    "Peter Maxwell",
-    "Gavin Huttley",
-    "Andrew Butterfield",
-    "Matthew Wakefield",
-    "Justin Kuczynski",
-    "Jens Reeder",
-    "Jose Carlos Clemente Litran",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 base_path = os.path.dirname(os.path.dirname(__file__))
@@ -559,33 +540,6 @@ class TreeNodeTests(TestCase):
         r = self.TreeRoot
         self.assertEqual(len(r), 2)
 
-    def test_copy_recursive(self):
-        """TreeNode.copy_recursive() should produce deep copy"""
-        t = TreeNode(["t"])
-        u = TreeNode(["u"])
-        t.append(u)
-
-        c = u.copy()
-        assert c is not u
-        assert c.name == u.name
-        assert c.name is not u.name
-        # note: name _is_ same object if it's immutable, e.g. a string.
-        # deepcopy doesn't copy data for immutable objects.
-
-        # need to check that we also copy arbitrary attributes
-        t.XYZ = [3]
-        c = t.copy()
-        assert c is not t
-        assert c[0] is not u
-        assert c[0].name is not u.name
-        assert c[0].name == u.name
-        assert c.XYZ == t.XYZ
-        assert c.XYZ is not t.XYZ
-
-        t = self.TreeRoot
-        c = t.copy()
-        self.assertEqual(str(c), str(t))
-
     def test_copy(self):
         """TreeNode.copy() should work on deep trees"""
         t = comb_tree(1024)  # should break recursion limit on regular copy
@@ -844,8 +798,6 @@ class TreeNodeTests(TestCase):
                 continue
             tree = make_tree(treestring=treestring)
             nwk = tree.get_newick(with_node_names=True, with_distances=True)
-            self.assertEqual(nwk, expect[i])
-            nwk = tree.get_newick_recursive(with_node_names=True, with_distances=True)
             self.assertEqual(nwk, expect[i])
 
     def test_root(self):
@@ -1768,7 +1720,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_get_edge_names(self):
         tree = self._maketree()
-        for (a, b, outgroup, result) in [
+        for a, b, outgroup, result in [
             ("A", "B", None, ["A", "B"]),
             ("E", "C", None, ["C", "D", "cd", "E"]),
             ("C", "D", "E", ["C", "D"]),
@@ -1826,7 +1778,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_get_node_matching_name(self):
         tree = self.default_tree
-        for (name, expect_tip) in [("A", True), ("ab", False)]:
+        for name, expect_tip in [("A", True), ("ab", False)]:
             edge = tree.get_node_matching_name(name)
             self.assertEqual(edge.name, name)
             self.assertEqual(edge.istip(), expect_tip)
@@ -1840,37 +1792,6 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         names = [e.name for e in tree.get_edge_vector(include_root=False)]
         self.assertEqual(names, ["A", "B", "ab", "C", "D", "cd", "E", "cde"])
 
-    def test_get_newick_recursive(self):
-        orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
-        unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
-        tree = self._maketree(orig)
-        self.assertEqual(tree.get_newick_recursive(with_distances=1), orig)
-        self.assertEqual(tree.get_newick_recursive(), unlen)
-
-        tree.name = "a'l"
-        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a'l;"
-        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
-        self.assertEqual(tree.get_newick_recursive(escape_name=True), ugly_name_esc)
-        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
-
-        tree.name = "a_l"
-        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
-        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
-        self.assertEqual(tree.get_newick_recursive(escape_name=True), ugly_name_esc)
-        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
-
-        tree.name = "a l"
-        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
-        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
-        self.assertEqual(tree.get_newick_recursive(escape_name=True), ugly_name_esc)
-        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
-
-        tree.name = "'a l'"
-        quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
-        quoted_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a l';"
-        self.assertEqual(tree.get_newick_recursive(escape_name=True), quoted_name_esc)
-        self.assertEqual(tree.get_newick_recursive(escape_name=False), quoted_name)
-
     def test_get_newick(self):
         orig = "((A:1.0,B:2.0)ab:3.0,((C:4.0,D:5.0)cd:6.0,E:7.0)cde:8.0)all;"
         unlen = "((A,B)ab,((C,D)cd,E)cde)all;"
@@ -1883,18 +1804,6 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a''l';"
         self.assertEqual(tree.get_newick(escape_name=True), ugly_name_esc)
         self.assertEqual(tree.get_newick(escape_name=False), ugly_name)
-
-        tree.name = "a_l"
-        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a_l;"
-        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)'a_l';"
-        self.assertEqual(tree.get_newick_recursive(escape_name=True), ugly_name_esc)
-        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
-
-        tree.name = "a l"
-        ugly_name = "((A,B)ab,((C,D)cd,E)cde)a l;"
-        ugly_name_esc = "((A,B)ab,((C,D)cd,E)cde)a_l;"
-        self.assertEqual(tree.get_newick_recursive(escape_name=True), ugly_name_esc)
-        self.assertEqual(tree.get_newick_recursive(escape_name=False), ugly_name)
 
         tree.name = "'a l'"
         quoted_name = "((A,B)ab,((C,D)cd,E)cde)'a l';"
@@ -1935,7 +1844,7 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
 
     def test_params_merge(self):
         t = make_tree(treestring="((((a,b)ab,c)abc),d)")
-        for (label, length, beta) in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
+        for label, length, beta in [("a", 1, 20), ("b", 3, 2.0), ("ab", 4, 5.0)]:
             t.get_node_matching_name(label).params = {"length": length, "beta": beta}
         t = t.get_sub_tree(["b", "c", "d"])
         self.assertEqual(
@@ -2284,6 +2193,20 @@ class BigTreeSingleTests(TestTree):
         self.assertEqual(len(tips), 55)
 
 
-# run if called from command line
-if __name__ == "__main__":
-    main()
+@pytest.mark.parametrize("num_tips", (0, 3))
+def test_get_distances_endpoints(num_tips):
+    names = "G001280565", "G000009905", "G000183545", "G000184705"
+    nwk = "({}:0.4,({}:0.25,({}:0.03,{}:0.03):0.23):0.03)".format(*names)
+    tree = make_tree(nwk)
+    dists = tree.get_distances(endpoints=names[:num_tips] or None)
+    num = 4 if num_tips == 0 else num_tips
+    assert len(dists) == (num**2 - num)
+
+
+def test_lrm_method():
+    # this test just exercises the method, the tests on the underlying
+    # function are in test_tree_distance.py
+    a = make_tree(treestring="(1,(((2,3),4),(5,((6,(7,(8,9))),(10,11)))),12);")
+    b = make_tree(treestring="(1,((((2,3),4),5),((6,7),((8,9),(10,11)))),12);")
+    distance = a.lin_rajan_moret(b)
+    assert distance == 8

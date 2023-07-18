@@ -1,20 +1,19 @@
+import os
+
+from functools import singledispatch
 from typing import Union
 
-from cogent3 import make_tree
+from cogent3 import load_tree, make_tree
+from cogent3.core.tree import TreeNode
 from cogent3.phylo.nj import gnj
+from cogent3.util.io import path_exists
+from cogent3.util.misc import is_url
 
 from .composable import define_app
 from .typing import PairwiseDistanceType, SerialisableType, TreeType
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
+NoneType = type(None)
 
 
 @define_app
@@ -126,3 +125,30 @@ class quick_tree:
             (score, tree) = result
 
         return tree
+
+
+@singledispatch
+def interpret_tree_arg(tree) -> Union[NoneType, TreeNode]:
+    raise TypeError(f"invalid tree type {type(tree)}")
+
+
+@interpret_tree_arg.register
+def _(tree: NoneType) -> NoneType:
+    return tree
+
+
+@interpret_tree_arg.register
+def _(tree: os.PathLike) -> TreeNode:
+    return load_tree(filename=tree, underscore_unmunge=True)
+
+
+@interpret_tree_arg.register
+def _(tree: str) -> TreeNode:
+    if path_exists(tree) or is_url(tree):
+        return load_tree(filename=tree, underscore_unmunge=True)
+    return make_tree(tree, underscore_unmunge=True)
+
+
+@interpret_tree_arg.register
+def _(tree: TreeNode) -> TreeNode:
+    return tree

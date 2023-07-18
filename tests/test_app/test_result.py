@@ -4,7 +4,7 @@ from unittest import TestCase, main
 
 from cogent3 import make_aligned_seqs, make_table
 from cogent3.app import evo as evo_app
-from cogent3.app.data_store_new import DataMember
+from cogent3.app.data_store import DataMember
 from cogent3.app.result import (
     generic_result,
     hypothesis_result,
@@ -14,16 +14,6 @@ from cogent3.app.result import (
 )
 from cogent3.util.deserialise import deserialise_object
 from cogent3.util.dict_array import DictArray
-
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 
 class TestGenericResult(TestCase):

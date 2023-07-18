@@ -14,16 +14,6 @@ import warnings
 import numpy
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 class _CallablePredicate(object):
     # A predicate in the context of a particular model
 
@@ -195,7 +185,6 @@ class ModelSays(predicate):
 
 class DirectedMotifChange(predicate):
     def __init__(self, from_motif, to_motif, diff_at=None):
-
         self.from_motif = from_motif
         self.motiflen = len(from_motif)
         self.to_motif = to_motif
@@ -212,7 +201,7 @@ class DirectedMotifChange(predicate):
         """positions where motif pattern is found in query"""
         positions = set()
         for offset in range(len(query) - self.motiflen + 1):
-            for (q, ms) in zip(query[offset : offset + self.motiflen], motifs):
+            for q, ms in zip(query[offset : offset + self.motiflen], motifs):
                 if q not in ms:
                     break
             else:

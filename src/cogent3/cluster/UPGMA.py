@@ -18,18 +18,6 @@ from cogent3.core.tree import PhyloNode
 from cogent3.util.dict_array import DictArray
 
 
-__author__ = "Catherine Lozupone"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Catherine Lozuopone", "Rob Knight", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Catherine Lozupone"
-__email__ = "lozupone@colorado.edu"
-__status__ = "Production"
-
-
-numerictypes = numpy.core.numerictypes.sctype2char
-Float = numerictypes(float)
 BIG_NUM = 1e305
 
 

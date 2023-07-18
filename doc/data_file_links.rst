@@ -13,9 +13,23 @@ All data files referred to in the documentation can be download by clicking on t
 
 :download:`long_testseqs.fasta <data/long_testseqs.fasta>`
 
+:download:`mycoplasma-genitalium.fa <data/mycoplasma-genitalium.fa>`
+
+:download:`mycoplasma-genitalium.gb <data/mycoplasma-genitalium.gb>`
+
+:download:`mycoplasma-genitalium.gff <data/mycoplasma-genitalium.gff>`
+
+:download:`C-elegans-chromosome-I.fa <data/C-elegans-chromosome-I.fa>`
+
+:download:`C-elegans-chromosome-I.gb <data/C-elegans-chromosome-I.gb>`
+
+:download:`C-elegans-chromosome-I.gff <data/C-elegans-chromosome-I.gff>`
+
 :download:`primate_brca1.fasta <data/primate_brca1.fasta>`
 
 :download:`primate_brca1.tree <data/primate_brca1.tree>`
+
+:download:`brca1_hsa_shortened.gff <data/brca1_hsa_shortened.gff>`
 
 :download:`primate_cdx2_promoter.fasta <data/primate_cdx2_promoter.fasta>`
 
@@ -56,3 +70,5 @@ All data files referred to in the documentation can be download by clicking on t
 :download:`stats.tsv <data/stats.tsv>`
 
 :download:`CerebellumDukeDNaseSeq.pk <data/CerebellumDukeDNaseSeq.pk>`
+
+:download:`raw.zip <data/raw.zip>`

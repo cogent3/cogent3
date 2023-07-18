@@ -1,12 +1,4 @@
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
+import contextlib
 import warnings
 
 
@@ -15,7 +7,10 @@ def MsfParser(f):
     # parse optional header
     # parse optional text information
     # file header and sequence header are seperated by a line ending in '..'
-    _ = f.readline()
+    with contextlib.suppress(AttributeError):
+        f = f.read().splitlines()
+
+    f.pop(0)
     for line in f:
         line = line.strip()
         if line.endswith(".."):
@@ -32,8 +27,7 @@ def MsfParser(f):
     # parse sequences
     sequences = {}
     for line in f:
-        line = line.strip().split()
-        if line:
+        if line := line.strip().split():
             if line[0] in sequences:
                 sequences[line[0]] += "".join(line[1:])
             elif line[0] in seqinfo:

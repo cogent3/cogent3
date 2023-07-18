@@ -14,16 +14,6 @@ from .calculation import Calculator
 from .setting import ConstVal, Var
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 class ScopeError(KeyError):
     pass
 
@@ -80,7 +70,7 @@ def _indexed(values):
     index = {}
     values = list(values.items())
     values.sort()
-    for (key, value) in values:
+    for key, value in values:
         if value in uniq:
             u = uniq.index(value)
         else:
@@ -184,7 +174,7 @@ class _Defn(object):
             for scope_t in self.assignments:
                 sel = {}
                 sel.update(self.selection)
-                for (d, c) in zip(self.valid_dimensions, scope_t):
+                for d, c in zip(self.valid_dimensions, scope_t):
                     if d in arg_dimensions:
                         sel[d] = c
                 result.append(sel)
@@ -206,9 +196,9 @@ class _Defn(object):
 
     def used_dimensions(self):
         used = []
-        for (d, dim) in enumerate(self.valid_dimensions):
+        for d, dim in enumerate(self.valid_dimensions):
             seen = {}
-            for (scope_t, i) in list(self.index.items()):
+            for scope_t, i in list(self.index.items()):
                 rest_of_scope = scope_t[:d] + scope_t[d + 1 :]
                 if rest_of_scope in seen:
                     if i != seen[rest_of_scope]:
@@ -258,7 +248,7 @@ class _Defn(object):
     def interpret_positional_scope_args(self, *args, **scope):
         # Carefully turn scope args into scope kwargs
         assert len(args) <= len(self.valid_dimensions), args
-        for (dimension, arg) in zip(self.valid_dimensions, args):
+        for dimension, arg in zip(self.valid_dimensions, args):
             assert dimension not in scope, dimension
             scope[dimension] = arg
         return scope
@@ -292,7 +282,7 @@ class _Defn(object):
         # Initially ignore EACH, just get a full ungrouped set
         kw2 = {}
         independent_dimensions = []
-        for (i, dimension) in enumerate(self.valid_dimensions):
+        for i, dimension in enumerate(self.valid_dimensions):
             selection = kw.get(dimension, None)
             if selection in [EACH, ALL]:
                 dimension_independent = selection.independent
@@ -337,12 +327,12 @@ class _Defn(object):
 
         result = set()
         for scope_t in self.assignments:
-            for (i, d, cs) in selector:
+            for i, d, cs in selector:
                 if scope_t[i] not in cs:
                     break
             else:
                 result.add(scope_t)
-                for (i, d, cs) in selector:
+                for i, d, cs in selector:
                     if d in unused:
                         if scope_t[i] in unused[d]:
                             unused[d].remove(scope_t[i])
@@ -368,7 +358,7 @@ class _Defn(object):
             for d in dimensions
             if d in self.valid_dimensions
         ]
-        for (scope_t, i) in list(self.index.items()):
+        for scope_t, i in list(self.index.items()):
             value = cell_value_lookup(self, i)
             value = self.wrap_value(value)
             scope = tuple([scope_t[i] for i in posns])
@@ -391,7 +381,7 @@ class _Defn(object):
 
     def _local_repr(self, col_width, max_width):
         body = []
-        for (i, arg) in enumerate(self.args):
+        for i, arg in enumerate(self.args):
             row = []
             if isinstance(arg, SelectFromDimension):
                 argname = arg.arg.name
@@ -589,7 +579,7 @@ class _LeafDefn(_Defn):
             self.check_setting_is_valid(setting)
             settings.append((scope, setting))
 
-        for (scope, setting) in settings:
+        for scope, setting in settings:
             for scope_t in scope:
                 assert scope_t in self.assignments, scope_t
                 self.assignments[scope_t] = setting
@@ -634,7 +624,7 @@ class _LeafDefn(_Defn):
     def _local_repr(self, col_width, max_width):
         template = f"%{col_width}.{(col_width - 1) // 2}f"
         assignments = []
-        for (i, a) in list(self.assignments.items()):
+        for i, a in list(self.assignments.items()):
             if a is None:
                 assignments.append("None")
             elif a.is_constant:

@@ -2,19 +2,20 @@ import pathlib
 
 from os.path import dirname, join
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 from unittest.mock import MagicMock
 
 from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import (
+    get_app,
     load_aligned_seqs,
     make_aligned_seqs,
     make_tree,
     open_data_store,
 )
 from cogent3.app import evo as evo_app
-from cogent3.app import io_new
+from cogent3.app import io
 from cogent3.app.composable import NotCompleted
 from cogent3.app.result import (
     hypothesis_result,
@@ -24,15 +25,6 @@ from cogent3.app.result import (
 from cogent3.evolve.models import get_model
 from cogent3.util.deserialise import deserialise_object
 
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 data_dir = join(dirname(dirname(__file__)), "data")
 
@@ -48,7 +40,7 @@ class TestModel(TestCase):
             "model(sm='HKY85', tree=None, unique_trees=False, "
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
             "time_het='max', param_rules=None, "
-            "opt_args=None, upper=50, split_codons=False, "
+            "opt_args=None, lower=1e-06, upper=50, split_codons=False, "
             "show_progress=False, verbose=False)"
         )
         self.assertEqual(
@@ -198,6 +190,27 @@ class TestModel(TestCase):
         expect_nfp = 11 * 2 + 3 + 3
         self.assertEqual(result.lf.nfp, expect_nfp)
 
+    def test_setting_model_bounds(self):
+        upper = 10.0
+        lower = 0.5
+        app = evo_app.model(
+            "HKY85",
+            optimise_motif_probs=True,
+            show_progress=False,
+            unique_trees=True,
+            time_het="max",
+            lower=lower,
+            upper=upper,
+        )
+
+        aln = make_aligned_seqs(data=dict(s1="ACGT", s2="ACGC", s3="AAGT"))
+        result = app(aln)
+        rules = result.lf.get_param_rules()
+        kappa_bounds = {
+            (r["lower"], r["upper"]) for r in rules if r["par_name"] == "kappa"
+        }
+        assert kappa_bounds == set([(lower, upper)])
+
     def test_model_param_rules(self):
         """applies upper bound if sensible"""
         mod = evo_app.model(
@@ -277,11 +290,11 @@ class TestModel(TestCase):
         expect = (
             "hypothesis(null=model(sm='HKY85', tree=None, unique_trees=False, "
             "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
-            "time_het=None, param_rules=None, opt_args=None, upper=50, "
+            "time_het=None, param_rules=None, opt_args=None, lower=1e-06, upper=50, "
             "split_codons=False, show_progress=False, verbose=False), "
             "alternates=(model(sm='HKY85', tree=None, unique_trees=False, "
             "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
-            "time_het='max', param_rules=None, opt_args=None, upper=50,"
+            "time_het='max', param_rules=None, opt_args=None, lower=1e-06, upper=50,"
             " split_codons=False, show_progress=False, verbose=False),),"
             " sequential=True, init_alt=None)"
         )
@@ -854,19 +867,6 @@ class TestBootstrap(TestCase):
         # correct message being relayed
         self.assertTrue("ValueError: '-' at" in result.message)
 
-    def test_bstrap_parallel(self):
-        """exercising bootstrap with parallel"""
-        aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
-        aln = aln.take_seqs(aln.names[:3])
-        aln = aln.omit_gap_pos(allowed_gap_frac=0)
-        opt_args = dict(max_evaluations=20, limit_action="ignore")
-        m1 = evo_app.model("F81", opt_args=opt_args)
-        m2 = evo_app.model("HKY85", opt_args=opt_args)
-        hyp = evo_app.hypothesis(m1, m2)
-        strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
-        result = strapper(aln)
-        self.assertIsInstance(result, evo_app.bootstrap_result)
-
     def test_bootstrap_composability(self):
         """can be composed with load_db and write_db"""
         m1 = evo_app.model("F81")
@@ -875,9 +875,36 @@ class TestBootstrap(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             dirname = pathlib.Path(dirname)
             out_dstore = open_data_store(dirname / "delme.sqlitedb", mode="w")
-            writer = io_new.write_db(out_dstore)
-            _ = io_new.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
+            writer = io.write_db(out_dstore)
+            _ = io.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
 
 
-if __name__ == "__main__":
-    main()
+def test_bstrap_parallel():
+    """exercising bootstrap with parallel"""
+    aln = load_aligned_seqs(join(data_dir, "brca1.fasta"), moltype="dna")
+    aln = aln.take_seqs(aln.names[:3])
+    aln = aln.omit_gap_pos(allowed_gap_frac=0)
+    opt_args = dict(max_evaluations=20, limit_action="ignore")
+    m1 = evo_app.model("F81", opt_args=opt_args)
+    m2 = evo_app.model("HKY85", opt_args=opt_args)
+    hyp = evo_app.hypothesis(m1, m2)
+    strapper = evo_app.bootstrap(hyp, num_reps=2, parallel=True)
+    result = strapper(aln)
+    assert isinstance(result, evo_app.bootstrap_result)
+
+
+def test_model_opt_args():
+    opt_args = {"max_restarts": 10, "tolerance": 1e-8}
+
+    model = evo_app.model(
+        "GN",
+        opt_args=opt_args,
+    )
+    assert model._opt_args == {**opt_args, **{"show_progress": False}}
+
+
+def test_get_app_tree_is_url():
+    """A check that the model app can use a url for the tree"""
+    tree_url = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/brca1_5.tree"
+    mod = get_app("model", "F81", tree=tree_url)
+    assert isinstance(mod, evo_app.model)

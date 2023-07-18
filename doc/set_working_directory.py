@@ -5,22 +5,26 @@ import os
 import pathlib
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2020.2.7a"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
+current = pathlib.Path(__file__).absolute().parent
+
+
+def _data_path(path: os.PathLike) -> os.PathLike:
+    if path.name != "data":
+        path = _data_path(path.parent)
+    return path
 
 
 def get_data_dir():
     """returns path to cogent3 doc data directory"""
-    current = pathlib.Path(".").absolute().parent
-    for path in current.glob("**/*"):
+    for path in current.glob("*/*"):
         if "doc" not in path.parts:
             continue
+
+        if "data" in path.parts:
+            if path.parts.index("doc") > path.parts.index("doc"):
+                continue
+
+            path = _data_path(path)
 
         if path.is_dir() and str(path.name) == "data":
             return path.parent

@@ -1,14 +1,13 @@
-#!/usr/bin/env python
-
 """Unit tests for utility functions and classes.
 """
 
 from copy import copy, deepcopy
 from os import remove, rmdir
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
+from numpy import array
 from numpy.testing import assert_allclose
 
 from cogent3.util.misc import (
@@ -35,6 +34,7 @@ from cogent3.util.misc import (
     get_object_provenance,
     get_run_start_indices,
     get_setting_from_environ,
+    get_true_spans,
     identity,
     is_char,
     is_char_or_noniterable,
@@ -44,23 +44,6 @@ from cogent3.util.misc import (
     not_list_tuple,
     recursive_flatten,
 )
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Amanda Birmingham",
-    "Sandra Smit",
-    "Zongzhi Liu",
-    "Peter Maxwell",
-    "Daniel McDonald",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class UtilsTests(TestCase):
@@ -554,8 +537,8 @@ class ClassCheckerTests(TestCase):
         self.assertEqual(self.intcheck.__contains__("3"), False)
         self.assertEqual(self.intcheck.__contains__(3.0), False)
         self.assertEqual(self.intcheck.__contains__(3), True)
-        self.assertEqual(self.intcheck.__contains__(4 ** 60), True)
-        self.assertEqual(self.intcheck.__contains__(4 ** 60 * -1), True)
+        self.assertEqual(self.intcheck.__contains__(4**60), True)
+        self.assertEqual(self.intcheck.__contains__(4**60 * -1), True)
 
         d = _my_dict()
         self.assertEqual(self.dictcheck.__contains__(d), True)
@@ -571,7 +554,7 @@ class ClassCheckerTests(TestCase):
         self.assertEqual(self.numcheck.__contains__(-3.0), True)
         self.assertEqual(self.numcheck.__contains__(3e-300), True)
         self.assertEqual(self.numcheck.__contains__(0), True)
-        self.assertEqual(self.numcheck.__contains__(4 ** 1000), True)
+        self.assertEqual(self.numcheck.__contains__(4**1000), True)
         self.assertEqual(self.numcheck.__contains__("4**1000"), False)
 
     def test_str(self):
@@ -1271,5 +1254,33 @@ def test_docstring_to_summary_rest(foo, sum_exp, body_exp):
     assert summary == sum_exp and body.split() == body_exp
 
 
-if __name__ == "__main__":
-    main()
+def test_get_true_spans_absolute():
+    got = get_true_spans(array([0, 1, 1, 0, 1]))
+    assert_allclose(got, array([[1, 2], [4, 1]]))
+    got = get_true_spans(array([0, 0]))
+    assert not len(got)
+
+    got = get_true_spans(array([0, 0, 1, 1]))
+    assert_allclose(got, array([[2, 2]]))
+    got = get_true_spans(array([1, 0, 0, 1, 1]))
+    assert_allclose(got, array([[0, 1], [3, 2]]))
+    got = get_true_spans(array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]))
+    assert_allclose(got, array([[0, 1], [3, 4], [8, 2]]))
+    got = get_true_spans(
+        # abs  0  1  2  3  4  5  6  7  8  9
+        array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]),
+        absolute_pos=False
+        # u       0  1              2
+    )
+    assert_allclose(got, array([[0, 1], [2, 4], [3, 2]]))
+
+    got = get_true_spans(array([0, 0, 0, 1, 1, 1, 0, 0]))
+    assert_allclose(got, array([(3, 3)]))
+
+
+def test_get_true_spans_not_absolute():
+    got = get_true_spans(array([0, 1, 1, 0, 1]), absolute_pos=False)
+    assert_allclose(got, array([[1, 2], [2, 1]]))
+
+    got = get_true_spans(array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]), absolute_pos=False)
+    assert_allclose(got, array([[0, 1], [2, 4], [3, 2]]))

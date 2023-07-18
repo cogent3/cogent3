@@ -41,16 +41,6 @@ from cogent3.core.alignment import ArrayAlignment
 from cogent3.evolve.models import DSO78_freqs, DSO78_matrix
 
 
-__author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Greg Caporaso"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Greg Caporaso"
-__email__ = "gregcaporaso@gmail.com"
-__status__ = "Beta"
-
-
 class RecodeError(Exception):
     """A generic error to be raised when errors occur in recoding"""
 

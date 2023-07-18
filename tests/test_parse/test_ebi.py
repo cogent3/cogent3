@@ -60,16 +60,6 @@ from cogent3.parse.ebi import (
 )
 
 
-__author__ = "Zongzhi Liu"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Zongzhi Liu", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Zongzhi Liu"
-__email__ = "zongzhi.liu@gmail.com"
-__status__ = "Development"
-
-
 def item_empty_filter(d):
     """return a dict with only nonempty values"""
     pairs = [(k, v) for (k, v) in d.items() if v]

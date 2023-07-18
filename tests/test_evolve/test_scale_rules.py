@@ -11,15 +11,6 @@ def a_c(x, y):
     return (x == "A" and y == "C") or (x == "C" and y == "A")
 
 
-__author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 a_c = MotifChange("A", "C")
 trans = MotifChange("A", "G") | MotifChange("T", "C")
 
@@ -62,7 +53,7 @@ class ScaleRuleTests(unittest.TestCase):
         LF.set_param_rule("k", value=6.0, bin="bin0", is_constant=True)
         LF.set_param_rule("k", value=1.0, bin="bin1", is_constant=True)
 
-        for (bin, expected) in [("bin0", 3.0), ("bin1", 4.0 / 3), (None, 13.0 / 6)]:
+        for bin, expected in [("bin0", 3.0), ("bin1", 4.0 / 3), (None, 13.0 / 6)]:
             self.assertEqual(LF.get_scaled_lengths("ts", bin=bin)["a"], expected)
 
     def test_scaled_or(self):

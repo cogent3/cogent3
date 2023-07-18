@@ -12,15 +12,6 @@ from itertools import product
 from cogent3.util.table import Table
 
 
-__author__ = "Greg Caporaso and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Greg Caporaso", "Rob Knight", "Peter Maxwell", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Greg Caporaso"
-__email__ = "caporaso@colorado.edu"
-__status__ = "Production"
-
 maketrans = str.maketrans
 
 
@@ -295,7 +286,7 @@ class GeneticCode:
 
     def is_start(self, codon):
         """Returns True if codon is a start codon, False otherwise."""
-        fixed_codon = codon.upper().replace("U", "T")
+        fixed_codon = str(codon).upper().replace("U", "T")
         return fixed_codon in self.start_codons
 
     def is_stop(self, codon):
@@ -345,6 +336,13 @@ class GeneticCode:
             mappings.append(f"(?:{'|'.join(codons)})")
 
         return "".join(mappings)
+
+    def get_alphabet(self, include_stop=False):
+        from cogent3.core.alphabet import Alphabet
+        from cogent3.core.moltype import DNA
+
+        motifs = list(self.codons) if include_stop else list(self.sense_codons)
+        return Alphabet(motifs, moltype=DNA)
 
 
 NcbiGeneticCodeData = [

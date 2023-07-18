@@ -20,16 +20,6 @@ from cogent3.phylo.util import distance_dict_to_2D
 from cogent3.util import progress_display as UI
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class LightweightTreeTip(str):
     def convert(self, constructor, length):
         node = constructor([], str(self), {})
@@ -151,7 +141,7 @@ def uniq_neighbour_joins(trees, encode_partition):
     filtering out any duplicates"""
     L = len(trees[0].nodes)
     scores = numpy.zeros([len(trees), L, L])
-    for (k, tree) in enumerate(trees):
+    for k, tree in enumerate(trees):
         scores[k] = tree.get_dist_saved_join_score_matrix()
     topologies = set()
     order = numpy.argsort(scores.flat)
@@ -188,6 +178,16 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
         pass
 
     (names, d) = distance_dict_to_2D(dists)
+
+    if len(names) == 2:
+        # only one tree
+        tips = [frozenset([n]) for n in names]
+        dist = d.max() / 2
+        tips = [LightweightTreeTip(name) for name in names]
+        root = LightweightTreeNode(list(zip([dist, dist], tips)))
+        tree = root.convert()
+        tree.name = "root"
+        return ScoredTreeCollection([(dist * 2, tree)])
 
     if keep is None:
         keep = len(names) * 5

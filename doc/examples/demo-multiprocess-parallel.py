@@ -28,7 +28,7 @@ PRIMES = [
     115797848077099,
     117450548693743,
     993960000099397,
-] * 4 # multiplying just to increase the amount of data to calculate 
+] * 4  # multiplying just to increase the amount of data to calculate
 
 
 print(f"World size: {parallel.size}\n")

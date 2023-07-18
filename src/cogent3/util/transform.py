@@ -13,14 +13,6 @@ Functions for generating combinations, permutations, or cartesian products
 of lists.
 """
 
-__author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight", "Zongzhi Liu"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Sandra Smit"
-__email__ = "sandra.smit@colorado.edu"
-__status__ = "Production"
 
 maketrans = str.maketrans
 

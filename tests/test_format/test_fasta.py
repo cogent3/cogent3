@@ -9,16 +9,6 @@ from cogent3.core.sequence import Sequence
 from cogent3.format.fasta import alignment_to_fasta
 
 
-__author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Jeremy Widmann", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Jeremy Widmann"
-__email__ = "jeremy.widmann@colorado.edu"
-__status__ = "Production"
-
-
 class FastaTests(TestCase):
     """Tests for Fasta writer."""
 

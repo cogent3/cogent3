@@ -19,16 +19,6 @@ from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 def _get_all_composables(tmp_dir_name):
     tmp_dir_name = Path(tmp_dir_name)
     test_model1 = get_app("model", "HKY85")
@@ -155,13 +145,18 @@ def test_get_app(name):
     assert app.__class__.__name__.endswith(name.split(".")[-1])
 
 
+def test_get_app_kwargs():
+    # when an app has a name kwarg
+    # we should still be able to use get_app!
+    _ = get_app("model", "F81", name="F81-model")
+
+
 @define_app
 def min_length(val: int) -> int:
     return val
 
 
 def test_get_app_fail():
-
     __app_registry[get_object_provenance(min_length)] = True
 
     with pytest.raises(NameError):

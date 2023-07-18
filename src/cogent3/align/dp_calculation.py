@@ -9,16 +9,6 @@ from cogent3.recalculation.definition import (
 )
 
 
-__author__ = "Gavin Huttley and Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttleuy"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class IndelParameterDefn(ProbabilityParamDefn):
     # locus means allowed to vary by loci
     valid_dimensions = ("edge", "bin", "locus")
@@ -48,7 +38,7 @@ class FloatWithAttrs(float):
 
     def __init__(self, value, **kw):
         float.__init__(self)
-        for (n, v) in list(kw.items()):
+        for n, v in list(kw.items()):
             setattr(self, n, v)
 
 

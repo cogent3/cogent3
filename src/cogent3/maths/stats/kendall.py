@@ -12,16 +12,6 @@ from cogent3.maths.stats.distribution import zprob
 from cogent3.maths.stats.number import CategoryCounter
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Daniel McDonald"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def as_paired_ranks(x, y):
     """return as matrix of paired ranks"""
     n = len(x)
@@ -132,6 +122,6 @@ def kendalls_tau(x, y, return_p=True):
             + v2 / (9 * n * (n - 1) * (n - 2))
         )
     if return_p:
-        return tau, zprob(stat / variance ** 0.5)
+        return tau, zprob(stat / variance**0.5)
     else:
         return tau

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import json
 import os
 import pathlib
@@ -6,6 +5,8 @@ import tempfile
 import unittest
 
 from tempfile import TemporaryDirectory
+
+import pytest
 
 from cogent3 import (
     DNA,
@@ -29,17 +30,7 @@ from cogent3.core.alphabet import AlphabetError
 from cogent3.parse.record import FileFormatError
 
 
-__author__ = "Peter Maxwell, Gavin Huttley and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-base_path = os.path.dirname(os.path.dirname(__file__))
-data_path = os.path.join(base_path, "data")
+DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 
 class TestConstructorFunctions(unittest.TestCase):
@@ -110,7 +101,7 @@ class TestConstructorFunctions(unittest.TestCase):
             "brca1_5.250.paml",
         )
         seq_names = ("I", "AE017341", "NineBande")
-        data_dir = pathlib.Path(data_path)
+        data_dir = pathlib.Path(DATA_DIR)
         for i, path in enumerate(paths):
             got = load_seq(data_dir / path)
             assert isinstance(got, Sequence)
@@ -128,7 +119,7 @@ class TestConstructorFunctions(unittest.TestCase):
 
     def test_load_unaligned_seqs(self):
         """test loading unaligned from file"""
-        path = os.path.join(data_path, "brca1_5.paml")
+        path = os.path.join(DATA_DIR, "brca1_5.paml")
         got = load_unaligned_seqs(path)
         self.assertIsInstance(got, SequenceCollection)
         self.assertTrue("Human" in got.to_dict())
@@ -141,7 +132,7 @@ class TestConstructorFunctions(unittest.TestCase):
 
     def test_load_aligned_seqs(self):
         """test loading aligned from file"""
-        path = os.path.join(data_path, "brca1_5.paml")
+        path = os.path.join(DATA_DIR, "brca1_5.paml")
         got = load_aligned_seqs(path)
         self.assertIsInstance(got, ArrayAlignment)
         self.assertTrue("Human" in got.to_dict())
@@ -161,7 +152,7 @@ class TestConstructorFunctions(unittest.TestCase):
         """test loading an unaligned object from json file"""
         with TemporaryDirectory(dir=".") as dirname:
             json_path = os.path.join(dirname, "unaligned.json")
-            path = os.path.join(data_path, "brca1_5.paml")
+            path = os.path.join(DATA_DIR, "brca1_5.paml")
             unaligned = load_unaligned_seqs(path)
             unaligned.write(json_path)
 
@@ -190,7 +181,7 @@ class TestConstructorFunctions(unittest.TestCase):
     def test_load_aligned_seqs_from_json(self):
         """tests loading an aligned object from json file"""
         with TemporaryDirectory(dir=".") as dirname:
-            path = os.path.join(data_path, "brca1_5.paml")
+            path = os.path.join(DATA_DIR, "brca1_5.paml")
             alignment = load_aligned_seqs(path, array_align=False, moltype="dna")
             alignment_json_path = os.path.join(dirname, "alignment.json")
             alignment.write(alignment_json_path)
@@ -229,7 +220,7 @@ class TestConstructorFunctions(unittest.TestCase):
             self.assertEqual(got.info["source"], path)
             # tests wrong input json file
             json_path = os.path.join(dirname, "unaligned.json")
-            path = os.path.join(data_path, "brca1_5.paml")
+            path = os.path.join(DATA_DIR, "brca1_5.paml")
             unaligned = load_unaligned_seqs(path)
             unaligned.write(json_path)
             with self.assertRaises(TypeError):
@@ -240,7 +231,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
     """Testing ability to read file formats."""
 
     def _loadfromfile(self, filename, test_write=True, **kw):
-        filename = os.path.join(data_path, filename)
+        filename = os.path.join(DATA_DIR, filename)
         aln = load_aligned_seqs(filename, **kw)
         if test_write:
             suffix, cmpr = get_format_suffixes(filename)
@@ -255,7 +246,7 @@ class ReadingWritingFileFormats(unittest.TestCase):
 
     def test_write_unknown_raises(self):
         """writing unknown format raises FileFormatError"""
-        filename = os.path.join(data_path, "primates_brca1.fasta")
+        filename = os.path.join(DATA_DIR, "primates_brca1.fasta")
         aln = load_aligned_seqs(filename)
         self.assertRaises(FileFormatError, aln.write, filename="blah")
         self.assertRaises(FileFormatError, aln.write, filename="blah.txt")
@@ -300,7 +291,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
     def setUp(self):
         self.alignment = load_aligned_seqs(
-            filename=os.path.join(data_path, "brca1_5.paml")
+            filename=os.path.join(DATA_DIR, "brca1_5.paml")
         )
 
     def test_picklability(self):
@@ -313,7 +304,7 @@ class AlignmentTestMethods(unittest.TestCase):
 
         seq1 = DNA.make_seq("aagaagaagaccccca")
         seq2 = DNA.make_seq("aagaagaagaccccct")
-        seq2.add_feature("exon", "fred", [(10, 15)])
+        seq2.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
         aln = make_aligned_seqs(data={"a": seq1, "b": seq2})
         # TODO the ability to pickle/unpickle depends on the protocol
         # in Py3 for reasons that are not clear. This needs to be looked
@@ -679,141 +670,9 @@ class AlignmentTestMethods(unittest.TestCase):
         for char in seqs[0]:
             self.assertEqual(seqs[0].count(char), 2)
 
-    def test_translate(self):
-        for seqs in [
-            {"seq1": "GATTTT", "seq2": "GATC??"},
-            {"seq1": "GAT---", "seq2": "?GATCT"},
-        ]:
-            alignment = make_aligned_seqs(data=seqs, moltype=DNA)
-            self.assertEqual(len(alignment.get_translation()), 2)
-            # check for a failure when no moltype specified
-            alignment = make_aligned_seqs(data=seqs)
-            try:
-                alignment.get_translation()
-            except AttributeError:
-                pass
-
     def test_seqnames(self):
         s1 = self.alignment.get_seq("Mouse")
         self.assertEqual(s1.get_name(), "Mouse")
-
-    def test_trim_stop_codons(self):
-        """test without terminal stop handling"""
-        seq_coll = make_unaligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        seq_coll = seq_coll.trim_stop_codons()
-        seqs = seq_coll.to_dict()
-        self.assertEqual(seqs["seq1"], "ACG")  # note: not 'acg---'
-        self.assertEqual(seqs["seq2"], "ACGACG")
-        # aligned
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGTGA", "seq3": "ACGTAA"}, moltype=DNA
-        )
-        aln = aln.trim_stop_codons()
-        self.assertEqual(
-            aln.to_dict(), {"seq1": "ACG", "seq2": "ACG", "seq3": "ACG"}
-        )  # note: not 'acg---'
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGAAA", "seq2": "ACGTGA", "seq3": "ACGTAA"}, moltype=DNA
-        )
-        aln = aln.trim_stop_codons()
-        self.assertEqual(
-            aln.to_dict(), {"seq1": "ACGAAA", "seq2": "ACG---", "seq3": "ACG---"}
-        )
-
-        # for case where a sequence length is not divisible by 3
-        seq_coll = make_unaligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGAC"}, moltype=DNA
-        )
-        # fail
-        self.assertRaises(ValueError, seq_coll.trim_stop_codons)
-        # unless explicitly over-ridden with allow_partial
-        new_coll = seq_coll.trim_stop_codons(allow_partial=True)
-        self.assertEqual(new_coll.to_dict(), dict(seq1="ACG", seq2="ACGAC"))
-
-        # should work for alignments too
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA---", "seq2": "ACGAC----", "seq3": "ACGCAATTT"},
-            moltype=DNA,
-        )
-        # fail
-        self.assertRaises(ValueError, aln.trim_stop_codons)
-        # unless explicitly over-ridden with allow_partial
-        aln = aln.trim_stop_codons(allow_partial=True)
-        self.assertEqual(
-            aln.to_dict(),
-            {"seq1": "ACG------", "seq2": "ACGAC----", "seq3": "ACGCAATTT"},
-        )
-        # mixed lengths
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA---", "seq2": "ACGAC----", "seq3": "ACGCAATGA"},
-            moltype=DNA,
-        )
-        aln = aln.trim_stop_codons(allow_partial=True)
-        self.assertEqual(
-            aln.to_dict(), {"seq1": "ACG---", "seq2": "ACGAC-", "seq3": "ACGCAA"}
-        )
-        # longest seq not divisible by 3
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA--", "seq2": "ACGAC---", "seq3": "ACGC-ATG"},
-            moltype=DNA,
-        )
-        aln = aln.trim_stop_codons(allow_partial=True)
-        self.assertEqual(
-            aln.to_dict(), {"seq1": "ACG-----", "seq2": "ACGAC---", "seq3": "ACGC-ATG"}
-        )
-
-    def test_trim_stop_codons_info(self):
-        """trim_stop_codons should preserve info attribute"""
-        seq_coll = SequenceCollection(
-            data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"},
-            moltype=DNA,
-            info={"key": "value"},
-        )
-        seq_coll = seq_coll.trim_stop_codons()
-        self.assertEqual(seq_coll.info["key"], "value")
-
-        # aligned
-        aln = ArrayAlignment(
-            data={"seq1": "ACGTAA", "seq2": "ACGTGA", "seq3": "ACGTAA"},
-            moltype=DNA,
-            info={"key": "value"},
-        )
-        aln = aln.trim_stop_codons()
-        self.assertEqual(aln.info["key"], "value")
-
-    def test_has_terminal_stops(self):
-        """test truth values for terminal stops"""
-        # seq collections
-        seq_coll = make_unaligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACG", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert seq_coll.has_terminal_stops() == True
-        seq_coll = make_unaligned_seqs(
-            data={"seq1": "ACGTAC", "seq2": "ACGACG", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert seq_coll.has_terminal_stops() == False
-        # alignments
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGCAA", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert aln.has_terminal_stops() == True
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGTAA", "seq2": "ACGTAG", "seq3": "ACGTGA"}, moltype=DNA
-        )
-        assert aln.has_terminal_stops() == True
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGCAA", "seq2": "ACGCAA", "seq3": "ACGCGT"}, moltype=DNA
-        )
-        assert aln.has_terminal_stops() == False
-
-        # ValueError if ragged end
-        aln = make_aligned_seqs(
-            data={"seq1": "ACGCAA", "seq2": "ACGTAA", "seq3": "ACGCG-"}, moltype=DNA
-        )
-        self.assertRaises(ValueError, aln.has_terminal_stops)
-        self.assertTrue(aln.has_terminal_stops(allow_partial=True))
 
     def test_slice(self):
         seqs = {"seq1": "ACGTANGT", "seq2": "ACGTACGT", "seq3": "ACGTACGT"}
@@ -864,11 +723,12 @@ class SequenceTestMethods(unittest.TestCase):
     def test_get_in_motif_size(self):
         """test accuracy of chunking various sizes"""
         self.assertEqual(
-            self.seq.get_in_motif_size(2),
+            list(self.seq.get_in_motif_size(2)),
             ["AT", "GA", "CG", "TT", "GC", "GT", "AG", "CA", "TA", "GC", "TC", "GA"],
         )
+
         self.assertEqual(
-            self.seq.get_in_motif_size(3),
+            list(self.seq.get_in_motif_size(3)),
             ["ATG", "ACG", "TTG", "CGT", "AGC", "ATA", "GCT", "CGA"],
         )
 
@@ -959,39 +819,75 @@ class SequenceTestMethods(unittest.TestCase):
         seq = make_seq(moltype=DNA, seq="ACTG-TAA")
         rev = seq.reverse_complement()
         self.assertEqual(str(rev), "TTA-CAGT")
-        # try amigbuities
+        # try ambiguities
         seq = make_seq(moltype=DNA, seq="ACHNRTAA")
         rev = seq.reverse_complement()
         self.assertEqual(str(rev), "TTAYNDGT")
 
-    def test_without_terminal_stop_sodon(self):
-        """testing deleting terminal stop"""
-        # for standard code
-        seq = make_seq(moltype=DNA, seq="ACTTAA")
-        seq2 = seq.trim_stop_codon()
-        self.assertEqual(str(seq2), "ACT")
 
-        # for sequence not divisible by 3
-        seq = make_seq(moltype=DNA, seq="ACTTA")
-        # fail
-        self.assertRaises(ValueError, seq.trim_stop_codon)
-        # unless explicitly over-ride length issue using allow_partial
-        seq2 = seq.trim_stop_codon(allow_partial=True)
+def test_load_seq_new():
+    """load single sequence"""
+    from cogent3 import Sequence
 
-    def test_has_terminal_stop(self):
-        """test check for terminal stop codons"""
-        seq = make_seq(moltype=DNA, seq="ACTTAA")
-        assert seq.has_terminal_stop() == True
-        seq = make_seq(moltype=DNA, seq="ACTTAT") == False
+    paths = (
+        "c_elegans_WS199_dna_shortened.fasta",
+        "annotated_seq.gb",
+        "brca1_5.250.paml",
+    )
+    seq_names = ("I", "AE017341", "NineBande")
+    data_dir = pathlib.Path(DATA_DIR)
 
-        # for sequence not divisible by 3
-        seq = make_seq(moltype=DNA, seq="ACTTA")
-        # fail
-        self.assertRaises(ValueError, seq.has_terminal_stop)
-        # unless explicitly over-ride length issue using allow_partial
-        # in which case, returns False
-        self.assertFalse(seq.has_terminal_stop(allow_partial=True))
+    for i, path in enumerate(paths):
+        got = load_seq(data_dir / path)
+        assert isinstance(got, Sequence)
+        assert got.info.source == str(data_dir / path)
+        assert got.name == seq_names[i]
+
+    # annotated with gb
+    got = load_seq(data_dir / "annotated_seq.gb")
+    assert isinstance(got, Sequence)
+    assert got.annotation_db is not None
+
+    # annotated with gff
+    got = load_seq(
+        data_dir / "c_elegans_WS199_dna_shortened.fasta",
+        annotation_path=data_dir / "c_elegans_WS199_shortened_gff.gff3",
+    )
+    assert isinstance(got, Sequence)
+    assert got.annotation_db is not None
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.fixture(scope="function")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("datastore")
+
+
+@pytest.fixture
+def multi_fasta(tmp_dir):
+    brca1 = load_aligned_seqs(DATA_DIR / "brca1_5.paml")
+    brca1 = brca1.degap()
+    for seq in brca1.seqs:
+        with open(tmp_dir / f"{seq.name}.fa", mode="w") as outfile:
+            outfile.write(seq.to_fasta())
+    yield tmp_dir
+
+
+def test_load_multi_files_collection(multi_fasta):
+    # loads a directory of files matching a glob to a sequence collection
+    collection = load_unaligned_seqs(
+        multi_fasta / "*.fa", moltype="dna", show_progress=False
+    )
+    assert collection.num_seqs == 5
+
+
+@pytest.fixture(scope="function", params=("gb", "gbk", "gbff"))
+def gb_file(tmp_dir, request):
+    inpath = DATA_DIR / "annotated_seq.gb"
+    outpath = tmp_dir / f"{inpath.stem}.{request.param}"
+    outpath.write_text(inpath.read_text())
+    return outpath
+
+
+def test_gb_suffixes(gb_file):
+    seqs = load_unaligned_seqs(gb_file)
+    isinstance(seqs, SequenceCollection)

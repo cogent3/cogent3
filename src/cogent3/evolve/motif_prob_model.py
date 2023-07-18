@@ -1,21 +1,12 @@
-#!/usr/bin/env python
-
 import warnings
+
+from typing import Union
 
 import numpy
 
+from cogent3.core.alphabet import Alphabet
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.recalculation.definition import CalcDefn, PartitionDefn
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def make_model(mprob_model, tuple_alphabet, mask):
@@ -76,8 +67,7 @@ class MotifProbModel(object):
         return result
 
     def adapt_motif_probs(self, motif_probs, auto=False):
-        motif_probs = self.get_input_alphabet().adapt_motif_probs(motif_probs)
-        assert abs(sum(motif_probs) - 1.0) < 0.0001, motif_probs
+        motif_probs = adapt_motif_probs(self.get_input_alphabet(), motif_probs)
         return motif_probs
 
     def make_equal_motif_probs(self):
@@ -129,7 +119,7 @@ class ComplexMotifProbModel(MotifProbModel):
         self.w2m = w2m = numpy.zeros([length, size, len(monomers)], int)
         contexts = monomers.get_word_alphabet(length - 1)
         self.w2c = w2c = numpy.zeros([size, length * len(contexts)], int)
-        for (i, word) in enumerate(tuple_alphabet):
+        for i, word in enumerate(tuple_alphabet):
             for j in range(length):
                 monomer = monomers.index(word[j])
                 context = contexts.index(word[:j] + word[j + 1 :])
@@ -141,7 +131,7 @@ class ComplexMotifProbModel(MotifProbModel):
         self.mutant_motif = numpy.zeros(mask.shape, int)
         self.context_indices = numpy.zeros(mask.shape, int)
 
-        for (i, old_word, j, new_word, diff) in self._mutations():
+        for i, old_word, j, new_word, diff in self._mutations():
             self.mutated_posn[i, j] = diff
             mutant_motif = new_word[diff]
             context = new_word[:diff] + new_word[diff + 1 :]
@@ -196,11 +186,11 @@ class MonomerProbModel(ComplexMotifProbModel):
 
     def adapt_motif_probs(self, motif_probs, auto=False):
         try:
-            motif_probs = self.monomer_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.monomer_alphabet, motif_probs)
         except ValueError:
-            motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.tuple_alphabet, motif_probs)
             if not auto:
-                warnings.warn("Motif probs overspecified", stacklevel=5)
+                warnings.warn("Motif probs over specified", stacklevel=5)
             motif_probs = self.calc_monomer_probs(motif_probs)
         return motif_probs
 
@@ -256,14 +246,14 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
 
     def set_param_controller_motif_probs(self, pc, motif_probs, **kw):
         assert len(motif_probs) == self.word_length
-        for (i, m) in enumerate(motif_probs):
+        for i, m in enumerate(motif_probs):
             pc.set_param_rule("psmprobs", value=m, position=str(i), **kw)
 
     def adapt_motif_probs(self, motif_probs, auto=False):
         try:
-            motif_probs = self.monomer_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.monomer_alphabet, motif_probs)
         except ValueError:
-            motif_probs = self.tuple_alphabet.adapt_motif_probs(motif_probs)
+            motif_probs = adapt_motif_probs(self.tuple_alphabet, motif_probs)
             motif_probs = self.calc_posn_specific_monomer_probs(motif_probs)
         else:
             motif_probs = [motif_probs] * self.word_length
@@ -288,3 +278,45 @@ class ConditionalMotifProbModel(ComplexMotifProbModel):
             mprobs
         )
         return (mprobs, mprobs, mprobs_matrix)
+
+
+ProbsTypes = Union[dict, numpy.ndarray, list, tuple]
+AlphaTypes = Union[Alphabet, tuple, list]
+
+
+def adapt_motif_probs(alphabet: AlphaTypes, motif_probs: ProbsTypes) -> numpy.ndarray:
+    """returns array of motif probs in alphabet order
+
+    Parameters
+    ----------
+    alphabet
+        ordered series of states
+    motif_probs
+        dict or other series with values present in alphabet
+
+    Raises
+    ------
+    AssertionError if values do not sum to 1
+
+    Returns
+    -------
+    array of floats in alphabet order
+    """
+
+    if len(alphabet) != len(motif_probs):
+        raise ValueError(
+            f"Can't match {len(motif_probs)} probs to {len(alphabet)} alphabet"
+        )
+
+    if hasattr(motif_probs, "keys"):
+        # need to wrap the keys method because it can be a DictArray
+        if diff := set(motif_probs.keys()) - set(alphabet):
+            raise ValueError(f"Can't find motif(s) {diff!r} in alphabet")
+        return numpy.array([motif_probs[motif] for motif in alphabet])
+    else:
+        motif_probs = numpy.asarray(motif_probs)
+
+    numpy.testing.assert_allclose(
+        motif_probs.sum(), 1, err_msg=f"does not summ to 1 {motif_probs}"
+    )
+    return motif_probs

@@ -88,24 +88,6 @@ from numpy import (
 from numpy.linalg import norm
 
 
-__author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Rob Knight",
-    "Micah Hamady",
-    "Justin Kuczynski",
-    "Zongzhi Liu",
-    "Catherine Lozupone",
-    "Antonio Gonzalez Pena",
-    "Greg Caporaso",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Justin Kuczynski"
-__email__ = "justinak@gmail.com"
-__status__ = "Prototype"
-
-
 def _rankdata(a):
     """Ranks the data in a, dealing with ties appropritely.  First ravels
     a.  Adapted from Gary Perlman's |Stat ranksort.
@@ -841,7 +823,7 @@ def dist_morisita_horn(datamtx, strict=True):
     dists = zeros((numrows, numrows), "d")
 
     rowsums = datamtx.sum(axis=1, dtype="float")
-    row_ds = (datamtx ** 2).sum(axis=1, dtype="float")  # these are d_a, etc
+    row_ds = (datamtx**2).sum(axis=1, dtype="float")  # these are d_a, etc
 
     for i in range(numrows):
         if row_ds[i] != 0.0:
@@ -922,8 +904,8 @@ def dist_pearson(datamtx, strict=True):
             r2m = rowmeans[j]
             r2dev = r2 - r2m
             top = sum(r1dev * r2dev)
-            sum1 = sum(r1dev ** 2)
-            sum2 = sum(r2dev ** 2)
+            sum1 = sum(r1dev**2)
+            sum2 = sum(r2dev**2)
 
             if sum1 == 0.0 and sum2 == 0.0:
                 r = 1.0
@@ -1039,7 +1021,7 @@ def dist_spearman_approx(datamtx, strict=True):
             rank2 = _rankdata(r2)
             rankdiff = rank1 - rank2
             dsqsum = sum((rankdiff) ** 2)
-            dist = 6 * dsqsum / float(numcols * (numcols ** 2 - 1))
+            dist = 6 * dsqsum / float(numcols * (numcols**2 - 1))
 
             dists[i][j] = dists[j][i] = dist
     return dists
@@ -1296,78 +1278,6 @@ def _(x: numpy.ndarray, y: numpy.ndarray) -> float:
     if not x.any() and not y.any():  # two empty sets are identical
         return 0.0
     return 1 - len(numpy.intersect1d(x, y)) / len(numpy.union1d(x, y))
-
-
-def binary_dist_jaccard(datamtx, strict=True):  # pragma: no cover
-    """Calculates jaccard distance between rows, returns distance matrix.
-
-    converts matrix to boolean.  jaccard dist = 1 - jaccard index
-
-    see for example: wikipedia jaccard index (20 jan 2009)
-    this is identical to a binary version of the soergel distance
-
-    Binary jaccard:
-    a = num 1's in a
-    b = num 1's in b
-    c = num that are 1's in both a and b
-    jaccard = 1 - (c/(a+b-c))
-
-    * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if
-    strict==False
-    * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
-    for sane input data
-    * two rows of all zeros returns 0 distance between them
-    * if strict==True, raises ValueError if any of the input data is negative,
-    not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative
-    entries.  If rank of input data is < 2, returns an empty 2d array (shape:
-    (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
-    """
-
-    from cogent3.util.warning import discontinued
-
-    discontinued(
-        "function",
-        "binary_dist_jaccard",
-        "2023.5",
-        "use scipy.spatial.distance.jaccard",
-    )
-
-    datamtx = datamtx.astype(bool)
-    datamtx = datamtx.astype(float)
-    if strict:
-        if not all(isfinite(datamtx)):
-            raise ValueError("non finite number in input matrix")
-        if any(datamtx < 0.0):
-            raise ValueError("negative value in input matrix")
-        if rank(datamtx) != 2:
-            raise ValueError("input matrix not 2D")
-        numrows, numcols = shape(datamtx)
-    else:
-        try:
-            numrows, numcols = shape(datamtx)
-        except ValueError:
-            return zeros((0, 0), "d")
-
-    if numrows == 0 or numcols == 0:
-        return zeros((0, 0), "d")
-    dists = zeros((numrows, numrows), "d")
-
-    rowsums = datamtx.sum(axis=1)
-    for i in range(numrows):
-        first = datamtx[i]
-        a = rowsums[i]
-        for j in range(i):
-            second = datamtx[j]
-            b = rowsums[j]
-            c = float(logical_and(first, second).sum())
-            if a == 0.0 and b == 0.0:
-                dist = 0.0
-            else:
-                dist = 1.0 - (c / (a + b - c))
-            dists[i][j] = dists[j][i] = dist
-    return dists
 
 
 def binary_dist_lennon(datamtx, strict=True):

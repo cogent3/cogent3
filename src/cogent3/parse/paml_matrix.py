@@ -1,18 +1,6 @@
 import numpy
 
 
-Float = numpy.core.numerictypes.sctype2char(float)
-
-
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
 three_letter_order = "ARNDCQEGHILKMFPSTWYV"
 aa_order = numpy.array([ord(aa) for aa in three_letter_order])
 reorder = numpy.argsort(aa_order)
@@ -29,7 +17,7 @@ def PamlMatrixParser(f):
     frequencies in the format used by PAML and returns a symetric array in single
     letter alphabetical order and a dictionary of frequencies for use by
     substitution_model.EmpiricalProteinMatrix"""
-    matrix = numpy.zeros([20, 20], Float)
+    matrix = numpy.zeros([20, 20], float)
     next_number = numbers_in(f).__next__
     for row in range(1, 20):
         for col in range(0, row):

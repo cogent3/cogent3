@@ -17,23 +17,8 @@ from cogent3.parse import (
     tinyseq,
 )
 from cogent3.parse.record import FileFormatError
-from cogent3.util.io import open_
+from cogent3.util.io import get_format_suffixes, open_
 
-
-__author__ = "Cath Lawrence"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Cath Lawrence",
-    "Gavin Huttley",
-    "Peter Maxwell",
-    "Matthew Wakefield",
-    "Rob Knight",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 _lc_to_wc = "".join([[chr(x), "?"]["A" <= chr(x) <= "Z"] for x in range(256)])
 _compression = re.compile(r"\.(gz|bz2)$")
@@ -44,9 +29,13 @@ def FromFilenameParser(filename, format=None, **kw):
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
     """
-    format = format_from_filename(filename, format)
-    f = open_(filename, newline=None, mode="rt")
-    return FromFileParser(f, format, **kw)
+    if format is None:
+        format, _ = get_format_suffixes(filename)
+
+    with open_(filename, newline=None, mode="rt") as f:
+        data = f.read()
+
+    return FromFileParser(data.splitlines(), format, **kw)
 
 
 def FromFileParser(f, format, dialign_recode=False, **kw):
@@ -68,18 +57,24 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
             raise FileFormatError(f"Unsupported file format {format}")
         parser = PARSERS[format]
         source = f
-    for (name, seq) in parser(source, **kw):
+    for name, seq in parser(source, **kw):
         if isinstance(seq, str):
             if dialign_recode:
                 seq = seq.translate(_lc_to_wc)
             if not seq.isupper():
                 seq = seq.upper()
-        yield (name, seq)
-
-    f.close()
+        yield name, seq
 
 
-def format_from_filename(filename, format=None):
+def format_from_filename(filename, format=None):  # pragma: no cover
+    from cogent3.util.warning import deprecated
+
+    deprecated(
+        "function",
+        "cogent3.parse.sequence.format_from_filename",
+        "cogent3.util.misc.get_format_suffixes",
+        "2023.8",
+    )
     """Detects format based on filename."""
     if format:
         return format
@@ -105,6 +100,7 @@ PARSERS = {
     "clustal": clustal.ClustalParser,
     "gb": genbank.RichGenbankParser,
     "gbk": genbank.RichGenbankParser,
+    "gbff": genbank.RichGenbankParser,
     "genbank": genbank.RichGenbankParser,
     "msf": gcg.MsfParser,
     "nex": nexus.MinimalNexusAlignParser,

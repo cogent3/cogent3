@@ -30,6 +30,7 @@ coverage.xml
 junit-*.xml
 nosetests.xml
 tests/draw_results
+lcov*.info
 
 # Translations
 *.mo

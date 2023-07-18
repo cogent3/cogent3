@@ -2,13 +2,15 @@ import json
 import os
 
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy
+import pytest
 
 from numpy.testing import assert_allclose
 
 from cogent3 import (
+    get_app,
     load_aligned_seqs,
     load_tree,
     make_aligned_seqs,
@@ -27,16 +29,6 @@ from cogent3.util.deserialise import (
     deserialise_likelihood_function,
     deserialise_object,
 )
-
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 
 class TestDeserialising(TestCase):
@@ -64,17 +56,6 @@ class TestDeserialising(TestCase):
         self.assertEqual(list(got), list(dna))
         self.assertEqual(dna, got)
 
-    def test_roundtrip_seq(self):
-        """seq to_json enables roundtrip"""
-        for mtype in ("dna", "protein"):
-            mtype = moltype.get_moltype(mtype)
-            seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
-            got = deserialise_object(seq.to_json())
-            self.assertEqual(got.info.something, 3)
-            self.assertEqual(got.name, "label")
-            self.assertEqual(got.moltype, seq.moltype)
-            self.assertEqual(str(got), str(seq))
-
     def test_roundtrip_seqcoll(self):
         """SequenceCollection to_json enables roundtrip"""
         data = dict(A="TTGT", B="GGCT")
@@ -88,11 +69,12 @@ class TestDeserialising(TestCase):
         data = dict(A="TTGTA", B="GGCT")
         seqs = make_unaligned_seqs(data=data, moltype="dna")
 
-        f = seqs.named_seqs["A"].add_feature("gene", "n1", [(2, 5)])
+        f = seqs.named_seqs["A"].add_feature(biotype="gene", name="n1", spans=[(2, 5)])
         data = seqs.to_json()
         expect = str(f.get_slice())
         got = deserialise_object(data)
-        self.assertEqual(str(got.named_seqs["A"].annotations[0].get_slice()), expect)
+        feat = list(got.get_features(seqid="A"))[0]
+        self.assertEqual(str(feat.get_slice()), expect)
 
     def test_roundtrip_arrayalign(self):
         """ArrayAlignment to_json enables roundtrip"""
@@ -542,5 +524,175 @@ class TestDeserialising(TestCase):
                 return tuple(data["data"])
 
 
-if __name__ == "__main__":
-    main()
+def test_convert_annotation_to_annotation_db():
+    from cogent3.core.annotation_db import (
+        BasicAnnotationDb,
+        convert_annotation_to_annotation_db,
+    )
+
+    data = {
+        "name": "A",
+        "data": [
+            {
+                "annotation_construction": {
+                    "type": "gene",
+                    "name": "n1",
+                    "map": {
+                        "spans": [
+                            {
+                                "start": 2,
+                                "end": 5,
+                                "tidy_start": False,
+                                "tidy_end": False,
+                                "value": None,
+                                "reverse": False,
+                                "type": "cogent3.core.location.Span",
+                                "version": "2023.2.12a1",
+                            }
+                        ],
+                        "tidy": False,
+                        "parent_length": 5,
+                        "termini_unknown": False,
+                        "type": "cogent3.core.location.Map",
+                        "version": "2023.2.12a1",
+                    },
+                },
+                "type": "cogent3.core.annotation.AnnotatableFeature",
+                "version": "2023.2.12a1",
+            }
+        ],
+    }
+    data = convert_annotation_to_annotation_db(data)
+    # which can be turned back into an annotation db
+    db = deserialise_object(data)
+    assert isinstance(db, BasicAnnotationDb)
+    assert db.num_matches() == 1
+
+
+def test_deserialise_old_style_annotated(DATA_DIR):
+    from cogent3.core.alignment import SequenceCollection
+
+    data = (DATA_DIR / "old_annotation_style.json").read_text()
+    data = json.loads(data)["data"]
+    got = deserialise_object(data)
+    assert isinstance(got, SequenceCollection)
+    raw_seqs = json.loads(data)["seqs"]
+    num_anns = sum(len(v["annotations"]) for v in raw_seqs.values())
+    assert len(got.annotation_db) == num_anns
+    for feature in got.annotation_db.get_features_matching():
+        assert feature["seqid"] is not None
+
+
+def test_deser_annotated_aln():
+    data = {
+        "seqs": {
+            "A": {
+                "name": "A",
+                "seq": "--TTGTAGTTGA",
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2023.2.12a1",
+            },
+            "B": {
+                "name": "B",
+                "seq": "AATTGTAGTTGA",
+                "moltype": "dna",
+                "info": None,
+                "type": "cogent3.core.sequence.DnaSequence",
+                "version": "2023.2.12a1",
+            },
+        },
+        "moltype": "dna",
+        "info": {"source": "unknown"},
+        "type": "cogent3.core.alignment.Alignment",
+        "version": "2023.2.12a1",
+        "annotations": [
+            {
+                "annotation_construction": {
+                    "type": "CDS",
+                    "name": "norwegian",
+                    "map": {
+                        "spans": [
+                            {
+                                "start": 0,
+                                "end": 3,
+                                "tidy_start": False,
+                                "tidy_end": False,
+                                "value": None,
+                                "reverse": False,
+                                "type": "cogent3.core.location.Span",
+                                "version": "2023.2.12a1",
+                            },
+                            {
+                                "start": 5,
+                                "end": 9,
+                                "tidy_start": False,
+                                "tidy_end": False,
+                                "value": None,
+                                "reverse": False,
+                                "type": "cogent3.core.location.Span",
+                                "version": "2023.2.12a1",
+                            },
+                        ],
+                        "tidy": False,
+                        "parent_length": 12,
+                        "termini_unknown": False,
+                        "type": "cogent3.core.location.Map",
+                        "version": "2023.2.12a1",
+                    },
+                },
+                "type": "cogent3.core.annotation.AnnotatableFeature",
+                "version": "2023.2.12a1",
+            }
+        ],
+    }
+    aln = deserialise_object(data)
+    assert aln.annotation_db.num_matches() == 1
+    feat = list(aln.get_features(biotype="CDS"))
+    assert len(feat) == 1
+
+
+@pytest.mark.parametrize("rate_matrix_required", (True, False))
+def test_roundtrip_TN93_model(rate_matrix_required):
+    """model_result of split codon correct type after roundtrip"""
+    _data = {
+        "a": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+    }
+    aln = make_aligned_seqs(data=_data, moltype="dna")
+    tree = make_tree(tip_names=["a", "b", "c"])
+    tn93 = get_model(
+        "TN93", rate_matrix_required=rate_matrix_required
+    ).make_likelihood_function(tree)
+    tn93.set_alignment(aln)
+
+    got = deserialise_object(tn93.to_rich_dict())
+    assert_allclose(got.lnL, tn93.lnL)
+
+
+def test_roundtrip_TN93_model_result():
+    _data = {
+        "a": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        "b": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        "c": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+    }
+    aln = make_aligned_seqs(data=_data, moltype="dna")
+    tn93 = get_app("model", "TN93")
+    result = tn93(aln)
+
+    got = deserialise_object(result.to_rich_dict())
+    assert_allclose(got.lnL, result.lnL)
+
+
+@pytest.mark.parametrize("mtype", ("dna", "protein"))
+def test_roundtrip_seq(mtype):
+    """seq to_json enables roundtrip"""
+    mtype = moltype.get_moltype(mtype)
+    seq = mtype.make_seq("ACGGTCGG", "label", info={"something": 3})
+    got = deserialise_object(seq.to_json())
+    assert got.info.something == 3
+    assert got.name == "label"
+    assert got.moltype == seq.moltype
+    assert str(got) == str(seq)

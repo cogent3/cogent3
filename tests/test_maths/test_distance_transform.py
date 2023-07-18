@@ -13,7 +13,6 @@ from cogent3.maths.distance_transform import (
     binary_dist_chord,
     binary_dist_euclidean,
     binary_dist_hamming,
-    binary_dist_jaccard,
     binary_dist_lennon,
     binary_dist_ochiai,
     binary_dist_otu_gain,
@@ -43,16 +42,6 @@ from cogent3.maths.distance_transform import (
     trans_specprof,
     zeros,
 )
-
-
-__author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__contributors__ = ["Justin Kuczynski", "Zongzhi Liu", "Greg Caporaso"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Justin Kuczynski"
-__email__ = "justinak@gmail.com"
-__status__ = "Prototype"
 
 
 class functionTests(TestCase):
@@ -122,9 +111,9 @@ class functionTests(TestCase):
 
         dense1expected = array(
             [
-                [0.0, sqrt(17.0), sqrt(0.9 ** 2 + 19 ** 2)],
-                [sqrt(17.0), 0.0, sqrt(4.9 ** 2 + 20 ** 2)],
-                [sqrt(0.9 ** 2 + 19 ** 2), sqrt(4.9 ** 2 + 20 ** 2), 0.0],
+                [0.0, sqrt(17.0), sqrt(0.9**2 + 19**2)],
+                [sqrt(17.0), 0.0, sqrt(4.9**2 + 20**2)],
+                [sqrt(0.9**2 + 19**2), sqrt(4.9**2 + 20**2), 0.0],
             ],
             "d",
         )

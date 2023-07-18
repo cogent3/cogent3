@@ -11,14 +11,6 @@ multiprocessing.set_start_method(
     "forkserver" if sys.platform == "darwin" else "spawn", force=True
 )
 
-__author__ = "Sheng Han Moses Koh"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Sheng Han Moses Koh", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
 
 if os.environ.get("DONT_USE_MPI", 0):
     MPI = None

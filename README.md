@@ -19,19 +19,33 @@
 
 `cogent3` is unique in providing numerous [non-stationary Markov models](http://www.ncbi.nlm.nih.gov/pubmed/25503772) for modelling sequence evolution, [including codon models](https://www.ncbi.nlm.nih.gov/pubmed/28175284). `cogent3` also includes an extensive collection of time-reversible models (again including [novel codon models](https://www.ncbi.nlm.nih.gov/pubmed/19815689)). We have done more than just invent these new methods, we have [established the most robust algorithms](https://www.ncbi.nlm.nih.gov/pubmed/19099591) for their implementation and their [suitability for real data](https://www.ncbi.nlm.nih.gov/pubmed/23935949). Additionally, there are novel signal processing methods focussed on statistical estimation of [integer period signals](https://www.ncbi.nlm.nih.gov/pubmed/21527008).
 
-![nstat](https://cogent3.org/_static/gif/demo-fit-ns.gif)
+<details>
+  <summary> 🎬 Demo non-reversible substitution model </summary>
+    <video src="https://user-images.githubusercontent.com/3102996/253845402-f511af2c-c2e2-48bc-8f6e-f9b0f05697e9.mp4" controls="controls" style="max-height:640px">
+    </video>
+</details>
 
 ### Anyone who wants to undertake exploratory genomic data analysis
 
 Beyond our novel methods, `cogent3` provides an extensive suite of capabilities for manipulating and analysing sequence data. You can manipulate sequences by their annotations, e.g.
 
-![annot](https://cogent3.org/_static/gif/demo-annotate.gif)
+<details>
+  <summary> 🎬 Demo sequences with annotations </summary>
+    <video src="https://user-images.githubusercontent.com/3102996/253847297-2611cda8-e078-4b86-a269-43fbf6ced14c.mp4" controls="controls" style="max-height:640px">
+    </video>
+</details>
 
 Plus, you can read standard tabular and biological data formats, perform multiple sequence alignment using any `cogent3` substitution models, phylogenetic reconstruction and tree manipulation, manipulation of tabular data, visualisation of phylogenies and much more.
 
-### Anyone looking for a functional programming style approach to genomic data analysis
+### Beginner friendly approach to genomic data analysis
 
-Our `cogent3.app` module provides a very different approach to using the library capabilities. Notably, a functional programming style interface lowers the barrier to entry for using `cogent3`'s advanced capabilities. It also supports building pipelines suitable for large-scale analysis. Individuals comfortable with R should find this interface pretty easy to use.
+Our `cogent3.app` module provides a very different approach to using the library capabilities. Expertise in structural programming concepts is not essential!
+
+<details>
+  <summary> 🎬 Demo friendly coding </summary>
+    <video src="https://user-images.githubusercontent.com/3102996/253849168-a821de1a-1aad-4761-970f-e365f6b3b1cd.mp4" controls="controls" style="max-height:640px">
+    </video>
+</details>
 
 ## Installation?
 
@@ -72,3 +86,11 @@ $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
 Given this history, we are grateful to the multitude of individuals who have made contributions over the years. These individuals are explicitly acknowledged in all the files they contributed to and were co-authors on the original [PyEvolve](https://www.ncbi.nlm.nih.gov/pubmed/14706121) and [PyCogent](https://www.ncbi.nlm.nih.gov/pubmed/17708774) publications.
 
 Compared to PyCogent version 1.9, there has been a massive amount of changes. These include integration of many of the new developments on algorithms and modelling published by the [Huttley lab](https://biology.anu.edu.au/research/groups/huttley-group-bioinformatics-molecular-evolution-genomes) over the last decade. We have also modernised our dependencies. For example, we now use `plotly` for visualisation, `tqdm` for progress bar display, `concurrent.futures` and `mpi4py.futures` for parallel process execution, `nox` and `pytest` for unit testing.
+
+## Funding
+
+Cogent3 is funded by a [Essential Open Source Software for Science Grant](https://chanzuckerberg.com/eoss/proposals/cogent3-python-apis-for-iq-tree-and-graphbin-via-a-plug-in-architecture/) from the Chan Zuckerberg Initiative.
+
+<p align="left">
+  <img src="https://chanzuckerberg.com/wp-content/themes/czi/img/logo.svg" width="300">
+</p>

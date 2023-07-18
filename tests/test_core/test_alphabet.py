@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests of the Enumeration and Alphabet objects.
 
 Note: individual alphabets are typically in MolType and are tested there.
@@ -29,15 +28,6 @@ from cogent3.core.moltype import RNA
 DnaBases = CharAlphabet("TCAG")
 RnaBases = CharAlphabet("UCAG")
 AminoAcids = CharAlphabet("ACDEFGHIKLMNPQRSTVWY")
-
-__author__ = "Rob Knight, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Rob Knight", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class translation_table_tests(TestCase):
@@ -75,12 +65,12 @@ class get_array_type_tests(TestCase):
         self.assertEqual(get_array_type(10000), uint16)
         self.assertEqual(get_array_type(65535), uint16)
         self.assertEqual(get_array_type(65537), uint32)
-        self.assertEqual(get_array_type(1 + 2 ** 32), uint64)
+        self.assertEqual(get_array_type(1 + 2**32), uint64)
 
     def test_get_array_type_fail(self):
         """get_array_type should return unsigned type that fits elements."""
         with self.assertRaises(NotImplementedError):
-            self.assertEqual(get_array_type(2 ** 64), uint64)
+            self.assertEqual(get_array_type(2**64), uint64)
 
 
 class EnumerationTests(TestCase):
@@ -157,7 +147,7 @@ class EnumerationTests(TestCase):
 
     def test_pow(self):
         """Enumeration pow should produce JointEnumeration with n copies"""
-        a = AminoAcids ** 3
+        a = AminoAcids**3
         self.assertEqual(a[0], (AminoAcids[0],) * 3)
         self.assertEqual(a[-1], (AminoAcids[-1],) * 3)
         self.assertEqual(len(a), len(AminoAcids) ** 3)
@@ -165,14 +155,14 @@ class EnumerationTests(TestCase):
 
         # check that it works with gaps
         a = Enumeration("a-b", "-")
-        b = a ** 3
+        b = a**3
         self.assertEqual(len(b), 27)
         self.assertEqual(b.gap, ("-", "-", "-"))
         self.assertEqual(b.gap_index, 13)
         self.assertEqual(b.array_type, uint8)
 
         # check that array type is set correctly if needed
-        b = a ** 6  # too big to fit in char
+        b = a**6  # too big to fit in char
         self.assertEqual(b.array_type, uint16)
 
     def test_mul(self):
@@ -196,30 +186,6 @@ class EnumerationTests(TestCase):
         c = Enumeration("c")
         x = a * c
         self.assertEqual(x.gap, None)
-
-    def test_counts(self):
-        """Enumeration counts should count freqs in array"""
-        a = DnaBases
-        f = array([[0, 0, 1, 0, 0, 3]])
-        assert_equal(a.counts(f), array([4, 1, 0, 1]))
-        # check that it works with byte array
-        f = array([[0, 0, 1, 0, 0, 3]], "B")
-        assert_equal(a.counts(f), array([4, 1, 0, 1]))
-        # should ignore out-of-bounds items
-        g = [0, 4]
-        assert_equal(a.counts(g), array([1, 0, 0, 0]))
-        # make sure it works for long sequences, i.e. no wraparound at 255
-        h = [0, 3] * 70000
-        assert_equal(a.counts(h), array([70000, 0, 0, 70000]))
-        h2 = array(h).astype("B")
-        assert_equal(a.counts(h2), array([70000, 0, 0, 70000]))
-        i = array([0, 3] * 75000)
-        assert_equal(a.counts(i), array([75000, 0, 0, 75000]))
-        # make sure it works for long _binary_ sequences, e.g. the results
-        # of array comparisons.
-        a = array([0, 1, 2, 3] * 10000)
-        b = array([0, 0, 0, 0] * 10000)
-        same = a == b
 
 
 class CharAlphabetTests(TestCase):

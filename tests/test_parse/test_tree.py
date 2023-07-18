@@ -1,28 +1,12 @@
-#!/usr/bin/env python
 """Unit tests for tree parsers.
 """
-from unittest import TestCase, main
+import pathlib
+
+from unittest import TestCase
 
 from cogent3.core.tree import PhyloNode
 from cogent3.parse.tree import DndParser, DndTokenizer, RecordError
 
-
-# from cogent3.parse.newick import parse_string, TreeParseError as RecordError
-# def DndParser(data, NodeClass=PhyloNode, unescape_name=True):
-#    if not unescape_name:
-#        raise NotImplementedError
-#    def constructor(children, name, attribs):
-#        return NodeClass(children = list(children or []), name=name, params=attribs)
-#    return parse_string(data, constructor)
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Peter Maxwell", "Daniel McDonald"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 sample = """
 (
@@ -292,5 +276,19 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(p), "((xyz):2)abc:3;")
 
 
-if __name__ == "__main__":
-    main()
+def test_stores_nhx_data(DATA_DIR):
+    """capture extended newick data into <node>.params['other']"""
+    with open(DATA_DIR / "nhx.tree") as path:
+        got = DndParser(path)
+        rodent = got.get_connecting_node("Mouse", "Rat")
+        assert set(rodent.params["other"]) == {
+            '&sCF="89.13"',
+            'sCF/sDF1/sDF2="89.13/5.49/5.38"',
+            'sCF_N="107.21"',
+            'sCF_N/sDF1_N/sDF2_N="107.21/6.63/6.49"',
+            'sDF1="5.49"',
+            'sDF1_N="6.63"',
+            'sDF2="5.38"',
+            'sDF2_N="6.49"',
+            'sN="120.33"',
+        }

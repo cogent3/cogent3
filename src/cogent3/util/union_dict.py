@@ -2,16 +2,6 @@
 """
 
 
-__author__ = "Thomas La"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class UnionDict(dict):
     """dictionary class that can be updated as a union with another dict
     entries are also accessible directly as attributes on the object"""
@@ -78,7 +68,6 @@ class UnionDict(dict):
             other = UnionDict(other)
 
         for a in list(other):
-
             if self.get(a) is None or not (
                 isinstance(other.get(a), dict) and isinstance(self.get(a), dict)
             ):

@@ -13,16 +13,6 @@ from cogent3.parse.record_finder import (
 )
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Zongzhi Liu"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 class TailedRecordFinderTests(TestCase):
     """Tests of the TailedRecordFinder factory function."""
 

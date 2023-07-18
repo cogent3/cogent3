@@ -12,15 +12,6 @@ from cogent3.maths import optimisers
 from cogent3.util import parallel
 
 
-__author__ = "Peter Maxwell and  Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
-
 ALIGNMENT = load_aligned_seqs(filename="data/brca1.fasta")
 TREE = load_tree(filename="data/murphy.tree")
 
@@ -117,7 +108,7 @@ def benchmarks(test):
     sequence_lengths = [18, 2004]
     treesizes = [5, 20]
 
-    for (optimise_motifs, parameterisation) in [
+    for optimise_motifs, parameterisation in [
         (False, "global"),
         (False, "local"),
         (True, "global"),

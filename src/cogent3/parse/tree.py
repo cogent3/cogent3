@@ -21,19 +21,10 @@ from cogent3.core.tree import PhyloNode
 from cogent3.parse.record import RecordError
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Catherine Lozupone", "Daniel McDonald"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Development"
-
 strip = str.strip
 maketrans = str.maketrans
 
-_dnd_token_str = "(:),;"
+_dnd_token_str = "(:),[];"
 _dnd_tokens = dict.fromkeys(_dnd_token_str)
 _dnd_tokens_and_spaces = _dnd_token_str + " \t\v\n"
 
@@ -113,7 +104,23 @@ def DndParser(lines, constructor=PhyloNode, unescape_name=False):
     state = "PreColon"
     state1 = "PreClosed"
     last_token = None
+    start_comment = False
+    comment = []
     for t in tokens:
+        if t == "[":
+            start_comment = True
+            comment = []
+            continue
+        elif start_comment and t == ",":
+            continue
+        elif start_comment and t != "]":
+            comment.append(t)
+            continue
+        elif t == "]":
+            start_comment = False
+            curr_node.params["other"] = comment
+            comment = []
+            continue
         if t == ":":  # expecting branch length
             state = "PostColon"
             # prevent state reset

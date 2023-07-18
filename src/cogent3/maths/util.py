@@ -5,19 +5,7 @@ import numpy
 from numpy import array, clip, cumsum, searchsorted, sort, sum
 
 
-numerictypes = numpy.core.numerictypes.sctype2char
-Float = numerictypes(float)
-Int = numerictypes(int)
 err = numpy.seterr(divide="raise")
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Thomas La"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Development"
 
 
 def safe_p_log_p(data):

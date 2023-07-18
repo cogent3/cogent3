@@ -6,16 +6,6 @@ import bisect
 import numpy
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
 def argpicks(freqs, random_series):
     partition = numpy.add.accumulate(freqs)
     assert abs(partition[-1] - 1.0) < 1e-6, (freqs, partition)
@@ -43,7 +33,7 @@ def evolve_sequence(
     to pick a new motif derived from parent_seq[i]"""
     seq = []
     randomMotifSources = {}
-    for (i, parent_motif) in enumerate(parent_seq):
+    for i, parent_motif in enumerate(parent_seq):
         if i in preserved_sites:
             edge_motif = preserved_sites[i]
         else:
@@ -52,7 +42,7 @@ def evolve_sequence(
                 parent_motif_index = motifs.index(parent_motif)
                 site_cat = site_cats[i]
                 psub = psubs[site_cat]
-                for (dest_motif_index, dest_motif) in enumerate(motifs):
+                for dest_motif_index, dest_motif in enumerate(motifs):
                     prob = psub[parent_motif_index, dest_motif_index]
                     mprobs[dest_motif] = prob
                 randomMotifSources[site_cat, parent_motif] = _randomMotifGenerator(

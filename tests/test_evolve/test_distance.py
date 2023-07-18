@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os
 import warnings
 
@@ -23,7 +22,7 @@ from cogent3.evolve.fast_distance import (
     JC69Pair,
     LogDetPair,
     ParalinearPair,
-    PercentIdentityPair,
+    ProportionIdenticalPair,
     TN93Pair,
     _calculators,
     _fill_diversity_matrix,
@@ -45,16 +44,6 @@ warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
 # hides the warning from taking log of -ve determinant
 numpy.seterr(invalid="ignore")
-
-
-__author__ = "Gavin Huttley, Yicheng Zhu and Ben Kaehler"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Yicheng Zhu", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class TestPair(TestCase):
@@ -154,9 +143,9 @@ class TestPair(TestCase):
         self.assertEqual(list(dists.keys()), list(expect.keys()))
         assert_allclose(list(dists.values()), list(expect.values()))
 
-    def test_percent_pair(self):
+    def test_prop_pair(self):
         """get distances dict"""
-        calc = PercentIdentityPair(DNA, alignment=self.alignment)
+        calc = ProportionIdenticalPair(DNA, alignment=self.alignment)
         calc.run(show_progress=False)
         dists = calc.get_pairwise_distances()
         dists = dists.to_dict()
@@ -871,7 +860,7 @@ class DistancesTests(TestCase):
 
         def constrain_fit(lf):
             lf.set_param_rule("kappa", is_constant=True)
-            lf.optimise(local=True)
+            lf.optimise(local=True, show_progress=False)
             return lf
 
         d = EstimateDistances(self.al, HKY85(), modify_lf=constrain_fit)

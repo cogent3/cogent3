@@ -14,16 +14,6 @@ from numpy.linalg import inv as inverse
 from numpy.linalg import norm
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2014, The Cogent Project"
-__credits__ = ["Rob Knight", "Gavin Huttley", "Von Bing Yap", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-
 def _is_Q_ok(Q):
     """Tests whether a square matrix is a valid transition rate matrix"""
     n = Q.shape[0]

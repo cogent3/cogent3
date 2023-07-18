@@ -19,16 +19,6 @@ from cogent3.recalculation.scope import _indexed
 from cogent3.util.misc import adjusted_gt_minprob
 
 
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Andrew Butterfield", "Peter Maxwell", "Gavin Huttley", "Helen Lindsay"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.ed.au"
-__status__ = "Production"
-
-
 def _category_names(dimension, specified):
     if type(specified) is int:
         cats = [f"{dimension}{i}" for i in range(specified)]
@@ -125,7 +115,7 @@ class _LikelihoodParameterController(_LF):
                     (uniq, index) = _indexed(values)
                 except KeyError:
                     continue  # new parameter
-                for (u, value) in enumerate(uniq):
+                for u, value in enumerate(uniq):
                     group = [edge for (edge, i) in list(index.items()) if i == u]
                     self.set_param_rule(par_name, edges=group, init=value)
             for edge in edges:
@@ -174,7 +164,6 @@ class _LikelihoodParameterController(_LF):
         auto=False,
         **kwargs,
     ):
-
         motif_probs = self.model.adapt_motif_probs(motif_probs, auto=auto)
         motif_probs = adjusted_gt_minprob(motif_probs, minprob=1e-6)
         if is_constant is None:
@@ -385,7 +374,7 @@ class _LikelihoodParameterController(_LF):
         par_name = str(par_name)
 
         scopes = {}
-        for (single, plural) in [
+        for single, plural in [
             ("bin", "bins"),
             ("locus", "loci"),
             ("position", "positions"),
@@ -531,7 +520,7 @@ class AlignmentLikelihoodFunction(_LikelihoodParameterController):
             )
             assert "root" not in aln.names, "'root' is a reserved name."
         with self.updates_postponed():
-            for (locus_name, align) in zip(self.locus_names, aligns):
+            for locus_name, align in zip(self.locus_names, aligns):
                 self.assign_all(
                     "alignment", {"locus": [locus_name]}, value=align, const=True
                 )
@@ -569,7 +558,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
         if isinstance(seqs, SequenceCollection):
             seqs = seqs.named_seqs
 
-        for (name, seq) in list(seqs.items()):
+        for name, seq in list(seqs.items()):
             # if has uniq, probably already a likelihood tree leaf obj already
             if hasattr(seq, "uniq"):
                 # XXX more checks - same alphabet as model, name etc ...
@@ -583,7 +572,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
 
     def set_pogs(self, leaves, locus=None):
         with self.updates_postponed():
-            for (name, pog) in list(leaves.items()):
+            for name, pog in list(leaves.items()):
                 self.set_param_rule("leaf", edge=name, value=pog, is_constant=True)
             if self.mprobs_from_alignment:
                 counts = numpy.sum(

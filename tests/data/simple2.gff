@@ -1,0 +1,9 @@
+##gff-version 3
+test_seq	.	exon	2	10	.	+	.	ID=exon3;parent=cds1
+test_seq	.	CDS 	3	9	.	+	.	ID=cds3
+test_seq	.	exon	12	20	.	+	.	ID=exon4;parent=cds1
+test_seq	.	CDS	    4	10	.	+	.	ID=cds4
+test_seq	.	CpG 	3	12	.	+	.	ID=CpG2
+test_seq	.	mRNA	10	70	.	-	.	ID=Transcript:childless;Note=amx-2;Parent=parentless
+test_seq	.	gene	1	100	.	-	.	ID=parentless
+

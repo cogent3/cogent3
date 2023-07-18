@@ -1,24 +1,13 @@
-#!/usr/bin/env python
 import json
+import re
 
 from importlib import import_module
 
 import cogent3
 
-from cogent3.core.alignment import Aligned
 from cogent3.core.genetic_code import get_code
-from cogent3.core.moltype import _CodonAlphabet, get_moltype
 from cogent3.util.io import open_, path_exists
 
-
-__author__ = ["Gavin Huttley"]
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 _deserialise_func_map = {}
 
@@ -64,6 +53,14 @@ def _get_class(provenance):
     return klass
 
 
+_pat = re.compile("[a-z]")
+
+
+def str_to_version(v):
+    letter = _pat.search(v)
+    return tuple(f"{v[:letter.start()]}.{letter.group()}.{letter.end():}".split("."))
+
+
 @register_deserialiser(
     "cogent3.util.table.Table",
     "cogent3.util.dict_array.DictArray",
@@ -96,6 +93,13 @@ def deserialise_tabular(data):
         result = klass(**data)
 
     return result
+
+
+@register_deserialiser("cogent3.core.sequence.SeqView")
+def deserialise_seqview(data):
+    """deserialising SeqView"""
+    klass = _get_class(data["type"])
+    return klass.from_rich_dict(data)
 
 
 @register_deserialiser("cogent3.app.composable.NotCompleted")
@@ -161,6 +165,8 @@ def deserialise_result(data):
 @register_deserialiser("cogent3.core.moltype")
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
+    from cogent3.core.moltype import _CodonAlphabet, get_moltype
+
     data.pop("version", None)
     label = data["moltype"]
     data["moltype"] = get_moltype(label)
@@ -178,6 +184,8 @@ def deserialise_moltype(data):
 @register_deserialiser("cogent3.core.alphabet")
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
+    from cogent3.core.moltype import _CodonAlphabet, get_moltype
+
     data.pop("version", None)
     if _get_class(data.get("type")) == _CodonAlphabet:
         result = deserialise_moltype(data)
@@ -190,6 +198,17 @@ def deserialise_alphabet(data):
     klass = _get_class(data.pop("type"))
     result = klass(motifs, **data)
     return result
+
+
+def _from_seqview(data):
+    data["seq"] = deserialise_seqview(data["seq"])
+    return data
+
+
+@register_deserialiser("cogent3.core.alignment.Aligned")
+def deserialise_aligned(data):
+    klass = _get_class(data.pop("type"))
+    return klass.from_rich_dict(data)
 
 
 @register_deserialiser("cogent3.core.sequence")
@@ -207,26 +226,40 @@ def deserialise_seq(data, aligned=False):
     -------
 
     """
+    from cogent3.core.alignment import Aligned
     from cogent3.core.moltype import get_moltype
 
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
-    make_seq = data["moltype"].make_seq
+    if annotations:
+        annotation_db = {
+            "type": "annotation_to_annotation_db",
+            "data": annotations,
+            "seqid": data.get("name", None),
+        }
+    else:
+        annotation_db = data.pop("annotation_db", None)
+
+    make_seq = data.pop("moltype").make_seq
     _ = data.pop("type")
     if "-" in data["seq"]:
         aligned = True
 
-    data.pop("moltype")
+    if isinstance(data["seq"], dict):
+        data = _from_seqview(data)
+
     result = make_seq(**data)
+
+    if annotation_db:
+        annotation_db = deserialise_object(annotation_db)
+
     if aligned:
         map_, result = result.parse_out_gaps()
-
-    if annotations:
-        deserialise_annotation(annotations, result)
-
-    if aligned:
         result = Aligned(map_, result)
+        result.data.annotation_db = annotation_db
+    else:
+        result.annotation_db = annotation_db
 
     return result
 
@@ -240,6 +273,14 @@ def deserialise_seq_collections(data):
     data.pop("version", None)
     data["moltype"] = get_moltype(data.pop("moltype"))
     annotations = data.pop("annotations", None)
+    if annotations:
+        annotation_db = {
+            "type": "annotation_to_annotation_db",
+            "data": annotations,
+        }
+    else:
+        annotation_db = data.pop("annotation_db", None)
+
     type_ = data.pop("type")
     klass = _get_class(type_)
     assert "alignment" in type_.lower(), "not alignment type"
@@ -247,13 +288,16 @@ def deserialise_seq_collections(data):
     seqs = []
     for v in data.pop("seqs").values():
         v["moltype"] = data["moltype"]
-        seq = deserialise_seq(v, aligned=aligned)
+        if v["type"].endswith("Aligned"):
+            seq = deserialise_aligned(v)
+        else:
+            seq = deserialise_seq(v, aligned=aligned)
         seqs.append(seq)
 
     result = klass(seqs, **data)
 
-    if annotations:
-        deserialise_annotation(annotations, result)
+    if annotation_db:
+        result.annotation_db = deserialise_object(annotation_db)
 
     return result
 
@@ -336,6 +380,7 @@ def deserialise_likelihood_function(data):
 def deserialise_object(data):
     """
     deserialises from json
+
     Parameters
     ----------
     data
@@ -355,8 +400,8 @@ def deserialise_object(data):
         with open_(data) as infile:
             data = json.load(infile)
 
-    if type(data) is str:
-        data = json.loads(data)
+    if isinstance(data, str):
+        data = json.loads(str(data))
 
     type_ = data.get("type", None) if hasattr(data, "get") else None
     if type_ is None:

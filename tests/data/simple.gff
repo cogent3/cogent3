@@ -1,0 +1,7 @@
+##gff-version 3
+test_seq	.	exon	2	10	.	+	.	ID=exon1
+test_seq	.	CDS 	3	9	.	+	.	ID=cds1
+test_seq	.	exon	12	20	.	+	.	ID=exon2
+test_seq	.	CDS	    4	10	.	+	.	ID=cds2
+test_seq	.	CpG 	3	12	.	+	.	ID=CpG1
+test_seq2	.	CpG 	3	12	.	+	.	ID=CpG3

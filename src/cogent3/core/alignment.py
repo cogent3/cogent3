@@ -18,6 +18,9 @@
     passed in a stream of two-item label, sequence pairs. However, this can
     cause confusion when testing.
 """
+from __future__ import annotations
+
+import functools
 import json
 import os
 import re
@@ -28,6 +31,7 @@ from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
 from types import GeneratorType
+from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy
 
@@ -51,7 +55,15 @@ from numpy.random import choice, permutation, randint
 
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
-from cogent3.core.annotation import Map, _Annotatable
+from cogent3._version import __version__
+from cogent3.core.annotation import Feature, Map
+from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
+    FeatureDataType,
+    GenbankAnnotationDb,
+    SupportsFeatures,
+    load_annotations,
+)
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
@@ -62,9 +74,9 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.maths.util import safe_log
 from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
@@ -76,24 +88,7 @@ from cogent3.util.misc import (
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Peter Maxwell and Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Peter Maxwell",
-    "Rob Knight",
-    "Gavin Huttley",
-    "Jeremy Widmann",
-    "Catherine Lozupone",
-    "Matthew Wakefield",
-    "Micah Hamady",
-    "Daniel McDonald",
-    "Jan Kosinski",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
+DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 
 class DataError(Exception):
@@ -120,7 +115,7 @@ def AllowedCharacters(chars, is_array=False, negate=False):
         if is_array:
             data = set(data.flatten())
         else:
-            data = set("".join(data))
+            data = set("".join([str(d) for d in data]))
         return data <= chars
 
     def not_chars(data):
@@ -191,7 +186,7 @@ class GapsOk:
         if self.is_array:
             data = Counter(data.flatten())
         else:
-            data = Counter("".join(data))
+            data = Counter("".join([str(d) for d in data]))
 
         num_gap = sum(data[g] for g in self.gap_chars)
         gap_frac = num_gap / length
@@ -336,6 +331,52 @@ def seqs_from_empty(obj, *args, **kwargs):
     raise ValueError("Cannot create empty SequenceCollection.")
 
 
+@functools.singledispatch
+def merged_db_collection(seqs) -> SupportsFeatures:
+    """return one AnnotationDb's
+
+    Parameters
+    ----------
+    seqs
+        iterable list of data
+
+    Returns
+    -------
+    list of all annotation db's
+
+    Raises
+    ------
+    TypeError if different classes of AnnotationDb
+    """
+    first = None
+    merged = None
+    db_attr = "annotation_db"
+    for seq in seqs:
+        if not isinstance(seq, (Aligned, Sequence)):
+            continue
+        if isinstance(seq, Aligned):
+            db = seq.data.annotation_db
+        elif isinstance(seq, Sequence):
+            db = seq.annotation_db
+
+        if first is None and db:
+            # todo gah should this be a copy so immutable?
+            first = db
+            merged = first
+            continue
+
+        if first is None or db is None or first is db:
+            continue
+        first.update(db)
+
+    return merged
+
+
+@merged_db_collection.register
+def _(seqs: dict) -> SupportsFeatures:
+    return merged_db_collection(seqs.values())
+
+
 @total_ordering
 class _SequenceCollectionBase:
     """
@@ -455,6 +496,16 @@ class _SequenceCollectionBase:
         # read all the data in if we were passed a generator
         if isinstance(data, GeneratorType):
             data = list(data)
+
+        input_type = self._guess_input_type(data)
+        if input_type in ("aln", "collection"):
+            anno_db = merged_db_collection(data.seqs)
+        elif input_type == "kv_pairs":
+            anno_db = merged_db_collection(dict(data))
+        elif isinstance(data, (tuple, list, dict)):
+            anno_db = merged_db_collection(data)
+        else:
+            anno_db = None
         # set the name
         self.name = name
         names = list(names) if names is not None else names
@@ -510,6 +561,25 @@ class _SequenceCollectionBase:
 
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
 
+        self._annotation_db = None
+
+        if not isinstance(self, ArrayAlignment):
+            self.annotation_db = anno_db or DEFAULT_ANNOTATION_DB()
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        if value == self._annotation_db:
+            return
+
+        self._annotation_db = value
+
+        for seq in self.seqs:
+            seq.replace_annotation_db(value, check=False)
+
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""
         from cogent3.format.alignment import FORMATTERS
@@ -540,22 +610,38 @@ class _SequenceCollectionBase:
 
     def copy(self):
         """Returns deep copy of self."""
-        return self.__class__(self, moltype=self.moltype, info=self.info)
+        result = self.__class__(self, moltype=self.moltype, info=self.info)
+        result.annotation_db = deepcopy(self.annotation_db)
+        return result
 
-    def deepcopy(self, sliced=True):
-        """Returns deep copy of self."""
+    def deepcopy(self, sliced: bool = True):
+        """returns deep copy of self.
+
+        Parameters
+        ----------
+        sliced
+            if True, reduces the sequence to current
+            interval. This also causes dropping
+            annotations.
+        """
+        if isinstance(self, Alignment):
+            reversed = self.seqs[0].map.reverse
+        else:
+            reversed = self.seqs[0]._seq.reverse
         new_seqs = dict()
+        db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
             try:
-                new_seq = seq.deepcopy(sliced=sliced)
+                new_seq = seq.deepcopy(sliced=sliced, exclude_annotations=True)
             except AttributeError:
-                new_seq = seq.copy()
+                new_seq = seq.copy(exclude_annotations=True)
             new_seqs[seq.name] = new_seq
 
         info = deepcopy(self.info)
         result = self.__class__(
             new_seqs, moltype=self.moltype, info=info, force_same_data=True
         )
+        result.annotation_db = db
         result._repr_policy.update(self._repr_policy)
         return result
 
@@ -824,10 +910,16 @@ class _SequenceCollectionBase:
             # copy only the specified seqs
             for r in seqs:
                 result[r] = get(r)
-        if result:
-            return self.__class__(result, names=seqs, info=self.info, **kwargs)
-        else:
+        if not result:
             return {}  # safe value; can't construct empty alignment
+
+        result = self.__class__(result, names=seqs, info=self.info, **kwargs)
+        if self.annotation_db:
+            result.annotation_db = type(self.annotation_db)()
+            result.annotation_db.update(
+                annot_db=self.annotation_db, seqids=result.names
+            )
+        return result
 
     def get_seq_indices(self, f, negate=False):
         """Returns list of keys of seqs where f(row) is True.
@@ -1058,13 +1150,8 @@ class _SequenceCollectionBase:
             version=__version__,
         )
 
-        try:
-            annotations = [a.to_rich_dict() for a in self.annotations]
-        except AttributeError:
-            annotations = []
-
-        if annotations:
-            data["annotations"] = annotations
+        if hasattr(self, "annotation_db") and self.annotation_db:
+            data["annotation_db"] = self.annotation_db.to_rich_dict()
 
         return data
 
@@ -1122,17 +1209,8 @@ class _SequenceCollectionBase:
             data=list(zip(self.names, concatenated)),
             info=self.info,
         )
-
-        if aligned:
-            left = [
-                a for a in self._shifted_annotations(new, 0) if a.map.end <= len(self)
-            ]
-            right = [
-                a
-                for a in other._shifted_annotations(new, len(self))
-                if a.map.start >= len(self)
-            ]
-            new.annotations = left + right
+        # cannot copy annotations on addition
+        new.annotation_db = None
         return new
 
     def add_seqs(self, other, before_name=None, after_name=None):
@@ -1246,7 +1324,9 @@ class _SequenceCollectionBase:
         """len of SequenceCollection returns length of longest sequence."""
         return self.seq_len
 
-    def get_translation(self, gc=None, incomplete_ok=False, **kwargs):
+    def get_translation(
+        self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
+    ):
         """translate from nucleic acid to protein
 
         Parameters
@@ -1254,9 +1334,13 @@ class _SequenceCollectionBase:
         gc
             genetic code, either the number or name
             (use cogent3.core.genetic_code.available_codes)
-        incomplete_ok : bool
+        incomplete_ok
             codons that are mixes of nucleotide and gaps converted to '?'.
             raises a ValueError if False
+        include_stop
+            whether to allow a stops in the translated sequence
+        trim_stop
+            exclude terminal stop codons if they exist
         kwargs
             related to construction of the resulting object
 
@@ -1264,21 +1348,26 @@ class _SequenceCollectionBase:
         -------
         A new instance of self translated into protein
         """
+        if len(self.moltype.alphabet) != 4:
+            raise TypeError("Must be a DNA/RNA")
+
         translated = []
-        aligned = isinstance(self, Alignment)
-        kwargs["moltype"] = cogent3.PROTEIN
+        if trim_stop and not include_stop:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        else:
+            seqs = self
         # do the translation
-        try:
-            for seqname in self.names:
-                if aligned:
-                    seq = self.get_gapped_seq(seqname)
-                else:
-                    seq = self.named_seqs[seqname]
-                pep = seq.get_translation(gc, incomplete_ok=incomplete_ok)
-                translated.append((seqname, pep))
-            return self.__class__(translated, info=self.info, **kwargs)
-        except AttributeError as msg:
-            raise AttributeError(f"{msg} -- {'Did you set a DNA moltype?'}")
+        for seqname in seqs.names:
+            try:
+                seq = seqs.get_gapped_seq(seqname)
+            except AttributeError:
+                seq = seqs.named_seqs[seqname]
+            pep = seq.get_translation(
+                gc, incomplete_ok=True, include_stop=include_stop, trim_stop=trim_stop
+            )
+            translated.append((seqname, pep))
+        kwargs["moltype"] = pep.moltype
+        return self.__class__(translated, info=self.info, **kwargs)
 
     def get_seq(self, seqname):
         """Return a sequence object for the specified seqname."""
@@ -1304,13 +1393,19 @@ class _SequenceCollectionBase:
         result = {}
         for name in self.names:
             result[name] = ambig = {}
-            for (i, motif) in enumerate(self.named_seqs[name]):
+            for i, motif in enumerate(self.named_seqs[name]):
                 if self.moltype.is_ambiguity(motif):
                     ambig[i] = motif
         return result
 
     def degap(self, **kwargs):
-        """Returns copy in which sequences have no gaps."""
+        """Returns copy in which sequences have no gaps.
+
+        Parameters
+        ----------
+        kwargs
+            passed to class constructor
+        """
         new_seqs = []
         aligned = isinstance(self, Alignment)
         for seq_name in self.names:
@@ -1334,53 +1429,71 @@ class _SequenceCollectionBase:
         for name in self.names:
             seq = self.named_seqs[name].with_termini_unknown()
             seqs.append((name, seq))
-        return self.__class__(moltype=self.moltype, data=seqs, info=self.info)
+        result = self.__class__(moltype=self.moltype, data=seqs, info=self.info)
 
-    def has_terminal_stops(self, gc=None, allow_partial=False):
+        if self.annotation_db:
+            result.annotation_db = self.annotation_db
+        return result
+
+    @c3warn.deprecated_args(
+        "2023.10", "replaced by strict", discontinued="allow_partial"
+    )
+    def has_terminal_stop(
+        self, gc: Any = None, strict: bool = False, allow_partial=False
+    ) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
         ----------
         gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not divisible
-            by 3, ignores the 3' terminal incomplete codon
-
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if a seq length not divisible by 3
         """
-        stops = []
         aligned = isinstance(self, Alignment)
         for seq_name in self.names:
             if aligned:
                 seq = self.named_seqs[seq_name].data
             else:
                 seq = self.named_seqs[seq_name]
-            stops.append(seq.has_terminal_stop(gc=gc, allow_partial=allow_partial))
-        return max(stops)
+            if seq.has_terminal_stop(gc=gc, strict=strict):
+                return True
+        return False
 
-    def trim_stop_codons(self, gc=None, allow_partial=False, **kwargs):
+    @c3warn.deprecated_callable("2023.10", "better name", new="has_terminal_stop")
+    def has_terminal_stops(self, **kwargs) -> bool:
+        """deprecated"""
+        return self.has_terminal_stop(**kwargs)
+
+    @c3warn.deprecated_args(
+        "2023.10", "logically inconsistent", discontinued="allow_partial"
+    )
+    def trim_stop_codons(
+        self, gc: Any = None, strict: bool = False, allow_partial=False, **kwargs
+    ):
         """Removes any terminal stop codons from the sequences
 
         Parameters
         ----------
         gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not divisible
-            by 3, ignores the 3' terminal incomplete codon
-
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if a seq length not divisible by 3
         """
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
         gc = get_code(gc)
-        new_seqs = []
+        new_seqs = {s.name: s.trim_stop_codon(gc=gc, strict=strict) for s in self.seqs}
 
-        for seq_name in self.names:
-            old_seq = self.named_seqs[seq_name]
-            new_seq = old_seq.trim_stop_codon(gc=gc, allow_partial=allow_partial)
-            new_seqs.append((seq_name, new_seq))
-
-        return self.__class__(
+        result = self.__class__(
             moltype=self.moltype, data=new_seqs, info=self.info, **kwargs
         )
+        if self.annotation_db:
+            result.annotation_db = self.annotation_db
+        return result
 
     def get_lengths(self, include_ambiguity=False, allow_gap=False):
         """returns {name: seq length, ...}
@@ -1535,7 +1648,7 @@ class _SequenceCollectionBase:
             for motif in alphabet:
                 probs[motif] = pseudocount
 
-        for (motif, count) in list(counts.items()):
+        for motif, count in list(counts.items()):
             motif_set = alphabet.resolve_ambiguity(motif)
             if len(motif_set) > 1:
                 if include_ambiguity:
@@ -1582,42 +1695,24 @@ class _SequenceCollectionBase:
             raise ValueError(f"unknown moltype '{moltype}'")
 
         data = [s.to_moltype(moltype) for s in self.seqs]
-        return self.__class__(
+        result = self.__class__(
             data=data, moltype=moltype, name=self.name, info=self.info
         )
+        if self.annotation_db:
+            result.annotation_db = self.annotation_db
+        return result
 
     def to_dna(self):
         """returns copy of self as an alignment of DNA moltype seqs"""
-        make_seq = cogent3.DNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.DNA, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("dna")
 
     def to_rna(self):
         """returns copy of self as an alignment of RNA moltype seqs"""
-        make_seq = cogent3.RNA.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.RNA, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("rna")
 
     def to_protein(self):
         """returns copy of self as an alignment of PROTEIN moltype seqs"""
-        make_seq = cogent3.PROTEIN.make_seq
-        data = [make_seq(s, s.name) for s in self.seqs]
-        new = self.__class__(
-            data=data, moltype=cogent3.PROTEIN, name=self.name, info=self.info
-        )
-        if isinstance(self, _Annotatable) and self.annotations:
-            new.annotations = self.annotations[:]
-        return new
+        return self.to_moltype("protein")
 
     def rc(self):
         """Returns the reverse complement alignment"""
@@ -1625,12 +1720,11 @@ class _SequenceCollectionBase:
         rc = self.__class__(
             data=seqs, names=self.names[:], name=self.name, info=self.info
         )
-        if isinstance(self, _Annotatable) and self.annotations:
-            self._annotations_nucleic_reversed_on(rc)
+        rc.annotation_db = self.annotation_db
         return rc
 
     def reverse_complement(self):
-        """Returns the reverse complement alignment. A synonymn for rc."""
+        """Returns the reverse complement alignment. A synonym for rc."""
         return self.rc()
 
     def pad_seqs(self, pad_length=None, **kwargs):
@@ -1745,9 +1839,11 @@ class _SequenceCollectionBase:
 
         # Deep copying Aligned instance to ensure only region specified by Aligned.map is displayed.
         if isinstance(seq1, Aligned):
-            seq1 = seq1.deepcopy(sliced=True)
+            seq1 = seq1.deepcopy(sliced=True, exclude_annotations=True)
+            seq1.data.annotation_db = self.annotation_db
         if isinstance(seq2, Aligned):
-            seq2 = seq2.deepcopy(sliced=True)
+            seq2 = seq2.deepcopy(sliced=True, exclude_annotations=True)
+            seq2.data.annotation_db = self.annotation_db
 
         if seq1.is_annotated() or seq2.is_annotated():
             annotated = True
@@ -1808,12 +1904,6 @@ class _SequenceCollectionBase:
             new[new_name] = new_seq
         result = self.__class__(data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
-        # now try copying annotations
-        if isinstance(self, Alignment):
-            for new, old in name_map.items():
-                new_seq = result.named_seqs[new]
-                old_seq = self.named_seqs[old]
-                new_seq.copy_annotations(old_seq.data)
         return result
 
     @UI.display_wrap
@@ -1983,50 +2073,232 @@ class _SequenceCollectionBase:
 class SequenceCollection(_SequenceCollectionBase):
     """Container for unaligned sequences"""
 
-    def copy_annotations(self, unaligned):
-        """Copies annotations from seqs in unaligned to self, matching by name.
+    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+        """copy annotations into attached annotation db
 
-        Alignment programs like ClustalW don't preserve annotations,
-        so this method is available to copy annotations off the unaligned
-        sequences.
+        Parameters
+        ----------
+        seq_db
+            compatible annotation db
 
-        unaligned should be a dictionary of Sequence instances.
-
-        Ignores sequences that are not in self, so safe to use on larger dict
-        of seqs that are not in the current collection/alignment.
+        Notes
+        -----
+        Only copies annotations for records with seqid in self.names
         """
-        for name, seq in list(unaligned.items()):
-            if name in self.named_seqs:
-                self.named_seqs[name].copy_annotations(seq)
+        if not isinstance(seq_db, SupportsFeatures):
+            raise TypeError(
+                f"type {type(seq_db)} does not match SupportsFeatures interface"
+            )
 
-    def annotate_from_gff(self, f):
-        """Copies annotations from gff-format file to self.
+        num = 0
+        for seqid in self.names:
+            num += seq_db.num_matches(seqid=seqid)
+            if num > 0:
+                break
+        else:
+            # no matching ID's, nothing to do
+            return
 
-        Matches by name of sequence. This method accepts string path
-        or pathlib.Path or file-like object (e.g. StringIO)
+        if self.annotation_db is None:
+            self.annotation_db = type(seq_db)()
 
-        Skips sequences in the file that are not in self.
+        if self.annotation_db.compatible(seq_db, symmetric=False):
+            # our db contains the tables in other, so we update in place
+            self.annotation_db.update(annot_db=seq_db, seqids=self.names)
+        else:
+            # we use the union method to define a new one
+            # the setter handles propagation of the new instance to bound
+            # sequences
+            self.annotation_db = self.annotation_db.union(seq_db)
+
+    def annotate_from_gff(
+        self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
+    ):
+        """copies annotations from a gff file to a sequence in self
+
+        Parameters
+        ----------
+        f : path to gff annotation file.
+        seq_name : names of seqs to be annotated.
+        does not support setting offset, set offset directly on sequences with seq.annotation_offset = offset
+
         """
+        if isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
 
-        seq_dict = {}
+        if isinstance(seq_ids, str):
+            seq_ids = [seq_ids]
+        else:
+            seq_ids = self.names
 
-        for gff_dict in gff_parser(f):
-            if gff_dict["SeqID"] not in self.named_seqs:
-                continue
-            seq_id = gff_dict["SeqID"]
-            if seq_id not in seq_dict.keys():
-                seq_dict[seq_id] = [gff_dict]
-                continue
-            seq_dict[seq_id].append(gff_dict)
-        for seq_id in seq_dict.keys():
-            seq = self.named_seqs[seq_id]
-            if not hasattr(seq, "annotations"):
-                seq = seq.data
-            seq.annotate_from_gff(seq_dict[seq_id], pre_parsed=True)
+        self.annotation_db = load_annotations(
+            path=f, seqids=seq_ids, db=self.annotation_db
+        )
+
+    def make_feature(
+        self,
+        *,
+        feature: FeatureDataType,
+    ) -> Feature:
+        """
+        create a feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        feature
+            a dict with all the necessary data rto construct a feature
+
+        Returns
+        -------
+        Feature
+
+        Notes
+        -----
+        To get a feature AND add it to annotation_db, use add_feature().
+        """
+        return self.named_seqs[feature["seqid"]].make_feature(feature)
+
+    def add_feature(
+        self,
+        *,
+        seqid: str,
+        biotype: str,
+        name: str,
+        spans: List[Tuple[int, int]],
+        parent_id: Optional[str] = None,
+        strand: str = "+",
+    ) -> Feature:
+        """
+        add feature on named sequence
+
+        Parameters
+        ----------
+        seqid
+            seq name to associate with
+        parent_id
+            name of the parent feature
+        biotype
+            biological type
+        name
+            feature name
+        spans
+            plus strand coordinates
+        strand
+            either '+' or '-'
+
+        Returns
+        -------
+        Feature
+        """
+        if not self.annotation_db:
+            # todo gah can we define the default in some better way?
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        if seqid and seqid not in self.names:
+            raise ValueError(f"unknown {seqid=}")
+
+        feature = {k: v for k, v in locals().items() if k != "self"}
+
+        self.annotation_db.add_feature(**feature)
+        feature.pop("parent_id", None)
+        return self.make_feature(feature=feature)
+
+    def get_features(
+        self,
+        *,
+        seqid: Union[str, Iterable[str]] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        if not self.annotation_db:
+            return None
+
+        seqids = [seqid] if isinstance(seqid, str) else seqid
+        if seqids is None:
+            seqids = self.names
+
+        if seqid and not set(seqids) & set(self.names):
+            raise ValueError(f"unknown {seqid=}")
+
+        for feature in self.annotation_db.get_features_matching(
+            seqid=seqid,
+            biotype=biotype,
+            name=name,
+            on_alignment=False,
+            allow_partial=allow_partial,
+        ):
+            seq = self.named_seqs[feature["seqid"]]
+            if offset := seq.annotation_offset:
+                feature["spans"] = (array(feature["spans"]) - offset).tolist()
+            yield seq.make_feature(feature, self)
+
+    def distance_matrix(self, calc="pdist"):
+        """Estimated pairwise distance between sequences
+
+        Parameters
+        ----------
+        calc : str
+            The distance calculation method to use, either "pdist" or "jc69"
+            "pdist" is an approximation of the proportion sites different
+            "jc69" is an approximation of the Jukes Cantor distance
+
+        Returns
+        -------
+        DistanceMatrix
+            Estimated pairwise distances between sequences in the collection
+
+        Notes
+        -----
+        pdist approximates the proportion sites different from the Jaccard
+        distance. Coefficients for the approximation were derived from a
+        polynomial fit between Jaccard distance of kmers with k=10 and the
+        proportion of sites different using mammalian 106 protein coding
+        gene DNA sequence alignments.
+
+        jc69 approximates the Jukes Cantor distance using the approximated
+        proportion sites different, i.e., a transformation of the above.
+        """
+        from cogent3.app.dist import get_approx_dist_calc
+
+        # check moltype
+        if not len(self.moltype.alphabet) == 4:
+            raise NotImplementedError("only defined for DNA/RNA molecular types")
+
+        # assert we have more than one sequence in the SequenceCollection
+        if self.num_seqs == 1:
+            raise ValueError(
+                "Pairwise distance cannot be computed for a single sequence. Please provide at least two sequences."
+            )
+
+        dist_calc_app = get_approx_dist_calc(
+            dist=calc, num_states=len(self.moltype.alphabet)
+        )
+
+        return dist_calc_app(self)
 
 
 @total_ordering
-class Aligned(object):
+class Aligned:
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
 
@@ -2044,11 +2316,11 @@ class Aligned(object):
 
     @extend_docstring_from(Sequence.annotate_matches_to)
     def annotate_matches_to(
-        self, pattern, annot_type, name, allow_multiple=False
+        self, pattern: str, biotype: str, name: str, allow_multiple: bool = False
     ):  # noqa
         return self.data.annotate_matches_to(
             pattern=pattern,
-            annot_type=annot_type,
+            biotype=biotype,
             name=name,
             allow_multiple=allow_multiple,
         )
@@ -2062,22 +2334,33 @@ class Aligned(object):
         """Returns a shallow copy of self"""
         return self.__class__(self.map, self.data)
 
-    def deepcopy(self, sliced=True):
+    def deepcopy(self, sliced=True, exclude_annotations=False):
         """
         Parameters
         -----------
         sliced : bool
             Slices underlying sequence with start/end of self coordinates. This
             has the effect of breaking the connection to any longer parent sequence.
+        exclude_annotations
+            drops annotation_db when True
 
         Returns
         -------
         a copy of self
         """
-        new_seq = self.data.copy()
+        new_seq = self.data.copy(exclude_annotations=exclude_annotations)
+        db = new_seq.annotation_db
         if sliced:
             span = self.map.get_covering_span()
-            new_seq = new_seq[span.start : span.end]
+            new_seq = type(new_seq)(
+                str(new_seq[span.start : span.end]), info=new_seq.info, name=self.name
+            )
+            new_seq.annotation_offset = self.map.start
+            if self.map.reverse or exclude_annotations:
+                new_seq.annotation_db = None
+            else:
+                new_seq.annotation_offset = self.map.start
+                new_seq.annotation_db = db
             new_map = self.map.zeroed()
         else:
             new_map = self.map
@@ -2090,13 +2373,24 @@ class Aligned(object):
     def with_termini_unknown(self):
         return self.__class__(self.map.with_termini_unknown(), self.data)
 
-    def copy_annotations(self, other):
+    @c3warn.deprecated_callable(
+        "2023.8",
+        reason="handled by <collection>.copy_annotations()",
+        is_discontinued=True,
+    )
+    def copy_annotations(self, other):  # pragma: no cover
         self.data.copy_annotations(other)
 
-    def annotate_from_gff(self, f):
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.annotate_from_gff()", is_discontinued=True
+    )
+    def annotate_from_gff(self, f):  # pragma: no cover
         self.data.annotate_from_gff(f)
 
-    def add_feature(self, *args, **kwargs):
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.add_feature()", is_discontinued=True
+    )
+    def add_feature(self, *args, **kwargs):  # pragma: no cover
         self.data.add_feature(*args, **kwargs)
 
     def __str__(self):
@@ -2156,15 +2450,22 @@ class Aligned(object):
         coords = self.map.get_covering_span().get_coordinates()
         if len(coords) != 1:
             raise NotImplementedError
-        start, end = coords[0]
-        data = self.data[start:end]
-        # drop any lost spans
-        for i, a in enumerate(data.annotations):
-            data.annotations[i] = a.without_lost_spans()
-        data = data.to_rich_dict()
-        data["seq"] = str(self)
-        data["version"] = __version__
+        data = dict(version=__version__, type=get_object_provenance(self))
+        # we are resetting the stored data to begin at 0
+        data["map_init"] = self.map.zeroed().to_rich_dict()
+        data["seq_init"] = self.data.to_rich_dict(exclude_annotations=True)
         return data
+
+    @classmethod
+    def from_rich_dict(cls, data: dict):
+        from cogent3.util.deserialise import (
+            deserialise_map_spans,
+            deserialise_seq,
+        )
+
+        map_ = deserialise_map_spans(data["map_init"])
+        seq = deserialise_seq(data["seq_init"])
+        return cls(map_, seq)
 
     def to_json(self):
         """returns a json formatted string"""
@@ -2178,14 +2479,26 @@ class Aligned(object):
     def remapped_to(self, map):
         return Aligned(map[self.map.inverse()].inverse(), self.data)
 
-    def get_annotations_matching(self, alignment, annotation_type="*", **kwargs):
-        for annot in self.data.get_annotations_matching(
-            annotation_type=annotation_type, **kwargs
-        ):
-            yield annot.remapped_to(alignment, self.map.inverse())
+    def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
+        """returns a feature, not written into annotation_db"""
+        annot = self.data.make_feature(feature)
+        return annot.remapped_to(alignment, self.map.inverse())
 
-    def get_drawables(self):
-        return self.data.get_drawables()
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.get_features()", is_discontinued=True
+    )
+    def get_annotations_matching(self, alignment, **kwargs):  # pragma: no cover
+        for feature in self.data.annotation_db.get_features(**kwargs):
+            yield self.make_feature(feature, alignment)
+
+    @c3warn.deprecated_callable(
+        "2023.10", "handled by <collection>.get_features()", is_discontinued=True
+    )
+    def get_features_matching(
+        self, alignment, annotation_type="*", **kwargs
+    ):  # pragma: no cover
+        for annot in self.data.get_features(biotype=annotation_type, **kwargs):
+            yield annot.remapped_to(alignment, self.map.inverse())
 
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
@@ -2235,43 +2548,26 @@ class AlignmentI(object):
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
 
-    def alignment_quality(self, equifreq_mprobs=True):
+    def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
-        Computes the alignment quality for an alignment based on eq. (2) in noted reference.
+        Computes the alignment quality using the indicated app
 
         Parameters
         ----------
-        equifreq_mprobs : bool
-            If true, specifies equally frequent motif probabilities.
+        app_name
+            name of an alignment score calculating app, e.g. 'ic_score',
+            'cogent3_score', 'sp_score'
 
-        Notes
-        -----
-        G. Z. Hertz, G. D. Stormo - Published 1999, Bioinformatics, vol. 15 pg. 563-577.
+        kwargs
+            keyword arguments to be passed to the app. Use
+            ``cogent3.app_help(app_name)`` to see the available options.
 
-        The alignment quality statistic is a log-likelihood ratio (computed using log2)
-        of the observed alignment column freqs versus the expected.
+        Returns
+        -------
+        float or a NotCompleted instance if the score could not be computed
         """
-        counts = self.counts_per_pos()
-        if counts.array.max() == 0 or len(self.seqs) == 1:
-            return None
-
-        motif_probs = self.get_motif_probs()
-
-        if equifreq_mprobs:
-            # we reduce motif_probs to observed states
-            motif_probs = {m: v for m, v in motif_probs.items() if v > 0}
-            num_motifs = len(motif_probs)
-            motif_probs = {m: 1 / num_motifs for m in motif_probs}
-
-        p = array([motif_probs.get(b, 0.0) for b in counts.motifs])
-
-        cols = p != 0
-        p = p[cols]
-        counts = counts.array[:, cols]
-        frequency = counts / self.num_seqs
-        log_f = safe_log(frequency / p)
-        I_seq = log_f * frequency
-        return I_seq.sum()
+        app = cogent3.get_app(app_name, **kwargs)
+        return app(self)
 
     def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.
@@ -2313,12 +2609,12 @@ class AlignmentI(object):
             col_lookup = dict.fromkeys(cols)
             for name, seq in list(self.named_seqs.items()):
                 result[name] = make_seq(
-                    [seq[i] for i in range(len(seq)) if i not in col_lookup]
+                    [str(seq[i]) for i in range(len(seq)) if i not in col_lookup]
                 )
         # otherwise, just get the requested indices
         else:
             for name, seq in list(self.named_seqs.items()):
-                result[name] = make_seq([seq[i] for i in cols])
+                result[name] = make_seq("".join(str(seq[i]) for i in cols))
         return self.__class__(result, names=self.names, info=self.info)
 
     def get_position_indices(self, f, native=False, negate=False):
@@ -2412,7 +2708,6 @@ class AlignmentI(object):
         exclude_unobserved=False,
         alert=False,
     ):
-
         """return MotifFreqsArray per sequence
 
         Parameters
@@ -2925,6 +3220,7 @@ class AlignmentI(object):
 
         text = [
             "<style>",
+            ".c3align table {margin: 10px 0;}",
             ".c3align td { border: none !important; text-align: left !important; }",
             ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3align tr:nth-child(even) {background: #f7f7f7;}",
@@ -3143,7 +3439,7 @@ class AlignmentI(object):
                 moltype = self.moltype
         return klass(data=data, moltype=moltype, info=self.info, names=self.names)
 
-    def distance_matrix(self, calc="percent", show_progress=False, drop_invalid=False):
+    def distance_matrix(self, calc="pdist", show_progress=False, drop_invalid=False):
         """Returns pairwise distances between sequences.
 
         Parameters
@@ -3508,6 +3804,63 @@ class AlignmentI(object):
         return freqs.logo(
             width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
         )
+
+    @c3warn.deprecated_args(
+        "2023.10", "logically inconsistent", discontinued="allow_partial"
+    )
+    @extend_docstring_from(_SequenceCollectionBase.trim_stop_codons)
+    def trim_stop_codons(
+        self, gc: Any = None, strict: bool = False, allow_partial=False, **kwargs
+    ):
+        if not self.has_terminal_stop(gc=gc, strict=strict):
+            return self
+
+        # define a regex for finding stop codons followed by terminal gaps
+        gc = get_code(gc)
+        gaps = "".join(self.moltype.gaps)
+        pattern = f"({'|'.join(gc['*'])})[{gaps}]*$"
+        terminal_stop = re.compile(pattern)
+
+        data = self.to_dict()
+        for name, seq in data.items():
+            if match := terminal_stop.search(seq):
+                diff = len(seq) - match.start()
+                seq = terminal_stop.sub("-" * diff, seq)
+            data[name] = seq
+
+        result = self.__class__(
+            data=data, info=self.info, moltype=self.moltype, **kwargs
+        )
+
+        if hasattr(self, "annotation_db"):
+            result.annotation_db = self.annotation_db
+
+        return result
+
+    @extend_docstring_from(_SequenceCollectionBase.get_translation)
+    def get_translation(
+        self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
+    ):
+        if len(self.moltype.alphabet) != 4:
+            raise TypeError("Must be a DNA/RNA")
+
+        translated = []
+        if not trim_stop or include_stop:
+            seqs = self
+        else:
+            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+        # do the translation
+        for seqname in seqs.names:
+            try:
+                seq = seqs.get_gapped_seq(seqname)
+            except AttributeError:
+                seq = seqs.named_seqs[seqname]
+            pep = seq.get_translation(
+                gc, incomplete_ok=incomplete_ok, include_stop=include_stop
+            )
+            translated.append((seqname, pep))
+        kwargs["moltype"] = pep.moltype
+        return self.__class__(translated, info=self.info, **kwargs)
 
 
 def _one_length(seqs):
@@ -3874,7 +4227,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         seqs = []
         limit = 10
         delimiter = ""
-        for (count, name) in enumerate(self.names):
+        for count, name in enumerate(self.names):
             if count == 3:
                 seqs.append("...")
                 break
@@ -4017,71 +4370,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             for gapchar in moltype.gaps:
                 s = s.replace(gapchar, ambig)
         return s
-
-    def trim_stop_codons(self, gc=1, allow_partial=False, **kwargs):
-        """Removes any terminal stop codons from the sequences
-
-        Parameters
-        ----------
-        gc
-            genetic code object
-        allow_partial
-            if True and the sequence length is not divisible
-            by 3, ignores the 3' terminal incomplete codon
-
-        """
-        gc = get_code(gc)
-        if len(self) % 3 != 0 and not allow_partial:
-            raise ValueError("alignment length not divisible by 3")
-
-        stops = gc["*"]
-        get_index = self.alphabet.degen.index
-        stop_indices = {tuple(map(get_index, stop)) for stop in stops}
-        new_data = self.array_seqs.copy()
-
-        gap_indices = {get_index(gap) for gap in self.moltype.gaps}
-        gap_index = get_index(self.moltype.gap)
-
-        trim_length = len(self)
-        seqs_with_stops = 0
-        for seq_num, seq in enumerate(new_data):
-            # reverse find first non-gap character
-            nondegen_index = None
-            for i in range(len(self) - 1, -1, -1):
-                e = seq[i]
-                if e not in gap_indices:
-                    nondegen_index = i + 1
-                    if nondegen_index % 3 != 0 and not allow_partial:
-                        raise ValueError(
-                            f"{self.names[seq_num]!r} length not divisible by 3"
-                        )
-                    break
-
-            if nondegen_index is None or nondegen_index < 3:
-                continue
-
-            # slice last three valid positions and see if stop
-            end_codon = tuple(seq[nondegen_index - 3 : nondegen_index])
-            if end_codon in stop_indices:
-                seqs_with_stops += 1
-                seq[nondegen_index - 3 : nondegen_index] = gap_index
-                trim_length = min([trim_length, nondegen_index - 3])
-
-        result = self.__class__(
-            new_data.T, moltype=self.moltype, names=self.names, info=self.info
-        )
-        # this is an ugly hack for rather odd standard behaviour
-        # we find the last alignment column to have not just gap chars
-        # and trim up to that
-        i = 0
-        for i in range(len(result) - 1, -1, -1):
-            col = set(result.array_seqs[:, i])
-            if not col <= gap_indices:
-                break
-        if len(result) != i:
-            result = result[: i + 1]
-
-        return result
 
     def get_degapped_relative_to(self, name):
         """Remove all columns with gaps in sequence with given name.
@@ -4359,7 +4647,7 @@ def make_gap_filter(template, gap_fraction, gap_run):
     return result
 
 
-class Alignment(_Annotatable, AlignmentI, SequenceCollection):
+class Alignment(AlignmentI, SequenceCollection):
     """An annotatable alignment class"""
 
     moltype = None  # note: this is reset to ASCII in moltype module
@@ -4391,24 +4679,51 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         self.seq_data = self._seqs = aligned_seqs
 
     def _coerce_seqs(self, seqs, is_array):
-        if not min(
-            [isinstance(seq, _Annotatable) or isinstance(seq, Aligned) for seq in seqs]
-        ):
+        if any(isinstance(seq, ArraySequence) for seq in seqs):
+            seqs = [self.moltype.make_seq(str(seq), name=seq.name) for seq in seqs]
+        elif not any(isinstance(seq, (Sequence, Aligned)) for seq in seqs):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
     def _seq_to_aligned(self, seq, key):
         """Converts seq to Aligned object -- override in subclasses"""
+        db = getattr(seq, "annotation_db", None)
         (map, seq) = self.moltype.make_seq(
             seq, key, preserve_case=True
         ).parse_out_gaps()
+        seq.annotation_db = db
         return Aligned(map, seq)
+
+    def __getitem__(self, index):
+        if hasattr(index, "get_slice"):
+            if index.parent is not self:
+                raise ValueError(f"feature.parent {index.seqid!r} is not self")
+            return index.get_slice()
+
+        if isinstance(index, Map):
+            new = self._mapped(index)
+
+        elif isinstance(index, (int, slice)):
+            seqs = [s[index] for s in self.seqs]
+
+            new = self.__class__(seqs, name=self.name, info=self.info)
+
+        if isinstance(index, (list, tuple)):
+            raise TypeError(f"cannot slice using {type(index)}")
+
+        if self.annotation_db is not None:
+            new.annotation_db = self.annotation_db
+
+        if hasattr(self, "_repr_policy"):
+            new._repr_policy.update(self._repr_policy)
+
+        return new
 
     def __repr__(self):
         seqs = []
         limit = 10
         delimiter = ""
-        for (count, name) in enumerate(self.names):
+        for count, name in enumerate(self.names):
             if count == 3:
                 seqs.append("...")
                 break
@@ -4419,6 +4734,26 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         seqs = ", ".join(seqs)
 
         return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        # Without knowing the contents of the db we cannot
+        # establish whether self.moltype is compatible, so
+        # we rely on the user to get that correct
+        # one approach to support validation might be to add
+        # to the SupportsFeatures protocol a is_nucleic flag,
+        # for both DNA and RNA. But if a user trys get_slice()
+        # on a '-' strand feature, they will get a TypError.
+        # I think that's enough.
+
+        self._annotation_db = value
+        for seq in self.seqs:
+            seq = getattr(seq, "data", seq)
+            seq.replace_annotation_db(value, check=False)
 
     def _mapped(self, slicemap):
         align = []
@@ -4436,37 +4771,107 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             seqs.append((seq_name, seq))
         return self.__class__(moltype=self.moltype, data=seqs, **kwargs)
 
-    def project_annotation(self, seq_name, annot):
-        target_aligned = self.named_seqs[seq_name]
+    def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
+        """returns an alignment feature projected onto the seqid sequence
+
+        Parameters
+        ----------
+        seqid
+            name of the sequence to project the feature onto
+        feature
+            a Feature, bound to self, that will be projected
+
+        Returns
+        -------
+        a new Feature bound to seqid
+
+        Notes
+        -----
+        The alignment coordinates of feature are converted into the seqid
+        sequence coordinates and the object is bound to that sequence.
+
+        The feature is added to the annotation_db.
+        """
+        target_aligned = self.named_seqs[seqid]
+        if feature.parent is not self:
+            raise ValueError("Feature does not belong to this alignment")
+        result = feature.remapped_to(target_aligned.data, target_aligned.map)
+
+        if not self.annotation_db:
+            # todo gah improve bound db initialisation
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        self.annotation_db.add_feature(**feature.to_dict())
+        return result
+
+    @c3warn.deprecated_callable(
+        "2023.8",
+        reason="use <collection>.get_projected_feature()",
+        is_discontinued=True,
+    )
+    def project_annotation(self, seqid, annot):
+        """projects the alignment coordinate annotation onto seq"""
+        target_aligned = self.named_seqs[seqid]
         if annot.parent is not self:
-            raise ValueError("Annotation does not belong to this alignment")
+            raise ValueError("Feature does not belong to this alignment")
         return annot.remapped_to(target_aligned.data, target_aligned.map)
 
-    def get_projected_annotations(self, seq_name, *args):
-        aln_annots = self.get_annotations_matching(*args)
-        return [self.project_annotation(seq_name, a) for a in aln_annots]
+    def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
+        """projects all features from other sequences onto seqid"""
+        # todo gah should there be a generator version,
+        # iter_projected_features()?
+        annots = []
+        for name in self.names:
+            if name == seqid:
+                continue
+            annots.extend(list(self.get_features(seqid=name, **kwargs)))
+        return [self.get_projected_feature(seqid=seqid, feature=a) for a in annots]
 
-    def get_annotations_from_seq(self, seq_name, annotation_type="*", **kwargs):
-        aligned = self.named_seqs[seq_name]
-        return aligned.get_annotations_matching(
-            self, annotation_type=annotation_type, **kwargs
-        )
+    @c3warn.deprecated_callable(
+        "2023.8",
+        reason="use <collection>.get_projected_features()",
+        is_discontinued=True,
+    )
+    def get_projected_annotations(self, *, seqid: str, **kwargs):
+        # todo gah make sure the original sequence is not the seqid
+        aln_annots = list(self.get_features(**kwargs))
+        return [self.project_annotation(seqid, a) for a in aln_annots]
 
-    def get_annotations_from_any_seq(self, annotation_type="*", **kwargs):
+    @c3warn.deprecated_callable(
+        "2023.8",
+        reason="use <collection>.get_features(seqid=<seq_name>)",
+        is_discontinued=True,
+    )
+    def get_annotations_from_seq(
+        self, seq_name, annotation_type="*", **kwargs
+    ):  # pragma: no cover
+        return self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
+
+    @c3warn.deprecated_callable(
+        "2023.8", reason="use <collection>.get_features()", is_discontinued=True
+    )
+    def get_annotations_from_any_seq(
+        self, annotation_type="*", **kwargs
+    ):  # pragma: no cover
         result = []
         for seq_name in self.names:
-            a = self.get_annotations_from_seq(
-                seq_name, annotation_type=annotation_type, **kwargs
+            a = list(
+                self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
             )
             result.extend(a)
         return result
 
-    def get_by_seq_annotation(self, seq_name, *args):
+    @c3warn.deprecated_callable(
+        "2023.8",
+        reason="handled by <collection>.get_features(seqid=<seqid>)",
+        is_discontinued=True,
+    )
+    def get_by_seq_annotation(self, seq_name, *args):  # pragma: no cover
         result = []
-        for feature in self.get_annotations_from_seq(seq_name, *args):
-            segment = self[feature.map.start : feature.map.end]
+        for feature in self.get_features(seqid=seq_name):
+            segment = self[feature]
             segment.name = '%s "%s" %s to %s of %s' % (
-                feature.type,
+                feature.biotype,
                 feature.name,
                 feature.map.start,
                 feature.map.end,
@@ -4475,13 +4880,18 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             result.append(segment)
         return result
 
-    def with_masked_annotations(self, annot_types, mask_char=None, shadow=False):
+    @c3warn.deprecated_args(
+        "2023.8",
+        reason="consistency with new API",
+        old_new=[("annot_types", "biotypes")],
+    )
+    def with_masked_annotations(self, biotypes, mask_char=None, shadow=False):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.
 
         Parameters
         ----------
-        annot_types
+        biotypes
             annotation type(s)
         mask_char
             must be a character valid for the seq moltype. The
@@ -4493,9 +4903,11 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         """
         masked_seqs = []
         for seq in self.seqs:
-            # we mask each sequence using these spans
-            masked_seqs += [seq._masked_annotations(annot_types, mask_char, shadow)]
+            # todo gah why is _masked_annotations semi-private? add public method
+            # on Aligned
+            masked_seqs += [seq._masked_annotations(biotypes, mask_char, shadow)]
         new = self.__class__(data=masked_seqs, info=self.info, name=self.name)
+        new.annotation_db = self.annotation_db
         return new
 
     @extend_docstring_from(ArrayAlignment.filtered)
@@ -4513,7 +4925,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         ]
 
         positions = list(zip(*seqs))
-        for (position, column) in enumerate(positions):
+        for position, column in enumerate(positions):
             keep = predicate(column)
             if kept != keep:
                 gv.append(position * motif_length)
@@ -4584,11 +4996,11 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             gsq = template.get_gapped_seq(name)
             assert len(gsq) == len(seq)
             combo = []
-            for (s, g) in zip(seq, gsq):
+            for s, g in zip(seq, gsq):
                 if g == tgp:
                     combo.append(gap)
                 else:
-                    combo.append(s)
+                    combo.append(str(s))
             result[name] = combo
         return Alignment(result, alphabet=self.alphabet.with_gap_motif())
 
@@ -4744,20 +5156,318 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
 
         return self.__class__(new_seqs, info=self.info)
 
-    def to_moltype(self, moltype):
-        """returns copy of self with moltype seqs"""
-        new = super().to_moltype(moltype)
-        for annot in self.annotations:
-            new = annot.copy_annotations_to(new)
-        return new
+    def get_drawables(self, *, biotype: Optional[str, Iterable[str]] = None) -> dict:
+        """returns a dict of drawables, keyed by type
 
-    def get_drawables(self):
-        """returns a dict of drawables, keyed by type"""
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        """
         result = defaultdict(list)
-        for a in self.get_annotations_from_any_seq():
-            d = a.get_drawable()
-            if not d:
-                continue
-            result[a.type].append(d)
-
+        for f in self.get_features(biotype=biotype, allow_partial=True):
+            result[f.biotype].append(f.get_drawable())
         return result
+
+    def get_drawable(
+        self,
+        *,
+        biotype: Optional[str, Iterable[str]] = None,
+        width: int = 600,
+        vertical: int = False,
+    ):
+        """make a figure from sequence features
+
+        Parameters
+        ----------
+        biotype
+            passed to get_features(biotype). Can be a single biotype or
+            series. Only features matching this will be included.
+        width
+            width in pixels
+        vertical
+            rotates the drawable
+
+        Returns
+        -------
+        a Drawable instance
+        """
+        # todo gah I think this needs to be modified to make row-blocks
+        # for each sequence in the alignment, or are we displaying the
+        # sequence name in the feature label?
+        from cogent3.draw.drawable import Drawable
+
+        drawables = self.get_drawables(biotype=biotype)
+        if not drawables:
+            return None
+        # we order by tracks
+        top = 0
+        space = 0.25
+        annotes = []
+        for feature_type in drawables:
+            new_bottom = top + space
+            for i, annott in enumerate(drawables[feature_type]):
+                annott.shift(y=new_bottom - annott.bottom)
+                if i > 0:
+                    # todo modify the api on annott, we should not be using
+                    # a private attribute!
+                    annott._showlegend = False
+                annotes.append(annott)
+
+            top = annott.top
+
+        top += space
+        height = max((top / len(self)) * width, 300)
+        xaxis = dict(range=[0, len(self)], zeroline=False, showline=True)
+        yaxis = dict(range=[0, top], visible=False, zeroline=True, showline=True)
+
+        if vertical:
+            all_traces = [t.T.as_trace() for t in annotes]
+            width, height = height, width
+            xaxis, yaxis = yaxis, xaxis
+        else:
+            all_traces = [t.as_trace() for t in annotes]
+
+        drawer = Drawable(
+            title=self.name, traces=all_traces, width=width, height=height
+        )
+        drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
+        return drawer
+
+    def add_feature(
+        self,
+        *,
+        biotype: str,
+        name: str,
+        spans: List[Tuple[int, int]],
+        seqid: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        strand: str = "+",
+        on_alignment: Optional[bool] = None,
+    ) -> Feature:
+        """
+        add feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        seqid
+            sequence name, incompatible with on_alignment
+        parent_id
+            name of the parent feature
+        biotype
+            biological type, e.g. CDS
+        name
+            name of the feature
+        spans
+            plus strand coordinates of feature
+        strand
+            '+' (default) or '-'
+        on_alignment
+            the feature is in alignment coordinates, incompatible with setting
+            seqid. Set to True if seqid not provided.
+
+        Returns
+        -------
+        Feature
+
+        Raises
+        ------
+        ValueError if define a seqid not on alignment or use seqid and
+        on_alignment.
+        """
+        if seqid and on_alignment is None:
+            on_alignment = False
+        elif not on_alignment:
+            on_alignment = True if on_alignment is None else False
+
+        if seqid and on_alignment:
+            raise ValueError("seqid and on_alignment are incomatible")
+
+        if seqid and seqid not in self.names:
+            raise ValueError(f"unknown {seqid=}")
+
+        if not self.annotation_db:
+            # probably need to define the default in some better way
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        feature = {k: v for k, v in locals().items() if k != "self"}
+
+        self.annotation_db.add_feature(**feature)
+        for discard in ("on_alignment", "parent_id"):
+            feature.pop(discard, None)
+        return self.make_feature(feature=feature, on_alignment=on_alignment)
+
+    def make_feature(
+        self,
+        *,
+        feature: FeatureDataType,
+        on_alignment: Optional[bool] = None,
+    ) -> Feature:
+        """
+        create a feature on named sequence, or on the alignment itself
+
+        Parameters
+        ----------
+        feature
+            a dict with all the necessary data rto construct a feature
+        on_alignment
+            the feature is in alignment coordinates, incompatible with setting
+            'seqid'. Set to True if 'seqid' not provided.
+
+        Returns
+        -------
+        Feature
+
+        Raises
+        ------
+        ValueError if define a 'seqid' not on alignment or use 'seqid' and
+        on_alignment.
+
+        Notes
+        -----
+        To get a feature AND add it to annotation_db, use add_feature().
+        """
+        if on_alignment is None:
+            on_alignment = feature.pop("on_alignment", None)
+
+        if not on_alignment and feature["seqid"]:
+            return self.named_seqs[feature["seqid"]].make_feature(feature, self)
+
+        feature["seqid"] = feature.get("seqid", None)
+        # there's no sequence to bind to, the feature is directly on self
+        # todo gah check handling of strand etc..., maybe reuse code
+        # in Sequence?
+        fmap = Map(parent_length=len(self), locations=feature.pop("spans"))
+        if feature.pop("reversed", None):
+            fmap = fmap.nucleic_reversed()
+        feature.pop("strand", None)
+        return Feature(parent=self, map=fmap, **feature)
+
+    def _get_seq_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        if self.annotation_db is None:
+            return None
+
+        seqids = [seqid] if isinstance(seqid, str) else seqid
+        if seqids is None:
+            seqids = self.names
+
+        if seqid and not set(seqids) & set(self.names):
+            raise ValueError(f"unknown {seqid=}")
+
+        for seqid in seqids:
+            seq = self.named_seqs[seqid]
+
+            start, end = seq.map.start, seq.map.end
+            offset = seq.data.annotation_offset
+
+            for feature in self.annotation_db.get_features_matching(
+                seqid=seqid,
+                biotype=biotype,
+                name=name,
+                on_alignment=False,
+                allow_partial=allow_partial,
+                start=start,
+                end=end,
+            ):
+                if offset:
+                    feature["spans"] = (array(feature["spans"]) - offset).tolist()
+                # passing self only used when self is an Alignment
+                yield seq.make_feature(feature, self)
+
+    def get_features(
+        self,
+        *,
+        seqid: Optional[str] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        on_alignment: Optional[bool] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        on_alignment
+            limit query to features on Alignment, ignores sequences. Ignored on
+            SequenceCollection instances.
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        # we only do on-alignment in here
+        if not on_alignment:
+            kwargs = {
+                k: v for k, v in locals().items() if k not in ("self", "__class__")
+            }
+            kwargs.pop("on_alignment")
+            yield from self._get_seq_features(**kwargs)
+
+        if on_alignment == False:
+            return
+
+        if self.annotation_db is None:
+            anno_db = merged_db_collection(self.seqs)
+            self.annotation_db = anno_db
+
+        if self.annotation_db is None:
+            return None
+
+        seq_map = None
+        for feature in self.annotation_db.get_features_matching(
+            biotype=biotype,
+            name=name,
+            on_alignment=on_alignment,
+            allow_partial=allow_partial,
+        ):
+            if feature["seqid"]:
+                continue
+            on_al = feature.pop("on_alignment", on_alignment)
+            if feature["seqid"]:
+                raise RuntimeError(f"{on_alignment=} {feature=}")
+            if seq_map is None:
+                seq_map = self.seqs[0].map
+
+            spans = numpy.array(feature["spans"])
+            spans = seq_map.relative_position(spans)
+            feature["spans"] = spans.tolist()
+            # and if i've been reversed...?
+            feature["reversed"] = seq_map.reverse
+            yield self.make_feature(feature=feature, on_alignment=on_al)

@@ -51,21 +51,6 @@ warnings.filterwarnings("ignore", "Ignoring tree edge lengths")
 TimeReversibleNucleotide = substitution_model.TimeReversibleNucleotide
 MotifChange = predicate.MotifChange
 
-__author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Peter Maxwell",
-    "Gavin Huttley",
-    "Rob Knight",
-    "Matthew Wakefield",
-    "Brett Easton",
-    "Ananias Iliadis",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 base_path = os.getcwd()
 data_path = os.path.join(base_path, "data")
@@ -364,7 +349,7 @@ class LikelihoodFunctionTests(TestCase):
         return lf
 
     def _setLengthsAndBetas(self, likelihood_function):
-        for (species, length) in [
+        for species, length in [
             ("DogFaced", 0.1),
             ("NineBande", 0.2),
             ("Human", 0.3),
@@ -374,7 +359,7 @@ class LikelihoodFunctionTests(TestCase):
             likelihood_function.set_param_rule(
                 "length", value=length, edge=species, is_constant=True
             )
-        for (species1, species2, length) in [
+        for species1, species2, length in [
             ("Human", "HowlerMon", 0.7),
             ("Human", "Mouse", 0.6),
         ]:
@@ -536,29 +521,6 @@ DogFaced   root      1.00  1.00
         lf.set_alignment(al)
         simalign = lf.simulate_alignment()
         self.assertEqual(len(simalign), 6)
-
-    def test_simulate_alignment3(self):
-        """Simulated alignment with gap-induced ambiguous positions
-        preserved"""
-        t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
-        al = make_aligned_seqs(
-            data={
-                "a": "g--cactat?",
-                "b": "---c-ctcct",
-                "c": "-a-c-ctat-",
-                "d": "-a-c-ctat-",
-            }
-        )
-        sm = TimeReversibleNucleotide(recode_gaps=True)
-        lf = sm.make_likelihood_function(t)
-        # pc.set_constant_lengths()
-        lf.set_alignment(al)
-        # print lf.simulate_alignment(sequence_length=10)
-        simulated = lf.simulate_alignment()
-        self.assertEqual(len(simulated.names), 4)
-        import re
-
-        self.assertEqual(re.sub("[ATCG]", "x", simulated.to_dict()["a"]), "x??xxxxxx?")
 
     def test_simulate_alignment_root_sequence(self):
         """provide a root sequence for simulating an alignment"""
@@ -874,7 +836,7 @@ DogFaced     root      1.0000    1.0000
         tree = self.tree.get_sub_tree(aln.names)
         lf = sm.make_likelihood_function(tree)
         lf.set_alignment(aln)
-        lf.optimise(max_evaluations=100, limit_action="ignore")
+        lf.optimise(max_evaluations=100, limit_action="ignore", show_progress=False)
         rules = lf.get_param_rules()
 
         new_lf = sm.make_likelihood_function(tree)
@@ -2145,8 +2107,6 @@ class ComparisonTests(TestCase):
         lf.set_param_rule("length", is_independent=False)
         lf.set_param_rule("kappa", loci=ALL)
         lf.set_alignment(loci)
-        # lf.optimise()
-        # rules = lf.get_param_rules()
         rules = [
             {
                 "par_name": "kappa",
@@ -2274,6 +2234,30 @@ class ComparisonTests(TestCase):
         lnL, nfp = -9167.537271862948, 3
         assert_allclose(lf.lnL, lnL)
         assert_allclose(lf.nfp, nfp)
+
+
+def test_simulate_alignment3():
+    """Simulated alignment with gap-induced ambiguous positions
+    preserved"""
+    t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
+    al = make_aligned_seqs(
+        data={
+            "a": "g--cactat?",
+            "b": "---c-ctcct",
+            "c": "-a-c-ctat-",
+            "d": "-a-c-ctat-",
+        }
+    )
+    sm = TimeReversibleNucleotide(recode_gaps=True)
+    lf = sm.make_likelihood_function(t)
+
+    lf.set_alignment(al)
+
+    simulated = lf.simulate_alignment()
+    assert len(simulated.names) == 4
+    import re
+
+    assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "x??xxxxxx?"
 
 
 if __name__ == "__main__":

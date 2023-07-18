@@ -1,33 +1,7 @@
-#!/usr/bin/env python
-
 import numpy
 
-from cogent3.align import indel_model, pairwise, pycompare
+from cogent3.align import indel_model, pairwise
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
-from cogent3.util.warning import discontinued
-
-
-Float = numpy.core.numerictypes.sctype2char(float)
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
-
-
-def dotplot(seq1, seq2, window, threshold, **kw):
-    discontinued(
-        "function",
-        "dotplot",
-        "2023.5",
-        "replaced by much faster cogent3.align.compare.find_matched_paths",
-    )
-    return pycompare.dotplot(seq1, seq2, window, threshold, **kw)
 
 
 def make_dna_scoring_dict(match, transition, transversion):
@@ -96,12 +70,12 @@ def classic_align_pairwise(s1, s2, Sd, d, e, local, return_score=False, **kw):
     TM = indel_model.classic_gap_scores(d, e)
     a1 = s1.moltype.alphabet
     a2 = s2.moltype.alphabet
-    S = numpy.zeros([len(a1), len(a2)], Float)
-    for (i, m1) in enumerate(a1):
-        for (j, m2) in enumerate(a2):
+    S = numpy.zeros([len(a1), len(a2)], float)
+    for i, m1 in enumerate(a1):
+        for j, m2 in enumerate(a2):
             S[i, j] = Sd[m1, m2]
     psub = numpy.exp(S)
-    mprobs = numpy.ones(len(psub), Float) / len(psub)
+    mprobs = numpy.ones(len(psub), float) / len(psub)
     return _align_pairwise(
         s1, s2, mprobs, psub, TM, local, return_score=return_score, **kw
     )

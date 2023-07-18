@@ -9,16 +9,6 @@ from cogent3.parse.record import MappedRecord
 from cogent3.util.misc import ConstrainedDict, Delegator, FunctionWrapper
 
 
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Prototype"
-
-
 class DbRef(object):
     """Holds a database accession, and optionally other data.
 
@@ -203,7 +193,6 @@ class Info(MappedRecord, Delegator):
 
     def update(self, item):
         """updates with another info object and warns when overwriting keys"""
-        overwrites = (set(self) ^ set(["Refs"])) & ((set(item)) ^ set(["Refs"]))
-        if overwrites:
+        if overwrites := (set(self) ^ {"Refs"}) & ((set(item)) ^ {"Refs"}):
             warn("Keys overwritten by other sequence: " + "".join(overwrites))
         return super(Info, self).update(item)

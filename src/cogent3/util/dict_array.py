@@ -26,18 +26,9 @@ from itertools import combinations, product
 
 import numpy
 
+from cogent3._version import __version__
 from cogent3.util.io import atomic_write
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Ben Kaehler"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Peter Maxwell"
-__email__ = "pm67nz@gmail.com"
-__status__ = "Production"
 
 
 def convert_1D_dict(data, row_order=None):
@@ -301,7 +292,7 @@ class DictArrayTemplate(object):
                 r, h = self.names[0], None
             array, _, _ = convert_for_dictarray(array, h, r)
         array = numpy.asarray(array, dtype=dtype)
-        for (dim, categories) in enumerate(self.names):
+        for dim, categories in enumerate(self.names):
             assert len(categories) == numpy.shape(array)[dim], "cats=%s; dim=%s" % (
                 categories,
                 dim,
@@ -318,7 +309,7 @@ class DictArrayTemplate(object):
 
         index = []
         remaining = []
-        for (ordinals, allnames, name) in zip(self.ordinals, self.names, names):
+        for ordinals, allnames, name in zip(self.ordinals, self.names, names):
             if type(name) not in (int, slice, list, numpy.ndarray):
                 name = ordinals[name]
             elif isinstance(name, slice):

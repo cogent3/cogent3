@@ -1,5 +1,4 @@
 import inspect
-import os
 import pickle
 import shutil
 
@@ -16,7 +15,7 @@ from scitrack import CachingLogger
 
 from cogent3 import get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
-from cogent3.app import io_new as io_app
+from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
 from cogent3.app import typing as c3types
@@ -27,13 +26,11 @@ from cogent3.app.composable import (
     __app_registry,
     _add,
     _get_raw_hints,
-    appify,
     define_app,
     get_object_provenance,
     is_composable,
-    user_function,
 )
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     APPEND,
     OVERWRITE,
     READONLY,
@@ -51,27 +48,13 @@ from cogent3.app.typing import (
 from cogent3.core.alignment import Alignment, SequenceCollection
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
-DATA_DIR = Path(__file__).parent.parent / "data"
+@pytest.fixture(scope="function")
+def tmp_dir(tmp_path_factory):
+    return tmp_path_factory.mktemp("datastore")
 
 
 @pytest.fixture(scope="function")
-def tmp_dir(tmpdir_factory):
-    return tmpdir_factory.mktemp("datastore")
-
-
-@pytest.fixture(scope="function")
-def fasta_dir(tmp_dir):
-    tmp_dir = Path(tmp_dir)
+def fasta_dir(DATA_DIR, tmp_dir):
     filenames = DATA_DIR.glob("*.fasta")
     fasta_dir = tmp_dir / "fasta"
     fasta_dir.mkdir(parents=True, exist_ok=True)
@@ -83,7 +66,6 @@ def fasta_dir(tmp_dir):
 
 @pytest.fixture(scope="function")
 def write_dir1(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     write_dir1 = tmp_dir / "write1"
     write_dir1.mkdir(parents=True, exist_ok=True)
     yield write_dir1
@@ -92,7 +74,6 @@ def write_dir1(tmp_dir):
 
 @pytest.fixture(scope="function")
 def write_dir2(tmp_dir):
-    tmp_dir = Path(tmp_dir)
     write_dir2 = tmp_dir / "write2"
     write_dir2.mkdir(parents=True, exist_ok=True)
     yield write_dir2
@@ -118,7 +99,7 @@ def nc_objects():
 
 
 @pytest.fixture(scope="function")
-def log_data():
+def log_data(DATA_DIR):
     path = DATA_DIR / "scitrack.log"
     return path.read_text()
 
@@ -133,6 +114,15 @@ def full_dstore(write_dir1, nc_objects, completed_objects, log_data):
         dstore.write(unique_id=id, data=data)
 
     dstore.write_log(unique_id="scitrack.log", data=log_data)
+    return dstore
+
+
+@pytest.fixture(scope="function")
+def nc_dstore(tmp_dir, nc_objects):
+    dstore = DataStoreDirectory(tmp_dir, suffix="fasta", mode=OVERWRITE)
+    for id, data in nc_objects.items():
+        dstore.write_not_completed(unique_id=id, data=data.to_json())
+
     return dstore
 
 
@@ -302,7 +292,7 @@ def test_disconnect():
     __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
 
 
-def test_as_completed():
+def test_as_completed(DATA_DIR):
     """correctly applies iteratively"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = get_app("load_unaligned", format="fasta", moltype="dna")
@@ -334,7 +324,7 @@ def test_as_completed():
 
 
 @pytest.mark.parametrize("klass", (DataStoreDirectory,))
-def test_apply_to_strings(tmp_dir, klass):
+def test_apply_to_strings(DATA_DIR, tmp_dir, klass):
     """apply_to handles strings as paths"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     dstore = [str(m) for m in dstore]
@@ -365,7 +355,7 @@ def test_apply_to_non_unique_identifiers(tmp_dir):
         process.apply_to(dstore)
 
 
-def test_apply_to_logging(tmp_dir):
+def test_apply_to_logging(DATA_DIR, tmp_dir):
     """correctly creates log file"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -378,7 +368,7 @@ def test_apply_to_logging(tmp_dir):
     assert len(process.data_store.logs) == 1
 
 
-def test_apply_to_logger(tmp_dir):
+def test_apply_to_logger(DATA_DIR, tmp_dir):
     """correctly uses user provided logger"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     LOGGER = CachingLogger()
@@ -392,7 +382,7 @@ def test_apply_to_logger(tmp_dir):
 
 
 @pytest.mark.parametrize("logger_val", (True, "somepath.log"))
-def test_apply_to_invalid_logger(tmp_dir, logger_val):
+def test_apply_to_invalid_logger(DATA_DIR, tmp_dir, logger_val):
     """incorrect logger value raises TypeError"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -403,10 +393,24 @@ def test_apply_to_invalid_logger(tmp_dir, logger_val):
     with pytest.raises(TypeError):
         process.apply_to(dstore, show_progress=False, logger=logger_val)
 
-    out_dstore.close()
+
+def test_apply_to_input_only_not_completed(DATA_DIR, nc_dstore, tmp_dir):
+    """correctly skips notcompleted"""
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    # trigger creation of notcompleted
+    outpath = tmp_dir / "delme.sqlitedb"
+    out_dstore = open_data_store(outpath, mode="w")
+    writer = io_app.write_db(out_dstore)
+    process = (
+        io_app.load_aligned(format="fasta", moltype="dna")
+        + sample_app.min_length(3000)
+        + writer
+    )
+    process.apply_to(dstore, show_progress=False)
+    assert len(out_dstore.not_completed) == len(nc_dstore)
 
 
-def test_apply_to_not_completed(tmp_dir):
+def test_apply_to_makes_not_completed(DATA_DIR, tmp_dir):
     """correctly creates notcompleted"""
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
     reader = io_app.load_aligned(format="fasta", moltype="dna")
@@ -419,7 +423,7 @@ def test_apply_to_not_completed(tmp_dir):
     assert len(out_dstore.not_completed) == 3
 
 
-def test_apply_to_not_partially_done(tmp_dir):
+def test_apply_to_not_partially_done(DATA_DIR, tmp_dir):
     """correctly applies process when result already partially done"""
     dstore = open_data_store(DATA_DIR, suffix="fasta")
     num_records = len(dstore)
@@ -552,13 +556,6 @@ def _demo(ctx, expect):
     return ctx.frame_start == expect
 
 
-# for testing appify
-@appify(SERIALISABLE_TYPE, SERIALISABLE_TYPE)
-def slicer(val, index=2):
-    """my docstring"""
-    return val[:index]
-
-
 @define_app
 def foo(val: AlignedSeqsType, *args, **kwargs) -> AlignedSeqsType:
     return val[:4]
@@ -615,26 +612,6 @@ def test_user_function_multiple():
     assert got_2 == {("s1", "s2"): 2.0, ("s2", "s1"): 2.0}
 
 
-def test_appify():
-    """acts like a decorator should!"""
-    assert slicer.__doc__ == "my docstring"
-    assert slicer.__name__ == "slicer"
-    app = slicer()
-    assert SERIALISABLE_TYPE in app._input_types
-    assert SERIALISABLE_TYPE in app._output_types
-    assert app(list(range(4))) == [0, 1]
-    app2 = slicer(index=3)
-    assert app2(list(range(4))) == [0, 1, 2]
-
-
-def test_appify_pickle():
-    """appified function should be pickleable"""
-    app = slicer(index=6)
-    dumped = dumps(app)
-    loaded = loads(dumped)
-    assert loaded(list(range(10))) == list(range(6))
-
-
 def test_user_function_repr():
     got = repr(bar(num=3))
     assert got == "bar(num=3)"
@@ -643,48 +620,6 @@ def test_user_function_repr():
 def test_user_function_str():
     got = str(bar(num=3))
     assert got == "bar(num=3)"
-
-
-def test_user_function_with_args_kwargs():
-    """correctly handles definition with args, kwargs"""
-    from math import log
-
-    def product(val, multiplier, take_log=False):
-        result = val * multiplier
-        if take_log:
-            result = log(result)
-
-        return result
-
-    # without defining any args, kwargs
-    ufunc = user_function(
-        product,
-        SERIALISABLE_TYPE,
-        SERIALISABLE_TYPE,
-    )
-    assert ufunc(2, 2) == 4
-    assert ufunc(2, 2, take_log=True) == log(4)
-
-    # defining default arg2
-    ufunc = user_function(
-        product,
-        SERIALISABLE_TYPE,
-        SERIALISABLE_TYPE,
-        2,
-    )
-    assert ufunc(2) == 4
-    assert ufunc(2, take_log=True) == log(4)
-
-    # defining default kwarg only
-    ufunc = user_function(product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, take_log=True)
-    assert ufunc(2, 2) == log(4)
-    assert ufunc(2, 2, take_log=False) == 4
-
-    # defining default arg and kwarg
-    ufunc = user_function(
-        product, SERIALISABLE_TYPE, SERIALISABLE_TYPE, 2, take_log=True
-    )
-    assert ufunc(2) == log(4)
 
 
 def test_app_registry():
@@ -732,7 +667,6 @@ def test_concat_not_composable():
 
 
 def test_composed_func_pickleable():
-
     ml = min_length(100)
     no_degen = omit_degenerates(moltype="dna")
     app = ml + no_degen
@@ -906,7 +840,7 @@ def test_inheritance_from_decorated_class():
 # have to define this at module level for pickling to work
 @define_app
 def func2app(arg1: int, exponent: int) -> float:
-    return arg1 ** exponent
+    return arg1**exponent
 
 
 def test_decorate_app_function():
@@ -932,7 +866,7 @@ def test_roundtrip_decorated_function():
 def test_decorated_func_optional():
     @define_app(app_type=NON_COMPOSABLE)
     def power(val: int, pow: int = 1) -> int:
-        return val ** pow
+        return val**pow
 
     sqd = power(2)
     assert sqd(3) == 9
@@ -942,19 +876,19 @@ def test_decorated_func_optional():
 
 def test_decorated_func_repr():
     def kw(val: int = 1) -> int:
-        return val ** val
+        return val**val
 
     def kw_kw(val: int = 1, pow: int = 1) -> int:
-        return val ** pow
+        return val**pow
 
     def pos(val: int) -> int:
-        return val ** val
+        return val**val
 
     def pos_pos(val: int, pow: int) -> int:
-        return val ** pow
+        return val**pow
 
     def pos_kw(val: int, pow: int = 1) -> int:
-        return val ** pow
+        return val**pow
 
     fns = {fn: func for fn, func in locals().items() if callable(func)}
     args = {"pos": 4, "kw": dict(pow=3)}
@@ -978,7 +912,7 @@ def test_decorated_func_repr():
 def test_decorated_func_just_args():
     @define_app(app_type=NON_COMPOSABLE)
     def power(val: int, pow: int) -> int:
-        return val ** pow
+        return val**pow
 
     sqd = power()
     assert sqd(3, 3) == 27

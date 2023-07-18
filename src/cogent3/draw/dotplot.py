@@ -9,16 +9,6 @@ from cogent3.draw.drawable import Drawable
 from cogent3.util.union_dict import UnionDict
 
 
-__author__ = "Rahul Ghangas, Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Peter Maxwell", "Rahul Ghangas"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 def suitable_threshold(window, desired_probability):
     """Use cumulative binomial distribution to find the number of identical
     bases which we expect a nucleotide window-mer to have with the desired
@@ -26,7 +16,7 @@ def suitable_threshold(window, desired_probability):
     cumulative_p = 0.0
     for matches in range(window, 0, -1):
         mismatches = window - matches
-        p = 0.75 ** mismatches
+        p = 0.75**mismatches
         for i in range(matches, 0, -1):  # n
             p *= i + mismatches
             p /= i
@@ -63,76 +53,6 @@ def _convert_input(seq, moltype):
 
     gap_map, seq = seq.parse_out_gaps()
     return gap_map, seq
-
-
-def _convert_coords_for_scatter(coords):  # pragma: no cover
-    """discontinued, use cogent3.align.compare.MatchedSeqPaths instead"""
-    from cogent3.util.warning import discontinued
-
-    discontinued(
-        "function",
-        "_convert_coords_for_scatter",
-        "2023.5",
-        "replaced by align.compare.MatchedSeqPaths",
-    )
-    new = {"x": [], "y": []}
-    for (x1, y1), (x2, y2) in coords:
-        new["x"].extend([x1, x2, None])
-        new["y"].extend([y1, y2, None])
-
-    # drop trailing None
-    x = new["x"][:-1]
-    y = new["y"][:-1]
-    return x, y
-
-
-def get_dotplot_coords(
-    seq1, seq2, window=20, threshold=None, min_gap=0, rc=None, show_progress=False
-):  # pragma: no cover
-    """discontinued, use cogent3.align.compare.find_matched_paths"""
-    from cogent3.align.align import dotplot
-    from cogent3.util.warning import discontinued
-
-    discontinued(
-        "function",
-        "get_dotplot_coords",
-        "2023.5",
-        "replaced by much faster code in align.compare",
-    )
-
-    (len1, len2) = len(seq1), len(seq2)
-    if threshold is None:
-        universe = (len1 - window) * (len2 - window)
-        acceptable_noise = min(len1, len2) / window
-        threshold = suitable_threshold(window, acceptable_noise / universe)
-
-    fwd = dotplot(
-        str(seq1),
-        str(seq2),
-        window,
-        threshold,
-        min_gap,
-        None,
-        show_progress=show_progress,
-    )
-    if hasattr(seq1, "reverse_complement") and rc:
-        rev = dotplot(
-            str(seq1.reverse_complement()),
-            str(seq2),
-            window,
-            threshold,
-            min_gap,
-            None,
-            show_progress=show_progress,
-        )
-        rev = [((len1 - x1, y1), (len1 - x2, y2)) for ((x1, y1), (x2, y2)) in rev]
-        rev = _convert_coords_for_scatter(rev)
-    else:
-        rev = []
-
-    # convert for Plotly scatter
-    fwd = _convert_coords_for_scatter(fwd)
-    return fwd, rev
 
 
 def get_align_coords(map1, map2, aligned=False) -> MatchedSeqPaths:
@@ -266,7 +186,7 @@ class Dotplot(Drawable):
         sk = SeqKmers(seq1, k=k, canonical=set(seq1.moltype))
         seq2 = None if seq1 == seq2 else seq2
         fwd = find_matched_paths(
-            sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+            seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
         )
         fwd.name = "+ strand"
         if rc:
@@ -276,7 +196,7 @@ class Dotplot(Drawable):
             seq2 = seq1.rc() if seq2 is None else seq2.rc()
             seq2.name = f"{seq2.name}-rc"
             rev = find_matched_paths(
-                sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
+                seq_kmers=sk, seq1=seq1, seq2=seq2, window=window, threshold=threshold
             )
             rev.name = "- strand"
         else:

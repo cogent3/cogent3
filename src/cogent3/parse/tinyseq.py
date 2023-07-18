@@ -8,15 +8,6 @@ import xml.dom.minidom
 from cogent3.core import annotation, moltype
 
 
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
 """
 CAUTION:
 This XML PARSER uses minidom. This means a bad performance for
@@ -69,16 +60,12 @@ def TinyseqParser(doc):
 
         seq = alphabet.make_seq(raw_string, name=name)
 
-        seq.add_annotation(annotation.Feature, "genbank_id", name, [(0, len(seq))])
+        seq.add_feature(biotype="genbank_id", name=name, spans=[(0, len(seq))])
 
         organism = str(
             record.getElementsByTagName("TSeq_orgname")[0].childNodes[0].nodeValue
         )
 
-        seq.add_annotation(annotation.Feature, "organism", organism, [(0, len(seq))])
+        seq.add_feature(biotype="organism", name=organism, spans=[(0, len(seq))])
 
         yield (name, seq)
-
-
-def parse(*args):
-    return TinyseqParser(*args).next()[1]

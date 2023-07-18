@@ -6,7 +6,7 @@ import re
 
 from os import remove
 from tempfile import TemporaryDirectory, mktemp
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy
 import pytest
@@ -15,12 +15,17 @@ from numpy import array, log2, nan, transpose
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import (
+    get_app,
+    get_code,
     load_aligned_seqs,
+    load_seq,
     load_unaligned_seqs,
     make_aligned_seqs,
     make_seq,
+    make_unaligned_seqs,
     open_,
 )
+from cogent3._version import __version__
 from cogent3.core.alignment import (
     Aligned,
     Alignment,
@@ -45,29 +50,12 @@ from cogent3.core.alignment import (
     seqs_from_kv_pairs,
 )
 from cogent3.core.alphabet import AlphabetError
-from cogent3.core.annotation import Feature
+from cogent3.core.annotation_db import GffAnnotationDb
 from cogent3.core.moltype import AB, ASCII, BYTES, DNA, PROTEIN, RNA
-from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence
+from cogent3.core.sequence import ArraySequence, RnaSequence, Sequence, SeqView
 from cogent3.maths.util import safe_p_log_p
 from cogent3.parse.fasta import MinimalFastaParser
 from cogent3.util.misc import get_object_provenance
-
-
-__author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = [
-    "Jeremy Widmann",
-    "Catherine Lozuopone",
-    "Gavin Huttley",
-    "Rob Knight",
-    "Daniel McDonald",
-    "Jan Kosinski",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
 
 
 class alignment_tests(TestCase):
@@ -241,16 +229,6 @@ class SequenceCollectionBaseTests(object):
         self.b = Alignment(["AAA", "AAA"])
         self.c = SequenceCollection(["AAA", "AAA"])
 
-    def test_deepcopy(self):
-        """correctly deep copy aligned objects in an alignment"""
-        data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
-        seqs = self.Class(data)
-        copied = seqs.deepcopy(sliced=True)
-        assert_equal(seqs.to_rich_dict(), copied.to_rich_dict())
-        self.assertNotEqual(id(copied), id(seqs))
-        for name in seqs.names:
-            self.assertNotEqual(id(copied.named_seqs[name]), copied.named_seqs[name])
-
     def test_guess_input_type(self):
         """SequenceCollection  _guess_input_type should figure out data type correctly"""
         git = self.a._guess_input_type
@@ -341,18 +319,6 @@ class SequenceCollectionBaseTests(object):
         if self.Class is not ArrayAlignment:
             # ArrayAlignment is allowed to strip Info objects
             self.assertEqual([i.info.x for i in b.seqs], [5, 4, 3])
-
-    def test_init_annotated_seqs(self):
-        """correctly construct from list with annotated seq"""
-        if self.Class == ArrayAlignment:
-            # this class cannot be annotated
-            return
-        seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
-        _ = seq.add_feature("exon", "name", [(4, 10)])
-        coll = self.Class(data=[seq])
-        got_seq = coll.get_seq("seq1")
-        ann = got_seq.annotations[0]
-        self.assertEqual(str(got_seq[ann]), "GGGGGG")
 
     def test_init_pairs(self):
         """SequenceCollection init from list of (key,val) pairs should work correctly"""
@@ -821,49 +787,6 @@ class SequenceCollectionBaseTests(object):
         got = align_norm.to_nexus("protein")
         self.assertEqual(got, expect)
 
-    def test_to_rich_dict(self):
-        """to_rich_dict produces correct dict"""
-        aln = self.Class({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
-        try:
-            seq_type = get_object_provenance(aln.seqs[0].data)
-        except AttributeError:
-            seq_type = get_object_provenance(aln.seqs[0])
-
-        got = aln.to_rich_dict()
-        expect = {
-            "seqs": {
-                "seq1": {
-                    "name": "seq1",
-                    "seq": "ACGG",
-                    "info": None,
-                    "type": seq_type,
-                    "moltype": aln.moltype.label,
-                    "version": __version__,
-                },
-                "seq2": {
-                    "name": "seq2",
-                    "seq": "CGCA",
-                    "info": None,
-                    "type": seq_type,
-                    "moltype": aln.moltype.label,
-                    "version": __version__,
-                },
-                "seq3": {
-                    "name": "seq3",
-                    "seq": "CCG-",
-                    "info": None,
-                    "type": seq_type,
-                    "moltype": aln.moltype.label,
-                    "version": __version__,
-                },
-            },
-            "moltype": aln.moltype.label,
-            "info": None,
-            "type": get_object_provenance(aln),
-            "version": __version__,
-        }
-        self.assertEqual(got, expect)
-
     def test_to_json(self):
         """roundtrip of to_json produces correct dict"""
         aln = self.Class({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
@@ -875,82 +798,6 @@ class SequenceCollectionBaseTests(object):
         """SequenceCollection.num_seqs should count seqs."""
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
         self.assertEqual(aln.num_seqs, 3)
-
-    def test_copy_annotations(self):
-        """SequenceCollection copy_annotations should copy from seq objects"""
-        if self.Class == ArrayAlignment:
-            return
-        aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
-        seq_1 = Sequence("ACGU", name="seq1")
-        seq_1.add_feature("xyz", "abc", [(1, 2)])
-        seq_5 = Sequence("ACGUAAAAAA", name="seq5")
-        seq_5.add_feature("xyzzz", "abc", [(1, 2)])
-        annot = {"seq1": seq_1, "seq5": seq_5}
-        aln.copy_annotations(annot)
-        aln_seq_1 = aln.named_seqs["seq1"]
-        if not hasattr(aln_seq_1, "annotations"):
-            aln_seq_1 = aln_seq_1.data
-        aln_seq_2 = aln.named_seqs["seq2"]
-        if not hasattr(aln_seq_2, "annotations"):
-            aln_seq_2 = aln_seq_2.data
-        self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].name, "abc")
-        self.assertEqual(len(aln_seq_2.annotations), 0)
-
-    def test_annotate_from_gff(self):
-        """SequenceCollection.annotate_from_gff should read gff features"""
-        aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "C-GU"})
-        gff = [
-            ["seq1", "prog1", "snp", "1", "2", "1.0", "+", "1", '"abc"'],
-            ["seq3", "prog2", "del", "1", "3", "1.0", "+", "1", '"xyz"'],
-            ["seq5", "prog2", "snp", "2", "3", "1.0", "+", "1", '"yyy"'],
-        ]
-        gff = list(map("\t".join, gff))
-        if self.Class == ArrayAlignment:
-            return
-
-        aln.annotate_from_gff(gff)
-        aln_seq_1 = aln.named_seqs["seq1"]
-        if not hasattr(aln_seq_1, "annotations"):
-            aln_seq_1 = aln_seq_1.data
-        aln_seq_2 = aln.named_seqs["seq2"]
-        if not hasattr(aln_seq_2, "annotations"):
-            aln_seq_2 = aln_seq_2.data
-        self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].name, "abc")
-        self.assertEqual(len(aln_seq_2.annotations), 0)
-
-        if self.Class == Alignment:
-            aln_seq_3 = aln.get_seq("seq3")
-            matches = [m for m in aln_seq_3.get_annotations_matching("*")]
-            self.assertFalse("-" in matches[0].get_slice())
-
-    def test_annotate_from_gff3(self):
-        """annotate_from_gff should work on data from gff3 files"""
-        from cogent3.parse.fasta import FastaParser
-
-        if self.Class == ArrayAlignment:
-            return
-
-        fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-        gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-        name, seq = next(FastaParser(fasta_path))
-
-        # using annotate_from_gff will nest annotations
-        aln = self.Class({name: seq})
-        aln.annotate_from_gff(gff3_path)
-        aln_seq = aln.named_seqs[name]
-        if not hasattr(aln_seq, "annotations"):
-            aln_seq = aln_seq.data
-        matches = [m for m in aln_seq.get_annotations_matching("*", extend_query=True)]
-        # 13 features with one having 2 parents, so 14 instances should be found
-        self.assertEqual(len(matches), 14)
-        matches = [m for m in aln_seq.get_annotations_matching("gene")]
-        self.assertEqual(len(matches), 1)
-        matches = matches[0].get_annotations_matching("mRNA")
-        self.assertEqual(len(matches), 1)
-        matches = matches[0].get_annotations_matching("exon")
-        self.assertEqual(len(matches), 3)
 
     def test_add(self):
         """__add__ should concatenate sequence data, by name"""
@@ -1044,41 +891,6 @@ class SequenceCollectionBaseTests(object):
         """len(SequenceCollection) returns length of longest sequence"""
         aln = self.Class([("a", "AAAA"), ("b", "TTTT"), ("c", "CCCC")])
         self.assertEqual(len(aln), 4)
-
-    def test_get_translation(self):
-        """SequenceCollection.get_translation translates each seq"""
-        for seqs in [
-            {"seq1": "GATTTT", "seq2": "GATC??"},
-            {"seq1": "GAT---", "seq2": "?GATCT"},
-        ]:
-            alignment = self.Class(data=seqs, moltype=DNA)
-            got = alignment.get_translation()
-            self.assertEqual(len(got), 2)
-            self.assertEqual(got.moltype, PROTEIN)
-            # check for a failure when no moltype specified
-            alignment = self.Class(data=seqs)
-            try:
-                alignment.get_translation()
-            except AttributeError:
-                pass
-
-    def test_get_translation_info(self):
-        """SequenceCollection.get_translation preserves info attribute"""
-        for seqs in [
-            {"seq1": "GATTTT", "seq2": "GATC??"},
-            {"seq1": "GAT---", "seq2": "?GATCT"},
-        ]:
-            alignment = self.Class(data=seqs, moltype=DNA, info={"key": "value"})
-            got = alignment.get_translation()
-            self.assertEqual(got.info["key"], "value")
-
-    def test_get_translation_incomplete(self):
-        """get translation works on incomplete codons"""
-        alignment = self.Class(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
-        got = alignment.get_translation(incomplete_ok=True)
-        self.assertEqual(got.to_dict(), {"seq1": "D?", "seq2": "XS"})
-        with self.assertRaises(AlphabetError):
-            got = alignment.get_translation(incomplete_ok=False)
 
     def test_get_seq(self):
         """SequenceCollection.get_seq should return specified seq"""
@@ -1304,19 +1116,6 @@ class SequenceCollectionBaseTests(object):
         with self.assertRaises(AssertionError):
             seqs.dotplot(window=5, k=11)
 
-    def test_dotplot_annotated(self):
-        """exercising dotplot method with annotated sequences"""
-        seqs = self.Class(data={"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"})
-
-        seqs = seqs.take_seqs(["Human", "Mouse"])
-
-        if type(self.Class) != ArrayAlignment:
-            # we annotated Human
-            seq = seqs.get_seq("Human")
-            _ = seq.add_feature("exon", "fred", [(10, 15)])
-
-        _ = seqs.dotplot(show_progress=False)
-
     def test_rename_seqs(self):
         """successfully rename sequences"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -1430,7 +1229,7 @@ class SequenceCollectionBaseTests(object):
 
         if self.Class == SequenceCollection:
             # this class cannot slice
-            return True
+            return
 
         # should persist in slicing
         self.assertEqual(
@@ -1441,7 +1240,7 @@ class SequenceCollectionBaseTests(object):
         """the wrap argument affects the number of columns"""
         if self.Class == SequenceCollection:
             # this class does not have this method
-            return True
+            return
 
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
@@ -1545,8 +1344,9 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
 
     def test_info_source(self):
         """info.source exists if load seqs given a filename"""
-        seqs = load_unaligned_seqs("data/brca1.fasta")
-        self.assertEqual(seqs.info.source, "data/brca1.fasta")
+        path = pathlib.Path("data/brca1.fasta")
+        seqs = load_unaligned_seqs(path)
+        self.assertEqual(seqs.info.source, str(path))
 
     def test_apply_pssm2(self):
         """apply_pssm fail if ragged sequences"""
@@ -1573,7 +1373,7 @@ def _make_filter_func(aln):
         gap = "-"
 
     def func_str(x):
-        return gap not in "".join(x)
+        return gap not in "".join([str(s) for s in x])
 
     def func_arr(x):
         return (x != gap).all()
@@ -1590,18 +1390,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
     """
 
     def test_alignment_quality(self):
-        """Tests that the alignment_quality generates the right alignment quality
-        value based on the Hertz-Stormo metric. expected values are hand calculated
-        using the formula in the paper."""
-        aln = self.Class(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"], moltype="dna")
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        expect = log2(4) + (3 / 2) * log2(3) + (1 / 2) * log2(2) + (1 / 2) * log2(2)
-        assert_allclose(got, expect)
-        # should be the same with the default moltype too
-        aln = self.Class(["AATTGA", "AGGTCC", "AGGATG", "AGGCGT"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        assert_allclose(got, expect)
-
+        """check alignment method correctly invokes underlying app"""
         aln = self.Class(["AAAC", "ACGC", "AGCC", "A-TC"], moltype="dna")
         got = aln.alignment_quality(equifreq_mprobs=False)
         expect = (
@@ -1611,26 +1400,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             + (1 / 4) * log2(1 / (4 / 15))
         )
         assert_allclose(got, expect)
-
-        # 1. Alignment just gaps - alignment_quality returns None
-        aln = self.Class(["----", "----"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        self.assertIsNone(got)
-
-        # 2 Just one sequence - alignment_quality returns None
-        aln = self.Class(["AAAC"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        self.assertIsNone(got)
-
-        # 3.1 Two seqs, one all gaps. (equifreq_mprobs=True)
-        aln = self.Class(["----", "ACAT"])
-        got = aln.alignment_quality(equifreq_mprobs=True)
-        assert_allclose(got, 1.1699250014423124)
-
-        # 3.2 Two seqs, one all gaps. (equifreq_mprobs=False)
-        aln = self.Class(["----", "AAAA"])
-        got = aln.alignment_quality(equifreq_mprobs=False)
-        assert_allclose(got, -2)
 
     def make_and_filter(self, raw, expected, motif_length, drop_remainder):
         # a simple filter func
@@ -2438,14 +2207,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertTrue("-" not in found_motifs)
         self.assertEqual(lengths, {2})
 
-    def test_get_seq_entropy(self):
-        """ArrayAlignment get_seq_entropy should get entropy of each seq"""
-        seqs = [AB.make_seq(s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
-        a = self.Class(seqs, alphabet=AB.alphabet)
-        entropy = a.entropy_per_seq()
-        e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
-        assert_allclose(entropy, array([1, 0, e]))
-
     def test_seq_entropy_just_gaps(self):
         """ArrayAlignment get_seq_entropy should get entropy of each seq"""
         a = self.Class(dict(a="A---", b="----"), moltype=DNA)
@@ -2873,97 +2634,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
             ValueError, aln1.add_from_ref_aln, aln2_wrong_refseq
         )  # test wrong_refseq
 
-    def test_annotate_matches_to(self):
-        """Aligned.annotate_matches_to correctly delegates to sequence"""
-        from cogent3 import get_code
-
-        aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
-        seq = aln.named_seqs["x"]
-        pattern = "CCRC"
-        annot = seq.annotate_matches_to(
-            pattern=pattern, annot_type="domain", name="fred", allow_multiple=True
-        )
-        got = [a.get_slice() for a in annot]
-        matches = ["CCAC", "CCGC"]
-        self.assertEqual(got, matches)
-        annot = seq.annotate_matches_to(
-            pattern=pattern, annot_type="domain", name="fred", allow_multiple=False
-        )
-        got = [a.get_slice() for a in annot]
-        self.assertEqual(got, matches[:1])
-
-        # handles regex from aa
-        aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
-        gc = get_code(1)
-        aa_regex = gc.to_regex("FHF")
-        s = aln.named_seqs["x"].annotate_matches_to(
-            aa_regex, "domain", "test", allow_multiple=False
-        )
-        a = list(aln.get_annotations_from_seq("x"))[0]
-        self.assertEqual(str(aln[a].named_seqs["x"]), "TTCCACTTC")
-
-    def test_deepcopy(self):
-        """correctly deepcopy Aligned objects in an alignment"""
-        path = "data/brca1_5.paml"
-        # generates an annotatable Alignment object
-        aln = load_aligned_seqs(path, array_align=False, moltype="dna")
-        # when the annotation is outside(before) boundary of the slice
-        aln.named_seqs["NineBande"].data.add_annotation(
-            Feature, "exon", "annot1", [(0, 10)]
-        )
-        # when the annotation is across boundary of the slice
-        aln.named_seqs["Mouse"].data.add_annotation(
-            Feature, "exon", "annot2", [(10, 21)]
-        )
-        # when the annotation is within boundary of the slice
-        aln.named_seqs["Human"].data.add_annotation(
-            Feature, "exon", "annot3", [(20, 25)]
-        )
-        # when the annotation is across boundary of the slice
-        aln.named_seqs["HowlerMon"].data.add_annotation(
-            Feature, "exon", "annot4", [(25, 32)]
-        )
-        # when the annotation is outside(after) boundary of the slice
-        aln.named_seqs["DogFaced"].data.add_annotation(
-            Feature, "exon", "annot5", [(40, 45)]
-        )
-        aln = aln[20:30]
-
-        # for these species, each has an annotation spanning slice boundary or within it
-        for name in ["Mouse", "Human", "HowlerMon"]:
-            new_seq = aln.named_seqs[name].deepcopy(sliced=True)
-            seq = aln.named_seqs[name]
-            self.assertNotEqual(new_seq.map.parent_length, seq.map.parent_length)
-
-            self.assertEqual(len(new_seq.data), 10)
-            self.assertTrue(new_seq.data.is_annotated())
-            self.assertEqual(len(new_seq.data.annotations), 1)
-            # tests the case when sliced argument if False
-            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-            self.assertEqual(new_seq.map.parent_length, seq.map.parent_length)
-            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
-            self.assertTrue(new_seq.data.is_annotated())
-        # for these species, each has an annotation outside slice
-        for name in ["NineBande", "DogFaced"]:
-            new_seq = aln.named_seqs[name].deepcopy(sliced=True)
-            self.assertEqual(len(new_seq.data), 10)
-            self.assertFalse(new_seq.data.is_annotated())
-            # tests the case when sliced argument if False
-            new_seq = aln.named_seqs[name].deepcopy(sliced=False)
-            self.assertEqual(len(new_seq.data), len(aln.named_seqs[name].data))
-            self.assertTrue(new_seq.data.is_annotated())
-            self.assertEqual(len(new_seq.data.annotations), 1)
-
-        # add another human annotation that is outside slice
-        aln.named_seqs["Human"].data.add_annotation(
-            Feature, "exon", "annot6", [(40, 45)]
-        )
-        # tests the case when sliced argument if False regarding the Human sequence
-        new_seq = aln.named_seqs["Human"].deepcopy(sliced=False)
-        self.assertEqual(len(new_seq.data), len(aln.named_seqs["Human"].data))
-        self.assertTrue(new_seq.data.is_annotated())
-        self.assertEqual(len(new_seq.data.annotations), 2)
-
     def test_deepcopy2(self):
         """ "Aligned.deepcopy correctly handles gapped sequences"""
         seqs = self.Class(
@@ -2986,8 +2656,8 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         aln = self.Class([["name1", "TTTTTTAAAA"], ["name2", "AAAATTTTTT"]])
         aln = aln[2:8]
         draw = aln.dotplot(show_progress=False)
-        expected = set([("name1", "TTTTAA"), ("name2", "AATTTT")])
-        got = {(s.name, s._seq) for s in (draw.seq1, draw.seq2)}
+        expected = {("name1", "TTTTAA"), ("name2", "AATTTT")}
+        got = {(s.name, str(s)) for s in (draw.seq1, draw.seq2)}
         self.assertEqual(got, expected)
 
     def test_to_moltype_annotations(self):
@@ -2995,63 +2665,19 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         s1 = Sequence("TTTTTTAAAA", name="test_seq1")
         s2 = Sequence("AAAATTTTTT", name="test_seq2")
         s3 = Sequence("AATTTTTAAA", name="test_seq3")
-        s1.add_annotation(Feature, "exon", "fred", [(0, 6)])
-        s2.add_annotation(Feature, "exon", "fred", [(4, 10)])
-        s3.add_annotation(Feature, "exon", "fred", [(2, 7)])
+        s1.add_feature(biotype="exon", name="fred", spans=[(0, 6)])
+        s2.add_feature(biotype="exon", name="fred", spans=[(4, 10)])
+        s3.add_feature(biotype="exon", name="fred", spans=[(2, 7)])
         data = {"seq1": s1, "seq2": s2, "seq3": s3}
         aln = self.Class(data=data)
-        aln.add_feature("demo", "one", [(0, 1), (2, 4)])
+        aln.add_feature(biotype="demo", name="one", spans=[(0, 1), (2, 4)])
         rna = aln.to_moltype("rna")
         for name in rna.names:
             orig_seq = aln.get_seq(name)
             new_seq = rna.get_seq(name)
-            self.assertEqual(len(orig_seq.annotations), len(new_seq.annotations))
-            for src, dest in zip(orig_seq.annotations, new_seq.annotations):
-                self.assertEqual(src.get_coordinates(), dest.get_coordinates())
-                self.assertIsInstance(src, dest.__class__)
-                self.assertIs(dest.parent, new_seq)
         # check the sequence moltypes
         self.assertEqual({s.data.moltype.label for s in rna.seqs}, {"rna"})
         self.assertEqual(rna.moltype.label, "rna")
-
-    def test_get_annotations_from_any_seq(self):
-        """get_annotations_from_any_seq returns correct annotations"""
-        data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-        seqs = self.Class(data, moltype=DNA)
-        seqs.get_seq("seq1").add_annotation(Feature, "exon", "annotation1", [(3, 8)])
-        seqs.get_seq("seq2").add_annotation(Feature, "exon", "annotation2", [(1, 2)])
-        seqs.get_seq("seq3").add_annotation(Feature, "exon", "annotation3", [(3, 6)])
-        got = seqs.get_annotations_from_any_seq()
-        self.assertEqual(len(got), 3)
-        self.assertEqual(str(got[0]), 'exon "annotation1" at [3:8]/9')
-        self.assertEqual(str(got[1]), 'exon "annotation2" at [1:2]/9')
-        self.assertEqual(str(got[2]), 'exon "annotation3" at [3:6]/9')
-
-        got = seqs.get_annotations_from_any_seq(annotation_type="*", name="annotation1")
-        self.assertEqual(len(got), 1)
-        self.assertEqual(str(got[0]), 'exon "annotation1" at [3:8]/9')
-
-        got = seqs.get_annotations_from_any_seq(
-            annotation_type="exon", name="annotation2"
-        )
-        self.assertEqual(len(got), 1)
-        self.assertEqual(str(got[0]), 'exon "annotation2" at [1:2]/9')
-
-        got = seqs.get_annotations_from_any_seq(annotation_type="*", name="annotation3")
-        self.assertEqual(len(got), 1)
-        self.assertEqual(str(got[0]), 'exon "annotation3" at [3:6]/9')
-
-    def test_rename_handles_annotations(self):
-        """rename seqs on Alignment preserves annotations"""
-        from cogent3.core.annotation import Feature
-
-        data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-        seqs = self.Class(data, moltype=DNA)
-        x = seqs.get_seq("seq1").add_annotation(Feature, "exon", "fred", [(3, 8)])
-        expect = str(x.get_slice())
-        new = seqs.rename_seqs(lambda x: x.upper())
-        got = list(new.get_annotations_from_any_seq("exon"))[0]
-        self.assertEqual(got.get_slice().to_dict()["SEQ1"], expect)
 
     def test_construction(self):
         """correctly construct from list of sequences of length 2"""
@@ -3396,6 +3022,690 @@ def test_upac_consensus_allow_gaps(moltype, array_align):
     assert iupac == "ACGG"
 
 
-# run tests if invoked from command line
-if __name__ == "__main__":
-    main()
+def test_rc_iter():
+    dna = DNA.make_seq("ACG", name="seq1")
+    rc = dna.rc()
+
+    got = [x for x in rc]
+    expect = ["C", "G", "T"]
+    assert got == expect
+
+
+def test_to_dna_raises():
+    seq = make_seq("ETV", moltype="protein")
+    with pytest.raises(AlphabetError):
+        seq.to_moltype("dna")
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_annotate_from_gff3(cls):
+    """annotate_from_gff should work on data from gff3 files"""
+    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+    seq = load_seq(fasta_path, moltype="dna")
+
+    # using annotate_from_gff will nest annotations
+    seq_coll = cls({seq.name: seq})
+    seq_coll.annotate_from_gff(gff3_path)
+    member_seq = seq_coll.get_seq(seq.name)
+
+    matches = list(member_seq.get_features())
+    # 11 features
+    assert len(matches) == 11
+    matches = list(member_seq.get_features(biotype="gene"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="mRNA"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="exon"))
+    assert len(matches) == 3
+
+
+@pytest.fixture(scope="session")
+def seqcoll_db():
+    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+    seq = load_seq(fasta_path, moltype="dna")
+    seq_coll = SequenceCollection({seq.name: seq})
+    seq_coll.annotate_from_gff(gff3_path)
+    return seq_coll
+
+
+def test_seqcoll_query(seqcoll_db):
+    """querying from a SequenceCollection produces features bound to their seqs"""
+    matches = list(seqcoll_db.get_features(seqid="I"))
+    # 11 features
+    assert len(matches) == 11
+    matches = list(seqcoll_db.get_features(seqid="I", biotype="gene"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="mRNA"))
+    assert len(matches) == 1
+    matches = list(matches[0].get_children(biotype="exon"))
+    assert len(matches) == 3
+
+
+def test_align_get_features():
+    #                0123456789   the positions
+    seq1 = make_seq("ACG--ACCGT", moltype="dna", name="seq1")
+    seq2 = make_seq("ACGGGCCCGT", moltype="dna", name="seq2")
+    #                  *****      the CDS feature
+    seq2.add_feature(biotype="CDS", name="fake01", spans=[(2, 7)], strand="+")
+    aln = make_aligned_seqs(data=[seq1, seq2], array_align=False)
+    feat = list(aln.get_features(biotype="CDS"))[0]
+    sl = aln[feat]
+    # slice is correct length
+    assert len(sl) == (7 - 2)
+    # returns correct value
+    assert sl.to_dict() == dict(seq1="G--AC", seq2="GGGCC")
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_init_annotated_seqs(cls):
+    """correctly construct from list with annotated seq"""
+    seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
+    _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
+    coll = cls(data=[seq])
+    features = list(coll.get_features(biotype="exon"))
+    assert len(features) == 1
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_get_annotations_from_any_seq(cls):
+    """get_annotations_from_any_seq returns correct annotations"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = cls(data, moltype=DNA)
+    db = GffAnnotationDb()
+    db.add_feature(seqid="seq1", biotype="exon", name="annotation1", spans=[(3, 8)])
+    db.add_feature(seqid="seq2", biotype="exon", name="annotation2", spans=[(1, 2)])
+    db.add_feature(seqid="seq3", biotype="exon", name="annotation3", spans=[(3, 6)])
+    seqs.annotation_db = db
+    got = list(seqs.get_features())
+    assert len(got) == 3
+    assert "biotype='exon', name='annotation1', map=[3:8]/9" in str(got[0])
+    assert "biotype='exon', name='annotation2', map=[1:2]/9" in str(got[1])
+    assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[2])
+
+    got = list(seqs.get_features(name="annotation1"))
+    assert len(got) == 1
+    assert "biotype='exon', name='annotation1', map=[3:8]/9" in str(got[0])
+
+    got = list(seqs.get_features(biotype="exon", name="annotation2"))
+    assert len(got) == 1
+    assert "biotype='exon', name='annotation2', map=[1:2]/9" in str(got[0])
+
+    got = list(seqs.get_features(name="annotation3"))
+    assert len(got) == 1
+    assert "biotype='exon', name='annotation3', map=[3:6]/9" in str(got[0])
+
+
+def test_annotate_matches_to():
+    """Aligned.annotate_matches_to correctly delegates to sequence"""
+
+    aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln.annotation_db = GffAnnotationDb()
+    seq = aln.named_seqs["x"]
+    pattern = "CCRC"
+    annot = seq.annotate_matches_to(
+        pattern=pattern, biotype="domain", name="fred", allow_multiple=True
+    )
+    got = [a.get_slice() for a in annot]
+    matches = ["CCAC", "CCGC"]
+    assert got == matches
+    annot = seq.annotate_matches_to(
+        pattern=pattern, biotype="domain", name="fred", allow_multiple=False
+    )
+    got = [a.get_slice() for a in annot]
+    assert got == matches[:1]
+
+    # handles regex from aa
+    aln = Alignment(dict(x="TTCCACTTCCGCTT"), moltype="dna")
+    aln.annotation_db = GffAnnotationDb()
+    gc = get_code(1)
+    aa_regex = gc.to_regex("FHF")
+    s = aln.named_seqs["x"].annotate_matches_to(
+        aa_regex, "domain", "test", allow_multiple=False
+    )
+    a = list(aln.get_features(seqid="x"))[0]
+    assert str(aln[a].named_seqs["x"]) == "TTCCACTTC"
+
+
+@pytest.fixture(scope="function")
+def gb_db(DATA_DIR):
+    from cogent3.core.annotation_db import load_annotations
+
+    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
+
+
+@pytest.fixture(scope="function")
+def gff_db(DATA_DIR):
+    from cogent3.core.annotation_db import load_annotations
+
+    return load_annotations(path=DATA_DIR / "simple.gff")
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_copy_annotations(cls, gff_db):
+    """copy_annotations copies records from annotation db"""
+
+    seq_coll = cls({"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"})
+    seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
+    seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
+    expect = seq_coll.annotation_db.num_matches() + gff_db.num_matches()
+    seq_coll.copy_annotations(gff_db)
+    assert seq_coll.annotation_db.num_matches() == expect
+
+
+def _make_seq(name):
+    raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
+    cds = (15, 25)
+    utr = (12, 15)
+    # name is required for creating annotations
+    seq = DNA.make_seq(raw_seq, name=name)
+    seq.add_feature(biotype="CDS", name="CDS", spans=[cds])
+    seq.add_feature(biotype="5'UTR", name="5' UTR", spans=[utr])
+    return seq
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_init_seqs_have_annotations(cls, gff_db):
+    """annotations on input seqs correctly merged and propagated"""
+
+    seq_coll = cls({"seq1": _make_seq("seq1"), "seq2": _make_seq("seq2")})
+    coll_db = seq_coll.annotation_db
+    assert len(coll_db) == 4
+    for seq in seq_coll.seqs:
+        if cls == Alignment:
+            db = seq.data.annotation_db
+        else:
+            db = seq.annotation_db
+        assert db is coll_db
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_add_to_seq_updates_coll(cls, gff_db):
+    """annotating a seq updates the db of the propagated"""
+    seq_coll = cls(
+        {"x": "AACCCAAAATTTTTTGGGGGGGGGGCCCC", "y": "AACCCAAAATTTTTTGGGGGGGGGGCCCC"}
+    )
+    x = seq_coll.get_seq("x")
+    assert len(seq_coll.annotation_db) == len(x.annotation_db) == 0
+    x.add_feature(biotype="exon", name="E1", spans=[(3, 8)])
+    assert len(seq_coll.annotation_db) == len(x.annotation_db) == 1
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_assign_none(cls, gff_db):
+    """assigning None to annotation_db breaks conection"""
+
+    seq_coll = cls({"seq1": "ACGU", "seq2": "CGUA", "test_seq": "CCGU"})
+    seq_coll.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
+    seq_coll.add_feature(seqid="seq2", biotype="xyzzz", name="abc", spans=[(1, 2)])
+    seq_coll.annotation_db = None
+    assert seq_coll.annotation_db is None
+
+
+def test_copy_annotations_incompat_fails(seqcoll_db, gb_db):
+    """copy_annotations copies records from annotation db"""
+    db = seqcoll_db.annotation_db
+    seqcoll = seqcoll_db.rename_seqs(
+        lambda x: "AE017341" if x == seqcoll_db.names[0] else seqcoll_db.names[0]
+    )
+    seqcoll.annotation_db = db
+    with pytest.raises(TypeError):
+        seqcoll.copy_annotations(gb_db)
+
+
+def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
+    """copy_annotations copies records from annotation db"""
+    with pytest.raises(TypeError):
+        seqcoll_db.copy_annotations({"a": "ACGGT"})
+
+
+def test_deepcopy_with_features(DATA_DIR):
+    """correctly deepcopy Aligned objects in an alignment"""
+    path = DATA_DIR / "brca1_5.paml"
+    # generates an annotatable Alignment object
+    aln = load_aligned_seqs(path, array_align=False, moltype="dna")
+    db = GffAnnotationDb()
+    # when the annotation is outside(before) boundary of the slice
+    db.add_feature(seqid="NineBande", biotype="exon", name="annot1", spans=[(0, 10)])
+    # when the annotation is across boundary of the slice
+    db.add_feature(seqid="Mouse", biotype="exon", name="annot2", spans=[(10, 21)])
+    # when the annotation is within boundary of the slice
+    db.add_feature(seqid="Human", biotype="exon", name="annot3", spans=[(20, 25)])
+    # when the annotation is across boundary of the slice
+    db.add_feature(seqid="HowlerMon", biotype="exon", name="annot4", spans=[(25, 32)])
+    # when the annotation is outside(after) boundary of the slice
+    db.add_feature(seqid="DogFaced", biotype="exon", name="annot5", spans=[(40, 45)])
+    aln.annotation_db = db
+    aln = aln[20:30]
+    # no slice
+    copied = aln.deepcopy(sliced=False)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3  # overlap is Mouse, Human, HowlerMon
+    # with slice
+    copied = aln.deepcopy(sliced=True)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3
+    # rc drops annotations only when sliced is True
+    rced = aln.rc()
+    copied = rced.deepcopy(sliced=False)
+    feats = list(copied.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 3  # overlap is Mouse, Human, HowlerMon
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_deepcopy_aligned(cls):
+    """correctly deep copy aligned objects in an alignment"""
+    data = {"seq1": "ACGACGACG", "seq2": "ACGACGACG"}
+    seqs = cls(data)
+    copied = seqs.deepcopy(sliced=True)
+    orig_rd = seqs.to_rich_dict()
+    cpy_rd = copied.to_rich_dict()
+    assert orig_rd == cpy_rd
+    assert id(copied) != id(seqs)
+    for name in seqs.names:
+        assert id(copied.named_seqs[name]) != copied.named_seqs[name]
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_seq_rename_drops_annotations(cls):
+    """rename seqs discards all annotations"""
+    data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    seqs = cls(data, moltype=DNA)
+    seqs.add_feature(seqid="seq1", biotype="exon", name="fred", spans=[(3, 8)])
+    assert seqs.annotation_db is not None
+    new = seqs.rename_seqs(lambda x: x.upper())
+    assert not len(new.annotation_db)
+
+
+@pytest.mark.parametrize(
+    "cls",
+    (SequenceCollection, ArrayAlignment),
+)
+def test_to_rich_dict_not_alignment(cls):
+    """to_rich_dict produces correct dict"""
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    aln = cls(data, moltype="dna")
+    try:
+        seq_type = get_object_provenance(aln.seqs[0].data)
+    except AttributeError:
+        seq_type = get_object_provenance(aln.seqs[0])
+
+    got = aln.to_rich_dict()
+
+    data = {k: SeqView(s).to_rich_dict() for k, s in data.items()}
+
+    expect = {
+        "seqs": {
+            "seq1": {
+                "name": "seq1",
+                "seq": data["seq1"],
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+            "seq2": {
+                "name": "seq2",
+                "seq": data["seq2"],
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+            "seq3": {
+                "name": "seq3",
+                "seq": data["seq3"],
+                "info": None,
+                "type": seq_type,
+                "moltype": aln.moltype.label,
+                "version": __version__,
+                "annotation_offset": 0,
+            },
+        },
+        "moltype": aln.moltype.label,
+        "info": None,
+        "type": get_object_provenance(aln),
+        "version": __version__,
+    }
+    assert got == expect
+
+
+def test_to_rich_dict_alignment():
+    """to_rich_dict produces correct dict"""
+    data = {"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"}
+    aln = Alignment(data, moltype="dna")
+    got = aln.to_rich_dict()
+
+    data = {
+        k: Aligned(*make_seq(s, name=k, moltype="dna").parse_out_gaps()).to_rich_dict()
+        for k, s in data.items()
+    }
+
+    expect = {
+        "seqs": {
+            "seq1": data["seq1"],
+            "seq2": data["seq2"],
+            "seq3": data["seq3"],
+        },
+        "moltype": aln.moltype.label,
+        "info": None,
+        "type": get_object_provenance(aln),
+        "version": __version__,
+    }
+    assert got == expect
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_dotplot_annotated(cls):
+    """exercising dotplot method with annotated sequences"""
+    db = GffAnnotationDb()
+    db.add_feature(seqid="Human", biotype="exon", name="fred", spans=[(10, 15)])
+
+    seqs = cls(data={"Human": "CAGATTTGGCAGTT-", "Mouse": "CAGATTCAGCAGGTG"})
+    seqs.annotation_db = db
+    seqs = seqs.take_seqs(["Human", "Mouse"])
+    _ = seqs.dotplot(show_progress=False)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_get_seq_entropy(cls):
+    """ArrayAlignment get_seq_entropy should get entropy of each seq"""
+    seqs = [AB.make_seq(s, preserve_case=True) for s in ["abab", "bbbb", "abbb"]]
+    a = cls(seqs, alphabet=AB.alphabet)
+    entropy = a.entropy_per_seq()
+    e = 0.81127812445913283  # sum(p log_2 p) for p = 0.25, 0.75
+    assert_allclose(entropy, array([1, 0, e]))
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_distance_matrix_singleton_collection(moltype):
+    """SequenceCollection.distance_matrix() should raise error if collection
+    only contains a single sequence"""
+    collection = make_unaligned_seqs(data={"s1": "ACGTACGTAGTCGCG"}, moltype=moltype)
+    with pytest.raises(ValueError):
+        _ = collection.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_collection_distance_matrix_same_seq(moltype):
+    """Identical seqs should return distance measure of 0.0"""
+    data = dict(
+        [("s1", "ACGTACGTAGTCGCG"), ("s2", "GTGTACGTATCGCG"), ("s3", "GTGTACGTATCGCG")]
+    )
+    collection = make_unaligned_seqs(data=data, moltype=moltype)
+    dists = collection.distance_matrix(calc="pdist")
+
+    # all comparison of a sequence to itself should be zero
+    for seq in collection.names:
+        assert dists[(seq, seq)] == 0.0
+
+    # s2 and s3 are identical, so should be zero
+    assert dists[("s2", "s3")] == 0.0
+    assert dists[("s3", "s2")] == 0.0
+
+
+@pytest.mark.parametrize("moltype", ("protein", "text", "bytes"))
+def test_distance_matrix_fails_wrong_moltype(moltype):
+    data = [("s1", "ACGTA"), ("s2", "ACGTA")]
+    seqs = make_unaligned_seqs(data=data, moltype=moltype)
+    with pytest.raises(NotImplementedError):
+        seqs.distance_matrix()
+
+
+@pytest.mark.parametrize("moltype", ("dna", "rna"))
+def test_distance_matrix_passes_correct_moltype(moltype):
+    data = [("s1", "ACGTA"), ("s2", "ACGTA")]
+    seqs = make_unaligned_seqs(data=data, moltype=moltype)
+    seqs.distance_matrix()
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "seqs", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
+)
+def test_get_translation2(cls, seqs):
+    """SequenceCollection.get_translation translates each seq"""
+    alignment = cls(data=seqs, moltype=DNA)
+    got = alignment.get_translation()
+    assert len(got) == 2
+    assert got.moltype == PROTEIN
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_get_translation_with_stop(cls):
+    seqs = {"seq1": "GATTAG", "seq2": "?GATCT"}
+    alignment = cls(data=seqs, moltype=DNA)
+    got = alignment.get_translation(include_stop=True)
+    assert got.to_dict() == {"seq1": "D*", "seq2": "XS"}
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
+def test_get_translation_trim_stop(cls):
+    seqs = {"seq1": "GATTCCTAG", "seq2": "GATTCCTCC"}
+    alignment = cls(data=seqs, moltype=DNA)
+    expect = {"seq1": "DS", "seq2": "DSS"}
+    if cls != SequenceCollection:
+        expect = {"seq1": "DS-", "seq2": "DSS"}
+
+    got = alignment.get_translation(trim_stop=True)
+    assert got.to_dict() == expect
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "seqs", ({"seq1": "GATTTT", "seq2": "GATC??"}, {"seq1": "GAT---", "seq2": "?GATCT"})
+)
+def test_get_translation_error(cls, seqs):
+    """SequenceCollection.get_translation translates each seq"""
+    # check for a failure when no moltype specified
+    alignment = cls(data=seqs)
+    with pytest.raises(TypeError):
+        alignment.get_translation()
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+@pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
+def test_alignment_quality_methods(cls, method):
+    data = {
+        "DogFaced": "TG----AATATGT------GAAAGAG",
+        "FreeTaile": "TTGAAGAATATGT------GAAAGAG",
+        "LittleBro": "CTGAAGAACCTGTGAAAGTGAAAGAG",
+    }
+    expected_score = dict(
+        cogent3_score=-123.0, ic_score=32.93032499, sp_score=-25.25687109
+    )[method]
+    aln = cls(
+        data,
+        moltype="dna",
+        info=dict(align_params=dict(lnL=-123.0)),
+    )
+    app = get_app(method)
+    score = app(aln)
+    assert_allclose(score, expected_score)
+
+
+@pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
+def test_alignment_quality_methods_oneseq(method):
+    data = {
+        "DogFaced": "TG----AATATGT------GAAAGAG",
+    }
+    aln = make_aligned_seqs(
+        data,
+        moltype="dna",
+        info=dict(align_params=dict(lnL=-123.0)),
+    )
+    app = get_app(method)
+    score = app(aln)
+    assert_allclose(score, 0.0)
+
+
+@pytest.mark.parametrize("method", ("ic_score", "cogent3_score", "sp_score"))
+def test_alignment_quality_methods_zero_length(method):
+    data = {
+        "a": "",
+        "b": "",
+        "c": "",
+    }
+    aln = make_aligned_seqs(
+        data,
+        moltype="dna",
+        info=dict(align_params=dict(lnL=-123.0)),
+    )
+    app = get_app(method)
+    score = app(aln)
+    assert_allclose(score, 0.0)
+
+
+def test_get_gap_array_equivalence():
+    # make sure produced gap arrays are identical between the
+    # two Alignment classes
+    data = {
+        "DogFaced": "TG----AATATGT------GAAAGAG",
+        "FreeTaile": "TTGAAGAATATGT------GAAAGAG",
+        "LittleBro": "CTGAAGAACCTGTGAAAGTGAAAGAG",
+    }
+    array_aln = make_aligned_seqs(data, moltype="dna", array_align=True)
+    aln = make_aligned_seqs(data, moltype="dna", array_align=False)
+    assert_allclose(array_aln.get_gap_array(), aln.get_gap_array())
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_aligned_rich_dict(reverse):
+    map_, s = make_seq(
+        "TTGAAGAATATGT------GAAAGAG", name="s1", moltype="dna"
+    ).parse_out_gaps()
+    seq = Aligned(map_, s)
+    if reverse:
+        seq = seq.rc()
+
+    rd = seq.to_rich_dict()
+    got = Aligned.from_rich_dict(rd)
+    assert str(seq) == str(got)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "seqs",
+    (
+        {"seq1": "GATTTT", "seq2": "GATC??"},
+        {"seq1": "GAT---", "seq2": "?GATCT"},
+    ),
+)
+def test_get_translation_info(cls, seqs):
+    """SequenceCollection.get_translation preserves info attribute"""
+    alignment = cls(data=seqs, moltype=DNA, info={"key": "value"})
+    got = alignment.get_translation()
+    assert got.info["key"] == "value"
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    (
+        (1, ("TCCTGA", "GATTT?")),
+        (1, ("ACGTAA---", "ACGAC----", "ACGCAATGA")),
+        (2, ("GATTTT", "TCCAGG")),
+    ),
+)
+def test_has_terminal_stop_true(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    assert seqs.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    ((1, ("TCCTCA", "GATTTT")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTCA", "ATTTT"))),
+)
+def test_has_terminal_stop_false(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    assert not seqs.has_terminal_stop(gc=gc)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_has_terminal_stop_strict(cls):
+    gc = get_code(1)
+    data = {f"s{i}": s for i, s in enumerate(("CCTCA", "ATTTT"))}
+    seqs = cls(data=data, moltype="dna")
+    with pytest.raises(AlphabetError):
+        seqs.has_terminal_stop(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    (
+        (1, ("--AT-CTGA", "GATAAATT?")),
+        (1, ("ACGTGA---", "ACGAC----", "ACGCAATGA")),
+        (1, ("CCTCA-", "ATTTTA")),
+        (2, ("GATTTT", "TCCAGG")),
+    ),
+)
+def test_trim_stops_true(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+
+    expect = {}
+    for k, v in data.items():
+        if cls != SequenceCollection or "-" in v:
+            v = re.sub("(TGA|AGG)(?=[-]*$)", "---", v)
+        else:
+            v = re.sub("(TGA|AGG)", "", v)
+        expect[k] = v
+
+    seqs = cls(data=data, moltype="dna")
+    got = seqs.trim_stop_codons(gc=gc).to_dict()
+
+    assert got == expect
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize(
+    "gc,seqs",
+    ((1, ("T-CTGC", "GATAA?")), (2, ("GATTTT", "TCCCGG")), (1, ("CCTGC", "GATAA"))),
+)
+def test_trim_terminal_stops_nostop(cls, gc, seqs):
+    gc = get_code(gc)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    got = seqs.trim_stop_codons(gc=gc)
+    assert got is seqs
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+@pytest.mark.parametrize("seqs", (("CCTCA", "ATTTT"), ("CCTCA-", "ATTTTA")))
+def test_trim_terminal_stops_strict(cls, seqs):
+    gc = get_code(1)
+    data = {f"s{i}": s for i, s in enumerate(seqs)}
+    seqs = cls(data=data, moltype="dna")
+    with pytest.raises(AlphabetError):
+        seqs.trim_stop_codons(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_trim_stop_codons_info(cls):
+    """trim_stop_codons should preserve info attribute"""
+    coll = cls(
+        data={"seq1": "ACGTAA", "seq2": "ACGACG", "seq3": "ACGCGT"},
+        moltype=DNA,
+        info={"key": "value"},
+    )
+    coll = coll.trim_stop_codons()
+    assert coll.info["key"] == "value"
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_get_translation_incomplete(cls):
+    """get translation works on incomplete codons"""
+    alignment = cls(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
+    got = alignment.get_translation(incomplete_ok=True)
+    assert got.to_dict() == {"seq1": "D?", "seq2": "XS"}
+    with pytest.raises(AlphabetError):
+        _ = alignment.get_translation(incomplete_ok=False)

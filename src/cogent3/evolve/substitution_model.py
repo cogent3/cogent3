@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 substitution_model.py
 
@@ -40,7 +39,8 @@ import numpy
 
 from numpy.linalg import svd
 
-from cogent3.core import moltype
+from cogent3._version import __version__
+from cogent3.core import genetic_code, moltype
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.evolve.substitution_calculation import (
@@ -66,22 +66,8 @@ from cogent3.recalculation.definition import (
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 
-__author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__contributors__ = [
-    "Gavin Huttley",
-    "Andrew Butterfield",
-    "Peter Maxwell",
-    "Matthew Wakefield",
-    "Brett Easton",
-    "Rob Knight",
-    "Von Bing Yap",
-]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
+kappa_y = predicate.MotifChange("T", "C").aliased("kappa_y")
+kappa_r = predicate.MotifChange("A", "G").aliased("kappa_r")
 
 
 def predicate2matrix(alphabet, pred, mask=None):
@@ -326,7 +312,6 @@ class _SubstitutionModel(object):
         space=None,
         **kw,
     ):
-
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
 
@@ -551,7 +536,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
         if x == y:
             return False
         gap_start = gap_end = gap_strand = None
-        for (i, (X, Y)) in enumerate(zip(x, y)):
+        for i, (X, Y) in enumerate(zip(x, y)):
             G = self.gapmotif[i]
             if X != Y:
                 if X != G and Y != G:
@@ -732,12 +717,12 @@ class Parametric(_ContinuousSubstitutionModel):
         # Check for redundancy in predicates, ie: 1 or more than combine
         # to be equivalent to 1 or more others, or the distance params.
         # Give a clearer error in simple cases like always false or true.
-        for (name, matrix) in list(predicate_masks.items()):
+        for name, matrix in list(predicate_masks.items()):
             if numpy.alltrue((matrix == 0).flat):
                 raise ValueError(f"Predicate {name} is always false.")
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
-        for (name, matrix) in list(predicate_masks.items()):
+        for name, matrix in list(predicate_masks.items()):
             if numpy.alltrue((matrix == self._instantaneous_mask).flat):
                 raise ValueError(f"Predicate {name} is always true.")
         if redundancy_in_predicate_masks(predicate_masks):
@@ -766,7 +751,7 @@ class Parametric(_ContinuousSubstitutionModel):
     def calc_exchangeability_matrix(self, mprobs, *params):
         assert len(params) == len(self.predicate_indices), self.parameter_order
         R = self._instantaneous_mask_f.copy()
-        for (indices, par) in zip(self.predicate_indices, params):
+        for indices, par in zip(self.predicate_indices, params):
             R[indices] *= par
         return R
 
@@ -843,7 +828,7 @@ class Parametric(_ContinuousSubstitutionModel):
         rule = self.get_predicate_mask(rule)
         weighted_scale = 0.0
         bin_probs = numpy.asarray(bin_probs)
-        for (Q, bin_prob, motif_probs) in zip(Qs, bin_probs, motif_probss):
+        for Q, bin_prob, motif_probs in zip(Qs, bin_probs, motif_probss):
             row_totals = numpy.sum(rule * Q, axis=1)
             motif_probs = numpy.asarray(motif_probs)
             word_probs = self.calc_word_probs(motif_probs)
@@ -869,7 +854,7 @@ class Parametric(_ContinuousSubstitutionModel):
             rules = [(None, rule) for rule in rules]
         predicate_masks = {}
         order = []
-        for (key, pred) in rules:
+        for key, pred in rules:
             (label, mask) = self.adapt_predicate(pred, key)
             if label in predicate_masks:
                 raise KeyError(f'Duplicate predicate name "{label}"')
@@ -923,7 +908,9 @@ class _TimeReversibleNucleotide(TimeReversible):
             "transition": predicate.parse("R/R") | predicate.parse("Y/Y"),
             "transversion": predicate.parse("R/Y"),
             "indel": predicate.parse("-/?"),
-            "kappa": (predicate.parse("R/R") | predicate.parse("Y/Y")).aliased("kappa"),
+            "kappa": (kappa_y | kappa_r).aliased("kappa"),
+            "kappa_y": kappa_y,
+            "kappa_r": kappa_r,
         }
 
 
@@ -1011,7 +998,7 @@ class _Codon:
             return ndiffs == 1
 
     def get_predefined_predicates(self):
-        codon_preds = _CodonPredicates(self.get_alphabet().get_genetic_code())
+        codon_preds = _CodonPredicates(self.gc)
 
         preds = _TimeReversibleNucleotide.get_predefined_predicates(self)
         preds.update(
@@ -1028,9 +1015,9 @@ class _Codon:
 class TimeReversibleCodon(_Codon, _TimeReversibleNucleotide):
     """Core substitution model for codons"""
 
+    # todo deprecate alphabet argument
     @extend_docstring_from(_TimeReversibleNucleotide.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
-        if gc is not None:
-            alphabet = moltype.CodonAlphabet(gc=gc)
-        kw["alphabet"] = alphabet or moltype.STANDARD_CODON
+        self.gc = genetic_code.get_code(gc)
+        kw["alphabet"] = self.gc.get_alphabet()
         _TimeReversibleNucleotide.__init__(self, **kw)

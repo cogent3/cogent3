@@ -129,7 +129,7 @@ If we want to know the posterior probability the 21st position belongs to ``bin0
 
 .. jupyter-execute::
 
-    print(pp["bin0"][20])
+    pp["bin0"][20]
 
 A model with patches of ``kappa``
 ---------------------------------

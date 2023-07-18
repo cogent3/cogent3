@@ -8,15 +8,6 @@ import xml.dom.minidom
 from cogent3.core import annotation, moltype
 
 
-__author__ = "Matthew Wakefield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Matthew Wakefield", "Peter Maxwell", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Matthew Wakefield"
-__email__ = "wakefield@wehi.edu.au"
-__status__ = "Production"
-
 """
 CAUTION:
 This XML PARSER uses minidom. This means a bad performance for
@@ -74,13 +65,15 @@ def GbSeqXmlParser(doc):
         seq = alphabet.make_seq(raw_string, name=name)
 
         all = annotation.Map([(0, len(seq))], parent_length=len(seq))
-        seq.add_annotation(annotation.Source, all, name, all)
+        seq.add_feature(
+            biotype="source", name=name, spans=all.get_coordinates(), strand=all.reverse
+        )
 
         organism = str(
             record.getElementsByTagName("GBSeq_organism")[0].childNodes[0].nodeValue
         )
 
-        seq.add_annotation(annotation.Feature, "organism", organism, [(0, len(seq))])
+        seq.add_feature(biotype="organism", name=organism, spans=[(0, len(seq))])
 
         features = record.getElementsByTagName("GBFeature")
         for feature in features:
@@ -128,7 +121,7 @@ def GbSeqXmlParser(doc):
                         .childNodes[0]
                         .nodeValue
                     )
-            seq.add_annotation(annotation.Feature, key, feature_name, spans)
+            seq.add_feature(biotype=key, name=feature_name, spans=spans)
         yield (name, seq)
 
 

@@ -5,16 +5,6 @@ from cogent3.draw.logo import _char_hts_as_lists, get_logo
 from cogent3.util.dict_array import DictArrayTemplate
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Alpha"
-
-
 class LogoTests(TestCase):
     """testing utility functions"""
 

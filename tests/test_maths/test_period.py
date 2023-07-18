@@ -1,6 +1,7 @@
 from unittest import TestCase, main
 
 from numpy import arange, array, convolve, exp, float64, pi, random, sin, zeros
+from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 from cogent3.maths.period import _autocorr_inner2 as py_autocorr_inner
 from cogent3.maths.period import _goertzel_inner as py_goertzel_inner
@@ -9,18 +10,6 @@ from cogent3.maths.period import auto_corr, dft, goertzel, hybrid, ipdft
 from cogent3.maths.period_numba import autocorr_inner as numba_autocorr_inner
 from cogent3.maths.period_numba import goertzel_inner as numba_goertzel_inner
 from cogent3.maths.period_numba import ipdft_inner as numba_ipdft_inner
-
-
-__author__ = "Hua Ying, Julien Epps and Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Julien Epps", "Hua Ying", "Gavin Huttley"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Production"
-
-from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 
 class TestPeriod(TestCase):

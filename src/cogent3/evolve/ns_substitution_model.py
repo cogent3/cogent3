@@ -1,6 +1,6 @@
 import numpy
 
-from cogent3.core import moltype
+from cogent3.core import genetic_code, moltype
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
@@ -12,16 +12,6 @@ from .substitution_model import (
     _Codon,
     _SubstitutionModel,
 )
-
-
-__author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__contributors__ = ["Gavin Huttley", "Peter Maxwell", "Ben Kaeheler", "Ananias Iliadis"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def _gen_sym_preds():
@@ -55,7 +45,7 @@ class General(Parametric):
         N = len(alphabet)
         self.param_pick = numpy.zeros([N, N], int)
         self.parameter_order = []
-        for (i, x) in enumerate(alphabet):
+        for i, x in enumerate(alphabet):
             for j in numpy.flatnonzero(mask[i]):
                 y = alphabet[j]
                 self.parameter_order.append(f"{x}/{y}")
@@ -92,7 +82,7 @@ class GeneralStationary(Stationary):
 
             inst = [(d, j) for j in row] + [(i, d) for i in col]
 
-            for (i, j) in inst:
+            for i, j in inst:
                 (x, y) = [alphabet[k] for k in [i, j]]
                 predicates.append(MotifChange(x, y, forward_only=True))
                 param_pick[i, j] = len(predicates)
@@ -117,7 +107,7 @@ class GeneralStationary(Stationary):
 
     def calc_exchangeability_matrix(self, mprobs, *params):
         R = numpy.array((0.0,) + params + (1.0,)).take(self.param_pick)
-        for (i, j) in self.last_in_column:
+        for i, j in self.last_in_column:
             assert i > j
             row_total = numpy.dot(mprobs, R[j])
             col_total = numpy.dot(mprobs, R[:, j])
@@ -188,11 +178,11 @@ class NonReversibleTrinucleotide(NonReversibleNucleotide):
 class NonReversibleCodon(_Codon, NonReversibleNucleotide):
     """Base non-reversible codon substitution model."""
 
+    # todo deprecate alphabet argument
     @extend_docstring_from(Parametric.__init__)
     def __init__(self, alphabet=None, gc=None, **kw):
-        if gc is not None:
-            alphabet = moltype.CodonAlphabet(gc=gc)
-        kw["alphabet"] = alphabet or moltype.STANDARD_CODON
+        self.gc = genetic_code.get_code(gc)
+        kw["alphabet"] = self.gc.get_alphabet()
         NonReversibleNucleotide.__init__(self, **kw)
 
 

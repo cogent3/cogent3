@@ -1,12 +1,14 @@
-#!/usr/bin/env python
-
 import itertools
+import pathlib
 import unittest
+
+import numpy
+import pytest
 
 import cogent3.align.progressive
 import cogent3.evolve.substitution_model
 
-from cogent3 import DNA, make_unaligned_seqs
+from cogent3 import DNA, load_aligned_seqs, load_tree, make_unaligned_seqs
 from cogent3.align.align import (
     classic_align_pairwise,
     global_pairwise,
@@ -20,16 +22,6 @@ from cogent3.evolve.models import HKY85, get_model
 dna_model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
     model_gaps=False, equal_motif_probs=True
 )
-
-
-__author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "gavin.huttley@anu.edu.au"
-__status__ = "Production"
 
 
 def matchedColumns(align):
@@ -151,13 +143,12 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             tree = cogent3.make_tree(treestring="(A:.1,B:.1)")
         else:
             tree = cogent3.make_tree(treestring="(((A:.1,B:.1):.1,C:.1):.1,D:.1)")
-        aln, tree = cogent3.align.progressive.TreeAlign(
+        aln, tree = cogent3.align.progressive.tree_align(
             model, seqs, tree=tree, param_vals=param_vals, show_progress=False, **kw
         )
         return aln
 
     def _test_aln(self, seqs, model=dna_model, param_vals=None, **kw):
-
         orig = {n: s.replace("-", "") for (n, s) in list(seqs.items())}
         aln = self._make_aln(orig, model=model, param_vals=param_vals, **kw)
         result = {n: s.lower() for (n, s) in list(aln.to_dict().items())}
@@ -181,7 +172,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         )
 
     def test_progessive_model_name(self):
-        """TreeAlign handles models specified by name"""
+        """tree_align handles models specified by name"""
         self._test_aln({"A": "tacagta", "B": "tac-gtc", "C": "ta---ta", "D": "tac-gtc"})
 
     def test_progressive_est_tree(self):
@@ -193,7 +184,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
                 "C": "TGTGGCACAAGTACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGTTT",
             }
         )
-        aln, tree = cogent3.align.progressive.TreeAlign(
+        aln, tree = cogent3.align.progressive.tree_align(
             HKY85(), seqs, show_progress=False, param_vals={"kappa": 4.0}
         )
 
@@ -204,11 +195,11 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         }
         self.assertEqual(aln.to_dict(), expect)
 
-        aln, tree = cogent3.align.progressive.TreeAlign(
+        aln, tree = cogent3.align.progressive.tree_align(
             HKY85(),
             seqs,
             show_progress=False,
-            ests_from_pairwise=True,
+            params_from_pairwise=True,
         )
 
         expect = {
@@ -233,8 +224,8 @@ class MultipleAlignmentTestCase(unittest.TestCase):
             param_vals=[("kappa", 2.0)],
         )
 
-    def test_TreeAlign_does_pairs(self):
-        """test TreeAlign handles pairs of sequences"""
+    def test_tree_align_does_pairs(self):
+        """test tree_align handles pairs of sequences"""
         self._test_aln({"A": "acttgtac", "B": "ac--gtac"})
 
     def test_gap_at_start(self):
@@ -286,7 +277,7 @@ class MultipleAlignmentTestCase(unittest.TestCase):
         tree_variants = itertools.permutations(tree_mapping, r=3)
 
         for tree_encoding in tree_variants:
-            aln, _ = cogent3.align.progressive.TreeAlign(
+            aln, _ = cogent3.align.progressive.tree_align(
                 model="F81",
                 seqs=seqs,
                 tree=cogent3.make_tree("({},{},{})".format(*tree_encoding)),
@@ -308,5 +299,84 @@ class HirschbergTestCase(MultipleAlignmentTestCase):
         return result
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.fixture(scope="session")
+def seqs(DATA_DIR):
+    tree = load_tree(DATA_DIR / "brca1_5.tree")
+    aln = load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna")
+    seqs = aln[200:1200].take_seqs(tree.get_tip_names()).degap()
+    return seqs
+
+
+@pytest.mark.xfail(reason="fails on linux due to no effect of iters")
+def test_tree_align_pwise_iter(seqs):
+    kwargs = dict(
+        model="F81", seqs=seqs, show_progress=False, indel_rate=1e-3, indel_length=1e-1
+    )
+    aln, _ = cogent3.align.progressive.tree_align(iters=None, **kwargs)
+    one = aln.alignment_quality(app_name="sp_score", calc="pdist")
+    for _ in range(10):
+        aln, _ = cogent3.align.progressive.tree_align(
+            iters=1, approx_dists=True, **kwargs
+        )
+        two = aln.alignment_quality(app_name="sp_score", calc="pdist")
+        # the quality scores will differ, but they're not deterministic
+        # because the alignments are not deterministic
+        if not numpy.allclose(two, one):
+            break
+    else:
+        raise AssertionError("all attempts produced alignments with identical quality")
+
+
+def test_tree_align_dists_from_pairwise_align(seqs):
+    # difficult to test reliably so only exercising use of option
+    aln, tree = cogent3.align.progressive.tree_align(
+        model="F81", seqs=seqs, show_progress=False, approx_dists=False
+    )
+    assert aln
+
+
+def test_tree_align_two(seqs):
+    seqs = seqs.take_seqs(["Human", "NineBande"])
+    aln, tree = cogent3.align.progressive.tree_align(
+        model="F81", seqs=seqs, show_progress=False, iters=1, approx_dists=True
+    )
+    # the tree should have equal branch lengths
+    dist = set(tree.get_distances().values())
+    assert len(dist) == 1
+    assert isinstance(list(dist)[0], float)
+    assert len(aln) >= seqs.get_lengths().array.min()
+
+
+def test_make_dna_scoring_dict():
+    scoring_matrix = make_dna_scoring_dict(10, -1, -8)
+
+    # all transitions equal
+    assert (
+        scoring_matrix[("A", "G")]
+        == scoring_matrix[("G", "A")]
+        == scoring_matrix[("C", "T")]
+        == scoring_matrix[("T", "C")]
+        == -1
+    )
+
+    # all transversions equal
+    assert (
+        scoring_matrix[("A", "T")]
+        == scoring_matrix[("A", "C")]
+        == scoring_matrix[("G", "T")]
+        == scoring_matrix[("G", "C")]
+        == scoring_matrix[("T", "A")]
+        == scoring_matrix[("T", "G")]
+        == scoring_matrix[("C", "A")]
+        == scoring_matrix[("C", "G")]
+        == -8
+    )
+
+    # all matches equal
+    assert (
+        scoring_matrix[("A", "A")]
+        == scoring_matrix[("G", "G")]
+        == scoring_matrix[("C", "C")]
+        == scoring_matrix[("T", "T")]
+        == 10
+    )

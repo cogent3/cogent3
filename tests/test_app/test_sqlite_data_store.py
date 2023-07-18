@@ -8,7 +8,7 @@ from scitrack import get_text_hexdigest
 
 from cogent3 import get_app, open_data_store
 from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     APPEND,
     OVERWRITE,
     READONLY,
@@ -25,18 +25,6 @@ from cogent3.app.sqlite_data_store import (
 from cogent3.util.table import Table
 
 
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
-
-DATA_DIR = Path(__file__).parent.parent / "data"
-
-
 @pytest.fixture(scope="function")
 def tmp_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("sqldb")
@@ -49,7 +37,7 @@ def db_dir(tmp_dir):
 
 
 @pytest.fixture(scope="function")
-def ro_dir_dstore():
+def ro_dir_dstore(DATA_DIR):
     return DataStoreDirectory(DATA_DIR, suffix="fasta")
 
 
@@ -292,6 +280,15 @@ def test_read(full_dstore_sqlite):
     log = full_dstore_sqlite.logs[0]
     for r in (c, nc, log):
         assert isinstance(r.read(), str)
+
+
+def test_write_success_replaces_not_completed(full_dstore_sqlite):
+    """correctly write content"""
+    new_id = full_dstore_sqlite.not_completed[0].unique_id
+    data = full_dstore_sqlite.completed[0].read()
+    num = len(full_dstore_sqlite)
+    full_dstore_sqlite.write(unique_id=new_id, data=data)
+    assert len(full_dstore_sqlite) == num
 
 
 def test_read_log(sql_dstore, log_data):

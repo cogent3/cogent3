@@ -12,7 +12,7 @@ from typing import Optional, Union
 from scitrack import get_text_hexdigest
 
 from cogent3.app import typing as c3_types
-from cogent3.app.data_store_new import (
+from cogent3.app.data_store import (
     _LOG_TABLE,
     APPEND,
     OVERWRITE,
@@ -20,24 +20,18 @@ from cogent3.app.data_store_new import (
     DataMember,
     DataMemberABC,
     DataStoreABC,
+    DataStoreDirectory,
     Mode,
     StrOrBytes,
 )
+from cogent3.util.misc import extend_docstring_from
 
-
-__author__ = "Gavin Huttley"
-__copyright__ = "Copyright 2007-2022, The Cogent Project"
-__credits__ = ["Gavin Huttley", "Nick Shahmaras"]
-__license__ = "BSD-3"
-__version__ = "2023.2.12a1"
-__maintainer__ = "Gavin Huttley"
-__email__ = "Gavin.Huttley@anu.edu.au"
-__status__ = "Alpha"
 
 _RESULT_TABLE = "results"
 _MEMORY = ":memory:"
 _mem_pattern = re.compile(r"^\s*[:]{0,1}memory[:]{0,1}\s*$")
 NoneType = type(None)
+
 
 # create db
 def open_sqlite_db_rw(path: Union[str, Path]):
@@ -104,7 +98,7 @@ class DataStoreSqlite(DataStoreABC):
     def __init__(
         self,
         source,
-        mode: Mode = READONLY,
+        mode: Union[Mode, str] = READONLY,
         limit=None,
         verbose=False,
     ):
@@ -273,8 +267,14 @@ class DataStoreSqlite(DataStoreABC):
 
         return DataMember(data_store=self, unique_id=unique_id)
 
-    def drop_not_completed(self) -> None:
-        self.db.execute(f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=0")
+    def drop_not_completed(self, *, unique_id: str = "") -> None:
+        if not unique_id:
+            cmnd = f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=?"
+            vals = (0,)
+        else:
+            cmnd = f"DELETE FROM {_RESULT_TABLE} WHERE is_completed=? AND record_id=?"
+            vals = (0, unique_id)
+        self.db.execute(cmnd, vals)
         self._not_completed = []
 
     @property
@@ -330,11 +330,15 @@ class DataStoreSqlite(DataStoreABC):
 
         return
 
+    @extend_docstring_from(DataStoreDirectory.write)
     def write(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         if unique_id.startswith(_RESULT_TABLE):
             unique_id = Path(unique_id).name
 
         super().write(unique_id=unique_id, data=data)
+
+        self.drop_not_completed(unique_id=unique_id)
+
         member = self._write(
             table_name=_RESULT_TABLE,
             unique_id=unique_id,
@@ -347,6 +351,7 @@ class DataStoreSqlite(DataStoreABC):
             self._completed.append(member)
         return member
 
+    @extend_docstring_from(DataStoreDirectory.write_log)
     def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
         if unique_id.startswith(_LOG_TABLE):
             unique_id = Path(unique_id).name
@@ -356,6 +361,7 @@ class DataStoreSqlite(DataStoreABC):
             table_name=_LOG_TABLE, unique_id=unique_id, data=data, is_completed=False
         )
 
+    @extend_docstring_from(DataStoreDirectory.write_not_completed)
     def write_not_completed(self, *, unique_id: str, data: StrOrBytes) -> DataMemberABC:
         if unique_id.startswith(_RESULT_TABLE):
             unique_id = Path(unique_id).name
@@ -415,8 +421,8 @@ class DataStoreSqlite(DataStoreABC):
     @property
     def summary_not_completed(self) -> c3_types.TabularType:
         """returns a table summarising not completed results"""
-        from .data_store_new import summary_not_completeds
-        from .io_new import DEFAULT_DESERIALISER
+        from .data_store import summary_not_completeds
+        from .io import DEFAULT_DESERIALISER
 
         return summary_not_completeds(
             self.not_completed, deserialise=DEFAULT_DESERIALISER

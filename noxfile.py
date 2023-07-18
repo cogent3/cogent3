@@ -3,7 +3,18 @@ import pathlib
 import nox
 
 
-_py_versions = range(7, 11)
+_py_versions = range(8, 12)
+
+
+@nox.session(python=[f"3.{v}" for v in _py_versions])
+def test_slow(session):
+    session.install(".[test]")
+    session.chdir("tests")
+    session.run(
+        "pytest",
+        "-m",
+        "slow",
+    )
 
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
@@ -20,6 +31,8 @@ def test(session):
         "cogent3",
         "--ignore",
         "test_app_mpi.py",
+        "-m",
+        "not slow",
     )
 
 
@@ -49,7 +62,7 @@ def testdocs(session):
     py = pathlib.Path(session.bin_paths[0]) / "python"
     session.install(".[doc]")
     session.chdir("doc")
-    for docdir in ("app", "cookbook", "examples"):
+    for docdir in ("app", "cookbook", "draw", "examples"):
         session.run(
             str(py),
             "doctest_rsts.py",
