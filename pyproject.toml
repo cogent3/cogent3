@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
 # remember to update cogent3/_version.py too!
-version = "2023.2.12a1"
+version = "2023.7.18a1"
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
 ]
@@ -23,7 +23,6 @@ dependencies = ["chardet",
         "scipy",
         "scitrack",
         "tqdm",
-        "tinydb",
         "typing_extensions"]
 classifiers = [
         "Development Status :: 5 - Production/Stable",
@@ -55,6 +54,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
+    "tinydb",
     "nox"]
 doc  = ["click==8.1.5",
         "ipykernel",
@@ -112,7 +112,9 @@ dev = ["black==23.7.0",
        "pydata_sphinx_theme",
        "sphinx_panels",
        "sphinxcontrib-bibtex",
-       "sphinxcontrib-video"]
+       "sphinxcontrib-video",
+       "tinydb"
+]
 
 [tool.flit.sdist]
 include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]

@@ -1,2 +1,2 @@
 # remember to update version in pyproject.toml too!
-__version__ = "2023.2.12a1"
+__version__ = "2023.7.18a1"
