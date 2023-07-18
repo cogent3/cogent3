@@ -21,7 +21,7 @@
 
 <details>
   <summary> 🎬 Demo non-reversible substitution model </summary>
-    <video src="https://user-images.githubusercontent.com/3102996/253849611-6ddd8705-8f16-4b24-b651-68b2123ecdf0.mp4" controls="controls" style="max-height:640px">
+    <video src="https://user-images.githubusercontent.com/3102996/253845402-f511af2c-c2e2-48bc-8f6e-f9b0f05697e9.mp4" controls="controls" style="max-height:640px">
     </video>
 </details>
 
