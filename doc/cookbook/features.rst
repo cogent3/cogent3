@@ -138,7 +138,7 @@ From a Genbank file
 How to load features and sequence data
 ++++++++++++++++++++++++++++++++++++++
 
-To load the sequence and all 40,578 features from *C. elegans* Chromosome 1, we use the ``load_seq`` function. The loading process takes approximately 1.4 seconds ⚡️
+To load the sequence and all 40,578 features from *C. elegans* Chromosome 1, we use the ``load_seq`` function ⚡️
 
 .. jupyter-execute::
     :raises:
