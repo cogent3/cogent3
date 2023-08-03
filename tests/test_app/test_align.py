@@ -702,10 +702,10 @@ def test_smith_waterman_no_moltype(seqs):
 
 
 @pytest.mark.parametrize(
-    "moltype_1", ("text", "rna", "protein", "bytes")
+    "moltype_1", ("text", "dna", "rna", "protein", "bytes")
 )
 @pytest.mark.parametrize(
-    "moltype_2", ("text", "rna", "protein", "bytes")
+    "moltype_2", ("text", "dna", "rna", "protein", "bytes")
 )
 def test_smith_waterman_wrong_moltype(moltype_1, moltype_2):
     """If the moltypes differ between SW app and SequenceCollection, 
