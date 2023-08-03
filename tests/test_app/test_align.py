@@ -690,30 +690,24 @@ def test_smith_waterman_generic_moltype(moltype):
 
 
 def test_smith_waterman_no_moltype(seqs):
-    """If no moltype is provided and the SequenceCollection has no specified moltype, the 
-    default moltype ('dna') should be used. 
+    """If no moltype is provided and the SequenceCollection has no specified moltype, the
+    default moltype ('dna') should be used.
     """
     aligner = smith_waterman()
-    coll = make_unaligned_seqs(
-        data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")]
-    )
+    coll = make_unaligned_seqs(data=[seqs.get_seq("Human"), seqs.get_seq("Bandicoot")])
     aln = aligner(coll)
     assert aln.moltype.label == "dna"
 
 
-@pytest.mark.parametrize(
-    "moltype_1", ("text", "dna", "rna", "protein", "bytes")
-)
-@pytest.mark.parametrize(
-    "moltype_2", ("text", "dna", "rna", "protein", "bytes")
-)
+@pytest.mark.parametrize("moltype_1", ("text", "dna", "rna", "protein", "bytes"))
+@pytest.mark.parametrize("moltype_2", ("text", "dna", "rna", "protein", "bytes"))
 def test_smith_waterman_wrong_moltype(moltype_1, moltype_2):
-    """If the moltypes differ between SW app and SequenceCollection, 
-     the SW moltype should be used
+    """If the moltypes differ between SW app and SequenceCollection,
+    the SW moltype should be used
     """
     aligner = smith_waterman(moltype=moltype_1)
     coll = make_unaligned_seqs(
-        data={"Human":"AUUCGAUGG", "Bandicoot":"AUUGCCCGAUGG"}, moltype=moltype_2
+        data={"Human": "AUUCGAUGG", "Bandicoot": "AUUGCCCGAUGG"}, moltype=moltype_2
     )
     aln = aligner(coll)
     assert aln.moltype.label == moltype_1

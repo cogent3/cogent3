@@ -575,19 +575,19 @@ class smith_waterman:
         Parameters
         ----------
         score_matrix : dict
-            scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for 
+            scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for
             DNA and `make_generic_scoring_dict(10, moltype)` for other moltype.
         insertion_penalty : int
             penalty for gap insertion
         extension_penalty : int
             penalty for gap extension
         moltype
-            molecular type of sequences, defaults to "dna" 
+            molecular type of sequences, defaults to "dna"
 
         Note
         ----
-        If the provided molecular type differs from the moltype of the 
-        SequenceCollection to be aligned, the sequences are converted to 
+        If the provided molecular type differs from the moltype of the
+        SequenceCollection to be aligned, the sequences are converted to
         the provided moltype.
         """
         self.moltype = get_moltype(moltype)
