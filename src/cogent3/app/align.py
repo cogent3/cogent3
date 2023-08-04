@@ -625,7 +625,7 @@ class smith_waterman:
             extension_penalty=self._extension_penalty,
             sw_score=score,
         )
-        aln.moltype = self.moltype
+        aln.to_moltype(self.moltype)
         return aln
 
 
