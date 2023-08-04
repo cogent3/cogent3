@@ -600,7 +600,6 @@ class smith_waterman:
         self._extension_penalty = extension_penalty
 
     def main(self, seqs: UnalignedSeqsType) -> AlignedSeqsType:
-        seqs = seqs.to_moltype(self.moltype)
         if seqs.num_seqs > 2:
             return NotCompleted(
                 "ERROR",
@@ -608,6 +607,7 @@ class smith_waterman:
                 message="maximum number of two seqs per collection",
                 source=seqs,
             )
+        seqs = seqs.to_moltype(self.moltype)
         seq1, seq2 = seqs.seqs
         aln, score = classic_align_pairwise(
             seq1,
@@ -625,8 +625,7 @@ class smith_waterman:
             extension_penalty=self._extension_penalty,
             sw_score=score,
         )
-        aln.to_moltype(self.moltype)
-        return aln
+        return aln.to_moltype(self.moltype)
 
 
 @define_app
