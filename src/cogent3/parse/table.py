@@ -22,19 +22,19 @@ class FilteringParser:
         Parameters
         ----------
         row_condition : callable
-            callback that takes an entire line (except header) and returns True/False.
-            A line is kept if condition(line) is True.
+            callback that takes a line with fields defined by columns and
+            returns True/False. A line is kept if condition(line) is True.
+            (The header line is excluded.)
         negate : bool
             A line is kept if condition(line) is False.
         with_header : bool
             when True, first line is taken to be the header. Not
             passed to converter.
         columns
-            series of indices, or column names, to return. If column names provided, with_header must be true.
+            series of indices, or column names, to return. If column names
+            provided, with_header must be true.
         sep : str
             the delimiter separating fields.
-        strip_wspace : bool
-            removes redundant white
         limit : int
             exits after this many lines
 
