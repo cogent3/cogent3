@@ -575,20 +575,26 @@ class smith_waterman:
         Parameters
         ----------
         score_matrix : dict
-            scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for DNA
-            and `make_generic_scoring_dict(10, moltype)` for other moltype.
+            scoring dict, defaults to `make_dna_scoring_dict(10, -1, -8)` for
+            DNA and `make_generic_scoring_dict(10, moltype)` for other moltype.
         insertion_penalty : int
             penalty for gap insertion
         extension_penalty : int
             penalty for gap extension
         moltype
-            molecular type of sequences
+            molecular type of sequences, defaults to "dna"
+
+        Note
+        ----
+        If the provided molecular type differs from the moltype of the
+        SequenceCollection to be aligned, the sequences are converted to
+        the provided moltype.
         """
-        moltype = get_moltype(moltype)
+        self.moltype = get_moltype(moltype)
         self._score_matrix = score_matrix or (
             make_dna_scoring_dict(10, -1, -8)
-            if moltype.label == "dna"
-            else make_generic_scoring_dict(10, moltype)
+            if self.moltype.label == "dna"
+            else make_generic_scoring_dict(10, self.moltype)
         )
         self._insertion_penalty = insertion_penalty
         self._extension_penalty = extension_penalty
@@ -601,6 +607,7 @@ class smith_waterman:
                 message="maximum number of two seqs per collection",
                 source=seqs,
             )
+        seqs = seqs.to_moltype(self.moltype)
         seq1, seq2 = seqs.seqs
         aln, score = classic_align_pairwise(
             seq1,
@@ -618,7 +625,7 @@ class smith_waterman:
             extension_penalty=self._extension_penalty,
             sw_score=score,
         )
-        return aln
+        return aln.to_moltype(self.moltype)
 
 
 @define_app
