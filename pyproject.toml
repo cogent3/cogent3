@@ -46,7 +46,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 test = [
     "black==23.7.0",
     "isort==5.12.0",
-    "click==8.1.6", # black needs this pinned
+    "click==8.1.7", # black needs this pinned
     "kaleido",
     "pandas",
     "plotly",
@@ -56,7 +56,7 @@ test = [
     "pytest-xdist",
     "tinydb",
     "nox"]
-doc  = ["click==8.1.6",
+doc  = ["click==8.1.7",
         "ipykernel",
         "ipython",
         "ipywidgets",
@@ -82,7 +82,7 @@ doc  = ["click==8.1.6",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
 dev = ["black==23.7.0",
-       "click==8.1.6",
+       "click==8.1.7",
        "flit",
        "ipykernel",
        "ipython",
