@@ -1,7 +1,5 @@
 """Unit tests for tree parsers.
 """
-import pathlib
-
 from unittest import TestCase
 
 from cogent3.core.tree import PhyloNode

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Some tests for the likelihood function class.
 
@@ -14,7 +13,7 @@ import json
 import os
 import warnings
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy
 
@@ -1344,10 +1343,10 @@ DogFaced     root      1.0000    1.0000
 
     def test_get_lengths_as_ens_equal(self):
         """lengths equals ENS for a time-reversible model"""
-        moprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
+        mprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
         length = 0.1
         lf = HKY85().make_likelihood_function(make_tree(tip_names=["a", "b", "c"]))
-        lf.set_motif_probs(moprobs)
+        lf.set_motif_probs(mprobs)
         lf.set_param_rule("kappa", init=1)
         lf.set_param_rule("length", edge="a", init=length)
         len_dict = lf.get_lengths_as_ens()
@@ -1355,10 +1354,10 @@ DogFaced     root      1.0000    1.0000
 
     def test_get_lengths_as_ens_not_equal(self):
         """lengths do not equal ENS for a non-reversible model"""
-        moprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
+        mprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
         length = 0.1
         lf = GN().make_likelihood_function(make_tree(tip_names=["a", "b", "c"]))
-        lf.set_motif_probs(moprobs)
+        lf.set_motif_probs(mprobs)
         lf.set_param_rule("length", init=length)
         # setting arbitrary values for GN rate terms
         init = 0.1
