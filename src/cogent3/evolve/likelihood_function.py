@@ -736,13 +736,16 @@ class LikelihoodFunction(ParameterController):
         """
         if motif_probs is None:
             motif_probs = self.get_motif_probs_by_node()
-        node_names = [n for n in self.tree.get_node_names() if n != "root"]
-        lengths = {e: self.get_param_value("length", edge=e) for e in node_names}
+
+        edge_parent = self.tree.child_parent_map()
+        lengths = {e: self.get_param_value("length", edge=e) for e in edge_parent}
         if not isinstance(self.model, substitution_model.Stationary):
             ens = {}
-            for e in node_names:
+            for e in edge_parent:
                 Q = self.get_rate_matrix_for_edge(e)
-                length = expected_number_subs(motif_probs[e], Q, lengths[e])
+                length = expected_number_subs(
+                    motif_probs[edge_parent[e]], Q, lengths[e]
+                )
                 ens[e] = length
 
             lengths = ens

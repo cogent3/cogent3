@@ -41,6 +41,7 @@ from cogent3.evolve.models import (
     ssGN,
 )
 from cogent3.evolve.ns_substitution_model import GeneralStationary
+from cogent3.maths.matrix_exponential_integration import expected_number_subs
 from cogent3.maths.matrix_exponentiation import PadeExponentiator as expm
 from cogent3.maths.stats.information_criteria import aic, bic
 
@@ -2260,5 +2261,20 @@ def test_simulate_alignment3():
     assert re.sub("[ATCG]", "x", simulated.to_dict()["a"]) == "x??xxxxxx?"
 
 
-if __name__ == "__main__":
-    main()
+def test_get_lengths_as_ens_matches_manual_calc():
+    """lengths as ENS for a non-reversible model matches a manual calculation"""
+    mprobs = numpy.array([0.1, 0.2, 0.3, 0.4])
+    # unequal lengths
+    lf = GN().make_likelihood_function(make_tree("(a:0.1,b:0.1,c:0.1)"))
+    lf.set_motif_probs(mprobs)
+    # setting arbitrary values for GN rate terms
+    init = 0.1
+    for par_name in lf.model.get_param_list():
+        lf.set_param_rule(par_name, init=init)
+        init += 0.1
+
+    len_dict = lf.get_lengths_as_ens()
+    expect = expected_number_subs(
+        mprobs, lf.get_rate_matrix_for_edge("a", calibrated=False), 1.0
+    )
+    assert_allclose(len_dict["a"], expect)
