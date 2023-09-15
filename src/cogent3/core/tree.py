@@ -24,6 +24,8 @@ Definition of relevant terms or abbreviations:
        from a node
     -  stem: the edge immediately preceeding a clade
 """
+from __future__ import annotations
+
 import json
 import numbers
 import re
@@ -1616,6 +1618,10 @@ class TreeNode(object):
         from cogent3.phylo.tree_distance import lin_rajan_moret
 
         return lin_rajan_moret(self, tree2)
+
+    def child_parent_map(self) -> dict[str, str]:
+        """return dict of {<child name>: <parent name>, ...}"""
+        return {e.name: e.parent.name for e in self.postorder(include_self=False)}
 
 
 class PhyloNode(TreeNode):
