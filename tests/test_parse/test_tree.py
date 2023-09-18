@@ -274,6 +274,15 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(p), "((xyz):2)abc:3;")
 
 
+def test_make_tree_simple():
+    from cogent3 import make_tree
+
+    tree = make_tree(treestring="(a:0.4,b:0.5,c:0.6)")
+    assert tree.get_node_matching_name("a").length == 0.4
+    assert tree.get_node_matching_name("b").length == 0.5
+    assert tree.get_node_matching_name("c").length == 0.6
+
+
 def test_stores_nhx_data(DATA_DIR):
     """capture extended newick data into <node>.params['other']"""
     with open(DATA_DIR / "nhx.tree") as path:
@@ -290,3 +299,41 @@ def test_stores_nhx_data(DATA_DIR):
             'sDF2_N="6.49"',
             'sN="120.33"',
         }
+
+
+def test_subtree_nhx_data(DATA_DIR):
+    """capture extended newick data into <node>.params['other']"""
+    with open(DATA_DIR / "nhx.tree") as path:
+        tree = DndParser(path)
+
+    subtree = tree.get_sub_tree(["Seal", "Mouse", "Rat", "Platypus", "Opossum"])
+    rodent = subtree.get_connecting_node("Mouse", "Rat")
+    assert set(rodent.params["other"]) == {
+        '&sCF="89.13"',
+        'sCF/sDF1/sDF2="89.13/5.49/5.38"',
+        'sCF_N="107.21"',
+        'sCF_N/sDF1_N/sDF2_N="107.21/6.63/6.49"',
+        'sDF1="5.49"',
+        'sDF1_N="6.63"',
+        'sDF2="5.38"',
+        'sDF2_N="6.49"',
+        'sN="120.33"',
+    }
+
+
+def test_make_tree_with_nhx(DATA_DIR):
+    """capture extended newick data into <node>.params['other']"""
+    from cogent3 import make_tree
+
+    nwk = (
+        '(t1:0.1,(t2:0.2,t3:0.3):0.4[&sCF="81.73"],'
+        '((t4:0.5,t5:0.6):0.7[&sCF="50.68",sDF1="24.42"],'
+        't6:0.8):0.9[&sCF="77.1",sDF1="11.53"]);'
+    )
+    got = make_tree(nwk)
+    vert = got.get_connecting_node("t2", "t3")
+    assert set(vert.params["other"]) == {'&sCF="81.73"'}
+    vert = got.get_connecting_node("t4", "t5")
+    assert set(vert.params["other"]) == {'&sCF="50.68"', 'sDF1="24.42"'}
+    vert = got.get_connecting_node("t5", "t6")
+    assert set(vert.params["other"]) == {'&sCF="77.1"', 'sDF1="11.53"'}
