@@ -319,3 +319,21 @@ def test_subtree_nhx_data(DATA_DIR):
         'sDF2_N="6.49"',
         'sN="120.33"',
     }
+
+
+def test_make_tree_with_nhx(DATA_DIR):
+    """capture extended newick data into <node>.params['other']"""
+    from cogent3 import make_tree
+
+    nwk = (
+        '(t1:0.1,(t2:0.2,t3:0.3):0.4[&sCF="81.73"],'
+        '((t4:0.5,t5:0.6):0.7[&sCF="50.68",sDF1="24.42"],'
+        't6:0.8):0.9[&sCF="77.1",sDF1="11.53"]);'
+    )
+    got = make_tree(nwk)
+    vert = got.get_connecting_node("t2", "t3")
+    assert set(vert.params["other"]) == {'&sCF="81.73"'}
+    vert = got.get_connecting_node("t4", "t5")
+    assert set(vert.params["other"]) == {'&sCF="50.68"', 'sDF1="24.42"'}
+    vert = got.get_connecting_node("t5", "t6")
+    assert set(vert.params["other"]) == {'&sCF="77.1"', 'sDF1="11.53"'}
