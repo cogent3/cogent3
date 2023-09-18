@@ -148,24 +148,6 @@ class SequenceI(object):
         """returns a json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def translate(self, *args, **kwargs):  # pragma: no cover
-        """returns the result of call str.translate
-
-        Notes
-        -----
-        This is a string method, nothing to do with translating into a
-        protein sequence.
-        """
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "function",
-            "cogent3.core.sequence.Sequence.translate",
-            "2023.8",
-            "Better if user just converts sequence to string.",
-        )
-        return str(self).translate(*args, **kwargs)
-
     def count(self, item):
         """count() delegates to self._seq."""
         return str(self).count(item)
@@ -903,11 +885,6 @@ class Sequence(SequenceI):
 
         self._annotation_db = value
 
-    @deprecated_args(
-        "2023.8",
-        reason="consistent nomenclature",
-        old_new=[("feature_type", "biotype")],
-    )
     def get_features(
         self,
         *,
@@ -1023,13 +1000,6 @@ class Sequence(SequenceI):
             r_spans += [(start, end)]
 
         return r_spans
-
-    @deprecated_callable(
-        "2023.8", reason="simpler name", new="<instance>.get_features()"
-    )
-    def get_features_matching(self, **kwargs):
-        """use .get_features()"""
-        return self.get_features(**kwargs)
 
     def make_feature(self, feature: FeatureDataType, *args) -> Feature:
         """
@@ -1379,25 +1349,9 @@ class Sequence(SequenceI):
                 result = self.moltype.complement(result)
         return result
 
-    def gettype(self):  # pragma: no cover
-        """Return the sequence type."""
-        deprecated("method", "gettype", "get_type", "2023.8", "pep8")
-        return self.get_type()
-
     def get_type(self):
         """Return the sequence type as moltype label."""
         return self.moltype.label
-
-    def resolveambiguities(self):  # pragma: no cover
-        """Returns a list of tuples of strings."""
-        deprecated(
-            "method",
-            "resolveambiguities",
-            "resolved_ambiguities",
-            "2023.8",
-            "pep8",
-        )
-        return self.resolved_ambiguities()
 
     def resolved_ambiguities(self) -> List[Tuple[str]]:
         """Returns a list of tuples of strings."""

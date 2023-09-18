@@ -735,11 +735,6 @@ class MolType(object):
             seq[index] = f"[{''.join(expanded)}]"
         return "".join(seq)
 
-    def gettype(self):  # pragma: no cover
-        """Return the moltype label."""
-        deprecated("method", "gettype", "get_type", "2023.8", "pep8")
-        return self.label
-
     def get_type(self):  # pragma: no cover
         """Return the moltype label"""
         return self.label
