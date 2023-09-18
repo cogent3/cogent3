@@ -299,3 +299,23 @@ def test_stores_nhx_data(DATA_DIR):
             'sDF2_N="6.49"',
             'sN="120.33"',
         }
+
+
+def test_subtree_nhx_data(DATA_DIR):
+    """capture extended newick data into <node>.params['other']"""
+    with open(DATA_DIR / "nhx.tree") as path:
+        tree = DndParser(path)
+
+    subtree = tree.get_sub_tree(["Seal", "Mouse", "Rat", "Platypus", "Opossum"])
+    rodent = subtree.get_connecting_node("Mouse", "Rat")
+    assert set(rodent.params["other"]) == {
+        '&sCF="89.13"',
+        'sCF/sDF1/sDF2="89.13/5.49/5.38"',
+        'sCF_N="107.21"',
+        'sCF_N/sDF1_N/sDF2_N="107.21/6.63/6.49"',
+        'sDF1="5.49"',
+        'sDF1_N="6.63"',
+        'sDF2="5.38"',
+        'sDF2_N="6.49"',
+        'sN="120.33"',
+    }
