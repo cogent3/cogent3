@@ -117,7 +117,6 @@ def _strict_parser(
     yield label_to_name(label), "".join(seq)
 
 
-@deprecated_args("2023.8", "faster implementation", discontinued=["finder"])
 def MinimalFastaParser(
     path: PathOrIterableType,
     strict: bool = True,
@@ -127,7 +126,6 @@ def MinimalFastaParser(
     """
     Yields successive sequences from infile as (label, seq) tuples.
 
-    If strict is True (default), .
     Parameters
     ----------
     path

@@ -560,16 +560,6 @@ class ProportionIdenticalPair(_PairwiseDistance):
         return DistanceMatrix(dists)
 
 
-class PercentIdentityPair(ProportionIdenticalPair):
-    @c3warn.deprecated_callable(
-        "2023.8",
-        reason="name is inaccurate, it's a proportion identy measure",
-        new="ProportionIdenticalPair",
-    )
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
 class _NucleicSeqPair(_PairwiseDistance):
     """base class pairwise distance calculator for nucleic acid seqs"""
 
@@ -672,16 +662,6 @@ def get_distance_calculator(name, *args, **kwargs):
 
     name is converted to lower case"""
     name = name.lower()
-    if name == "percent":
-        name = "pdist"
-        c3warn.deprecated(
-            "value",
-            old="percent",
-            new="pdist",
-            reason="name is inaccurate, it's a proportion identy measure",
-            version="2023.8",
-        )
-
     if "moltype" in kwargs and kwargs.get("moltype") is None:
         kwargs.pop("moltype")
     if name not in _calculators:

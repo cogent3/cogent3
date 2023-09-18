@@ -66,26 +66,6 @@ def FromFileParser(f, format, dialign_recode=False, **kw):
         yield name, seq
 
 
-def format_from_filename(filename, format=None):  # pragma: no cover
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "cogent3.parse.sequence.format_from_filename",
-        "cogent3.util.misc.get_format_suffixes",
-        "2023.8",
-    )
-    """Detects format based on filename."""
-    if format:
-        return format
-    else:
-        r = _compression.search(filename)
-        if r:
-            filename = filename[: r.start()]
-
-        return filename[filename.rfind(".") + 1 :]
-
-
 PARSERS = {
     "phylip": phylip.MinimalPhylipParser,
     "paml": paml.PamlParser,
