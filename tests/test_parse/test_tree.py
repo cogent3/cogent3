@@ -274,6 +274,15 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(str(p), "((xyz):2)abc:3;")
 
 
+def test_make_tree_simple():
+    from cogent3 import make_tree
+
+    tree = make_tree(treestring="(a:0.4,b:0.5,c:0.6)")
+    assert tree.get_node_matching_name("a").length == 0.4
+    assert tree.get_node_matching_name("b").length == 0.5
+    assert tree.get_node_matching_name("c").length == 0.6
+
+
 def test_stores_nhx_data(DATA_DIR):
     """capture extended newick data into <node>.params['other']"""
     with open(DATA_DIR / "nhx.tree") as path:
