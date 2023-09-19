@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [ "develop", "issue_1328" ]
   pull_request:
-    branches: [ "develop", "issue_1328" ]
+    branches-ignore:
+      - master
 
 jobs:
   tests:
