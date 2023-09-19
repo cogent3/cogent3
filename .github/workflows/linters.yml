@@ -5,7 +5,7 @@ name: Code Formatting
 # isort integration https://pycqa.github.io/isort/docs/configuration/github_action.html
 
 on:
-  pull_request:
+  push:
     branches-ignore:
       - master
 
