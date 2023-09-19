@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflows: ["Code Formatting"]
   pull_request:
     branches-ignore:
       - master

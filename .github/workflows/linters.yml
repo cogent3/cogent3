@@ -1,4 +1,4 @@
-name: Format code using black and isort
+name: Code Formatting
 # modified from https://towardsdatascience.com/black-with-git-hub-actions-4ffc5c61b5fe
 # caching https://stackoverflow.com/questions/59127258/how-can-i-use-pip-cache-in-github-actions
 # black integration https://black.readthedocs.io/en/stable/integrations/github_actions.html
