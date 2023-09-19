@@ -5,7 +5,7 @@ name: Format code using black and isort
 # isort integration https://pycqa.github.io/isort/docs/configuration/github_action.html
 
 on:
-  push:
+  pull_request:
     branches-ignore:
       - master
 
