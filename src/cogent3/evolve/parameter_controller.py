@@ -57,6 +57,7 @@ class _LikelihoodParameterController(_LF):
         loci=1,
         optimise_motif_probs=False,
         motif_probs_from_align=False,
+        default_length=1.0,
         **kw,
     ):
         # cache of arguments used to construct
@@ -76,7 +77,7 @@ class _LikelihoodParameterController(_LF):
         defn = self.make_likelihood_defn(**kw)
         super(_LikelihoodParameterController, self).__init__(defn)
         self.set_default_param_rules()
-        self.set_default_tree_parameter_rules()
+        self.set_default_tree_parameter_rules(default_length=default_length)
         self.mprobs_from_alignment = motif_probs_from_align
         self.optimise_motif_probs = optimise_motif_probs
         self._name = None
@@ -95,7 +96,7 @@ class _LikelihoodParameterController(_LF):
                     if id(d) in temp:
                         d.values = temp[id(d)]
 
-    def set_default_tree_parameter_rules(self):
+    def set_default_tree_parameter_rules(self, default_length=1.0):
         """Lengths are set to the values found in the tree (if any), and
         free to be optimised independently.
         Other parameters are scoped based on the unique values found in the
@@ -118,14 +119,21 @@ class _LikelihoodParameterController(_LF):
                 for u, value in enumerate(uniq):
                     group = [edge for (edge, i) in list(index.items()) if i == u]
                     self.set_param_rule(par_name, edges=group, init=value)
+
+            # we are setting edge lengths, which is only valid if there is a
+            # continuous-time model on the edge AND the edge is not the root
+            if "expm" not in self.defn_for:  # discrete time only
+                return
+
+            exclude_edges = {"root"}
+            if dp := self.defn_for.get("dpsubs", None):
+                exclude_edges |= {n for _, n in dp.assignments.keys()}
+
             for edge in edges:
-                if edge.length is not None:
-                    try:
-                        self.set_param_rule("length", edge=edge.name, init=edge.length)
-                    except KeyError:
-                        # hopefully due to being a discrete model
-                        warnings.warn("Ignoring tree edge lengths", stacklevel=4)
-                        break
+                if edge.name in exclude_edges:
+                    continue
+                length = edge.length or default_length
+                self.set_param_rule("length", edge=edge.name, init=length)
 
     def set_motif_probs_from_data(
         self,
