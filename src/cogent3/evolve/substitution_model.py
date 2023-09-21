@@ -28,8 +28,10 @@ called Q) is determined.
 >>> model.setparameterrules({'alpha': model.istransition})
 >>> parameter_controller = model.make_likelihood_function(tree)
 """
+from __future__ import annotations
 
 import json
+import typing
 import warnings
 
 from collections.abc import Callable
@@ -41,6 +43,7 @@ from numpy.linalg import svd
 
 from cogent3._version import __version__
 from cogent3.core import genetic_code, moltype
+from cogent3.core.tree import PhyloNode
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.evolve.substitution_calculation import (
@@ -303,15 +306,46 @@ class _SubstitutionModel(object):
 
     def make_likelihood_function(
         self,
-        tree,
-        motif_probs_from_align=None,
-        optimise_motif_probs=None,
-        aligned=True,
-        expm=None,
-        digits=None,
-        space=None,
+        tree: PhyloNode,
+        motif_probs_from_align: typing.Optional[bool] = None,
+        optimise_motif_probs: typing.Optional[bool] = None,
+        aligned: bool = True,
+        expm: typing.Optional[str] = None,
+        digits: typing.Optional[int] = None,
+        space: typing.Optional[str] = None,
+        default_length: float = 1.0,
         **kw,
     ):
+        """
+        construct a likelihood function with this substitution model
+
+        Parameters
+        ----------
+        tree
+            a cogent3 tree object, entries in <tree node>.params dict
+            with keys that match model parameters are used as initial
+            values, this includes length.
+        motif_probs_from_align
+            use the motif probabilities from the alignment
+        optimise_motif_probs
+            treat motif probabilities as optimisable parameters, otherwise
+            they are constant
+        aligned
+            works on alignments. When False, used for sequence alignment
+        expm
+            string name of the exponentiation algorithm, e.g. "pade", "either",
+            "eigen", "checked". Defaults to "either" (which uses eigen,
+            switching to pade if numerical errors occur).
+        digits
+            number of decimal places shown in result tables
+        space
+            spaces between columns in result tables
+        default_length
+            default branch length when provided tree has no (or zero) lengths,
+            noting that a positive nonzero is required.
+        kw
+            other keyword args passed through to the likelihood function class
+        """
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
 
@@ -328,7 +362,7 @@ class _SubstitutionModel(object):
             assert alphabet.get_gap_motif() not in alphabet
             klass = parameter_controller.SequenceLikelihoodFunction
 
-        result = klass(self, tree, **kw)
+        result = klass(self, tree, default_length=default_length, **kw)
 
         if self.motif_probs is not None:
             result.set_motif_probs(

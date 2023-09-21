@@ -16,6 +16,7 @@ import warnings
 from unittest import TestCase
 
 import numpy
+import pytest
 
 from numpy import dot, ones
 from numpy.testing import assert_allclose
@@ -2277,3 +2278,15 @@ def test_get_lengths_as_ens_matches_manual_calc():
         mprobs, lf.get_rate_matrix_for_edge("a", calibrated=False), 1.0
     )
     assert_allclose(len_dict["a"], expect)
+
+
+@pytest.mark.parametrize("expm", (None, "pade"))
+def test_expm_zero_lengths(expm, DATA_DIR):
+    aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
+    names = ["Mouse", "Human", "HowlerMon"]
+    aln = aln.take_seqs(names)
+    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    sm = GTR()
+    lf = sm.make_likelihood_function(tree=tree, expm=expm)
+    lf.set_alignment(aln)
+    lf.optimise(max_evaluations=5, show_progress=False)
