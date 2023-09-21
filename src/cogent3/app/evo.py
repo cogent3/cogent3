@@ -55,6 +55,7 @@ class model:
         sm,
         tree=None,
         unique_trees=False,
+        tree_func=None,
         name=None,
         optimise_motif_probs=False,
         sm_args=None,
@@ -80,6 +81,9 @@ class model:
         unique_trees : bool
             whether to specify a unique tree per alignment. Only applies if
             number of sequences equals 3.
+        tree_func: callable
+            a callable that takes an alignment and returns a Tree instance.
+            Overrides tree and unique_tree settings.
         name : str
             name of the model
         optimise_motif_probs : bool
@@ -124,6 +128,11 @@ class model:
         with the optimised likelihood function. In the case of split_codons,
         the result object has a separate entry for each codon position.
         """
+        if tree_func:
+            assert callable(tree_func), "tree_func must be callable or None"
+            tree = None
+            unique_trees = False
+
         self._verbose = verbose
         self._lower = lower
         self._upper = upper
@@ -147,6 +156,7 @@ class model:
             split_codons = False
 
         self._tree = interpret_tree_arg(tree)
+        self._tree_func = tree_func
         self._lf_args = deepcopy(lf_args or {})
         if not name:
             name = sm.name or "unnamed model"
@@ -267,8 +277,16 @@ class model:
             return NotCompleted("ERROR", self, msg, source=aln)
 
         evaluation_limit = opt_args.get("max_evaluations", None)
-        if self._tree is None or self._unique_trees:
-            assert len(aln.names) == 3, "to model more than 3, you must provide a tree"
+        if callable(self._tree_func):
+            self._tree = self._tree_func(aln)
+        elif self._tree is None or self._unique_trees:
+            if len(aln.names) > 3:
+                return NotCompleted(
+                    "ERROR",
+                    self,
+                    message="to model more than 3, you must provide a tree",
+                    source=aln,
+                )
             self._tree = make_tree(tip_names=aln.names)
 
         result = model_result(
