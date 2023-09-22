@@ -1,6 +1,36 @@
 
+<a id='changelog-2023.9.22a1'></a>
+# Changes in release "2023.9.22a1"
+
+## Contributors
+
+- YapengLang for reporting the bug in computing the ENS for
+  non-stationary processes.
+
+## ENH
+
+- MinimalFastaParser now removes internal spaces
+  in sequence blocks
+
+- Added app.evo.model(tree_func: Optional[Callable]) argument. A callback
+  function assigned to tree_func is passed an alignment and returns a tree.
+  This could be done via loading a tree from disk for that alignment source,
+  or estimation of the tree using the alignment. The argument overrides the
+  other tree related arguments (tree, unique_trees).
+
+## BUG
+
+- The calculation of the expected number of substitutions on a tree branch
+  was incorrect. It was not using the motif probs from the parent node.
+
+- Degapped sequence and collections now retain features
+
+- Fixed issue #993. We provide a new default_length argument to
+  LF.make_likelihood_function() to be applied when a provided tree
+  has zero (or no) lengths. This is set to be 1.
+
 <a id='changelog-2023.7.18a1'></a>
-# Changes since release "2023.7.18a1"
+# Changes in release "2023.7.18a1"
 
 ## Contributers
 
@@ -153,7 +183,7 @@
 
 <a id='changelog-2023.2.12a1'></a>
 
-# Changes since release "2023.2.12a1"
+# Changes in release "2023.2.12a1"
 
 ## Contributors
 
