@@ -21,6 +21,12 @@ def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
     goal = [1.0e-20]
 
     def _display_progress(remaining, *args):
+        # the first element is a numpy array, which can be
+        # a scalar array, i.e. ndim==0. We use the tolist() method to
+        # cast to a standard python type.
+        v1 = args[0]
+        v1 = v1.tolist() if v1.ndim else [v1.tolist()]
+        args = tuple(v1) + args[1:]
         if remaining > goal[0]:
             goal[0] = remaining
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
