@@ -72,7 +72,7 @@ def bounded_function(f, lower_bounds, upper_bounds, report_error=False):
     This is enough to get some unbounded optimisers working on bounded problems"""
 
     def _wrapper(x, **kw):
-        if numpy.alltrue(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
+        if numpy.all(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
             return f(x, **kw)
         else:
             pos = numpy.logical_or(x <= lower_bounds, x >= upper_bounds)

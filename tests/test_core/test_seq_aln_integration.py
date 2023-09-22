@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from numpy import alltrue, array, transpose
+from numpy import all as alltrue
+from numpy import array, transpose
 from numpy.testing import assert_equal
 
 from cogent3.core.alignment import Alignment, ArrayAlignment

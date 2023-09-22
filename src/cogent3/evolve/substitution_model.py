@@ -110,7 +110,7 @@ def _maxWidthIfTruncated(pars, delim, each):
 
 
 def _isSymmetrical(matrix):
-    return numpy.alltrue(numpy.alltrue(matrix == numpy.transpose(matrix)))
+    return numpy.all(numpy.all(matrix == numpy.transpose(matrix)))
 
 
 class _SubstitutionModel(object):
@@ -713,7 +713,7 @@ class Empirical(StationaryQ, _ContinuousSubstitutionModel):
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         N = len(alphabet)
         assert rate_matrix.shape == (N, N)
-        assert numpy.alltrue(numpy.diagonal(rate_matrix) == 0)
+        assert numpy.all(numpy.diagonal(rate_matrix) == 0)
         self._instantaneous_mask_f = rate_matrix * 1.0
         self._instantaneous_mask = self._instantaneous_mask_f != 0.0
         self.symmetric = _isSymmetrical(self._instantaneous_mask_f)
@@ -752,12 +752,12 @@ class Parametric(_ContinuousSubstitutionModel):
         # to be equivalent to 1 or more others, or the distance params.
         # Give a clearer error in simple cases like always false or true.
         for name, matrix in list(predicate_masks.items()):
-            if numpy.alltrue((matrix == 0).flat):
+            if numpy.all((matrix == 0).flat):
                 raise ValueError(f"Predicate {name} is always false.")
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
         for name, matrix in list(predicate_masks.items()):
-            if numpy.alltrue((matrix == self._instantaneous_mask).flat):
+            if numpy.all((matrix == self._instantaneous_mask).flat):
                 raise ValueError(f"Predicate {name} is always true.")
         if redundancy_in_predicate_masks(predicate_masks):
             raise ValueError("Redundancy in predicates.")
@@ -776,7 +776,7 @@ class Parametric(_ContinuousSubstitutionModel):
             if not _isSymmetrical(mask):
                 self.symmetric = False
             indices = numpy.nonzero(mask)
-            assert numpy.alltrue(mask[indices] == 1)
+            assert numpy.all(mask[indices] == 1)
             self.parameter_order.append(pred)
             self.predicate_indices.append(indices)
         (self.scale_masks, scale_order) = self._adapt_predicates(scales or [])
