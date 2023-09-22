@@ -3,7 +3,14 @@ import sys
 
 from unittest import TestCase
 
-from cogent3.maths.optimisers import MaximumEvaluationsReached, maximise
+import numpy
+import pytest
+
+from cogent3.maths.optimisers import (
+    MaximumEvaluationsReached,
+    _standardise_data,
+    maximise,
+)
 
 
 def quartic(x):
@@ -106,3 +113,15 @@ class OptimiserTestCase(TestCase):
         )
         if os.path.exists(filename):
             os.remove(filename)
+
+
+@pytest.mark.parametrize("val", (numpy.array(3.7), numpy.array([3.7]), 3.7))
+def test_standardise_data(val):
+    got = _standardise_data(val)
+    assert got == (3.7,)
+
+
+@pytest.mark.parametrize("val", (37, "37"))
+def test_standardise_data_str(val):
+    got = _standardise_data(val)
+    assert got == ("37",)

@@ -1,7 +1,10 @@
 """Local or Global-then-local optimisation with progress display
 """
+from __future__ import annotations
 
 import warnings
+
+from functools import singledispatch
 
 import numpy
 
@@ -15,6 +18,22 @@ GlobalOptimiser = SimulatedAnnealing
 LocalOptimiser = Powell
 
 
+@singledispatch
+def _standardise_data(val) -> tuple[float]:
+    return (str(val),)
+
+
+@_standardise_data.register
+def _(val: numpy.ndarray) -> tuple[float]:
+    val = val.tolist() if val.ndim else [val.tolist()]
+    return tuple(val)
+
+
+@_standardise_data.register
+def _(val: float) -> tuple[float]:
+    return (val,)
+
+
 def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
     template = "f = % #10.6g  ±  % 9.3e   evals = %6i "
     label = label.rjust(5)
@@ -24,9 +43,8 @@ def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
         # the first element is a numpy array, which can be
         # a scalar array, i.e. ndim==0. We use the tolist() method to
         # cast to a standard python type.
-        v1 = args[0]
-        v1 = v1.tolist() if v1.ndim else [v1.tolist()]
-        args = tuple(v1) + args[1:]
+        v1 = _standardise_data(args[0])
+        args = v1 + args[1:]
         if remaining > goal[0]:
             goal[0] = remaining
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
