@@ -802,7 +802,7 @@ class PairEmissionProbs(object):
         if dp_options.viterbi and cells is None:
             encoder = self.pair.get_pointer_encoding(len(T))
             problem_dimensions = self.pair.size + [len(T)]
-            problem_size = numpy.product(problem_dimensions)
+            problem_size = numpy.prod(problem_dimensions)
             memory = problem_size * encoder.bytes / 10**6
             if dp_options.local:
                 msg = "Local alignment"

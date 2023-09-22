@@ -599,7 +599,7 @@ class SelectForDimension(_Defn):
 # Some simple CalcDefns
 
 # SumDefn = CalcDefn(lambda *args:sum(args), 'sum')
-# ProductDefn = CalcDefn(lambda *args:numpy.product(args), 'product')
+# ProductDefn = CalcDefn(lambda *args:numpy.prod(args), 'product')
 # CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')
 
 
@@ -636,7 +636,7 @@ class ProductDefn(CalculationDefn):
     name = "product"
 
     def calc(self, *args):
-        return numpy.product(args)
+        return numpy.prod(args)
 
 
 class CallDefn(CalculationDefn):
