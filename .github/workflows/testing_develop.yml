@@ -2,9 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ "develop", "issue_1328" ]
+    branches-ignore:
+      - master
   pull_request:
-    branches: [ "develop", "issue_1328" ]
+    branches-ignore:
+      - master
 
 jobs:
   tests:
@@ -22,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       # Setup env
-      - uses: "actions/setup-python@v2"
+      - uses: "actions/setup-python@v3"
         with:
             python-version: "${{ matrix.python-version }}"
 

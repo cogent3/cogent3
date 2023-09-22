@@ -329,7 +329,6 @@ class Location(object):
         accession=None,
         db=None,
         strand=1,
-        **kwargs,
     ):
         """Returns new LocalLocation object."""
 
@@ -344,28 +343,6 @@ class Location(object):
         self.accession = accession
         self.db = db
         self.strand = strand
-
-        dep_arg_map = {
-            "Ambiguity": "ambiguity",
-            "IsBetween": "is_between",
-            "IsBounds": "is_bounds",
-            "Accession": "accession",
-            "Db": "db",
-            "Strand": "strand",
-        }  # map between deprecated argument name and PEP8 compliant argument name
-        for dep_arg, arg in dep_arg_map.items():
-            if dep_arg in kwargs:
-                setattr(self, arg, kwargs.pop(dep_arg))
-
-                from cogent3.util.warning import deprecated
-
-                deprecated(
-                    "argument",
-                    dep_arg,
-                    arg,
-                    "2023.8",
-                    "changed to be PEP8 compliant",
-                )
 
     def __str__(self):
         """Returns self in string format.
@@ -423,57 +400,9 @@ class Location(object):
         except TypeError:
             return self._data[-1].stop
 
-    def first(self):  # pragma: no cover
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "method",
-            "Location.first",
-            "Location.start",
-            "2023.8",
-            "Warning: '.start' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
-        )
-
-        return self.start
-
-    def last(self):  # pragma: no cover
-        from cogent3.util.warning import deprecated
-
-        deprecated(
-            "method",
-            "Location.last",
-            "Location.stop",
-            "2023.8",
-            "Warning: '.stop' is changed to reflect 0-based coordinated, previous implementation reflected 1-based coordinates",
-        )
-        return self.stop
-
 
 class LocationList(list):
     """List of Location objects."""
-
-    def first(self):  # pragma: no cover
-        """Returns first base of self."""
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "method",
-            "LocationList.first",
-            "2023.8",
-        )
-
-        return min(self, key=lambda x: x.start).start + 1
-
-    def last(self):  # pragma: no cover
-        """Returns last base of self."""
-        from cogent3.util.warning import discontinued
-
-        discontinued(
-            "method",
-            "LocationList.last",
-            "2023.8",
-        )
-        return max(self, key=lambda x: x.stop).stop + 1
 
     @property
     def strand(self):
@@ -670,15 +599,11 @@ def extract_nt_prot_seqs(rec, wanted=wanted_types):
         print("s :", seq)
 
 
-@c3warn.deprecated_args(
-    "2023.8", reason="no longer relevant", discontinued="add_annotation"
-)
 def RichGenbankParser(
     handle,
     info_excludes=None,
     moltype=None,
     skip_contigs=False,
-    add_annotation=None,
     db: Optional[GenbankAnnotationDb] = None,
     just_seq: bool = False,
 ):
@@ -703,13 +628,11 @@ def RichGenbankParser(
     info_excludes = info_excludes or ["sequence", "features"]
     moltype = get_moltype(moltype) if moltype else None
     for rec in MinimalGenbankParser(handle):
-        info = {}
-        # populate the info object, excluding the sequence
-        for label, value in list(rec.items()):
-            if label in info_excludes:
-                continue
-            info[label] = value
-
+        info = {
+            label: value
+            for label, value in list(rec.items())
+            if label not in info_excludes
+        }
         if moltype is None:
             rec_moltype = rec["mol_type"].lower()
             rec_moltype = (
@@ -725,13 +648,14 @@ def RichGenbankParser(
                 rec["sequence"].upper(), info=info, name=rec["locus"]
             )
         except KeyError:
-            if not skip_contigs:
-                if "contig" in rec:
+            if "contig" in rec:
+                if not skip_contigs:
                     yield rec["locus"], rec["contig"]
-                elif "WGS" in rec:
+            elif "WGS" in rec:
+                if not skip_contigs:
                     yield rec["locus"], rec["WGS"]
-                else:
-                    yield rec["locus"], None
+            elif not skip_contigs:
+                yield rec["locus"], None
             continue
 
         if not just_seq:

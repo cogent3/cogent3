@@ -3,10 +3,11 @@
 import json
 import os
 import pathlib
+import random
 
 from copy import copy, deepcopy
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
@@ -1727,14 +1728,6 @@ class TreeInterfaceForLikelihoodFunction(TestCase):
         ]:
             self.assertEqual(tree.get_edge_names(a, b, True, False, outgroup), result)
 
-    def test_parser(self):
-        """nasty newick"""
-        nasty = "( (A :1.0,'B (b)': 2) [com\nment]pair:3,'longer name''s':4)dash_ed;"
-        nice = "((A:1.0,'B (b)':2.0)pair:3.0,'longer name''s':4.0)dash_ed;"
-        tree = self._maketree(nasty)
-        tidied = tree.get_newick(with_distances=1)
-        self.assertEqual(tidied, nice)
-
     # Likelihood Function Interface
 
     def test_get_edge_names(self):
@@ -2210,3 +2203,26 @@ def test_lrm_method():
     b = make_tree(treestring="(1,((((2,3),4),5),((6,7),((8,9),(10,11)))),12);")
     distance = a.lin_rajan_moret(b)
     assert distance == 8
+
+
+@pytest.mark.parametrize(
+    "nwk", ("(((g,b)gb,(c,d)cd),(e,f),a)", "(a,b,c)", ("(a,(b,(c,d)cd))"))
+)
+def test_child_parent_map(nwk):
+    tree = make_tree(nwk)
+    child_2_parent = tree.child_parent_map()
+    all_edges = tree.get_edge_vector(include_root=False)
+    assert len(child_2_parent) == len(all_edges)
+    assert child_2_parent["a"] == "root"
+    edge = random.choice(all_edges)
+    assert child_2_parent[edge.name] == edge.parent.name
+
+
+def test_parser():
+    """nasty newick"""
+    nasty = "( (A :1.0,'B (b)': 2) [com\nment]pair:3,'longer name''s':4)dash_ed;"
+    nice = "((A:1.0,'B (b)':2.0)pair:3.0,'longer name''s':4.0)dash_ed;"
+    tree = make_tree(treestring=nasty, underscore_unmunge=True)
+    tidied = tree.get_newick(with_distances=1)
+    assert tidied == nice
+    assert tree.get_node_matching_name("pair").params["other"] == ["com\nment"]

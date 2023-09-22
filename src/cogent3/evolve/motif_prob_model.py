@@ -167,9 +167,9 @@ class MonomerProbModel(ComplexMotifProbModel):
         return monomer_probs
 
     def calc_word_probs(self, monomer_probs):
-        result = numpy.product(monomer_probs.take(self.m2w), axis=-1)
+        result = numpy.prod(monomer_probs.take(self.m2w), axis=-1)
         # maybe simpler but slower, works ok:
-        # result = numpy.product(monomer_probs ** (w2m, axis=-1))
+        # result = numpy.prod(monomer_probs ** (w2m, axis=-1))
         result /= result.sum()
         return result
 
@@ -211,7 +211,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
             type(monomer_probs),
             self.m2w.shape,
         )
-        result = numpy.product(
+        result = numpy.prod(
             [monomer_probs[i].take(self.m2w[:, i]) for i in positions], axis=0
         )
         result /= result.sum()

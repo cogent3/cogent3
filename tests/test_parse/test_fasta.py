@@ -424,3 +424,11 @@ def test_seq_startswith_gt_bracket_fail():
     oneseq_w_gt = ">abc\n>CAG\n".split("\n")
     with pytest.raises(RecordError):
         list(MinimalFastaParser(oneseq_w_gt))
+
+
+@pytest.mark.parametrize("sep", (" ", "\t"))
+@pytest.mark.parametrize("strict", (False, True))
+def test_fasta_with_spaces(strict, sep):
+    data = [">A", sep.join(("gaaaa", "tgatt")), ">B", sep.join(("tttga", "gcagg"))]
+    got = dict(MinimalFastaParser(data, strict=strict))
+    assert got == {"A": "gaaaatgatt", "B": "tttgagcagg"}

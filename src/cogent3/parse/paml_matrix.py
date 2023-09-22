@@ -31,7 +31,7 @@ def PamlMatrixParser(f):
     matrix = numpy.take(matrix, reorder, 0)
     matrix = numpy.take(matrix, reorder, 1)
 
-    assert numpy.alltrue(matrix == numpy.transpose(matrix))
+    assert numpy.all(matrix == numpy.transpose(matrix))
 
     freqs = dict(list(zip(three_letter_order, freqs)))
 

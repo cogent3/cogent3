@@ -28,8 +28,10 @@ called Q) is determined.
 >>> model.setparameterrules({'alpha': model.istransition})
 >>> parameter_controller = model.make_likelihood_function(tree)
 """
+from __future__ import annotations
 
 import json
+import typing
 import warnings
 
 from collections.abc import Callable
@@ -41,6 +43,7 @@ from numpy.linalg import svd
 
 from cogent3._version import __version__
 from cogent3.core import genetic_code, moltype
+from cogent3.core.tree import PhyloNode
 from cogent3.evolve import motif_prob_model, parameter_controller, predicate
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.evolve.substitution_calculation import (
@@ -107,7 +110,7 @@ def _maxWidthIfTruncated(pars, delim, each):
 
 
 def _isSymmetrical(matrix):
-    return numpy.alltrue(numpy.alltrue(matrix == numpy.transpose(matrix)))
+    return numpy.all(numpy.all(matrix == numpy.transpose(matrix)))
 
 
 class _SubstitutionModel(object):
@@ -303,15 +306,46 @@ class _SubstitutionModel(object):
 
     def make_likelihood_function(
         self,
-        tree,
-        motif_probs_from_align=None,
-        optimise_motif_probs=None,
-        aligned=True,
-        expm=None,
-        digits=None,
-        space=None,
+        tree: PhyloNode,
+        motif_probs_from_align: typing.Optional[bool] = None,
+        optimise_motif_probs: typing.Optional[bool] = None,
+        aligned: bool = True,
+        expm: typing.Optional[str] = None,
+        digits: typing.Optional[int] = None,
+        space: typing.Optional[str] = None,
+        default_length: float = 1.0,
         **kw,
     ):
+        """
+        construct a likelihood function with this substitution model
+
+        Parameters
+        ----------
+        tree
+            a cogent3 tree object, entries in <tree node>.params dict
+            with keys that match model parameters are used as initial
+            values, this includes length.
+        motif_probs_from_align
+            use the motif probabilities from the alignment
+        optimise_motif_probs
+            treat motif probabilities as optimisable parameters, otherwise
+            they are constant
+        aligned
+            works on alignments. When False, used for sequence alignment
+        expm
+            string name of the exponentiation algorithm, e.g. "pade", "either",
+            "eigen", "checked". Defaults to "either" (which uses eigen,
+            switching to pade if numerical errors occur).
+        digits
+            number of decimal places shown in result tables
+        space
+            spaces between columns in result tables
+        default_length
+            default branch length when provided tree has no (or zero) lengths,
+            noting that a positive nonzero is required.
+        kw
+            other keyword args passed through to the likelihood function class
+        """
         if motif_probs_from_align is None:
             motif_probs_from_align = self.motif_probs_from_align
 
@@ -328,7 +362,7 @@ class _SubstitutionModel(object):
             assert alphabet.get_gap_motif() not in alphabet
             klass = parameter_controller.SequenceLikelihoodFunction
 
-        result = klass(self, tree, **kw)
+        result = klass(self, tree, default_length=default_length, **kw)
 
         if self.motif_probs is not None:
             result.set_motif_probs(
@@ -679,7 +713,7 @@ class Empirical(StationaryQ, _ContinuousSubstitutionModel):
         alphabet = self.get_alphabet()  # as may be altered by recode_gaps etc.
         N = len(alphabet)
         assert rate_matrix.shape == (N, N)
-        assert numpy.alltrue(numpy.diagonal(rate_matrix) == 0)
+        assert numpy.all(numpy.diagonal(rate_matrix) == 0)
         self._instantaneous_mask_f = rate_matrix * 1.0
         self._instantaneous_mask = self._instantaneous_mask_f != 0.0
         self.symmetric = _isSymmetrical(self._instantaneous_mask_f)
@@ -718,12 +752,12 @@ class Parametric(_ContinuousSubstitutionModel):
         # to be equivalent to 1 or more others, or the distance params.
         # Give a clearer error in simple cases like always false or true.
         for name, matrix in list(predicate_masks.items()):
-            if numpy.alltrue((matrix == 0).flat):
+            if numpy.all((matrix == 0).flat):
                 raise ValueError(f"Predicate {name} is always false.")
         predicates_plus_scale = predicate_masks.copy()
         predicates_plus_scale[None] = self._instantaneous_mask
         for name, matrix in list(predicate_masks.items()):
-            if numpy.alltrue((matrix == self._instantaneous_mask).flat):
+            if numpy.all((matrix == self._instantaneous_mask).flat):
                 raise ValueError(f"Predicate {name} is always true.")
         if redundancy_in_predicate_masks(predicate_masks):
             raise ValueError("Redundancy in predicates.")
@@ -742,7 +776,7 @@ class Parametric(_ContinuousSubstitutionModel):
             if not _isSymmetrical(mask):
                 self.symmetric = False
             indices = numpy.nonzero(mask)
-            assert numpy.alltrue(mask[indices] == 1)
+            assert numpy.all(mask[indices] == 1)
             self.parameter_order.append(pred)
             self.predicate_indices.append(indices)
         (self.scale_masks, scale_order) = self._adapt_predicates(scales or [])

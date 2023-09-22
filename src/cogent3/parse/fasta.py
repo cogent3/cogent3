@@ -14,9 +14,9 @@ from cogent3.core.moltype import ASCII, BYTES
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
 from cogent3.util.io import open_
-from cogent3.util.warning import deprecated_args
 
 
+_white_space = re.compile(r"\s+")
 strip = str.strip
 
 Sequence = BYTES.make_seq
@@ -75,7 +75,7 @@ def _faster_parser(
 
         if line[0] in label_char:
             if seq:
-                yield label_to_name(label or ""), "".join(seq)
+                yield label_to_name(label or ""), _white_space.sub("", "".join(seq))
 
             label = line[1:].strip()
             seq = []
@@ -83,7 +83,7 @@ def _faster_parser(
             seq.append(line.strip())
 
     if seq:
-        yield label_to_name(label or ""), "".join(seq)
+        yield label_to_name(label or ""), _white_space.sub("", "".join(seq))
 
 
 def _strict_parser(
@@ -100,7 +100,7 @@ def _strict_parser(
             if label is not None:
                 if not seq:
                     raise RecordError(f"{label} has no data")
-                yield label_to_name(label), "".join(seq)
+                yield label_to_name(label), _white_space.sub("", "".join(seq))
             elif seq:
                 raise RecordError("missing a label")
 
@@ -114,10 +114,9 @@ def _strict_parser(
     if label is None:
         raise RecordError("missing a label")
 
-    yield label_to_name(label), "".join(seq)
+    yield label_to_name(label), _white_space.sub("", "".join(seq))
 
 
-@deprecated_args("2023.8", "faster implementation", discontinued=["finder"])
 def MinimalFastaParser(
     path: PathOrIterableType,
     strict: bool = True,
@@ -127,7 +126,6 @@ def MinimalFastaParser(
     """
     Yields successive sequences from infile as (label, seq) tuples.
 
-    If strict is True (default), .
     Parameters
     ----------
     path

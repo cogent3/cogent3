@@ -98,7 +98,7 @@ class GeneralStationary(Stationary):
         for pred in predicate_order:
             mask = predicate_masks[pred]
             indices = numpy.nonzero(mask)
-            assert numpy.alltrue(mask[indices] == 1)
+            assert numpy.all(mask[indices] == 1)
             self.parameter_order.append(pred)
             self.predicate_indices.append(indices)
 

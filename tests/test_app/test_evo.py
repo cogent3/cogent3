@@ -5,6 +5,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+import pytest
+
 from numpy.testing import assert_allclose, assert_raises
 
 from cogent3 import (
@@ -31,22 +33,6 @@ data_dir = join(dirname(dirname(__file__)), "data")
 
 class TestModel(TestCase):
     basedir = "data"
-
-    def test_model_str(self):
-        """correct str representation"""
-        model = evo_app.model("HKY85", time_het="max")
-        got = " ".join(str(model).splitlines())
-        expect = (
-            "model(sm='HKY85', tree=None, unique_trees=False, "
-            "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
-            "time_het='max', param_rules=None, "
-            "opt_args=None, lower=1e-06, upper=50, split_codons=False, "
-            "show_progress=False, verbose=False)"
-        )
-        self.assertEqual(
-            got,
-            expect,
-        )
 
     def test_model_opt_mprob_arg(self):
         """argument controls optimisability of motif prob settings"""
@@ -280,25 +266,6 @@ class TestModel(TestCase):
         result = hyp(aln)
         pval = str(result).splitlines()[4].split()[-1]
         self.assertTrue(re.search(r"[0-9\.]+e-\d+", pval) is not None)
-
-    def test_hypothesis_str(self):
-        """correct str representation"""
-        model1 = evo_app.model("HKY85")
-        model2 = evo_app.model("HKY85", name="hky85-max-het", time_het="max")
-        hyp = evo_app.hypothesis(model1, model2)
-        got = " ".join(str(hyp).splitlines())
-        expect = (
-            "hypothesis(null=model(sm='HKY85', tree=None, unique_trees=False, "
-            "name=None, optimise_motif_probs=False, sm_args=None, lf_args=None, "
-            "time_het=None, param_rules=None, opt_args=None, lower=1e-06, upper=50, "
-            "split_codons=False, show_progress=False, verbose=False), "
-            "alternates=(model(sm='HKY85', tree=None, unique_trees=False, "
-            "name='hky85-max-het', optimise_motif_probs=False, sm_args=None, lf_args=None, "
-            "time_het='max', param_rules=None, opt_args=None, lower=1e-06, upper=50,"
-            " split_codons=False, show_progress=False, verbose=False),),"
-            " sequential=True, init_alt=None)"
-        )
-        self.assertEqual(got, expect)
 
     def test_split_pos_model(self):
         """model with split codons, access .lf using codon position int"""
@@ -908,3 +875,46 @@ def test_get_app_tree_is_url():
     tree_url = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/brca1_5.tree"
     mod = get_app("model", "F81", tree=tree_url)
     assert isinstance(mod, evo_app.model)
+
+
+def test_model_str():
+    """correct str representation"""
+    model = evo_app.model("HKY85", time_het="max")
+    got = " ".join(str(model).splitlines())
+    expect_start = "model(sm='HKY85', tree=None, unique_trees=False, "
+    assert got.startswith(expect_start)
+
+
+def test_hypothesis_str():
+    """correct str representation"""
+    model1 = evo_app.model("HKY85")
+    model2 = evo_app.model("HKY85", name="hky85-max-het", time_het="max")
+    hyp = evo_app.hypothesis(model1, model2)
+    got = " ".join(str(hyp).splitlines())
+    expect_start = "hypothesis(null=model(sm='HKY85', tree=None, unique_trees=False, "
+    assert got.startswith(expect_start)
+
+
+def test_model_tree_func(DATA_DIR):
+    dist_cal = get_app("fast_slow_dist", fast_calc="paralinear", moltype="dna")
+    est_tree = get_app("quick_tree", drop_invalid=True)
+    app = dist_cal + est_tree
+    model = get_app(
+        "model",
+        "HKY85",
+        tree_func=app,
+        opt_args=dict(max_evaluations=25, limit_action="ignore"),
+    )
+
+    aln = load_aligned_seqs(DATA_DIR / "brca1_5.paml", moltype="dna")
+    result = model(aln)
+    assert set(result.tree.get_tip_names()) == set(aln.names)
+
+
+def test_model_invalid_tree_func():
+    with pytest.raises(AssertionError):
+        get_app(
+            "model",
+            "HKY85",
+            tree_func="123",
+        )

@@ -1,7 +1,11 @@
 """Local or Global-then-local optimisation with progress display
 """
+from __future__ import annotations
 
 import warnings
+
+from functools import singledispatch
+from typing import Tuple
 
 import numpy
 
@@ -15,12 +19,33 @@ GlobalOptimiser = SimulatedAnnealing
 LocalOptimiser = Powell
 
 
+@singledispatch
+def _standardise_data(val) -> Tuple[float]:
+    return (str(val),)
+
+
+@_standardise_data.register
+def _(val: numpy.ndarray) -> Tuple[float]:
+    val = val.tolist() if val.ndim else [val.tolist()]
+    return tuple(val)
+
+
+@_standardise_data.register
+def _(val: float) -> Tuple[float]:
+    return (val,)
+
+
 def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
     template = "f = % #10.6g  ±  % 9.3e   evals = %6i "
     label = label.rjust(5)
     goal = [1.0e-20]
 
     def _display_progress(remaining, *args):
+        # the first element is a numpy array, which can be
+        # a scalar array, i.e. ndim==0. We use the tolist() method to
+        # cast to a standard python type.
+        v1 = _standardise_data(args[0])
+        args = v1 + args[1:]
         if remaining > goal[0]:
             goal[0] = remaining
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
@@ -72,7 +97,7 @@ def bounded_function(f, lower_bounds, upper_bounds, report_error=False):
     This is enough to get some unbounded optimisers working on bounded problems"""
 
     def _wrapper(x, **kw):
-        if numpy.alltrue(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
+        if numpy.all(numpy.logical_and(lower_bounds <= x, x <= upper_bounds)):
             return f(x, **kw)
         else:
             pos = numpy.logical_or(x <= lower_bounds, x >= upper_bounds)

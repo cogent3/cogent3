@@ -67,7 +67,7 @@ class _LikelihoodTreeEdge(object):
 
         # Derive per-column degree of ambiguity from children's
         ambigs = [child.ambig[index] for (index, child) in self._indexed_children]
-        self.ambig = numpy.product(ambigs, axis=0)
+        self.ambig = numpy.prod(ambigs, axis=0)
 
     def get_site_patterns(self, cols):
         # Recursive lookup of Site Patterns aka Alignment Columns

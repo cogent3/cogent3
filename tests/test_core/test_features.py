@@ -3,6 +3,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
+from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import BasicAnnotationDb, GffAnnotationDb
 # Complete version of manipulating sequence annotations
@@ -705,3 +706,22 @@ def test_hash_feature(ann_seq):
     (f2,) = list(ann_seq.get_features(biotype="gene"))
     got = {f1, f2}
     assert len(got) == 1
+
+
+def test_seq_degap_preserves_annotations():
+    s1 = DNA.make_seq("AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAGGGAACCCT", name="seq1")
+    s1.add_feature(biotype="exon", name="A", spans=[(10, 15)])
+    dg = s1.degap()
+    assert len(s1.annotation_db) == len(dg.annotation_db)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_align_degap_preserves_annotations(cls):
+    """get translation works on incomplete codons"""
+    coll = cls(data={"seq1": "GATN--", "seq2": "?GATCT"}, moltype=DNA)
+    db = BasicAnnotationDb()
+    db.add_feature(biotype="exon", name="exon1", spans=[(1, 2)], seqid="seq1")
+    coll.annotation_db = db
+    got = coll.degap()
+    assert got.annotation_db is coll.annotation_db
+    assert len(got.annotation_db) == 1

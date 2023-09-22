@@ -2374,14 +2374,6 @@ class Aligned:
         return self.__class__(self.map.with_termini_unknown(), self.data)
 
     @c3warn.deprecated_callable(
-        "2023.8",
-        reason="handled by <collection>.copy_annotations()",
-        is_discontinued=True,
-    )
-    def copy_annotations(self, other):  # pragma: no cover
-        self.data.copy_annotations(other)
-
-    @c3warn.deprecated_callable(
         "2023.10", "handled by <collection>.annotate_from_gff()", is_discontinued=True
     )
     def annotate_from_gff(self, f):  # pragma: no cover
@@ -4804,18 +4796,6 @@ class Alignment(AlignmentI, SequenceCollection):
         self.annotation_db.add_feature(**feature.to_dict())
         return result
 
-    @c3warn.deprecated_callable(
-        "2023.8",
-        reason="use <collection>.get_projected_feature()",
-        is_discontinued=True,
-    )
-    def project_annotation(self, seqid, annot):
-        """projects the alignment coordinate annotation onto seq"""
-        target_aligned = self.named_seqs[seqid]
-        if annot.parent is not self:
-            raise ValueError("Feature does not belong to this alignment")
-        return annot.remapped_to(target_aligned.data, target_aligned.map)
-
     def get_projected_features(self, *, seqid: str, **kwargs) -> list[Feature]:
         """projects all features from other sequences onto seqid"""
         # todo gah should there be a generator version,
@@ -4827,64 +4807,6 @@ class Alignment(AlignmentI, SequenceCollection):
             annots.extend(list(self.get_features(seqid=name, **kwargs)))
         return [self.get_projected_feature(seqid=seqid, feature=a) for a in annots]
 
-    @c3warn.deprecated_callable(
-        "2023.8",
-        reason="use <collection>.get_projected_features()",
-        is_discontinued=True,
-    )
-    def get_projected_annotations(self, *, seqid: str, **kwargs):
-        # todo gah make sure the original sequence is not the seqid
-        aln_annots = list(self.get_features(**kwargs))
-        return [self.project_annotation(seqid, a) for a in aln_annots]
-
-    @c3warn.deprecated_callable(
-        "2023.8",
-        reason="use <collection>.get_features(seqid=<seq_name>)",
-        is_discontinued=True,
-    )
-    def get_annotations_from_seq(
-        self, seq_name, annotation_type="*", **kwargs
-    ):  # pragma: no cover
-        return self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
-
-    @c3warn.deprecated_callable(
-        "2023.8", reason="use <collection>.get_features()", is_discontinued=True
-    )
-    def get_annotations_from_any_seq(
-        self, annotation_type="*", **kwargs
-    ):  # pragma: no cover
-        result = []
-        for seq_name in self.names:
-            a = list(
-                self.get_features(seqid=seq_name, biotype=annotation_type, **kwargs)
-            )
-            result.extend(a)
-        return result
-
-    @c3warn.deprecated_callable(
-        "2023.8",
-        reason="handled by <collection>.get_features(seqid=<seqid>)",
-        is_discontinued=True,
-    )
-    def get_by_seq_annotation(self, seq_name, *args):  # pragma: no cover
-        result = []
-        for feature in self.get_features(seqid=seq_name):
-            segment = self[feature]
-            segment.name = '%s "%s" %s to %s of %s' % (
-                feature.biotype,
-                feature.name,
-                feature.map.start,
-                feature.map.end,
-                self.name or "",
-            )
-            result.append(segment)
-        return result
-
-    @c3warn.deprecated_args(
-        "2023.8",
-        reason="consistency with new API",
-        old_new=[("annot_types", "biotypes")],
-    )
     def with_masked_annotations(self, biotypes, mask_char=None, shadow=False):
         """returns an alignment with annot_types regions replaced by mask_char
         if shadow is False, otherwise all other regions are masked.

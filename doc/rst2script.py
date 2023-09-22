@@ -8,12 +8,20 @@ import re
 import click
 
 
-not_wsp = re.compile(r"^\S+")
+not_wsp = re.compile(r"\S+")
 code_eval = re.compile(r"(?<=\s{4})([>]{3}|[.]{3})\s")
 code_block = re.compile(r".. (jupyter-execute|doctest)::")
 block_option = re.compile(r"\s+:[a-z\-]+:")
 raise_option = re.compile(r"\s+:raises:")
 plotly_show = re.compile(r"\s*[a-z]+.*\.show\(")
+ipython_magic = re.compile(r"^\s*%[a-zA-Z]+")
+
+
+def _end_of_block(line, indent):
+    if match := not_wsp.search(line):
+        return match.start() == indent
+
+    return False
 
 
 def get_error_type(line):
@@ -51,38 +59,40 @@ def get_code_block_line_numbers(doc):
     lines = []
     in_code_block = False
     start = None
+    indent = 0
     for i, line in enumerate(doc):
-        if code_block.search(line):
+        if hit := code_block.search(line):
             if in_code_block:
-                lines.append((start, i - 1))
+                lines.append((start, i - 1, indent))
             start = i
             in_code_block = True
+            indent = hit.start()
             continue
 
-        if in_code_block and not_wsp.search(line):
-            lines.append((start, i))
+        if in_code_block and _end_of_block(line, indent):
+            lines.append((start, i, indent))
             in_code_block = False
             continue
 
     if in_code_block:
         if i == len(doc) - 1:
             i += 1
-        lines.append((start, i))
+        lines.append((start, i, indent))
 
     return lines
 
 
-def format_block(block):
+def format_block(block, indent):
     """handles exceptions, de-indent, etc..."""
     error_type = get_error_type(block[0])
     format_line = (lambda x: x) if error_type else deindent
-    code = [format_line(l) for l in block if not block_option.search(l)]
+    code = [format_line(l[indent:]) for l in block if not block_option.search(l)]
     if error_type:
         code.insert(0, "try:")
         code.extend([f"except {error_type}:", "    pass"])
 
     for i, l in enumerate(code):
-        if plotly_show.search(l):
+        if plotly_show.search(l) or ipython_magic.search(l):
             # comment out as cannot be executed in script
             code[i] = f"# {l}"
 
@@ -92,8 +102,8 @@ def format_block(block):
 def get_code_blocks(doc: list[str], working_dir: pathlib.Path) -> str:
     coords = get_code_block_line_numbers(doc)
     refactored = [get_path_update(working_dir)]
-    for start, end in coords:
-        code = format_block(doc[start + 1 : end])
+    for start, end, indent in coords:
+        code = format_block(doc[start + 1 : end], indent)
         refactored.extend([""] + code)
 
     return "\n".join(refactored)
