@@ -5,6 +5,7 @@ from __future__ import annotations
 import warnings
 
 from functools import singledispatch
+from typing import Tuple
 
 import numpy
 
@@ -19,18 +20,18 @@ LocalOptimiser = Powell
 
 
 @singledispatch
-def _standardise_data(val) -> tuple[float]:
+def _standardise_data(val) -> Tuple[float]:
     return (str(val),)
 
 
 @_standardise_data.register
-def _(val: numpy.ndarray) -> tuple[float]:
+def _(val: numpy.ndarray) -> Tuple[float]:
     val = val.tolist() if val.ndim else [val.tolist()]
     return tuple(val)
 
 
 @_standardise_data.register
-def _(val: float) -> tuple[float]:
+def _(val: float) -> Tuple[float]:
     return (val,)
 
 
