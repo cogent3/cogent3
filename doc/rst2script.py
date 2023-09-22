@@ -14,7 +14,8 @@ code_block = re.compile(r".. (jupyter-execute|doctest)::")
 block_option = re.compile(r"\s+:[a-z\-]+:")
 raise_option = re.compile(r"\s+:raises:")
 plotly_show = re.compile(r"\s*[a-z]+.*\.show\(")
-ipython_magic =  re.compile(r"^\s*%[a-zA-Z]+")
+ipython_magic = re.compile(r"^\s*%[a-zA-Z]+")
+
 
 def _end_of_block(line, indent):
     if match := not_wsp.search(line):
