@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
-
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import alltrue, array, transpose
 from numpy.testing import assert_equal
@@ -256,7 +253,3 @@ class AllTests(TestCase):
         You might want to add some tests there..."""
         # note: mostly these are tested in derived classes, for convenience.
         pass
-
-
-if __name__ == "__main__":
-    main()
