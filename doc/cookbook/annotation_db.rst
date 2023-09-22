@@ -83,7 +83,7 @@ We can add a feature to the empty ``BasicAnnotationDb`` we created above. Now th
 .. jupyter-execute::
     :raises:
 
-     anno_db.add_feature(
+    anno_db.add_feature(
                seqid="NC_000908",
                biotype="gene",
                name="interesting_gene",
