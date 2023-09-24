@@ -79,7 +79,7 @@ doc  = ["click==8.1.7",
         "sphinx",
         "sphinx-autobuild",
         "pydata_sphinx_theme",
-        "sphinx_panels",
+        "sphinx_design",
         "sphinxcontrib-bibtex",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
@@ -112,7 +112,7 @@ dev = ["black==23.9.1",
        "sphinx",
        "sphinx-autobuild",
        "pydata_sphinx_theme",
-       "sphinx_panels",
+       "sphinx_design",
        "sphinxcontrib-bibtex",
        "sphinxcontrib-video",
        "tinydb"
