@@ -37,7 +37,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.todo",
     "sphinxcontrib.bibtex",
-    "sphinx_panels",
+    "sphinx_design",
 ]
 
 # stop sphinx-panels from including css
