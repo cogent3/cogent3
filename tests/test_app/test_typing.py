@@ -12,7 +12,6 @@ from cogent3.app.typing import (
     TabularType,
     UnalignedSeqsType,
     get_constraint_names,
-    hints_from_strings,
     type_tree,
 )
 
@@ -66,17 +65,6 @@ def test_get_constraint_names_mixed_serilisable_identifiertype():
 
     got = get_constraint_names(Union[SerialisableType, IdentifierType, AlignedSeqsType])
     assert got == {"SerialisableType", "IdentifierType", "Alignment", "ArrayAlignment"}
-
-
-def test_hints_from_strings_invalid():
-    """raise an exception if unknown string"""
-    with pytest.raises(ValueError):
-        hints_from_strings("abcde")
-
-
-def test_hints_from_strings():
-    got = hints_from_strings("serialisable", "aligned")
-    assert got == [SerialisableType, AlignedSeqsType]
 
 
 def test_hints_resolved_from_str():

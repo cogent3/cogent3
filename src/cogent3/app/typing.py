@@ -8,6 +8,8 @@ from typing import ForwardRef, Iterable, TypeVar, Union
 
 from typing_extensions import get_args, get_origin
 
+from cogent3.util import warning as c3warn
+
 
 AlignedSeqsType = TypeVar("AlignedSeqsType", "Alignment", "ArrayAlignment")
 UnalignedSeqsType = TypeVar("UnalignedSeqsType", bound="SequenceCollection")
@@ -103,6 +105,9 @@ def get_constraint_names(*hints) -> set[str, ...]:
     return all_hints
 
 
+@c3warn.deprecated_callable(
+    "2023.12", reason="migrating to proper types", is_discontinued=True
+)
 def hints_from_strings(*strings: Iterable[str]) -> list:
     """returns list of type hints corresponding to string values"""
     types = []
