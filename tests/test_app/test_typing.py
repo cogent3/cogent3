@@ -11,6 +11,7 @@ from cogent3.app.typing import (
     SerialisableType,
     TabularType,
     UnalignedSeqsType,
+    defined_types,
     get_constraint_names,
     type_tree,
 )
@@ -119,3 +120,10 @@ def test_typing_tree_depth(hint, expect):
 def test_type_tree(hint, expect):
     _, t = type_tree(hint)
     assert t == expect, (t, expect)
+
+
+def test_defined_types():
+    types = defined_types()
+    # we are checking a single value which we know has 3 entries
+    # also indexing by the type name
+    assert len(types["TabularType"][0, "includes"].split(",")) == 3
