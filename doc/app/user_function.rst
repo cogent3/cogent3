@@ -10,6 +10,19 @@ You need two things:
 
 .. note:: At present, your function can have only one required argument.
 
+Supported cogent3 types
+-----------------------
+
+If you function takes or returns cogent3 types, you can use the existing type hints. To see what these are, use the ``defined_types()`` function.
+
+.. jupyter-execute::
+
+    from cogent3.app.typing import defined_types
+
+    defined_types()
+
+.. note:: You don't have to use cogent3 types, you can also use standard python types.
+
 A simple example
 ----------------
 
