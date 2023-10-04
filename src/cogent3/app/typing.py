@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import inspect
+import re
 
 from typing import ForwardRef, Iterable, TypeVar, Union
 
 from typing_extensions import get_args, get_origin
+
+from cogent3.util import warning as c3warn
 
 
 AlignedSeqsType = TypeVar("AlignedSeqsType", "Alignment", "ArrayAlignment")
@@ -43,6 +46,18 @@ ResultType = Union[
 
 # todo when move to python 3.8 define protocols for IdentifierType and SerialisableType
 IdentifierType = TypeVar("IdentifierType")
+
+
+def _is_type(text):
+    p = re.compile("[A-Z][a-z]+")
+    matches = list(p.finditer(text))
+    if len(matches) <= 1 or matches[0].start() != 0:
+        return False
+
+    return matches[-1].group() == "Type"
+
+
+_all_types = {n: t for n, t in locals().items() if _is_type(n)}
 
 # the following constants are deprecated
 ALIGNED_TYPE = "aligned"
@@ -103,6 +118,9 @@ def get_constraint_names(*hints) -> set[str, ...]:
     return all_hints
 
 
+@c3warn.deprecated_callable(
+    "2023.12", reason="migrating to proper types", is_discontinued=True
+)
 def hints_from_strings(*strings: Iterable[str]) -> list:
     """returns list of type hints corresponding to string values"""
     types = []
@@ -137,3 +155,29 @@ def type_tree(hint, depth=0) -> tuple:
         levels = (levels,)
 
     return depth, (level_type, levels)
+
+
+def defined_types():
+    """returns a table of the type hints and the cogent3 classes they represent
+
+    Notes
+    -----
+    These (or standard Python) types are required to annotate argument and
+    return values from cogent3 apps. They define the compatability of apps.
+    """
+    from cogent3.util.table import Table
+
+    rows = [[n, ", ".join(get_constraint_names(t))] for n, t in _all_types.items()]
+    title = "To use a type hint, from cogent3.app import typing"
+    legend = (
+        "An app which uses one of these hints is compatible with the indicated types."
+    )
+    table = Table(
+        header=["type hint", "includes"],
+        data=rows,
+        title=title,
+        legend=legend,
+        index_name="type hint",
+    )
+    table.set_repr_policy(show_shape=False)
+    return table
