@@ -44,3 +44,10 @@ We specify what biotypes we want to display.
 
     fig = seq.get_drawable(biotype=("gene", "CDS", "mRNA"))
     fig.show(height=300, width=650)
+
+.. jupyter-execute::
+    :hide-code:
+
+    outpath = set_working_directory.get_thumbnail_dir() / "plot_seq-features.png"
+
+    fig.write(outpath)
