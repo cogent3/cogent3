@@ -144,7 +144,7 @@ def _get_app_matching_name(name: str):
         raise NameError(f"no app matching name {name!r}")
     elif table.shape[0] > 1:
         raise NameError(f"too many apps matching name {name!r},\n{table}")
-    modname, _ = table.tolist(columns=["module", "name"])[0]
+    modname, _ = table.to_list(columns=["module", "name"])[0]
     mod = importlib.import_module(modname)
     return getattr(mod, name)
 
