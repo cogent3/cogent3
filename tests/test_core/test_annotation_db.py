@@ -151,7 +151,7 @@ def test_count_distinct_values(gb_db):
 def test_count_distinct_gene_name(gb_db):
     expect = {("CNA00110", 1), ("CNA00120", 1)}
     assert {
-        tuple(r) for r in gb_db.count_distinct(biotype="gene", name=True).tolist()
+        tuple(r) for r in gb_db.count_distinct(biotype="gene", name=True).to_list()
     } == expect
 
     assert {

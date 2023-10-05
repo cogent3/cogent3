@@ -576,6 +576,6 @@ def test_summary_not_completed(nc_objects):
     # relying on the fact that all nc_objects have same origin
     # and message, so those columns can be readily interrogated
     summary = dstore.summary_not_completed
-    vals = summary.tolist(columns=["origin", "message", "num"])
+    vals = summary.to_list(columns=["origin", "message", "num"])
     assert len(vals) == 1
     assert vals[0] == ["location", "'message'", 3]
