@@ -246,12 +246,12 @@ We're also going to use the MLEs from the ``rate_lf`` model, since that nests wi
 .. jupyter-execute::
 
     globals = [t for t in tables if "global" in t.title][0]
-    globals = dict(zip(globals.header, globals.tolist()[0]))
+    globals = dict(zip(globals.header, globals.to_list()[0]))
     bin_params = [t for t in tables if "bin" in t.title][0]
-    rate_class_omegas = dict(bin_params.tolist(["bin", "omega"]))
-    rate_class_probs = dict(bin_params.tolist(["bin", "bprobs"]))
+    rate_class_omegas = dict(bin_params.to_list(["bin", "omega"]))
+    rate_class_probs = dict(bin_params.to_list(["bin", "bprobs"]))
     lengths = [t for t in tables if "edge" in t.title][0]
-    lengths = dict(lengths.tolist(["edge", "length"]))
+    lengths = dict(lengths.to_list(["edge", "length"]))
 
 We now create the more complex model,
 

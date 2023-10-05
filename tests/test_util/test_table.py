@@ -956,7 +956,7 @@ class TableTests(TestCase):
             _ = mix.summed(strict=True)
 
     def test_to_list(self):
-        """test the table tolist method"""
+        """test the table to_list method"""
         t3 = Table(header=self.t3_header, data=self.t3_rows)
         self.assertEqual(t3.to_list("id"), [6, 7])
         self.assertEqual(t3.to_list("foo"), ["abc", "bca"])
