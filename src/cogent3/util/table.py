@@ -1941,11 +1941,9 @@ class Table:
 
         return result
 
-    @c3warn.deprecated_callable(version="2023.9", reason="PEP8", new="to_list")
+    @c3warn.deprecated_callable(version="2024.1", reason="PEP8", new="to_list")
     def tolist(self, **kwargs):  # pragma: no cover
         """deprecated, use to_list"""
-
-        c3warn.deprecated("function", "tolist", "to_list", "2023.9")
 
         return self.to_list(**kwargs)
 
