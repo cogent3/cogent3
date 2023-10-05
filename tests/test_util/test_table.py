@@ -955,13 +955,13 @@ class TableTests(TestCase):
         with self.assertRaises(TypeError):
             _ = mix.summed(strict=True)
 
-    def test_tolist(self):
+    def test_to_list(self):
         """test the table tolist method"""
         t3 = Table(header=self.t3_header, data=self.t3_rows)
         self.assertEqual(t3.to_list("id"), [6, 7])
         self.assertEqual(t3.to_list("foo"), ["abc", "bca"])
 
-    def test_tolist_column_order(self):
+    def test_to_list_column_order(self):
         """column order of input reflected in result"""
         t3 = Table(header=self.t3_header, data=self.t3_rows)
         rev_order = ["id", "foo", "bar"]
