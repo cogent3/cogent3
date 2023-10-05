@@ -299,7 +299,9 @@ Or directly from the column array object.
 
 .. jupyter-execute::
 
-    table.columns["Locus"].to_list()
+    table.columns["Locus"].tolist()
+
+.. note:: ``table.columns["Locus"]`` is a ``numpy.ndarray``, hence the different method call.
 
 Get multiple table columns as a list
 ====================================
