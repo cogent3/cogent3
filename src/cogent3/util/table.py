@@ -24,6 +24,7 @@ import numpy
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
+from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -1915,7 +1916,7 @@ class Table:
             HtmlElement("\n".join(tables), "div", css_classes=["c3table"], newline=True)
         )
 
-    def tolist(self, columns=None):
+    def to_list(self, columns=None):
         """Returns raw data as a list
 
         Parameters
@@ -1939,6 +1940,14 @@ class Table:
         result = subtable.columns.array.tolist()
 
         return result
+
+    @c3warn.deprecated_callable(version="2023.9", reason="PEP8", new="to_list")
+    def tolist(self, **kwargs):  # pragma: no cover
+        """deprecated, use to_list"""
+
+        c3warn.deprecated("function", "tolist", "to_list", "2023.9")
+
+        return self.to_list(**kwargs)
 
     @extend_docstring_from(DictArray.to_dict)
     def to_dict(self, flatten=False):

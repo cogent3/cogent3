@@ -849,9 +849,9 @@ class LikelihoodFunction(ParameterController):
             if group[table_dims] == [mprob_name]:
                 # if stat_table.shape
                 # if mprobs, we use the motifs as header
-                motifs = list(sorted(set(stat_table.tolist("motif"))))
+                motifs = list(sorted(set(stat_table.to_list("motif"))))
                 if stat_table.shape[1] == 2:
-                    motif_prob = dict(stat_table.tolist())
+                    motif_prob = dict(stat_table.to_list())
                     heading_names = motifs
                     list_table = [motif_prob[m] for m in motifs]
                     list_table = [list_table]
@@ -867,7 +867,7 @@ class LikelihoodFunction(ParameterController):
                             lambda x: x == val, columns=other_col
                         )
                         motif_prob = dict(
-                            subtable.tolist(
+                            subtable.to_list(
                                 [c for c in stat_table.header if c != other_col]
                             )
                         )

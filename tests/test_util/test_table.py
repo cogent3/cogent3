@@ -875,7 +875,7 @@ class TableTests(TestCase):
         """test the table normalized method"""
         t5 = Table(header=self.t5_header, data=self.t5_rows)
         self.assertEqual(
-            t5.normalized().tolist(t5.header),
+            t5.normalized().to_list(t5.header),
             [
                 [0.25, 0.25, 0.25, 0.25],
                 [0.5, 0.0, 0.25, 0.25],
@@ -883,7 +883,7 @@ class TableTests(TestCase):
             ],
         )
         self.assertEqual(
-            t5.normalized(by_row=False).tolist(t5.header),
+            t5.normalized(by_row=False).to_list(t5.header),
             [[0.25, 0.25, 0.25, 0.25], [0.5, 0.0, 0.25, 0.25], [0.25, 0.75, 0.5, 0.5]],
         )
 
@@ -892,14 +892,14 @@ class TableTests(TestCase):
         t1 = Table(header=self.t1_header, data=self.t1_rows)
         got = t1.sorted("length")
         self.assertEqual(
-            got.tolist("length"),
+            got.to_list("length"),
             [999, 1353, 1383, 1554, 1599, 1698, 1827, 1977, 2307, 4185],
         )
 
         t5 = Table(header=self.t5_header, data=self.t5_rows)
-        self.assertEqual(t5.sorted("b").tolist("b"), [0, 1, 3])
-        self.assertEqual(t5.sorted().tolist("a"), [1, 1, 2])
-        self.assertEqual(t5.sorted(reverse="a").tolist("a"), [2, 1, 1])
+        self.assertEqual(t5.sorted("b").to_list("b"), [0, 1, 3])
+        self.assertEqual(t5.sorted().to_list("a"), [1, 1, 2])
+        self.assertEqual(t5.sorted(reverse="a").to_list("a"), [2, 1, 1])
 
         table = Table(
             data={
@@ -958,15 +958,15 @@ class TableTests(TestCase):
     def test_tolist(self):
         """test the table tolist method"""
         t3 = Table(header=self.t3_header, data=self.t3_rows)
-        self.assertEqual(t3.tolist("id"), [6, 7])
-        self.assertEqual(t3.tolist("foo"), ["abc", "bca"])
+        self.assertEqual(t3.to_list("id"), [6, 7])
+        self.assertEqual(t3.to_list("foo"), ["abc", "bca"])
 
     def test_tolist_column_order(self):
         """column order of input reflected in result"""
         t3 = Table(header=self.t3_header, data=self.t3_rows)
         rev_order = ["id", "foo", "bar"]
         rev_order.reverse()
-        result = t3.tolist(rev_order)
+        result = t3.to_list(rev_order)
         self.assertEqual(result[0], list(reversed(self.t3_rows[0][:])))
 
     def test_to_dict(self):
