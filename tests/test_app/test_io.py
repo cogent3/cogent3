@@ -183,7 +183,7 @@ def test_load_tabular(tmp_dir):
     outpath = tmp_dir / "delme2.tsv"
     with open(outpath, "w") as out:
         out.write("\t".join(table.header[:1]) + "\n")
-        for row in table.tolist():
+        for row in table.to_list():
             row = "\t".join(map(str, row))
             out.write(row + "\n")
     result = load_table(outpath)

@@ -1038,7 +1038,7 @@ class TableTests(TestCase):
         """test the table with_new_column method"""
         t5 = Table(header=self.t5_header, data=self.t5_rows)
         t5_row_sum = t5.with_new_column("sum", sum, t5.header)
-        self.assertEqual(t5_row_sum.get_columns("sum").tolist(), [4, 4, 8])
+        self.assertEqual(t5_row_sum.get_columns("sum").to_list(), [4, 4, 8])
         # now using a string expression
         t8 = Table(header=self.t8_header, data=self.t8_rows, index_name="edge.name")
         n = t8.with_new_column("YZ", callback="y+z")
@@ -1709,13 +1709,13 @@ class TableTests(TestCase):
         t.head(nrows=3)
         self.assertEqual(head.data.shape[0], 3)
         self.assertEqual(len(head.output.splitlines()), 9)
-        self.assertEqual(head.data.tolist(), self.t1_rows[:3])
+        self.assertEqual(head.data.to_list(), self.t1_rows[:3])
         # tests when number of rows < default
         t = make_table(data=dict(a=["a"], b=["b"]))
         t.head()
         self.assertEqual(head.data.shape[0], 1)
         self.assertEqual(len(head.output.splitlines()), 7)
-        self.assertEqual(head.data.tolist(), [["a", "b"]])
+        self.assertEqual(head.data.to_list(), [["a", "b"]])
         table.display = display
 
     def test_tail(self):
@@ -1730,7 +1730,7 @@ class TableTests(TestCase):
         self.assertEqual(tail.data.shape[0], 3)
         self.assertEqual(len(tail.output.splitlines()), 9)
         self.assertEqual(
-            [int(v) for v in tail.data[:, -1].tolist()],
+            [int(v) for v in tail.data[:, -1].to_list()],
             [r[-1] for r in self.t1_rows[-3:]],
         )
         # tests when number of rows < default
@@ -1738,7 +1738,7 @@ class TableTests(TestCase):
         t.tail()
         self.assertEqual(tail.data.shape[0], 1)
         self.assertEqual(len(tail.output.splitlines()), 7)
-        self.assertEqual(tail.data.tolist(), [["a", "b"]])
+        self.assertEqual(tail.data.to_list(), [["a", "b"]])
         table.display = display
 
     @skipIf(DataFrame is None, "pandas not installed")
