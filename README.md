@@ -93,6 +93,8 @@ Cogent3 has received funding support from the Australian National University and
 
 
 <p align="center">
-  <img src="https://webstyle.anu.edu.au/_anu/4/images/logos/2x_anu_logo_small.svg" height="100">&nbsp;&nbsp;
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://webstyle.anu.edu.au/_anu/4/images/logos/2x_anu_logo_small.svg" height="100">
+  &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://chanzuckerberg.com/wp-content/themes/czi/img/logo.svg" height="110">
 </p>
