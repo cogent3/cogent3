@@ -730,7 +730,7 @@ class _SequenceCollectionBase:
             seqs, names = conversion_f(data)
         if names and label_to_name:
             names = list(map(label_to_name, names))
-        curr_seqs = self._coerce_seqs(seqs, is_array)
+        curr_seqs = self._coerce_seqs(seqs)
 
         # if no names were passed in as Names, if we obtained them from
         # the seqs we should use them, but otherwise we should use the
@@ -770,13 +770,11 @@ class _SequenceCollectionBase:
 
         return per_seq_names, curr_seqs, name_order
 
-    def _coerce_seqs(self, seqs, is_array):
+    def _coerce_seqs(self, seqs):
         """Controls how seqs are coerced in _names_seqs_order.
 
         Override in subclasses where this behavior should differ.
         """
-        if is_array:
-            seqs = list(map(str, list(map(self.moltype.make_array_seq, seqs))))
         return list(map(self.moltype.make_seq, seqs))
 
     def _guess_input_type(self, data):
@@ -2629,10 +2627,7 @@ class AlignmentI(object):
         else:
             new_f = f
 
-        if native and isinstance(self, ArrayAlignment):
-            result = [i for i in range(self.seq_len) if new_f(self.array_seqs[:, i])]
-        else:
-            result = [i for i, col in enumerate(self.positions) if new_f(col)]
+        result = [i for i, col in enumerate(self.positions) if new_f(col)]
 
         return result
 
@@ -2748,10 +2743,10 @@ class AlignmentI(object):
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
 
-                Notes
-                -----
-                For motif_length > 1, it's advisable to specify exclude_unobserved=True,
-                this avoids unnecessary calculations.
+        Notes
+        -----
+        For motif_length > 1, it's advisable to specify exclude_unobserved=True,
+        this avoids unnecessary calculations.
         """
 
         probs = self.probs_per_seq(
@@ -2788,16 +2783,10 @@ class AlignmentI(object):
             )
             raise ValueError(msg)
 
-        is_array = isinstance(self, ArrayAlignment)
-        alpha = self.alphabet
         if allow_gap:
             chars.extend(self.moltype.gap)
-            alpha = self.moltype.alphabet.gapped
 
-        if is_array:
-            chars = list(map(alpha.index, chars))
-
-        predicate = AllowedCharacters(chars, is_array=is_array)
+        predicate = AllowedCharacters(chars, is_array=False)
         return self.filtered(predicate, motif_length=motif_length)
 
     def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
@@ -2816,18 +2805,11 @@ class AlignmentI(object):
             is included in the counting. Default is 1.
 
         """
-        is_array = isinstance(self, ArrayAlignment)
-        try:
-            alpha = self.moltype.alphabets.degen_gapped
-        except:
-            alpha = self.moltype.alphabet
 
         gaps = list(self.moltype.gaps)
-        if is_array:
-            gaps = list(map(alpha.index, gaps))
 
         gaps_ok = GapsOk(
-            gaps, allowed_gap_frac, is_array=is_array, motif_length=motif_length
+            gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
         )
         # if we're not deleting the 'naughty' seqs that contribute to the
         # gaps, it's easy...
@@ -2843,10 +2825,7 @@ class AlignmentI(object):
             if True, ambiguity characters that include the gap state are
             included
         """
-        if isinstance(self, ArrayAlignment):
-            data = self.array_seqs
-        else:
-            data = self.to_type(array_align=True).array_seqs
+        data = self.to_type(array_align=True).array_seqs
 
         gap = self.alphabet.index(self.moltype.gap)
         gapped = data == gap
@@ -3349,16 +3328,10 @@ class AlignmentI(object):
         if alert and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
-        is_array = isinstance(self, ArrayAlignment)
         counts = []
         motifs = set()
         for name in self.names:
-            if is_array:
-                seq = self.moltype.make_array_seq(
-                    self.array_seqs[self.names.index(name)]
-                )
-            else:
-                seq = self.get_gapped_seq(name)
+            seq = self.get_gapped_seq(name)
             c = seq.counts(
                 motif_length=motif_length,
                 include_ambiguity=include_ambiguity,
@@ -4152,7 +4125,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         result._repr_policy.update(self._repr_policy)
         return result
 
-    def _coerce_seqs(self, seqs, is_array):
+    def _coerce_seqs(self, seqs):
         """Controls how seqs are coerced in _names_seqs_order.
 
         Override in subclasses where this behavior should differ.
@@ -4589,6 +4562,174 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         result._repr_policy.update(self._repr_policy)
         return result
 
+    def no_degenerates(self, motif_length=1, allow_gap=False):
+        """returns new alignment without degenerate characters
+
+        Parameters
+        ----------
+        motif_length
+            sequences are segmented into units of this size
+        allow_gaps
+            whether gaps are to be treated as a degenerate
+            character (default, most evolutionary modelling treats gaps as
+            N) or not.
+
+        """
+        try:
+            chars = list(self.moltype.alphabet.non_degen)
+        except AttributeError:
+            msg = (
+                "Invalid MolType (no degenerate characters), "
+                "create the alignment using DNA, RNA or PROTEIN"
+            )
+            raise ValueError(msg)
+
+        alpha = self.alphabet
+        if allow_gap:
+            chars.extend(self.moltype.gap)
+            alpha = self.moltype.alphabet.gapped
+
+        chars = list(map(alpha.index, chars))
+
+        predicate = AllowedCharacters(chars, is_array=True)
+        return self.filtered(predicate, motif_length=motif_length)
+
+    def counts_per_seq(
+        self,
+        motif_length=1,
+        include_ambiguity=False,
+        allow_gap=False,
+        exclude_unobserved=False,
+        alert=False,
+    ):
+        """counts of non-overlapping motifs per sequence
+
+        Parameters
+        ----------
+        motif_length
+            number of elements per character.
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gaps
+            if True, motifs containing a gap character are included.
+        exclude_unobserved
+            if False, all canonical states included
+        alert
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
+
+        Returns
+        -------
+        MotifCountsArray
+        """
+        length = (len(self) // motif_length) * motif_length
+        if alert and len(self) != length:
+            warnings.warn(f"trimmed {len(self) - length}", UserWarning)
+
+        counts = []
+        motifs = set()
+        for name in self.names:
+            seq = self.moltype.make_array_seq(self.array_seqs[self.names.index(name)])
+            c = seq.counts(
+                motif_length=motif_length,
+                include_ambiguity=include_ambiguity,
+                allow_gap=allow_gap,
+                exclude_unobserved=exclude_unobserved,
+            )
+            motifs.update(c.keys())
+            counts.append(c)
+
+        if not exclude_unobserved:
+            motifs.update(self.moltype.alphabet.get_word_alphabet(motif_length))
+
+        motifs = list(sorted(motifs))
+        if not motifs:
+            return None
+
+        for i, c in enumerate(counts):
+            counts[i] = c.tolist(motifs)
+        return MotifCountsArray(counts, motifs, row_indices=self.names)
+
+    def omit_gap_pos(self, allowed_gap_frac=1 - eps, motif_length=1):
+        """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
+
+        Parameters
+        ----------
+        allowed_gap_frac
+            specifies proportion of gaps is allowed in each
+            column (default is just < 1, i.e. only cols with at least one gap
+            character are preserved). Set to 1 - e-6 to exclude strictly gapped
+            columns.
+        motif_length
+            set's the "column" width, e.g. setting to 3
+            corresponds to codons. A motif that includes a gap at any position
+            is included in the counting. Default is 1.
+
+        """
+        try:
+            alpha = self.moltype.alphabets.degen_gapped
+        except:
+            alpha = self.moltype.alphabet
+
+        gaps = list(map(alpha.index, list(self.moltype.gaps)))
+
+        gaps_ok = GapsOk(
+            gaps, allowed_gap_frac, is_array=True, motif_length=motif_length
+        )
+        # if we're not deleting the 'naughty' seqs that contribute to the
+        # gaps, it's easy...
+        result = self.filtered(gaps_ok, motif_length=motif_length)
+        return result
+
+    def get_position_indices(self, f, native=False, negate=False):
+        """Returns list of column indices for which f(col) is True.
+
+        f : callable
+          function that returns true/false given an alignment position
+        native : boolean
+          if True, and ArrayAlignment, f is provided with slice of array
+          otherwise the string is used
+        negate : boolean
+          if True, not f() is used
+        """
+        # negate f if necessary
+        if negate:
+
+            def new_f(x):
+                return not f(x)
+
+        else:
+            new_f = f
+
+        if native:
+            result = [i for i in range(self.seq_len) if new_f(self.array_seqs[:, i])]
+        else:
+            result = [i for i, col in enumerate(self.positions) if new_f(col)]
+
+        return result
+
+    def get_gap_array(self, include_ambiguity=True):
+        """returns bool array with gap state True, False otherwise
+
+        Parameters
+        ----------
+        include_ambiguity : bool
+            if True, ambiguity characters that include the gap state are
+            included
+        """
+        data = self.array_seqs
+
+        gap = self.alphabet.index(self.moltype.gap)
+        gapped = data == gap
+        if include_ambiguity:
+            gaps = list(map(self.alphabet.index, self.moltype.gaps))
+            gaps.remove(gap)
+            for gap in gaps:
+                gapped = logical_or(gapped, data == gap)
+
+        return gapped
+
 
 class CodonArrayAlignment(ArrayAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
@@ -4670,10 +4811,8 @@ class Alignment(AlignmentI, SequenceCollection):
         self.named_seqs = dict(list(zip(names, aligned_seqs)))
         self.seq_data = self._seqs = aligned_seqs
 
-    def _coerce_seqs(self, seqs, is_array):
-        if any(isinstance(seq, ArraySequence) for seq in seqs):
-            seqs = [self.moltype.make_seq(str(seq), name=seq.name) for seq in seqs]
-        elif not any(isinstance(seq, (Sequence, Aligned)) for seq in seqs):
+    def _coerce_seqs(self, seqs):
+        if not any(isinstance(seq, (Sequence, Aligned)) for seq in seqs):
             seqs = list(map(self.moltype.make_seq, seqs))
         return seqs
 
@@ -5048,11 +5187,6 @@ class Alignment(AlignmentI, SequenceCollection):
 
         If seqs is an alignment, any gaps in it will be ignored.
         """
-        if isinstance(self, ArrayAlignment):
-            new = self.to_type(array_align=False)
-            result = new.replace_seqs(seqs, aa_to_codon=aa_to_codon)
-            return result.to_type(array_align=True)
-
         if aa_to_codon:
             scale = 3
         else:
