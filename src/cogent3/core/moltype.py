@@ -28,11 +28,10 @@ from cogent3.core.alignment import (
 from cogent3.core.alphabet import (
     Alphabet,
     AlphabetError,
-    CharAlphabet,
-    Enumeration,
     _make_complement_array,
+    make_alphabet,
+    register_alphabet_moltype,
 )
-from cogent3.core.genetic_code import get_code
 from cogent3.core.sequence import (
     ABSequence,
     ArrayDnaCodonSequence,
@@ -57,7 +56,6 @@ from cogent3.util.misc import (
     get_object_provenance,
 )
 from cogent3.util.transform import KeepChars, first_index_in_set
-from cogent3.util.warning import deprecated
 
 
 maketrans = str.maketrans
@@ -451,20 +449,16 @@ class AlphabetGroup(CoreObjectGroup):
         constructor=None,
     ):
         """Returns new AlphabetGroup."""
-        if constructor is None:
-            if max(list(map(len, chars))) == 1:
-                constructor = CharAlphabet
-                chars = "".join(chars)
-                degens = "".join(degens)
-            else:
-                constructor = Alphabet  # assume multi-char
+        if max(list(map(len, chars))) == 1:
+            chars = "".join(chars)
+            degens = "".join(degens)
 
         super(AlphabetGroup, self).__init__(
-            base=constructor(chars, moltype=moltype),
-            degen=constructor(chars + degens, moltype=moltype),
-            gapped=constructor(chars + gap, gap, moltype=moltype),
-            degen_gapped=constructor(
-                chars + gap + degens + missing, gap, moltype=moltype
+            base=make_alphabet(motifset=chars, moltype=moltype),
+            degen=make_alphabet(motifset=chars + degens, moltype=moltype),
+            gapped=make_alphabet(motifset=chars + gap, gap=gap, moltype=moltype),
+            degen_gapped=make_alphabet(
+                motifset=chars + gap + degens + missing, gap=gap, moltype=moltype
             ),
         )
 
@@ -636,12 +630,8 @@ class MolType(object):
             self.alphabets = AlphabetGroup(motifset, ambiguities, moltype=self)
             self.alphabet = self.alphabets.base
         else:
-            if isinstance(motifset, Enumeration):
-                self.alphabet = motifset
-            elif max(len(motif) for motif in motifset) == 1:
-                self.alphabet = CharAlphabet(motifset, moltype=self)
-            else:
-                self.alphabet = Alphabet(motifset, moltype=self)
+            self.alphabet = make_alphabet(motifset=motifset, moltype=self)
+
         # set the other properties
         self.degenerates = ambiguities and ambiguities.copy() or {}
         self.degenerates[self.missing] = "".join(motifset) + self.gap
@@ -695,6 +685,8 @@ class MolType(object):
         self._colors = colors or defaultdict(_DefaultValue("black"))
 
         self._coerce_string = coerce_string or _do_nothing
+
+        register_alphabet_moltype(alphabet=self.alphabet, moltype=self)
 
     def __repr__(self):
         """String representation of MolType.
@@ -1389,44 +1381,6 @@ AB = MolType(
     label="ab",
 )
 
-# todo the _CodonAlphabet class should not exist,
-# the genetic code should have an alphabet, not
-# the alphabet has a genetic code
-
-
-class _CodonAlphabet(Alphabet):
-    """Codon alphabets are DNA TupleAlphabets with a genetic code attribute and some codon-specific methods"""
-
-    def _with(self, motifs):
-        a = Alphabet._with(self, motifs)
-        a.__class__ = type(self)
-        a._gc = self._gc
-        return a
-
-    def is_sense_codon(self, codon):
-        return not self._gc.is_stop(codon)
-
-    def is_stop_codon(self, codon):
-        return self._gc.is_stop(codon)
-
-    def get_genetic_code(self):
-        return self._gc
-
-
-def CodonAlphabet(gc=1, include_stop_codons=False):
-    if isinstance(gc, (int, str)):
-        gc = get_code(gc)
-    if include_stop_codons:
-        motifset = list(gc.codons)
-    else:
-        motifset = list(gc.sense_codons)
-    motifset = [codon.upper().replace("U", "T") for codon in motifset]
-    a = _CodonAlphabet(motifset, moltype=DNA)
-    a._gc = gc
-    return a
-
-
-STANDARD_CODON = CodonAlphabet()
 
 # Modify NucleicAcidSequence to avoid circular import
 NucleicAcidSequence.protein = PROTEIN
@@ -1499,3 +1453,13 @@ def available_moltypes():
     result = result.sorted(columns=["Number of states", "Abbreviation"])
     result.format_column("Abbreviation", repr)
     return result
+
+
+def CodonAlphabet(gc=1, include_stop_codons=False):
+    from cogent3.core import genetic_code
+
+    gc = genetic_code.get_code(gc)
+    return gc.get_alphabet(include_stop=include_stop_codons)
+
+
+STANDARD_CODON = CodonAlphabet()

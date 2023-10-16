@@ -696,3 +696,11 @@ def test_roundtrip_seq(mtype):
     assert got.name == "label"
     assert got.moltype == seq.moltype
     assert str(got) == str(seq)
+
+
+@pytest.mark.parametrize("mn", ("BH", "F81", "JC69"))
+def test_dser_submodel(mn):
+    sm = get_model(mn)
+    rd = sm.to_rich_dict(for_pickle=False)
+    got = deserialise_object(rd)
+    assert got.moltype.alphabet.moltype is got.moltype

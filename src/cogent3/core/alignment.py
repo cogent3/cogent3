@@ -2406,7 +2406,12 @@ class Aligned:
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
         return self.data.gapped_by_map_motif_iter(self.map)
 
-    def get_gapped_seq(self, recode_gaps=False, moltype=None):
+    @c3warn.deprecated_args(
+        "2023.3",
+        reason="redundant, use obj.to_moltype() if needed",
+        discontinued="moltype",
+    )
+    def get_gapped_seq(self, recode_gaps=False):
         """Returns sequence as an object, including gaps."""
         return self.data.gapped_by_map(self.map, recode_gaps)
 
@@ -4321,18 +4326,22 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names=self.names,
         )
 
-    def get_gapped_seq(self, seq_name, recode_gaps=False, moltype=None):
+    @c3warn.deprecated_args(
+        "2023.3",
+        reason="redundant, use obj.to_moltype() if needed",
+        discontinued="moltype",
+    )
+    def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
         Note: return type may depend on what data was loaded into the
         SequenceCollection or Alignment.
         """
         s = self.named_seqs[seq_name]
-        moltype = self.moltype if moltype is None else moltype
         if recode_gaps:
-            non_ambig = list(moltype)
-            ambig = moltype.degenerate_from_seq(non_ambig)
-            for gapchar in moltype.gaps:
+            non_ambig = list(self.moltype)
+            ambig = self.moltype.degenerate_from_seq(non_ambig)
+            for gapchar in self.moltype.gaps:
                 s = s.replace(gapchar, ambig)
         return s
 
@@ -5010,12 +5019,17 @@ class Alignment(AlignmentI, SequenceCollection):
         """
         return self.named_seqs[seqname].data
 
-    def get_gapped_seq(self, seq_name, recode_gaps=False, moltype=None):
+    @c3warn.deprecated_args(
+        "2023.3",
+        reason="redundant, use obj.to_moltype() if needed",
+        discontinued="moltype",
+    )
+    def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
         Note: always returns Sequence object, not ArraySequence.
         """
-        return self.named_seqs[seq_name].get_gapped_seq(recode_gaps, moltype=moltype)
+        return self.named_seqs[seq_name].get_gapped_seq(recode_gaps)
 
     def iter_positions(self, pos_order=None):
         """Iterates over positions in the alignment, in order.

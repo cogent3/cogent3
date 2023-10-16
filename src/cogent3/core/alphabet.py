@@ -14,6 +14,7 @@ and/or Enumerations on the fly, however.
 """
 
 import json
+import typing
 
 from itertools import product
 
@@ -113,7 +114,10 @@ class Enumeration(tuple):
         Takes gap as an argument but ignores it (handled in __init__).
         """
         data = data or []
-        return tuple.__new__(cls, data)
+
+        result = tuple.__new__(cls, data)
+        register_alphabet_moltype(alphabet=result, moltype=moltype)
+        return result
 
     def __init__(self, data=None, gap=None, moltype=None):
         """Initializes self from data, and optionally a gap.
@@ -146,8 +150,6 @@ class Enumeration(tuple):
         accidentally use negative numbers as indices (this is very bad when
         doing indexed lookups).
         """
-        self.moltype = moltype
-
         # check if motif lengths are homogeneous -- if so, set length
         try:
             motif_lengths = frozenset(list(map(len, self)))
@@ -180,6 +182,10 @@ class Enumeration(tuple):
         self._allowed_range = arange(len(self))[:, newaxis]
         self.array_type = get_array_type(len(self))
         self._complement_array = None  # set in moltypes.py for standard types
+
+    @property
+    def moltype(self):
+        return _get_moltype(self)
 
     def index(self, item):
         """Returns the index of a specified item.
@@ -511,26 +517,6 @@ class Alphabet(Enumeration):
         cross_product = ["".join(combo) for combo in product(*states)]
         return Alphabet(cross_product, moltype=self.moltype)
 
-    def get_matched_array(self, motifs, dtype=float):
-        """Returns an array in which rows are motifs, columns are items in self.
-
-        Result is an array of Float in which a[i][j] indicates whether the ith
-        motif passed in as motifs is a symbol that matches the jth character
-        in self. For example, on the DNA alphabet 'TCAG', the degenerate symbol
-        'Y' would correspond to the row [1,1,0,0] because Y is a degenerate
-        symbol that encompasses T and C but not A or G.
-
-        This code is similar to code in the Profile class, and should perhaps
-        be merged with it (in particular, because there is nothing likelihood-
-        specific about the resulting match table).
-        """
-        result = zeros([len(motifs), len(self)], dtype)
-        obj_to_index = self._obj_to_index
-        for u, ambig_motif in enumerate(motifs):
-            for motif in self.resolve_ambiguity(ambig_motif):
-                result[u, obj_to_index[motif]] = 1.0
-        return result
-
     def get_motif_len(self):
         """Returns the length of the items in self, or None if they differ."""
         return self._motiflen
@@ -579,6 +565,7 @@ class Alphabet(Enumeration):
             motif_subset = [m for m in self if m not in motif_subset]
         return self._with(motif_subset)
 
+    # todo: move onto moltype
     def resolve_ambiguity(self, ambig_motif):
         """Returns set of symbols corresponding to ambig_motif.
 
@@ -617,6 +604,27 @@ class Alphabet(Enumeration):
             raise AlphabetError(ambig_motif)
 
         return tuple(motif_set)
+
+    # todo: move onto moltype
+    def get_matched_array(self, motifs, dtype=float):
+        """Returns an array in which rows are motifs, columns are items in self.
+
+        Result is an array of Float in which a[i][j] indicates whether the ith
+        motif passed in as motifs is a symbol that matches the jth character
+        in self. For example, on the DNA alphabet 'TCAG', the degenerate symbol
+        'Y' would correspond to the row [1,1,0,0] because Y is a degenerate
+        symbol that encompasses T and C but not A or G.
+
+        This code is similar to code in the Profile class, and should perhaps
+        be merged with it (in particular, because there is nothing likelihood-
+        specific about the resulting match table).
+        """
+        result = zeros([len(motifs), len(self)], dtype)
+        obj_to_index = self._obj_to_index
+        for u, ambig_motif in enumerate(motifs):
+            for motif in self.resolve_ambiguity(ambig_motif):
+                result[u, obj_to_index[motif]] = 1.0
+        return result
 
     @c3warns.deprecated_callable(
         "2023.10",
@@ -715,3 +723,50 @@ class CharAlphabet(Alphabet):
             return delimiter.join(
                 [i.tobytes().decode("utf-8") for i in self.to_chars(data)]
             )
+
+
+T = typing.Union[Alphabet, CharAlphabet]
+
+
+def make_alphabet(
+    *, motifset: typing.Iterable[str], moltype: "MolType", gap: str = "-"
+) -> T:
+    """constructs an alphabet and registers moltype
+
+    Notes
+    -----
+    The moltype is associated with the alphabet, available as an
+    alphabet property.
+    """
+
+    # the association of an alphabet and its moltype is done within
+    # the Enumaration constructor
+    if isinstance(motifset, Enumeration):
+        alphabet = motifset
+    elif max(len(motif) for motif in motifset) == 1:
+        alphabet = CharAlphabet(motifset, gap=gap, moltype=moltype)
+    else:
+        alphabet = Alphabet(motifset, gap=gap, moltype=moltype)
+
+    return alphabet
+
+
+_alphabet_moltype_map = {}
+
+NT = type(None)
+
+
+def register_alphabet_moltype(*, alphabet: T, moltype: "MolType") -> NT:
+    """registers a lookup of moltype for an alphabet
+
+    Notes
+    -----
+    Uses id(object) rather than object value. This assumes
+    an alphabet is only every associated with one molecular
+    type.
+    """
+    _alphabet_moltype_map[id(alphabet)] = moltype
+
+
+def _get_moltype(alphabet):
+    return _alphabet_moltype_map.get(id(alphabet))
