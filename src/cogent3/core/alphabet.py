@@ -114,7 +114,10 @@ class Enumeration(tuple):
         Takes gap as an argument but ignores it (handled in __init__).
         """
         data = data or []
-        return tuple.__new__(cls, data)
+
+        result = tuple.__new__(cls, data)
+        register_alphabet_moltype(alphabet=result, moltype=moltype)
+        return result
 
     def __init__(self, data=None, gap=None, moltype=None):
         """Initializes self from data, and optionally a gap.
@@ -147,8 +150,6 @@ class Enumeration(tuple):
         accidentally use negative numbers as indices (this is very bad when
         doing indexed lookups).
         """
-        self.moltype = moltype
-
         # check if motif lengths are homogeneous -- if so, set length
         try:
             motif_lengths = frozenset(list(map(len, self)))
@@ -181,6 +182,10 @@ class Enumeration(tuple):
         self._allowed_range = arange(len(self))[:, newaxis]
         self.array_type = get_array_type(len(self))
         self._complement_array = None  # set in moltypes.py for standard types
+
+    @property
+    def moltype(self):
+        return _get_moltype(self)
 
     def index(self, item):
         """Returns the index of a specified item.
