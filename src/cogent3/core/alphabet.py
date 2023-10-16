@@ -14,6 +14,7 @@ and/or Enumerations on the fly, however.
 """
 
 import json
+import typing
 
 from itertools import product
 
@@ -715,3 +716,50 @@ class CharAlphabet(Alphabet):
             return delimiter.join(
                 [i.tobytes().decode("utf-8") for i in self.to_chars(data)]
             )
+
+
+T = typing.Union[Alphabet, CharAlphabet]
+
+
+def make_alphabet(
+    *, motifset: typing.Iterable[str], moltype: "MolType", gap: str = "-"
+) -> T:
+    """constructs an alphabet and registers moltype
+
+    Notes
+    -----
+    The moltype is associated with the alphabet, available as an
+    alphabet property.
+    """
+
+    # the association of an alphabet and its moltype is done within
+    # the Enumaration constructor
+    if isinstance(motifset, Enumeration):
+        alphabet = motifset
+    elif max(len(motif) for motif in motifset) == 1:
+        alphabet = CharAlphabet(motifset, gap=gap, moltype=moltype)
+    else:
+        alphabet = Alphabet(motifset, gap=gap, moltype=moltype)
+
+    return alphabet
+
+
+_alphabet_moltype_map = {}
+
+NT = type(None)
+
+
+def register_alphabet_moltype(*, alphabet: T, moltype: "MolType") -> NT:
+    """registers a lookup of moltype for an alphabet
+
+    Notes
+    -----
+    Uses id(object) rather than object value. This assumes
+    an alphabet is only every associated with one molecular
+    type.
+    """
+    _alphabet_moltype_map[id(alphabet)] = moltype
+
+
+def _get_moltype(alphabet):
+    return _alphabet_moltype_map.get(id(alphabet))
