@@ -207,6 +207,13 @@ class CharAlphabetTests(TestCase):
         self.assertIsInstance(got, type(r))
         self.assertEqual(got.get_word_alphabet(2), wa)
 
+    def test_pickling_moltype(self):
+        from cogent3.core.moltype import DNA
+
+        a = DNA.alphabet
+        got = pickle.loads(pickle.dumps(a))
+        assert got.moltype is not None
+
     def test_word_alphabet_order(self):
         bases = "TCAG"
         r = CharAlphabet(bases)
