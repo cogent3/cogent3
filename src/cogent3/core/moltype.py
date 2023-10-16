@@ -32,7 +32,6 @@ from cogent3.core.alphabet import (
     Enumeration,
     _make_complement_array,
 )
-from cogent3.core.genetic_code import get_code
 from cogent3.core.sequence import (
     ABSequence,
     ArrayDnaCodonSequence,
@@ -1389,44 +1388,6 @@ AB = MolType(
     label="ab",
 )
 
-# todo the _CodonAlphabet class should not exist,
-# the genetic code should have an alphabet, not
-# the alphabet has a genetic code
-
-
-class _CodonAlphabet(Alphabet):
-    """Codon alphabets are DNA TupleAlphabets with a genetic code attribute and some codon-specific methods"""
-
-    def _with(self, motifs):
-        a = Alphabet._with(self, motifs)
-        a.__class__ = type(self)
-        a._gc = self._gc
-        return a
-
-    def is_sense_codon(self, codon):
-        return not self._gc.is_stop(codon)
-
-    def is_stop_codon(self, codon):
-        return self._gc.is_stop(codon)
-
-    def get_genetic_code(self):
-        return self._gc
-
-
-def CodonAlphabet(gc=1, include_stop_codons=False):
-    if isinstance(gc, (int, str)):
-        gc = get_code(gc)
-    if include_stop_codons:
-        motifset = list(gc.codons)
-    else:
-        motifset = list(gc.sense_codons)
-    motifset = [codon.upper().replace("U", "T") for codon in motifset]
-    a = _CodonAlphabet(motifset, moltype=DNA)
-    a._gc = gc
-    return a
-
-
-STANDARD_CODON = CodonAlphabet()
 
 # Modify NucleicAcidSequence to avoid circular import
 NucleicAcidSequence.protein = PROTEIN
@@ -1499,3 +1460,13 @@ def available_moltypes():
     result = result.sorted(columns=["Number of states", "Abbreviation"])
     result.format_column("Abbreviation", repr)
     return result
+
+
+def CodonAlphabet(gc=1, include_stop_codons=False):
+    from cogent3.core import genetic_code
+
+    gc = genetic_code.get_code(gc)
+    return gc.get_alphabet(include_stop=include_stop_codons)
+
+
+STANDARD_CODON = CodonAlphabet()
