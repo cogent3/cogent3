@@ -205,12 +205,7 @@ def _indexed(values):
     return unique, counts, index
 
 
-def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
-    if alphabet is None:
-        alphabet = sequence.moltype.alphabet
-    if seq_name is None:
-        seq_name = sequence.get_name()
-
+def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     motif_len = alphabet.get_motif_len()
     sequence2 = sequence.get_in_motif_size(motif_len)
 
