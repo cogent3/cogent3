@@ -388,7 +388,7 @@ class _SubstitutionModel(object):
         return result
 
     def convert_sequence(self, sequence, name):
-        # make_likelihood_tree_leaf, sort of an indexed profile where duplicate
+        # make_likelihood_tree_leaf, a sort of indexed profile where duplicate
         # columns stored once, so likelihoods only calc'd once
         return make_likelihood_tree_leaf(sequence, self.get_alphabet(), name)
 

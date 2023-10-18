@@ -66,7 +66,7 @@ def tree_align(
     param_vals = dict(param_vals) if param_vals else {}
 
     model = get_model(model)
-    moltype = model.alphabet.moltype
+    moltype = model.moltype
 
     num_states = len(model.alphabet)
 

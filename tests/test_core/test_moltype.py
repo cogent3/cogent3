@@ -1,7 +1,8 @@
-#!/usr/bin/env python
 import pickle
 
-from unittest import TestCase, main
+from unittest import TestCase
+
+import pytest
 
 # ind some of the standard alphabets to reduce typing
 from numpy.testing import assert_allclose
@@ -968,19 +969,6 @@ class TestCodonAlphabet(_AlphabetTestCase):
 
         self.alpha = STANDARD_CODON
 
-    def test_ambiguous_gaps(self):
-        alpha = self.alpha.with_gap_motif()
-        self.assertEqual(len(alpha.resolve_ambiguity("AT?")), 4)
-        self.assertRaises(Exception, alpha.resolve_ambiguity, "at-")
-        self.assertEqual(len(alpha.resolve_ambiguity("???")), 62)
-        self.assertEqual(len(alpha.resolve_ambiguity("---")), 1)
-
-        alpha = self.alpha
-        self.assertEqual(len(alpha.resolve_ambiguity("AT?")), 4)
-        self.assertRaises(Exception, alpha.resolve_ambiguity, "at-")
-        self.assertEqual(len(alpha.resolve_ambiguity("???")), 61)
-        self.assertRaises(Exception, alpha.resolve_ambiguity, "---")
-
     def test_exclude(self):
         """testing excluding gap motif"""
         alpha = self.alpha
@@ -1128,5 +1116,26 @@ class TestCodonAlphabet(_AlphabetTestCase):
         self.assertEqual(alpha_int, alpha_name)
 
 
-if __name__ == "__main__":
-    main()
+def test_resolve_ambiguity_nucs():
+    got = DNA.resolve_ambiguity("AT?", allow_gap=False)
+    assert len(got) == 4
+    assert len(got[0]) == 3
+
+
+def test_resolve_ambiguity_codons():
+    from cogent3 import get_code
+
+    gc = get_code(1)
+    codon_alpha = gc.get_alphabet(include_stop=False)
+    codon_alpha_w_gap = codon_alpha.with_gap_motif()
+    assert len(DNA.resolve_ambiguity("AT?", alphabet=codon_alpha_w_gap)) == 4
+    assert len(DNA.resolve_ambiguity("???", alphabet=codon_alpha_w_gap)) == 62
+    assert len(DNA.resolve_ambiguity("---", alphabet=codon_alpha_w_gap)) == 1
+
+    assert len(DNA.resolve_ambiguity("AT?", alphabet=codon_alpha)) == 4
+    assert len(DNA.resolve_ambiguity("???", alphabet=codon_alpha)) == 61
+
+    with pytest.raises(AlphabetError):
+        DNA.resolve_ambiguity("at-")
+    with pytest.raises(AlphabetError):
+        DNA.resolve_ambiguity("---", alphabet=codon_alpha)
