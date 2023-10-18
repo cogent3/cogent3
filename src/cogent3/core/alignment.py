@@ -1619,8 +1619,9 @@ class _SequenceCollectionBase:
 
         only non-overlapping motifs are counted
         """
+        moltype = self.moltype
         if alphabet is None:
-            alphabet = self.moltype.alphabet
+            alphabet = moltype.alphabet
             if allow_gap:
                 alphabet = alphabet.gapped
 
@@ -1647,7 +1648,7 @@ class _SequenceCollectionBase:
                 probs[motif] = pseudocount
 
         for motif, count in list(counts.items()):
-            motif_set = alphabet.resolve_ambiguity(motif)
+            motif_set = moltype.resolve_ambiguity(motif, alphabet=alphabet)
             if len(motif_set) > 1:
                 if include_ambiguity:
                     count = float(count) / len(motif_set)

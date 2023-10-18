@@ -1742,6 +1742,7 @@ class NucleicAcidSequence(Sequence):
         protein = get_moltype("protein_with_stop" if include_stop else "protein")
         gc = get_code(gc)
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
+        moltype = self.moltype
         # translate the codons
         translation = []
         if include_stop or not trim_stop:
@@ -1753,7 +1754,9 @@ class NucleicAcidSequence(Sequence):
         for posn in range(0, len(seq) - 2, 3):
             orig_codon = str(seq[posn : posn + 3])
             try:
-                resolved = codon_alphabet.resolve_ambiguity(orig_codon)
+                resolved = moltype.resolve_ambiguity(
+                    orig_codon, alphabet=codon_alphabet
+                )
             except AlphabetError:
                 if not incomplete_ok or "-" not in orig_codon:
                     raise AlphabetError(

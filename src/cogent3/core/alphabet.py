@@ -565,13 +565,13 @@ class Alphabet(Enumeration):
             motif_subset = [m for m in self if m not in motif_subset]
         return self._with(motif_subset)
 
-    # todo: move onto moltype
+    @c3warns.deprecated_callable(
+        "2024.3",
+        reason="does not belong on alphabet",
+        new="<moltype>.resolve_ambiguity()",
+    )
     def resolve_ambiguity(self, ambig_motif):
-        """Returns set of symbols corresponding to ambig_motif.
-
-        Handles multi-character symbols and screens against the set of
-        valid motifs, unlike the MolType version.
-        """
+        """deprecated, use method on MolType"""
         # shortcut easy case
         if ambig_motif in self._quick_motifset:
             return (ambig_motif,)
@@ -605,20 +605,13 @@ class Alphabet(Enumeration):
 
         return tuple(motif_set)
 
-    # todo: move onto moltype
+    @c3warns.deprecated_callable(
+        "2024.3",
+        reason="does not belong on alphabet",
+        new="cogent3.evolve.likelihood_tree.get_matched_array",
+    )
     def get_matched_array(self, motifs, dtype=float):
-        """Returns an array in which rows are motifs, columns are items in self.
-
-        Result is an array of Float in which a[i][j] indicates whether the ith
-        motif passed in as motifs is a symbol that matches the jth character
-        in self. For example, on the DNA alphabet 'TCAG', the degenerate symbol
-        'Y' would correspond to the row [1,1,0,0] because Y is a degenerate
-        symbol that encompasses T and C but not A or G.
-
-        This code is similar to code in the Profile class, and should perhaps
-        be merged with it (in particular, because there is nothing likelihood-
-        specific about the resulting match table).
-        """
+        """deprecated, use function in evolve.likelihood_tree"""
         result = zeros([len(motifs), len(self)], dtype)
         obj_to_index = self._obj_to_index
         for u, ambig_motif in enumerate(motifs):

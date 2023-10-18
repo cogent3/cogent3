@@ -11,8 +11,10 @@ the MolType. It is thus essential that the connection between these other
 types and the MolType can be made after the objects are created.
 """
 
+import itertools
 import json
 import re
+import typing
 
 from collections import defaultdict
 from copy import deepcopy
@@ -1283,6 +1285,56 @@ class MolType(object):
         ]
 
         return css, styles
+
+    def resolve_ambiguity(
+        self,
+        ambig_motif: str,
+        alphabet: typing.Optional[Alphabet] = None,
+        allow_gap: bool = False,
+    ) -> typing.Tuple[str]:
+        """Returns tuple of all possible canonical characters corresponding
+        to ambig_motif
+
+        Parameters
+        ----------
+        ambig_motif
+            the string to be expanded
+        alphabet
+            optional, disambiguated motifs not present in alphabet will be
+            excluded. This could be a codon alphabet where stop codons are
+            not present.
+        allow_gap
+            whether the gap character is allowed in output. Only
+            applied when alphabet is None.
+
+        Notes
+        -----
+        If ambig_motif is > 1 character long and alphabet is None, we construct
+        a word alphabet with the same length.
+        """
+        ambiguities = {**self.ambiguities}
+        if alphabet is None:
+            word_alpha = self.alphabet.get_word_alphabet(len(ambig_motif))
+            alphabet = word_alpha.with_gap_motif() if allow_gap else word_alpha
+            if not allow_gap:
+                ambiguities["?"] = tuple(c for c in ambiguities["?"] if c != self.gap)
+
+        if ambig_motif in alphabet:
+            return (ambig_motif,)
+
+        try:
+            resolved = [ambiguities[c] for c in ambig_motif]
+        except KeyError:
+            raise AlphabetError(ambig_motif)
+
+        result = tuple("".join(e) for e in itertools.product(*resolved))
+        if alphabet:
+            result = tuple(e for e in result if e in alphabet)
+
+        if not result:
+            raise AlphabetError(ambig_motif)
+
+        return result
 
 
 def _convert_to_rna(seq: str) -> str:
