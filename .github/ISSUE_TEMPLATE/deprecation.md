@@ -9,6 +9,8 @@ assignees: ''
 
 **What should be changed**
 
+Deprecated means a function, method or argument is going to be replaced in the code base.
+
 What function, method or argument should be marked for change?
 
 What is the full module path to the attribute?
@@ -23,5 +25,5 @@ The number of months (*x*) long before the capability will be removed? This shou
 
 **Guidelines for deprecation**
 
-As this is a discontinued function, see [dev guidelines for deprecation](https://github.com/cogent3/c3dev/wiki/Deprecating-Code) of code. Indicate the limiting version (for when the old function will be removed) as 3 months from when you make the change.
+As this is a function being deprecated, see [dev guidelines for deprecation](https://github.com/cogent3/c3dev/wiki/Deprecating-Code) of code. Indicate the limiting version (for when the old function will be removed) as 3 months from when you make the change.
 
