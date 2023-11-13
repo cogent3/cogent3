@@ -1456,6 +1456,7 @@ def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwar
     paths = list(paths.parent.glob(paths.name))
 
     ui = kwargs.pop("ui")
+    one_valid_path = False
     for path in ui.series(paths):
         with open_(path) as infile:
             rec = list(MinimalGenbankParser(infile))[0]
@@ -1465,7 +1466,10 @@ def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwar
                 seqid=rec["locus"],
                 db=db,
             )
+            one_valid_path = True
 
+    if not one_valid_path:
+        raise IOError(f"{str(path)!r} not found")
     return db
 
 
@@ -1490,6 +1494,7 @@ def _db_from_gff(
     paths = list(paths.parent.glob(paths.name))
 
     ui = kwargs.pop("ui")
+    one_valid_path = False
     for path in ui.series(paths):
         data = list(
             gff_parser(
@@ -1499,6 +1504,9 @@ def _db_from_gff(
             )
         )
         db = GffAnnotationDb(source=write_path, data=data, db=db)
+        one_valid_path = True
+    if not one_valid_path:
+        raise IOError(f"{str(path)!r} not found")
     return db
 
 
