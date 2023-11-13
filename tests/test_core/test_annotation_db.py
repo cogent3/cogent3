@@ -949,4 +949,4 @@ def test_gbdb_get_parent_fails_no_coords(gb_db):
 
 def test_load_annotations_invalid_path():
     with pytest.raises(IOError):
-        db = load_annotations(path="invalidfile.gff3")
+        load_annotations(path="invalidfile.gff3")
