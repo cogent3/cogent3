@@ -488,7 +488,7 @@ class MatchedSeqPaths:
         return trace
 
 
-def _calc_seed_size(w: int, t: int) -> int:
+def _calc_seed_size(w: int, t: int, min_val: int = 5) -> int:
     """computes k-mer size
 
     Parameters
@@ -497,17 +497,23 @@ def _calc_seed_size(w: int, t: int) -> int:
         window size
     t : int
         threshold for minimum number of matches
+    min_val : int
+        minimum k-mer size
 
     Returns
     -------
     int
-        returns the larger of (w // k) * k <= t OR w - t + 1
+        k-mer size
     """
-    assert 0 < t <= w, f"threshold={t} > window size={w}"
 
-    # k should be such that (w % k) * k < threshold
-    denom = w - t + 1
-    return max(min(w // denom, t), denom)
+    assert 0 < t <= w, f"threshold={t} > window size={w}"
+    d = w - t
+    if w == t:
+        return w
+    elif d > t:
+        return t
+    k = t // d
+    return max(k, min_val)
 
 
 def find_matched_paths(
