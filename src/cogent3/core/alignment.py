@@ -1859,6 +1859,7 @@ class _SequenceCollectionBase:
             isinstance(self, AlignmentI),
             window=window,
             threshold=threshold,
+            k=k,
             min_gap=min_gap,
             xtitle=None if annotated else seq1.name,
             ytitle=None if annotated else seq2.name,

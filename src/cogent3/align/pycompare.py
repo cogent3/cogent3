@@ -488,7 +488,7 @@ class MatchedSeqPaths:
         return trace
 
 
-def _calc_seed_size(w: int, t: int) -> int:
+def _calc_seed_size(w: int, t: int, min_val: int = 5) -> int:
     """computes k-mer size
 
     Parameters
@@ -497,17 +497,23 @@ def _calc_seed_size(w: int, t: int) -> int:
         window size
     t : int
         threshold for minimum number of matches
+    min_val : int
+        minimum k-mer size
 
     Returns
     -------
     int
-        returns the larger of (w // k) * k <= t OR w - t + 1
+        k-mer size
     """
-    assert 0 < t <= w, f"threshold={t} > window size={w}"
 
-    # k should be such that (w % k) * k < threshold
-    denom = w - t + 1
-    return max(min(w // denom, t), denom)
+    assert 0 < t <= w, f"threshold={t} > window size={w}"
+    d = w - t
+    if w == t:
+        return w
+    elif d > t:
+        return t
+    k = t // d
+    return max(k, min_val)
 
 
 def find_matched_paths(
@@ -530,7 +536,8 @@ def find_matched_paths(
     window : int
         size of sequence segment to be compared
     threshold : int
-        Minimum number of positions that must be equal within the window.Less than or equal to window.
+        Minimum number of positions that must be equal within the window.
+        Less than or equal to window.
 
     Returns
     -------
@@ -571,5 +578,17 @@ def find_matched_paths(
             continue
 
         paths.append(ref_coord, other_coord)
+
+    for y_intercept in paths.paths:
+        if len(paths.paths[y_intercept]) == 1:
+            continue
+        merged = [paths.paths[y_intercept][0]]
+        for x2, y2 in paths.paths[y_intercept][1:]:
+            x1, y1 = merged[-1]
+            if x1.overlap(x2):
+                merged[-1] = (x1 | x2, y1 | y2)
+            else:
+                merged.append((x2, y2))
+        paths.paths[y_intercept] = merged
 
     return paths
