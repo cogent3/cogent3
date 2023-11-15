@@ -536,7 +536,8 @@ def find_matched_paths(
     window : int
         size of sequence segment to be compared
     threshold : int
-        Minimum number of positions that must be equal within the window.Less than or equal to window.
+        Minimum number of positions that must be equal within the window.
+        Less than or equal to window.
 
     Returns
     -------
@@ -577,5 +578,17 @@ def find_matched_paths(
             continue
 
         paths.append(ref_coord, other_coord)
+
+    for y_intercept in paths.paths:
+        if len(paths.paths[y_intercept]) == 1:
+            continue
+        merged = [paths.paths[y_intercept][0]]
+        for x2, y2 in paths.paths[y_intercept][1:]:
+            x1, y1 = merged[-1]
+            if x1.overlap(x2):
+                merged[-1] = (x1 | x2, y1 | y2)
+            else:
+                merged.append((x2, y2))
+        paths.paths[y_intercept] = merged
 
     return paths
