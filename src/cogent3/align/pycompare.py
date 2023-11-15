@@ -504,8 +504,14 @@ def _calc_seed_size(w: int, t: int, min_val: int = 5) -> int:
     -------
     int
         k-mer size
-    """
 
+    Notes
+    -----
+    This seeks to return the maximum value of k that would guarantee the
+    detection of a w sized segment with t matches. Evenly spaced mismatches
+    represent the hardest case. We set a min_val for k to ensure performance
+    is maintained at the cost of some loss of sensitivity.
+    """
     assert 0 < t <= w, f"threshold={t} > window size={w}"
     d = w - t
     if w == t:
