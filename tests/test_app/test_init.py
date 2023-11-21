@@ -72,9 +72,9 @@ class TestAvailableApps(TestCase):
     
     def test_available_apps_filter(self):
         """availabe_apps can be filtered by name"""
-        filter: str = "sql"
+        app_name_filter: str = "sql"
 
-        apps = available_apps(filter)
+        apps = available_apps(app_name_filter)
 
         self.assertIsInstance(apps, Table)
         self.assertTrue(len(apps), 1)
