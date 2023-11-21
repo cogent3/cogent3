@@ -69,6 +69,15 @@ class TestAvailableApps(TestCase):
         apps = available_apps()
         self.assertIsInstance(apps, Table)
         self.assertTrue(apps.shape[0] > 10)
+    
+    def test_available_apps_filter(self):
+        """availabe_apps can be filtered by name"""
+        filter: str = "sql"
+
+        apps = available_apps(filter)
+
+        self.assertIsInstance(apps, Table)
+        self.assertTrue(len(apps), 1)
 
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
