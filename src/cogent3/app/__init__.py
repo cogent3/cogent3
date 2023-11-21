@@ -50,7 +50,7 @@ def _make_types(app) -> dict:
     return _types
 
 
-def available_apps():
+def available_apps(filter: str | None = None):
     """returns Table listing the available apps"""
     from cogent3.util.table import Table
 
@@ -66,6 +66,9 @@ def available_apps():
     rows = []
     for app, is_comp in __app_registry.items():
         if any(app.startswith(d) for d in deprecated):
+            continue
+
+        if filter and filter in app:
             continue
 
         with contextlib.suppress(AttributeError):
