@@ -70,15 +70,6 @@ class TestAvailableApps(TestCase):
         self.assertIsInstance(apps, Table)
         self.assertTrue(apps.shape[0] > 10)
 
-    def test_available_apps_filter(self):
-        """availabe_apps can be filtered by name"""
-        app_name_filter: str = "sql"
-
-        apps = available_apps(app_name_filter)
-
-        self.assertIsInstance(apps, Table)
-        self.assertTrue(len(apps), 1)
-
     def test_composable_pairwise_applications(self):
         """Properly compose two composable applications"""
 
@@ -218,6 +209,15 @@ def test_app_help_signature(capsys, app_name):
     if len(got) > 70:
         assert got.count("\n") > 1
 
+
+def test_available_apps_filter():
+    """available apps can be filtered by name"""
+    app_name_filter: str = "load"
+    filtered_apps = available_apps(app_name_filter)
+    assert isinstance(filtered_apps, Table)
+    assert len(filtered_apps) > 0
+    # check every returned table row 'name' has filter in it
+    assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(filtered_apps)
 
 if __name__ == "__main__":
     main()

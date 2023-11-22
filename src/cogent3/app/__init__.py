@@ -68,7 +68,7 @@ def available_apps(app_name_filter: str | None = None):
         if any(app.startswith(d) for d in deprecated):
             continue
 
-        if app_name_filter and app_name_filter in app:
+        if app_name_filter and app_name_filter not in app:
             continue
 
         with contextlib.suppress(AttributeError):
