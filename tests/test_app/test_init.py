@@ -217,7 +217,10 @@ def test_available_apps_filter():
     assert isinstance(filtered_apps, Table)
     assert len(filtered_apps) > 0
     # check every returned table row 'name' has filter in it
-    assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(filtered_apps)
+    assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(
+        filtered_apps
+    )
+
 
 if __name__ == "__main__":
     main()

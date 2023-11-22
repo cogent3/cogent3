@@ -6,6 +6,8 @@ import inspect
 import re
 import textwrap
 
+from cogent3.util.table import Table
+
 from .io import open_data_store
 
 
@@ -50,8 +52,14 @@ def _make_types(app) -> dict:
     return _types
 
 
-def available_apps(app_name_filter: str | None = None):
-    """returns Table listing the available apps"""
+def available_apps(name_filter: str | None = None) -> Table:
+    """returns Table listing the available apps
+
+    Parameters
+    ----------
+    name_filter
+        include apps whose name includes name_filter
+    """
     from cogent3.util.table import Table
 
     from .composable import __app_registry
@@ -68,7 +76,7 @@ def available_apps(app_name_filter: str | None = None):
         if any(app.startswith(d) for d in deprecated):
             continue
 
-        if app_name_filter and app_name_filter not in app:
+        if name_filter and name_filter not in app:
             continue
 
         with contextlib.suppress(AttributeError):
