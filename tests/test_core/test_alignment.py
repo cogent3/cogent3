@@ -3722,3 +3722,28 @@ def test_get_seq_returns_view():
     expect = str(a1.named_seqs["s1"])
     got = str(a1.get_seq("s1"))
     assert got == expect, (got, expect)
+
+
+def test_get_seq_returns_view_with_gaps():
+    seqs = {
+        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
+    a1 = aln[1:5]
+    expect = str(a1.named_seqs["s2"])
+    got = str(a1.get_seq("s2"))
+    assert got == expect, (got, expect)
+
+
+def test_get_seq_returns_sequence():
+    seqs = {
+        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
+    a1 = aln[1:5]
+    got = a1.get_seq("s1")
+    assert isinstance(got, Sequence), got
