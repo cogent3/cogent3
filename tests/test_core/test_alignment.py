@@ -3711,7 +3711,8 @@ def test_get_translation_incomplete(cls):
         _ = alignment.get_translation(incomplete_ok=False)
 
 
-def test_get_seq_returns_view():
+@pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
+def test_get_seq_returns_view(seq):
     seqs = {
         "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
         "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
@@ -3719,12 +3720,13 @@ def test_get_seq_returns_view():
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     a1 = aln[1:5]
-    expect = str(a1.named_seqs["s1"])
-    got = str(a1.get_seq("s1"))
+    expect = str(a1.named_seqs[seq]).replace("-", "")
+    got = str(a1.get_seq(seq)) # we dont want gaps 
     assert got == expect, (got, expect)
 
 
-def test_get_seq_returns_view_with_gaps():
+@pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
+def test_get_seq_returns_sequence(seq):
     seqs = {
         "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
         "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
@@ -3732,18 +3734,33 @@ def test_get_seq_returns_view_with_gaps():
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     a1 = aln[1:5]
-    expect = str(a1.named_seqs["s2"])
-    got = str(a1.get_seq("s2"))
-    assert got == expect, (got, expect)
-
-
-def test_get_seq_returns_sequence():
-    seqs = {
-        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
-        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
-        "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
-    }
-    aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
-    a1 = aln[1:5]
-    got = a1.get_seq("s1")
+    got = a1.get_seq(seq)
     assert isinstance(got, Sequence), got
+
+
+@pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
+def test_get_seq_reversed_seq(seq):
+    seqs = {
+        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
+    a1 = aln[6:1]
+    got = a1.get_seq(seq)
+    expect = str(a1.named_seqs[seq]).replace("-", "")
+    assert got == expect, (got, expect)
+
+
+@pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
+def test_get_seq_reverse_complement(seq):
+    seqs = {
+        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGTTCCAAATAATGAA",
+        "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
+    }
+    aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
+    a1 = aln.rc()[1:5]
+    expect = str(a1.named_seqs[seq]).replace("-", "")
+    got = str(a1.get_seq(seq))
+    assert got == expect, (got, expect)
