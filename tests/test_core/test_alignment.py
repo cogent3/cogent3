@@ -3720,14 +3720,13 @@ def test_get_seq_with_sliced_aln(seq):
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     a1 = aln[1:5]
-    
+
     s1 = a1.get_seq(seq)
     assert isinstance(s1, Sequence), s1
 
     got = str(s1)
     expect = str(a1.named_seqs[seq]).replace("-", "")
     assert got == expect, (got, expect)
-
 
 
 @pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
@@ -3757,12 +3756,13 @@ def test_get_seq_with_sliced_rced_aln(seq):
     got = str(a1.get_seq(seq))
     assert got == expect, (got, expect)
 
+
 @pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
 def test_get_seq_with_sliced_aln_multiple_spans(seq):
     seqs = {
-        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA", # span gap span 
-        "s2": "G----TT------AAGTTCCAAATAATGAA", # gap span gap 
-        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA", # gap span gap span gap
+        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA",  # span gap span
+        "s2": "G----TT------AAGTTCCAAATAATGAA",  # gap span gap
+        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA",  # gap span gap span gap
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     a1 = aln[1:10]
@@ -3770,33 +3770,33 @@ def test_get_seq_with_sliced_aln_multiple_spans(seq):
     assert isinstance(s1, Sequence), s1
 
     expect = str(a1.named_seqs[seq]).replace("-", "")
-    got = str(s1) 
+    got = str(s1)
     assert got == expect, (got, expect)
 
 
 @pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
 def test_get_seq_with_sliced_reversed_aln_multiple_spans(seq):
     seqs = {
-        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA", # span gap span 
-        "s2": "G----TT------AAGTTCCAAATAATGAA", # gap span gap 
-        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA", # gap span gap span gap
+        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA",  # span gap span
+        "s2": "G----TT------AAGTTCCAAATAATGAA",  # gap span gap
+        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA",  # gap span gap span gap
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     a1 = aln[10:1]
     expect = str(a1.named_seqs[seq]).replace("-", "")
-    got = str(a1.get_seq(seq)) 
+    got = str(a1.get_seq(seq))
     assert got == expect, (got, expect)
 
 
 @pytest.mark.parametrize("seq", ("s1", "s2", "s3"))
 def test_get_seq_with_sliced_rced_aln_multiple_spans(seq):
     seqs = {
-        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA", # span gap span 
-        "s2": "G----TT------AAGTTCCAAATAATGAA", # gap span gap 
-        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA", # gap span gap span gap
+        "s1": "GTTGA--TAGTAGAAGTTCCAAATAATGAA",  # span gap span
+        "s2": "G----TT------AAGTTCCAAATAATGAA",  # gap span gap
+        "s3": "G--GA--TA--GGAAGTTGCAAAT---GAA",  # gap span gap span gap
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     a1 = aln.rc()[-10:-1]
     expect = str(a1.named_seqs[seq]).replace("-", "")
-    got = str(a1.get_seq(seq)) 
+    got = str(a1.get_seq(seq))
     assert got == expect, (got, expect)
