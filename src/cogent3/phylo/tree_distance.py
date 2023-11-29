@@ -1,19 +1,18 @@
 from itertools import product
 from typing import List
-
 import numpy
-
 from scipy.optimize import linear_sum_assignment
+from cogent3 import TreeNode
 
 
-def lin_rajan_moret(tree1: "PhyloNode", tree2: "PhyloNode") -> float:
+def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> float:
     """calculate the lin-rajan-moret distance (matching distance) between trees
 
     trees should have matching tips and must not be rooted.
 
     Parameters
     ----------
-    tree1, tree2: PhyloNode
+    tree1, tree2: TreeNode
         trees to calculate distance between
 
     Returns
@@ -44,7 +43,7 @@ def lin_rajan_moret(tree1: "PhyloNode", tree2: "PhyloNode") -> float:
     return float(matching_distance)
 
 
-def _convert_tree_to_vectors(tree: "PhyloNode", tip_names: List) -> numpy.ndarray:
+def _convert_tree_to_vectors(tree: TreeNode, tip_names: List) -> numpy.ndarray:
     ref_tip = tip_names[0]
     name_set = set(tip_names)
     name_index = {n: i for i, n in enumerate(tip_names)}
