@@ -45,6 +45,56 @@ def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> int:
     return matching_distance
 
 
+def matching_cluster_distance(tree1: TreeNode, tree2: TreeNode) -> int:
+    """calculate the matching cluster distance between trees
+
+    trees should have matching tips and must be rooted.
+
+    Parameters
+    ----------
+    tree1, tree2: TreeNode
+        trees to calculate distance between
+
+    Returns
+    -------
+    int
+        the matching cluster distance
+
+    Notes
+    -----
+    see: Bogdanowicz, D., & Giaro, K. (2013). On a matching distance between
+    rooted phylogenetic trees. International Journal of Applied Mathematics
+    and Computer Science, 23(3), 669-684.
+
+    Boorman, S. A., & Olivier, D. C. (1973). Metrics on spaces of finite trees.
+    Journal of Mathematical Psychology, 10(1), 26-59.
+    """
+
+    if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
+        raise ValueError("tree tip names must match")
+    if len(tree1.children) != 2 or len(tree2.children) != 2:
+        raise ValueError("trees must be rooted")
+
+    tree1_clusters = list(tree1.subsets())
+    tree2_clusters = list(tree2.subsets())
+
+    while len(tree1_clusters) < len(tree2_clusters):
+        tree1_clusters.append(set())
+    while len(tree2_clusters) < len(tree1_clusters):
+        tree2_clusters.append(set())
+
+    adjacency = np.zeros(shape=(len(tree1_clusters), len(tree2_clusters)))
+
+    for i, cluster_1 in enumerate(tree1_clusters):
+        for j, cluster_2 in enumerate(tree2_clusters):
+            adjacency[i, j] = len(cluster_1.symmetric_difference(cluster_2))
+
+    row_ind, col_ind = linear_sum_assignment(adjacency)
+    distance = int(adjacency[row_ind, col_ind].sum())
+
+    return distance
+
+
 def _convert_tree_to_vectors(tree: TreeNode, tip_names: list) -> np.ndarray:
     ref_tip = tip_names[0]
     name_set = set(tip_names)
