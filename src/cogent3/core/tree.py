@@ -1598,7 +1598,7 @@ class TreeNode(object):
         tip = self.get_node_matching_name(outgroup_name)
         return tip.parent.unrooted_deepcopy()
 
-    def lin_rajan_moret(self, tree2) -> float:
+    def lin_rajan_moret(self, tree2) -> int:
         """return the lin-rajan-moret distance between trees
 
         float

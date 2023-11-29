@@ -7,7 +7,7 @@ from scipy.optimize import linear_sum_assignment
 from cogent3 import TreeNode
 
 
-def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> float:
+def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> int:
     """calculate the lin-rajan-moret distance (matching distance) between trees
 
     trees should have matching tips and must not be rooted.
@@ -19,7 +19,7 @@ def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> float:
 
     Returns
     -------
-    float
+    int
         the Lin-Rajan-Moret distance
 
     Notes
@@ -42,7 +42,7 @@ def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> float:
 
     matching_distance = _matched_distance(vector1, vector2)
 
-    return float(matching_distance)
+    return matching_distance
 
 
 def _convert_tree_to_vectors(tree: TreeNode, tip_names: list) -> np.ndarray:
