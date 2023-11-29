@@ -1,7 +1,9 @@
 from itertools import product
-from typing import List
-import numpy
+
+import numpy as np
+
 from scipy.optimize import linear_sum_assignment
+
 from cogent3 import TreeNode
 
 
@@ -43,13 +45,13 @@ def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> float:
     return float(matching_distance)
 
 
-def _convert_tree_to_vectors(tree: TreeNode, tip_names: List) -> numpy.ndarray:
+def _convert_tree_to_vectors(tree: TreeNode, tip_names: list) -> np.ndarray:
     ref_tip = tip_names[0]
     name_set = set(tip_names)
     name_index = {n: i for i, n in enumerate(tip_names)}
     # we get the tree as a set of splits.
     splits = tree.subsets()
-    rows = numpy.zeros((len(splits), len(tip_names)), dtype=bool)
+    rows = np.zeros((len(splits), len(tip_names)), dtype=bool)
     for i, split in enumerate(splits):
         row = rows[i]
         # Cogent only returns one side of a
@@ -63,25 +65,25 @@ def _convert_tree_to_vectors(tree: TreeNode, tip_names: List) -> numpy.ndarray:
     return rows
 
 
-def _hamming(vector1: numpy.ndarray, vector2: numpy.ndarray) -> int:
+def _hamming(vector1: np.ndarray, vector2: np.ndarray) -> int:
     return (vector1 != vector2).sum()
 
 
-def _weight(vector1: numpy.ndarray, vector2: numpy.ndarray) -> int:
+def _weight(vector1: np.ndarray, vector2: np.ndarray) -> int:
     return min(_hamming(vector1, vector2), _hamming(vector1, 1 - vector2))
 
 
-def _bipartite_graph(vector1: numpy.ndarray, vector2: numpy.ndarray) -> numpy.ndarray:
+def _bipartite_graph(vector1: np.ndarray, vector2: np.ndarray) -> np.ndarray:
     if not len(vector1) == len(vector2):
         raise ValueError("number of edges must be equal")
 
-    B = numpy.empty([len(vector1)] * 2, int)
+    B = np.empty([len(vector1)] * 2, int)
     for i, j in product(*[range(len(vector1))] * 2):
         B[i, j] = _weight(vector1[i], vector2[j])
     return B
 
 
-def _matched_distance(vector1: numpy.ndarray, vector2: numpy.ndarray) -> int:
+def _matched_distance(vector1: np.ndarray, vector2: np.ndarray) -> int:
     B = _bipartite_graph(vector1, vector2)
     matching = linear_sum_assignment(B)
     return B[matching].sum()
