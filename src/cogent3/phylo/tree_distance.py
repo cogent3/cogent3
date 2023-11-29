@@ -45,6 +45,36 @@ def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> int:
     return matching_distance
 
 
+def robinson_foulds_rooted(tree1: TreeNode, tree2: TreeNode) -> int:
+    """calculate the robinson-foulds distance between two rooted trees.
+
+    for rooted trees, the robinson-foulds distance is defined as the
+    cardinality of the symmetric difference of the set of clades for
+    the two trees.
+
+    trees should have matching tips and must be rooted.
+
+    Parameters
+    ----------
+    tree1, tree2: TreeNode
+        trees to calculate distance between
+
+    Returns
+    -------
+    int
+        the Robinson-Foulds distance
+    """
+    if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
+        raise ValueError("tree tip names must match")
+    if len(tree1.children) != 2 or len(tree2.children) != 2:
+        raise ValueError("trees must be rooted")
+
+    tree1_clusters = tree1.subsets()
+    tree2_clusters = tree2.subsets()
+
+    return len(tree1_clusters.symmetric_difference(tree2_clusters))
+
+
 def matching_cluster_distance(tree1: TreeNode, tree2: TreeNode) -> int:
     """calculate the matching cluster distance between trees
 
