@@ -217,11 +217,20 @@ The following implements a modification of the approach of Zhang, Nielsen and Ya
 
     from cogent3 import make_table
 
-    header = ['Site Class', 'Proportion', 'Background Edges', 'Foreground Edges']
-    data = {'Site Class': array(['0', '1', '2a', '2b'], dtype='<U2'), 'Proportion': array(['p0', 'p1', 'p2', 'p3'], dtype='<U2'), 'Background Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega0 < 1', 'omega1 = 1'],
-      dtype='<U14'), 'Foreground Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega2 > 1', '0 < omega0 < 1'],
-      dtype='<U14')}
-    data = {k: array(data[k], dtype='U') for k in data}
+    header = ["Site Class", "Proportion", "Background Edges", "Foreground Edges"]
+    data = {
+        "Site Class": array(["0", "1", "2a", "2b"], dtype="<U2"),
+        "Proportion": array(["p0", "p1", "p2", "p3"], dtype="<U2"),
+        "Background Edges": array(
+            ["0 < omega0 < 1", "omega1 = 1", "0 < omega0 < 1", "omega1 = 1"],
+            dtype="<U14",
+        ),
+        "Foreground Edges": array(
+            ["0 < omega0 < 1", "omega1 = 1", "0 < omega2 > 1", "0 < omega0 < 1"],
+            dtype="<U14",
+        ),
+    }
+    data = {k: array(data[k], dtype="U") for k in data}
     table = make_table(header, data=data)
     HTML(table.set_repr_policy(show_shape=False))
 
