@@ -40,6 +40,7 @@ from numpy import argsort, ceil, log, zeros
 
 from cogent3._version import __version__
 from cogent3.maths.stats.test import correlation
+from cogent3.phylo.tree_distance import get_tree_distance_measure
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import get_object_provenance
 
@@ -1597,6 +1598,36 @@ class TreeNode(object):
         """A new tree with the named tip as one of the root's children"""
         tip = self.get_node_matching_name(outgroup_name)
         return tip.parent.unrooted_deepcopy()
+
+    def tree_distance(self, other: TreeNode, method: str | None = None) -> int:
+        """Return the specified tree distance between this and another tree.
+
+        Defaults to the rooted/unrooted Robinson-Foulds distance depending
+        on whether the trees are rooted.
+
+        Parameters
+        ----------
+        other: TreeNode
+            The other tree to calculate the distance between.
+        method: str | None
+            The tree distance metric to use.
+
+        Returns
+        -------
+        int
+            the chosen distance between the two trees.
+        """
+
+        if method is None:
+            method = "rf"
+
+        is_rooted = len(self) == 2
+        if is_rooted and len(other) != 2 or not is_rooted and len(other) == 2:
+            raise ValueError(
+                "Both trees must be rooted or both trees must be unrooted."
+            )
+
+        return get_tree_distance_measure(method, is_rooted)(self, other)
 
     def lin_rajan_moret(self, tree2) -> int:
         """return the lin-rajan-moret distance between trees

@@ -7,7 +7,22 @@ from scipy.optimize import linear_sum_assignment
 from cogent3 import TreeNode
 
 
-def robinson_foulds_unrooted(tree1: TreeNode, tree2: TreeNode) -> int:
+def get_tree_distance_measure(method: str, is_rooted: bool):
+    if method in _TREE_DISTANCE_FUNCTIONS:
+        return _TREE_DISTANCE_FUNCTIONS[method]
+
+    if is_rooted and method in _ROOTED_TREE_DISTANCE_FUNCTIONS:
+        return _ROOTED_TREE_DISTANCE_FUNCTIONS[method]
+
+    if not is_rooted and method in _UNROOTED_TREE_DISTANCE_FUNCTIONS:
+        return _UNROOTED_TREE_DISTANCE_FUNCTIONS[method]
+
+    raise ValueError(
+        f"Tree distance method '{method}' is not supported for {'' if is_rooted else 'un'}rooted trees."
+    )
+
+
+def unrooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
     """calculate the robinson-foulds distance between two unrooted trees.
 
     for unrooted trees, the robinson-foulds is defined as the cardinality
@@ -80,7 +95,7 @@ def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> int:
     return matching_distance
 
 
-def robinson_foulds_rooted(tree1: TreeNode, tree2: TreeNode) -> int:
+def rooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
     """calculate the robinson-foulds distance between two rooted trees.
 
     for rooted trees, the robinson-foulds distance is defined as the
@@ -215,3 +230,25 @@ def _compute_splits(clades: frozenset[frozenset], tip_names: list) -> set[frozen
         else:
             splits.add(name_set - clade)
     return splits
+
+
+_TREE_DISTANCE_FUNCTIONS = {
+    "rooted_robinson_foulds": rooted_robinson_foulds,
+    "unrooted_robinson_foulds": unrooted_robinson_foulds,
+    "matching_cluster": matching_cluster_distance,
+    "lin_rajan_moret": lin_rajan_moret,
+    "rrf": rooted_robinson_foulds,
+    "urf": unrooted_robinson_foulds,
+    "mc": matching_cluster_distance,
+    "lrm": lin_rajan_moret,
+}
+
+_ROOTED_TREE_DISTANCE_FUNCTIONS = {
+    "rf": rooted_robinson_foulds,
+    "matching": matching_cluster_distance,
+}
+
+_UNROOTED_TREE_DISTANCE_FUNCTIONS = {
+    "rf": unrooted_robinson_foulds,
+    "matching": lin_rajan_moret,
+}
