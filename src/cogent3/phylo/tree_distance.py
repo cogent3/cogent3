@@ -7,6 +7,41 @@ from scipy.optimize import linear_sum_assignment
 from cogent3 import TreeNode
 
 
+def robinson_foulds_unrooted(tree1: TreeNode, tree2: TreeNode) -> int:
+    """calculate the robinson-foulds distance between two unrooted trees.
+
+    for unrooted trees, the robinson-foulds is defined as the cardinality
+    of the symmetric difference of the set of splits for the two trees.
+
+    trees should have matching tips and must not be rooted.
+
+    Parameters
+    ----------
+    tree1, tree2: TreeNode
+        trees to calculate distance between
+
+    Returns
+    -------
+    int
+        the unrooted Robinson-Foulds distance
+    """
+
+    names = tree1.get_tip_names()
+
+    if set(names) != set(tree2.get_tip_names()):
+        raise ValueError("tree tip names must match")
+    if len(tree1.children) == 2 or len(tree2.children) == 2:
+        raise ValueError("trees must be unrooted")
+
+    tree1_clusters = tree1.subsets()
+    tree2_clusters = tree2.subsets()
+
+    tree1_splits = _compute_splits(tree1_clusters)
+    tree2_splits = _compute_splits(tree2_clusters)
+
+    return len(tree1_splits.symmetric_difference(tree2_splits))
+
+
 def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> int:
     """calculate the lin-rajan-moret distance (matching distance) between trees
 
@@ -62,7 +97,7 @@ def robinson_foulds_rooted(tree1: TreeNode, tree2: TreeNode) -> int:
     Returns
     -------
     int
-        the Robinson-Foulds distance
+        the rooted Robinson-Foulds distance
     """
     if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
         raise ValueError("tree tip names must match")
@@ -167,3 +202,16 @@ def _matched_distance(vector1: np.ndarray, vector2: np.ndarray) -> int:
     B = _bipartite_graph(vector1, vector2)
     matching = linear_sum_assignment(B)
     return B[matching].sum()
+
+
+def _compute_splits(clades: frozenset[frozenset], tip_names: list) -> set[frozenset]:
+    ref_tip = tip_names[0]
+    name_set = frozenset(tip_names)
+
+    splits = set()
+    for clade in clades:
+        if ref_tip in clade:
+            splits.add(clade)
+        else:
+            splits.add(name_set - clade)
+    return splits
