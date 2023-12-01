@@ -4837,6 +4837,9 @@ class Alignment(AlignmentI, SequenceCollection):
         return Aligned(map, seq)
 
     def __getitem__(self, index):
+        # todo revisit this design Map's should probably not be used for
+        #  slicing, perhaps they could be used to create a slice object
+        #  instead?
         if hasattr(index, "get_slice"):
             if index.parent is not self:
                 raise ValueError(f"feature.parent {index.seqid!r} is not self")
