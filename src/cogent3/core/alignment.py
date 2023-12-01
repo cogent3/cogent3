@@ -5019,7 +5019,8 @@ class Alignment(AlignmentI, SequenceCollection):
 
         Note: always returns Sequence object, not ArraySequence.
         """
-        return self.named_seqs[seqname].data
+        seq = self.named_seqs[seqname]
+        return seq.data[seq.map.without_gaps()]
 
     @c3warn.deprecated_args(
         "2023.3",
