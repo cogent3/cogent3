@@ -950,3 +950,47 @@ def test_gbdb_get_parent_fails_no_coords(gb_db):
 def test_load_annotations_invalid_path():
     with pytest.raises(IOError):
         load_annotations(path="invalidfile.gff3")
+
+
+def test_subset_gff3_db(gff_db):
+    subset = gff_db.subset(seqid="I", start=40, end=70, allow_partial=True)
+    # manual inspection of the original GFF3 file indicates 7 records
+    # BUT the CDS records get merged into a single row
+    assert len(subset) == 6
+
+
+def test_subset_empty_db(gff_db):
+    subset = gff_db.subset(seqid="X", start=40, end=70, allow_partial=True)
+    # no records
+    assert not len(subset)
+
+
+def test_subset_gff3_db_with_user(gff_db):
+    record = dict(
+        seqid="I", name="gene-01", biotype="gene", spans=[(23, 43)], strand="+"
+    )
+    gff_db.add_feature(**record)
+    subset = gff_db.subset(seqid="I", start=40, end=70, allow_partial=True)
+    # manual inspection of the original GFF3 file indicates 7 records
+    # BUT the CDS records get merged into a single row
+    assert len(subset) == 7
+
+
+def test_subset_gb_db(gb_db):
+    subset = gb_db.subset(biotype="gene")
+    # manual inspection of the original annotated gb file indicates 2 genes
+    assert len(subset) == 2
+
+
+def test_subset_gff3_db_source(gff_db, tmp_dir):
+    outpath = tmp_dir / "subset.gff3db"
+    subset = gff_db.subset(
+        seqid="I", start=40, end=70, allow_partial=True, source=outpath
+    )
+    subset.db.close()
+
+    # reload
+    subset = type(gff_db)(source=outpath)
+    # manual inspection of the original GFF3 file indicates 7 records
+    # BUT the CDS records get merged into a single row
+    assert len(subset) == 6
