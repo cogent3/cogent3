@@ -4,8 +4,6 @@ import numpy as np
 
 from scipy.optimize import linear_sum_assignment
 
-from cogent3 import TreeNode
-
 
 def get_tree_distance_measure(method: str, is_rooted: bool):
     if method in _TREE_DISTANCE_FUNCTIONS:
@@ -22,7 +20,7 @@ def get_tree_distance_measure(method: str, is_rooted: bool):
     )
 
 
-def unrooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
+def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     """calculate the robinson-foulds distance between two unrooted trees.
 
     for unrooted trees, the robinson-foulds is defined as the cardinality
@@ -32,7 +30,7 @@ def unrooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: "TreeNode"
         trees to calculate distance between
 
     Returns
@@ -57,14 +55,14 @@ def unrooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
     return len(tree1_splits.symmetric_difference(tree2_splits))
 
 
-def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> int:
+def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
     """calculate the lin-rajan-moret distance (matching distance) between trees
 
     trees should have matching tips and must not be rooted.
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: "TreeNode"
         trees to calculate distance between
 
     Returns
@@ -95,7 +93,7 @@ def lin_rajan_moret(tree1: TreeNode, tree2: TreeNode) -> int:
     return matching_distance
 
 
-def rooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
+def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     """calculate the robinson-foulds distance between two rooted trees.
 
     for rooted trees, the robinson-foulds distance is defined as the
@@ -106,7 +104,7 @@ def rooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: "TreeNode"
         trees to calculate distance between
 
     Returns
@@ -125,14 +123,14 @@ def rooted_robinson_foulds(tree1: TreeNode, tree2: TreeNode) -> int:
     return len(tree1_clusters.symmetric_difference(tree2_clusters))
 
 
-def matching_cluster_distance(tree1: TreeNode, tree2: TreeNode) -> int:
+def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
     """calculate the matching cluster distance between trees
 
     trees should have matching tips and must be rooted.
 
     Parameters
     ----------
-    tree1, tree2: TreeNode
+    tree1, tree2: "TreeNode"
         trees to calculate distance between
 
     Returns
@@ -175,7 +173,7 @@ def matching_cluster_distance(tree1: TreeNode, tree2: TreeNode) -> int:
     return distance
 
 
-def _convert_tree_to_vectors(tree: TreeNode, tip_names: list) -> np.ndarray:
+def _convert_tree_to_vectors(tree: "TreeNode", tip_names: list) -> np.ndarray:
     ref_tip = tip_names[0]
     name_set = set(tip_names)
     name_index = {n: i for i, n in enumerate(tip_names)}
