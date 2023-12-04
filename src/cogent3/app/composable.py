@@ -680,7 +680,7 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
         dstore = [dstore]
     mapped = _proxy_input(dstore)
     if not mapped:
-        raise ValueError("dstore is empty")
+        return mapped
 
     if parallel:
         par_kw = par_kw or {}
