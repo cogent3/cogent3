@@ -53,8 +53,8 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     tree1_clusters = tree1.subsets()
     tree2_clusters = tree2.subsets()
 
-    tree1_splits = _compute_splits(tree1_clusters)
-    tree2_splits = _compute_splits(tree2_clusters)
+    tree1_splits = _compute_splits(tree1_clusters, names)
+    tree2_splits = _compute_splits(tree2_clusters, names)
 
     return len(tree1_splits.symmetric_difference(tree2_splits))
 
