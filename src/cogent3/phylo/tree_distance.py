@@ -1,8 +1,12 @@
 from itertools import product
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from scipy.optimize import linear_sum_assignment
+
+if TYPE_CHECKING:
+    from cogent3.core.tree import TreeNode
 
 
 def get_tree_distance_measure(method: str, is_rooted: bool):
@@ -30,7 +34,7 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Parameters
     ----------
-    tree1, tree2: "TreeNode"
+    tree1, tree2: TreeNode
         trees to calculate distance between
 
     Returns
@@ -62,7 +66,7 @@ def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Parameters
     ----------
-    tree1, tree2: "TreeNode"
+    tree1, tree2: TreeNode
         trees to calculate distance between
 
     Returns
@@ -104,7 +108,7 @@ def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Parameters
     ----------
-    tree1, tree2: "TreeNode"
+    tree1, tree2: TreeNode
         trees to calculate distance between
 
     Returns
@@ -130,7 +134,7 @@ def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Parameters
     ----------
-    tree1, tree2: "TreeNode"
+    tree1, tree2: TreeNode
         trees to calculate distance between
 
     Returns
