@@ -124,9 +124,9 @@ exclude = ["doc/*.html"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     ]
-
-addopts = ["--strict-config", "-ra"]
 testpaths = "tests"
+addopts = ["--strict-config"]
+norecursedirs = ["doc", ".nox"]
 filterwarnings = [
     'ignore:FORCED EXIT from optimiser',
     'ignore:Motif probs overspecified',
