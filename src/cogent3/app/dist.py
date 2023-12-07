@@ -201,12 +201,12 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
     Parameters
     ----------
     jaccard_dists : DistanceMatrix
-        A DistanceMatrix containing the Jaccard distances between sequences.
+        A DistanceMatrix containing pairwise Jaccard distances between sequences.
 
     Returns
     -------
     DistanceMatrix
-        Approximated p-distance between sequences.
+        Pairwise approximated p-distance between sequences.
 
     Notes
     -----
