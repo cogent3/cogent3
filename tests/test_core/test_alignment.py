@@ -3740,7 +3740,8 @@ def test_get_seq_with_sliced_rced_aln(name):
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     start, stop = 1, 5
-    a1 = aln[start:stop].rc()
+    a1 = aln[start:stop]
+    a1 = a1.rc()
     got = str(a1.get_seq(name))
 
     dna = get_moltype("dna")
@@ -3799,3 +3800,22 @@ def test_get_gapped_seq_with_sliced_aln(name):
     got = str(seq)
     expect = seqs[name][start:stop]
     assert got == expect, (got, expect)
+
+@pytest.mark.parametrize("name", ("s1", "s2", "s3"))
+@pytest.mark.parametrize("array_align", (True, False))
+def test_aln_rev_slice(name, array_align):
+    seqs = {
+            "s1": "AAGGTTCC",
+            "s2": "AAGGTTCC",
+            "s3": "AAGGTTCC",
+        }
+    
+    aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=array_align)
+    got = aln[5:1]
+    assert not got    
+    
+    seq = got.get_gapped_seq(name)
+    assert str(seq) == ""
+    
+    seq = got.get_seq(name)
+    assert str(seq) == ""
