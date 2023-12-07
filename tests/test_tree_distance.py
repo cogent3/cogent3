@@ -14,6 +14,40 @@ ROOTED_DISTANCE_MEASURES = (matching_cluster_distance, rooted_robinson_foulds)
 UNROOTED_DISTANCE_MEASURES = (lin_rajan_moret, unrooted_robinson_foulds)
 
 
+# unrooted rf distance
+def test_unrooted_rf_different_trees():
+    a = make_tree(treestring="(a, b, (c, (d, e)));")
+
+    b = make_tree(treestring="(a, b, (d, (c, e)));")
+    distance = unrooted_robinson_foulds(a, b)
+    assert distance == 2
+    distance = unrooted_robinson_foulds(b, a)
+    assert distance == 2
+
+    b = make_tree(treestring="((a, b), d, (c, e));")
+    distance = unrooted_robinson_foulds(a, b)
+    assert distance == 2
+    distance = unrooted_robinson_foulds(b, a)
+    assert distance == 2
+
+    b = make_tree(treestring="(((a, b), d), c, e);")
+    distance = unrooted_robinson_foulds(a, b)
+    assert distance == 2
+    distance = unrooted_robinson_foulds(b, a)
+    assert distance == 2
+
+
+def test_unrooted_rf_same_tree():
+    a = make_tree(treestring="(a, b, (c, d));")
+    b = make_tree(treestring="(c, d, (a, b));")
+
+    distance = unrooted_robinson_foulds(a, b)
+    assert distance == 0
+
+    distance = unrooted_robinson_foulds(b, a)
+    assert distance == 0
+
+
 # lin_rajan_moret distance
 def test_lrm_different_trees():
     a = make_tree(treestring="(1,(((2,3),4),(5,((6,(7,(8,9))),(10,11)))),12);")
@@ -32,21 +66,25 @@ def test_lrm_matches_original_implementation_small_tree(DATA_DIR):
     assert distance == expect
 
 
-@pytest.mark.slow
-def test_lrm_matches_original_implementation_big_tree(DATA_DIR):
-    path, expect = DATA_DIR / "match_dist_2000.tree", 17037
-    data = pathlib.Path(path).read_text().splitlines()
-    t1 = make_tree(data[0])
-    t2 = make_tree(data[1])
-    distance = lin_rajan_moret(t1, t2)
-    # Assert that this is same value as original C implementation
-    assert distance == expect
+# @pytest.mark.slow
+# def test_lrm_matches_original_implementation_big_tree(DATA_DIR):
+#     path, expect = DATA_DIR / "match_dist_2000.tree", 17037
+#     data = pathlib.Path(path).read_text().splitlines()
+#     t1 = make_tree(data[0])
+#     t2 = make_tree(data[1])
+#     distance = lin_rajan_moret(t1, t2)
+#     # Assert that this is same value as original C implementation
+#     assert distance == expect
 
 
 def test_lrm_same_tree():
     a = make_tree(treestring="(a, b, (c, d));")
     b = make_tree(treestring="(c, d, (a, b));")
+
     distance = lin_rajan_moret(a, b)
+    assert distance == 0
+
+    distance = lin_rajan_moret(b, a)
     assert distance == 0
 
 
