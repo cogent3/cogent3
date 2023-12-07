@@ -62,6 +62,8 @@ def test_unrooted_rf_fails_different_tips(b):
     t2 = make_tree(treestring=b)
     with pytest.raises(ValueError):
         unrooted_robinson_foulds(t1, t2)
+    with pytest.raises(ValueError):
+        unrooted_robinson_foulds(t2, t1)
 
 
 @pytest.mark.parametrize(
@@ -77,6 +79,8 @@ def test_lrm_fails_different_tips(b):
     t2 = make_tree(treestring=b)
     with pytest.raises(ValueError):
         lin_rajan_moret(t1, t2)
+    with pytest.raises(ValueError):
+        lin_rajan_moret(t2, t1)
 
 
 @pytest.mark.parametrize(
@@ -87,11 +91,13 @@ def test_lrm_fails_different_tips(b):
         "(a, (b, (c, (d, e))));",
     ),
 )
-def test_unrooted_rf_fails_different_tips(b):
+def test_rooted_rf_fails_different_tips(b):
     t1 = make_tree(treestring="((a, b), (c, d));")
     t2 = make_tree(treestring=b)
     with pytest.raises(ValueError):
         rooted_robinson_foulds(t1, t2)
+    with pytest.raises(ValueError):
+        rooted_robinson_foulds(t2, t1)
 
 
 @pytest.mark.parametrize(
@@ -102,11 +108,13 @@ def test_unrooted_rf_fails_different_tips(b):
         "(a, (b, (c, (d, e))));",
     ),
 )
-def test_lrm_fails_different_tips(b):
+def test_matching_cluster_fails_different_tips(b):
     t1 = make_tree(treestring="((a, b), (c, d));")
     t2 = make_tree(treestring=b)
     with pytest.raises(ValueError):
         matching_cluster_distance(t1, t2)
+    with pytest.raises(ValueError):
+        matching_cluster_distance(t2, t1)
 
 
 @pytest.mark.parametrize(
