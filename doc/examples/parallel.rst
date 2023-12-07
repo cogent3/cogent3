@@ -31,14 +31,18 @@ If you are using ``cogent3`` :ref:`composable apps <apps>`, then the simplest ap
 
 .. note:: If you are using mpi, set ``par_kw=dict(max_workers=4, use_mpi=True)``.
 
-Directly using ``cogent3.util.parallel.map()``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Directly using ``cogent3.util.parallel.as_completed()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This function behaves like the standard python builtin ``map()`` except it enables distribution of calculations across CPUs.  The demo script shown below calculates a small number of prime numbers by splitting chunks of numbers across the provided cores. The key line is
+This function enables distribution of calculations across CPUs.
+
+.. warning:: This function delivers results in the order completed! This is different to ``cogent3.util.parallel.map()`` which delivers results in the order provided.
+
+The demo script shown below calculates a small number of prime numbers by splitting chunks of numbers across the provided cores. The key line is
 
 .. code-block:: python
 
-    result = parallel.map(is_prime, PRIMES, max_workers=4)
+    result = parallel.as_completed(is_prime, PRIMES, max_workers=4)
 
 The first argument, ``is_prime``, is the function to be called with values from the data, ``PRIMES``. The ``max_workers`` argument indicates how many worker processes to use. The elements of ``PRIMES`` will be broken into ``max_workers`` number of equal sized chunks. Each such chunk is applied to ``is_prime`` on a separate CPU. In this case, the returned results will be a series of ``bool`` values.
 
