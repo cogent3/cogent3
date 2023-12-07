@@ -3,7 +3,15 @@ import pathlib
 import pytest
 
 from cogent3 import make_tree
-from cogent3.phylo.tree_distance import lin_rajan_moret
+from cogent3.phylo.tree_distance import (
+    lin_rajan_moret,
+    matching_cluster_distance,
+    rooted_robinson_foulds,
+    unrooted_robinson_foulds,
+)
+
+ROOTED_DISTANCE_MEASURES = (matching_cluster_distance, rooted_robinson_foulds)
+UNROOTED_DISTANCE_MEASURES = (lin_rajan_moret, unrooted_robinson_foulds)
 
 
 def test_lrm_different_trees():
@@ -61,13 +69,32 @@ def test_lrm_fails_different_tips(b):
 @pytest.mark.parametrize(
     "a,b",
     (
-        ("((a, b), (c, d));", "(e, d, (a, b));"),
-        ("(a, b, (c, d));", "((e, d), (a, b));"),
-        ("((a, b), (c, d));", "((e, d), (a, b));"),
+        ("((a, b), (c, d));", "(d, c, (a, b));"),
+        ("(a, b, (c, d));", "((d, c), (a, b));"),
+        ("((a, b), (c, d));", "((a, c), (b, d));"),
     ),
 )
-def test_lrm_fails_rooted(a, b):
+def test_unrooted_dist_fails_rooted_trees(a, b):
     t1 = make_tree(treestring=a)
     t2 = make_tree(treestring=b)
-    with pytest.raises(ValueError):
-        lin_rajan_moret(t1, t2)
+
+    for unrooted_distance_measure in UNROOTED_DISTANCE_MEASURES:
+        with pytest.raises(ValueError):
+            unrooted_distance_measure(t1, t2)
+
+
+@pytest.mark.parametrize(
+    "a,b",
+    (
+        ("((a, b), (c, d));", "(d, c, (a, b));"),
+        ("(a, b, (c, d));", "((d, c), (a, b));"),
+        ("(a, b, (c, d));", "(d, c, (a, b));"),
+    ),
+)
+def test_rooted_dist_fails_unrooted_trees(a, b):
+    t1 = make_tree(treestring=a)
+    t2 = make_tree(treestring=b)
+
+    for rooted_distance_measure in ROOTED_DISTANCE_MEASURES:
+        with pytest.raises(ValueError):
+            rooted_distance_measure(t1, t2)
