@@ -14,6 +14,7 @@ ROOTED_DISTANCE_MEASURES = (matching_cluster_distance, rooted_robinson_foulds)
 UNROOTED_DISTANCE_MEASURES = (lin_rajan_moret, unrooted_robinson_foulds)
 
 
+# lin_rajan_moret distance
 def test_lrm_different_trees():
     a = make_tree(treestring="(1,(((2,3),4),(5,((6,(7,(8,9))),(10,11)))),12);")
     b = make_tree(treestring="(1,((((2,3),4),5),((6,7),((8,9),(10,11)))),12);")
@@ -49,6 +50,7 @@ def test_lrm_same_tree():
     assert distance == 0
 
 
+# different tips
 @pytest.mark.parametrize(
     "b",
     (
@@ -117,6 +119,7 @@ def test_matching_cluster_fails_different_tips(b):
         matching_cluster_distance(t2, t1)
 
 
+# rooted/unrooted distance measures applied only to rooted/unrooted trees
 @pytest.mark.parametrize(
     "a,b",
     (
