@@ -80,6 +80,36 @@ def test_lrm_fails_different_tips(b):
 
 
 @pytest.mark.parametrize(
+    "b",
+    (
+        "((e, d), (a, b));",
+        "((a, d), (a, b));",
+        "(a, (b, (c, (d, e))));",
+    ),
+)
+def test_unrooted_rf_fails_different_tips(b):
+    t1 = make_tree(treestring="((a, b), (c, d));")
+    t2 = make_tree(treestring=b)
+    with pytest.raises(ValueError):
+        rooted_robinson_foulds(t1, t2)
+
+
+@pytest.mark.parametrize(
+    "b",
+    (
+        "((e, d), (a, b));",
+        "((a, d), (a, b));",
+        "(a, (b, (c, (d, e))));",
+    ),
+)
+def test_lrm_fails_different_tips(b):
+    t1 = make_tree(treestring="((a, b), (c, d));")
+    t2 = make_tree(treestring=b)
+    with pytest.raises(ValueError):
+        matching_cluster_distance(t1, t2)
+
+
+@pytest.mark.parametrize(
     "a,b",
     (
         ("((a, b), (c, d));", "(d, c, (a, b));"),
