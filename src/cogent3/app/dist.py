@@ -159,11 +159,12 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     seq_coll: UnalignedSeqsType
         a collection of unaligned sequences
     k: int
-        size of kmer to use for
+        size of kmer. Default is 10.
 
     Returns
     -------
-    Pairwise Jaccard distance between sequences in the collection.
+    PairwiseDistanceType
+        Pairwise Jaccard distance between sequences in the collection.
     """
 
     kmers = {
@@ -194,22 +195,34 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
 
 @define_app
 def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
-    """Approximate the proportion sites different from Jaccard distances
+    """Calculates an approximation of the p-distance between sequences based 
+    on Jaccard distances (see Notes for details). 
 
     Parameters
     ----------
-    jaccard_dists
-        The pairwise Jaccard distance matrix
+    jaccard_dists : DistanceMatrix
+        A DistanceMatrix containing pairwise Jaccard distances between sequences.
 
     Returns
     -------
-    DistanceMatrix of approximated proportion sites different
+    DistanceMatrix
+        Pairwise approximated p-distance between sequences.
 
     Notes
     -----
-    Coefficients were derived from a polynomial fit between Jaccard distance
-    of kmers with k=10 and the proportion of sites different using mammalian
-    106 protein coding gene DNA sequence alignments.
+    This approximation assumes the input DistanceMatrix contains Jaccard 
+    distances. See the ``jaccard_dist`` app for calculating Jaccard distances.
+    
+    The true p-distance measures the proportion of differing sites between two
+    aligned sequences. For the true p-distance, 0 indicates identical sequences,
+    and 1 indicates completely different sequences.
+    
+    This approximation does not guarantee bounds of 0 and 1.
+
+    The method approximates the p-distance using coefficients derived from a 
+    polynomial fit between Jaccard distance and p-distance. The coefficients 
+    were fitted using data from 106 DNA sequences of mammalian protein coding 
+    genes, with kmers of size k=10.
     """
     upper_indices = triu_indices(n=jaccard_dists.shape[0], k=1)
     result = deepcopy(jaccard_dists)  # so the original matrix not modified
