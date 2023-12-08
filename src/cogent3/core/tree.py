@@ -1612,6 +1612,20 @@ class TreeNode(object):
         method: str | None
             The tree distance metric to use.
 
+            Options are:
+            "rooted_robinson_foulds": The Robinson-Foulds distance for rooted trees.
+            "unrooted_robinson_foulds": The Robinson-Foulds distance for unrooted trees.
+            "matching_cluster": The Matching Cluster distance for rooted trees.
+            "lin_rajan_moret": The Lin-Rajan-Moret distance for unrooted trees.
+            "rrf": An alias for rooted_robinson_foulds.
+            "urf": An alias for unrooted_robinson_foulds.
+            "mc": An alias for matching_cluster.
+            "lrm": An alias for lin_rajan_moret.
+            "rf": The unrooted/rooted Robinson-Foulds distance for unrooted/rooted trees.
+            "matching": The Lin-Rajan-Moret/Matching Cluster distance for unrooted/rooted trees.
+
+            Default is "matching".
+
         Returns
         -------
         int
