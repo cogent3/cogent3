@@ -400,7 +400,7 @@ Add internal nodes so that every node has 2 or fewer children.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tree_string = "(B:0.2,H:0.2,(C:0.3,D:0.4,E:0.1)F:0.5)G;"
     tr = make_tree(tree_string)
@@ -437,7 +437,7 @@ Branch lengths don't matter.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr1 = make_tree("(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
     tr2 = make_tree("((C:0.1,D:0.1)F:0.1,B:0.1)G;")
@@ -500,7 +500,7 @@ the distance from that node to its most distant tip.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
     print(tr.ascii_art())
@@ -516,7 +516,7 @@ Scale branch lengths in place to integers for ascii output
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
     print(tr)
@@ -533,7 +533,7 @@ and a list of the tip nodes.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr = make_tree("(B:3,(C:2,D:4)F:5)G;")
     d, tips = tr.tip_to_tip_distances()
@@ -553,7 +553,7 @@ Note: automatically strips out the names that don't match.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr1 = make_tree("(B:2,(C:3,D:4)F:5)G;")
     tr2 = make_tree("(C:2,(B:3,D:4)F:5)G;")
