@@ -1602,8 +1602,8 @@ class TreeNode(object):
     def tree_distance(self, other: TreeNode, method: str | None = None) -> int:
         """Return the specified tree distance between this and another tree.
 
-        Defaults to the rooted/unrooted Robinson-Foulds distance depending
-        on whether the trees are rooted.
+        Defaults to the Lin-Rajan-Moret distance on unrooted trees.
+        Defaults to the Matching Cluster distance on rooted trees.
 
         Parameters
         ----------
@@ -1619,7 +1619,7 @@ class TreeNode(object):
         """
 
         if method is None:
-            method = "rf"
+            method = "matching"
 
         is_rooted = len(self) == 2
         if is_rooted and len(other) != 2 or not is_rooted and len(other) == 2:
