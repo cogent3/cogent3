@@ -443,6 +443,55 @@ Branch lengths don't matter.
     tr2 = make_tree("((C:0.1,D:0.1)F:0.1,B:0.1)G;")
     tr1.same_topology(tr2)
 
+Measure topological distances between two trees
+"""""""""""""""""""""""""""""""""""
+
+A number of topological tree distance metrics are available. They include:
+
+* The Robinson-Foulds Distance for rooted trees.
+* The Matching Cluster Distance for rooted trees.
+* The Robinson-Foulds Distance for unrooted trees.
+* The Lin-Rajan-Moret Distance for unrooted trees.
+
+There are several variations of the Robinson-Foulds metric in the literature. The definition used by ``cogent3`` is the
+cardinality of the symmetric difference of the sets of clades/splits in the two rooted/unrooted trees. Other definitions sometimes
+divide this by two, or normalise it to the unit interval. 
+
+The Robinson-Foulds distance is quick to compute, but is known to saturate quickly. Moving a single leaf in a tree can maximise this metric.
+
+The Matching Cluster and Lin-Rajan-Moret are two matching-based distances that are more statistically robust. 
+Unlike the Robinson-Foulds distance which counts how many of the splits/clades are not exactly same, the matching-based distances
+measures the degree by which the splits/clades are different. The matching-based distances solve a min-weight matching problem,
+which for large trees may take longer to compute.
+
+.. jupyter-execute::
+
+    # Distance metrics for rooted trees
+    from cogent3 import make_tree
+
+    tr1 = make_tree(treestring="(a,(b,(c,(d,e))));")
+    tr2 = make_tree(treestring="(e,(d,(c,(b,a))));")
+    
+    mc_distance = tr1.tree_distance(tr2, method="matching_cluster") # or method="mc" or method="matching"
+    rooted_rf_distance = tr1.tree_distance(tr2, method="rooted_robinson_foulds") # or method="rrf" or method="rf"
+
+    print("Matching Cluster Distance:", mc_distance)
+    print("Rooted Robinson Foulds Distance:", rooted_rf_distance)
+
+.. jupyter-execute::
+
+    # Distance metrics for unrooted trees
+    from cogent3 import make_tree
+    
+    tr1 = make_tree(treestring="(a,b,(c,(d,e)));")
+    tr2 = make_tree(treestring="((a,c),(b,d),e);")
+    
+    lrm_distance = tr1.tree_distance(tr2, method="matching_cluster") # or method="mc" or method="matching"
+    unrooted_rf_distance = tr1.tree_distance(tr2, method="unrooted_robinson_foulds") # or method="urf" or method="rf"
+    
+    print("Lin-Rajan-Moret Distance:", lrm_distance)
+    print("Unrooted Robinson Foulds Distance:", unrooted_rf_distance)
+
 Calculate each node's maximum distance to a tip
 """""""""""""""""""""""""""""""""""""""""""""""
 
