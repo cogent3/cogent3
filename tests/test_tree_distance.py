@@ -114,6 +114,67 @@ def test_lrm_same_tree():
     assert distance == 0
 
 
+# rooted rf distance
+def test_rooted_rf_multifurcation():
+    a = make_tree(treestring="((a, b), (c, d));")
+    b = make_tree(treestring="((a, c, b), d);")
+
+    distance = rooted_robinson_foulds(a, b)
+    assert distance == 3
+
+    distance = rooted_robinson_foulds(b, a)
+    assert distance == 3
+
+
+def test_rooted_rf_different_trees():
+    a = make_tree(
+        treestring="((((a1,a2),(b1,b2,b3),x),(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));"
+    )
+    b = make_tree(
+        treestring="((((a1,a2),(b1,b2,b3)),x,(c1,c2,c3),(d1,d2)),(e1,(e2,e3)));"
+    )
+
+    distance = rooted_robinson_foulds(a, b)
+    assert distance == 2
+
+    distance = rooted_robinson_foulds(b, a)
+    assert distance == 2
+
+    a = make_tree(treestring="((a,b),c);")
+    b = make_tree(treestring="((a,c),b);")
+
+    distance = rooted_robinson_foulds(a, b)
+    assert distance == 2
+
+    distance = rooted_robinson_foulds(b, a)
+    assert distance == 2
+
+    a = make_tree(treestring="((a,(b1,(b2,b3))),((c1,c2),(c3,c4)));")
+    b = make_tree(treestring="((a,((c1,c2),(c3,c4))),(b1,(b2,b3)));")
+
+    distance = rooted_robinson_foulds(a, b)
+    assert distance == 2
+
+    distance = rooted_robinson_foulds(b, a)
+    assert distance == 2
+
+    a = make_tree(treestring="(a,(b,(c,(d,(e,f)))));")
+    b = make_tree(treestring="(a,(f,(c,(d,(b,e)))));")
+
+    distance = rooted_robinson_foulds(a, b)
+    assert distance == 6
+
+    distance = rooted_robinson_foulds(b, a)
+    assert distance == 6
+
+
+def test_rooted_rf_same_tree():
+    a = make_tree(treestring="((a, b), (c, d));")
+    b = make_tree(treestring="((c, d), (a, b));")
+    distance = rooted_robinson_foulds(a, b)
+    assert distance == 0
+
+
 # matching cluster distance
 def test_matching_cluster_distance_multifurcation():
     a = make_tree(treestring="((a, b), (c, d));")
@@ -141,7 +202,7 @@ def test_matching_cluster_distance_properties():
     assert distance == 1
 
     a = make_tree(treestring="((a,b),c);")
-    b = make_tree(treestring="((a,c),b)")
+    b = make_tree(treestring="((a,c),b);")
 
     distance = matching_cluster_distance(a, b)
     assert distance == len(a.tips()) - 1
@@ -150,7 +211,7 @@ def test_matching_cluster_distance_properties():
     assert distance == len(a.tips()) - 1
 
     a = make_tree(treestring="((a,(b1,(b2,b3))),((c1,c2),(c3,c4)));")
-    b = make_tree(treestring="((a,((c1,c2),(c3,c4))),(b1,(b2,b3)))")
+    b = make_tree(treestring="((a,((c1,c2),(c3,c4))),(b1,(b2,b3)));")
 
     distance = matching_cluster_distance(a, b)
     assert distance == len(a.tips()) - 1
