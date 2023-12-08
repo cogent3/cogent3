@@ -2432,7 +2432,11 @@ class Aligned:
         return Aligned(map, seq)
 
     def __getitem__(self, slice):
-        return Aligned(self.map[slice], self.data)
+        new_map = self.map[slice]
+        if new_map.reverse:
+            # A reverse slice means we should have an empty sequence
+            new_map = type(new_map)(locations=(), parent_length=len(self.data))
+        return Aligned(new_map, self.data)
 
     def rc(self):
         return Aligned(self.map.reversed(), self.data)
@@ -4837,6 +4841,9 @@ class Alignment(AlignmentI, SequenceCollection):
         return Aligned(map, seq)
 
     def __getitem__(self, index):
+        # todo revisit this design Map's should probably not be used for
+        #  slicing, perhaps they could be used to create a slice object
+        #  instead?
         if hasattr(index, "get_slice"):
             if index.parent is not self:
                 raise ValueError(f"feature.parent {index.seqid!r} is not self")
@@ -5019,7 +5026,8 @@ class Alignment(AlignmentI, SequenceCollection):
 
         Note: always returns Sequence object, not ArraySequence.
         """
-        return self.named_seqs[seqname].data
+        seq = self.named_seqs[seqname]
+        return seq.data[seq.map.without_gaps()]
 
     @c3warn.deprecated_args(
         "2023.3",

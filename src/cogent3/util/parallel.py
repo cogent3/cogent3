@@ -22,8 +22,7 @@ else:
         MPI = None
     else:
         COMM = MPI.COMM_WORLD
-        size = COMM.Get_attr(MPI.UNIVERSE_SIZE)
-        if size == 1:
+        if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1:
             MPI = None
 
 
@@ -43,6 +42,16 @@ def get_rank():
         if process_name != "MainProcess":
             rank = int(process_name.split("-")[-1])
     return rank
+
+
+def get_size():
+    """Returns the num cpus"""
+    return (
+        COMM.Get_attr(MPI.UNIVERSE_SIZE) if USING_MPI else multiprocessing.cpu_count()
+    )
+
+
+SIZE = get_size()
 
 
 def is_master_process():
@@ -127,10 +136,10 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
         if not USING_MPI:
             raise RuntimeError("Cannot use MPI")
 
-        if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1:
+        if SIZE == 1:
             err_msg = (
                 "Execution in serial. For parallel MPI execution, use:\n"
-                " $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <executable script>"
+                " $ mpiexec -n <number CPUs> python -m mpi4py.futures <executable script>"
             )
 
             if if_serial == "raise":
@@ -140,12 +149,12 @@ def imap(f, s, max_workers=None, use_mpi=False, if_serial="raise", chunksize=Non
 
         max_workers = max_workers or 1
 
-        if max_workers > COMM.Get_attr(MPI.UNIVERSE_SIZE):
+        if max_workers > SIZE:
             warnings.warn(
                 "max_workers too large, reducing to UNIVERSE_SIZE-1", UserWarning
             )
 
-        max_workers = min(max_workers, COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1)
+        max_workers = min(max_workers, SIZE - 1)
         if not chunksize:
             chunksize = get_default_chunksize(s, max_workers)
 
@@ -175,7 +184,7 @@ def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
     if not USING_MPI:
         raise RuntimeError("Cannot use MPI")
 
-    if COMM.Get_attr(MPI.UNIVERSE_SIZE) == 1:
+    if SIZE == 1:
         err_msg = (
             "Execution in serial. For parallel MPI execution, use:\n"
             " $ mpiexec -n <number CPUs> python3 -m mpi4py.futures <executable script>"
@@ -190,10 +199,10 @@ def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
 
     f = PicklableAndCallable(f)
 
-    if max_workers > COMM.Get_attr(MPI.UNIVERSE_SIZE):
+    if max_workers > SIZE:
         warnings.warn("max_workers too large, reducing to UNIVERSE_SIZE-1", UserWarning)
 
-    max_workers = min(max_workers, COMM.Get_attr(MPI.UNIVERSE_SIZE) - 1)
+    max_workers = min(max_workers, SIZE - 1)
     if not chunksize:
         chunksize = get_default_chunksize(s, max_workers)
 

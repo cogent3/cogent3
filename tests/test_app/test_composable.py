@@ -314,13 +314,18 @@ def test_as_completed(DATA_DIR):
     got = list(proc.as_completed(path, show_progress=False))
     assert len(got) == 1
     assert isinstance(got[0].obj, SequenceCollection)
-    # raises ValueError if empty list
-    with pytest.raises(ValueError):
-        proc.as_completed([])
 
-    # raises ValueError if list with empty string
-    with pytest.raises(ValueError):
-        list(proc.as_completed(["", ""]))
+
+@pytest.mark.parametrize("data", [(), ("", "")])
+def test_as_completed_empty_data(data):
+    """correctly applies iteratively"""
+    reader = get_app("load_unaligned", format="fasta", moltype="dna")
+    min_length = get_app("sample.min_length", 10)
+    proc = reader + min_length
+
+    # returns empty input
+    got = proc.as_completed(data)
+    assert got == []
 
 
 @pytest.mark.parametrize("klass", (DataStoreDirectory,))
@@ -1119,9 +1124,10 @@ def test_apply_to_only_appends(half_dstore1, half_dstore2):
     dstore1 = [
         str(Path(m.data_store.source) / m.unique_id) for m in half_dstore1.completed
     ]
-    # check fail on all the same records
-    with pytest.raises(ValueError):
-        _ = process1.apply_to(dstore1, id_from_source=get_data_source)
+    # check does not modify dstore when applied to same records
+    orig_members = {m.unique_id for m in half_dstore1.members}
+    got = process1.apply_to(dstore1, id_from_source=get_data_source)
+    assert {m.unique_id for m in got.members} == orig_members
 
     half_dstore2 = open_data_store(
         half_dstore2.source, suffix=half_dstore2.suffix, mode=APPEND
