@@ -41,6 +41,12 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     -------
     int
         the unrooted Robinson-Foulds distance
+
+    Notes
+    -----
+    see: Robinson, David F., and Leslie R. Foulds.
+    Comparison of phylogenetic trees.
+    Mathematical biosciences 53.1-2 (1981): 131-147.
     """
 
     names = tree1.get_tip_names()
@@ -76,7 +82,8 @@ def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Notes
     -----
-    see: Lin et al. 2012 A Metric for Phylogenetic Trees Based on Matching
+    see: Lin et al. 2012
+    A Metric for Phylogenetic Trees Based on Matching
     IEEE/ACM Transactions on Computational Biology and Bioinformatics
     vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
     """
@@ -144,11 +151,12 @@ def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Notes
     -----
-    see: Bogdanowicz, D., & Giaro, K. (2013). On a matching distance between
-    rooted phylogenetic trees. International Journal of Applied Mathematics
-    and Computer Science, 23(3), 669-684.
+    see: Bogdanowicz, D., & Giaro, K. (2013).
+    On a matching distance between rooted phylogenetic trees.
+    International Journal of Applied Mathematics and Computer Science, 23(3), 669-684.
 
-    Boorman, S. A., & Olivier, D. C. (1973). Metrics on spaces of finite trees.
+    Boorman, S. A., & Olivier, D. C. (1973).
+    Metrics on spaces of finite trees.
     Journal of Mathematical Psychology, 10(1), 26-59.
     """
 

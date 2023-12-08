@@ -1630,6 +1630,24 @@ class TreeNode(object):
         -------
         int
             the chosen distance between the two trees.
+
+        see:
+        Bogdanowicz, D., & Giaro, K. (2013).
+        On a matching distance between rooted phylogenetic trees.
+        International Journal of Applied Mathematics and Computer Science, 23(3), 669-684.
+
+        Boorman, S. A., & Olivier, D. C. (1973).
+        Metrics on spaces of finite trees.
+        Journal of Mathematical Psychology, 10(1), 26-59.
+
+        Lin et al. 2012
+        A Metric for Phylogenetic Trees Based on Matching
+        IEEE/ACM Transactions on Computational Biology and Bioinformatics
+        vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
+
+        Robinson, David F., and Leslie R. Foulds.
+        Comparison of phylogenetic trees.
+        Mathematical biosciences 53.1-2 (1981): 131-147.
         """
 
         if method is None:
