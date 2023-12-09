@@ -66,11 +66,7 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import (
-    deprecated,
-    deprecated_args,
-    deprecated_callable,
-)
+from cogent3.util.warning import deprecated_args
 
 
 ARRAY_TYPE = type(array(1))
