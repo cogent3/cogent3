@@ -486,7 +486,7 @@ which for large trees may take longer to compute.
     tr1 = make_tree(treestring="(a,b,(c,(d,e)));")
     tr2 = make_tree(treestring="((a,c),(b,d),e);")
     
-    lrm_distance = tr1.tree_distance(tr2, method="matching_cluster") # or method="mc" or method="matching"
+    lrm_distance = tr1.tree_distance(tr2, method="lin_rajan_moret") # or method="lrm" or method="matching"
     unrooted_rf_distance = tr1.tree_distance(tr2, method="unrooted_robinson_foulds") # or method="urf" or method="rf"
     
     print("Lin-Rajan-Moret Distance:", lrm_distance)
