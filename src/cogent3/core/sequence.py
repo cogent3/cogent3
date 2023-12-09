@@ -29,6 +29,7 @@ from numpy import (
     arange,
     array,
     compress,
+    isscalar,
     logical_not,
     logical_or,
     nonzero,
@@ -1317,7 +1318,7 @@ class Sequence(SequenceI):
             new = self._mapped(index)
             preserve_offset = not index.reverse
 
-        elif isinstance(index, (int, slice)):
+        elif isinstance(index, slice) or isscalar(index):
             new = self.__class__(
                 self._seq[index], name=self.name, check=False, info=self.info
             )
@@ -2139,7 +2140,7 @@ class SeqView:
         )
 
     def __getitem__(self, segment):
-        if isinstance(segment, int):
+        if isscalar(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(self.seq, start=start, stop=stop, step=step)
 
