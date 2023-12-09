@@ -2469,3 +2469,11 @@ def test_index_a_seq(cast):
     seq = cogent3.make_seq("TCCAG", moltype="dna")
     got = seq[cast(1)]
     assert isinstance(got, Sequence)
+
+
+@pytest.mark.parametrize("cast", (float, numpy.float32))
+def test_index_a_seq_float_fail(cast):
+    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    index = cast(1)
+    with pytest.raises(TypeError):
+        seq[index]
