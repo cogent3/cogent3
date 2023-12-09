@@ -29,6 +29,9 @@ from numpy import (
     arange,
     array,
     compress,
+    floating,
+    integer,
+    issubdtype,
     logical_not,
     logical_or,
     nonzero,
@@ -63,11 +66,7 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import (
-    deprecated,
-    deprecated_args,
-    deprecated_callable,
-)
+from cogent3.util.warning import deprecated_args
 
 
 ARRAY_TYPE = type(array(1))
@@ -75,6 +74,16 @@ ARRAY_TYPE = type(array(1))
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
+
+
+def _is_int(val) -> bool:
+    """whether val is builtin, or numpy, integer"""
+    return issubdtype(val.__class__, integer) or isinstance(val, int)
+
+
+def _is_float(val) -> bool:
+    """whether val is builtin, or numpy, integer"""
+    return issubdtype(val.__class__, floating) or isinstance(val, float)
 
 
 @total_ordering
@@ -1317,7 +1326,7 @@ class Sequence(SequenceI):
             new = self._mapped(index)
             preserve_offset = not index.reverse
 
-        elif isinstance(index, (int, slice)):
+        elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(
                 self._seq[index], name=self.name, check=False, info=self.info
             )
@@ -1330,6 +1339,9 @@ class Sequence(SequenceI):
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
             new.annotation_offset = self.annotation_offset
+
+        if _is_float(index):
+            raise TypeError("cannot slice using float")
 
         if hasattr(self, "_repr_policy"):
             new._repr_policy.update(self._repr_policy)
@@ -2139,7 +2151,7 @@ class SeqView:
         )
 
     def __getitem__(self, segment):
-        if isinstance(segment, int):
+        if _is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(self.seq, start=start, stop=stop, step=step)
 
