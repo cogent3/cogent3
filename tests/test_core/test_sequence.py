@@ -7,6 +7,7 @@ import re
 from pickle import dumps
 from unittest import TestCase
 
+import numpy
 import pytest
 
 from numpy import array
@@ -2461,3 +2462,10 @@ def test_trim_terminal_stop_strict():
     seq = cogent3.make_seq("TCCAG", moltype="dna")
     with pytest.raises(AlphabetError):
         seq.trim_stop_codon(gc=gc, strict=True)
+
+
+@pytest.mark.parametrize("cast", (int, numpy.int32, numpy.int64, numpy.uint8))
+def test_index_a_seq(cast):
+    seq = cogent3.make_seq("TCCAG", moltype="dna")
+    got = seq[cast(1)]
+    assert isinstance(got, Sequence)
