@@ -1,19 +1,12 @@
-"""Alignments and Sequences are _Annotatables
-_Annotatables hold a list of Maps.
-Maps can be Features, Variables or AlignedSequences.
+"""
 Maps have a list of Spans.
 
-Also provides Range and Point classes for dealing with parts of sequences.
+Span is a region with a start, an end, and a direction.
 
-Span is a region with a start, an end, and a direction. Range is an ordered
-collection of Spans (note: Range does _not_ support the list interface, but
-you can always access Range.spans directly). Map is like a Range but is
-immutable and is able to be nested, i.e. Maps can be defined relative to
-other Maps.
+Notes
+-----
 
-Implementation Notes
-
-Span and Range behave much like Python's slices: a Span contains the element
+Spans behave much like Python's slices: a Span contains the element
 after its start but does not contain the element after its end. It may help to
 think of the Span indices occurring _between_ the list elements:
 
@@ -25,16 +18,6 @@ think of the Span indices occurring _between_ the list elements:
 a Span whose end is 2 more than its start contains 2 elements (e.g. 2:4 has c
 and d), etc. Similarly, Span(0,2) does _not_ overlap Span(2,3), since the
 former contains a and b while the latter contains c.
-
-A Point is a Span whose start and end refer to the same object, i.e. the same
-position in the sequence. A Point occurs between elements in the sequence,
-and so does not contain any elements itself.
-
-WARNING: this differs from the way e.g. NCBI handles sequence indices, where
-the sequence is 1-based, a single index is treated as containing one element,
-the point 3 contains exactly one element, 3, rather than no elements, and a
-range from 2:4 contains 2, 3 and 4, _not_ just 2 and 3.
-
 """
 import copy
 
@@ -46,6 +29,7 @@ from typing import Union
 from numpy import array, ndarray
 
 from cogent3._version import __version__
+from cogent3.util import warning as c3warn
 from cogent3.util.misc import (
     ClassChecker,
     ConstrainedList,
@@ -880,15 +864,21 @@ class Map(object):
         return abs_pos - self.start
 
 
-class SpansOnly(ConstrainedList):
+@c3warn.deprecated_callable(
+    version="2024.3", reason="No being used.", is_discontinued=True
+)
+class SpansOnly(ConstrainedList):  # pragma: no cover
     """List that converts elements to Spans on addition."""
 
     mask = FunctionWrapper(Span)
     _constraint = ClassChecker(Span)
 
 
+@c3warn.deprecated_callable(
+    version="2024.3", reason="No being used.", is_discontinued=True
+)
 @total_ordering
-class Range(SpanI):
+class Range(SpanI):  # pragma: no cover
     """Complex object consisting of many spans."""
 
     def __init__(self, spans=None):
@@ -1052,7 +1042,10 @@ class Range(SpanI):
         self.spans[:] = forward + reverse
 
 
-class Point(Span):
+@c3warn.deprecated_callable(
+    version="2024.3", reason="No being used.", is_discontinued=True
+)
+class Point(Span):  # pragma: no cover
     """Point is a special case of Span, where start always equals end.
 
     Note that, as per Python standard, a point is _between_ two elements
@@ -1080,7 +1073,10 @@ class Point(Span):
     end = start  # start and end are synonyms for the same property
 
 
-def RangeFromString(string, delimiter=","):
+@c3warn.deprecated_callable(
+    version="2024.3", reason="No being used.", is_discontinued=True
+)
+def RangeFromString(string, delimiter=","):  # pragma: no cover
     """Returns Range object from string of the form 1-5,11,20,30-50.
 
     Ignores whitespace; expects values to be comma-delimited and positive.
