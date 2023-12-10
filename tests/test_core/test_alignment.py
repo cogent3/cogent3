@@ -332,16 +332,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a.names, ["x", "b", "c"])
         self.assertEqual(list(a.seqs), ["XXX", "BBB", "CCC"])
 
-    def test_init_duplicate_keys(self):
-        """SequenceCollection init from (key, val) pairs should fail on dup. keys"""
-        seqs = [["x", "XXX"], ["b", "BBB"], ["x", "CCC"], ["d", "DDD"], ["a", "AAA"]]
-        self.assertRaises(ValueError, self.Class, seqs)
-        aln = self.Class(seqs, remove_duplicate_names=True)
-        self.assertEqual(
-            str(self.Class(seqs, remove_duplicate_names=True)),
-            ">x\nXXX\n>b\nBBB\n>d\nDDD\n>a\nAAA\n",
-        )
-
     def test_init_ordered(self):
         """SequenceCollection should iterate over seqs correctly even if ordered"""
         first = self.ordered1
@@ -3801,21 +3791,38 @@ def test_get_gapped_seq_with_sliced_aln(name):
     expect = seqs[name][start:stop]
     assert got == expect, (got, expect)
 
+
 @pytest.mark.parametrize("name", ("s1", "s2", "s3"))
 @pytest.mark.parametrize("array_align", (True, False))
 def test_aln_rev_slice(name, array_align):
     seqs = {
-            "s1": "AAGGTTCC",
-            "s2": "AAGGTTCC",
-            "s3": "AAGGTTCC",
-        }
-    
+        "s1": "AAGGTTCC",
+        "s2": "AAGGTTCC",
+        "s3": "AAGGTTCC",
+    }
+
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=array_align)
     got = aln[5:1]
-    assert not got    
-    
+    assert not got
+
     seq = got.get_gapped_seq(name)
     assert str(seq) == ""
-    
+
     seq = got.get_seq(name)
     assert str(seq) == ""
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_init_duplicate_keys_raises(cls):
+    """SequenceCollection init from (key, val) pairs should fail on dup. keys"""
+    data = [["x", "XXX"], ["b", "BBB"], ["x", "CCC"], ["d", "DDD"], ["a", "AAA"]]
+    with pytest.raises(ValueError):
+        cls(data)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_init_duplicate_keys_merged(cls):
+    data = [["x", "XXX"], ["b", "BBB"], ["x", "CCC"], ["d", "DDD"], ["a", "AAA"]]
+    seqs = cls(data, remove_duplicate_names=True)
+    # the first record encountered is the one retained
+    assert seqs.to_dict()["x"] == dict(reversed(data))["x"]
