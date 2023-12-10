@@ -24,6 +24,7 @@ import functools
 import json
 import os
 import re
+import typing
 import warnings
 
 from collections import Counter, defaultdict
@@ -82,6 +83,7 @@ from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     bytes_to_string,
     extend_docstring_from,
+    get_first_value,
     get_object_provenance,
     get_setting_from_environ,
 )
@@ -552,7 +554,7 @@ class _SequenceCollectionBase:
 
             # create named_seqs dict for fast lookups
             if not suppress_named_seqs:
-                self.named_seqs = self._make_named_seqs(self.names, curr_seqs)
+                self.named_seqs = _make_named_seqs(self.names, curr_seqs)
         # Sequence objects behave like sequences of chars, so no difference
         # between seqs and seq_data. Note that this differs for Alignments,
         # so be careful which you use if writing methods that should work for
@@ -585,13 +587,6 @@ class _SequenceCollectionBase:
         from cogent3.format.alignment import FORMATTERS
 
         return FORMATTERS["fasta"](self.to_dict())
-
-    def _make_named_seqs(self, names, seqs):
-        """Returns named_seqs: dict of name:seq."""
-        name_seq_tuples = list(zip(names, seqs))
-        for n, s in name_seq_tuples:
-            s.name = n
-        return dict(name_seq_tuples)
 
     def _set_additional_attributes(self, curr_seqs):
         """Sets additional attributes based on current seqs: class-specific."""
@@ -659,7 +654,7 @@ class _SequenceCollectionBase:
                 alphabet = data.alphabet
             # check for containers
             else:
-                curr_item = self._get_container_item(data)
+                curr_item = get_first_value(data)
                 if hasattr(curr_item, "moltype"):
                     moltype = curr_item.moltype
                 elif hasattr(curr_item, "alphabet"):
@@ -674,38 +669,6 @@ class _SequenceCollectionBase:
             except AttributeError:
                 alphabet = moltype.alphabet
         return alphabet, moltype
-
-    def _get_container_item(self, data):
-        """Checks container for item with alphabet or moltype"""
-        curr_item = None
-        if hasattr(data, "values"):
-            curr_item = next(iter(data.values()))
-        else:
-            try:
-                curr_item = next(iter(data))
-            except:
-                pass
-        return curr_item
-
-    def _strip_duplicates(self, names, seqs):
-        """Internal function to strip duplicates from list of names"""
-        if len(set(names)) == len(names):
-            return set(), names, seqs
-        # if we got here, there are duplicates
-        unique_names = {}
-        duplicates = {}
-        fixed_names = []
-        fixed_seqs = []
-        for n, s in zip(names, seqs):
-            if n in unique_names:
-                duplicates[n] = 1
-            else:
-                unique_names[n] = 1
-                fixed_names.append(n)
-                fixed_seqs.append(s)
-        if type(seqs) is ndarray:
-            fixed_seqs = array(fixed_seqs, seqs.dtype)
-        return duplicates, fixed_names, fixed_seqs
 
     def _names_seqs_order(
         self,
@@ -750,7 +713,7 @@ class _SequenceCollectionBase:
                 per_seq_names = names
 
         # check for duplicate names
-        duplicates, fixed_names, fixed_seqs = self._strip_duplicates(
+        duplicates, fixed_names, fixed_seqs = _strip_duplicates(
             per_seq_names, curr_seqs
         )
         if duplicates:
@@ -764,8 +727,7 @@ class _SequenceCollectionBase:
                     name_order = per_seq_names
             else:
                 raise ValueError(
-                    "Some names were not unique. Duplicates are:\n"
-                    + str(sorted(duplicates.keys()))
+                    f"Some names were not unique. Duplicates are: {duplicates}"
                 )
 
         return per_seq_names, curr_seqs, name_order
@@ -811,7 +773,7 @@ class _SequenceCollectionBase:
             else:
                 return "generic"
 
-        first = self._get_container_item(data)
+        first = get_first_value(data)
         if first is None:
             return "empty"
 
@@ -4103,7 +4065,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             seqs = list(map(self.alphabet.to_string, self.array_seqs))
             if self.moltype:
                 seqs = [self.moltype.make_seq(s, preserve_case=True) for s in seqs]
-            self._named_seqs = self._make_named_seqs(self.names, seqs)
+            self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
 
     named_seqs = property(_get_named_seqs)
@@ -5551,3 +5513,39 @@ class Alignment(AlignmentI, SequenceCollection):
             # and if i've been reversed...?
             feature["reversed"] = seq_map.reverse
             yield self.make_feature(feature=feature, on_alignment=on_al)
+
+
+def _make_named_seqs(
+    names: typing.Sequence[str], seqs: typing.Sequence[Sequence]
+) -> dict[str, Sequence]:
+    """make a {name:seq, ...} where seq.name == name"""
+    name_seq_tuples = tuple(zip(names, seqs))
+    for n, s in name_seq_tuples:
+        s.name = n
+    return dict(name_seq_tuples)
+
+
+T = typing.Sequence[typing.Union[Sequence, ndarray]]
+
+
+def _strip_duplicates(
+    names: typing.Sequence[str], seqs: T
+) -> typing.Tuple[set[str], list[str], list[T]]:
+    """Internal function to strip duplicates from list of names"""
+    if len(set(names)) == len(names):
+        return set(), names, seqs
+    # if we got here, there are duplicates
+    duplicates = set()
+    chosen_names = []
+    chosen_seqs = []
+    for n, s in zip(names, seqs):
+        if n in chosen_names:
+            duplicates.add(n)
+        else:
+            chosen_names.append(n)
+            chosen_seqs.append(s)
+
+    if type(seqs) is ndarray:
+        chosen_seqs = array(chosen_seqs, seqs.dtype)
+
+    return duplicates, chosen_names, chosen_seqs
