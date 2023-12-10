@@ -1,7 +1,9 @@
 """Generally useful utility classes and methods.
 """
+
 from __future__ import annotations
 
+import contextlib
 import inspect
 import os
 import re
@@ -1101,12 +1103,8 @@ def get_first_value(data: typing.Iterable[typing.Any]):
     Returns the first element of data. If data is a dict, it will return
     the first element of data.values().
     """
-    curr_item = None
     if hasattr(data, "values"):
-        curr_item = next(iter(data.values()))
-    else:
-        try:
-            curr_item = next(iter(data))
-        except:
-            pass
-    return curr_item
+        return next(iter(data.values()))
+
+    with contextlib.suppress(TypeError):
+        return next(iter(data))
