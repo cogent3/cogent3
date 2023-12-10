@@ -554,7 +554,7 @@ class _SequenceCollectionBase:
 
             # create named_seqs dict for fast lookups
             if not suppress_named_seqs:
-                self.named_seqs = self._make_named_seqs(self.names, curr_seqs)
+                self.named_seqs = _make_named_seqs(self.names, curr_seqs)
         # Sequence objects behave like sequences of chars, so no difference
         # between seqs and seq_data. Note that this differs for Alignments,
         # so be careful which you use if writing methods that should work for
@@ -587,13 +587,6 @@ class _SequenceCollectionBase:
         from cogent3.format.alignment import FORMATTERS
 
         return FORMATTERS["fasta"](self.to_dict())
-
-    def _make_named_seqs(self, names, seqs):
-        """Returns named_seqs: dict of name:seq."""
-        name_seq_tuples = list(zip(names, seqs))
-        for n, s in name_seq_tuples:
-            s.name = n
-        return dict(name_seq_tuples)
 
     def _set_additional_attributes(self, curr_seqs):
         """Sets additional attributes based on current seqs: class-specific."""
@@ -4072,7 +4065,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             seqs = list(map(self.alphabet.to_string, self.array_seqs))
             if self.moltype:
                 seqs = [self.moltype.make_seq(s, preserve_case=True) for s in seqs]
-            self._named_seqs = self._make_named_seqs(self.names, seqs)
+            self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
 
     named_seqs = property(_get_named_seqs)
@@ -5520,6 +5513,16 @@ class Alignment(AlignmentI, SequenceCollection):
             # and if i've been reversed...?
             feature["reversed"] = seq_map.reverse
             yield self.make_feature(feature=feature, on_alignment=on_al)
+
+
+def _make_named_seqs(
+    names: typing.Sequence[str], seqs: typing.Sequence[Sequence]
+) -> dict[str, Sequence]:
+    """make a {name:seq, ...} where seq.name == name"""
+    name_seq_tuples = tuple(zip(names, seqs))
+    for n, s in name_seq_tuples:
+        s.name = n
+    return dict(name_seq_tuples)
 
 
 T = typing.Sequence[Sequence | ndarray]
