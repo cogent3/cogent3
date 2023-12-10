@@ -5,6 +5,7 @@ from __future__ import annotations
 import inspect
 import os
 import re
+import typing
 import warnings
 
 from random import randint
@@ -1085,3 +1086,27 @@ def get_true_spans(arr: ndarray, absolute_pos: bool = True) -> ndarray:
         num_runs += 1
 
     return result[:num_runs]
+
+
+def get_first_value(data: typing.Iterable[typing.Any]):
+    """return first value from a container
+
+    Parameters
+    ----------
+    data
+        any iterable
+
+    Returns
+    -------
+    Returns the first element of data. If data is a dict, it will return
+    the first element of data.values().
+    """
+    curr_item = None
+    if hasattr(data, "values"):
+        curr_item = next(iter(data.values()))
+    else:
+        try:
+            curr_item = next(iter(data))
+        except:
+            pass
+    return curr_item

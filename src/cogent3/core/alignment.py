@@ -24,6 +24,7 @@ import functools
 import json
 import os
 import re
+import typing
 import warnings
 
 from collections import Counter, defaultdict
@@ -82,6 +83,7 @@ from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     bytes_to_string,
     extend_docstring_from,
+    get_first_value,
     get_object_provenance,
     get_setting_from_environ,
 )
@@ -659,7 +661,7 @@ class _SequenceCollectionBase:
                 alphabet = data.alphabet
             # check for containers
             else:
-                curr_item = self._get_container_item(data)
+                curr_item = get_first_value(data)
                 if hasattr(curr_item, "moltype"):
                     moltype = curr_item.moltype
                 elif hasattr(curr_item, "alphabet"):
@@ -674,18 +676,6 @@ class _SequenceCollectionBase:
             except AttributeError:
                 alphabet = moltype.alphabet
         return alphabet, moltype
-
-    def _get_container_item(self, data):
-        """Checks container for item with alphabet or moltype"""
-        curr_item = None
-        if hasattr(data, "values"):
-            curr_item = next(iter(data.values()))
-        else:
-            try:
-                curr_item = next(iter(data))
-            except:
-                pass
-        return curr_item
 
     def _strip_duplicates(self, names, seqs):
         """Internal function to strip duplicates from list of names"""
@@ -811,7 +801,7 @@ class _SequenceCollectionBase:
             else:
                 return "generic"
 
-        first = self._get_container_item(data)
+        first = get_first_value(data)
         if first is None:
             return "empty"
 
