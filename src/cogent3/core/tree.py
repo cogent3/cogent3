@@ -1631,8 +1631,13 @@ class TreeNode(object):
         int
             the chosen distance between the two trees.
 
-        see:
-        Bogdanowicz, D., & Giaro, K. (2013).
+        Notes
+        -----
+        The Lin-Rajan-Moret distance and Matching Cluster distance displays
+        superior statistical properties than the Robinson-Foulds distance on
+        unrooted and rooted trees respectively.
+
+        see: Bogdanowicz, D., & Giaro, K. (2013).
         On a matching distance between rooted phylogenetic trees.
         International Journal of Applied Mathematics and Computer Science, 23(3), 669-684.
 
