@@ -5525,7 +5525,7 @@ def _make_named_seqs(
     return dict(name_seq_tuples)
 
 
-T = typing.Sequence[Sequence | ndarray]
+T = typing.Sequence[typing.Union[Sequence, ndarray]]
 
 
 def _strip_duplicates(
