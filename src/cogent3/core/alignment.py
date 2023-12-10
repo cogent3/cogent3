@@ -677,26 +677,6 @@ class _SequenceCollectionBase:
                 alphabet = moltype.alphabet
         return alphabet, moltype
 
-    def _strip_duplicates(self, names, seqs):
-        """Internal function to strip duplicates from list of names"""
-        if len(set(names)) == len(names):
-            return set(), names, seqs
-        # if we got here, there are duplicates
-        unique_names = {}
-        duplicates = {}
-        fixed_names = []
-        fixed_seqs = []
-        for n, s in zip(names, seqs):
-            if n in unique_names:
-                duplicates[n] = 1
-            else:
-                unique_names[n] = 1
-                fixed_names.append(n)
-                fixed_seqs.append(s)
-        if type(seqs) is ndarray:
-            fixed_seqs = array(fixed_seqs, seqs.dtype)
-        return duplicates, fixed_names, fixed_seqs
-
     def _names_seqs_order(
         self,
         conversion_f,
@@ -740,7 +720,7 @@ class _SequenceCollectionBase:
                 per_seq_names = names
 
         # check for duplicate names
-        duplicates, fixed_names, fixed_seqs = self._strip_duplicates(
+        duplicates, fixed_names, fixed_seqs = _strip_duplicates(
             per_seq_names, curr_seqs
         )
         if duplicates:
@@ -754,8 +734,7 @@ class _SequenceCollectionBase:
                     name_order = per_seq_names
             else:
                 raise ValueError(
-                    "Some names were not unique. Duplicates are:\n"
-                    + str(sorted(duplicates.keys()))
+                    f"Some names were not unique. Duplicates are: {duplicates}"
                 )
 
         return per_seq_names, curr_seqs, name_order
@@ -5541,3 +5520,29 @@ class Alignment(AlignmentI, SequenceCollection):
             # and if i've been reversed...?
             feature["reversed"] = seq_map.reverse
             yield self.make_feature(feature=feature, on_alignment=on_al)
+
+
+T = typing.Sequence[Sequence | ndarray]
+
+
+def _strip_duplicates(
+    names: typing.Sequence[str], seqs: T
+) -> typing.Tuple[set[str], list[str], list[T]]:
+    """Internal function to strip duplicates from list of names"""
+    if len(set(names)) == len(names):
+        return set(), names, seqs
+    # if we got here, there are duplicates
+    duplicates = set()
+    chosen_names = []
+    chosen_seqs = []
+    for n, s in zip(names, seqs):
+        if n in chosen_names:
+            duplicates.add(n)
+        else:
+            chosen_names.append(n)
+            chosen_seqs.append(s)
+
+    if type(seqs) is ndarray:
+        chosen_seqs = array(chosen_seqs, seqs.dtype)
+
+    return duplicates, chosen_names, chosen_seqs
