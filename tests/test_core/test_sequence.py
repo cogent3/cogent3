@@ -2477,3 +2477,11 @@ def test_index_a_seq_float_fail(cast):
     index = cast(1)
     with pytest.raises(TypeError):
         seq[index]
+
+
+@pytest.mark.parametrize("moltype", ("dna", "protein"))
+def test_same_moltype(moltype):
+    moltype = get_moltype(moltype)
+    seq = moltype.make_seq("TCCAG")
+    got = seq.to_moltype(moltype)
+    assert got is seq

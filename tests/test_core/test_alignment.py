@@ -3826,3 +3826,13 @@ def test_init_duplicate_keys_merged(cls):
     seqs = cls(data, remove_duplicate_names=True)
     # the first record encountered is the one retained
     assert seqs.to_dict()["x"] == dict(reversed(data))["x"]
+
+
+@pytest.mark.parametrize("moltype", ("dna", "protein"))
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_same_moltype(cls, moltype):
+    moltype = get_moltype(moltype)
+    data = dict(s1="ACGTT", s2="ACCTT")
+    seqs = cls(data, moltype=moltype)
+    got = seqs.to_moltype(moltype=moltype)
+    assert got is seqs
