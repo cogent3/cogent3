@@ -25,22 +25,22 @@ def get_tree_distance_measure(method: str, is_rooted: bool):
 
 
 def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """calculate the robinson-foulds distance between two unrooted trees.
+    """Calculate the robinson-foulds distance between two unrooted trees.
 
-    for unrooted trees, the robinson-foulds is defined as the cardinality
+    For unrooted trees, the robinson-foulds is defined as the cardinality
     of the symmetric difference of the set of splits for the two trees.
 
-    trees should have matching tips and must not be rooted.
+    Trees should have matching tips and must not be rooted.
 
     Parameters
     ----------
     tree1, tree2: TreeNode
-        trees to calculate distance between
+        Trees to calculate the distance between.
 
     Returns
     -------
     int
-        the unrooted Robinson-Foulds distance
+        The unrooted Robinson-Foulds distance.
 
     Notes
     -----
@@ -66,19 +66,20 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
 
 def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """calculate the lin-rajan-moret distance (matching distance) between trees
+    """Calculate the lin-rajan-moret distance (matching distance)
+    between two unrooted trees.
 
-    trees should have matching tips and must not be rooted.
+    Trees should have matching tips and must not be rooted.
 
     Parameters
     ----------
     tree1, tree2: TreeNode
-        trees to calculate distance between
+        Trees to calculate the distance between.
 
     Returns
     -------
     int
-        the Lin-Rajan-Moret distance
+        The Lin-Rajan-Moret distance.
 
     Notes
     -----
@@ -105,23 +106,23 @@ def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
 
 def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """calculate the robinson-foulds distance between two rooted trees.
+    """Calculate the robinson-foulds distance between two rooted trees.
 
-    for rooted trees, the robinson-foulds distance is defined as the
+    For rooted trees, the robinson-foulds distance is defined as the
     cardinality of the symmetric difference of the set of clades for
     the two trees.
 
-    trees should have matching tips and must be rooted.
+    Trees should have matching tips and must be rooted.
 
     Parameters
     ----------
     tree1, tree2: TreeNode
-        trees to calculate distance between
+        Trees to calculate the distance between.
 
     Returns
     -------
     int
-        the rooted Robinson-Foulds distance
+        The rooted Robinson-Foulds distance
     """
     if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
         raise ValueError("tree tip names must match")
@@ -135,19 +136,19 @@ def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
 
 def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """calculate the matching cluster distance between trees
+    """Calculate the matching cluster distance between two rooted trees.
 
-    trees should have matching tips and must be rooted.
+    Trees should have matching tips and must be rooted.
 
     Parameters
     ----------
     tree1, tree2: TreeNode
-        trees to calculate distance between
+        Trees to calculate the distance between.
 
     Returns
     -------
     int
-        the matching cluster distance
+        The matching cluster distance.
 
     Notes
     -----

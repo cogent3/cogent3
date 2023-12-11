@@ -1633,7 +1633,7 @@ class TreeNode(object):
 
         Notes
         -----
-        The Lin-Rajan-Moret distance and Matching Cluster distance displays
+        The Lin-Rajan-Moret distance and Matching Cluster distance display
         superior statistical properties than the Robinson-Foulds distance on
         unrooted and rooted trees respectively.
 
