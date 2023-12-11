@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.greengenes import (
     MinimalGreengenesParser,

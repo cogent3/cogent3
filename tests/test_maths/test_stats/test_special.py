@@ -3,7 +3,7 @@
 """
 import math
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
@@ -570,5 +570,3 @@ class SpecialTests(TestCase):
 
 
 # execute tests if called from command line
-if __name__ == "__main__":
-    main()

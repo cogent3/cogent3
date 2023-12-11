@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for the clustal parsers.
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.clustal import (
     MinimalClustalParser,

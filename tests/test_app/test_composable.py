@@ -5,7 +5,6 @@ import shutil
 from pathlib import Path
 from pickle import dumps, loads
 from typing import Set, Tuple
-from unittest import main
 from unittest.mock import Mock
 
 import pytest
@@ -1177,7 +1176,3 @@ def test_copies_doc_from_func():
 
     __app_registry.pop(get_object_provenance(delme), None)
     __app_registry.pop(get_object_provenance(delme2), None)
-
-
-if __name__ == "__main__":
-    main()

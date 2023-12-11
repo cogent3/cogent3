@@ -1,6 +1,6 @@
 import xml.dom.minidom
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.tinyseq import TinyseqParser
 
@@ -39,7 +39,3 @@ class ParseTinyseq(TestCase):
             self.assertEqual(seq.annotation_db.num_matches(), 2)
 
     pass
-
-
-if __name__ == "__main__":
-    main()

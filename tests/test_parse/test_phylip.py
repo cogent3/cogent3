@@ -3,7 +3,7 @@
 """Unit tests for the phylip parser
 """
 from io import StringIO
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
 

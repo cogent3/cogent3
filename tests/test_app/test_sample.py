@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app import composable, sample
@@ -543,7 +543,3 @@ class TranslateTests(TestCase):
         take = sample.take_n_seqs(2, random=True, seed=123)
         got = take(seqs1)
         self.assertNotIsInstance(got, NotCompleted)
-
-
-if __name__ == "__main__":
-    main()

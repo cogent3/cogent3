@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for unigene-specific classes
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.record_finder import GbFinder
 from cogent3.parse.unigene import (
@@ -236,7 +236,3 @@ SEQUENCE    ACC=AW990320.1; NID=g8185938; CLONE=IMAGE:1513482; END=5'; LID=1043;
 
         # test that the synonym mapping works OK
         self.assertEqual(second.SequenceIds[0].NucleotideId, "g8185938")
-
-
-if __name__ == "__main__":
-    main()

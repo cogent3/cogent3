@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests of transformation and composition functions .
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
@@ -199,8 +199,3 @@ class Filter_Criteria_Tests(TestCase):
         self.assertEqual(first_index_in_set(s2, vowels), 3)
         self.assertEqual(first_index_in_set(s3, vowels), None)
         self.assertEqual(first_index_in_set(s4, vowels), None)
-
-
-# run tests if invoked from the commandline
-if __name__ == "__main__":
-    main()

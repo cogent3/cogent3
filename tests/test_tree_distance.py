@@ -10,6 +10,7 @@ from cogent3.phylo.tree_distance import (
     unrooted_robinson_foulds,
 )
 
+
 ROOTED_DISTANCE_MEASURES = matching_cluster_distance, rooted_robinson_foulds
 UNROOTED_DISTANCE_MEASURES = lin_rajan_moret, unrooted_robinson_foulds
 

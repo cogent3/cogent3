@@ -5,7 +5,7 @@ import re
 
 from io import StringIO
 from pathlib import Path
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 

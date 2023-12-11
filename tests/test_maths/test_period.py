@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import arange, array, convolve, exp, float64, pi, random, sin, zeros
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal

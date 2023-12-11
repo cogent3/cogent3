@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for locuslink-specific classes
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.locuslink import (
     LinesToLocusLink,

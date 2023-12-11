@@ -1,8 +1,7 @@
 import itertools
-import pathlib
 
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
@@ -257,10 +256,6 @@ class FastSlowDistTests(TestCase):
             _ = proc("data/brca1_5.paml")
             output = dirname / "brca1_5.tsv"
             self.assertTrue(output.exists())
-
-
-if __name__ == "__main__":
-    main()
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna"))

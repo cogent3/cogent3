@@ -2,7 +2,7 @@
 """Tests of parsers for dealing with NCBI Taxonomy files.
 """
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.ncbi_taxonomy import (
     MissingParentError,

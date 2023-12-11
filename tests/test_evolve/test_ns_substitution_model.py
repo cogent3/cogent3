@@ -1,6 +1,6 @@
 import warnings
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy
 

@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import array
 from numpy.testing import assert_allclose
@@ -162,5 +162,3 @@ class UPGMATests(TestCase):
 
 
 # run if called from command line
-if __name__ == "__main__":
-    main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Unit tests for matrix logarithm."""
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import array
 from numpy.testing import assert_allclose

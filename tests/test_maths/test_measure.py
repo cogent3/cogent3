@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import arange, array, diag_indices, dot, finfo, float64
 from numpy.random import random

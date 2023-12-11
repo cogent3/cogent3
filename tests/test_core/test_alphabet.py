@@ -4,7 +4,7 @@ Note: individual alphabets are typically in MolType and are tested there.
 """
 import pickle
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import unravel_index
 from numpy.testing import assert_equal

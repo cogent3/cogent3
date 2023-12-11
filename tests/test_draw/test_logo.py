@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.draw.letter import get_character
 from cogent3.draw.logo import _char_hts_as_lists, get_logo
