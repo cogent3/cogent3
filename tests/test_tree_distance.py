@@ -54,7 +54,7 @@ def test_unrooted_rf_different_trees():
 
 def test_unrooted_rf_same_tree():
     # Topology of the unrooted trees are identical
-    # though they are stored at a different orientation.
+    # though they are stored in different orientations.
     a = make_tree(treestring="(a, b, (c, d));")
     b = make_tree(treestring="(c, d, (a, b));")
 
@@ -120,7 +120,7 @@ def test_lrm_matches_original_implementation_big_tree(DATA_DIR):
 
 def test_lrm_same_tree():
     # Topology of the unrooted trees are identical
-    # though they are stored at a different orientation.
+    # though they are stored in different orientations.
     a = make_tree(treestring="(a, b, (c, d));")
     b = make_tree(treestring="(c, d, (a, b));")
 
