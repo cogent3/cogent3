@@ -37,13 +37,10 @@ from cogent3.app.data_store import (
     get_data_source,
 )
 from cogent3.app.sample import min_length, omit_degenerates
+from cogent3.app.sqlite_data_store import DataStoreSqlite
 from cogent3.app.translate import select_translatable
 from cogent3.app.tree import quick_tree
-from cogent3.app.typing import (
-    SERIALISABLE_TYPE,
-    AlignedSeqsType,
-    PairwiseDistanceType,
-)
+from cogent3.app.typing import AlignedSeqsType, PairwiseDistanceType
 from cogent3.core.alignment import Alignment, SequenceCollection
 
 
@@ -327,19 +324,47 @@ def test_as_completed_empty_data(data):
     assert got == []
 
 
-@pytest.mark.parametrize("klass", (DataStoreDirectory,))
-def test_apply_to_strings(DATA_DIR, tmp_dir, klass):
-    """apply_to handles strings as paths"""
+@pytest.mark.parametrize("klass", (DataStoreDirectory, DataStoreSqlite))
+@pytest.mark.parametrize("cast", (str, Path))
+def test_apply_to_strings(DATA_DIR, tmp_dir, klass, cast):
+    """apply_to handles non-DataMember"""
+    dname = "test_apply_to_strings"
+    outpath = tmp_dir / dname
+
     dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
-    dstore = [str(m) for m in dstore]
+    dstore = [cast(str(m)) for m in dstore]
     reader = io_app.load_aligned(format="fasta", moltype="dna")
     min_length = sample_app.min_length(10)
-    outpath = tmp_dir / "test_apply_to_strings"
-    writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
+    if klass == DataStoreDirectory:
+        writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
+    else:
+        writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE))
     process = reader + min_length + writer
     # create paths as strings
-    _ = process.apply_to(dstore, id_from_source=get_data_source)
+    _ = process.apply_to(dstore, id_from_source=get_data_source, show_progress=False)
     assert len(process.data_store.logs) == 1
+
+
+@pytest.mark.parametrize("klass", (DataStoreDirectory, DataStoreSqlite))
+@pytest.mark.parametrize("cast", (str, Path))
+def test_as_completed_strings(DATA_DIR, tmp_dir, klass, cast):
+    """as_completed handles non-DataMember"""
+    dname = "test_apply_to_strings"
+    outpath = tmp_dir / dname
+
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=3)
+    dstore = [cast(str(m)) for m in dstore]
+    reader = io_app.load_aligned(format="fasta", moltype="dna")
+    min_length = sample_app.min_length(10)
+    if klass == DataStoreDirectory:
+        writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE, suffix="fasta"))
+    else:
+        writer = io_app.write_seqs(klass(outpath, mode=OVERWRITE))
+    orig_length = len(writer.data_store)
+    process = reader + min_length + writer
+    # create paths as strings
+    got = list(process.as_completed(dstore, show_progress=False))
+    assert len(got) > orig_length
 
 
 def test_apply_to_non_unique_identifiers(tmp_dir):
