@@ -1652,8 +1652,14 @@ class _SequenceCollectionBase:
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
+        import cogent3
+
         if not moltype:
             raise ValueError(f"unknown moltype '{moltype}'")
+
+        moltype = cogent3.get_moltype(moltype)
+        if moltype is self.moltype:
+            return self
 
         data = [s.to_moltype(moltype) for s in self.seqs]
         result = self.__class__(
@@ -2436,6 +2442,15 @@ class Aligned:
 
     def to_moltype(self, moltype):
         """returns copy of self with moltype seqs"""
+        import cogent3
+
+        if not moltype:
+            raise ValueError(f"unknown moltype '{moltype}'")
+
+        moltype = cogent3.get_moltype(moltype)
+        if moltype is self.moltype:
+            return self
+
         data = self.data.to_moltype(moltype)
         return self.__class__(map=self.map, data=data)
 

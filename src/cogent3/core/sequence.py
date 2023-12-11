@@ -1163,6 +1163,9 @@ class Sequence(SequenceI):
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = get_moltype(moltype)
+        if moltype is self.moltype:
+            return self
+
         s = moltype.coerce_str(self._seq.value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
         sv = SeqView(s)
