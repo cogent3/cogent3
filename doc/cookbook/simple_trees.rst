@@ -444,7 +444,7 @@ Branch lengths don't matter.
     tr1.same_topology(tr2)
 
 Measure topological distances between two trees
-"""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""
 
 A number of topological tree distance metrics are available. They include:
 
