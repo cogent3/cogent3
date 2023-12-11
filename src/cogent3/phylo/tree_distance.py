@@ -25,12 +25,7 @@ def get_tree_distance_measure(method: str, is_rooted: bool):
 
 
 def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """Calculate the robinson-foulds distance between two unrooted trees.
-
-    For unrooted trees, the robinson-foulds is defined as the cardinality
-    of the symmetric difference of the set of splits for the two trees.
-
-    Trees should have matching tips and must not be rooted.
+    """Calculate the Robinson-Foulds distance between two unrooted trees.
 
     Parameters
     ----------
@@ -44,9 +39,17 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Notes
     -----
-    see: Robinson, David F., and Leslie R. Foulds.
-    Comparison of phylogenetic trees.
-    Mathematical biosciences 53.1-2 (1981): 131-147.
+    For unrooted trees, the Robinson-Foulds distance [1]_ is defined
+    as the cardinality of the symmetric difference of the set of splits
+    for the two trees.
+
+    Trees should have matching tips and must not be rooted.
+
+    References
+    ----------
+    .. [1] Robinson, David F., and Leslie R. Foulds.
+       Comparison of phylogenetic trees.
+       Mathematical biosciences 53.1-2 (1981): 131-147.
     """
 
     names = tree1.get_tip_names()
@@ -66,10 +69,8 @@ def unrooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
 
 def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """Calculate the lin-rajan-moret distance (matching distance)
+    """Calculate the Lin-Rajan-Moret distance (matching distance)
     between two unrooted trees.
-
-    Trees should have matching tips and must not be rooted.
 
     Parameters
     ----------
@@ -83,10 +84,21 @@ def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
     Notes
     -----
-    see: Lin et al. 2012
-    A Metric for Phylogenetic Trees Based on Matching
-    IEEE/ACM Transactions on Computational Biology and Bioinformatics
-    vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
+    The Lin-Rajan-Moret distance [1]_ displays superior statistical
+    properties than the Robinson-Foulds distance [2]_
+    on unrooted trees.
+
+    Trees should have matching tips and must not be rooted.
+
+    References
+    ----------
+    .. [1] Lin et al. 2012
+       A Metric for Phylogenetic Trees Based on Matching
+       IEEE/ACM Transactions on Computational Biology and Bioinformatics
+       vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
+    .. [2] Robinson, David F., and Leslie R. Foulds.
+       Comparison of phylogenetic trees.
+       Mathematical biosciences 53.1-2 (1981): 131-147.
     """
     names = tree1.get_tip_names()
 
@@ -106,13 +118,7 @@ def lin_rajan_moret(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
 
 def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """Calculate the robinson-foulds distance between two rooted trees.
-
-    For rooted trees, the robinson-foulds distance is defined as the
-    cardinality of the symmetric difference of the set of clades for
-    the two trees.
-
-    Trees should have matching tips and must be rooted.
+    """Calculate the Robinson-Foulds distance between two rooted trees.
 
     Parameters
     ----------
@@ -123,6 +129,20 @@ def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
     -------
     int
         The rooted Robinson-Foulds distance
+
+    Notes
+    -----
+    For rooted trees, the Robinson-Foulds distance [1]_ is defined as the
+    cardinality of the symmetric difference of the set of clades for
+    the two trees.
+
+    Trees should have matching tips and must be rooted.
+
+    References
+    ----------
+    .. [1] Robinson, David F., and Leslie R. Foulds.
+       Comparison of phylogenetic trees.
+       Mathematical biosciences 53.1-2 (1981): 131-147.
     """
     if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
         raise ValueError("tree tip names must match")
@@ -136,9 +156,7 @@ def rooted_robinson_foulds(tree1: "TreeNode", tree2: "TreeNode") -> int:
 
 
 def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
-    """Calculate the matching cluster distance between two rooted trees.
-
-    Trees should have matching tips and must be rooted.
+    """Calculate the Matching Cluster distance between two rooted trees.
 
     Parameters
     ----------
@@ -148,17 +166,29 @@ def matching_cluster_distance(tree1: "TreeNode", tree2: "TreeNode") -> int:
     Returns
     -------
     int
-        The matching cluster distance.
+        The Matching Cluster distance.
 
     Notes
     -----
-    see: Bogdanowicz, D., & Giaro, K. (2013).
-    On a matching distance between rooted phylogenetic trees.
-    International Journal of Applied Mathematics and Computer Science, 23(3), 669-684.
+    The Matching Cluster distance [1]_ is a similar metric
+    to the beta-distance [2]_.
 
-    Boorman, S. A., & Olivier, D. C. (1973).
-    Metrics on spaces of finite trees.
-    Journal of Mathematical Psychology, 10(1), 26-59.
+    The Matching Cluster distance [1]_ displays superior statistical
+    properties than the Robinson-Foulds distance [3]_ on rooted trees.
+
+    Trees should have matching tips and must be rooted.
+
+    References
+    ----------
+    .. [1] Bogdanowicz, D., & Giaro, K. (2013).
+       On a matching distance between rooted phylogenetic trees.
+       International Journal of Applied Mathematics and Computer Science, 23(3), 669-684.
+    .. [2] Boorman, S. A., & Olivier, D. C. (1973).
+       Metrics on spaces of finite trees.
+       Journal of Mathematical Psychology, 10(1), 26-59.
+    .. [3] Robinson, David F., and Leslie R. Foulds.
+       Comparison of phylogenetic trees.
+       Mathematical biosciences 53.1-2 (1981): 131-147.
     """
 
     if set(tree1.get_tip_names()) != set(tree2.get_tip_names()):
