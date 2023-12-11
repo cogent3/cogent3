@@ -5,6 +5,7 @@ import numpy as np
 
 from scipy.optimize import linear_sum_assignment
 
+
 if TYPE_CHECKING:
     from cogent3.core.tree import TreeNode
 
