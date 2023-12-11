@@ -400,7 +400,7 @@ Add internal nodes so that every node has 2 or fewer children.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tree_string = "(B:0.2,H:0.2,(C:0.3,D:0.4,E:0.1)F:0.5)G;"
     tr = make_tree(tree_string)
@@ -437,11 +437,60 @@ Branch lengths don't matter.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr1 = make_tree("(B:0.2,(C:0.2,D:0.2)F:0.2)G;")
     tr2 = make_tree("((C:0.1,D:0.1)F:0.1,B:0.1)G;")
     tr1.same_topology(tr2)
+
+Measure topological distances between two trees
+"""""""""""""""""""""""""""""""""""""""""""""""
+
+A number of topological tree distance metrics are available. They include:
+
+* The Robinson-Foulds Distance for rooted trees.
+* The Matching Cluster Distance for rooted trees.
+* The Robinson-Foulds Distance for unrooted trees.
+* The Lin-Rajan-Moret Distance for unrooted trees.
+
+There are several variations of the Robinson-Foulds metric in the literature. The definition used by ``cogent3`` is the
+cardinality of the symmetric difference of the sets of clades/splits in the two rooted/unrooted trees. Other definitions sometimes
+divide this by two, or normalise it to the unit interval. 
+
+The Robinson-Foulds distance is quick to compute, but is known to saturate quickly. Moving a single leaf in a tree can maximise this metric.
+
+The Matching Cluster and Lin-Rajan-Moret are two matching-based distances that are more statistically robust. 
+Unlike the Robinson-Foulds distance which counts how many of the splits/clades are not exactly same, the matching-based distances
+measures the degree by which the splits/clades are different. The matching-based distances solve a min-weight matching problem,
+which for large trees may take longer to compute.
+
+.. jupyter-execute::
+
+    # Distance metrics for rooted trees
+    from cogent3 import make_tree
+
+    tr1 = make_tree(treestring="(a,(b,(c,(d,e))));")
+    tr2 = make_tree(treestring="(e,(d,(c,(b,a))));")
+    
+    mc_distance = tr1.tree_distance(tr2, method="matching_cluster") # or method="mc" or method="matching"
+    rooted_rf_distance = tr1.tree_distance(tr2, method="rooted_robinson_foulds") # or method="rrf" or method="rf"
+
+    print("Matching Cluster Distance:", mc_distance)
+    print("Rooted Robinson Foulds Distance:", rooted_rf_distance)
+
+.. jupyter-execute::
+
+    # Distance metrics for unrooted trees
+    from cogent3 import make_tree
+    
+    tr1 = make_tree(treestring="(a,b,(c,(d,e)));")
+    tr2 = make_tree(treestring="((a,c),(b,d),e);")
+    
+    lrm_distance = tr1.tree_distance(tr2, method="lin_rajan_moret") # or method="lrm" or method="matching"
+    unrooted_rf_distance = tr1.tree_distance(tr2, method="unrooted_robinson_foulds") # or method="urf" or method="rf"
+    
+    print("Lin-Rajan-Moret Distance:", lrm_distance)
+    print("Unrooted Robinson Foulds Distance:", unrooted_rf_distance)
 
 Calculate each node's maximum distance to a tip
 """""""""""""""""""""""""""""""""""""""""""""""
@@ -451,7 +500,7 @@ the distance from that node to its most distant tip.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
     print(tr.ascii_art())
@@ -467,7 +516,7 @@ Scale branch lengths in place to integers for ascii output
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr = make_tree("(B:0.2,(C:0.3,D:0.4)F:0.5)G;")
     print(tr)
@@ -484,7 +533,7 @@ and a list of the tip nodes.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr = make_tree("(B:3,(C:2,D:4)F:5)G;")
     d, tips = tr.tip_to_tip_distances()
@@ -504,7 +553,7 @@ Note: automatically strips out the names that don't match.
 
 .. jupyter-execute::
 
-    from cogent3 import load_tree
+    from cogent3 import make_tree
 
     tr1 = make_tree("(B:2,(C:3,D:4)F:5)G;")
     tr2 = make_tree("(C:2,(B:3,D:4)F:5)G;")
