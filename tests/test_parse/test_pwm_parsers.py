@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import array
 from numpy.testing import assert_allclose, assert_array_equal
@@ -38,7 +38,3 @@ class TestPwmParsers(TestCase):
         assert_allclose(pfm.array, array(expect).T, atol=1e-2)
         assert_allclose(pfm[0, "A"], 0.199862209150251)
         self.assertEqual(pfm[6, "C"], 0.0787969447816471)
-
-
-if __name__ == "__main__":
-    main()

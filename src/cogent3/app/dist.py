@@ -195,8 +195,8 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
 
 @define_app
 def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
-    """Calculates an approximation of the p-distance between sequences based 
-    on Jaccard distances (see Notes for details). 
+    """Calculates an approximation of the p-distance between sequences based
+    on Jaccard distances (see Notes for details).
 
     Parameters
     ----------
@@ -210,18 +210,18 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
 
     Notes
     -----
-    This approximation assumes the input DistanceMatrix contains Jaccard 
+    This approximation assumes the input DistanceMatrix contains Jaccard
     distances. See the ``jaccard_dist`` app for calculating Jaccard distances.
-    
+
     The true p-distance measures the proportion of differing sites between two
     aligned sequences. For the true p-distance, 0 indicates identical sequences,
     and 1 indicates completely different sequences.
-    
+
     This approximation does not guarantee bounds of 0 and 1.
 
-    The method approximates the p-distance using coefficients derived from a 
-    polynomial fit between Jaccard distance and p-distance. The coefficients 
-    were fitted using data from 106 DNA sequences of mammalian protein coding 
+    The method approximates the p-distance using coefficients derived from a
+    polynomial fit between Jaccard distance and p-distance. The coefficients
+    were fitted using data from 106 DNA sequences of mammalian protein coding
     genes, with kmers of size k=10.
     """
     upper_indices = triu_indices(n=jaccard_dists.shape[0], k=1)

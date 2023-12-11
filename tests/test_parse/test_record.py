@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for parser support libraries dealing with records.
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.record import (
     DelimitedSplitter,
@@ -591,7 +591,3 @@ class FieldMorpherTests(TestCase):
         self.assertEqual(fm({3: 3, 4: "4"}), {"3": "3", 4: 4})
         # check that unrecognized values get the appropriate conversion
         self.assertEqual(fm({3: 3, 5: "5"}), {"3": "3", "5": 4.5})
-
-
-if __name__ == "__main__":
-    main()

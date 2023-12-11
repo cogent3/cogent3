@@ -3,7 +3,7 @@
 """
 import warnings
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.core.info import DbRef, DbRefs, Info, _make_list
 
@@ -147,5 +147,3 @@ class InfoTests(TestCase):
 
 
 # run the following if invoked from command-line
-if __name__ == "__main__":
-    main()

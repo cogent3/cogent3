@@ -1,6 +1,6 @@
 from os import environ, remove
 from tempfile import NamedTemporaryFile, mktemp
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import (
     arange,

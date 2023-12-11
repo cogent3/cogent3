@@ -2,7 +2,7 @@
 # test_rdb.py
 """Unit test for RDB Parser
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.core.info import Info
 from cogent3.core.sequence import DnaSequence, RnaSequence, Sequence
@@ -328,6 +328,3 @@ seq: Thermus silvanus X84211
 ---CGAU[C(G){--UA}U]ACG-Nooo-
 //
 """
-
-if __name__ == "__main__":
-    main()

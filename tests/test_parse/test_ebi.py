@@ -2,7 +2,7 @@
 """ Provides tests for EbiParser and related classes and functions.
 """
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.ebi import (
     EbiFinder,
@@ -1049,5 +1049,3 @@ DE   dede.
 
 
 # Run tests if called from the command line
-if __name__ == "__main__":
-    main()

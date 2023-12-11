@@ -3,7 +3,7 @@ import os
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
@@ -220,7 +220,3 @@ def test_available_apps_filter():
     assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(
         filtered_apps
     )
-
-
-if __name__ == "__main__":
-    main()

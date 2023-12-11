@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.evolve import models as models_module
 from cogent3.evolve.models import (

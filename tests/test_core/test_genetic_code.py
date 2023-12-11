@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ Unit tests for Genetic Code classes.
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 

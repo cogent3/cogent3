@@ -4,7 +4,7 @@
 # SUPPORT2425
 # from __future__ import with_statement
 
-from unittest import TestCase, main
+from unittest import TestCase
 from warnings import filterwarnings
 
 from numpy import array, transpose

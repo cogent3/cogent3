@@ -2,7 +2,7 @@
 
 """Unit tests for union_dict.
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.util.union_dict import UnionDict
 
@@ -113,7 +113,3 @@ class UnionDictTests(TestCase):
         self.assertEqual(d.b.c, 42)
         self.assertEqual(d["b"], dict(c=42))
         self.assertIsInstance(d.b, UnionDict)
-
-
-if __name__ == "__main__":
-    main()

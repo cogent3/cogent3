@@ -1,7 +1,7 @@
 """Unit tests for the Nexus Parser
 """
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3 import load_aligned_seqs
 from cogent3.parse.nexus import (

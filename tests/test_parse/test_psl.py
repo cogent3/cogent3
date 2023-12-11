@@ -3,7 +3,7 @@
    Compatible with blat v.34
 """
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.psl import MinimalPslParser, PslToTable
 
@@ -54,7 +54,3 @@ class Test(TestCase):
             query_name = row["Q name"]
             query_strand = row["strand"]
             q_start = row["Q start"]
-
-
-if __name__ == "__main__":
-    main()

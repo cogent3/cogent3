@@ -3,7 +3,7 @@
 """
 
 from random import randint, sample, seed
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import array, ones, shape, sqrt
 from numpy.testing import assert_allclose
