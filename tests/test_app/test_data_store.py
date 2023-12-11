@@ -704,3 +704,30 @@ def test_summary_not_completed(dstore, request):
     got = full_dstore.summary_not_completed
     assert got.shape >= (1, 1)
     assert isinstance(got, Table)
+
+
+@pytest.fixture(scope="function")
+def app_dstore_in(tmp_path):
+    from cogent3 import get_app, open_data_store
+
+    in_path = tmp_path / "in_data"
+    in_path.mkdir(parents=True)
+    fasta_content = ">seq\nACGT"
+    with open(in_path / "one.fa", "w") as file:
+        file.write(fasta_content)
+
+    dstore_in = open_data_store(in_path, suffix=".fa", mode="r")
+    dstore_out = open_data_store(tmp_path / "data_out", suffix="fa", mode="w")
+    loader = get_app("load_unaligned")
+    writer = get_app("write_seqs", dstore_out)
+
+    pipe = loader + writer
+    return pipe, dstore_in
+
+
+def test_write_multiple_times_apply_to(app_dstore_in):
+    app, dstore_in = app_dstore_in
+    app.apply_to(dstore_in)
+    orig_length = len(app.data_store)
+    app.apply_to(dstore_in)
+    assert len(app.data_store) == orig_length
