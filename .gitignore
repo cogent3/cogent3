@@ -17,7 +17,7 @@ develop-eggs
 .installed.cfg
 lib
 lib64
-doc/draw
+doc/_build
 
 # Installer logs
 pip-log.txt
@@ -43,6 +43,7 @@ lcov*.info
 .DS_Store
 __pycache__
 *.code-workspace
+*.wpr
 *.wpu
 .vscode/*
 venv/

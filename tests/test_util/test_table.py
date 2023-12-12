@@ -1742,10 +1742,10 @@ class TableTests(TestCase):
         table.display = display
 
     @skipIf(DataFrame is None, "pandas not installed")
-    def test_to_dataframe(self):
+    def test_to_pandas(self):
         """produces a dataframe"""
         t = Table(header=self.t1_header, data=self.t1_rows)
-        df = t.to_dataframe()
+        df = t.to_pandas()
         self.assertIsInstance(df, DataFrame)
         data = df.to_numpy()
         self.assertEqual(data.tolist(), self.t1_rows)
