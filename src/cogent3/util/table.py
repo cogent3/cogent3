@@ -1964,14 +1964,14 @@ class Table:
         data = self.to_rich_dict()
         return json.dumps(data)
 
-    def to_dataframe(self, categories=None):
+    def to_pandas(self, categories=None):
         """returns pandas DataFrame instance
 
         Parameters
         ----------
         categories
             converts these columns to category dtype in the data
-            frame. Note, categories are not ordered.
+            frame. Note, categories are not ordered
         """
         try:
             from pandas import DataFrame
@@ -1986,6 +1986,14 @@ class Table:
             df = df.astype({n: "category" for n in categories})
 
         return df
+
+    @c3warn.deprecated_callable(
+        version="2024.3", reason="to enable usage by plotly", new="to_dataframe"
+    )
+    def to_dataframe(self, **kwargs):  # pragma: no cover
+        """deprecated, use to_pandas()"""
+
+        return self.to_pandas(**kwargs)
 
     def to_plotly(self, width=500, font_size=12, layout=None, **kwargs):
         """returns a Plotly Table"""

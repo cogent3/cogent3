@@ -342,14 +342,14 @@ Get the table as a ``pandas.DataFrame``
 .. jupyter-execute::
 
     table = load_table("data/stats.tsv")
-    df = table.to_dataframe()
+    df = table.to_pandas()
     df
 
 You can also specify column(s) are categories
 
 .. jupyter-execute::
 
-    df = table.to_dataframe(categories="Region")
+    df = table.to_pandas(categories="Region")
 
 Get a table of counts as a contingency table
 ============================================
