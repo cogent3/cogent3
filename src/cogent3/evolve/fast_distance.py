@@ -838,8 +838,8 @@ class DistanceMatrix(DictArray):
         """
         max_index_flat = np.argmax(self)
         max_index_1, max_index_2 = np.unravel_index(max_index_flat, self.shape)
-        max_pair = (self.names[max_index_1], self.names[max_index_2])
-
+        max_pair = self.names[max_index_1], self.names[max_index_2]
+        
         return max_pair
 
     def min_pair(self) -> Tuple[str, str]:
@@ -860,6 +860,6 @@ class DistanceMatrix(DictArray):
         )  # Exclude diagonal by setting diagonal elements to infinity
         min_index_flat = np.argmin(dmat_copy)
         min_index_1, min_index_2 = np.unravel_index(min_index_flat, self.shape)
-        min_pair = (self.names[min_index_1], self.names[min_index_2])
+        min_pair = self.names[min_index_1], self.names[min_index_2]
 
         return min_pair
