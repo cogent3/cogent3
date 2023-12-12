@@ -1,5 +1,6 @@
 from collections import defaultdict, namedtuple
 from numbers import Number
+from typing import Tuple
 
 import numpy as np
 
@@ -822,3 +823,43 @@ class DistanceMatrix(DictArray):
             raise ValueError("Too few distances to build a treenj")
         dists = dists.to_dict()
         return nj(dists, show_progress=show_progress)
+
+    def max_pair(self) -> Tuple[str, str]:
+        """returns the pair of names with the maximum distance
+
+        Returns
+        -------
+        tuple of the two names corresponding to the maximum distance
+
+        Notes
+        -----
+        In case of multiple occurrences of the maximum values, the names
+        corresponding to the first occurrence are returned.
+        """
+        max_index_flat = np.argmax(self)
+        max_index_1, max_index_2 = np.unravel_index(max_index_flat, self.shape)
+        max_pair = (self.names[max_index_1], self.names[max_index_2])
+
+        return max_pair
+
+    def min_pair(self) -> Tuple[str, str]:
+        """returns the pair of names with the minimum distance (excluding the diagonal)
+
+        Returns
+        -------
+        tuple of the two names corresponding to the minimum distance
+
+        Notes
+        -----
+        In case of multiple occurrences of the minimum values, the names
+        corresponding to the first occurrence are returned.
+        """
+        dmat_copy = self.array.copy()
+        np.fill_diagonal(
+            dmat_copy, np.inf
+        )  # Exclude diagonal by setting diagonal elements to infinity
+        min_index_flat = np.argmin(dmat_copy)
+        min_index_1, min_index_2 = np.unravel_index(min_index_flat, self.shape)
+        min_pair = (self.names[min_index_1], self.names[min_index_2])
+
+        return min_pair
