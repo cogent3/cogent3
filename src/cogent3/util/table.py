@@ -1988,7 +1988,7 @@ class Table:
         return df
 
     @c3warn.deprecated_callable(
-        version="2024.3", reason="to enable usage by plotly", new="to_pandas"
+        version="2024.3", reason="to enable usage by plotly", new="to_pandas()"
     )
     def to_dataframe(self, **kwargs):  # pragma: no cover
         """deprecated, use to_pandas()"""
