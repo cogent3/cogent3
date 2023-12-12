@@ -72,3 +72,53 @@ The following will use the F81 nucleotide substitution model and perform numeric
     d.run(show_progress=False)
     dists = d.get_pairwise_distances()
     dists
+
+*****************************************************
+Get the names of sequences with max pairwise distance
+*****************************************************
+
+Given a ``DistanceMatrix`` object, finding the sequences that have the maximum pairwise distance is achieved through the ``max_pair`` method. 
+
+.. jupyter-execute::
+    :raises:
+    
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    dists = aln.distance_matrix(calc="tn93", show_progress=False)
+    dists.max_pair()
+
+    
+To find the maximum distance, index the ``DistanceMatrix`` with the result of ``max_pair``.
+
+.. jupyter-execute::
+    :raises:
+    
+    dists[dists.max_pair()]
+
+
+*****************************************************
+Get the names of sequences with min pairwise distance
+*****************************************************
+
+Given a ``DistanceMatrix`` object, finding the sequences that have the minimum pairwise distance is achieved through the ``min_pair`` method. 
+
+
+.. note:: As the distance between a sequence and itself is zero, and this is not informative, ``min_pair`` will return the smallest distance not on the diagonal.
+    
+ 
+.. jupyter-execute::
+    :raises:
+    
+    from cogent3 import load_aligned_seqs
+
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    dists = aln.distance_matrix(calc="tn93", show_progress=False)
+    dists.min_pair()
+
+To find the minimum distance, index the ``DistanceMatrix`` with the result of ``min_pair``.
+
+.. jupyter-execute::
+    :raises:
+
+    dists[dists.min_pair()]
