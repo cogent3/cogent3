@@ -984,6 +984,7 @@ def test_max_pair_tied():
     expect = {frozenset(("B", "C")), frozenset(("A", "D"))}
     assert got in expect
 
+
 def test_min_pair_tied():
     dmat = DistanceMatrix(
         {
