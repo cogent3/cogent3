@@ -996,6 +996,6 @@ def test_min_pair_tied():
         }
     )
 
-    got = set(dmat.max_pair())
+    got = set(dmat.min_pair())
     expect = {frozenset(("A", "B")), frozenset(("A", "C"))}
     assert got in expect
