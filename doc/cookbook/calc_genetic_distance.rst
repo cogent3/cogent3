@@ -87,7 +87,6 @@ Given a ``DistanceMatrix`` object, finding the sequences that have the maximum p
     aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
     dists = aln.distance_matrix(calc="tn93", show_progress=False)
     dists.max_pair()
-
     
 To find the maximum distance, index the ``DistanceMatrix`` with the result of ``max_pair``.
 
@@ -96,17 +95,14 @@ To find the maximum distance, index the ``DistanceMatrix`` with the result of ``
     
     dists[dists.max_pair()]
 
-
 *****************************************************
 Get the names of sequences with min pairwise distance
 *****************************************************
 
 Given a ``DistanceMatrix`` object, finding the sequences that have the minimum pairwise distance is achieved through the ``min_pair`` method. 
 
-
 .. note:: As the distance between a sequence and itself is zero, and this is not informative, ``min_pair`` will return the smallest distance not on the diagonal.
-    
- 
+
 .. jupyter-execute::
     :raises:
     
