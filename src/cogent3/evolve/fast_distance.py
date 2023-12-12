@@ -1,14 +1,13 @@
 from collections import defaultdict, namedtuple
 from numbers import Number
 
-import numpy
+import numpy as np
 
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 
 from cogent3._version import __version__
 from cogent3.core.moltype import DNA, RNA, get_moltype
-from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.progress_display import display_wrap
@@ -800,9 +799,9 @@ class DistanceMatrix(DictArray):
             raise RuntimeError("Must be a square matrix")
         names = array(self.names)
         # NaN is an invalid value
-        cols = numpy.isnan(self.array).sum(axis=0)
+        cols = np.isnan(self.array).sum(axis=0)
         exclude = names[cols != 0].tolist()
-        rows = numpy.isnan(self.array).sum(axis=1)
+        rows = np.isnan(self.array).sum(axis=1)
         exclude += names[rows != 0].tolist()
         exclude = set(exclude)
         keep = set(names) ^ exclude
@@ -810,6 +809,7 @@ class DistanceMatrix(DictArray):
 
     def quick_tree(self, show_progress=False):
         """returns a neighbour joining tree
+
         Returns
         -------
         an estimated Neighbour Joining Tree, note that invalid distances are dropped
