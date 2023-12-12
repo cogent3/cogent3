@@ -4,6 +4,7 @@ import warnings
 from unittest import TestCase
 
 import numpy
+import pytest
 
 from numpy.testing import assert_allclose, assert_equal
 
@@ -923,3 +924,66 @@ class DistancesTests(TestCase):
 
 if __name__ == "__main__":
     main()
+
+
+@pytest.fixture
+def min_working_example_dmat():
+    return DistanceMatrix(
+        {
+            ("A", "B"): 1,
+            ("A", "C"): 2,
+            ("B", "C"): 3,
+        }
+    )
+
+
+def test_max_pair_mwe(min_working_example_dmat):
+    assert min_working_example_dmat.max_pair() == ("B", "C")
+
+
+def test_min_pair_mwe(min_working_example_dmat):
+    assert min_working_example_dmat.min_pair() == ("A", "B")
+
+
+def test_max_pair_has_max_val():
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    dmat = aln.distance_matrix()
+    got = dmat[dmat.max_pair()]
+    expect = dmat.array.max()
+    assert got == expect
+
+
+def test_min_pair_has_min_val():
+    aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+    dmat = aln.distance_matrix()
+    got = dmat[dmat.min_pair()]
+    numpy.fill_diagonal(dmat.array, numpy.inf)
+    expect = dmat.array.min()
+    assert got == expect
+
+
+def test_min_max_pair_single_pair():
+    dmat = DistanceMatrix({("A", "B"): 2})
+    assert dmat.max_pair() == ("A", "B")
+    assert dmat.min_pair() == ("A", "B")
+
+
+def test_min_max_pair_tied():
+    """we are copying the behaviour of numpy's argmax and argmin, for which,
+    in case of multiple occurrences of the maximum/minimum values, the indices
+    corresponding to the first occurrence are returned.
+    """
+
+    dmat = DistanceMatrix(
+        {
+            ("A", "B"): 1,
+            ("A", "C"): 1,
+            ("A", "D"): 3,
+            ("B", "C"): 3,
+            ("B", "D"): 2,
+            ("C", "D"): 2,
+        }
+    )
+
+    assert dmat.max_pair() == ("A", "D")
+    assert dmat.min_pair() == ("A", "B")
