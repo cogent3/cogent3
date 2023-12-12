@@ -968,12 +968,7 @@ def test_min_max_pair_single_pair():
     assert dmat.min_pair() == ("A", "B")
 
 
-def test_min_max_pair_tied():
-    """we are copying the behaviour of numpy's argmax and argmin, for which,
-    in case of multiple occurrences of the maximum/minimum values, the indices
-    corresponding to the first occurrence are returned.
-    """
-
+def test_max_pair_tied():
     dmat = DistanceMatrix(
         {
             ("A", "B"): 1,
@@ -985,5 +980,22 @@ def test_min_max_pair_tied():
         }
     )
 
-    assert dmat.max_pair() == ("A", "D")
-    assert dmat.min_pair() == ("A", "B")
+    got = set(dmat.max_pair())
+    expect = {frozenset(("B", "C")), frozenset(("A", "D"))}
+    assert got in expect
+
+def test_min_pair_tied():
+    dmat = DistanceMatrix(
+        {
+            ("A", "B"): 1,
+            ("A", "C"): 1,
+            ("A", "D"): 3,
+            ("B", "C"): 3,
+            ("B", "D"): 2,
+            ("C", "D"): 2,
+        }
+    )
+
+    got = set(dmat.max_pair())
+    expect = {frozenset(("A", "B")), frozenset(("A", "C"))}
+    assert got in expect
