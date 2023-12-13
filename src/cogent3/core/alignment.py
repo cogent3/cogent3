@@ -4723,7 +4723,10 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         return gapped
 
 
-class CodonArrayAlignment(ArrayAlignment):
+@c3warn.deprecated_callable(
+    "2024.3", reason="not being used", is_discontinued=True, stack_level=3
+)
+class CodonArrayAlignment(ArrayAlignment):  # pragma: no cover
     """Stores alignment of gapped codons, no degenerate symbols."""
 
     _input_handlers = {
