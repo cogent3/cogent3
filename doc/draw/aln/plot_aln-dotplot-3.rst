@@ -35,7 +35,7 @@ Let's align using such parameters, and take a look at a dotplot between two of t
     aln = aligner(seqs)
     aln[2200:2500].dotplot("HairyArma", "RoundEare").show()
 
-The dotplot clearly shows the misalignment between the two sequences. In the centre of the alignment, there is a section of the alignment path (the dashed line), which does not line up with any matching segments between the sequences (the blue line). 
+The dotplot clearly shows the misalignment between the two sequences. Towards the second half of the alignment, there is a section of the alignment path (the dashed line), which does not line up with any matching segments between the sequences (the blue line). 
 
 Taking a closer look at the poorly aligned section, we can see multiple small gaps in many of the sequences. The likelihood of this reflecting the true history of the sequences is low. It requires many indel events in many species and instead is likely to be an artefact of the alignment algorithm.
 
@@ -47,7 +47,7 @@ Taking a closer look at the poorly aligned section, we can see multiple small ga
 Visualising an alignment with good parameter choices
 ----------------------------------------------------
 
-Let's align the same sequences, but with more biologically realistic parameters. The default parameters for the progressive aligner are a good choice for this example as they have a low probability of opening a gap, but a high probability of extending a gap.
+Let's align the same sequences, but with more biologically realistic parameters. The default parameters for the progressive aligner are a better choice as they have a low probability of opening a gap, but a high probability of extending a gap.
 
 .. note:: The default parameters (of any program) are not always the best choice, but they are a good starting point for many alignments.
 
