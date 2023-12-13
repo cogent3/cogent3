@@ -270,22 +270,6 @@ class Enumeration(tuple):
             moltype = None
         return JointEnumeration([self, other], moltype=moltype)
 
-    @c3warns.deprecated_callable(
-        "2023.10",
-        "Not used",
-        is_discontinued=True,
-        stack_level=4,
-    )
-    def counts(self, a):  # pragma: no cover
-        try:
-            data = ravel(a)
-        except ValueError:  # ravel failed; try coercing to array
-            try:
-                data = ravel(array(a))
-            except ValueError:  # try mapping to string
-                data = ravel(array(list(map(str, a))))
-        return sum(asarray(self._allowed_range == data, int), axis=-1)
-
 
 class JointEnumeration(Enumeration):
     """Holds an enumeration composed of subenumerations. Immutable.
@@ -618,32 +602,6 @@ class Alphabet(Enumeration):
             for motif in self.resolve_ambiguity(ambig_motif):
                 result[u, obj_to_index[motif]] = 1.0
         return result
-
-    @c3warns.deprecated_callable(
-        "2023.10",
-        "Handled by cogent3.evolve.motif_prob_model.adapt_motif_probs",
-        is_discontinued=True,
-        stack_level=4,
-    )
-    def adapt_motif_probs(self, motif_probs):  # pragma: no cover
-        """Prepare an array or dictionary of probabilities for use with
-        this alphabet by checking size and order"""
-        if hasattr(motif_probs, "keys"):
-            sample = list(motif_probs.keys())[0]
-            if sample not in self:
-                raise ValueError(f"Can't find motif {sample} in alphabet")
-            motif_probs = array([motif_probs[motif] for motif in self])
-        elif len(motif_probs) == len(self):
-            # what value this clause since order is just input order?
-            motif_probs = asarray(motif_probs)
-        else:
-            raise ValueError(
-                f"Can't match {len(motif_probs)} probs to {len(self)} alphabet"
-            )
-        assert_allclose(
-            motif_probs.sum(), 1, err_msg=f"does not summ to 1 {motif_probs}"
-        )
-        return motif_probs
 
 
 class CharAlphabet(Alphabet):

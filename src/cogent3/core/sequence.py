@@ -1644,9 +1644,10 @@ class NucleicAcidSequence(Sequence):
         rc.annotation_db = self.annotation_db
         return rc
 
-    @deprecated_args("2023.10", "replaced by strict", discontinued="allow_partial")
     def has_terminal_stop(
-        self, gc: Any = None, strict: bool = False, allow_partial=False
+        self,
+        gc: Any = None,
+        strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
 
@@ -1671,9 +1672,10 @@ class NucleicAcidSequence(Sequence):
 
         return False
 
-    @deprecated_args("2023.10", "replaced by strict", discontinued="allow_partial")
     def trim_stop_codon(
-        self, gc: Any = None, strict: bool = False, allow_partial=False
+        self,
+        gc: Any = None,
+        strict: bool = False,
     ):
         """Removes a terminal stop codon from the sequence
 

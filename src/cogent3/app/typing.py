@@ -73,18 +73,6 @@ MODEL_RESULT_TYPE = "model_result"
 RESULT_TYPE = "result"
 TABULAR_RESULT_TYPE = "tabular_result"
 
-_mappings = {
-    TABULAR_TYPE: TabularType,
-    ALIGNED_TYPE: AlignedSeqsType,
-    SEQUENCE_TYPE: SeqsCollectionType,
-    IDENTIFIER_TYPE: IdentifierType,
-    PAIRWISE_DISTANCE_TYPE: PairwiseDistanceType,
-    SERIALISABLE_TYPE: SerialisableType,
-    TREE_TYPE: TreeType,
-    BOOTSTRAP_RESULT_TYPE: BootstrapResultType,
-    HYPOTHESIS_RESULT_TYPE: HypothesisResultType,
-}
-
 
 def get_constraint_names(*hints) -> set[str, ...]:
     """returns the set of named constraints of a type hint"""
@@ -116,20 +104,6 @@ def get_constraint_names(*hints) -> set[str, ...]:
 
     all_hints = {h.__forward_arg__ if type(h) == ForwardRef else h for h in all_hints}
     return all_hints
-
-
-@c3warn.deprecated_callable(
-    "2023.12", reason="migrating to proper types", is_discontinued=True
-)
-def hints_from_strings(*strings: Iterable[str]) -> list:
-    """returns list of type hints corresponding to string values"""
-    types = []
-    for string in strings:
-        string = string.lower()
-        if string not in _mappings:
-            raise ValueError(f"{string!r} not a known type constant")
-        types.append(_mappings[string])
-    return types
 
 
 def type_tree(hint, depth=0) -> tuple:
