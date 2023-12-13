@@ -11,13 +11,12 @@ The dotplot algorithm within ``cogent3`` offers a powerful tool to visualise the
 Visualising an alignment with poor parameter choices
 ----------------------------------------------------
 
-Let's begin by loading sequences for this example.
+Let's begin by importing the functions and loading sequences for this example. Note that although we load aligned sequences, we use the ``degap`` method to remove all gap characters from the sequences. This produces a set of unaligned sequences, for which we can align with different parameters to demonstrate the use of dotplots to visualise alignment quality. 
 
 .. jupyter-execute::
     :raises:
 
-    from cogent3 import load_aligned_seqs
-    from cogent3.app.align import progressive_align
+    from cogent3 import load_aligned_seqs, get_app
 
     seqs = load_aligned_seqs("data/brca1.fasta", moltype="dna").degap()
     seqs = seqs.take_seqs(
@@ -31,7 +30,7 @@ Let's align using such parameters, and take a look at a dotplot between two of t
 .. jupyter-execute::
     :raises:
 
-    aligner = progressive_align("nucleotide", indel_rate=1e-2, indel_length=1e-9)
+    aligner = get_app("progressive_align", "nucleotide", indel_rate=1e-2, indel_length=1e-9)
     aln = aligner(seqs)
     dp = aln[2200:2500].dotplot("HairyArma", "RoundEare")
     dp.show()
@@ -62,7 +61,7 @@ Let's align the same sequences, but with more biologically realistic parameters.
 .. jupyter-execute::
     :raises:
 
-    aligner = progressive_align("nucleotide")
+    aligner = get_app("progressive_align", "nucleotide")
     aln = aligner(seqs)
     aln[2200:2500].dotplot("HairyArma", "RoundEare").show()
 
