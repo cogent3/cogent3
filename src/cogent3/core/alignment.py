@@ -1395,12 +1395,7 @@ class _SequenceCollectionBase:
             result.annotation_db = self.annotation_db
         return result
 
-    @c3warn.deprecated_args(
-        "2023.10", "replaced by strict", discontinued="allow_partial"
-    )
-    def has_terminal_stop(
-        self, gc: Any = None, strict: bool = False, allow_partial=False
-    ) -> bool:
+    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
@@ -1421,17 +1416,7 @@ class _SequenceCollectionBase:
                 return True
         return False
 
-    @c3warn.deprecated_callable("2023.10", "better name", new="has_terminal_stop")
-    def has_terminal_stops(self, **kwargs) -> bool:
-        """deprecated"""
-        return self.has_terminal_stop(**kwargs)
-
-    @c3warn.deprecated_args(
-        "2023.10", "logically inconsistent", discontinued="allow_partial"
-    )
-    def trim_stop_codons(
-        self, gc: Any = None, strict: bool = False, allow_partial=False, **kwargs
-    ):
+    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -2341,18 +2326,6 @@ class Aligned:
     def with_termini_unknown(self):
         return self.__class__(self.map.with_termini_unknown(), self.data)
 
-    @c3warn.deprecated_callable(
-        "2023.10", "handled by <collection>.annotate_from_gff()", is_discontinued=True
-    )
-    def annotate_from_gff(self, f):  # pragma: no cover
-        self.data.annotate_from_gff(f)
-
-    @c3warn.deprecated_callable(
-        "2023.10", "handled by <collection>.add_feature()", is_discontinued=True
-    )
-    def add_feature(self, *args, **kwargs):  # pragma: no cover
-        self.data.add_feature(*args, **kwargs)
-
     def __str__(self):
         """Returns string representation of aligned sequence, incl. gaps."""
         return str(self.get_gapped_seq())
@@ -2376,11 +2349,6 @@ class Aligned:
         """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
         return self.data.gapped_by_map_motif_iter(self.map)
 
-    @c3warn.deprecated_args(
-        "2023.3",
-        reason="redundant, use obj.to_moltype() if needed",
-        discontinued="moltype",
-    )
     def get_gapped_seq(self, recode_gaps=False):
         """Returns sequence as an object, including gaps."""
         return self.data.gapped_by_map(self.map, recode_gaps)

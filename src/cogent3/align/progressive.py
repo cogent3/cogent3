@@ -193,17 +193,3 @@ def _progressive_hmm(indel_length, indel_rate, model, param_vals, seqs, tree):
     )
     align.info["align_params"] = param_vals
     return align
-
-
-def TreeAlign(*args, **kwargs):  # pragma: no cover
-    """deprecated, used tree_align()"""
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "TreeAlign",
-        "tree_align",
-        "2023.9",
-    )
-
-    return tree_align(*args, **kwargs)
