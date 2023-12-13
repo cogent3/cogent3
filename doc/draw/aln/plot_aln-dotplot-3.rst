@@ -37,7 +37,7 @@ Let's align using such parameters, and take a look at a dotplot between two of t
 
 The dotplot clearly shows the misalignment between the two sequences. In the centre of the alignment, there is a section of the alignment path (the dashed line), which does not line up with any matching segments between the sequences (the blue line). 
 
-Taking a closer look at the poorly aligned section, we can see multiple small gaps in many of the sequences. The likelihood of this reflecting the true history of the sequences is low. It requires many indel events in many species and thus is likely to be an artefact of the alignment algorithm.
+Taking a closer look at the poorly aligned section, we can see multiple small gaps in many of the sequences. The likelihood of this reflecting the true history of the sequences is low. It requires many indel events in many species and instead is likely to be an artefact of the alignment algorithm.
 
 .. jupyter-execute::
     :raises:
