@@ -33,7 +33,15 @@ Let's align using such parameters, and take a look at a dotplot between two of t
 
     aligner = progressive_align("nucleotide", indel_rate=1e-2, indel_length=1e-9)
     aln = aligner(seqs)
-    aln[2200:2500].dotplot("HairyArma", "RoundEare").show()
+    dp = aln[2200:2500].dotplot("HairyArma", "RoundEare")
+    dp.show()
+
+.. jupyter-execute::
+    :hide-code:
+
+    outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-dotplot-3.png"
+
+    dp.write(outpath)
 
 The dotplot clearly shows the misalignment between the two sequences. Towards the second half of the alignment, there is a section of the alignment path (the dashed line), which does not line up with any matching segments between the sequences (the blue line). 
 
