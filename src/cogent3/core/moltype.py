@@ -1458,7 +1458,7 @@ ArrayRnaCodonSequence.alphabet = RNA.alphabets.base**3
 
 # Modify Alignment to avoid circular import
 Alignment.moltype = ASCII
-SequenceCollection.moltype = BYTES
+SequenceCollection.moltype = ASCII
 
 
 def _make_moltype_dict():
