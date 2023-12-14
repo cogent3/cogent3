@@ -30,7 +30,6 @@ class AllTests(TestCase):
         self.da = ArrayAlignment(
             [self.model1, self.model2, self.model3],
             moltype=RNA,
-            alphabet=RNA.alphabets.degen_gapped,
         )
 
         # seqs no name
@@ -46,7 +45,6 @@ class AllTests(TestCase):
         self.nn_da = ArrayAlignment(
             [self.nn_model1, self.nn_model2, self.nn_model3],
             moltype=RNA,
-            alphabet=RNA.alphabets.degen_gapped,
         )
 
     def test_printing_named_seqs(self):
@@ -117,7 +115,8 @@ class AllTests(TestCase):
         model2 = ArraySequence("YCG", name="rna2", alphabet=RNA.alphabets.degen_gapped)
         model3 = ArraySequence("CAR", name="rna3", alphabet=RNA.alphabets.degen_gapped)
         sub_da = ArrayAlignment(
-            [model1, model2, model3], moltype=RNA, alphabet=RNA.alphabets.degen_gapped
+            [model1, model2, model3],
+            moltype=RNA,
         )
 
         sub_data = array([[0, 1, 3], [Y, 1, 3], [1, 2, R]])
@@ -192,7 +191,8 @@ class AllTests(TestCase):
         model2 = ArraySequence("YCG", name="rna2", alphabet=RNA.alphabets.degen_gapped)
         model3 = ArraySequence("CAR", name="rna3", alphabet=RNA.alphabets.degen_gapped)
         sub_da = ArrayAlignment(
-            [model1, model2, model3], moltype=RNA, alphabet=RNA.alphabets.degen_gapped
+            [model1, model2, model3],
+            moltype=RNA,
         )
 
         # take_seqs by name should have the same effect as
@@ -209,14 +209,14 @@ class AllTests(TestCase):
         self.assertEqual(self.da == self.da, True)
         # one sequence less
         other_da1 = ArrayAlignment(
-            [self.model1, self.model2], moltype=RNA, alphabet=RNA.alphabets.degen_gapped
+            [self.model1, self.model2],
+            moltype=RNA,
         )
         self.assertEqual(self.da == other_da1, False)
         # seqs in different order -- doesn't matter
         other_da2 = ArrayAlignment(
             [self.model1, self.model3, self.model2],
             moltype=RNA,
-            alphabet=RNA.alphabets.degen_gapped,
         )
         self.assertEqual(self.da == other_da2, True)
         # seqs in different encoding -- doesn't matter, only looks at data

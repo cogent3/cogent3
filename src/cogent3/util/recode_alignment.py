@@ -420,7 +420,7 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     # Map the old alphabet onto the new alphabet. Note: characters that
     # that are not mapped are ignored. Returns a new ArrayAlignment.
     return ArrayAlignment(
-        take(new_indices, aln.array_seqs).transpose(), aln.names[:], moltype=aln.moltype
+        take(new_indices, aln.array_seqs), aln.names[:], moltype=aln.moltype
     )
 
 
