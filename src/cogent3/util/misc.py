@@ -1103,8 +1103,9 @@ def get_first_value(data: typing.Iterable[typing.Any]):
     Returns the first element of data. If data is a dict, it will return
     the first element of data.values().
     """
-    if hasattr(data, "values"):
-        return next(iter(data.values()))
+    with contextlib.suppress(StopIteration):
+        if hasattr(data, "values"):
+            return next(iter(data.values()))
 
-    with contextlib.suppress(TypeError):
-        return next(iter(data))
+        with contextlib.suppress(TypeError):
+            return next(iter(data))
