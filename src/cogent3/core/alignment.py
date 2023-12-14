@@ -250,7 +250,10 @@ def coerce_to_string(s):
         return "".join(map(str, s))
 
 
-def seqs_from_array(a, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_array(a, alphabet=None):  # pragma: no cover
     """SequenceCollection from array of pos x seq: names are integers.
 
     This is an InputHandler for SequenceCollection. It converts an arbitrary
@@ -259,7 +262,10 @@ def seqs_from_array(a, alphabet=None):
     return list(transpose(a)), None
 
 
-def seqs_from_array_seqs(seqs, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_array_seqs(seqs, alphabet=None):  # pragma: no cover
     """Alignment from ArraySequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for SequenceCollection. It converts a list of
@@ -269,7 +275,10 @@ def seqs_from_array_seqs(seqs, alphabet=None):
     return seqs, [s.name for s in seqs]
 
 
-def seqs_from_generic(seqs, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_generic(seqs, alphabet=None):  # pragma: no cover
     """returns seqs, names"""
     names = []
     for s in seqs:
@@ -280,7 +289,10 @@ def seqs_from_generic(seqs, alphabet=None):
     return seqs, names
 
 
-def seqs_from_fasta(seqs, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_fasta(seqs, alphabet=None):  # pragma: no cover
     """SequenceCollection from FASTA-format string or lines.
 
     This is an InputHandler for SequenceCollection. It converts a FASTA-format
@@ -293,7 +305,10 @@ def seqs_from_fasta(seqs, alphabet=None):
     return list(seqs), list(names)
 
 
-def seqs_from_dict(seqs, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_dict(seqs, alphabet=None):  # pragma: no cover
     """SequenceCollection from dict of {label:seq_as_str}.
 
     This is an InputHandler for SequenceCollection. It converts a dict in
@@ -306,7 +321,10 @@ def seqs_from_dict(seqs, alphabet=None):
     return seqs, names
 
 
-def seqs_from_kv_pairs(seqs, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_kv_pairs(seqs, alphabet=None):  # pragma: no cover
     """SequenceCollection from list of (key, val) pairs.
 
     This is an InputHandler for SequenceCollection. It converts a dict in
@@ -319,7 +337,10 @@ def seqs_from_kv_pairs(seqs, alphabet=None):
     return seqs, names
 
 
-def seqs_from_aln(seqs, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_aln(seqs, alphabet=None):  # pragma: no cover
     """SequenceCollection from existing SequenceCollection object: copies data.
 
     This is relatively inefficient: you should really use the copy() method
@@ -328,7 +349,10 @@ def seqs_from_aln(seqs, alphabet=None):
     return seqs.seqs, seqs.names
 
 
-def seqs_from_empty(obj, *args, **kwargs):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def seqs_from_empty(obj, *args, **kwargs):  # pragma: no cover
     """SequenceCollection from empty data: raise exception."""
     raise ValueError("Cannot create empty SequenceCollection.")
 
@@ -3600,7 +3624,10 @@ def _one_length(seqs):
         raise ValueError("not all sequences have same length")
 
 
-def aln_from_array(a, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_array(a, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from array of pos x seq: no change, names are integers.
 
     This is an InputHandler for Alignment. It converts an arbitrary array
@@ -3615,7 +3642,10 @@ def aln_from_array(a, array_type=None, alphabet=None):
     return transpose(result), None
 
 
-def aln_from_array_seqs(seqs, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_array_seqs(seqs, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from ArraySequence objects: seqs -> array, names from seqs.
 
     This is an InputHandler for Alignment. It converts a list of Sequence
@@ -3643,7 +3673,10 @@ def aln_from_array_seqs(seqs, array_type=None, alphabet=None):
     return result, names
 
 
-def aln_from_generic(data, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_generic(data, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from generic seq x pos data: sequence of sequences of chars.
 
     This is an InputHandler for Alignment. It converts a generic list (each
@@ -3665,7 +3698,10 @@ def aln_from_generic(data, array_type=None, alphabet=None):
     return result, names
 
 
-def aln_from_collection(seqs, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_collection(seqs, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from SequenceCollection object, or its subclasses."""
     names = seqs.names
     data = [seqs.named_seqs[i] for i in names]
@@ -3675,7 +3711,10 @@ def aln_from_collection(seqs, array_type=None, alphabet=None):
     return result, names
 
 
-def aln_from_fasta(seqs, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_fasta(seqs, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from FASTA-format string or lines.
 
     This is an InputHandler for Alignment. It converts a FASTA-format string
@@ -3697,7 +3736,10 @@ def aln_from_fasta(seqs, array_type=None, alphabet=None):
     )
 
 
-def aln_from_dict(aln, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_dict(aln, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from dict of {label:seq_as_str}.
 
     This is an InputHandler for Alignment. It converts a dict in which the
@@ -3717,7 +3759,10 @@ def aln_from_dict(aln, array_type=None, alphabet=None):
     return result, list(names)
 
 
-def aln_from_kv_pairs(aln, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_kv_pairs(aln, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from sequence of (key, value) pairs.
 
     This is an InputHandler for Alignment. It converts a list in which the
@@ -3732,7 +3777,10 @@ def aln_from_kv_pairs(aln, array_type=None, alphabet=None):
     return result, list(names)
 
 
-def aln_from_array_aln(aln, array_type=None, alphabet=None):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_array_aln(aln, array_type=None, alphabet=None):  # pragma: no cover
     """Alignment from existing ArrayAlignment object: copies data.
 
     Retrieves data from positions field. Uses copy(), so array data type
@@ -3745,7 +3793,10 @@ def aln_from_array_aln(aln, array_type=None, alphabet=None):
     return transpose(result), aln.names[:]
 
 
-def aln_from_empty(obj, *args, **kwargs):
+@c3warn.deprecated_args(
+    "2024.3", reason="replaced by different loading mechanism", discontinued=True
+)
+def aln_from_empty(obj, *args, **kwargs):  # pragma: no cover
     """Alignment from empty data: raise exception."""
     raise ValueError("Cannot create empty alignment.")
 
