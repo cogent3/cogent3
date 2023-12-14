@@ -424,10 +424,6 @@ def recode_dense_alignment(aln, alphabet_id=None, alphabet_def=None):
     )
 
 
-def recode_alignment(aln, alphabet_id=None, alphabet_def=None):
-    raise NotImplementedError
-
-
 def recode_freq_vector(alphabet_def, freqs, ignores="BXZ"):
     """recode the bg_freqs to reflect the recoding defined in alphabet_def
 
