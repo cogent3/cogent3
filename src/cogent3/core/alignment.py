@@ -2430,22 +2430,6 @@ class Aligned:
         annot = self.data.make_feature(feature)
         return annot.remapped_to(alignment, self.map.inverse())
 
-    @c3warn.deprecated_callable(
-        "2023.10", "handled by <collection>.get_features()", is_discontinued=True
-    )
-    def get_annotations_matching(self, alignment, **kwargs):  # pragma: no cover
-        for feature in self.data.annotation_db.get_features(**kwargs):
-            yield self.make_feature(feature, alignment)
-
-    @c3warn.deprecated_callable(
-        "2023.10", "handled by <collection>.get_features()", is_discontinued=True
-    )
-    def get_features_matching(
-        self, alignment, annotation_type="*", **kwargs
-    ):  # pragma: no cover
-        for annot in self.data.get_features(biotype=annotation_type, **kwargs):
-            yield annot.remapped_to(alignment, self.map.inverse())
-
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
         return self.get_gapped_seq().gap_vector()
@@ -3726,13 +3710,8 @@ class AlignmentI(object):
             width=width, height=height, wrap=wrap, vspace=vspace, colours=colours
         )
 
-    @c3warn.deprecated_args(
-        "2023.10", "logically inconsistent", discontinued="allow_partial"
-    )
     @extend_docstring_from(_SequenceCollectionBase.trim_stop_codons)
-    def trim_stop_codons(
-        self, gc: Any = None, strict: bool = False, allow_partial=False, **kwargs
-    ):
+    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
@@ -4277,11 +4256,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names=self.names,
         )
 
-    @c3warn.deprecated_args(
-        "2023.3",
-        reason="redundant, use obj.to_moltype() if needed",
-        discontinued="moltype",
-    )
     def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
@@ -4977,11 +4951,6 @@ class Alignment(AlignmentI, SequenceCollection):
         seq = self.named_seqs[seqname]
         return seq.data[seq.map.without_gaps()]
 
-    @c3warn.deprecated_args(
-        "2023.3",
-        reason="redundant, use obj.to_moltype() if needed",
-        discontinued="moltype",
-    )
     def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
 
