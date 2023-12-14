@@ -3877,18 +3877,23 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         return seqs
 
+    @c3warn.deprecated_args(
+        "2024.3",
+        reason="naming consistency",
+        old_new=(("invert_seqs", "negate_seqs"), ("invert_pos", "negate_pos")),
+    )
     def get_sub_alignment(
-        self, seqs=None, pos=None, invert_seqs=False, invert_pos=False
+        self, seqs=None, pos=None, negate_seqs=False, negate_pos=False
     ):
         """Returns subalignment of specified sequences and positions.
 
         seqs and pos can be passed in as lists of sequence indices to keep
         or positions to keep.
 
-        invert_seqs: if True (default False), gets everything _except_ the
+        negate_seqs: if True (default False), gets everything _except_ the
         specified sequences.
 
-        invert_pos: if True (default False), gets everything _except_ the
+        negate_pos: if True (default False), gets everything _except_ the
         specified positions.
 
         Unlike most of the other code that gets things out of an alignment,
@@ -3897,7 +3902,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         # figure out which positions to keep, and keep them
         if pos is not None:
-            if invert_pos:
+            if negate_pos:
                 pos_mask = ones(len(self.array_positions))
                 put(pos_mask, pos, 0)
                 pos = nonzero(pos_mask)[0]
@@ -3906,7 +3911,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             data = self.array_positions
         # figure out which sequences to keep, and keep them
         if seqs is not None:
-            if invert_seqs:
+            if negate_seqs:
                 seq_mask = ones(len(self.array_seqs))
                 put(seq_mask, seqs, 0)
                 seqs = nonzero(seq_mask)[0]
