@@ -329,7 +329,7 @@ class take_n_seqs:
             self._names = data.names[: self._number]
             return
 
-        self._names = np_random.choice(data.names, self._number, replace=False)
+        self._names = np_random.choice(data.names, self._number, replace=False).tolist()
 
     T = Union[SerialisableType, SeqsCollectionType]
 
