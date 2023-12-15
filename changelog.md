@@ -1,4 +1,70 @@
 
+<a id='changelog-2023.12.15a1'></a>
+# Changes in release "2023.12.15a1"
+
+## Contributors
+
+- @wjjmjh (aka Stephen Ma) fixed an error in the seq features gallery drawing example. Turns out, if you want a thumbnail, you actually have to write it out 🤦‍♂️!!
+- Multiple PRs from first-time contributor Fred Jaya. Thanks @fredjaya 🚀!!
+- Kath Caley for the sweet new cogent3 logo 🥳!
+- Kath Caley for numerous other commits (bug fixes, enhancements, etc..). Thanks @KatherineCaley 🚀!
+- First time contribution from @cosmastech 🎉
+- Important new tree metrics from Robert McArthur. Thanks @rmcar17 🚀!
+
+## ENH
+
+- Added from cogent3.app.typing import defined_types function. This displays
+  the cogent3 defined type hints and the objects they represent.
+
+- added available_apps(name_filter) which allows filtering apps by
+  their name (thanks to @cosmastech)
+
+- The new AnnotationDb.subset() method creates a subset of the instance
+  with records matching the provided conditions.
+
+- app.as_completed() and app.apply_to() no longer raise a
+  ValueError if there's no work to be done.
+
+- Added the ever popular Robinson-Fould tree topology measure, but
+  you shouldn't use it except for comparison to the far superior
+  (statistically at least) matching distance measures. These are all
+  available on the tree objects via a new PhyloNode.tree_distance()
+  method (thanks to @rmcar17).
+
+- Added methods `min_pair()` and `max_pair()` to `DistanceMatrix`, to return the names of the sequences with minimum and maximum pairwise distance, respectively (thanks to @KatherineCaley).
+
+## BUG
+
+- The sequence returned from Alignment.get_seq() now reflects
+  slice operations applied to the Alignment.
+
+## DOC
+
+- The sequence features drawing example now has a gallery thumbnail.
+
+- Doc showing how the dotplot can be used to highlight alignment errors.
+
+- Added acknowledgement that this project has received funding support from
+  the Australian National University. We are grateful!
+
+## Deprecations
+
+- Table.tolist() is being replaced by Table.to_list()
+
+- Reverse slicing of Alignment and ArrayAlignment are now consistent
+  with reverse slicing of a string. Previously reverse slicing an
+  Alignment instance, e.g. `aln[5:1]` would reverse complement a
+  nucleic acid object, but fail if it was any other molecular type.
+  This behaviour was different to ArrayAlignment. For both objects, use
+  a normal slice and reverse complement, e.g. `aln[1:5].rc()`.
+
+## Discontinued
+
+- Began a major refactor of the sequence collection classes. The major change
+  is they no longer accept fasta formatted string as input. As we have simplified
+  the data conversion functions, all previously used public functions have now been
+  marked as being discontinued 2024.3.
+
 <a id='changelog-2023.9.22a1'></a>
 # Changes in release "2023.9.22a1"
 
