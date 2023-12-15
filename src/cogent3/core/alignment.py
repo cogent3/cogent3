@@ -416,17 +416,42 @@ def _moltype_from_data(data):
 
 
 @_moltype_from_data.register
-def _(data: dict | list | tuple | set):
+def _(data: dict):
     return _moltype_from_data(get_first_value(data))
 
 
 @_moltype_from_data.register
-def _(data: str | bytes | ndarray | None):
+def _(data: list):
+    return _moltype_from_data(get_first_value(data))
+
+
+@_moltype_from_data.register
+def _(data: tuple):
+    return _moltype_from_data(get_first_value(data))
+
+
+@_moltype_from_data.register
+def _(data: set):
+    return _moltype_from_data(get_first_value(data))
+
+
+@_moltype_from_data.register
+def _(data: str):
     return None
 
 
 @_moltype_from_data.register
-def _(data: str | bytes | ndarray):
+def _(data: bytes):
+    return None
+
+
+@_moltype_from_data.register
+def _(data: ndarray):
+    return None
+
+
+@_moltype_from_data.register
+def _(data: None):
     return None
 
 
@@ -5378,15 +5403,43 @@ def _(data: dict, names, label_to_name=str, moltype=None) -> O:
     )
 
 
+def _coerce_from_containers(data):
+    return [(s.name, s) for s in data.seqs]
+
+
 @_coerce_to_unaligned_seqs.register
 def _(
-    data: Alignment | SequenceCollection | ArrayAlignment,
+    data: Alignment,
     names,
     label_to_name=str,
     moltype=None,
 ) -> O:
     return _coerce_to_unaligned_seqs(
-        [(s.name, s) for s in data.seqs], names, label_to_name, moltype=moltype
+        _coerce_from_containers(data), names, label_to_name, moltype
+    )
+
+
+@_coerce_to_unaligned_seqs.register
+def _(
+    data: SequenceCollection,
+    names,
+    label_to_name=str,
+    moltype=None,
+) -> O:
+    return _coerce_to_unaligned_seqs(
+        _coerce_from_containers(data), names, label_to_name, moltype
+    )
+
+
+@_coerce_to_unaligned_seqs.register
+def _(
+    data: ArrayAlignment,
+    names,
+    label_to_name=str,
+    moltype=None,
+) -> O:
+    return _coerce_to_unaligned_seqs(
+        _coerce_from_containers(data), names, label_to_name, moltype
     )
 
 
@@ -5448,9 +5501,26 @@ def _(data: ndarray, names, label_to_name, moltype) -> O:
 
 
 @_coerce_to_array_aligned_seqs.register
-def _(data: ArrayAlignment | SequenceCollection, names, label_to_name, moltype) -> O:
+def _(
+    data: ArrayAlignment,
+    names,
+    label_to_name,
+    moltype,
+) -> O:
     return _coerce_to_array_aligned_seqs(
-        [(s.name, s) for s in data.seqs], names, label_to_name, moltype
+        _coerce_from_containers(data), names, label_to_name, moltype
+    )
+
+
+@_coerce_to_array_aligned_seqs.register
+def _(
+    data: SequenceCollection,
+    names,
+    label_to_name,
+    moltype,
+) -> O:
+    return _coerce_to_array_aligned_seqs(
+        _coerce_from_containers(data), names, label_to_name, moltype
     )
 
 
@@ -5514,9 +5584,26 @@ def _(data: ndarray, names, label_to_name, moltype) -> O:
 
 
 @_coerce_to_aligned_seqs.register
-def _(data: ArrayAlignment | SequenceCollection, names, label_to_name, moltype) -> O:
+def _(
+    data: ArrayAlignment,
+    names,
+    label_to_name,
+    moltype,
+) -> O:
     return _coerce_to_aligned_seqs(
-        [(s.name, s) for s in data.seqs], names, label_to_name, moltype
+        _coerce_from_containers(data), names, label_to_name, moltype
+    )
+
+
+@_coerce_to_aligned_seqs.register
+def _(
+    data: SequenceCollection,
+    names,
+    label_to_name,
+    moltype,
+) -> O:
+    return _coerce_to_aligned_seqs(
+        _coerce_from_containers(data), names, label_to_name, moltype
     )
 
 
@@ -5577,7 +5664,12 @@ def _(data: Aligned, moltype) -> Aligned:
 
 
 @_construct_aligned_seq.register
-def _(data: list | tuple, moltype) -> Aligned:
+def _(data: list, moltype) -> Aligned:
+    return _construct_aligned_seq("".join(data), moltype)
+
+
+@_construct_aligned_seq.register
+def _(data: tuple, moltype) -> Aligned:
     return _construct_aligned_seq("".join(data), moltype)
 
 
@@ -5614,7 +5706,12 @@ def _(data: bytes, moltype) -> ndarray:
 
 
 @_construct_array_aligned_seq.register
-def _(data: typing.Union[list, tuple], moltype) -> ndarray:
+def _(data: list, moltype) -> ndarray:
+    return array(data, dtype=numpy.uint8)
+
+
+@_construct_array_aligned_seq.register
+def _(data: tuple, moltype) -> ndarray:
     return array(data, dtype=numpy.uint8)
 
 
