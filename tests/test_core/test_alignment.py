@@ -3374,8 +3374,6 @@ def test_add_from_ref_aln(cls):
         [["name1", "ACDEFGHI"], ["name4", "KL--MNPR"]]
     )
 
-    aln2_list = [["name1", "ACDEFGHI"], ["name4", "KL--MNPR"]]
-
     aligned_to_ref_out_aln = cls(
         [
             ["name1", "-AC-DEFGHI---"],
