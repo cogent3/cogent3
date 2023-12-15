@@ -13,7 +13,7 @@ It's also possible to load a sequence from a :ref:`url <load_url>`.
 .. jupyter-execute::
 
     from cogent3 import load_seq
-    
+
     seq = load_seq("data/mycoplasma-genitalium.fa", moltype="dna")
     seq
 
@@ -76,8 +76,10 @@ The ``cogent3`` load functions support loading from a url. We load the above fas
 
     from cogent3 import load_aligned_seqs
 
-
-    aln = load_aligned_seqs("https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta", moltype="dna")
+    aln = load_aligned_seqs(
+        "https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta",
+        moltype="dna",
+    )
 
 Specifying the file format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -100,7 +102,7 @@ Simple case of loading a ``list`` of aligned amino acid sequences in FASTA forma
 
     from cogent3 import make_aligned_seqs
 
-    protein_seqs = [">seq1", "DEKQL-RG", ">seq2", "DDK--SRG"]
+    protein_seqs = {"seq1": "DEKQL-RG", "seq2": "DDK--SRG"}
     proteins_loaded = make_aligned_seqs(protein_seqs)
     proteins_loaded.moltype
     proteins_loaded
@@ -132,7 +134,7 @@ From a series of strings
 
     from cogent3 import make_aligned_seqs
 
-    seqs = [">seq1", "AATCG-A", ">seq2", "AATCGGA"]
+    seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
     seqs_loaded = make_aligned_seqs(seqs)
     seqs_loaded
 
@@ -145,12 +147,10 @@ Load a list of aligned nucleotide sequences, while specifying the DNA molecule t
 
     from cogent3 import make_aligned_seqs
 
-    DNA_seqs = [
-        ">sample1 Mus musculus",
-        "AACCTGC--C",
-        ">sample2 Gallus gallus",
-        "AAC-TGCAAC",
-    ]
+    DNA_seqs = {
+        "sample1 Mus musculus": "AACCTGC--C",
+        "sample2 Gallus gallus": "AAC-TGCAAC",
+    }
     loaded_seqs = make_aligned_seqs(
         DNA_seqs, moltype="dna", label_to_name=lambda x: x.split()[0]
     )
