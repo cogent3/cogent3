@@ -10,7 +10,6 @@ Annotation Databases
 
 This guide shows you how to use ``cogent3``'s annotation databases, which are in-memory SQLite databases, to store, query and manipulate the :ref:`howto-features` (also known as annotations) of one or more biological sequences.
 
-
 What are the different types of ``AnnotationDb``?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -28,7 +27,7 @@ Achieved by creating an ``BasicAnnotationDb`` instance. This is an empty databas
 
     anno_db = BasicAnnotationDb()
     anno_db
-    
+
 How to load an standalone ``AnnotationDb`` from a data file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -84,12 +83,12 @@ We can add a feature to the empty ``BasicAnnotationDb`` we created above. Now th
     :raises:
 
     anno_db.add_feature(
-               seqid="NC_000908",
-               biotype="gene",
-               name="interesting_gene",
-               spans=[(1, 4)],
-               strand="+",
-                )
+        seqid="NC_000908",
+        biotype="gene",
+        name="interesting_gene",
+        spans=[(1, 4)],
+        strand="+",
+    )
     anno_db.describe
 
 We can also add a feature to our ``GffAnnotationDb`` or ``GenbankAnnotationDb``. Below, the previously empty "user" table now has a row count of one, indicating that our feature has been successfully added to the database.
@@ -104,7 +103,7 @@ We can also add a feature to our ``GffAnnotationDb`` or ``GenbankAnnotationDb``.
         spans=[(1, 4)],
         strand="+",
     )
-    gff_db.describe[-2:, :] # showing just last two rows
+    gff_db.describe[-2:, :]  # showing just last two rows
 
 How to write an ``AnnotationDb`` to disk for efficient re-loading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -162,7 +161,7 @@ For example, querying the ``GffAnnotationDb`` for all pseudogenes:
     :raises:
 
     pseudogenes = list(gff_db.get_features_matching(biotype="pseudogene"))
-    pseudogenes[:2] # showing just the first two
+    pseudogenes[:2]  # showing just the first two
 
 Querying via region of interest
 """""""""""""""""""""""""""""""
@@ -192,7 +191,7 @@ For example, we can query for all CDS related to replication:
     replication_records = list(
         gff_db.get_records_matching(attributes="replication", biotype="CDS")
     )
-    replication_records[0] # showing just the first match
+    replication_records[0]  # showing just the first match
 
 .. note:: Extended attribute querying only works for GFF databases!
 
@@ -320,9 +319,25 @@ You can assign a compatible database to the ``db`` argument in the ``AnnotationD
     :raises:
 
     from cogent3.core.annotation_db import GenbankAnnotationDb
-    
+
     new_gb_db = GenbankAnnotationDb(source="m-genitalium-database.gbdb", db=anno_db)
     new_gb_db
+
+How to get a subset of an ``AnnotationDb``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want a subset of a db, use the same arguments as you would for ``db.get_records_matching()``.
+
+.. jupyter-execute::
+    :raises:
+
+    from cogent3 import load_annotations
+
+    gff_db = load_annotations(path="data/mycoplasma-genitalium.gff")
+    just_cds = gff_db.subset(biotype="CDS")
+    just_cds.describe
+
+.. note:: The result is an in-memory database by default. To have this written to disk, assign a path to the source argument, e.g. ``gff_db.subset(source="som/path/subset.gff3db", biotype="CDS")``.
 
 .. _assign_db_to_seq:
 
@@ -393,9 +408,7 @@ In the above example, the sequence name in the fasta file does not match any rec
         label_to_name=lambda x: x.split()[0],
     )
     seq.annotation_db
-    
-    
-    
+
 .. jupyter-execute::
     :hide-code:
 

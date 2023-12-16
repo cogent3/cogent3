@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
 # remember to update cogent3/_version.py too!
-version = "2023.9.22a1"
+version = "2023.12.15a1"
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au"},
 ]
@@ -15,7 +15,6 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = ["chardet",
         "numpy",
-        "numba>0.48.0;python_version<'3.9'",
         "numba>0.53; python_version>='3.9'",
         "numba>0.54; python_version>='3.10'",
         "numba>=0.57.0; python_version=='3.11'",
@@ -24,7 +23,7 @@ dependencies = ["chardet",
         "tqdm",
         "typing_extensions"]
 # remember to update version in requires-python and classifiers
-requires-python = ">=3.8,<3.12"
+requires-python = ">=3.9,<3.12"
 classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
@@ -32,7 +31,6 @@ classifiers = [
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
@@ -79,7 +77,7 @@ doc  = ["click==8.1.7",
         "sphinx",
         "sphinx-autobuild",
         "pydata_sphinx_theme",
-        "sphinx_panels",
+        "sphinx_design",
         "sphinxcontrib-bibtex",
         "sphinxcontrib-video"]
 extra = ["pandas", "plotly", "psutil", "kaleido"]
@@ -112,7 +110,7 @@ dev = ["black==23.9.1",
        "sphinx",
        "sphinx-autobuild",
        "pydata_sphinx_theme",
-       "sphinx_panels",
+       "sphinx_design",
        "sphinxcontrib-bibtex",
        "sphinxcontrib-video",
        "tinydb"
@@ -126,9 +124,9 @@ exclude = ["doc/*.html"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     ]
-
-addopts = ["--strict-config", "-ra"]
 testpaths = "tests"
+addopts = ["--strict-config"]
+norecursedirs = ["doc", ".nox"]
 filterwarnings = [
     'ignore:FORCED EXIT from optimiser',
     'ignore:Motif probs overspecified',
@@ -137,7 +135,7 @@ filterwarnings = [
 
 [tool.black]
 line-length = 88
-target-version = ["py38", "py39", "py310"]
+target-version = ["py39", "py310", "py311"]
 exclude = '''
 /(
     \.eggs

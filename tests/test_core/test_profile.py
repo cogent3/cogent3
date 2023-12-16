@@ -2,7 +2,7 @@
 """Provides tests for classes and functions in profile.py
 """
 from collections import Counter
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import array, log2, nan, vstack
 from numpy.testing import assert_allclose

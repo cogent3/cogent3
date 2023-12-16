@@ -1,13 +1,13 @@
 import math
-import os
 import time
+
+from collections import Counter
 
 from cogent3.util import parallel
 
 
 def is_prime(n):
     r = parallel.get_rank()
-    print(f"Rank: {r}")
 
     if n % 2 == 0:
         return False
@@ -17,23 +17,39 @@ def is_prime(n):
         if n % i == 0:
             return False
 
-    return True
+    return r
 
 
-PRIMES = [
-    112272535095293,
-    112582705942171,
-    112272535095293,
-    115280095190773,
-    115797848077099,
-    117450548693743,
-    993960000099397,
-] * 4  # multiplying just to increase the amount of data to calculate
+PRIMES = (
+    [
+        112272535095293,
+        112582705942171,
+        112272535095293,
+        115280095190773,
+        115797848077099,
+        117450548693743,
+        993960000099397,
+    ]
+    * 4
+    * 20
+)  # multiplying just to increase the amount of data to calculate
 
 
-print(f"World size: {parallel.size}\n")
+def main():
+    print(f"World size: {parallel.SIZE}\n")
 
-start = time.time()
-result = parallel.map(is_prime, PRIMES, max_workers=4)
+    start = time.time()
+    result = Counter(parallel.as_completed(is_prime, PRIMES, max_workers=4))
 
-print(f"{time.time() - start:.2f} seconds\n")
+    if sum(result.values()) != len(PRIMES):
+        print(f" failed: {len(result)} != {len(PRIMES)} : {result=}")
+    else:
+        print(
+            f"Time taken = {time.time() - start:.2f} seconds",
+            f"CPU rank by number of jobs: {result}",
+            sep="\n",
+        )
+
+
+if __name__ == "__main__":
+    main()

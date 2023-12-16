@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
@@ -323,7 +323,3 @@ class RecodeMatrixTests(TestCase):
         actual = recode_count_matrix(self.alphabet2, self.recoded_m2, self.aa_order2)
         expected = self.recoded_m2
         assert_allclose(actual, expected)
-
-
-if __name__ == "__main__":
-    main()

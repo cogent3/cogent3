@@ -29,6 +29,9 @@ from numpy import (
     arange,
     array,
     compress,
+    floating,
+    integer,
+    issubdtype,
     logical_not,
     logical_or,
     nonzero,
@@ -63,11 +66,7 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import (
-    deprecated,
-    deprecated_args,
-    deprecated_callable,
-)
+from cogent3.util.warning import deprecated_args
 
 
 ARRAY_TYPE = type(array(1))
@@ -75,6 +74,16 @@ ARRAY_TYPE = type(array(1))
 # standard distance functions: left  because generally useful
 frac_same = for_seq(f=eq, aggregator=sum, normalizer=per_shortest)
 frac_diff = for_seq(f=ne, aggregator=sum, normalizer=per_shortest)
+
+
+def _is_int(val) -> bool:
+    """whether val is builtin, or numpy, integer"""
+    return issubdtype(val.__class__, integer) or isinstance(val, int)
+
+
+def _is_float(val) -> bool:
+    """whether val is builtin, or numpy, integer"""
+    return issubdtype(val.__class__, floating) or isinstance(val, float)
 
 
 @total_ordering
@@ -1154,6 +1163,9 @@ class Sequence(SequenceI):
             raise ValueError(f"unknown moltype '{moltype}'")
 
         moltype = get_moltype(moltype)
+        if moltype is self.moltype:
+            return self
+
         s = moltype.coerce_str(self._seq.value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
         sv = SeqView(s)
@@ -1317,7 +1329,7 @@ class Sequence(SequenceI):
             new = self._mapped(index)
             preserve_offset = not index.reverse
 
-        elif isinstance(index, (int, slice)):
+        elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(
                 self._seq[index], name=self.name, check=False, info=self.info
             )
@@ -1330,6 +1342,9 @@ class Sequence(SequenceI):
         if self.annotation_db is not None and preserve_offset:
             new.replace_annotation_db(self.annotation_db, check=False)
             new.annotation_offset = self.annotation_offset
+
+        if _is_float(index):
+            raise TypeError("cannot slice using float")
 
         if hasattr(self, "_repr_policy"):
             new._repr_policy.update(self._repr_policy)
@@ -1629,9 +1644,10 @@ class NucleicAcidSequence(Sequence):
         rc.annotation_db = self.annotation_db
         return rc
 
-    @deprecated_args("2023.10", "replaced by strict", discontinued="allow_partial")
     def has_terminal_stop(
-        self, gc: Any = None, strict: bool = False, allow_partial=False
+        self,
+        gc: Any = None,
+        strict: bool = False,
     ) -> bool:
         """Return True if the sequence has a terminal stop codon.
 
@@ -1656,9 +1672,10 @@ class NucleicAcidSequence(Sequence):
 
         return False
 
-    @deprecated_args("2023.10", "replaced by strict", discontinued="allow_partial")
     def trim_stop_codon(
-        self, gc: Any = None, strict: bool = False, allow_partial=False
+        self,
+        gc: Any = None,
+        strict: bool = False,
     ):
         """Removes a terminal stop codon from the sequence
 
@@ -1742,6 +1759,7 @@ class NucleicAcidSequence(Sequence):
         protein = get_moltype("protein_with_stop" if include_stop else "protein")
         gc = get_code(gc)
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
+        moltype = self.moltype
         # translate the codons
         translation = []
         if include_stop or not trim_stop:
@@ -1753,7 +1771,9 @@ class NucleicAcidSequence(Sequence):
         for posn in range(0, len(seq) - 2, 3):
             orig_codon = str(seq[posn : posn + 3])
             try:
-                resolved = codon_alphabet.resolve_ambiguity(orig_codon)
+                resolved = moltype.resolve_ambiguity(
+                    orig_codon, alphabet=codon_alphabet
+                )
             except AlphabetError:
                 if not incomplete_ok or "-" not in orig_codon:
                     raise AlphabetError(
@@ -2136,7 +2156,7 @@ class SeqView:
         )
 
     def __getitem__(self, segment):
-        if isinstance(segment, int):
+        if _is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(self.seq, start=start, stop=stop, step=step)
 

@@ -205,17 +205,29 @@ def _indexed(values):
     return unique, counts, index
 
 
-def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
-    if alphabet is None:
-        alphabet = sequence.moltype.alphabet
-    if seq_name is None:
-        seq_name = sequence.get_name()
+def get_matched_array(alphabet, moltype, motifs, dtype=float) -> numpy.ndarray:
+    """Returns an array in which rows are motifs, columns are items in self.
 
+    Result is an array of dtype in which a[i][j] indicates whether the ith
+    motif passed in as motifs is a symbol that matches the jth character
+    in self. For example, on the DNA alphabet 'TCAG', the degenerate symbol
+    'Y' would correspond to the row [1,1,0,0] because Y is a degenerate
+    symbol that encompasses T and C but not A or G.
+    """
+    result = numpy.zeros([len(motifs), len(alphabet)], dtype)
+    obj_to_index = alphabet.to_indices
+    for u, ambig_motif in enumerate(motifs):
+        for motif in moltype.resolve_ambiguity(ambig_motif, alphabet=alphabet):
+            result[u, obj_to_index((motif,))] = 1.0
+    return result
+
+
+def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
     motif_len = alphabet.get_motif_len()
     sequence2 = sequence.get_in_motif_size(motif_len)
 
     # Convert sequence to indexed list of unique motifs
-    (uniq_motifs, counts, index) = _indexed(sequence2)
+    uniq_motifs, counts, index = _indexed(sequence2)
 
     # extra column for gap
     uniq_motifs.append("?" * motif_len)
@@ -225,7 +237,9 @@ def make_likelihood_tree_leaf(sequence, alphabet=None, seq_name=None):
 
     # Convert list of unique motifs to array of unique profiles
     try:
-        likelihoods = alphabet.get_matched_array(uniq_motifs, float)
+        likelihoods = get_matched_array(
+            alphabet, alphabet.moltype, uniq_motifs, dtype=float
+        )
     except alphabet.AlphabetError as detail:
         motif = str(detail)
         posn = list(sequence2).index(motif) * motif_len

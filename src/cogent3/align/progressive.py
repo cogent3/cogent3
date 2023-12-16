@@ -14,8 +14,8 @@ def tree_align(
     model: str,
     seqs: SequenceCollection,
     tree: Optional[TreeNode] = None,
-    indel_rate: float = 0.01,
-    indel_length: float = 0.01,
+    indel_rate: float = 1e-10,
+    indel_length: float = 1e-1,
     ui=None,
     params_from_pairwise: bool = True,
     param_vals: dict = None,
@@ -66,7 +66,7 @@ def tree_align(
     param_vals = dict(param_vals) if param_vals else {}
 
     model = get_model(model)
-    moltype = model.alphabet.moltype
+    moltype = model.moltype
 
     num_states = len(model.alphabet)
 
@@ -193,17 +193,3 @@ def _progressive_hmm(indel_length, indel_rate, model, param_vals, seqs, tree):
     )
     align.info["align_params"] = param_vals
     return align
-
-
-def TreeAlign(*args, **kwargs):  # pragma: no cover
-    """deprecated, used tree_align()"""
-    from cogent3.util.warning import deprecated
-
-    deprecated(
-        "function",
-        "TreeAlign",
-        "tree_align",
-        "2023.9",
-    )
-
-    return tree_align(*args, **kwargs)

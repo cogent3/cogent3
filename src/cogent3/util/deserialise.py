@@ -165,18 +165,13 @@ def deserialise_result(data):
 @register_deserialiser("cogent3.core.moltype")
 def deserialise_moltype(data):
     """returns a cogent3 MolType instance, or a CodonAlphabet"""
-    from cogent3.core.moltype import _CodonAlphabet, get_moltype
+    from cogent3.core.moltype import get_moltype
 
     data.pop("version", None)
     label = data["moltype"]
     data["moltype"] = get_moltype(label)
     klass = _get_class(data.pop("type"))
-    if klass == _CodonAlphabet:
-        gc = get_code(data.pop("genetic_code"))
-        result = _CodonAlphabet(**data)
-        result._gc = gc
-    else:
-        result = data["moltype"]
+    result = data["moltype"]
 
     return result
 
@@ -184,13 +179,9 @@ def deserialise_moltype(data):
 @register_deserialiser("cogent3.core.alphabet")
 def deserialise_alphabet(data):
     """returns a cogent3 Alphabet instance"""
-    from cogent3.core.moltype import _CodonAlphabet, get_moltype
+    from cogent3.core.moltype import get_moltype
 
     data.pop("version", None)
-    if _get_class(data.get("type")) == _CodonAlphabet:
-        result = deserialise_moltype(data)
-        return result
-
     label = data["moltype"]
     data["moltype"] = get_moltype(label)
     key = "data" if "data" in data else "motifset"

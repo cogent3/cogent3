@@ -1,6 +1,6 @@
 import pathlib
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3 import make_aligned_seqs, make_table
 from cogent3.app import evo as evo_app
@@ -409,7 +409,3 @@ class TestTabularResult(TestCase):
         tr = tabular_result("null")
         with self.assertRaises(TypeError):
             tr["null"] = {0, 23}
-
-
-if __name__ == "__main__":
-    main()

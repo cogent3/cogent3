@@ -60,14 +60,15 @@ def test_find_matched_k_eq_1():
 
 
 def test_calc_seed_size():
-    x = _calc_seed_size(20, 20)
-    assert x == 20
+    """default seed size should not be larger than than threshold"""
+    for i in range(2, 30):
+        x = _calc_seed_size(30, i)
+        assert x <= i
 
-    x = _calc_seed_size(20, 19)
-    assert x == 10
 
-    x = _calc_seed_size(20, 14)
-    assert x == 7
+def test_calc_seed_size_singleton_window():
+    x = _calc_seed_size(1, 1)
+    assert x == 1
 
 
 def test_segment():
@@ -387,6 +388,16 @@ def test_find_matched_with_rc():
     yrc = y.for_rc(len(s))
     # the rev complemented y-coord == x
     assert x == yrc
+
+
+def test_find_matched_with_small_seed():
+    s1 = make_seq("CACACCACTGCAGTCGGATAGACC", moltype="dna", name="s1")
+    s2 = make_seq("GGTCTATCCGACTGCAGTGGTGTG", moltype="dna", name="s2")
+    k = 2
+    expect = _brute_force(s1, s2, 4, 4)
+    sk = SeqKmers(s1, k=k, canonical="ACGT")
+    got = find_matched_paths(seq_kmers=sk, seq1=s1, seq2=s2, window=4, threshold=4)
+    assert got.paths == expect.paths
 
 
 @pytest.mark.parametrize("w,t", [(4, 4), (3, 3)])

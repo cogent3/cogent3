@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app.composable import NotCompleted

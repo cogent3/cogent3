@@ -1,7 +1,7 @@
 import os
 import warnings
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy.testing import assert_allclose, assert_almost_equal
 
@@ -38,7 +38,8 @@ class test_parameter_controller(TestCase):
         # length all edges 1 except c=2.  b&d transitions all other
         # transverions
         self.al = make_aligned_seqs(
-            data={"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"}
+            data={"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"},
+            moltype="dna",
         )
         self.tree = make_tree(treestring="((a,b),(c,d),e);")
         self.model = cogent3.evolve.substitution_model.TimeReversibleNucleotide(
@@ -165,7 +166,7 @@ class test_parameter_controller(TestCase):
         self.assertEqual(lf.get_param_value("length", "d"), 5)
 
     def test_pairwise_clock(self):
-        al = make_aligned_seqs(data={"a": "agct", "b": "ggct"})
+        al = make_aligned_seqs(data={"a": "agct", "b": "ggct"}, moltype="dna")
         tree = make_tree(treestring="(a,b);")
         model = cogent3.evolve.substitution_model.TimeReversibleDinucleotide(
             equal_motif_probs=True, model_gaps=True, mprob_model="tuple"

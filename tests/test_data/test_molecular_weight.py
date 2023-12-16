@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests for molecular weight.
 """
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy.testing import assert_allclose
 
@@ -36,5 +36,3 @@ class WeightCalculatorTests(TestCase):
 
 
 # run if called from command-line
-if __name__ == "__main__":
-    main()

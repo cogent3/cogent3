@@ -338,11 +338,11 @@ class GeneticCode:
         return "".join(mappings)
 
     def get_alphabet(self, include_stop=False):
-        from cogent3.core.alphabet import Alphabet
+        from cogent3.core.alphabet import make_alphabet
         from cogent3.core.moltype import DNA
 
         motifs = list(self.codons) if include_stop else list(self.sense_codons)
-        return Alphabet(motifs, moltype=DNA)
+        return make_alphabet(motifset=motifs, moltype=DNA)
 
 
 NcbiGeneticCodeData = [

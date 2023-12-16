@@ -48,7 +48,10 @@ def _align_pairwise(
     s1, s2, mprobs, psub, TM, local, return_alignment=True, return_score=False, **kw
 ):
     """Generic alignment with any substitution model and indel model"""
-    [p1, p2] = [make_likelihood_tree_leaf(seq) for seq in [s1, s2]]
+    [p1, p2] = [
+        make_likelihood_tree_leaf(seq, seq.moltype.alphabet, seq.name)
+        for seq in [s1, s2]
+    ]
     [p1, p2] = [pairwise.AlignableSeq(leaf) for leaf in [p1, p2]]
     pair = pairwise.Pair(p1, p2)
     EP = pair.make_simple_emission_probs(mprobs, [psub])

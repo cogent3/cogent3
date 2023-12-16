@@ -470,7 +470,7 @@ class progressive_align:
         )
         kwargs = {} if gc is None else dict(gc=gc)
         sm = get_model(sm, **kwargs)
-        moltype = sm.alphabet.moltype
+        moltype = sm.moltype
         self._model = sm
         self._scalar = sm.word_length
         self._indel_length = indel_length

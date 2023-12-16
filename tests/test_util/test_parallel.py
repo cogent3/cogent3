@@ -2,7 +2,7 @@ import multiprocessing
 import sys
 import time
 
-from unittest import TestCase, main, skipIf
+from unittest import TestCase, skipIf
 
 import numpy
 
@@ -60,7 +60,3 @@ class ParallelTests(TestCase):
             if result:
                 master_processes += 1
         self.assertEqual(master_processes, 0)
-
-
-if __name__ == "__main__":
-    main()

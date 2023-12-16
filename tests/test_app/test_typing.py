@@ -11,8 +11,8 @@ from cogent3.app.typing import (
     SerialisableType,
     TabularType,
     UnalignedSeqsType,
+    defined_types,
     get_constraint_names,
-    hints_from_strings,
     type_tree,
 )
 
@@ -68,17 +68,6 @@ def test_get_constraint_names_mixed_serilisable_identifiertype():
     assert got == {"SerialisableType", "IdentifierType", "Alignment", "ArrayAlignment"}
 
 
-def test_hints_from_strings_invalid():
-    """raise an exception if unknown string"""
-    with pytest.raises(ValueError):
-        hints_from_strings("abcde")
-
-
-def test_hints_from_strings():
-    got = hints_from_strings("serialisable", "aligned")
-    assert got == [SerialisableType, AlignedSeqsType]
-
-
 def test_hints_resolved_from_str():
     got = get_constraint_names("DnaSequence")
     assert got == {"DnaSequence"}
@@ -131,3 +120,10 @@ def test_typing_tree_depth(hint, expect):
 def test_type_tree(hint, expect):
     _, t = type_tree(hint)
     assert t == expect, (t, expect)
+
+
+def test_defined_types():
+    types = defined_types()
+    # we are checking a single value which we know has 3 entries
+    # also indexing by the type name
+    assert len(types["TabularType"][0, "includes"].split(",")) == 3

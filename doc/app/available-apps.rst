@@ -11,4 +11,8 @@ Apps perform functions ranging from multiple sequence alignment (e.g. ``progress
 
     available_apps()
 
+The ``name_filter`` argument can be used to display only the apps that match a string. For example, to display all the loader apps
 
+.. jupyter-execute::
+
+    available_apps(name_filter="load")

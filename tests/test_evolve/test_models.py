@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.evolve import models as models_module
 from cogent3.evolve.models import (
@@ -110,7 +110,7 @@ def get_sample_model_types(mod_type=None):
 class AvailableModelsTest(TestCase):
     def test_model_abbreviation(self):
         """make sure getting model abbreviations that exist"""
-        got = set(available_models().tolist("Abbreviation"))
+        got = set(available_models().to_list("Abbreviation"))
         expect = set(["JC69", "CNFGTR", "DSO78"])
         self.assertTrue(expect < got)
 
@@ -124,7 +124,7 @@ class AvailableModelsTest(TestCase):
     def test_model_description(self):
         """correctly grabs function descriptions"""
         all_available = available_models()
-        for abbrev, desc in all_available.tolist(["Abbreviation", "Description"]):
+        for abbrev, desc in all_available.to_list(["Abbreviation", "Description"]):
             func = getattr(models_module, abbrev)
             doc = func.__doc__.split()
             self.assertEqual(desc.split(), doc)

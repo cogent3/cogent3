@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy.testing import assert_allclose
 

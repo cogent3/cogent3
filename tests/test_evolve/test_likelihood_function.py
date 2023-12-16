@@ -515,7 +515,7 @@ DogFaced   root      1.00  1.00
 
     def test_simulate_alignment2(self):
         "Simulate alignment with dinucleotide model"
-        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
+        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"}, moltype="dna")
         t = make_tree("(a,c);")
         sm = substitution_model.TimeReversibleDinucleotide(mprob_model="tuple")
         lf = sm.make_likelihood_function(t)
@@ -527,7 +527,7 @@ DogFaced   root      1.00  1.00
         """provide a root sequence for simulating an alignment"""
 
         def use_root_seq(root_sequence):
-            al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
+            al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"}, moltype="dna")
             t = make_tree(treestring="(a,c);")
             sm = substitution_model.TimeReversibleDinucleotide(mprob_model="tuple")
             lf = sm.make_likelihood_function(t)
@@ -772,7 +772,7 @@ DogFaced     root      1.0000    1.0000
 
     def test_exercise_set_align(self):
         "lf.set_align should work for different models"
-        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"})
+        al = make_aligned_seqs(data={"a": "ggaatt", "c": "cctaat"}, moltype="dna")
         t = make_tree(treestring="(a,c);")
         for klass in [CNFGTR, Y98, MG94HKY]:
             sm = klass()
@@ -2243,10 +2243,10 @@ def test_simulate_alignment3():
     t = make_tree(treestring="(a:0.4,b:0.3,(c:0.15,d:0.2)edge.0:0.1)root;")
     al = make_aligned_seqs(
         data={
-            "a": "g--cactat?",
-            "b": "---c-ctcct",
-            "c": "-a-c-ctat-",
-            "d": "-a-c-ctat-",
+            "a": "G--CACTAT?",
+            "b": "---C-CTCCT",
+            "c": "-A-C-CTAT-",
+            "d": "-A-C-CTAT-",
         }
     )
     sm = TimeReversibleNucleotide(recode_gaps=True)

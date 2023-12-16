@@ -143,7 +143,7 @@ def test_count_distinct(gff_db):
 def test_count_distinct_values(gb_db):
     # there are 8 biotypes in the c.elegans gff sample, 2 columns
     # all arguments returns, from our example, all the rows
-    got = {tuple(r) for r in gb_db.count_distinct(name=True).tolist()}
+    got = {tuple(r) for r in gb_db.count_distinct(name=True).to_list()}
     expect = {("CNA00110", 4), ("CNA00120", 3), ("cgg", 1), ("cat", 1), ("JEC21", 1)}
     assert got == expect
 
@@ -151,14 +151,14 @@ def test_count_distinct_values(gb_db):
 def test_count_distinct_gene_name(gb_db):
     expect = {("CNA00110", 1), ("CNA00120", 1)}
     assert {
-        tuple(r) for r in gb_db.count_distinct(biotype="gene", name=True).tolist()
+        tuple(r) for r in gb_db.count_distinct(biotype="gene", name=True).to_list()
     } == expect
 
     assert {
         tuple(r)
         for r in gb_db.count_distinct(
             seqid="AE017341", biotype="gene", name=True
-        ).tolist()
+        ).to_list()
     } == expect
 
 
@@ -945,3 +945,52 @@ def test_gbdb_get_children_fails_no_coords(gb_db):
 def test_gbdb_get_parent_fails_no_coords(gb_db):
     with pytest.raises(ValueError):
         _ = list(gb_db.get_feature_parent(name="CNA00110"))
+
+
+def test_load_annotations_invalid_path():
+    with pytest.raises(IOError):
+        load_annotations(path="invalidfile.gff3")
+
+
+def test_subset_gff3_db(gff_db):
+    subset = gff_db.subset(seqid="I", start=40, end=70, allow_partial=True)
+    # manual inspection of the original GFF3 file indicates 7 records
+    # BUT the CDS records get merged into a single row
+    assert len(subset) == 6
+
+
+def test_subset_empty_db(gff_db):
+    subset = gff_db.subset(seqid="X", start=40, end=70, allow_partial=True)
+    # no records
+    assert not len(subset)
+
+
+def test_subset_gff3_db_with_user(gff_db):
+    record = dict(
+        seqid="I", name="gene-01", biotype="gene", spans=[(23, 43)], strand="+"
+    )
+    gff_db.add_feature(**record)
+    subset = gff_db.subset(seqid="I", start=40, end=70, allow_partial=True)
+    # manual inspection of the original GFF3 file indicates 7 records
+    # BUT the CDS records get merged into a single row
+    assert len(subset) == 7
+
+
+def test_subset_gb_db(gb_db):
+    subset = gb_db.subset(biotype="gene")
+    # manual inspection of the original annotated gb file indicates 2 genes
+    assert len(subset) == 2
+
+
+def test_subset_gff3_db_source(gff_db, tmp_dir):
+    outpath = tmp_dir / "subset.gff3db"
+    subset = gff_db.subset(
+        seqid="I", start=40, end=70, allow_partial=True, source=outpath
+    )
+    subset.db.close()
+
+    # reload
+    subset = type(gff_db)(source=outpath)
+    # manual inspection of the original GFF3 file indicates 7 records
+    # BUT the CDS records get merged into a single row
+    assert len(subset) == 6

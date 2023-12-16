@@ -2,7 +2,7 @@
 """Unit tests for recordfinders: parsers that group the lines for a record.
 """
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import (
@@ -260,7 +260,3 @@ class LineGrouperTests(TestCase):
             list(LineGrouper(2, ignore=ignore_labels)(lines)),
             [["abc", "1"], ["def", "2"]],
         )
-
-
-if __name__ == "__main__":
-    main()

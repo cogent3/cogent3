@@ -287,12 +287,12 @@ Get table data as a numpy array
 Get a table column as a list
 ============================
 
-Via the ``Table.tolist()`` method.
+Via the ``Table.to_list()`` method.
 
 .. jupyter-execute::
 
     table = load_table("data/stats.tsv")
-    locus = table.tolist("Locus")
+    locus = table.to_list("Locus")
     locus
 
 Or directly from the column array object.
@@ -300,6 +300,8 @@ Or directly from the column array object.
 .. jupyter-execute::
 
     table.columns["Locus"].tolist()
+
+.. note:: ``table.columns["Locus"]`` is a ``numpy.ndarray``, hence the different method call.
 
 Get multiple table columns as a list
 ====================================
@@ -309,7 +311,7 @@ This returns a row oriented list.
 .. jupyter-execute::
 
     table = load_table("data/stats.tsv")
-    rows = table.tolist(["Region", "Locus"])
+    rows = table.to_list(["Region", "Locus"])
     rows
 
 .. note:: column name order dictates the element order per row
@@ -340,14 +342,14 @@ Get the table as a ``pandas.DataFrame``
 .. jupyter-execute::
 
     table = load_table("data/stats.tsv")
-    df = table.to_dataframe()
+    df = table.to_pandas()
     df
 
 You can also specify column(s) are categories
 
 .. jupyter-execute::
 
-    df = table.to_dataframe(categories="Region")
+    df = table.to_pandas(categories="Region")
 
 Get a table of counts as a contingency table
 ============================================
@@ -528,7 +530,7 @@ Getting raw data for a single column
 .. jupyter-execute::
 
     table = load_table("data/stats.tsv")
-    raw = table.tolist("Region")
+    raw = table.to_list("Region")
     raw
 
 Getting raw data for multiple columns
@@ -537,7 +539,7 @@ Getting raw data for multiple columns
 .. jupyter-execute::
 
     table = load_table("data/stats.tsv")
-    raw = table.tolist(["Locus", "Region"])
+    raw = table.to_list(["Locus", "Region"])
     raw
 
 Getting distinct values

@@ -14,8 +14,6 @@ The method returns a drawable, as demonstrated below between unaligned sequences
 
 .. jupyter-execute::
 
-    import os
-
     from cogent3 import load_unaligned_seqs
 
     seqs = load_unaligned_seqs("data/SCA1-cds.fasta", moltype="dna")

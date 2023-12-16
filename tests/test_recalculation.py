@@ -1,4 +1,4 @@
-from unittest import TestCase, main
+from unittest import TestCase
 
 from cogent3.recalculation.definition import CalcDefn, ParamDefn
 from cogent3.recalculation.scope import (
@@ -150,7 +150,3 @@ class RecalculationTest(TestCase):
         # 'dropoff', dropoff = chi2.isf(1, p) / 2.0.  Also in general you won't need ultra precise answers,
         # so don't use 'xtol=0.0', that's just to make the doctest work.
         pc.graphviz()
-
-
-if __name__ == "__main__":
-    main()

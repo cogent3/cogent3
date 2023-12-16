@@ -4,7 +4,7 @@ Note: individual alphabets are typically in MolType and are tested there.
 """
 import pickle
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import unravel_index
 from numpy.testing import assert_equal
@@ -206,6 +206,13 @@ class CharAlphabetTests(TestCase):
         got = pickle.loads(pkl)
         self.assertIsInstance(got, type(r))
         self.assertEqual(got.get_word_alphabet(2), wa)
+
+    def test_pickling_moltype(self):
+        from cogent3.core.moltype import DNA
+
+        a = DNA.alphabet
+        got = pickle.loads(pickle.dumps(a))
+        assert got.moltype is not None
 
     def test_word_alphabet_order(self):
         bases = "TCAG"

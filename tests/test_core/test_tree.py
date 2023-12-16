@@ -2196,6 +2196,100 @@ def test_get_distances_endpoints(num_tips):
     assert len(dists) == (num**2 - num)
 
 
+@pytest.mark.parametrize(
+    "method,expected",
+    (
+        ("lin_rajan_moret", 3),
+        ("lrm", 3),
+        ("matching", 3),
+        (None, 3),
+        ("unrooted_robinson_foulds", 4),
+        ("urf", 4),
+        ("rf", 4),
+    ),
+)
+def test_tree_distance_unrooted(method, expected):
+    tree1 = make_tree(treestring="(a,b,(c,(d,e)));")
+    tree2 = make_tree(treestring="((a,c),(b,d),e);")
+
+    assert tree1.tree_distance(tree2, method=method) == expected
+
+
+@pytest.mark.parametrize(
+    "method,expected",
+    (
+        ("matching_cluster", 10),
+        ("mc", 10),
+        ("matching", 10),
+        (None, 10),
+        ("rooted_robinson_foulds", 6),
+        ("rrf", 6),
+        ("rf", 6),
+    ),
+)
+def test_tree_distance_rooted(method, expected):
+    tree1 = make_tree(treestring="(a,(b,(c,(d,e))));")
+    tree2 = make_tree(treestring="(e,(d,(c,(b,a))));")
+
+    assert tree1.tree_distance(tree2, method=method) == expected
+
+
+@pytest.mark.parametrize(
+    "bad_method",
+    (
+        "matching_cluster ",
+        "m",
+        "mcc",
+        "rr",
+        "rff",
+        "ur",
+        "match",
+        " matching",
+        "robinson_foulds",
+        "None",
+    ),
+)
+def test_tree_distance_method_does_not_exist(bad_method):
+    unrooted1 = make_tree(treestring="(a,b,(c,(d,e)));")
+    unrooted2 = make_tree(treestring="((a,c),(b,d),e);")
+
+    with pytest.raises(ValueError):
+        unrooted1.tree_distance(unrooted2, method=bad_method)
+
+    rooted1 = make_tree(treestring="(a,(b,(c,(d,e))));")
+    rooted2 = make_tree(treestring="(e,(d,(c,(b,a))));")
+
+    with pytest.raises(ValueError):
+        rooted1.tree_distance(rooted2, method=bad_method)
+
+
+@pytest.mark.parametrize(
+    "method",
+    (
+        "matching_cluster",
+        "lin_rajan_moret",
+        "rooted_robinson_foulds",
+        "unrooted_robinson_foulds",
+        "mc",
+        "lrm",
+        "rrf",
+        "urf",
+        "matching",
+        "rf",
+        None,
+    ),
+)
+def test_tree_distance_incompatible_trees(method):
+    unrooted = make_tree(treestring="(a,b,(c,(d,e)));")
+    rooted = make_tree(treestring="(a,(b,(c,(d,e))));")
+
+    with pytest.raises(ValueError):
+        rooted.tree_distance(unrooted, method=method)
+
+    with pytest.raises(ValueError):
+        unrooted.tree_distance(rooted, method=method)
+
+
 def test_lrm_method():
     # this test just exercises the method, the tests on the underlying
     # function are in test_tree_distance.py

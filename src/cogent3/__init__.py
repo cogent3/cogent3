@@ -52,7 +52,7 @@ __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
 
 
-_min_version = (3, 8)
+_min_version = (3, 9)
 if (sys.version_info.major, sys.version_info.minor) < _min_version:
     PY_VERSION = ".".join([str(n) for n in sys.version_info])
     _min_version = ".".join(str(e) for e in _min_version)

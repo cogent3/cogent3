@@ -1,6 +1,6 @@
 from os import environ, remove
 from tempfile import NamedTemporaryFile, mktemp
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import (
     arange,
@@ -92,6 +92,11 @@ from cogent3.evolve.coevolution import (
     validate_tree,
 )
 from cogent3.maths.stats.number import CategoryCounter
+from cogent3.parse.fasta import MinimalFastaParser
+
+
+def _fasta_to_dict(data):
+    return dict(MinimalFastaParser(data.splitlines()))
 
 
 class CoevolutionTests(TestCase):
@@ -5294,7 +5299,8 @@ EEMKVDQFGPGHTTLPGELAPDSEPELIDSTKLIEVQVVLILAYCSIILLGVIGNSLVIHVVIKFKSMRTVTNFFIANLA
 >HH1R_RAT
 ----------MSFANTSSTFEDKMCEGNRTAMASPQLLPLVVVLSSISLVTVGLNLLVLYAVHSERKLHTVGNLYIVSLSVADLIVGAVVMPMNILYLIMTKWSLGRPLCLFWLSMDYVASTASIFSVFILCIDRYRSVQQPLYLRYRTKTRASATILGAWFFSFLWVIPILGWHHFM--EL-EDKCETD------FYNVTWFKIMTAIINFYLPTLLMLWFYVKIYKAVRRHLRSQYVSGLHLNRERKAAKQLGFIMAAFILCWIPYFIFFMVIAFCKSC-CSEPMHMFTIWLGYINSTLNPLIYPLCNENFKKTFKKILHIRS-----------------------"""
 
-gpcr_aln = ArrayAlignment(data=gpcr_ungapped.split("\n"), moltype=PROTEIN)
+
+gpcr_aln = ArrayAlignment(data=_fasta_to_dict(gpcr_ungapped), moltype=PROTEIN)
 
 myos_data = """>gi|107137|pir||A37102
 LSRIITRIQA
@@ -5525,10 +5531,7 @@ LAQLITRTQA
 >gi|9971579|dbj|BAB12571.1|
 LAALVTMTQA"""
 
-myos_aln = ArrayAlignment(data=myos_data.split("\n"), moltype=PROTEIN)
+myos_aln = ArrayAlignment(data=_fasta_to_dict(myos_data), moltype=PROTEIN)
 
 # a randomly generated tree to use in tests
 tree20_string = "(((0:0.5,1:0.5):0.5,(((2:0.5,3:0.5):0.5,(4:0.5,(5:0.5,6:0.5):0.5):0.5):0.5,((7:0.5,8:0.5):0.5,((9:0.5,((10:0.5,11:0.5):0.5,12:0.5):0.5):0.5,13:0.5):0.5):0.5):0.5):0.5,(((14:0.5,(15:0.5,16:0.5):0.5):0.5,17:0.5):0.5,(18:0.5,19:0.5):0.5):0.5);"
-
-if __name__ == "__main__":
-    main()

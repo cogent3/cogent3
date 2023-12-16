@@ -4,64 +4,49 @@ User Guides
 
 Our documentation shows code examples that have been computed within Jupyter notebooks during the documentation build. This shows what you would see if you were to do these examples yourself, interactively, in Jupyter_. To do that, you will need to :ref:`install cogent3 <install>` and download the individual data files used in the User Guides from :ref:`here <data_links>`.
 
-.. panels::
-    :header: text-white bg-primary font-weight-bold
+.. grid::
 
-    ---
+    .. grid-item-card::
+        :link: app/index.html
+        :link-type: url
+        :class-header: bg-info
 
-    cogent3 apps
-    ^^^^^^^^^^^^
+        cogent3 apps
+        ^^^^^^^^^^^^
 
-    Pre-defined "apps" simplify complex tasks. They provide capabilities that can be used by themselves, or added together to define a pipeline.
+        Pre-defined "apps" simplify complex tasks. They provide capabilities that can be used by themselves, or added together to define a pipeline.
 
-    +++++++++++
+    .. grid-item-card::
+        :link: cookbook/index.html
+        :link-type: url
+        :class-header: bg-info
 
-    .. link-button:: app/index
-        :type: ref
-        :text:
-        :classes: stretched-link
+        Cookbook
+        ^^^^^^^^
 
-    ---
+        Short "how-to" code recipes targeted at specific problems.
 
-    Cookbook
-    ^^^^^^^^
+.. grid::
 
-    Short "how-to" code recipes targeted at specific problems.
+    .. grid-item-card::
+        :link: examples/index.html
+        :link-type: url
+        :class-header: bg-info
 
-    +++++++++++
+        Tutorials
+        ^^^^^^^^^
 
-    .. link-button:: cookbook/index
-        :type: ref
-        :text:
-        :classes: stretched-link
+        Code for solving more extensive problems.
 
-    ---
+    .. grid-item-card::
+        :link: api/index.html
+        :link-type: url
+        :class-header: bg-info
 
-    Tutorials
-    ^^^^^^^^^
+        API
+        ^^^
 
-    Code for solving more extensive problems.
-
-    +++++++++++
-
-    .. link-button:: examples/index
-        :type: ref
-        :text:
-        :classes: stretched-link
-
-    ---
-
-    API
-    ^^^
-
-    The API for major ``cogent3`` objects.
-
-    +++++++++++
-
-    .. link-button:: api/index
-        :type: ref
-        :text:
-        :classes: stretched-link
+        The API for major ``cogent3`` objects.
 
 .. toctree::
     :hidden:

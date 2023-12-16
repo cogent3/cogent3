@@ -463,6 +463,7 @@ class UtilsTests(TestCase):
         for arg2, result in knowns:
             self.assertEqual(curry_test(arg2), result)
 
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_get_setting_from_environ(self):
         """correctly recovers environment variables"""
         import os

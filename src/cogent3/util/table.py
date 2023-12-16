@@ -24,6 +24,7 @@ import numpy
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
+from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -1915,7 +1916,7 @@ class Table:
             HtmlElement("\n".join(tables), "div", css_classes=["c3table"], newline=True)
         )
 
-    def tolist(self, columns=None):
+    def to_list(self, columns=None):
         """Returns raw data as a list
 
         Parameters
@@ -1940,6 +1941,12 @@ class Table:
 
         return result
 
+    @c3warn.deprecated_callable(version="2024.1", reason="PEP8", new="to_list")
+    def tolist(self, **kwargs):  # pragma: no cover
+        """deprecated, use to_list"""
+
+        return self.to_list(**kwargs)
+
     @extend_docstring_from(DictArray.to_dict)
     def to_dict(self, flatten=False):
         index = self.columns[self.index_name] if self.index_name else self.shape[0]
@@ -1957,7 +1964,7 @@ class Table:
         data = self.to_rich_dict()
         return json.dumps(data)
 
-    def to_dataframe(self, categories=None):
+    def to_pandas(self, categories=None):
         """returns pandas DataFrame instance
 
         Parameters
@@ -1979,6 +1986,14 @@ class Table:
             df = df.astype({n: "category" for n in categories})
 
         return df
+
+    @c3warn.deprecated_callable(
+        version="2024.3", reason="to enable usage by plotly", new="to_pandas()"
+    )
+    def to_dataframe(self, **kwargs):  # pragma: no cover
+        """deprecated, use to_pandas()"""
+
+        return self.to_pandas(**kwargs)
 
     def to_plotly(self, width=500, font_size=12, layout=None, **kwargs):
         """returns a Plotly Table"""

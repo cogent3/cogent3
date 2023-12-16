@@ -217,11 +217,20 @@ The following implements a modification of the approach of Zhang, Nielsen and Ya
 
     from cogent3 import make_table
 
-    header = ['Site Class', 'Proportion', 'Background Edges', 'Foreground Edges']
-    data = {'Site Class': array(['0', '1', '2a', '2b'], dtype='<U2'), 'Proportion': array(['p0', 'p1', 'p2', 'p3'], dtype='<U2'), 'Background Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega0 < 1', 'omega1 = 1'],
-      dtype='<U14'), 'Foreground Edges': array(['0 < omega0 < 1', 'omega1 = 1', '0 < omega2 > 1', '0 < omega0 < 1'],
-      dtype='<U14')}
-    data = {k: array(data[k], dtype='U') for k in data}
+    header = ["Site Class", "Proportion", "Background Edges", "Foreground Edges"]
+    data = {
+        "Site Class": array(["0", "1", "2a", "2b"], dtype="<U2"),
+        "Proportion": array(["p0", "p1", "p2", "p3"], dtype="<U2"),
+        "Background Edges": array(
+            ["0 < omega0 < 1", "omega1 = 1", "0 < omega0 < 1", "omega1 = 1"],
+            dtype="<U14",
+        ),
+        "Foreground Edges": array(
+            ["0 < omega0 < 1", "omega1 = 1", "0 < omega2 > 1", "0 < omega0 < 1"],
+            dtype="<U14",
+        ),
+    }
+    data = {k: array(data[k], dtype="U") for k in data}
     table = make_table(header, data=data)
     HTML(table.set_repr_policy(show_shape=False))
 
@@ -246,12 +255,12 @@ We're also going to use the MLEs from the ``rate_lf`` model, since that nests wi
 .. jupyter-execute::
 
     globals = [t for t in tables if "global" in t.title][0]
-    globals = dict(zip(globals.header, globals.tolist()[0]))
+    globals = dict(zip(globals.header, globals.to_list()[0]))
     bin_params = [t for t in tables if "bin" in t.title][0]
-    rate_class_omegas = dict(bin_params.tolist(["bin", "omega"]))
-    rate_class_probs = dict(bin_params.tolist(["bin", "bprobs"]))
+    rate_class_omegas = dict(bin_params.to_list(["bin", "omega"]))
+    rate_class_probs = dict(bin_params.to_list(["bin", "bprobs"]))
     lengths = [t for t in tables if "edge" in t.title][0]
-    lengths = dict(lengths.tolist(["edge", "length"]))
+    lengths = dict(lengths.to_list(["edge", "length"]))
 
 We now create the more complex model,
 

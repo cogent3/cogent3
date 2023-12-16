@@ -1,10 +1,13 @@
 """Generally useful utility classes and methods.
 """
+
 from __future__ import annotations
 
+import contextlib
 import inspect
 import os
 import re
+import typing
 import warnings
 
 from random import randint
@@ -1085,3 +1088,24 @@ def get_true_spans(arr: ndarray, absolute_pos: bool = True) -> ndarray:
         num_runs += 1
 
     return result[:num_runs]
+
+
+def get_first_value(data: typing.Iterable[typing.Any]):
+    """return first value from a container
+
+    Parameters
+    ----------
+    data
+        any iterable
+
+    Returns
+    -------
+    Returns the first element of data. If data is a dict, it will return
+    the first element of data.values().
+    """
+    with contextlib.suppress(StopIteration):
+        if hasattr(data, "values"):
+            return next(iter(data.values()))
+
+        with contextlib.suppress(TypeError):
+            return next(iter(data))

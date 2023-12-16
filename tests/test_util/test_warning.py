@@ -6,7 +6,6 @@ import pytest
 from cogent3.util.warning import deprecated_args, deprecated_callable
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args():
     @deprecated_args(
         version="a future release",
@@ -16,12 +15,12 @@ def test_function_deprecated_args():
     def changed(a: int, b: int) -> int:
         return a + b
 
-    expected = changed(a=5, b=3)
-    got = changed(x=5, y=3)
-    assert got == expected
+    with pytest.deprecated_call():
+        expected = changed(a=5, b=3)
+        got = changed(x=5, y=3)
+        assert got == expected
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_docstring():
     @deprecated_args(
         version="a future release",
@@ -65,7 +64,6 @@ def test_function_correct_args_do_not_warn():
         changed(a=5, b=3)
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_pickled():
     @deprecated_args(
         version="a future release",
@@ -75,11 +73,12 @@ def test_function_deprecated_args_pickled():
     def changed(a: int, b: int) -> int:
         return a + b
 
-    myfunc = changed(x=1, y=2)
-    pickled_func = pickle.dumps(myfunc)
-    assert isinstance(pickled_func, bytes)
-    unpickled_func = pickle.loads(pickled_func)
-    assert unpickled_func == changed(a=1, b=2)
+    with pytest.deprecated_call():
+        myfunc = changed(x=1, y=2)
+        pickled_func = pickle.dumps(myfunc)
+        assert isinstance(pickled_func, bytes)
+        unpickled_func = pickle.loads(pickled_func)
+        assert unpickled_func == changed(a=1, b=2)
 
 
 class foo:
@@ -98,7 +97,6 @@ class foo:
         self.b = b
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_method_deprecated_args():
     foo_instance = foo()
     foo_instance.changed(a=5, b=3)
@@ -106,7 +104,6 @@ def test_method_deprecated_args():
     assert foo_instance.b == 3
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_method_deprecated_args_docstring():
     assert foo.changed.__doc__ == "This is a test function"
     foo_instance = foo()
@@ -126,12 +123,12 @@ def test_method_correct_args_do_not_warn():
         foo().changed(a=5, b=3)
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_method_deprecated_args_pickled():
     foo_instance = foo()
     assert foo_instance.a == 0
     assert foo_instance.b == 0
-    foo_instance.changed(x=1, y=2)  # pylint: disable=no-value-for-parameter
+    with pytest.deprecated_call():
+        foo_instance.changed(x=1, y=2)  # pylint: disable=no-value-for-parameter
     assert foo_instance.a == 1
     assert foo_instance.b == 2
 
@@ -144,7 +141,8 @@ def test_method_deprecated_args_pickled():
     assert isinstance(unpickled_foo, foo)
     assert unpickled_foo.a == 1
     assert unpickled_foo.b == 2
-    unpickled_foo.changed(x=2, y=3)
+    with pytest.deprecated_call():
+        unpickled_foo.changed(x=2, y=3)
     assert unpickled_foo.a == 2
     assert unpickled_foo.b == 3
 
@@ -214,7 +212,6 @@ def test_deprecated_callable_resolves_type(recwarn, func, _type):
     assert _type in recwarn.list[0].message.args[0]
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn):
     @deprecated_args("2023.6", "x is not descriptive", old_new=[("x", "a")])
     @deprecated_args("2023.6", "b is no longer required", discontinued=["b"])

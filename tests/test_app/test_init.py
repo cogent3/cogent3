@@ -3,7 +3,7 @@ import os
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 
 import pytest
 
@@ -210,5 +210,13 @@ def test_app_help_signature(capsys, app_name):
         assert got.count("\n") > 1
 
 
-if __name__ == "__main__":
-    main()
+def test_available_apps_filter():
+    """available apps can be filtered by name"""
+    app_name_filter: str = "load"
+    filtered_apps = available_apps(app_name_filter)
+    assert isinstance(filtered_apps, Table)
+    assert len(filtered_apps) > 0
+    # check every returned table row 'name' has filter in it
+    assert sum(app_name_filter in n for n in filtered_apps.columns["name"]) == len(
+        filtered_apps
+    )

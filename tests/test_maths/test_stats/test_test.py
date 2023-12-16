@@ -1,7 +1,7 @@
 """Unit tests for statistical tests and utility functions.
 """
 
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import (
     arange,
@@ -2094,5 +2094,3 @@ class TestDistMatrixPermutationTest(TestCase):
 
 
 # execute tests if called from command line
-if __name__ == "__main__":
-    main()

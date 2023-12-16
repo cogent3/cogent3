@@ -160,7 +160,7 @@ def test_feature_projection_ungapped(ann_aln):
     assert ann_aln.annotation_db.num_matches() == num + 1
     assert str(seq_ltr.get_slice()) == expected
     assert seq_ltr.seqid == seq_name
-    assert seq_ltr.parent is ann_aln.get_seq(seq_name)
+    assert seq_ltr.parent == ann_aln.get_seq(seq_name)
 
 
 def test_feature_projection_gapped(ann_aln):
@@ -179,7 +179,7 @@ def test_feature_projection_gapped(ann_aln):
     expected = expected.replace("-", "")
     assert str(seq_ltr.get_slice()) == expected
     assert seq_ltr.seqid == seq_name
-    assert seq_ltr.parent is ann_aln.get_seq(seq_name)
+    assert seq_ltr.parent == ann_aln.get_seq(seq_name)
 
 
 @pytest.fixture()

@@ -12,6 +12,7 @@ import sys
 import typing
 
 import numpy
+import typing_extensions
 
 from cogent3._version import __version__
 from cogent3.util.deserialise import register_deserialiser
@@ -118,6 +119,19 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
     ) -> int:
+        ...
+
+    def subset(
+        self,
+        *,
+        seqid: OptionalStr = None,
+        biotype: OptionalStr = None,
+        name: OptionalStr = None,
+        start: OptionalInt = None,
+        end: OptionalInt = None,
+        strand: OptionalStr = None,
+        attributes: OptionalStr = None,
+    ):
         ...
 
 
@@ -1031,6 +1045,43 @@ class SqliteAnnotationDbMixin:
             self.db.backup(backup)
         backup.close()
 
+    def subset(
+        self,
+        *,
+        source: os.PathLike | str = ":memory:",
+        biotype: str = None,
+        seqid: str = None,
+        name: str = None,
+        start: int = None,
+        end: int = None,
+        strand: bool = None,
+        attributes: OptionalStr = None,
+        allow_partial: bool = False,
+    ) -> typing_extensions.Self:
+        """returns a new db instance with records matching the provided conditions"""
+        kwargs = {k: v for k, v in locals().items() if k not in {"self", "source"}}
+
+        result = self.__class__(source=source)
+        if not len(self):
+            return result
+
+        for table_name in self.table_names:
+            cols = [
+                r["name"]
+                for r in self.db.execute(f"PRAGMA table_info({table_name})").fetchall()
+            ]
+            pos = ", ".join("?" * len(cols))
+            sql = f"INSERT INTO {table_name} ({','.join(cols)}) VALUES ({pos});"
+            records = []
+            for record in self._get_records_matching(table_name=table_name, **kwargs):
+                records.append(tuple(record[c] for c in cols))
+
+            with result.db as cursor:
+                cursor.executemany(sql, records)
+                cursor.commit()
+
+        return result
+
 
 class BasicAnnotationDb(SqliteAnnotationDbMixin):
     """Provides a user table for annotations. This can be merged with
@@ -1156,6 +1207,8 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # I am not convinced we can rely on gff files to be ordered,
         # if we could, we could do this as one pass over the data
         # all keys need to be lower case
+        # NOTE only records which have an ID field get merged into a single
+        # record.
         for record in records:
             record["biotype"] = record.pop("Type")
 
@@ -1456,6 +1509,7 @@ def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwar
     paths = list(paths.parent.glob(paths.name))
 
     ui = kwargs.pop("ui")
+    one_valid_path = False
     for path in ui.series(paths):
         with open_(path) as infile:
             rec = list(MinimalGenbankParser(infile))[0]
@@ -1465,7 +1519,10 @@ def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwar
                 seqid=rec["locus"],
                 db=db,
             )
+            one_valid_path = True
 
+    if not one_valid_path:
+        raise IOError(f"{str(path)!r} not found")
     return db
 
 
@@ -1490,6 +1547,7 @@ def _db_from_gff(
     paths = list(paths.parent.glob(paths.name))
 
     ui = kwargs.pop("ui")
+    one_valid_path = False
     for path in ui.series(paths):
         data = list(
             gff_parser(
@@ -1499,6 +1557,9 @@ def _db_from_gff(
             )
         )
         db = GffAnnotationDb(source=write_path, data=data, db=db)
+        one_valid_path = True
+    if not one_valid_path:
+        raise IOError(f"{str(path)!r} not found")
     return db
 
 

@@ -2,7 +2,7 @@ import json
 import os
 
 from tempfile import TemporaryDirectory
-from unittest import TestCase, main
+from unittest import TestCase
 
 import numpy
 
@@ -496,7 +496,3 @@ class DictArrayTest(TestCase):
         # must be equal dimensions
         with self.assertRaises(ValueError):
             darr1 + DictArrayTemplate(list("CD"), list("AB")).wrap(data)
-
-
-if __name__ == "__main__":
-    main()

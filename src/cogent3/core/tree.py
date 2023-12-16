@@ -40,6 +40,7 @@ from numpy import argsort, ceil, log, zeros
 
 from cogent3._version import __version__
 from cogent3.maths.stats.test import correlation
+from cogent3.phylo.tree_distance import get_tree_distance_measure
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import get_object_provenance
 
@@ -1598,7 +1599,70 @@ class TreeNode(object):
         tip = self.get_node_matching_name(outgroup_name)
         return tip.parent.unrooted_deepcopy()
 
-    def lin_rajan_moret(self, tree2) -> float:
+    def tree_distance(self, other: TreeNode, method: str | None = None) -> int:
+        """Return the specified tree distance between this and another tree.
+
+        Defaults to the Lin-Rajan-Moret distance on unrooted trees.
+        Defaults to the Matching Cluster distance on rooted trees.
+
+        Parameters
+        ----------
+        other: TreeNode
+            The other tree to calculate the distance between.
+        method: str | None
+            The tree distance metric to use.
+
+            Options are:
+            "rooted_robinson_foulds": The Robinson-Foulds distance for rooted trees.
+            "unrooted_robinson_foulds": The Robinson-Foulds distance for unrooted trees.
+            "matching_cluster": The Matching Cluster distance for rooted trees.
+            "lin_rajan_moret": The Lin-Rajan-Moret distance for unrooted trees.
+            "rrf": An alias for rooted_robinson_foulds.
+            "urf": An alias for unrooted_robinson_foulds.
+            "mc": An alias for matching_cluster.
+            "lrm": An alias for lin_rajan_moret.
+            "rf": The unrooted/rooted Robinson-Foulds distance for unrooted/rooted trees.
+            "matching": The Lin-Rajan-Moret/Matching Cluster distance for unrooted/rooted trees.
+
+            Default is "matching".
+
+        Returns
+        -------
+        int
+            the chosen distance between the two trees.
+
+        Notes
+        -----
+        The Lin-Rajan-Moret distance [2]_ and Matching Cluster distance [1]_
+        display superior statistical properties than the Robinson-Foulds
+        distance [3]_ on unrooted and rooted trees respectively.
+
+        References
+        ----------
+        .. [1] Bogdanowicz, D., & Giaro, K. (2013).
+           On a matching distance between rooted phylogenetic trees.
+           International Journal of Applied Mathematics and Computer Science, 23(3), 669-684.
+        .. [2] Lin et al. 2012
+           A Metric for Phylogenetic Trees Based on Matching
+           IEEE/ACM Transactions on Computational Biology and Bioinformatics
+           vol. 9, no. 4, pp. 1014-1022, July-Aug. 2012
+        .. [3] Robinson, David F., and Leslie R. Foulds.
+           Comparison of phylogenetic trees.
+           Mathematical biosciences 53.1-2 (1981): 131-147.
+        """
+
+        if method is None:
+            method = "matching"
+
+        is_rooted = len(self) == 2
+        if is_rooted and len(other) != 2 or not is_rooted and len(other) == 2:
+            raise ValueError(
+                "Both trees must be rooted or both trees must be unrooted."
+            )
+
+        return get_tree_distance_measure(method, is_rooted)(self, other)
+
+    def lin_rajan_moret(self, tree2) -> int:
         """return the lin-rajan-moret distance between trees
 
         float

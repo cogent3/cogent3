@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests of the geometry package."""
 from math import sqrt
-from unittest import TestCase, main
+from unittest import TestCase
 
 from numpy import allclose, arange, array, insert, isclose, sum, take
 from numpy.linalg import norm
