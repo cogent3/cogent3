@@ -5,11 +5,9 @@ from __future__ import annotations
 import inspect
 import re
 
-from typing import ForwardRef, Iterable, TypeVar, Union
+from typing import ForwardRef, TypeVar, Union
 
 from typing_extensions import get_args, get_origin
-
-from cogent3.util import warning as c3warn
 
 
 AlignedSeqsType = TypeVar("AlignedSeqsType", "Alignment", "ArrayAlignment")
@@ -59,22 +57,8 @@ def _is_type(text):
 
 _all_types = {n: t for n, t in locals().items() if _is_type(n)}
 
-# the following constants are deprecated
-ALIGNED_TYPE = "aligned"
-IDENTIFIER_TYPE = "identifier"
-PAIRWISE_DISTANCE_TYPE = "pairwise_distances"
-SEQUENCE_TYPE = "sequences"
-SERIALISABLE_TYPE = "serialisable"
-TABULAR_TYPE = "tabular"
-TREE_TYPE = "tree"
-BOOTSTRAP_RESULT_TYPE = "bootstrap_result"
-HYPOTHESIS_RESULT_TYPE = "hypothesis_result"
-MODEL_RESULT_TYPE = "model_result"
-RESULT_TYPE = "result"
-TABULAR_RESULT_TYPE = "tabular_result"
 
-
-def get_constraint_names(*hints) -> set[str, ...]:
+def get_constraint_names(*hints) -> set[str | type]:
     """returns the set of named constraints of a type hint"""
     all_hints = set()
     for hint in hints:
@@ -102,8 +86,7 @@ def get_constraint_names(*hints) -> set[str, ...]:
         elif type(hint) == str:
             all_hints.add(hint)
 
-    all_hints = {h.__forward_arg__ if type(h) == ForwardRef else h for h in all_hints}
-    return all_hints
+    return {h.__forward_arg__ if type(h) == ForwardRef else h for h in all_hints}
 
 
 def type_tree(hint, depth=0) -> tuple:
