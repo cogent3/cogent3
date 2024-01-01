@@ -952,8 +952,11 @@ def test_load_annotations_invalid_path():
         load_annotations(path="invalidfile.gff3")
 
 
-def test_subset_gff3_db(gff_db):
-    subset = gff_db.subset(seqid="I", start=40, end=70, allow_partial=True)
+@pytest.mark.parametrize("integer", (int, numpy.int64))
+def test_subset_gff3_db(gff_db, integer):
+    subset = gff_db.subset(
+        seqid="I", start=integer(40), end=integer(70), allow_partial=True
+    )
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 6
