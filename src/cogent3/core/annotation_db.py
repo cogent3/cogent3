@@ -1049,13 +1049,17 @@ class SqliteAnnotationDbMixin:
         biotype: str = None,
         seqid: str = None,
         name: str = None,
-        start: int = None,
-        end: int = None,
+        start: OptionalInt = None,
+        end: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         allow_partial: bool = False,
     ) -> typing_extensions.Self:
         """returns a new db instance with records matching the provided conditions"""
+        # make sure python, not numpy, integers
+        start = start if start is None else int(start)
+        end = end if end is None else int(end)
+
         kwargs = {k: v for k, v in locals().items() if k not in {"self", "source"}}
 
         result = self.__class__(source=source)
@@ -1399,8 +1403,8 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 column="name",
                 name=name,
                 biotype=biotype,
-                start=int(start),
-                end=int(end),
+                start=start,
+                end=end,
                 allow_partial=False,
             ):
                 if feat["biotype"] == exclude_biotype:
@@ -1444,8 +1448,8 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 columns=columns,
                 column="name",
                 name=name,
-                start=int(start),
-                end=int(end),
+                start=start,
+                end=end,
                 allow_partial=False,
             ):
                 # add support for != operation to SQL where clause generation
