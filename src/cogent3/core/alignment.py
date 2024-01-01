@@ -1727,6 +1727,7 @@ class _SequenceCollectionBase:
             new[new_name] = new_seq
         result = self.__class__(data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
+        result.annotation_db = DEFAULT_ANNOTATION_DB()
         return result
 
     @UI.display_wrap
@@ -5645,6 +5646,11 @@ def _(data: bytes, moltype) -> Sequence:
 @_construct_unaligned_seq.register
 def _(data: Aligned, moltype) -> Sequence:
     return data.get_gapped_seq().to_moltype(moltype)
+
+
+@_construct_unaligned_seq.register
+def _(data: ArraySequence, moltype) -> Sequence:
+    return moltype.make_seq(str(data), name=data.name, info=data.info)
 
 
 @_construct_unaligned_seq.register
