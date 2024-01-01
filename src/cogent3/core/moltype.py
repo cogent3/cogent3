@@ -751,10 +751,10 @@ class MolType(object):
         returned unmodified. If the moltype is not self, then the
         sequence is converted using seq.to_moltype(self) .
         """
-        if getattr(seq, "moltype", None) is self:
+        if getattr(seq, "moltype", None) is self and (name is None or seq.name == name):
             return seq
 
-        if hasattr(seq, "to_moltype"):
+        if hasattr(seq, "to_moltype") and (name is None or seq.name == name):
             return seq.to_moltype(self)
 
         name = name or getattr(seq, "name", None)
