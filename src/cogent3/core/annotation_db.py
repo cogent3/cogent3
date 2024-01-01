@@ -663,6 +663,7 @@ class SqliteAnnotationDbMixin:
             columns=columns,
             start=start,
             end=end,
+            allow_partial=allow_partial,
         )
         for result in self._execute_sql(sql, values=vals):
             result = dict(zip(result.keys(), result))
