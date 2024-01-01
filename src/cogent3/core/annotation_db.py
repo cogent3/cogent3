@@ -255,9 +255,6 @@ def _matching_conditions(
     str, tuple
         the SQL statement and the tuple of values
     """
-    # todo this needs to support OR operation on some conditions, e.g. if the value of
-    # a condition is a tuple, do OR
-
     start = conditions.pop("start", None)
     end = conditions.pop("end", None)
 
