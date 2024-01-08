@@ -1,5 +1,5 @@
 chardet==5.2.0
-pillow==10.1.0
+pillow==10.2.0
 psutil==5.9.7
 numpy==1.26.2
 numba>0.48.0;python_version<'3.9'
