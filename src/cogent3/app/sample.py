@@ -12,6 +12,7 @@ from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
+
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
@@ -379,7 +380,7 @@ class min_length:
         >>> result = app(aln)
         >>> len(result)
         5
-        
+
         When all sequences are shorter than the min length, return
         `NotCompleted <https://cogent3.org/doc/app/not-completed.html>`_:
 
@@ -390,7 +391,7 @@ class min_length:
 
         If the moltype of the alignment is not specified, return
         `NotCompleted <https://cogent3.org/doc/app/not-completed.html>`_:
- 
+
         >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"})
         >>> app = get_app("min_length", 3)
         >>> result = app(aln)
