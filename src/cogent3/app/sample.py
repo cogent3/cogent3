@@ -12,7 +12,6 @@ from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
-
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
 
@@ -366,6 +365,37 @@ class min_length:
             degenerate characters subtracted from sequence length calculation
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+        Create a sample alignment. Alignments must have a moltype specified:
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"}, moltype="dna")
+
+        Create the app to filter sequences with a minimum length of 3 sites:
+
+        >>> app = get_app("min_length", 3)
+        >>> result = app(aln)
+        >>> len(result)
+        5
+        
+        When all sequences are shorter than the min length, return
+        `NotCompleted <https://cogent3.org/doc/app/not-completed.html>`_:
+
+        >>> app = get_app("min_length", 7)
+        >>> result = app(aln)
+        >>> isinstance(result, NotCompleted)
+        True
+
+        If the moltype of the alignment is not specified, return
+        `NotCompleted <https://cogent3.org/doc/app/not-completed.html>`_:
+ 
+        >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"})
+        >>> app = get_app("min_length", 3)
+        >>> result = app(aln)
+        >>> isinstance(result, NotCompleted)
+        True
         """
         if motif_length > 1:
             length = length // motif_length
