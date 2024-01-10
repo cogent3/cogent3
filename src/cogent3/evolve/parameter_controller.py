@@ -397,18 +397,15 @@ class _LikelihoodParameterController(_LF):
             ("motif", "motifs"),
         ]:
             if single in scope_info:
-                v = scope_info.pop(single)
-                if v:
+                if v := scope_info.pop(single):
                     assert isinstance(v, str), f"{plural}=, maybe?"
                     assert plural not in scope_info
                     scopes[single] = [v]
             elif plural in scope_info:
-                v = scope_info.pop(plural)
-                if v:
+                if v := scope_info.pop(plural):
                     scopes[single] = v
 
-        edges = self._process_scope_info(**scope_info)
-        if edges:
+        if edges := self._process_scope_info(**scope_info):
             scopes["edge"] = edges
 
         if is_constant:

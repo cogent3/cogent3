@@ -529,7 +529,7 @@ class TerminalPadding(_LostSpan):
         return f"?{self.length}?"
 
 
-class Map(object):
+class Map:
     """A map holds a list of spans."""
 
     def __init__(

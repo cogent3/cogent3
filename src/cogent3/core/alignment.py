@@ -31,7 +31,6 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
-from types import GeneratorType
 from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy
@@ -1855,10 +1854,7 @@ class _SequenceCollectionBase:
             exclude_unobserved=exclude_unobserved,
             warn=warn,
         )
-        if counts is None:
-            return None
-
-        return counts.to_freq_array()
+        return None if counts is None else counts.to_freq_array()
 
     def entropy_per_seq(
         self,
@@ -2554,10 +2550,7 @@ class AlignmentI(object):
             exclude_unobserved=exclude_unobserved,
             warn=warn,
         )
-        if counts is None:
-            return None
-
-        return counts.to_freq_array()
+        return None if counts is None else counts.to_freq_array()
 
     def entropy_per_seq(
         self,
@@ -2597,10 +2590,7 @@ class AlignmentI(object):
             exclude_unobserved=exclude_unobserved,
             warn=warn,
         )
-        if probs is None:
-            return None
-
-        return probs.entropy()
+        return None if probs is None else probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
         """returns new alignment without degenerate characters
@@ -2652,10 +2642,7 @@ class AlignmentI(object):
         gaps_ok = GapsOk(
             gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
         )
-        # if we're not deleting the 'naughty' seqs that contribute to the
-        # gaps, it's easy...
-        result = self.filtered(gaps_ok, motif_length=motif_length)
-        return result
+        return self.filtered(gaps_ok, motif_length=motif_length)
 
     def get_gap_array(self, include_ambiguity=True):
         """returns bool array with gap state True, False otherwise

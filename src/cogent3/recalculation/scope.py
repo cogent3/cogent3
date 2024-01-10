@@ -556,7 +556,7 @@ class _LeafDefn(_Defn):
                     )
                 setting = Var((None, s_value, None))
             else:
-                (s_lower, s_upper) = self.get_current_bounds(scope)
+                s_lower, s_upper = self.get_current_bounds(scope)
                 if lower is not None:
                     s_lower = lower
                 if upper is not None:
