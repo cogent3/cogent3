@@ -475,22 +475,30 @@ def define_app(
     sequentially invokes the composed apps. For example, the independent
     usage of app instances ``app1`` and ``app2`` as
 
-    >>> app2(app1(data))
+    .. code-block:: python
+
+        app2(app1(data))
 
     is equivalent to
 
-    >>> combined = app1 + app2
-    >>> combined(data)
+    .. code-block:: python
+
+        combined = app1 + app2
+        combined(data)
 
     The ``app_type`` attribute is used to constrain how apps can be composed.
     ``LOADER`` and ``WRITER`` are special cases. If included, a ``LOADER``
     must always be first, e.g.
 
-    >>> app = a_loader + a_generic
+    .. code-block:: python
+
+        app = a_loader + a_generic
 
     If included, a ``WRITER`` must always be last, e.g.
 
-    >>> app = a_generic + a_writer
+    .. code-block:: python
+
+        app = a_generic + a_writer
 
     Changing the order for either of the above will result in a ``TypeError``.
 
@@ -516,13 +524,16 @@ def define_app(
     the type hint on the first argument of main it is passed to ``app.main()``.
     If it does not match, a new ``NotCompleted`` instance is returned.
 
+    Examples
+    --------
+
     An example app definition.
 
     >>> from typing import Union
     >>> from cogent3.app.composable import define_app
     >>> from cogent3.app.typing import AlignedSeqsType, SerialisableType
-    ...
-    ... @define_app
+    >>>
+    >>> @define_app
     ... class drop_bad:
     ...     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
     ...         self.quantile = quantile

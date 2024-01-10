@@ -20,7 +20,16 @@ def test_slow(session):
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test(session):
     session.install(".[test]")
-    session.chdir("tests")
+    # doctest modules within cogent3/app
+    session.chdir("src/cogent3/app")
+    session.run(
+        "pytest",
+        "-s",
+        "-x",
+        "--doctest-modules",
+        ".",
+    )
+    session.chdir("../../../tests")
     session.run(
         "pytest",
         "-s",
@@ -33,6 +42,20 @@ def test(session):
         "test_app_mpi.py",
         "-m",
         "not slow",
+    )
+
+
+@nox.session(python=[f"3.{v}" for v in _py_versions])
+def test_module_docs(session):
+    """doctest examples in a module"""
+    session.install(".[test]")
+    # doctest modules within cogent3/app
+    session.chdir("src/cogent3/app")
+    session.run(
+        "pytest",
+        "-s",
+        "--doctest-modules",
+        ".",
     )
 
 
