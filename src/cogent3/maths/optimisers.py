@@ -10,6 +10,7 @@ from typing import Tuple
 import numpy
 
 from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
@@ -138,6 +139,9 @@ def minimise(f, *args, **kw):
     return maximise(nf, *args, **kw)
 
 
+@c3warn.deprecated_args(
+    "2024.6", reason="has no effect in this function", discontinued="limit_action"
+)
 @UI.display_wrap
 def maximise(
     f,
@@ -148,7 +152,6 @@ def maximise(
     interval=None,
     max_restarts=None,
     max_evaluations=None,
-    limit_action="warn",
     tolerance=1e-6,
     global_tolerance=1e-1,
     ui=None,
@@ -165,7 +168,6 @@ def maximise(
     do_global = (not local) or local is None
     do_local = local or local is None
 
-    assert limit_action in ["ignore", "warn", "raise", "error"]
     (get_best, f) = limited_use(f, max_evaluations)
 
     x = numpy.array(xinit, float)
