@@ -197,8 +197,13 @@ def _clean_params_docs(text: str) -> str:
     doc = []
     for line in text:
         line = prefix.sub("", line)
-        if line.strip():
-            doc.append(line)
+        doc.append(line)
+
+    # Remove empty lines at the beginning and end of docstrings
+    if not doc[0]:
+        doc.pop(0)
+    if not doc[-1]:
+        doc.pop()
 
     return "\n".join(doc)
 
@@ -214,8 +219,8 @@ def app_help(name: str):
     Parameters
     ----------
     name
-        app name, e.g. 'minlength', or can include module information,
-        e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
+        app name, e.g. 'min_length', or can include module information,
+        e.g. 'cogent3.app.sample.min_length' or 'sample.min_length'. Use the
         latter (qualified class name) style when there are multiple matches
         to name.
     """

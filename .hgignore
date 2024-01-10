@@ -20,6 +20,7 @@ draw_results
 *.wpu
 .cache*
 *taskpaper
+*.ipynb
 *.ipynb_checkpoints*
 *.sublime*
 *.patch
