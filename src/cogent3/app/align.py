@@ -45,7 +45,7 @@ class _GapOffset:
     From alignment coordinate to a sequence coordinate
 
     >>> aln2seq = _GapOffset({1:3, 7:1}, invert=True)
-    >>> seq_pos = aln_pos - aln2seq[seq_pos]
+    >>> seq_pos = aln_pos - aln2seq[aln_pos]
     >>> seq_pos
     2
     """
