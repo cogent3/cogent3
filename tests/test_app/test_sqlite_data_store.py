@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from pickle import dumps, loads
 
@@ -151,7 +151,7 @@ def test_db_init_log():
     dstore._init_log()
     rows = dstore.db.execute(f"Select * from {_LOG_TABLE}").fetchall()
     assert len(rows) == 1
-    assert rows[0]["date"].date() == datetime.today().date()
+    assert rows[0]["date"].date() == datetime.now(tz=timezone.utc).date()
 
 
 def test_open_sqlite_db_rw():

@@ -32,6 +32,24 @@ _MEMORY = ":memory:"
 _mem_pattern = re.compile(r"^\s*[:]{0,1}memory[:]{0,1}\s*$")
 NoneType = type(None)
 
+# dealing with python3.12 deprecation of datetime objects and their sqlite3 handling
+
+
+def _datetime_to_iso(timestamp: datetime.datetime) -> str:
+    """timestamp in ISO 8601 format"""
+    return timestamp.isoformat()
+
+
+sqlite3.register_adapter(datetime.datetime, _datetime_to_iso)
+
+
+def _datetime_from_iso(data: bytes) -> datetime.datetime:
+    """timestamp from ISO 8601 format"""
+    return datetime.datetime.fromisoformat(data.decode())
+
+
+sqlite3.register_converter("timestamp", _datetime_from_iso)
+
 
 # create db
 def open_sqlite_db_rw(path: Union[str, Path]):
@@ -155,7 +173,7 @@ class DataStoreSqlite(DataStoreABC):
         return self._db
 
     def _init_log(self):
-        timestamp = datetime.datetime.now()
+        timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
         self.db.execute(f"INSERT INTO {_LOG_TABLE}(date) VALUES (?)", (timestamp,))
         self._log_id = self._db.execute(
             f"SELECT log_id FROM {_LOG_TABLE} where date = ?", (timestamp,)
