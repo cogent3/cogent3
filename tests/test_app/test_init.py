@@ -209,7 +209,6 @@ def test_app_help_doctest_examples(capsys):
     expect2 = "How to use the app\n\n>>>blah(arg)\noutput\n"
     # Two new lines at the end of Examples preserved
     expect3 = "output\n\nInput type"
-    print(got)
 
     assert expect1 in got
     assert expect2 in got

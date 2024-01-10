@@ -200,9 +200,9 @@ def _clean_params_docs(text: str) -> str:
         doc.append(line)
 
     # Remove empty lines at the beginning and end of docstrings
-    if doc[0] == "":
+    if not doc[0]:
         doc.pop(0)
-    if doc[-1] == "":
+    if not doc[-1]:
         doc.pop()
 
     return "\n".join(doc)
