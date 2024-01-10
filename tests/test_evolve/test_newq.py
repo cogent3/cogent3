@@ -121,7 +121,7 @@ class NewQ(TestCase):
         """str of likelihood functions should not fail"""
         for dummy, model in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(motif_length=2, mprob_model=model)
-            di.adapt_motif_probs(self.cond_root_probs, auto=True)
+            di.adapt_motif_probs(self.cond_root_probs)
             lf = di.make_likelihood_function(self.tree)
             str(lf)
 
@@ -170,7 +170,7 @@ class NewQ(TestCase):
         models"""
         for mprobs, model in self.ordered_by_complexity:
             di = TimeReversibleNucleotide(motif_length=2, mprob_model=model)
-            di.adapt_motif_probs(mprobs, auto=True)
+            di.adapt_motif_probs(mprobs)
             lf = di.make_likelihood_function(self.tree)
             lf.set_param_rule("length", is_independent=False, init=0.4)
             lf.set_alignment(self.aln)

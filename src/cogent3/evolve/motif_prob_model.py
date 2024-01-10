@@ -4,6 +4,8 @@ from typing import Union
 
 import numpy
 
+import cogent3.util.warning as c3warn
+
 from cogent3.core.alphabet import Alphabet
 from cogent3.evolve.likelihood_tree import make_likelihood_tree_leaf
 from cogent3.recalculation.definition import CalcDefn, PartitionDefn
@@ -60,7 +62,7 @@ class MotifProbModel(object):
                 result += count
         return result
 
-    def adapt_motif_probs(self, motif_probs, auto=False):
+    def adapt_motif_probs(self, motif_probs, **kwargs):
         motif_probs = adapt_motif_probs(self.get_input_alphabet(), motif_probs)
         return motif_probs
 
@@ -178,12 +180,15 @@ class MonomerProbModel(ComplexMotifProbModel):
         )
         return (monomer_probs, word_probs, mprobs_matrix)
 
-    def adapt_motif_probs(self, motif_probs, auto=False):
+    @c3warn.deprecated_args(
+        "2024.6", reason="use warn instead", discontinued="auto", stack_level=4
+    )
+    def adapt_motif_probs(self, motif_probs, warn=False, auto=False):
         try:
             motif_probs = adapt_motif_probs(self.monomer_alphabet, motif_probs)
         except ValueError:
             motif_probs = adapt_motif_probs(self.tuple_alphabet, motif_probs)
-            if not auto:
+            if warn:
                 warnings.warn("Motif probs over specified", stacklevel=5)
             motif_probs = self.calc_monomer_probs(motif_probs)
         return motif_probs
@@ -243,7 +248,7 @@ class PosnSpecificMonomerProbModel(MonomerProbModel):
         for i, m in enumerate(motif_probs):
             pc.set_param_rule("psmprobs", value=m, position=str(i), **kw)
 
-    def adapt_motif_probs(self, motif_probs, auto=False):
+    def adapt_motif_probs(self, motif_probs, **kwargs):
         try:
             motif_probs = adapt_motif_probs(self.monomer_alphabet, motif_probs)
         except ValueError:

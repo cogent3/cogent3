@@ -153,6 +153,7 @@ def maximise(
     global_tolerance=1e-1,
     ui=None,
     return_eval_count=False,
+    warn=False,
     **kw,
 ):
     """Find input values that optimise this function.
@@ -201,8 +202,8 @@ def maximise(
             x = opt.maximise(f, x, tolerance=gtol, show_remaining=callback, **kw)
         else:
             gend = 0.0
-            for k in kw:
-                warnings.warn("Unused arg for local alignment: " + k)
+            if warn:
+                warnings.warn(f"Unused args for local optimisation: {kw}")
 
         # Local optimisation
         if do_local:

@@ -9,6 +9,8 @@ import warnings
 
 import numpy
 
+import cogent3.util.warning as c3warn
+
 from cogent3.align import dp_calculation
 from cogent3.align.pairwise import AlignableSeq
 from cogent3.core.tree import TreeError
@@ -143,6 +145,7 @@ class _LikelihoodParameterController(_LF):
         include_ambiguity=False,
         is_independent=None,
         auto=False,
+        warn=False,
         pseudocount=None,
         **kwargs,
     ):
@@ -159,6 +162,7 @@ class _LikelihoodParameterController(_LF):
             is_constant=is_constant,
             is_independent=is_independent,
             auto=auto,
+            warn=warn,
             **kwargs,
         )
 
@@ -170,9 +174,10 @@ class _LikelihoodParameterController(_LF):
         is_constant=None,
         is_independent=None,
         auto=False,
+        warn=False,
         **kwargs,
     ):
-        motif_probs = self.model.adapt_motif_probs(motif_probs, auto=auto)
+        motif_probs = self.model.adapt_motif_probs(motif_probs, warn=warn)
         motif_probs = adjusted_gt_minprob(motif_probs, minprob=1e-6)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
@@ -341,6 +346,7 @@ class _LikelihoodParameterController(_LF):
         lower=None,
         init=None,
         upper=None,
+        warn=False,
         **scope_info,
     ):
         """Define a model constraint for par_name. Parameters can be set
@@ -363,6 +369,8 @@ class _LikelihoodParameterController(_LF):
             the name(s) of the bin to apply rule.
         locus, loci
             the name of the locus/loci to apply rule.
+        warn
+            show warnings when numerical approximations used
         **scope_info
             tree scope arguments
 
@@ -409,7 +417,14 @@ class _LikelihoodParameterController(_LF):
             assert not value
             value = init
         self.assign_all(
-            par_name, scopes, value, lower, upper, is_constant, is_independent
+            par_name,
+            scopes,
+            value,
+            lower,
+            upper,
+            is_constant,
+            is_independent,
+            warn=warn,
         )
 
     def set_local_clock(self, tip1name, tip2name):
@@ -587,4 +602,4 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                     [pog.leaf.get_motif_counts() for pog in list(leaves.values())], 0
                 )
                 mprobs = counts / (1.0 * sum(counts))
-                self.set_motif_probs(mprobs, locus=locus, is_constant=True, auto=True)
+                self.set_motif_probs(mprobs, locus=locus, is_constant=True, warn=False)

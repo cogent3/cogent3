@@ -1042,15 +1042,13 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         raw = {"a": "ACGACGACG", "b": "CCC---CCC", "c": "AAAA--AAA"}
         aln = self.Class(raw)
         func = _make_filter_func(aln)
-        got = aln.filtered(func, motif_length=1, log_warnings=False)
+        got = aln.filtered(func, motif_length=1, warn=False)
         self.assertEqual(len(got), 6)
         # raises an assertion if the length is not modulo
         with self.assertRaises(ValueError):
             # because alignment not modulo 2
             got = aln.filtered(func, motif_length=2, drop_remainder=False)
-        got = aln.filtered(
-            func, motif_length=2, drop_remainder=True, log_warnings=False
-        )
+        got = aln.filtered(func, motif_length=2, drop_remainder=True, warn=False)
         self.assertEqual(len(got), 4)
 
     def test_positions(self):
@@ -3253,7 +3251,7 @@ def _make_and_filter(cls, raw, expected, motif_length, drop_remainder):
     result = aln.filtered(
         func,
         motif_length=motif_length,
-        log_warnings=False,
+        warn=False,
         drop_remainder=drop_remainder,
     )
     assert result.to_dict() == expected
