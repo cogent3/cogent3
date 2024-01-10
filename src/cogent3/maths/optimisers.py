@@ -212,7 +212,7 @@ def maximise(
         x = numpy.atleast_1d(x)
 
     if bounds is not None:
-        (upper, lower) = bounds
+        upper, lower = bounds
         if upper is not None or lower is not None:
             if upper is None:
                 upper = numpy.inf
@@ -222,7 +222,10 @@ def maximise(
     try:
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
-        raise ValueError(f"Initial parameter values must be valid {repr(detail.args)}")
+        raise ValueError(
+            f"Initial parameter values must be valid {detail.args!r}"
+        ) from detail
+
     if not numpy.isfinite(fval):
         raise ValueError(
             f"Initial parameter values must evaluate to a finite value, not {fval}. {x}"
