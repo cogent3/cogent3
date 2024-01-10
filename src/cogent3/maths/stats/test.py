@@ -37,7 +37,6 @@ from cogent3.maths.stats.number import NumberCounter
 from cogent3.maths.stats.special import (
     MACHEP,
     Gamma,
-    lgam,
     log_one_minus,
     one_minus_exp,
 )

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from unittest import TestCase
 
 from numpy.testing import assert_allclose
@@ -22,7 +21,3 @@ class InformationCriteria(TestCase):
         """correctly compute BIC"""
         # against hand calculated
         assert_allclose(bic(-9.7039, 4, 13), 29.6675974298)
-
-
-if __name__ == "__main__":
-    main()

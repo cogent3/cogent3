@@ -189,7 +189,3 @@ class TestDendro(TestCase):
         # if we set scale_bar None, there should be shapes
         dnd.scale_bar = None
         self.assertIsNone(dnd.figure.layout.get("shapes"))
-
-
-if __name__ == "__main__":
-    main()

@@ -922,10 +922,6 @@ class DistancesTests(TestCase):
         self.assertEqual(table["A", "A"], 0)
 
 
-if __name__ == "__main__":
-    main()
-
-
 @pytest.fixture
 def min_working_example_dmat():
     return DistanceMatrix(

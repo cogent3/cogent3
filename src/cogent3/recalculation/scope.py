@@ -533,6 +533,7 @@ class _LeafDefn(_Defn):
         upper=None,
         const=None,
         independent=None,
+        warn=False,
     ):
         settings = []
         if const is None:
@@ -542,7 +543,7 @@ class _LeafDefn(_Defn):
             independent=independent, **(scope_spec or {})
         ):
             if value is None:
-                s_value = self.get_mean_current_value(scope)
+                s_value = self.get_mean_current_value(scope, warn=warn)
             else:
                 s_value = self.unwrap_value(value)
 
@@ -555,7 +556,7 @@ class _LeafDefn(_Defn):
                     )
                 setting = Var((None, s_value, None))
             else:
-                (s_lower, s_upper) = self.get_current_bounds(scope)
+                s_lower, s_upper = self.get_current_bounds(scope)
                 if lower is not None:
                     s_lower = lower
                 if upper is not None:
@@ -565,16 +566,18 @@ class _LeafDefn(_Defn):
                     raise ValueError("Bounds: upper < lower")
                 elif (s_lower is not None) and s_value < s_lower:
                     s_value = s_lower
-                    warnings.warn(
-                        f"Value of {self.name} increased to keep within bounds",
-                        stacklevel=3,
-                    )
+                    if warn:
+                        warnings.warn(
+                            f"Value of {self.name} increased to keep within bounds",
+                            stacklevel=3,
+                        )
                 elif (s_upper is not None) and s_value > s_upper:
                     s_value = s_upper
-                    warnings.warn(
-                        f"Value of {self.name} decreased to keep within bounds",
-                        stacklevel=3,
-                    )
+                    if warn:
+                        warnings.warn(
+                            f"Value of {self.name} decreased to keep within bounds",
+                            stacklevel=3,
+                        )
                 setting = Var((s_lower, s_value, s_upper))
             self.check_setting_is_valid(setting)
             settings.append((scope, setting))
@@ -584,19 +587,20 @@ class _LeafDefn(_Defn):
                 assert scope_t in self.assignments, scope_t
                 self.assignments[scope_t] = setting
 
-    def get_mean_current_value(self, scope):
+    def get_mean_current_value(self, scope, warn=False):
         values = [self.assignments[s].get_default_value() for s in scope]
         if len(values) == 1:
             s_value = values[0]
         else:
             s_value = sum(values) / len(values)
-            for value in values:
-                if not numpy.isclose(value, s_value).all():
-                    warnings.warn(
-                        f"Used mean of {len(values)} {self.name} values",
-                        stacklevel=4,
-                    )
-                    break
+            if warn:
+                for value in values:
+                    if not numpy.isclose(value, s_value).all():
+                        warnings.warn(
+                            f"Used mean of {len(values)} {self.name} values",
+                            stacklevel=4,
+                        )
+                        break
         return s_value
 
     def get_current_bounds(self, scope):

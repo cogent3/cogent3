@@ -128,7 +128,3 @@ class AvailableModelsTest(TestCase):
             func = getattr(models_module, abbrev)
             doc = func.__doc__.split()
             self.assertEqual(desc.split(), doc)
-
-
-if __name__ == "__main__":
-    main()

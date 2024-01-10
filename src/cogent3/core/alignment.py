@@ -31,7 +31,6 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
-from types import GeneratorType
 from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy
@@ -75,7 +74,6 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArrayTemplate
@@ -1314,7 +1312,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
 
         """
@@ -1329,6 +1327,7 @@ class _SequenceCollectionBase:
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
+        warn=False,
     ):
         """counts of motifs per sequence
 
@@ -1341,6 +1340,9 @@ class _SequenceCollectionBase:
             from the seq moltype are included. No expansion of those is attempted.
         allow_gap
             if True, motifs containing a gap character are included.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
 
         Returns
         -------
@@ -1362,6 +1364,7 @@ class _SequenceCollectionBase:
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
                 exclude_unobserved=exclude_unobserved,
+                warn=warn,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -1386,7 +1389,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
@@ -1839,7 +1842,7 @@ class _SequenceCollectionBase:
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """return MotifFreqsArray per sequence"""
 
@@ -1848,11 +1851,9 @@ class _SequenceCollectionBase:
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
+            warn=warn,
         )
-        if counts is None:
-            return None
-
-        return counts.to_freq_array()
+        return None if counts is None else counts.to_freq_array()
 
     def entropy_per_seq(
         self,
@@ -1860,7 +1861,7 @@ class _SequenceCollectionBase:
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=True,
-        alert=False,
+        warn=False,
     ):
         """Returns the Shannon entropy per sequence.
 
@@ -1875,6 +1876,9 @@ class _SequenceCollectionBase:
             if True, motifs containing a gap character are included.
         exclude_unobserved: bool
             if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
 
         Notes
         -----
@@ -1886,7 +1890,7 @@ class _SequenceCollectionBase:
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
-            alert=alert,
+            warn=warn,
         )
         if probs is None:
             return None
@@ -2455,12 +2459,17 @@ class AlignmentI(object):
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    def iupac_consensus(self, alphabet=None, allow_gaps=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="consistency with other methods",
+        old_new=[("allow_gaps", "allow_gap")],
+    )
+    def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
 
-        exclude = set() if allow_gaps else set(alphabet.gaps)
+        exclude = set() if allow_gap else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
@@ -2484,26 +2493,26 @@ class AlignmentI(object):
         return self.moltype.make_seq("".join(states))
 
     def probs_per_pos(
-        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
     ):
         """returns MotifFreqsArray per position"""
         counts = self.counts_per_pos(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
-            alert=alert,
+            warn=warn,
         )
         return counts.to_freq_array()
 
     def entropy_per_pos(
-        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
     ):
         """returns shannon entropy per position"""
         probs = self.probs_per_pos(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
-            alert=alert,
+            warn=warn,
         )
         return probs.entropy()
 
@@ -2513,7 +2522,7 @@ class AlignmentI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """return MotifFreqsArray per sequence
 
@@ -2528,6 +2537,9 @@ class AlignmentI(object):
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
         """
 
         counts = self.counts_per_seq(
@@ -2535,11 +2547,9 @@ class AlignmentI(object):
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
+            warn=warn,
         )
-        if counts is None:
-            return None
-
-        return counts.to_freq_array()
+        return None if counts is None else counts.to_freq_array()
 
     def entropy_per_seq(
         self,
@@ -2547,7 +2557,7 @@ class AlignmentI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=True,
-        alert=False,
+        warn=False,
     ):
         """returns the Shannon entropy per sequence
 
@@ -2562,6 +2572,9 @@ class AlignmentI(object):
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
 
         Notes
         -----
@@ -2574,12 +2587,9 @@ class AlignmentI(object):
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
-            alert=alert,
+            warn=warn,
         )
-        if probs is None:
-            return None
-
-        return probs.entropy()
+        return None if probs is None else probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
         """returns new alignment without degenerate characters
@@ -2588,7 +2598,7 @@ class AlignmentI(object):
         ----------
         motif_length
             sequences are segmented into units of this size
-        allow_gaps
+        allow_gap
             whether gaps are to be treated as a degenerate
             character (default, most evolutionary modelling treats gaps as
             N) or not.
@@ -2631,10 +2641,7 @@ class AlignmentI(object):
         gaps_ok = GapsOk(
             gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
         )
-        # if we're not deleting the 'naughty' seqs that contribute to the
-        # gaps, it's easy...
-        result = self.filtered(gaps_ok, motif_length=motif_length)
-        return result
+        return self.filtered(gaps_ok, motif_length=motif_length)
 
     def get_gap_array(self, include_ambiguity=True):
         """returns bool array with gap state True, False otherwise
@@ -3069,19 +3076,19 @@ class AlignmentI(object):
         return "\n".join(result)
 
     def counts_per_pos(
-        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
     ):
         """return DictArray of counts per position
 
         Parameters
         ----------
 
-        alert
+        warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
         length = (len(self) // motif_length) * motif_length
-        if alert and len(self) != length:
+        if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         data = list(self.to_dict().values())
@@ -3121,7 +3128,7 @@ class AlignmentI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """counts of non-overlapping motifs per sequence
 
@@ -3132,11 +3139,11 @@ class AlignmentI(object):
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if False, all canonical states included
-        alert
+        warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
 
@@ -3145,7 +3152,7 @@ class AlignmentI(object):
         MotifCountsArray
         """
         length = (len(self) // motif_length) * motif_length
-        if alert and len(self) != length:
+        if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         counts = []
@@ -4030,12 +4037,17 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
-    def iupac_consensus(self, alphabet=None, allow_gaps=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="consistency with other methods",
+        old_new=[("allow_gaps", "allow_gap")],
+    )
+    def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
 
-        exclude = set() if allow_gaps else set(alphabet.gaps)
+        exclude = set() if allow_gap else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
@@ -4391,7 +4403,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         ----------
         motif_length
             sequences are segmented into units of this size
-        allow_gaps
+        allow_gap
             whether gaps are to be treated as a degenerate
             character (default, most evolutionary modelling treats gaps as
             N) or not.
@@ -4422,7 +4434,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """counts of non-overlapping motifs per sequence
 
@@ -4433,11 +4445,11 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if False, all canonical states included
-        alert
+        warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
 
@@ -4446,7 +4458,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         MotifCountsArray
         """
         length = (len(self) // motif_length) * motif_length
-        if alert and len(self) != length:
+        if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         counts = []

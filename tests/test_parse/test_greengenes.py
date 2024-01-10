@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from unittest import TestCase
 
 from cogent3.parse.greengenes import (
@@ -243,6 +241,3 @@ wigeon_std_dev=
 aligned_seq=unaligned
 END
 """
-
-if __name__ == "__main__":
-    main()

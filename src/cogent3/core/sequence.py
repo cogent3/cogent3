@@ -42,6 +42,8 @@ from numpy import (
 )
 from numpy.random import permutation
 
+import cogent3.util.warning as c3warn
+
 from cogent3._version import __version__
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Feature
@@ -66,7 +68,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import deprecated_args
 
 
 ARRAY_TYPE = type(array(1))
@@ -167,6 +168,7 @@ class SequenceI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
+        warn=False,
     ):
         """returns dict of counts of motifs
 
@@ -183,7 +185,9 @@ class SequenceI(object):
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
-
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
         """
         try:
             data = str(self)
@@ -195,7 +199,7 @@ class SequenceI(object):
         if motif_length == 1:
             counts = CategoryCounter(data)
         else:
-            if len(data) % motif_length != 0:
+            if warn and len(data) % motif_length != 0:
                 warnings.warn(
                     f"{self.name} length not divisible by {motif_length}, truncating"
                 )
@@ -1425,16 +1429,20 @@ class Sequence(SequenceI):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def get_in_motif_size(self, motif_length=1, log_warnings=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="argument name consistency",
+        old_new=(("log_warnings", "warn"),),
+    )
+    def get_in_motif_size(self, motif_length=1, warn=False):
         """returns sequence as list of non-overlapping motifs
 
         Parameters
         ----------
         motif_length
             length of the motifs
-        log_warnings
+        warn
             whether to notify of an incomplete terminal motif
-
         """
         seq = self._seq
         if isinstance(seq, SeqView):
@@ -1444,7 +1452,7 @@ class Sequence(SequenceI):
 
         length = len(seq)
         remainder = length % motif_length
-        if remainder and log_warnings:
+        if remainder and warn:
             warnings.warn(
                 f'Dropped remainder "{seq[-remainder:]}" from end of sequence'
             )

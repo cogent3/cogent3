@@ -347,7 +347,3 @@ class TestPeriod(TestCase):
         self.assertEqual(hybrid_ipdft_autocorr_stats[0], hybrid_x)
         self.assertEqual(hybrid_ipdft_autocorr_stats[1], ipdft_pwr)
         self.assertEqual(hybrid_ipdft_autocorr_stats[2], auto_x)
-
-
-if __name__ == "__main__":
-    main()

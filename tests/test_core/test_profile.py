@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Provides tests for classes and functions in profile.py
 """
 from collections import Counter
@@ -538,7 +537,3 @@ class PSSMTests(TestCase):
         seq = DNA.make_seq("".join("ACTG"[i] for i in [3, 1, 2, 0, 2, 2, 3]))
         scores = pssm.score_seq(seq)
         assert_allclose(scores, [-4.481, -5.703, -2.966], atol=1e-3)
-
-
-if __name__ == "__main__":
-    main()

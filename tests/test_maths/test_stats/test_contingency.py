@@ -238,7 +238,3 @@ class ContingencyTests(TestCase):
             a = numpy.array([[31, -36], [58, 138]], dtype=int)
             darr = DictArrayTemplate(["syn", "nsyn"], ["Ts", "Tv"]).wrap(a)
             _ = CategoryCounts(darr)
-
-
-if __name__ == "__main__":
-    main()

@@ -28,7 +28,3 @@ class Test_Shapes(TestCase):
         rectangle.shift(5, 2)
 
         self.assertTrue(rectangle.height == 7, "Height is consistent with shift")
-
-
-if __name__ == "__main__":
-    main()

@@ -142,7 +142,3 @@ class TestFourFoldDegen(TestCase):
                 get_code(i), alphabet=DNA.alphabet, as_indices=True
             )
             self.assertEqual(got, expect)
-
-
-if __name__ == "__main__":
-    main()

@@ -418,7 +418,3 @@ class NexusParserTests(TestCase):
         aln = load_aligned_seqs("data/nexus_aa.nxs")
         self.assertEqual(aln.num_seqs, 10)
         self.assertEqual(len(aln), 234)
-
-
-if __name__ == "__main__":
-    main()

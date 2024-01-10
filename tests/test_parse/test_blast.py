@@ -349,7 +349,3 @@ Scientific name: cf. Acremonium sp. KR21-2
         self.assertEqual(r0["scientific_name"], "Pinus sylvestris")
         self.assertEqual(r0["seq_id"], "gi|3021565|emb|AJ223314.1|PSAJ3314")
         self.assertEqual(r1["tax_id"], "228610")
-
-
-if __name__ == "__main__":
-    main()

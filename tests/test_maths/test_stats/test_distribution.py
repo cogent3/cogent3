@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests of statistical probability distribution integrals.
 
 Currently using tests against calculations in R, spreadsheets being unreliable.
@@ -1262,7 +1261,3 @@ class DistributionsTests(TestCase):
         )
         got = theoretical_quantiles(4, "t", 4)
         assert_almost_equal(got, expect)
-
-
-if __name__ == "__main__":
-    main()

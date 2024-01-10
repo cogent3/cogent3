@@ -372,7 +372,3 @@ class TestNumber(TestCase):
         with self.assertRaises(NotImplementedError):
             cats = number.CategoryCounter(d3)
             cats.to_categorical()
-
-
-if __name__ == "__main__":
-    main()

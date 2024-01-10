@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from unittest import TestCase
 
 from cogent3.util.table import Table
@@ -188,7 +186,3 @@ class FormatBedgraph(TestCase):
             color=(255, 0, 0),
             windowingFunction="sqrt",
         )
-
-
-if __name__ == "__main__":
-    main()

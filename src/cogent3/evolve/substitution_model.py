@@ -314,6 +314,7 @@ class _SubstitutionModel(object):
         digits: typing.Optional[int] = None,
         space: typing.Optional[str] = None,
         default_length: float = 1.0,
+        warn=False,
         **kw,
     ):
         """
@@ -343,6 +344,8 @@ class _SubstitutionModel(object):
         default_length
             default branch length when provided tree has no (or zero) lengths,
             noting that a positive nonzero is required.
+        warn
+            show warnings when numerical approximations used
         kw
             other keyword args passed through to the likelihood function class
         """
@@ -366,7 +369,7 @@ class _SubstitutionModel(object):
 
         if self.motif_probs is not None:
             result.set_motif_probs(
-                self.motif_probs, is_constant=not optimise_motif_probs, auto=True
+                self.motif_probs, is_constant=not optimise_motif_probs, warn=warn
             )
 
         if expm is None:
@@ -403,8 +406,8 @@ class _SubstitutionModel(object):
         # to retrieve the correct (adapted) alignment.
         return AlignmentAdaptDefn(model, align)
 
-    def adapt_motif_probs(self, motif_probs, auto=False):
-        return self.mprob_model.adapt_motif_probs(motif_probs, auto=auto)
+    def adapt_motif_probs(self, motif_probs, **kwargs):
+        return self.mprob_model.adapt_motif_probs(motif_probs, **kwargs)
 
     def calc_monomer_probs(self, word_probs):
         # Not presently used, always go monomer->word instead

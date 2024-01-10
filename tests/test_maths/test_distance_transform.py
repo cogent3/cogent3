@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for distance_transform.py functions.
 """
 
@@ -555,7 +554,3 @@ class functionTests(TestCase):
                 ]
             ),
         )
-
-
-if __name__ == "__main__":
-    main()

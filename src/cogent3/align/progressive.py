@@ -6,7 +6,6 @@ from cogent3.core.tree import TreeNode
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 
 
 @UI.display_wrap

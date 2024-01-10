@@ -2,8 +2,6 @@ from typing import Iterable, Optional
 
 from numpy import array
 
-from cogent3.util import warning as c3warn
-
 from .location import Map
 
 

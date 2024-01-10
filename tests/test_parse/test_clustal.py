@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for the clustal parsers.
 """
 from unittest import TestCase
@@ -133,7 +132,3 @@ class MinimalClustalParserTests(TestCase):
         self.assertEqual(
             result, ({"abc": ["uca"], "def ggg": ["ccc"]}, ["abc", "def ggg"])
         )
-
-
-if __name__ == "__main__":
-    main()

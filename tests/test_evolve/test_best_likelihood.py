@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import math
 
 from unittest import TestCase
@@ -134,7 +132,3 @@ class TestGoldman93(TestCase):
         assert_allclose(obs, expect)
         lnL, l = BestLogLikelihood(self.aln, DNA.alphabet, return_length=True)
         self.assertEqual(l, len(self.aln))
-
-
-if __name__ == "__main__":
-    main()

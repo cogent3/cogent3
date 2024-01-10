@@ -1,5 +1,3 @@
-#!/bin/env python
-# file cogent/parse/test_phylip.py
 """Unit tests for the phylip parser
 """
 from io import StringIO
@@ -316,7 +314,3 @@ CAAAACCCATCATCAAAACC
 GGCAGCCAATCACGGCAGCC
 """,
         )
-
-
-if __name__ == "__main__":
-    main()

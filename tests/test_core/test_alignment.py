@@ -11,7 +11,7 @@ from unittest import TestCase
 import numpy
 import pytest
 
-from numpy import array, log2, nan, transpose
+from numpy import array, log2, nan
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import (
@@ -1042,15 +1042,13 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         raw = {"a": "ACGACGACG", "b": "CCC---CCC", "c": "AAAA--AAA"}
         aln = self.Class(raw)
         func = _make_filter_func(aln)
-        got = aln.filtered(func, motif_length=1, log_warnings=False)
+        got = aln.filtered(func, motif_length=1, warn=False)
         self.assertEqual(len(got), 6)
         # raises an assertion if the length is not modulo
         with self.assertRaises(ValueError):
             # because alignment not modulo 2
             got = aln.filtered(func, motif_length=2, drop_remainder=False)
-        got = aln.filtered(
-            func, motif_length=2, drop_remainder=True, log_warnings=False
-        )
+        got = aln.filtered(func, motif_length=2, drop_remainder=True, warn=False)
         self.assertEqual(len(got), 4)
 
     def test_positions(self):
@@ -2367,7 +2365,7 @@ def test_upac_consensus_allow_gaps(moltype, array_align):
     assert iupac == "?CGG"
 
     # allow_gaps
-    iupac = aln.iupac_consensus(allow_gaps=False)
+    iupac = aln.iupac_consensus(allow_gap=False)
     assert iupac == "ACGG"
 
 
@@ -3253,7 +3251,7 @@ def _make_and_filter(cls, raw, expected, motif_length, drop_remainder):
     result = aln.filtered(
         func,
         motif_length=motif_length,
-        log_warnings=False,
+        warn=False,
         drop_remainder=drop_remainder,
     )
     assert result.to_dict() == expected
