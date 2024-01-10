@@ -21,9 +21,7 @@ from itertools import product
 from numpy import (
     arange,
     array,
-    asarray,
     newaxis,
-    ravel,
     sum,
     take,
     transpose,
@@ -33,7 +31,6 @@ from numpy import (
     uint64,
     zeros,
 )
-from numpy.testing import assert_allclose
 
 from cogent3._version import __version__
 from cogent3.util import warning as c3warns

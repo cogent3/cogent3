@@ -5,11 +5,8 @@ parameters involved in a maximum-likelihood based tree analysis.
 
 
 import pickle
-import warnings
 
 import numpy
-
-import cogent3.util.warning as c3warn
 
 from cogent3.align import dp_calculation
 from cogent3.align.pairwise import AlignableSeq

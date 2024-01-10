@@ -74,7 +74,6 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArrayTemplate

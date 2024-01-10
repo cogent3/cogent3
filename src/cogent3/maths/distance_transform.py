@@ -73,18 +73,7 @@ from numpy import (
     nan_to_num,
 )
 from numpy import ndim as rank
-from numpy import (
-    ravel,
-    seterr,
-    shape,
-    sqrt,
-    square,
-    sum,
-    take,
-    union1d,
-    where,
-    zeros,
-)
+from numpy import ravel, seterr, shape, sqrt, square, sum, take, where, zeros
 from numpy.linalg import norm
 
 
