@@ -60,25 +60,24 @@ class _GapOffset:
         invert : bool
             if True, query keys are taken as being in alignment coordinates
         """
-        offset = 0
-        min_val = None
+        cum_gap_length = 0
         result = {}
-        k = -1
-        for k, l in sorted(gaps_lengths.items()):
+        gap_pos = -1
+        for gap_pos, gap_length in sorted(gaps_lengths.items()):
             if invert:
-                result[k + offset + l] = offset + l
-                result[k + offset] = offset
+                result[gap_pos + cum_gap_length] = cum_gap_length
+                result[gap_pos + cum_gap_length + gap_length] = (
+                    cum_gap_length + gap_length
+                )
             else:
-                result[k] = offset
+                result[gap_pos] = cum_gap_length
 
-            offset += l
-            if min_val is None:
-                min_val = k
+            cum_gap_length += gap_length
 
         self._store = result
-        self.min_pos = min_val
-        self.max_pos = k + offset if invert else k
-        self.total = offset
+        self.min_pos = min(gaps_lengths) if gaps_lengths else None
+        self.max_pos = gap_pos + cum_gap_length if invert else gap_pos
+        self.total = cum_gap_length
         self._ordered = None
         self._invert = invert
 
@@ -88,27 +87,27 @@ class _GapOffset:
     def __str__(self):
         return str(self._store)
 
-    def __getitem__(self, k):
+    def __getitem__(self, index):
         if not self._store:
             return 0
 
-        if k in self._store:
-            return self._store[k]
+        if index in self._store:
+            return self._store[index]
 
-        if k < self.min_pos:
+        if index < self.min_pos:
             return 0
 
-        if k > self.max_pos:
+        if index > self.max_pos:
             return self.total
 
         if self._ordered is None:
             self._ordered = sorted(self._store)
 
-        # k is definitely bounded by min and max positions here
-        i = bisect_left(self._ordered, k)
+        # index is definitely bounded by min and max positions here
+        i = bisect_left(self._ordered, index)
         pos = self._ordered[i]
         if self._invert:
-            pos = pos if pos in [k, 0] else self._ordered[i - 1]
+            pos = pos if pos in [index, 0] else self._ordered[i - 1]
         return self._store[pos]
 
 
