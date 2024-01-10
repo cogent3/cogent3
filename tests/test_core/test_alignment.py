@@ -2365,7 +2365,7 @@ def test_upac_consensus_allow_gaps(moltype, array_align):
     assert iupac == "?CGG"
 
     # allow_gaps
-    iupac = aln.iupac_consensus(allow_gaps=False)
+    iupac = aln.iupac_consensus(allow_gap=False)
     assert iupac == "ACGG"
 
 

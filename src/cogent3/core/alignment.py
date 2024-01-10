@@ -1314,7 +1314,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
 
         """
@@ -1391,7 +1391,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
@@ -2464,12 +2464,17 @@ class AlignmentI(object):
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    def iupac_consensus(self, alphabet=None, allow_gaps=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="consistency with other methods",
+        old_new=[("allow_gaps", "allow_gap")],
+    )
+    def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
 
-        exclude = set() if allow_gaps else set(alphabet.gaps)
+        exclude = set() if allow_gap else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
@@ -2604,7 +2609,7 @@ class AlignmentI(object):
         ----------
         motif_length
             sequences are segmented into units of this size
-        allow_gaps
+        allow_gap
             whether gaps are to be treated as a degenerate
             character (default, most evolutionary modelling treats gaps as
             N) or not.
@@ -3148,7 +3153,7 @@ class AlignmentI(object):
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if False, all canonical states included
@@ -4046,12 +4051,17 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
 
         return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
-    def iupac_consensus(self, alphabet=None, allow_gaps=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="consistency with other methods",
+        old_new=[("allow_gaps", "allow_gap")],
+    )
+    def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
 
-        exclude = set() if allow_gaps else set(alphabet.gaps)
+        exclude = set() if allow_gap else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
@@ -4407,7 +4417,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         ----------
         motif_length
             sequences are segmented into units of this size
-        allow_gaps
+        allow_gap
             whether gaps are to be treated as a degenerate
             character (default, most evolutionary modelling treats gaps as
             N) or not.
@@ -4449,7 +4459,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if False, all canonical states included
