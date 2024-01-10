@@ -66,7 +66,7 @@ class _Tokeniser(object):
         closing_quote_token = None
         in_comment = False
         comment = []
-        splits = re.split("""([\\t ]+|\\n|''|""|[]['"(),:;\[\]])""", self.text)
+        splits = re.split(r"""([\t ]+|\n|''|""|[]['"(),:;\[\]])""", self.text)
         for token in splits + [EOT]:
             label_complete = False
             token_consumed = True
