@@ -50,6 +50,7 @@ __pycache__
 venv/
 working/
 *.ipynb
+*.ipynb_checkpoints/
 
 # vi
 .*.swp
