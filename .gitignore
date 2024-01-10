@@ -49,5 +49,8 @@ __pycache__
 .vscode/*
 venv/
 working/
+*.ipynb
+*.ipynb_checkpoints/
+
 # vi
 .*.swp

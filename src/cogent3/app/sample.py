@@ -366,6 +366,36 @@ class min_length:
             degenerate characters subtracted from sequence length calculation
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+        Create a sample alignment. Alignments must have a moltype specified
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"}, moltype="dna")
+
+        Create the app to filter sequences with a minimum length of 3 sites
+
+        >>> app = get_app("min_length", 3)
+        >>> result = app(aln)
+        >>> len(result)
+        5
+
+        When all sequences are shorter than the min length, returns a
+        NotCompleted (see https://cogent3.org/doc/app/not-completed.html)
+
+        >>> app = get_app("min_length", 7)
+        >>> result = app(aln)
+        >>> result.message
+        '4 < min_length 7'
+
+        If the moltype of the alignment is not specified, returns a NotCompleted
+
+        >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"})
+        >>> app = get_app("min_length", 3)
+        >>> result = app(aln)
+        >>> result.message
+        'Traceback...
         """
         if motif_length > 1:
             length = length // motif_length
