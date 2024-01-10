@@ -35,3 +35,4 @@ doc/draw*
 dist/*
 working/*
 lcov*.info
+.ruff_cache/*
