@@ -159,11 +159,47 @@ def maximise(
     warn=False,
     **kw,
 ):
-    """Find input values that optimise this function.
+    """
+    Find input values that optimise this function.
     'local' controls the choice of optimiser, the default being to run
     both the global and local optimisers. 'filename' and 'interval'
     control checkpointing.  Unknown keyword arguments get passed on to
     the global optimiser.
+    Parameters
+    ----------
+    f
+        callable
+    xinit
+        initial parameter values
+    bounds
+        (upper, lower) bounds with a value in each for each element of xinit
+    local
+        Controls which optimiser(s) to apply. If True, uses Powell local
+        optimiser only. If False, uses only the global (Simulated Annealing)
+        optimiser. If None, uses both global and local.
+    filename
+        file to checkpoint optimisatiuon results to.
+    interval
+        time expressed in seconds
+    max_restarts
+        maximum number of times to try optimisation
+    max_evaluations
+        maximum number of function evaluations to perform
+    tolerance
+        exit condition for local optimiser
+    global_tolerance
+        exit condition for global optimiser
+    return_eval_count
+        number of times function evaluated
+    warn
+        whether to report unused variables
+    kw
+        kwargs passed through to global optimiser only
+
+    Returns
+    -------
+    The vector of values maximising f. Optionally returns the number of
+    function evaluations.
     """
     do_global = (not local) or local is None
     do_local = local or local is None
@@ -221,7 +257,7 @@ def maximise(
             )
     finally:
         # ensure state of calculator reflects optimised result, or
-        # partialy optimised result if exiting on an exception.
+        # partially optimised result if exiting on an exception.
         (f, x, evals) = get_best()
 
     # ... and returning this info the obvious way keeps this function
