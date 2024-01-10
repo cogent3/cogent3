@@ -194,7 +194,3 @@ class JackknifeTests(TestCase):
         self.assertEqual(pvs.shape, (12, 2))
         ss = test_knife.summary_stats
         self.assertEqual(ss.shape, (1, 3))
-
-
-if __name__ == "__main__":
-    main()

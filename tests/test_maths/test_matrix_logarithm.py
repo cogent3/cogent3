@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for matrix logarithm."""
 from unittest import TestCase
 
@@ -104,7 +103,3 @@ class logarithm_tests(TestCase):
             ]
         )
         self.assertRaises(NotImplementedError, is_generator_unique, q_raise)
-
-
-if __name__ == "__main__":
-    main()

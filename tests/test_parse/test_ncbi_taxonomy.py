@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests of parsers for dealing with NCBI Taxonomy files.
 """
 
@@ -352,7 +351,3 @@ class NcbiTaxonNodeTests(TestCase):
         gr = tx[3].getRankedDescendants("group")
         self.assertEqual(gr, [tx[123]])
         assert tx[3] is tx["a"]
-
-
-if __name__ == "__main__":
-    main()

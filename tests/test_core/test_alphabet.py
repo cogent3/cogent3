@@ -304,7 +304,3 @@ class JointEnumerationTests(TestCase):
         v = [7, 15, 18, 0]
         result = a.unpack_arrays(v)
         assert_equal(result, array([[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
-
-
-if __name__ == "__main__":
-    main()

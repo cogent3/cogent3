@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for FASTA sequence format writer.
 """
 from unittest import TestCase
@@ -51,7 +50,3 @@ class FastaTests(TestCase):
             alignment_to_fasta(self.alignment_dict, block_size=2),
             self.fasta_with_label_lw2,
         )
-
-
-if __name__ == "__main__":
-    main()

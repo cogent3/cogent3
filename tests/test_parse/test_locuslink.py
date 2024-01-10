@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for locuslink-specific classes
 """
 from unittest import TestCase
@@ -507,7 +506,3 @@ PMID: 14499652"""
                 },
             ],
         )
-
-
-if __name__ == "__main__":
-    main()

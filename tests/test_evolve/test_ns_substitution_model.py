@@ -314,7 +314,3 @@ class NonStatMarkov(TestCase):
         sm = NonReversibleProtein(predicates=preds)
         got = sm.get_param_list()
         self.assertEqual(got, ["D>K", "R>V"])
-
-
-if __name__ == "__main__":
-    main()

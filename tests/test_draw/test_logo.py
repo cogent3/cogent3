@@ -83,7 +83,3 @@ class LogoTests(TestCase):
         expect = [base, None]
         got = _char_hts_as_lists(data)
         self.assertEqual(got, expect)
-
-
-if __name__ == "__main__":
-    main()

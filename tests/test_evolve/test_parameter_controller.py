@@ -220,7 +220,3 @@ class test_parameter_controller(TestCase):
 
         # upper < lower bounds should fail
         self.assertRaises(ValueError, lf.set_param_rule, "length", lower=2, upper=0)
-
-
-if __name__ == "__main__":
-    main()

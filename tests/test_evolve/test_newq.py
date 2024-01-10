@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import warnings
 
 from unittest import TestCase
@@ -388,7 +386,3 @@ class NewQ(TestCase):
         lf.set_alignment(aln)
         with self.assertRaises(NotImplementedError):
             _ = lf.get_motif_probs_by_node()
-
-
-if __name__ == "__main__":
-    main()

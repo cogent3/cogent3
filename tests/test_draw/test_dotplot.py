@@ -147,7 +147,3 @@ class TestUtilFunctions(TestCase):
         )
         dp = seqs.dotplot("seq1", "seq3", title="")
         self.assertEqual(dp.figure.layout.title, "")
-
-
-if __name__ == "__main__":
-    main()

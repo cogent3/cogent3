@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 
 from unittest import TestCase
@@ -402,7 +400,3 @@ class ModelDataInteractionTestMethods(TestCase):
 
     # need to ensure entering motif probs that sum to 1, that motif sets are
     # the same
-
-
-if __name__ == "__main__":
-    main()
