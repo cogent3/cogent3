@@ -214,7 +214,7 @@ class test_parameter_controller(TestCase):
 
         # Out of bounds value should warn and keep bounded
         with warnings.catch_warnings(record=True) as w:
-            lf.set_param_rule("length", lower=0, upper=2)
+            lf.set_param_rule("length", lower=0, upper=2, warn=True)
             self.assertTrue(len(w), "No warning issued")
         self.assertEqual(lf.get_param_value("length", edge="a"), 2)
 
