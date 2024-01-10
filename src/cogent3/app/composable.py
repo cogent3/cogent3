@@ -524,13 +524,16 @@ def define_app(
     the type hint on the first argument of main it is passed to ``app.main()``.
     If it does not match, a new ``NotCompleted`` instance is returned.
 
+    Examples
+    --------
+
     An example app definition.
 
     >>> from typing import Union
     >>> from cogent3.app.composable import define_app
     >>> from cogent3.app.typing import AlignedSeqsType, SerialisableType
-    ...
-    ... @define_app
+    >>>
+    >>> @define_app
     ... class drop_bad:
     ...     def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
     ...         self.quantile = quantile
