@@ -1278,19 +1278,20 @@ class Sequence(SequenceI):
         return new
 
     def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
+        if not allow_gaps and not map.complete:
+            raise ValueError(f"gap(s) in map {map}")
+
+        complement = self.moltype.complement
+
         for span in map.spans:
             if span.lost:
-                if allow_gaps:
-                    unknown = span.terminal or recode_gaps
-                    seg = "-?"[unknown] * span.length
-                else:
-                    raise ValueError(f"gap(s) in map {map}")
+                unknown = "?" if span.terminal or recode_gaps else "-"
+                seg = unknown * span.length
             else:
                 seg = str(self[span.start : span.end])
                 if span.reverse:
-                    complement = self.moltype.complement
-                    seg = [complement(base) for base in seg[::-1]]
-                    seg = "".join(seg)
+                    seg = "".join(complement(seg[::-1]))
+
             yield seg
 
     def gapped_by_map_motif_iter(self, map):
