@@ -309,6 +309,7 @@ def test_open_zip_multi(tmp_dir):
     "mode",
     ("r", "rb", "rt", None),
 )
+@pytest.mark.internet
 def test_open_url(DATA_DIR, mode):
     """different open mode's all work"""
     # None value for open_url mode defaults to "r"
@@ -345,6 +346,7 @@ def test_open_url_local(DATA_DIR):
     assert remote_data.splitlines() == local_data.splitlines()
 
 
+@pytest.mark.internet
 def test_open_url_compressed(DATA_DIR):
     """comparing compressed file handling"""
     file_name = "formattest.fasta.gz"
