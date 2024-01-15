@@ -156,6 +156,37 @@ class omit_degenerates:
             sequences split into non-overlapping tuples of this size. If a
             tuple contains a degen character at any position the entire tuple
             is excluded
+
+        Examples
+        --------
+
+        Create sample data with degenerate characters
+
+        >>> from cogent3 import app_help, get_app, make_aligned_seqs
+
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"}, moltype="dna")
+
+        Create an app to omit degenerate characters from an alignment
+
+        >>> app = get_app("omit_degenerates")
+        >>> result = app(aln)
+        >>> result.to_dict()
+        {'s1': 'ACGAGAG', 's2': 'GATGTGT'}
+
+        Create an app which omits degenerate characters, but retains gaps
+
+        >>> app = get_app("omit_degenerates", gap_is_degen=False)
+        >>> result = app(aln)
+        >>> result.to_dict()
+        {'s1': 'ACGA-GAG', 's2': 'GATGATGT'}
+
+        Alignments without a moltype returns a NotCompleted
+        (see https://cogent3.org/doc/app/not-completed.html)
+
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"})
+        >>> result = app(aln)
+        >>> result.message
+        'Traceback...
         """
         if moltype:
             moltype = get_moltype(moltype)
