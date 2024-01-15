@@ -45,6 +45,51 @@ class concat:
             missings sequences will be replaced by a sequence of '?'.
         moltype : str
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create app to concatenate two alignments
+
+        >>> from cogent3 import app_help, get_app, make_aligned_seqs
+
+        >>> concat_alns = get_app("concat")
+
+
+        Create sample alignments with matching names and a moltype specified
+
+        >>> aln1 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"}, moltype="dna")
+        >>> aln2 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"}, moltype="dna")
+
+        Concatenate alignments
+
+        >>> concatenated = concat_alns([aln1, aln2])
+        >>> sorted(concatenated.to_dict().items())
+        [('s1', 'AAAGCG'), ('s2', 'CAAGGG'), ('s3', 'AAAGGT')]
+
+        Sequences that do not have matching names in the corresponding
+        alignment are omitted
+
+        >>> aln3 = make_aligned_seqs({"s4": "GCG", "s5": "GGG", "s3": "GGT"}, moltype="dna")
+        >>> concatenated = concat_alns([aln1, aln3])
+        >>> concatenated.to_dict()
+        {'s3': 'AAAGGT'}
+
+        Sequences with no matching names returns a NotCompleted (see
+        https://cogent3.org/doc/app/not-completed.html)
+
+        >>> aln4 = make_aligned_seqs({"x": "GCG", "y": "GGG", "z": "GGT"}, moltype="dna")
+        >>> result = concat_alns([aln1, aln4])
+        >>> result.message
+        'Traceback...
+
+        Alignments without a moltype returns a NotCompleted
+
+        >>> aln5 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"})
+        >>> aln6 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"})
+        >>> result = concat_alns([aln5, aln6])
+        >>> result.message
+        'Traceback...
         """
         self._name_callback = {True: intersection}.get(intersect, union)
         self._intersect = intersect
