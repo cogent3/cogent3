@@ -82,14 +82,6 @@ class concat:
         >>> result = concat_alns([aln1, aln4])
         >>> result.message
         'Traceback...
-
-        Alignments without a moltype returns a NotCompleted
-
-        >>> aln5 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"})
-        >>> aln6 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"})
-        >>> result = concat_alns([aln5, aln6])
-        >>> result.message
-        'Traceback...
         """
         self._name_callback = {True: intersection}.get(intersect, union)
         self._intersect = intersect
@@ -106,30 +98,31 @@ class concat:
         data
             series of alignment instances
         """
-        if len(data) == 0:
+        if not data:
             raise ValueError("no data")
 
         names = []
         for aln in data:
+            if self._moltype is None:
+                self._moltype = aln.moltype
+
             if not isinstance(aln, (ArrayAlignment, Alignment)):
                 raise TypeError(f"{type(aln)} invalid for concat")
             names.append(aln.names)
 
         names = self._name_callback(names)
         collated = defaultdict(list)
-        if self._moltype is None:
-            self._moltype = aln.moltype
 
         for aln in data:
             if self._moltype and aln.moltype != self._moltype:
                 # try converting
-                aln = aln.to_moltype(self.moltype)
+                aln = aln.to_moltype(self._moltype)
 
             if self._intersect:
                 seqs = aln.take_seqs(names).to_dict()
             else:
                 seqs = defaultdict(lambda: "?" * len(aln))
-                seqs.update(aln.to_dict())
+                seqs |= aln.to_dict()
 
             for name in names:
                 collated[name].append(seqs[name])
