@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Optional, Union
 
 from numpy import array
 from numpy import random as np_random
@@ -34,7 +34,9 @@ def union(groups):
 class concat:
     """Creates a concatenated alignment from a series."""
 
-    def __init__(self, join_seq="", intersect=True, moltype=None):
+    def __init__(
+        self, join_seq: str = "", intersect: bool = True, moltype: Optional[str] = None
+    ):
         """
         Parameters
         ----------
@@ -45,6 +47,50 @@ class concat:
             missings sequences will be replaced by a sequence of '?'.
         moltype : str
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create an app to concatenate two alignments
+
+        >>> from cogent3 import app_help, get_app, make_aligned_seqs
+        >>> concat_alns = get_app("concat", moltype="dna")
+
+        Create sample alignments with matching sequence names
+
+        >>> aln1 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"}, moltype="dna")
+        >>> aln2 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"}, moltype="dna")
+
+        Concatenate alignments. By default, sequences without matching names in
+        the corresponding alignment are omitted (intersect=True).
+
+        >>> result = concat_alns([aln1, aln2])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        s1    AAAGCG
+        s2    C...G.
+        s3    ....GT
+
+        Create an app that includes missing sequences across alignments.
+        Missing sequences are replaced by a sequence of "?".
+
+        >>> concat_missing = get_app("concat", moltype="dna", intersect=False)
+        >>> aln3 = make_aligned_seqs({"s4": "GCG", "s5": "GGG"}, moltype="dna")
+        >>> result = concat_missing([aln1, aln3])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3","s4","s5"]))
+        s1    AAA???
+        s2    C.....
+        s3    ......
+        s4    ???GCG
+        s5    ???GGG
+
+        Create an app that delimits concatenated alignments with "N"
+
+        >>> concat_delim = get_app("concat", join_seq="N", moltype="dna")
+        >>> result = concat_delim([aln1, aln2])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        s1    AAANGCG
+        s2    C....G.
+        s3    .....GT
         """
         self._name_callback = {True: intersection}.get(intersect, union)
         self._intersect = intersect
@@ -61,30 +107,31 @@ class concat:
         data
             series of alignment instances
         """
-        if len(data) == 0:
+        if not data:
             raise ValueError("no data")
 
         names = []
         for aln in data:
+            if self._moltype is None:
+                self._moltype = aln.moltype
+
             if not isinstance(aln, (ArrayAlignment, Alignment)):
                 raise TypeError(f"{type(aln)} invalid for concat")
             names.append(aln.names)
 
         names = self._name_callback(names)
         collated = defaultdict(list)
-        if self._moltype is None:
-            self._moltype = aln.moltype
 
         for aln in data:
             if self._moltype and aln.moltype != self._moltype:
                 # try converting
-                aln = aln.to_moltype(self.moltype)
+                aln = aln.to_moltype(self._moltype)
 
             if self._intersect:
                 seqs = aln.take_seqs(names).to_dict()
             else:
                 seqs = defaultdict(lambda: "?" * len(aln))
-                seqs.update(aln.to_dict())
+                seqs |= aln.to_dict()
 
             for name in names:
                 collated[name].append(seqs[name])
@@ -99,7 +146,9 @@ class omit_degenerates:
     """Excludes alignment columns with degenerate characters. Can accomodate
     reading frame."""
 
-    def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
+    def __init__(
+        self, moltype: str = None, gap_is_degen: bool = True, motif_length: int = 1
+    ):
         """
         Parameters
         ----------
@@ -111,6 +160,55 @@ class omit_degenerates:
             sequences split into non-overlapping tuples of this size. If a
             tuple contains a degen character at any position the entire tuple
             is excluded
+
+        Examples
+        --------
+        Degenerate IUPAC base symbols represents a site position that can have
+        multiple possible nucleotides. For example, "Y" represents
+        pyrimidines where the site can be either "C" or "T".
+
+        Note: In molecular evolutionary and phylogenetic analyses, the gap
+        character "-" is considered to be any base "N".
+
+        Create sample data with degenerate characters
+
+        >>> from cogent3 import app_help, get_app, make_aligned_seqs
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"}, moltype="dna")
+
+        Create an app that omits aligned columns containing a degenerate
+        character from an alignment
+
+        >>> app = get_app("omit_degenerates", moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ACGAGAG
+        s2    GATGTGT
+
+        Create an app which omits degenerate characters, but retains gaps
+
+        >>> app = get_app("omit_degenerates", moltype="dna", gap_is_degen=False)
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ACGA-GAG
+        s2    GATGATGT
+
+        Split sequences into non-overlapping tuples of length 2 and exclude
+        any tuple that contains a degenerate character
+
+        >>> app = get_app("omit_degenerates", moltype="dna", motif_length=2)
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ACGA
+        s2    GATG
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if the moltype is not specified in the alignment or app
+
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"})
+        >>> app = get_app("omit_degenerates")
+        >>> result = app(aln)
+        >>> result.message
+        'Traceback...
         """
         if moltype:
             moltype = get_moltype(moltype)
