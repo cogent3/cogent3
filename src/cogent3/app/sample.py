@@ -34,7 +34,7 @@ def union(groups):
 class concat:
     """Creates a concatenated alignment from a series."""
 
-    def __init__(self, join_seq="", intersect=True, moltype=None):
+    def __init__(self, join_seq: str="", intersect: bool=True, moltype: str | None=None):
         """
         Parameters
         ----------
@@ -49,39 +49,46 @@ class concat:
         Examples
         --------
 
-        Create app to concatenate two alignments
+        Create an app to concatenate two alignments
 
         >>> from cogent3 import app_help, get_app, make_aligned_seqs
+        >>> concat_alns = get_app("concat", moltype="dna")
 
-        >>> concat_alns = get_app("concat")
-
-
-        Create sample alignments with matching names and a moltype specified
+        Create sample alignments with matching sequence names
 
         >>> aln1 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"}, moltype="dna")
         >>> aln2 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"}, moltype="dna")
 
-        Concatenate alignments
+        Concatenate alignments. By default, sequences without matching names in
+        the corresponding alignment are omitted (intersect=True).
 
-        >>> concatenated = concat_alns([aln1, aln2])
-        >>> sorted(concatenated.to_dict().items())
-        [('s1', 'AAAGCG'), ('s2', 'CAAGGG'), ('s3', 'AAAGGT')]
+        >>> result = concat_alns([aln1, aln2])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        s1    AAAGCG
+        s2    C...G.
+        s3    ....GT
+        
+        Create an app that includes missing sequences across alignments.
+        Missing sequences are replaced by a sequence of "?".
 
-        Sequences that do not have matching names in the corresponding
-        alignment are omitted
+        >>> concat_missing = get_app("concat", moltype="dna", intersect=False)
+        >>> aln3 = make_aligned_seqs({"s4": "GCG", "s5": "GGG"}, moltype="dna")
+        >>> result = concat_missing([aln1, aln3])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3","s4","s5"]))
+        s1    AAA???
+        s2    C.....
+        s3    ......
+        s4    ???GCG
+        s5    ???GGG
 
-        >>> aln3 = make_aligned_seqs({"s4": "GCG", "s5": "GGG", "s3": "GGT"}, moltype="dna")
-        >>> concatenated = concat_alns([aln1, aln3])
-        >>> concatenated.to_dict()
-        {'s3': 'AAAGGT'}
-
-        Sequences with no matching names returns a NotCompleted (see
-        https://cogent3.org/doc/app/not-completed.html)
-
-        >>> aln4 = make_aligned_seqs({"x": "GCG", "y": "GGG", "z": "GGT"}, moltype="dna")
-        >>> result = concat_alns([aln1, aln4])
-        >>> result.message
-        'Traceback...
+        Create an app that delimits concatenated alignments with "N"
+        
+        >>> concat_delim = get_app("concat", join_seq="N", moltype="dna")
+        >>> result = concat_delim([aln1, aln2])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        s1    AAANGCG
+        s2    C....G.
+        s3    .....GT
         """
         self._name_callback = {True: intersection}.get(intersect, union)
         self._intersect = intersect
