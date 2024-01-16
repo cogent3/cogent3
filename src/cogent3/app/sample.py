@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Optional, Union
 
 from numpy import array
 from numpy import random as np_random
@@ -35,7 +35,7 @@ class concat:
     """Creates a concatenated alignment from a series."""
 
     def __init__(
-        self, join_seq: str = "", intersect: bool = True, moltype: str | None = None
+        self, join_seq: str = "", intersect: bool = True, moltype: Optional[str] = None
     ):
         """
         Parameters
