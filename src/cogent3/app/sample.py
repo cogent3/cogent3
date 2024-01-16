@@ -34,7 +34,9 @@ def union(groups):
 class concat:
     """Creates a concatenated alignment from a series."""
 
-    def __init__(self, join_seq: str="", intersect: bool=True, moltype: str | None=None):
+    def __init__(
+        self, join_seq: str = "", intersect: bool = True, moltype: str | None = None
+    ):
         """
         Parameters
         ----------
@@ -67,7 +69,7 @@ class concat:
         s1    AAAGCG
         s2    C...G.
         s3    ....GT
-        
+
         Create an app that includes missing sequences across alignments.
         Missing sequences are replaced by a sequence of "?".
 
@@ -82,7 +84,7 @@ class concat:
         s5    ???GGG
 
         Create an app that delimits concatenated alignments with "N"
-        
+
         >>> concat_delim = get_app("concat", join_seq="N", moltype="dna")
         >>> result = concat_delim([aln1, aln2])
         >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
@@ -144,7 +146,9 @@ class omit_degenerates:
     """Excludes alignment columns with degenerate characters. Can accomodate
     reading frame."""
 
-    def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
+    def __init__(
+        self, moltype: str = None, gap_is_degen: bool = True, motif_length: int = 1
+    ):
         """
         Parameters
         ----------
@@ -159,31 +163,49 @@ class omit_degenerates:
 
         Examples
         --------
+        Degenerate IUPAC base symbols represents a site position that can have
+        multiple possible nucleotides. For example, "Y" represents
+        pyrimidines where the site can be either "C" or "T".
+
+        Note: In molecular evolutionary and phylogenetic analyses, the gap
+        character "-" is considered to be any base "N".
 
         Create sample data with degenerate characters
 
         >>> from cogent3 import app_help, get_app, make_aligned_seqs
-
         >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"}, moltype="dna")
 
-        Create an app to omit degenerate characters from an alignment
+        Create an app that omits aligned columns containing a degenerate
+        character from an alignment
 
-        >>> app = get_app("omit_degenerates")
+        >>> app = get_app("omit_degenerates", moltype="dna")
         >>> result = app(aln)
-        >>> result.to_dict()
-        {'s1': 'ACGAGAG', 's2': 'GATGTGT'}
+        >>> print(result.to_pretty())
+        s1    ACGAGAG
+        s2    GATGTGT
 
         Create an app which omits degenerate characters, but retains gaps
 
-        >>> app = get_app("omit_degenerates", gap_is_degen=False)
+        >>> app = get_app("omit_degenerates", moltype="dna", gap_is_degen=False)
         >>> result = app(aln)
-        >>> result.to_dict()
-        {'s1': 'ACGA-GAG', 's2': 'GATGATGT'}
+        >>> print(result.to_pretty())
+        s1    ACGA-GAG
+        s2    GATGATGT
 
-        Alignments without a moltype returns a NotCompleted
-        (see https://cogent3.org/doc/app/not-completed.html)
+        Split sequences into non-overlapping tuples of length 2 and exclude
+        any tuple that contains a degenerate character
+
+        >>> app = get_app("omit_degenerates", moltype="dna", motif_length=2)
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ACGA
+        s2    GATG
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if the moltype is not specified in the alignment or app
 
         >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"})
+        >>> app = get_app("omit_degenerates")
         >>> result = app(aln)
         >>> result.message
         'Traceback...

@@ -61,6 +61,13 @@ class TranslateTests(TestCase):
         got = degen(aln)
         self.assertIsInstance(got, alignment.Alignment)
 
+        # motif length exludes tuples with a degenerate site
+        aln = make_aligned_seqs({"a": "ACGA-GACG", "b": "GATGATGYT"})
+        degen = sample.omit_degenerates(moltype="dna", motif_length=2)
+        got = degen(aln)
+        expect = make_aligned_seqs({"a": "ACGA", "b": "GATG"}, moltype="dna")
+        assert got == expect
+
     def test_omit_gapped(self):
         """omit_gap_pos correctly drops aligned columns"""
         # array alignment
