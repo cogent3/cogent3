@@ -147,7 +147,10 @@ class omit_degenerates:
     reading frame."""
 
     def __init__(
-        self, moltype: str = None, gap_is_degen: bool = True, motif_length: int = 1
+        self,
+        moltype: Optional[str] = None,
+        gap_is_degen: bool = True,
+        motif_length: int = 1,
     ):
         """
         Parameters
@@ -236,7 +239,10 @@ class omit_gap_pos:
     reading frame."""
 
     def __init__(
-        self, allowed_frac: float = 0.99, motif_length: int = 1, moltype: str = None
+        self,
+        allowed_frac: float = 0.99,
+        motif_length: int = 1,
+        moltype: Optional[str] = None,
     ):
         """
         Parameters
