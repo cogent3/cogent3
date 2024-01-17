@@ -235,7 +235,9 @@ class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame."""
 
-    def __init__(self, allowed_frac=0.99, motif_length=1, moltype=None):
+    def __init__(
+        self, allowed_frac: float = 0.99, motif_length: int = 1, moltype: str = None
+    ):
         """
         Parameters
         ----------
@@ -246,19 +248,60 @@ class omit_gap_pos:
             sequences split into non-overlapping tuples of this size.
         moltype : str
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that excludes highly gapped sites.
+        Sites with over 99% gaps are excluded by default
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GA-CG", "s2": "GATGATG-AT"})
+
+        >>> app = get_app("omit_gap_pos", moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACGA-GACG
+        s2    GATGATGAT
+
+        Create an app that excludes all aligned sites with over 49% gaps
+
+        >>> app = get_app("omit_gap_pos", allowed_frac=0.49, moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACGAGACG
+        s2    GATGTGAT
+
+        Create an app that excludes non-overlapping alignment columns of three
+        sites that have over 17% gaps. Trailing columns that are less than
+        three sites long are excluded
+
+        >>> app = get_app("omit_gap_pos", allowed_frac=0.17, motif_length=3, moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACGA-G
+        s2    GATGAT
+
+        An error is returned if all sites are excluded
+
+        >>> aln = make_aligned_seqs({"s1": "ACGA------", "s2": "----ATG-AT"})
+        >>> app = get_app("omit_gap_pos", allowed_frac=0.17, motif_length=3, moltype="dna")
+        >>> result = app(aln)
+        >>> result.message
+        'all columns exceeded gap threshold'
         """
         if moltype:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
-        self.moltype = moltype
+        self._moltype = moltype
         self._allowed_frac = allowed_frac
         self._motif_length = motif_length
 
     T = Union[SerialisableType, AlignedSeqsType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        if self.moltype and aln.moltype != self.moltype:
+        if self._moltype and aln.moltype != self._moltype:
             # try converting
             aln = aln.to_moltype(self._moltype)
 
