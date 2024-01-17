@@ -214,16 +214,16 @@ class omit_degenerates:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
-        self.moltype = moltype
+        self._moltype = moltype
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
 
     T = Union[SerialisableType, AlignedSeqsType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        if self.moltype and aln.moltype != self.moltype:
+        if self._moltype and aln.moltype != self._moltype:
             # try converting
-            aln = aln.to_moltype(self.moltype)
+            aln = aln.to_moltype(self._moltype)
 
         return aln.no_degenerates(
             motif_length=self._motif_length, allow_gap=self._allow_gap
@@ -260,7 +260,7 @@ class omit_gap_pos:
     def main(self, aln: AlignedSeqsType) -> T:
         if self.moltype and aln.moltype != self.moltype:
             # try converting
-            aln = aln.to_moltype(self.moltype)
+            aln = aln.to_moltype(self._moltype)
 
         return aln.omit_gap_pos(
             allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
