@@ -453,6 +453,11 @@ class TranslateTests(TestCase):
         got = ccat([])
         self.assertIsInstance(got, composable.NotCompleted)
 
+        # triggered by empty alignment
+        aln = make_aligned_seqs({"s1": "", "s2": ""})
+        got = ccat(aln)
+        assert isinstance(got, NotCompleted)
+
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
         trimmer = sample.trim_stop_codons()  # defaults to standard code
