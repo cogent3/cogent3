@@ -288,7 +288,8 @@ class omit_gap_pos:
         s1    ACGA-G
         s2    GATGAT
 
-        An error is returned if all sites are excluded
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if all sites are excluded
 
         >>> aln = make_aligned_seqs({"s1": "ACGA------", "s2": "----ATG-AT"})
         >>> app = get_app("omit_gap_pos", allowed_frac=0.17, motif_length=3, moltype="dna")
