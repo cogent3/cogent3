@@ -108,7 +108,7 @@ class concat:
             series of alignment instances
         """
         if not data:
-            raise ValueError("no data")
+            return NotCompleted("ERROR", self, message="no data")
 
         names = []
         for aln in data:
@@ -137,8 +137,10 @@ class concat:
                 collated[name].append(seqs[name])
 
         combined = {n: self._join_seq.join(collated[n]) for n in names}
-        aln = ArrayAlignment(data=combined, moltype=self._moltype)
-        return aln
+        if aln := ArrayAlignment(data=combined, moltype=self._moltype):
+            return aln
+        else:
+            return NotCompleted("FAIL", self, message="result is empty")
 
 
 @define_app

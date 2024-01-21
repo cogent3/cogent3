@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import pytest
+
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
@@ -449,15 +451,6 @@ class TranslateTests(TestCase):
         got = ccat(data[::-1])
         self.assertIsInstance(got, composable.NotCompleted)
 
-        # triggered by no data
-        got = ccat([])
-        self.assertIsInstance(got, composable.NotCompleted)
-
-        # triggered by empty alignment
-        aln = make_aligned_seqs({"s1": "", "s2": ""})
-        got = ccat(aln)
-        assert isinstance(got, NotCompleted)
-
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
         trimmer = sample.trim_stop_codons()  # defaults to standard code
@@ -564,3 +557,11 @@ def test_concat_coerced_moltype():
     aln2 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"})
     result = concat([aln1, aln2])
     assert result.moltype.label == "dna"
+
+
+@pytest.mark.parametrize("data", ([], [make_aligned_seqs({"s1": "", "s2": ""})]))
+def test_concat_empty(data):
+    # triggered by empty alignment
+    ccat = sample.concat()
+    got = ccat(data)
+    assert isinstance(got, NotCompleted)
