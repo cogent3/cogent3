@@ -261,7 +261,7 @@ class omit_gap_pos:
         --------
 
         Create a sample alignment and an app that excludes highly gapped sites.
-        Sites with over 99% gaps are excluded by default
+        Sites with over 99% gaps are excluded by default.
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs({"s1": "ACGA-GA-CG", "s2": "GATGATG-AT"})
@@ -272,7 +272,7 @@ class omit_gap_pos:
         s1    ACGA-GACG
         s2    GATGATGAT
 
-        Create an app that excludes all aligned sites with over 49% gaps
+        Create an app that excludes all aligned sites with over 49% gaps.
 
         >>> app = get_app("omit_gap_pos", allowed_frac=0.49, moltype="dna")
         >>> result = app(aln)
@@ -280,21 +280,21 @@ class omit_gap_pos:
         s1    ACGAGACG
         s2    GATGTGAT
 
-        Create an app that excludes non-overlapping alignment columns of three
-        sites that have over 17% gaps. Trailing columns that are less than
-        three sites long are excluded
+        To eliminate any codon columns (where a column is a triple of
+        nucleotides) that contain a gap character, we use the motif_length
+        argument.
 
-        >>> app = get_app("omit_gap_pos", allowed_frac=0.17, motif_length=3, moltype="dna")
+        >>> app = get_app("omit_gap_pos", allowed_frac=0, motif_length=3, moltype="dna")
         >>> result = app(aln)
         >>> print(result.to_pretty(name_order=["s1", "s2"]))
-        s1    ACGA-G
-        s2    GATGAT
+        s1    ACG
+        s2    GAT
 
         A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
-        is returned if all sites are excluded
+        is returned if all sites are excluded.
 
         >>> aln = make_aligned_seqs({"s1": "ACGA------", "s2": "----ATG-AT"})
-        >>> app = get_app("omit_gap_pos", allowed_frac=0.17, motif_length=3, moltype="dna")
+        >>> app = get_app("omit_gap_pos", allowed_frac=0, motif_length=3, moltype="dna")
         >>> result = app(aln)
         >>> result.message
         'all columns exceeded gap threshold'
