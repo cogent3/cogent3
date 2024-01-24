@@ -108,7 +108,7 @@ class concat:
             series of alignment instances
         """
         if not data:
-            raise ValueError("no data")
+            return NotCompleted("ERROR", self, message="no data")
 
         names = []
         for aln in data:
@@ -137,8 +137,10 @@ class concat:
                 collated[name].append(seqs[name])
 
         combined = {n: self._join_seq.join(collated[n]) for n in names}
-        aln = ArrayAlignment(data=combined, moltype=self._moltype)
-        return aln
+        if aln := ArrayAlignment(data=combined, moltype=self._moltype):
+            return aln
+        else:
+            return NotCompleted("FAIL", self, message="result is empty")
 
 
 @define_app
@@ -147,7 +149,10 @@ class omit_degenerates:
     reading frame."""
 
     def __init__(
-        self, moltype: str = None, gap_is_degen: bool = True, motif_length: int = 1
+        self,
+        moltype: Optional[str] = None,
+        gap_is_degen: bool = True,
+        motif_length: int = 1,
     ):
         """
         Parameters
@@ -214,16 +219,16 @@ class omit_degenerates:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
-        self.moltype = moltype
+        self._moltype = moltype
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
 
     T = Union[SerialisableType, AlignedSeqsType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        if self.moltype and aln.moltype != self.moltype:
+        if self._moltype and aln.moltype != self._moltype:
             # try converting
-            aln = aln.to_moltype(self.moltype)
+            aln = aln.to_moltype(self._moltype)
 
         return aln.no_degenerates(
             motif_length=self._motif_length, allow_gap=self._allow_gap
@@ -235,7 +240,12 @@ class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame."""
 
-    def __init__(self, allowed_frac=0.99, motif_length=1, moltype=None):
+    def __init__(
+        self,
+        allowed_frac: float = 0.99,
+        motif_length: int = 1,
+        moltype: Optional[str] = None,
+    ):
         """
         Parameters
         ----------
@@ -246,21 +256,63 @@ class omit_gap_pos:
             sequences split into non-overlapping tuples of this size.
         moltype : str
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that excludes highly gapped sites.
+        Sites with over 99% gaps are excluded by default.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GA-CG", "s2": "GATGATG-AT"})
+
+        >>> app = get_app("omit_gap_pos", moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACGA-GACG
+        s2    GATGATGAT
+
+        Create an app that excludes all aligned sites with over 49% gaps.
+
+        >>> app = get_app("omit_gap_pos", allowed_frac=0.49, moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACGAGACG
+        s2    GATGTGAT
+
+        To eliminate any codon columns (where a column is a triple of
+        nucleotides) that contain a gap character, we use the motif_length
+        argument.
+
+        >>> app = get_app("omit_gap_pos", allowed_frac=0, motif_length=3, moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACG
+        s2    GAT
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if all sites are excluded.
+
+        >>> aln = make_aligned_seqs({"s1": "ACGA------", "s2": "----ATG-AT"})
+        >>> app = get_app("omit_gap_pos", allowed_frac=0, motif_length=3, moltype="dna")
+        >>> result = app(aln)
+        >>> result.message
+        'all columns exceeded gap threshold'
         """
         if moltype:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
-        self.moltype = moltype
+        self._moltype = moltype
         self._allowed_frac = allowed_frac
         self._motif_length = motif_length
 
     T = Union[SerialisableType, AlignedSeqsType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        if self.moltype and aln.moltype != self.moltype:
+        if self._moltype and aln.moltype != self._moltype:
             # try converting
-            aln = aln.to_moltype(self.moltype)
+            aln = aln.to_moltype(self._moltype)
 
         return aln.omit_gap_pos(
             allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
