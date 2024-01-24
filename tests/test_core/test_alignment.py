@@ -2008,28 +2008,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         self.assertEqual(r1, {"seq1": "T-G", "seq2": "TCG"})
         self.assertEqual(r2, {"seq1": "--G", "seq2": "TCG"})
 
-    def test_get_degapped_relative_to(self):
-        """should remove all columns with a gap in sequence with given name"""
-        aln = self.Class(
-            [
-                ["name1", "-AC-DEFGHI---"],
-                ["name2", "XXXXXX--XXXXX"],
-                ["name3", "YYYY-YYYYYYYY"],
-                ["name4", "-KL---MNPR---"],
-            ]
-        )
-        out_aln = self.Class(
-            [
-                ["name1", "ACDEFGHI"],
-                ["name2", "XXXX--XX"],
-                ["name3", "YY-YYYYY"],
-                ["name4", "KL--MNPR"],
-            ]
-        )
-        self.assertEqual(aln.get_degapped_relative_to("name1"), out_aln)
-
-        self.assertRaises(ValueError, aln.get_degapped_relative_to, "nameX")
-
     def test_get_degapped_relative_to_info(self):
         """should remove all columns with a gap in sequence with given name
         while preserving info attribute"""
@@ -3527,3 +3505,29 @@ def test_make_case():
     data = {"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"}
     got = make_aligned_seqs(data=data, moltype="dna")
     assert got == {k: v.upper() for k, v in data.items()}
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_get_degapped_relative_to(cls):
+    """should remove all columns with a gap in sequence with given name"""
+    aln = cls(
+        [
+            ["name1", "-AC-DEFGHI---"],
+            ["name2", "XXXXXX--XXXXX"],
+            ["name3", "YYYY-YYYYYYYY"],
+            ["name4", "-KL---MNPR---"],
+        ]
+    )
+    expect = dict(
+        [
+            ["name1", "ACDEFGHI"],
+            ["name2", "XXXX--XX"],
+            ["name3", "YY-YYYYY"],
+            ["name4", "KL--MNPR"],
+        ]
+    )
+    result = aln.get_degapped_relative_to("name1")
+    assert result.to_dict() == expect
+
+    with pytest.raises(ValueError):
+        aln.get_degapped_relative_to("nameX")
