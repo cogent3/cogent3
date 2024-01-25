@@ -4192,7 +4192,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         new = self.array_seqs[:, indices]
 
         return self.__class__(
-            new.T, names=self.names, moltype=self.moltype, info=self.info
+            new, names=self.names, moltype=self.moltype, info=self.info
         )
 
     def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
