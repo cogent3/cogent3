@@ -142,7 +142,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self._seq.offset + self._seq.start
+            offset = self._seq.absolute_start
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -855,7 +855,7 @@ class Sequence(SequenceI):
             int: The offset between annotation coordinates and sequence coordinates.
         """
 
-        return self._seq.offset + self._seq.start
+        return self._seq.absolute_start
 
     @annotation_offset.setter
     def annotation_offset(self, value):
@@ -1910,6 +1910,41 @@ class SeqView:
         self._offset = value or 0
 
     @property
+    def absolute_start(self) -> int:
+        """returns the plus strand absolute start
+
+        Returns
+        -------
+        offset + start, taking into account whether reversed. Result
+        is positive.
+        """
+        if self.reverse:
+            # self.stop becomes the start, self.stop will be negative
+            assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
+            start = self.stop + len(self.seq) + 1
+        else:
+            start = self.start
+
+        return self.offset + start
+
+    @property
+    def absolute_stop(self) -> int:
+        """returns the plus strand absolute stop
+
+        Returns
+        -------
+        offset + stop, taking into account whether reversed. Result
+        is positive.
+        """
+        if self.reverse:
+            # self.start becomes the stop, self.start will be negative
+            assert self.start < 0, "expected start on reverse strand SeqView < 0"
+            stop = self.start + len(self.seq) + 1
+        else:
+            stop = self.stop
+        return self.offset + stop
+
+    @property
     def reverse(self):
         return self.step < 0
 
@@ -1924,8 +1959,8 @@ class SeqView:
 
         Returns
         -------
-        the absolute index with respect to the coordinates of the sequence's annotations
-
+        the absolute index with respect to the coordinates of the self
+        including offset
         """
 
         if rel_index < 0:

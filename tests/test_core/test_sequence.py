@@ -2381,6 +2381,27 @@ def test_sliced_seqview_rich_dict(reverse):
     assert rd["offset"] == 2
 
 
+@pytest.mark.parametrize(
+    "sl",
+    (
+        slice(2, 5, 1),  # positive indices, positive step
+        slice(-8, -5, 1),  # negative indices, positive step
+        slice(4, 1, -1),  # positive indices, negative step
+        slice(-6, -9, -1),  # negative indices, negative step
+    ),
+)
+def test_absolute_start_end(sl):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = "234" if sl.step > 0 else "432"
+    sv = SeqView(data)
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.absolute_start, sv.absolute_stop) == (2, 5)
+
+
 def test_get_drawable(DATA_DIR):
     seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
     seq = seq[2000:4000]
