@@ -1640,10 +1640,8 @@ class Sequence(SequenceI):
 
         Notes
         -----
-        Parent start is the sum of the annotation offset and the relative
-        start, with the latter reflecting slice operations on this object.
-        (Ditto for parent end.) For a given sequence, reverse
-        complementing does not affect these values.
+        Returned coordinates are with respect to the plus strand, irrespective
+        of whether the sequence has been reversed complemented or not.
 
         Returns
         -------
