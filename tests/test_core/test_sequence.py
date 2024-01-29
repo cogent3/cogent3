@@ -2390,7 +2390,7 @@ def test_sliced_seqview_rich_dict(reverse):
         slice(-6, -9, -1),  # negative indices, negative step
     ),
 )
-def test_absolute_start_end(sl):
+def test_parent_start_stop(sl):
     data = "0123456789"
     # check our slice matches the expectation for rest of test
     expect = "234" if sl.step > 0 else "432"
@@ -2399,7 +2399,7 @@ def test_absolute_start_end(sl):
     assert sv.value == expect
     # now check that start / stop are always the same
     # irrespective of step sign
-    assert (sv.absolute_start, sv.absolute_stop) == (2, 5)
+    assert (sv.parent_start, sv.parent_stop) == (2, 5)
 
 
 def test_get_drawable(DATA_DIR):

@@ -142,7 +142,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self._seq.absolute_start
+            offset = self._seq.parent_start
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -855,7 +855,7 @@ class Sequence(SequenceI):
             int: The offset between annotation coordinates and sequence coordinates.
         """
 
-        return self._seq.absolute_start
+        return self._seq.parent_start
 
     @annotation_offset.setter
     def annotation_offset(self, value):
@@ -1910,8 +1910,8 @@ class SeqView:
         self._offset = value or 0
 
     @property
-    def absolute_start(self) -> int:
-        """returns the plus strand absolute start
+    def parent_start(self) -> int:
+        """returns the start on the parent plus strand
 
         Returns
         -------
@@ -1928,8 +1928,8 @@ class SeqView:
         return self.offset + start
 
     @property
-    def absolute_stop(self) -> int:
-        """returns the plus strand absolute stop
+    def parent_stop(self) -> int:
+        """returns the stop on the parent plus strand
 
         Returns
         -------
