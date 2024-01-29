@@ -2566,3 +2566,32 @@ def test_gapped_by_map_segment_iter():
     m, seq = moltype.make_seq("-TCC--AG").parse_out_gaps()
     g = list(seq.gapped_by_map_segment_iter(m, allow_gaps=True, recode_gaps=False))
     print(g)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("sliced", (False, True))
+@pytest.mark.parametrize("start_stop", ((None, None), (3, 7)))
+def test_copied_parent_coordinates(sliced, rev, start_stop):
+    seq = DNA.make_seq("ACGGTGGGAC")
+    start, stop = start_stop
+    start = start or 0
+    stop = stop or len(seq)
+    sl = slice(start, stop)
+    seq = seq[sl]
+    if rev:
+        seq = seq.rc()
+    copied = seq.copy(sliced=sliced)
+    # matches original
+    assert copied.parent_coordinates() == seq.parent_coordinates()
+    # and expected
+    assert copied.parent_coordinates() == (start, stop)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_parent_coordinates(rev):
+    seq = DNA.make_seq("ACGGTGGGAC")
+    seq = seq[1:1]
+    if rev:
+        seq = seq.rc()
+
+    assert seq.parent_coordinates() == (0, 0)

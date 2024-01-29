@@ -1954,10 +1954,11 @@ class SequenceCollection(_SequenceCollectionBase):
 
         Parameters
         ----------
-        f : path to gff annotation file.
-        seq_name : names of seqs to be annotated.
-        does not support setting offset, set offset directly on sequences with seq.annotation_offset = offset
-
+        f
+            path to gff annotation file.
+        seq_name
+            names of seqs to be annotated. Does not support setting offset,
+            set offset directly on sequences with seq.annotation_offset = offset
         """
         if isinstance(self.annotation_db, GenbankAnnotationDb):
             raise ValueError("GenbankAnnotationDb already attached")
