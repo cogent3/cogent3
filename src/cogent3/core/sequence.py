@@ -2207,6 +2207,9 @@ class SeqView:
         if len(self) == 0:
             return self
 
+        if segment.start is not None and segment.start == segment.stop:
+            return _zero_slice
+
         slice_step = 1 if segment.step is None else segment.step
 
         if slice_step > 0:
