@@ -2402,6 +2402,54 @@ def test_parent_start_stop(sl):
     assert (sv.parent_start, sv.parent_stop) == (2, 5)
 
 
+@pytest.mark.parametrize(
+    "sl",
+    (
+        slice(None, None, 1),  # slice whole sequence plus strand
+        slice(None, None, -1),  # slice whole sequence minus strand
+    ),
+)
+def test_parent_start_stop_limits(sl):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = data[sl]
+    sv = SeqView(data)
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (0, 10)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_parent_start_stop_empty(rev):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = ""
+    sv = SeqView(data)
+    sv = sv[0 : 0 : -1 if rev else 1]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (0, 0)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("index", range(9))
+def test_parent_start_stop_singletons(index, rev):
+    data = "0123456789"
+    start, stop = (-(10 - index), -(10 - index + 1)) if rev else (index, index + 1)
+    sl = slice(start, stop, -1 if rev else 1)
+    # check our slice matches the expectation for rest of test
+    expect = data[sl]
+    sv = SeqView(data)
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (index, index + 1)
+
+
 def test_get_drawable(DATA_DIR):
     seq = cogent3.load_seq(DATA_DIR / "annotated_seq.gb")
     seq = seq[2000:4000]
