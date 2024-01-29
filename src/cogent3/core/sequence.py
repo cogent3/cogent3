@@ -142,7 +142,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self._seq.offset + self._seq.start
+            offset = self._seq.parent_start
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -855,7 +855,7 @@ class Sequence(SequenceI):
             int: The offset between annotation coordinates and sequence coordinates.
         """
 
-        return self._seq.offset + self._seq.start
+        return self._seq.parent_start
 
     @annotation_offset.setter
     def annotation_offset(self, value):
@@ -1888,7 +1888,15 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 class SeqView:
     __slots__ = ("seq", "start", "stop", "step", "_offset")
 
-    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
+    def __init__(
+        self,
+        seq,
+        *,
+        start: int = None,
+        stop: int = None,
+        step: int = None,
+        offset: int = 0,
+    ):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
@@ -1898,7 +1906,7 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
-        self._offset = 0
+        self._offset = offset
         self.step = step
 
     @property
@@ -1908,6 +1916,41 @@ class SeqView:
     @offset.setter
     def offset(self, value: int):
         self._offset = value or 0
+
+    @property
+    def parent_start(self) -> int:
+        """returns the start on the parent plus strand
+
+        Returns
+        -------
+        offset + start, taking into account whether reversed. Result
+        is positive.
+        """
+        if self.reverse:
+            # self.stop becomes the start, self.stop will be negative
+            assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
+            start = self.stop + len(self.seq) + 1
+        else:
+            start = self.start
+
+        return self.offset + start
+
+    @property
+    def parent_stop(self) -> int:
+        """returns the stop on the parent plus strand
+
+        Returns
+        -------
+        offset + stop, taking into account whether reversed. Result
+        is positive.
+        """
+        if self.reverse:
+            # self.start becomes the stop, self.start will be negative
+            assert self.start < 0, "expected start on reverse strand SeqView < 0"
+            stop = self.start + len(self.seq) + 1
+        else:
+            stop = self.stop
+        return self.offset + stop
 
     @property
     def reverse(self):
@@ -1924,8 +1967,8 @@ class SeqView:
 
         Returns
         -------
-        the absolute index with respect to the coordinates of the sequence's annotations
-
+        the absolute index with respect to the coordinates of the self
+        including offset
         """
 
         if rel_index < 0:
@@ -2049,6 +2092,7 @@ class SeqView:
             start=start,
             stop=min(self.stop, stop),
             step=self.step * step,
+            offset=self.offset,
         )
 
     def _get_forward_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2073,6 +2117,7 @@ class SeqView:
             start=start,
             stop=max(self.stop, stop),
             step=self.step * step,
+            offset=self.offset,
         )
 
     def _get_reverse_slice(self, segment, step):
@@ -2126,6 +2171,7 @@ class SeqView:
             start=start,
             stop=max(stop, self.start - len(self.seq) - 1),
             step=self.step * step,
+            offset=self.offset,
         )
 
     def _get_reverse_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2162,15 +2208,25 @@ class SeqView:
             start=start,
             stop=stop,
             step=self.step * step,
+            offset=self.offset,
         )
 
     def __getitem__(self, segment):
         if _is_int(segment):
             start, stop, step = self._get_index(segment)
-            return self.__class__(self.seq, start=start, stop=stop, step=step)
+            return self.__class__(
+                self.seq,
+                start=start,
+                stop=stop,
+                step=step,
+                offset=self.offset,
+            )
 
         if len(self) == 0:
             return self
+
+        if segment.start is not None and segment.start == segment.stop:
+            return _zero_slice
 
         slice_step = 1 if segment.step is None else segment.step
 
@@ -2207,7 +2263,10 @@ class SeqView:
 
     def __repr__(self) -> str:
         seq = f"{self.seq[:10]}...{self.seq[-5:]}" if len(self.seq) > 15 else self.seq
-        return f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, stop={self.stop}, step={self.step})"
+        return (
+            f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
+            f"stop={self.stop}, step={self.step}, offset={self.offset})"
+        )
 
     def to_rich_dict(self):
         # get the current state
@@ -2218,21 +2277,19 @@ class SeqView:
         if self.reverse:
             adj = len(self.seq) + 1
             start, stop = self.stop + adj, self.start + adj
-            offset = self.offset + start
         else:
             start, stop = self.start, self.stop
-            offset = self.offset + self.start
 
-        data["offset"] = offset
         data["init_args"]["seq"] = self.seq[start:stop]
+        data["init_args"]["offset"] = self.parent_start
         return data
 
     @classmethod
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
-        offset = data.pop("offset", 0)
+        if "offset" in data:
+            init_args["offset"] = data.pop("offset")
         sv = cls(**init_args)
-        sv.offset = offset
         return sv
 
 
