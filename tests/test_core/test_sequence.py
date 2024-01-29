@@ -2581,6 +2581,9 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):
     if rev:
         seq = seq.rc()
     copied = seq.copy(sliced=sliced)
+    # matches original
+    assert copied.parent_coordinates() == seq.parent_coordinates()
+    # and expected
     assert copied.parent_coordinates() == (start, stop)
 
 
