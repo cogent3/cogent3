@@ -1209,11 +1209,24 @@ class Sequence(SequenceI):
 
         self.annotation_db.update(seq_db, seqids=self.name)
 
-    def copy(self, exclude_annotations=False):
-        """returns a copy of self"""
-        offset = self._seq.offset + self._seq.start
+    def copy(self, exclude_annotations: bool = False, sliced: bool = True):
+        """returns a copy of self
+
+        Parameters
+        -----------
+        sliced
+            Slices underlying sequence with start/end of self coordinates. The offset
+            is retained.
+        exclude_annotations
+            drops annotation_db when True
+        """
+        annotation_offset = self.annotation_offset if sliced else self._seq.offset
+        data = self._seq.value if sliced else self._seq[:]
         new = self.__class__(
-            self._seq[:], name=self.name, info=self.info, annotation_offset=offset
+            data,
+            name=self.name,
+            info=self.info,
+            annotation_offset=annotation_offset,
         )
         db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
         new._annotation_db = db
@@ -1621,6 +1634,22 @@ class Sequence(SequenceI):
         )
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
+
+    def parent_coordinates(self) -> Tuple[int, int]:
+        """returns start, stop of this sequence on its parent
+
+        Notes
+        -----
+        Parent start is the sum of the annotation offset and the relative
+        start, with the latter reflecting slice operations on this object.
+        (Ditto for parent end.) For a given sequence, reverse
+        complementing does not affect these values.
+
+        Returns
+        -------
+        start, end of this sequence on the parent
+        """
+        return self._seq.parent_start, self._seq.parent_stop
 
 
 class ProteinSequence(Sequence):
