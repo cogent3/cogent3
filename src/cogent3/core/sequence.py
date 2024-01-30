@@ -1001,7 +1001,7 @@ class Sequence(SequenceI):
         for s, e in spans:
             # reverse feature determined by absolute position
             reverse = s > e
-            
+
             if reverse:
                 start = self._seq.relative_position(s, stop=True)
                 end = self._seq.relative_position(e)
