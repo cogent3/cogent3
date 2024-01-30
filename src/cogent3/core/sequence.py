@@ -1002,11 +1002,6 @@ class Sequence(SequenceI):
             # reverse feature determined by absolute position
             reverse = s > e
 
-            # todo: kath, think about logic of stop=true for reverse locations
-            # I think, we need to know the whether it is reverse so that the adjustment
-            # for step (given stop=True) is in the correct direction.
-            # However, we need to keep s > e for a reverse span because this information
-            # is used in the Map?
             if reverse:
                 start = self._seq.relative_position(s, stop=True)
                 end = self._seq.relative_position(e)
