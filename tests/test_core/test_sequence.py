@@ -2185,8 +2185,10 @@ def test_seqview_copy(sliced, rev, integer_seq):
     slice_end = 4
     sv = integer_seq[slice_start:slice_end]
     copied = sv.copy(sliced=sliced)
+
     assert copied.value == raw_data[slice_start:slice_end]
     assert copied.reverse == integer_seq.reverse
+    assert sliced and copied.seq is not sv.seq or copied.seq is integer_seq.seq
 
 
 def test_relative_position_with_remainder(integer_seq):
