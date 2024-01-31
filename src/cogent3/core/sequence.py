@@ -1216,7 +1216,7 @@ class Sequence(SequenceI):
             drops annotation_db when True
         """
         annotation_offset = self.annotation_offset if sliced else self._seq.offset
-        data = self._seq.value if sliced else self._seq[:]
+        data = self._seq.copy(sliced=sliced)
         new = self.__class__(
             data,
             name=self.name,
@@ -1630,8 +1630,8 @@ class Sequence(SequenceI):
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
-    def parent_coordinates(self) -> Tuple[int, int]:
-        """returns start, stop of this sequence on its parent
+    def parent_coordinates(self) -> Tuple[int, int, int]:
+        """returns start, stop, strand of this sequence on its parent
 
         Notes
         -----
@@ -1640,9 +1640,11 @@ class Sequence(SequenceI):
 
         Returns
         -------
-        start, end of this sequence on the parent
+        start, end, strand of this sequence on the parent. strand is either
+        -1 or 1.
         """
-        return self._seq.parent_start, self._seq.parent_stop
+        strand = -1 if self._seq.reverse else 1
+        return self._seq.parent_start, self._seq.parent_stop, strand
 
 
 class ProteinSequence(Sequence):
@@ -2244,6 +2246,9 @@ class SeqView:
                 offset=self.offset,
             )
 
+        if segment.start is segment.stop is segment.step is None:
+            return self.copy(sliced=False)
+
         if len(self) == 0:
             return self
 
@@ -2313,6 +2318,25 @@ class SeqView:
             init_args["offset"] = data.pop("offset")
         sv = cls(**init_args)
         return sv
+
+    def copy(self, sliced=False):
+        """returns copy
+
+        Parameters
+        ----------
+        sliced
+            if True, the underlying sequence is truncated and the start/stop
+            adjusted
+        """
+        if not sliced:
+            return self.__class__(
+                self.seq,
+                start=self.start,
+                stop=self.stop,
+                step=self.step,
+                offset=self.offset,
+            )
+        return self.from_rich_dict(self.to_rich_dict())
 
 
 _zero_slice = SeqView(seq="")
