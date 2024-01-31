@@ -2249,6 +2249,9 @@ class SeqView:
                 offset=self.offset,
             )
 
+        if segment.start is segment.stop is segment.step is None:
+            return self.copy(sliced=False)
+
         if len(self) == 0:
             return self
 
@@ -2318,6 +2321,25 @@ class SeqView:
             init_args["offset"] = data.pop("offset")
         sv = cls(**init_args)
         return sv
+
+    def copy(self, sliced=False):
+        """returns copy
+
+        Parameters
+        ----------
+        sliced
+            if True, the underlying sequence is truncated and the start/stop
+            adjusted
+        """
+        if not sliced:
+            return self.__class__(
+                self.seq,
+                start=self.start,
+                stop=self.stop,
+                step=self.step,
+                offset=self.offset,
+            )
+        return self.from_rich_dict(self.to_rich_dict())
 
 
 _zero_slice = SeqView(seq="")

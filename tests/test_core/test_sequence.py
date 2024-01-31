@@ -2173,6 +2173,22 @@ def test_relative_position_step_GT_one(integer_seq):
     assert got == 4
 
 
+@pytest.mark.parametrize("sliced", (False, True))
+@pytest.mark.parametrize("rev", (False, True))
+def test_seqview_copy(sliced, rev, integer_seq):
+    raw_data = integer_seq.seq
+    if rev:
+        integer_seq = integer_seq[::-1]
+        raw_data = raw_data[::-1]
+
+    slice_start = 2
+    slice_end = 4
+    sv = integer_seq[slice_start:slice_end]
+    copied = sv.copy(sliced=sliced)
+    assert copied.value == raw_data[slice_start:slice_end]
+    assert copied.reverse == integer_seq.reverse
+
+
 def test_relative_position_with_remainder(integer_seq):
     """tests relative_position when the index given is excluded from the view as it falls on
     a position that is 'stepped over'"""
