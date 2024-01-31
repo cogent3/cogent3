@@ -2602,7 +2602,7 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):
     # matches original
     assert copied.parent_coordinates() == seq.parent_coordinates()
     # and expected
-    assert copied.parent_coordinates() == (start, stop)
+    assert copied.parent_coordinates() == (start, stop, -1 if rev else 1)
 
 
 @pytest.mark.parametrize("rev", (False, True))
@@ -2612,4 +2612,4 @@ def test_parent_coordinates(rev):
     if rev:
         seq = seq.rc()
 
-    assert seq.parent_coordinates() == (0, 0)
+    assert seq.parent_coordinates() == (0, 0, 1)
