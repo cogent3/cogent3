@@ -1,4 +1,50 @@
 
+<a id='changelog-2024.2.5a1'></a>
+# Changes in release "2024.2.5a1"
+
+## Contributors
+
+- @fredjaya, documentation, bug fixes and tests. Thanks @fredjaya 🚀!!
+- @KatherineCaley and @khiron, maintenance 🛠️. Thanks @KatherineCaley and @khiron 🏎️!
+- @GavinHuttley, miscellaneous 🍥
+
+## ENH
+
+- Now support python3.12 🚀
+- We drop support for python3.8
+- Pin numpy version to < 2 until we can test against released version.
+- AnnotationDb.subset() method. Returns a new instance matching provided
+  conditions.
+- SeqView.parent_start, SeqView.parent_stop properties report position
+  on original sequence. These help keep track of the segment on original
+  after slicing operations. They always **return** plus strand orientation.
+- SeqView offset argument added to constructor
+- SeqView.copy() method. Supports slicing the original data (and
+  recording the offset).
+- Sequence.parent_coordinates() returns parent_start, parent_stop, strand
+  values from underlying SeqView. strand is +/- 1, which is relative to
+  the original sequence.
+- AnnotationDb methods now expect the strand argument to have value "+"/"-"
+  or None.
+- make_seq() returns a seq as is if it's already the correct molecular
+  type. This preserves the AnnotationDb attribute.
+
+## BUG
+
+- Fixed ArrayAlignment.get_degapped_relative_to(). It was returning the
+  transpose of the alignment.
+
+## DOC
+
+- Improvements to docstrings for some cogent3.apps. We have added code
+  snippets that can be copy/paste into a python session.
+- Major updates to the developer docs to guide new contributors 🎉! Check
+  them out [at the c3dev wiki](https://github.com/cogent3/c3dev/wiki).
+
+## Deprecations
+
+- Assorted arguments marked for deprecation
+
 <a id='changelog-2023.12.15a1'></a>
 # Changes in release "2023.12.15a1"
 
