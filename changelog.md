@@ -11,7 +11,6 @@
 ## ENH
 
 - Now support python3.12 🚀
-- We drop support for python3.8
 - Pin numpy version to < 2 until we can test against released version.
 - AnnotationDb.subset() method. Returns a new instance matching provided
   conditions.
@@ -43,6 +42,7 @@
 
 ## Deprecations
 
+- We drop support for python3.8
 - Assorted arguments marked for deprecation
 
 <a id='changelog-2023.12.15a1'></a>
