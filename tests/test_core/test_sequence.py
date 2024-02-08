@@ -1832,28 +1832,34 @@ def test_seqview_remove_gaps():
 
 
 def test_seqview_repr():
-    # case 1: Short sequence, defaults
+    # Short sequence, defaults
     seq = "ACGT"
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0)"
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None)"
     assert repr(view) == expected
 
-    # case 2: Long sequence
+    # Long sequence
     seq = "ACGT" * 10
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None)"
     assert repr(view) == expected
 
-    # case 3: Non-zero start, stop, and step values
+    # Non-zero start, stop, and step values
     seq = "ACGT" * 10
     view = SeqView(seq, start=5, stop=35, step=2)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None)"
     assert repr(view) == expected
 
-    # case 4: offset
+    # offset
     seq = "ACGT"
     view = SeqView(seq, offset=5)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5)"
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None)"
+    assert repr(view) == expected
+
+    # seqid
+    seq = "ACGT"
+    view = SeqView(seq, seqid="seq1")
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1')"
     assert repr(view) == expected
 
 
@@ -2613,3 +2619,39 @@ def test_parent_coordinates(rev):
         seq = seq.rc()
 
     assert seq.parent_coordinates() == (0, 0, 1)
+
+
+def test_seqview_seqid():
+    sv = SeqView("ACGGTGGGAC")
+    assert sv.seqid is None
+
+    sv = SeqView("ACGGTGGGAC", seqid="seq1")
+    assert sv.seqid == "seq1"
+
+
+def test_seqview_rich_dict_round_trip_seqid():
+    sv = SeqView("ACGGTGGGAC", seqid="seq1")
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seqid"] == "seq1"
+
+    got = SeqView.from_rich_dict(rd)
+    assert got.seqid == "seq1"
+
+    sv = SeqView("ACGGTGGGAC")
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seqid"] == None
+
+    got = SeqView.from_rich_dict(rd)
+    assert got.seqid == None
+
+
+def test_seqview_slice_propagates_seqid():
+    sv = SeqView("ACGGTGGGAC", seqid="seq1")
+    sliced_sv = sv[1:8:2]
+    assert sliced_sv.seqid == "seq1"
+
+    copied_sv = sliced_sv.copy(sliced=False)
+    assert copied_sv.seqid == "seq1"
+
+    copied_sliced_sv = sliced_sv.copy(sliced=True)
+    assert copied_sliced_sv.seqid == "seq1"

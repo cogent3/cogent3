@@ -1910,7 +1910,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step", "_offset")
+    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid")
 
     def __init__(
         self,
@@ -1920,6 +1920,7 @@ class SeqView:
         stop: int = None,
         step: int = None,
         offset: int = 0,
+        seqid: str = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -1930,8 +1931,9 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
-        self._offset = offset
         self.step = step
+        self._offset = offset
+        self._seqid = seqid
 
     @property
     def offset(self) -> int:
@@ -1940,6 +1942,10 @@ class SeqView:
     @offset.setter
     def offset(self, value: int):
         self._offset = value or 0
+
+    @property
+    def seqid(self) -> str:
+        return self._seqid
 
     @property
     def parent_start(self) -> int:
@@ -2117,6 +2123,7 @@ class SeqView:
             stop=min(self.stop, stop),
             step=self.step * step,
             offset=self.offset,
+            seqid=self.seqid,
         )
 
     def _get_forward_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2142,6 +2149,7 @@ class SeqView:
             stop=max(self.stop, stop),
             step=self.step * step,
             offset=self.offset,
+            seqid=self.seqid,
         )
 
     def _get_reverse_slice(self, segment, step):
@@ -2196,6 +2204,7 @@ class SeqView:
             stop=max(stop, self.start - len(self.seq) - 1),
             step=self.step * step,
             offset=self.offset,
+            seqid=self.seqid,
         )
 
     def _get_reverse_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2233,6 +2242,7 @@ class SeqView:
             stop=stop,
             step=self.step * step,
             offset=self.offset,
+            seqid=self.seqid,
         )
 
     def __getitem__(self, segment):
@@ -2244,6 +2254,7 @@ class SeqView:
                 stop=stop,
                 step=step,
                 offset=self.offset,
+                seqid=self.seqid,
             )
 
         if segment.start is segment.stop is segment.step is None:
@@ -2274,7 +2285,12 @@ class SeqView:
         new_seq = self.seq.replace(old, new)
         if len(old) == len(new):
             return self.__class__(
-                new_seq, start=self.start, stop=self.stop, step=self.step
+                new_seq,
+                start=self.start,
+                stop=self.stop,
+                step=self.step,
+                offset=self.offset,
+                seqid=self.seqid,
             )
 
         return self.__class__(new_seq)
@@ -2292,7 +2308,8 @@ class SeqView:
         seq = f"{self.seq[:10]}...{self.seq[-5:]}" if len(self.seq) > 15 else self.seq
         return (
             f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
-            f"stop={self.stop}, step={self.step}, offset={self.offset})"
+            f"stop={self.stop}, step={self.step}, offset={self.offset}, "
+            f"seqid={self.seqid!r})"
         )
 
     def to_rich_dict(self):
@@ -2309,6 +2326,7 @@ class SeqView:
 
         data["init_args"]["seq"] = self.seq[start:stop]
         data["init_args"]["offset"] = self.parent_start
+        data["init_args"]["seqid"] = self.seqid
         return data
 
     @classmethod
@@ -2335,6 +2353,7 @@ class SeqView:
                 stop=self.stop,
                 step=self.step,
                 offset=self.offset,
+                seqid=self.seqid,
             )
         return self.from_rich_dict(self.to_rich_dict())
 
