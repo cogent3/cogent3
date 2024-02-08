@@ -2658,7 +2658,7 @@ def test_to_rich_dict_not_alignment(cls):
 
     got = aln.to_rich_dict()
 
-    data = {k: SeqView(s).to_rich_dict() for k, s in data.items()}
+    data = {k: SeqView(s, seqid=k).to_rich_dict() for k, s in data.items()}
 
     expect = {
         "seqs": {
@@ -3165,7 +3165,7 @@ def test_init_duplicate_keys_raises(cls):
 )
 def test_construct_unaligned_seq(seq):
     moltype = get_moltype("dna")
-    got = _construct_unaligned_seq(seq, moltype=moltype)
+    got = _construct_unaligned_seq(seq, name="seq1", moltype=moltype)
     assert isinstance(got, (Sequence, ArraySequence))
 
 
