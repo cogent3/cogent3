@@ -822,7 +822,7 @@ class Sequence(SequenceI):
             else (lambda x: x)
         )
 
-        self._seq = _coerce_seq(seq, self.name, preserve_case, checker)
+        self._seq = _coerce_to_seqview(seq, self.name, preserve_case, checker)
 
         if not isinstance(info, InfoClass):
             try:
@@ -2946,30 +2946,30 @@ class ArrayProteinWithStopSequence(ArraySequence):
 
 
 @singledispatch
-def _coerce_seq(data, seqid, preserve_case, checker):
+def _coerce_to_seqview(data, seqid, preserve_case, checker):
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
-        return _coerce_seq(str(data), seqid, preserve_case, checker)
+        return _coerce_to_seqview(data.data, seqid, preserve_case, checker)
     raise NotImplementedError(f"{type(data)}")
 
 
-@_coerce_seq.register
+@_coerce_to_seqview.register
 def _(data: SeqView, seqid, preserve_case, checker):
     return data
 
 
-@_coerce_seq.register
+@_coerce_to_seqview.register
 def _(data: Sequence, seqid, preserve_case, checker):
-    return _coerce_seq(str(data), seqid, preserve_case, checker)
+    return _coerce_to_seqview(data._seq, seqid, preserve_case, checker)
 
 
-@_coerce_seq.register
+@_coerce_to_seqview.register
 def _(data: ArraySequence, seqid, preserve_case, checker):
-    return _coerce_seq(str(data), seqid, preserve_case, checker)
+    return _coerce_to_seqview(str(data), seqid, preserve_case, checker)
 
 
-@_coerce_seq.register
+@_coerce_to_seqview.register
 def _(data: str, seqid, preserve_case, checker):
     if not preserve_case:
         data = data.upper()
@@ -2977,7 +2977,7 @@ def _(data: str, seqid, preserve_case, checker):
     return SeqView(data, seqid=seqid)
 
 
-@_coerce_seq.register
+@_coerce_to_seqview.register
 def _(data: bytes, seqid, preserve_case, checker):
     if not preserve_case:
         data = data.upper()
@@ -2986,11 +2986,11 @@ def _(data: bytes, seqid, preserve_case, checker):
     return SeqView(data, seqid=seqid)
 
 
-@_coerce_seq.register
+@_coerce_to_seqview.register
 def _(data: tuple, seqid, preserve_case, checker):
-    return _coerce_seq("".join(data), seqid, preserve_case, checker)
+    return _coerce_to_seqview("".join(data), seqid, preserve_case, checker)
 
 
-@_coerce_seq.register
+@_coerce_to_seqview.register
 def _(data: list, seqid, preserve_case, checker):
-    return _coerce_seq("".join(data), seqid, preserve_case, checker)
+    return _coerce_to_seqview("".join(data), seqid, preserve_case, checker)

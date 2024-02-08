@@ -5398,7 +5398,6 @@ def _coerce_to_unaligned_seqs(data, names, label_to_name=str, moltype=None) -> O
     seqs = []
     for name in names:
         seq = _construct_unaligned_seq(data[name], name=name, moltype=moltype)
-        seq.name = name
         seqs.append(seq)
     return seqs, names
 
@@ -5579,7 +5578,6 @@ def _coerce_to_aligned_seqs(data, names, label_to_name=str, moltype=None) -> O:
     seqs = []
     for name in names:
         seq = _construct_aligned_seq(data[name], name=name, moltype=moltype)
-        seq.name = seq.data.name = name
         seqs.append(seq)
 
     _one_length(seqs)
@@ -5663,9 +5661,9 @@ def _(data: bytes, name, moltype) -> Sequence:
 def _(data: Aligned, name, moltype) -> Sequence:
     return data.get_gapped_seq().to_moltype(moltype)
 
-
 @_construct_unaligned_seq.register
 def _(data: ArraySequence, name, moltype) -> Sequence:
+    assert name == data.name
     return moltype.make_seq(str(data), name=data.name, info=data.info)
 
 
@@ -5677,11 +5675,13 @@ def _(data: ndarray, name, moltype) -> Sequence:
 @functools.singledispatch
 def _construct_aligned_seq(data: str, name, moltype) -> Aligned:
     seq = _construct_unaligned_seq(data, name, moltype)
+    seq.name = name
     return Aligned(*seq.parse_out_gaps())
 
 
 @_construct_aligned_seq.register
 def _(data: Aligned, name, moltype) -> Aligned:
+    data.name = name
     return data
 
 
