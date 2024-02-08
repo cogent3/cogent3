@@ -2623,10 +2623,10 @@ def test_parent_coordinates(rev):
 
 def test_seqview_seqid():
     sv = SeqView("ACGGTGGGAC")
-    assert sv._seqid is None
+    assert sv.seqid is None
 
     sv = SeqView("ACGGTGGGAC", seqid="seq1")
-    assert sv._seqid == "seq1"
+    assert sv.seqid == "seq1"
 
 
 def test_seqview_rich_dict_round_trip_seqid():
@@ -2635,11 +2635,11 @@ def test_seqview_rich_dict_round_trip_seqid():
     assert rd["init_args"]["seqid"] == "seq1"
 
     got = SeqView.from_rich_dict(rd)
-    assert got._seqid == "seq1"
+    assert got.seqid == "seq1"
 
     sv = SeqView("ACGGTGGGAC")
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seqid"] == None
 
     got = SeqView.from_rich_dict(rd)
-    assert got._seqid == None
+    assert got.seqid == None
