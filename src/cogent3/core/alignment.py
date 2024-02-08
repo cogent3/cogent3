@@ -3922,9 +3922,12 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
     @property
     def named_seqs(self):
         if self._named_seqs is None:
-            seqs = list(map(self.alphabet.to_string, self.array_seqs))
+            seqs = [self.alphabet.to_string(seq) for seq in self.array_seqs]
             if self.moltype:
-                seqs = [self.moltype.make_seq(seqs[i], name=self.names[i], preserve_case=True) for i in range(len(self.names))]
+                seqs = [
+                    self.moltype.make_seq(seq, name, preserve_case=True)
+                    for seq, name in zip(seqs, self.names)
+                ]
             self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
 
@@ -5658,7 +5661,7 @@ def _(data: bytes, name, moltype) -> Sequence:
 
 @_construct_unaligned_seq.register
 def _(data: Aligned, name, moltype) -> Sequence:
-    return data.get_gapped_seq().to_moltype(moltype, ) # name=name
+    return data.get_gapped_seq().to_moltype(moltype)
 
 
 @_construct_unaligned_seq.register
@@ -5715,7 +5718,7 @@ def _(data: ndarray, moltype) -> ndarray:
 
 @_construct_array_aligned_seq.register
 def _(data: str, moltype) -> ndarray:
-    data = moltype.make_array_seq(data,)
+    data = moltype.make_array_seq(data)
     return data._data
 
 
