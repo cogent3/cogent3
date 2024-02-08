@@ -2310,7 +2310,7 @@ def test_to_rich_dict(cls, with_offset):
     seq = "AAGGCC"
 
     if cls == Sequence:
-        seq = SeqView(seq).to_rich_dict()
+        seq = SeqView(seq, seqid="seq1").to_rich_dict()
 
     expect = {
         "name": "seq1",
@@ -2334,7 +2334,7 @@ def test_to_json(cls, with_offset):
 
     seq = "AAGGCC"
     if cls == Sequence:
-        seq = SeqView(seq).to_rich_dict()
+        seq = SeqView(seq, seqid="seq1").to_rich_dict()
 
     expect = {
         "name": "seq1",
