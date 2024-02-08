@@ -2643,3 +2643,15 @@ def test_seqview_rich_dict_round_trip_seqid():
 
     got = SeqView.from_rich_dict(rd)
     assert got.seqid == None
+
+
+def test_seqview_slice_propagates_seqid():
+    sv = SeqView("ACGGTGGGAC", seqid="seq1")
+    sliced_sv = sv[1:8:2]
+    assert sliced_sv.seqid == "seq1"
+
+    copied_sv = sliced_sv.copy(sliced=False)
+    assert copied_sv.seqid == "seq1"
+
+    copied_sliced_sv = sliced_sv.copy(sliced=True)
+    assert copied_sliced_sv.seqid == "seq1"
