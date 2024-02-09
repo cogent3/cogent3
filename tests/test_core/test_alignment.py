@@ -3531,3 +3531,17 @@ def test_get_degapped_relative_to(cls):
 
     with pytest.raises(ValueError):
         aln.get_degapped_relative_to("nameX")
+
+
+@pytest.mark.parametrize("array_align", (True, False))
+@pytest.mark.parametrize(
+    "seq_moltype", (("ACCT--GT", "dna"), ("ACCT--GU", "rna"), ("MTST--T", "protein"))
+)
+def test_alignment_propogates_seqid_to_seqview(array_align, seq_moltype):
+    data = {"seq1": seq_moltype[0], "seq2": seq_moltype[0], "seq3": seq_moltype[0]}
+    aln = make_aligned_seqs(data, moltype=seq_moltype[1], array_align=array_align)
+
+    if array_align:
+        assert aln.seqs[0]._seq.seqid == "seq1"
+    else:
+        assert aln.seqs[0].data._seq.seqid == "seq1"

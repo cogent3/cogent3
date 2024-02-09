@@ -5661,6 +5661,7 @@ def _(data: bytes, name, moltype) -> Sequence:
 def _(data: Aligned, name, moltype) -> Sequence:
     return data.get_gapped_seq().to_moltype(moltype)
 
+
 @_construct_unaligned_seq.register
 def _(data: ArraySequence, name, moltype) -> Sequence:
     assert name == data.name
