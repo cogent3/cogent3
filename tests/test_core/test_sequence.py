@@ -2688,3 +2688,17 @@ def test_sequences_propogates_seqid():
     seq.name = "seq2"
     assert seq.name == "seq2"
     assert seq._seq.seqid == "seq1"
+
+    # creating a name Aligned propagates the seqid to the SeqView.
+    seq = Aligned(*Sequence("ACG--G--GAC", name="seq1").parse_out_gaps())
+    assert seq.data._seq.seqid == "seq1"
+
+    # creating a Sequence with a seqview does not change the seqid of the SeqView.
+    seq = Sequence(SeqView("ACGGTGGGAC", seqid="parent_name"), name="seq_name")
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid == "parent_name"
+
+    # creating a Sequence with an unnamed seqview does not name the SeqView.
+    seq = Sequence(SeqView("ACGGTGGGAC"), name="seq_name")
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid == None
