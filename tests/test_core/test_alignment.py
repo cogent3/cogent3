@@ -11,7 +11,7 @@ from unittest import TestCase
 import numpy
 import pytest
 
-from numpy import array, log2, nan
+from numpy import array, log2, nan, ndarray
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import (
@@ -3545,3 +3545,14 @@ def test_alignment_propogates_seqid_to_seqview(array_align, seq_moltype):
         assert aln.seqs[0]._seq.seqid == "seq1"
     else:
         assert aln.seqs[0].data._seq.seqid == "seq1"
+
+
+@pytest.mark.parametrize("cls", (str, bytes))
+def test_construct_unaligned_seq(cls):
+    data = "ACGT"
+    if cls is bytes:
+        seq = cls(data, "utf8")
+    else:
+        seq = cls(data)
+    got = _construct_unaligned_seq(seq, name="seq1", moltype=DNA)
+    assert got._seq.seqid == "seq1"

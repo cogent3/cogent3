@@ -5644,6 +5644,7 @@ def _construct_unaligned_seq(data, name, moltype) -> Sequence:
         result = data.to_moltype(moltype) if moltype else data
     except AttributeError:
         result = moltype.make_seq(data, name=name, preserve_case=False)
+    result.name = name
     return result
 
 
@@ -5659,13 +5660,14 @@ def _(data: bytes, name, moltype) -> Sequence:
 
 @_construct_unaligned_seq.register
 def _(data: Aligned, name, moltype) -> Sequence:
+    data.name = name 
     return data.get_gapped_seq().to_moltype(moltype)
 
 
 @_construct_unaligned_seq.register
 def _(data: ArraySequence, name, moltype) -> Sequence:
     assert name == data.name
-    return moltype.make_seq(str(data), name=data.name, info=data.info)
+    return moltype.make_seq(str(data), name=name, info=data.info)
 
 
 @_construct_unaligned_seq.register
