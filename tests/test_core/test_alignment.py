@@ -11,7 +11,7 @@ from unittest import TestCase
 import numpy
 import pytest
 
-from numpy import array, log2, nan, ndarray
+from numpy import array, log2, nan
 from numpy.testing import assert_allclose, assert_equal
 
 from cogent3 import (
