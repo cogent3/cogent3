@@ -2661,7 +2661,7 @@ def test_seqview_slice_propagates_seqid():
 
 @pytest.mark.parametrize("cls", (Aligned, Sequence, SeqView, ArraySequence, str, bytes))
 def test_coerce_to_seqview(cls):
-    seq = "ACGGTGGGAC"
+    seq = "AC--GGTGGGAC"
     seqid = "seq1"
     if cls in (str, bytes):
         got = _coerce_to_seqview(seq, seqid, preserve_case=True, checker=(lambda x: x))
@@ -2676,6 +2676,7 @@ def test_coerce_to_seqview(cls):
         got = _coerce_to_seqview(
             cls(seq), seqid, preserve_case=True, checker=(lambda x: x)
         )
+    assert got.value == seq
     assert isinstance(got, SeqView)
 
 

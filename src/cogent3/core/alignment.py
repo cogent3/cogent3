@@ -5660,7 +5660,7 @@ def _(data: bytes, name, moltype) -> Sequence:
 
 @_construct_unaligned_seq.register
 def _(data: Aligned, name, moltype) -> Sequence:
-    data.name = name 
+    data.name = name
     return data.get_gapped_seq().to_moltype(moltype)
 
 

@@ -2950,7 +2950,7 @@ def _coerce_to_seqview(data, seqid, preserve_case, checker):
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
-        return _coerce_to_seqview(data.data, seqid, preserve_case, checker)
+        return _coerce_to_seqview(str(data), seqid, preserve_case, checker)
     raise NotImplementedError(f"{type(data)}")
 
 
