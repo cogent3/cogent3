@@ -2658,7 +2658,7 @@ def test_to_rich_dict_not_alignment(cls):
 
     got = aln.to_rich_dict()
 
-    data = {k: SeqView(s).to_rich_dict() for k, s in data.items()}
+    data = {k: SeqView(s, seqid=k).to_rich_dict() for k, s in data.items()}
 
     expect = {
         "seqs": {
@@ -3165,7 +3165,7 @@ def test_init_duplicate_keys_raises(cls):
 )
 def test_construct_unaligned_seq(seq):
     moltype = get_moltype("dna")
-    got = _construct_unaligned_seq(seq, moltype=moltype)
+    got = _construct_unaligned_seq(seq, name="seq1", moltype=moltype)
     assert isinstance(got, (Sequence, ArraySequence))
 
 
@@ -3531,3 +3531,28 @@ def test_get_degapped_relative_to(cls):
 
     with pytest.raises(ValueError):
         aln.get_degapped_relative_to("nameX")
+
+
+@pytest.mark.parametrize("array_align", (True, False))
+@pytest.mark.parametrize(
+    "seq_moltype", (("ACCT--GT", "dna"), ("ACCT--GU", "rna"), ("MTST--T", "protein"))
+)
+def test_alignment_propogates_seqid_to_seqview(array_align, seq_moltype):
+    data = {"seq1": seq_moltype[0], "seq2": seq_moltype[0], "seq3": seq_moltype[0]}
+    aln = make_aligned_seqs(data, moltype=seq_moltype[1], array_align=array_align)
+
+    if array_align:
+        assert aln.seqs[0]._seq.seqid == "seq1"
+    else:
+        assert aln.seqs[0].data._seq.seqid == "seq1"
+
+
+@pytest.mark.parametrize("cls", (str, bytes))
+def test_construct_unaligned_seq_propogates_seqid(cls):
+    data = "ACGT"
+    if cls is bytes:
+        seq = cls(data, "utf8")
+    else:
+        seq = cls(data)
+    got = _construct_unaligned_seq(seq, name="seq1", moltype=DNA)
+    assert got._seq.seqid == "seq1"

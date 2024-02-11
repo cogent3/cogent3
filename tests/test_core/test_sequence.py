@@ -16,6 +16,7 @@ from numpy.testing import assert_allclose, assert_equal
 import cogent3
 
 from cogent3._version import __version__
+from cogent3.core.alignment import Aligned
 from cogent3.core.moltype import (
     ASCII,
     BYTES,
@@ -39,6 +40,7 @@ from cogent3.core.sequence import (
     RnaSequence,
     Sequence,
     SeqView,
+    _coerce_to_seqview,
 )
 from cogent3.util.misc import get_object_provenance
 
@@ -2310,7 +2312,7 @@ def test_to_rich_dict(cls, with_offset):
     seq = "AAGGCC"
 
     if cls == Sequence:
-        seq = SeqView(seq).to_rich_dict()
+        seq = SeqView(seq, seqid="seq1").to_rich_dict()
 
     expect = {
         "name": "seq1",
@@ -2334,7 +2336,7 @@ def test_to_json(cls, with_offset):
 
     seq = "AAGGCC"
     if cls == Sequence:
-        seq = SeqView(seq).to_rich_dict()
+        seq = SeqView(seq, seqid="seq1").to_rich_dict()
 
     expect = {
         "name": "seq1",
@@ -2655,3 +2657,49 @@ def test_seqview_slice_propagates_seqid():
 
     copied_sliced_sv = sliced_sv.copy(sliced=True)
     assert copied_sliced_sv.seqid == "seq1"
+
+
+@pytest.mark.parametrize("cls", (Aligned, Sequence, SeqView, ArraySequence, str, bytes))
+def test_coerce_to_seqview(cls):
+    seq = "AC--GGTGGGAC"
+    seqid = "seq1"
+    if cls in (str, bytes):
+        got = _coerce_to_seqview(seq, seqid, preserve_case=True, checker=(lambda x: x))
+    elif cls is Aligned:
+        got = _coerce_to_seqview(
+            cls(*Sequence(seq).parse_out_gaps()),
+            seqid,
+            preserve_case=True,
+            checker=(lambda x: x),
+        )
+    else:
+        got = _coerce_to_seqview(
+            cls(seq), seqid, preserve_case=True, checker=(lambda x: x)
+        )
+    assert got.value == seq
+    assert isinstance(got, SeqView)
+
+
+def test_sequences_propogates_seqid():
+    # creating a name Sequence propagates the seqid to the SeqView.
+    seq = Sequence("ACGGTGGGAC", name="seq1")
+    assert seq._seq.seqid == "seq1"
+
+    # renaming the Sequence deosnt change the seqid of the SeqView.
+    seq.name = "seq2"
+    assert seq.name == "seq2"
+    assert seq._seq.seqid == "seq1"
+
+    # creating a name Aligned propagates the seqid to the SeqView.
+    seq = Aligned(*Sequence("ACG--G--GAC", name="seq1").parse_out_gaps())
+    assert seq.data._seq.seqid == "seq1"
+
+    # creating a Sequence with a seqview does not change the seqid of the SeqView.
+    seq = Sequence(SeqView("ACGGTGGGAC", seqid="parent_name"), name="seq_name")
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid == "parent_name"
+
+    # creating a Sequence with an unnamed seqview does not name the SeqView.
+    seq = Sequence(SeqView("ACGGTGGGAC"), name="seq_name")
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid == None

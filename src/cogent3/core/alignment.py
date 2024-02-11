@@ -3922,9 +3922,12 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
     @property
     def named_seqs(self):
         if self._named_seqs is None:
-            seqs = list(map(self.alphabet.to_string, self.array_seqs))
+            seqs = [self.alphabet.to_string(seq) for seq in self.array_seqs]
             if self.moltype:
-                seqs = [self.moltype.make_seq(s, preserve_case=True) for s in seqs]
+                seqs = [
+                    self.moltype.make_seq(seq, name, preserve_case=True)
+                    for seq, name in zip(seqs, self.names)
+                ]
             self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
 
@@ -5394,8 +5397,7 @@ def _coerce_to_unaligned_seqs(data, names, label_to_name=str, moltype=None) -> O
     names = names or list(data.keys())
     seqs = []
     for name in names:
-        seq = _construct_unaligned_seq(data[name], moltype=moltype)
-        seq.name = name
+        seq = _construct_unaligned_seq(data[name], name=name, moltype=moltype)
         seqs.append(seq)
     return seqs, names
 
@@ -5575,8 +5577,7 @@ def _coerce_to_aligned_seqs(data, names, label_to_name=str, moltype=None) -> O:
     names = names or list(data.keys())
     seqs = []
     for name in names:
-        seq = _construct_aligned_seq(data[name], moltype=moltype)
-        seq.name = seq.data.name = name
+        seq = _construct_aligned_seq(data[name], name=name, moltype=moltype)
         seqs.append(seq)
 
     _one_length(seqs)
@@ -5638,58 +5639,63 @@ T = typing.Sequence[typing.Union[Sequence, ndarray]]
 
 
 @functools.singledispatch
-def _construct_unaligned_seq(data, moltype) -> Sequence:
+def _construct_unaligned_seq(data, name, moltype) -> Sequence:
     try:
         result = data.to_moltype(moltype) if moltype else data
     except AttributeError:
-        result = moltype.make_seq(data, preserve_case=False)
+        result = moltype.make_seq(data, name=name, preserve_case=False)
+    result.name = name
     return result
 
 
 @_construct_unaligned_seq.register
-def _(data: str, moltype) -> Sequence:
-    return moltype.make_seq(data, preserve_case=False)
+def _(data: str, name, moltype) -> Sequence:
+    return moltype.make_seq(data, name=name, preserve_case=False)
 
 
 @_construct_unaligned_seq.register
-def _(data: bytes, moltype) -> Sequence:
-    return _construct_unaligned_seq(data.decode("utf8"), moltype)
+def _(data: bytes, name, moltype) -> Sequence:
+    return _construct_unaligned_seq(data.decode("utf8"), name=name, moltype=moltype)
 
 
 @_construct_unaligned_seq.register
-def _(data: Aligned, moltype) -> Sequence:
+def _(data: Aligned, name, moltype) -> Sequence:
+    data.name = name
     return data.get_gapped_seq().to_moltype(moltype)
 
 
 @_construct_unaligned_seq.register
-def _(data: ArraySequence, moltype) -> Sequence:
-    return moltype.make_seq(str(data), name=data.name, info=data.info)
+def _(data: ArraySequence, name, moltype) -> Sequence:
+    assert name == data.name
+    return moltype.make_seq(str(data), name=name, info=data.info)
 
 
 @_construct_unaligned_seq.register
-def _(data: ndarray, moltype) -> Sequence:
-    return moltype.make_array_seq(data)
+def _(data: ndarray, name, moltype) -> Sequence:
+    return moltype.make_array_seq(data, name=name)
 
 
 @functools.singledispatch
-def _construct_aligned_seq(data, moltype) -> Aligned:
-    seq = _construct_unaligned_seq(data, moltype)
+def _construct_aligned_seq(data: str, name, moltype) -> Aligned:
+    seq = _construct_unaligned_seq(data, name, moltype)
+    seq.name = name
     return Aligned(*seq.parse_out_gaps())
 
 
 @_construct_aligned_seq.register
-def _(data: Aligned, moltype) -> Aligned:
+def _(data: Aligned, name, moltype) -> Aligned:
+    data.name = name
     return data
 
 
 @_construct_aligned_seq.register
-def _(data: list, moltype) -> Aligned:
-    return _construct_aligned_seq("".join(data), moltype)
+def _(data: list, name, moltype) -> Aligned:
+    return _construct_aligned_seq("".join(data), name, moltype)
 
 
 @_construct_aligned_seq.register
-def _(data: tuple, moltype) -> Aligned:
-    return _construct_aligned_seq("".join(data), moltype)
+def _(data: tuple, name, moltype) -> Aligned:
+    return _construct_aligned_seq("".join(data), name, moltype)
 
 
 # convert seq data into a numpy array for an array alignment
