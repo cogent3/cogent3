@@ -3548,7 +3548,7 @@ def test_alignment_propogates_seqid_to_seqview(array_align, seq_moltype):
 
 
 @pytest.mark.parametrize("cls", (str, bytes))
-def test_construct_unaligned_seq(cls):
+def test_construct_unaligned_seq_propogates_seqid(cls):
     data = "ACGT"
     if cls is bytes:
         seq = cls(data, "utf8")
