@@ -3532,7 +3532,7 @@ def test_sliced_deepcopy(data, name, rev):
     assert len(sliced.named_seqs[name].data) < len(orig.named_seqs[name].data)
 
 
-def test_aligned_deepcopy_sliced():
+def test_aligned_deepcopy_sliced_map_matches_data():
     m, seq = DNA.make_seq("ACAACGACG", name="seq1").parse_out_gaps()
     aligned = Aligned(m, seq)
     sliced = aligned[3:5]
