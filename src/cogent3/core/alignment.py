@@ -638,6 +638,8 @@ class _SequenceCollectionBase:
         if isinstance(self, Alignment):
             reversed = self.seqs[0].map.reverse
         else:
+            # WARNING GAH this is tightly coupling to implementation of seq attribute!
+            # todo GAH make method on Sequence?
             reversed = self.seqs[0]._seq.reverse
         new_seqs = dict()
         db = None if reversed and sliced else deepcopy(self.annotation_db)
