@@ -1630,21 +1630,22 @@ class Sequence(SequenceI):
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
-    def parent_coordinates(self) -> Tuple[int, int, int]:
-        """returns start, stop, strand of this sequence on its parent
+    def parent_coordinates(self) -> Tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand of this sequence on its parent
 
         Notes
         -----
-        Returned coordinates are with respect to the plus strand, irrespective
-        of whether the sequence has been reversed complemented or not.
+        seqid is the identifier of the parent. Returned coordinates are with
+        respect to the plus strand, irrespective of whether the sequence has
+        been reversed complemented or not.
 
         Returns
         -------
-        start, end, strand of this sequence on the parent. strand is either
+        seqid, start, end, strand of this sequence on the parent. strand is either
         -1 or 1.
         """
         strand = -1 if self._seq.reverse else 1
-        return self._seq.parent_start, self._seq.parent_stop, strand
+        return self._seq.seqid, self._seq.parent_start, self._seq.parent_stop, strand
 
 
 class ProteinSequence(Sequence):

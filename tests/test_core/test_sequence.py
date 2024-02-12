@@ -2598,19 +2598,24 @@ def test_gapped_by_map_segment_iter():
 @pytest.mark.parametrize("sliced", (False, True))
 @pytest.mark.parametrize("start_stop", ((None, None), (3, 7)))
 def test_copied_parent_coordinates(sliced, rev, start_stop):
-    seq = DNA.make_seq("ACGGTGGGAC")
+    orig_name = "orig"
+    seq = DNA.make_seq("ACGGTGGGAC", name=orig_name)
     start, stop = start_stop
     start = start or 0
     stop = stop or len(seq)
     sl = slice(start, stop)
     seq = seq[sl]
+    sliced_name = "sliced"
+    seq.name = sliced_name
+    assert seq.name == sliced_name
     if rev:
         seq = seq.rc()
     copied = seq.copy(sliced=sliced)
+    assert copied.name == sliced_name
     # matches original
     assert copied.parent_coordinates() == seq.parent_coordinates()
-    # and expected
-    assert copied.parent_coordinates() == (start, stop, -1 if rev else 1)
+    # and expected -- the coordinate name always reflects the underlying sequence
+    assert copied.parent_coordinates() == (orig_name, start, stop, -1 if rev else 1)
 
 
 @pytest.mark.parametrize("rev", (False, True))
@@ -2619,8 +2624,9 @@ def test_parent_coordinates(rev):
     seq = seq[1:1]
     if rev:
         seq = seq.rc()
-
-    assert seq.parent_coordinates() == (0, 0, 1)
+    seq.name = "sliced"  # this assignment does not affect the
+    # note that when a sequence has zero length, the parent seqid is None
+    assert seq.parent_coordinates() == (None, 0, 0, 1)
 
 
 def test_seqview_seqid():
