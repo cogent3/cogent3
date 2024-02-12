@@ -1030,11 +1030,9 @@ class Sequence(SequenceI):
         """
         feature = dict(feature)
         seq_rced = self._seq.reverse
-        # todo gah check consistency of relationship between reversed and strand
-        # i.e. which object has responsibility for transforming the strand value
-        # (a string) into a bool?
-        revd = feature.pop("reversed", None) or feature.pop("strand", None) == "-"
         spans = feature.pop("spans", None)
+        revd = feature.pop("strand", None) == "-"
+        feature["strand"] = "+" if revd == seq_rced else "-"
 
         vals = array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0
@@ -1264,6 +1262,7 @@ class Sequence(SequenceI):
                 name=None,
                 biotype=None,
                 map=Map(locations=[], parent_length=len(self)),
+                strand="+",
             )
         else:
             region = annotations[0].union(annotations[1:])
@@ -1630,21 +1629,22 @@ class Sequence(SequenceI):
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
-    def parent_coordinates(self) -> Tuple[int, int, int]:
-        """returns start, stop, strand of this sequence on its parent
+    def parent_coordinates(self) -> Tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand of this sequence on its parent
 
         Notes
         -----
-        Returned coordinates are with respect to the plus strand, irrespective
-        of whether the sequence has been reversed complemented or not.
+        seqid is the identifier of the parent. Returned coordinates are with
+        respect to the plus strand, irrespective of whether the sequence has
+        been reversed complemented or not.
 
         Returns
         -------
-        start, end, strand of this sequence on the parent. strand is either
+        seqid, start, end, strand of this sequence on the parent. strand is either
         -1 or 1.
         """
         strand = -1 if self._seq.reverse else 1
-        return self._seq.parent_start, self._seq.parent_stop, strand
+        return self._seq.seqid, self._seq.parent_start, self._seq.parent_stop, strand
 
 
 class ProteinSequence(Sequence):

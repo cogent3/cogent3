@@ -568,7 +568,7 @@ def test_get_slice():
         "spans": [
             (5, 10),
         ],
-        "reversed": False,
+        "strand": "+",
     }
     feature = seq.make_feature(feature_data)
     got = feature.get_slice()

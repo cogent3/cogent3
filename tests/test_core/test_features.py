@@ -693,7 +693,12 @@ def test_feature_not_equal(ann_seq):
 def test_feature_not_equal_attr(ann_seq, attr):
     (f1,) = list(ann_seq.get_features(biotype="gene"))
     attrs = dict(
-        parent=f1.parent, seqid=f1.seqid, biotype=f1.biotype, map=f1.map, name=f1.name
+        parent=f1.parent,
+        seqid=f1.seqid,
+        biotype=f1.biotype,
+        map=f1.map,
+        name=f1.name,
+        strand="-" if f1.map.reverse else "+",
     )
     value = attrs["map"][:4] if attr == "map" else "different"
     attrs[attr] = value

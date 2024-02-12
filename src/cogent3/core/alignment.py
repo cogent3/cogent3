@@ -2184,14 +2184,9 @@ class Aligned:
         -------
         a copy of self
         """
-        new_seq = self.data.copy(exclude_annotations=exclude_annotations)
-        db = new_seq.annotation_db
+        new_seq = self.data.copy(exclude_annotations=exclude_annotations, sliced=sliced)
         if sliced:
-            span = self.map.get_covering_span()
-            new_seq = type(new_seq)(
-                str(new_seq[span.start : span.end]), info=new_seq.info, name=self.name
-            )
-            new_seq.annotation_offset = self.map.start
+            db = new_seq.annotation_db
             if self.map.reverse or exclude_annotations:
                 new_seq.annotation_db = None
             else:
@@ -2252,13 +2247,30 @@ class Aligned:
 
     def __getitem__(self, slice):
         new_map = self.map[slice]
+        data = (
+            self.data[new_map.start : new_map.end] if new_map.useful else self.data[0:0]
+        )
         if new_map.reverse:
             # A reverse slice means we should have an empty sequence
             new_map = type(new_map)(locations=(), parent_length=len(self.data))
-        return Aligned(new_map, self.data)
+        elif new_map.useful:
+            new_map = new_map.zeroed()
+        return Aligned(new_map, data)
 
     def rc(self):
-        return Aligned(self.map.reversed(), self.data)
+        # the map now no longer stores history of reversing,
+        # as this done by Sequence & SeqView
+        new_map = self.map.nucleic_reversed()
+        # in this new approach, the map is always plus strand, so
+        # the following comprehension ensures the order of spans
+        # and the span start/end satisfy this
+        spans = [s if s.lost else s.reversed() for s in new_map.spans]
+        spans.reverse()
+        new_map = type(new_map)(
+            spans=spans,
+            parent_length=new_map.parent_length,
+        )
+        return Aligned(new_map, self.data.rc())
 
     def to_rna(self):
         return Aligned(self.map, self.data.to_rna())
@@ -5215,10 +5227,11 @@ class Alignment(AlignmentI, SequenceCollection):
         # there's no sequence to bind to, the feature is directly on self
         # todo gah check handling of strand etc..., maybe reuse code
         # in Sequence?
+        revd = feature.pop("strand", None) == "-"
+        feature["strand"] = "-" if revd else "+"
         fmap = Map(parent_length=len(self), locations=feature.pop("spans"))
-        if feature.pop("reversed", None):
+        if revd:
             fmap = fmap.nucleic_reversed()
-        feature.pop("strand", None)
         return Feature(parent=self, map=fmap, **feature)
 
     def _get_seq_features(
@@ -5260,12 +5273,12 @@ class Alignment(AlignmentI, SequenceCollection):
 
         for seqid in seqids:
             seq = self.named_seqs[seqid]
-
-            start, end = seq.map.start, seq.map.end
+            # we use parent seqid, stored on SeqView
+            parent_id, start, end, _ = seq.data.parent_coordinates()
             offset = seq.data.annotation_offset
 
             for feature in self.annotation_db.get_features_matching(
-                seqid=seqid,
+                seqid=parent_id,
                 biotype=biotype,
                 name=name,
                 on_alignment=False,
@@ -5341,12 +5354,13 @@ class Alignment(AlignmentI, SequenceCollection):
                 raise RuntimeError(f"{on_alignment=} {feature=}")
             if seq_map is None:
                 seq_map = self.seqs[0].map
+                *_, strand = self.seqs[0].data.parent_coordinates()
 
             spans = numpy.array(feature["spans"])
             spans = seq_map.relative_position(spans)
             feature["spans"] = spans.tolist()
             # and if i've been reversed...?
-            feature["reversed"] = seq_map.reverse
+            feature["strand"] = "-" if strand == -1 else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
 
 

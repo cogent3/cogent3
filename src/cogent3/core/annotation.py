@@ -18,10 +18,13 @@ class Feature:
         "_name",
         "_serialisable",
         "_id",
+        "_strand",
     )
 
     # todo gah implement a __new__ to trap args for serialisation purposes?
-    def __init__(self, *, parent, seqid: str, map: Map, biotype: str, name: str):
+    def __init__(
+        self, *, parent, seqid: str, map: Map, biotype: str, name: str, strand: str
+    ):
         # _serialisable is used for creating derivative instances
         d = locals()
         exclude = ("self", "__class__", "kw")
@@ -35,6 +38,7 @@ class Feature:
         data = [id(self.parent), tuple(self.map.get_coordinates())]
         data.extend((self.seqid, self.biotype, self.name))
         self._id = hash(tuple(data))
+        self._strand = strand
 
     def __eq__(self, other):
         return self._id == other._id
@@ -89,8 +93,19 @@ class Feature:
         if not (complete or map.complete):
             map = map.without_gaps()
         if not allow_gaps:
-            return self.parent[map]
-        return self.parent[map.start : map.end]
+            if self.reversed:
+                map = map.reversed()
+            result = self.parent[map]
+            if self.reversed:
+                result = result.rc()
+            return result
+
+        # all slicing now requires start < end
+        start, end = min(map.start, map.end), max(map.start, map.end)
+        result = self.parent[start:end]
+        if self.reversed:
+            result = result.rc()
+        return result
 
     def without_lost_spans(self):
         """Keeps only the parts which are actually present in the underlying sequence"""
@@ -242,9 +257,13 @@ class Feature:
             **self._serialisable,
             **dict(
                 spans=self.map.get_coordinates(),
-                strand="-" if self.map.reverse else "+",
             ),
         }
         for key in ("map", "parent"):
             result.pop(key, None)
         return result
+
+    @property
+    def reversed(self):
+        """whether Feature is on the reverse strand relative to bound object"""
+        return self._strand == "-"
