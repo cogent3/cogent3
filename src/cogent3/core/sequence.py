@@ -940,19 +940,25 @@ class Sequence(SequenceI):
         start = start + len(self) if start < 0 else start
         stop = stop + len(self) if stop < 0 else stop
 
-        # sort start / stop
         start, stop = (start, stop) if start < stop else (stop, start)
 
         # note: offset is handled by absolute_position
         # we set include_boundary=False because start is inclusive indexing,
         # i,e., the start cannot be equal to the length of the view
+        (
+            # parent_id can differ from self.name if there was a
+            # rename operation
+            parent_id,
+            *_,
+            strand,
+        ) = self.parent_coordinates()
         query_start = self._seq.absolute_position(start, include_boundary=False)
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
         query_end = self._seq.absolute_position(stop, include_boundary=True)
 
-        reversed = query_end < query_start
-        if reversed:
+        rev_strand = strand == -1
+        if rev_strand:
             query_start, query_end = query_end, query_start
 
         query_start = max(query_start, 0)
@@ -973,7 +979,7 @@ class Sequence(SequenceI):
         # flag which comes back from the db
 
         for feature in self.annotation_db.get_features_matching(
-            seqid=self.name,
+            seqid=parent_id,
             name=name,
             biotype=biotype,
             start=query_start,
@@ -982,13 +988,14 @@ class Sequence(SequenceI):
         ):
             # spans need to be converted from absolute to relative positions
             # DO NOT do adjustment in make_feature since that's user facing,
-            # and we expect them to make a feature manually
+            # and we expect them to make a feature manually wrt to their
+            # current view
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
                 rel_pos = self._seq.relative_position(v)
                 spans.ravel()[i] = rel_pos
 
-            if reversed:
+            if rev_strand:
                 # see above comment
                 spans = len(self) - spans
 

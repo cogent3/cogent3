@@ -2549,14 +2549,17 @@ def test_deepcopy_aligned(cls):
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_seq_rename_drops_annotations(cls):
+def test_seq_rename_preserves_annotations(cls):
     """rename seqs discards all annotations"""
     data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
     seqs = cls(data, moltype=DNA)
     seqs.add_feature(seqid="seq1", biotype="exon", name="fred", spans=[(3, 8)])
     assert seqs.annotation_db is not None
     new = seqs.rename_seqs(lambda x: x.upper())
-    assert not len(new.annotation_db)
+    assert len(new.annotation_db) == 1
+    assert len(list(new.get_features(biotype="exon")))
+    # using original seq name should also work
+    assert len(list(new.get_features(seqid="seq1")))
 
 
 @pytest.mark.parametrize(

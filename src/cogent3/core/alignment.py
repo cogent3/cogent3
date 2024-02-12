@@ -1732,7 +1732,7 @@ class _SequenceCollectionBase:
             new[new_name] = new_seq
         result = self.__class__(data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
-        result.annotation_db = DEFAULT_ANNOTATION_DB()
+        result.annotation_db = self.annotation_db
         return result
 
     @UI.display_wrap
@@ -2072,11 +2072,10 @@ class SequenceCollection(_SequenceCollectionBase):
         if not self.annotation_db:
             return None
 
-        seqids = [seqid] if isinstance(seqid, str) else seqid
-        if seqids is None:
-            seqids = self.names
-
-        if seqid and not set(seqids) & set(self.names):
+        seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
+        if seqid and (
+            seqid not in seqid_to_seqname and seqid not in seqid_to_seqname.values()
+        ):
             raise ValueError(f"unknown {seqid=}")
 
         for feature in self.annotation_db.get_features_matching(
@@ -2086,7 +2085,8 @@ class SequenceCollection(_SequenceCollectionBase):
             on_alignment=False,
             allow_partial=allow_partial,
         ):
-            seq = self.named_seqs[feature["seqid"]]
+            seqname = seqid_to_seqname[feature["seqid"]]
+            seq = self.named_seqs[seqname]
             if offset := seq.annotation_offset:
                 feature["spans"] = (array(feature["spans"]) - offset).tolist()
             yield seq.make_feature(feature, self)
@@ -4668,6 +4668,7 @@ class Alignment(AlignmentI, SequenceCollection):
             new = self.__class__(
                 seqs, name=self.name, info=self.info, moltype=self.moltype
             )
+            new.annotation_db = self.annotation_db
 
         if isinstance(index, (list, tuple)):
             raise TypeError(f"cannot slice using {type(index)}")
@@ -5266,15 +5267,27 @@ class Alignment(AlignmentI, SequenceCollection):
         if self.annotation_db is None:
             return None
 
+        seqid_to_seqname = {
+            seq.data.parent_coordinates()[0]: seq.name for seq in self.seqs
+        }
+
         seqids = [seqid] if isinstance(seqid, str) else seqid
         if seqids is None:
-            seqids = self.names
-
-        if seqid and not set(seqids) & set(self.names):
+            seqids = tuple(seqid_to_seqname)
+        elif set(seqids) & set(self.names):
+            # we've been given seq names, convert to parent names
+            seqids = [
+                self.named_seqs[seqid].data.parent_coordinates()[0] for seqid in seqids
+            ]
+        elif seqids and set(seqids) <= seqid_to_seqname.keys():
+            # already correct
+            pass
+        else:
             raise ValueError(f"unknown {seqid=}")
 
         for seqid in seqids:
-            seq = self.named_seqs[seqid]
+            seqname = seqid_to_seqname[seqid]
+            seq = self.named_seqs[seqname]
             # we use parent seqid, stored on SeqView
             parent_id, start, end, _ = seq.data.parent_coordinates()
             offset = seq.data.annotation_offset
