@@ -727,13 +727,6 @@ class SequenceCollectionBaseTests(object):
         assert_allclose(result["seq1"].observed.array, [[3, 2], [2, 2]])
         assert_allclose(result["seq2"].observed.array, [[3, 0], [2, 1]])
 
-    def test_dotplot(self):
-        """exercising dotplot method"""
-        seqs = self.Class(data=self.brca1_data, moltype=DNA)
-        _ = seqs.dotplot()
-        with self.assertRaises(AssertionError):
-            seqs.dotplot(window=5, k=11)
-
     def test_rename_seqs(self):
         """successfully rename sequences"""
         data = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
@@ -1973,15 +1966,6 @@ class AlignmentTests(AlignmentBaseTests, TestCase):
         rc = seqs.rc()
         lengths = {len(s.deepcopy(sliced=True)) for s in rc.seqs}
         self.assertEqual(lengths, {len(seqs)})
-
-    def test_dotplot(self):
-        """exercising dotplot method"""
-        aln = self.Class([["name1", "TTTTTTAAAA"], ["name2", "AAAATTTTTT"]])
-        aln = aln[2:8]
-        draw = aln.dotplot(show_progress=False)
-        expected = {("name1", "TTTTAA"), ("name2", "AATTTT")}
-        got = {(s.name, str(s)) for s in (draw.seq1, draw.seq2)}
-        self.assertEqual(got, expected)
 
     def test_to_moltype_annotations(self):
         """correctly convert to specified moltype with proper sequence annotations"""
@@ -3437,6 +3421,31 @@ def test_make_case():
     data = {"a": "tata", "b": "tgtc", "c": "gcga", "d": "gaac", "e": "gagc"}
     got = make_aligned_seqs(data=data, moltype="dna")
     assert got == {k: v.upper() for k, v in data.items()}
+
+
+@pytest.fixture(scope="session")
+def brca1_data():
+    return load_aligned_seqs("data/brca1.fasta").to_dict()
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
+def test_dotplot(cls, brca1_data):
+    """exercising dotplot method"""
+    seqs = cls(data=brca1_data, moltype=DNA)
+    _ = seqs.dotplot()
+    with pytest.raises(AssertionError):
+        seqs.dotplot(window=5, k=11)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_dotplot_alignment(cls):
+    """exercising dotplot method"""
+    aln = cls([["name1", "TTTTTTAAAA"], ["name2", "AAAATTTTTT"]])
+    aln = aln[2:8]
+    draw = aln.dotplot(show_progress=False)
+    expected = {("name1", "TTTTAA"), ("name2", "AATTTT")}
+    got = {(s.name, str(s)) for s in (draw.seq1, draw.seq2)}
+    assert got == expected
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
