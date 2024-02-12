@@ -5215,10 +5215,11 @@ class Alignment(AlignmentI, SequenceCollection):
         # there's no sequence to bind to, the feature is directly on self
         # todo gah check handling of strand etc..., maybe reuse code
         # in Sequence?
+        revd = feature.pop("strand", None) == "-"
+        feature["strand"] = "-" if revd else "+"
         fmap = Map(parent_length=len(self), locations=feature.pop("spans"))
-        if feature.pop("reversed", None):
+        if revd:
             fmap = fmap.nucleic_reversed()
-        feature.pop("strand", None)
         return Feature(parent=self, map=fmap, **feature)
 
     def _get_seq_features(
@@ -5346,7 +5347,7 @@ class Alignment(AlignmentI, SequenceCollection):
             spans = seq_map.relative_position(spans)
             feature["spans"] = spans.tolist()
             # and if i've been reversed...?
-            feature["reversed"] = seq_map.reverse
+            feature["strand"] = "-" if seq_map.reverse else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
 
 

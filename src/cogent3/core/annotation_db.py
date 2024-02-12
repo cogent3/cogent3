@@ -66,7 +66,7 @@ class FeatureDataType(typing.TypedDict):
     biotype: str  # rename type attr of cogent3 Annotatables to match this?
     name: str  # rename to name to match cogent3 Annotatable.name?
     spans: list[tuple[int, int]]
-    reversed: bool  # True if feature on reverse strand
+    strand: str  # "-" if feature on reverse strand
     on_alignment: bool  # True if feature on an alignment
 
 
@@ -669,7 +669,6 @@ class SqliteAnnotationDbMixin:
             result = dict(zip(result.keys(), result))
             result["on_alignment"] = result.get("on_alignment")
             result["spans"] = [tuple(c) for c in result["spans"]]
-            result["reversed"] = result.pop("strand", None) == "-"
             yield result
 
     def get_feature_children(
@@ -786,7 +785,6 @@ class SqliteAnnotationDbMixin:
                 result = dict(zip(result.keys(), result))
                 result["on_alignment"] = result.get("on_alignment")
                 result["spans"] = [tuple(c) for c in result["spans"]]
-                result["reversed"] = result.pop("strand", None) == "-"
                 yield result
 
     def num_matches(

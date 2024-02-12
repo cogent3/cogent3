@@ -1030,11 +1030,9 @@ class Sequence(SequenceI):
         """
         feature = dict(feature)
         seq_rced = self._seq.reverse
-        # todo gah check consistency of relationship between reversed and strand
-        # i.e. which object has responsibility for transforming the strand value
-        # (a string) into a bool?
-        revd = feature.pop("reversed", None) or feature.pop("strand", None) == "-"
         spans = feature.pop("spans", None)
+        revd = feature.pop("strand", None) == "-"
+        feature["strand"] = "-" if revd else "+"
 
         vals = array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0
@@ -1264,6 +1262,7 @@ class Sequence(SequenceI):
                 name=None,
                 biotype=None,
                 map=Map(locations=[], parent_length=len(self)),
+                strand="+",
             )
         else:
             region = annotations[0].union(annotations[1:])
