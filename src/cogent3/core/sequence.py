@@ -1032,7 +1032,7 @@ class Sequence(SequenceI):
         seq_rced = self._seq.reverse
         spans = feature.pop("spans", None)
         revd = feature.pop("strand", None) == "-"
-        feature["strand"] = "-" if revd else "+"
+        feature["strand"] = "+" if revd == seq_rced else "-"
 
         vals = array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0

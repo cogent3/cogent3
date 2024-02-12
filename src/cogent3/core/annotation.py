@@ -93,8 +93,19 @@ class Feature:
         if not (complete or map.complete):
             map = map.without_gaps()
         if not allow_gaps:
-            return self.parent[map]
-        return self.parent[map.start : map.end]
+            if self.reversed:
+                map = map.reversed()
+            result = self.parent[map]
+            if self.reversed:
+                result = result.rc()
+            return result
+
+        # all slicing now requires start < end
+        start, end = min(map.start, map.end), max(map.start, map.end)
+        result = self.parent[start:end]
+        if self.reversed:
+            result = result.rc()
+        return result
 
     def without_lost_spans(self):
         """Keeps only the parts which are actually present in the underlying sequence"""

@@ -823,12 +823,17 @@ class Map:
         data = self.to_rich_dict()
         zeroed = deserialise_map_spans(data)
         zeroed.parent_length = len(zeroed.get_covering_span())
-        min_val = min(zeroed.start, zeroed.end)
+        shift = min(zeroed.start, zeroed.end)
+        new_end = 0
         for span in zeroed.spans:
             if span.lost:
                 continue
-            span.start -= min_val
-            span.end -= min_val
+            span.start -= shift
+            span.end -= shift
+            new_end = max(new_end, span.end)
+
+        zeroed.start = 0
+        zeroed.end = new_end
 
         return zeroed
 

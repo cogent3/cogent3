@@ -238,24 +238,6 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(self.ordered1.iter_selected()), ["A"] * 5 + ["B"] * 5)
         self.assertEqual(list(self.ordered2.iter_selected()), ["B"] * 5 + ["A"] * 5)
 
-    def test_iter_selected(self):
-        """SequenceCollection iter_selected() should iterate over items in correct order"""
-        # should work if one row
-        self.assertEqual(list(self.one_seq.iter_selected()), ["A"] * 5)
-        # should take order into account
-        self.assertEqual(list(self.ordered1.iter_selected()), ["A"] * 5 + ["B"] * 5)
-        self.assertEqual(list(self.ordered2.iter_selected()), ["B"] * 5 + ["A"] * 5)
-        # should allow row and/or col specification
-        r = self.ragged_padded
-        self.assertEqual(
-            list(r.iter_selected(seq_order=["c", "b"], pos_order=[5, 1, 3])),
-            list("-AA-A-"),
-        )
-        # should not interfere with superclass iteritems()
-        i = list(r.named_seqs.items())
-        i.sort()
-        self.assertEqual(i, [("a", "AAAAAA"), ("b", "AAA---"), ("c", "AAAA--")])
-
     def test_take_seqs(self):
         """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
         a = self.ragged_padded.take_seqs(list("bc"))
@@ -1058,20 +1040,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         self.assertEqual(
             list(r.positions),
             list(map(list, ["AAA", "AAA", "AAA", "A-A", "A--", "A--"])),
-        )
-
-    def test_take_positions(self):
-        """SequenceCollection take_positions should return new alignment w/ specified pos"""
-        self.assertEqual(
-            self.gaps.take_positions([5, 4, 0]), {"a": "AAA", "b": "A-A", "c": "--A"}
-        )
-        self.assertTrue(
-            isinstance(self.gaps.take_positions([0]), _SequenceCollectionBase)
-        )
-        # should be able to negate
-        self.assertEqual(
-            self.gaps.take_positions([5, 4, 0], negate=True),
-            {"a": "AAAA", "b": "--AA", "c": "A---"},
         )
 
     def test_take_positions_info(self):
@@ -1924,49 +1892,6 @@ class ArrayAlignmentTests(AlignmentBaseTests, TestCase):
 class AlignmentTests(AlignmentBaseTests, TestCase):
     Class = Alignment
 
-    def test_sliced_deepcopy(self):
-        """correctly deep copy aligned objects in an alignment"""
-
-        def eval_data(data):
-            orig = self.Class(data)
-            aln = orig[2:5]
-
-            notsliced = aln.deepcopy(sliced=False)
-            sliced = aln.deepcopy(sliced=True)
-            for name in orig.names:
-                # if not sliced, underlying seq data should be same length
-                # as original
-                self.assertEqual(
-                    len(notsliced.named_seqs[name].data),
-                    len(orig.named_seqs[name].data),
-                )
-                # and the map.parent_length attributes should match
-                self.assertEqual(
-                    notsliced.named_seqs[name].map.parent_length,
-                    orig.named_seqs[name].map.parent_length,
-                )
-                # and map.parent_length and len(data) should match
-                self.assertEqual(
-                    sliced.named_seqs[name].map.parent_length,
-                    len(sliced.named_seqs[name].data),
-                )
-
-                # if sliced, seq data should be < orig
-                self.assertLess(
-                    len(sliced.named_seqs[name].data), len(orig.named_seqs[name].data)
-                )
-                # and map.parent_length and len(data) should match
-                self.assertEqual(
-                    sliced.named_seqs[name].map.parent_length,
-                    len(sliced.named_seqs[name].data),
-                )
-
-        eval_data({"seq1": "ACAACGACG", "seq2": "ACGACGACG"})
-        eval_data({"seq1": "-CAACGACG", "seq2": "ACGACGACG"})
-        eval_data({"seq1": "ACAACGAC-", "seq2": "ACGACGACG"})
-        eval_data({"seq1": "AC-ACGACG", "seq2": "ACGACGACG"})
-        eval_data({"seq1": "ACA-CGAC-", "seq2": "ACGACGACG"})
-
     def test_sliding_windows(self):
         """sliding_windows should return slices of alignments."""
         alignment = self.Class(
@@ -2583,6 +2508,13 @@ def test_copy_annotations_incompat_type_fails(seqcoll_db, gb_db):
     """copy_annotations copies records from annotation db"""
     with pytest.raises(TypeError):
         seqcoll_db.copy_annotations({"a": "ACGGT"})
+
+
+def test_aligned_deepcopy_sliced():
+    a = Aligned(*DNA.make_seq("GCAAGGCGCCAA").parse_out_gaps())
+    sliced = a[2:3]
+    sl_cp = sliced.deepcopy(sliced=True)
+    assert str(sl_cp) == str(sliced)
 
 
 def test_deepcopy_with_features(DATA_DIR):
@@ -3531,6 +3463,120 @@ def test_get_degapped_relative_to(cls):
 
     with pytest.raises(ValueError):
         aln.get_degapped_relative_to("nameX")
+
+
+@pytest.mark.parametrize(
+    "data",
+    (
+        {"seq1": "ACAACGACG", "seq2": "ACGACGACG"},
+        {"seq1": "-CAACGACG", "seq2": "ACGACGACG"},
+        {"seq1": "ACAACGAC-", "seq2": "ACGACGACG"},
+        {"seq1": "AC-ACGACG", "seq2": "ACGACGACG"},
+        {"seq1": "ACA-CGAC-", "seq2": "ACGACGACG"},
+    ),
+)
+@pytest.mark.parametrize("name", ("seq1", "seq2"))
+@pytest.mark.parametrize("rev", (False, True))
+def test_sliced_deepcopy(data, name, rev):
+    """correctly deep copy aligned objects in an alignment"""
+
+    orig = Alignment(data, moltype="dna")
+    slice_start, slice_end = 3, 5
+    aln = orig[slice_start:slice_end]
+    if rev:
+        aln = aln.rc()
+
+    # the map just mirrors the slice effect, it no longer has "memory" of rev complement
+    assert aln.named_seqs[name].map.reverse == False
+
+    notsliced = aln.deepcopy(sliced=False)
+    # the annotation offsets should match original object
+    assert {s.data.annotation_offset for s in notsliced.seqs} == {
+        s.data.annotation_offset for s in aln.seqs
+    }
+    sliced = aln.deepcopy(sliced=True)
+    assert sliced.to_dict() == notsliced.to_dict()
+    sliced_seq = sliced.named_seqs[name]
+    notsliced_seq = notsliced.named_seqs[name]
+    assert str(sliced_seq) == str(notsliced_seq)
+
+    # the annotation offsets should match original object
+    assert {s.data.annotation_offset for s in sliced.seqs} == {
+        s.data.annotation_offset for s in aln.seqs
+    }
+    # if not sliced in copy, underlying seq data is identical to original
+    assert (
+        notsliced.named_seqs[name].data._seq.seq is orig.named_seqs[name].data._seq.seq
+    )
+    # but not the same for sliced
+    assert (
+        sliced.named_seqs[name].data._seq.seq is not orig.named_seqs[name].data._seq.seq
+    )
+
+    # the map just mirrors the slice effect, it has no  "memory" of rev complement
+    assert notsliced.named_seqs[name].map.reverse == False
+    assert sliced.named_seqs[name].map.reverse == False
+
+    assert sliced.named_seqs[name].map.parent_length == len(
+        str(sliced_seq).replace("-", "")
+    )
+    assert notsliced.named_seqs[name].map.parent_length == len(
+        str(notsliced_seq).replace("-", "")
+    )
+    # and map.parent_length and len(data) should match
+    assert sliced.named_seqs[name].map.parent_length == len(
+        sliced.named_seqs[name].data
+    )
+
+    # if sliced, seq data should be < orig
+    assert len(sliced.named_seqs[name].data) < len(orig.named_seqs[name].data)
+
+
+def test_aligned_deepcopy_sliced():
+    m, seq = DNA.make_seq("ACAACGACG", name="seq1").parse_out_gaps()
+    aligned = Aligned(m, seq)
+    sliced = aligned[3:5]
+    sliced_copy = sliced.deepcopy(sliced=True)
+    assert sliced_copy.map.parent_length == len(sliced_copy.data)
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_iter_selected(cls):
+    """SequenceCollection iter_selected() should iterate over items in correct order"""
+    # should work if one row
+    one_seq = cls({"a": "AAAAA"})
+    ragged_padded = cls({"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"})
+    ordered1 = cls({"a": "AAAAA", "b": "BBBBB"}, names=["a", "b"])
+    ordered2 = cls({"a": "AAAAA", "b": "BBBBB"}, names=["b", "a"])
+
+    assert list(one_seq.iter_selected()) == (["A"] * 5)
+    # should take order into account
+    assert list(ordered1.iter_selected()) == (["A"] * 5 + ["B"] * 5)
+    assert list(ordered2.iter_selected()) == (["B"] * 5 + ["A"] * 5)
+    # should allow row and/or col specification
+    r = ragged_padded
+    assert list(r.iter_selected(seq_order=["c", "b"], pos_order=[5, 1, 3])) == list(
+        "-AA-A-"
+    )
+    # should not interfere with superclass iteritems()
+    i = list(r.named_seqs.items())
+    i.sort()
+    assert i == ([("a", "AAAAAA"), ("b", "AAA---"), ("c", "AAAA--")])
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_take_positions(cls):
+    """SequenceCollection take_positions should return new alignment w/ specified pos"""
+    gaps = cls({"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"})
+    assert gaps.take_positions([5, 4, 0]) == {"a": "AAA", "b": "A-A", "c": "--A"}
+    assert isinstance(gaps.take_positions([0]), _SequenceCollectionBase)
+
+    # should be able to negate
+    assert gaps.take_positions([5, 4, 0], negate=True) == {
+        "a": "AAAA",
+        "b": "--AA",
+        "c": "A---",
+    }
 
 
 @pytest.mark.parametrize("array_align", (True, False))
