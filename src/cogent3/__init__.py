@@ -95,9 +95,7 @@ def make_seq(seq, name=None, moltype=None):
     """
     moltype = moltype or "text"
     moltype = get_moltype(moltype)
-    seq = moltype.make_seq(seq)
-    if name is not None:
-        seq.name = name
+    seq = moltype.make_seq(seq, name=name)
     return seq
 
 

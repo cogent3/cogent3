@@ -3,6 +3,7 @@ import unittest
 import pytest
 
 from cogent3 import DNA, load_seq, make_aligned_seqs, make_unaligned_seqs
+from cogent3.core.alignment import Alignment, SequenceCollection
 from cogent3.core.location import Map, Span
 
 
@@ -299,3 +300,56 @@ def test_gbdb_get_children_get_parent(DATA_DIR):
     (child,) = list(orig.get_children("CDS"))
     parent, *_ = list(child.get_parent())
     assert parent == orig
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_features_survives_seq_rename(rev):
+    segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
+
+    seq = DNA.make_seq("".join(segments), name="original")
+    gene = seq.add_feature(biotype="gene", name="gene1", spans=[(10, 20), (25, 30)])
+    domain = seq.add_feature(
+        biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+    )
+    sliced = seq[5:-3]
+    sliced.name = "sliced"
+    sliced = sliced.rc() if rev else sliced
+    got = list(sliced.get_features(name="gene1"))[0]
+    assert str(got.get_slice()) == str(gene.get_slice())
+    got = list(sliced.get_features(name="domain1"))[0]
+    assert str(got.get_slice()) == str(domain.get_slice())
+
+
+@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_features_survives_aligned_seq_rename(rev, cls):
+    segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
+
+    seqs = cls({"original": "".join(segments)}, moltype="dna")
+    seqs.annotation_db.add_feature(
+        seqid="original", biotype="gene", name="gene1", spans=[(10, 20), (25, 30)]
+    )
+    seqs.annotation_db.add_feature(
+        seqid="original", biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+    )
+    seqs = seqs.rename_seqs(lambda x: "newname")
+    assert seqs.names == ["newname"]
+    seqs = seqs.rc() if rev else seqs
+    # quite different behaviour from Alignment and SequenceCollection
+    # so we convert to string to make comparison simpler
+    got = list(seqs.get_features(name="gene1"))[0]
+    sliced = str(got.get_slice()).splitlines()[-1]
+    assert sliced == "C" * 15
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
+def test_features_invalid_seqid(cls):
+    segments = ["A" * 10, "C" * 10, "T" * 5, "C" * 5, "A" * 5]
+
+    seqs = cls({"original": "".join(segments)}, moltype="dna")
+    seqs.annotation_db.add_feature(
+        seqid="original", biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
+    )
+    with pytest.raises(ValueError):
+        # seqid does not exist
+        list(seqs.get_features(name="gene1", seqid="blah"))
