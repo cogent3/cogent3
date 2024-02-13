@@ -2720,3 +2720,19 @@ def test_empty_seqview_translate_position():
     sv = SeqView("")
     assert sv.absolute_position(0) == 0
     assert sv.relative_position(0) == 0
+
+
+@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
+@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
+@pytest.mark.parametrize("length", (1, 8, 999))
+def test_seqview_seqlen_init(start, stop, step, length):
+    """seq_len is length of seq when None"""
+    seq_data = "0123456789"
+    got = SeqView(seq_data, start=start, stop=stop, step=step).seq_len
+    expect = len(seq_data)
+    assert got == expect
+
+    """Expect input seq_len to be 'correct' if provided"""
+    got = SeqView(seq="ACTG", seq_len=length).seq_len
+    assert got == length

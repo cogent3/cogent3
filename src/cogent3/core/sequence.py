@@ -1917,7 +1917,7 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid")
+    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
 
     def __init__(
         self,
@@ -1928,6 +1928,7 @@ class SeqView:
         step: int = None,
         offset: int = 0,
         seqid: str = None,
+        seq_len: int = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -1941,6 +1942,7 @@ class SeqView:
         self.step = step
         self._offset = offset
         self._seqid = seqid
+        self._seq_len = seq_len or len(self.seq)
 
     @property
     def offset(self) -> int:
@@ -1953,6 +1955,10 @@ class SeqView:
     @property
     def seqid(self) -> str:
         return self._seqid
+
+    @property
+    def seq_len(self) -> int:
+        return self._seq_len
 
     @property
     def parent_start(self) -> int:
