@@ -2714,3 +2714,9 @@ def test_sequences_propogates_seqid():
 def test_make_seq_assigns_to_seqview():
     seq = cogent3.make_seq("ACGT", name="s1")
     assert seq.name == seq._seq.seqid == "s1"
+
+
+def test_empty_seqview_translate_position():
+    sv = SeqView("")
+    assert sv.absolute_position(0) == 0
+    assert sv.relative_position(0) == 0

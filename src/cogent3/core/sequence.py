@@ -2007,6 +2007,8 @@ class SeqView:
         the absolute index with respect to the coordinates of the self
         including offset
         """
+        if not self:
+            return 0
 
         if rel_index < 0:
             raise IndexError("only positive indexing supported!")
@@ -2029,6 +2031,8 @@ class SeqView:
         NOTE: the returned value DOES NOT reflect python indexing. Importantly, negative values represent positions that
         precede the current view.
         """
+        if not self:
+            return 0
 
         if abs_index < 0:
             raise IndexError("Index must be +ve and relative to the + strand")
