@@ -29,22 +29,17 @@ def test(session):
         "--doctest-modules",
         ".",
     )
+
     session.chdir("../../../tests")
     session.run(
         "pytest",
         "-s",
         "-x",
-        "--cov-report",
-        f"lcov:lcov-{session.python}.lcov",
-        "--cov-report",
-        "term",
-        "--cov-append",
-        "--cov",
-        "cogent3",
         "--ignore",
         "test_app_mpi.py",
         "-m",
         "not slow",
+        *session.posargs,
     )
 
 
