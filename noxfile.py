@@ -19,7 +19,7 @@ def test_slow(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def test(session):
-    session.install(".[test]")
+    session.install("-e.[test]")
     # doctest modules within cogent3/app
     session.chdir("src/cogent3/app")
     session.run(
@@ -35,7 +35,10 @@ def test(session):
         "-s",
         "-x",
         "--cov-report",
-        f"lcov:lcov-{session.python}.info",
+        f"lcov:lcov-{session.python}.lcov",
+        "--cov-report",
+        "term",
+        "--cov-append",
         "--cov",
         "cogent3",
         "--ignore",

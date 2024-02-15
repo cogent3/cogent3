@@ -10,7 +10,7 @@ on:
 
 jobs:
   tests:
-    name: "Python ${{ matrix.python-version }}"
+    name: "Python ${{ matrix.python-version }} (${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -19,12 +19,12 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
-      - uses: "actions/checkout@v2"
+      - uses: "actions/checkout@v4"
         with:
           fetch-depth: 0
 
       # Setup env
-      - uses: "actions/setup-python@v3"
+      - uses: "actions/setup-python@v5"
         with:
             python-version: "${{ matrix.python-version }}"
 
@@ -38,12 +38,12 @@ jobs:
         run: "nox -s test-${{ matrix.python-version }}"
 
       - name: Coveralls Parallel
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           parallel: true
           github-token: ${{ secrets.github_token }}
           flag-name: run-${{ matrix.test_number }}
-          path-to-lcov: "tests/lcov-${{ matrix.python-version }}.info"
+          file: "tests/lcov-${{ matrix.python-version }}.lcov"
 
   finish:
     needs: tests
@@ -54,7 +54,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.github_token }}
         parallel-finished: true
