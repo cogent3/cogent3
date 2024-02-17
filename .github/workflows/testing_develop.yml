@@ -42,16 +42,13 @@ jobs:
         with:
           parallel: true
           github-token: ${{ secrets.github_token }}
-          flag-name: run-${{ matrix.test_number }}
+          flag-name: run-${{matrix.python-version}}-${{matrix.os}}
           file: "tests/lcov-${{matrix.os}}-${{matrix.python-version}}.lcov"
 
   finish:
+    name: "Finish Coveralls"
     needs: tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
       uses: coverallsapp/github-action@v2
