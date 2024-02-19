@@ -2741,7 +2741,7 @@ def test_seqview_seqlen_init(start, stop, step, length):
     assert sv.seq_len == expect
     assert sv._seq_len == expect
 
-    """Expect input seq_len to be 'correct' if provided"""
+    # Expect input seq_len to be correct if provided
     got = SeqView(seq="ACTG", seq_len=length).seq_len
     assert got == length
 
@@ -2757,5 +2757,5 @@ def test_seqview_seq_len_modified_seq():
     seq = "ACGGTGGGAC"
     sv = SeqView(seq)
 
-    sv.seq = "ATGC"  # this should not modifiy seq_len
+    sv.seq = "ATGC"  # this should not modify seq_len
     assert sv.seq_len == len(seq)
