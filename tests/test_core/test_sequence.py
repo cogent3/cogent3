@@ -2735,9 +2735,11 @@ def test_empty_seqview_translate_position():
 def test_seqview_seqlen_init(start, stop, step, length):
     """seq_len is length of seq when None"""
     seq_data = "0123456789"
-    got = SeqView(seq_data, start=start, stop=stop, step=step).seq_len
+    sv = SeqView(seq_data, start=start, stop=stop, step=step)
     expect = len(seq_data)
-    assert got == expect
+    # Check property and slot
+    assert sv.seq_len == expect
+    assert sv._seq_len == expect
 
     """Expect input seq_len to be 'correct' if provided"""
     got = SeqView(seq="ACTG", seq_len=length).seq_len
@@ -2759,3 +2761,11 @@ def test_seqview_copy_propagates_seq_len():
     sv = SeqView(seq)
     copied = sv.copy()
     assert copied.seq_len == len(seq)
+
+
+def test_seqview_seq_len_modified_seq():
+    seq = "ACGGTGGGAC"
+    sv = SeqView(seq)
+
+    sv.seq = "ATGC"  # this should not modifiy seq_len
+    assert sv.seq_len == len(seq)
