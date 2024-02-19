@@ -2141,6 +2141,7 @@ class SeqView:
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_forward_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2167,6 +2168,7 @@ class SeqView:
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_reverse_slice(self, segment, step):
@@ -2222,6 +2224,7 @@ class SeqView:
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_reverse_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2260,6 +2263,7 @@ class SeqView:
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def __getitem__(self, segment):
@@ -2272,6 +2276,7 @@ class SeqView:
                 step=step,
                 offset=self.offset,
                 seqid=self.seqid,
+                seq_len=self.seq_len,
             )
 
         if segment.start is segment.stop is segment.step is None:
@@ -2308,6 +2313,7 @@ class SeqView:
                 step=self.step,
                 offset=self.offset,
                 seqid=self.seqid,
+                seq_len=self.seq_len,
             )
 
         return self.__class__(new_seq)
@@ -2326,7 +2332,7 @@ class SeqView:
         return (
             f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
             f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r})"
+            f"seqid={self.seqid!r}, seqlen={self.seq_len})"
         )
 
     def to_rich_dict(self):
@@ -2344,6 +2350,7 @@ class SeqView:
         data["init_args"]["seq"] = self.seq[start:stop]
         data["init_args"]["offset"] = self.parent_start
         data["init_args"]["seqid"] = self.seqid
+        data["init_args"]["seq_len"] = self.seq_len
         return data
 
     @classmethod
@@ -2371,6 +2378,7 @@ class SeqView:
                 step=self.step,
                 offset=self.offset,
                 seqid=self.seqid,
+                seq_len=self.seq_len,
             )
         return self.from_rich_dict(self.to_rich_dict())
 

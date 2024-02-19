@@ -1837,31 +1837,37 @@ def test_seqview_repr():
     # Short sequence, defaults
     seq = "ACGT"
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None)"
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, seqlen=4)"
+    )
     assert repr(view) == expected
 
     # Long sequence
     seq = "ACGT" * 10
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, seqlen=40)"
     assert repr(view) == expected
 
     # Non-zero start, stop, and step values
     seq = "ACGT" * 10
     view = SeqView(seq, start=5, stop=35, step=2)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, seqlen=40)"
     assert repr(view) == expected
 
     # offset
     seq = "ACGT"
     view = SeqView(seq, offset=5)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None)"
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, seqlen=4)"
+    )
     assert repr(view) == expected
 
     # seqid
     seq = "ACGT"
     view = SeqView(seq, seqid="seq1")
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1')"
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seqlen=4)"
+    )
     assert repr(view) == expected
 
 
@@ -2736,3 +2742,20 @@ def test_seqview_seqlen_init(start, stop, step, length):
     """Expect input seq_len to be 'correct' if provided"""
     got = SeqView(seq="ACTG", seq_len=length).seq_len
     assert got == length
+
+
+def test_seqview_serialisation_propogates_seq_len():
+    seq = "ACGGTGGGAC"
+    sv = SeqView(seq)
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seq_len"] == len(seq)
+
+    got = SeqView.from_rich_dict(rd)
+    assert got.seq_len == sv.seq_len
+
+
+def test_seqview_copy_propagates_seq_len():
+    seq = "ACGGTGGGAC"
+    sv = SeqView(seq)
+    copied = sv.copy()
+    assert copied.seq_len == len(seq)
