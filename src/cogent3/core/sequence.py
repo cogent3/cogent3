@@ -1972,7 +1972,7 @@ class SeqView:
         if self.reverse:
             # self.stop becomes the start, self.stop will be negative
             assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
-            start = self.stop + len(self.seq) + 1
+            start = self.stop + self.seq_len + 1
         else:
             start = self.start
 
@@ -1990,7 +1990,7 @@ class SeqView:
         if self.reverse:
             # self.start becomes the stop, self.start will be negative
             assert self.start < 0, "expected start on reverse strand SeqView < 0"
-            stop = self.start + len(self.seq) + 1
+            stop = self.start + self.seq_len + 1
         else:
             stop = self.stop
         return self.offset + stop
@@ -2348,7 +2348,6 @@ class SeqView:
         data["init_args"]["seq"] = self.seq[start:stop]
         data["init_args"]["offset"] = self.parent_start
         data["init_args"]["seqid"] = self.seqid
-        data["init_args"]["seq_len"] = self.seq_len
         return data
 
     @classmethod

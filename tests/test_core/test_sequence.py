@@ -2746,16 +2746,6 @@ def test_seqview_seqlen_init(start, stop, step, length):
     assert got == length
 
 
-def test_seqview_serialisation_propogates_seq_len():
-    seq = "ACGGTGGGAC"
-    sv = SeqView(seq)
-    rd = sv.to_rich_dict()
-    assert rd["init_args"]["seq_len"] == len(seq)
-
-    got = SeqView.from_rich_dict(rd)
-    assert got.seq_len == sv.seq_len
-
-
 def test_seqview_copy_propagates_seq_len():
     seq = "ACGGTGGGAC"
     sv = SeqView(seq)
