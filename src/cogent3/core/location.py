@@ -78,11 +78,8 @@ def as_map(slice, length, cls):
         for i in slice:
             spans.extend(as_map(i, length).spans, cls)
         return cls(spans=spans, parent_length=length)
-    elif isinstance(slice, cls):
+    elif isinstance(slice, (Map, IndelMap)):
         return slice
-        # TODO reasons for failure when the following is not commented out
-        # should be checked further
-        # assert map.parent_length == length, (map, length)
     else:
         lo, hi, step = _norm_slice(slice, length)
         assert (step or 1) == 1

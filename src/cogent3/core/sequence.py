@@ -56,7 +56,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import LostSpan, Map
+from cogent3.core.location import IndelMap, LostSpan, Map
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
@@ -1344,7 +1344,7 @@ class Sequence(SequenceI):
         if hasattr(index, "map"):
             index = index.map
 
-        if isinstance(index, Map):
+        if isinstance(index, (Map, IndelMap)):
             new = self._mapped(index)
             preserve_offset = not index.reverse
 
@@ -1484,7 +1484,7 @@ class Sequence(SequenceI):
         for match in nongap.finditer(str(self)):
             segments.append(match.span())
             gapless.append(match.group())
-        map = Map(segments, parent_length=len(self)).inverse()
+        map = IndelMap(locations=segments, parent_length=len(self)).inverse()
         seq = self.__class__(
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )

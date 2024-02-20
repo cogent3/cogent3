@@ -56,7 +56,7 @@ from numpy.random import choice, permutation, randint
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3._version import __version__
-from cogent3.core.annotation import Feature, Map
+from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
     FeatureDataType,
@@ -66,6 +66,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
+from cogent3.core.location import IndelMap, Map
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
@@ -2145,7 +2146,7 @@ class Aligned:
         # Unlike the normal map constructor, here we take a list of pairs of
         # alignment coordinates, NOT a list of pairs of sequence coordinates
         if isinstance(map, list):
-            map = Map(map, parent_length=length).inverse()
+            map = IndelMap(locations=map, parent_length=length).inverse()
         self.map = map
         self.data = data
         if hasattr(data, "info"):
@@ -2325,7 +2326,9 @@ class Aligned:
     def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
         """returns a feature, not written into annotation_db"""
         annot = self.data.make_feature(feature)
-        return annot.remapped_to(alignment, self.map.inverse())
+        inverted = self.map.inverse()
+        # todo should indicate whether tidy or not
+        return annot.remapped_to(alignment, inverted)
 
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
@@ -2826,7 +2829,7 @@ class AlignmentI(object):
         positions = [
             (loc * motif_length, (loc + 1) * motif_length) for loc in locations
         ]
-        sample = Map(positions, parent_length=len(self))
+        sample = IndelMap(locations=positions, parent_length=len(self))
         return self.gapped_by_map(sample, info=self.info)
 
     def sliding_windows(self, window, step, start=None, end=None):
@@ -4659,7 +4662,7 @@ class Alignment(AlignmentI, SequenceCollection):
                 raise ValueError(f"feature.parent {index.seqid!r} is not self")
             return index.get_slice()
 
-        if isinstance(index, Map):
+        if isinstance(index, (Map, IndelMap)):
             new = self._mapped(index)
 
         elif isinstance(index, (int, slice)):
@@ -4833,7 +4836,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
 
-        keep = Map(locations, parent_length=len(self))
+        keep = IndelMap(locations=locations, parent_length=len(self))
         return self.gapped_by_map(keep, info=self.info)
 
     def get_seq(self, seqname):

@@ -147,6 +147,11 @@ class Feature:
         return f"{name}({txt})"
 
     def remapped_to(self, grandparent, gmap):
+        if not isinstance(gmap, Map):
+            # todo possibly create method on IndelMap to produce the FeatureMap?
+            # due to separation of IndelMap and Map, change class
+            gmap = Map(spans=gmap.spans, parent_length=gmap.parent_length)
+
         seqid = grandparent.name or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,

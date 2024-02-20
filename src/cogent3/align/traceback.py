@@ -3,7 +3,7 @@
 gapped sequences or Cogent Alignment objects"""
 
 from cogent3.core.alignment import Aligned, Alignment
-from cogent3.core.annotation import Map
+from cogent3.core.location import IndelMap
 
 
 def seq_traceback(s1, s2, aligned_positions, gap_value):
@@ -56,10 +56,13 @@ def gap_traceback(aligned_positions):
 
 
 def map_traceback(aligned_positions):
-    # using Map's to keep track of gaps for indel alignment
+    # using IndelMap's to keep track of gaps for indel alignment
     (starts, ends, gap_vectors, alignment_len) = gap_traceback(aligned_positions)
     # print 'gv', gap_vectors
-    maps = [Map(gv, parent_length=alignment_len).inverse() for gv in gap_vectors]
+    maps = [
+        IndelMap(locations=gv, parent_length=alignment_len).inverse()
+        for gv in gap_vectors
+    ]
     return (starts, ends, maps)
 
 
