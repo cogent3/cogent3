@@ -2827,7 +2827,7 @@ def test_aligned_rich_dict(reverse):
 
     rd = seq.to_rich_dict()
     got = Aligned.from_rich_dict(rd)
-    assert str(seq) == str(got)
+    assert str(got) == str(seq)
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))

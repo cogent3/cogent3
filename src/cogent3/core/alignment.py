@@ -637,11 +637,12 @@ class _SequenceCollectionBase:
             annotations.
         """
         if isinstance(self, Alignment):
-            reversed = self.seqs[0].map.reverse
+            *_, strand = self.seqs[0].data.parent_coordinates()
+
         else:
-            # WARNING GAH this is tightly coupling to implementation of seq attribute!
-            # todo GAH make method on Sequence?
-            reversed = self.seqs[0]._seq.reverse
+            *_, strand = self.seqs[0].parent_coordinates()
+
+        reversed = strand == "-"
         new_seqs = dict()
         db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
@@ -2190,7 +2191,8 @@ class Aligned:
         new_seq = self.data.copy(exclude_annotations=exclude_annotations, sliced=sliced)
         if sliced:
             db = new_seq.annotation_db
-            if self.map.reverse or exclude_annotations:
+            *_, strand = self.data.parent_coordinates()
+            if strand == "-" or exclude_annotations:
                 new_seq.annotation_db = None
             else:
                 new_seq.annotation_offset = self.map.start
@@ -2249,13 +2251,16 @@ class Aligned:
         return Aligned(map, seq)
 
     def __getitem__(self, slice):
+        # todo we need to get the sequence coordinates that slice corresponds to
+        #  so we can update the self.data, plus we will need to zero new_map
         new_map = self.map[slice]
         data = (
-            self.data[new_map.start : new_map.end] if new_map.useful else self.data[0:0]
+            self.data[new_map.start : new_map.end] if new_map.useful else self.data[:0]
         )
         if new_map.reverse:
             # A reverse slice means we should have an empty sequence
-            new_map = type(new_map)(locations=(), parent_length=len(self.data))
+            # todo this clause will be removed when a negative step is allowed
+            new_map = new_map.__class__(locations=(), parent_length=len(self.data))
         elif new_map.useful:
             new_map = new_map.zeroed()
         return Aligned(new_map, data)
@@ -2298,7 +2303,7 @@ class Aligned:
             deserialise_seq,
         )
 
-        map_ = deserialise_map_spans(data["map_init"])
+        map_ = IndelMap.from_rich_dict(data["map_init"])
         seq = deserialise_seq(data["seq_init"])
         return cls(map_, seq)
 
