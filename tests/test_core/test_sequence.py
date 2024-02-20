@@ -1838,36 +1838,34 @@ def test_seqview_repr():
     seq = "ACGT"
     view = SeqView(seq)
     expected = (
-        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, seqlen=4)"
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, seq_len=4)"
     )
     assert repr(view) == expected
 
     # Long sequence
     seq = "ACGT" * 10
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, seqlen=40)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, seq_len=40)"
     assert repr(view) == expected
 
     # Non-zero start, stop, and step values
     seq = "ACGT" * 10
     view = SeqView(seq, start=5, stop=35, step=2)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, seqlen=40)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, seq_len=40)"
     assert repr(view) == expected
 
     # offset
     seq = "ACGT"
     view = SeqView(seq, offset=5)
     expected = (
-        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, seqlen=4)"
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, seq_len=4)"
     )
     assert repr(view) == expected
 
     # seqid
     seq = "ACGT"
     view = SeqView(seq, seqid="seq1")
-    expected = (
-        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seqlen=4)"
-    )
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seq_len=4)"
     assert repr(view) == expected
 
 
@@ -2741,8 +2739,12 @@ def test_seqview_seq_len_init(start, stop, step, length):
     assert sv.seq_len == expect
     assert sv._seq_len == expect
 
+
+@pytest.mark.parametrize("seq, seq_len", [("A", 0), ("", 1), ("A", 2)])
+def test_seqview_seq_len_mismatch(seq, seq_len):
+    # If provided, seq_len must match len(seq)
     with pytest.raises(AssertionError):
-        SeqView(seq_data, seq_len=length * 2)
+        SeqView(seq, seq_len=seq_len)
 
 
 def test_seqview_copy_propagates_seq_len():

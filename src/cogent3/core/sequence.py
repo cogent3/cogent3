@@ -1942,7 +1942,7 @@ class SeqView:
         self.step = step
         self._offset = offset
         self._seqid = seqid
-        if seq_len and seq_len != len(seq):
+        if seq_len is not None and seq_len != len(seq):
             raise AssertionError(f"{seq_len} != {len(self.seq)})")
         self._seq_len = seq_len or len(self.seq)
 
@@ -2332,7 +2332,7 @@ class SeqView:
         return (
             f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
             f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r}, seqlen={self.seq_len})"
+            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
 
     def to_rich_dict(self):
