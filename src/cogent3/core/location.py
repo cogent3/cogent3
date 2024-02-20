@@ -76,7 +76,7 @@ def as_map(slice, length, cls):
     if isinstance(slice, (list, tuple)):
         spans = []
         for i in slice:
-            spans.extend(as_map(i, length).spans, cls)
+            spans.extend(as_map(i, length, cls).spans)
         return cls(spans=spans, parent_length=length)
     elif isinstance(slice, (FeatureMap, IndelMap)):
         return slice
