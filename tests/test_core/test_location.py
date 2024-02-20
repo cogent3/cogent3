@@ -372,8 +372,8 @@ def test_coordinate(cls):
     # coordinates are for ungapped segments in underlying sequence
     #                   01   2 345
     seq = DNA.make_seq("AC---G-TAA--")
-    m, s = seq.parse_out_gaps()
-    m = cls(spans=m.spans, parent_length=m.parent_length)
+    m, _ = seq.parse_out_gaps()
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length)
     got = m.get_coordinates()
     assert got == [(0, 2), (2, 3), (3, 6)]
 
@@ -381,8 +381,8 @@ def test_coordinate(cls):
 @pytest.mark.parametrize("cls", (Map, IndelMap))
 def test_gap_coordinate(cls):
     seq = DNA.make_seq("AC---G-TAA--")
-    m, s = seq.parse_out_gaps()
-    m = cls(spans=m.spans, parent_length=m.parent_length)
+    m, _ = seq.parse_out_gaps()
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length)
     got = m.get_gap_coordinates()
     assert got == [(2, 3), (3, 1), (6, 2)]
 
@@ -394,8 +394,8 @@ def test_gaps(cls):
     #                   012345678901
     seq = DNA.make_seq("AC---G-TAA--")
     m, s = seq.parse_out_gaps()
-    m = cls(spans=m.spans, parent_length=m.parent_length)
-    got = [(g.start, g.end) for g in m.gaps().spans]
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length)
+    got = [(g.start, g.end) for g in tuple(m.gaps().spans)]
     assert got == [(2, 5), (6, 7), (10, 12)]
 
 
@@ -405,8 +405,8 @@ def test_nongap(cls):
     #                   000000000011
     #                   012345678901
     seq = DNA.make_seq("AC---G-TAA--")
-    m, s = seq.parse_out_gaps()
-    m = cls(spans=m.spans, parent_length=m.parent_length)
+    m, _ = seq.parse_out_gaps()
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length)
 
     got = [(g.start, g.end) for g in m.nongap().spans]
     assert got == [(0, 2), (5, 6), (7, 10)]
@@ -431,7 +431,8 @@ def test_round_trip_rich_dict():
     # reversed() reverses the order of spans, but keeps their coordinates
     # differs from nucleic reversed, which computes a new relative position
     im = IndelMap(spans=m.spans, parent_length=m.parent_length)
-    got = IndelMap.from_rich_dict(im.to_rich_dict())
+    rd = im.to_rich_dict()
+    got = IndelMap.from_rich_dict(rd)
     assert im is not got
     assert got.to_rich_dict() == im.to_rich_dict()
 
@@ -447,33 +448,38 @@ def test_serialisable_attr():
 def test_terminal_unknown(cls):
     # span idx          01 2  345  6
     seq = DNA.make_seq("-AC---G-TAA--")
-    m, s = seq.parse_out_gaps()
+    m, _ = seq.parse_out_gaps()
     # not unknown, by default
-    assert m.spans[0].lost and not isinstance(m.spans[0], TerminalPadding)
+    m_spans = tuple(m.spans)
+    assert m_spans[0].lost and not isinstance(m_spans[0], TerminalPadding)
     # use the constructor arg
-    m = cls(spans=m.spans, parent_length=m.parent_length, termini_unknown=True)
-    assert isinstance(m.spans[0], TerminalPadding)
-    assert isinstance(m.spans[-1], TerminalPadding)
-    assert m.spans[2].lost and not isinstance(m.spans[1], TerminalPadding)
-    assert m.spans[4].lost and not isinstance(m.spans[2], TerminalPadding)
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length, termini_unknown=True)
+    m_spans = tuple(m.spans)
+    assert isinstance(m_spans[0], TerminalPadding)
+    assert isinstance(m_spans[-1], TerminalPadding)
+    assert m_spans[2].lost and not isinstance(m_spans[1], TerminalPadding)
+    assert m_spans[4].lost and not isinstance(m_spans[2], TerminalPadding)
 
     # use the method
-    m, s = seq.parse_out_gaps()
-    m = cls(spans=m.spans, parent_length=m.parent_length).with_termini_unknown()
-    assert isinstance(m.spans[0], TerminalPadding)
-    assert isinstance(m.spans[-1], TerminalPadding)
+    m, _ = seq.parse_out_gaps()
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length).with_termini_unknown()
+    m_spans = tuple(m.spans)
+    assert isinstance(m_spans[0], TerminalPadding)
+    assert isinstance(m_spans[-1], TerminalPadding)
     # middle gap is not terminal, so...
-    assert not isinstance(m.spans[2], TerminalPadding)
+    assert not isinstance(m_spans[2], TerminalPadding)
 
     # no gaps, no effect
     seq = DNA.make_seq("ACGTAA")
-    m, s = seq.parse_out_gaps()
+    m, _ = seq.parse_out_gaps()
     # use the constructor arg
-    m = cls(spans=m.spans, parent_length=m.parent_length, termini_unknown=True)
-    assert not isinstance(m.spans[0], TerminalPadding)
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length, termini_unknown=True)
+    m_spans = tuple(m.spans)
+    assert not isinstance(m_spans[0], TerminalPadding)
     # use the method
-    m = cls(spans=m.spans, parent_length=m.parent_length).with_termini_unknown()
-    assert not isinstance(m.spans[0], TerminalPadding)
+    m = cls(spans=tuple(m.spans), parent_length=m.parent_length).with_termini_unknown()
+    m_spans = tuple(m.spans)
+    assert not isinstance(m_spans[0], TerminalPadding)
 
 
 @pytest.mark.parametrize("cls", (Map, IndelMap))
@@ -482,7 +488,8 @@ def test_map_inverse(cls):
     assert len(m) == 4
     mi = m.inverse()
     assert len(mi) == 6
-    assert mi.spans[1].lost and len(mi.spans[1]) == 2
+    mi_spans = tuple(mi.spans)
+    assert mi_spans[1].lost and len(mi_spans[1]) == 2
     # invert the inversion, should give us back the original
     re_inv = mi.inverse()
     expect = m.to_rich_dict()
@@ -558,9 +565,11 @@ def test_indelmap_strict_nucleic_reversed():
     kwargs = dict(spans=spans, parent_length=12)
     orig = IndelMap(**kwargs)
     rev = orig.strict_nucleic_reversed()
-    assert rev.spans[1].reverse == rev.spans[3].reverse == False
+    rev_spans = tuple(rev.spans)
+    assert rev_spans[1].reverse == rev_spans[3].reverse == False
     old = orig.nucleic_reversed()
-    assert old.spans[1].reverse == old.spans[3].reverse == True
+    old_spans = tuple(old.spans)
+    assert old_spans[1].reverse == old_spans[3].reverse == True
     assert rev.get_coordinates() == [
         tuple(sorted(a)) for a in reversed(old.get_coordinates())
     ]
@@ -576,3 +585,9 @@ def test_indelmap_with_reverse_span():
     ]
     imap = IndelMap(spans=spans, parent_length=12)
     assert (imap.start, imap.end) == (8, 2)
+
+
+def test_indelmap_no_gaps():
+    imap = IndelMap(locations=(), parent_length=6)
+    gaps = imap.gaps()
+    assert not gaps

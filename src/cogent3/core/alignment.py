@@ -2244,10 +2244,10 @@ class Aligned:
 
     def __add__(self, other):
         if self.data is other.data:
-            (map, seq) = (self.map + other.map, self.data)
+            map, seq = self.map + other.map, self.data
         else:
             seq = self.get_gapped_seq() + other.get_gapped_seq()
-            (map, seq) = seq.parse_out_gaps()
+            map, seq = seq.parse_out_gaps()
         return Aligned(map, seq)
 
     def __getitem__(self, slice):

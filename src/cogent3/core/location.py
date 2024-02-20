@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from bisect import bisect_left, bisect_right
 from functools import total_ordering
 from itertools import chain
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Iterator, List, Optional, Sequence, Tuple, Union
 
 from numpy import array, ndarray
 
@@ -604,12 +604,13 @@ class Map:
                     self.reverse = None
 
         if termini_unknown:
+            spans = list(spans)
             if spans[0].lost:
                 spans[0] = TerminalPadding(spans[0].length)
             if spans[-1].lost:
                 spans[-1] = TerminalPadding(spans[-1].length)
 
-        self.spans = spans
+        self.spans = tuple(spans)
         self.length = posn
         self.parent_length = parent_length
         self.__inverse = None
@@ -618,7 +619,7 @@ class Map:
         return self.length
 
     def __repr__(self):
-        return repr(self.spans) + f"/{self.parent_length}"
+        return repr(list(self.spans)) + f"/{self.parent_length}"
 
     def __getitem__(self, slice):
         # A possible shorter map at the same level
@@ -1239,24 +1240,32 @@ class IndelMap(MapABC):
     # TODO reverse complement of Alignment -> Aligned -> SeqView, IndelMap
     #  should just do nucleic reverse. I think this is the next task.
 
-    spans: Tuple[Union[Span, _LostSpan, TerminalPadding]] = ()
+    spans: dataclasses.InitVar[Optional[tuple]] = ()
+    locations: dataclasses.InitVar[Optional[Sequence[T]]] = None
+    termini_unknown: dataclasses.InitVar[bool] = dataclasses.field(default=False)
     parent_length: int = 0
-    locations: dataclasses.InitVar[Sequence[T]] = None
     start: Optional[int] = dataclasses.field(init=False, default=0)
     end: Optional[int] = dataclasses.field(init=False, default=0)
     length: int = dataclasses.field(init=False, default=0)
-    termini_unknown: dataclasses.InitVar[bool] = dataclasses.field(default=False)
     _serialisable: dict = dataclasses.field(init=False, repr=False)
+    _spans: Tuple[Union[Span, _LostSpan, TerminalPadding]] = dataclasses.field(
+        default=(), init=False
+    )
 
-    def __post_init__(self, locations, termini_unknown):
+    def __post_init__(self, spans, locations, termini_unknown):
         if locations:
-            self.spans = _spans_from_locations(
-                locations, parent_length=self.parent_length
-            )
+            spans = _spans_from_locations(locations, parent_length=self.parent_length)
+        elif isinstance(spans, property):
+            # This clause is due a known issue with dataclasses.
+            # As we have a spans property, the default spans value is
+            # ignored, so we have to check for its value being a property
+            # and then set the default value here
+            spans = ()
 
+        spans = tuple(spans)
         last_not_lost = None
         start, end = None, None
-        for i, span in enumerate(self.spans):
+        for i, span in enumerate(spans):
             self.length += len(span)
             if span.lost:
                 continue
@@ -1267,19 +1276,25 @@ class IndelMap(MapABC):
             last_not_lost = i
 
         if last_not_lost is not None:
-            span = self.spans[last_not_lost]
+            span = spans[last_not_lost]
             end = span.start if span.reverse else span.end
+
+        if start is None:
+            start = 0
+
+        if end is None:
+            end = self.parent_length
 
         self.start, self.end = start, end
 
         if termini_unknown:
-            spans = list(self.spans)
+            spans = list(spans)
             if spans[0].lost:
                 spans[0] = TerminalPadding(spans[0].length)
             if spans[-1].lost:
                 spans[-1] = TerminalPadding(spans[-1].length)
 
-            self.spans = tuple(spans)
+        self._spans = tuple(spans)
 
     def __getitem__(self, slice):
         # A possible shorter map at the same level
@@ -1302,28 +1317,28 @@ class IndelMap(MapABC):
         if other.parent_length != self.parent_length:
             raise ValueError("Those maps belong to different sequences")
         return self.__class__(
-            spans=self.spans + other.spans, parent_length=self.parent_length
+            spans=self._spans + tuple(other.spans), parent_length=self.parent_length
         )
 
     def __mul__(self, scale):
         # For Protein -> DNA
         new_parts = []
-        for span in self.spans:
+        for span in self._spans:
             new_parts.append(span * scale)
         return self.__class__(spans=new_parts, parent_length=self.parent_length * scale)
 
     def __repr__(self):
-        return repr(self.spans) + f"/{self.parent_length}"
+        return repr(self._spans) + f"/{self.parent_length}"
 
     @property
     def offsets(self):
-        return [0] + array([s.length for s in self.spans[:-1]]).cumsum().tolist()
+        return [0] + array([s.length for s in self._spans[:-1]]).cumsum().tolist()
 
     def gaps(self):
         """The gaps (lost spans) in this map"""
         locations = []
         offset = 0
-        for s in self.spans:
+        for s in self._spans:
             if s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
@@ -1333,40 +1348,45 @@ class IndelMap(MapABC):
         """ungappeed segments in this map"""
         locations = []
         offset = 0
-        for s in self.spans:
+        for s in self._spans:
             if not s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
         return self.__class__(locations=locations, parent_length=len(self))
 
     @property
+    def spans(self) -> Iterator[Span]:
+        """generator of spans"""
+        yield from self._spans
+
+    @property
     def complete(self):
         """whether any span represents a gap"""
-        return not any(span.lost for span in self.spans)
+        return not any(span.lost for span in self._spans)
 
     @property
     def useful(self):
-        return not all(span.lost for span in self.spans)
+        return not all(span.lost for span in self._spans)
 
     def get_coordinates(self):
         """returns span coordinates as [(start, end), ...]"""
-        return [(s.start, s.end) for s in self.spans if not s.lost]
+        return [(s.start, s.end) for s in self._spans if not s.lost]
 
     def get_gap_coordinates(self):
         """returns [(gap pos, gap length), ...]"""
         gap_pos = []
-        for i, span in enumerate(self.spans):
+        for i, span in enumerate(self._spans):
             if not span.lost:
                 continue
 
-            pos = self.spans[i - 1].end if i else 0
+            pos = self._spans[i - 1].end if i else 0
             gap_pos.append((pos, len(span)))
 
         return gap_pos
 
     def nucleic_reversed(self):
         """Same location on reversed parent"""
-        spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
+        spans = [s.reversed_relative_to(self.parent_length) for s in self._spans]
         return self.__class__(spans=spans, parent_length=self.parent_length)
 
     def strict_nucleic_reversed(self):
@@ -1378,7 +1398,7 @@ class IndelMap(MapABC):
         """
         spans = []
         parent_length = self.parent_length
-        for s in self.spans:
+        for s in self._spans:
             if not s.lost:
                 start = parent_length - s.end
                 assert start >= 0
@@ -1391,8 +1411,11 @@ class IndelMap(MapABC):
 
     def to_rich_dict(self):
         """returns dicts for contained spans [dict(), ..]"""
-        spans = [s.to_rich_dict() for s in self.spans]
-        data = copy.deepcopy(self._serialisable)
+        spans = [s.to_rich_dict() for s in self._spans]
+        # exclude spans from deep copy since being overwritten
+        data = copy.deepcopy(
+            {k: v for k, v in self._serialisable.items() if k != "spans"}
+        )
         data.pop("locations")
         data["spans"] = spans
         data["type"] = get_object_provenance(self)
@@ -1419,7 +1442,7 @@ class IndelMap(MapABC):
     def with_termini_unknown(self):
         """returns new instance with terminal gaps indicated as unknown"""
         return self.__class__(
-            spans=self.spans[:],
+            spans=self._spans[:],
             parent_length=self.parent_length,
             termini_unknown=True,
         )
@@ -1436,7 +1459,7 @@ class IndelMap(MapABC):
 
         cum_posn = 0
         temp = []
-        for span in self.spans:
+        for span in self._spans:
             if not span.lost:
                 if span.reverse:
                     temp.append(
@@ -1522,7 +1545,7 @@ class IndelMap(MapABC):
         #  store all relationship to underlying sequence
         min_val = min(self.start, self.end)
         spans = []
-        for span in self.spans:
+        for span in self._spans:
             if span.lost:
                 spans.append(span)
                 continue
@@ -1543,7 +1566,7 @@ class IndelMap(MapABC):
     def to_feature_map(self):
         """returns a Map type, suited to Features"""
         spans = []
-        for span in self.spans:
+        for span in self._spans:
             if span.lost:
                 spans.append(span)
                 continue

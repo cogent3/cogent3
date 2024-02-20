@@ -147,10 +147,10 @@ class Feature:
         return f"{name}({txt})"
 
     def remapped_to(self, grandparent, gmap):
+        # grandparent can be either a Sequence or an Alignment
         if not isinstance(gmap, Map):
-            # todo possibly create method on IndelMap to produce the FeatureMap?
             # due to separation of IndelMap and Map, change class
-            gmap = Map(spans=gmap.spans, parent_length=gmap.parent_length)
+            gmap = gmap.to_feature_map()
 
         seqid = grandparent.name or f"from {self.seqid!r}"
         kwargs = {
@@ -218,13 +218,13 @@ class Feature:
         -----
         Overlapping spans are merged
         """
-        combined = self.map.spans[:]
+        combined = list(self.map.spans)
         feat_names = [self.name] if self.name else set()
         biotypes = {self.biotype} if self.biotype else set()
         seqids = {self.seqid} if self.seqid else set()
         for feature in features:
             if feature.parent is not self.parent:
-                raise ValueError(f"cannot merge annotations from different objects")
+                raise ValueError("cannot merge annotations from different objects")
 
             combined.extend(feature.map.spans)
             if feature.name:

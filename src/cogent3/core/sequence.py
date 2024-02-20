@@ -1063,7 +1063,7 @@ class Sequence(SequenceI):
         if pre or post:
             # create a lost span to represent the segment missing from
             # the instance
-            spans = fmap.spans
+            spans = list(fmap.spans)
             if pre:
                 spans.insert(0, LostSpan(pre))
             if post:
