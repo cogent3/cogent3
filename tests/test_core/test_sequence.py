@@ -2732,18 +2732,17 @@ def test_empty_seqview_translate_position():
 @pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
 @pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
 @pytest.mark.parametrize("length", (1, 8, 999))
-def test_seqview_seqlen_init(start, stop, step, length):
-    """seq_len is length of seq when None"""
-    seq_data = "0123456789"
+def test_seqview_seq_len_init(start, stop, step, length):
+    # seq_len is length of seq when None
+    seq_data = "A" * length
     sv = SeqView(seq_data, start=start, stop=stop, step=step)
     expect = len(seq_data)
     # Check property and slot
     assert sv.seq_len == expect
     assert sv._seq_len == expect
 
-    # Expect input seq_len to be correct if provided
-    got = SeqView(seq="ACTG", seq_len=length).seq_len
-    assert got == length
+    with pytest.raises(AssertionError):
+        SeqView(seq_data, seq_len=length * 2)
 
 
 def test_seqview_copy_propagates_seq_len():

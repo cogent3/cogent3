@@ -1923,12 +1923,12 @@ class SeqView:
         self,
         seq,
         *,
-        start: int = None,
-        stop: int = None,
-        step: int = None,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        step: Optional[int] = None,
         offset: int = 0,
-        seqid: str = None,
-        seq_len: int = None,
+        seqid: Optional[str] = None,
+        seq_len: Optional[int] = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -1942,6 +1942,8 @@ class SeqView:
         self.step = step
         self._offset = offset
         self._seqid = seqid
+        if seq_len and seq_len != len(seq):
+            raise AssertionError(f"{seq_len} != {len(self.seq)})")
         self._seq_len = seq_len or len(self.seq)
 
     @property
@@ -2047,7 +2049,7 @@ class SeqView:
             offset = self.offset
 
             if (
-                tmp := ((self.seq_len - (abs_index - offset)) + self.start + 1)
+                tmp := (self.seq_len - abs_index + offset + self.start + 1)
             ) % self.step == 0 or stop:
                 rel_pos = tmp // abs(self.step)
             else:
