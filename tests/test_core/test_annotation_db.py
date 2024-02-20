@@ -406,7 +406,7 @@ def test_feature_nucleic():
     from cogent3.core import location as loc
 
     seq = make_seq("AACCTTTGGGGAATTT", moltype="dna")
-    mmap = loc.Map(locations=[(4, 7), (11, 13)], parent_length=16)
+    mmap = loc.FeatureMap(locations=[(4, 7), (11, 13)], parent_length=16)
     expect = seq[mmap.reversed()]
 
     rcseq = seq.rc()

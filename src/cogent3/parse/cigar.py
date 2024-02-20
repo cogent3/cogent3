@@ -18,14 +18,14 @@ the aligned sequence will be:
 import re
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.location import LostSpan, Map, Span
+from cogent3.core.location import IndelMap, LostSpan, Span
 
 
 _pattern = re.compile("([0-9]*)([DM])")
 
 
 def map_to_cigar(map):
-    """convert a Map into a cigar string"""
+    """convert a IndelMap into a cigar string"""
     cigar = ""
     for span in map.spans:
         if isinstance(span, Span):
@@ -39,7 +39,7 @@ def map_to_cigar(map):
 
 
 def cigar_to_map(cigar_text):
-    """convert cigar string into Map"""
+    """convert cigar string into IndelMap"""
     assert "I" not in cigar_text
     spans, posn = [], 0
     for n, c in _pattern.findall(cigar_text):
@@ -49,7 +49,7 @@ def cigar_to_map(cigar_text):
             posn += n
         else:
             spans.append(LostSpan(n))
-    return Map(spans=spans, parent_length=posn)
+    return IndelMap(spans=spans, parent_length=posn)
 
 
 def aligned_from_cigar(cigar_text, seq, moltype=DNA):
@@ -88,7 +88,7 @@ def _remap(map):
                 span.end = span.end - start
                 length = span.end
             spans.append(span)
-        new_map = Map(spans=spans, parent_length=length)
+        new_map = IndelMap(spans=spans, parent_length=length)
     return new_map
 
 

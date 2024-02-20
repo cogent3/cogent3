@@ -56,7 +56,7 @@ from numpy.random import choice, permutation, randint
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3._version import __version__
-from cogent3.core.annotation import Feature, Map
+from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
     FeatureDataType,
@@ -66,6 +66,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
+from cogent3.core.location import FeatureMap, IndelMap
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
@@ -636,11 +637,12 @@ class _SequenceCollectionBase:
             annotations.
         """
         if isinstance(self, Alignment):
-            reversed = self.seqs[0].map.reverse
+            *_, strand = self.seqs[0].data.parent_coordinates()
+
         else:
-            # WARNING GAH this is tightly coupling to implementation of seq attribute!
-            # todo GAH make method on Sequence?
-            reversed = self.seqs[0]._seq.reverse
+            *_, strand = self.seqs[0].parent_coordinates()
+
+        reversed = strand == "-"
         new_seqs = dict()
         db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
@@ -2145,7 +2147,7 @@ class Aligned:
         # Unlike the normal map constructor, here we take a list of pairs of
         # alignment coordinates, NOT a list of pairs of sequence coordinates
         if isinstance(map, list):
-            map = Map(map, parent_length=length).inverse()
+            map = IndelMap(locations=map, parent_length=length).inverse()
         self.map = map
         self.data = data
         if hasattr(data, "info"):
@@ -2189,7 +2191,8 @@ class Aligned:
         new_seq = self.data.copy(exclude_annotations=exclude_annotations, sliced=sliced)
         if sliced:
             db = new_seq.annotation_db
-            if self.map.reverse or exclude_annotations:
+            *_, strand = self.data.parent_coordinates()
+            if strand == "-" or exclude_annotations:
                 new_seq.annotation_db = None
             else:
                 new_seq.annotation_offset = self.map.start
@@ -2241,20 +2244,23 @@ class Aligned:
 
     def __add__(self, other):
         if self.data is other.data:
-            (map, seq) = (self.map + other.map, self.data)
+            map, seq = self.map + other.map, self.data
         else:
             seq = self.get_gapped_seq() + other.get_gapped_seq()
-            (map, seq) = seq.parse_out_gaps()
+            map, seq = seq.parse_out_gaps()
         return Aligned(map, seq)
 
     def __getitem__(self, slice):
+        # todo we need to get the sequence coordinates that slice corresponds to
+        #  so we can update the self.data, plus we will need to zero new_map
         new_map = self.map[slice]
         data = (
-            self.data[new_map.start : new_map.end] if new_map.useful else self.data[0:0]
+            self.data[new_map.start : new_map.end] if new_map.useful else self.data[:0]
         )
-        if new_map.reverse:
-            # A reverse slice means we should have an empty sequence
-            new_map = type(new_map)(locations=(), parent_length=len(self.data))
+        if new_map.useful and new_map.start > new_map.end:
+            # For now, a reverse slice means we should have an empty sequence
+            # todo modify this clause if a negative step is ever allowed
+            new_map = new_map.__class__(locations=(), parent_length=len(self.data))
         elif new_map.useful:
             new_map = new_map.zeroed()
         return Aligned(new_map, data)
@@ -2297,7 +2303,7 @@ class Aligned:
             deserialise_seq,
         )
 
-        map_ = deserialise_map_spans(data["map_init"])
+        map_ = IndelMap.from_rich_dict(data["map_init"])
         seq = deserialise_seq(data["seq_init"])
         return cls(map_, seq)
 
@@ -2325,7 +2331,9 @@ class Aligned:
     def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
         """returns a feature, not written into annotation_db"""
         annot = self.data.make_feature(feature)
-        return annot.remapped_to(alignment, self.map.inverse())
+        inverted = self.map.inverse()
+        # todo should indicate whether tidy or not
+        return annot.remapped_to(alignment, inverted)
 
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
@@ -2826,7 +2834,7 @@ class AlignmentI(object):
         positions = [
             (loc * motif_length, (loc + 1) * motif_length) for loc in locations
         ]
-        sample = Map(positions, parent_length=len(self))
+        sample = IndelMap(locations=positions, parent_length=len(self))
         return self.gapped_by_map(sample, info=self.info)
 
     def sliding_windows(self, window, step, start=None, end=None):
@@ -4659,7 +4667,7 @@ class Alignment(AlignmentI, SequenceCollection):
                 raise ValueError(f"feature.parent {index.seqid!r} is not self")
             return index.get_slice()
 
-        if isinstance(index, Map):
+        if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
 
         elif isinstance(index, (int, slice)):
@@ -4833,7 +4841,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
 
-        keep = Map(locations, parent_length=len(self))
+        keep = IndelMap(locations=locations, parent_length=len(self))
         return self.gapped_by_map(keep, info=self.info)
 
     def get_seq(self, seqname):
@@ -4841,8 +4849,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         Note: always returns Sequence object, not ArraySequence.
         """
-        seq = self.named_seqs[seqname]
-        return seq.data[seq.map.without_gaps()]
+        return self.named_seqs[seqname].data
 
     def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
@@ -5232,7 +5239,7 @@ class Alignment(AlignmentI, SequenceCollection):
         # in Sequence?
         revd = feature.pop("strand", None) == "-"
         feature["strand"] = "-" if revd else "+"
-        fmap = Map(parent_length=len(self), locations=feature.pop("spans"))
+        fmap = FeatureMap(parent_length=len(self), locations=feature.pop("spans"))
         if revd:
             fmap = fmap.nucleic_reversed()
         return Feature(parent=self, map=fmap, **feature)

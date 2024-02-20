@@ -2,7 +2,7 @@ from typing import Iterable, Optional
 
 from numpy import array
 
-from .location import Map
+from .location import FeatureMap
 
 
 # todo gah write docstrings!
@@ -23,7 +23,14 @@ class Feature:
 
     # todo gah implement a __new__ to trap args for serialisation purposes?
     def __init__(
-        self, *, parent, seqid: str, map: Map, biotype: str, name: str, strand: str
+        self,
+        *,
+        parent,
+        seqid: str,
+        map: FeatureMap,
+        biotype: str,
+        name: str,
+        strand: str,
     ):
         # _serialisable is used for creating derivative instances
         d = locals()
@@ -147,6 +154,11 @@ class Feature:
         return f"{name}({txt})"
 
     def remapped_to(self, grandparent, gmap):
+        # grandparent can be either a Sequence or an Alignment
+        if not isinstance(gmap, FeatureMap):
+            # due to separation of IndelMap and Map, change class
+            gmap = gmap.to_feature_map()
+
         seqid = grandparent.name or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,
@@ -213,13 +225,13 @@ class Feature:
         -----
         Overlapping spans are merged
         """
-        combined = self.map.spans[:]
+        combined = list(self.map.spans)
         feat_names = [self.name] if self.name else set()
         biotypes = {self.biotype} if self.biotype else set()
         seqids = {self.seqid} if self.seqid else set()
         for feature in features:
             if feature.parent is not self.parent:
-                raise ValueError(f"cannot merge annotations from different objects")
+                raise ValueError("cannot merge annotations from different objects")
 
             combined.extend(feature.map.spans)
             if feature.name:
@@ -229,7 +241,7 @@ class Feature:
             if feature.biotype:
                 biotypes.add(feature.biotype)
         name = ", ".join(feat_names)
-        map = Map(spans=combined, parent_length=len(self.parent))
+        map = FeatureMap(spans=combined, parent_length=len(self.parent))
         map = map.covered()  # No overlaps
         # the covered method drops reversed status so we need to
         # resurrect that, but noting we've not checked consistency
