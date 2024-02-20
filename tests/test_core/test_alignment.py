@@ -3498,9 +3498,6 @@ def test_sliced_deepcopy(data, name, rev):
     if rev:
         aln = aln.rc()
 
-    # the map just mirrors the slice effect, it no longer has "memory" of rev complement
-    assert aln.named_seqs[name].map.reverse == False
-
     notsliced = aln.deepcopy(sliced=False)
     # the annotation offsets should match original object
     assert {s.data.annotation_offset for s in notsliced.seqs} == {
@@ -3524,10 +3521,6 @@ def test_sliced_deepcopy(data, name, rev):
     assert (
         sliced.named_seqs[name].data._seq.seq is not orig.named_seqs[name].data._seq.seq
     )
-
-    # the map just mirrors the slice effect, it has no  "memory" of rev complement
-    assert notsliced.named_seqs[name].map.reverse == False
-    assert sliced.named_seqs[name].map.reverse == False
 
     assert sliced.named_seqs[name].map.parent_length == len(
         str(sliced_seq).replace("-", "")

@@ -2257,9 +2257,9 @@ class Aligned:
         data = (
             self.data[new_map.start : new_map.end] if new_map.useful else self.data[:0]
         )
-        if new_map.reverse:
-            # A reverse slice means we should have an empty sequence
-            # todo this clause will be removed when a negative step is allowed
+        if new_map.useful and new_map.start > new_map.end:
+            # For now, a reverse slice means we should have an empty sequence
+            # todo modify this clause if a negative step is ever allowed
             new_map = new_map.__class__(locations=(), parent_length=len(self.data))
         elif new_map.useful:
             new_map = new_map.zeroed()
@@ -4849,8 +4849,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         Note: always returns Sequence object, not ArraySequence.
         """
-        seq = self.named_seqs[seqname]
-        return seq.data[seq.map.without_gaps()]
+        return self.named_seqs[seqname].data
 
     def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.

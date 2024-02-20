@@ -348,8 +348,8 @@ def test_indel_map_useful_complete():
     assert len(im) == im.length == 3
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
-def test_map_nucleic_reversed(cls):
+@pytest.mark.parametrize("cls,expect", ((Map, [(9, 0)]), (IndelMap, [(0, 9)])))
+def test_map_nucleic_reversed(cls, expect):
     # seq is 9 long
     # plus coords  012345678
     # +slice         **
@@ -364,9 +364,7 @@ def test_map_nucleic_reversed(cls):
     # plus coords  876543210
     rc = orig.nucleic_reversed()
     coords = rc.get_coordinates()
-    assert coords == [(9, 0)]
-    assert rc.reverse
-    assert (rc.start, rc.end) == (0, 9)
+    assert coords == expect
 
 
 @pytest.mark.parametrize("cls", (Map, IndelMap))
@@ -414,11 +412,10 @@ def test_nongap(cls):
     assert got == [(0, 2), (5, 6), (7, 10)]
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
-def test_reversed(cls):
+def test_reversed():
     seq = DNA.make_seq("AC---G-TAA--")
-    m, s = seq.parse_out_gaps()
-    m = cls(spans=m.spans, parent_length=m.parent_length)
+    m, _ = seq.parse_out_gaps()
+    m = Map(spans=m.spans, parent_length=m.parent_length)
     # reversed() reverses the order of spans, but keeps their coordinates
     # differs from nucleic reversed, which computes a new relative position
     rev = m.reversed()
@@ -562,9 +559,20 @@ def test_indelmap_strict_nucleic_reversed():
     orig = IndelMap(**kwargs)
     rev = orig.strict_nucleic_reversed()
     assert rev.spans[1].reverse == rev.spans[3].reverse == False
-    assert not rev.reverse
     old = orig.nucleic_reversed()
     assert old.spans[1].reverse == old.spans[3].reverse == True
     assert rev.get_coordinates() == [
         tuple(sorted(a)) for a in reversed(old.get_coordinates())
     ]
+
+
+def test_indelmap_with_reverse_span():
+    spans = [
+        LostSpan(2),
+        Span(8, 4, reverse=True),
+        LostSpan(2),
+        Span(4, 2, reverse=True),
+        LostSpan(2),
+    ]
+    imap = IndelMap(spans=spans, parent_length=12)
+    assert (imap.start, imap.end) == (8, 2)

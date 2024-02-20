@@ -1177,10 +1177,6 @@ class MapABC(ABC):
         ...
 
     @abstractmethod
-    def reversed(self):
-        ...
-
-    @abstractmethod
     def to_rich_dict(self):
         ...
 
@@ -1189,9 +1185,7 @@ class MapABC(ABC):
         ...
 
 
-def _spans_from_locations(
-    locations, tidy, parent_length
-) -> Tuple[Union[Span, _LostSpan]]:
+def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSpan]]:
     spans = []
     for start, end in locations:
         reverse = start > end
@@ -1205,7 +1199,7 @@ def _spans_from_locations(
             start, end = (0, parent_length) if start < end else (parent_length, 0)
             spans += [
                 LostSpan(abs(l_diff)),
-                Span(start, end, tidy, tidy, reverse=reverse),
+                Span(start, end, reverse=reverse),
                 LostSpan(abs(r_diff)),
             ]
         elif min(start, end) < 0:
@@ -1214,18 +1208,18 @@ def _spans_from_locations(
             end = max(end, 0)
             spans += [
                 LostSpan(abs(diff)),
-                Span(start, end, tidy, tidy, reverse=reverse),
+                Span(start, end, reverse=reverse),
             ]
         elif max(start, end) > parent_length:
             diff = max(start, end) - parent_length
             start = min(start, parent_length)
             end = min(end, parent_length)
             spans += [
-                Span(start, end, tidy, tidy, reverse=reverse),
+                Span(start, end, reverse=reverse),
                 LostSpan(abs(diff)),
             ]
         else:
-            spans += [Span(start, end, tidy, tidy, reverse=reverse)]
+            spans += [Span(start, end, reverse=reverse)]
     return tuple(spans)
 
 
@@ -1250,34 +1244,33 @@ class IndelMap(MapABC):
     locations: dataclasses.InitVar[Sequence[T]] = None
     start: Optional[int] = dataclasses.field(init=False, default=0)
     end: Optional[int] = dataclasses.field(init=False, default=0)
-    reverse: bool = dataclasses.field(init=False, default=False)
     length: int = dataclasses.field(init=False, default=0)
-    _serialisable: dict = dataclasses.field(init=False, repr=False)
-    tidy: bool = True
     termini_unknown: dataclasses.InitVar[bool] = dataclasses.field(default=False)
+    _serialisable: dict = dataclasses.field(init=False, repr=False)
 
     def __post_init__(self, locations, termini_unknown):
         if locations:
             self.spans = _spans_from_locations(
-                locations, tidy=self.tidy, parent_length=self.parent_length
+                locations, parent_length=self.parent_length
             )
 
-        just_gaps = True
-        self.reverse = False
-        for span in self.spans:
+        last_not_lost = None
+        start, end = None, None
+        for i, span in enumerate(self.spans):
             self.length += len(span)
             if span.lost:
                 continue
+            elif start is None:
+                # this ugly logic because we're using spans!
+                start = span.end if span.reverse else span.start
 
-            if just_gaps:
-                self.start, self.end = span.start, span.end
-                self.reverse = span.reverse
-                just_gaps = False
-            else:
-                self.start = min(self.start, span.start)
-                self.end = max(self.end, span.end)
-                if self.reverse is not None and (span.reverse != self.reverse):
-                    self.reverse = None
+            last_not_lost = i
+
+        if last_not_lost is not None:
+            span = self.spans[last_not_lost]
+            end = span.start if span.reverse else span.end
+
+        self.start, self.end = start, end
 
         if termini_unknown:
             spans = list(self.spans)
@@ -1356,16 +1349,8 @@ class IndelMap(MapABC):
         return not all(span.lost for span in self.spans)
 
     def get_coordinates(self):
-        """returns span coordinates as [(v1, v2), ...]
-
-        v1/v2 are (start, end) unless the map is reversed, in which case it will
-        be (end, start)
-        """
-
-        order_func = (lambda x: (max(x), min(x))) if self.reverse else (lambda x: x)
-        return list(
-            map(order_func, [(s.start, s.end) for s in self.spans if not s.lost])
-        )
+        """returns span coordinates as [(start, end), ...]"""
+        return [(s.start, s.end) for s in self.spans if not s.lost]
 
     def get_gap_coordinates(self):
         """returns [(gap pos, gap length), ...]"""
@@ -1401,12 +1386,6 @@ class IndelMap(MapABC):
                 s = Span(start=start, end=end)
             spans.append(s)
 
-        spans.reverse()
-        return self.__class__(spans=spans, parent_length=self.parent_length)
-
-    def reversed(self):
-        """Reversed location on same parent"""
-        spans = [s.reversed() for s in self.spans]
         spans.reverse()
         return self.__class__(spans=spans, parent_length=self.parent_length)
 
@@ -1484,8 +1463,6 @@ class IndelMap(MapABC):
                 Span(
                     cum_start,
                     cum_end,
-                    tidy_start=self.tidy,
-                    tidy_end=self.tidy,
                     reverse=cum_start > cum_end,
                 )
             )
@@ -1528,7 +1505,7 @@ class IndelMap(MapABC):
         return abs_pos - self.start
 
     def get_covering_span(self):
-        span = (self.end, self.start) if self.reverse else (self.start, self.end)
+        span = (self.end, self.start)
         return self.__class__(locations=[span], parent_length=self.parent_length)
 
     def zeroed(self):
@@ -1580,11 +1557,3 @@ class IndelMap(MapABC):
         del kwargs["type"]
         kwargs["spans"] = spans
         return Map(**kwargs)
-
-    def without_gaps(self):
-        # todo is this really required
-        #  being used by Aligned.get_seq()
-        return self.__class__(
-            spans=[s for s in self.spans if not s.lost],
-            parent_length=self.parent_length,
-        )
