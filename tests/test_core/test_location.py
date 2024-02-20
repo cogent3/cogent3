@@ -6,9 +6,9 @@ import pytest
 
 from cogent3 import DNA
 from cogent3.core.location import (
+    FeatureMap,
     IndelMap,
     LostSpan,
-    Map,
     Span,
     TerminalPadding,
     gap_coords_to_map,
@@ -266,13 +266,13 @@ class MapTests(TestCase):
     def test_get_coords(self):
         """get_coordinates should return raw coordinates matching input"""
         spans = [(0, 9), (20, 32)]
-        map = Map(spans, parent_length=100)
+        map = FeatureMap(spans, parent_length=100)
         coords = map.get_coordinates()
         self.assertEqual(coords, spans)
 
         # should work for reversed Maps too
         spans = [(32, 20), (9, 0)]
-        map = Map(spans, parent_length=100)
+        map = FeatureMap(spans, parent_length=100)
         coords = map.get_coordinates()
         self.assertEqual(coords, spans)
 
@@ -309,7 +309,7 @@ class MapTests(TestCase):
             got = gap_coords_to_map({20: 1}, len(seq))
 
 
-@pytest.mark.parametrize("cls", (IndelMap, Map))
+@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
 def test_map_plus_position(cls):
     # seq is 9 long
     # plus coords  012345678
@@ -348,7 +348,7 @@ def test_indel_map_useful_complete():
     assert len(im) == im.length == 3
 
 
-@pytest.mark.parametrize("cls,expect", ((Map, [(9, 0)]), (IndelMap, [(0, 9)])))
+@pytest.mark.parametrize("cls,expect", ((FeatureMap, [(9, 0)]), (IndelMap, [(0, 9)])))
 def test_map_nucleic_reversed(cls, expect):
     # seq is 9 long
     # plus coords  012345678
@@ -367,7 +367,7 @@ def test_map_nucleic_reversed(cls, expect):
     assert coords == expect
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
+@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_coordinate(cls):
     # coordinates are for ungapped segments in underlying sequence
     #                   01   2 345
@@ -378,7 +378,7 @@ def test_coordinate(cls):
     assert got == [(0, 2), (2, 3), (3, 6)]
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
+@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_gap_coordinate(cls):
     seq = DNA.make_seq("AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
@@ -387,7 +387,7 @@ def test_gap_coordinate(cls):
     assert got == [(2, 3), (3, 1), (6, 2)]
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
+@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_gaps(cls):
     # returns spans corresponding to position on "aligned" seq of gaps
     #                   000000000011
@@ -399,7 +399,7 @@ def test_gaps(cls):
     assert got == [(2, 5), (6, 7), (10, 12)]
 
 
-@pytest.mark.parametrize("cls", (IndelMap, Map))
+@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
 def test_nongap(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   000000000011
@@ -415,7 +415,7 @@ def test_nongap(cls):
 def test_reversed():
     seq = DNA.make_seq("AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
-    m = Map(spans=m.spans, parent_length=m.parent_length)
+    m = FeatureMap(spans=m.spans, parent_length=m.parent_length)
     # reversed() reverses the order of spans, but keeps their coordinates
     # differs from nucleic reversed, which computes a new relative position
     rev = m.reversed()
@@ -444,8 +444,7 @@ def test_serialisable_attr():
     assert got == set_vals
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
-def test_terminal_unknown(cls):
+def test_terminal_unknown():
     # span idx          01 2  345  6
     seq = DNA.make_seq("-AC---G-TAA--")
     m, _ = seq.parse_out_gaps()
@@ -453,7 +452,9 @@ def test_terminal_unknown(cls):
     m_spans = tuple(m.spans)
     assert m_spans[0].lost and not isinstance(m_spans[0], TerminalPadding)
     # use the constructor arg
-    m = cls(spans=tuple(m.spans), parent_length=m.parent_length, termini_unknown=True)
+    m = IndelMap(
+        spans=tuple(m.spans), parent_length=m.parent_length, termini_unknown=True
+    )
     m_spans = tuple(m.spans)
     assert isinstance(m_spans[0], TerminalPadding)
     assert isinstance(m_spans[-1], TerminalPadding)
@@ -462,7 +463,9 @@ def test_terminal_unknown(cls):
 
     # use the method
     m, _ = seq.parse_out_gaps()
-    m = cls(spans=tuple(m.spans), parent_length=m.parent_length).with_termini_unknown()
+    m = IndelMap(
+        spans=tuple(m.spans), parent_length=m.parent_length
+    ).with_termini_unknown()
     m_spans = tuple(m.spans)
     assert isinstance(m_spans[0], TerminalPadding)
     assert isinstance(m_spans[-1], TerminalPadding)
@@ -473,16 +476,20 @@ def test_terminal_unknown(cls):
     seq = DNA.make_seq("ACGTAA")
     m, _ = seq.parse_out_gaps()
     # use the constructor arg
-    m = cls(spans=tuple(m.spans), parent_length=m.parent_length, termini_unknown=True)
+    m = IndelMap(
+        spans=tuple(m.spans), parent_length=m.parent_length, termini_unknown=True
+    )
     m_spans = tuple(m.spans)
     assert not isinstance(m_spans[0], TerminalPadding)
     # use the method
-    m = cls(spans=tuple(m.spans), parent_length=m.parent_length).with_termini_unknown()
+    m = IndelMap(
+        spans=tuple(m.spans), parent_length=m.parent_length
+    ).with_termini_unknown()
     m_spans = tuple(m.spans)
     assert not isinstance(m_spans[0], TerminalPadding)
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
+@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_map_inverse(cls):
     m = cls(locations=[(0, 2), (4, 6)], parent_length=6)
     assert len(m) == 4
@@ -497,7 +504,7 @@ def test_map_inverse(cls):
     assert got == expect
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
+@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_map_offsets(cls):
     # offsets are absolute starts of spans
     #                              1
@@ -508,7 +515,7 @@ def test_map_offsets(cls):
     assert got == [0, 1, 3, 6, 7, 8, 11]
 
 
-@pytest.mark.parametrize("cls", (Map, IndelMap))
+@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_map_indexed(cls):
     m = cls(locations=[(0, 2), (4, 6)], parent_length=6).inverse()
     indexed = m[2]
@@ -521,7 +528,7 @@ def test_compare_map_indexed():
     seq = DNA.make_seq("--AC-GTAA--".replace("-", ""))
     spans = [LostSpan(2), Span(0, 2), LostSpan(2), Span(2, 6), LostSpan(2)]
     kwargs = dict(spans=spans, parent_length=len(seq))
-    mm = Map(**kwargs)
+    mm = FeatureMap(**kwargs)
     im = IndelMap(**kwargs)
     ma = Aligned(mm, seq)
     ia = Aligned(im, seq)
@@ -538,7 +545,7 @@ def test_indel_map_zeroed(slice_it):
     spans = [LostSpan(2), Span(2, 4), LostSpan(2), Span(4, 8), LostSpan(2)]
     kwargs = dict(spans=spans, parent_length=6)
 
-    mm = Map(**kwargs)
+    mm = FeatureMap(**kwargs)
     if slice_it:
         mm = mm[:6]
     mm_zeroed = mm.zeroed()

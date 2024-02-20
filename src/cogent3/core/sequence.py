@@ -56,7 +56,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import IndelMap, LostSpan, Map
+from cogent3.core.location import FeatureMap, IndelMap, LostSpan
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
@@ -1059,7 +1059,7 @@ class Sequence(SequenceI):
                 continue
             new_spans.append(new.tolist())
 
-        fmap = Map(locations=new_spans, parent_length=len(self))
+        fmap = FeatureMap(locations=new_spans, parent_length=len(self))
         if pre or post:
             # create a lost span to represent the segment missing from
             # the instance
@@ -1068,7 +1068,7 @@ class Sequence(SequenceI):
                 spans.insert(0, LostSpan(pre))
             if post:
                 spans.append(LostSpan(post))
-            fmap = Map(spans=spans, parent_length=len(self))
+            fmap = FeatureMap(spans=spans, parent_length=len(self))
 
         if revd and not seq_rced:
             # the sequence is on the plus strand, and the
@@ -1268,7 +1268,7 @@ class Sequence(SequenceI):
                 seqid=self.name,
                 name=None,
                 biotype=None,
-                map=Map(locations=[], parent_length=len(self)),
+                map=FeatureMap(locations=[], parent_length=len(self)),
                 strand="+",
             )
         else:
@@ -1344,7 +1344,7 @@ class Sequence(SequenceI):
         if hasattr(index, "map"):
             index = index.map
 
-        if isinstance(index, (Map, IndelMap)):
+        if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
             preserve_offset = not index.reverse
 

@@ -1,7 +1,7 @@
 import unittest
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.location import Map, Span
+from cogent3.core.location import FeatureMap, Span
 
 
 class MapTest(unittest.TestCase):
@@ -9,7 +9,7 @@ class MapTest(unittest.TestCase):
 
     def test_spans(self):
         # a simple two part map of length 10
-        map = Map([(0, 5), (5, 10)], parent_length=10)
+        map = FeatureMap([(0, 5), (5, 10)], parent_length=10)
         # try different spans on the above map
         for (start, end), expected in [
             ((0, 4), "[0:4]"),

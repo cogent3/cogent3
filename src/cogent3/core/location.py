@@ -78,7 +78,7 @@ def as_map(slice, length, cls):
         for i in slice:
             spans.extend(as_map(i, length).spans, cls)
         return cls(spans=spans, parent_length=length)
-    elif isinstance(slice, (Map, IndelMap)):
+    elif isinstance(slice, (FeatureMap, IndelMap)):
         return slice
     else:
         lo, hi, step = _norm_slice(slice, length)
@@ -528,7 +528,7 @@ class TerminalPadding(_LostSpan):
         return f"?{self.length}?"
 
 
-class Map:
+class Map:  # pragma: no cover
     """A map holds a list of spans."""
 
     def __init__(
@@ -551,7 +551,7 @@ class Map:
                 reverse = start > end
                 if max(start, end) < 0 or min(start, end) > parent_length:
                     raise RuntimeError(
-                        f"located outside sequence: {str((start, end, parent_length))}"
+                        f"located outside sequence: {(start, end, parent_length)}"
                     )
                 if max(start, end) > parent_length and min(start, end) < 0:
                     l_diff = min(start, end)
@@ -1099,41 +1099,6 @@ def RangeFromString(string, delimiter=","):  # pragma: no cover
     return result
 
 
-def gap_coords_to_map(gaps_lengths: dict, seq_length: int) -> Map:
-    """
-    Parameters
-    ----------
-    gaps_lengths
-        {gap insertion pos: gap length, ...}
-    seq_length : int
-        length of unaligned sequence
-
-    Returns
-    -------
-    Map
-    """
-
-    if not gaps_lengths:
-        return Map([(0, seq_length)], parent_length=seq_length)
-
-    spans = []
-    last = pos = 0
-    for pos in sorted(gaps_lengths):
-        if pos > seq_length:
-            raise ValueError(
-                f"cannot have gap at position {pos} beyond seq_length= {seq_length}"
-            )
-
-        gap = LostSpan(length=gaps_lengths[pos])
-        spans.extend([gap] if pos == 0 else [Span(last, pos), gap])
-        last = pos
-
-    if pos < seq_length:
-        spans.append(Span(last, seq_length))
-
-    return Map(spans=spans, parent_length=seq_length)
-
-
 class MapABC(ABC):
     """base class for genomic map objects"""
 
@@ -1579,4 +1544,420 @@ class IndelMap(MapABC):
         del kwargs["version"]
         del kwargs["type"]
         kwargs["spans"] = spans
-        return Map(**kwargs)
+        return FeatureMap(**kwargs)
+
+
+class FeatureMap:
+    """A map holds a list of spans."""
+
+    def __init__(
+        self,
+        locations=None,
+        spans=None,
+        tidy=False,
+        parent_length=None,
+        termini_unknown=False,
+    ):
+        assert parent_length is not None
+        d = locals()
+        exclude = ("self", "__class__", "__slots__")
+        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
+
+        if spans is None:
+            spans = []
+            for start, end in locations:
+                diff = 0
+                reverse = start > end
+                if max(start, end) < 0 or min(start, end) > parent_length:
+                    raise RuntimeError(
+                        f"located outside sequence: {(start, end, parent_length)}"
+                    )
+                if max(start, end) > parent_length and min(start, end) < 0:
+                    l_diff = min(start, end)
+                    r_diff = max(start, end) - parent_length
+                    start, end = (
+                        (0, parent_length) if start < end else (parent_length, 0)
+                    )
+                    spans += [
+                        LostSpan(abs(l_diff)),
+                        Span(start, end, tidy, tidy, reverse=reverse),
+                        LostSpan(abs(r_diff)),
+                    ]
+                elif min(start, end) < 0:
+                    diff = min(start, end)
+                    start = 0 if start < 0 else start
+                    end = 0 if end < 0 else end
+                    spans += [
+                        LostSpan(abs(diff)),
+                        Span(start, end, tidy, tidy, reverse=reverse),
+                    ]
+                elif max(start, end) > parent_length:
+                    diff = max(start, end) - parent_length
+                    start = parent_length if start > parent_length else start
+                    end = parent_length if end > parent_length else end
+                    spans += [
+                        Span(start, end, tidy, tidy, reverse=reverse),
+                        LostSpan(abs(diff)),
+                    ]
+                else:
+                    spans += [Span(start, end, tidy, tidy, reverse=reverse)]
+
+        self.offsets = []
+        self.useful = False
+        self.complete = True
+        self.reverse = None
+        posn = 0
+        for span in spans:
+            self.offsets.append(posn)
+            posn += span.length
+            if span.lost:
+                self.complete = False
+            elif not self.useful:
+                self.useful = True
+                (self.start, self.end) = (span.start, span.end)
+                self.reverse = span.reverse
+            else:
+                self.start = min(self.start, span.start)
+                self.end = max(self.end, span.end)
+                if self.reverse is not None and (span.reverse != self.reverse):
+                    self.reverse = None
+
+        if termini_unknown:
+            spans = list(spans)
+            if spans[0].lost:
+                spans[0] = TerminalPadding(spans[0].length)
+            if spans[-1].lost:
+                spans[-1] = TerminalPadding(spans[-1].length)
+
+        self.spans = tuple(spans)
+        self.length = posn
+        self.parent_length = parent_length
+
+    def __len__(self):
+        return self.length
+
+    def __repr__(self):
+        return repr(list(self.spans)) + f"/{self.parent_length}"
+
+    def __getitem__(self, new_map):
+        # A possible shorter map at the same level
+        new_map = as_map(new_map, len(self), self.__class__)
+        new_parts = []
+        for span in new_map.spans:
+            new_parts.extend(span.remap_with(self))
+        return self.__class__(spans=new_parts, parent_length=self.parent_length)
+
+    def __mul__(self, scale):
+        new_parts = [span * scale for span in self.spans]
+        return self.__class__(spans=new_parts, parent_length=self.parent_length * scale)
+
+    def __div__(self, scale):
+        new_parts = [span / scale for span in self.spans]
+        return self.__class__(
+            spans=new_parts, parent_length=self.parent_length // scale
+        )
+
+    def __add__(self, other):
+        if other.parent_length != self.parent_length:
+            raise ValueError("Those maps belong to different sequences")
+        return self.__class__(
+            spans=self.spans + other.spans, parent_length=self.parent_length
+        )
+
+    def _with_termini_unknown(self):
+        return self.__class__(
+            self,
+            spans=self.spans[:],
+            parent_length=self.parent_length,
+            termini_unknown=True,
+        )
+
+    def get_covering_span(self):
+        if self.reverse:
+            span = (self.end, self.start)
+        else:
+            span = (self.start, self.end)
+        return self.__class__([span], parent_length=self.parent_length)
+
+    def covered(self):
+        """>>> Map([(10,20), (15, 25), (80, 90)]).covered().spans
+        [Span(10,25), Span(80, 90)]"""
+
+        delta = {}
+        for span in self.spans:
+            if span.lost:
+                continue
+            delta[span.start] = delta.get(span.start, 0) + 1
+            delta[span.end] = delta.get(span.end, 0) - 1
+        positions = sorted(delta.keys())
+        last_y = y = 0
+        last_x = start = None
+        result = []
+        for x in positions:
+            y += delta[x]
+            if x == last_x:
+                continue
+            if y and not last_y:
+                assert start is None
+                start = x
+            elif last_y and not y:
+                result.append((start, x))
+                start = None
+            last_x = x
+            last_y = y
+        assert y == 0
+        return self.__class__(locations=result, parent_length=self.parent_length)
+
+    def reversed(self):
+        """Reversed location on same parent"""
+        spans = [s.reversed() for s in self.spans]
+        spans.reverse()
+        return self.__class__(spans=spans, parent_length=self.parent_length)
+
+    def nucleic_reversed(self):
+        """Same location on reversed parent"""
+        spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
+        return self.__class__(spans=spans, parent_length=self.parent_length)
+
+    def get_gap_coordinates(self):
+        """returns [(gap pos, gap length), ...]"""
+        gap_pos = []
+        for i, span in enumerate(self.spans):
+            if not span.lost:
+                continue
+
+            pos = self.spans[i - 1].end if i else 0
+            gap_pos.append((pos, len(span)))
+
+        return gap_pos
+
+    def gaps(self):
+        """The gaps (lost spans) in this map"""
+        locations = []
+        offset = 0
+        for s in self.spans:
+            if s.lost:
+                locations.append((offset, offset + s.length))
+            offset += s.length
+        return self.__class__(locations, parent_length=len(self))
+
+    def shadow(self):
+        """The 'negative' map of the spans not included in this map"""
+        return self.inverse().gaps()
+
+    def nongap(self):
+        locations = []
+        offset = 0
+        for s in self.spans:
+            if not s.lost:
+                locations.append((offset, offset + s.length))
+            offset += s.length
+        return self.__class__(locations, parent_length=len(self))
+
+    def without_gaps(self):
+        return self.__class__(
+            spans=[s for s in self.spans if not s.lost],
+            parent_length=self.parent_length,
+        )
+
+    def inverse(self):
+        """returns instance with coordinates updated for aligned, unaligned"""
+        # is this only required for parse_out_gaps?
+        # NO also used in cogent3.align code
+
+        # can't work if there are overlaps in the map
+        # tidy ends don't survive inversion
+        if self.parent_length is None:
+            raise ValueError("Uninvertable. parent length not known")
+
+        cum_posn = 0
+        temp = []
+        for span in self.spans:
+            if not span.lost:
+                if span.reverse:
+                    temp.append(
+                        (span.start, span.end, cum_posn + span.length, cum_posn)
+                    )
+                else:
+                    temp.append(
+                        (span.start, span.end, cum_posn, cum_posn + span.length)
+                    )
+            cum_posn += span.length
+
+        temp.sort()
+        new_spans = []
+        last_start = 0
+        for start, end, cum_start, cum_end in temp:
+            if start > last_start:
+                new_spans.append(LostSpan(start - last_start))
+            elif start < last_start:
+                raise ValueError(f"Uninvertable. Overlap: {start} < {last_start}")
+
+            # we force tidy_<start/end> to be same as self, attribute has no meaning
+            # for IndelMap, but retained for compatability for now
+            new_spans.append(
+                Span(
+                    cum_start,
+                    cum_end,
+                    reverse=cum_start > cum_end,
+                )
+            )
+            last_start = end
+
+        if self.parent_length > last_start:
+            new_spans.append(LostSpan(self.parent_length - last_start))
+
+        return self.__class__(spans=new_spans, parent_length=len(self))
+
+    def _inverse(self):
+        # can't work if there are overlaps in the map
+        # tidy ends don't survive inversion
+        if self.parent_length is None:
+            raise ValueError("Uninvertable. parent length not known")
+        posn = 0
+        temp = []
+        for span in self.spans:
+            if not span.lost:
+                if span.reverse:
+                    temp.append((span.start, span.end, posn + span.length, posn))
+                else:
+                    temp.append((span.start, span.end, posn, posn + span.length))
+            posn += span.length
+
+        temp.sort()
+        new_spans = []
+        last_hi = 0
+        for lo, hi, start, end in temp:
+            if lo > last_hi:
+                new_spans.append(LostSpan(lo - last_hi))
+            elif lo < last_hi:
+                raise ValueError(f"Uninvertable. Overlap: {lo} < {last_hi}")
+            new_spans.append(Span(start, end, reverse=start > end))
+            last_hi = hi
+        if self.parent_length > last_hi:
+            new_spans.append(LostSpan(self.parent_length - last_hi))
+        return self.__class__(spans=new_spans, parent_length=len(self))
+
+    def get_coordinates(self):
+        """returns span coordinates as [(v1, v2), ...]
+
+        v1/v2 are (start, end) unless the map is reversed, in which case it will
+        be (end, start)"""
+
+        if self.reverse:
+            order_func = lambda x: (max(x), min(x))
+        else:
+            order_func = lambda x: x
+
+        coords = list(
+            map(order_func, [(s.start, s.end) for s in self.spans if not s.lost])
+        )
+
+        return coords
+
+    def to_rich_dict(self):
+        """returns dicts for contained spans [dict(), ..]"""
+        spans = [s.to_rich_dict() for s in self.spans]
+        data = copy.deepcopy(self._serialisable)
+        data.pop("locations")
+        data["spans"] = spans
+        data["type"] = get_object_provenance(self)
+        data["version"] = __version__
+        return data
+
+    def zeroed(self):
+        """returns a new instance with the first span starting at 0
+
+        Note
+        ----
+
+        Useful when an Annotatable object is sliced, but the connection to
+        the original parent is being deliberately broken as in the
+        Sequence.deepcopy(sliced=True) case.
+        """
+        # todo there's probably a more efficient way to do this
+        # create the new instance
+        from cogent3.util.deserialise import deserialise_map_spans
+
+        data = self.to_rich_dict()
+        zeroed = deserialise_map_spans(data)
+        zeroed.parent_length = len(zeroed.get_covering_span())
+        shift = min(zeroed.start, zeroed.end)
+        new_end = 0
+        for span in zeroed.spans:
+            if span.lost:
+                continue
+            span.start -= shift
+            span.end -= shift
+            new_end = max(new_end, span.end)
+
+        zeroed.start = 0
+        zeroed.end = new_end
+
+        return zeroed
+
+    T = Union[ndarray, int]
+
+    def absolute_position(self, rel_pos: T) -> T:
+        """converts rel_pos into an absolute position
+
+        Raises
+        ------
+        raises ValueError if rel_pos < 0
+        """
+        check = array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        if check.min() < 0:
+            raise ValueError(f"must positive, not {rel_pos=}")
+
+        if len(self) == self.parent_length:
+            # handle case of reversed here?
+            return rel_pos
+
+        return self.start + rel_pos
+
+    def relative_position(self, abs_pos: T) -> T:
+        """converts abs_pos into an relative position
+
+        Raises
+        ------
+        raises ValueError if abs_pos < 0
+        """
+        check = array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+        if check.min() < 0:
+            raise ValueError(f"must positive, not {abs_pos=}")
+        return abs_pos - self.start
+
+
+def gap_coords_to_map(gaps_lengths: dict, seq_length: int) -> FeatureMap:
+    """
+    Parameters
+    ----------
+    gaps_lengths
+        {gap insertion pos: gap length, ...}
+    seq_length : int
+        length of unaligned sequence
+
+    Returns
+    -------
+    Map
+    """
+
+    if not gaps_lengths:
+        return FeatureMap([(0, seq_length)], parent_length=seq_length)
+
+    spans = []
+    last = pos = 0
+    for pos in sorted(gaps_lengths):
+        if pos > seq_length:
+            raise ValueError(
+                f"cannot have gap at position {pos} beyond seq_length= {seq_length}"
+            )
+
+        gap = LostSpan(length=gaps_lengths[pos])
+        spans.extend([gap] if pos == 0 else [Span(last, pos), gap])
+        last = pos
+
+    if pos < seq_length:
+        spans.append(Span(last, seq_length))
+
+    return FeatureMap(spans=spans, parent_length=seq_length)

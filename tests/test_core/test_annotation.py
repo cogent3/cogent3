@@ -4,7 +4,7 @@ import pytest
 
 from cogent3 import DNA, load_seq, make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import Alignment, SequenceCollection
-from cogent3.core.location import Map, Span
+from cogent3.core.location import FeatureMap, Span
 
 
 def makeSampleSequence(name, with_gaps=False):
@@ -95,10 +95,10 @@ class TestMapSpans(unittest.TestCase):
         """reversing a map with multiple spans should preserve span relative
         order"""
         forward = [Span(20, 30), Span(40, 50)]
-        fmap = Map(spans=forward, parent_length=100)
+        fmap = FeatureMap(spans=forward, parent_length=100)
         fmap_reversed = fmap.nucleic_reversed()
         reverse = [Span(70, 80, reverse=True), Span(50, 60, reverse=True)]
-        rmap = Map(spans=reverse, parent_length=100)
+        rmap = FeatureMap(spans=reverse, parent_length=100)
         for i in range(2):
             self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
 

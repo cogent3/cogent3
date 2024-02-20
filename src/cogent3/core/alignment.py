@@ -66,7 +66,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import IndelMap, Map
+from cogent3.core.location import FeatureMap, IndelMap
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
@@ -4667,7 +4667,7 @@ class Alignment(AlignmentI, SequenceCollection):
                 raise ValueError(f"feature.parent {index.seqid!r} is not self")
             return index.get_slice()
 
-        if isinstance(index, (Map, IndelMap)):
+        if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
 
         elif isinstance(index, (int, slice)):
@@ -5239,7 +5239,7 @@ class Alignment(AlignmentI, SequenceCollection):
         # in Sequence?
         revd = feature.pop("strand", None) == "-"
         feature["strand"] = "-" if revd else "+"
-        fmap = Map(parent_length=len(self), locations=feature.pop("spans"))
+        fmap = FeatureMap(parent_length=len(self), locations=feature.pop("spans"))
         if revd:
             fmap = fmap.nucleic_reversed()
         return Feature(parent=self, map=fmap, **feature)
