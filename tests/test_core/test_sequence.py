@@ -1837,31 +1837,35 @@ def test_seqview_repr():
     # Short sequence, defaults
     seq = "ACGT"
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None)"
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, seq_len=4)"
+    )
     assert repr(view) == expected
 
     # Long sequence
     seq = "ACGT" * 10
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, seq_len=40)"
     assert repr(view) == expected
 
     # Non-zero start, stop, and step values
     seq = "ACGT" * 10
     view = SeqView(seq, start=5, stop=35, step=2)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, seq_len=40)"
     assert repr(view) == expected
 
     # offset
     seq = "ACGT"
     view = SeqView(seq, offset=5)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None)"
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, seq_len=4)"
+    )
     assert repr(view) == expected
 
     # seqid
     seq = "ACGT"
     view = SeqView(seq, seqid="seq1")
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1')"
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seq_len=4)"
     assert repr(view) == expected
 
 
@@ -2720,3 +2724,39 @@ def test_empty_seqview_translate_position():
     sv = SeqView("")
     assert sv.absolute_position(0) == 0
     assert sv.relative_position(0) == 0
+
+
+@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
+@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
+@pytest.mark.parametrize("length", (1, 8, 999))
+def test_seqview_seq_len_init(start, stop, step, length):
+    # seq_len is length of seq when None
+    seq_data = "A" * length
+    sv = SeqView(seq_data, start=start, stop=stop, step=step)
+    expect = len(seq_data)
+    # Check property and slot
+    assert sv.seq_len == expect
+    assert sv._seq_len == expect
+
+
+@pytest.mark.parametrize("seq, seq_len", [("A", 0), ("", 1), ("A", 2)])
+def test_seqview_seq_len_mismatch(seq, seq_len):
+    # If provided, seq_len must match len(seq)
+    with pytest.raises(AssertionError):
+        SeqView(seq, seq_len=seq_len)
+
+
+def test_seqview_copy_propagates_seq_len():
+    seq = "ACGGTGGGAC"
+    sv = SeqView(seq)
+    copied = sv.copy()
+    assert copied.seq_len == len(seq)
+
+
+def test_seqview_seq_len_modified_seq():
+    seq = "ACGGTGGGAC"
+    sv = SeqView(seq)
+
+    sv.seq = "ATGC"  # this should not modify seq_len
+    assert sv.seq_len == len(seq)

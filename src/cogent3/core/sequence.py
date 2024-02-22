@@ -1917,17 +1917,18 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid")
+    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
 
     def __init__(
         self,
         seq,
         *,
-        start: int = None,
-        stop: int = None,
-        step: int = None,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        step: Optional[int] = None,
         offset: int = 0,
-        seqid: str = None,
+        seqid: Optional[str] = None,
+        seq_len: Optional[int] = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
@@ -1941,6 +1942,9 @@ class SeqView:
         self.step = step
         self._offset = offset
         self._seqid = seqid
+        if seq_len is not None and seq_len != len(seq):
+            raise AssertionError(f"{seq_len} != {len(self.seq)})")
+        self._seq_len = seq_len or len(self.seq)
 
     @property
     def offset(self) -> int:
@@ -1955,6 +1959,10 @@ class SeqView:
         return self._seqid
 
     @property
+    def seq_len(self) -> int:
+        return self._seq_len
+
+    @property
     def parent_start(self) -> int:
         """returns the start on the parent plus strand
 
@@ -1966,7 +1974,7 @@ class SeqView:
         if self.reverse:
             # self.stop becomes the start, self.stop will be negative
             assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
-            start = self.stop + len(self.seq) + 1
+            start = self.stop + self.seq_len + 1
         else:
             start = self.start
 
@@ -1984,7 +1992,7 @@ class SeqView:
         if self.reverse:
             # self.start becomes the stop, self.start will be negative
             assert self.start < 0, "expected start on reverse strand SeqView < 0"
-            stop = self.start + len(self.seq) + 1
+            stop = self.start + self.seq_len + 1
         else:
             stop = self.stop
         return self.offset + stop
@@ -2019,7 +2027,7 @@ class SeqView:
         # add offset and handle reversed views, now absolute relative to annotation coordinates
         offset = self.offset
         if self.reverse:
-            abs_index = offset + len(self.seq) + seq_index + 1
+            abs_index = offset + self.seq_len + seq_index + 1
         else:
             abs_index = offset + seq_index
 
@@ -2041,7 +2049,7 @@ class SeqView:
             offset = self.offset
 
             if (
-                tmp := ((len(self.seq) - (abs_index - offset)) + self.start + 1)
+                tmp := (self.seq_len - abs_index + offset + self.start + 1)
             ) % self.step == 0 or stop:
                 rel_pos = tmp // abs(self.step)
             else:
@@ -2125,7 +2133,7 @@ class SeqView:
         # checking for zero-length slice
         if stop < start:
             return _zero_slice
-        if start > len(self.seq):
+        if start > self.seq_len:
             return _zero_slice
 
         return self.__class__(
@@ -2135,6 +2143,7 @@ class SeqView:
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_forward_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2161,6 +2170,7 @@ class SeqView:
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_reverse_slice(self, segment, step):
@@ -2180,30 +2190,29 @@ class SeqView:
         # "true stop" adjust for if abs(stop-start) % step != 0
         # max possible start is "true stop" - step, because stop is not inclusive
         # "true stop" - step is converted to -ve index via subtracting len(self)
-        seq_len = len(self.seq)
         if slice_start >= len(self):
-            start = (self.start + len(self) * self.step - self.step) - seq_len
+            start = (self.start + len(self) * self.step - self.step) - self.seq_len
         elif slice_start >= 0:
-            start = (self.start + slice_start * self.step) - seq_len
+            start = (self.start + slice_start * self.step) - self.seq_len
         else:
             start = (
                 self.start
                 + len(self) * self.step
                 + slice_start * self.step
-                - len(self.seq)
+                - self.seq_len
             )
 
-        if slice_stop >= seq_len:
+        if slice_stop >= self.seq_len:
             return _zero_slice
 
         if slice_stop >= 0:
-            stop = self.start + (slice_stop * self.step) - seq_len
+            stop = self.start + (slice_stop * self.step) - self.seq_len
         else:
             stop = (
                 self.start
                 + (len(self) * self.step)
                 + (slice_stop * self.step)
-                - seq_len
+                - self.seq_len
             )
 
         if start >= 0 or stop >= 0:
@@ -2212,39 +2221,39 @@ class SeqView:
         return self.__class__(
             self.seq,
             start=start,
-            stop=max(stop, self.start - len(self.seq) - 1),
+            stop=max(stop, self.start - self.seq_len - 1),
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_reverse_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
         # max start is "true stop" + abs(step), because stop is not inclusive
         # "true stop" adjust for if abs(stop-start) % step != 0
-        seq_len = len(self.seq)
         if slice_start >= len(self):
-            start = seq_len + self.start + len(self) * self.step + abs(self.step)
+            start = self.seq_len + self.start + len(self) * self.step + abs(self.step)
         elif slice_start >= 0:
-            start = seq_len + (self.start + slice_start * self.step)
+            start = self.seq_len + (self.start + slice_start * self.step)
         else:
-            start = seq_len + (
+            start = self.seq_len + (
                 self.start + len(self) * self.step + slice_start * self.step
             )
 
         if slice_stop >= 0:
-            stop = seq_len + (self.start + slice_stop * self.step)
-            if stop <= seq_len + self.stop:
+            stop = self.seq_len + (self.start + slice_stop * self.step)
+            if stop <= self.seq_len + self.stop:
                 return _zero_slice
         else:
-            stop = seq_len + (
+            stop = self.seq_len + (
                 self.start + len(self) * self.step + slice_stop * self.step
             )
-            if stop > seq_len + self.start:
-                stop = seq_len + self.start + 1
+            if stop > self.seq_len + self.start:
+                stop = self.seq_len + self.start + 1
 
         # if -ve, it's an invalid slice becomes zero
         # checking for zero-length slice
-        if stop < start or start > seq_len or min(start, stop) < 0:
+        if stop < start or start > self.seq_len or min(start, stop) < 0:
             return _zero_slice
 
         return self.__class__(
@@ -2254,6 +2263,7 @@ class SeqView:
             step=self.step * step,
             offset=self.offset,
             seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def __getitem__(self, segment):
@@ -2266,6 +2276,7 @@ class SeqView:
                 step=step,
                 offset=self.offset,
                 seqid=self.seqid,
+                seq_len=self.seq_len,
             )
 
         if segment.start is segment.stop is segment.step is None:
@@ -2302,6 +2313,7 @@ class SeqView:
                 step=self.step,
                 offset=self.offset,
                 seqid=self.seqid,
+                seq_len=self.seq_len,
             )
 
         return self.__class__(new_seq)
@@ -2316,11 +2328,11 @@ class SeqView:
         return self.value
 
     def __repr__(self) -> str:
-        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if len(self.seq) > 15 else self.seq
+        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
         return (
             f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
             f"stop={self.stop}, step={self.step}, offset={self.offset}, "
-            f"seqid={self.seqid!r})"
+            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
 
     def to_rich_dict(self):
@@ -2330,7 +2342,7 @@ class SeqView:
         # step is sufficient
         data["init_args"] = {"step": self.step}
         if self.reverse:
-            adj = len(self.seq) + 1
+            adj = self.seq_len + 1
             start, stop = self.stop + adj, self.start + adj
         else:
             start, stop = self.start, self.stop
@@ -2365,6 +2377,7 @@ class SeqView:
                 step=self.step,
                 offset=self.offset,
                 seqid=self.seqid,
+                seq_len=self.seq_len,
             )
         return self.from_rich_dict(self.to_rich_dict())
 
