@@ -21,9 +21,8 @@ Why should it be discontinued?
 
 **How much notice**
 
-The number of months (*x*) long before the capability will be removed? This should be represented in the user warning as a specific version. e.g. <current year>.<current month + *x*> where *x* is from the PR date.  
+How much time should the community be given to response to this notice? Specify as the number of months (*x*) before the capability will be removed. Leave blank if not known.
 
 **Guidelines for deprecation**
 
-As this is a function that will be removed, see [dev guidelines for deprecation](https://github.com/cogent3/c3dev/wiki/Deprecating-Code) of code. Indicate the limiting version (for when the old function will be removed) as 3 months from when you make the change.
-
+As this is a function that will be removed, see [dev guidelines for deprecation](https://github.com/cogent3/c3dev/wiki/Deprecating-Code) of code. Indicate the limiting version (for when the old function will be removed) as <current year>.<PR month + *x*> where *x* is defined above.  
