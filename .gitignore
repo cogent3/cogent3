@@ -19,6 +19,9 @@ lib
 lib64
 doc/_build
 
+# docker stuff
+.devcontainer/*
+
 # Installer logs
 pip-log.txt
 
