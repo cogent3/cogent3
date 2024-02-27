@@ -42,7 +42,6 @@ ResultType = Union[
     TabularResultType,
 ]
 
-# todo when move to python 3.8 define protocols for IdentifierType and SerialisableType
 IdentifierType = TypeVar("IdentifierType")
 
 
