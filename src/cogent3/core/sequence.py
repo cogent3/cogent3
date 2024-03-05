@@ -1279,12 +1279,12 @@ class Sequence(SequenceI):
         return new
 
     def gapped_by_map_segment_iter(
-        self, map, allow_gaps=True, recode_gaps=False
+        self, segment_map, allow_gaps=True, recode_gaps=False
     ) -> str:
-        if not allow_gaps and not map.complete:
-            raise ValueError(f"gap(s) in map {map}")
+        if not allow_gaps and not segment_map.complete:
+            raise ValueError(f"gap(s) in map {segment_map}")
 
-        for span in map.spans:
+        for span in segment_map.spans:
             if span.lost:
                 unknown = "?" if span.terminal or recode_gaps else "-"
                 seg = unknown * span.length

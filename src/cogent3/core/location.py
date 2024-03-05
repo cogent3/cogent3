@@ -1344,11 +1344,6 @@ class IndelMap(MapABC):
         return gap_pos
 
     def nucleic_reversed(self):
-        """Same location on reversed parent"""
-        spans = [s.reversed_relative_to(self.parent_length) for s in self._spans]
-        return self.__class__(spans=spans, parent_length=self.parent_length)
-
-    def nucleic_reversed(self):
         """map for a sequence that has itself been reversed and complemented
 
         Notes

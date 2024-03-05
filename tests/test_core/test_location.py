@@ -575,8 +575,8 @@ def test_indelmap_no_gaps():
 def test_get_coords():
     """get_coordinates should return raw coordinates matching input"""
     spans = [(0, 9), (20, 32)]
-    map = FeatureMap(locations=spans, parent_length=100)
-    coords = map.get_coordinates()
+    fmap = FeatureMap(locations=spans, parent_length=100)
+    coords = fmap.get_coordinates()
     assert coords == spans
 
 
