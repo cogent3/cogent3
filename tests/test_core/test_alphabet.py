@@ -6,6 +6,9 @@ import pickle
 
 from unittest import TestCase
 
+import numpy
+import pytest
+
 from numpy import unravel_index
 from numpy.testing import assert_equal
 
@@ -304,3 +307,18 @@ class JointEnumerationTests(TestCase):
         v = [7, 15, 18, 0]
         result = a.unpack_arrays(v)
         assert_equal(result, array([[0, 1, 2, 0], [3, 3, 1, 0], [1, 1, 0, 0]]))
+
+
+@pytest.mark.parametrize("data", ("AUGGA", b"AUGGA"))
+def test_to_indices(data):
+    alphabet = RNA.alphabets.degen_gapped
+    got = alphabet.to_indices(data)
+    assert got.tolist() == [2, 0, 3, 3, 2]
+
+
+@pytest.mark.parametrize("cls", (list, numpy.array, tuple))
+def test_from_indices(cls):
+    data = cls([2, 0, 3, 3, 2])
+    alphabet = RNA.alphabets.degen_gapped
+    got = alphabet.from_indices(data)
+    assert got == "AUGGA"
