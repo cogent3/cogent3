@@ -16,11 +16,13 @@ and/or Enumerations on the fly, however.
 import json
 import typing
 
+from functools import singledispatchmethod
 from itertools import product
 
 from numpy import (
     arange,
     array,
+    ndarray,
     newaxis,
     sum,
     take,
@@ -624,7 +626,7 @@ class CharAlphabet(Alphabet):
         data = data or []
         super(CharAlphabet, self).__init__(data, gap, moltype=moltype)
         self._indices_to_chars, self._chars_to_indices = _make_translation_tables(data)
-        self._char_nums_to_indices = array(range(256), uint8)
+        self._char_nums_to_indices = array(range(256), self.array_type)
         for c, i in self._chars_to_indices.items():
             self._char_nums_to_indices[c] = i
 
@@ -671,6 +673,76 @@ class CharAlphabet(Alphabet):
             return delimiter.join(
                 [i.tobytes().decode("utf-8") for i in self.to_chars(data)]
             )
+
+    @singledispatchmethod
+    def from_indices(self, data: ndarray) -> str:
+        """returns string from numpy array of integers"""
+        data = data.astype(dtype=self.array_type)
+        encoding = data.dtype.name.replace("uint", "utf")
+        return str.translate(data.tobytes().decode(encoding), self._indices_to_chars)
+
+    @from_indices.register
+    def _(self, data: list) -> str:
+        """returns string from numpy array of integers"""
+        return self.from_indices(array(data, dtype=self.array_type))
+
+    @from_indices.register
+    def _(self, data: tuple) -> str:
+        """returns string from numpy array of integers"""
+        return self.from_indices(array(data, dtype=self.array_type))
+
+    @singledispatchmethod
+    def to_indices(self, data) -> ndarray:
+        """Returns sequence of indices from sequence of elements.
+
+        Raises KeyError if some of the elements were not found.
+
+        Expects data to be a sequence (e.g. list of tuple) of items that
+        are in the Enumeration. Returns a list containing the index of each
+        element in the input, in order.
+
+        e.g. for the RNA alphabet ('U','C','A','G'), the sequence 'CCAU'
+        would produce the result [1,1,2,0], returning the index of each
+        element in the input.
+        """
+        return array([self._obj_to_index[e] for e in data], dtype=self.array_type)
+
+    @to_indices.register
+    def _(self, data: str) -> ndarray:
+        """Returns sequence of indices from sequence of elements.
+
+        Raises KeyError if some of the elements were not found.
+
+        Expects data to be a sequence (e.g. list of tuple) of items that
+        are in the Enumeration. Returns a list containing the index of each
+        element in the input, in order.
+
+        e.g. for the RNA alphabet ('U','C','A','G'), the sequence 'CCAU'
+        would produce the result [1,1,2,0], returning the index of each
+        element in the input.
+        """
+        return array(
+            memoryview(
+                bytearray(data.translate(self._chars_to_indices).encode("utf8"))
+            ),
+            dtype=self.array_type,
+        )
+
+    @to_indices.register
+    def _(self, data: bytes) -> ndarray:
+        """Returns sequence of indices from sequence of elements.
+
+        Raises KeyError if some of the elements were not found.
+
+        Expects data to be a sequence (e.g. list of tuple) of items that
+        are in the Enumeration. Returns a list containing the index of each
+        element in the input, in order.
+
+        e.g. for the RNA alphabet ('U','C','A','G'), the sequence 'CCAU'
+        would produce the result [1,1,2,0], returning the index of each
+        element in the input.
+        """
+        return self.to_indices(data.decode("utf8"))
 
 
 T = typing.Union[Alphabet, CharAlphabet]

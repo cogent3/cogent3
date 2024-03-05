@@ -1026,51 +1026,12 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         got = aln.filtered(func, motif_length=2, drop_remainder=True, warn=False)
         self.assertEqual(len(got), 4)
 
-    def test_positions(self):
-        """SequenceCollection positions property should iterate over positions, using self.names"""
-        r = self.Class({"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"})
-        r.names = ["a", "b", "c"]
-        self.assertEqual(
-            list(r.positions),
-            list(map(list, ["AAA", "AAA", "AAA", "A-A", "A--", "A--"])),
-        )
-
     def test_take_positions_info(self):
         aln = self.Class(
             {"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"}, info={"key": "value"}
         )
         tps = aln.take_positions([5, 4, 0])
         self.assertEqual(tps.info["key"], "value")
-
-    def test_get_position_indices(self):
-        """SequenceCollection get_position_indices should return names of cols where f(col)"""
-
-        def gap_1st(x):
-            return x[0] == "-"
-
-        def gap_2nd(x):
-            return x[1] == "-"
-
-        def gap_3rd(x):
-            return x[2] == "-"
-
-        def is_list(x):
-            return isinstance(x, list)
-
-        self.gaps = self.Class(self.gaps.named_seqs, names=["a", "b", "c"])
-
-        self.assertEqual(self.gaps.get_position_indices(gap_1st), [])
-        self.assertEqual(self.gaps.get_position_indices(gap_2nd), [1, 2, 4])
-        self.assertEqual(self.gaps.get_position_indices(gap_3rd), [2, 3, 4, 5, 6])
-        self.assertEqual(self.gaps.get_position_indices(is_list), [0, 1, 2, 3, 4, 5, 6])
-        # should be able to negate
-        self.assertEqual(
-            self.gaps.get_position_indices(gap_2nd, negate=True), [0, 3, 5, 6]
-        )
-        self.assertEqual(
-            self.gaps.get_position_indices(gap_1st, negate=True), [0, 1, 2, 3, 4, 5, 6]
-        )
-        self.assertEqual(self.gaps.get_position_indices(is_list, negate=True), [])
 
     def test_take_positions_if(self):
         """SequenceCollection take_positions_if should return cols where f(col) is True"""
@@ -1099,6 +1060,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             self.gaps.take_positions_if(gap_3rd),
             {"a": "AAAAA", "b": "-A-AA", "c": "-----"},
         )
+        self.assertEqual(self.gaps.take_positions_if(is_list), self.gaps)
         self.assertEqual(self.gaps.take_positions_if(is_list), self.gaps)
 
         self.assertTrue(
@@ -2045,8 +2007,8 @@ class ArrayAlignmentSpecificTests(TestCase):
     def test_iter(self):
         """ArrayAlignment iter should iterate over positions"""
         result = list(iter(self.a2))
-        for i, j in zip(result, [list(i) for i in ["AD", "BE", "CF"]]):
-            self.assertEqual(i, j)
+        for i, j in zip(result, ["AD", "BE", "CF"]):
+            self.assertEqual(i, list(j))
 
     def test_getitem(self):
         """ArrayAlignment getitem act like standard alignment slice"""
@@ -3614,3 +3576,40 @@ def test_construct_unaligned_seq_propogates_seqid(cls):
         seq = cls(data)
     got = _construct_unaligned_seq(seq, name="seq1", moltype=DNA)
     assert got._seq.seqid == "seq1"
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_get_position_indices(cls):
+    """get_position_indices should return names of cols where f(col)"""
+
+    def gap_1st(x):
+        return x[0] == "-"
+
+    def gap_2nd(x):
+        return x[1] == "-"
+
+    def gap_3rd(x):
+        return x[2] == "-"
+
+    def is_list(x):
+        return isinstance(x, list)
+
+    gaps = cls({"a": "AAAAAAA", "b": "A--A-AA", "c": "AA-----"}, names=["a", "b", "c"])
+
+    assert gaps.get_position_indices(gap_1st) == []
+    assert gaps.get_position_indices(gap_2nd) == [1, 2, 4]
+    assert gaps.get_position_indices(gap_3rd) == [2, 3, 4, 5, 6]
+    assert gaps.get_position_indices(is_list) == [0, 1, 2, 3, 4, 5, 6]
+    # should be able to negate
+    assert gaps.get_position_indices(gap_2nd, negate=True) == [0, 3, 5, 6]
+    assert gaps.get_position_indices(gap_1st, negate=True) == [0, 1, 2, 3, 4, 5, 6]
+    assert gaps.get_position_indices(is_list, negate=True) == []
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_positions(cls):
+    """positions property should iterate over positions, using self.names"""
+    r = cls({"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"})
+    r.names = ["a", "b", "c"]
+    expect = [list(v) for v in ("AAA", "AAA", "AAA", "A-A", "A--", "A--")]
+    assert list(r.positions) == expect
