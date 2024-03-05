@@ -1543,6 +1543,7 @@ class IndelMap(MapABC):
         kwargs = self.to_rich_dict()
         del kwargs["version"]
         del kwargs["type"]
+        del kwargs["termini_unknown"]  # not used for FeatureMap
         kwargs["spans"] = spans
         return FeatureMap(**kwargs)
 
@@ -1554,9 +1555,7 @@ class FeatureMap:
         self,
         locations=None,
         spans=None,
-        tidy=False,
         parent_length=None,
-        termini_unknown=False,
     ):
         assert parent_length is not None
         d = locals()
@@ -1564,43 +1563,7 @@ class FeatureMap:
         self._serialisable = {k: v for k, v in d.items() if k not in exclude}
 
         if spans is None:
-            spans = []
-            for start, end in locations:
-                diff = 0
-                reverse = start > end
-                if max(start, end) < 0 or min(start, end) > parent_length:
-                    raise RuntimeError(
-                        f"located outside sequence: {(start, end, parent_length)}"
-                    )
-                if max(start, end) > parent_length and min(start, end) < 0:
-                    l_diff = min(start, end)
-                    r_diff = max(start, end) - parent_length
-                    start, end = (
-                        (0, parent_length) if start < end else (parent_length, 0)
-                    )
-                    spans += [
-                        LostSpan(abs(l_diff)),
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                        LostSpan(abs(r_diff)),
-                    ]
-                elif min(start, end) < 0:
-                    diff = min(start, end)
-                    start = 0 if start < 0 else start
-                    end = 0 if end < 0 else end
-                    spans += [
-                        LostSpan(abs(diff)),
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                    ]
-                elif max(start, end) > parent_length:
-                    diff = max(start, end) - parent_length
-                    start = parent_length if start > parent_length else start
-                    end = parent_length if end > parent_length else end
-                    spans += [
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                        LostSpan(abs(diff)),
-                    ]
-                else:
-                    spans += [Span(start, end, tidy, tidy, reverse=reverse)]
+            spans = _spans_from_locations(locations, parent_length=parent_length)
 
         self.offsets = []
         self.useful = False
@@ -1614,20 +1577,13 @@ class FeatureMap:
                 self.complete = False
             elif not self.useful:
                 self.useful = True
-                (self.start, self.end) = (span.start, span.end)
+                self.start, self.end = span.start, span.end
                 self.reverse = span.reverse
             else:
                 self.start = min(self.start, span.start)
                 self.end = max(self.end, span.end)
                 if self.reverse is not None and (span.reverse != self.reverse):
                     self.reverse = None
-
-        if termini_unknown:
-            spans = list(spans)
-            if spans[0].lost:
-                spans[0] = TerminalPadding(spans[0].length)
-            if spans[-1].lost:
-                spans[-1] = TerminalPadding(spans[-1].length)
 
         self.spans = tuple(spans)
         self.length = posn
