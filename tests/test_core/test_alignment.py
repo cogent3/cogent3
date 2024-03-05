@@ -3611,7 +3611,5 @@ def test_positions(cls):
     """positions property should iterate over positions, using self.names"""
     r = cls({"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"})
     r.names = ["a", "b", "c"]
-    assert (
-        list(r.positions)
-        == list(map(list, ["AAA", "AAA", "AAA", "A-A", "A--", "A--"])),
-    )
+    expect = [list(v) for v in ("AAA", "AAA", "AAA", "A-A", "A--", "A--")]
+    assert list(r.positions) == expect
