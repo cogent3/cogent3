@@ -3930,9 +3930,8 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
     @property
     def positions(self):
         """Override superclass positions to return positions as symbols."""
-        return list(map(self.alphabet.from_indices, self.array_positions))
-
-    positions = property(_get_positions)
+        from_indices = self.alphabet.from_indices
+        return [list(from_indices(pos)) for pos in self.array_positions]
 
     @property
     def named_seqs(self):
