@@ -2834,8 +2834,15 @@ class AlignmentI(object):
         positions = [
             (loc * motif_length, (loc + 1) * motif_length) for loc in locations
         ]
-        sample = IndelMap(locations=positions, parent_length=len(self))
-        return self.gapped_by_map(sample, info=self.info)
+        make_seq = self.moltype.make_seq
+        new_seqs = []
+        for seq in self.seqs:
+            seq = make_seq(
+                "".join(str(seq[x1:x2]) for x1, x2 in positions), name=seq.name
+            )
+            new_seqs.append(seq)
+
+        return self.__class__(new_seqs, info=self.info, moltype=self.moltype)
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator yielding new alignments of given length and interval.

@@ -1070,21 +1070,8 @@ class Sequence(SequenceI):
                 spans.append(LostSpan(post))
             fmap = FeatureMap(spans=spans, parent_length=len(self))
 
-        if revd and not seq_rced:
-            # the sequence is on the plus strand, and the
-            # feature coordinates are also for the plus strand
-            # but their order needs to be changed to indicate
-            # reverse complement is required
-            fmap = fmap.reversed()
-        elif seq_rced and not revd:
-            # plus strand feature, but the sequence reverse complemented
-            # so we need to nucleic-reverse the map
-            fmap = fmap.nucleic_reversed()
-        elif seq_rced:
-            # sequence is rc'ed, the feature was minus strand of
-            # original, so needs to be both nucleic reversed and
-            # then reversed
-            fmap = fmap.nucleic_reversed().reversed()
+        if seq_rced:
+            fmap = fmap.strict_nucleic_reversed()
 
         feature.pop("on_alignment", None)
         feature.pop("seqid", None)
@@ -1279,8 +1266,8 @@ class Sequence(SequenceI):
 
         i = 0
         segments = []
-        fmap = region.map.reversed() if region.map.reverse else region.map
-        for b, e in fmap.get_coordinates():
+        coords = region.map.get_coordinates()
+        for b, e in coords:
             segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
         segments.append(str(self[i:]))
@@ -1291,11 +1278,17 @@ class Sequence(SequenceI):
         new.annotation_db = self.annotation_db
         return new
 
-    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
+    def gapped_by_map_segment_iter(
+        self, map, allow_gaps=True, recode_gaps=False
+    ) -> str:
         if not allow_gaps and not map.complete:
             raise ValueError(f"gap(s) in map {map}")
 
-        complement = self.moltype.complement
+        #  leave reorienting segments (e.g. if on rev strand) to the calling method
+        #  it seems like that's the best bet, since it preserves given order of
+        #  segments.
+        #
+        #  todo  make these methods private.
 
         for span in map.spans:
             if span.lost:
@@ -1303,8 +1296,6 @@ class Sequence(SequenceI):
                 seg = unknown * span.length
             else:
                 seg = str(self[span.start : span.end])
-                if span.reverse:
-                    seg = "".join(complement(seg[::-1]))
 
             yield seg
 
@@ -1346,7 +1337,7 @@ class Sequence(SequenceI):
 
         if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
-            preserve_offset = not index.reverse
+            preserve_offset = True
 
         elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(

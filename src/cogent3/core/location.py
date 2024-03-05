@@ -83,7 +83,9 @@ def as_map(slice, length, cls):
     else:
         lo, hi, step = _norm_slice(slice, length)
         assert (step or 1) == 1
-        return cls(locations=[(lo, hi)], parent_length=length)
+        # since we disallow step, a reverse slice means an empty series
+        locations = [] if lo > hi else [(lo, hi)]
+        return cls(locations=locations, parent_length=length)
 
 
 class SpanI(object):
@@ -1152,9 +1154,17 @@ class MapABC(ABC):
 
 
 def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSpan]]:
+    if not len(locations):
+        # using len() because locations can be a numpy array
+        return ()
+
+    if locations[0][0] > locations[-1][1]:
+        raise ValueError("locations must be ordered smallest-> largest")
+
     spans = []
     for start, end in locations:
-        reverse = start > end
+        if start > end:
+            raise ValueError("locations must be ordered smallest-> largest")
         if max(start, end) < 0 or min(start, end) > parent_length:
             raise RuntimeError(
                 f"located outside sequence: {(start, end, parent_length)}"
@@ -1165,7 +1175,7 @@ def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSp
             start, end = (0, parent_length) if start < end else (parent_length, 0)
             spans += [
                 LostSpan(abs(l_diff)),
-                Span(start, end, reverse=reverse),
+                Span(start, end),
                 LostSpan(abs(r_diff)),
             ]
         elif min(start, end) < 0:
@@ -1174,18 +1184,19 @@ def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSp
             end = max(end, 0)
             spans += [
                 LostSpan(abs(diff)),
-                Span(start, end, reverse=reverse),
+                Span(start, end),
             ]
         elif max(start, end) > parent_length:
             diff = max(start, end) - parent_length
             start = min(start, parent_length)
             end = min(end, parent_length)
             spans += [
-                Span(start, end, reverse=reverse),
+                Span(start, end),
                 LostSpan(abs(diff)),
             ]
         else:
-            spans += [Span(start, end, reverse=reverse)]
+            spans += [Span(start, end)]
+
     return tuple(spans)
 
 
@@ -1493,7 +1504,7 @@ class IndelMap(MapABC):
         return abs_pos - self.start
 
     def get_covering_span(self):
-        span = (self.end, self.start)
+        span = self.start, self.end
         return self.__class__(locations=[span], parent_length=self.parent_length)
 
     def zeroed(self):
@@ -1568,7 +1579,6 @@ class FeatureMap:
         self.offsets = []
         self.useful = False
         self.complete = True
-        self.reverse = None
         posn = 0
         for span in spans:
             self.offsets.append(posn)
@@ -1578,12 +1588,9 @@ class FeatureMap:
             elif not self.useful:
                 self.useful = True
                 self.start, self.end = span.start, span.end
-                self.reverse = span.reverse
             else:
                 self.start = min(self.start, span.start)
                 self.end = max(self.end, span.end)
-                if self.reverse is not None and (span.reverse != self.reverse):
-                    self.reverse = None
 
         self.spans = tuple(spans)
         self.length = posn
@@ -1629,10 +1636,7 @@ class FeatureMap:
         )
 
     def get_covering_span(self):
-        if self.reverse:
-            span = (self.end, self.start)
-        else:
-            span = (self.start, self.end)
+        span = (self.start, self.end)
         return self.__class__([span], parent_length=self.parent_length)
 
     def covered(self):
@@ -1664,15 +1668,29 @@ class FeatureMap:
         assert y == 0
         return self.__class__(locations=result, parent_length=self.parent_length)
 
-    def reversed(self):
-        """Reversed location on same parent"""
-        spans = [s.reversed() for s in self.spans]
-        spans.reverse()
-        return self.__class__(spans=spans, parent_length=self.parent_length)
-
     def nucleic_reversed(self):
         """Same location on reversed parent"""
         spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
+        return self.__class__(spans=spans, parent_length=self.parent_length)
+
+    def strict_nucleic_reversed(self):
+        """map for a sequence that has itself been reversed and complemented
+
+        Notes
+        -----
+        discards reverse attribute on both spans and self
+        """
+        spans = []
+        parent_length = self.parent_length
+        for s in self.spans:
+            if not s.lost:
+                start = parent_length - s.end
+                assert start >= 0
+                end = start + s.length
+                s = Span(start=start, end=end)
+            spans.append(s)
+
+        spans.reverse()
         return self.__class__(spans=spans, parent_length=self.parent_length)
 
     def get_gap_coordinates(self):
@@ -1800,16 +1818,7 @@ class FeatureMap:
         v1/v2 are (start, end) unless the map is reversed, in which case it will
         be (end, start)"""
 
-        if self.reverse:
-            order_func = lambda x: (max(x), min(x))
-        else:
-            order_func = lambda x: x
-
-        coords = list(
-            map(order_func, [(s.start, s.end) for s in self.spans if not s.lost])
-        )
-
-        return coords
+        return [(s.start, s.end) for s in self.spans if not s.lost]
 
     def to_rich_dict(self):
         """returns dicts for contained spans [dict(), ..]"""

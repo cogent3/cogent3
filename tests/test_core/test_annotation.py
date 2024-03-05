@@ -308,16 +308,25 @@ def test_features_survives_seq_rename(rev):
 
     seq = DNA.make_seq("".join(segments), name="original")
     gene = seq.add_feature(biotype="gene", name="gene1", spans=[(10, 20), (25, 30)])
+    gene_expect = str(seq[10:20]) + str(seq[25:30])
+    assert str(gene.get_slice()) == gene_expect
     domain = seq.add_feature(
         biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
     )
+    domain_expect = str(seq[20:25].rc())
+    domain_got = domain.get_slice()
+    assert str(domain_got) == domain_expect
     sliced = seq[5:-3]
     sliced.name = "sliced"
     sliced = sliced.rc() if rev else sliced
+
     got = list(sliced.get_features(name="gene1"))[0]
-    assert str(got.get_slice()) == str(gene.get_slice())
+    got = got.get_slice()
+    assert str(got) == gene_expect
+
     got = list(sliced.get_features(name="domain1"))[0]
-    assert str(got.get_slice()) == str(domain.get_slice())
+    got = got.get_slice()
+    assert str(got) == domain_expect
 
 
 @pytest.mark.parametrize("rev", (False, True))

@@ -263,19 +263,6 @@ class SpanTests(TestCase):
 class MapTests(TestCase):
     """tests of the Map class"""
 
-    def test_get_coords(self):
-        """get_coordinates should return raw coordinates matching input"""
-        spans = [(0, 9), (20, 32)]
-        map = FeatureMap(spans, parent_length=100)
-        coords = map.get_coordinates()
-        self.assertEqual(coords, spans)
-
-        # should work for reversed Maps too
-        spans = [(32, 20), (9, 0)]
-        map = FeatureMap(spans, parent_length=100)
-        coords = map.get_coordinates()
-        self.assertEqual(coords, spans)
-
     def test_get_gap_coords(self):
         """returns gap start and lengths"""
         m, seq = DNA.make_seq("-AC--GT-TTA--").parse_out_gaps()
@@ -348,8 +335,9 @@ def test_indel_map_useful_complete():
     assert len(im) == im.length == 3
 
 
-@pytest.mark.parametrize("cls,expect", ((FeatureMap, [(9, 0)]), (IndelMap, [(0, 9)])))
-def test_map_nucleic_reversed(cls, expect):
+@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
+def test_map_nucleic_reversed(cls):
+    expect = [(0, 9)]
     # seq is 9 long
     # plus coords  012345678
     # +slice         **
@@ -410,19 +398,6 @@ def test_nongap(cls):
 
     got = [(g.start, g.end) for g in m.nongap().spans]
     assert got == [(0, 2), (5, 6), (7, 10)]
-
-
-def test_reversed():
-    seq = DNA.make_seq("AC---G-TAA--")
-    m, _ = seq.parse_out_gaps()
-    m = FeatureMap(spans=m.spans, parent_length=m.parent_length)
-    # reversed() reverses the order of spans, but keeps their coordinates
-    # differs from nucleic reversed, which computes a new relative position
-    rev = m.reversed()
-    got = [s.length if s.lost else (s.start, s.end) for s in rev.spans]
-    expect = [s.length if s.lost else (s.start, s.end) for s in m.spans]
-    expect.reverse()
-    assert got == expect
 
 
 def test_round_trip_rich_dict():
@@ -598,3 +573,20 @@ def test_indelmap_no_gaps():
     imap = IndelMap(locations=(), parent_length=6)
     gaps = imap.gaps()
     assert not gaps
+
+
+def test_get_coords():
+    """get_coordinates should return raw coordinates matching input"""
+    spans = [(0, 9), (20, 32)]
+    map = FeatureMap(spans, parent_length=100)
+    coords = map.get_coordinates()
+    assert coords == spans
+
+
+def test_get_coords_invalid_order():
+    """get_coordinates should return raw coordinates matching input"""
+
+    # should work for reversed Maps too
+    spans = [(32, 20), (9, 0)]
+    with pytest.raises(ValueError):
+        FeatureMap(spans, parent_length=100)
