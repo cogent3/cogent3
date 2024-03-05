@@ -412,7 +412,7 @@ def test_feature_nucleic():
     expect = seq[mmap]
 
     rcseq = seq.rc()
-    rmap = mmap.strict_nucleic_reversed()
+    rmap = mmap.nucleic_reversed()
     got = rcseq[rmap].rc()
     assert str(got) == str(expect)
 

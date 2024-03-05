@@ -91,17 +91,6 @@ class TestMapSpans(unittest.TestCase):
         assert forward.reversed_relative_to(100) == reverse
         assert reverse.reversed_relative_to(100) == forward
 
-    def test_map(self):
-        """reversing a map with multiple spans should preserve span relative
-        order"""
-        forward = [Span(20, 30), Span(40, 50)]
-        fmap = FeatureMap(spans=forward, parent_length=100)
-        fmap_reversed = fmap.nucleic_reversed()
-        reverse = [Span(70, 80, reverse=True), Span(50, 60, reverse=True)]
-        rmap = FeatureMap(spans=reverse, parent_length=100)
-        for i in range(2):
-            self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
-
 
 @pytest.mark.parametrize("alignment", (False, True))
 def test_constructing_collections(alignment):
@@ -362,3 +351,13 @@ def test_features_invalid_seqid(cls):
     with pytest.raises(ValueError):
         # seqid does not exist
         list(seqs.get_features(name="gene1", seqid="blah"))
+
+
+def test_map():
+    """reversing a map with multiple spans should match hand-crafted"""
+    forward = [Span(20, 30), Span(40, 50)]
+    fmap = FeatureMap(spans=forward, parent_length=100)
+    fmap_reversed = fmap.nucleic_reversed()
+    reverse = [Span(50, 60), Span(70, 80)]
+    rmap = FeatureMap(spans=reverse, parent_length=100)
+    assert fmap_reversed.get_coordinates() == rmap.get_coordinates()

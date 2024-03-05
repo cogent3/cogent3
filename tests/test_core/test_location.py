@@ -542,19 +542,16 @@ def test_indelmap_to_feature_map():
     assert mm.get_coordinates() == im.get_coordinates()
 
 
-def test_indelmap_strict_nucleic_reversed():
+def test_indelmap_nucleic_reversed():
     spans = [LostSpan(2), Span(2, 4), LostSpan(2), Span(4, 8), LostSpan(2)]
     kwargs = dict(spans=spans, parent_length=12)
     orig = IndelMap(**kwargs)
-    rev = orig.strict_nucleic_reversed()
+    rev = orig.nucleic_reversed()
     rev_spans = tuple(rev.spans)
     assert rev_spans[1].reverse == rev_spans[3].reverse == False
     old = orig.nucleic_reversed()
     old_spans = tuple(old.spans)
-    assert old_spans[1].reverse == old_spans[3].reverse == True
-    assert rev.get_coordinates() == [
-        tuple(sorted(a)) for a in reversed(old.get_coordinates())
-    ]
+    assert rev.get_coordinates() == old.get_coordinates()
 
 
 def test_indelmap_with_reverse_span():
@@ -578,7 +575,7 @@ def test_indelmap_no_gaps():
 def test_get_coords():
     """get_coordinates should return raw coordinates matching input"""
     spans = [(0, 9), (20, 32)]
-    map = FeatureMap(spans, parent_length=100)
+    map = FeatureMap(locations=spans, parent_length=100)
     coords = map.get_coordinates()
     assert coords == spans
 
@@ -589,4 +586,4 @@ def test_get_coords_invalid_order():
     # should work for reversed Maps too
     spans = [(32, 20), (9, 0)]
     with pytest.raises(ValueError):
-        FeatureMap(spans, parent_length=100)
+        FeatureMap(locations=spans, parent_length=100)

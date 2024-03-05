@@ -1071,7 +1071,7 @@ class Sequence(SequenceI):
             fmap = FeatureMap(spans=spans, parent_length=len(self))
 
         if seq_rced:
-            fmap = fmap.strict_nucleic_reversed()
+            fmap = fmap.nucleic_reversed()
 
         feature.pop("on_alignment", None)
         feature.pop("seqid", None)
@@ -1284,12 +1284,6 @@ class Sequence(SequenceI):
         if not allow_gaps and not map.complete:
             raise ValueError(f"gap(s) in map {map}")
 
-        #  leave reorienting segments (e.g. if on rev strand) to the calling method
-        #  it seems like that's the best bet, since it preserves given order of
-        #  segments.
-        #
-        #  todo  make these methods private.
-
         for span in map.spans:
             if span.lost:
                 unknown = "?" if span.terminal or recode_gaps else "-"
@@ -1304,12 +1298,10 @@ class Sequence(SequenceI):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
-        # todo gah do we propagate annotations here?
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
-        new = self.__class__(
+        return self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        return new
 
     def _mapped(self, map):
         # Called by generic __getitem__
@@ -1319,10 +1311,7 @@ class Sequence(SequenceI):
     def __repr__(self):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
-        if len(self) > 10:
-            seq = f"{str(self)[:7]}... {len(self):,}"
-        else:
-            seq = str(self)
+        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
