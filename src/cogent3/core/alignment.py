@@ -3927,7 +3927,8 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self._seqs = curr_seqs
         self.seq_len = curr_seqs.shape[1] if len(curr_seqs) else 0
 
-    def _get_positions(self):
+    @property
+    def positions(self):
         """Override superclass positions to return positions as symbols."""
         return list(map(self.alphabet.from_indices, self.array_positions))
 
