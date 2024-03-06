@@ -83,7 +83,9 @@ def as_map(slice, length, cls):
     else:
         lo, hi, step = _norm_slice(slice, length)
         assert (step or 1) == 1
-        return cls(locations=[(lo, hi)], parent_length=length)
+        # since we disallow step, a reverse slice means an empty series
+        locations = [] if lo > hi else [(lo, hi)]
+        return cls(locations=locations, parent_length=length)
 
 
 class SpanI(object):
@@ -1121,11 +1123,6 @@ class MapABC(ABC):
     def __add__(self, other):
         ...
 
-    @classmethod
-    @abstractmethod
-    def from_rich_dict(cls, data):
-        ...
-
     @abstractmethod
     def gaps(self):
         ...
@@ -1152,9 +1149,17 @@ class MapABC(ABC):
 
 
 def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSpan]]:
+    if not len(locations):
+        # using len() because locations can be a numpy array
+        return ()
+
+    if locations[0][0] > locations[-1][1]:
+        raise ValueError("locations must be ordered smallest-> largest")
+
     spans = []
     for start, end in locations:
-        reverse = start > end
+        if start > end:
+            raise ValueError("locations must be ordered smallest-> largest")
         if max(start, end) < 0 or min(start, end) > parent_length:
             raise RuntimeError(
                 f"located outside sequence: {(start, end, parent_length)}"
@@ -1165,7 +1170,7 @@ def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSp
             start, end = (0, parent_length) if start < end else (parent_length, 0)
             spans += [
                 LostSpan(abs(l_diff)),
-                Span(start, end, reverse=reverse),
+                Span(start, end),
                 LostSpan(abs(r_diff)),
             ]
         elif min(start, end) < 0:
@@ -1174,18 +1179,19 @@ def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSp
             end = max(end, 0)
             spans += [
                 LostSpan(abs(diff)),
-                Span(start, end, reverse=reverse),
+                Span(start, end),
             ]
         elif max(start, end) > parent_length:
             diff = max(start, end) - parent_length
             start = min(start, parent_length)
             end = min(end, parent_length)
             spans += [
-                Span(start, end, reverse=reverse),
+                Span(start, end),
                 LostSpan(abs(diff)),
             ]
         else:
-            spans += [Span(start, end, reverse=reverse)]
+            spans += [Span(start, end)]
+
     return tuple(spans)
 
 
@@ -1195,15 +1201,6 @@ T = Union[List[int], Tuple[int]]
 @dataclasses.dataclass
 class IndelMap(MapABC):
     """store locations of deletions in a Aligned sequence"""
-
-    # todo design notes
-    #  I think this object should never try and store "history", i.e. it
-    #  should directly relate to the current sequence only. Let that sequence,
-    #  which is represented by a SeqView, store history.
-    #  Following ths, storing reverse is also a bad idea for this object,
-    #  also done by the SeqView only.
-    # TODO reverse complement of Alignment -> Aligned -> SeqView, IndelMap
-    #  should just do nucleic reverse. I think this is the next task.
 
     spans: dataclasses.InitVar[Optional[tuple]] = ()
     locations: dataclasses.InitVar[Optional[Sequence[T]]] = None
@@ -1218,7 +1215,7 @@ class IndelMap(MapABC):
     )
 
     def __post_init__(self, spans, locations, termini_unknown):
-        if locations:
+        if locations is not None and len(locations):
             spans = _spans_from_locations(locations, parent_length=self.parent_length)
         elif isinstance(spans, property):
             # This clause is due a known issue with dataclasses.
@@ -1286,14 +1283,11 @@ class IndelMap(MapABC):
         )
 
     def __mul__(self, scale):
-        # For Protein -> DNA
-        new_parts = []
-        for span in self._spans:
-            new_parts.append(span * scale)
+        new_parts = [span * scale for span in self._spans]
         return self.__class__(spans=new_parts, parent_length=self.parent_length * scale)
 
     def __repr__(self):
-        return repr(self._spans) + f"/{self.parent_length}"
+        return f"{self._spans!r}/{self.parent_length}"
 
     @property
     def offsets(self):
@@ -1350,11 +1344,6 @@ class IndelMap(MapABC):
         return gap_pos
 
     def nucleic_reversed(self):
-        """Same location on reversed parent"""
-        spans = [s.reversed_relative_to(self.parent_length) for s in self._spans]
-        return self.__class__(spans=spans, parent_length=self.parent_length)
-
-    def strict_nucleic_reversed(self):
         """map for a sequence that has itself been reversed and complemented
 
         Notes
@@ -1493,7 +1482,7 @@ class IndelMap(MapABC):
         return abs_pos - self.start
 
     def get_covering_span(self):
-        span = (self.end, self.start)
+        span = self.start, self.end
         return self.__class__(locations=[span], parent_length=self.parent_length)
 
     def zeroed(self):
@@ -1543,69 +1532,43 @@ class IndelMap(MapABC):
         kwargs = self.to_rich_dict()
         del kwargs["version"]
         del kwargs["type"]
+        del kwargs["termini_unknown"]  # not used for FeatureMap
         kwargs["spans"] = spans
         return FeatureMap(**kwargs)
 
 
-class FeatureMap:
+@dataclasses.dataclass
+class FeatureMap(MapABC):
     """A map holds a list of spans."""
 
-    def __init__(
-        self,
-        locations=None,
-        spans=None,
-        tidy=False,
-        parent_length=None,
-        termini_unknown=False,
-    ):
-        assert parent_length is not None
-        d = locals()
-        exclude = ("self", "__class__", "__slots__")
-        self._serialisable = {k: v for k, v in d.items() if k not in exclude}
+    spans: dataclasses.InitVar[Optional[tuple]] = ()
+    locations: dataclasses.InitVar[Optional[Sequence[T]]] = None
+    parent_length: int = 0
+    offsets: list[int] = dataclasses.field(init=False, repr=False)
+    useful: bool = dataclasses.field(init=False, repr=False, default=False)
+    complete: bool = dataclasses.field(init=False, repr=False, default=True)
+    _serialisable: dict = dataclasses.field(init=False, repr=False)
+    _spans: Tuple[Union[Span, _LostSpan, TerminalPadding]] = dataclasses.field(
+        default=(), init=False
+    )
 
-        if spans is None:
-            spans = []
-            for start, end in locations:
-                diff = 0
-                reverse = start > end
-                if max(start, end) < 0 or min(start, end) > parent_length:
-                    raise RuntimeError(
-                        f"located outside sequence: {(start, end, parent_length)}"
-                    )
-                if max(start, end) > parent_length and min(start, end) < 0:
-                    l_diff = min(start, end)
-                    r_diff = max(start, end) - parent_length
-                    start, end = (
-                        (0, parent_length) if start < end else (parent_length, 0)
-                    )
-                    spans += [
-                        LostSpan(abs(l_diff)),
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                        LostSpan(abs(r_diff)),
-                    ]
-                elif min(start, end) < 0:
-                    diff = min(start, end)
-                    start = 0 if start < 0 else start
-                    end = 0 if end < 0 else end
-                    spans += [
-                        LostSpan(abs(diff)),
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                    ]
-                elif max(start, end) > parent_length:
-                    diff = max(start, end) - parent_length
-                    start = parent_length if start > parent_length else start
-                    end = parent_length if end > parent_length else end
-                    spans += [
-                        Span(start, end, tidy, tidy, reverse=reverse),
-                        LostSpan(abs(diff)),
-                    ]
-                else:
-                    spans += [Span(start, end, tidy, tidy, reverse=reverse)]
+    def __post_init__(self, spans, locations):
+        assert self.parent_length is not None
+
+        if locations is not None and len(locations):
+            spans = _spans_from_locations(locations, parent_length=self.parent_length)
+        elif isinstance(spans, property):
+            # This clause is due a known issue with dataclasses.
+            # As we have a spans property, the default spans value is
+            # ignored, so we have to check for its value being a property
+            # and then set the default value here
+            spans = ()
+
+        spans = tuple(spans)
 
         self.offsets = []
         self.useful = False
         self.complete = True
-        self.reverse = None
         posn = 0
         for span in spans:
             self.offsets.append(posn)
@@ -1614,30 +1577,19 @@ class FeatureMap:
                 self.complete = False
             elif not self.useful:
                 self.useful = True
-                (self.start, self.end) = (span.start, span.end)
-                self.reverse = span.reverse
+                self.start, self.end = span.start, span.end
             else:
                 self.start = min(self.start, span.start)
                 self.end = max(self.end, span.end)
-                if self.reverse is not None and (span.reverse != self.reverse):
-                    self.reverse = None
 
-        if termini_unknown:
-            spans = list(spans)
-            if spans[0].lost:
-                spans[0] = TerminalPadding(spans[0].length)
-            if spans[-1].lost:
-                spans[-1] = TerminalPadding(spans[-1].length)
-
-        self.spans = tuple(spans)
+        self._spans = tuple(spans)
         self.length = posn
-        self.parent_length = parent_length
 
     def __len__(self):
         return self.length
 
     def __repr__(self):
-        return repr(list(self.spans)) + f"/{self.parent_length}"
+        return f"{list(self.spans)!r}/{self.parent_length}"
 
     def __getitem__(self, new_map):
         # A possible shorter map at the same level
@@ -1664,6 +1616,10 @@ class FeatureMap:
             spans=self.spans + other.spans, parent_length=self.parent_length
         )
 
+    @property
+    def spans(self):
+        yield from self._spans
+
     def _with_termini_unknown(self):
         return self.__class__(
             self,
@@ -1673,11 +1629,8 @@ class FeatureMap:
         )
 
     def get_covering_span(self):
-        if self.reverse:
-            span = (self.end, self.start)
-        else:
-            span = (self.start, self.end)
-        return self.__class__([span], parent_length=self.parent_length)
+        span = (self.start, self.end)
+        return self.__class__(locations=[span], parent_length=self.parent_length)
 
     def covered(self):
         """>>> Map([(10,20), (15, 25), (80, 90)]).covered().spans
@@ -1708,25 +1661,35 @@ class FeatureMap:
         assert y == 0
         return self.__class__(locations=result, parent_length=self.parent_length)
 
-    def reversed(self):
-        """Reversed location on same parent"""
-        spans = [s.reversed() for s in self.spans]
-        spans.reverse()
-        return self.__class__(spans=spans, parent_length=self.parent_length)
-
     def nucleic_reversed(self):
-        """Same location on reversed parent"""
-        spans = [s.reversed_relative_to(self.parent_length) for s in self.spans]
+        """map for a sequence that has itself been reversed and complemented
+
+        Notes
+        -----
+        discards reverse attribute on both spans and self
+        """
+        spans = []
+        parent_length = self.parent_length
+        for s in self.spans:
+            if not s.lost:
+                start = parent_length - s.end
+                assert start >= 0
+                end = start + s.length
+                s = Span(start=start, end=end)
+            spans.append(s)
+
+        spans.reverse()
         return self.__class__(spans=spans, parent_length=self.parent_length)
 
     def get_gap_coordinates(self):
         """returns [(gap pos, gap length), ...]"""
         gap_pos = []
-        for i, span in enumerate(self.spans):
+        spans = list(self.spans)
+        for i, span in enumerate(spans):
             if not span.lost:
                 continue
 
-            pos = self.spans[i - 1].end if i else 0
+            pos = spans[i - 1].end if i else 0
             gap_pos.append((pos, len(span)))
 
         return gap_pos
@@ -1739,7 +1702,7 @@ class FeatureMap:
             if s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
-        return self.__class__(locations, parent_length=len(self))
+        return self.__class__(locations=locations, parent_length=len(self))
 
     def shadow(self):
         """The 'negative' map of the spans not included in this map"""
@@ -1752,7 +1715,7 @@ class FeatureMap:
             if not s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
-        return self.__class__(locations, parent_length=len(self))
+        return self.__class__(locations=locations, parent_length=len(self))
 
     def without_gaps(self):
         return self.__class__(
@@ -1844,16 +1807,7 @@ class FeatureMap:
         v1/v2 are (start, end) unless the map is reversed, in which case it will
         be (end, start)"""
 
-        if self.reverse:
-            order_func = lambda x: (max(x), min(x))
-        else:
-            order_func = lambda x: x
-
-        coords = list(
-            map(order_func, [(s.start, s.end) for s in self.spans if not s.lost])
-        )
-
-        return coords
+        return [(s.start, s.end) for s in self.spans if not s.lost]
 
     def to_rich_dict(self):
         """returns dicts for contained spans [dict(), ..]"""
@@ -1943,7 +1897,7 @@ def gap_coords_to_map(gaps_lengths: dict, seq_length: int) -> FeatureMap:
     """
 
     if not gaps_lengths:
-        return FeatureMap([(0, seq_length)], parent_length=seq_length)
+        return FeatureMap(locations=[(0, seq_length)], parent_length=seq_length)
 
     spans = []
     last = pos = 0

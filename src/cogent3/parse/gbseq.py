@@ -64,10 +64,8 @@ def GbSeqXmlParser(doc):
 
         seq = alphabet.make_seq(raw_string, name=name)
 
-        all = location.FeatureMap(locations=[(0, len(seq))], parent_length=len(seq))
-        seq.add_feature(
-            biotype="source", name=name, spans=all.get_coordinates(), strand=all.reverse
-        )
+        feat = location.FeatureMap(locations=[(0, len(seq))], parent_length=len(seq))
+        seq.add_feature(biotype="source", name=name, spans=feat.get_coordinates())
 
         organism = str(
             record.getElementsByTagName("GBSeq_organism")[0].childNodes[0].nodeValue
@@ -122,7 +120,7 @@ def GbSeqXmlParser(doc):
                         .nodeValue
                     )
             seq.add_feature(biotype=key, name=feature_name, spans=spans)
-        yield (name, seq)
+        yield name, seq
 
 
 def parse(*args):

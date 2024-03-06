@@ -2272,12 +2272,6 @@ class Aligned:
         # in this new approach, the map is always plus strand, so
         # the following comprehension ensures the order of spans
         # and the span start/end satisfy this
-        spans = [s if s.lost else s.reversed() for s in new_map.spans]
-        spans.reverse()
-        new_map = type(new_map)(
-            spans=spans,
-            parent_length=new_map.parent_length,
-        )
         return Aligned(new_map, self.data.rc())
 
     def to_rna(self):
@@ -2834,8 +2828,15 @@ class AlignmentI(object):
         positions = [
             (loc * motif_length, (loc + 1) * motif_length) for loc in locations
         ]
-        sample = IndelMap(locations=positions, parent_length=len(self))
-        return self.gapped_by_map(sample, info=self.info)
+        make_seq = self.moltype.make_seq
+        new_seqs = []
+        for seq in self.seqs:
+            seq = make_seq(
+                "".join(str(seq[x1:x2]) for x1, x2 in positions), name=seq.name
+            )
+            new_seqs.append(seq)
+
+        return self.__class__(new_seqs, info=self.info, moltype=self.moltype)
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator yielding new alignments of given length and interval.
@@ -5235,8 +5236,6 @@ class Alignment(AlignmentI, SequenceCollection):
 
         feature["seqid"] = feature.get("seqid", None)
         # there's no sequence to bind to, the feature is directly on self
-        # todo gah check handling of strand etc..., maybe reuse code
-        # in Sequence?
         revd = feature.pop("strand", None) == "-"
         feature["strand"] = "-" if revd else "+"
         fmap = FeatureMap(parent_length=len(self), locations=feature.pop("spans"))

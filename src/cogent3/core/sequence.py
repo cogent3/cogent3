@@ -1070,21 +1070,8 @@ class Sequence(SequenceI):
                 spans.append(LostSpan(post))
             fmap = FeatureMap(spans=spans, parent_length=len(self))
 
-        if revd and not seq_rced:
-            # the sequence is on the plus strand, and the
-            # feature coordinates are also for the plus strand
-            # but their order needs to be changed to indicate
-            # reverse complement is required
-            fmap = fmap.reversed()
-        elif seq_rced and not revd:
-            # plus strand feature, but the sequence reverse complemented
-            # so we need to nucleic-reverse the map
+        if seq_rced:
             fmap = fmap.nucleic_reversed()
-        elif seq_rced:
-            # sequence is rc'ed, the feature was minus strand of
-            # original, so needs to be both nucleic reversed and
-            # then reversed
-            fmap = fmap.nucleic_reversed().reversed()
 
         feature.pop("on_alignment", None)
         feature.pop("seqid", None)
@@ -1279,8 +1266,8 @@ class Sequence(SequenceI):
 
         i = 0
         segments = []
-        fmap = region.map.reversed() if region.map.reverse else region.map
-        for b, e in fmap.get_coordinates():
+        coords = region.map.get_coordinates()
+        for b, e in coords:
             segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
         segments.append(str(self[i:]))
@@ -1291,20 +1278,18 @@ class Sequence(SequenceI):
         new.annotation_db = self.annotation_db
         return new
 
-    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
-        if not allow_gaps and not map.complete:
-            raise ValueError(f"gap(s) in map {map}")
+    def gapped_by_map_segment_iter(
+        self, segment_map, allow_gaps=True, recode_gaps=False
+    ) -> str:
+        if not allow_gaps and not segment_map.complete:
+            raise ValueError(f"gap(s) in map {segment_map}")
 
-        complement = self.moltype.complement
-
-        for span in map.spans:
+        for span in segment_map.spans:
             if span.lost:
                 unknown = "?" if span.terminal or recode_gaps else "-"
                 seg = unknown * span.length
             else:
                 seg = str(self[span.start : span.end])
-                if span.reverse:
-                    seg = "".join(complement(seg[::-1]))
 
             yield seg
 
@@ -1313,12 +1298,10 @@ class Sequence(SequenceI):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
-        # todo gah do we propagate annotations here?
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
-        new = self.__class__(
+        return self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        return new
 
     def _mapped(self, map):
         # Called by generic __getitem__
@@ -1328,10 +1311,7 @@ class Sequence(SequenceI):
     def __repr__(self):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
-        if len(self) > 10:
-            seq = f"{str(self)[:7]}... {len(self):,}"
-        else:
-            seq = str(self)
+        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
@@ -1346,7 +1326,7 @@ class Sequence(SequenceI):
 
         if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
-            preserve_offset = not index.reverse
+            preserve_offset = True
 
         elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(

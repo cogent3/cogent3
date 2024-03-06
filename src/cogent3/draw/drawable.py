@@ -777,19 +777,16 @@ class _MakeShape:
 
             name = type_.name if type_.map.complete else f"{type_.name} (incomplete)"
             coords = type_.map.get_coordinates()
-            reverse = type_.map.get_covering_span().reverse
+            reverse = type_.reversed
             type_ = type_.biotype
         else:
-            if coords[0][0] > coords[-1][1]:
-                reverse = True
-            else:
-                reverse = False
+            reverse = coords[0][0] > coords[-1][1]
             if coords is None:
                 raise ValueError("No coordinates defined")
-        kwargs.update(dict(reverse=reverse))
+        kwargs |= dict(reverse=reverse)
 
         klass = self._shapes.get(type_.lower(), Rectangle)
-        color = self._colors.get(type_.lower(), None)
+        color = self._colors.get(type_.lower())
         if klass != Arrow:
             kwargs.pop("reverse", None)
 

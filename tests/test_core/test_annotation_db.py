@@ -405,13 +405,15 @@ def test_feature_nucleic():
     from cogent3 import make_seq
     from cogent3.core import location as loc
 
+    #                              111111
+    #                    0123456789012345
     seq = make_seq("AACCTTTGGGGAATTT", moltype="dna")
-    mmap = loc.FeatureMap(locations=[(4, 7), (11, 13)], parent_length=16)
-    expect = seq[mmap.reversed()]
+    mmap = loc.FeatureMap(locations=[(4, 7), (10, 12)], parent_length=len(seq))
+    expect = seq[mmap]
 
     rcseq = seq.rc()
-    rmap = mmap.nucleic_reversed().reversed()
-    got = rcseq[rmap]
+    rmap = mmap.nucleic_reversed()
+    got = rcseq[rmap].rc()
     assert str(got) == str(expect)
 
 

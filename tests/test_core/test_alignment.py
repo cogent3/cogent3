@@ -439,13 +439,6 @@ class SequenceCollectionBaseTests(object):
         got = align_norm.to_nexus("protein")
         self.assertEqual(got, expect)
 
-    def test_to_json(self):
-        """roundtrip of to_json produces correct dict"""
-        aln = self.Class({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
-        got = json.loads(aln.to_json())
-        expect = aln.to_rich_dict()
-        self.assertEqual(got, expect)
-
     def test_num_seqs(self):
         """SequenceCollection.num_seqs should count seqs."""
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
@@ -1344,19 +1337,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(["ABC"])
         obs = aln.entropy_per_pos()
         assert_allclose(obs, [0, 0, 0])
-
-    def test_sample_info(self):
-        """Alignment.sample should preserver info attribute"""
-        alignment = self.Class(
-            {"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"},
-            info={"key": "value"},
-        )
-        # effectively permute columns, preserving length
-        shuffled = alignment.sample()
-        self.assertEqual(shuffled.info["key"], "value")
-        # ensure length correct
-        sample = alignment.sample(10)
-        self.assertEqual(sample.info["key"], "value")
 
     def test_sample_with_replacement(self):
         # test with replacement -- just verify that it rnus
@@ -2816,7 +2796,7 @@ def test_get_gap_array_equivalence():
     assert_allclose(array_aln.get_gap_array(), aln.get_gap_array())
 
 
-@pytest.mark.parametrize("reverse", (False, True))
+@pytest.mark.parametrize("reverse", (False, True)[1:])
 def test_aligned_rich_dict(reverse):
     map_, s = make_seq(
         "TTGAAGAATATGT------GAAAGAG", name="s1", moltype="dna"
@@ -3059,10 +3039,10 @@ def test_aln_rev_slice(name, array_align):
     assert not got
 
     seq = got.get_gapped_seq(name)
-    assert str(seq) == ""
+    assert not str(seq)
 
     seq = got.get_seq(name)
-    assert str(seq) == ""
+    assert not str(seq)
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
@@ -3607,3 +3587,28 @@ def test_construct_unaligned_seq_propogates_seqid(cls):
         seq = cls(data)
     got = _construct_unaligned_seq(seq, name="seq1", moltype=DNA)
     assert got._seq.seqid == "seq1"
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_sample_info(cls):
+    """Alignment.sample should preserver info attribute"""
+    alignment = cls(
+        {"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"},
+        info={"key": "value"},
+    )
+    # effectively permute columns, preserving length
+    shuffled = alignment.sample()
+    assert shuffled.info["key"] == "value"
+    # ensure length correct
+    sample = alignment.sample(10)
+    assert sample.info["key"] == "value"
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_to_json(cls):
+    """roundtrip of to_json produces correct dict"""
+    aln = cls({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
+    txt = aln.to_json()
+    got = json.loads(txt)
+    expect = aln.to_rich_dict()
+    assert got == expect

@@ -81,7 +81,7 @@ class Feature:
         Parameters
         ----------
         complete
-            if feature not complete on parent,causes an exception to be
+            if feature not complete on parent, causes an exception to be
             raised. If False, gaps are removed.
         allow_gaps
             if on an alignment, includes the gap positions
@@ -95,21 +95,17 @@ class Feature:
         If 'complete' is true and the full length of this feature is not
         present in the sequence, then this method will fail.
         """
-        # todo gah set allow_gaps=True as the default
-        map = self.map
-        if not (complete or map.complete):
-            map = map.without_gaps()
+        fmap = self.map
+        if not (complete or fmap.complete):
+            fmap = fmap.without_gaps()
         if not allow_gaps:
-            if self.reversed:
-                map = map.reversed()
-            result = self.parent[map]
+            result = self.parent[fmap]
             if self.reversed:
                 result = result.rc()
             return result
 
         # all slicing now requires start < end
-        start, end = min(map.start, map.end), max(map.start, map.end)
-        result = self.parent[start:end]
+        result = self.parent[fmap.start : fmap.end]
         if self.reversed:
             result = result.rc()
         return result
@@ -225,13 +221,20 @@ class Feature:
         -----
         Overlapping spans are merged
         """
+        # spans always on the plus strand, irrespective of whether
+        # a feature is reversed
         combined = list(self.map.spans)
         feat_names = [self.name] if self.name else set()
         biotypes = {self.biotype} if self.biotype else set()
         seqids = {self.seqid} if self.seqid else set()
+
+        same_orientation = True
         for feature in features:
             if feature.parent is not self.parent:
                 raise ValueError("cannot merge annotations from different objects")
+
+            if same_orientation and feature.reversed != self.reversed:
+                same_orientation = False
 
             combined.extend(feature.map.spans)
             if feature.name:
@@ -240,19 +243,25 @@ class Feature:
                 seqids.add(feature.seqid)
             if feature.biotype:
                 biotypes.add(feature.biotype)
+
         name = ", ".join(feat_names)
-        map = FeatureMap(spans=combined, parent_length=len(self.parent))
-        map = map.covered()  # No overlaps
+        fmap = FeatureMap(spans=combined, parent_length=len(self.parent))
+        fmap = fmap.covered()  # No overlaps
         # the covered method drops reversed status so we need to
         # resurrect that, but noting we've not checked consistency
         # across the features
-        if self.map.reverse != map.reverse:
-            map = map.reversed()
+        strand = self._strand if same_orientation else "+"
         seqid = ", ".join(seqids) if seqids else None
         biotype = ", ".join(biotypes)
         kwargs = {
             **self._serialisable,
-            **{"map": map, "seqid": seqid, "biotype": biotype, "name": name},
+            **{
+                "map": fmap,
+                "seqid": seqid,
+                "biotype": biotype,
+                "name": name,
+                "strand": strand,
+            },
         }
 
         return self.__class__(**kwargs)

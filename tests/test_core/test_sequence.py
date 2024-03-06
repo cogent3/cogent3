@@ -2595,7 +2595,6 @@ def test_gapped_by_map_segment_iter():
     moltype = get_moltype("dna")
     m, seq = moltype.make_seq("-TCC--AG").parse_out_gaps()
     g = list(seq.gapped_by_map_segment_iter(m, allow_gaps=True, recode_gaps=False))
-    print(g)
 
 
 @pytest.mark.parametrize("rev", (False, True))
