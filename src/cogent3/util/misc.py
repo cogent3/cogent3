@@ -18,7 +18,7 @@ from warnings import warn
 import numpy
 
 from numpy import array, finfo, float64, ndarray, zeros
-
+from cogent3.util import warning as c3warn
 
 def _adjusted_gt_minprob_vector(probs, minprob):
     # operates on a 1D numpy vector
@@ -382,9 +382,9 @@ class ConstraintError(Exception):
 
     pass
 
-
+@c3warn.deprecated_callable(version="2024.9", reason="function rename", new="new")
 def identity(x):
-    """Identity function: useful for avoiding special handling for None."""
+    """deprecated, use new"""	
     return x
 
 
