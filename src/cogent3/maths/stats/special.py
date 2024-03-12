@@ -2,7 +2,11 @@
 (c) Stephen L. Moshier 1984, 1995.
 """
 
+import scipy
+
 from numpy import exp, floor, log, sin, sqrt
+
+from cogent3.util import warning as c3warn
 
 
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
@@ -58,45 +62,28 @@ def one_minus_exp(x):
         return 1 - exp(x)
 
 
-def permutations(n, k):
-    """Returns the number of ways of choosing k items from n, in order.
-
-    Defined as n!/(n-k)!.
-    """
-    # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
-    if k > n:
-        raise IndexError(f"Can't choose {k} items from {n}")
-    elif k < 0:
-        raise IndexError("Can't choose negative number of items")
-    elif n < 0:
-        raise IndexError("Can't choose from negative number of items")
-    if min(n, k) < 20 and isinstance(n, int) and isinstance(k, int):
-        return permutations_exact(n, k)
-    else:
-        return exp(ln_permutations(n, k))
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def permutations(n, k):  # pragma: no cover
+    """being removed"""
+    return scipy.special.perm(n, k, exact=False)
 
 
-def permutations_exact(n, k):
-    """Calculates permutations by integer division.
-
-    Preferred method for small permutations, but slow on larger ones.
-
-    Note: no error checking (expects to be called through permutations())
-    """
-    product = 1
-    for i in range(n - k + 1, n + 1):
-        product *= i
-    return product
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def permutations_exact(n, k):  # pragma: no cover
+    """being removed"""
+    return scipy.special.perm(n, k, exact=True)
 
 
-def ln_permutations(n, k):
-    """Calculates permutations by difference in log of gamma function.
-
-    Preferred method for large permutations, but slow on smaller ones.
-
-    Note: no error checking (expects to be called through permutations())
-    """
-    return lgam(n + 1) - lgam(n - k + 1)
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def ln_permutations(n, k):  # pragma: no cover
+    """being removed"""
+    return log(scipy.special.perm(n, k, exact=False))
 
 
 def combinations(n, k):
