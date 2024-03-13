@@ -53,6 +53,7 @@ def poisson_high(successes, mean):  # pragma: no cover
     """being removed"""
     return pdtrc(successes, mean)
 
+
 from scipy.stats import poisson
 from cogent3.util import warning as c3warn
 
