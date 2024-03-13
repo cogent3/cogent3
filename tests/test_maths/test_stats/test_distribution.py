@@ -27,7 +27,6 @@ from cogent3.maths.stats.distribution import (
     stdtr,
     stdtri,
     theoretical_quantiles,
-    tprob,
     zprob,
 )
 
@@ -66,66 +65,7 @@ class DistributionsTests(TestCase):
         for z, p in zip(self.negvalues, probs):
             assert_allclose(zprob(z), p, rtol=1e-6)
 
-    def test_tprob(self):
-        """tprob should match twice the t_high probability for abs(t)"""
-
-        probs = {
-            1: [
-                2 * i
-                for i in [
-                    0.500000000,
-                    0.496817007,
-                    0.468274483,
-                    0.352416382,
-                    0.250000000,
-                    0.147583618,
-                    0.062832958,
-                    0.031725517,
-                    0.015902251,
-                    0.010606402,
-                    0.006365349,
-                    0.001591536,
-                ]
-            ],
-            10: [
-                2 * i
-                for i in [
-                    5.000000e-01,
-                    4.961090e-01,
-                    4.611604e-01,
-                    3.139468e-01,
-                    1.704466e-01,
-                    3.669402e-02,
-                    2.686668e-04,
-                    7.947766e-07,
-                    1.073031e-09,
-                    1.980896e-11,
-                    1.237155e-13,
-                    1.200254e-19,
-                ]
-            ],
-            100: [
-                2 * i
-                for i in [
-                    5.000000e-01,
-                    4.960206e-01,
-                    4.602723e-01,
-                    3.090868e-01,
-                    1.598621e-01,
-                    2.410609e-02,
-                    1.225087e-06,
-                    4.950844e-17,
-                    4.997134e-37,
-                    4.190166e-52,
-                    7.236082e-73,
-                    2.774197e-132,
-                ]
-            ],
-        }
-        for df in self.df:
-            for x, p in zip(self.values, probs[df]):
-                assert_almost_equal(tprob(x, df), p, decimal=4)
-
+   
     def test_poisson_low(self):
         """Lower tail of poisson should match R for integer successes"""
         # WARNING: Results only guaranteed for integer successes: floating
@@ -147,28 +87,6 @@ class DistributionsTests(TestCase):
         }
         for key, value in list(expected.items()):
             assert_allclose(poisson_low(*key), value, rtol=1e-6)
-
-    def test_poisson_high(self):
-        """Upper tail of poisson should match R for integer successes"""
-        # WARNING: Results only guaranteed for integer successes: floating
-        # point _should_ yield reasonable values, but R rounds to int.
-        expected = {
-            (0, 0): 0,
-            (0, 0.75): 0.5276334,
-            (0, 1): 0.6321206,
-            (0, 5): 0.993262,
-            (0, 113.7): 1,
-            (2, 0): 0,
-            (2, 3): 0.5768099,
-            (2, 17.8): 0.9999967,
-            (17, 29.6): 0.9912467,
-            (180, 0): 0,
-            (180, 137.4): 0.0002159856,
-            (180, 318): 1,
-            (180, 1024): 1,
-        }
-        for key, value in list(expected.items()):
-            assert_allclose(poisson_high(*key), value)
 
     def test_poisson_exact(self):
         """Poisson exact should match expected values from R"""

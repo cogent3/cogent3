@@ -24,6 +24,7 @@ from cogent3.maths.stats.special import (
     ndtri,
 )
 
+from cogent3.util import warning as c3warn
 
 # ndtri import b/c it should be available via this module
 
@@ -41,6 +42,13 @@ def zprob(x):
 def tprob(x, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
     return 2 * t.sf(abs(x), df)
+
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.stats.t.sf() instead", is_discontinued=True
+)
+def tprob(x, df):   # pragma: no cover
+    """being removed"""
+
 
 
 def poisson_high(successes, mean):

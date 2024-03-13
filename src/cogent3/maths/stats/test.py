@@ -30,7 +30,7 @@ from numpy.random import permutation, randint
 from scipy.stats import binom, f, norm, t
 from scipy.stats.distributions import chi2
 
-from cogent3.maths.stats.distribution import fprob, ndtri, tprob, zprob
+from cogent3.maths.stats.distribution import fprob, ndtri, zprob
 from cogent3.maths.stats.kendall import kendalls_tau, pkendall
 from cogent3.maths.stats.ks import pkstwo, psmirnov2x
 from cogent3.maths.stats.number import NumberCounter
@@ -1239,17 +1239,6 @@ def z_tailed_prob(z, tails):
         return zprob(z)
 
 
-def t_tailed_prob(x, df, tails):
-    """Return appropriate p-value for given t and df, depending on tails."""
-    tails = tails or "2"
-    tails = _get_alternate(str(tails))
-
-    if tails == ALT_HIGH:
-        return t.sf(x, df)
-    elif tails == ALT_LOW:
-        return t.cdf(x, df)
-    else:
-        return tprob(x, df)
 
 
 def reverse_tails(tails):
