@@ -8,7 +8,6 @@ from numpy import array, exp, sqrt
 from scipy.stats import f, norm, t
 from scipy.stats.distributions import chi2
 
-from cogent3.util import warning as c3warn
 from cogent3.maths.stats.special import (
     MACHEP,
     MAXNUM,
@@ -24,6 +23,7 @@ from cogent3.maths.stats.special import (
     log1p,
     ndtri,
 )
+from cogent3.util import warning as c3warn
 
 
 # ndtri import b/c it should be available via this module
