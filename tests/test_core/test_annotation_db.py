@@ -960,7 +960,7 @@ def test_gff_end_renamed_to_stop(DATA_DIR, gb_db):
     del old_rich_dict["init_args"]
     del new_rich_dict["init_args"]
 
-    assert old_rich_dict != new_rich_dict
+    assert old_rich_dict == new_rich_dict
 
 
 def test_gbdb_get_children_fails_no_coords(gb_db):
