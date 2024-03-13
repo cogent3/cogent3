@@ -832,6 +832,44 @@ class trim_stop_codons:
         -------
         A new sequence collection, or False if not all the named sequences are
         in the collection.
+
+        Examples
+        --------
+        Removes trailing stop codons from sequences in a sequence collection or alignment
+
+        >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, get_app
+
+        Create a sample unaligned sequence data and an app to remove stop codons
+
+        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons")
+        >>> result = app(ualn)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
+
+        Create an app to remove stop codons, use different genetic code
+        
+        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons", gc=1)
+        >>> result = app(ualn)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
+
+        Create a sample alignment sequence data
+
+        >>> aln = make_aligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons", gc=1)
+        >>> result = app(aln)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT---'}
+
+        Create an app to remove stop codons, use different genetic code
+
+        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTAGA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons", gc=2)
+        >>> result = app(ualn)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
         """
         self._gc = gc
 
