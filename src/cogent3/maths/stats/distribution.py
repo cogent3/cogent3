@@ -53,10 +53,7 @@ def poisson_high(successes, mean):  # pragma: no cover
     """being removed"""
     return pdtrc(successes, mean)
 
-from scipy.stats import poisson
 
-
-#from cogent3.util import warning as c3warn
 
 
 @c3warn.deprecated_callable(
@@ -65,9 +62,10 @@ from scipy.stats import poisson
         is_discontinued = True
         )
 
-def poisson_low(successes, mean):
+def poisson_low(successes, mean): # pragma: no cover
     """being removed"""
-    return poisson.cdf(successes, mean)
+    return pdtr(successes, mean)
+
 
 
 def poisson_exact(successes, mean):
