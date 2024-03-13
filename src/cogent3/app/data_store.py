@@ -690,6 +690,18 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             logs.append(m)
         return logs
 
+    def _iter_matches(self, subdir: str, pattern: str) -> Iterator[PathLike]:
+        with zipfile.ZipFile(self._source) as archive:
+            names = archive.namelist()
+        for name in names:
+            name = pathlib.Path(name)
+            if name.name.startswith('.'):
+                continue
+            if subdir and name.parent.name != subdir:
+                continue
+            if name.match(pattern):
+                yield name
+
     def md5(self, unique_id: str) -> Union[str, NoneType]:
         """
         Parameters
