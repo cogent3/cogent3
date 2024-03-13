@@ -107,7 +107,7 @@ def combinations(n, k):  # pragma: no cover
 
     Defined as n!/(k!(n-k)!).
     """
-    # Validation: k must be be between 0 and n (inclusive), and n must be >=0. 
+    # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
         raise IndexError(f"Can't choose {k} items from {n}")
     elif k < 0:
