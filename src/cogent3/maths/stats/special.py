@@ -100,13 +100,14 @@ def ln_permutations(n, k):
     return lgam(n + 1) - lgam(n - k + 1)
 
 @c3warn.deprecated_callable(
-    version="2024.9", reason="No being used.", is_discontinued=True
+    version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
 )
 def combinations(n, k):  # pragma: no cover
+    """Returns the number of ways of choosing k items from n, in order.
+
+    Defined as n!/(k!(n-k)!).
     """
-    Deprecated function, user can found alternative in scipy.stats module
-    """
-    # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
+    # Validation: k must be be between 0 and n (inclusive), and n must be >=0. 
     if k > n:
         raise IndexError(f"Can't choose {k} items from {n}")
     elif k < 0:
@@ -120,11 +121,14 @@ def combinations(n, k):  # pragma: no cover
         return exp(ln_combinations(n, k))
 
 @c3warn.deprecated_callable(
-    version="2024.9", reason="No being used.", is_discontinued=True
+    version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
 )
 def combinations_exact(n, k):  # pragma: no cover
-    """
-    Deprecated function, user can found alternative in scipy.stats module
+    """Calculates combinations by integer division.
+
+    Preferred method for small combinations, but slow on larger ones.
+
+    Note: no error checking (expects to be called through combinations())
     """
     # permutations(n, k) = permutations(n, n-k), so reduce computation by
     # figuring out which requires calculation of fewer terms.
@@ -147,11 +151,14 @@ def combinations_exact(n, k):  # pragma: no cover
     return product
 
 @c3warn.deprecated_callable(
-    version="2024.9", reason="No being used.", is_discontinued=True
+    version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
 )
 def ln_combinations(n, k):  # pragma: no cover
-    """
-    Deprecated function, user can found alternative in scipy.stats module
+    """Calculates combinations by difference in log of gamma function.
+
+    Preferred method for large combinations, but slow on smaller ones.
+
+    Note: no error checking (expects to be called through combinations())
     """
     return lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1)
 
