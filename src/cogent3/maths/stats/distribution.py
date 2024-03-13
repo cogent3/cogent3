@@ -74,9 +74,7 @@ def poisson_exact(successes, mean):
 
 
 @c3warn.deprecated_callable(
-    version="2024.9",
-    reason="use scipy.stats.binom.pmf()instead", 
-    is_discontinued=True
+    version="2024.9", reason="use scipy.stats.binom.pmf()instead", is_discontinued=True
 )
 def binomial_exact(successes, trials, prob):
     """Returns binomial probability of exactly X successes.
