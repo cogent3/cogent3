@@ -292,7 +292,7 @@ def test_gb_get_children(gb_db, parent_biotype, name):
             name=name,
             exclude_biotype=parent_biotype,
             start=coords.min(),
-            end=coords.max(),
+            stop=coords.max(),
         )
     )[0]
     assert child["biotype"] != parent["biotype"]
@@ -308,7 +308,7 @@ def test_gb_get_parent(gb_db):
             name=cds_id,
             exclude_biotype="CDS",
             start=coords.min(),
-            end=coords.max(),
+            stop=coords.max(),
         )
     )[0]
     assert parent["biotype"] != cds["biotype"]
@@ -474,8 +474,8 @@ def test_get_features_matching_start_stop(DATA_DIR, seq):
 
 
 def test_matching_conditions():
-    got, _ = _matching_conditions({"start": 1, "end": 5}, allow_partial=True)
-    expect = "((start >= 1 AND end <= 5) OR (start <= 1 AND end > 1) OR (start < 5 AND end >= 5) OR (start <= 1 AND end >= 5))"
+    got, _ = _matching_conditions({"start": 1, "stop": 5}, allow_partial=True)
+    expect = "((start >= 1 AND stop <= 5) OR (start <= 1 AND stop > 1) OR (start < 5 AND stop >= 5) OR (start <= 1 AND stop >= 5))"
     assert got == expect
 
 
@@ -955,7 +955,7 @@ def test_load_annotations_invalid_path():
 @pytest.mark.parametrize("integer", (int, numpy.int64))
 def test_subset_gff3_db(gff_db, integer):
     subset = gff_db.subset(
-        seqid="I", start=integer(40), end=integer(70), allow_partial=True
+        seqid="I", start=integer(40), stop=integer(70), allow_partial=True
     )
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
@@ -963,7 +963,7 @@ def test_subset_gff3_db(gff_db, integer):
 
 
 def test_subset_empty_db(gff_db):
-    subset = gff_db.subset(seqid="X", start=40, end=70, allow_partial=True)
+    subset = gff_db.subset(seqid="X", start=40, stop=70, allow_partial=True)
     # no records
     assert not len(subset)
 
@@ -973,7 +973,7 @@ def test_subset_gff3_db_with_user(gff_db):
         seqid="I", name="gene-01", biotype="gene", spans=[(23, 43)], strand="+"
     )
     gff_db.add_feature(**record)
-    subset = gff_db.subset(seqid="I", start=40, end=70, allow_partial=True)
+    subset = gff_db.subset(seqid="I", start=40, stop=70, allow_partial=True)
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 7
@@ -988,7 +988,7 @@ def test_subset_gb_db(gb_db):
 def test_subset_gff3_db_source(gff_db, tmp_dir):
     outpath = tmp_dir / "subset.gff3db"
     subset = gff_db.subset(
-        seqid="I", start=40, end=70, allow_partial=True, source=outpath
+        seqid="I", start=40, stop=70, allow_partial=True, source=outpath
     )
     subset.db.close()
 

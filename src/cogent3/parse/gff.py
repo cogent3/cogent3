@@ -87,32 +87,32 @@ def _gff_parser(
         if len(cols) == 8:
             cols.append("")
         assert len(cols) == 9, len(line)
-        seqid, source, type_, start, end, score, strand, phase, attributes = cols
+        seqid, source, type_, start, stop, score, strand, phase, attributes = cols
 
         if seqids and seqid not in seqids:
             continue
 
         # adjust for 0-based indexing
-        start, end = int(start) - 1, int(end)
-        # start is always meant to be less than end in GFF
+        start, stop = int(start) - 1, int(stop)
+        # start is always meant to be less than stop in GFF
         # features that extend beyond sequence have negative indices
-        if start < 0 or end < 0:
-            start, end = abs(start), abs(end)
-            if start > end:
-                start, end = end, start
+        if start < 0 or stop < 0:
+            start, stop = abs(start), abs(stop)
+            if start > stop:
+                start, stop = stop, start
         # reverse indices when the feature is on the opposite strand
         if strand == "-":
-            (start, end) = (end, start)
+            (start, stop) = (stop, start)
 
         # all attributes have an "ID" but this may not be unique
-        attributes = attribute_parser(attributes, (start, end))
+        attributes = attribute_parser(attributes, (start, stop))
 
         yield {
             "SeqID": seqid,
             "Source": source,
             "Type": type_,
             "Start": start,
-            "End": end,
+            "Stop": stop,
             "Score": score,
             "Strand": strand,
             "Phase": phase,
