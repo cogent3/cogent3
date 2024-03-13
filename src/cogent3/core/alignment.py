@@ -18,6 +18,7 @@
     passed in a stream of two-item label, sequence pairs. However, this can
     cause confusion when testing.
 """
+
 from __future__ import annotations
 
 import functools
@@ -5289,7 +5290,7 @@ class Alignment(AlignmentI, SequenceCollection):
             seqname = seqid_to_seqname[seqid]
             seq = self.named_seqs[seqname]
             # we use parent seqid, stored on SeqView
-            parent_id, start, end, _ = seq.data.parent_coordinates()
+            parent_id, start, stop, _ = seq.data.parent_coordinates()
             offset = seq.data.annotation_offset
 
             for feature in self.annotation_db.get_features_matching(
@@ -5299,7 +5300,7 @@ class Alignment(AlignmentI, SequenceCollection):
                 on_alignment=False,
                 allow_partial=allow_partial,
                 start=start,
-                end=end,
+                stop=stop,
             ):
                 if offset:
                     feature["spans"] = (array(feature["spans"]) - offset).tolist()

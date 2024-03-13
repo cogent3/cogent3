@@ -187,14 +187,14 @@ class Feature:
         """generator returns parent features of self optionally matching biotype"""
         offset = getattr(self.parent, "annotation_offset", 0)
         start = self.map.start + offset
-        end = self.map.end + offset
+        stop = self.map.end + offset
 
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
         for record in db.get_feature_parent(
             name=self.name,
             start=start,
-            end=end,
+            stop=stop,
             **kwargs,
         ):
             record["spans"] = array(record["spans"]) - offset
