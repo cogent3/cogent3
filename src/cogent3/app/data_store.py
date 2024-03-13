@@ -638,15 +638,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             record = TextIOWrapper(record, encoding="latin-1")
             return record.read()
 
-    def _iter_matches(self, subdir: str, pattern: str) -> Iterator[PathLike]:
-        with zipfile.ZipFile(self._source) as archive:
-            names = archive.namelist()
-            for name in names:
-                name = pathlib.Path(name)
-                if subdir and name.parent.name != subdir:
-                    continue
-                if name.match(pattern):
-                    yield name
+
 
     @property
     def completed(self) -> list[DataMember]:
