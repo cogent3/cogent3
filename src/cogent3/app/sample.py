@@ -754,6 +754,58 @@ class omit_duplicated:
             set random number seed. Only applied of choose=='random'
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+        The sequence collection used can be either aligned or unaligned, and the type of sequence
+        can be either DNA or RNA.
+
+        Create sample data with duplicated sequences:
+
+        >>> from cogent3 import app_help, get_app, make_aligned_seqs, make_unaligned_seqs
+        >>> seq_collection = {
+        "a": "ACGT",
+        "b": "ACG-",  # identical excepting gaps
+        "c": "ACGG",  # duplicated
+        "d": "ACGG",  # duplicated
+        "e": "AGTC"   # unique
+        }
+
+        Create an app that omits duplicate sequences
+
+        >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
+        >>> seqs = make_aligned_seqs(seq_collection, moltype="DNA")
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+        a    ACGT
+        b    ...-
+        d    ...G
+        e    .GTC    
+
+        Exclude all members of duplicated sets:
+
+        >>> app = get_app("omit_duplicated", moltype="dna", choose=None)
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+        a    ACGT
+        b    ...-
+        e    .GTC
+
+
+        Ignore degenerate characters when identifying duplicates:
+
+        >>> aln_dna = make_aligned_seqs({
+        "seq1": "ATCG", 
+        "seq2": "ATYG", 
+        "seq3": "GGTA",
+        "seq4": "GGTA"
+        }, 
+        moltype="DNA")
+        >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
+        >>> result = app_dna(aln_dna)
+        >>> print(result.to_pretty())
+        seq1    ATCG
+        seq4    GGTA
         """
         assert not choose or choose in "longestrandom"
         if moltype:
