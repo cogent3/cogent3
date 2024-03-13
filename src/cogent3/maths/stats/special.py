@@ -102,7 +102,7 @@ def ln_permutations(n, k):
 @c3warn.deprecated_callable(
     version="2024.9", reason="No being used.", is_discontinued=True
 )
-def combinations(n, k): # pragma: no cover
+def combinations(n, k):  # pragma: no cover
     """
     Deprecated function, user can found alternative in scipy.stats module
     """
@@ -122,8 +122,8 @@ def combinations(n, k): # pragma: no cover
 @c3warn.deprecated_callable(
     version="2024.9", reason="No being used.", is_discontinued=True
 )
-def combinations_exact(n, k): # pragma: no cover
-     """
+def combinations_exact(n, k):  # pragma: no cover
+    """
     Deprecated function, user can found alternative in scipy.stats module
     """
     # permutations(n, k) = permutations(n, n-k), so reduce computation by
@@ -149,8 +149,8 @@ def combinations_exact(n, k): # pragma: no cover
 @c3warn.deprecated_callable(
     version="2024.9", reason="No being used.", is_discontinued=True
 )
-def ln_combinations(n, k): # pragma: no cover
-     """
+def ln_combinations(n, k):  # pragma: no cover
+    """
     Deprecated function, user can found alternative in scipy.stats module
     """
     return lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1)
