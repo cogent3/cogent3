@@ -8,6 +8,7 @@ from numpy import array, exp, sqrt
 from scipy.stats import f, norm, t
 from scipy.stats.distributions import chi2
 
+from cogent3.util import warning as c3warn
 from cogent3.maths.stats.special import (
     MACHEP,
     MAXNUM,
@@ -43,11 +44,13 @@ def tprob(x, df):
     return 2 * t.sf(abs(x), df)
 
 
-def poisson_high(successes, mean):
-    """Returns right tail of Poission distribution, Pr(X > x).
-
-    successes ranges from 0 to infinity. mean must be positive.
-    """
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.stats.poisson.sf() instead",
+    is_discontinued=True,
+)
+def poisson_high(successes, mean):  # pragma: no cover
+    """being removed"""
     return pdtrc(successes, mean)
 
 
