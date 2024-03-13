@@ -937,6 +937,32 @@ def test_load_anns_with_write(DATA_DIR, tmp_dir):
     assert got_data["tables"] == expect_data["tables"]
 
 
+def test_gff_end_renamed_to_stop(DATA_DIR, gff_db):
+    inpath = DATA_DIR / "old_col.gffdb"
+    old_db = GffAnnotationDb(source=inpath)
+
+    old_rich_dict = old_db.to_rich_dict()
+    new_rich_dict = gff_db.to_rich_dict()
+
+    del old_rich_dict["init_args"]
+    del new_rich_dict["init_args"]
+
+    assert old_rich_dict == new_rich_dict
+
+
+def test_gff_end_renamed_to_stop(DATA_DIR, gb_db):
+    inpath = DATA_DIR / "old_col.gbkdb"
+    old_db = GenbankAnnotationDb(source=inpath)
+
+    old_rich_dict = old_db.to_rich_dict()
+    new_rich_dict = gb_db.to_rich_dict()
+
+    del old_rich_dict["init_args"]
+    del new_rich_dict["init_args"]
+
+    assert old_rich_dict != new_rich_dict
+
+
 def test_gbdb_get_children_fails_no_coords(gb_db):
     with pytest.raises(ValueError):
         _ = list(gb_db.get_feature_children(name="CNA00110"))
