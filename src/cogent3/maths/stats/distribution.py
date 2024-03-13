@@ -23,7 +23,7 @@ from cogent3.maths.stats.special import (
     log1p,
     ndtri,
 )
-from cogent3.util import warning as c3warn
+#from cogent3.util import warning as c3warn
 
 
 # ndtri import b/c it should be available via this module
@@ -56,7 +56,7 @@ def poisson_high(successes, mean):  # pragma: no cover
 from scipy.stats import poisson
 
 
-#from cogent3.util import warning as c3warn
+from cogent3.util import warning as c3warn
 
 
 @c3warn.deprecated_callable(
