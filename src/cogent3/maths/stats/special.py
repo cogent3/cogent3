@@ -4,6 +4,7 @@
 
 from numpy import exp, floor, log, sin, sqrt
 
+from cogent3.util import warning as c3warn
 
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
 # For IEEE arithmetic (IBMPC):
@@ -98,11 +99,12 @@ def ln_permutations(n, k):
     """
     return lgam(n + 1) - lgam(n - k + 1)
 
-
-def combinations(n, k):
-    """Returns the number of ways of choosing k items from n, in order.
-
-    Defined as n!/(k!(n-k)!).
+@c3warn.deprecated_callable(
+    version="2024.9", reason="No being used.", is_discontinued=True
+)
+def combinations(n, k): # pragma: no cover
+    """
+    Deprecated function, user can found alternative in scipy.stats module
     """
     # Validation: k must be be between 0 and n (inclusive), and n must be >=0.
     if k > n:
@@ -117,13 +119,12 @@ def combinations(n, k):
     else:
         return exp(ln_combinations(n, k))
 
-
-def combinations_exact(n, k):
-    """Calculates combinations by integer division.
-
-    Preferred method for small combinations, but slow on larger ones.
-
-    Note: no error checking (expects to be called through combinations())
+@c3warn.deprecated_callable(
+    version="2024.9", reason="No being used.", is_discontinued=True
+)
+def combinations_exact(n, k): # pragma: no cover
+     """
+    Deprecated function, user can found alternative in scipy.stats module
     """
     # permutations(n, k) = permutations(n, n-k), so reduce computation by
     # figuring out which requires calculation of fewer terms.
@@ -145,13 +146,12 @@ def combinations_exact(n, k):
 
     return product
 
-
-def ln_combinations(n, k):
-    """Calculates combinations by difference in log of gamma function.
-
-    Preferred method for large combinations, but slow on smaller ones.
-
-    Note: no error checking (expects to be called through combinations())
+@c3warn.deprecated_callable(
+    version="2024.9", reason="No being used.", is_discontinued=True
+)
+def ln_combinations(n, k): # pragma: no cover
+     """
+    Deprecated function, user can found alternative in scipy.stats module
     """
     return lgam(n + 1) - lgam(k + 1) - lgam(n - k + 1)
 
