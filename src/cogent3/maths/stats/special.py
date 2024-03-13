@@ -248,7 +248,7 @@ ZU = [
     4.92673942608635921086e4,
 ]
 
-
+# Can not find substitution.
 @c3warn.deprecated_callable(version="2024.9", reason="use scipy.stats.???instead", is_discontinued=True)
 def erf(a): # pragma: no cover
     """being removed""" 
