@@ -190,7 +190,6 @@ class DistributionsTests(TestCase):
         for key, value in list(expected.items()):
             assert_allclose(poisson_exact(*key), value, rtol=1e-6)
 
-
     def test_fprob(self):
         """fprob should return twice the tail on a particular side"""
         error = 1e-4
