@@ -5,7 +5,7 @@ which is (c) Stephen L. Moshier 1984, 1995.
 
 from numpy import arctan as atan
 from numpy import array, exp, sqrt
-from scipy.stats import f, norm, t
+from scipy.stats import f, norm, poisson, t
 from scipy.stats.distributions import chi2
 
 from cogent3.maths.stats.special import (
@@ -23,6 +23,7 @@ from cogent3.maths.stats.special import (
     log1p,
     ndtri,
 )
+from cogent3.util import warning as c3warn
 
 
 # ndtri import b/c it should be available via this module
@@ -43,12 +44,14 @@ def tprob(x, df):
     return 2 * t.sf(abs(x), df)
 
 
-def poisson_high(successes, mean):
-    """Returns right tail of Poission distribution, Pr(X > x).
-
-    successes ranges from 0 to infinity. mean must be positive.
-    """
-    return pdtrc(successes, mean)
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.stats.poisson.sf() instead",
+    is_discontinued=True,
+)
+def poisson_high(successes, mean):  # pragma: no cover
+    """being removed"""
+    return poisson.sf(successes, mean)
 
 
 def poisson_low(successes, mean):
