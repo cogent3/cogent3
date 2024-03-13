@@ -60,7 +60,6 @@ from cogent3.util import warning as c3warn
     reason="use scipy.stats.poisson.cdf() instead",
     is_discontinued=True)
 
-from scipy.stats import poisson
 from cogent3.util import warning as c3warn
 
 @c3warn.deprecated_callable(
