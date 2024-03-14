@@ -6,34 +6,28 @@ import inspect
 import re
 import textwrap
 
+from stevedore.extension import ExtensionManager
+
 from cogent3.util.table import Table
 
 from .io import open_data_store
 
 
-__all__ = [
-    "align",
-    "composable",
-    "dist",
-    "evo",
-    "io",
-    "sample",
-    "translate",
-    "tree",
-]
+def _get_app_attr(name):
+    """
+    returns app details for display
+    NB: this loads the module the app is in
+    """
 
+    obj = __plugin_Manager[name].plugin
 
-def _get_app_attr(name, is_composable):
-    """returns app details for display"""
-
-    modname, name = name.rsplit(".", maxsplit=1)
-    mod = importlib.import_module(modname)
-    obj = getattr(mod, name)
+    # TODO: check this is the best way to determine if an app is composable
+    is_composable = hasattr(obj, "app_type")
 
     _types = _make_types(obj)
 
     return [
-        mod.__name__,
+        obj.__module__,
         name,
         is_composable,
         _doc_summary(obj.__doc__ or ""),
@@ -52,6 +46,9 @@ def _make_types(app) -> dict:
     return _types
 
 
+__plugin_Manager = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
+
+
 def available_apps(name_filter: str | None = None) -> Table:
     """returns Table listing the available apps
 
@@ -62,17 +59,12 @@ def available_apps(name_filter: str | None = None) -> Table:
     """
     from cogent3.util.table import Table
 
-    from .composable import __app_registry
-
-    # registration of apps does not happen until their modules are imported
-    for name in __all__:
-        importlib.import_module(f"cogent3.app.{name}")
-
     # exclude apps from deprecated modules
     deprecated = []
 
     rows = []
-    for app, is_comp in __app_registry.items():
+
+    for app in __plugin_Manager.names():
         if any(app.startswith(d) for d in deprecated):
             continue
 
@@ -81,7 +73,7 @@ def available_apps(name_filter: str | None = None) -> Table:
 
         with contextlib.suppress(AttributeError):
             # probably a local scope issue in testing!
-            rows.append(_get_app_attr(app, is_comp))
+            rows.append(_get_app_attr(app))
 
     header = ["module", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
@@ -155,9 +147,7 @@ def _get_app_matching_name(name: str):
         raise NameError(f"no app matching name {name!r}")
     elif table.shape[0] > 1:
         raise NameError(f"too many apps matching name {name!r},\n{table}")
-    modname, _ = table.to_list(columns=["module", "name"])[0]
-    mod = importlib.import_module(modname)
-    return getattr(mod, name)
+    return __plugin_Manager[name].plugin
 
 
 def get_app(_app_name: str, *args, **kwargs):

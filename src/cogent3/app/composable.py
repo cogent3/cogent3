@@ -401,9 +401,6 @@ def _validate_data_type(self, data):
     return valid
 
 
-__app_registry = {}
-
-
 def _class_from_func(func):
     """make a class based on func
 
@@ -631,8 +628,6 @@ def define_app(
             # not supporting this yet
             raise NotImplementedError("slots are not currently supported")
 
-        # register this app
-        __app_registry[get_object_provenance(klass)] = composable
         return klass
 
     return wrapped(klass) if klass else wrapped
@@ -704,6 +699,7 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
 
 def is_composable(obj):
     """checks whether obj has been registered by the composable decorator"""
+    # TODO - find a way to determine if a plugin app is composable
     return __app_registry.get(get_object_provenance(obj), False)
 
 
