@@ -173,7 +173,7 @@ class blah:
     def main(self, val: int) -> int:
         return val + self.constant
 
-
+@pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
 @pytest.mark.parametrize(
     "app_doc,init_doc", ((None, None), ("text", None), (None, "text"), ("text", "text"))
 )
@@ -189,6 +189,7 @@ def test_app_help_no_docs(capsys, app_doc, init_doc):
         assert "Options" in got
 
 
+@pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
 def test_app_help_doctest_examples(capsys):
     app_doc = "A line of text describing the app."
     init_doc = "\n        Parameters\n        ----------\n        arg\n        arg description\n\n        Examples\n        --------\n        How to use the app\n\n        >>>blah(arg)\n        output\n"
