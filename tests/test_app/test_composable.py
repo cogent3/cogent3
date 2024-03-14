@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from pickle import dumps, loads
 from typing import Set, Tuple
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -13,7 +13,7 @@ from numpy import array, ndarray
 from scitrack import CachingLogger
 
 from cogent3 import get_app, make_aligned_seqs, open_data_store
-from cogent3.app import align, evo
+from cogent3.app import __plugin_manager, align, evo
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree
@@ -22,7 +22,6 @@ from cogent3.app.composable import (
     NON_COMPOSABLE,
     WRITER,
     NotCompleted,
-    __app_registry,
     _add,
     _get_raw_hints,
     define_app,
@@ -185,8 +184,6 @@ def test_composable():
     expect = "app_dummyclass_1(a=1) + " "app_dummyclass_2(b=2)"
     got = str(comb)
     assert got == expect
-    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
-    __app_registry.pop(get_object_provenance(app_dummyclass_2), None)
 
 
 def test_composables_once():
@@ -223,10 +220,6 @@ def test_composables_once():
     with pytest.raises(ValueError):
         two + three  # three already has an input
 
-    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
-    __app_registry.pop(get_object_provenance(app_dummyclass_2), None)
-    __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
-
 
 def test_composable_to_self():
     """this should raise a ValueError"""
@@ -242,8 +235,6 @@ def test_composable_to_self():
     app1 = app_dummyclass_1(1)
     with pytest.raises(ValueError):
         _ = app1 + app1
-
-    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
 
 
 def test_disconnect():
@@ -282,10 +273,6 @@ def test_disconnect():
     assert aseqfunc3.input is None
     # should be able to compose a new one now
     aseqfunc1 + aseqfunc3
-
-    __app_registry.pop(get_object_provenance(app_dummyclass_1), None)
-    __app_registry.pop(get_object_provenance(app_dummyclass_2), None)
-    __app_registry.pop(get_object_provenance(app_dummyclass_3), None)
 
 
 def test_as_completed(DATA_DIR):
@@ -600,10 +587,6 @@ def bar(val: AlignedSeqsType, num=3) -> PairwiseDistanceType:
     return val.distance_matrix(calc="hamming", show_progress=False)
 
 
-for _app_ in (foo, bar, foo_without_arg_kwargs):
-    __app_registry.pop(get_object_provenance(_app_), None)
-
-
 def test_user_function():
     """composable functions should be user definable"""
 
@@ -651,20 +634,6 @@ def test_user_function_str():
     assert got == "bar(num=3)"
 
 
-def test_app_registry():
-    """correctly registers apps"""
-
-    @define_app
-    class app_test_registry1:
-        def main(self, data: int) -> int:
-            return data
-
-    assert __app_registry["test_composable.app_test_registry1"]
-
-    # delete it to not include in app available apps
-    __app_registry.pop(get_object_provenance(app_test_registry1), None)
-
-
 def test_app_is_composable():
     """check is_composable for composable apps"""
 
@@ -674,9 +643,6 @@ def test_app_is_composable():
             return data
 
     assert is_composable(app_test_iscomposable1)
-
-    # delete it to not include in app available apps
-    __app_registry.pop(get_object_provenance(app_test_iscomposable1), None)
 
 
 def test_app_is_not_composable():
@@ -720,8 +686,6 @@ def test_composable_variable_positional_args():
 
     instance = pos_var_pos1(2, 3, 4, 5, 6)
     assert instance._init_vals == {"a": 2, "b": 3, "args": (4, 5, 6)}
-
-    __app_registry.pop(get_object_provenance(pos_var_pos1), None)
 
 
 def test_composable_minimum_parameters():
@@ -796,8 +760,6 @@ def test_composable_variable_positional_args_and_kwargs():
     instance = pos_var_pos_kw2(2, 3, 4, 5, 6, c=True)
     assert instance._init_vals == {"a": 2, "args": (3, 4, 5, 6), "c": True}
 
-    __app_registry.pop(get_object_provenance(pos_var_pos_kw2), None)
-
 
 def test_app_decoration_fails_with_slots():
     with pytest.raises(NotImplementedError):
@@ -825,8 +787,6 @@ def test_repeated_decoration():
     with pytest.raises(TypeError):
         define_app(app_decorated_repeated1)
 
-    __app_registry.pop(get_object_provenance(app_decorated_repeated1), None)
-
 
 def test_recursive_decoration():
     @define_app
@@ -840,8 +800,6 @@ def test_recursive_decoration():
 
     with pytest.raises(TypeError):
         app_docorated_recursive1().main(1)
-
-    __app_registry.pop(get_object_provenance(app_docorated_recursive1), None)
 
 
 def test_inheritance_from_decorated_class():
@@ -863,8 +821,6 @@ def test_inheritance_from_decorated_class():
             def main(self, val: int) -> int:
                 return val
 
-    __app_registry.pop(get_object_provenance(app_decorated_first1), None)
-
 
 # have to define this at module level for pickling to work
 @define_app
@@ -879,8 +835,6 @@ def test_decorate_app_function():
     assert sqd(3) == 9
     assert inspect.isclass(func2app)
 
-    __app_registry.pop(get_object_provenance(func2app), None)
-
 
 def test_roundtrip_decorated_function():
     """decorated function can be pickled/unpickled"""
@@ -888,8 +842,6 @@ def test_roundtrip_decorated_function():
     sqd = func2app(exponent=2)
     u = pickle.loads(pickle.dumps(sqd))
     assert u(4) == 16
-
-    __app_registry.pop(get_object_provenance(func2app), None)
 
 
 def test_decorated_func_optional():
@@ -899,8 +851,6 @@ def test_decorated_func_optional():
 
     sqd = power(2)
     assert sqd(3) == 9
-
-    __app_registry.pop(get_object_provenance(power), None)
 
 
 def test_decorated_func_repr():
@@ -935,8 +885,6 @@ def test_decorated_func_repr():
 
         assert repr(instance) == expect, name
 
-        __app_registry.pop(get_object_provenance(instance), None)
-
 
 def test_decorated_func_just_args():
     @define_app(app_type=NON_COMPOSABLE)
@@ -945,8 +893,6 @@ def test_decorated_func_just_args():
 
     sqd = power()
     assert sqd(3, 3) == 27
-
-    __app_registry.pop(get_object_provenance(power), None)
 
 
 @pytest.mark.parametrize(
@@ -1022,9 +968,6 @@ def test_add_non_composable_apps():
     with pytest.raises(TypeError):
         app1 + app2
 
-    __app_registry.pop(get_object_provenance(app_non_composable1), None)
-    __app_registry.pop(get_object_provenance(app_non_composable2), None)
-
 
 _types_null = (list, []), (tuple, ())
 
@@ -1041,8 +984,6 @@ def test_handles_null_series_input(in_type, input):
     got = app(input)
     assert isinstance(got, NotCompleted)
 
-    __app_registry.pop(get_object_provenance(null_in), None)
-
 
 @pytest.mark.parametrize("ret_type", (0, array([]), [], {}))
 def test_handles_null_output(ret_type):
@@ -1056,8 +997,6 @@ def test_handles_null_output(ret_type):
     d = array([3, 3])
     got = app(d)
     assert isinstance(got, type(ret_type))
-
-    __app_registry.pop(get_object_provenance(null_out), None)
 
 
 def test_handles_None():
@@ -1081,8 +1020,6 @@ def test_handles_None():
     got = app(d)
     assert isinstance(got, NotCompleted)
 
-    __app_registry.pop(get_object_provenance(none_out), None)
-
 
 def test_validate_data_type_not_completed_pass_through():
     # returns the instance of a NotCompleted created by an input
@@ -1097,9 +1034,6 @@ def test_validate_data_type_not_completed_pass_through():
     app = take_int1() + take_int2()
     got = app(2)
     assert got.origin == "take_int1"
-
-    __app_registry.pop(get_object_provenance(take_int1), None)
-    __app_registry.pop(get_object_provenance(take_int2), None)
 
 
 @pytest.mark.parametrize("first,ret", ((Tuple[Set[str]], int), (int, Tuple[Set[str]])))
@@ -1131,8 +1065,6 @@ def test_complex_type_allowed_depths(hint):
     class x:
         def main(self, data: hint) -> int:
             return int
-
-    __app_registry.pop(get_object_provenance(x), None)
 
 
 def test_apply_to_only_appends(half_dstore1, half_dstore2):
@@ -1176,8 +1108,6 @@ def test_skip_not_completed():
     assert isinstance(got, dict)
     assert got == nc.to_rich_dict()
 
-    __app_registry.pop(get_object_provenance(takes_not_completed), None)
-
 
 def test_copies_doc_from_func():
     @define_app
@@ -1198,6 +1128,3 @@ def test_copies_doc_from_func():
 
     assert delme2.__doc__ == "my docstring"
     assert delme2.__init__.__doc__.split() == ["Notes", "-----", "body"]
-
-    __app_registry.pop(get_object_provenance(delme), None)
-    __app_registry.pop(get_object_provenance(delme2), None)

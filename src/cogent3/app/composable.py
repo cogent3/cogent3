@@ -699,8 +699,8 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
 
 def is_composable(obj):
     """checks whether obj has been registered by the composable decorator"""
-    # TODO - find a way to determine if a plugin app is composable
-    return __app_registry.get(get_object_provenance(obj), False)
+    # TODO - is this the best way to determine if an app is composable
+    return hasattr(obj, "app_type")
 
 
 def _apply_to(

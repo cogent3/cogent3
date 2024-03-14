@@ -19,7 +19,7 @@ def _get_app_attr(name):
     NB: this loads the module the app is in
     """
 
-    obj = __plugin_Manager[name].plugin
+    obj = apps()[name].plugin
 
     # TODO: check this is the best way to determine if an app is composable
     is_composable = hasattr(obj, "app_type")
@@ -46,7 +46,16 @@ def _make_types(app) -> dict:
     return _types
 
 
-__plugin_Manager = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
+# private global to hold an ExtensionManager instance
+__apps = None
+
+
+def apps():
+    """Lazy load a stevedore ExtensionManager to collect apps"""
+    global __apps
+    if not __apps:
+        __apps = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
+    return __apps
 
 
 def available_apps(name_filter: str | None = None) -> Table:
@@ -64,7 +73,7 @@ def available_apps(name_filter: str | None = None) -> Table:
 
     rows = []
 
-    for app in __plugin_Manager.names():
+    for app in apps().names():
         if any(app.startswith(d) for d in deprecated):
             continue
 
@@ -147,7 +156,7 @@ def _get_app_matching_name(name: str):
         raise NameError(f"no app matching name {name!r}")
     elif table.shape[0] > 1:
         raise NameError(f"too many apps matching name {name!r},\n{table}")
-    return __plugin_Manager[name].plugin
+    return apps()[name].plugin
 
 
 def get_app(_app_name: str, *args, **kwargs):

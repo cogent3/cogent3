@@ -8,13 +8,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
-from cogent3.app.composable import (
-    LOADER,
-    WRITER,
-    __app_registry,
-    define_app,
-    is_composable,
-)
+from cogent3.app.composable import LOADER, WRITER, define_app, is_composable
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
 
@@ -135,12 +129,10 @@ def test_available_apps_local():
 
     apps = available_apps()
     assert isinstance(apps, Table)
-    __app_registry.pop(get_object_provenance(dummy), None)
 
 
 @pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
 def test_get_app(name):
-    __app_registry.pop(get_object_provenance(min_length), None)
     app = get_app(name, 500)
     assert app.__class__.__name__.endswith(name.split(".")[-1])
 
@@ -151,18 +143,19 @@ def test_get_app_kwargs():
     _ = get_app("model", "F81", name="F81-model")
 
 
-@define_app
-def min_length(val: int) -> int:
-    return val
+# TODO: install an external app and test it appears in the _plugin_manager
+# @define_app
+# def min_length(val: int) -> int:
+#     return val
 
 
-def test_get_app_fail():
-    __app_registry[get_object_provenance(min_length)] = True
+# def test_get_app_fail():
+#     __app_registry[get_object_provenance(min_length)] = True
 
-    with pytest.raises(NameError):
-        _ = get_app("min_length", 500)
+#     with pytest.raises(NameError):
+#         _ = get_app("min_length", 500)
 
-    __app_registry.pop(get_object_provenance(min_length), None)
+#     __app_registry.pop(get_object_provenance(min_length), None)
 
 
 def test_app_help(capsys):
