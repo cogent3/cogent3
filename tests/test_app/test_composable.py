@@ -13,7 +13,7 @@ from numpy import array, ndarray
 from scitrack import CachingLogger
 
 from cogent3 import get_app, make_aligned_seqs, open_data_store
-from cogent3.app import __plugin_manager, align, evo
+from cogent3.app import align, evo
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app import translate, tree

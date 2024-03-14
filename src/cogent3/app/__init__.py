@@ -21,8 +21,7 @@ def _get_app_attr(name):
 
     obj = apps()[name].plugin
 
-    # TODO: check this is the best way to determine if an app is composable
-    is_composable = hasattr(obj, "app_type")
+    is_composable = hasattr(obj, "app_type") and obj.app_type != App_type.NON_COMPOSABLE
 
     _types = _make_types(obj)
 

@@ -699,8 +699,7 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
 
 def is_composable(obj):
     """checks whether obj has been registered by the composable decorator"""
-    # TODO - is this the best way to determine if an app is composable
-    return hasattr(obj, "app_type")
+    return hasattr(obj, "app_type") and obj.app_type != AppType.NON_COMPOSABLE
 
 
 def _apply_to(

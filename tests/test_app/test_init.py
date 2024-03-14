@@ -173,6 +173,7 @@ class blah:
     def main(self, val: int) -> int:
         return val + self.constant
 
+
 @pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
 @pytest.mark.parametrize(
     "app_doc,init_doc", ((None, None), ("text", None), (None, "text"), ("text", "text"))
