@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 import copy
 import inspect
+import io
 import json
 import os
 import pathlib
@@ -37,13 +38,16 @@ _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
 # Define custom types for storage in sqlite
 # https://stackoverflow.com/questions/18621513/python-insert-numpy-array-into-sqlite3-database
 def array_to_sqlite(data):
-    return data.tobytes()
+    out = io.BytesIO()
+    numpy.save(out, data)
+    out.seek(0)
+    return out.read()
 
 
 def sqlite_to_array(data):
-    result = numpy.frombuffer(data, dtype=int)
-    dim = result.shape[0] // 2
-    return result.reshape((dim, 2))
+    out = io.BytesIO(data)
+    out.seek(0)
+    return numpy.load(out)
 
 
 def dict_to_sqlite_as_json(data: dict) -> str:
@@ -72,14 +76,11 @@ class FeatureDataType(typing.TypedDict):
 
 @typing.runtime_checkable
 class SerialisableType(typing.Protocol):  # pragma: no cover
-    def to_rich_dict(self) -> dict:
-        ...
+    def to_rich_dict(self) -> dict: ...
 
-    def to_json(self) -> str:
-        ...
+    def to_json(self) -> str: ...
 
-    def from_dict(self, data):
-        ...
+    def from_dict(self, data): ...
 
 
 @typing.runtime_checkable
@@ -96,18 +97,15 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
-    ) -> typing.Iterator[FeatureDataType]:
-        ...
+    ) -> typing.Iterator[FeatureDataType]: ...
 
     def get_feature_children(
         self, *, name: str, start: OptionalInt = None, end: OptionalInt = None, **kwargs
-    ) -> typing.List[FeatureDataType]:
-        ...
+    ) -> typing.List[FeatureDataType]: ...
 
     def get_feature_parent(
         self, *, name: str, start: OptionalInt = None, end: OptionalInt = None, **kwargs
-    ) -> typing.List[FeatureDataType]:
-        ...
+    ) -> typing.List[FeatureDataType]: ...
 
     def num_matches(
         self,
@@ -118,8 +116,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
-    ) -> int:
-        ...
+    ) -> int: ...
 
     def subset(
         self,
@@ -131,8 +128,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         end: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
-    ):
-        ...
+    ): ...
 
 
 @typing.runtime_checkable
@@ -149,8 +145,7 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         attributes: OptionalStr = None,
         strand: OptionalStr = None,
         on_alignment: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def add_records(
         self,
@@ -158,8 +153,7 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         records: typing.Sequence[dict],
         # seqid required for genbank
         seqid: OptionalStr = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def update(self, annot_db, seqids: OptionalStrList = None) -> None:
         # update records with those from an instance of the same type
