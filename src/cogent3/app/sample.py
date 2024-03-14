@@ -757,24 +757,26 @@ class omit_duplicated:
 
         Examples
         --------
-        The sequence collection used can be either aligned or unaligned, and the type of sequence
-        can be either DNA or RNA.
+        Removes redundant sequences from a sequence collection (aligned or
+        unaligned).
 
         Create sample data with duplicated sequences:
 
         >>> from cogent3 import app_help, get_app, make_aligned_seqs, make_unaligned_seqs
         >>> seq_collection = {
-        "a": "ACGT",
-        "b": "ACG-",  # identical excepting gaps
-        "c": "ACGG",  # duplicated
-        "d": "ACGG",  # duplicated
-        "e": "AGTC"   # unique
+        ···"a": "ACGT",
+        ···"b": "ACG-",  # identical excepting gaps
+        ···"c": "ACGG",  # duplicated
+        ···"d": "ACGG",  # duplicated
+        ···"e": "AGTC"   # unique
         }
 
-        Create an app that omits duplicate sequences
-
-        >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
+        Create an app that omits duplicate sequences, retaining the longest 
+        representative sequence (i.e. the duplicated sequence with the least 
+        number of gaps and ambiguous characters).
+        
         >>> seqs = make_aligned_seqs(seq_collection, moltype="DNA")
+        >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
         >>> result = app(seqs)
         >>> print(result.to_pretty())
         a    ACGT
@@ -782,7 +784,7 @@ class omit_duplicated:
         d    ...G
         e    .GTC    
 
-        Exclude all members of duplicated sets:
+        Create an app to exclude all duplicate sequences from the collection.
 
         >>> app = get_app("omit_duplicated", moltype="dna", choose=None)
         >>> result = app(seqs)
@@ -792,13 +794,14 @@ class omit_duplicated:
         e    .GTC
 
 
-        Ignore degenerate characters when identifying duplicates:
+        Create sample data with degenerate characters, and an app to ignore
+        these when identifying duplicates.
 
         >>> aln_dna = make_aligned_seqs({
-        "seq1": "ATCG", 
-        "seq2": "ATYG", 
-        "seq3": "GGTA",
-        "seq4": "GGTA"
+        ···"seq1": "ATCG", 
+        ···"seq2": "ATYG", 
+        ···"seq3": "GGTA",
+        ···"seq4": "GGTA"
         }, 
         moltype="DNA")
         >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
