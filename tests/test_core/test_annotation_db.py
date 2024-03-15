@@ -8,6 +8,7 @@ from cogent3.core.annotation_db import (
     GffAnnotationDb,
     SupportsFeatures,
     _matching_conditions,
+    _rename_column_if_exists,
     load_annotations,
 )
 from cogent3.core.sequence import Sequence
@@ -270,7 +271,7 @@ def test_empty_data():
 
 
 # testing GenBank files
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def gb_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
@@ -937,30 +938,46 @@ def test_load_anns_with_write(DATA_DIR, tmp_dir):
     assert got_data["tables"] == expect_data["tables"]
 
 
-def test_gff_end_renamed_to_stop(DATA_DIR, gff_db):
-    inpath = DATA_DIR / "old_col.gffdb"
-    old_db = GffAnnotationDb(source=inpath)
+def test_gff_end_renamed_to_stop(gff_db, tmp_path):
+    bad_col_path = tmp_path / "bad_col.gffdb"
 
-    old_rich_dict = old_db.to_rich_dict()
-    new_rich_dict = gff_db.to_rich_dict()
+    correct_rich_dict = gff_db.to_rich_dict()
+    del correct_rich_dict["init_args"]
 
-    del old_rich_dict["init_args"]
+    for table_name in gff_db.table_names:
+        # Convert in memory db stop column to the old end name
+        _rename_column_if_exists(gff_db.db, table_name, "stop", "end")
+
+    gff_db.write(tmp_path / bad_col_path)
+
+    # Test that end column is renamed to stop on construction
+    loaded_gff_db = GffAnnotationDb(source=bad_col_path)
+
+    new_rich_dict = loaded_gff_db.to_rich_dict()
     del new_rich_dict["init_args"]
 
-    assert old_rich_dict == new_rich_dict
+    assert new_rich_dict == correct_rich_dict
 
 
-def test_gff_end_renamed_to_stop(DATA_DIR, gb_db):
-    inpath = DATA_DIR / "old_col.gbkdb"
-    old_db = GenbankAnnotationDb(source=inpath)
+def test_gb_end_renamed_to_stop(gb_db, tmp_path):
+    bad_col_path = tmp_path / "bad_col.gbdb"
 
-    old_rich_dict = old_db.to_rich_dict()
-    new_rich_dict = gb_db.to_rich_dict()
+    correct_rich_dict = gb_db.to_rich_dict()
+    del correct_rich_dict["init_args"]
 
-    del old_rich_dict["init_args"]
+    for table_name in gb_db.table_names:
+        # Convert in memory db stop column to the old end name
+        _rename_column_if_exists(gb_db.db, table_name, "stop", "end")
+
+    gb_db.write(tmp_path / bad_col_path)
+
+    # Test that end column is renamed to stop on construction
+    loaded_gb_db = GenbankAnnotationDb(source=bad_col_path)
+
+    new_rich_dict = loaded_gb_db.to_rich_dict()
     del new_rich_dict["init_args"]
 
-    assert old_rich_dict == new_rich_dict
+    assert new_rich_dict == correct_rich_dict
 
 
 def test_gbdb_get_children_fails_no_coords(gb_db):
