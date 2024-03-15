@@ -755,6 +755,7 @@ class omit_duplicated:
         moltype
             molecular type, can be string or instance
 
+            
         Examples
         --------
         Removes redundant sequences from a sequence collection (aligned or
@@ -764,13 +765,12 @@ class omit_duplicated:
 
         >>> from cogent3 import app_help, get_app, make_aligned_seqs, make_unaligned_seqs
         >>> seq_collection = {
-        ···"a": "ACGT",
-        ···"b": "ACG-",  # identical excepting gaps
-        ···"c": "ACGG",  # duplicated
-        ···"d": "ACGG",  # duplicated
-        ···"e": "AGTC"   # unique
-        }
-
+        ... "a": "ACGT",
+        ... "b": "ACG-",  # identical excepting gaps
+        ... "c": "ACGG",  # duplicated
+        ... "d": "ACGG",  # duplicated
+        ... "e": "AGTC"   # unique
+        ... }
         Create an app that omits duplicate sequences, retaining the longest 
         representative sequence (i.e. the duplicated sequence with the least 
         number of gaps and ambiguous characters).
@@ -782,7 +782,7 @@ class omit_duplicated:
         a    ACGT
         b    ...-
         d    ...G
-        e    .GTC    
+        e    .GTC
 
         Create an app to exclude all duplicate sequences from the collection.
 
@@ -798,12 +798,12 @@ class omit_duplicated:
         these when identifying duplicates.
 
         >>> aln_dna = make_aligned_seqs({
-        ···"seq1": "ATCG", 
-        ···"seq2": "ATYG", 
-        ···"seq3": "GGTA",
-        ···"seq4": "GGTA"
-        }, 
-        moltype="DNA")
+        ... "seq1": "ATCG", 
+        ... "seq2": "ATYG", 
+        ... "seq3": "GGTA",
+        ... "seq4": "GGTA"
+        ... }, 
+        ... moltype="DNA")
         >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
         >>> result = app_dna(aln_dna)
         >>> print(result.to_pretty())
