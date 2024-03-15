@@ -227,3 +227,14 @@ def test_function_deprecated_args_deprecated_callable_chained_decorators(recwarn
     assert any("argument x which will be removed" in warning for warning in warnings)
     assert any("argument b is discontinued" in warning for warning in warnings)
     assert any("function changed is discontinued" in warning for warning in warnings)
+
+
+def test_class_deprecated(recwarn):
+    class fooclass:
+        @deprecated_callable("2023.6", "Improved change function", is_discontinued=True)
+        def __init__(self):
+            ...
+
+    fooclass()
+    warnings = [warning.message.args[0] for warning in recwarn.list]
+    assert any("fooclass is discontinued" in warning for warning in warnings)
