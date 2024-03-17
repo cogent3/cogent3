@@ -506,8 +506,7 @@ def _rename_column_if_exists(
     else:
         return  # There is no column to rename
 
-    sql = f"""ALTER TABLE {table_name}
-RENAME COLUMN "{old_column}" TO {new_column}"""
+    sql = f'ALTER TABLE {table_name} RENAME COLUMN "{old_column}" TO {new_column}'
 
     cur.execute(sql)
     db.commit()
