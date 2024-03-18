@@ -1293,6 +1293,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # record.
         for record in records:
             record["biotype"] = record.pop("Type")
+            record["stop"] = record.pop("End")
 
             # we force all keys that map to table column names to be lower case
             for key in tuple(record):
