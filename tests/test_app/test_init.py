@@ -8,7 +8,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
-from cogent3.app.composable import LOADER, WRITER, define_app, is_composable
+from cogent3.app.composable import LOADER, WRITER, define_app, is_app
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
 
@@ -70,7 +70,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_composable(app), msg=app)
+                self.assertTrue(is_app(app), msg=app)
 
             composable_application_tuples = [
                 (app1, app2)
@@ -97,7 +97,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_composable(app))
+                self.assertTrue(is_app(app))
 
             incompatible_application_tuples = [
                 (app1, app2)
@@ -144,18 +144,17 @@ def test_get_app_kwargs():
 
 
 # TODO: install an external app and test it appears in the _plugin_manager
-# @define_app
-# def min_length(val: int) -> int:
-#     return val
+@define_app
+def min_length(val: int) -> int:
+    return val
 
 
-# def test_get_app_fail():
-#     __app_registry[get_object_provenance(min_length)] = True
+@pytest.mark.xfail(reason="test registration of a new app via an external app")
+def test_get_app_fail():
+    __app_registry[get_object_provenance(min_length)] = True
 
-#     with pytest.raises(NameError):
-#         _ = get_app("min_length", 500)
-
-#     __app_registry.pop(get_object_provenance(min_length), None)
+    with pytest.raises(NameError):
+        _ = get_app("min_length", 500)
 
 
 def test_app_help(capsys):

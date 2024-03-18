@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from pickle import dumps, loads
 from typing import Set, Tuple
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -26,7 +26,8 @@ from cogent3.app.composable import (
     _get_raw_hints,
     define_app,
     get_object_provenance,
-    is_composable,
+    is_app,
+    is_app_composable,
 )
 from cogent3.app.data_store import (
     APPEND,
@@ -634,31 +635,31 @@ def test_user_function_str():
     assert got == "bar(num=3)"
 
 
-def test_app_is_composable():
-    """check is_composable for composable apps"""
+def test_decorated_app_is_app():
+    """check is_app for define_app decorated apps"""
 
     @define_app
-    class app_test_iscomposable1:
+    class app_test_isapp1:
         def main(self, data: int) -> int:
             return data
 
-    assert is_composable(app_test_iscomposable1)
+    assert is_app(app_test_isapp1)
 
 
-def test_app_is_not_composable():
-    """check is_composable for non-composable apps"""
+def test_undecorated_app_is_not_an_app():
+    """check is_app for non-decorated apps"""
 
     class app_not_composable1:
         def main(self, data: int) -> int:
             return data
 
-    assert not is_composable(app_not_composable1)
+    assert not is_app(app_not_composable1)
 
 
 def test_concat_not_composable():
     from cogent3.app.sample import concat
 
-    assert not is_composable(concat)
+    assert not is_app_composable(concat)
 
 
 def test_composed_func_pickleable():

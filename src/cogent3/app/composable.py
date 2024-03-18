@@ -697,9 +697,14 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
     return ui.series(to_do, count=len(mapped), **kwargs)
 
 
-def is_composable(obj):
-    """checks whether obj has been registered by the composable decorator"""
-    return hasattr(obj, "app_type") and obj.app_type != AppType.NON_COMPOSABLE
+def is_app_composable(obj):
+    """checks whether obj has been decorated by define_app and it's app_type attribute is not NON_COMPOSABLE"""
+    return hasattr(obj, "app_type") and obj.app_type is not NON_COMPOSABLE
+
+
+def is_app(obj):
+    """checks whether obj has been decorated by define_app"""
+    return hasattr(obj, "app_type")
 
 
 def _apply_to(

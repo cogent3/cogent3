@@ -15,20 +15,21 @@ from .io import open_data_store
 
 def _get_app_attr(name):
     """
-    returns app details for display
-    NB: this loads the module the app is in
+    This function returns app details for display.
+
+    Notes
+    -----
+    This function also loads the module the app is in.
     """
 
     obj = apps()[name].plugin
-
-    is_composable = hasattr(obj, "app_type") and obj.app_type != App_type.NON_COMPOSABLE
 
     _types = _make_types(obj)
 
     return [
         obj.__module__,
         name,
-        is_composable,
+        hasattr(obj, "app_type"),
         _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
@@ -49,10 +50,23 @@ def _make_types(app) -> dict:
 __apps = None
 
 
-def apps():
-    """Lazy load a stevedore ExtensionManager to collect apps"""
+def apps(force: bool = False):
+    """
+    Lazy load a stevedore ExtensionManager to collect apps.
+
+    Parameters
+    ----------
+    force : bool, optional
+        If set to True, forces the re-creation of the ExtensionManager,
+        even if it already exists. Default is False.
+
+    Returns
+    -------
+    ExtensionManager
+        The ExtensionManager instance that collects apps.
+    """
     global __apps
-    if not __apps:
+    if not __apps or force:
         __apps = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
     return __apps
 
@@ -151,11 +165,14 @@ def _get_app_matching_name(name: str):
     else:
         table = table.filtered(lambda x: name == x, columns="name")
 
-    if table.shape[0] == 0:
-        raise NameError(f"no app matching name {name!r}")
-    elif table.shape[0] > 1:
-        raise NameError(f"too many apps matching name {name!r},\n{table}")
-    return apps()[name].plugin
+    try:
+        app = apps()[name].plugin
+    except KeyError:
+        raise ValueError(f"App {name!r} not found. Please check for typos.")
+    else:
+        if table.shape[0] > 1:
+            raise NameError(f"Too many apps matching name {name!r},\n{table}")
+        return app
 
 
 def get_app(_app_name: str, *args, **kwargs):
@@ -211,6 +228,25 @@ def _clean_overview(text: str) -> str:
     return "\n".join(textwrap.wrap(" ".join(text), break_long_words=False))
 
 
+def _make_apphelp_docstring(app):
+    docs = []
+    app_doc = app.__doc__ or ""
+    if app_doc.strip():
+        docs.extend(_make_head("Overview") + [_clean_overview(app_doc)])
+
+    docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
+
+    init_doc = app.__init__.__doc__ or ""
+    if init_doc.strip():
+        docs.extend(["", _clean_params_docs(init_doc)])
+
+    types = _make_types(app)
+    docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
+    docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
+
+    return "\n".join(docs)
+
+
 def app_help(name: str):
     """displays help for the named app
 
@@ -223,18 +259,4 @@ def app_help(name: str):
         to name.
     """
     app = _get_app_matching_name(name)
-    docs = []
-    app_doc = app.__doc__ or ""
-    if app_doc.strip():
-        docs.extend(_make_head("Overview") + [_clean_overview(app_doc), ""])
-
-    docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
-    init_doc = app.__init__.__doc__ or ""
-    if init_doc.strip():
-        docs.extend(["", _clean_params_docs(init_doc)])
-
-    types = _make_types(app)
-    docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
-    docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
-
-    print("\n".join(docs))
+    print(_make_apphelp_docstring(app))
