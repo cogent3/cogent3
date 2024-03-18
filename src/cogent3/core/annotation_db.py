@@ -47,7 +47,16 @@ def array_to_sqlite(data):
 def sqlite_to_array(data):
     out = io.BytesIO(data)
     out.seek(0)
-    return numpy.load(out)
+    try:
+        result = numpy.load(out)
+    except ValueError:
+        # array is not stored in the numpy.save format
+        # attempt to read from the old format where the
+        # array was saved using numpy.ndarray.tobytes
+        result = numpy.frombuffer(data, dtype=int)
+        dim = result.shape[0] // 2
+        result = result.reshape((dim, 2))
+    return result
 
 
 def dict_to_sqlite_as_json(data: dict) -> str:
