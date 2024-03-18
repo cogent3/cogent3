@@ -11,6 +11,7 @@ import re
 import sqlite3
 import sys
 import typing
+import warnings
 
 import numpy
 import typing_extensions
@@ -56,6 +57,14 @@ def sqlite_to_array(data):
         result = numpy.frombuffer(data, dtype=int)
         dim = result.shape[0] // 2
         result = result.reshape((dim, 2))
+
+        warnings.warn(
+            "Old OS dependent file format detected. "
+            "Please update file format to latest version. "
+            "See: https://github.com/cogent3/cogent3/issues/1776.",
+            DeprecationWarning,
+        )
+
     return result
 
 
@@ -1622,3 +1631,77 @@ def load_annotations(
             show_progress=show_progress,
         )
     )
+
+
+def _update_array_format(data: bytes) -> bytes:
+    """Convert from the old to the new sqlite numpy array format.
+
+    Converts the previous format saved with numpy.ndarray.tobytes
+    to the .npy format generated with numpy.save.
+
+    Ignores any entries saved in the new format
+
+    Parameters
+    ----------
+    data : bytes
+        The sqlite3 representation of the numpy array.
+
+    Returns
+    -------
+    bytes
+        The new sqlite3 representation of the numpy array.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        new_data = array_to_sqlite(sqlite_to_array(data))
+    return new_data
+
+
+def update_file_format(
+    source_file: os.PathLike,
+    backup_file: typing.Optional[os.PathLike],
+    db_class: typing.Union[
+        type[BasicAnnotationDb],
+        type[GenbankAnnotationDb],
+        type[GffAnnotationDb],
+    ],
+) -> None:
+    """Update the database file to the latest format.
+
+    Fixes an OS dependent issue under the previous representation.
+
+    Optionally performs a backup of the database to another file before
+    updating the given file to the new format.
+
+    See https://github.com/cogent3/cogent3/issues/1776 for more details.
+
+    Parameters
+    ----------
+    source_file : os.PathLike
+        The database file to reformat.
+    backup_file : typing.Optional[os.PathLike]
+        File to backup the current database without modification to.
+        If None, the database is not backed up before conversion (not recommended).
+    db_class : typing.Union[ type[BasicAnnotationDb], type[GenbankAnnotationDb], type[GffAnnotationDb], ]
+        The type of database the file is.
+    """
+    anno_db = db_class(source=source_file)
+
+    if backup_file is not None:
+        anno_db.write(backup_file)
+
+    conn = anno_db.db
+    conn.create_function("update_array_format", 1, _update_array_format)
+    for table_name in anno_db.table_names:
+        cursor = conn.cursor()
+        array_columns = [
+            r["name"]
+            for r in cursor.execute(f"PRAGMA table_info({table_name});").fetchall()
+            if r["type"] == "array"
+        ]
+
+        for column in array_columns:
+            cursor.execute(
+                f"UPDATE {table_name} SET {column}=update_array_format({column});"
+            )
+        conn.commit()
