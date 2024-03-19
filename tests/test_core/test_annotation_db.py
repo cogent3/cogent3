@@ -8,6 +8,7 @@ from cogent3.core.annotation_db import (
     GffAnnotationDb,
     SupportsFeatures,
     _matching_conditions,
+    _rename_column_if_exists,
     load_annotations,
 )
 from cogent3.core.sequence import Sequence
@@ -270,7 +271,7 @@ def test_empty_data():
 
 
 # testing GenBank files
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def gb_db(DATA_DIR):
     return load_annotations(path=DATA_DIR / "annotated_seq.gb")
 
@@ -292,7 +293,7 @@ def test_gb_get_children(gb_db, parent_biotype, name):
             name=name,
             exclude_biotype=parent_biotype,
             start=coords.min(),
-            end=coords.max(),
+            stop=coords.max(),
         )
     )[0]
     assert child["biotype"] != parent["biotype"]
@@ -308,7 +309,7 @@ def test_gb_get_parent(gb_db):
             name=cds_id,
             exclude_biotype="CDS",
             start=coords.min(),
-            end=coords.max(),
+            stop=coords.max(),
         )
     )[0]
     assert parent["biotype"] != cds["biotype"]
@@ -474,8 +475,8 @@ def test_get_features_matching_start_stop(DATA_DIR, seq):
 
 
 def test_matching_conditions():
-    got, _ = _matching_conditions({"start": 1, "end": 5}, allow_partial=True)
-    expect = "((start >= 1 AND end <= 5) OR (start <= 1 AND end > 1) OR (start < 5 AND end >= 5) OR (start <= 1 AND end >= 5))"
+    got, _ = _matching_conditions({"start": 1, "stop": 5}, allow_partial=True)
+    expect = "((start >= 1 AND stop <= 5) OR (start <= 1 AND stop > 1) OR (start < 5 AND stop >= 5) OR (start <= 1 AND stop >= 5))"
     assert got == expect
 
 
@@ -937,6 +938,48 @@ def test_load_anns_with_write(DATA_DIR, tmp_dir):
     assert got_data["tables"] == expect_data["tables"]
 
 
+def test_gff_end_renamed_to_stop(gff_db, tmp_path):
+    bad_col_path = tmp_path / "bad_col.gffdb"
+
+    correct_rich_dict = gff_db.to_rich_dict()
+    del correct_rich_dict["init_args"]
+
+    for table_name in gff_db.table_names:
+        # Convert in memory db stop column to the old end name
+        _rename_column_if_exists(gff_db.db, table_name, "stop", "end")
+
+    gff_db.write(tmp_path / bad_col_path)
+
+    # Test that end column is renamed to stop on construction
+    loaded_gff_db = GffAnnotationDb(source=bad_col_path)
+
+    new_rich_dict = loaded_gff_db.to_rich_dict()
+    del new_rich_dict["init_args"]
+
+    assert new_rich_dict == correct_rich_dict
+
+
+def test_gb_end_renamed_to_stop(gb_db, tmp_path):
+    bad_col_path = tmp_path / "bad_col.gbdb"
+
+    correct_rich_dict = gb_db.to_rich_dict()
+    del correct_rich_dict["init_args"]
+
+    for table_name in gb_db.table_names:
+        # Convert in memory db stop column to the old end name
+        _rename_column_if_exists(gb_db.db, table_name, "stop", "end")
+
+    gb_db.write(tmp_path / bad_col_path)
+
+    # Test that end column is renamed to stop on construction
+    loaded_gb_db = GenbankAnnotationDb(source=bad_col_path)
+
+    new_rich_dict = loaded_gb_db.to_rich_dict()
+    del new_rich_dict["init_args"]
+
+    assert new_rich_dict == correct_rich_dict
+
+
 def test_gbdb_get_children_fails_no_coords(gb_db):
     with pytest.raises(ValueError):
         _ = list(gb_db.get_feature_children(name="CNA00110"))
@@ -955,7 +998,7 @@ def test_load_annotations_invalid_path():
 @pytest.mark.parametrize("integer", (int, numpy.int64))
 def test_subset_gff3_db(gff_db, integer):
     subset = gff_db.subset(
-        seqid="I", start=integer(40), end=integer(70), allow_partial=True
+        seqid="I", start=integer(40), stop=integer(70), allow_partial=True
     )
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
@@ -963,7 +1006,7 @@ def test_subset_gff3_db(gff_db, integer):
 
 
 def test_subset_empty_db(gff_db):
-    subset = gff_db.subset(seqid="X", start=40, end=70, allow_partial=True)
+    subset = gff_db.subset(seqid="X", start=40, stop=70, allow_partial=True)
     # no records
     assert not len(subset)
 
@@ -973,7 +1016,7 @@ def test_subset_gff3_db_with_user(gff_db):
         seqid="I", name="gene-01", biotype="gene", spans=[(23, 43)], strand="+"
     )
     gff_db.add_feature(**record)
-    subset = gff_db.subset(seqid="I", start=40, end=70, allow_partial=True)
+    subset = gff_db.subset(seqid="I", start=40, stop=70, allow_partial=True)
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 7
@@ -988,7 +1031,7 @@ def test_subset_gb_db(gb_db):
 def test_subset_gff3_db_source(gff_db, tmp_dir):
     outpath = tmp_dir / "subset.gff3db"
     subset = gff_db.subset(
-        seqid="I", start=40, end=70, allow_partial=True, source=outpath
+        seqid="I", start=40, stop=70, allow_partial=True, source=outpath
     )
     subset.db.close()
 

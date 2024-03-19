@@ -14,6 +14,8 @@ import typing
 import numpy
 import typing_extensions
 
+import cogent3.util.warning as c3warn
+
 from cogent3._version import __version__
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -85,6 +87,11 @@ class SerialisableType(typing.Protocol):  # pragma: no cover
 @typing.runtime_checkable
 class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
     # should be defined centrally
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def get_features_matching(
         self,
         *,
@@ -92,20 +99,40 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         biotype: OptionalStr = None,
         name: OptionalStr = None,
         start: OptionalInt = None,
-        end: OptionalInt = None,
+        stop: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
     ) -> typing.Iterator[FeatureDataType]:
         ...
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def get_feature_children(
-        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None, **kwargs
+        self,
+        *,
+        name: str,
+        start: OptionalInt = None,
+        stop: OptionalInt = None,
+        **kwargs,
     ) -> typing.List[FeatureDataType]:
         ...
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def get_feature_parent(
-        self, *, name: str, start: OptionalInt = None, end: OptionalInt = None, **kwargs
+        self,
+        *,
+        name: str,
+        start: OptionalInt = None,
+        stop: OptionalInt = None,
+        **kwargs,
     ) -> typing.List[FeatureDataType]:
         ...
 
@@ -121,6 +148,11 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
     ) -> int:
         ...
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def subset(
         self,
         *,
@@ -128,7 +160,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         biotype: OptionalStr = None,
         name: OptionalStr = None,
         start: OptionalInt = None,
-        end: OptionalInt = None,
+        stop: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
     ):
@@ -247,8 +279,8 @@ def _matching_conditions(
     conditions : dict
         column name and values to be matched
     allow_partial : bool, optional
-        if False, only records within start, end are included. If True,
-        all records that overlap the segment defined by start, end are included.
+        if False, only records within start, stop are included. If True,
+        all records that overlap the segment defined by start, stop are included.
 
     Returns
     -------
@@ -256,7 +288,7 @@ def _matching_conditions(
         the SQL statement and the tuple of values
     """
     start = conditions.pop("start", None)
-    end = conditions.pop("end", None)
+    stop = conditions.pop("stop", None)
 
     sql = []
     vals = ()
@@ -278,27 +310,27 @@ def _matching_conditions(
         sql.append(" AND ".join(conds))
         vals = tuple(vals)
 
-    if isinstance(start, int) and isinstance(end, int):
+    if isinstance(start, int) and isinstance(stop, int):
         if allow_partial:
             # allow matches that overlap the segment
             cond = [
-                f"(start >= {start} AND end <= {end})",  # lies within the segment
-                f"(start <= {start} AND end > {start})",  # straddles beginning of segment
-                f"(start < {end} AND end >= {end})",  # straddles end of segment
-                f"(start <= {start} AND end >= {end})",  # includes segment
+                f"(start >= {start} AND stop <= {stop})",  # lies within the segment
+                f"(start <= {start} AND stop > {start})",  # straddles beginning of segment
+                f"(start < {stop} AND stop >= {stop})",  # straddles stop of segment
+                f"(start <= {start} AND stop >= {stop})",  # includes segment
             ]
             cond = " OR ".join(cond)
         else:
             # only matches within bounds
-            cond = f"start >= {start} AND end <= {end}"
+            cond = f"start >= {start} AND stop <= {stop}"
         sql.append(f"({cond})")
     elif isinstance(start, int):
-        # if query has no end, then any feature containing start
-        cond = f"(start <= {start} AND {start} < end)"
+        # if query has no stop, then any feature containing start
+        cond = f"(start <= {start} AND {start} < stop)"
         sql.append(f"({cond})")
-    elif isinstance(end, int):
-        # if query has no start, then any feature containing end
-        cond = f"(start <= {end} AND {end} < end)"
+    elif isinstance(stop, int):
+        # if query has no start, then any feature containing stop
+        cond = f"(start <= {stop} AND {stop} < stop)"
         sql.append(f"({cond})")
 
     sql = f"{' AND '.join(sql)}"
@@ -309,7 +341,7 @@ def _del_records_sql(
     table_name: str,
     conditions: dict,
     start: OptionalInt = None,
-    end: OptionalInt = None,
+    stop: OptionalInt = None,
     allow_partial=True,
 ) -> ReturnType:
     """creates the SQL and values for identifying records to be deleted
@@ -320,12 +352,12 @@ def _del_records_sql(
         table to have records deleted from
     conditions : dict
         column name and values to be matched
-    start, end : OptionalInt
-        select records whose (start, end) values lie between start and end,
+    start, stop : OptionalInt
+        select records whose (start, stop) values lie between start and stop,
         or overlap them if (allow_partial is True)
     allow_partial : bool, optional
-        if False, only records within start, end are included. If True,
-        all records that overlap the segment defined by start, end are included.
+        if False, only records within start, stop are included. If True,
+        all records that overlap the segment defined by start, stop are included.
 
     Returns
     -------
@@ -333,7 +365,7 @@ def _del_records_sql(
         the SQL statement and the tuple of values
     """
     where, vals = _matching_conditions(
-        conditions=conditions, start=start, end=end, allow_partial=allow_partial
+        conditions=conditions, start=start, stop=stop, allow_partial=allow_partial
     )
     sql = f"DELETE FROM {table_name}"
     if not where:
@@ -348,7 +380,7 @@ def _select_records_sql(
     conditions: dict,
     columns: typing.Optional[typing.List[str]] = None,
     start: OptionalInt = None,
-    end: OptionalInt = None,
+    stop: OptionalInt = None,
     allow_partial=True,
 ) -> ReturnType:
     """create SQL select statement and values
@@ -361,12 +393,12 @@ def _select_records_sql(
         values to select
     conditions : dict
         the WHERE conditions
-    start, end : OptionalInt
-        select records whose (start, end) values lie between start and end,
+    start, stop : OptionalInt
+        select records whose (start, stop) values lie between start and stop,
         or overlap them if (allow_partial is True)
     allow_partial : bool, optional
-        if False, only records within start, end are included. If True,
-        all records that overlap the segment defined by start, end are included.
+        if False, only records within start, stop are included. If True,
+        all records that overlap the segment defined by start, stop are included.
 
     Returns
     -------
@@ -391,7 +423,7 @@ def _count_records_sql(
     conditions: dict,
     columns: typing.Optional[typing.List[str]] = None,
     start: OptionalInt = None,
-    end: OptionalInt = None,
+    stop: OptionalInt = None,
     allow_partial=True,
 ) -> ReturnType:
     """create SQL count statement and values
@@ -404,12 +436,12 @@ def _count_records_sql(
         values to select
     conditions : dict
         the WHERE conditions
-    start, end : OptionalInt
-        select records whose (start, end) values lie between start and end,
+    start, stop : OptionalInt
+        select records whose (start, stop) values lie between start and stop,
         or overlap them if (allow_partial is True)
     allow_partial : bool, optional
-        if False, only records within start, end are included. If True,
-        all records that overlap the segment defined by start, end are included.
+        if False, only records within start, stop are included. If True,
+        all records that overlap the segment defined by start, stop are included.
 
     Returns
     -------
@@ -448,6 +480,38 @@ def _compatible_schema(db: sqlite3.Connection, schema: dict[str, set]) -> bool:
     return True
 
 
+def _rename_column_if_exists(
+    db: sqlite3.Connection, table_name: str, old_column: str, new_column: str
+) -> None:
+    """Rename a column in a sqlite3 database only if it exists.
+
+    Parameters
+    ----------
+    db : sqlite3.Connection
+        the sqlite3 connection
+    table_name : str
+        the table name
+    old_column : str
+        the column to rename if it exists
+    new_column : str
+        the new name of old_column
+    """
+    cur = db.cursor()
+    table_info = cur.execute(f"PRAGMA table_info({table_name});").fetchall()
+
+    # Check if the column exists
+    for column_info in table_info:
+        if column_info["name"] == old_column:
+            break
+    else:
+        return  # There is no column to rename
+
+    sql = f'ALTER TABLE {table_name} RENAME COLUMN "{old_column}" TO {new_column}'
+
+    cur.execute(sql)
+    db.commit()
+
+
 class SqliteAnnotationDbMixin:
     # table schema for user provided annotations
     _user_schema = {
@@ -456,7 +520,7 @@ class SqliteAnnotationDbMixin:
         "name": "TEXT",
         "parent_id": "TEXT",
         "start": "INTEGER",
-        "end": "INTEGER",
+        "stop": "INTEGER",
         "strand": "TEXT",
         "spans": "array",
         "attributes": "TEXT",
@@ -578,6 +642,9 @@ class SqliteAnnotationDbMixin:
             )
             self._db.row_factory = sqlite3.Row
 
+            for table_name in self.table_names:
+                _rename_column_if_exists(self._db, table_name, "end", "stop")
+
         return self._db
 
     def _execute_sql(self, cmnd, values=None):
@@ -619,10 +686,10 @@ class SqliteAnnotationDbMixin:
             whether the annotation is an alignment annotation
         """
         spans = numpy.array(sorted(sorted(coords) for coords in spans), dtype=int)
-        # the start, end variables are added into the record via the loop
+        # the start, stop variables are added into the record via the loop
         # on local variables
         start = int(spans.min())
-        end = int(spans.max())
+        stop = int(spans.max())
         # we define record as all defined variables from local name space,
         # excluding "self"
         record = {k: v for k, v in locals().items() if k != "self" and v is not None}
@@ -652,7 +719,7 @@ class SqliteAnnotationDbMixin:
         column: str,
         name: str,
         start: OptionalInt = None,
-        end: OptionalInt = None,
+        stop: OptionalInt = None,
         biotype: OptionalStr = None,
         allow_partial: bool = False,
     ) -> typing.List[FeatureDataType]:
@@ -662,7 +729,7 @@ class SqliteAnnotationDbMixin:
             conditions={column: name, "biotype": biotype},
             columns=columns,
             start=start,
-            end=end,
+            stop=stop,
             allow_partial=allow_partial,
         )
         for result in self._execute_sql(sql, values=vals):
@@ -675,7 +742,7 @@ class SqliteAnnotationDbMixin:
         self, name: str, biotype: OptionalStr = None, **kwargs
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
-        # kwargs is used because other classes need start / end
+        # kwargs is used because other classes need start / stop
         # just uses search matching
         for table_name in self.table_names:
             columns = "seqid", "biotype", "spans", "strand", "name", "parent_id"
@@ -727,6 +794,11 @@ class SqliteAnnotationDbMixin:
                         )  # remove invalid field for the FeatureDataType
                         yield parent
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def get_records_matching(
         self,
         *,
@@ -734,7 +806,7 @@ class SqliteAnnotationDbMixin:
         seqid: str = None,
         name: str = None,
         start: int = None,
-        end: int = None,
+        stop: int = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: bool = None,
@@ -751,6 +823,11 @@ class SqliteAnnotationDbMixin:
             for result in self._get_records_matching(table_name, **kwargs):
                 yield dict(zip(result.keys(), result))
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def get_features_matching(
         self,
         *,
@@ -758,7 +835,7 @@ class SqliteAnnotationDbMixin:
         seqid: str = None,
         name: str = None,
         start: int = None,
-        end: int = None,
+        stop: int = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: bool = None,
@@ -1041,6 +1118,11 @@ class SqliteAnnotationDbMixin:
             self.db.backup(backup)
         backup.close()
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def subset(
         self,
         *,
@@ -1049,7 +1131,7 @@ class SqliteAnnotationDbMixin:
         seqid: str = None,
         name: str = None,
         start: OptionalInt = None,
-        end: OptionalInt = None,
+        stop: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         allow_partial: bool = False,
@@ -1057,7 +1139,7 @@ class SqliteAnnotationDbMixin:
         """returns a new db instance with records matching the provided conditions"""
         # make sure python, not numpy, integers
         start = start if start is None else int(start)
-        end = end if end is None else int(end)
+        stop = stop if stop is None else int(stop)
 
         kwargs = {k: v for k, v in locals().items() if k not in {"self", "source"}}
 
@@ -1143,7 +1225,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         "source": "TEXT",
         "biotype": "TEXT",  # type in GFF
         "start": "INTEGER",
-        "end": "INTEGER",
+        "stop": "INTEGER",
         "score": "TEXT",  # check defn
         "strand": "TEXT",
         "phase": "TEXT",
@@ -1182,12 +1264,12 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # required
         rows = []
         for record in reduced.values():
-            # our Feature code assumes start always < end,
+            # our Feature code assumes start always < stop,
             # we record direction using Strand
             spans = numpy.array(sorted(record["spans"]), dtype=int)  # sorts the rows
             spans.sort(axis=1)
             record["start"] = int(spans.min())
-            record["end"] = int(spans.max())
+            record["stop"] = int(spans.max())
             record["spans"] = spans
             rows.append(tuple(record.get(c) for c in col_order))
 
@@ -1211,6 +1293,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # record.
         for record in records:
             record["biotype"] = record.pop("Type")
+            record["stop"] = record.pop("End")
 
             # we force all keys that map to table column names to be lower case
             for key in tuple(record):
@@ -1234,7 +1317,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
                 reduced[record_id]["spans"] = []
 
             # should this just be an append?
-            reduced[record_id]["spans"].append((record["start"], record["end"]))
+            reduced[record_id]["spans"].append((record["start"], record["stop"]))
 
         del records
 
@@ -1267,7 +1350,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         "source": "TEXT",
         "biotype": "TEXT",  # type in GFF
         "start": "INTEGER",
-        "end": "INTEGER",
+        "stop": "INTEGER",
         "strand": "TEXT",
         "comments": "TEXT",
         "spans": "array",  # aggregation of coords across records
@@ -1318,7 +1401,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         rows = []
         exclude = {"translation", "location", "type"}  # location is grabbed directly
         for record in records:
-            # our Feature code assumes start always < end,
+            # our Feature code assumes start always < stop,
             store = {"seqid": seqid}
             # we create the location data directly
             if location := record.get("location", None):
@@ -1326,7 +1409,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 if strand := location.strand:
                     store["strand"] = "-" if strand == -1 else "+"
                 store["start"] = int(store["spans"].min())
-                store["end"] = int(store["spans"].max())
+                store["stop"] = int(store["spans"].max())
 
             attrs_keys = record.keys() - exclude
             store["biotype"] = record["type"]
@@ -1367,17 +1450,22 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
         self._num_fakeids += 1
         return name
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def get_feature_children(
         self,
         name: str,
         biotype: OptionalStr = None,
         exclude_biotype: OptionalStr = None,
         start: OptionalInt = None,
-        end: OptionalInt = None,
+        stop: OptionalInt = None,
     ) -> typing.Iterator[FeatureDataType]:
         """yields children of name"""
         # children must lie within the parent coordinates
-        if start is None or end is None:
+        if start is None or stop is None:
             name = self.__class__.__name__
             msg = f"coordinates required to query children for {name!r}"
             raise ValueError(msg)
@@ -1391,7 +1479,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 "name",
                 "parent_id",
                 "start",
-                "end",
+                "stop",
             )
             if table_name == "user":
                 columns += ("on_alignment",)
@@ -1403,27 +1491,32 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 name=name,
                 biotype=biotype,
                 start=start,
-                end=end,
+                stop=stop,
                 allow_partial=False,
             ):
                 if feat["biotype"] == exclude_biotype:
                     continue
-                cstart, cend = feat.pop("start"), feat.pop("end")
-                if not (start <= cstart < end and start < cend <= end):
+                cstart, cstop = feat.pop("start"), feat.pop("stop")
+                if not (start <= cstart < stop and start < cstop <= stop):
                     continue
 
                 feat.pop("parent_id")  # remove invalid field for the FeatureDataType
                 yield feat
 
+    @c3warn.deprecated_args(
+        "2024.9",
+        reason="replace usage of SQL keyword as column name",
+        old_new=[("end", "stop")],
+    )
     def get_feature_parent(
         self,
         name: str,
         exclude_biotype: OptionalStr = None,
         start: OptionalInt = None,
-        end: OptionalInt = None,
+        stop: OptionalInt = None,
     ) -> typing.Iterator[FeatureDataType]:
         """yields parents of name"""
-        if start is None or end is None:
+        if start is None or stop is None:
             name = self.__class__.__name__
             msg = f"coordinates required to query parent for {name!r}"
             raise ValueError(msg)
@@ -1438,7 +1531,7 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 "name",
                 "parent_id",
                 "start",
-                "end",
+                "stop",
             )
             if table_name == "user":
                 columns += ("on_alignment",)
@@ -1448,15 +1541,15 @@ class GenbankAnnotationDb(SqliteAnnotationDbMixin):
                 column="name",
                 name=name,
                 start=start,
-                end=end,
+                stop=stop,
                 allow_partial=False,
             ):
                 # add support for != operation to SQL where clause generation
                 if feat["biotype"] == exclude_biotype:
                     continue
 
-                cstart, cend = feat.pop("start"), feat.pop("end")
-                if cstart > start or end > cend:
+                cstart, cstop = feat.pop("start"), feat.pop("stop")
+                if cstart > start or stop > cstop:
                     continue
 
                 feat.pop("parent_id")  # remove invalid field for the FeatureDataType
