@@ -329,23 +329,23 @@ class take_codon_positions:
         self,
         *positions: int,
         fourfold_degenerate: bool = False,
-        gc: str = "Standard",
+        gc: Union[str, int] = "Standard",
         moltype: str = "dna",
     ):
         """
         Parameters
         ----------
-        positions : int
+        positions
             either a single integer from (1, 2, 3), or additional keyword
             arguments of position numbers, e.g. 3 is third position, (1,2)
             is first and second codon position
-        fourfold_degenerate : bool
+        fourfold_degenerate
             if True, returns third positions from four-fold degenerate codons.
             Overrides positions.
-        gc : str | int
+        gc
             identifier for a genetic code or a genetic code instance.
             see https://cogent3.org/doc/cookbook/what_codes.html
-        moltype : str
+        moltype
             molecular type, must be either DNA or RNA
 
         Examples
