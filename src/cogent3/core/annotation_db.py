@@ -1659,19 +1659,25 @@ def _update_array_format(data: bytes) -> bytes:
 
 def update_file_format(
     source_file: os.PathLike,
-    backup_file: typing.Optional[os.PathLike],
     db_class: typing.Union[
         type[BasicAnnotationDb],
         type[GenbankAnnotationDb],
         type[GffAnnotationDb],
     ],
+    backup: bool = True,
 ) -> None:
     """Update the database file to the latest format.
 
     Fixes an OS dependent issue under the previous representation.
 
-    Optionally performs a backup of the database to another file before
-    updating the given file to the new format.
+    Ensure update_file_format is run on the same OS used to generate the
+    database file.
+
+    By default performs a backup of the database to another file before
+    updating the given file to the new format. This is in case the function
+    is run on a different OS than the one used to generate the file where
+    the spans column may become corrupted. The backup file is saved as the
+    original file path appended with ".bak".
 
     See https://github.com/cogent3/cogent3/issues/1776 for more details.
 
@@ -1679,16 +1685,24 @@ def update_file_format(
     ----------
     source_file : os.PathLike
         The database file to reformat.
-    backup_file : typing.Optional[os.PathLike]
-        File to backup the current database without modification to.
-        If None, the database is not backed up before conversion (not recommended).
     db_class : typing.Union[ type[BasicAnnotationDb], type[GenbankAnnotationDb], type[GffAnnotationDb], ]
         The type of database the file is.
+    backup : bool, optional
+        If True (default), performs a backup of the database before updating.
+        Otherwise does not perform a backup prior to update (not recommended).
     """
     anno_db = db_class(source=source_file)
 
-    if backup_file is not None:
-        anno_db.write(backup_file)
+    if backup:
+        backup_path = source_file + ".bak"
+        if os.path.exists(backup_path):
+            raise FileExistsError(
+                f"Backup file already exists for {source_file}. "
+                f"If there was a problem with the conversion process, "
+                f"update_file_format should be run on the backed up file. "
+                f"Ensure update_file_format is run on the same OS used to generate the file."
+            )
+        anno_db.write(backup_path)
 
     conn = anno_db.db
     conn.create_function("update_array_format", 1, _update_array_format)
