@@ -24,12 +24,15 @@ def _get_app_attr(name):
 
     obj = apps()[name].plugin
 
+    if not is_app(obj):  
+        warnings.warn(f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping")  
+
     _types = _make_types(obj)
 
     return [
         obj.__module__,
         name,
-        hasattr(obj, "app_type"),
+        is_composable(obj),
         _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
@@ -50,7 +53,7 @@ def _make_types(app) -> dict:
 __apps = None
 
 
-def apps(force: bool = False):
+def apps(force: bool = False) -> ExtensionManager:
     """
     Lazy load a stevedore ExtensionManager to collect apps.
 
