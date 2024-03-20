@@ -60,8 +60,8 @@ def sqlite_to_array(data):
 
         warnings.warn(
             "Old OS dependent file format detected. "
-            "Please update file format to latest version. "
-            "See: https://github.com/cogent3/cogent3/issues/1776.",
+            "Update the file format using cogent3.core.annotation_db.update_file_format() "
+            "For reason see https://github.com/cogent3/cogent3/issues/1776.",
             DeprecationWarning,
         )
 
