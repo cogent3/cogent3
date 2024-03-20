@@ -1784,7 +1784,7 @@ def update_file_format(
         If True (default), performs a backup of the database before updating.
         Otherwise does not perform a backup prior to update (not recommended).
     """
-    source_path = pathlib.Path(source_path)
+    source_path = pathlib.Path(source_path).expanduser()
     anno_db = db_class(source=source_path)
 
     if backup:
