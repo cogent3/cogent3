@@ -1658,7 +1658,7 @@ def _update_array_format(data: bytes) -> bytes:
 
 
 def update_file_format(
-    source_file: os.PathLike,
+    source_path: os.PathLike,
     db_class: typing.Union[
         type[BasicAnnotationDb],
         type[GenbankAnnotationDb],
@@ -1683,7 +1683,7 @@ def update_file_format(
 
     Parameters
     ----------
-    source_file : os.PathLike
+    source_path : os.PathLike
         The database file to reformat.
     db_class : typing.Union[ type[BasicAnnotationDb], type[GenbankAnnotationDb], type[GffAnnotationDb], ]
         The type of database the file is.
@@ -1691,13 +1691,14 @@ def update_file_format(
         If True (default), performs a backup of the database before updating.
         Otherwise does not perform a backup prior to update (not recommended).
     """
-    anno_db = db_class(source=source_file)
+    source_path = pathlib.Path(source_path)
+    anno_db = db_class(source=source_path)
 
     if backup:
-        backup_path = source_file + ".bak"
+        backup_path = source_path.parent / f"{source_path.name}.bak"
         if os.path.exists(backup_path):
             raise FileExistsError(
-                f"Backup file already exists for {source_file}. "
+                f"Backup file already exists for {source_path}. "
                 f"If there was a problem with the conversion process, "
                 f"update_file_format should be run on the backed up file. "
                 f"Ensure update_file_format is run on the same OS used to generate the file."
