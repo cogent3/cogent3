@@ -10,6 +10,7 @@ from stevedore.extension import ExtensionManager
 
 from cogent3.util.table import Table
 
+from .composable import is_app, is_app_composable
 from .io import open_data_store
 
 
@@ -24,15 +25,17 @@ def _get_app_attr(name):
 
     obj = apps()[name].plugin
 
-    if not is_app(obj):  
-        warnings.warn(f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping")  
+    if not is_app(obj):
+        warnings.warn(
+            f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping"
+        )
 
     _types = _make_types(obj)
 
     return [
         obj.__module__,
         name,
-        is_composable(obj),
+        is_app_composable(obj),
         _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
