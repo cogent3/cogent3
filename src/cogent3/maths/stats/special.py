@@ -1,8 +1,9 @@
 """Translations of functions from Release 2.3 of the Cephes Math Library,
 (c) Stephen L. Moshier 1984, 1995.
 """
-from cogent3.util import warning as c3warn
 from numpy import exp, floor, log, sin, sqrt
+
+from cogent3.util import warning as c3warn
 
 
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
@@ -248,7 +249,11 @@ ZU = [
 ]
 
 
-@c3warn.deprecated_callable(version="2024.9", reason="use scipy.special.erf(x, out=None) instead", is_discontinued=True)
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.special.erf(x, out=None) instead",
+    is_discontinued=True,
+)
 def erf(a):  # pragma: no cover
     """being removed"""
     if abs(a) > 1:
@@ -257,7 +262,11 @@ def erf(a):  # pragma: no cover
     return a * polevl(z, ZT) / polevl(z, ZU)
 
 
-@c3warn.deprecated_callable(version="2024.9", reason="use scipy.special.erfc(z, out=None) instead", is_discontinued=True)
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.special.erfc(z, out=None) instead",
+    is_discontinued=True,
+)
 def erfc(a):  # pragma: no cover
     """being removed"""
     if a < 0:
@@ -295,8 +304,6 @@ def erfc(a):  # pragma: no cover
             return 0
     else:
         return y
-
-
 
 
 # Coefficients for Gamma follow:
