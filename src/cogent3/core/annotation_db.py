@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 import copy
 import inspect
+import io
 import json
 import os
 import pathlib
@@ -10,6 +11,7 @@ import re
 import sqlite3
 import sys
 import typing
+import warnings
 
 import numpy
 import typing_extensions
@@ -39,13 +41,33 @@ _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
 # Define custom types for storage in sqlite
 # https://stackoverflow.com/questions/18621513/python-insert-numpy-array-into-sqlite3-database
 def array_to_sqlite(data):
-    return data.tobytes()
+    out = io.BytesIO()
+    numpy.save(out, data)
+    out.seek(0)
+    return out.read()
 
 
 def sqlite_to_array(data):
-    result = numpy.frombuffer(data, dtype=int)
-    dim = result.shape[0] // 2
-    return result.reshape((dim, 2))
+    out = io.BytesIO(data)
+    out.seek(0)
+    try:
+        result = numpy.load(out)
+    except ValueError:
+        # array is not stored in the numpy.save format
+        # attempt to read from the old format where the
+        # array was saved using numpy.ndarray.tobytes
+        result = numpy.frombuffer(data, dtype=int)
+        dim = result.shape[0] // 2
+        result = result.reshape((dim, 2))
+
+        warnings.warn(
+            "Old OS dependent file format detected. "
+            "Update the file format using cogent3.core.annotation_db.update_file_format() "
+            "For reason see https://github.com/cogent3/cogent3/issues/1776.",
+            DeprecationWarning,
+        )
+
+    return result
 
 
 def dict_to_sqlite_as_json(data: dict) -> str:
@@ -1702,3 +1724,92 @@ def load_annotations(
             show_progress=show_progress,
         )
     )
+
+
+def _update_array_format(data: bytes) -> bytes:
+    """Convert from the old to the new sqlite numpy array format.
+
+    Converts the previous format saved with numpy.ndarray.tobytes
+    to the .npy format generated with numpy.save.
+
+    Ignores any entries saved in the new format
+
+    Parameters
+    ----------
+    data : bytes
+        The sqlite3 representation of the numpy array.
+
+    Returns
+    -------
+    bytes
+        The new sqlite3 representation of the numpy array.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        new_data = array_to_sqlite(sqlite_to_array(data))
+    return new_data
+
+
+def update_file_format(
+    source_path: os.PathLike,
+    db_class: typing.Union[
+        type[BasicAnnotationDb],
+        type[GenbankAnnotationDb],
+        type[GffAnnotationDb],
+    ],
+    backup: bool = True,
+) -> None:
+    """Update the database file to the latest format.
+
+    Fixes an OS dependent issue under the previous representation.
+
+    Ensure update_file_format is run on the same OS used to generate the
+    database file.
+
+    By default performs a backup of the database to another file before
+    updating the given file to the new format. This is in case the function
+    is run on a different OS than the one used to generate the file where
+    the spans column may become corrupted. The backup file is saved as the
+    original file path appended with ".bak".
+
+    See https://github.com/cogent3/cogent3/issues/1776 for more details.
+
+    Parameters
+    ----------
+    source_path : os.PathLike
+        The database file to reformat.
+    db_class : typing.Union[ type[BasicAnnotationDb], type[GenbankAnnotationDb], type[GffAnnotationDb], ]
+        The type of database the file is.
+    backup : bool, optional
+        If True (default), performs a backup of the database before updating.
+        Otherwise does not perform a backup prior to update (not recommended).
+    """
+    source_path = pathlib.Path(source_path)
+    anno_db = db_class(source=source_path)
+
+    if backup:
+        backup_path = source_path.parent / f"{source_path.name}.bak"
+        if os.path.exists(backup_path):
+            raise FileExistsError(
+                f"Backup file already exists for {source_path}. "
+                f"If there was a problem with the conversion process, "
+                f"update_file_format should be run on the backed up file. "
+                f"Ensure update_file_format is run on the same OS used to generate the file."
+            )
+        anno_db.write(backup_path)
+
+    conn = anno_db.db
+    conn.create_function("update_array_format", 1, _update_array_format)
+    for table_name in anno_db.table_names:
+        cursor = conn.cursor()
+        array_columns = [
+            r["name"]
+            for r in cursor.execute(f"PRAGMA table_info({table_name});").fetchall()
+            if r["type"] == "array"
+        ]
+
+        for column in array_columns:
+            cursor.execute(
+                f"UPDATE {table_name} SET {column}=update_array_format({column});"
+            )
+        conn.commit()
