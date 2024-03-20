@@ -77,13 +77,16 @@ def apps(force: bool = False) -> ExtensionManager:
     return __apps
 
 
-def available_apps(name_filter: str | None = None) -> Table:
+def available_apps(name_filter: str | None = None, force: bool = False) -> Table:
     """returns Table listing the available apps
 
     Parameters
     ----------
     name_filter
         include apps whose name includes name_filter
+    force : bool, optional
+        If set to True, forces the re-creation of the ExtensionManager,
+        even if it already exists. Default is False.
     """
     from cogent3.util.table import Table
 
@@ -92,7 +95,7 @@ def available_apps(name_filter: str | None = None) -> Table:
 
     rows = []
 
-    for app in apps().names():
+    for app in apps(force).names():
         if any(app.startswith(d) for d in deprecated):
             continue
 

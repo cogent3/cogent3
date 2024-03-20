@@ -1,6 +1,9 @@
 import inspect
+import os
 import pickle
 import shutil
+import subprocess
+import tempfile
 
 from pathlib import Path
 from pickle import dumps, loads
@@ -12,7 +15,7 @@ import pytest
 from numpy import array, ndarray
 from scitrack import CachingLogger
 
-from cogent3 import get_app, make_aligned_seqs, open_data_store
+from cogent3 import available_apps, get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
@@ -1129,3 +1132,110 @@ def test_copies_doc_from_func():
 
     assert delme2.__doc__ == "my docstring"
     assert delme2.__init__.__doc__.split() == ["Notes", "-----", "body"]
+
+
+@define_app
+class temp_app_uppercase:
+    def main(self, data: str) -> str:
+        """my docstring"""
+        return data.upper()
+
+
+@pytest.mark.parametrize("install_temp_app", [temp_app_uppercase], indirect=True)
+def test_add_app_with_result(install_temp_app):
+    appercase = get_app("temp_app_uppercase")
+    assert appercase("hello") == "HELLO"
+
+
+@pytest.fixture
+def install_temp_app(request):
+    """
+    A pytest fixture that creates a temporary app from a function, installs it, and then uninstalls it after testing.
+
+    This fixture creates a temporary directory, writes the source code of the function into a new Python file in the
+    temporary directory, creates a setup.py file that references the new module, and installs the module using pip.
+    After the test function that uses this fixture is run, the module is uninstalled and the temporary directory is deleted.
+
+    Parameters
+    ----------
+    request : _pytest.fixtures.SubRequest
+        An define_app decorated class 
+
+    Notes
+    -----
+
+    This fixture will only work with define_app decorated classes, NOT define_app decorated functions that have been shoehorned 
+    into classes because with a dynamically generated class the original code is not available for inspection programatically.
+
+    Yields
+    ------
+    None
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the `pip install .` or `pip uninstall -y` commands fail.
+
+    Side Effects
+    ------------
+    - forces refresh of the apps cache
+
+    Examples
+    --------
+    >>> @pytest.mark.parametrize('install_temp_module', [my_func], indirect=True)
+    ... def test_my_func(install_temp_module):
+    ...     # Test code here
+    """
+    # Create a temporary directory
+    temp_dir = tempfile.mkdtemp()
+
+    # Get the function from the request
+    cls = request.param
+
+    # Check if the passed-in value is a class ( a define_app decorated function becomes a class)
+    if not inspect.isclass(cls):
+        raise TypeError(f"Expected a class, but got {type(cls).__name__}")
+
+    # Get the source code of the function
+    lines, _ = inspect.getsourcelines(cls)
+    source_code = "\n".join(lines)
+
+    # Write the source code into a new Python file in the temporary directory
+    with open(os.path.join(temp_dir, f"{cls.__name__}.py"), "w") as f:
+        f.write("from cogent3.app.composable import define_app\n")
+        f.write(source_code)
+
+    # Create a setup.py file in the temporary directory that references the new module
+    setup_py = f"""
+from setuptools import setup
+
+setup(
+    name='{cls.__name__}',
+    version='0.1',
+    py_modules=['{cls.__name__}'],
+    entry_points={{
+        "cogent3.app": [
+            "{cls.__name__} = {cls.__name__}:{cls.__name__}",
+        ],
+    }},    
+)
+"""
+    with open(os.path.join(temp_dir, "setup.py"), "w") as f:
+        f.write(setup_py)
+
+    # Use subprocess to run pip install . in the temporary directory
+    subprocess.check_call(["pip", "install", "."], cwd=temp_dir)
+
+    # force the app cache to reload
+    apps = available_apps(force=True)
+
+    yield
+
+    # After the test function completes, use subprocess to run pip uninstall -y <module> to uninstall the module
+    subprocess.check_call(["pip", "uninstall", "-y", cls.__name__])
+
+    # force the app cache to reload after
+    apps = available_apps(force=True)
+
+    # Delete the temporary directory
+    shutil.rmtree(temp_dir)

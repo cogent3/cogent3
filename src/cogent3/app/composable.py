@@ -699,7 +699,7 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
 
 def is_app_composable(obj):
     """checks whether obj has been decorated by define_app and it's app_type attribute is not NON_COMPOSABLE"""
-    return hasattr(obj, "app_type") and obj.app_type is not NON_COMPOSABLE
+    return is_app(obj) and obj.app_type is not NON_COMPOSABLE
 
 
 def is_app(obj):
