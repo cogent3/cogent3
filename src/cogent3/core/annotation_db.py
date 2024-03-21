@@ -61,10 +61,10 @@ def sqlite_to_array(data):
         result = result.reshape((dim, 2))
 
         warnings.warn(
-            "Old OS dependent file format detected. "
+            "Old OS dependent database file format detected. "
             "Update the file format using cogent3.core.annotation_db.update_file_format() "
             "For reason see https://github.com/cogent3/cogent3/issues/1776.",
-            DeprecationWarning,
+            UserWarning,
         )
 
     return result
