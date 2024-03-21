@@ -1,3 +1,6 @@
+import io
+import warnings
+
 import numpy
 import pytest
 
@@ -10,6 +13,7 @@ from cogent3.core.annotation_db import (
     _matching_conditions,
     _rename_column_if_exists,
     load_annotations,
+    update_file_format,
 )
 from cogent3.core.sequence import Sequence
 from cogent3.parse.genbank import MinimalGenbankParser
@@ -918,6 +922,163 @@ def test_write(gb_db, tmp_path):
     got = GenbankAnnotationDb(source=outpath)
     assert got.to_rich_dict()["tables"] == gb_db.to_rich_dict()["tables"]
     assert isinstance(got, GenbankAnnotationDb)
+
+
+def convert_to_old_np_format(data):
+    return numpy.load(io.BytesIO(data)).tobytes()
+
+
+def convert_spans_column(db, table_name):
+    # Convert the database to the old numpy format.
+    conn = db.db
+    conn.create_function("convert_to_old_np_format", 1, convert_to_old_np_format)
+    cursor = conn.cursor()
+    cursor.execute(f"UPDATE {table_name} SET spans = convert_to_old_np_format(spans);")
+    conn.commit()
+
+
+@pytest.mark.parametrize(
+    "db_name,cls", (("gb_db", GenbankAnnotationDb), ("gff_db", GffAnnotationDb))
+)
+def test_read_old_format(db_name, cls, tmp_path, request):
+    db = request.getfixturevalue(db_name)
+
+    path = tmp_path / f"old_format_{db_name}.db"
+
+    old_tables = db.to_rich_dict()["tables"]
+
+    table_name = db_name.split("_")[0]
+    convert_spans_column(db, table_name)
+
+    db.write(path)
+
+    new_db = cls(source=path)
+    with pytest.warns(UserWarning):
+        new_tables = new_db.to_rich_dict()["tables"]
+    assert new_tables == old_tables
+
+
+@pytest.mark.parametrize(
+    "db_name,cls,backup",
+    (
+        ("gb_db", GenbankAnnotationDb, True),
+        ("gff_db", GffAnnotationDb, True),
+        ("gb_db", GenbankAnnotationDb, False),
+        ("gff_db", GffAnnotationDb, False),
+    ),
+)
+def test_update_file_format(db_name, cls, backup, tmp_path, request):
+    db = request.getfixturevalue(db_name)
+    old_tables = db.to_rich_dict()["tables"]
+
+    path = tmp_path / f"old_format_{db_name}.db"
+
+    # Convert to old numpy format
+    table_name = db_name.split("_")[0]
+    convert_spans_column(db, table_name)
+    db.write(path)
+
+    with open(path, "rb") as f:
+        old_format_bytes = f.read()
+
+    # The file should be updated without warning
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        update_file_format(path, cls, backup=backup)
+
+    backup_path = tmp_path / f"old_format_{db_name}.db.bak"
+    if backup:
+        # Check the backup hasn't been modified
+        with open(backup_path, "rb") as f:
+            assert old_format_bytes == f.read()
+    else:
+        # A backup file should not exist
+        assert not backup_path.exists()
+
+    # The file should have been modified
+    with open(path, "rb") as f:
+        assert old_format_bytes != f.read()
+
+    # Reading the new file (when spans is loaded) should not produce warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+
+        new_db = cls(source=path)
+        new_tables = new_db.to_rich_dict()["tables"]
+
+    # The tables should remain the same
+    assert old_tables == new_tables
+
+
+@pytest.mark.parametrize(
+    "db_name,cls",
+    (("gb_db", GenbankAnnotationDb), ("gff_db", GffAnnotationDb)),
+)
+def test_update_file_format_twice_fails(db_name, cls, tmp_path, request):
+    db = request.getfixturevalue(db_name)
+
+    path = tmp_path / f"old_format_{db_name}.db"
+
+    # Convert to old numpy format
+    table_name = db_name.split("_")[0]
+    convert_spans_column(db, table_name)
+    db.write(path)
+
+    update_file_format(path, cls, backup=True)
+    with pytest.raises(FileExistsError):
+        update_file_format(path, cls, backup=True)
+
+
+@pytest.mark.parametrize(
+    "db_name,cls,backup",
+    (
+        ("gb_db", GenbankAnnotationDb, True),
+        ("gff_db", GffAnnotationDb, True),
+        ("gb_db", GenbankAnnotationDb, False),
+        ("gff_db", GffAnnotationDb, False),
+    ),
+)
+def test_update_file_format_does_not_modify_correct_file(
+    db_name, cls, backup, tmp_path, request
+):
+    db = request.getfixturevalue(db_name)
+
+    path = tmp_path / f"correct_format_{db_name}.db"
+    db.write(path)
+
+    with open(path, "rb") as f:
+        old_bytes = f.read()
+
+    # Updating the file format should not produce warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        update_file_format(path, cls, backup=backup)
+
+    # The file should have remained the same
+    with open(path, "rb") as f:
+        assert old_bytes == f.read()
+
+
+@pytest.mark.parametrize(
+    "db_name,cls,backup",
+    (
+        ("gb_db", GenbankAnnotationDb, True),
+        ("gff_db", GffAnnotationDb, True),
+        ("gb_db", GenbankAnnotationDb, False),
+        ("gff_db", GffAnnotationDb, False),
+    ),
+)
+def test_update_file_format_fake_path(db_name, cls, backup, tmp_path):
+    path = tmp_path / f"non_existent_{db_name}.db"
+    with pytest.raises(OSError):
+        update_file_format(path, cls, backup=backup)
+
+    # The path should not have been created in the process
+    assert not path.exists()
+    if backup:
+        # The backup file path should also not exist
+        backup_path = tmp_path / f"non_existent_{db_name}.db.bak"
+        assert not backup_path.exists()
 
 
 @pytest.fixture(scope="function")

@@ -1785,11 +1785,15 @@ def update_file_format(
         Otherwise does not perform a backup prior to update (not recommended).
     """
     source_path = pathlib.Path(source_path).expanduser()
+
+    if not source_path.exists():
+        raise OSError(f"File {source_path} does not exist.")
+
     anno_db = db_class(source=source_path)
 
     if backup:
         backup_path = source_path.parent / f"{source_path.name}.bak"
-        if os.path.exists(backup_path):
+        if backup_path.exists():
             raise FileExistsError(
                 f"Backup file already exists for {source_path}. "
                 f"If there was a problem with the conversion process, "
