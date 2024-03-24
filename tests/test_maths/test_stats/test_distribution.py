@@ -126,8 +126,6 @@ class DistributionsTests(TestCase):
             for x, p in zip(self.values, probs[df]):
                 assert_almost_equal(tprob(x, df), p, decimal=4)
 
-
-
     def test_poisson_exact(self):
         """Poisson exact should match expected values from R"""
         expected = {

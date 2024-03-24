@@ -54,18 +54,14 @@ def poisson_high(successes, mean):  # pragma: no cover
     return pdtrc(successes, mean)
 
 
-
-
 @c3warn.deprecated_callable(
-        version="2024.9",
-        reason="use scipy.stats.poisson.cdf() instead",
-        is_discontinued = True
-        )
-
-def poisson_low(successes, mean): # pragma: no cover
+    version="2024.9",
+    reason="use scipy.stats.poisson.cdf() instead",
+    is_discontinued=True,
+)
+def poisson_low(successes, mean):  # pragma: no cover
     """being removed"""
     return pdtr(successes, mean)
-
 
 
 def poisson_exact(successes, mean):
