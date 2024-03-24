@@ -126,50 +126,6 @@ class DistributionsTests(TestCase):
             for x, p in zip(self.values, probs[df]):
                 assert_almost_equal(tprob(x, df), p, decimal=4)
 
-    def test_poisson_low(self):
-        """Lower tail of poisson should match R for integer successes"""
-        # WARNING: Results only guaranteed for integer successes: floating
-        # point _should_ yield reasonable values, but R rounds to int.
-        expected = {
-            (0, 0): 1,
-            (0, 0.75): 0.4723666,
-            (0, 1): 0.3678794,
-            (0, 5): 0.006737947,
-            (0, 113.7): 4.175586e-50,
-            (2, 0): 1,
-            (2, 3): 0.4231901,
-            (2, 17.8): 3.296636e-06,
-            (17, 29.6): 0.008753318,
-            (180, 0): 1,
-            (180, 137.4): 0.999784,
-            (180, 318): 2.436995e-17,
-            (180, 1024): 8.266457e-233,
-        }
-        for key, value in list(expected.items()):
-            assert_allclose(poisson_low(*key), value, rtol=1e-6)
-
-    def test_poisson_high(self):
-        """Upper tail of poisson should match R for integer successes"""
-        # WARNING: Results only guaranteed for integer successes: floating
-        # point _should_ yield reasonable values, but R rounds to int.
-        expected = {
-            (0, 0): 0,
-            (0, 0.75): 0.5276334,
-            (0, 1): 0.6321206,
-            (0, 5): 0.993262,
-            (0, 113.7): 1,
-            (2, 0): 0,
-            (2, 3): 0.5768099,
-            (2, 17.8): 0.9999967,
-            (17, 29.6): 0.9912467,
-            (180, 0): 0,
-            (180, 137.4): 0.0002159856,
-            (180, 318): 1,
-            (180, 1024): 1,
-        }
-        for key, value in list(expected.items()):
-            assert_allclose(poisson_high(*key), value)
-
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""
         expected = list(

@@ -327,24 +327,66 @@ class take_codon_positions:
 
     def __init__(
         self,
-        *positions,
-        fourfold_degenerate=False,
-        gc="Standard",
-        moltype="dna",
+        *positions: int,
+        fourfold_degenerate: bool = False,
+        gc: Union[str, int] = "Standard",
+        moltype: str = "dna",
     ):
         """
         Parameters
         ----------
         positions
-            either an integer (1, 2, 3), or a tuple of position numbers,
-            e.g. 3 is third position, (1,2) is first and second codon position
-        fourfold_degenerate : bool
+            either a single integer from (1, 2, 3), or additional keyword
+            arguments of position numbers, e.g. 3 is third position, (1,2)
+            is first and second codon position
+        fourfold_degenerate
             if True, returns third positions from four-fold degenerate codons.
             Overrides positions.
         gc
-            identifier for a genetic code or a genetic code instance
-        moltype : str
+            identifier for a genetic code or a genetic code instance.
+            see https://cogent3.org/doc/cookbook/what_codes.html
+        moltype
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that extracts the 3rd codon
+        position from an alignment.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGACGACG", "s2": "GATGATGAT"})
+        >>> take_pos3 = get_app("take_codon_positions", 3, moltype="dna")
+        >>> result = take_pos3(aln)
+        >>> print(result.to_pretty())
+        s1    GGG
+        s2    TTT
+
+        Create an app that extracts the 1st and 2nd codon positions from an
+        alignment.
+
+        >>> take_pos12 = get_app("take_codon_positions", 1, 2, moltype="dna")
+        >>> result = take_pos12(aln)
+        >>> print(result.to_pretty())
+        s1    ACACAC
+        s2    GAGAGA
+
+        Create a sample alignment and an app that returns the 3rd codon
+        positions from four-fold degenerate codons.
+
+        >>> aln_ff = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> take_fourfold = get_app("take_codon_positions", fourfold_degenerate=True, moltype="dna")
+        >>> result = take_fourfold(aln_ff)
+        >>> print(result.to_pretty())
+        s1    AT
+        s2    TC
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if all sites are excluded.
+
+        >>> result = take_fourfold(aln)
+        >>> result.message
+        'Traceback ...
         """
         assert moltype is not None
         moltype = get_moltype(moltype)
