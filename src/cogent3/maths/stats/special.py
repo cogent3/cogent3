@@ -59,7 +59,10 @@ def one_minus_exp(x):
         return 1 - exp(x)
 
 
-def permutations(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def permutations(n, k):  # pragma: no cover
     """Returns the number of ways of choosing k items from n, in order.
 
     Defined as n!/(n-k)!.
@@ -77,7 +80,10 @@ def permutations(n, k):
         return exp(ln_permutations(n, k))
 
 
-def permutations_exact(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def permutations_exact(n, k):  # pragma: no cover
     """Calculates permutations by integer division.
 
     Preferred method for small permutations, but slow on larger ones.
@@ -90,7 +96,10 @@ def permutations_exact(n, k):
     return product
 
 
-def ln_permutations(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def ln_permutations(n, k):  # pragma: no cover
     """Calculates permutations by difference in log of gamma function.
 
     Preferred method for large permutations, but slow on smaller ones.
