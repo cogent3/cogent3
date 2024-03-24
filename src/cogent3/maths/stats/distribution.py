@@ -41,7 +41,6 @@ def zprob(x):
 @c3warn.deprecated_callable(
     version="2024.9", reason="use scipy.stats.t.sf() instead", is_discontinued=True
 )
-
 def tprob(x, df):
     """Returns both tails of t distribution (-infinity to -x, infinity to x)"""
     return 2 * t.sf(abs(x), df)
