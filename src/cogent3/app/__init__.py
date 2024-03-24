@@ -117,6 +117,13 @@ _get_param = re.compile('(?<=").+(?=")')
 def _make_signature(app: type) -> str:
     from cogent3.util.misc import get_object_provenance
 
+    if app is None:
+        raise ValueError("app cannot be None")
+
+    # if app is an instance, get the underlying class
+    if not inspect.isclass(app):
+        app = app.__class__
+
     init_sig = inspect.signature(app.__init__)
     app_name = app.__name__
     params = [f'"{app_name}"']
