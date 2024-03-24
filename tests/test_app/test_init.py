@@ -8,13 +8,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
-from cogent3.app.composable import (
-    LOADER,
-    WRITER,
-    __app_registry,
-    define_app,
-    is_composable,
-)
+from cogent3.app.composable import LOADER, WRITER, define_app, is_app
 from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
 
@@ -76,7 +70,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_composable(app), msg=app)
+                self.assertTrue(is_app(app), msg=app)
 
             composable_application_tuples = [
                 (app1, app2)
@@ -103,7 +97,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_composable(app))
+                self.assertTrue(is_app(app))
 
             incompatible_application_tuples = [
                 (app1, app2)
@@ -135,12 +129,10 @@ def test_available_apps_local():
 
     apps = available_apps()
     assert isinstance(apps, Table)
-    __app_registry.pop(get_object_provenance(dummy), None)
 
 
 @pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
 def test_get_app(name):
-    __app_registry.pop(get_object_provenance(min_length), None)
     app = get_app(name, 500)
     assert app.__class__.__name__.endswith(name.split(".")[-1])
 
@@ -151,18 +143,18 @@ def test_get_app_kwargs():
     _ = get_app("model", "F81", name="F81-model")
 
 
+# TODO: install an external app and test it appears in the _plugin_manager
 @define_app
 def min_length(val: int) -> int:
     return val
 
 
+@pytest.mark.xfail(reason="test registration of a new app via an external app")
 def test_get_app_fail():
     __app_registry[get_object_provenance(min_length)] = True
 
     with pytest.raises(NameError):
         _ = get_app("min_length", 500)
-
-    __app_registry.pop(get_object_provenance(min_length), None)
 
 
 def test_app_help(capsys):
@@ -181,6 +173,7 @@ class blah:
         return val + self.constant
 
 
+@pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
 @pytest.mark.parametrize(
     "app_doc,init_doc", ((None, None), ("text", None), (None, "text"), ("text", "text"))
 )
@@ -196,6 +189,7 @@ def test_app_help_no_docs(capsys, app_doc, init_doc):
         assert "Options" in got
 
 
+@pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
 def test_app_help_doctest_examples(capsys):
     app_doc = "A line of text describing the app."
     init_doc = "\n        Parameters\n        ----------\n        arg\n        arg description\n\n        Examples\n        --------\n        How to use the app\n\n        >>>blah(arg)\n        output\n"
