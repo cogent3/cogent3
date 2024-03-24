@@ -5,6 +5,7 @@ import importlib
 import inspect
 import re
 import textwrap
+import warnings
 
 from stevedore.extension import ExtensionManager
 

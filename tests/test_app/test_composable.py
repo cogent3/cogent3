@@ -1,9 +1,6 @@
 import inspect
-import os
 import pickle
 import shutil
-import subprocess
-import tempfile
 
 from pathlib import Path
 from pickle import dumps, loads
@@ -15,7 +12,7 @@ import pytest
 from numpy import array, ndarray
 from scitrack import CachingLogger
 
-from cogent3 import available_apps, get_app, make_aligned_seqs, open_data_store
+from cogent3 import get_app, make_aligned_seqs, open_data_store
 from cogent3.app import align, evo
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
