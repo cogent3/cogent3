@@ -762,7 +762,7 @@ class omit_duplicated:
 
         Create sample data with duplicated sequences.
 
-        >>> from cogent3 import get_app, make_unaligned_seqs
+        >>> from cogent3 import get_app, make_aligned_seqs
         >>> data = {
         ... "a": "ACGT",
         ... "b": "ACG-",  # identical to 'a' except has a gap
