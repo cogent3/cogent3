@@ -5532,10 +5532,11 @@ def _coerce_to_array_aligned_seqs(data, names, label_to_name=str, moltype=None) 
     # Ensure all sequences are of equal length
     seq_lengths = {len(seq) for seq in seqs}
     if len(seq_lengths) > 1:
-        raise ValueError(f"Input sequences are not all the same length: {seq_lengths}. "
-                         "Please ensure all sequences are properly aligned or "
-                         "correct the input file format.")
-
+        raise ValueError(
+            f"Input sequences are not all the same length: {seq_lengths}. "
+            "Please ensure all sequences are properly aligned or "
+            "correct the input file format."
+        )
 
     return numpy.array(seqs), names
 
