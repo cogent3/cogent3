@@ -8,6 +8,7 @@ from os import path
 from shutil import rmtree
 from subprocess import check_call, check_output
 from tempfile import mkdtemp
+from typing import Literal
 
 import pkg_resources
 import pytest
@@ -17,57 +18,9 @@ from cogent3.app import typing as c3types
 from cogent3.app.composable import define_app
 
 
-@pytest.fixture(scope="function")
-def install_temp_app(request: pytest.FixtureRequest):
-    """
-    A pytest fixture that creates a temporary app from a function, installs it, and then uninstalls it after testing.
-
-    This fixture creates a temporary directory, writes the source code of the function into a new Python file in the
-    temporary directory, creates a setup.py file that references the new module, and installs the module using pip.
-    After the test function that uses this fixture is run, the module is uninstalled and the temporary directory is deleted.
-
-    Parameters
-    ----------
-    request : _pytest.fixtures.SubRequest
-        An define_app decorated class
-
-    Notes
-    -----
-
-    This fixture will only work with define_app decorated classes, NOT define_app decorated functions that have been shoehorned
-    into classes because with a dynamically generated class the original code is not available for inspection programatically.
-
-    If your temporary app will require special imports, you can add import statements in a class method called `_requires_imports`.
-    This method should return a list of strings that are valid import statements.
-
-    Yields
-    ------
-    None
-
-    Raises
-    ------
-    subprocess.CalledProcessError
-        If the `pip install .` or `pip uninstall -y` commands fail.
-
-    Side Effects
-    ------------
-    - forces refresh of the apps cache
-
-    Examples
-    --------
-    >>> @pytest.mark.parametrize('install_temp_module', [my_func], indirect=True)
-    ... def test_my_func(install_temp_module):
-    ...     # Test code here
-    """
+def install_app(cls):
     # Create a temporary directory
     temp_dir = mkdtemp()
-
-    # Get the function from the request
-    cls = request.param
-
-    # Check if the passed-in value is a class ( a define_app decorated function becomes a class)
-    if not isclass(cls):
-        raise TypeError(f"Expected a class, but got {type(cls).__name__}")
 
     # Get the source code of the function
     lines, _ = getsourcelines(cls)
@@ -130,20 +83,76 @@ setup(
     # force the app cache to reload
     apps = available_apps(force=True)
 
-    yield
+    return temp_dir
+    
+def uninstall_app(cls, temp_dir):
+    # Use subprocess to run pip uninstall -y in the temporary directory
+    package_name = cls.__name__.replace("_", "-")  # replace underscores with hyphens
+    check_call([sys.executable, "-m", "pip", "uninstall", "-y", package_name])
 
-    # After the test function completes, use subprocess to run pip uninstall -y <module> to uninstall the module
-    check_call([sys.executable, "-m", "pip", "uninstall", "-y", f"{cls.__name__}"])
+    # force pkg_resourcs to reload it's cache of entry points
+    importlib.reload(pkg_resources)
 
     # Create a new ExtensionManager instance to force it to reload the entry points
     em = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
 
-    # force the app cache to reload after
+    # force the app cache to reload
     apps = available_apps(force=True)
 
     # Delete the temporary directory
     rmtree(temp_dir)
+    
 
+@pytest.fixture(scope="function")
+def install_temp_app(request: pytest.FixtureRequest):
+    """
+    A pytest fixture that creates a temporary app from a function, installs it, and then uninstalls it after testing.
+
+    This fixture creates a temporary directory, writes the source code of the function into a new Python file in the
+    temporary directory, creates a setup.py file that references the new module, and installs the module using pip.
+    After the test function that uses this fixture is run, the module is uninstalled and the temporary directory is deleted.
+
+    Parameters
+    ----------
+    request : _pytest.fixtures.SubRequest
+        An define_app decorated class
+
+    Notes
+    -----
+
+    This fixture will only work with define_app decorated classes, NOT define_app decorated functions that have been shoehorned
+    into classes because with a dynamically generated class the original code is not available for inspection programatically.
+
+    If your temporary app will require special imports, you can add import statements in a class method called `_requires_imports`.
+    This method should return a list of strings that are valid import statements.
+
+    Yields
+    ------
+    None
+
+    Raises
+    ------
+    subprocess.CalledProcessError
+        If the `pip install .` or `pip uninstall -y` commands fail.
+
+    Side Effects
+    ------------
+    - forces refresh of the apps cache
+
+    Examples
+    --------
+    >>> @pytest.mark.parametrize('install_temp_module', [my_func], indirect=True)
+    ... def test_my_func(install_temp_module):
+    ...     # Test code here
+    """
+    cls = request.param
+    if not isclass(cls):
+        raise TypeError(f"Expected a class, but got {type(cls).__name__}")
+    try: 
+        temp_dir = install_app(cls)
+        yield
+    finally:
+        uninstall_app(cls, temp_dir)
 
 @define_app
 class uppercase:
@@ -195,3 +204,37 @@ def test_app_namespace_collision(install_temp_app):
     assert (
         available_apps("to_json").shape[0] == 2
     ), "available_apps does not show 2 to_json apps"
+
+
+@define_app
+class blah:
+    def __init__(self):
+        self.constant = 2
+
+    def main(self, val: int) -> int:
+        return val + self.constant
+
+
+
+class Test_temp_app_blah:
+    """Use a test class so that the install and uninstall of the temp app 'blah' only happens once for all tests"""
+    @classmethod    
+    @pytest.fixture(autouse=True, scope='class')
+    def setup_and_teardown(cls):
+        cls.temp_dir = install_app(blah)
+        yield
+        uninstall_app(blah, cls.temp_dir)
+
+    @pytest.mark.parametrize("app_doc", [None, "text"])
+    @pytest.mark.parametrize("init_doc", [None, "text"])
+    def test_app_help_no_docs(self, app_doc, init_doc, capsys):
+        blah = get_app("blah")
+        blah.__class__.__doc__ = app_doc
+        blah.__class__.__init__.__doc__ = init_doc
+        app_help("blah")
+        got = capsys.readouterr().out
+        if app_doc:
+            assert "Overview" in got
+
+        if init_doc:
+            assert "Options" in got
