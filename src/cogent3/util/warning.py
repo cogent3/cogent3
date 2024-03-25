@@ -203,6 +203,11 @@ def deprecated_callable(
         sig = set(inspect.signature(func).parameters)
         _type = "method" if sig & {"self", "cls", "klass"} else "function"
         old = func.__name__
+        if is_discontinued and old == "__init__":
+            # we're really deprecating a class, so get that name
+            old = func.__qualname__.split(".")[-2]
+            _type = "class"
+
         params = dict(
             _type=_type,
             old=old,
