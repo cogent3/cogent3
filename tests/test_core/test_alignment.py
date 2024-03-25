@@ -3613,3 +3613,9 @@ def test_positions(cls):
     r.names = ["a", "b", "c"]
     expect = [list(v) for v in ("AAA", "AAA", "AAA", "A-A", "A--", "A--")]
     assert list(r.positions) == expect
+
+
+def test_array_align_error_with_mixed_length():
+    data = dict(s1="ACGG", s2="A-G")
+    with pytest.raises(ValueError, match=".* not all the same length.*"):
+        make_aligned_seqs(data=data)
