@@ -755,27 +755,28 @@ class omit_duplicated:
         moltype
             molecular type, can be string or instance
 
-            
         Examples
         --------
         Removes redundant sequences from a sequence collection (aligned or
         unaligned).
 
-        Create sample data with duplicated sequences:
+        Create sample data with duplicated sequences.
 
-        >>> from cogent3 import app_help, get_app, make_aligned_seqs, make_unaligned_seqs
-        >>> seq_collection = {
+        >>> from cogent3 import get_app, make_unaligned_seqs
+        >>> data = {
         ... "a": "ACGT",
-        ... "b": "ACG-",  # identical excepting gaps
-        ... "c": "ACGG",  # duplicated
-        ... "d": "ACGG",  # duplicated
+        ... "b": "ACG-",  # identical to 'a' except has a gap
+        ... "c": "ACGG",  # duplicate
+        ... "d": "ACGG",  # duplicate
         ... "e": "AGTC"   # unique
         ... }
-        Create an app that omits duplicate sequences, retaining the longest 
-        representative sequence (i.e. the duplicated sequence with the least 
-        number of gaps and ambiguous characters).
         
-        >>> seqs = make_aligned_seqs(seq_collection, moltype="DNA")
+        Create an app that selects a representative of omits duplicate sequences.
+        Setting ``choose="longest"`` selects the duplicated sequence with the least 
+        number of gaps and ambiguous characters. In this case, only one of 'c' and
+        'd' will be retained.
+        
+        >>> seqs = make_aligned_seqs(data, moltype="DNA")
         >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
         >>> result = app(seqs)
         >>> print(result.to_pretty())
@@ -784,7 +785,7 @@ class omit_duplicated:
         d    ...G
         e    .GTC
 
-        Create an app to exclude all duplicate sequences from the collection.
+        Setting ``choose=None`` means only unique sequences are retained.
 
         >>> app = get_app("omit_duplicated", moltype="dna", choose=None)
         >>> result = app(seqs)
@@ -793,22 +794,21 @@ class omit_duplicated:
         b    ...-
         e    .GTC
 
+        Use the ``mask_degen`` argument to specify how to treat matches between
+        sequences with degenerate characters. We create sample data first that
+        has a DNA ambiguity code. 
 
-        Create sample data with degenerate characters, and an app to ignore
-        these when identifying duplicates.
-
-        >>> aln_dna = make_aligned_seqs({
-        ... "seq1": "ATCG", 
-        ... "seq2": "ATYG", 
-        ... "seq3": "GGTA",
-        ... "seq4": "GGTA"
+        >>> data = make_aligned_seqs({
+        ... "s1": "ATCG", 
+        ... "s2": "ATYG",  # matches s1 with ambiguity
+        ... "s3": "GGTA",
         ... }, 
         ... moltype="DNA")
         >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
-        >>> result = app_dna(aln_dna)
+        >>> result = app_dna(data)
         >>> print(result.to_pretty())
-        seq1    ATCG
-        seq4    GGTA
+        s1    ATCG
+        s3    GGTA
         """
         assert not choose or choose in "longestrandom"
         if moltype:
