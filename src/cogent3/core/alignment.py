@@ -5532,8 +5532,7 @@ def _coerce_to_array_aligned_seqs(data, names, label_to_name=str, moltype=None) 
     # Ensure all sequences are of equal length
     seq_lengths = {len(seq) for seq in seqs}
     if len(seq_lengths) > 1:
-        raise ValueError(f"Input sequences are not all the same length. "
-                         f"Unique lengths found: {seq_lengths}. "
+        raise ValueError(f"Input sequences are not all the same length: {seq_lengths}. "
                          f"Please ensure all sequences are properly aligned or "
                          f"correct the input file format.")
 
