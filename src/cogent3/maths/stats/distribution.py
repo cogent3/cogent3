@@ -66,7 +66,7 @@ def poisson_low(successes, mean):  # pragma: no cover
 
 @c3warn.deprecated_callable(
     version="2024.9",
-    reason="use scipy.stats.poisson.pmf()instead",
+    reason="use scipy.stats.poisson.pmf() instead",
     is_discontinued=True,
 )
 def poisson_exact(successes, mean):  # pragma: no cover
