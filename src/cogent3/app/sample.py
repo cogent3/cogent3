@@ -812,12 +812,12 @@ class omit_duplicated:
         ... "d": "ACGG",  # duplicate
         ... "e": "AGTC"   # unique
         ... }
-        
+
         Create an app that selects a representative of omits duplicate sequences.
-        Setting ``choose="longest"`` selects the duplicated sequence with the least 
+        Setting ``choose="longest"`` selects the duplicated sequence with the least
         number of gaps and ambiguous characters. In this case, only one of 'c' and
         'd' will be retained.
-        
+
         >>> seqs = make_aligned_seqs(data, moltype="DNA")
         >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
         >>> result = app(seqs)
@@ -838,13 +838,13 @@ class omit_duplicated:
 
         Use the ``mask_degen`` argument to specify how to treat matches between
         sequences with degenerate characters. We create sample data first that
-        has a DNA ambiguity code. 
+        has a DNA ambiguity code.
 
         >>> data = make_aligned_seqs({
-        ... "s1": "ATCG", 
+        ... "s1": "ATCG",
         ... "s2": "ATYG",  # matches s1 with ambiguity
         ... "s3": "GGTA",
-        ... }, 
+        ... },
         ... moltype="DNA")
         >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
         >>> result = app_dna(data)
