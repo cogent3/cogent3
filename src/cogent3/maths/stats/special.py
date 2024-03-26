@@ -184,10 +184,11 @@ def ln_binomial(successes, trials, prob):
     Note: no error checking (expects to be called through binomial_exact())
     """
     from scipy.special import loggamma
+
     prob = fix_rounding_error(prob)
-    result_of_ln_combinations = loggamma(trials + 1) - loggamma(successes + 1) - loggamma(trials - successes + 1)
+    ln_comb = loggamma(trials + 1) - loggamma(successes + 1) - loggamma(trials - successes + 1)
     return (
-        result_of_ln_combinations
+        ln_comb
         + successes * log(prob)
         + (trials - successes) * log(1.0 - prob)
     )
