@@ -5,6 +5,7 @@ from numpy import exp, floor, log, sin, sqrt
 
 from cogent3.util import warning as c3warn
 
+
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
 # For IEEE arithmetic (IBMPC):
 MACHEP = 1.11022302462515654042e-16  # 2**-53
@@ -107,6 +108,7 @@ def ln_permutations(n, k):  # pragma: no cover
     """
     return lgam(n + 1) - lgam(n - k + 1)
 
+
 @c3warn.deprecated_callable(
     version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
 )
@@ -127,6 +129,7 @@ def combinations(n, k):  # pragma: no cover
         return combinations_exact(n, k)
     else:
         return exp(ln_combinations(n, k))
+
 
 @c3warn.deprecated_callable(
     version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
@@ -158,6 +161,7 @@ def combinations_exact(n, k):  # pragma: no cover
 
     return product
 
+
 @c3warn.deprecated_callable(
     version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
 )
@@ -185,12 +189,12 @@ def ln_binomial(successes, trials, prob):
     from scipy.special import loggamma
 
     prob = fix_rounding_error(prob)
-    ln_comb = loggamma(trials + 1) - loggamma(successes + 1) - loggamma(trials - successes + 1)
-    return (
-        ln_comb
-        + successes * log(prob)
-        + (trials - successes) * log(1.0 - prob)
+    ln_comb = (
+        loggamma(trials + 1)
+        - loggamma(successes + 1)
+        - loggamma(trials - successes + 1)
     )
+    return ln_comb + successes * log(prob) + (trials - successes) * log(1.0 - prob)
 
 
 # Translations of functions from Cephes Math Library, by Stephen L. Moshier
