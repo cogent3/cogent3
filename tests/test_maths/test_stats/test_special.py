@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for special functions used in statistics.
 """
 import math
@@ -8,19 +7,13 @@ from unittest import TestCase
 from numpy.testing import assert_allclose
 
 from cogent3.maths.stats.special import (
-    combinations,
-    combinations_exact,
     igami,
     incbi,
     ln_binomial,
-    ln_combinations,
-    ln_permutations,
     log1p,
     log_one_minus,
     ndtri,
     one_minus_exp,
-    permutations,
-    permutations_exact,
 )
 
 
