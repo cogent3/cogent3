@@ -925,7 +925,9 @@ def test_write(gb_db, tmp_path):
 
 
 def convert_to_old_np_format(data):
-    return numpy.load(io.BytesIO(data)).tobytes()
+    with io.BytesIO(data) as data:
+        output = numpy.load(data).tobytes()
+    return output
 
 
 def convert_spans_column(db, table_name):
