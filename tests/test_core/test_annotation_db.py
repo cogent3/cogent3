@@ -924,9 +924,9 @@ def test_write(gb_db, tmp_path):
     assert isinstance(got, GenbankAnnotationDb)
 
 
-def convert_to_old_np_format(data):
-    with io.BytesIO(data) as data:
-        output = numpy.load(data).tobytes()
+def convert_to_old_np_format(data: bytes) -> bytes:
+    with io.BytesIO(data) as stream:
+        output = numpy.load(stream).tobytes()
     return output
 
 

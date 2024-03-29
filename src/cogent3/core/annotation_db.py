@@ -40,7 +40,7 @@ _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
 
 # Define custom types for storage in sqlite
 # https://stackoverflow.com/questions/18621513/python-insert-numpy-array-into-sqlite3-database
-def array_to_sqlite(data):
+def array_to_sqlite(data: numpy.ndarray) -> bytes:
     with io.BytesIO() as out:
         numpy.save(out, data)
         out.seek(0)
@@ -48,7 +48,7 @@ def array_to_sqlite(data):
     return output
 
 
-def sqlite_to_array(data):
+def sqlite_to_array(data: bytes) -> numpy.ndarray:
     with io.BytesIO(data) as out:
         out.seek(0)
         try:
