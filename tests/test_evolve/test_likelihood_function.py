@@ -2290,3 +2290,71 @@ def test_expm_zero_lengths(expm, DATA_DIR):
     lf = sm.make_likelihood_function(tree=tree, expm=expm)
     lf.set_alignment(aln)
     lf.optimise(max_evaluations=5, show_progress=False)
+
+
+@pytest.fixture(scope="session")
+def mixed_model(DATA_DIR):
+    aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
+    names = ["Mouse", "Human", "HowlerMon"]
+    aln = aln.take_seqs(names)
+    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    sm = GTR()
+    lf = sm.make_likelihood_function(tree=tree, discrete_edges=["Mouse"])
+    lf.set_alignment(aln)
+    return lf
+
+
+@pytest.fixture(scope="session")
+def bh_model(DATA_DIR):
+    aln = load_aligned_seqs((DATA_DIR / "brca1_5.paml"), moltype="dna")
+    names = ["Mouse", "Human", "HowlerMon"]
+    aln = aln.take_seqs(names)
+    tree = make_tree((f"({names[0]}:0.0,{names[1]}:0.0,{names[2]}:0.0)"))
+    sm = get_model("BH")
+    lf = sm.make_likelihood_function(tree=tree)
+    lf.set_alignment(aln)
+    return lf
+
+
+def test_rate_matrix_for_edge_mixed_discrete(mixed_model):
+    from cogent3.recalculation.scope import InvalidScopeError
+    from cogent3.util.dict_array import DictArray
+
+    with pytest.raises(InvalidScopeError):
+        mixed_model.get_rate_matrix_for_edge("Mouse")
+
+    Q = mixed_model.get_rate_matrix_for_edge("Human")
+
+    assert isinstance(Q, DictArray)
+
+
+def test_get_paralinear_metric_mixed(mixed_model):
+    # should not fail with a mixed discrete, continuous-time model
+    dists = mixed_model.get_paralinear_metric()
+    # making sure have no None's
+    assert None not in set(dists.values())
+
+
+def test_get_lengths_as_ens_mixed(mixed_model):
+    # should not fail with a mixed discrete, continuous-time model
+    lengths = mixed_model.get_lengths_as_ens()
+    # and the length for discrete-time edge Mouse should be None
+    assert lengths["Mouse"] is None
+    # comparing against default value
+    assert lengths["Human"] == lengths["HowlerMon"] == 1
+
+
+def test_get_lengths_as_ens_discrete(bh_model):
+    # should not fail with a discrete-time model
+    lengths = bh_model.get_lengths_as_ens()
+    assert lengths["Human"] is lengths["HowlerMon"] is lengths["Mouse"] is None
+
+
+def test_get_annotated_tree_mixed(mixed_model):
+    # should not fail with a mixed discrete, continuous-time model
+    tree = mixed_model.get_annotated_tree(length_as="ENS")
+    # and the length for discrete-time edge Mouse should be None
+    mouse = tree.get_node_matching_name("Mouse")
+    assert mouse.length is None
+    assert mouse.params["ENS"] is None
+    assert mouse.params["paralinear"] is not None

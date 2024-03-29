@@ -17,6 +17,7 @@ from cogent3.maths.measure import (
     paralinear_discrete_time,
 )
 from cogent3.recalculation.definition import ParameterController
+from cogent3.recalculation.scope import InvalidScopeError
 from cogent3.util import table
 from cogent3.util.dict_array import DictArrayTemplate
 from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
@@ -376,10 +377,8 @@ class LikelihoodFunction(ParameterController):
                 length = self.get_param_value("length", edge=name, **kw)
                 array *= length
         except KeyError as err:
-            if err[0] == "Q" and name != "Q":
-                raise RuntimeError("rate matrix not known by this model")
-            else:
-                raise
+            raise InvalidScopeError from err
+
         return DictArrayTemplate(self._motifs, self._motifs).wrap(array)
 
     def _getLikelihoodValuesSummedAcrossAnyBins(self, locus=None):
@@ -582,7 +581,7 @@ class LikelihoodFunction(ParameterController):
 
         is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
 
-        if is_discrete and not length_as == "paralinear":
+        if is_discrete and length_as != "paralinear":
             raise ValueError(f"{length_as} invalid for discrete time process")
 
         assert length_as in ("ENS", "paralinear", None)
@@ -604,14 +603,12 @@ class LikelihoodFunction(ParameterController):
                 edge.params["mprobs"] = mprobs[edge.name].to_dict()
                 continue
 
-            if not is_discrete:
-                edge.params["ENS"] = ens[edge.name]
-
+            edge.params["ENS"] = ens[edge.name]
             edge.params["length"] = lengths[edge.name]
             edge.params["paralinear"] = plin[edge.name]
             edge.params["mprobs"] = mprobs[edge.name].to_dict()
             for par in d:
-                val = d[par][edge.name]
+                val = d[par].get(edge.name)
                 if par == length_as:
                     val = ens[edge.name]
                 edge.params[par] = val
@@ -702,23 +699,22 @@ class LikelihoodFunction(ParameterController):
         motif_probs : dict or DictArray
             an item for each edge of the tree. Computed if not provided.
         """
-        from cogent3.evolve.ns_substitution_model import (
-            DiscreteSubstitutionModel,
-        )
-
-        is_discrete = isinstance(self.model, DiscreteSubstitutionModel)
-
         if motif_probs is None:
             motif_probs = self.get_motif_probs_by_node()
+
         plin = {}
         for edge in self.tree.get_edge_vector(include_root=False):
             parent_name = edge.parent.name
             pi = motif_probs[parent_name]
             P = self.get_psub_for_edge(edge.name)
-            if is_discrete:
+            try:
+                Q = self.get_rate_matrix_for_edge(edge.name, calibrated=False)
+            except InvalidScopeError:
+                Q = None
+
+            if Q is None:
                 para = paralinear_discrete_time(P.array, pi.array)
             else:
-                Q = self.get_rate_matrix_for_edge(edge.name, calibrated=False)
                 para = paralinear_continuous_time(P.array, pi.array, Q.array)
 
             plin[edge.name] = para
@@ -734,11 +730,25 @@ class LikelihoodFunction(ParameterController):
         motif_probs : dict or DictArray
             an item for each edge of the tree. Computed if not provided.
         """
+        from cogent3.evolve.ns_substitution_model import (
+            DiscreteSubstitutionModel,
+        )
+
         if motif_probs is None:
             motif_probs = self.get_motif_probs_by_node()
 
         edge_parent = self.tree.child_parent_map()
-        lengths = {e: self.get_param_value("length", edge=e) for e in edge_parent}
+        lengths = {}
+        for e in edge_parent:
+            try:
+                length = self.get_param_value("length", edge=e)
+            except (InvalidScopeError, KeyError):
+                length = None
+            lengths[e] = length
+
+        if isinstance(self.model, DiscreteSubstitutionModel):
+            return lengths
+
         if not isinstance(self.model, substitution_model.Stationary):
             ens = {}
             for e in edge_parent:
