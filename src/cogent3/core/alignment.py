@@ -985,15 +985,7 @@ class _SequenceCollectionBase:
         return json.dumps(self.to_rich_dict())
 
     def to_fasta(self):
-        """Return alignment in Fasta format
-
-        Parameters
-        ----------
-        make_seqlabel
-            callback function that takes the seq object and
-            returns a label str
-
-        """
+        """Return alignment in Fasta format"""
         return alignment_to_fasta(self.to_dict())
 
     def to_nexus(self, seq_type, wrap=50):
