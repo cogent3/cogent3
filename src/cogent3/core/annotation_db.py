@@ -40,32 +40,33 @@ _is_ge_3_11 = (sys.version_info.major, sys.version_info.minor) >= (3, 11)
 
 # Define custom types for storage in sqlite
 # https://stackoverflow.com/questions/18621513/python-insert-numpy-array-into-sqlite3-database
-def array_to_sqlite(data):
-    out = io.BytesIO()
-    numpy.save(out, data)
-    out.seek(0)
-    return out.read()
+def array_to_sqlite(data: numpy.ndarray) -> bytes:
+    with io.BytesIO() as out:
+        numpy.save(out, data)
+        out.seek(0)
+        output = out.read()
+    return output
 
 
-def sqlite_to_array(data):
-    out = io.BytesIO(data)
-    out.seek(0)
-    try:
-        result = numpy.load(out)
-    except ValueError:
-        # array is not stored in the numpy.save format
-        # attempt to read from the old format where the
-        # array was saved using numpy.ndarray.tobytes
-        result = numpy.frombuffer(data, dtype=int)
-        dim = result.shape[0] // 2
-        result = result.reshape((dim, 2))
+def sqlite_to_array(data: bytes) -> numpy.ndarray:
+    with io.BytesIO(data) as out:
+        out.seek(0)
+        try:
+            result = numpy.load(out)
+        except ValueError:
+            # array is not stored in the numpy.save format
+            # attempt to read from the old format where the
+            # array was saved using numpy.ndarray.tobytes
+            result = numpy.frombuffer(data, dtype=int)
+            dim = result.shape[0] // 2
+            result = result.reshape((dim, 2))
 
-        warnings.warn(
-            "Old OS dependent database file format detected. "
-            "Update the file format using cogent3.core.annotation_db.update_file_format() "
-            "For reason see https://github.com/cogent3/cogent3/issues/1776.",
-            UserWarning,
-        )
+            warnings.warn(
+                "Old OS dependent database file format detected. "
+                "Update the file format using cogent3.core.annotation_db.update_file_format() "
+                "For reason see https://github.com/cogent3/cogent3/issues/1776.",
+                UserWarning,
+            )
 
     return result
 

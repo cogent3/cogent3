@@ -924,8 +924,10 @@ def test_write(gb_db, tmp_path):
     assert isinstance(got, GenbankAnnotationDb)
 
 
-def convert_to_old_np_format(data):
-    return numpy.load(io.BytesIO(data)).tobytes()
+def convert_to_old_np_format(data: bytes) -> bytes:
+    with io.BytesIO(data) as stream:
+        output = numpy.load(stream).tobytes()
+    return output
 
 
 def convert_spans_column(db, table_name):
