@@ -590,8 +590,8 @@ class LikelihoodFunction(ParameterController):
         d = self.get_param_value_dict(["edge"])
         lengths = d.pop("length", None)
         mprobs = self.get_motif_probs_by_node()
-        if not is_discrete:
-            ens = self.get_lengths_as_ens(motif_probs=mprobs)
+
+        ens = {} if is_discrete else self.get_lengths_as_ens(motif_probs=mprobs)
 
         plin = self.get_paralinear_metric(motif_probs=mprobs)
         if length_as == "ENS":
@@ -605,7 +605,7 @@ class LikelihoodFunction(ParameterController):
                 edge.params["mprobs"] = mprobs[edge.name].to_dict()
                 continue
 
-            edge.params["ENS"] = ens[edge.name]
+            edge.params["ENS"] = ens.get(edge.name)
             edge.params["length"] = lengths[edge.name]
             edge.params["paralinear"] = plin[edge.name]
             edge.params["mprobs"] = mprobs[edge.name].to_dict()
