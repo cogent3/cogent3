@@ -1,5 +1,6 @@
 import json
 import random
+import typing
 
 from collections import defaultdict
 from copy import deepcopy
@@ -8,6 +9,7 @@ import numpy
 
 from cogent3._version import __version__
 from cogent3.core.alignment import ArrayAlignment
+from cogent3.core.tree import PhyloNode
 from cogent3.evolve import substitution_model
 from cogent3.evolve.simulate import AlignmentEvolver, random_sequence
 from cogent3.maths.matrix_exponential_integration import expected_number_subs
@@ -563,7 +565,7 @@ class LikelihoodFunction(ParameterController):
         results = [title, lnL, nfp] + results if lnL else [title, nfp] + results
         return "\n".join(map(str, results))
 
-    def get_annotated_tree(self, length_as=None):
+    def get_annotated_tree(self, length_as: typing.Optional[str] = None) -> PhyloNode:
         """returns tree with model attributes on node.params
 
         length_as : str or None
@@ -612,6 +614,34 @@ class LikelihoodFunction(ParameterController):
                 if par == length_as:
                     val = ens[edge.name]
                 edge.params[par] = val
+
+        return tree
+
+    def get_ens_tree(self) -> PhyloNode:
+        """returns tree with length as ENS
+
+        Notes
+        -----
+        The paralinear distance is added to node.params["paralinear"].
+
+        If it's a discrete-time model, branch lengths are set to None.
+
+        For a stationary model, branch lengths will be unchanged from
+        those values displayed in the statistics tables.
+        """
+        from cogent3.evolve.ns_substitution_model import (
+            DiscreteSubstitutionModel,
+        )
+
+        mprobs = self.get_motif_probs_by_node()
+        if isinstance(self.model, DiscreteSubstitutionModel):
+            raise TypeError("cannot get ENS for discrete-time models")
+
+        ens = self.get_lengths_as_ens(motif_probs=mprobs)
+
+        tree = self._tree.deepcopy()
+        for edge in tree.get_edge_vector(include_root=False):
+            edge.params["length"] = ens[edge.name]
 
         return tree
 
@@ -725,6 +755,7 @@ class LikelihoodFunction(ParameterController):
         """returns {edge.name: ens, ...} where ens is the expected number of substitutions
 
         for a stationary Markov process, this is just branch length
+
         Parameters
         ----------
         motif_probs : dict or DictArray
