@@ -130,9 +130,9 @@ def test_namespace_collision(mock_extension_manager):
     assert cogent3.app.apps().names() == ["app1", "app1"]
 
     with pytest.raises(NameError):
-        app_by_name = get_app("app1")
+        _ = get_app("app1") # request app by name only, when there are multiple apps with the same name
 
-    app_by_module_name_1 = get_app("module1.app1")
+    app_by_module_name_1 = get_app("module1.app1") # request app by name and module 
     app_by_module_name_2 = get_app("module2.app1")
     assert app_by_module_name_1("Hello") == "HELLO"
     assert app_by_module_name_2("Hello") == "hello"
@@ -152,3 +152,4 @@ def test_available_apps_local(mock_extension_manager):
     assert isinstance(apps, Table)
     apps.filtered(lambda x: dummy.__name__ == x, columns='name')
     assert apps.shape[0] == 1
+
