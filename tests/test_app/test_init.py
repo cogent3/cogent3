@@ -9,7 +9,6 @@ import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.composable import LOADER, WRITER, define_app, is_app
-from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
 
 
@@ -143,28 +142,11 @@ def test_get_app_kwargs():
     _ = get_app("model", "F81", name="F81-model")
 
 
-# TODO: install an external app and test it appears in the _plugin_manager
-@define_app
-def min_length(val: int) -> int:
-    return val
-
-
-@pytest.mark.xfail(reason="test registration of a new app via an external app")
-def test_get_app_fail():
-    __app_registry[get_object_provenance(min_length)] = True
-
-    with pytest.raises(NameError):
-        _ = get_app("min_length", 500)
-
-
 def test_app_help(capsys):
     app_help("compress")
     got = capsys.readouterr().out
     assert "Options" in got
     assert got.count("bytes") >= 2  # both input and output types are bytes
-
-
-
 
 
 @pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")

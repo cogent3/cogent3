@@ -1,240 +1,128 @@
-import importlib
 import json
 import sys
 import time
 
+from importlib.metadata import EntryPoint
 from inspect import getsourcelines, isclass
 from os import path
 from shutil import rmtree
-from subprocess import check_call, check_output
+from subprocess import check_call
 from tempfile import mkdtemp
-from typing import Literal
+from unittest.mock import Mock, patch
 
 import pkg_resources
 import pytest
 
-from cogent3.app import _make_apphelp_docstring, app_help, available_apps, get_app
+from stevedore import extension
+from stevedore.extension import ExtensionManager
+
+import cogent3
+
+from cogent3.app import (
+    _make_apphelp_docstring,
+    app_help,
+    apps,
+    available_apps,
+    get_app,
+)
 from cogent3.app import typing as c3types
 from cogent3.app.composable import define_app
 
 
-def install_app(cls):
-    # Create a temporary directory
-    temp_dir = mkdtemp()
+@pytest.fixture
+def extension_manager_factory():
+    """Fixture to create mocked ExtensionManager instances with given extensions."""
 
-    # Get the source code of the function
-    lines, _ = getsourcelines(cls)
-    source_code = "\n".join(lines)
-
-    # Write the source code into a new Python file in the temporary directory
-    with open(path.join(temp_dir, f"{cls.__name__}.py"), "w") as f:
-        f.write("from cogent3.app.composable import define_app\n")
-        if hasattr(cls, "_requires_imports"):
-            for import_statement in cls._requires_imports():
-                f.write(f"{import_statement}\n")
-        f.write(source_code)
-
-    # Create a setup.py file in the temporary directory that references the new module
-    setup_py = f"""
-from setuptools import setup
-
-setup(
-    name='{cls.__name__}',
-    version='0.1',
-    py_modules=['{cls.__name__}'],
-    entry_points={{
-        "cogent3.app": [
-            "{cls.__name__} = {cls.__name__}:{cls.__name__}",
-        ],
-    }},    
-)
-"""
-    with open(path.join(temp_dir, "setup.py"), "w") as f:
-        f.write(setup_py)
-
-    # Use subprocess to run pip install . in the temporary directory
-    check_call([sys.executable, "-m", "pip", "install", "."], cwd=temp_dir)
-
-    # Wait for the installation to complete
-    timeout = 60  # maximum time to wait in seconds
-    start_time = time.time()
-
-    while True:
-        installed_packages = check_output(
-            [sys.executable, "-m", "pip", "list"]
-        ).decode()
-        package_name = cls.__name__.replace(
-            "_", "-"
-        )  # replace underscores with hyphens
-        if package_name in installed_packages:
-            break
-        elif time.time() - start_time > timeout:
-            raise TimeoutError(
-                f"Package {package_name} not found after waiting for {timeout} seconds."
+    def _factory(extensions):
+        with patch("stevedore.ExtensionManager") as mock_manager_constructor:
+            mock_manager = ExtensionManager.make_test_instance(
+                extensions=extensions, namespace="TESTING"
             )
-        time.sleep(1)
+            mock_manager_constructor.return_value = mock_manager
+            return mock_manager
 
-    # force pkg_resourcs to reload it's cache of entry points
-    importlib.reload(pkg_resources)
+    return _factory
 
-    # Create a new ExtensionManager instance to force it to reload the entry points
-    em = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
-
-    # force the app cache to reload
-    apps = available_apps(force=True)
-
-    return temp_dir
-    
-def uninstall_app(cls, temp_dir):
-    # Use subprocess to run pip uninstall -y in the temporary directory
-    package_name = cls.__name__.replace("_", "-")  # replace underscores with hyphens
-    check_call([sys.executable, "-m", "pip", "uninstall", "-y", package_name])
-
-    # force pkg_resourcs to reload it's cache of entry points
-    importlib.reload(pkg_resources)
-
-    # Create a new ExtensionManager instance to force it to reload the entry points
-    em = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
-
-    # force the app cache to reload
-    apps = available_apps(force=True)
-
-    # Delete the temporary directory
-    rmtree(temp_dir)
-    
-
-@pytest.fixture(scope="function")
-def install_temp_app(request: pytest.FixtureRequest):
-    """
-    A pytest fixture that creates a temporary app from a function, installs it, and then uninstalls it after testing.
-
-    This fixture creates a temporary directory, writes the source code of the function into a new Python file in the
-    temporary directory, creates a setup.py file that references the new module, and installs the module using pip.
-    After the test function that uses this fixture is run, the module is uninstalled and the temporary directory is deleted.
-
-    Parameters
-    ----------
-    request : _pytest.fixtures.SubRequest
-        An define_app decorated class
-
-    Notes
-    -----
-
-    This fixture will only work with define_app decorated classes, NOT define_app decorated functions that have been shoehorned
-    into classes because with a dynamically generated class the original code is not available for inspection programatically.
-
-    If your temporary app will require special imports, you can add import statements in a class method called `_requires_imports`.
-    This method should return a list of strings that are valid import statements.
-
-    Yields
-    ------
-    None
-
-    Raises
-    ------
-    subprocess.CalledProcessError
-        If the `pip install .` or `pip uninstall -y` commands fail.
-
-    Side Effects
-    ------------
-    - forces refresh of the apps cache
-
-    Examples
-    --------
-    >>> @pytest.mark.parametrize('install_temp_module', [my_func], indirect=True)
-    ... def test_my_func(install_temp_module):
-    ...     # Test code here
-    """
-    cls = request.param
-    if not isclass(cls):
-        raise TypeError(f"Expected a class, but got {type(cls).__name__}")
-    try: 
-        temp_dir = install_app(cls)
-        yield
-    finally:
-        uninstall_app(cls, temp_dir)
-
-@define_app
-class uppercase:
-    """Convert a string to uppercase."""
-    def main(self, data: str) -> str:
-        return data.upper()
+@pytest.fixture
+def mock_extension_manager(extension_manager_factory, monkeypatch):
+    """Fixture to mock the ExtensionManager with the given extensions."""
+    def _mock_extension_manager(extensions):
+        # Create a mocked ExtensionManager with the specified mock extensions
+        mocked_manager = extension_manager_factory(extensions)
+        # Patch the __apps variable in cogent3.apps module to use the mocked_manager
+        monkeypatch.setattr(cogent3.app, "__apps", mocked_manager)
+        return mocked_manager
+    return _mock_extension_manager
 
 
-@pytest.mark.parametrize("install_temp_app", [uppercase], indirect=True)
-def test_add_app(install_temp_app):
+def create_extension(plugin: object, name: str = None,  module_name:str = "module1") -> extension.Extension:
+    if name is None:
+        name = plugin.__name__
+    return extension.Extension(
+        name=name,
+        entry_point=EntryPoint(name=name, value=f"{module_name}:{name}", group="TESTING"),
+        plugin=plugin,
+        obj=None,
+    )
+
+def test_Install_app(mock_extension_manager):
+    @define_app
+    class uppercase:
+        """Convert a string to uppercase."""
+
+        def main(self, data: str) -> str:
+            return data.upper()
+    mock_extension_manager([create_extension(uppercase)])
+
     appercase = get_app("uppercase")
     assert appercase("hello") == "HELLO"
     assert appercase.__doc__ in _make_apphelp_docstring(appercase.__class__)
 
 
-@define_app
-class to_json:
-    def main(self, data: c3types.SerialisableType) -> str:
-        """Convert primitive python types to json string."""
-        return json.dumps(data)
+@pytest.mark.parametrize("app_doc", [None, "text"])
+@pytest.mark.parametrize("init_doc", [None, "text"])
+def test_app_docs(mock_extension_manager, app_doc, init_doc):
+    @define_app
+    class documented_app:
+        """This is a test app that has a __init__"""
 
-    @classmethod
-    def _requires_imports(cls):
-        return ["from cogent3.app import typing as c3types"]
+        def __init__(self):
+            self.constant = 2
+
+        def main(self, val: int) -> int:
+            return val + self.constant
+    mock_extension_manager([create_extension(documented_app)])
+
+    assert cogent3.app.apps().names() == ["documented_app"]
+    app = get_app("documented_app")
+    app.__class__.__doc__ = app_doc
+    app.__class__.__init__.__doc__ = init_doc
+    app_help("documented_app")
+    got = _make_apphelp_docstring(app.__class__)
+    assert "Options" in got
 
 
-from stevedore.extension import ExtensionManager
+def test_namespace_collision(mock_extension_manager):
+    @define_app
+    class app1:
+        def main(self, data: str) -> str:
+            return data.upper()
+    @define_app
+    class app2:
+        def main(self, data: str) -> str:
+            return data.lower()
+    # create two apps with the same name and different modules
+    mock_extension_manager([create_extension(app1, module_name="module1"), create_extension(app2, name="app1",module_name="module2")])
 
-
-@pytest.mark.parametrize("install_temp_app", [to_json], indirect=True)
-def test_app_namespace_collision(install_temp_app):
-    pr = pkg_resources.iter_entry_points(group="cogent3.app")
-    to_json_extensions = [
-        entry_point for entry_point in pr if entry_point.name == "to_json"
-    ]
-    assert (
-        len(to_json_extensions) == 2
-    ), "pkg_resources.entry_points does not show 2 to_json apps"
-
-    em = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
-    to_json_extensions = [ext for ext in em.extensions if ext.name == "to_json"]
-    assert (
-        len(to_json_extensions) == 2
-    ), "stevedore.ExtensionManager does not show 2 to_json apps"
+    assert cogent3.app.apps().names() == ["app1", "app1"]
 
     with pytest.raises(NameError):
-        to_json = get_app("to_json")
+        app_by_name = get_app("app1")
 
-    assert (
-        available_apps("to_json").shape[0] == 2
-    ), "available_apps does not show 2 to_json apps"
+    app_by_module_name_1 = get_app("module1.app1")
+    app_by_module_name_2 = get_app("module2.app1")
+    assert app_by_module_name_1("Hello") == "HELLO"
+    assert app_by_module_name_2("Hello") == "hello"
 
-
-@define_app
-class blah:
-    def __init__(self):
-        self.constant = 2
-
-    def main(self, val: int) -> int:
-        return val + self.constant
-
-
-
-class Test_temp_app_blah:
-    """Use a test class so that the install and uninstall of the temp app 'blah' only happens once for all tests"""
-    @classmethod    
-    @pytest.fixture(autouse=True, scope='class')
-    def setup_and_teardown(cls):
-        cls.temp_dir = install_app(blah)
-        yield
-        uninstall_app(blah, cls.temp_dir)
-
-    @pytest.mark.parametrize("app_doc", [None, "text"])
-    @pytest.mark.parametrize("init_doc", [None, "text"])
-    def test_app_help_no_docs(self, app_doc, init_doc, capsys):
-        blah = get_app("blah")
-        blah.__class__.__doc__ = app_doc
-        blah.__class__.__init__.__doc__ = init_doc
-        app_help("blah")
-        got = capsys.readouterr().out
-        if app_doc:
-            assert "Overview" in got
-
-        if init_doc:
-            assert "Options" in got
+    composition = app_by_module_name_1 + app_by_module_name_2
+    assert composition("Hello") == "hello"
