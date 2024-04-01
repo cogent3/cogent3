@@ -57,13 +57,25 @@ def create_extension(
     )
 
 
-def test_Install_app(mock_extension_manager):
+def test_Install_app_class(mock_extension_manager):
     @define_app
     class uppercase:
         """Test app that converts a string to uppercase, and has a class docstring."""
 
         def main(self, data: str) -> str:
             return data.upper()
+
+    mock_extension_manager([create_extension(uppercase)])
+
+    appercase = get_app("uppercase")
+    assert appercase("hello") == "HELLO"
+    assert appercase.__doc__ in _make_apphelp_docstring(appercase.__class__)
+
+def test_Install_app_function(mock_extension_manager):
+    @define_app
+    def uppercase(data: str) -> str:
+        """Test function that converts a string to uppercase"""    
+        return data.upper()
 
     mock_extension_manager([create_extension(uppercase)])
 
