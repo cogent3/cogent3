@@ -1,8 +1,9 @@
+import importlib
 import sys
 import time
 
 from contextlib import contextmanager
-from importlib.metadata import EntryPoint
+from importlib.metadata import EntryPoint, distribution
 from inspect import getsourcelines, isclass
 from os import path
 from shutil import rmtree
@@ -10,7 +11,6 @@ from subprocess import check_call
 from tempfile import mkdtemp
 from unittest.mock import patch
 
-import pkg_resources
 import pytest
 
 from stevedore import extension
@@ -233,11 +233,10 @@ entry_points={{
     timeout = 60  # maximum time to wait in seconds
     start_time = time.time()
 
+    start_time = time.time()
     while True:
-        pkg_resources.working_set = (
-            pkg_resources.WorkingSet._build_master()
-        )  # reset the working set
-        installed_packages = [d.key for d in pkg_resources.working_set]
+        importlib.invalidate_caches()
+        installed_packages = [dist.metadata["Name"] for dist in distribution()]
         package_name = mod.replace("_", "-")  # replace underscores with hyphens
         if package_name in installed_packages:
             print(f"Package {package_name!r} found.")

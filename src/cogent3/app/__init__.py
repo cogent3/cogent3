@@ -7,7 +7,6 @@ import re
 import textwrap
 import warnings
 
-import pkg_resources
 import stevedore
 
 from cogent3.util.table import Table
@@ -78,9 +77,8 @@ def apps(force: bool = False) -> stevedore.ExtensionManager:
     """
     global __apps
     if force:
-        pkg_resources.working_set = (
-            pkg_resources.working_set._build_master()
-        )  # reset the working set
+        importlib.invalidate_caches()
+        importlib.reload(stevedore)
         stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE.clear()
     if not __apps or force:
         __apps = stevedore.ExtensionManager(
