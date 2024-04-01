@@ -76,7 +76,7 @@ def create_extension(
 def test_Install_app_class(mock_extension_manager):
     @define_app
     class uppercase:
-        """Test app that converts a string to uppercase, and has a class docstring."""
+        """Test app that converts a string to uppercase"""
 
         def main(self, data: str) -> str:
             return data.upper()
