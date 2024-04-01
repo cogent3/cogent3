@@ -5,37 +5,38 @@ import importlib
 import inspect
 import re
 import textwrap
+import warnings
+
+from stevedore.extension import ExtensionManager
 
 from cogent3.util.table import Table
 
+from .composable import is_app, is_app_composable
 from .io import open_data_store
 
 
-__all__ = [
-    "align",
-    "composable",
-    "dist",
-    "evo",
-    "io",
-    "sample",
-    "translate",
-    "tree",
-]
+def _get_app_attr(name):
+    """
+    This function returns app details for display.
 
+    Notes
+    -----
+    This function also loads the module the app is in.
+    """
 
-def _get_app_attr(name, is_composable):
-    """returns app details for display"""
+    obj = apps()[name].plugin
 
-    modname, name = name.rsplit(".", maxsplit=1)
-    mod = importlib.import_module(modname)
-    obj = getattr(mod, name)
+    if not is_app(obj):
+        warnings.warn(
+            f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping"
+        )
 
     _types = _make_types(obj)
 
     return [
-        mod.__name__,
+        obj.__module__,
         name,
-        is_composable,
+        is_app_composable(obj),
         _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
@@ -52,27 +53,50 @@ def _make_types(app) -> dict:
     return _types
 
 
-def available_apps(name_filter: str | None = None) -> Table:
+# private global to hold an ExtensionManager instance
+__apps = None
+
+
+def apps(force: bool = False) -> ExtensionManager:
+    """
+    Lazy load a stevedore ExtensionManager to collect apps.
+
+    Parameters
+    ----------
+    force : bool, optional
+        If set to True, forces the re-creation of the ExtensionManager,
+        even if it already exists. Default is False.
+
+    Returns
+    -------
+    ExtensionManager
+        The ExtensionManager instance that collects apps.
+    """
+    global __apps
+    if not __apps or force:
+        __apps = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
+    return __apps
+
+
+def available_apps(name_filter: str | None = None, force: bool = False) -> Table:
     """returns Table listing the available apps
 
     Parameters
     ----------
     name_filter
         include apps whose name includes name_filter
+    force : bool, optional
+        If set to True, forces the re-creation of the ExtensionManager,
+        even if it already exists. Default is False.
     """
     from cogent3.util.table import Table
-
-    from .composable import __app_registry
-
-    # registration of apps does not happen until their modules are imported
-    for name in __all__:
-        importlib.import_module(f"cogent3.app.{name}")
 
     # exclude apps from deprecated modules
     deprecated = []
 
     rows = []
-    for app, is_comp in __app_registry.items():
+
+    for app in apps(force).names():
         if any(app.startswith(d) for d in deprecated):
             continue
 
@@ -81,7 +105,7 @@ def available_apps(name_filter: str | None = None) -> Table:
 
         with contextlib.suppress(AttributeError):
             # probably a local scope issue in testing!
-            rows.append(_get_app_attr(app, is_comp))
+            rows.append(_get_app_attr(app))
 
     header = ["module", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
@@ -151,13 +175,14 @@ def _get_app_matching_name(name: str):
     else:
         table = table.filtered(lambda x: name == x, columns="name")
 
-    if table.shape[0] == 0:
-        raise NameError(f"no app matching name {name!r}")
-    elif table.shape[0] > 1:
-        raise NameError(f"too many apps matching name {name!r},\n{table}")
-    modname, _ = table.to_list(columns=["module", "name"])[0]
-    mod = importlib.import_module(modname)
-    return getattr(mod, name)
+    try:
+        app = apps()[name].plugin
+    except KeyError:
+        raise ValueError(f"App {name!r} not found. Please check for typos.")
+    else:
+        if table.shape[0] > 1:
+            raise NameError(f"Too many apps matching name {name!r},\n{table}")
+        return app
 
 
 def get_app(_app_name: str, *args, **kwargs):
@@ -213,6 +238,25 @@ def _clean_overview(text: str) -> str:
     return "\n".join(textwrap.wrap(" ".join(text), break_long_words=False))
 
 
+def _make_apphelp_docstring(app):
+    docs = []
+    app_doc = app.__doc__ or ""
+    if app_doc.strip():
+        docs.extend(_make_head("Overview") + [_clean_overview(app_doc)])
+
+    docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
+
+    init_doc = app.__init__.__doc__ or ""
+    if init_doc.strip():
+        docs.extend(["", _clean_params_docs(init_doc)])
+
+    types = _make_types(app)
+    docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
+    docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
+
+    return "\n".join(docs)
+
+
 def app_help(name: str):
     """displays help for the named app
 
@@ -225,18 +269,4 @@ def app_help(name: str):
         to name.
     """
     app = _get_app_matching_name(name)
-    docs = []
-    app_doc = app.__doc__ or ""
-    if app_doc.strip():
-        docs.extend(_make_head("Overview") + [_clean_overview(app_doc), ""])
-
-    docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
-    init_doc = app.__init__.__doc__ or ""
-    if init_doc.strip():
-        docs.extend(["", _clean_params_docs(init_doc)])
-
-    types = _make_types(app)
-    docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
-    docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
-
-    print("\n".join(docs))
+    print(_make_apphelp_docstring(app))
