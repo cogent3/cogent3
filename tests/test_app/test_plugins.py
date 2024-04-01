@@ -186,6 +186,9 @@ def test_available_apps_local(mock_extension_manager):
 #        def _requires_imports(cls):  # imports required by the app
 #            return ["from cogent3.app import typing as c3types", "import json"]
 #
+# Note: Due to the fact that it uses import_lib caches stevedore will see the first 
+# installed app immediately, but subsequent apps may not be seen until the cache is 
+# updated or the interpreter reloaded. 
 
 
 def install_app(cls, temp_dir, mod=None):
