@@ -1,11 +1,13 @@
+import sys
+import time
+
+from contextlib import contextmanager
 from importlib.metadata import EntryPoint
 from inspect import getsourcelines, isclass
 from os import path
 from shutil import rmtree
 from subprocess import check_call
-import sys
 from tempfile import mkdtemp
-import time
 from unittest.mock import patch
 
 import pkg_resources
@@ -16,10 +18,16 @@ from stevedore.extension import ExtensionManager
 
 import cogent3
 
-from cogent3.app import _make_apphelp_docstring, app_help, apps, available_apps, get_app
+from cogent3.app import (
+    _make_apphelp_docstring,
+    app_help,
+    apps,
+    available_apps,
+    get_app,
+)
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
-from contextlib import contextmanager
+
 
 @pytest.fixture
 def extension_manager_factory():
@@ -79,10 +87,11 @@ def test_Install_app_class(mock_extension_manager):
     assert appercase("hello") == "HELLO"
     assert appercase.__doc__ in _make_apphelp_docstring(appercase.__class__)
 
+
 def test_Install_app_function(mock_extension_manager):
     @define_app
     def uppercase(data: str) -> str:
-        """Test function that converts a string to uppercase"""    
+        """Test function that converts a string to uppercase"""
         return data.upper()
 
     mock_extension_manager([create_extension(uppercase)])
@@ -138,15 +147,18 @@ def test_namespace_collision(mock_extension_manager):
     assert cogent3.app.apps().names() == ["app1", "app1"]
 
     with pytest.raises(NameError):
-        _ = get_app("app1") # request app by name only, when there are multiple apps with the same name
+        _ = get_app(
+            "app1"
+        )  # request app by name only, when there are multiple apps with the same name
 
-    app_by_module_name_1 = get_app("module1.app1") # request app by name and module 
+    app_by_module_name_1 = get_app("module1.app1")  # request app by name and module
     app_by_module_name_2 = get_app("module2.app1")
     assert app_by_module_name_1("Hello") == "HELLO"
     assert app_by_module_name_2("Hello") == "hello"
 
     composition = app_by_module_name_1 + app_by_module_name_2
     assert composition("Hello") == "hello"
+
 
 def test_available_apps_local(mock_extension_manager):
     """available_apps robust to local scope apps"""
@@ -158,13 +170,14 @@ def test_available_apps_local(mock_extension_manager):
     mock_extension_manager([create_extension(dummy)])
     apps = available_apps()
     assert isinstance(apps, Table)
-    apps.filtered(lambda x: dummy.__name__ == x, columns='name')
+    apps.filtered(lambda x: dummy.__name__ == x, columns="name")
     assert apps.shape[0] == 1
 
+
 #
-# The following code is used for dynamic app installation and uninstallation in tests 
+# The following code is used for dynamic app installation and uninstallation in tests
 #
-# The general structure of an app to be dynamically loaded is: 
+# The general structure of an app to be dynamically loaded is:
 #    @define_app
 #    class MyAppClass:
 #        def main(self, data: c3types.SerialisableType) -> str:
@@ -172,7 +185,8 @@ def test_available_apps_local(mock_extension_manager):
 #        @classmethod
 #        def _requires_imports(cls):  # imports required by the app
 #            return ["from cogent3.app import typing as c3types", "import json"]
-#    
+#
+
 
 def install_app(cls, temp_dir, mod=None):
     """
@@ -248,6 +262,7 @@ entry_points={{
             )
         time.sleep(1)
 
+
 def uninstall_app(cls, mod=None):
     """
     Uninstalls a temporary app created from a class by running pip uninstall -y in the temporary directory.
@@ -260,10 +275,11 @@ def uninstall_app(cls, mod=None):
     # force the app cache to reload
     apps = available_apps(force=True)
 
+
 @contextmanager
 def temp_app(cls, module_name: str = None):
     """
-    A context manager that creates a temporary app from a class, installs it, 
+    A context manager that creates a temporary app from a class, installs it,
     and then uninstalls it after testing.
 
     Parameters
@@ -271,7 +287,7 @@ def temp_app(cls, module_name: str = None):
     cls : object
         The class from which to create the app.
     module_name : str, optional
-        The name of the module in which the app is defined. If None, a name 
+        The name of the module in which the app is defined. If None, a name
         is generated based on the class name.
 
     Yields
@@ -291,7 +307,7 @@ def temp_app(cls, module_name: str = None):
     -----
     with temp_app(cls):
         myapp = get_app(cls.__name__)
-        # test myapp   
+        # test myapp
     """
     if module_name is None:
         module_name = f"mod_{cls.__name__}"
@@ -300,7 +316,9 @@ def temp_app(cls, module_name: str = None):
         try:
             install_app(cls, temp_dir=temp_dir, mod=module_name)
         except TimeoutError:
-            pytest.fail(f"TimeoutError occurred during `{cls.__name__}` app installation")
+            pytest.fail(
+                f"TimeoutError occurred during `{cls.__name__}` app installation"
+            )
         yield
     finally:
         uninstall_app(cls, mod=module_name)
@@ -310,13 +328,13 @@ def temp_app(cls, module_name: str = None):
 @pytest.fixture(scope="function")
 def install_temp_app(request: pytest.FixtureRequest):
     """
-    A pytest fixture that creates a temporary app from a class, installs it, 
+    A pytest fixture that creates a temporary app from a class, installs it,
     and then uninstalls it after testing.
 
     Parameters
     ----------
     request : pytest.FixtureRequest
-        The fixture request object. The class from which to create the app 
+        The fixture request object. The class from which to create the app
         should be passed as a parameter to the test function using this fixture.
 
     Yields
@@ -334,11 +352,11 @@ def install_temp_app(request: pytest.FixtureRequest):
 
     Usage
     -----
-                
+
     @pytest.mark.parametrize("install_temp_app", [MyAppClass], indirect=True)
     def test_function(install_temp_app):
         myapp = get_app('MyAppClass')
-        # test myapp   
+        # test myapp
     """
     cls = request.param
     if not isclass(cls):
