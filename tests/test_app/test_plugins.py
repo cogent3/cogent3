@@ -1,6 +1,14 @@
 from importlib.metadata import EntryPoint
+from inspect import getsourcelines, isclass
+from os import path
+from shutil import rmtree
+from subprocess import check_call
+import sys
+from tempfile import mkdtemp
+import time
 from unittest.mock import patch
 
+import pkg_resources
 import pytest
 
 from stevedore import extension
@@ -8,7 +16,7 @@ from stevedore.extension import ExtensionManager
 
 import cogent3
 
-from cogent3.app import _make_apphelp_docstring, app_help, available_apps, get_app
+from cogent3.app import _make_apphelp_docstring, app_help, apps, available_apps, get_app
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
 
@@ -152,4 +160,176 @@ def test_available_apps_local(mock_extension_manager):
     assert isinstance(apps, Table)
     apps.filtered(lambda x: dummy.__name__ == x, columns='name')
     assert apps.shape[0] == 1
+
+#
+# The following code is used for dynamic app installation and uninstallation in tests 
+#
+def install_app(cls, temp_dir, mod=None):
+    """Installs a temporary app created from a class."""
+    # Get the source code of the function
+    lines, _ = getsourcelines(cls)
+    source_code = "\n".join(lines)
+    if not mod:
+        mod = f"mod_{cls.__name__}"
+
+    # Write the source code into a new Python file in the temporary directory
+    with open(path.join(temp_dir, f"{mod}.py"), "w") as f:
+        f.write("from cogent3.app.composable import define_app\n")
+        if hasattr(cls, "_requires_imports"):
+            for import_statement in cls._requires_imports():
+                f.write(f"{import_statement}\n")
+        f.write(source_code)
+
+    # Create a setup.py file in the temporary directory that references the new module
+    setup_py = f"""
+from setuptools import setup
+
+setup(
+name='{mod}',
+version='0.1',
+py_modules=['{mod}'],
+entry_points={{
+    "cogent3.app": [
+        "{cls.__name__} = {mod}:{cls.__name__}",
+    ],
+}},    
+)
+"""
+    with open(path.join(temp_dir, "setup.py"), "w") as f:
+        f.write(setup_py)
+
+    # Use subprocess to run pip install . in the temporary directory
+    check_call([sys.executable, "-m", "pip", "install", "."], cwd=temp_dir)
+
+    # Wait for the installation to complete
+    timeout = 60  # maximum time to wait in seconds
+    start_time = time.time()
+
+    while True:
+        pkg_resources.working_set = (
+            pkg_resources.WorkingSet._build_master()
+        )  # reset the working set
+        installed_packages = [d.key for d in pkg_resources.working_set]
+        package_name = mod.replace("_", "-")  # replace underscores with hyphens
+        if package_name in installed_packages:
+            print(f"Package {package_name!r} found.")
+            break
+        elif time.time() - start_time > timeout:
+            raise TimeoutError(
+                f"Package {package_name!r} not found after waiting for {timeout} seconds."
+            )
+        time.sleep(1)
+
+    # wait until the stevedore cache is updated
+    timeout = 60  # maximum time to wait in seconds
+    start_time = time.time()
+
+    while True:
+        appcache = apps(force=True)
+        if any(ext.entry_point.value == f"{mod}:{cls.__name__}" for ext in appcache):
+            break
+        elif time.time() - start_time > timeout:
+            raise TimeoutError(
+                f"App {mod}.{cls.__name__} not found after waiting for {timeout} seconds."
+            )
+        time.sleep(1)
+
+def uninstall_app(cls, mod=None):
+    """Uninstalls a temporary app created from a class."""
+    if not mod:
+        mod = f"mod_{cls.__name__}"
+    # Use subprocess to run pip uninstall -y in the temporary directory
+    package_name = mod.replace("_", "-")  # replace underscores with hyphens
+    check_call([sys.executable, "-m", "pip", "uninstall", "-y", package_name])
+    # force the app cache to reload
+    apps = available_apps(force=True)
+
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def temp_app(cls, module_name: str = None):
+    """
+    A context manager that creates a temporary app from a class, installs it, 
+    and then uninstalls it after testing.
+
+    Parameters
+    ----------
+    cls : object
+        The class from which to create the app.
+    module_name : str, optional
+        The name of the module in which the app is defined. If None, a name 
+        is generated based on the class name.
+
+    Yields
+    ------
+    None
+
+    Raises
+    ------
+    pytest.fail
+        If a TimeoutError occurs during app installation.
+
+    Notes
+    -----
+    The app is installed in a temporary directory, which is deleted after testing.
+
+    Usage
+    -----
+    with temp_app(cls):
+        # test the app
+    """
+    if module_name is None:
+        module_name = f"mod_{cls.__name__}"
+    temp_dir = mkdtemp()
+    try:
+        try:
+            install_app(cls, temp_dir=temp_dir, mod=module_name)
+        except TimeoutError:
+            pytest.fail(f"TimeoutError occurred during `{cls.__name__}` app installation")
+        yield
+    finally:
+        uninstall_app(cls, mod=module_name)
+        rmtree(temp_dir)
+
+
+@pytest.fixture(scope="function")
+def install_temp_app(request: pytest.FixtureRequest):
+    """
+    A pytest fixture that creates a temporary app from a class, installs it, 
+    and then uninstalls it after testing.
+
+    Parameters
+    ----------
+    request : pytest.FixtureRequest
+        The fixture request object. The class from which to create the app 
+        should be passed as a parameter to the test function using this fixture.
+
+    Yields
+    ------
+    None
+
+    Raises
+    ------
+    TypeError
+        If the parameter passed to the test function is not a class.
+
+    Notes
+    -----
+    The app is installed in a temporary directory, which is deleted after testing.
+
+    Usage
+    -----
+    @pytest.mark.parametrize("install_temp_app", [MyAppClass], indirect=True)
+    def test_function(install_temp_app):
+            myapp = get_app('MyAppClass')
+            # test myapp   
+    """
+    cls = request.param
+    if not isclass(cls):
+        raise TypeError(f"Expected a class, but got {type(cls).__name__}")
+
+    with temp_app(cls):
+        yield
 
