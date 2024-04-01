@@ -19,7 +19,7 @@ import cogent3
 from cogent3.app import _make_apphelp_docstring, app_help, apps, available_apps, get_app
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
-
+from contextlib import contextmanager
 
 @pytest.fixture
 def extension_manager_factory():
@@ -164,8 +164,22 @@ def test_available_apps_local(mock_extension_manager):
 #
 # The following code is used for dynamic app installation and uninstallation in tests 
 #
+# The general structure of an app to be dynamically loaded is: 
+#    @define_app
+#    class MyAppClass:
+#        def main(self, data: c3types.SerialisableType) -> str:
+#            return json.dumps(data)
+#        @classmethod
+#        def _requires_imports(cls):  # imports required by the app
+#            return ["from cogent3.app import typing as c3types", "import json"]
+#    
+
 def install_app(cls, temp_dir, mod=None):
-    """Installs a temporary app created from a class."""
+    """
+    Installs a temporary app created from a class, by writing the source code
+    into a new Python file in the temporary directory, creating a setup.py file
+    that references the new module, and running pip install . the temporary directory.
+    """
     # Get the source code of the function
     lines, _ = getsourcelines(cls)
     source_code = "\n".join(lines)
@@ -235,7 +249,9 @@ entry_points={{
         time.sleep(1)
 
 def uninstall_app(cls, mod=None):
-    """Uninstalls a temporary app created from a class."""
+    """
+    Uninstalls a temporary app created from a class by running pip uninstall -y in the temporary directory.
+    """
     if not mod:
         mod = f"mod_{cls.__name__}"
     # Use subprocess to run pip uninstall -y in the temporary directory
@@ -243,10 +259,6 @@ def uninstall_app(cls, mod=None):
     check_call([sys.executable, "-m", "pip", "uninstall", "-y", package_name])
     # force the app cache to reload
     apps = available_apps(force=True)
-
-
-from contextlib import contextmanager
-
 
 @contextmanager
 def temp_app(cls, module_name: str = None):
@@ -278,7 +290,8 @@ def temp_app(cls, module_name: str = None):
     Usage
     -----
     with temp_app(cls):
-        # test the app
+        myapp = get_app(cls.__name__)
+        # test myapp   
     """
     if module_name is None:
         module_name = f"mod_{cls.__name__}"
@@ -321,10 +334,11 @@ def install_temp_app(request: pytest.FixtureRequest):
 
     Usage
     -----
+                
     @pytest.mark.parametrize("install_temp_app", [MyAppClass], indirect=True)
     def test_function(install_temp_app):
-            myapp = get_app('MyAppClass')
-            # test myapp   
+        myapp = get_app('MyAppClass')
+        # test myapp   
     """
     cls = request.param
     if not isclass(cls):
@@ -332,4 +346,3 @@ def install_temp_app(request: pytest.FixtureRequest):
 
     with temp_app(cls):
         yield
-
