@@ -119,17 +119,6 @@ class TestAvailableApps(TestCase):
                     app_a + app_b
 
 
-def test_available_apps_local():
-    """available_apps robust to local scope apps"""
-
-    @define_app
-    def dummy(val: int) -> int:
-        return val
-
-    apps = available_apps()
-    assert isinstance(apps, Table)
-
-
 @pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
 def test_get_app(name):
     app = get_app(name, 500)

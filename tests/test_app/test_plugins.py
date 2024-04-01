@@ -8,8 +8,9 @@ from stevedore.extension import ExtensionManager
 
 import cogent3
 
-from cogent3.app import _make_apphelp_docstring, app_help, get_app
+from cogent3.app import _make_apphelp_docstring, app_help, available_apps, get_app
 from cogent3.app.composable import define_app
+from cogent3.util.table import Table
 
 
 @pytest.fixture
@@ -126,3 +127,16 @@ def test_namespace_collision(mock_extension_manager):
 
     composition = app_by_module_name_1 + app_by_module_name_2
     assert composition("Hello") == "hello"
+
+def test_available_apps_local(mock_extension_manager):
+    """available_apps robust to local scope apps"""
+
+    @define_app
+    def dummy(val: int) -> int:
+        return val
+
+    mock_extension_manager([create_extension(dummy)])
+    apps = available_apps()
+    assert isinstance(apps, Table)
+    apps.filtered(lambda x: dummy.__name__ == x, columns='name')
+    assert apps.shape[0] == 1
