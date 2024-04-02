@@ -7,7 +7,7 @@ import re
 import textwrap
 import warnings
 
-from stevedore.extension import ExtensionManager
+import stevedore
 
 from cogent3.util.table import Table
 
@@ -15,7 +15,10 @@ from .composable import is_app, is_app_composable
 from .io import open_data_store
 
 
-def _get_app_attr(name):
+# from stevedore.extension import ExtensionManager
+
+
+def _get_extension_attr(extension):
     """
     This function returns app details for display.
 
@@ -24,7 +27,7 @@ def _get_app_attr(name):
     This function also loads the module the app is in.
     """
 
-    obj = apps()[name].plugin
+    obj = extension.plugin
 
     if not is_app(obj):
         warnings.warn(
@@ -34,8 +37,8 @@ def _get_app_attr(name):
     _types = _make_types(obj)
 
     return [
-        obj.__module__,
-        name,
+        extension.module_name,
+        extension.name,
         is_app_composable(obj),
         _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
@@ -57,7 +60,7 @@ def _make_types(app) -> dict:
 __apps = None
 
 
-def apps(force: bool = False) -> ExtensionManager:
+def apps(force: bool = False) -> stevedore.ExtensionManager:
     """
     Lazy load a stevedore ExtensionManager to collect apps.
 
@@ -73,8 +76,14 @@ def apps(force: bool = False) -> ExtensionManager:
         The ExtensionManager instance that collects apps.
     """
     global __apps
+    if force:
+        importlib.invalidate_caches()
+        importlib.reload(stevedore)
+        stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE.clear()
     if not __apps or force:
-        __apps = ExtensionManager(namespace="cogent3.app", invoke_on_load=False)
+        __apps = stevedore.ExtensionManager(
+            namespace="cogent3.app", invoke_on_load=False
+        )
     return __apps
 
 
@@ -96,16 +105,18 @@ def available_apps(name_filter: str | None = None, force: bool = False) -> Table
 
     rows = []
 
-    for app in apps(force).names():
-        if any(app.startswith(d) for d in deprecated):
+    extensions = apps(force)
+
+    for extension in extensions:
+        if any(extension.name.startswith(d) for d in deprecated):
             continue
 
-        if name_filter and name_filter not in app:
+        if name_filter and name_filter not in extension.name:
             continue
 
         with contextlib.suppress(AttributeError):
             # probably a local scope issue in testing!
-            rows.append(_get_app_attr(app))
+            rows.append(_get_extension_attr(extension))
 
     header = ["module", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
@@ -116,6 +127,13 @@ _get_param = re.compile('(?<=").+(?=")')
 
 def _make_signature(app: type) -> str:
     from cogent3.util.misc import get_object_provenance
+
+    if app is None:
+        raise ValueError("app cannot be None")
+
+    # if app is an instance, get the underlying class
+    if not inspect.isclass(app):
+        app = app.__class__
 
     init_sig = inspect.signature(app.__init__)
     app_name = app.__name__
@@ -165,24 +183,28 @@ def _doc_summary(doc):
 
 def _get_app_matching_name(name: str):
     """name can include module name"""
-    table = available_apps()
+
     if "." in name:
         modname, name = name.rsplit(".", maxsplit=1)
-        table = table.filtered(
-            lambda x: x[0].endswith(modname) and x[1] == name,
-            columns=["module", "name"],
-        )
     else:
-        table = table.filtered(lambda x: name == x, columns="name")
+        modname = None
 
-    try:
-        app = apps()[name].plugin
-    except KeyError:
+    extensions_matching = [extension for extension in apps() if extension.name == name]
+    if not extensions_matching:
         raise ValueError(f"App {name!r} not found. Please check for typos.")
+
+    if modname:
+        for extension in extensions_matching:
+            if extension.module_name.endswith(modname):
+                return extension.plugin
+        raise ValueError(f"App {name!r} not found. Please check for typos.")
+
+    elif len(extensions_matching) == 1:
+        return extensions_matching[0].plugin
     else:
-        if table.shape[0] > 1:
-            raise NameError(f"Too many apps matching name {name!r},\n{table}")
-        return app
+        raise NameError(
+            f"Too many apps matching name {name!r},\n{available_apps().filtered(lambda x: name == x, columns='name')}"
+        )
 
 
 def get_app(_app_name: str, *args, **kwargs):

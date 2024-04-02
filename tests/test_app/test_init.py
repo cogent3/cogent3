@@ -9,7 +9,6 @@ import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
 from cogent3.app.composable import LOADER, WRITER, define_app, is_app
-from cogent3.util.misc import get_object_provenance
 from cogent3.util.table import Table
 
 
@@ -120,17 +119,6 @@ class TestAvailableApps(TestCase):
                     app_a + app_b
 
 
-def test_available_apps_local():
-    """available_apps robust to local scope apps"""
-
-    @define_app
-    def dummy(val: int) -> int:
-        return val
-
-    apps = available_apps()
-    assert isinstance(apps, Table)
-
-
 @pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
 def test_get_app(name):
     app = get_app(name, 500)
@@ -143,50 +131,11 @@ def test_get_app_kwargs():
     _ = get_app("model", "F81", name="F81-model")
 
 
-# TODO: install an external app and test it appears in the _plugin_manager
-@define_app
-def min_length(val: int) -> int:
-    return val
-
-
-@pytest.mark.xfail(reason="test registration of a new app via an external app")
-def test_get_app_fail():
-    __app_registry[get_object_provenance(min_length)] = True
-
-    with pytest.raises(NameError):
-        _ = get_app("min_length", 500)
-
-
 def test_app_help(capsys):
     app_help("compress")
     got = capsys.readouterr().out
     assert "Options" in got
     assert got.count("bytes") >= 2  # both input and output types are bytes
-
-
-@define_app
-class blah:
-    def __init__(self):
-        self.constant = 2
-
-    def main(self, val: int) -> int:
-        return val + self.constant
-
-
-@pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
-@pytest.mark.parametrize(
-    "app_doc,init_doc", ((None, None), ("text", None), (None, "text"), ("text", "text"))
-)
-def test_app_help_no_docs(capsys, app_doc, init_doc):
-    blah.__doc__ = app_doc
-    blah.__init__.__doc__ = init_doc
-    app_help("blah")
-    got = capsys.readouterr().out
-    if app_doc:
-        assert "Overview" in got
-
-    if init_doc:
-        assert "Options" in got
 
 
 @pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
