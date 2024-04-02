@@ -164,5 +164,3 @@ def test_available_apps_local(mock_extension_manager):
     assert isinstance(apps, Table)
     apps.filtered(lambda x: dummy.__name__ == x, columns="name")
     assert apps.shape[0] == 1
-
-
