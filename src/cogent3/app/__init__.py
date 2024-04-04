@@ -14,9 +14,8 @@ from cogent3.util.table import Table
 from .composable import is_app, is_app_composable
 from .io import open_data_store
 
-
-# from stevedore.extension import ExtensionManager
-
+# Entry_point for apps to register themselves as plugins
+APP_ENTRY_POINT = "cogent3.app"
 
 def _get_extension_attr(extension):
     """
@@ -60,29 +59,22 @@ def _make_types(app) -> dict:
 __apps = None
 
 
-def apps(force: bool = False) -> stevedore.ExtensionManager:
+def get_app_manager(force: bool = False) -> stevedore.ExtensionManager:
     """
     Lazy load a stevedore ExtensionManager to collect apps.
 
-    Parameters
-    ----------
-    force : bool, optional
-        If set to True, forces the re-creation of the ExtensionManager,
-        even if it already exists. Default is False.
-
-    Returns
-    -------
-    ExtensionManager
-        The ExtensionManager instance that collects apps.
+    Notes
+    -----
+    If force is set, the app_manager will refresh it's cache of apps.
     """
     global __apps
     if force:
         importlib.invalidate_caches()
-        importlib.reload(stevedore)
-        stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE.clear()
+        if APP_ENTRY_POINT in stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE:
+            del stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE[APP_ENTRY_POINT]
     if not __apps or force:
         __apps = stevedore.ExtensionManager(
-            namespace="cogent3.app", invoke_on_load=False
+            namespace=APP_ENTRY_POINT, invoke_on_load=False
         )
     return __apps
 
@@ -90,13 +82,9 @@ def apps(force: bool = False) -> stevedore.ExtensionManager:
 def available_apps(name_filter: str | None = None, force: bool = False) -> Table:
     """returns Table listing the available apps
 
-    Parameters
-    ----------
-    name_filter
-        include apps whose name includes name_filter
-    force : bool, optional
-        If set to True, forces the re-creation of the ExtensionManager,
-        even if it already exists. Default is False.
+    Notes
+    -----
+    If force is set, the app_manager will refresh it's cache of apps.
     """
     from cogent3.util.table import Table
 
@@ -105,7 +93,7 @@ def available_apps(name_filter: str | None = None, force: bool = False) -> Table
 
     rows = []
 
-    extensions = apps(force)
+    extensions = get_app_manager(force)
 
     for extension in extensions:
         if any(extension.name.startswith(d) for d in deprecated):
@@ -189,7 +177,7 @@ def _get_app_matching_name(name: str):
     else:
         modname = None
 
-    extensions_matching = [extension for extension in apps() if extension.name == name]
+    extensions_matching = [extension for extension in get_app_manager() if extension.name == name]
     if not extensions_matching:
         raise ValueError(f"App {name!r} not found. Please check for typos.")
 
@@ -210,24 +198,10 @@ def _get_app_matching_name(name: str):
 def get_app(_app_name: str, *args, **kwargs):
     """returns app instance, use app_help() to display arguments
 
-    Parameters
-    ----------
-    _app_name
-        app name, e.g. 'minlength', or can include module information,
-        e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
-        latter (qualified class name) style when there are multiple matches
-        to name.
-    *args, **kwargs
-        positional and keyword arguments passed through to the app
-
-    Returns
-    -------
-    cogent3 app instance
-
     Raises
     ------
     NameError when multiple apps have the same name. In that case use a
-    qualified class name, as shown above.
+    qualified class name.
     """
     return _get_app_matching_name(_app_name)(*args, **kwargs)
 
