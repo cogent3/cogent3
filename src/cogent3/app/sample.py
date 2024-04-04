@@ -820,13 +820,13 @@ class omit_duplicated:
 class trim_stop_codons:
     """Removes terminal stop codons."""
 
-    def __init__(self, gc=1):
+    def __init__(self, gc: Union[str, int] = 1):
         """
         Parameters
         ----------
         gc
             identifier for a genetic code or a genetic code instance, defaults
-            to standard genetic code
+            to standard genetic code. See https://cogent3.org/doc/cookbook/what_codes.html
 
         Returns
         -------
@@ -835,41 +835,31 @@ class trim_stop_codons:
 
         Examples
         --------
-        Removes trailing stop codons from sequences in a sequence collection or alignment
+
+        Removes trailing (terminal) stop codons from sequences in a sequence
+        collection or alignment.
+
+        Create a sample unaligned sequence data and an app to remove trailing
+        stop codons.
 
         >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, get_app
-
-        Create a sample unaligned sequence data and an app to remove stop codons
-
         >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
         >>> app = get_app("trim_stop_codons")
         >>> result = app(ualn)
         >>> print(result.to_dict())
         {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
 
-        Create an app to remove stop codons, use different genetic code
-        
-        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
-        >>> app = get_app("trim_stop_codons", gc=1)
-        >>> result = app(ualn)
-        >>> print(result.to_dict())
-        {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
+        Remove trailing stop codons from aligned sequences, using the genetic
+        code for "Vertebrate Mitochondrial".
 
-        Create a sample alignment sequence data
+        For a list of all genetic codes, see
+        https://cogent3.org/doc/cookbook/what_codes.html.
 
         >>> aln = make_aligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
-        >>> app = get_app("trim_stop_codons", gc=1)
+        >>> app = get_app("trim_stop_codons", gc=2)
         >>> result = app(aln)
         >>> print(result.to_dict())
         {'s1': 'AAATTTCCC', 's2': 'AAATTT---'}
-
-        Create an app to remove stop codons, use different genetic code
-
-        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTAGA"}, moltype="dna")
-        >>> app = get_app("trim_stop_codons", gc=2)
-        >>> result = app(ualn)
-        >>> print(result.to_dict())
-        {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
         """
         self._gc = gc
 
