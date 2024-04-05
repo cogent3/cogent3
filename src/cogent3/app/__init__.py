@@ -70,6 +70,7 @@ def get_app_manager(force: bool = False) -> stevedore.ExtensionManager:
     global __apps
     if force:
         importlib.invalidate_caches()
+        stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE.get
         if APP_ENTRY_POINT in stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE:
             del stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE[APP_ENTRY_POINT]
     if not __apps or force:
