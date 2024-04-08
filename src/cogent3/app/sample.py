@@ -327,24 +327,66 @@ class take_codon_positions:
 
     def __init__(
         self,
-        *positions,
-        fourfold_degenerate=False,
-        gc="Standard",
-        moltype="dna",
+        *positions: int,
+        fourfold_degenerate: bool = False,
+        gc: Union[str, int] = "Standard",
+        moltype: str = "dna",
     ):
         """
         Parameters
         ----------
         positions
-            either an integer (1, 2, 3), or a tuple of position numbers,
-            e.g. 3 is third position, (1,2) is first and second codon position
-        fourfold_degenerate : bool
+            either a single integer from (1, 2, 3), or additional keyword
+            arguments of position numbers, e.g. 3 is third position, (1,2)
+            is first and second codon position
+        fourfold_degenerate
             if True, returns third positions from four-fold degenerate codons.
             Overrides positions.
         gc
-            identifier for a genetic code or a genetic code instance
-        moltype : str
+            identifier for a genetic code or a genetic code instance.
+            see https://cogent3.org/doc/cookbook/what_codes.html
+        moltype
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that extracts the 3rd codon
+        position from an alignment.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGACGACG", "s2": "GATGATGAT"})
+        >>> take_pos3 = get_app("take_codon_positions", 3, moltype="dna")
+        >>> result = take_pos3(aln)
+        >>> print(result.to_pretty())
+        s1    GGG
+        s2    TTT
+
+        Create an app that extracts the 1st and 2nd codon positions from an
+        alignment.
+
+        >>> take_pos12 = get_app("take_codon_positions", 1, 2, moltype="dna")
+        >>> result = take_pos12(aln)
+        >>> print(result.to_pretty())
+        s1    ACACAC
+        s2    GAGAGA
+
+        Create a sample alignment and an app that returns the 3rd codon
+        positions from four-fold degenerate codons.
+
+        >>> aln_ff = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> take_fourfold = get_app("take_codon_positions", fourfold_degenerate=True, moltype="dna")
+        >>> result = take_fourfold(aln_ff)
+        >>> print(result.to_pretty())
+        s1    AT
+        s2    TC
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if all sites are excluded.
+
+        >>> result = take_fourfold(aln)
+        >>> result.message
+        'Traceback ...
         """
         assert moltype is not None
         moltype = get_moltype(moltype)
@@ -754,6 +796,61 @@ class omit_duplicated:
             set random number seed. Only applied of choose=='random'
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+        Removes redundant sequences from a sequence collection (aligned or
+        unaligned).
+
+        Create sample data with duplicated sequences.
+
+        >>> from cogent3 import get_app, make_aligned_seqs
+        >>> data = {
+        ... "a": "ACGT",
+        ... "b": "ACG-",  # identical to 'a' except has a gap
+        ... "c": "ACGG",  # duplicate
+        ... "d": "ACGG",  # duplicate
+        ... "e": "AGTC"   # unique
+        ... }
+
+        Create an app that selects a representative of omits duplicate sequences.
+        Setting ``choose="longest"`` selects the duplicated sequence with the least
+        number of gaps and ambiguous characters. In this case, only one of 'c' and
+        'd' will be retained.
+
+        >>> seqs = make_aligned_seqs(data, moltype="DNA")
+        >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+        a    ACGT
+        b    ...-
+        d    ...G
+        e    .GTC
+
+        Setting ``choose=None`` means only unique sequences are retained.
+
+        >>> app = get_app("omit_duplicated", moltype="dna", choose=None)
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+        a    ACGT
+        b    ...-
+        e    .GTC
+
+        Use the ``mask_degen`` argument to specify how to treat matches between
+        sequences with degenerate characters. We create sample data first that
+        has a DNA ambiguity code.
+
+        >>> data = make_aligned_seqs({
+        ... "s1": "ATCG",
+        ... "s2": "ATYG",  # matches s1 with ambiguity
+        ... "s3": "GGTA",
+        ... },
+        ... moltype="DNA")
+        >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
+        >>> result = app_dna(data)
+        >>> print(result.to_pretty())
+        s1    ATCG
+        s3    GGTA
         """
         assert not choose or choose in "longestrandom"
         if moltype:
@@ -820,18 +917,46 @@ class omit_duplicated:
 class trim_stop_codons:
     """Removes terminal stop codons."""
 
-    def __init__(self, gc=1):
+    def __init__(self, gc: Union[str, int] = 1):
         """
         Parameters
         ----------
         gc
             identifier for a genetic code or a genetic code instance, defaults
-            to standard genetic code
+            to standard genetic code. See https://cogent3.org/doc/cookbook/what_codes.html
 
         Returns
         -------
         A new sequence collection, or False if not all the named sequences are
         in the collection.
+
+        Examples
+        --------
+
+        Removes trailing (terminal) stop codons from sequences in a sequence
+        collection or alignment.
+
+        Create a sample unaligned sequence data and an app to remove trailing
+        stop codons.
+
+        >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, get_app
+        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons")
+        >>> result = app(ualn)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
+
+        Remove trailing stop codons from aligned sequences, using the genetic
+        code for "Vertebrate Mitochondrial".
+
+        For a list of all genetic codes, see
+        https://cogent3.org/doc/cookbook/what_codes.html.
+
+        >>> aln = make_aligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons", gc=2)
+        >>> result = app(aln)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT---'}
         """
         self._gc = gc
 

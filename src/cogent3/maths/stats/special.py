@@ -1,8 +1,9 @@
 """Translations of functions from Release 2.3 of the Cephes Math Library,
 (c) Stephen L. Moshier 1984, 1995.
 """
-
 from numpy import exp, floor, log, sin, sqrt
+
+from cogent3.util import warning as c3warn
 
 
 log_epsilon = 1e-6  # for threshold in log/exp close to 1
@@ -58,7 +59,10 @@ def one_minus_exp(x):
         return 1 - exp(x)
 
 
-def permutations(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def permutations(n, k):  # pragma: no cover
     """Returns the number of ways of choosing k items from n, in order.
 
     Defined as n!/(n-k)!.
@@ -76,7 +80,10 @@ def permutations(n, k):
         return exp(ln_permutations(n, k))
 
 
-def permutations_exact(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def permutations_exact(n, k):  # pragma: no cover
     """Calculates permutations by integer division.
 
     Preferred method for small permutations, but slow on larger ones.
@@ -89,7 +96,10 @@ def permutations_exact(n, k):
     return product
 
 
-def ln_permutations(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="use scipy.special.perm() instead", is_discontinued=True
+)
+def ln_permutations(n, k):  # pragma: no cover
     """Calculates permutations by difference in log of gamma function.
 
     Preferred method for large permutations, but slow on smaller ones.
@@ -99,7 +109,10 @@ def ln_permutations(n, k):
     return lgam(n + 1) - lgam(n - k + 1)
 
 
-def combinations(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
+)
+def combinations(n, k):  # pragma: no cover
     """Returns the number of ways of choosing k items from n, in order.
 
     Defined as n!/(k!(n-k)!).
@@ -118,7 +131,10 @@ def combinations(n, k):
         return exp(ln_combinations(n, k))
 
 
-def combinations_exact(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
+)
+def combinations_exact(n, k):  # pragma: no cover
     """Calculates combinations by integer division.
 
     Preferred method for small combinations, but slow on larger ones.
@@ -146,7 +162,10 @@ def combinations_exact(n, k):
     return product
 
 
-def ln_combinations(n, k):
+@c3warn.deprecated_callable(
+    version="2024.9", reason="Use scipy.special.comb() instead", is_discontinued=True
+)
+def ln_combinations(n, k):  # pragma: no cover
     """Calculates combinations by difference in log of gamma function.
 
     Preferred method for large combinations, but slow on smaller ones.
@@ -167,12 +186,15 @@ def ln_binomial(successes, trials, prob):
 
     Note: no error checking (expects to be called through binomial_exact())
     """
+    from scipy.special import loggamma
+
     prob = fix_rounding_error(prob)
-    return (
-        ln_combinations(trials, successes)
-        + successes * log(prob)
-        + (trials - successes) * log(1.0 - prob)
+    ln_comb = (
+        loggamma(trials + 1)
+        - loggamma(successes + 1)
+        - loggamma(trials - successes + 1)
     )
+    return ln_comb + successes * log(prob) + (trials - successes) * log(1.0 - prob)
 
 
 # Translations of functions from Cephes Math Library, by Stephen L. Moshier
@@ -248,16 +270,26 @@ ZU = [
 ]
 
 
-def erf(a):
-    """Returns the error function of a: see Cephes docs."""
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.special.erf(x, out=None) instead",
+    is_discontinued=True,
+)
+def erf(a):  # pragma: no cover
+    """being removed"""
     if abs(a) > 1:
         return 1 - erfc(a)
     z = a * a
     return a * polevl(z, ZT) / polevl(z, ZU)
 
 
-def erfc(a):
-    """Returns the complement of the error function of a: see Cephes docs."""
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.special.erfc(z, out=None) instead",
+    is_discontinued=True,
+)
+def erfc(a):  # pragma: no cover
+    """being removed"""
     if a < 0:
         x = -a
     else:
