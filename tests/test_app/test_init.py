@@ -137,6 +137,7 @@ def test_app_help(capsys):
     assert "Options" in got
     assert got.count("bytes") >= 2  # both input and output types are bytes
 
+
 @pytest.mark.parametrize(
     "app_name", ("bootstrap", "from_primitive", "load_db", "take_named_seqs")[:1]
 )

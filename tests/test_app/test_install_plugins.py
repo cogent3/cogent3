@@ -11,63 +11,89 @@
 #            return ["from cogent3.app import typing as c3types", "import json"]
 #
 # Note: Due to the fact that it uses importlib, stevedore will see the first
-# installed app immediately, but subsequent apps may not be seen until the 
-# importlib cache is eventually updated or the interpreter reloaded.  
+# installed app immediately, but subsequent apps may not be seen until the
+# importlib cache is eventually updated or the interpreter reloaded.
 # importlib.invalidate_caches() does not appear to work as expected.
 
 
 import importlib
 import json
 import os
-from pathlib import Path
 import site
 import sys
 import sysconfig
 import time
 
 from contextlib import contextmanager
+from importlib import metadata
 from inspect import getsourcelines
+from pathlib import Path
 from subprocess import check_call
 
 import pytest
+import stevedore
 
-from cogent3.app import APP_ENTRY_POINT, get_app_manager, get_app
-from cogent3.app.composable import define_app
+from stevedore import ExtensionManager
+from stevedore._cache import _get_cache_dir
+
+from cogent3.app import APP_ENTRY_POINT, get_app, get_app_manager
 from cogent3.app import typing as c3types
+from cogent3.app.composable import define_app
+
+
+DISABLE_CACHE = True
+
+
+@pytest.fixture(autouse=True)
+def disable_stevedore_cache():
+    """Disable stevedore cache before running the tests and enable it again after the tests are done."""
+    cache_dir = _get_cache_dir()
+    disable_file = os.path.join(cache_dir, ".disable")
+    if DISABLE_CACHE:
+        with open(disable_file, "w") as f:
+            pass
+    yield  # Run the tests
+    # Enable the cache
+    if os.path.exists(disable_file):
+        os.remove(disable_file)
+
 
 def is_package_installed(package_name: str) -> bool:
     """Check if a package is installed"""
     # using an os/venv independent strategy for finding site_packages from https://stackoverflow.com/questions/122327
-    site_packages_dir = sysconfig.get_path('purelib')
-    installed_packages = os.listdir(site_packages_dir)
-    return any(package_name in pkg for pkg in installed_packages)
-
-def is_package_imported(package_name: str) -> bool:
-    """Check if a package is imported"""
+    # site_packages_dir = sysconfig.get_path('purelib')
+    # installed_packages = os.listdir(site_packages_dir)
+    # return any(package_name in pkg for pkg in installed_packages)
     try:
-        importlib.import_module(package_name)
+        metadata.distribution(package_name)
         return True
-    except ImportError as e:
+    except Exception as e:
         return False
-    
-def is_app_installed(module_name: str, app_name: str) -> bool:
-    """Check if app is installed"""
-    app_manager = get_app_manager(force=True)
-    return any(ext.entry_point.value == f"{module_name}:{app_name}" for ext in app_manager)    
+
+
+def is_entry_point_registered(module_name: str, app_name: str) -> bool:
+    eps = metadata.entry_points()
+    return any(
+        ep.value == f"{module_name}:{app_name}" for ep in eps.get(APP_ENTRY_POINT, [])
+    )
+
 
 @contextmanager
-def persist_for(seconds:int, operation_name:str="Operation"):
+def persist_for(seconds: int, operation_name: str = "Operation"):
     """A context manager that yields until the operation is complete or the time limit is reached."""
     start_time = time.time()
     try:
+
         def perform_operation(operation):
             while time.time() - start_time < seconds and not operation():
                 time.sleep(1)
+
         yield perform_operation
     finally:
         elapsed_time = time.time() - start_time
         if elapsed_time > seconds:
             raise TimeoutError(f"{operation_name} timed out after {seconds} seconds.")
+
 
 def install_app(cls, temp_dir: Path, mod=None):
     """
@@ -79,17 +105,18 @@ def install_app(cls, temp_dir: Path, mod=None):
     lines, _ = getsourcelines(cls)
 
     # Find the first line of the class definition
-    class_line = next(i for i, line in enumerate(lines) if line.strip().startswith("class"))
-    
+    class_line = next(
+        i for i, line in enumerate(lines) if line.strip().startswith("class")
+    )
+
     # Calculate the number of leading spaces in the first line of the class definition
     leading_spaces = len(lines[class_line]) - len(lines[class_line].lstrip())
-
 
     # Remove leading spaces from all lines
     source_code = "\n".join(line[leading_spaces:] for line in lines)
     if not mod:
         mod = f"mod_{cls.__name__}"
-    
+
     # Write the source code into a new Python file in the temporary directory
     package_path = temp_dir / f"{mod}.py"
     with open(package_path, "w") as package_file:
@@ -121,14 +148,31 @@ entry_points={{
     # Use subprocess to run pip install . in the temporary directory
     check_call([sys.executable, "-m", "pip", "install", "."], cwd=temp_dir)
 
-    with persist_for(seconds=60, operation_name=f"Installing package {mod}") as repeat_until:
+    with persist_for(
+        seconds=10, operation_name=f"Installing package {mod}"
+    ) as repeat_until:
         repeat_until(lambda: is_package_installed(package_name=mod))
 
-    with persist_for(seconds=60, operation_name=f"Importing package {mod}") as repeat_until:
-        repeat_until(lambda: is_package_imported(package_name=mod))
+    reset_stevedore()
 
-    with persist_for(seconds=60, operation_name=f"Loading app {mod}.{cls.__name__}") as repeat_until:
-        repeat_until(lambda: is_app_installed(module_name=mod,app_name=cls.__name__))
+    with persist_for(
+        seconds=10, operation_name=f"Checking entry points {mod}.{cls.__name__}"
+    ) as repeat_until:
+        repeat_until(
+            lambda: is_entry_point_registered(module_name=mod, app_name=cls.__name__)
+        )
+
+
+def reset_stevedore():
+    importlib.invalidate_caches()
+    importlib.reload(metadata)
+    importlib.invalidate_caches()
+    importlib.reload(stevedore)
+    importlib.reload(stevedore._cache)
+
+    apps = get_app_manager(force=True)  # force the app cache to reload
+    names = apps.names()
+
 
 def uninstall_app(cls, mod=None):
     """
@@ -136,21 +180,24 @@ def uninstall_app(cls, mod=None):
     """
     if not mod:
         mod = f"mod_{cls.__name__}"
-    package_name = mod.replace("_", "-")  # underscores in package names are replaced with hyphens
+    package_name = mod.replace(
+        "_", "-"
+    )  # underscores in package names are replaced with hyphens
     check_call([sys.executable, "-m", "pip", "uninstall", "-y", package_name])
-    _ = get_app_manager(force=True) # force the app cache to reload
+    reset_stevedore()
+
 
 @contextmanager
 def load_app(app_class, tmp_path, module_name: str = None):
     """
-    A context manager that creates a temporary app from a class, in a passed in path, 
+    A context manager that creates a temporary app from a class, in a passed in path,
     installs it, yields for tests then uninstalls the app.
 
     Usage
     -----
     with temp_app(cls,tmp_path):
         myapp = get_app(cls.__name__)
-        # test myapp ... 
+        # test myapp ...
     """
     if module_name is None:
         module_name = f"mod_{app_class.__name__}"
@@ -164,6 +211,7 @@ def load_app(app_class, tmp_path, module_name: str = None):
         yield
     finally:
         uninstall_app(app_class, mod=module_name)
+
 
 @pytest.mark.xfail(reason="This test is expected to fail in the full test suite")
 def test_install_temp_app(tmp_path: Path):
@@ -183,3 +231,53 @@ def test_install_temp_app(tmp_path: Path):
             myapp(data)
             == '{"key": "value", "number": 42, "list": [1, 2, 3], "boolean": true}'
         )
+
+
+@pytest.mark.xfail(reason="This test is expected to fail in the full test suite")
+def test_install_colliding_app(tmp_path: Path):
+    @define_app
+    class to_json:
+        def main(self, data: c3types.SerialisableType) -> str:
+            return json.dumps(data)
+
+        @classmethod
+        def _requires_imports(cls):
+            return ["from cogent3.app import typing as c3types", "import json"]
+
+    with load_app(to_json, tmp_path):
+        with pytest.raises(NameError):
+            _ = get_app("to_json")
+
+        app1 = get_app("cogent3.app.io.to_json")
+        app2 = get_app("mod_to_json.to_json")
+        data = {"key": "value", "number": 42, "list": [1, 2, 3], "boolean": True}
+        assert (
+            app1(data)
+            == app2(data)
+            == '{"key": "value", "number": 42, "list": [1, 2, 3], "boolean": true}'
+        )
+
+
+@pytest.mark.xfail(reason="This test is expected to fail in the full test suite")
+def test_install_increments_app_count(tmp_path: Path):
+    @define_app
+    class trivial:
+        def main(self, data: str) -> str:
+            return data
+
+    initial_app_manager = get_app_manager()
+    print(f"Initial app manager: {initial_app_manager}")
+    initial_count = len(initial_app_manager.names())
+    assert initial_count
+    with load_app(trivial, tmp_path):
+        subsequent_app_manager = get_app_manager()
+        print(f"Subsequent app manager: {subsequent_app_manager}")
+        names_beginning_with_T = [
+            name for name in subsequent_app_manager.names() if name.startswith("t")
+        ]
+        assert "trivial" in names_beginning_with_T
+        assert len(get_app_manager().names()) == initial_count + 1
+
+    final_app_manager = get_app_manager()
+    print(f"Final app manager: {final_app_manager}")
+    assert len(final_app_manager.names()) == initial_count

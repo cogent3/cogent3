@@ -8,14 +8,17 @@ import textwrap
 import warnings
 
 import stevedore
+import stevedore._cache
 
 from cogent3.util.table import Table
 
 from .composable import is_app, is_app_composable
 from .io import open_data_store
 
+
 # Entry_point for apps to register themselves as plugins
 APP_ENTRY_POINT = "cogent3.app"
+
 
 def _get_extension_attr(extension):
     """
@@ -69,14 +72,23 @@ def get_app_manager(force: bool = False) -> stevedore.ExtensionManager:
     """
     global __apps
     if force:
-        importlib.invalidate_caches()
-        stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE.get
-        if APP_ENTRY_POINT in stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE:
-            del stevedore.extension.ExtensionManager.ENTRY_POINT_CACHE[APP_ENTRY_POINT]
-    if not __apps or force:
+        __apps = None  # in some cases setting to None does not reset the global __apps, but creating a new ExtensionManager does
         __apps = stevedore.ExtensionManager(
             namespace=APP_ENTRY_POINT, invoke_on_load=False
         )
+        importlib.invalidate_caches()  # reset the cache of entry points
+        cache = __apps.ENTRY_POINT_CACHE
+        # technique for clearing cache from https://github.com/openstack/cloudkitty/blob/e552c3851fa4bb98096228a89613ceb823d45e72/cloudkitty/utils.py#L198
+        if APP_ENTRY_POINT in cache:
+            del cache[APP_ENTRY_POINT]
+        else:
+            cache.clear()
+
+    if not __apps:
+        __apps = stevedore.ExtensionManager(
+            namespace=APP_ENTRY_POINT, invoke_on_load=False
+        )
+
     return __apps
 
 
@@ -178,7 +190,9 @@ def _get_app_matching_name(name: str):
     else:
         modname = None
 
-    extensions_matching = [extension for extension in get_app_manager() if extension.name == name]
+    extensions_matching = [
+        extension for extension in get_app_manager() if extension.name == name
+    ]
     if not extensions_matching:
         raise ValueError(f"App {name!r} not found. Please check for typos.")
 
