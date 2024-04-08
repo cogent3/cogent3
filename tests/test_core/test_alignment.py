@@ -1685,19 +1685,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         # but setting drop_invalid=False allows calc
         dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
 
-    def test_quick_tree(self):
-        """quick tree method returns tree"""
-        aln = self.Class(self.brca1_data, moltype=DNA)
-        aln = aln.take_seqs(aln.names[:5])[:100]
-        tree = aln.quick_tree(calc="hamming", show_progress=False)
-        # bootstrap
-        tree = aln.quick_tree(calc="hamming", bootstrap=2, show_progress=False)
-        self.assertEqual(set(tree.get_tip_names()), set(aln.names))
-        for edge in tree.preorder():
-            if edge.is_root():
-                continue
-            self.assertIsInstance(edge.params["support"], float)
-
     def test_get_gapped_seq(self):
         """Alignment.get_gapped_seq should return seq, with gaps"""
         aln = self.Class({"seq1": "--TTT?", "seq2": "GATC??"})
@@ -3619,3 +3606,29 @@ def test_array_align_error_with_mixed_length():
     data = dict(s1="ACGG", s2="A-G")
     with pytest.raises(ValueError, match=".* not all the same length.*"):
         make_aligned_seqs(data=data)
+
+
+@pytest.fixture(scope="session")
+def brca1_data():
+    return load_aligned_seqs("data/brca1.fasta").to_dict()
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+@pytest.mark.parametrize("calc", ("hamming", None))
+def test_quick_tree(cls, calc, brca1_data):
+    """quick tree method returns tree"""
+    aln = cls(brca1_data, moltype=DNA)[:100]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    kwargs = dict(show_progress=False)
+    if calc:
+        kwargs["calc"] = calc
+
+    # bootstrap
+    tree = aln.quick_tree(bootstrap=2, **kwargs)
+    assert set(tree.get_tip_names()) == set(aln.names)
+    types = {
+        type(float(edge.params["support"]))
+        for edge in tree.preorder()
+        if not edge.is_root()
+    }
+    assert types == {float}
