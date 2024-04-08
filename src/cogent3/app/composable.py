@@ -788,7 +788,7 @@ def _apply_to(
         inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
     ):
         member = self.main(data=result.obj, identifier=id_from_source(result.source))
-        md5 = member.md5
+        md5 = getattr(member, "md5", None)
         logger.log_message(str(member), label="output")
         if md5:
             logger.log_message(md5, label="output md5sum")

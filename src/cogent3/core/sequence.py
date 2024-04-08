@@ -10,6 +10,7 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -920,7 +921,7 @@ class Sequence(SequenceI):
         name
             name of the feature
         start, stop
-            start, end positions to search between, relative to offset
+            start, stop positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
 
         Notes
@@ -955,11 +956,11 @@ class Sequence(SequenceI):
         query_start = self._seq.absolute_position(start, include_boundary=False)
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
-        query_end = self._seq.absolute_position(stop, include_boundary=True)
+        query_stop = self._seq.absolute_position(stop, include_boundary=True)
 
         rev_strand = strand == -1
         if rev_strand:
-            query_start, query_end = query_end, query_start
+            query_start, query_stop = query_stop, query_start
 
         query_start = max(query_start, 0)
         # in the underlying db, features are always plus strand oriented
@@ -983,7 +984,7 @@ class Sequence(SequenceI):
             name=name,
             biotype=biotype,
             start=query_start,
-            end=query_end,  # todo gah end should be stop
+            stop=query_stop,
             allow_partial=allow_partial,
         ):
             # spans need to be converted from absolute to relative positions

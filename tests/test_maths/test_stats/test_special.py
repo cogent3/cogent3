@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Unit tests for special functions used in statistics.
 """
 import math
@@ -8,158 +7,18 @@ from unittest import TestCase
 from numpy.testing import assert_allclose
 
 from cogent3.maths.stats.special import (
-    combinations,
-    combinations_exact,
     igami,
     incbi,
     ln_binomial,
-    ln_combinations,
-    ln_permutations,
     log1p,
     log_one_minus,
     ndtri,
     one_minus_exp,
-    permutations,
-    permutations_exact,
 )
 
 
 class SpecialTests(TestCase):
     """Tests miscellaneous functions."""
-
-    def test_permutations(self):
-        """permutations should return expected results"""
-        self.assertEqual(permutations(1, 1), 1)
-        self.assertEqual(permutations(2, 1), 2)
-        self.assertEqual(permutations(3, 1), 3)
-        self.assertEqual(permutations(4, 1), 4)
-        self.assertEqual(permutations(4, 2), 12)
-        self.assertEqual(permutations(4, 3), 24)
-        self.assertEqual(permutations(4, 4), 24)
-        assert_allclose(permutations(300, 100), 3.8807387193009318e239)
-
-    def test_permutations_errors(self):
-        """permutations should raise errors on invalid input"""
-        self.assertRaises(IndexError, permutations, 10, 50)
-        self.assertRaises(IndexError, permutations, -1, 50)
-        self.assertRaises(IndexError, permutations, 10, -5)
-
-    def test_permutations_float(self):
-        """permutations should use gamma function when floats as input"""
-        assert_allclose(permutations(1.0, 1), 1)
-        assert_allclose(permutations(2, 1.0), 2)
-        assert_allclose(permutations(3.0, 1.0), 3)
-        assert_allclose(permutations(4.0, 1), 4)
-        assert_allclose(permutations(4.0, 2.0), 12)
-        assert_allclose(permutations(4.0, 3.0), 24)
-        assert_allclose(permutations(4, 4.0), 24)
-        assert_allclose(permutations(300, 100), 3.8807387193009318e239)
-
-    def test_permutations_range(self):
-        """permutations should increase gradually with increasing k"""
-        start = 5  # permuations(10,5) = 30240
-        end = 6  # permutations(10,6) = 151200
-        step = 0.1
-        lower_lim = 30240
-        upper_lim = 151200
-        previous_value = 30239.9999
-        while start <= end:
-            obs = permutations(10, start)
-            assert lower_lim <= obs <= upper_lim
-            assert obs > previous_value
-            previous_value = obs
-            start += step
-
-    def test_permutations_exact(self):
-        """permutations_exact should return expected results"""
-        assert_allclose(permutations_exact(1, 1), 1)
-        assert_allclose(permutations_exact(2, 1), 2)
-        assert_allclose(permutations_exact(3, 1), 3)
-        assert_allclose(permutations_exact(4, 1), 4)
-        assert_allclose(permutations_exact(4, 2), 12)
-        assert_allclose(permutations_exact(4, 3), 24)
-        assert_allclose(permutations_exact(4, 4), 24)
-        assert_allclose(permutations_exact(300, 100) / 3.8807387193009318e239, 1.0)
-
-    def test_ln_permutations(self):
-        """ln_permutations should return expected results"""
-        assert_allclose(ln_permutations(1, 1), math.log(1))
-        assert_allclose(ln_permutations(2, 1), math.log(2))
-        assert_allclose(ln_permutations(3, 1.0), math.log(3))
-        assert_allclose(ln_permutations(4, 1), math.log(4))
-        assert_allclose(ln_permutations(4.0, 2), math.log(12))
-        assert_allclose(ln_permutations(4, 3.0), math.log(24))
-        assert_allclose(ln_permutations(4, 4), math.log(24))
-        assert_allclose(ln_permutations(300.0, 100), math.log(3.8807387193009318e239))
-
-    def test_combinations(self):
-        """combinations should return expected results when int as input"""
-        self.assertEqual(combinations(1, 1), 1)
-        self.assertEqual(combinations(2, 1), 2)
-        self.assertEqual(combinations(3, 1), 3)
-        self.assertEqual(combinations(4, 1), 4)
-        self.assertEqual(combinations(4, 2), 6)
-        self.assertEqual(combinations(4, 3), 4)
-        self.assertEqual(combinations(4, 4), 1)
-        self.assertEqual(combinations(20, 4), 19 * 17 * 15)
-        assert_allclose(combinations(300, 100), 4.1582514632578812e81)
-
-    def test_combinations_errors(self):
-        """combinations should raise errors on invalid input"""
-        self.assertRaises(IndexError, combinations, 10, 50)
-        self.assertRaises(IndexError, combinations, -1, 50)
-        self.assertRaises(IndexError, combinations, 10, -5)
-
-    def test_combinations_float(self):
-        """combinations should use gamma function when floats as input"""
-        assert_allclose(combinations(1.0, 1.0), 1)
-        assert_allclose(combinations(2.0, 1.0), 2)
-        assert_allclose(combinations(3.0, 1.0), 3)
-        assert_allclose(combinations(4.0, 1.0), 4)
-        assert_allclose(combinations(4.0, 2), 6)
-        assert_allclose(combinations(4, 3.0), 4)
-        assert_allclose(combinations(4.0, 4.0), 1)
-        assert_allclose(combinations(20.0, 4.0), 19 * 17 * 15)
-        assert_allclose(combinations(300, 100.0), 4.1582514632578812e81)
-
-    def test_combinations_range(self):
-        """combinations should decrease gradually with increasing k"""
-        start = 5  # combinations(10,5) = 252
-        end = 6  # combinations(10,6) = 210
-        step = 0.1
-        lower_lim = 210
-        upper_lim = 252
-        previous_value = 252.00001
-        while start <= end:
-            obs = combinations(10, start)
-            assert lower_lim <= obs <= upper_lim
-            assert obs < previous_value
-            previous_value = obs
-            start += step
-
-    def test_combinations_exact(self):
-        """combinations_exact should return expected results"""
-        self.assertEqual(combinations_exact(1, 1), 1)
-        self.assertEqual(combinations_exact(2, 1), 2)
-        self.assertEqual(combinations_exact(3, 1), 3)
-        self.assertEqual(combinations_exact(4, 1), 4)
-        self.assertEqual(combinations_exact(4, 2), 6)
-        self.assertEqual(combinations_exact(4, 3), 4)
-        self.assertEqual(combinations_exact(4, 4), 1)
-        self.assertEqual(combinations_exact(20, 4), 19 * 17 * 15)
-        assert_allclose(combinations_exact(300, 100), 4.1582514632578812e81)
-
-    def test_ln_combinations(self):
-        """ln_combinations should return expected results"""
-        assert_allclose(ln_combinations(1, 1), math.log(1))
-        assert_allclose(ln_combinations(2, 1), math.log(2))
-        assert_allclose(ln_combinations(3, 1), math.log(3))
-        assert_allclose(ln_combinations(4.0, 1), math.log(4))
-        assert_allclose(ln_combinations(4, 2.0), math.log(6))
-        assert_allclose(ln_combinations(4, 3), math.log(4))
-        assert_allclose(ln_combinations(4, 4.0), math.log(1))
-        assert_allclose(ln_combinations(20, 4), math.log(19 * 17 * 15))
-        assert_allclose(ln_combinations(300, 100), math.log(4.1582514632578812e81))
 
     def test_ln_binomial_integer(self):
         """ln_binomial should match R results for integer values"""
