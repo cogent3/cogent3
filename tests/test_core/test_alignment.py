@@ -3608,11 +3608,6 @@ def test_array_align_error_with_mixed_length():
         make_aligned_seqs(data=data)
 
 
-@pytest.fixture(scope="session")
-def brca1_data():
-    return load_aligned_seqs("data/brca1.fasta").to_dict()
-
-
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
 @pytest.mark.parametrize("calc", ("hamming", None))
 def test_quick_tree(cls, calc, brca1_data):
