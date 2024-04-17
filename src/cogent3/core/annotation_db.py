@@ -333,7 +333,7 @@ def _matching_conditions(
         sql.append(" AND ".join(conds))
         vals = tuple(vals)
 
-    if isinstance(start, int) and isinstance(stop, int):
+    if start is not None and stop is not None:
         if allow_partial:
             # allow matches that overlap the segment
             cond = [
@@ -347,11 +347,11 @@ def _matching_conditions(
             # only matches within bounds
             cond = f"start >= {start} AND stop <= {stop}"
         sql.append(f"({cond})")
-    elif isinstance(start, int):
+    elif start is not None:
         # if query has no stop, then any feature containing start
         cond = f"(start <= {start} AND {start} < stop)"
         sql.append(f"({cond})")
-    elif isinstance(stop, int):
+    elif stop is not None:
         # if query has no start, then any feature containing stop
         cond = f"(start <= {stop} AND {stop} < stop)"
         sql.append(f"({cond})")
