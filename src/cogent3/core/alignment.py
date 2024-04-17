@@ -3285,7 +3285,7 @@ class AlignmentI(object):
     @extend_docstring_from(distance_matrix, pre=False)
     def quick_tree(
         self,
-        calc="percent",
+        calc="pdist",
         bootstrap=None,
         drop_invalid=False,
         show_progress=False,
