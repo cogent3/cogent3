@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import contextlib
-import importlib
 import inspect
 import re
 import textwrap
