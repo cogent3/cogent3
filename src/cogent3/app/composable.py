@@ -603,7 +603,10 @@ def define_app(
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
-
+        if composable and getattr(klass, "__add__", None):
+            raise TypeError(
+                f"remove '__add__' method in {klass.__name__!r}, this functionality provided by define_app"
+            )
         for meth in method_list:
             # make sure method not defined by user before adding
             if inspect.isfunction(getattr(klass, meth, None)):
