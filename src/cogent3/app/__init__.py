@@ -8,7 +8,6 @@ import textwrap
 import warnings
 
 import stevedore
-import stevedore._cache
 
 from cogent3.util.table import Table
 
@@ -62,27 +61,11 @@ def _make_types(app) -> dict:
 __apps = None
 
 
-def get_app_manager(force: bool = False) -> stevedore.ExtensionManager:
+def get_app_manager() -> stevedore.ExtensionManager:
     """
     Lazy load a stevedore ExtensionManager to collect apps.
-
-    Notes
-    -----
-    If force is set, the app_manager will refresh it's cache of apps.
     """
     global __apps
-    if force:
-        __apps = None  # in some cases setting to None does not reset the global __apps, but creating a new ExtensionManager does
-        __apps = stevedore.ExtensionManager(
-            namespace=APP_ENTRY_POINT, invoke_on_load=False
-        )
-        importlib.invalidate_caches()  # reset the cache of entry points
-        cache = __apps.ENTRY_POINT_CACHE
-        # technique for clearing cache from https://github.com/openstack/cloudkitty/blob/e552c3851fa4bb98096228a89613ceb823d45e72/cloudkitty/utils.py#L198
-        if APP_ENTRY_POINT in cache:
-            del cache[APP_ENTRY_POINT]
-        else:
-            cache.clear()
 
     if not __apps:
         __apps = stevedore.ExtensionManager(
@@ -92,7 +75,7 @@ def get_app_manager(force: bool = False) -> stevedore.ExtensionManager:
     return __apps
 
 
-def available_apps(name_filter: str | None = None, force: bool = False) -> Table:
+def available_apps(name_filter: str | None = None) -> Table:
     """returns Table listing the available apps
 
     Notes
@@ -106,7 +89,7 @@ def available_apps(name_filter: str | None = None, force: bool = False) -> Table
 
     rows = []
 
-    extensions = get_app_manager(force)
+    extensions = get_app_manager()
 
     for extension in extensions:
         if any(extension.name.startswith(d) for d in deprecated):
