@@ -5367,7 +5367,7 @@ class Alignment(AlignmentI, SequenceCollection):
             if feature["seqid"]:
                 raise RuntimeError(f"{on_alignment=} {feature=}")
             if seq_map is None:
-                seq_map = self.seqs[0].map
+                seq_map = self.seqs[0].map.to_feature_map()
                 *_, strand = self.seqs[0].data.parent_coordinates()
 
             spans = numpy.array(feature["spans"])

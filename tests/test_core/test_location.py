@@ -270,15 +270,14 @@ class MapTests(TestCase):
         self.assertEqual(dict(got), {0: 1, 2: 2, 4: 1, 7: 2})
 
 
-@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
-def test_map_plus_position(cls):
+def test_map_plus_position():
     # seq is 9 long
     # plus coords  012345678
     # +slice         **
     # plus seq     AAACCCTGG
 
     # orig = Aligned(*DNA.make_seq("AAACCCTGG", name="a").parse_out_gaps())
-    orig = cls(locations=[(0, 9)], parent_length=9)
+    orig = FeatureMap(locations=[(0, 9)], parent_length=9)
     assert orig.absolute_position(2) == 2
     assert orig.absolute_position(6) == 6
 
