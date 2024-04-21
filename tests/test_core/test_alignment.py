@@ -1070,93 +1070,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             {"a": "AA", "b": "A-", "c": "AA"},
         )
 
-    def test_no_degenerates(self):
-        """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
-        data = {
-            "s1": "AAA CCC GGG TTT".replace(" ", ""),
-            "s2": "CCC GGG T-T AAA".replace(" ", ""),
-            "s3": "GGR YTT AAA CCC".replace(" ", ""),
-        }
-        aln = self.Class(data=data, moltype=DNA)
-
-        # motif length of 1, defaults - no gaps allowed
-        result = aln.no_degenerates().to_dict()
-        expect = {
-            "s1": "AA CC GG TTT".replace(" ", ""),
-            "s2": "CC GG TT AAA".replace(" ", ""),
-            "s3": "GG TT AA CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # allow gaps
-        result = aln.no_degenerates(allow_gap=True).to_dict()
-        expect = {
-            "s1": "AA CC GGG TTT".replace(" ", ""),
-            "s2": "CC GG T-T AAA".replace(" ", ""),
-            "s3": "GG TT AAA CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # motif length of 3, defaults - no gaps allowed
-        result = aln.no_degenerates(motif_length=3).to_dict()
-        expect = {
-            "s1": "TTT".replace(" ", ""),
-            "s2": "AAA".replace(" ", ""),
-            "s3": "CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # allow gaps
-        result = aln.no_degenerates(motif_length=3, allow_gap=True).to_dict()
-        expect = {
-            "s1": "GGG TTT".replace(" ", ""),
-            "s2": "T-T AAA".replace(" ", ""),
-            "s3": "AAA CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # raises ValueError if a default moltype -- with no
-        # degen characters -- is used
-        aln = self.Class(data=data)
-        self.assertRaises(ValueError, aln.no_degenerates)
-
-    def test_omit_gap_pos(self):
-        """Alignment omit_gap_pos should return alignment w/o positions of gaps"""
-        aln = self.end_gaps
-        # first, check behavior when we're just acting on the cols (and not
-        # trying to delete the naughty seqs).
-
-        # default should strip out cols that are 100% gaps
-        result = aln.omit_gap_pos()
-        self.assertEqual(result.to_dict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"})
-        # if allowed_gap_frac is 1, shouldn't delete anything
-        self.assertEqual(
-            aln.omit_gap_pos(1).to_dict(),
-            {"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"},
-        )
-        # if allowed_gap_frac is 0, should strip out any cols containing gaps
-        self.assertEqual(
-            aln.omit_gap_pos(0).to_dict(), {"a": "AB", "b": "BA", "c": "DE"}
-        )
-        # intermediate numbers should work as expected
-        self.assertEqual(
-            aln.omit_gap_pos(0.4).to_dict(), {"a": "ABC", "b": "BA-", "c": "DEF"}
-        )
-        self.assertEqual(
-            aln.omit_gap_pos(0.7).to_dict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
-        )
-
-        # when we increase the number of sequences to 6, more differences
-        # start to appear.
-        new_aln_data = aln.named_seqs.copy()
-        new_aln_data["d"] = "-------"
-        new_aln_data["e"] = "XYZXYZX"
-        new_aln_data["f"] = "AB-CDEF"
-        aln = self.Class(new_aln_data)
-
-        # if no gaps are allowed, we get None
-        self.assertEqual(aln.omit_gap_pos(0), None)
-
     def test_omit_gap_pos2(self):
         """consistency with different motif_length values"""
         data = {
@@ -1415,41 +1328,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=new_seqs, moltype=DNA)
         self.assertEqual(aln.variable_positions(include_gap_motif=True), [])
         self.assertEqual(aln.variable_positions(include_gap_motif=False), [])
-
-    def test_to_type(self):
-        """correctly interconvert between alignment types"""
-        new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-        array_align = self.Class == ArrayAlignment
-        # when array_align arg matches instance class, no conversion
-        # and get back self
-        aln = self.Class(data=new_seqs)
-        new = aln.to_type(array_align=array_align)
-        self.assertEqual(id(aln), id(new))
-
-        # when array_align arg does not match, should get back the opposite type
-        new = aln.to_type(array_align=not array_align)
-        self.assertFalse(isinstance(new, self.Class))
-
-        # we should be able to specify moltype and alignment
-        new = aln.to_type(array_align=not array_align, moltype=DNA)
-        self.assertEqual(new.to_dict(), new_seqs)
-        # and translate
-        self.assertEqual(
-            new.get_translation().to_dict(),
-            {"seq1": "TYV", "seq3": "TYV", "seq2": "TE-"},
-        )
-
-        # should work on ArrayAlign when just moltype changes
-        new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---"}
-        aln = self.Class(data=new_seqs)
-        new = aln.to_type(array_align=array_align, moltype=DNA)
-        new = new.no_degenerates()  # this should not fail!
-        self.assertEqual(len(new), len(aln) - 3)
-
-        # should correctly apply to existing moltype
-        aln = self.Class(data=new_seqs, moltype=DNA)
-        new = aln.to_type(array_align=not array_align)
-        self.assertEqual(aln.moltype, new.moltype)
 
     def test_to_type_info(self):
         """interconverting between alignment types preserves info attribute"""
@@ -2164,6 +2042,57 @@ class IntegrationTests(TestCase):
         d = Alignment(a, moltype=DNA)
         self.assertEqual(str(d), ">x\nAAA\n>y\nCCC\n")
         self.assertEqual(self.r1.name, "x")
+
+
+def test_featuremap_slice_aligned():
+    from cogent3.core.alignment import Aligned
+    from cogent3.core.location import FeatureMap, Span
+
+    raw_seq = "ACGGTAAAG"
+    im, seq = DNA.make_seq(raw_seq).parse_out_gaps()
+    ia = Aligned(im, seq)
+    length = len(raw_seq)
+    fmap = FeatureMap(spans=[Span(2, 4), Span(5, 8)], parent_length=length)
+    got = ia[fmap]
+    assert str(got) == "GGAAA"
+
+
+@pytest.mark.parametrize("cls", (ArrayAlignment, Alignment))
+def test_to_type(cls):
+    """correctly interconvert between alignment types"""
+    new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    array_align = cls == ArrayAlignment
+    # when array_align arg matches instance class, no conversion
+    # and get back self
+    aln = cls(data=new_seqs)
+    new = aln.to_type(array_align=array_align)
+    assert id(aln) == id(new)
+
+    # when array_align arg does not match, should get back the opposite type
+    new = aln.to_type(array_align=not array_align)
+    assert not isinstance(new, cls)
+
+    # we should be able to specify moltype and alignment
+    new = aln.to_type(array_align=not array_align, moltype=DNA)
+    assert new.to_dict() == new_seqs
+    # and translate
+    assert new.get_translation().to_dict() == {
+        "seq1": "TYV",
+        "seq3": "TYV",
+        "seq2": "TE-",
+    }
+
+    # should work on ArrayAlign when just moltype changes
+    new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---"}
+    aln = cls(data=new_seqs)
+    new = aln.to_type(array_align=array_align, moltype=DNA)
+    new = new.no_degenerates()  # this should not fail!
+    assert len(new) == len(aln) - 3
+
+    # should correctly apply to existing moltype
+    aln = cls(data=new_seqs, moltype=DNA)
+    new = aln.to_type(array_align=not array_align)
+    assert aln.moltype == new.moltype
 
 
 @pytest.mark.parametrize(
@@ -3604,6 +3533,104 @@ def test_array_align_error_with_mixed_length():
     data = dict(s1="ACGG", s2="A-G")
     with pytest.raises(ValueError, match=".* not all the same length.*"):
         make_aligned_seqs(data=data)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_omit_gap_pos(cls):
+    """Alignment omit_gap_pos should return alignment w/o positions of gaps"""
+    aln = cls({"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"}, names=["a", "b", "c"])
+    # first, check behavior when we're just acting on the cols (and not
+    # trying to delete the naughty seqs).
+
+    # default should strip out cols that are 100% gaps
+    result = aln.omit_gap_pos()
+    assert result.to_dict() == {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
+    # if allowed_gap_frac is 1, shouldn't delete anything
+    assert aln.omit_gap_pos(1).to_dict() == {
+        "a": "--A-BC-",
+        "b": "-CB-A--",
+        "c": "--D-EF-",
+    }
+
+    # if allowed_gap_frac is 0, should strip out any cols containing gaps
+    assert aln.omit_gap_pos(0).to_dict() == {"a": "AB", "b": "BA", "c": "DE"}
+    # intermediate numbers should work as expected
+    assert aln.omit_gap_pos(0.4).to_dict() == {"a": "ABC", "b": "BA-", "c": "DEF"}
+    assert aln.omit_gap_pos(0.7).to_dict() == {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
+
+    # when we increase the number of sequences to 6, more differences
+    # start to appear.
+    new_aln_data = aln.named_seqs.copy()
+    new_aln_data["d"] = "-------"
+    new_aln_data["e"] = "XYZXYZX"
+    new_aln_data["f"] = "AB-CDEF"
+    aln = cls(new_aln_data)
+
+    # if no gaps are allowed, we get None
+    assert aln.omit_gap_pos(0) is None
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_no_degenerates(cls):
+    """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
+    data = {
+        "s1": "AAA CCC GGG TTT".replace(" ", ""),
+        "s2": "CCC GGG T-T AAA".replace(" ", ""),
+        "s3": "GGR YTT AAA CCC".replace(" ", ""),
+    }
+    aln = cls(data=data, moltype=DNA)
+
+    # motif length of 1, defaults - no gaps allowed
+    result = aln.no_degenerates().to_dict()
+    expect = {
+        "s1": "AA CC GG TTT".replace(" ", ""),
+        "s2": "CC GG TT AAA".replace(" ", ""),
+        "s3": "GG TT AA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # allow gaps
+    result = aln.no_degenerates(allow_gap=True).to_dict()
+    expect = {
+        "s1": "AA CC GGG TTT".replace(" ", ""),
+        "s2": "CC GG T-T AAA".replace(" ", ""),
+        "s3": "GG TT AAA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # motif length of 3, defaults - no gaps allowed
+    result = aln.no_degenerates(motif_length=3).to_dict()
+    expect = {
+        "s1": "TTT".replace(" ", ""),
+        "s2": "AAA".replace(" ", ""),
+        "s3": "CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # allow gaps
+    result = aln.no_degenerates(motif_length=3, allow_gap=True).to_dict()
+    expect = {
+        "s1": "GGG TTT".replace(" ", ""),
+        "s2": "T-T AAA".replace(" ", ""),
+        "s3": "AAA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+@pytest.mark.parametrize("moltype", ("bytes", "text"))
+def test_no_degenerates_invalid_moltype(cls, moltype):
+    # raises ValueError if a default moltype -- with no
+    # degen characters -- is used
+    data = {
+        "s1": "AAA CCC GGG TTT".replace(" ", ""),
+        "s2": "CCC GGG T-T AAA".replace(" ", ""),
+        "s3": "GGR YTT AAA CCC".replace(" ", ""),
+    }
+
+    aln = cls(data=data, moltype=moltype)
+    with pytest.raises(ValueError):
+        aln.no_degenerates()
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))

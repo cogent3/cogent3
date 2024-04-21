@@ -269,32 +269,6 @@ class MapTests(TestCase):
         got = m.get_gap_coordinates()
         self.assertEqual(dict(got), {0: 1, 2: 2, 4: 1, 7: 2})
 
-    def test_gap_coords_to_map(self):
-        """construct a Map from coordinates of gap alone"""
-        m, seq = DNA.make_seq("-AC--GT-TTA--").parse_out_gaps()
-        gap_coords = {0: 1, 2: 2, 4: 1, 7: 2}
-        seqlen = 70
-        got = gap_coords_to_map(gap_coords, seqlen)
-        self.assertEqual(len(got), seqlen + sum(gap_coords.values()))
-
-        gap_coords = {5: 2, 17: 3, 10: 2}
-        seqlen = 20
-        got = gap_coords_to_map(gap_coords, seqlen)
-        self.assertEqual(len(got), sum(gap_coords.values()) + seqlen)
-
-        # roundtrip from Map.get_gap_coordinates()
-        self.assertEqual(dict(got.get_gap_coordinates()), gap_coords)
-
-        # and no gaps
-        m, seq = DNA.make_seq("ACGTTTA").parse_out_gaps()
-        got = gap_coords_to_map({}, len(seq))
-        self.assertEqual(len(got), len(m))
-        self.assertEqual(got.get_coordinates(), m.get_coordinates())
-
-        # and gaps outside sequence
-        with self.assertRaises(ValueError):
-            got = gap_coords_to_map({20: 1}, len(seq))
-
 
 @pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
 def test_map_plus_position(cls):
@@ -587,3 +561,29 @@ def test_get_coords_invalid_order():
     spans = [(32, 20), (9, 0)]
     with pytest.raises(ValueError):
         FeatureMap(locations=spans, parent_length=100)
+
+
+def test_gap_coords_to_map():
+    """construct a Map from coordinates of gap alone"""
+    gap_coords = {0: 1, 2: 2, 4: 1, 7: 2}
+    seqlen = 70
+    got = gap_coords_to_map(gap_coords, seqlen)
+    assert len(got) == seqlen + sum(gap_coords.values())
+
+    gap_coords = {5: 2, 17: 3, 10: 2}
+    seqlen = 20
+    got = gap_coords_to_map(gap_coords, seqlen)
+    assert len(got) == sum(gap_coords.values()) + seqlen
+
+    # roundtrip from Map.get_gap_coordinates()
+    assert dict(got.get_gap_coordinates()) == gap_coords
+
+    # and no gaps
+    m, seq = DNA.make_seq("ACGTTTA").parse_out_gaps()
+    got = gap_coords_to_map({}, len(seq))
+    assert len(got) == len(m)
+    assert got.get_coordinates() == m.get_coordinates()
+
+    # and gaps outside sequence
+    with pytest.raises(ValueError):
+        gap_coords_to_map({20: 1}, len(seq))
