@@ -8,7 +8,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
-from cogent3.app.composable import LOADER, WRITER, define_app, is_app
+from cogent3.app.composable import LOADER, WRITER, is_app
 from cogent3.util.table import Table
 
 
@@ -136,26 +136,6 @@ def test_app_help(capsys):
     got = capsys.readouterr().out
     assert "Options" in got
     assert got.count("bytes") >= 2  # both input and output types are bytes
-
-
-@pytest.mark.xfail(reason="Constructing apps on the fly is no longer supported")
-def test_app_help_doctest_examples(capsys):
-    app_doc = "A line of text describing the app."
-    init_doc = "\n        Parameters\n        ----------\n        arg\n        arg description\n\n        Examples\n        --------\n        How to use the app\n\n        >>>blah(arg)\n        output\n"
-    blah.__doc__ = app_doc
-    blah.__init__.__doc__ = init_doc
-    app_help("blah")
-    got = capsys.readouterr().out
-    # Two new lines after the end of Parameters should be preserved
-    expect1 = "arg description\n\nExamples\n--------\n"
-    # Two new lines within Examples are preserved
-    expect2 = "How to use the app\n\n>>>blah(arg)\noutput\n"
-    # Two new lines at the end of Examples preserved
-    expect3 = "output\n\nInput type"
-
-    assert expect1 in got
-    assert expect2 in got
-    assert expect3 in got
 
 
 @pytest.mark.parametrize(

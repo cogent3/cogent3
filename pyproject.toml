@@ -22,9 +22,9 @@ dependencies = ["chardet",
         "numba>=0.59.0; python_version=='3.12'",
         "scipy",
         "scitrack",
+        "stevedore",
         "tqdm",
-        "typing_extensions",
-        "stevedore"]
+        "typing_extensions"]
 # remember to update version in requires-python and classifiers
 requires-python = ">=3.9,<3.13"
 classifiers = [

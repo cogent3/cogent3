@@ -1,6 +1,3 @@
-import sys
-import time
-
 from importlib.metadata import EntryPoint
 from unittest.mock import patch
 
@@ -65,7 +62,7 @@ def create_extension(
     )
 
 
-def test_Install_app_class(mock_extension_manager):
+def test_install_app_class(mock_extension_manager):
     @define_app
     class uppercase:
         """Test app that converts a string to uppercase"""
@@ -80,7 +77,7 @@ def test_Install_app_class(mock_extension_manager):
     assert appercase.__doc__ in _make_apphelp_docstring(appercase.__class__)
 
 
-def test_Install_app_function(mock_extension_manager):
+def test_install_app_function(mock_extension_manager):
     @define_app
     def uppercase(data: str) -> str:
         """Test function that converts a string to uppercase"""
@@ -108,7 +105,7 @@ def test_app_docs(mock_extension_manager, app_doc, init_doc):
 
     mock_extension_manager([create_extension(documented_app)])
 
-    assert cogent3.app.apps().names() == ["documented_app"]
+    assert cogent3.app.get_app_manager().names() == ["documented_app"]
     app = get_app("documented_app")
     app.__class__.__doc__ = app_doc
     app.__class__.__init__.__doc__ = init_doc
@@ -136,7 +133,7 @@ def test_namespace_collision(mock_extension_manager):
         ]
     )
 
-    assert cogent3.app.apps().names() == ["app1", "app1"]
+    assert cogent3.app.get_app_manager().names() == ["app1", "app1"]
 
     with pytest.raises(NameError):
         _ = get_app(
@@ -162,5 +159,5 @@ def test_available_apps_local(mock_extension_manager):
     mock_extension_manager([create_extension(dummy)])
     apps = available_apps()
     assert isinstance(apps, Table)
-    apps.filtered(lambda x: dummy.__name__ == x, columns="name")
+    apps = apps.filtered(lambda x: dummy.__name__ == x, columns="name")
     assert apps.shape[0] == 1
