@@ -10,4 +10,5 @@ scipy==1.13.0
 nox==2024.4.15
 plotly==5.20.0
 typing_extensions>=3.7
+stevedore
 .[dev]
