@@ -65,7 +65,6 @@ def get_app_manager() -> stevedore.ExtensionManager:
     Lazy load a stevedore ExtensionManager to collect apps.
     """
     global __apps
-
     if not __apps:
         __apps = stevedore.ExtensionManager(
             namespace=APP_ENTRY_POINT, invoke_on_load=False
