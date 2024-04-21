@@ -413,7 +413,9 @@ def test_feature_nucleic():
     #                              111111
     #                    0123456789012345
     seq = make_seq("AACCTTTGGGGAATTT", moltype="dna")
-    mmap = loc.FeatureMap(locations=[(4, 7), (10, 12)], parent_length=len(seq))
+    mmap = loc.FeatureMap.from_locations(
+        locations=[(4, 7), (10, 12)], parent_length=len(seq)
+    )
     expect = seq[mmap]
 
     rcseq = seq.rc()

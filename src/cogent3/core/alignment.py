@@ -2140,7 +2140,7 @@ class Aligned:
         # Unlike the normal map constructor, here we take a list of pairs of
         # alignment coordinates, NOT a list of pairs of sequence coordinates
         if isinstance(map, list):
-            map = IndelMap(locations=map, parent_length=length).inverse()
+            map = IndelMap.from_locations(locations=map, parent_length=length).inverse()
         self.map = map
         self.data = data
         if hasattr(data, "info"):
@@ -4835,7 +4835,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
 
-        keep = IndelMap(locations=locations, parent_length=len(self))
+        keep = IndelMap.from_locations(locations=locations, parent_length=len(self))
         return self.gapped_by_map(keep, info=self.info)
 
     def get_seq(self, seqname):
@@ -5231,7 +5231,9 @@ class Alignment(AlignmentI, SequenceCollection):
         # there's no sequence to bind to, the feature is directly on self
         revd = feature.pop("strand", None) == "-"
         feature["strand"] = "-" if revd else "+"
-        fmap = FeatureMap(parent_length=len(self), locations=feature.pop("spans"))
+        fmap = FeatureMap.from_locations(
+            locations=feature.pop("spans"), parent_length=len(self)
+        )
         if revd:
             fmap = fmap.nucleic_reversed()
         return Feature(parent=self, map=fmap, **feature)

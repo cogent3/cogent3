@@ -29,7 +29,7 @@ from functools import total_ordering
 from itertools import chain
 from typing import Iterator, List, Optional, Sequence, Tuple, Union
 
-from numpy import array, ndarray
+import numpy
 
 from cogent3._version import __version__
 from cogent3.util import warning as c3warn
@@ -85,6 +85,8 @@ def as_map(slice, length, cls):
         assert (step or 1) == 1
         # since we disallow step, a reverse slice means an empty series
         locations = [] if lo > hi else [(lo, hi)]
+        # IndelMap has this class method
+        cls = getattr(cls, "from_locations", cls)
         return cls(locations=locations, parent_length=length)
 
 
@@ -802,7 +804,7 @@ class Map:  # pragma: no cover
         """returns dicts for contained spans [dict(), ..]"""
         spans = [s.to_rich_dict() for s in self.spans]
         data = copy.deepcopy(self._serialisable)
-        data.pop("locations")
+        data.pop("locations", None)
         data["spans"] = spans
         data["type"] = get_object_provenance(self)
         data["version"] = __version__
@@ -839,7 +841,7 @@ class Map:  # pragma: no cover
 
         return zeroed
 
-    T = Union[ndarray, int]
+    T = Union[numpy.ndarray, int]
 
     def absolute_position(self, rel_pos: T) -> T:
         """converts rel_pos into an absolute position
@@ -848,7 +850,9 @@ class Map:  # pragma: no cover
         ------
         raises ValueError if rel_pos < 0
         """
-        check = array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        check = (
+            numpy.array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        )
         if check.min() < 0:
             raise ValueError(f"must positive, not {rel_pos=}")
 
@@ -865,7 +869,9 @@ class Map:  # pragma: no cover
         ------
         raises ValueError if abs_pos < 0
         """
-        check = array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+        check = (
+            numpy.array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+        )
         if check.min() < 0:
             raise ValueError(f"must positive, not {abs_pos=}")
         return abs_pos - self.start
@@ -1147,6 +1153,20 @@ class MapABC(ABC):
     def inverse(self):
         ...
 
+    @classmethod
+    def from_locations(cls, locations, parent_length, **kwargs):
+        if len(locations):
+            spans = _spans_from_locations(locations, parent_length=parent_length)
+        else:
+            spans = ()
+
+        return cls.from_spans(spans=spans, parent_length=parent_length, **kwargs)
+
+    @classmethod
+    @abstractmethod
+    def from_spans(cls, spans, parent_length, **kwargs):
+        ...
+
 
 def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSpan]]:
     if not len(locations):
@@ -1195,6 +1215,29 @@ def _spans_from_locations(locations, parent_length) -> Tuple[Union[Span, _LostSp
     return tuple(spans)
 
 
+O = tuple[numpy.ndarray, Sequence]
+
+
+def map_to_gap_coords(
+    indel_map: Map, dtype: Union[type, str] = numpy.int32
+) -> numpy.ndarray:
+    """returns coordinates of sequence gaps
+
+    Parameters
+    ----------
+    indel_map
+        old style Map object
+    dtype
+        string or numpy type, default to 32-bit integer
+
+    Returns
+    -------
+    numpy.array[[gap index, gap length],...])
+    """
+    # Assuming the maximum integer is < 2^31
+    return numpy.array(indel_map.get_gap_coordinates(), dtype=dtype)
+
+
 T = Union[List[int], Tuple[int]]
 
 
@@ -1203,7 +1246,6 @@ class IndelMap(MapABC):
     """store locations of deletions in a Aligned sequence"""
 
     spans: dataclasses.InitVar[Optional[tuple]] = ()
-    locations: dataclasses.InitVar[Optional[Sequence[T]]] = None
     termini_unknown: dataclasses.InitVar[bool] = dataclasses.field(default=False)
     parent_length: int = 0
     start: Optional[int] = dataclasses.field(init=False, default=0)
@@ -1214,10 +1256,8 @@ class IndelMap(MapABC):
         default=(), init=False
     )
 
-    def __post_init__(self, spans, locations, termini_unknown):
-        if locations is not None and len(locations):
-            spans = _spans_from_locations(locations, parent_length=self.parent_length)
-        elif isinstance(spans, property):
+    def __post_init__(self, spans, termini_unknown):
+        if isinstance(spans, property):
             # This clause is due a known issue with dataclasses.
             # As we have a spans property, the default spans value is
             # ignored, so we have to check for its value being a property
@@ -1258,6 +1298,12 @@ class IndelMap(MapABC):
 
         self._spans = tuple(spans)
 
+    @classmethod
+    def from_spans(cls, spans, parent_length, termini_unknown=False):
+        return cls(
+            spans=spans, parent_length=parent_length, termini_unknown=termini_unknown
+        )
+
     def __getitem__(self, slice):
         # A possible shorter map at the same level
         new_map = as_map(slice, len(self), self.__class__)
@@ -1291,7 +1337,7 @@ class IndelMap(MapABC):
 
     @property
     def offsets(self):
-        return [0] + array([s.length for s in self._spans[:-1]]).cumsum().tolist()
+        return [0] + numpy.array([s.length for s in self._spans[:-1]]).cumsum().tolist()
 
     def gaps(self):
         """The gaps (lost spans) in this map"""
@@ -1301,7 +1347,9 @@ class IndelMap(MapABC):
             if s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
-        return self.__class__(locations=locations, parent_length=len(self))
+        return self.__class__.from_locations(
+            locations=locations, parent_length=len(self)
+        )
 
     def nongap(self):
         """ungappeed segments in this map"""
@@ -1311,7 +1359,9 @@ class IndelMap(MapABC):
             if not s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
-        return self.__class__(locations=locations, parent_length=len(self))
+        return self.__class__.from_locations(
+            locations=locations, parent_length=len(self)
+        )
 
     @property
     def spans(self) -> Iterator[Span]:
@@ -1370,7 +1420,7 @@ class IndelMap(MapABC):
         data = copy.deepcopy(
             {k: v for k, v in self._serialisable.items() if k != "spans"}
         )
-        data.pop("locations")
+        data.pop("locations", None)
         data["spans"] = spans
         data["type"] = get_object_provenance(self)
         data["version"] = __version__
@@ -1452,7 +1502,9 @@ class IndelMap(MapABC):
 
     def get_covering_span(self):
         span = self.start, self.end
-        return self.__class__(locations=[span], parent_length=self.parent_length)
+        return self.__class__.from_locations(
+            locations=[span], parent_length=self.parent_length
+        )
 
     def zeroed(self):
         """returns a new instance with the first span starting at 0
@@ -1511,7 +1563,6 @@ class FeatureMap(MapABC):
     """A map holds a list of spans."""
 
     spans: dataclasses.InitVar[Optional[tuple]] = ()
-    locations: dataclasses.InitVar[Optional[Sequence[T]]] = None
     parent_length: int = 0
     offsets: list[int] = dataclasses.field(init=False, repr=False)
     useful: bool = dataclasses.field(init=False, repr=False, default=False)
@@ -1521,12 +1572,10 @@ class FeatureMap(MapABC):
         default=(), init=False
     )
 
-    def __post_init__(self, spans, locations):
+    def __post_init__(self, spans):
         assert self.parent_length is not None
 
-        if locations is not None and len(locations):
-            spans = _spans_from_locations(locations, parent_length=self.parent_length)
-        elif isinstance(spans, property):
+        if isinstance(spans, property):
             # This clause is due a known issue with dataclasses.
             # As we have a spans property, the default spans value is
             # ignored, so we have to check for its value being a property
@@ -1553,6 +1602,10 @@ class FeatureMap(MapABC):
 
         self._spans = tuple(spans)
         self.length = posn
+
+    @classmethod
+    def from_spans(cls, spans, parent_length):
+        return cls(spans=spans, parent_length=parent_length)
 
     def __len__(self):
         return self.length
@@ -1599,7 +1652,9 @@ class FeatureMap(MapABC):
 
     def get_covering_span(self):
         span = (self.start, self.end)
-        return self.__class__(locations=[span], parent_length=self.parent_length)
+        return self.__class__.from_locations(
+            locations=[span], parent_length=self.parent_length
+        )
 
     def covered(self):
         """>>> Map([(10,20), (15, 25), (80, 90)]).covered().spans
@@ -1628,7 +1683,9 @@ class FeatureMap(MapABC):
             last_x = x
             last_y = y
         assert y == 0
-        return self.__class__(locations=result, parent_length=self.parent_length)
+        return self.__class__.from_locations(
+            locations=result, parent_length=self.parent_length
+        )
 
     def nucleic_reversed(self):
         """map for a sequence that has itself been reversed and complemented
@@ -1671,7 +1728,9 @@ class FeatureMap(MapABC):
             if s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
-        return self.__class__(locations=locations, parent_length=len(self))
+        return self.__class__.from_locations(
+            locations=locations, parent_length=len(self)
+        )
 
     def shadow(self):
         """The 'negative' map of the spans not included in this map"""
@@ -1684,7 +1743,9 @@ class FeatureMap(MapABC):
             if not s.lost:
                 locations.append((offset, offset + s.length))
             offset += s.length
-        return self.__class__(locations=locations, parent_length=len(self))
+        return self.__class__.from_locations(
+            locations=locations, parent_length=len(self)
+        )
 
     def without_gaps(self):
         return self.__class__(
@@ -1782,7 +1843,7 @@ class FeatureMap(MapABC):
         """returns dicts for contained spans [dict(), ..]"""
         spans = [s.to_rich_dict() for s in self.spans]
         data = copy.deepcopy(self._serialisable)
-        data.pop("locations")
+        data.pop("locations", None)
         data["spans"] = spans
         data["type"] = get_object_provenance(self)
         data["version"] = __version__
@@ -1819,7 +1880,7 @@ class FeatureMap(MapABC):
 
         return zeroed
 
-    T = Union[ndarray, int]
+    T = Union[numpy.ndarray, int]
 
     def absolute_position(self, rel_pos: T) -> T:
         """converts rel_pos into an absolute position
@@ -1828,7 +1889,9 @@ class FeatureMap(MapABC):
         ------
         raises ValueError if rel_pos < 0
         """
-        check = array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        check = (
+            numpy.array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+        )
         if check.min() < 0:
             raise ValueError(f"must positive, not {rel_pos=}")
 
@@ -1845,7 +1908,9 @@ class FeatureMap(MapABC):
         ------
         raises ValueError if abs_pos < 0
         """
-        check = array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+        check = (
+            numpy.array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+        )
         if check.min() < 0:
             raise ValueError(f"must positive, not {abs_pos=}")
         return abs_pos - self.start
@@ -1866,7 +1931,9 @@ def gap_coords_to_map(gaps_lengths: dict, seq_length: int) -> FeatureMap:
     """
 
     if not gaps_lengths:
-        return FeatureMap(locations=[(0, seq_length)], parent_length=seq_length)
+        return FeatureMap.from_locations(
+            locations=[(0, seq_length)], parent_length=seq_length
+        )
 
     spans = []
     last = pos = 0

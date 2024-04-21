@@ -277,7 +277,7 @@ def test_map_plus_position():
     # plus seq     AAACCCTGG
 
     # orig = Aligned(*DNA.make_seq("AAACCCTGG", name="a").parse_out_gaps())
-    orig = FeatureMap(locations=[(0, 9)], parent_length=9)
+    orig = FeatureMap.from_locations(locations=[(0, 9)], parent_length=9)
     assert orig.absolute_position(2) == 2
     assert orig.absolute_position(6) == 6
 
@@ -317,7 +317,7 @@ def test_map_nucleic_reversed(cls):
     # plus seq     AAACCCTGG
 
     # orig = Aligned(*DNA.make_seq("AAACCCTGG", name="a").parse_out_gaps())
-    orig = cls(locations=[(0, 9)], parent_length=9)
+    orig = cls.from_locations(locations=[(0, 9)], parent_length=9)
     # minus coords 012345678
     # rel coord      01234
     # -slice         *****
@@ -386,8 +386,8 @@ def test_round_trip_rich_dict():
 
 
 def test_serialisable_attr():
-    im = IndelMap(locations=[(0, 2)], parent_length=20)
-    set_vals = {"locations": [(0, 2)], "parent_length": 20}
+    set_vals = {"spans": [Span(0, 2)], "parent_length": 20}
+    im = IndelMap.from_spans(**set_vals)
     got = {k: im._serialisable[k] for k in set_vals}
     assert got == set_vals
 
@@ -439,7 +439,7 @@ def test_terminal_unknown():
 
 @pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_map_inverse(cls):
-    m = cls(locations=[(0, 2), (4, 6)], parent_length=6)
+    m = cls.from_locations(locations=[(0, 2), (4, 6)], parent_length=6)
     assert len(m) == 4
     mi = m.inverse()
     assert len(mi) == 6
@@ -465,7 +465,7 @@ def test_map_offsets(cls):
 
 @pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
 def test_map_indexed(cls):
-    m = cls(locations=[(0, 2), (4, 6)], parent_length=6).inverse()
+    m = cls.from_locations(locations=[(0, 2), (4, 6)], parent_length=6).inverse()
     indexed = m[2]
     assert len(indexed) == 1
 
@@ -540,7 +540,7 @@ def test_indelmap_with_reverse_span():
 
 
 def test_indelmap_no_gaps():
-    imap = IndelMap(locations=(), parent_length=6)
+    imap = IndelMap.from_locations(locations=(), parent_length=6)
     gaps = imap.gaps()
     assert not gaps
 
@@ -548,7 +548,7 @@ def test_indelmap_no_gaps():
 def test_get_coords():
     """get_coordinates should return raw coordinates matching input"""
     spans = [(0, 9), (20, 32)]
-    fmap = FeatureMap(locations=spans, parent_length=100)
+    fmap = FeatureMap.from_locations(locations=spans, parent_length=100)
     coords = fmap.get_coordinates()
     assert coords == spans
 
@@ -559,7 +559,7 @@ def test_get_coords_invalid_order():
     # should work for reversed Maps too
     spans = [(32, 20), (9, 0)]
     with pytest.raises(ValueError):
-        FeatureMap(locations=spans, parent_length=100)
+        FeatureMap.from_locations(locations=spans, parent_length=100)
 
 
 def test_gap_coords_to_map():

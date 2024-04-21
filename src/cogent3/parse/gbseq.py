@@ -64,7 +64,9 @@ def GbSeqXmlParser(doc):
 
         seq = alphabet.make_seq(raw_string, name=name)
 
-        feat = location.FeatureMap(locations=[(0, len(seq))], parent_length=len(seq))
+        feat = location.FeatureMap.from_locations(
+            locations=[(0, len(seq))], parent_length=len(seq)
+        )
         seq.add_feature(biotype="source", name=name, spans=feat.get_coordinates())
 
         organism = str(

@@ -60,7 +60,7 @@ def map_traceback(aligned_positions):
     (starts, ends, gap_vectors, alignment_len) = gap_traceback(aligned_positions)
     # print 'gv', gap_vectors
     maps = [
-        IndelMap(locations=gv, parent_length=alignment_len).inverse()
+        IndelMap.from_locations(locations=gv, parent_length=alignment_len).inverse()
         for gv in gap_vectors
     ]
     return (starts, ends, maps)

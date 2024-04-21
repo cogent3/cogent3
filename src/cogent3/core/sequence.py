@@ -1060,7 +1060,7 @@ class Sequence(SequenceI):
                 continue
             new_spans.append(new.tolist())
 
-        fmap = FeatureMap(locations=new_spans, parent_length=len(self))
+        fmap = FeatureMap.from_locations(locations=new_spans, parent_length=len(self))
         if pre or post:
             # create a lost span to represent the segment missing from
             # the instance
@@ -1256,7 +1256,7 @@ class Sequence(SequenceI):
                 seqid=self.name,
                 name=None,
                 biotype=None,
-                map=FeatureMap(locations=[], parent_length=len(self)),
+                map=FeatureMap.from_locations(locations=[], parent_length=len(self)),
                 strand="+",
             )
         else:
@@ -1465,7 +1465,9 @@ class Sequence(SequenceI):
         for match in nongap.finditer(str(self)):
             segments.append(match.span())
             gapless.append(match.group())
-        map = IndelMap(locations=segments, parent_length=len(self)).inverse()
+        map = IndelMap.from_locations(
+            locations=segments, parent_length=len(self)
+        ).inverse()
         seq = self.__class__(
             "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
         )
