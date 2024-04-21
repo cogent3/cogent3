@@ -455,54 +455,6 @@ class SequenceCollectionBaseTests(object):
         align = align1 + align2
         self.assertEqual(align.info["key"], "foo")
 
-    def test_add_seqs(self):
-        """add_seqs should return an alignment with the new sequences appended or inserted"""
-        data = [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
-        data1 = [("name1", "AAA"), ("name2", "AAA")]
-        data2 = [("name3", "AAA"), ("name4", "AAA")]
-        data3 = [("name5", "BBB"), ("name6", "CCC")]
-        aln = self.Class(data)
-        aln3 = self.Class(data3)
-
-        out_aln = aln.add_seqs(aln3)
-        # test append at the end
-        self.assertEqual(str(out_aln), str(self.Class(data + data3)))
-
-        out_aln = aln.add_seqs(aln3, before_name="name3")
-        self.assertEqual(
-            str(out_aln), str(self.Class(data1 + data3 + data2))
-        )  # test insert before
-
-        out_aln = aln.add_seqs(aln3, after_name="name2")
-        self.assertEqual(
-            str(out_aln), str(self.Class(data1 + data3 + data2))
-        )  # test insert after
-
-        out_aln = aln.add_seqs(aln3, before_name="name1")
-        # test if insert before first seq works
-        self.assertEqual(str(out_aln), str(self.Class(data3 + data)))
-
-        out_aln = aln.add_seqs(aln3, after_name="name4")
-        # test if insert after last seq works
-        self.assertEqual(str(out_aln), str(self.Class(data + data3)))
-
-        self.assertRaises(
-            ValueError, aln.add_seqs, aln3, before_name="name5"
-        )  # wrong after/before name
-        self.assertRaises(
-            ValueError, aln.add_seqs, aln3, after_name="name5"
-        )  # wrong after/before name
-
-        if isinstance(aln, Alignment) or isinstance(aln, ArrayAlignment):
-            self.assertRaises((DataError, ValueError), aln.add_seqs, aln3 + aln3)
-        else:
-            exp = set([seq for name, seq in data])
-            exp.update([seq + seq for name, seq in data3])
-            got = set()
-            for seq in aln.add_seqs(aln3 + aln3).seqs:
-                got.update([str(seq).strip()])
-            self.assertEqual(got, exp)
-
     def test_add_seqs_info(self):
         """add_seqs should preserve info attribute"""
         data = [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
@@ -3533,6 +3485,56 @@ def test_array_align_error_with_mixed_length():
     data = dict(s1="ACGG", s2="A-G")
     with pytest.raises(ValueError, match=".* not all the same length.*"):
         make_aligned_seqs(data=data)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
+def test_add_seqs(cls):
+    """add_seqs should return an alignment with the new sequences appended or inserted"""
+    data = [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
+    data1 = [("name1", "AAA"), ("name2", "AAA")]
+    data2 = [("name3", "AAA"), ("name4", "AAA")]
+    data3 = [("name5", "BBB"), ("name6", "CCC")]
+    aln = cls(data)
+    aln3 = cls(data3)
+
+    out_aln = aln.add_seqs(aln3)
+    # test append at the end
+    assert str(out_aln) == str(cls(data + data3))
+
+    out_aln = aln.add_seqs(aln3, before_name="name3")
+    assert str(out_aln) == str(cls(data1 + data3 + data2))
+
+    # test insert before
+
+    out_aln = aln.add_seqs(aln3, after_name="name2")
+    assert str(out_aln) == str(cls(data1 + data3 + data2))  # test insert after
+
+    out_aln = aln.add_seqs(aln3, before_name="name1")
+    # test if insert before first seq works
+    assert str(out_aln) == str(cls(data3 + data))
+
+    out_aln = aln.add_seqs(aln3, after_name="name4")
+    # test if insert after last seq works
+    assert str(out_aln) == str(cls(data + data3))
+
+    with pytest.raises(ValueError):
+        # wrong after/before name
+        aln.add_seqs(aln3, before_name="name5")
+
+    with pytest.raises(ValueError):
+        # wrong after/before name
+        aln.add_seqs(aln3, after_name="name5")
+
+    if isinstance(aln, Alignment) or isinstance(aln, ArrayAlignment):
+        with pytest.raises((DataError, ValueError)):
+            aln.add_seqs(aln3 + aln3)
+    else:
+        exp = set([seq for name, seq in data])
+        exp.update([seq + seq for name, seq in data3])
+        got = set()
+        for seq in aln.add_seqs(aln3 + aln3).seqs:
+            got.update([str(seq).strip()])
+        assert got == exp
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
