@@ -10,7 +10,8 @@ Uncomment the section that is right (remove the HTML comment wrapper).
 
 ### ENH
 
-- Plugin support that will allow 3rd-party developers to add their custom functionality to the cogent3 pipeline as first class apps 
+- Plugin support that will allow 3rd-party developers to add their custom 
+functionality to the cogent3 pipeline as first class apps
 
 <!--
 ### BUG
