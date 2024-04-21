@@ -650,11 +650,15 @@ def test_roundtripped_alignment_with_slices():
     db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
     aln.annotation_db = db
     # at the alignment level
+    sl = aln.seqs[0][:-3]
+    assert str(sl) == "-AAAGGGGGAACCCT"[:-3]
     sub_aln = aln[:-3]
     feats = list(sub_aln.get_features(biotype="exon", allow_partial=True))
     assert len(feats) == 2
     new = deserialise_object(sub_aln.to_json())
-    gf1, gf2 = list(new.get_features(biotype="exon", allow_partial=True))
+    feats = list(new.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 2
+    gf1, gf2 = feats
     assert gf1.get_slice().to_dict() == {"x": "GGGGG", "y": "--TTT"}
     assert gf2.get_slice().to_dict() == {"x": "C", "y": "G"}
 

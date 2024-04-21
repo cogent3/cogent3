@@ -148,7 +148,7 @@ class RefalignmentTests(TestCase):
         )
         expect = orig.to_dict()
         aligner = align_app.align_to_ref(ref_seq="Ref")
-        aln = aligner(orig.degap())
+        aln = aligner.main(orig.degap())
         self.assertEqual(aln.to_dict(), expect)
 
     def test_gap_union(self):
@@ -726,3 +726,19 @@ def test_smith_waterman_raises(seqs):
     coll = make_unaligned_seqs(data=[seqs.get_seq("Human")], moltype="dna")
     aln = aligner(coll)
     assert isinstance(aln, NotCompleted)
+
+
+def test_aln_two():
+    """correctly recapitulates known case"""
+    orig = make_aligned_seqs(
+        {
+            "Ref": "CAGGAGAACAGAAACCCATTACTCACT",
+            "Qu7": "CAGGA--ACAGA--CCCGTTA---ACT",
+        },
+        moltype="dna",
+    )
+    expect = orig.to_dict()
+    aligner = align_app.align_to_ref(ref_seq="Ref")
+    seqs = orig.degap()
+    aln = aligner.main(seqs)
+    assert aln.to_dict() == expect

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Conversion of dynamic program results ("arrays of arrows") into gap vectors,
 gapped sequences or Cogent Alignment objects"""
 
@@ -52,18 +51,17 @@ def gap_traceback(aligned_positions):
         if consuming[dimension]:
             gv.append(a)
         gap_vectors[dimension] = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
-    return (starts, ends, gap_vectors, a)
+    return starts, ends, gap_vectors, a
 
 
 def map_traceback(aligned_positions):
     # using IndelMap's to keep track of gaps for indel alignment
-    (starts, ends, gap_vectors, alignment_len) = gap_traceback(aligned_positions)
-    # print 'gv', gap_vectors
+    starts, ends, gap_vectors, alignment_len = gap_traceback(aligned_positions)
     maps = [
-        IndelMap.from_locations(locations=gv, parent_length=alignment_len).inverse()
+        IndelMap.from_aligned_segments(locations=gv, aligned_length=alignment_len)
         for gv in gap_vectors
     ]
-    return (starts, ends, maps)
+    return starts, ends, maps
 
 
 def alignment_traceback(seqs, aligned_positions, word_length):

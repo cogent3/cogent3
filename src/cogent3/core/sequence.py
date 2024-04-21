@@ -143,7 +143,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self._seq.parent_start
+            offset = int(self._seq.parent_start)
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -1459,20 +1459,27 @@ class Sequence(SequenceI):
 
     def parse_out_gaps(self):
         """returns Map corresponding to gap locations and ungapped Sequence"""
-        gapless = []
-        segments = []
-        nongap = re.compile(f"([^{re.escape('-')}]+)")
-        for match in nongap.finditer(str(self)):
-            segments.append(match.span())
-            gapless.append(match.group())
-        map = IndelMap.from_locations(
-            locations=segments, parent_length=len(self)
-        ).inverse()
+        gap = re.compile(f"[{re.escape(self.moltype.gap)}]+")
+        seq = str(self)
+        gap_pos = []
+        cum_lengths = []
+        for match in gap.finditer(seq):
+            pos = match.start()
+            gap_pos.append(pos)
+            cum_lengths.append(match.end() - pos)
+
+        gap_pos = array(gap_pos)
+        cum_lengths = array(cum_lengths).cumsum()
+        gap_pos[1:] = gap_pos[1:] - cum_lengths[:-1]
+
         seq = self.__class__(
-            "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
+            gap.sub("", seq), name=self.get_name(), info=self.info, preserve_case=True
+        )
+        indel_map = IndelMap(
+            gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=len(seq)
         )
         seq.annotation_db = self.annotation_db
-        return map, seq
+        return indel_map, seq
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
@@ -1730,7 +1737,7 @@ class NucleicAcidSequence(Sequence):
         if not gc.is_stop(end):
             return self
 
-        if not len(m.gaps()):
+        if not m.num_gaps:
             # has zero length if no gaps
             return self[:-3]
 
@@ -1935,7 +1942,8 @@ class SeqView:
 
     @offset.setter
     def offset(self, value: int):
-        self._offset = value or 0
+        value = value or 0
+        self._offset = int(value)
 
     @property
     def seqid(self) -> str:
@@ -2331,7 +2339,7 @@ class SeqView:
             start, stop = self.start, self.stop
 
         data["init_args"]["seq"] = self.seq[start:stop]
-        data["init_args"]["offset"] = self.parent_start
+        data["init_args"]["offset"] = int(self.parent_start)
         data["init_args"]["seqid"] = self.seqid
         return data
 

@@ -775,23 +775,6 @@ class SequenceCollectionBaseTests(object):
                 dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60),
             )
 
-    def test_set_repr_policy_valid_input(self):
-        """repr_policy should be set to new values"""
-        seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
-        seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
-        self.assertEqual(
-            seqs._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
-        )
-
-        if self.Class == SequenceCollection:
-            # this class cannot slice
-            return
-
-        # should persist in slicing
-        self.assertEqual(
-            seqs[:2]._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
-        )
-
     def test_set_wrap_affects_repr_html(self):
         """the wrap argument affects the number of columns"""
         if self.Class == SequenceCollection:
@@ -1996,17 +1979,21 @@ class IntegrationTests(TestCase):
         self.assertEqual(self.r1.name, "x")
 
 
-def test_featuremap_slice_aligned():
+@pytest.mark.parametrize(
+    "raw_seq,coords",
+    (("ACGGTAAAG", ((2, 4), (5, 8))), ("CCC---CCC", ((0, 3), (6, 9)))),
+)
+def test_featuremap_slice_aligned(raw_seq, coords):
     from cogent3.core.alignment import Aligned
     from cogent3.core.location import FeatureMap, Span
 
-    raw_seq = "ACGGTAAAG"
     im, seq = DNA.make_seq(raw_seq).parse_out_gaps()
     ia = Aligned(im, seq)
     length = len(raw_seq)
-    fmap = FeatureMap(spans=[Span(2, 4), Span(5, 8)], parent_length=length)
+    fmap = FeatureMap(spans=[Span(s, e) for s, e in coords], parent_length=length)
+    expect = "".join(raw_seq[s:e] for s, e in fmap.get_coordinates())
     got = ia[fmap]
-    assert str(got) == "GGAAA"
+    assert str(got) == expect
 
 
 @pytest.mark.parametrize("cls", (ArrayAlignment, Alignment))
@@ -2829,7 +2816,8 @@ def test_get_seq_with_sliced_rced_aln_multiple_spans(name):
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     start, stop = 1, 10
-    a1 = aln[start:stop].rc()
+    a1 = aln[start:stop]
+    a1 = a1.rc()
     got = str(a1.get_seq(name))
     dna = get_moltype("dna")
     expect = dna.complement(seqs[name][start:stop].replace("-", ""))[::-1]
@@ -3481,6 +3469,24 @@ def test_positions(cls):
     assert list(r.positions) == expect
 
 
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
+def test_set_repr_policy_valid_input(cls):
+    """repr_policy should be set to new values"""
+    seqs = cls({"a": "AAAAA", "b": "AAA--"})
+    seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+    assert seqs._repr_policy == dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_set_repr_policy_valid_input_slices(cls):
+    """repr_policy should be set to new values"""
+    seqs = cls({"a": "AAAAA", "b": "AAA--"})
+    seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+    # should persist in slicing
+    sliced = seqs[:2]
+    assert sliced._repr_policy == dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+
+
 def test_array_align_error_with_mixed_length():
     data = dict(s1="ACGG", s2="A-G")
     with pytest.raises(ValueError, match=".* not all the same length.*"):
@@ -3601,7 +3607,7 @@ def test_no_degenerates(cls):
     assert result == expect
 
     # motif length of 3, defaults - no gaps allowed
-    result = aln.no_degenerates(motif_length=3).to_dict()
+    result = aln.no_degenerates(motif_length=3, allow_gap=False).to_dict()
     expect = {
         "s1": "TTT".replace(" ", ""),
         "s2": "AAA".replace(" ", ""),
@@ -3654,3 +3660,11 @@ def test_quick_tree(cls, calc, brca1_data):
         if not edge.is_root()
     }
     assert types == {float}
+
+
+@pytest.mark.parametrize("raw", ("-AAAGGGGGAACCCT", "AAAGGGGGAACCCT"))
+def test_slice_aligned(raw):
+    imap, seq = DNA.make_seq(raw, name="x").parse_out_gaps()
+    al = Aligned(imap, seq)
+    sliced = al[:-3]
+    assert str(sliced) == raw[:-3]
