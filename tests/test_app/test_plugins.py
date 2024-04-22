@@ -224,4 +224,4 @@ def test_unknown_module_name(mock_extension_manager):
     assert dummy.__name__ in cogent3.app.get_app_manager().names()
     assert get_app(dummy.__name__)(5) == 5
     with pytest.raises(ValueError, match=".* not found. Please check for typos."):
-        _ = get_app("".join(["module_2", dummy.__name__]))
+        _ = get_app(".".join(["module_2", dummy.__name__]))
