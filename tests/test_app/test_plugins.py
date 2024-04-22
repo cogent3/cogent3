@@ -1,4 +1,6 @@
 from importlib.metadata import EntryPoint
+import random
+import string
 from unittest.mock import patch
 
 import pytest
@@ -14,6 +16,7 @@ from cogent3.app import (
     app_help,
     available_apps,
     get_app,
+    get_app_manager,
 )
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
@@ -196,3 +199,11 @@ def test_apps_can_be_deprecated(mock_extension_manager):
     app = get_app(deprecated_app.__name__)
     assert app(5) == 5  
     
+def test_unknown_app_name(mock_extension_manager):
+    """get_app should raise a ValueError if the app name is not found"""
+
+    mock_extension_manager([])
+    unknown_app_name = "".join(random.choices(string.ascii_lowercase, k=10))
+
+    with pytest.raises(ValueError, match=f"App '{unknown_app_name}' not found. Please check for typos."):
+        _ = get_app(unknown_app_name)
