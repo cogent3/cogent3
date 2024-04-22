@@ -62,7 +62,6 @@ __apps = None
 __deprecated = []
 
 
-
 def get_app_manager() -> stevedore.ExtensionManager:
     """
     Lazy load a stevedore ExtensionManager to collect apps.
