@@ -242,4 +242,28 @@ def test_app_help_from_instance(mock_extension_manager):
     dummy_instance = DummyApp()
     assert "Input type\n----------\nstr\n\nOutput type\n-----------\nstr" in _make_apphelp_docstring(dummy_instance)
 
+def test_app_with_app_as_default(mock_extension_manager):
+    """apps can be initialized with other apps as arguments"""
 
+    @define_app
+    class AddApp:
+        def __init__(self, seed : int):
+            self.seed = seed
+        def main(self, data: int) -> int:
+            return data + self.seed
+        
+    @define_app
+    class AppWithDefault:
+        def __init__(self, app : AddApp = AddApp(37)):
+            self.app = app
+        def main(self, data: int) -> int:
+            return self.app.main(data)
+        
+    mock_extension_manager([create_extension(AddApp), create_extension(AppWithDefault)])
+
+    assert AppWithDefault.__name__ in cogent3.app.get_app_manager().names()
+    assert "AddApp(seed=37)" in _make_apphelp_docstring(AppWithDefault)
+    app_with_default_addapp = get_app("AppWithDefault")
+    assert app_with_default_addapp(5) == 42
+    app_with_custom_addapp = get_app("AppWithDefault", app=AddApp(10))
+    assert app_with_custom_addapp(5) == 15
