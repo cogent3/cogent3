@@ -144,6 +144,9 @@ def test_app_help(capsys):
 def test_app_help_signature(capsys, app_name):
     from cogent3.app import _get_app_matching_name, _make_signature
 
+    with pytest.raises(ValueError, match="app cannot be None") as err:
+        _make_signature(None)
+
     got = _make_signature(_get_app_matching_name(app_name))
     # app name is in quotes
     assert f'"{app_name}"' in got
