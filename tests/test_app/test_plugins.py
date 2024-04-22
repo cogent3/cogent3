@@ -12,12 +12,10 @@ from stevedore.extension import ExtensionManager
 import cogent3
 
 from cogent3.app import (
-    _get_extension_attr,
     _make_apphelp_docstring,
     app_help,
     available_apps,
     get_app,
-    get_app_manager,
 )
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
@@ -226,4 +224,54 @@ def test_unknown_module_name(mock_extension_manager):
     assert dummy.__name__ in cogent3.app.get_app_manager().names()
     assert get_app(dummy.__name__)(5) == 5
     with pytest.raises(ValueError, match=".* not found. Please check for typos."):
-        _ = get_app("".join(["module_2", dummy.__name__]))
+        _ = get_app(".".join(["module_2", dummy.__name__]))
+
+
+def test_app_help_from_instance(mock_extension_manager):
+    """_make_apphelp_docstring(instance) should return help on the app class"""
+
+    @define_app
+    class DummyApp:
+        def __init__(self, a: int = 37):
+            self.a = a
+
+        def main(self, data: str = "foo") -> str:
+            return data.upper()
+
+    mock_extension_manager([create_extension(DummyApp, module_name="module1")])
+
+    assert DummyApp.__name__ in cogent3.app.get_app_manager().names()
+    dummy_instance = DummyApp()
+    assert (
+        "Input type\n----------\nstr\n\nOutput type\n-----------\nstr"
+        in _make_apphelp_docstring(dummy_instance)
+    )
+
+
+def test_app_with_app_as_default(mock_extension_manager):
+    """apps can be initialized with other apps as arguments"""
+
+    @define_app
+    class AddApp:
+        def __init__(self, seed: int):
+            self.seed = seed
+
+        def main(self, data: int) -> int:
+            return data + self.seed
+
+    @define_app
+    class AppWithDefault:
+        def __init__(self, app: AddApp = AddApp(37)):
+            self.app = app
+
+        def main(self, data: int) -> int:
+            return self.app.main(data)
+
+    mock_extension_manager([create_extension(AddApp), create_extension(AppWithDefault)])
+
+    assert AppWithDefault.__name__ in cogent3.app.get_app_manager().names()
+    assert "AddApp(seed=37)" in _make_apphelp_docstring(AppWithDefault)
+    app_with_default_addapp = get_app("AppWithDefault")
+    assert app_with_default_addapp(5) == 42
+    app_with_custom_addapp = get_app("AppWithDefault", app=AddApp(10))
+    assert app_with_custom_addapp(5) == 15
