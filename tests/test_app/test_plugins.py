@@ -12,12 +12,10 @@ from stevedore.extension import ExtensionManager
 import cogent3
 
 from cogent3.app import (
-    _get_extension_attr,
     _make_apphelp_docstring,
     app_help,
     available_apps,
     get_app,
-    get_app_manager,
 )
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
