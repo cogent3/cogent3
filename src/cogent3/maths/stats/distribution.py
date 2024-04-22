@@ -54,19 +54,23 @@ def poisson_high(successes, mean):  # pragma: no cover
     return pdtrc(successes, mean)
 
 
-def poisson_low(successes, mean):
-    """Returns left tail of Poisson distribution, Pr(X <= x).
-
-    successes ranges from 0 to infinity. mean must be positive.
-    """
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.stats.poisson.cdf() instead",
+    is_discontinued=True,
+)
+def poisson_low(successes, mean):  # pragma: no cover
+    """being removed"""
     return pdtr(successes, mean)
 
 
-def poisson_exact(successes, mean):
-    """Returns Poisson probablity for exactly Pr(X=successes).
-
-    Formula is e^-(mean) * mean^(successes) / (successes)!
-    """
+@c3warn.deprecated_callable(
+    version="2024.9",
+    reason="use scipy.stats.poisson.pmf() instead",
+    is_discontinued=True,
+)
+def poisson_exact(successes, mean):  # pragma: no cover
+    """being removed"""
     if successes == 0:
         return pdtr(0, mean)
     elif successes < mean:  # use left tail

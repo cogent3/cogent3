@@ -1,3 +1,6 @@
+import random
+import string
+
 from importlib.metadata import EntryPoint
 from unittest.mock import patch
 
@@ -9,10 +12,12 @@ from stevedore.extension import ExtensionManager
 import cogent3
 
 from cogent3.app import (
+    _get_extension_attr,
     _make_apphelp_docstring,
     app_help,
     available_apps,
     get_app,
+    get_app_manager,
 )
 from cogent3.app.composable import define_app
 from cogent3.util.table import Table
@@ -161,3 +166,64 @@ def test_available_apps_local(mock_extension_manager):
     assert isinstance(apps, Table)
     apps = apps.filtered(lambda x: dummy.__name__ == x, columns="name")
     assert apps.shape[0] == 1
+
+
+def test_stevedore_finds_non_apps(mock_extension_manager):
+    """available_apps should return plugins that fail is_app() but emit a warning"""
+
+    def not_an_app(val: int) -> int:
+        return val
+
+    with pytest.warns(UserWarning, match=r".* is not a valid cogent3 app, skipping"):
+        mock_extension_manager([create_extension(not_an_app)])
+        apps = available_apps()
+        assert isinstance(apps, Table)
+        apps = apps.filtered(lambda x: not_an_app.__name__ == x, columns="name")
+        assert apps.shape[0] == 1
+
+
+def test_apps_can_be_deprecated(mock_extension_manager):
+    """if an app is in __deprecated[] then it should not appear in available_apps"""
+
+    @define_app
+    def deprecated_app(val: int) -> int:
+        return val
+
+    mock_extension_manager([create_extension(deprecated_app)])
+    assert deprecated_app.__name__ in cogent3.app.get_app_manager().names()
+
+    with patch("cogent3.app.__deprecated", new=[deprecated_app.__name__]):
+        apps = available_apps()
+        assert deprecated_app.__name__ not in apps.columns["name"]
+        assert deprecated_app.__name__ in cogent3.app.get_app_manager().names()
+
+    # check that the app is still available if we ask for it by name
+    app = get_app(deprecated_app.__name__)
+    assert app(5) == 5
+
+
+def test_unknown_app_name(mock_extension_manager):
+    """get_app should raise a ValueError if the app name is not found"""
+
+    mock_extension_manager([])
+    unknown_app_name = "".join(random.choices(string.ascii_lowercase, k=10))
+
+    with pytest.raises(
+        ValueError, match=f"App '{unknown_app_name}' not found. Please check for typos."
+    ):
+        _ = get_app(unknown_app_name)
+
+
+def test_unknown_module_name(mock_extension_manager):
+    """get_app should raise a ValueError if the app name is not found"""
+
+    @define_app
+    def dummy(val: int) -> int:
+        return val
+
+    mock_extension_manager([create_extension(dummy, module_name="module1")])
+
+    assert dummy.__name__ in cogent3.app.get_app_manager().names()
+    assert get_app(dummy.__name__)(5) == 5
+    with pytest.raises(ValueError, match=".* not found. Please check for typos."):
+        _ = get_app(''.join(['module_2',dummy.__name__]))

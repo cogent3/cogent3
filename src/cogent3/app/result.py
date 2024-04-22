@@ -341,6 +341,7 @@ class model_result(generic_result):
     @property
     def tree(self):
         """an annotated tree with 'ENS' set as the branch length
+
         Note
         ----
         In the case of a discrete time process, length is 'paralinear'"""
