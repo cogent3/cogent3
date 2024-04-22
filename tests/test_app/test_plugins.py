@@ -9,6 +9,7 @@ from stevedore.extension import ExtensionManager
 import cogent3
 
 from cogent3.app import (
+    _get_extension_attr,
     _make_apphelp_docstring,
     app_help,
     available_apps,
@@ -161,3 +162,18 @@ def test_available_apps_local(mock_extension_manager):
     assert isinstance(apps, Table)
     apps = apps.filtered(lambda x: dummy.__name__ == x, columns="name")
     assert apps.shape[0] == 1
+
+def test_stevedore_finds_non_apps(mock_extension_manager):
+    """available_apps should return plugins that fail is_app() but emit a warning"""
+
+    def not_an_app(val: int) -> int:
+        return val
+
+    not_an_app_extension = create_extension(not_an_app)
+    with pytest.warns(UserWarning, match=r".* is not a valid cogent3 app, skipping"):
+        mock_extension_manager([create_extension(not_an_app)])
+        apps = available_apps()
+        assert isinstance(apps, Table)
+        apps = apps.filtered(lambda x: not_an_app.__name__ == x, columns="name")
+        assert apps.shape[0] == 1
+        
