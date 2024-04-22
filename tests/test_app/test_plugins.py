@@ -207,3 +207,17 @@ def test_unknown_app_name(mock_extension_manager):
 
     with pytest.raises(ValueError, match=f"App '{unknown_app_name}' not found. Please check for typos."):
         _ = get_app(unknown_app_name)
+
+def test_unknown_module_name(mock_extension_manager):
+    """get_app should raise a ValueError if the app name is not found"""
+
+    @define_app
+    def dummy(val: int) -> int:
+        return val
+
+    mock_extension_manager([create_extension(dummy,module_name="module1")])
+
+    assert dummy.__name__ in cogent3.app.get_app_manager().names()
+    assert get_app(dummy.__name__)(5) == 5
+    with pytest.raises(ValueError, match=".* not found. Please check for typos."):
+        _ = get_app(''.join(['module_2',dummy.__name__]))
