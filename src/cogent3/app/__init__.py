@@ -62,6 +62,7 @@ __apps = None
 __deprecated = []
 
 
+
 def get_app_manager() -> stevedore.ExtensionManager:
     """
     Lazy load a stevedore ExtensionManager to collect apps.
@@ -75,7 +76,6 @@ def get_app_manager() -> stevedore.ExtensionManager:
     return __apps
 
 
-
 def available_apps(name_filter: str | None = None) -> Table:
     """returns Table listing the available apps
 
@@ -84,7 +84,6 @@ def available_apps(name_filter: str | None = None) -> Table:
     If force is set, the app_manager will refresh it's cache of apps.
     """
     from cogent3.util.table import Table
-
 
     rows = []
 
