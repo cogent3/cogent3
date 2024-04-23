@@ -480,12 +480,12 @@ class AlignablePOG(_Alignable):
             for seq_name, aligned in child.aligneds:
                 # if word_length != 1 then maps are forced to have
                 # sequences lengths that are modulo word_length
-                # Likewise, if the data is not modulo word_length,
-                # it is trimmed to match
                 new_map = aligned.map.merge_maps(
                     maps[dim] * word_length,
                     parent_length=maps[dim].parent_length * word_length,
                 )
+                # Likewise, if the data is not modulo word_length,
+                # it is trimmed to match
                 data = (
                     aligned.data
                     if new_map.parent_length == len(aligned.data)
