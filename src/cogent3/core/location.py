@@ -1697,13 +1697,15 @@ class IndelMap(MapABC):
         cum_lengths[1:] = diffs
         return numpy.array([self.gap_pos, cum_lengths]).T.tolist()
 
-    def merge_maps(self, other):
+    def merge_maps(self, other, parent_length: Optional[int] = None):
         """merge gaps of other with self
 
         Parameters
         ----------
         indel_map
             instance for same sequence
+        parent_length
+            overrides property
         """
         unique_pos = numpy.union1d(self.gap_pos, other.gap_pos)
         gap_lengths = numpy.zeros(unique_pos.shape, dtype=self.cum_gap_lengths.dtype)
@@ -1711,10 +1713,11 @@ class IndelMap(MapABC):
         other_lengths = other.get_gap_lengths()
         _update_lengths(unique_pos, gap_lengths, self.gap_pos, self_lengths)
         _update_lengths(unique_pos, gap_lengths, other.gap_pos, other_lengths)
+        parent_length = parent_length or self.parent_length
         return self.__class__(
             gap_pos=unique_pos,
             gap_lengths=gap_lengths,
-            parent_length=self.parent_length,
+            parent_length=parent_length,
         )
 
     def joined_segments(self, coords: list[tuple[int, int]]):

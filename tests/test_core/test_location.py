@@ -502,7 +502,7 @@ def test_indelmap_from_aligned_segments2():
     assert im.parent_length == expected_length
 
 
-def test_indelmap_inverse():
+def test_indelmap_merge():
     im1 = IndelMap(
         gap_pos=numpy.array([], dtype=int),
         gap_lengths=numpy.array([], dtype=int),
@@ -526,6 +526,24 @@ def test_indelmap_inverse():
     assert inv.get_gap_coordinates() == [
         list(coords) for coords in got.get_gap_coordinates()
     ]
+
+
+def test_indelmap_merge_parent_length():
+    im1 = IndelMap(
+        gap_pos=numpy.array([], dtype=int),
+        gap_lengths=numpy.array([], dtype=int),
+        parent_length=4,
+    )
+    im2 = IndelMap(
+        gap_pos=numpy.array([0], dtype=int),
+        gap_lengths=numpy.array([2], dtype=int),
+        parent_length=4,
+    )
+    # providing a value for parent_length overrides standard
+    im3 = im1.merge_maps(im2)
+    ov = im1.merge_maps(im2, parent_length=20)
+    assert ov.parent_length != im2.parent_length
+    assert ov.parent_length == 20
 
 
 @pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
