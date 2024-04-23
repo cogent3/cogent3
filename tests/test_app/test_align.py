@@ -752,3 +752,6 @@ def test_codon_incomplete(DATA_DIR):
     aligner = align_app.progressive_align("codon")
     aln = aligner(seqs)
     assert aln  # will fail if aln is a NotCompleted instance
+    # now make sure the resulting ungapped sequences are modulo 3
+    seqs = aln.degap().to_dict().values()
+    assert {len(s) % 3 for s in seqs} == {0}
