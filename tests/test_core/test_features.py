@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+import numpy
 import pytest
 
 from cogent3 import ASCII, DNA, get_moltype, make_aligned_seqs
@@ -135,7 +136,9 @@ def test_feature_residue():
     db.add_feature(seqid="x", biotype="exon", name="ex1", spans=[(0, 4)])
     aln_exons = list(aln.get_features(seqid="x", biotype="exon"))
     assert "biotype='exon', name='ex1', map=[0:1, 2:5]/10" in str(aln_exons)
-    assert aln_exons[0].get_slice().to_dict() == dict(x="CCCC", y="----")
+    exon = aln_exons[0]
+    exon_seq = exon.get_slice()
+    assert exon_seq.to_dict() == dict(x="CCCC", y="----")
     # Feature.as_one_span(), is applied to the exon that
     # straddles the gap in x. The result is we preserve that feature.
     exon_full_aln = aln_exons[0].as_one_span()
@@ -621,6 +624,21 @@ def test_feature_out_range():
     assert not f
 
 
+@pytest.mark.parametrize("cast", (list, numpy.array))
+def test_search_with_ints(cast):
+    """searching for features with numpy ints should work"""
+    start, stop = cast([2, 5])
+    seq = DNA.make_seq("AAAGGGGGAACCCT", name="x")
+    db = GffAnnotationDb()
+    db.add_feature(seqid="x", biotype="exon", name="E1", spans=[(3, 8)])
+    db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
+    seq.annotation_db = db
+    feats = list(
+        seq.get_features(biotype="exon", allow_partial=True, start=start, stop=stop)
+    )
+    assert len(feats) == 1
+
+
 def test_roundtripped_alignment_with_slices():
     """Sliced Alignment with annotations roundtrips correctly"""
     # annotations just on member sequences
@@ -632,9 +650,15 @@ def test_roundtripped_alignment_with_slices():
     db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
     aln.annotation_db = db
     # at the alignment level
+    sl = aln.seqs[0][:-3]
+    assert str(sl) == "-AAAGGGGGAACCCT"[:-3]
     sub_aln = aln[:-3]
+    feats = list(sub_aln.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 2
     new = deserialise_object(sub_aln.to_json())
-    gf1, gf2 = list(new.get_features(biotype="exon", allow_partial=True))
+    feats = list(new.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 2
+    gf1, gf2 = feats
     assert gf1.get_slice().to_dict() == {"x": "GGGGG", "y": "--TTT"}
     assert gf2.get_slice().to_dict() == {"x": "C", "y": "G"}
 

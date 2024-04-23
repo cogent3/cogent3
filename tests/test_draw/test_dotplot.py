@@ -6,7 +6,6 @@ from cogent3.draw.dotplot import (
     Dotplot,
     _convert_input,
     get_align_coords,
-    len_seq,
     not_gap,
 )
 
@@ -15,7 +14,7 @@ class TestUtilFunctions(TestCase):
     def test_len_seq(self):
         """returns length of sequence minus gaps"""
         m, seq = DNA.make_seq("ACGGT--A").parse_out_gaps()
-        self.assertEqual(len_seq(m), 6)
+        self.assertEqual(m.parent_length, 6)
 
     def test_not_gap(self):
         """distinguishes Map instances that include gap or not"""

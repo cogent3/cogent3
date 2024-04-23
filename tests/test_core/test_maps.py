@@ -9,7 +9,7 @@ class MapTest(unittest.TestCase):
 
     def test_spans(self):
         # a simple two part map of length 10
-        map = FeatureMap(locations=[(0, 5), (5, 10)], parent_length=10)
+        map = FeatureMap.from_locations(locations=[(0, 5), (5, 10)], parent_length=10)
         # try different spans on the above map
         for (start, end), expected in [
             ((0, 4), "[0:4]"),

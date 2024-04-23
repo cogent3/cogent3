@@ -27,14 +27,9 @@ def suitable_threshold(window, desired_probability):
     return matches
 
 
-def len_seq(span):
-    """length of a Annotatable map object"""
-    return len(span.nongap())
-
-
 def not_gap(span):
     """whether a span corresponds to a non-gap"""
-    return len(span.gaps()) == 0
+    return span.num_gaps == 0
 
 
 def _convert_input(seq, moltype):
@@ -77,20 +72,23 @@ def get_align_coords(map1, map2, aligned=False) -> MatchedSeqPaths:
         x_not_gap = not_gap(map1[i])
         y_not_gap = not_gap(map2[i])
         if x_not_gap and y_not_gap and start_x is None:
-            start_x = len_seq(map1[:i])
-            start_y = len_seq(map2[:i])
+            start_x = map1[:i].parent_length
+            start_y = map2[:i].parent_length
         elif (not x_not_gap or not y_not_gap) and start_x is not None:
             paths[start_y - start_x].append(
                 (
-                    segment(start_x, len_seq(map1[:i]) - 1),
-                    segment(start_y, len_seq(map2[:i]) - 1),
+                    segment(start_x, map1[:i].parent_length - 1),
+                    segment(start_y, map2[:i].parent_length - 1),
                 )
             )
             start_x = start_y = None
 
     if start_x is not None:
         paths[start_y - start_x].append(
-            (segment(start_x, len_seq(map1) - 1), segment(start_y, len_seq(map2) - 1))
+            (
+                segment(start_x, map1.parent_length - 1),
+                segment(start_y, map2.parent_length - 1),
+            )
         )
 
     return paths

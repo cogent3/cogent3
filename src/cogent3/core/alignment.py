@@ -30,7 +30,7 @@ import warnings
 
 from collections import Counter, defaultdict
 from copy import deepcopy
-from functools import total_ordering
+from functools import singledispatchmethod, total_ordering
 from itertools import combinations
 from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
 
@@ -2136,11 +2136,10 @@ class Aligned:
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
 
-    def __init__(self, map, data, length=None):
-        # Unlike the normal map constructor, here we take a list of pairs of
-        # alignment coordinates, NOT a list of pairs of sequence coordinates
-        if isinstance(map, list):
-            map = IndelMap(locations=map, parent_length=length).inverse()
+    @c3warn.deprecated_args(
+        "2024.9", reason="now requires an IndelMap", discontinued=["length"]
+    )
+    def __init__(self, map, data):
         self.map = map
         self.data = data
         if hasattr(data, "info"):
@@ -2188,12 +2187,8 @@ class Aligned:
             if strand == "-" or exclude_annotations:
                 new_seq.annotation_db = None
             else:
-                new_seq.annotation_offset = self.map.start
                 new_seq.annotation_db = db
-            new_map = self.map.zeroed()
-        else:
-            new_map = self.map
-
+        new_map = self.map
         return self.__class__(new_map, new_seq)
 
     def __repr__(self):
@@ -2243,19 +2238,52 @@ class Aligned:
             map, seq = seq.parse_out_gaps()
         return Aligned(map, seq)
 
-    def __getitem__(self, slice):
+    @singledispatchmethod
+    def __getitem__(self, span: int):
+        raise NotImplementedError(f"unexpected {type(span)}")
+
+    @__getitem__.register
+    def _(self, span: int):
+        return self[span : span + 1]
+
+    @__getitem__.register
+    def _(self, span: FeatureMap):
+        # we assume the feature map is in align coordinates
+        start, end = span.start, span.end
+        if span.useful and start > end:
+            empty = numpy.array([], dtype=self.map.gap_pos.dtype)
+            im = IndelMap(gap_pos=empty, cum_gap_lengths=empty, parent_length=0)
+            data = self.data[:0]
+        elif span.useful and len(list(span.spans)) == 1:
+            im = self.map[start:end]
+            seq_start = self.map.get_seq_index(start)
+            seq_end = self.map.get_seq_index(end)
+            data = self.data[seq_start:seq_end]
+        elif not span.useful:
+            im = self.map[start:end]
+            data = self.data[:0]
+        else:
+            # multiple spans
+            align_coords = span.get_coordinates()
+            im = self.map.joined_segments(align_coords)
+            seq_map = self.map.make_seq_feature_map(span, include_gaps=False)
+            data = self.data.gapped_by_map(seq_map)
+
+        return Aligned(im, data)
+
+    @__getitem__.register
+    def _(self, span: slice):
         # todo we need to get the sequence coordinates that slice corresponds to
-        #  so we can update the self.data, plus we will need to zero new_map
-        new_map = self.map[slice]
-        data = (
-            self.data[new_map.start : new_map.end] if new_map.useful else self.data[:0]
-        )
-        if new_map.useful and new_map.start > new_map.end:
+        #  so we can update the self.data
+        new_map = self.map[span]
+        seq_start = self.map.get_seq_index(span.start or 0)
+        seq_end = self.map.get_seq_index(span.stop or len(self))
+        data = self.data[seq_start:seq_end] if new_map.useful else self.data[:0]
+        if new_map.useful and seq_start > seq_end:
             # For now, a reverse slice means we should have an empty sequence
             # todo modify this clause if a negative step is ever allowed
             new_map = new_map.__class__(locations=(), parent_length=len(self.data))
-        elif new_map.useful:
-            new_map = new_map.zeroed()
+
         return Aligned(new_map, data)
 
     def rc(self):
@@ -2274,12 +2302,9 @@ class Aligned:
         return Aligned(self.map, self.data.to_dna())
 
     def to_rich_dict(self):
-        coords = self.map.get_covering_span().get_coordinates()
-        if len(coords) != 1:
-            raise NotImplementedError
         data = dict(version=__version__, type=get_object_provenance(self))
         # we are resetting the stored data to begin at 0
-        data["map_init"] = self.map.zeroed().to_rich_dict()
+        data["map_init"] = self.map.to_rich_dict()
         data["seq_init"] = self.data.to_rich_dict(exclude_annotations=True)
         return data
 
@@ -2318,7 +2343,7 @@ class Aligned:
     def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
         """returns a feature, not written into annotation_db"""
         annot = self.data.make_feature(feature)
-        inverted = self.map.inverse()
+        inverted = self.map.to_feature_map().inverse()
         # todo should indicate whether tidy or not
         return annot.remapped_to(alignment, inverted)
 
@@ -3285,7 +3310,7 @@ class AlignmentI(object):
     @extend_docstring_from(distance_matrix, pre=False)
     def quick_tree(
         self,
-        calc="percent",
+        calc="pdist",
         bootstrap=None,
         drop_invalid=False,
         show_progress=False,
@@ -4721,18 +4746,18 @@ class Alignment(AlignmentI, SequenceCollection):
 
     def _mapped(self, slicemap):
         align = []
-        for name in self.names:
-            align.append((name, self.named_seqs[name][slicemap]))
+        for seq in self.seqs:
+            sliced = seq[slicemap]
+            align.append((sliced.name, sliced))
         return self.__class__(moltype=self.moltype, data=align, info=self.info)
 
     def gapped_by_map(self, keep, **kwargs):
         # keep is a Map
+        # seqs = [seq[keep] for seq in self.seqs]
         seqs = []
-        for seq_name in self.names:
-            aligned = self.named_seqs[seq_name]
-            seqmap = aligned.map[keep]
-            seq = aligned.data.gapped_by_map(seqmap)
-            seqs.append((seq_name, seq))
+        for seq in self.seqs:
+            selected = seq[keep]
+            seqs.append(selected)
         return self.__class__(moltype=self.moltype, data=seqs, **kwargs)
 
     def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
@@ -4834,8 +4859,9 @@ class Alignment(AlignmentI, SequenceCollection):
             return None
 
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
+        # these are alignment coordinate locations
+        keep = FeatureMap.from_locations(locations=locations, parent_length=len(self))
 
-        keep = IndelMap(locations=locations, parent_length=len(self))
         return self.gapped_by_map(keep, info=self.info)
 
     def get_seq(self, seqname):
@@ -5231,7 +5257,9 @@ class Alignment(AlignmentI, SequenceCollection):
         # there's no sequence to bind to, the feature is directly on self
         revd = feature.pop("strand", None) == "-"
         feature["strand"] = "-" if revd else "+"
-        fmap = FeatureMap(parent_length=len(self), locations=feature.pop("spans"))
+        fmap = FeatureMap.from_locations(
+            locations=feature.pop("spans"), parent_length=len(self)
+        )
         if revd:
             fmap = fmap.nucleic_reversed()
         return Feature(parent=self, map=fmap, **feature)
@@ -5367,7 +5395,7 @@ class Alignment(AlignmentI, SequenceCollection):
             if feature["seqid"]:
                 raise RuntimeError(f"{on_alignment=} {feature=}")
             if seq_map is None:
-                seq_map = self.seqs[0].map
+                seq_map = self.seqs[0].map.to_feature_map()
                 *_, strand = self.seqs[0].data.parent_coordinates()
 
             spans = numpy.array(feature["spans"])
