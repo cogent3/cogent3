@@ -69,6 +69,7 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -1211,9 +1212,8 @@ class _SequenceCollectionBase:
 
         Returns
         -------
-        dict[str, str]
-            a dict mapping sequence names to a string representation of
-            their sequences.
+        a dict mapping sequence names to a string representation of
+        their sequences.
         """
         align_dict = {}
 
