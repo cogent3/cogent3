@@ -69,7 +69,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -990,14 +989,13 @@ class _SequenceCollectionBase:
 
         Parameters
         ----------
-        block_size : int, optional
+        block_size
             the sequence length to write to each line,
             by default 60
 
         Returns
         -------
-        str
-            The Fasta formatted alignment.
+        The Fasta formatted alignment.
         """
         return alignment_to_fasta(self.to_dict(), block_size=block_size)
 
