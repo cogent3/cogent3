@@ -984,9 +984,9 @@ class _SequenceCollectionBase:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def to_fasta(self):
+    def to_fasta(self, block_size: int = 60):
         """Return alignment in Fasta format"""
-        return alignment_to_fasta(self.to_dict())
+        return alignment_to_fasta(self.to_dict(), block_size=block_size)
 
     def to_nexus(self, seq_type, wrap=50):
         """
