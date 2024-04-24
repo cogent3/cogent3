@@ -79,7 +79,7 @@ class TestUtilFunctions(TestCase):
         self.assertEqual(traces[-1].name, "Alignment")
         self.assertEqual(traces[0].name, "+ strand")
         # check + strand has integers/float/None
-        expect = {int, float, type(None), numpy.int64}
+        expect = {int, float, type(None), numpy.int64, numpy.int32}
         for trace in traces:
             for axis in "xy":
                 got = {type(v) for v in trace[axis]}
