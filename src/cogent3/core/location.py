@@ -1697,6 +1697,11 @@ class IndelMap(MapABC):
         cum_lengths[1:] = diffs
         return numpy.array([self.gap_pos, cum_lengths]).T.tolist()
 
+    def get_gap_align_coordinates(self) -> NDArray[int]:
+        """returns [(gap start, gap end), ...] in alignment indices"""
+        starts, ends = _gap_spans(self.gap_pos, self.cum_gap_lengths)
+        return numpy.array([starts, ends]).T
+
     def merge_maps(self, other, parent_length: Optional[int] = None):
         """merge gaps of other with self
 

@@ -1,13 +1,11 @@
 from unittest import TestCase
 
+import numpy
+
 from cogent3 import DNA, make_unaligned_seqs
 from cogent3.core.alignment import Aligned, ArrayAlignment
-from cogent3.draw.dotplot import (
-    Dotplot,
-    _convert_input,
-    get_align_coords,
-    not_gap,
-)
+from cogent3.core.location import IndelMap
+from cogent3.draw.dotplot import Dotplot, _convert_input, get_align_coords
 
 
 class TestUtilFunctions(TestCase):
@@ -15,12 +13,6 @@ class TestUtilFunctions(TestCase):
         """returns length of sequence minus gaps"""
         m, seq = DNA.make_seq("ACGGT--A").parse_out_gaps()
         self.assertEqual(m.parent_length, 6)
-
-    def test_not_gap(self):
-        """distinguishes Map instances that include gap or not"""
-        m, seq = DNA.make_seq("ACGGT--A").parse_out_gaps()
-        self.assertTrue(not_gap(m[0]))
-        self.assertFalse(not_gap(m[5]))
 
     def test_convert_input(self):
         """converts data for dotplotting"""
@@ -56,7 +48,8 @@ class TestUtilFunctions(TestCase):
         m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
         m2, seq2 = DNA.make_seq("GGGGTTTA").parse_out_gaps()
         paths = get_align_coords(m1, m2, aligned=True)
-        self.assertEqual(paths.get_coords(), ([0, len(seq1)], [0, len(seq1)]))
+        # display ranges are inclusive, thus length - 1
+        self.assertEqual(paths.get_coords(), ([0, len(seq1) - 1], [0, len(seq1) - 1]))
 
         # raises an exception if the Aligned seqs are different lengths
         m1, seq1 = DNA.make_seq("ACGGTTTA").parse_out_gaps()
@@ -66,6 +59,13 @@ class TestUtilFunctions(TestCase):
 
     def test_display2d(self):
         """correctly constructs a Display2d"""
+        #           111111
+        # 0123456789012345
+        #            11111
+        #  012345678901234
+        # -TGATGTAAGGTAGTT
+        # CTGG---AAG---GGT
+        # 0123   456   789
         # check alignment coords are correct
         dp = Dotplot("-TGATGTAAGGTAGTT", "CTGG---AAG---GGT", is_aligned=True, window=5)
         expect = [0, 2, None, 6, 8, None, 12, 14], [1, 3, None, 4, 6, None, 7, 9]
@@ -79,7 +79,7 @@ class TestUtilFunctions(TestCase):
         self.assertEqual(traces[-1].name, "Alignment")
         self.assertEqual(traces[0].name, "+ strand")
         # check + strand has integers/float/None
-        expect = {int, float, type(None)}
+        expect = {int, float, type(None), numpy.int64, numpy.int32}
         for trace in traces:
             for axis in "xy":
                 got = {type(v) for v in trace[axis]}
@@ -146,3 +146,23 @@ class TestUtilFunctions(TestCase):
         )
         dp = seqs.dotplot("seq1", "seq3", title="")
         self.assertEqual(dp.figure.layout.title, "")
+
+
+def test_aligned_path():
+    imap1 = IndelMap(
+        gap_pos=numpy.array([4, 5, 6, 8, 10]),
+        cum_gap_lengths=numpy.array([6, 10, 12, 14, 15]),
+        parent_length=10,
+    )
+    imap2 = IndelMap(
+        gap_pos=numpy.array([], dtype=int),
+        cum_gap_lengths=numpy.array([], dtype=int),
+        parent_length=25,
+    )
+
+    coords = get_align_coords(imap1, imap2)
+
+    assert coords.get_coords() == (
+        [0, 3, None, 4, 4, None, 5, 5, None, 6, 7, None, 8, 9],
+        [0, 3, None, 10, 10, None, 15, 15, None, 18, 19, None, 22, 23],
+    )
