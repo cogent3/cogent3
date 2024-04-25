@@ -1147,9 +1147,11 @@ class MapABC(ABC):
 
         return cls.from_spans(spans=spans, parent_length=parent_length, **kwargs)
 
+    T = Union[list[SpanTypes], tuple[SpanTypes]]
+
     @classmethod
     @abstractmethod
-    def from_spans(cls, spans, parent_length, **kwargs):
+    def from_spans(cls, spans: T, parent_length: int, **kwargs):
         ...
 
 

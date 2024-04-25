@@ -1984,7 +1984,6 @@ class IntegrationTests(TestCase):
     (("ACGGTAAAG", ((2, 4), (5, 8))), ("CCC---CCC", ((0, 3), (6, 9)))),
 )
 def test_featuremap_slice_aligned(raw_seq, coords):
-    from cogent3.core.alignment import Aligned
     from cogent3.core.location import FeatureMap, Span
 
     im, seq = DNA.make_seq(raw_seq).parse_out_gaps()
