@@ -522,6 +522,9 @@ class TerminalPadding(_LostSpan):
         return f"?{self.length}?"
 
 
+SpanTypes = Union[Span, _LostSpan]
+
+
 class Map:  # pragma: no cover
     """A map holds a list of spans."""
 
@@ -1201,7 +1204,7 @@ O = tuple[numpy.ndarray, Sequence]
 
 
 def spans_to_gap_coords(
-    indel_spans: list[Union[Span, LostSpan]], dtype: Union[type, str] = numpy.int32
+    indel_spans: list[SpanTypes], dtype: Union[type, str] = numpy.int32
 ) -> tuple[numpy.ndarray, numpy.ndarray]:
     """returns coordinates of sequence gaps
 
@@ -1299,8 +1302,10 @@ class IndelMap(MapABC):
         self.cum_gap_lengths.flags.writeable = False
         self._serialisable.pop("gap_lengths", None)
 
+    T = Union[list[SpanTypes], tuple[SpanTypes]]
+
     @classmethod
-    def from_spans(cls, spans, parent_length, termini_unknown=False):
+    def from_spans(cls, spans: T, parent_length: int, termini_unknown: bool = False):
         gap_pos, cum_lengths = spans_to_gap_coords(spans)
         return cls(
             gap_pos=gap_pos,
@@ -1604,7 +1609,7 @@ class IndelMap(MapABC):
         starts, ends = _gap_spans(self.gap_pos, self.cum_gap_lengths)
         return numpy.array([starts, ends]).T.flatten()[:-1].tolist()
 
-    def nongap(self) -> Iterator[Union[Span, LostSpan]]:
+    def nongap(self) -> Iterator[SpanTypes]:
         """ungappeed segments in this map in aligned coordinates"""
         # we want to know the coordinates of the ungapped segments on
         # the aligned sequence. The gap_pos attribute is in sequence
@@ -1627,7 +1632,7 @@ class IndelMap(MapABC):
             yield Span(prev_pos, len(self))
 
     @property
-    def spans(self) -> Iterator[Union[Span, LostSpan]]:
+    def spans(self) -> Iterator[SpanTypes]:
         """generator of spans"""
         if not self.num_gaps:
             yield Span(0, self.parent_length)
@@ -1909,8 +1914,10 @@ class FeatureMap(MapABC):
         self._spans = tuple(spans)
         self.length = posn
 
+    T = Union[list[SpanTypes], tuple[SpanTypes]]
+
     @classmethod
-    def from_spans(cls, spans, parent_length):
+    def from_spans(cls, spans: T, parent_length: int, **kwargs):
         return cls(spans=spans, parent_length=parent_length)
 
     def __len__(self):
