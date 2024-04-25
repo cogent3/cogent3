@@ -166,3 +166,12 @@ def test_aligned_path():
         [0, 3, None, 4, 4, None, 5, 5, None, 6, 7, None, 8, 9],
         [0, 3, None, 10, 10, None, 15, 15, None, 18, 19, None, 22, 23],
     )
+
+
+def test_dotplot_unaligned():
+    seqs = make_unaligned_seqs(dict(a="ACGGT", b="CGTT"), moltype="dna")
+    dp = seqs.dotplot(window=3, k=2)
+    assert dp
+    # trigger building traces
+    _ = dp.figure
+    assert len(dp.traces[0].x)
