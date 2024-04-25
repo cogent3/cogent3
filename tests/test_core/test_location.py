@@ -267,7 +267,7 @@ class MapTests(TestCase):
 
     def test_get_gap_coords(self):
         """returns gap start and lengths"""
-        m, seq = DNA.make_seq("-AC--GT-TTA--").parse_out_gaps()
+        m, _ = DNA.make_seq("-AC--GT-TTA--").parse_out_gaps()
         got = m.get_gap_coordinates()
         self.assertEqual(dict(got), {0: 1, 2: 2, 4: 1, 7: 2})
 
@@ -278,7 +278,6 @@ def test_map_plus_position():
     # +slice         **
     # plus seq     AAACCCTGG
 
-    # orig = Aligned(*DNA.make_seq("AAACCCTGG", name="a").parse_out_gaps())
     orig = FeatureMap.from_locations(locations=[(0, 9)], parent_length=9)
     assert orig.absolute_position(2) == 2
     assert orig.absolute_position(6) == 6
@@ -551,7 +550,7 @@ def test_map_offsets(cls):
     #                              1
     #                   01 3  678  1
     seq = DNA.make_seq("-AC---G-TAA--")
-    m, s = seq.parse_out_gaps()
+    m, _ = seq.parse_out_gaps()
     got = m.offsets
     assert got == [0, 1, 3, 6, 7, 8, 11]
 
@@ -643,7 +642,7 @@ def test_indel_map_get_gap_coords():
 def test_indelmap_joined_segments(coords):
     raw = "--AC--GGGG--"
     expect, _ = DNA.make_seq("".join(raw[s:e] for s, e in coords)).parse_out_gaps()
-    imap, s = DNA.make_seq(raw).parse_out_gaps()
+    imap, _ = DNA.make_seq(raw).parse_out_gaps()
     got = imap.joined_segments(coords)
     assert got.gap_pos.tolist() == expect.gap_pos.tolist()
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
