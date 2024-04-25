@@ -352,7 +352,7 @@ def test_gaps():
     #                   000000000011
     #                   012345678901
     seq = DNA.make_seq("AC---G-TAA--")
-    m, s = seq.parse_out_gaps()
+    m, _ = seq.parse_out_gaps()
     m = FeatureMap.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
     got = [(g.start, g.end) for g in tuple(m.gaps().spans)]
     assert got == [(2, 5), (6, 7), (10, 12)]
@@ -409,7 +409,7 @@ def test_spans_gen_nogaps():
 
 def test_round_trip_rich_dict():
     seq = DNA.make_seq("AC---G-TAA--")
-    im, s = seq.parse_out_gaps()
+    im, _ = seq.parse_out_gaps()
     rd = im.to_rich_dict()
     got = IndelMap.from_rich_dict(rd)
     assert im is not got
@@ -758,7 +758,7 @@ def test_indelmap_align_index_slice_stop(data, start, end):
     # converting a sequence index to alignment index
     ungapped = data.replace("-", "")
     seq = make_seq(data, moltype="text")
-    gaps, s = seq.parse_out_gaps()
+    gaps, _ = seq.parse_out_gaps()
     stop = gaps.get_align_index(end, slice_stop=True)
     assert data[stop - 1] == ungapped[end - 1]
 
@@ -875,7 +875,7 @@ def test_gapped_convert_aln2seq_gapchar(data, gap_number):
     assert data[align_index] == "-", (data, gap_number)
     # find nearest non-gap
     seq_index = _get_expected_seqindex(data, align_index)
-    gaps, seq = make_seq(data, moltype="text").parse_out_gaps()
+    gaps, _ = make_seq(data, moltype="text").parse_out_gaps()
     idx = gaps.get_seq_index(align_index)
     assert idx == seq_index
 
