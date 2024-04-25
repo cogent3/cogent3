@@ -70,7 +70,8 @@ def get_align_coords(map1, map2, aligned=False) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
 
-    assert len(map1) == len(map2), "aligned sequences not equal length"
+    if aligned:
+        assert len(map1) == len(map2), "aligned sequences not equal length"
 
     # we get the gap coordinates in alignment indices for both sequences
     # sorting this allows us to trivially identify the alignment indices of

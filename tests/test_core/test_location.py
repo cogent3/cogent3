@@ -1037,3 +1037,41 @@ def test_gap_coords_to_map():
     # and gaps outside sequence
     with pytest.raises(ValueError):
         gap_coords_to_map({20: 1}, len(seq))
+
+
+@pytest.mark.parametrize(
+    "seq, expected",
+    [
+        ("ACGTACGT", []),
+        ("----ACGTACGT----", [(0, 4), (12, 16)]),
+        ("ACGT----ACGT", [4, 8]),
+        ("----", [[0, 4]]),
+        ("----ACGT", [[0, 4]]),
+        ("ACGTACGT----", [(8, 12)]),
+    ],
+)
+def test_get_gap_align_coordinates1(seq, expected):
+    expected = numpy.array(expected, dtype=int)
+    if not len(expected):
+        expected = expected.reshape((0, 2))
+    im, _ = make_seq(seq).parse_out_gaps()
+    result = im.get_gap_align_coordinates()
+    assert (result == expected).all(), f"{expected=}, {result=}"
+
+
+@pytest.mark.parametrize(
+    "seq, expected",
+    [
+        ("", []),
+        ("A", []),
+        ("-", [[0, 1]]),
+    ],
+)
+def test_get_gap_align_coordinates_edge_cases(seq, expected):
+    expected = numpy.array(expected, dtype=int)
+    if not len(expected):
+        expected = expected.reshape((0, 2))
+
+    im, _ = make_seq(seq).parse_out_gaps()
+    result = im.get_gap_align_coordinates()
+    assert (result == expected).all(), f"{expected=}, {result=}"
