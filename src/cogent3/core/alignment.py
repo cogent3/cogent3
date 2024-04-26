@@ -2130,19 +2130,21 @@ class SequenceCollection(_SequenceCollectionBase):
         return dist_calc_app(self)
 
     def __repr__(self):
+        if len(self.names) == 0:
+            return f"0x () <{self.moltype.get_type()}> seqcollection"
+
         seqs = []
         limit = 10
         delimiter = ""
 
-        repr_seq_names = [min(self.names, lambda name: len(str.named_seqs[name]))]
+        repr_seq_names = [min(self.names, key=lambda name: len(self.named_seqs[name]))]
         if len(self.names) > 1:
             # In case of a tie, min and max return first.
             # reversed ensures if all seqs are of same length, different seqs are returned
             repr_seq_names.append(
-                max(reversed(self.names), lambda name: len(str.named_seqs[name]))
+                max(reversed(self.names), key=lambda name: len(self.named_seqs[name]))
             )
 
-        seqs = []
         for name in repr_seq_names:
             elts = list(str(self.named_seqs[name])[: limit + 1])
             if len(elts) > limit:
