@@ -460,14 +460,41 @@ class take_codon_positions:
 class take_named_seqs:
     """Selects named sequences from a collection."""
 
-    def __init__(self, *names, negate=False):
+    def __init__(self, *names: str, negate: bool = False):
         """
         Parameters
         ----------
         *names
-            series of sequence names
+            series of sequence names provided as keyword arguments
         negate
             if True, excludes the provided names from the result
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that returns the sequences
+        matching the provided names.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({
+        ...     "s1": "GCAAGC",
+        ...     "s2": "GCTTTT",
+        ...     "s3": "GC--GC",
+        ...     "s4": "GCAAGC"
+        ... })
+        >>> app = get_app("take_named_seqs", "s1", "s2")
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    GCAAGC
+        s2    ..TTTT
+
+        Create an app that excludes sequences that match the provided names.
+
+        >>> app_negate = get_app("take_named_seqs", "s1", "s2", negate=True)
+        >>> result = app_negate(aln)
+        >>> print(result.to_pretty())
+        s3    GC--GC
+        s4    ..AA..
         """
         self._names = names
         self._negate = negate
