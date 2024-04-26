@@ -74,11 +74,8 @@ def get_app_manager() -> stevedore.ExtensionManager:
 
 
 def available_apps(name_filter: str | None = None) -> Table:
-    """returns Table listing the available apps
-
-    Notes
-    -----
-    If force is set, the app_manager will refresh it's cache of apps.
+    """
+    returns Table listing the available apps
     """
     from cogent3.util.table import Table
 
