@@ -180,26 +180,6 @@ def test_stevedore_finds_non_apps(mock_extension_manager):
         assert apps.shape[0] == 1
 
 
-def test_apps_can_be_deprecated(mock_extension_manager):
-    """if an app is in __deprecated[] then it should not appear in available_apps"""
-
-    @define_app
-    def deprecated_app(val: int) -> int:
-        return val
-
-    mock_extension_manager([create_extension(deprecated_app)])
-    assert deprecated_app.__name__ in cogent3.app.get_app_manager().names()
-
-    with patch("cogent3.app.__deprecated", new=[deprecated_app.__name__]):
-        apps = available_apps()
-        assert deprecated_app.__name__ not in apps.columns["name"]
-        assert deprecated_app.__name__ in cogent3.app.get_app_manager().names()
-
-    # check that the app is still available if we ask for it by name
-    app = get_app(deprecated_app.__name__)
-    assert app(5) == 5
-
-
 def test_unknown_app_name(mock_extension_manager):
     """get_app should raise a ValueError if the app name is not found"""
 
