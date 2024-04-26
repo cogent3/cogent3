@@ -18,6 +18,7 @@
     passed in a stream of two-item label, sequence pairs. However, this can
     cause confusion when testing.
 """
+
 from __future__ import annotations
 
 import functools
@@ -984,15 +985,7 @@ class _SequenceCollectionBase:
         return json.dumps(self.to_rich_dict())
 
     def to_fasta(self):
-        """Return alignment in Fasta format
-
-        Parameters
-        ----------
-        make_seqlabel
-            callback function that takes the seq object and
-            returns a label str
-
-        """
+        """Return alignment in Fasta format"""
         return alignment_to_fasta(self.to_dict())
 
     def to_nexus(self, seq_type, wrap=50):
@@ -3283,7 +3276,7 @@ class AlignmentI(object):
     @extend_docstring_from(distance_matrix, pre=False)
     def quick_tree(
         self,
-        calc="percent",
+        calc="pdist",
         bootstrap=None,
         drop_invalid=False,
         show_progress=False,
@@ -5289,7 +5282,7 @@ class Alignment(AlignmentI, SequenceCollection):
             seqname = seqid_to_seqname[seqid]
             seq = self.named_seqs[seqname]
             # we use parent seqid, stored on SeqView
-            parent_id, start, end, _ = seq.data.parent_coordinates()
+            parent_id, start, stop, _ = seq.data.parent_coordinates()
             offset = seq.data.annotation_offset
 
             for feature in self.annotation_db.get_features_matching(
@@ -5299,7 +5292,7 @@ class Alignment(AlignmentI, SequenceCollection):
                 on_alignment=False,
                 allow_partial=allow_partial,
                 start=start,
-                end=end,
+                stop=stop,
             ):
                 if offset:
                     feature["spans"] = (array(feature["spans"]) - offset).tolist()
@@ -5527,6 +5520,15 @@ def _coerce_to_array_aligned_seqs(data, names, label_to_name=str, moltype=None) 
     for name in names:
         seq = _construct_array_aligned_seq(data[name], moltype=moltype)
         seqs.append(seq)
+
+    # Ensure all sequences are of equal length
+    seq_lengths = {len(seq) for seq in seqs}
+    if len(seq_lengths) > 1:
+        raise ValueError(
+            f"Input sequences are not all the same length: {seq_lengths}. "
+            "Please ensure all sequences are properly aligned or "
+            "correct the input file format."
+        )
 
     return numpy.array(seqs), names
 

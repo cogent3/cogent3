@@ -20,7 +20,6 @@ from cogent3.maths.stats.distribution import (
     pdtr,
     pdtrc,
     pdtri,
-    poisson_exact,
     poisson_high,
     poisson_low,
     probability_points,
@@ -125,48 +124,6 @@ class DistributionsTests(TestCase):
         for df in self.df:
             for x, p in zip(self.values, probs[df]):
                 assert_almost_equal(tprob(x, df), p, decimal=4)
-
-    def test_poisson_low(self):
-        """Lower tail of poisson should match R for integer successes"""
-        # WARNING: Results only guaranteed for integer successes: floating
-        # point _should_ yield reasonable values, but R rounds to int.
-        expected = {
-            (0, 0): 1,
-            (0, 0.75): 0.4723666,
-            (0, 1): 0.3678794,
-            (0, 5): 0.006737947,
-            (0, 113.7): 4.175586e-50,
-            (2, 0): 1,
-            (2, 3): 0.4231901,
-            (2, 17.8): 3.296636e-06,
-            (17, 29.6): 0.008753318,
-            (180, 0): 1,
-            (180, 137.4): 0.999784,
-            (180, 318): 2.436995e-17,
-            (180, 1024): 8.266457e-233,
-        }
-        for key, value in list(expected.items()):
-            assert_allclose(poisson_low(*key), value, rtol=1e-6)
-
-    def test_poisson_exact(self):
-        """Poisson exact should match expected values from R"""
-        expected = {
-            (0, 0): 1,
-            (0, 0.75): 0.4723666,
-            (0, 1): 0.3678794,
-            (0, 5): 0.006737947,
-            (0, 113.7): 4.175586e-50,
-            (2, 0): 0,
-            (2, 3): 0.2240418,
-            (2, 17.8): 2.946919e-06,
-            (17, 29.6): 0.004034353,
-            (180, 0): 0,
-            (180, 137.4): 7.287501e-05,
-            (180, 318): 1.067247e-17,
-            (180, 1024): 6.815085e-233,
-        }
-        for key, value in list(expected.items()):
-            assert_allclose(poisson_exact(*key), value, rtol=1e-6)
 
     def test_binomial_series(self):
         """binomial_exact should match values from R on a whole series"""

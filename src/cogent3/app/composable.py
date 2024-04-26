@@ -603,7 +603,10 @@ def define_app(
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
-
+        if composable and getattr(klass, "__add__", None):
+            raise TypeError(
+                f"remove '__add__' method in {klass.__name__!r}, this functionality provided by define_app"
+            )
         for meth in method_list:
             # make sure method not defined by user before adding
             if inspect.isfunction(getattr(klass, meth, None)):
@@ -788,7 +791,7 @@ def _apply_to(
         inputs, parallel=parallel, par_kw=par_kw, show_progress=show_progress
     ):
         member = self.main(data=result.obj, identifier=id_from_source(result.source))
-        md5 = member.md5
+        md5 = getattr(member, "md5", None)
         logger.log_message(str(member), label="output")
         if md5:
             logger.log_message(md5, label="output md5sum")

@@ -216,9 +216,8 @@ def _as_completed_mpi(f, s, max_workers, if_serial, chunksize=None):
 
 def _as_completed_mproc(f, s, max_workers):
     """multiprocess version of as_completed"""
-    if not max_workers:
+    if not max_workers or max_workers > multiprocessing.cpu_count():
         max_workers = multiprocessing.cpu_count() - 1
-    assert max_workers < multiprocessing.cpu_count()
 
     f = PicklableAndCallable(f)
 
