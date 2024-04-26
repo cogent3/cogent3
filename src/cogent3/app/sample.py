@@ -6,7 +6,7 @@ from numpy import random as np_random
 
 from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
-from cogent3.core.moltype import get_moltype
+from cogent3.core.moltype import MolType, get_moltype
 
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
@@ -15,6 +15,8 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
+
+MolTypes = Union[str, MolType]
 
 
 def intersection(groups):
@@ -40,12 +42,12 @@ class concat:
         """
         Parameters
         ----------
-        join_seq : str
+        join_seq
             splice sequences together using this string
-        intersect : bool
+        intersect
             result contains only sequences present in all alignments. If False,
             missings sequences will be replaced by a sequence of '?'.
-        moltype : str
+        moltype
             molecular type, must be either DNA or RNA
 
         Examples
@@ -157,11 +159,11 @@ class omit_degenerates:
         """
         Parameters
         ----------
-        moltype : str
+        moltype
             molecular type, must be either DNA or RNA
-        gap_is_degen : bool
+        gap_is_degen
             include gap character in degenerate character set
-        motif_length : int
+        motif_length
             sequences split into non-overlapping tuples of this size. If a
             tuple contains a degen character at any position the entire tuple
             is excluded
@@ -249,12 +251,12 @@ class omit_gap_pos:
         """
         Parameters
         ----------
-        allowed_frac : float
+        allowed_frac
             columns with a fraction of gap characters exceeding allowed_frac are
             excluded
-        motif_length : int
+        motif_length
             sequences split into non-overlapping tuples of this size.
-        moltype : str
+        moltype
             molecular type, must be either DNA or RNA
 
         Examples
@@ -516,18 +518,24 @@ class take_n_seqs:
     """Selects n sequences from a collection. Chooses first n sequences, or
     selects randomly if specified."""
 
-    def __init__(self, number, random=False, seed=None, fixed_choice=True):
+    def __init__(
+        self,
+        number: int,
+        random: bool = False,
+        seed: Optional[int] = None,
+        fixed_choice: bool = True,
+    ):
         """
         Parameters
         ----------
-        number: int
+        number
             number of sequences to sample. If number of sequences in a collectionis < n, returns NotCompleted
             indicating a FAIL.
-        random: bool
+        random
             Whether to choose the sequences randomly.
-        seed: int
+        seed
             Seed for the numpy random number generator.
-        fixed_choice: bool
+        fixed_choice
             sequence names selected from the first alignment are used for all others.
 
         Returns
@@ -573,15 +581,21 @@ class take_n_seqs:
 class min_length:
     """Filters sequence collections / alignments by length."""
 
-    def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
+    def __init__(
+        self,
+        length: int,
+        motif_length: int = 1,
+        subtract_degen: bool = True,
+        moltype: Optional[MolTypes] = None,
+    ):
         """
         Parameters
         ----------
-        length : int
+        length
             only alignments with this length returned, False otherwise
-        motif_length : int
+        motif_length
             length is converted to modulo motif_length
-        subtract_degen : bool
+        subtract_degen
             degenerate characters subtracted from sequence length calculation
         moltype
             molecular type, can be string or instance
@@ -617,7 +631,7 @@ class min_length:
         'Traceback...
         """
         if motif_length > 1:
-            length = length // motif_length
+            length //= motif_length
         self._min_length = length
         self._motif_length = motif_length
         self._subtract_degen = subtract_degen
@@ -672,22 +686,28 @@ class fixed_length:
     """Sample an alignment to a fixed length."""
 
     def __init__(
-        self, length, start=0, random=False, seed=None, motif_length=1, moltype=None
+        self,
+        length: int,
+        start: int = 0,
+        random: bool = False,
+        seed: Optional[int] = None,
+        motif_length: int = 1,
+        moltype: Optional[MolTypes] = None,
     ):
         """
         Parameters
         ----------
-        length : int
+        length
             only alignments with this length returned, False otherwise
         start
             integer starting position for truncation, or 'random' in which case
             a random start is chosen (within the possible range returning an
             alignment of the specified length). Overrides  `random`.
-        random : bool
+        random
             random positions for the corresponding tuple are chosen.
-        seed : int
+        seed
             random number seed
-        motif_length : int
+        motif_length
             length of sequence units to consider. If not 1, length and start are
             converted (reduced) if necessary to be modulo motif_length
         moltype
@@ -765,11 +785,16 @@ class fixed_length:
 class omit_bad_seqs:
     """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
-    def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
+    def __init__(
+        self,
+        quantile: Optional[float] = None,
+        gap_fraction: int = 1,
+        moltype: MolTypes = "dna",
+    ):
         """
         Parameters
         ----------
-        quantile : float or None
+        quantile
             The number of gaps uniquely introduced by a sequence are counted.
             The value corresponding to quantile is determined and all sequences
             whose unique gap count is larger than this cutoff are excluded.
@@ -809,7 +834,13 @@ class omit_duplicated:
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped."""
 
-    def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
+    def __init__(
+        self,
+        mask_degen: bool = False,
+        choose: str = "longest",
+        seed: Optional[int] = None,
+        moltype: Optional[MolTypes] = None,
+    ):
         """
         Parameters
         ----------
@@ -819,7 +850,7 @@ class omit_duplicated:
             choose a representative from sets of duplicated sequences.
             Valid values are None (all members of a duplicated set are excluded),
             'longest', 'random'.
-        seed : int
+        seed
             set random number seed. Only applied of choose=='random'
         moltype
             molecular type, can be string or instance
