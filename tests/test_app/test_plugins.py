@@ -212,7 +212,7 @@ def test_app_help_from_instance(mock_extension_manager):
 
     @define_app
     class DummyApp:
-        def __init__(self, a: int = 37):
+        def __init__(self, a: int = 7919):
             self.a = a
 
         def main(self, data: str = "foo") -> str:
@@ -222,10 +222,11 @@ def test_app_help_from_instance(mock_extension_manager):
 
     assert DummyApp.__name__ in cogent3.app.get_app_manager().names()
     dummy_instance = DummyApp()
-    assert (
-        "Input type\n----------\nstr\n\nOutput type\n-----------\nstr"
-        in _make_apphelp_docstring(dummy_instance)
-    )
+    got = _make_apphelp_docstring(dummy_instance)
+
+    assert ("Options" in got)  # test help is rendered
+    assert ("DummyApp_app" in got)  # test the help is for the correct app
+    assert ("7919" in got) # test signature rendering is accurate and detailed and includes default of the 1000th prime
 
 
 def test_app_with_app_as_default(mock_extension_manager):
