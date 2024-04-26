@@ -69,6 +69,7 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2127,6 +2128,33 @@ class SequenceCollection(_SequenceCollectionBase):
         )
 
         return dist_calc_app(self)
+
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+
+        repr_seq_names = [min(self.names, lambda name: len(str.named_seqs[name]))]
+        if len(self.names) > 1:
+            # In case of a tie, min and max return first.
+            # reversed ensures if all seqs are of same length, different seqs are returned
+            repr_seq_names.append(
+                max(reversed(self.names), lambda name: len(str.named_seqs[name]))
+            )
+
+        seqs = []
+        for name in repr_seq_names:
+            elts = list(str(self.named_seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts.append("...")
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+
+        if len(self.names) > 2:
+            seqs.insert(1, "...")
+
+        seqs = ", ".join(seqs)
+
+        return f"{len(self.names)}x ({seqs}) <{self.moltype.get_type()}> seqcollection"
 
 
 @total_ordering
