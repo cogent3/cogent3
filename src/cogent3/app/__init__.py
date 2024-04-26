@@ -58,8 +58,6 @@ def _make_types(app) -> dict:
 
 # private global to hold an ExtensionManager instance
 __apps = None
-# exclude apps from deprecated modules
-__deprecated = []
 
 
 def get_app_manager() -> stevedore.ExtensionManager:
@@ -76,11 +74,8 @@ def get_app_manager() -> stevedore.ExtensionManager:
 
 
 def available_apps(name_filter: str | None = None) -> Table:
-    """returns Table listing the available apps
-
-    Notes
-    -----
-    If force is set, the app_manager will refresh it's cache of apps.
+    """
+    returns Table listing the available apps
     """
     from cogent3.util.table import Table
 
@@ -89,9 +84,6 @@ def available_apps(name_filter: str | None = None) -> Table:
     extensions = get_app_manager()
 
     for extension in extensions:
-        if any(extension.name.startswith(d) for d in __deprecated):
-            continue
-
         if name_filter and name_filter not in extension.name:
             continue
 
