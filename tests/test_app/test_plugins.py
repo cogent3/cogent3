@@ -224,9 +224,11 @@ def test_app_help_from_instance(mock_extension_manager):
     dummy_instance = DummyApp()
     got = _make_apphelp_docstring(dummy_instance)
 
-    assert ("Options" in got)  # test help is rendered
-    assert ("DummyApp_app" in got)  # test the help is for the correct app
-    assert ("7919" in got) # test signature rendering is accurate and detailed and includes default of the 1000th prime
+    assert "Options" in got  # test help is rendered
+    assert "DummyApp_app" in got  # test the help is for the correct app
+    assert (
+        "7919" in got
+    )  # test signature rendering is accurate and detailed and includes default of the 1000th prime
 
 
 def test_app_with_app_as_default(mock_extension_manager):
