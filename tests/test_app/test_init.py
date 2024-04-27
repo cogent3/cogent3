@@ -1,4 +1,5 @@
 """testing the default import"""
+
 import os
 
 from pathlib import Path
@@ -8,14 +9,7 @@ from unittest import TestCase
 import pytest
 
 from cogent3 import app_help, available_apps, get_app, open_data_store
-from cogent3.app.composable import (
-    LOADER,
-    WRITER,
-    __app_registry,
-    define_app,
-    is_composable,
-)
-from cogent3.util.misc import get_object_provenance
+from cogent3.app.composable import LOADER, WRITER, is_app
 from cogent3.util.table import Table
 
 
@@ -76,7 +70,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_composable(app), msg=app)
+                self.assertTrue(is_app(app), msg=app)
 
             composable_application_tuples = [
                 (app1, app2)
@@ -103,7 +97,7 @@ class TestAvailableApps(TestCase):
         with TemporaryDirectory(dir=".") as dirname:
             applications = _get_all_composables(os.path.join(dirname, "delme"))
             for app in applications:
-                self.assertTrue(is_composable(app))
+                self.assertTrue(is_app(app))
 
             incompatible_application_tuples = [
                 (app1, app2)
@@ -126,21 +120,8 @@ class TestAvailableApps(TestCase):
                     app_a + app_b
 
 
-def test_available_apps_local():
-    """available_apps robust to local scope apps"""
-
-    @define_app
-    def dummy(val: int) -> int:
-        return val
-
-    apps = available_apps()
-    assert isinstance(apps, Table)
-    __app_registry.pop(get_object_provenance(dummy), None)
-
-
 @pytest.mark.parametrize("name", ("sample.min_length", "min_length"))
 def test_get_app(name):
-    __app_registry.pop(get_object_provenance(min_length), None)
     app = get_app(name, 500)
     assert app.__class__.__name__.endswith(name.split(".")[-1])
 
@@ -151,20 +132,6 @@ def test_get_app_kwargs():
     _ = get_app("model", "F81", name="F81-model")
 
 
-@define_app
-def min_length(val: int) -> int:
-    return val
-
-
-def test_get_app_fail():
-    __app_registry[get_object_provenance(min_length)] = True
-
-    with pytest.raises(NameError):
-        _ = get_app("min_length", 500)
-
-    __app_registry.pop(get_object_provenance(min_length), None)
-
-
 def test_app_help(capsys):
     app_help("compress")
     got = capsys.readouterr().out
@@ -172,54 +139,14 @@ def test_app_help(capsys):
     assert got.count("bytes") >= 2  # both input and output types are bytes
 
 
-@define_app
-class blah:
-    def __init__(self):
-        self.constant = 2
-
-    def main(self, val: int) -> int:
-        return val + self.constant
-
-
-@pytest.mark.parametrize(
-    "app_doc,init_doc", ((None, None), ("text", None), (None, "text"), ("text", "text"))
-)
-def test_app_help_no_docs(capsys, app_doc, init_doc):
-    blah.__doc__ = app_doc
-    blah.__init__.__doc__ = init_doc
-    app_help("blah")
-    got = capsys.readouterr().out
-    if app_doc:
-        assert "Overview" in got
-
-    if init_doc:
-        assert "Options" in got
-
-
-def test_app_help_doctest_examples(capsys):
-    app_doc = "A line of text describing the app."
-    init_doc = "\n        Parameters\n        ----------\n        arg\n        arg description\n\n        Examples\n        --------\n        How to use the app\n\n        >>>blah(arg)\n        output\n"
-    blah.__doc__ = app_doc
-    blah.__init__.__doc__ = init_doc
-    app_help("blah")
-    got = capsys.readouterr().out
-    # Two new lines after the end of Parameters should be preserved
-    expect1 = "arg description\n\nExamples\n--------\n"
-    # Two new lines within Examples are preserved
-    expect2 = "How to use the app\n\n>>>blah(arg)\noutput\n"
-    # Two new lines at the end of Examples preserved
-    expect3 = "output\n\nInput type"
-
-    assert expect1 in got
-    assert expect2 in got
-    assert expect3 in got
-
-
 @pytest.mark.parametrize(
     "app_name", ("bootstrap", "from_primitive", "load_db", "take_named_seqs")[:1]
 )
 def test_app_help_signature(capsys, app_name):
     from cogent3.app import _get_app_matching_name, _make_signature
+
+    with pytest.raises(ValueError, match="app cannot be None"):
+        _make_signature(None)
 
     got = _make_signature(_get_app_matching_name(app_name))
     # app name is in quotes
