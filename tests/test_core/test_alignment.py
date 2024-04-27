@@ -413,8 +413,18 @@ class SequenceCollectionBaseTests(object):
 
     def test_to_fasta(self):
         """SequenceCollection should return correct FASTA string"""
-        aln = self.Class(["AAA", "CCC"])
-        self.assertEqual(aln.to_fasta(), ">seq_0\nAAA\n>seq_1\nCCC\n")
+        aln1 = self.Class(["AAA", "CCC"])
+        self.assertEqual(aln1.to_fasta(), ">seq_0\nAAA\n>seq_1\nCCC\n")
+        self.assertEqual(aln1.to_fasta(block_size=2), ">seq_0\nAA\nA\n>seq_1\nCC\nC\n")
+
+        aln2 = self.Class(["GCATGCAT", "TCAGACGT"])
+        self.assertEqual(aln2.to_fasta(), ">seq_0\nGCATGCAT\n>seq_1\nTCAGACGT\n")
+        self.assertEqual(
+            aln2.to_fasta(block_size=4), ">seq_0\nGCAT\nGCAT\n>seq_1\nTCAG\nACGT\n"
+        )
+        self.assertEqual(
+            aln2.to_fasta(block_size=3), ">seq_0\nGCA\nTGC\nAT\n>seq_1\nTCA\nGAC\nGT\n"
+        )
 
     def test_to_nexus(self):
         """SequenceCollection should return correct Nexus string format"""
