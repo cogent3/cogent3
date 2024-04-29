@@ -774,7 +774,7 @@ class fixed_length:
 
         Create a sample alignment and an app that returns the first 4 positions
         of the alignment.
-        
+
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
         >>> app_4 = get_app("fixed_length", length=4)
@@ -801,7 +801,7 @@ class fixed_length:
         s1    AAGC
         s2    TTTT
 
-        Use ``motif_length=3`` to sample two triplets of ``length=6``. 
+        Use ``motif_length=3`` to sample two triplets of ``length=6``.
         Sequences are split into non-overlapping sections of ``motif_length=3``
         before sampling (i.e. codon positions are preserved).
 
