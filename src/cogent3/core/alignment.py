@@ -2158,6 +2158,149 @@ class SequenceCollection(_SequenceCollectionBase):
 
         return f"{len(self.names)}x ({seqs}) <{self.moltype.get_type()}> seqcollection"
 
+    def _repr_html_(self):
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_pos=int),
+        )
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            limit=settings["num_pos"],
+            wrap=settings["wrap"],
+        )
+
+    def to_html(
+        self,
+        name_order=None,
+        wrap=60,
+        limit=None,
+        colors=None,
+        font_size=12,
+        font_family="Lucida Console",
+    ):
+        """returns html with embedded styles for sequence colouring
+
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        wrap
+            number of alignment columns per row
+        limit
+            truncate alignment to this length
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
+
+        To display in jupyter notebook:
+
+            >>> from IPython.core.display import HTML
+            >>> HTML(aln.to_html())
+        """
+        css, styles = self.moltype.get_css_style(
+            colors=colors, font_size=font_size, font_family=font_family
+        )
+
+        if name_order:
+            selected = self.take_seqs(name_order)
+        else:
+            name_order = list(self.names)
+            selected = self
+
+        gaps = "".join(selected.moltype.gaps)  # Gets gap characters
+
+        # Need to do this on a per Sequence basis.
+        template = '<span class="%s">%%s</span>'
+        styled_seqs = defaultdict(list)
+
+        max_seq_len = 0
+        for name in name_order:
+            sequence = str(self.named_seqs[name])[:limit]
+            seq_len = len(sequence)
+            max_seq_len = max(seq_len, max_seq_len)
+            start_gap = re.search(f"^[{gaps}]+", sequence)
+            end_gap = re.search(f"[{gaps}]+$", sequence)
+            start = 0 if start_gap is None else start_gap.end()
+            end = seq_len if end_gap is None else end_gap.start()
+
+            seq = []
+            for i, char in enumerate(sequence):
+                if i < start or i >= end:
+                    style = f"terminal_ambig_{self.moltype.label}"
+                else:
+                    style = styles[char]
+                s = template % style
+                s = s % char
+                seq.append(s)
+
+            styled_seqs[name] = seq
+
+        for name in styled_seqs:
+            if len(styled_seqs[name]) < max_seq_len:
+                styled_seqs[name].extend(
+                    ["<span> </span>"] * (max_seq_len - len(styled_seqs[name]))
+                )
+
+        # make a html table
+        seqs = array([styled_seqs[n] for n in name_order], dtype="O")
+        table = ["<table>"]
+        seq_ = "<td>%s</td>"
+        label_ = '<td class="label">%s</td>'
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
+        for i in range(0, max_seq_len, wrap):
+            table.append(num_row_.format(i))
+            seqblock = seqs[:, i : i + wrap].tolist()
+            for n, s in zip(name_order, seqblock):
+                s = "".join(s)
+                row = "".join([label_ % n, seq_ % s])
+                table.append(f"<tr>{row}</tr>")
+        table.append("</table>")
+        if (
+            limit
+            and limit < len(selected)
+            or name_order
+            and len(name_order) < len(selected.names)
+        ):
+            summary = ("%s x %s (truncated to %s x %s) %s sequence collection") % (
+                self.num_seqs,
+                len(self),
+                len(name_order) if name_order else len(selected.names),
+                limit if limit else len(selected),
+                selected.moltype.label,
+            )
+        else:
+            summary = ("%s x %s %s sequence collection") % (
+                self.num_seqs,
+                len(self),
+                selected.moltype.label,
+            )
+
+        text = [
+            "<style>",
+            ".c3align table {margin: 10px 0;}",
+            ".c3align td { border: none !important; text-align: left !important; }",
+            ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3align tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3align .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3align .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; display: table-cell !important; "
+            "font-weight: normal !important; }" % font_size,
+            "\n".join([".c3align " + style for style in css]),
+            "</style>",
+            '<div class="c3align">',
+            "\n".join(table),
+            f"<p><i>{summary}</i></p>",
+            "</div>",
+        ]
+        return "\n".join(text)
+
 
 @total_ordering
 class Aligned:
