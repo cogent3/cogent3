@@ -2261,7 +2261,7 @@ class SequenceCollection(_SequenceCollectionBase):
         for name in styled_seqs:
             if len(styled_seqs[name]) < max_truncated_len:
                 styled_seqs[name].extend(
-                    ["<span> </span>"] * (max_truncated_len - len(styled_seqs[name]))
+                    [""] * (max_truncated_len - len(styled_seqs[name]))
                 )
 
         # make a html table
@@ -2275,8 +2275,9 @@ class SequenceCollection(_SequenceCollectionBase):
             seqblock = seqs[:, i : i + wrap].tolist()
             for n, s in zip(name_order, seqblock):
                 s = "".join(s)
-                row = "".join([label_ % n, seq_ % s])
-                table.append(f"<tr>{row}</tr>")
+                if len(s) > 0:  # If the row in the seq col is populated
+                    row = "".join([label_ % n, seq_ % s])
+                    table.append(f"<tr>{row}</tr>")
         table.append("</table>")
         if (
             limit
