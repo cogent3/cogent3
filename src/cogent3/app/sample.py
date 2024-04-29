@@ -768,6 +768,49 @@ class fixed_length:
             converted (reduced) if necessary to be modulo motif_length
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that returns the first 4 positions
+        of the alignment.
+        
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> app_4 = get_app("fixed_length", length=4)
+        >>> result = app_4(aln)
+        >>> print(result.to_pretty())
+        s1    GCAA
+        s2    ..TT
+
+        Return an alignment with ``length=4`` starting from the 2nd position.
+
+        >>> app_4_start2 = get_app("fixed_length", length=4, start=2)
+        >>> result = app_4_start2(aln)
+        >>> print(result.to_pretty())
+        s1    AAGC
+        s2    TTTT
+
+        The start position can be selected at random with ``random=True``. An
+        optional `seed` can be provided to ensure the same start position is
+        used when the app is called.
+
+        >>> app_4_random = get_app("fixed_length", length=4, random=True, seed=1)
+        >>> result = app_4_start2(aln)
+        >>> print(result.to_pretty())
+        s1    AAGC
+        s2    TTTT
+
+        Use ``motif_length=3`` to sample two triplets of ``length=6``. 
+        Sequences are split into non-overlapping sections of ``motif_length=3``
+        before sampling (i.e. codon positions are preserved).
+
+        >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> app_motif3 = get_app("fixed_length", length=6, motif_length=3, random=True, seed=9)
+        >>> result = app_motif3(aln)
+        >>> print(result.to_pretty())
+        s1    AGCTAT
+        s2    TTTA..
         """
         diff = length % motif_length
         if diff != 0:
