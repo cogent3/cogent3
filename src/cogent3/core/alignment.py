@@ -2208,6 +2208,22 @@ class SequenceCollection(_SequenceCollectionBase):
             colors=colors, font_size=font_size, font_family=font_family
         )
 
+        seq_lens = sorted([len(seq) for seq in self.seqs])
+        if seq_lens:
+            min_seq_len = seq_lens[0]
+            max_seq_len = seq_lens[-1]
+
+            # Find median
+            if len(seq_lens) % 2 == 0:
+                total = (
+                    seq_lens[(len(seq_lens) - 2) // 2] + seq_lens[len(seq_lens) // 2]
+                )
+                med_seq_len = total // 2 if total % 2 == 0 else round(total / 2, 1)
+            else:
+                med_seq_len = seq_lens[(len(seq_lens) - 1) // 2]
+        else:
+            min_seq_len = med_seq_len = max_seq_len = 0
+
         if name_order:
             selected = self.take_seqs(name_order)
         else:
@@ -2220,11 +2236,11 @@ class SequenceCollection(_SequenceCollectionBase):
         template = '<span class="%s">%%s</span>'
         styled_seqs = defaultdict(list)
 
-        max_seq_len = 0
+        max_truncated_len = 0
         for name in name_order:
             sequence = str(self.named_seqs[name])[:limit]
             seq_len = len(sequence)
-            max_seq_len = max(seq_len, max_seq_len)
+            max_truncated_len = max(seq_len, max_truncated_len)
             start_gap = re.search(f"^[{gaps}]+", sequence)
             end_gap = re.search(f"[{gaps}]+$", sequence)
             start = 0 if start_gap is None else start_gap.end()
@@ -2243,9 +2259,9 @@ class SequenceCollection(_SequenceCollectionBase):
             styled_seqs[name] = seq
 
         for name in styled_seqs:
-            if len(styled_seqs[name]) < max_seq_len:
+            if len(styled_seqs[name]) < max_truncated_len:
                 styled_seqs[name].extend(
-                    ["<span> </span>"] * (max_seq_len - len(styled_seqs[name]))
+                    ["<span> </span>"] * (max_truncated_len - len(styled_seqs[name]))
                 )
 
         # make a html table
@@ -2254,7 +2270,7 @@ class SequenceCollection(_SequenceCollectionBase):
         seq_ = "<td>%s</td>"
         label_ = '<td class="label">%s</td>'
         num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
-        for i in range(0, max_seq_len, wrap):
+        for i in range(0, max_truncated_len, wrap):
             table.append(num_row_.format(i))
             seqblock = seqs[:, i : i + wrap].tolist()
             for n, s in zip(name_order, seqblock):
@@ -2268,17 +2284,23 @@ class SequenceCollection(_SequenceCollectionBase):
             or name_order
             and len(name_order) < len(selected.names)
         ):
-            summary = ("%s x %s (truncated to %s x %s) %s sequence collection") % (
+            summary = (
+                "%s x {min=%s, median=%s, max=%s} (truncated to %s x %s) %s sequence collection"
+            ) % (
                 self.num_seqs,
-                len(self),
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
                 len(name_order) if name_order else len(selected.names),
                 limit if limit else len(selected),
                 selected.moltype.label,
             )
         else:
-            summary = ("%s x %s %s sequence collection") % (
+            summary = ("%s x {min=%s, median=%s, max=%s} %s sequence collection") % (
                 self.num_seqs,
-                len(self),
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
                 selected.moltype.label,
             )
 
