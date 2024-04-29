@@ -795,15 +795,53 @@ class omit_bad_seqs:
         Parameters
         ----------
         quantile
-            The number of gaps uniquely introduced by a sequence are counted.
-            The value corresponding to quantile is determined and all sequences
-            whose unique gap count is larger than this cutoff are excluded.
-            If None, this condition is not applied.
+            The number of gaps uniquely introduced in an alignment by each
+            sequence are counted. The value corresponding to quantile is
+            determined and all sequences whose unique gap count is larger than
+            this cutoff are excluded. If None, this condition is not applied.
         gap_fraction
             sequences whose proportion of gaps is >= this value are excluded, the
             default excludes sequences that are just gaps.
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+
+        Create a sample alignment and an app to remove sequences based on gap
+        fraction. Use ``gap_fraction=0.5`` to omit sequences that contain 50%
+        or more gaps.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({
+        ...     "s1": "---ACC---TT-",
+        ...     "s2": "---ACC---TT-",
+        ...     "s3": "---ACC---TT-",
+        ...     "s4": "--AACCG-GTT-",
+        ...     "s5": "--AACCGGGTTT",
+        ...     "s6": "AGAACCGGGTT-",
+        ...     "s7": "------------"
+        ... }, moltype="dna")
+        >>> app_frac_05 = get_app("omit_bad_seqs", gap_fraction=0.5)
+        >>> result = app_frac_05(aln)
+        >>> print(result.to_pretty())
+        s4    --AACCG-GTT-
+        s5    .......G...T
+        s6    AG.....G....
+
+        The ``quantile=0.8`` argument omits sequences that introduce gaps in the
+        alignment. In the following example, sequence `s6` is omitted, as it
+        uniquely introduces gaps in the first two positions of the alignment
+        which exceeds the cutoff.
+
+        >>> app = get_app("omit_bad_seqs", quantile=0.8)
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ---ACC---TT-
+        s2    ............
+        s3    ............
+        s4    ..A...G.G...
+        s5    ..A...GGG..T
         """
         if moltype:
             moltype = get_moltype(moltype)
