@@ -467,7 +467,7 @@ class take_named_seqs:
         Parameters
         ----------
         *names
-            series of sequence names provided as keyword arguments
+            series of sequence names provided as positional arguments
         negate
             if True, excludes the provided names from the result
 
@@ -564,7 +564,7 @@ class take_n_seqs:
         s2    ...-
         s3    ...N
 
-        Using ``random=3``, return 3 random sequences. An optional `seed` can be
+        Using ``random=3``, return 3 random sequences. An optional ``seed`` can be
         provided to ensure the same sequences are returned each time the app is
         called.
 
@@ -575,7 +575,7 @@ class take_n_seqs:
         s2    ...-
         s5    ...G
 
-        `fixed_choice=True` ensures the same sequences are returned when
+        ``fixed_choice=True`` ensures the same sequences are returned when
         (randomly) sampling sequences across several alignments.
 
         >>> aln2 = make_aligned_seqs({
@@ -590,7 +590,7 @@ class take_n_seqs:
         >>> result2 = app_fixed(aln2).names
         >>> assert result1 == result2
 
-        When `number` exceeds the number of sequences in the alignment, returns a
+        When ``number`` exceeds the number of sequences in the alignment, returns a
         NotCompleted (see https://cogent3.org/doc/app/not-completed.html).
 
         >>> app_fail = get_app("take_n_seqs", number=6)
@@ -792,7 +792,7 @@ class fixed_length:
         s2    TTTT
 
         The start position can be selected at random with ``random=True``. An
-        optional `seed` can be provided to ensure the same start position is
+        optional ``seed`` can be provided to ensure the same start position is
         used when the app is called.
 
         >>> app_4_random = get_app("fixed_length", length=4, random=True, seed=1)
