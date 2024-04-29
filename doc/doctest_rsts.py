@@ -83,9 +83,9 @@ def test_file(test: pathlib.Path | str, exit_on_first: bool = True) -> bool:
     return True
 
 
-def execute_rsts(file_paths, exit_on_first, verbose):
+def execute_rsts(file_paths, exit_on_first, parallel, verbose):
     runfile = test_file(exit_on_first=exit_on_first)
-    for result in runfile.as_completed(file_paths, parallel=True):
+    for result in runfile.as_completed(file_paths, parallel=parallel):
         if result is False and exit_on_first:
             exit(1)
 
@@ -112,8 +112,9 @@ def execute_rsts(file_paths, exit_on_first, verbose):
 @click.option(
     "-s", "--suffix", type=click.Choice(["rst", "ipynb"]), help="suffix of docs to test"
 )
+@click.option("-p", "--parallel", is_flag=True, help="run tests in parallel")
 @click.option("-v", "--verbose", is_flag=True, help="verbose output")
-def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
+def main(file_paths, just, exclude, exit_on_first, suffix, parallel, verbose):
     """runs doctests for the indicated files"""
     cwd = os.getcwd()
     if "*" in file_paths:  # trim to just parent directory
@@ -151,7 +152,7 @@ def main(file_paths, just, exclude, exit_on_first, suffix, verbose):
         print(f"File paths, after filtering: {str(file_paths)}")
 
     if suffix == "rst":
-        execute_rsts(file_paths, exit_on_first, verbose)
+        execute_rsts(file_paths, exit_on_first, parallel, verbose)
     else:
         execute_ipynb(file_paths, exit_on_first, verbose)
 
