@@ -541,6 +541,62 @@ class take_n_seqs:
         Returns
         -------
         A new sequence collection, or NotCompleted if not insufficient sequences are in the collection.
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that returns ``number=3``
+        sequences. By default, the first 3 sequences from the alignment are
+        returned.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({
+        ...     "s1": "ACGT",
+        ...     "s2": "ACG-",
+        ...     "s3": "ACGN",
+        ...     "s4": "ACGG",
+        ...     "s5": "ACGG"
+        ... })
+        >>> app_first_n = get_app("take_n_seqs", number=3)
+        >>> result = app_first_n(aln)
+        >>> print(result.to_pretty())
+        s1    ACGT
+        s2    ...-
+        s3    ...N
+
+        Using ``random=3``, return 3 random sequences. An optional `seed` can be
+        provided to ensure the same sequences are returned each time the app is
+        called.
+
+        >>> app_random_n = get_app("take_n_seqs", number=3, random=True, seed=1)
+        >>> result = app_random_n(aln)
+        >>> print(result.to_pretty())
+        s3    ACGN
+        s2    ...-
+        s5    ...G
+
+        `fixed_choice=True` ensures the same sequences are returned when
+        (randomly) sampling sequences across several alignments.
+
+        >>> aln2 = make_aligned_seqs({
+        ...     "s1": "GCGC",
+        ...     "s2": "GCG-",
+        ...     "s3": "GCG-",
+        ...     "s4": "GCGG",
+        ...     "s5": "GCGG",
+        ... })
+        >>> app_fixed = get_app("take_n_seqs", number=3, random=True, fixed_choice=True)
+        >>> result1 = app_fixed(aln).names
+        >>> result2 = app_fixed(aln2).names
+        >>> assert result1 == result2
+
+        When `number` exceeds the number of sequences in the alignment, returns a
+        NotCompleted (see https://cogent3.org/doc/app/not-completed.html).
+
+        >>> app_fail = get_app("take_n_seqs", number=6)
+        >>> result = app_fail(aln)
+        >>> result.message
+        'not enough sequences'
         """
         if seed:
             np_random.seed(seed)
