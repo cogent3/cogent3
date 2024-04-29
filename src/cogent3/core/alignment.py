@@ -2208,6 +2208,7 @@ class SequenceCollection(_SequenceCollectionBase):
             colors=colors, font_size=font_size, font_family=font_family
         )
 
+        # Gather stats about the sequence lengths
         seq_lens = sorted([len(seq) for seq in self.seqs])
         if seq_lens:
             min_seq_len = seq_lens[0]
@@ -2230,12 +2231,10 @@ class SequenceCollection(_SequenceCollectionBase):
             name_order = list(self.names)
             selected = self
 
-        gaps = "".join(selected.moltype.gaps)  # Gets gap characters
-
-        # Need to do this on a per Sequence basis.
+        # Stylise each character in each sequence
+        gaps = "".join(selected.moltype.gaps)
         template = '<span class="%s">%%s</span>'
         styled_seqs = defaultdict(list)
-
         max_truncated_len = 0
         for name in name_order:
             sequence = str(self.named_seqs[name])[:limit]
@@ -2258,13 +2257,14 @@ class SequenceCollection(_SequenceCollectionBase):
 
             styled_seqs[name] = seq
 
+        # Ensure all sublists are of same length
         for name in styled_seqs:
             if len(styled_seqs[name]) < max_truncated_len:
                 styled_seqs[name].extend(
                     [""] * (max_truncated_len - len(styled_seqs[name]))
                 )
 
-        # make a html table
+        # Make html table
         seqs = array([styled_seqs[n] for n in name_order], dtype="O")
         table = ["<table>"]
         seq_ = "<td>%s</td>"
@@ -2275,7 +2275,8 @@ class SequenceCollection(_SequenceCollectionBase):
             seqblock = seqs[:, i : i + wrap].tolist()
             for n, s in zip(name_order, seqblock):
                 s = "".join(s)
-                if len(s) > 0:  # If the row in the seq col is populated
+                # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
+                if len(s) > 0:
                     row = "".join([label_ % n, seq_ % s])
                     table.append(f"<tr>{row}</tr>")
         table.append("</table>")
