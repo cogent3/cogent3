@@ -1,24 +1,3 @@
-"""
-Maps have a list of Spans.
-
-Span is a region with a start, an end, and a direction.
-
-Notes
------
-
-Spans behave much like Python's slices: a Span contains the element
-after its start but does not contain the element after its end. It may help to
-think of the Span indices occurring _between_ the list elements:
-
-    a b c d e
-   | | | | | |
-   0 1 2 3 4 5
-
-...so that a Span whose start is its end contains no elements (e.g. 2:2), and
-a Span whose end is 2 more than its start contains 2 elements (e.g. 2:4 has c
-and d), etc. Similarly, Span(0,2) does _not_ overlap Span(2,3), since the
-former contains a and b while the latter contains c.
-"""
 import copy
 import dataclasses
 import functools
