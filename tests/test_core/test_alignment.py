@@ -849,10 +849,6 @@ class SequenceCollectionBaseTests(object):
 
     def test_set_wrap_affects_repr_html(self):
         """the wrap argument affects the number of columns"""
-        if self.Class == SequenceCollection:
-            # this class does not have this method
-            return
-
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         orig = seqs._repr_html_()
@@ -866,8 +862,8 @@ class SequenceCollectionBaseTests(object):
         os.environ[env_name] = "wrap=2"
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         got = seqs._repr_html_()
-        self.assertEqual(got.count(token), 3 * orig.count(token))
         os.environ.pop(env_name, None)
+        self.assertEqual(got.count(token), 3 * orig.count(token))
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
@@ -1804,6 +1800,8 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_repr_html(self):
         """exercises method normally invoked in notebooks"""
+        print(self.Class)
+        # assert False
         aln = self.Class({"a": "AAAAA", "b": "AAA--"})
         aln.set_repr_policy(num_seqs=5, num_pos=40)
         self.assertEqual(aln[:3]._repr_policy, aln._repr_policy)
