@@ -1153,32 +1153,14 @@ def _spans_from_locations(locations: SeqCoordTypes, parent_length: int) -> SeqSp
 
     spans = []
     for start, end in locations:
-        if start > end:
-            raise ValueError("locations must be ordered smallest-> largest")
-        if max(start, end) < 0 or min(start, end) > parent_length:
+        if start > end or min(start, end) < 0:
+            raise ValueError("locations must be ordered smallest-> largest and >= 0")
+        if start > parent_length:
             raise RuntimeError(
                 f"located outside sequence: {(start, end, parent_length)}"
             )
-        if max(start, end) > parent_length and min(start, end) < 0:
-            l_diff = min(start, end)
-            r_diff = max(start, end) - parent_length
-            start, end = (0, parent_length) if start < end else (parent_length, 0)
-            spans += [
-                LostSpan(abs(l_diff)),
-                Span(start, end),
-                LostSpan(abs(r_diff)),
-            ]
-        elif min(start, end) < 0:
-            diff = min(start, end)
-            start = max(start, 0)
-            end = max(end, 0)
-            spans += [
-                LostSpan(abs(diff)),
-                Span(start, end),
-            ]
-        elif max(start, end) > parent_length:
-            diff = max(start, end) - parent_length
-            start = min(start, parent_length)
+        if end > parent_length:
+            diff = end - parent_length
             end = min(end, parent_length)
             spans += [
                 Span(start, end),
