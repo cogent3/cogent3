@@ -1921,7 +1921,7 @@ class FeatureMap(MapABC):
         if other.parent_length != self.parent_length:
             raise ValueError("Those maps belong to different sequences")
         return self.__class__(
-            spans=self.spans + other.spans, parent_length=self.parent_length
+            spans=list(self.spans) + list(other.spans), parent_length=self.parent_length
         )
 
     @property

@@ -1119,3 +1119,14 @@ def test_get_gap_align_coordinates_edge_cases(seq, expected):
     im, _ = make_seq(seq).parse_out_gaps()
     result = im.get_gap_align_coordinates()
     assert (result == expected).all(), f"{expected=}, {result=}"
+
+
+def test_featuremap_add():
+    spans_a = [LostSpan(2), Span(2, 4)]
+    spans_b = [LostSpan(2), Span(4, 8), LostSpan(2)]
+    kwargs = dict(parent_length=6)
+
+    fm_a = FeatureMap(spans=spans_a, **kwargs)
+    fm_b = FeatureMap(spans=spans_b, **kwargs)
+    fm_ab = fm_a + fm_b
+    assert list(fm_ab.spans) == (spans_a + spans_b)
