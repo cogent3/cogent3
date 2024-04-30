@@ -28,6 +28,8 @@ from cogent3.util.misc import (
 
 strip = str.strip
 
+_DEFAULT_GAP_DTYPE = numpy.int32
+
 
 def _norm_index(i, length, default):
     """For converting s[:3] to s[0:3], s[-1] to s[len(s)-1] and s[0:lots] to s[0:len(s)]"""
@@ -501,7 +503,11 @@ class TerminalPadding(_LostSpan):
         return f"?{self.length}?"
 
 
+IntTypes = Union[int, numpy.int32, numpy.int64]
+IntArrayTypes = NDArray[int]
 SpanTypes = Union[Span, _LostSpan]
+SeqSpanTypes = Sequence[SpanTypes]
+SeqCoordTypes = Sequence[Sequence[IntTypes]]
 
 
 class Map:  # pragma: no cover
