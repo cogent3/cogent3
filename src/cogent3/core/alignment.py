@@ -2162,7 +2162,7 @@ class SequenceCollection(_SequenceCollectionBase):
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
-            dict(num_pos=int),
+            dict(num_seqs=int, num_pos=int, wrap=int),
         )
         settings.update(env_vals)
         return self.to_html(
