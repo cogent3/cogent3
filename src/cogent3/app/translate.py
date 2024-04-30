@@ -175,7 +175,8 @@ class select_translatable:
             molecular type, must be either DNA or RNA. Can be string or
             instance
         gc
-            identifier for a genetic code or a genetic code instance
+            identifier for a genetic code or a genetic code instance.
+            see https://cogent3.org/doc/cookbook/what_codes.html
         allow_rc
             If False, forward strand considered only. If True, and
             best frame on rc, it will be negative
@@ -186,6 +187,29 @@ class select_translatable:
         -------
         A sequence collection. Sequences that could not be translated
         are excluded.
+
+        Examples
+        --------
+
+        Create a sample sequence collection and an app that returns the sequences
+        which are translatable.
+
+        >>> from cogent3 import make_unaligned_seqs, get_app
+        >>> aln = make_unaligned_seqs({
+        ...     "s1": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
+        ...     "s1_rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT"
+        ... })
+        >>> app = get_app("select_translatable")
+        >>> result = app(aln)
+        >>> print(result.to_dict())
+        {'s1': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA'}
+
+        Use ``allow_rc=True`` to consider the reading frame for reverse strands.
+
+        >>> app_rc = get_app("select_translatable", allow_rc=True)
+        >>> result = app_rc(aln)
+        >>> print(result.to_dict())
+        {'s1': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA', 's1_rc': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA'}
         """
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
@@ -256,7 +280,8 @@ class translate_seqs:
             molecular type, must be either DNA or RNA. Can be string or
             instance
         gc
-            identifier for a genetic code or a genetic code instance
+            identifier for a genetic code or a genetic code instance.
+            see https://cogent3.org/doc/cookbook/what_codes.html
         trim_terminal_stop
             exclude terminal stop codon from seqs
 
@@ -264,6 +289,21 @@ class translate_seqs:
         -------
         A sequence collection. Sequences that could not be translated
         are excluded.
+
+        Examples
+        --------
+
+        Create a sample sequence collection and an app that translates nucleic
+        acid sequences into protein sequences. By default, sequences that end
+        with a stop codon are excluded with ``trim_terminal_stop=True``.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ATGAGG", "s2": "ATGTAA"})
+        >>> app_translate = get_app("translate_seqs", trim_terminal_stop=True)
+        >>> result = app_translate(aln)
+        >>> print(result.to_pretty())
+        s1    MR
+        s2    .-
         """
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
