@@ -984,9 +984,20 @@ class _SequenceCollectionBase:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def to_fasta(self):
-        """Return alignment in Fasta format"""
-        return alignment_to_fasta(self.to_dict())
+    def to_fasta(self, block_size: int = 60) -> str:
+        """Return alignment in Fasta format.
+
+        Parameters
+        ----------
+        block_size
+            the sequence length to write to each line,
+            by default 60
+
+        Returns
+        -------
+        The Fasta formatted alignment.
+        """
+        return alignment_to_fasta(self.to_dict(), block_size=block_size)
 
     def to_nexus(self, seq_type, wrap=50):
         """
@@ -1192,10 +1203,15 @@ class _SequenceCollectionBase:
         """Return a sequence object for the specified seqname."""
         return self.named_seqs[seqname]
 
-    def to_dict(self):
-        """Returns the alignment as dict of names -> strings.
+    def to_dict(self) -> dict[str, str]:
+        """Returns the alignment as a dict of sequence names -> strings.
 
-        Note: returns strings, NOT Sequence objects.
+        Note the mapping goes to strings, not Sequence objects.
+
+        Returns
+        -------
+        a dict mapping sequence names to a string representation of
+        their sequences.
         """
         align_dict = {}
 

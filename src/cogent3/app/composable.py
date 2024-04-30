@@ -401,9 +401,6 @@ def _validate_data_type(self, data):
     return valid
 
 
-__app_registry = {}
-
-
 def _class_from_func(func):
     """make a class based on func
 
@@ -606,7 +603,10 @@ def define_app(
             raise TypeError(
                 f"remove 'input' attribute in {klass.__name__!r}, this functionality provided by define_app"
             )
-
+        if composable and getattr(klass, "__add__", None):
+            raise TypeError(
+                f"remove '__add__' method in {klass.__name__!r}, this functionality provided by define_app"
+            )
         for meth in method_list:
             # make sure method not defined by user before adding
             if inspect.isfunction(getattr(klass, meth, None)):
@@ -631,8 +631,6 @@ def define_app(
             # not supporting this yet
             raise NotImplementedError("slots are not currently supported")
 
-        # register this app
-        __app_registry[get_object_provenance(klass)] = composable
         return klass
 
     return wrapped(klass) if klass else wrapped
@@ -702,9 +700,14 @@ def _as_completed(self, dstore, parallel=False, par_kw=None, **kwargs) -> Genera
     return ui.series(to_do, count=len(mapped), **kwargs)
 
 
-def is_composable(obj):
-    """checks whether obj has been registered by the composable decorator"""
-    return __app_registry.get(get_object_provenance(obj), False)
+def is_app_composable(obj):
+    """checks whether obj has been decorated by define_app and it's app_type attribute is not NON_COMPOSABLE"""
+    return is_app(obj) and obj.app_type is not NON_COMPOSABLE
+
+
+def is_app(obj):
+    """checks whether obj has been decorated by define_app"""
+    return hasattr(obj, "app_type")
 
 
 def _apply_to(
