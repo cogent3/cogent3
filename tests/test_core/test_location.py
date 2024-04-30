@@ -1139,3 +1139,10 @@ def test_featuremap_mul():
     assert list(fm_3.spans) == [sp * 3 for sp in spans]
     assert fm_3.parent_length == 6 * 3
 
+
+def test_featuremap_div():
+    spans = [LostSpan(3), Span(3, 6)]
+    fm_3 = FeatureMap(spans=spans, parent_length=6)
+    fm_1 = fm_3 / 3
+    assert list(fm_1.spans) == [sp / 3 for sp in spans]
+    assert fm_1.parent_length == 6 / 3

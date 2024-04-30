@@ -281,7 +281,7 @@ class Span(SpanI):
             self.reverse,
         )
 
-    def __div__(self, scale):
+    def __truediv__(self, scale: int):
         assert not self.start % scale or self.end % scale
         return Span(
             self.start // scale,
@@ -471,7 +471,7 @@ class _LostSpan:
     def __mul__(self, scale):
         return LostSpan(self.length * scale, self.value)
 
-    def __div__(self, scale):
+    def __truediv__(self, scale):
         assert not self.length % 3
         return LostSpan(self.length // scale, self.value)
 
@@ -1911,7 +1911,7 @@ class FeatureMap(MapABC):
         new_parts = [span * scale for span in self.spans]
         return self.__class__(spans=new_parts, parent_length=self.parent_length * scale)
 
-    def __div__(self, scale) -> "FeatureMap":
+    def __truediv__(self, scale: int) -> "FeatureMap":
         new_parts = [span / scale for span in self.spans]
         return self.__class__(
             spans=new_parts, parent_length=self.parent_length // scale
