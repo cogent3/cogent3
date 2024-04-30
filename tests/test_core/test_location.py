@@ -1130,3 +1130,12 @@ def test_featuremap_add():
     fm_b = FeatureMap(spans=spans_b, **kwargs)
     fm_ab = fm_a + fm_b
     assert list(fm_ab.spans) == (spans_a + spans_b)
+
+
+def test_featuremap_mul():
+    spans = [LostSpan(2), Span(2, 4)]
+    fm = FeatureMap(spans=spans, parent_length=6)
+    fm_3 = fm * 3
+    assert list(fm_3.spans) == [sp * 3 for sp in spans]
+    assert fm_3.parent_length == 6 * 3
+
