@@ -513,6 +513,11 @@ SeqCoordTypes = Sequence[Sequence[IntTypes]]
 class Map:  # pragma: no cover
     """A map holds a list of spans."""
 
+    @c3warn.deprecated_callable(
+        version="2024.6",
+        reason="Replaced by IndelMap and FeatureMap",
+        is_discontinued=True,
+    )
     def __init__(
         self,
         locations=None,
