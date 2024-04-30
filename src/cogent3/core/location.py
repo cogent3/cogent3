@@ -1466,7 +1466,7 @@ class IndelMap(MapABC):
             seq_index += self.parent_length
 
         if seq_index < 0:
-            raise NotImplementedError(f"{seq_index} negative seq_index beyond limit ")
+            raise IndexError(f"{seq_index} negative seq_index beyond limit ")
 
         if not self.num_gaps or seq_index < self.gap_pos[0]:
             return int(seq_index)
@@ -1504,7 +1504,7 @@ class IndelMap(MapABC):
         if align_index < 0:
             align_index = len(self) + align_index
         if align_index < 0:
-            raise NotImplementedError(f"{align_index} align_index beyond limit")
+            raise IndexError(f"{align_index} align_index beyond limit")
 
         if not self.num_gaps or align_index < self.gap_pos[0]:
             return align_index

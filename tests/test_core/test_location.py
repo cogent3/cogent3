@@ -494,6 +494,18 @@ def test_indelmap_from_aligned_segments():
     assert im_spans[1].lost and len(im_spans[1]) == 2
 
 
+@pytest.mark.parametrize("swap", (False, True))
+def test_indelmap_inconsistent_input(swap):
+    a = numpy.array([0, 1], dtype=int)
+    b = numpy.array([3], dtype=int)
+    a, b = (b, a) if swap else (a, b)
+    with pytest.raises(ValueError):
+        IndelMap(gap_pos=a, gap_lengths=b, parent_length=10)
+
+    with pytest.raises(ValueError):
+        IndelMap(gap_pos=a, cum_gap_lengths=b, parent_length=10)
+
+
 def test_indelmap_from_aligned_segments2():
     locations = [(0, 5), (7, 12), (14, 21), (24, 27)]
     im = IndelMap.from_aligned_segments(locations=locations, aligned_length=27)
@@ -656,6 +668,32 @@ def test_indelmap_slice_terminating():
     got = imap[start:end]
     assert got.gap_pos.tolist() == expect.gap_pos.tolist()
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
+
+
+def test_indelmap_invalid_slice_range():
+    imap = IndelMap(
+        gap_pos=numpy.array([10], dtype=int),
+        gap_lengths=numpy.array([2], dtype=int),
+        parent_length=10,
+    )
+    with pytest.raises(IndexError):
+        imap[-100]
+
+    with pytest.raises(IndexError):
+        imap[-100:]
+
+    with pytest.raises(IndexError):
+        imap[:-99]
+
+
+def test_indelmap_get_indices_errors():
+    imap = IndelMap(
+        gap_pos=numpy.array([10], dtype=int),
+        gap_lengths=numpy.array([2], dtype=int),
+        parent_length=10,
+    )
+    with pytest.raises(IndexError):
+        imap.get_align_index(-1000)
 
 
 def test_indelmap_slice_innner_gap():
@@ -881,7 +919,7 @@ def test_gapped_convert_aln2seq_gapchar(data, gap_number):
 
 def test_gapped_convert_aln2seq_invalid():
     gaps, _ = make_seq("AC--GTA-TG", moltype="dna").parse_out_gaps()
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(IndexError):
         # absolute value of negative indices must be < seq length
         gaps.get_seq_index(-100)
 
@@ -1009,6 +1047,14 @@ def test_featuremap_roundtrip_json():
     coords = fmap.get_coordinates()
     assert coords == [(0, 9), (20, 23)]
     assert got.parent_length == fmap.parent_length == 140
+
+
+@pytest.mark.parametrize(
+    "error_type,locations", ((ValueError, ((-2, 2),)), (RuntimeError, ((20, 25),)))
+)
+def test_invalid_locations(error_type, locations):
+    with pytest.raises(error_type):
+        FeatureMap.from_locations(locations=locations, parent_length=10)
 
 
 def test_gap_coords_to_map():
