@@ -1243,15 +1243,15 @@ class IndelMap(MapABC):
     """store locations of deletions in a Aligned sequence"""
 
     # gap data is gap positions, gap lengths on input, stored
-    gap_pos: numpy.ndarray
-    cum_gap_lengths: Optional[numpy.ndarray] = None
-    gap_lengths: dataclasses.InitVar[Optional[numpy.ndarray]] = None
+    gap_pos: IntArrayTypes
+    cum_gap_lengths: Optional[IntArrayTypes] = None
+    gap_lengths: dataclasses.InitVar[Optional[IntArrayTypes]] = None
     termini_unknown: bool = False
     parent_length: int = 0
     _serialisable: dict = dataclasses.field(init=False, repr=False)
     num_gaps: int = dataclasses.field(init=False, repr=False, default=0)
 
-    def __post_init__(self, gap_lengths):
+    def __post_init__(self, gap_lengths: IntArrayTypes):
         assert gap_lengths is None or self.cum_gap_lengths is None
         if gap_lengths is not None:
             self.cum_gap_lengths = gap_lengths.cumsum()
