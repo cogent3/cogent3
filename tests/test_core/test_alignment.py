@@ -1810,7 +1810,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
 
     def test_repr_html(self):
         """exercises method normally invoked in notebooks"""
-        # assert False
         aln = self.Class({"a": "AAAAA", "b": "AAA--"})
         aln.set_repr_policy(num_seqs=5, num_pos=40)
         self.assertEqual(aln[:3]._repr_policy, aln._repr_policy)
