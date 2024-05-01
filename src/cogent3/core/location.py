@@ -1706,11 +1706,8 @@ class IndelMap(MapABC):
         ----------
         coords
             sequence insert gap coordinates [(gap start, gap end), ...]
-        Returns
-        -------
-
         """
-        coords = list(sorted(coords))
+        coords = sorted(coords)
         # using a dict here because joining can produce a gap merge
         gaps = {}
         cum_length = 0
