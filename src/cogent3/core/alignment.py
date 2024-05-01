@@ -2601,6 +2601,22 @@ class AlignmentI(object):
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
 
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+        for count, name in enumerate(self.names):
+            if count == 3:
+                seqs.append("...")
+                break
+            elts = list(str(self.named_seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts.append("...")
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+        seqs = ", ".join(seqs)
+
+        return f"{len(self.names)} x {self.seq_len} {self.moltype.label} alignment: {seqs}"
+
     def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
         Computes the alignment quality using the indicated app
@@ -4277,22 +4293,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
-    def __repr__(self) -> str:
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.named_seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts.append("...")
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
-
-        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
-
     @c3warn.deprecated_args(
         "2024.6",
         reason="consistency with other methods",
@@ -4918,22 +4918,6 @@ class Alignment(AlignmentI, SequenceCollection):
             new._repr_policy.update(self._repr_policy)
 
         return new
-
-    def __repr__(self) -> str:
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.named_seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts.append("...")
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
-
-        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     @property
     def annotation_db(self):
