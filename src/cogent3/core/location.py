@@ -1413,7 +1413,7 @@ class IndelMap(MapABC):
             # so the absolute gap_pos value remains unchanged, but we shorten
             # the gap length
             begin = l
-            begin_diff = start - gap_starts[l]  # if l else self.gap_pos[l]
+            begin_diff = start - gap_starts[l]
             lengths[l] -= begin_diff
             shift = (start - cum_lengths[l - 1] - begin_diff) if l else gap_pos[0]
         elif start == gap_ends[l]:
@@ -1534,12 +1534,8 @@ class IndelMap(MapABC):
         length_gaps = self.cum_gap_lengths[-1] if self.num_gaps else 0
         return int(self.parent_length + length_gaps)
 
-    def __add__(self, other) -> "IndelMap":
-        # what was the purpose of this method? The code seems designed for
-        # combining Maps from the same parent sequence, which is a union rather
-        # than addition
-        # I'm revising this to be suitable for the concatenation of two aligned
-        # sequences
+    def __add__(self, other: "IndelMap") -> "IndelMap":
+        """designed to support concatenation of two aligned sequences"""
         gap_pos = self.gap_pos.tolist() + (self.parent_length + other.gap_pos).tolist()
         gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)
 
@@ -1557,7 +1553,7 @@ class IndelMap(MapABC):
         )
 
     def __mul__(self, scale: int) -> "IndelMap":
-        # could be used for going from amino-acid alignment to codon alignment
+        """used for going from amino-acid alignment to codon alignment"""
         gap_pos = self.gap_pos * scale
         cum_gap_lengths = self.cum_gap_lengths * scale
         return self.__class__(
