@@ -1321,7 +1321,7 @@ class IndelMap(MapABC):
             # ends with a gap
             locations += [(aligned_length, aligned_length)]
 
-        locations = numpy.array(locations, dtype=numpy.int32).flatten()[1:-1]
+        locations = numpy.array(locations, dtype=_DEFAULT_GAP_DTYPE).flatten()[1:-1]
         gap_coords = locations.reshape((locations.shape[0] // 2, 2))
         gap_ends, gap_starts = gap_coords[:, ::-1].T
         gap_lengths = gap_ends - gap_starts
