@@ -32,7 +32,16 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import total_ordering
 from itertools import combinations
-from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import numpy
 
@@ -69,7 +78,6 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
-
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -709,7 +717,7 @@ class _SequenceCollectionBase:
 
     # access as attribute if using default order.
 
-    def take_seqs(self, seqs, negate=False, **kwargs):
+    def take_seqs(self, seqs: Union[str, Sequence[str]], negate=False, **kwargs):
         """Returns new Alignment containing only specified seqs.
 
         Note that the seqs in the new alignment will be references to the
@@ -2175,7 +2183,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
         return f"{len(self.names)}x ({seqs}) {self.moltype.get_type()} seqcollection"
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -2190,13 +2198,13 @@ class SequenceCollection(_SequenceCollectionBase):
 
     def to_html(
         self,
-        name_order=None,
-        wrap=60,
-        limit=None,
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
-    ):
+        name_order: Optional[Sequence[str]] = None,
+        wrap: int = 60,
+        limit: Optional[int] = None,
+        colors: Optional[Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -2407,7 +2415,7 @@ class Aligned:
 
         return self.__class__(new_map, new_seq)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.map!r} of {self.data!r}"
 
     def with_termini_unknown(self):
@@ -3083,7 +3091,7 @@ class AlignmentI(object):
 
         return names, output
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -3099,14 +3107,14 @@ class AlignmentI(object):
 
     def to_html(
         self,
-        name_order=None,
-        wrap=60,
-        limit=None,
-        ref_name="longest",
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
-    ):
+        name_order: Optional[Sequence[str]] = None,
+        wrap: int = 60,
+        limit: Optional[int] = None,
+        ref_name: str = "longest",
+        colors: Optional[Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -4246,7 +4254,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         seqs = []
         limit = 10
         delimiter = ""
@@ -4888,7 +4896,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         return new
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         seqs = []
         limit = 10
         delimiter = ""
