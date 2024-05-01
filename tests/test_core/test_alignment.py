@@ -981,56 +981,6 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         seq2 = make_seq("AC", name="seq2")
         coll = SequenceCollection(data=[seq1, seq2])
 
-    def test_repr(self):
-        data = {
-            "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
-            "ENSMUSG00000039616": "GCCCTTCAAATTT",
-        }
-        seqs = self.Class(data=data, moltype=DNA)
-        self.assertEqual(
-            repr(seqs),
-            "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) <dna> seqcollection",
-        )
-
-        data = {
-            "ENSMUSG00000039616": "GCCCTTCAAATTT",
-            "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
-        }
-        seqs = self.Class(data=data, moltype=DNA)
-        self.assertEqual(
-            repr(seqs),
-            "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) <dna> seqcollection",
-        )
-
-        data = {
-            "a": "TCGAT",
-        }
-        seqs = self.Class(data=data, moltype=DNA)
-        self.assertEqual(
-            repr(seqs),
-            "1x (a[TCGAT]) <dna> seqcollection",
-        )
-
-        data = {
-            "a": "A" * 11,
-            "b": "B" * 3,
-            "c": "C" * 3,
-            "d": "D" * 11,
-            "e": "E" * 8,
-        }
-        seqs = self.Class(data=data, moltype=ASCII)
-        self.assertEqual(
-            repr(seqs),
-            "5x (b[BBB], ..., d[DDDDDDDDDDD...]) <text> seqcollection",
-        )
-
-        data = {}
-        seqs = self.Class(data=data, moltype=BYTES)
-        self.assertEqual(
-            repr(seqs),
-            "0x () <bytes> seqcollection",
-        )
-
 
 def _make_filter_func(aln):
     array_align = type(aln) == ArrayAlignment
@@ -3683,3 +3633,45 @@ def test_quick_tree(cls, calc, brca1_data):
         if not edge.is_root()
     }
     assert types == {float}
+
+
+def test_sequence_collection_repr():
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "a": "TCGAT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
+
+    data = {
+        "a": "A" * 11,
+        "b": "B" * 3,
+        "c": "C" * 3,
+        "d": "D" * 11,
+        "e": "E" * 8,
+    }
+    seqs = SequenceCollection(data=data, moltype=ASCII)
+    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDDD...]) text seqcollection"
+
+    data = {}
+    seqs = SequenceCollection(data=data, moltype=BYTES)
+    assert repr(seqs) == "0x () bytes seqcollection"
