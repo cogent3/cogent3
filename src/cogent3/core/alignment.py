@@ -717,7 +717,7 @@ class _SequenceCollectionBase:
 
     # access as attribute if using default order.
 
-    def take_seqs(self, seqs: Union[str, Sequence[str]], negate=False, **kwargs):
+    def take_seqs(self, seqs: Union[str, typing.Sequence[str]], negate=False, **kwargs):
         """Returns new Alignment containing only specified seqs.
 
         Note that the seqs in the new alignment will be references to the
@@ -2198,7 +2198,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
     def to_html(
         self,
-        name_order: Optional[Sequence[str]] = None,
+        name_order: Optional[typing.Sequence[str]] = None,
         wrap: int = 60,
         limit: Optional[int] = None,
         colors: Optional[Mapping[str, str]] = None,
@@ -3107,7 +3107,7 @@ class AlignmentI(object):
 
     def to_html(
         self,
-        name_order: Optional[Sequence[str]] = None,
+        name_order: Optional[typing.Sequence[str]] = None,
         wrap: int = 60,
         limit: Optional[int] = None,
         ref_name: str = "longest",
@@ -3148,6 +3148,7 @@ class AlignmentI(object):
         )
         if name_order:
             selected = self.take_seqs(name_order)
+            name_order = list(name_order)
         else:
             name_order = list(self.names)
             ref_name = ref_name or "longest"
