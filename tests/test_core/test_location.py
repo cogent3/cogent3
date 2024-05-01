@@ -370,6 +370,30 @@ def test_nongap(cls):
     assert got == [(0, 2), (5, 6), (7, 10)]
 
 
+@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
+def test_nongap_startswith(cls):
+    # returns spans corresponding to position on "aligned" seq of nongaps
+    #                   012345678
+    seq = DNA.make_seq("--G-TAA--")
+    m, _ = seq.parse_out_gaps()
+    m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
+
+    got = [(s.start, s.end) for s in m.nongap()]
+    assert got == [(2, 3), (4, 7)]
+
+
+@pytest.mark.parametrize("cls", (IndelMap, FeatureMap)[:1])
+def test_nongap_not_endswith(cls):
+    # returns spans corresponding to position on "aligned" seq of nongaps
+    #                   0123456
+    seq = DNA.make_seq("--G-TAA")
+    m, _ = seq.parse_out_gaps()
+    m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
+
+    got = [(s.start, s.end) for s in m.nongap()]
+    assert got == [(2, 3), (4, 7)]
+
+
 def test_spans_gen():
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   000000000011

@@ -1591,7 +1591,7 @@ class IndelMap(MapABC):
             prev_pos = pos
 
         if self.num_gaps and self.gap_pos[-1] + self.cum_gap_lengths[-1] < len(self):
-            yield Span(prev_pos, len(self))
+            yield Span(self.gap_pos[-1] + self.cum_gap_lengths[-1], len(self))
 
     @property
     def spans(self) -> Iterator[SpanTypes]:
