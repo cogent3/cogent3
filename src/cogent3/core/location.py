@@ -1109,7 +1109,7 @@ class MapABC(ABC):
         ...
 
     @abstractmethod
-    def __add__(self, other):
+    def __add__(self, other: "MapABC") -> "MapABC":
         ...
 
     @abstractmethod
@@ -1121,7 +1121,7 @@ class MapABC(ABC):
         ...
 
     @abstractmethod
-    def nucleic_reversed(self):
+    def nucleic_reversed(self) -> "MapABC":
         ...
 
     @abstractmethod
@@ -1129,7 +1129,9 @@ class MapABC(ABC):
         ...
 
     @classmethod
-    def from_locations(cls, locations: SeqCoordTypes, parent_length: int, **kwargs):
+    def from_locations(
+        cls, locations: SeqCoordTypes, parent_length: int, **kwargs
+    ) -> "MapABC":
         if len(locations):
             spans = _spans_from_locations(locations, parent_length=parent_length)
         else:
@@ -1139,7 +1141,7 @@ class MapABC(ABC):
 
     @classmethod
     @abstractmethod
-    def from_spans(cls, spans: SeqSpanTypes, parent_length: int, **kwargs):
+    def from_spans(cls, spans: SeqSpanTypes, parent_length: int, **kwargs) -> "MapABC":
         ...
 
 
