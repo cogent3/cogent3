@@ -556,17 +556,6 @@ def test_indelmap_merge_parent_length():
     assert ov.parent_length == 20
 
 
-@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
-def test_map_offsets(cls):
-    # offsets are absolute starts of spans
-    #                              1
-    #                   01 3  678  1
-    seq = DNA.make_seq("-AC---G-TAA--")
-    m, _ = seq.parse_out_gaps()
-    got = m.offsets
-    assert got == [0, 1, 3, 6, 7, 8, 11]
-
-
 def test_map_indexed():
     m = FeatureMap.from_locations(locations=[(0, 2), (4, 6)], parent_length=6).inverse()
     indexed = m[2]

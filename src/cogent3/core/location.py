@@ -1571,14 +1571,6 @@ class IndelMap(MapABC):
         lengths[1:] = numpy.diff(lengths)
         return lengths
 
-    @property
-    def offsets(self) -> IntArrayTypes:
-        # offsets are the aligned indices for every starting point of a segment
-        # when we encounter a gap, we include that position and the end of that gap
-
-        starts, ends = _gap_spans(self.gap_pos, self.cum_gap_lengths)
-        return numpy.array([starts, ends]).T.flatten()[:-1].tolist()
-
     def nongap(self) -> Iterator[SpanTypes]:
         """ungappeed segments in this map in aligned coordinates"""
         # we want to know the coordinates of the ungapped segments on
