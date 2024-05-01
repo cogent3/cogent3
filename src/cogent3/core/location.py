@@ -1211,7 +1211,7 @@ def _gap_spans(
     """returns 1D arrays in alignment coordinates of
     gap start, gap stop"""
     if not len(gap_pos):
-        r = numpy.array([], dtype=gap_pos.dtype)
+        r = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         return r, r
 
     ends = gap_pos + cum_gap_lengths
@@ -1307,7 +1307,7 @@ class IndelMap(MapABC):
             and locations[0][0] == 0
             and locations[0][-1] == aligned_length
         ):
-            empty = numpy.array([], dtype=int)
+            empty = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
             return cls(
                 gap_pos=empty,
                 cum_gap_lengths=empty.copy(),
@@ -1355,7 +1355,7 @@ class IndelMap(MapABC):
             raise NotImplementedError(
                 f"{type(self).__name__!r} does not yet support strides"
             )
-        zero_array = numpy.array([], dtype=self.gap_pos.dtype)
+        zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         start = item.start or 0
         stop = item.stop or len(self)
 
@@ -1396,7 +1396,7 @@ class IndelMap(MapABC):
         if gap_starts[l] <= start < gap_ends[l] and stop <= gap_ends[l]:
             # entire span is within a single gap
             # pos now 0
-            gap_pos = numpy.array([0], dtype=self.gap_pos.dtype)
+            gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
             cum_lengths = cum_lengths[l : l + 1]
             cum_lengths[0] = stop - start
             return self.__class__(
@@ -1541,14 +1541,14 @@ class IndelMap(MapABC):
         # I'm revising this to be suitable for the concatenation of two aligned
         # sequences
         gap_pos = self.gap_pos.tolist() + (self.parent_length + other.gap_pos).tolist()
-        gap_pos = numpy.array(gap_pos, dtype=self.gap_pos.dtype)
+        gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)
 
         cum_length = self.cum_gap_lengths[-1] if self.num_gaps else 0
         cum_gap_lengths = (
             self.cum_gap_lengths.tolist()
             + (cum_length + other.cum_gap_lengths).tolist()
         )
-        cum_gap_lengths = numpy.array(cum_gap_lengths, dtype=self.cum_gap_lengths.dtype)
+        cum_gap_lengths = numpy.array(cum_gap_lengths, dtype=_DEFAULT_GAP_DTYPE)
 
         return self.__class__(
             gap_pos=gap_pos,
@@ -1701,7 +1701,7 @@ class IndelMap(MapABC):
             overrides property
         """
         unique_pos = numpy.union1d(self.gap_pos, other.gap_pos)
-        gap_lengths = numpy.zeros(unique_pos.shape, dtype=self.cum_gap_lengths.dtype)
+        gap_lengths = numpy.zeros(unique_pos.shape, dtype=_DEFAULT_GAP_DTYPE)
         self_lengths = self.get_gap_lengths()
         other_lengths = other.get_gap_lengths()
         _update_lengths(unique_pos, gap_lengths, self.gap_pos, self_lengths)
@@ -1729,7 +1729,6 @@ class IndelMap(MapABC):
         gaps = {}
         cum_length = 0
         cum_parent_length = 0
-        dtype = self.gap_pos.dtype
         for start, end in coords:
             im = self[start:end]
             for i in range(im.num_gaps):
@@ -1741,8 +1740,8 @@ class IndelMap(MapABC):
             cum_parent_length += im.parent_length
             if im.num_gaps:
                 cum_length += im.cum_gap_lengths[-1]
-        gap_pos = numpy.empty(len(gaps), dtype=dtype)
-        cum_lengths = numpy.empty(len(gaps), dtype=dtype)
+        gap_pos = numpy.empty(len(gaps), dtype=_DEFAULT_GAP_DTYPE)
+        cum_lengths = numpy.empty(len(gaps), dtype=_DEFAULT_GAP_DTYPE)
         for i, (pos, length) in enumerate(sorted(gaps.items())):
             gap_pos[i] = pos
             cum_lengths[i] = length
@@ -2157,7 +2156,9 @@ class FeatureMap(MapABC):
         raises ValueError if rel_pos < 0
         """
         check = (
-            numpy.array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+            numpy.array([rel_pos], dtype=_DEFAULT_GAP_DTYPE)
+            if isinstance(rel_pos, int)
+            else rel_pos
         )
         if check.min() < 0:
             raise ValueError(f"must positive, not {rel_pos=}")
@@ -2176,7 +2177,9 @@ class FeatureMap(MapABC):
         raises ValueError if abs_pos < 0
         """
         check = (
-            numpy.array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+            numpy.array([abs_pos], dtype=_DEFAULT_GAP_DTYPE)
+            if isinstance(abs_pos, int)
+            else abs_pos
         )
         if check.min() < 0:
             raise ValueError(f"must positive, not {abs_pos=}")
@@ -2200,12 +2203,12 @@ def gap_coords_to_map(
     """
 
     if not gaps_lengths:
-        gap_pos = numpy.array([], dtype=int)
+        gap_pos = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         lengths = gap_pos.copy()
     else:
         gap_pos, lengths = list(zip(*sorted(gaps_lengths.items())))
-        gap_pos = numpy.array(gap_pos, dtype=int)
-        lengths = numpy.array(lengths, dtype=int)
+        gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)
+        lengths = numpy.array(lengths, dtype=_DEFAULT_GAP_DTYPE)
 
     return IndelMap(gap_pos=gap_pos, gap_lengths=lengths, parent_length=seq_length)
 
