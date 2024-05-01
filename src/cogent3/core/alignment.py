@@ -69,6 +69,7 @@ from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
+
 # which is a circular import otherwise.
 from cogent3.format.alignment import save_to_filename
 from cogent3.format.fasta import alignment_to_fasta
@@ -2147,7 +2148,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
     def __repr__(self):
         if len(self.names) == 0:
-            return f"0x () <{self.moltype.get_type()}> seqcollection"
+            return f"0x () {self.moltype.get_type()} seqcollection"
 
         seqs = []
         limit = 10
@@ -2172,7 +2173,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)}x ({seqs}) <{self.moltype.get_type()}> seqcollection"
+        return f"{len(self.names)}x ({seqs}) {self.moltype.get_type()} seqcollection"
 
     def _repr_html_(self):
         settings = self._repr_policy.copy()
