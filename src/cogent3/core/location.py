@@ -1659,10 +1659,8 @@ class IndelMap(MapABC):
 
     def get_gap_coordinates(self) -> SeqCoordTypes:
         """returns [(gap pos, gap length), ...]"""
-        cum_lengths = self.cum_gap_lengths.copy()
-        diffs = numpy.diff(cum_lengths)
-        cum_lengths[1:] = diffs
-        return numpy.array([self.gap_pos, cum_lengths]).T.tolist()
+        lengths = self.get_gap_lengths()
+        return numpy.array([self.gap_pos, lengths]).T.tolist()
 
     def get_gap_align_coordinates(self) -> SeqCoordTypes:
         """returns [(gap start, gap end), ...] in alignment indices
@@ -2151,11 +2149,7 @@ class FeatureMap(MapABC):
         if check.min() < 0:
             raise ValueError(f"must positive, not {rel_pos=}")
 
-        if len(self) == self.parent_length:
-            # handle case of reversed here?
-            return rel_pos
-
-        return self.start + rel_pos
+        return rel_pos if len(self) == self.parent_length else self.start + rel_pos
 
     def relative_position(self, abs_pos: IntTypes) -> IntTypes:
         """converts abs_pos into an relative position
