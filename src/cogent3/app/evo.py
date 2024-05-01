@@ -53,47 +53,48 @@ class model:
     def __init__(
         self,
         sm,
-        tree=None,
-        unique_trees=False,
-        tree_func=None,
-        name=None,
-        optimise_motif_probs=False,
-        sm_args=None,
-        lf_args=None,
-        time_het=None,
-        param_rules=None,
-        opt_args=None,
-        lower=1e-6,
-        upper=50,
-        split_codons=False,
-        show_progress=False,
-        verbose=False,
+        tree: Union[TreeNode, str] = None,
+        unique_trees: bool = False,
+        tree_func: Callable[[AlignedSeqsType], TreeNode] = None,
+        name: str = None,
+        optimise_motif_probs: bool = False,
+        sm_args: dict = None,
+        lf_args: dict[str, Union[list, str]] = None,
+        time_het: Union[str, list[dict[str, Union[list, str]]]] = None,
+        param_rules: list[dict[str, Union[list, str]]] = None,
+        opt_args: dict = None,
+        lower: float = 1e-6,
+        upper: float = 50,
+        split_codons: bool = False,
+        show_progress: bool = False,
+        verbose: bool = False,
     ):
         """
         Parameters
         ----------
-        sm : str or instance
-            substitution model if string must be available via get_model()
+        sm
+            substitution model (str or instance) if string must be available
+            via get_model()
         tree
             if None, assumes a star phylogeny (only valid for 3 taxa). Can be a
             newick formatted tree, a path to a file containing one, or a Tree
-            instance.
-        unique_trees : bool
+            instance
+        unique_trees
             whether to specify a unique tree per alignment. Only applies if
-            number of sequences equals 3.
+            number of sequences equals 3
         tree_func: callable
             a callable that takes an alignment and returns a Tree instance.
             Overrides tree and unique_tree settings.
-        name : str
-            name of the model
-        optimise_motif_probs : bool
+        name
+            the model name, which users can customise
+        optimise_motif_probs
             whether the motif probabilities are free parameters. If False,
             takes the average of frequencies from the alignment. Overrides
             the setting of a sub model instance, or any value provided in
-            sm_args.
-        sm_args : dict
+            sm_args
+        sm_args
             arguments to be passed to the substitution model constructor
-        lf_args : dict
+        lf_args
             arguments to be passed to the likelihood function constructor
         time_het
             Affects whether substitution model rate parameters are
@@ -104,22 +105,22 @@ class model:
             using a list of dicts corresponding to edge_sets, e.g.
             ``[dict(edges=['Human', 'Chimp'], is_independent=False, upper=10)]``.
             This value is passed to <likelihood function>.set_time_heterogeneity()
-        param_rules : list
+        param_rules
             other parameter rules, passed to
             <likelihood function>.set_param_rule()
-        opt_args : dict
+        opt_args
             arguments for the numerical optimiser, e.g.
             dict(max_restarts=5, tolerance=1e-6, max_evaluations=1000,
             limit_action='ignore')
         lower, upper
             bounds for all rate and length parameters. Ignored if a
             rule in ``param_rules`` or ``time_het`` has a value defined.
-        split_codons : bool
+        split_codons
             if True, incoming alignments are split into the 3 frames and each
             frame is fit separately
-        show_progress : bool
+        show_progress
             show progress bars during numerical optimisation
-        verbose : bool
+        verbose
             prints intermediate states to screen during fitting
 
         Returns
@@ -127,6 +128,112 @@ class model:
         Calling an instance with an alignment returns a model_result instance
         with the optimised likelihood function. In the case of split_codons,
         the result object has a separate entry for each codon position.
+
+        Examples
+        --------
+
+        Call a susbstitution model and fit to a three-sequence alignment.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({
+        ...    "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        ...    "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        ...    "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        ... })
+        >>> app = get_app("model", "F81")
+        >>> result = app(aln)
+        >>> print(result.to_rich_dict())
+        {'type': 'cogent3.app.result.model_result', ...
+
+        Call a susbstitution model and fit to an alignment with seqs > 3.
+
+        >>> tree = "(Mouse,(Human,Gorilla),Opossum)"
+        >>> aln2 = make_aligned_seqs({
+        ...      "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        ...      "Gorilla": "ATGCGGCGCGCGGAGGCCGCGCTCGCGGAG",
+        ...      "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        ...      "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        ... })
+        >>> app_tr = get_app("model", "F81", tree=tree)
+        >>> result = app_tr(aln2)
+        >>> print(result.to_rich_dict())
+        {'type': 'cogent3.app.result.model_result', ...
+
+        Assign a tree function to estimate the phylogenetic tree for the incoming alignment.
+
+        >>> dist_cal = get_app("fast_slow_dist", fast_calc="paralinear", moltype="dna")
+        >>> est_tree = get_app("quick_tree")
+        >>> tree_func = dist_cal + est_tree
+        >>> model = get_app("model", "F81", tree_func=tree_func)
+        >>> result = model(aln2)
+        >>> print(result.to_rich_dict())
+        {'type': 'cogent3.app.result.model_result', ...
+
+        Specify the time-heterogeneous settings for the model fitting.
+        For details, see https://cogent3.org/doc/app/evo-model-timehet#
+
+        >>> app_thet = get_app(
+        ...    "model",
+        ...    "HKY85",
+        ...    tree=tree,
+        ...    time_het=[dict(tip_names=["Human", "Opossum"], outgroup_name="Mouse")],
+        ... )
+        >>> result = app_thet(aln2)
+        >>> print(result.to_rich_dict())
+        {'type': 'cogent3.app.result.model_result', ...
+
+        Specify the upper and lower bounds for certain branch length and rate exchangeability
+        parameter.
+
+        >>> app_alt_params = get_app(
+        ...     "model",
+        ...     "HKY85",
+        ...     tree=tree,
+        ...     param_rules=[
+        ...         {"par_name": "length", "edge": "Human", "upper": 100, "lower": 1e-2},
+        ...         {"par_name": "kappa", "upper": 200, "lower": 1e-6},
+        ...     ],
+        ... )
+        >>> result = app_alt_params(aln2)
+        >>> print(result.lf.get_param_rules()) # doctest: +NORMALIZE_WHITESPACE
+        [{'par_name': 'kappa', ... 'lower': 1e-06, 'upper': 200}, ...
+        {'par_name': 'length', 'edge': 'Human', ... 'lower': 0.01, 'upper': 100}, ...
+
+        Specify the settings in optimiser.
+
+        >>> app_alt_opt = get_app(
+        ...     "model", "HKY85", tree=tree, opt_args=dict(max_restarts=10, tolerance=1e-8)
+        ... )
+        >>> result = app_alt_opt(aln2)
+        >>> print(result.to_rich_dict())
+        {'type': 'cogent3.app.result.model_result', ...
+
+        Specify settings in the likelihood function constructor.
+
+        >>> app_alt_lf = get_app(
+        ...     "model", "HKY85", tree=tree, lf_args = dict(discrete_edges=["Opossum"])
+        ... )
+        >>> result = app_alt_lf(aln2)
+        >>> print(result.to_rich_dict())
+        {... 'likelihood_construction': {... 'discrete_edges': ['Opossum']}, ...
+
+        Split codon and fit models on the relative positions.
+
+        >>> app_sp_codon = get_app(
+        ...     "model", "HKY85", tree=tree, split_codons=True
+        ... )
+        >>> result = app_sp_codon(aln2)
+        >>> print(result.to_rich_dict())
+        {'type': 'cogent3.app.result.model_result', ...
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if tree(or tree_func) is not provided when seqs number > 3.
+
+        >>> app_notree = get_app("model", "HKY85")
+        >>> result = app_notree(aln2)
+        >>> result.message
+        'to model more than 3, you must provide a tree'
+
         """
         if tree_func:
             assert callable(tree_func), "tree_func must be callable or None"
