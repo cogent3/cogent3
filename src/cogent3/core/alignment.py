@@ -1608,41 +1608,42 @@ class _SequenceCollectionBase:
 
     def dotplot(
         self,
-        name1=None,
-        name2=None,
-        window=20,
-        threshold=None,
-        k=None,
-        min_gap=0,
-        width=500,
-        title=None,
-        rc=False,
-        show_progress=False,
+        name1: Optional[str] = None,
+        name2: Optional[str] = None,
+        window: int = 20,
+        threshold: Optional[int] = None,
+        k: Optional[int] = None,
+        min_gap: int = 0,
+        width: int = 500,
+        title: Optional[str] = None,
+        rc: bool = False,
+        show_progress: bool = False,
     ):
         """make a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
         Parameters
         ----------
-        name1, name2 : str or None
-            names of sequences. If one is not provided, a random choice is made
-        window : int
-            k-mer size for comparison between sequences
-        threshold : int
+        name1, name2
+            names of sequences. If not provided, a random choice is made
+        window
+            segment size for comparison between sequences
+        threshold
             windows where the sequences are identical >= threshold are a match
-        k : int
+        k
             size of k-mer to break sequences into. Larger values increase
-            speed but reduce resolution. If not specified, is computed as the
-            maximum of (window-threshold), (window % k) * k <= threshold.
-        min_gap : int
+            speed but reduce resolution. If not specified, and
+            window == threshold, then k is set to window. Otherwise, it is
+            computed as the maximum of {threshold // (window - threshold), 5}.
+        min_gap
             permitted gap for joining adjacent line segments, default is no gap
             joining
-        width : int
+        width
             figure width. Figure height is computed based on the ratio of
             len(seq1) / len(seq2)
         title
             title for the plot
-        rc : bool or None
+        rc
             include dotplot of reverse compliment also. Only applies to Nucleic
             acids moltypes
 
