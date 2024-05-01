@@ -6,6 +6,7 @@ import inspect
 import re
 
 from typing import ForwardRef, TypeVar, Union
+from types import UnionType
 
 from typing_extensions import get_args, get_origin
 
@@ -75,7 +76,7 @@ def get_constraint_names(*hints) -> set[str | type]:
             all_hints.update(hint.__constraints__)
             continue
 
-        if get_origin(hint) in (Union, list, tuple, set):
+        if get_origin(hint) in (Union, UnionType, list, tuple, set):
             all_hints.update(get_constraint_names(*get_args(hint)))
 
         if type(hint) == type:
