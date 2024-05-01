@@ -2224,10 +2224,21 @@ class SequenceCollection(_SequenceCollectionBase):
         font_family
             string denoting font family
 
-        To display in jupyter notebook:
+        Examples
+        ---------
 
-            >>> from IPython.core.display import HTML
-            >>> HTML(aln.to_html())
+        In a jupyter notebook, this code is used to provide the representation.
+
+        .. code-block:: python
+
+            seq_col # is rendered by jupyter
+
+        You can directly use the result for display in a notebook as
+
+        .. code-block:: python
+
+            from IPython.core.display import HTML
+            HTML(seq_col.to_html())
         """
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
@@ -3138,10 +3149,21 @@ class AlignmentI(object):
         font_family
             string denoting font family
 
-        To display in jupyter notebook:
+        Examples
+        ---------
 
-            >>> from IPython.core.display import HTML
-            >>> HTML(aln.to_html())
+        In a jupyter notebook, this code is used to provide the representation.
+
+        .. code-block:: python
+
+            aln # is rendered by jupyter
+
+        You can directly use the result for display in a notebook as
+
+        .. code-block:: python
+
+            from IPython.core.display import HTML
+            HTML(aln.to_html())
         """
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
