@@ -1716,10 +1716,7 @@ class IndelMap(MapABC):
             im = self[start:end]
             for i in range(im.num_gaps):
                 pos = im.gap_pos[i] + cum_parent_length
-                if pos in gaps:
-                    gaps[pos] += im.cum_gap_lengths[i]
-                else:
-                    gaps[pos] = im.cum_gap_lengths[i] + cum_length
+                gaps[pos] = gaps.get(pos, cum_length) + im.cum_gap_lengths[i]
             cum_parent_length += im.parent_length
             if im.num_gaps:
                 cum_length += im.cum_gap_lengths[-1]
