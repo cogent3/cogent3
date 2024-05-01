@@ -1462,6 +1462,8 @@ class IndelMap(MapABC):
             In that case, and if seq_index is in gap_pos then it returns
             the first alignment index of the gap run.
         """
+        cum_lengths = self.cum_gap_lengths
+        gap_pos = self.gap_pos
         # NOTE I explicitly cast all returned values to python int's due to
         # need for json serialisation, which does not support numpy int classes
         if seq_index < 0:
@@ -1470,32 +1472,29 @@ class IndelMap(MapABC):
         if seq_index < 0:
             raise IndexError(f"{seq_index} negative seq_index beyond limit ")
 
-        if not self.num_gaps or seq_index < self.gap_pos[0]:
+        if not self.num_gaps or seq_index < gap_pos[0]:
             return int(seq_index)
 
         # if stop_index, check if the seq_index corresponds to a gap position
-        if slice_stop and (match := seq_index == self.gap_pos).any():
+        if slice_stop and (match := seq_index == gap_pos).any():
             # if so, we return the alignment coord for the first gap position
             (idx,) = numpy.where(match)[0]
             if idx:
-                gap_len = self.cum_gap_lengths[idx] - self.cum_gap_lengths[idx - 1]
+                gap_len = cum_lengths[idx] - cum_lengths[idx - 1]
             else:
-                gap_len = self.cum_gap_lengths[idx]
-            gap_end = self.gap_pos[idx] + self.cum_gap_lengths[idx]
+                gap_len = cum_lengths[idx]
+            gap_end = gap_pos[idx] + cum_lengths[idx]
             return int(gap_end - gap_len)
 
-        cum_gap_lengths = self.cum_gap_lengths
-        gap_pos = self.gap_pos
-
         if seq_index >= gap_pos[-1]:
-            return int(seq_index + cum_gap_lengths[-1])
+            return int(seq_index + cum_lengths[-1])
 
         # find gap position before seq_index
         index = numpy.searchsorted(gap_pos, seq_index, side="left")
         if seq_index < gap_pos[index]:
-            gap_lengths = cum_gap_lengths[index - 1] if index else 0
+            gap_lengths = cum_lengths[index - 1] if index else 0
         else:
-            gap_lengths = cum_gap_lengths[index]
+            gap_lengths = cum_lengths[index]
 
         return int(seq_index + gap_lengths)
 
