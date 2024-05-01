@@ -859,10 +859,6 @@ class SequenceCollectionBaseTests(object):
 
     def test_set_wrap_affects_repr_html(self):
         """the wrap argument affects the number of columns"""
-        if self.Class == SequenceCollection:
-            # this class does not have this method
-            return
-
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         orig = seqs._repr_html_()
@@ -876,8 +872,8 @@ class SequenceCollectionBaseTests(object):
         os.environ[env_name] = "wrap=2"
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         got = seqs._repr_html_()
-        self.assertEqual(got.count(token), 3 * orig.count(token))
         os.environ.pop(env_name, None)
+        self.assertEqual(got.count(token), 3 * orig.count(token))
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
@@ -3637,3 +3633,45 @@ def test_quick_tree(cls, calc, brca1_data):
         if not edge.is_root()
     }
     assert types == {float}
+
+
+def test_sequence_collection_repr():
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "a": "TCGAT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
+
+    data = {
+        "a": "A" * 11,
+        "b": "B" * 3,
+        "c": "C" * 3,
+        "d": "D" * 11,
+        "e": "E" * 8,
+    }
+    seqs = SequenceCollection(data=data, moltype=ASCII)
+    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDDD...]) text seqcollection"
+
+    data = {}
+    seqs = SequenceCollection(data=data, moltype=BYTES)
+    assert repr(seqs) == "0x () bytes seqcollection"
