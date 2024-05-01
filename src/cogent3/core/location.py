@@ -1640,22 +1640,27 @@ class IndelMap(MapABC):
         -------
         [(start, end), ...]
         """
-        coords = []
-        last = 0
-        for pos, cum_length in zip(self.gap_pos, self.cum_gap_lengths):
-            pos, cum_length = int(pos), int(cum_length)
+        if not self.num_gaps or (self.num_gaps == 1 and not self.gap_pos[0]):
+            return [(0, int(self.parent_length))]
+        elif self.num_gaps == 1:
+            # does not start with a gap
+            starts = [0, int(self.gap_pos[0])]
+            ends = [int(self.gap_pos[0]), self.parent_length]
+            return list(zip(starts, ends))
 
-            if not pos:
-                continue
-            coords.append((last, pos))
-            last = pos
+        starts = self.gap_pos[:-1].tolist()
+        ends = self.gap_pos[1:].tolist()
+        if self.gap_pos[0]:
+            # does not start with a gap
+            ends = starts[:1] + ends
+            starts = [0] + starts
 
-        if (
-            self.num_gaps
-            and self.gap_pos[-1] + self.cum_gap_lengths[-1] < self.parent_length
-        ):
-            coords.append((last, self.parent_length))
-        return coords
+        if self.gap_pos[-1] + self.cum_gap_lengths[-1] < self.parent_length:
+            # does end with a gap
+            starts.append(ends[-1])
+            ends.append(self.parent_length)
+
+        return list(zip(starts, ends))
 
     def get_gap_coordinates(self) -> SeqCoordTypes:
         """returns [(gap pos, gap length), ...]"""
