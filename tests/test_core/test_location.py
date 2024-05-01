@@ -382,7 +382,7 @@ def test_nongap_startswith(cls):
     assert got == [(2, 3), (4, 7)]
 
 
-@pytest.mark.parametrize("cls", (IndelMap, FeatureMap)[:1])
+@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
 def test_nongap_not_endswith(cls):
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   0123456
