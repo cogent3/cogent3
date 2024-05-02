@@ -638,7 +638,30 @@ class tabulate_stats:
         self, result: ModelResultType
     ) -> Union[SerialisableType, TabularResultType]:
         """returns Table for all statistics returned by likelihood function
-        get_statistics"""
+        get_statistics
+
+        Examples
+        --------
+
+        Get all parameter estimates from a model fit. The estimates will
+        be stored in a `dict`-like instance, with keys representing global
+        parameters (if any), parameters specific to branches, and motif
+        nucleotide frequencies.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> data = {
+        ...     "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+        ...     "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+        ...     "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        ... }
+        >>> aln = make_aligned_seqs(data=data, moltype="dna")
+        >>> mod = get_app("model", "GN")
+        >>> result = mod(aln)
+        >>> tabulator = get_app("tabulate_stats")
+        >>> tabulated = tabulator(result)
+        >>> print(tabulated)
+        3x tabular_result('global params': Table, 'edge params': Table, 'motif params': Table)
+        """
         stats = result.lf.get_statistics(with_titles=True, with_motif_probs=True)
         tab = tabular_result(source=result.source)
         for table in stats:
