@@ -433,7 +433,7 @@ def test_feature_from_alignment():
 
     # But these will be returned as **alignment**
     # features with locations in alignment coordinates.
-    assert aln_exons.get_slice().to_dict() == {"x": "AAAAA", "y": "--TTT"}
+    assert aln[aln_exons].to_dict() == {"x": "AAAAA", "y": "--TTT"}
 
     # Similarly alignment features can be projected onto the aligned sequences,
     # where they may end up falling across gaps:
@@ -451,7 +451,7 @@ def test_nested_get_slice():
     s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
     s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
     f = list(ex.get_children())[0]
-    assert str(f.get_slice()) == str(s[12:17])
+    assert str(s[f]) == str(s[12:17])
 
 
 def test_roundtrip_annotated_seq():
@@ -650,11 +650,15 @@ def test_roundtripped_alignment_with_slices():
     db.add_feature(seqid="x", biotype="exon", name="E2", spans=[(10, 13)])
     aln.annotation_db = db
     # at the alignment level
+    sl = aln.seqs[0][:-3]
+    assert str(sl) == "-AAAGGGGGAACCCT"[:-3]
     sub_aln = aln[:-3]
     feats = list(sub_aln.get_features(biotype="exon", allow_partial=True))
     assert len(feats) == 2
     new = deserialise_object(sub_aln.to_json())
-    gf1, gf2 = list(new.get_features(biotype="exon", allow_partial=True))
+    feats = list(new.get_features(biotype="exon", allow_partial=True))
+    assert len(feats) == 2
+    gf1, gf2 = feats
     assert gf1.get_slice().to_dict() == {"x": "GGGGG", "y": "--TTT"}
     assert gf2.get_slice().to_dict() == {"x": "C", "y": "G"}
 
@@ -718,7 +722,7 @@ def test_feature_not_equal_attr(ann_seq, attr):
         biotype=f1.biotype,
         map=f1.map,
         name=f1.name,
-        strand="-" if f1.map.reverse else "+",
+        strand="-" if f1.reversed else "+",
     )
     value = attrs["map"][:4] if attr == "map" else "different"
     attrs[attr] = value
