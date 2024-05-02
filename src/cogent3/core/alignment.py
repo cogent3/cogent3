@@ -2615,7 +2615,9 @@ class AlignmentI(object):
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)} x {self.seq_len} {self.moltype.label} alignment: {seqs}"
+        return (
+            f"{len(self.names)} x {self.seq_len} {self.moltype.label} alignment: {seqs}"
+        )
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
