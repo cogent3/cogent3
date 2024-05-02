@@ -3746,10 +3746,6 @@ def test_sequence_collection_repr():
     seqs = SequenceCollection(data=data, moltype=ASCII)
     assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDD...]) text seqcollection"
 
-    data = {}
-    seqs = SequenceCollection(data=data, moltype=BYTES)
-    assert repr(seqs) == "0x () bytes seqcollection"
-
 
 @pytest.mark.parametrize("cls", (ArrayAlignment, Alignment))
 def test_alignment_repr(cls):
@@ -3798,9 +3794,9 @@ def test_alignment_repr(cls):
         == "5 x 11 text alignment: a[AAAAAAAAAA...], b[BBBBBBBBBB...], c[CCCCCCCCCC...], ..."
     )
 
-    if (
-        cls == ArrayAlignment
-    ):  # Can't construct an empty alignment with the Alignment class.
-        data = {}
-        seqs = cls(data=data, moltype=BYTES)
-        assert repr(seqs) == "0 x 0 bytes alignment: "
+
+@pytest.mark.parametrize("cls", (ArrayAlignment, Alignment, SequenceCollection))
+def test_empty_data(cls):
+    with pytest.raises(ValueError) as e:
+        _ = cls(())
+    assert str(e.value) == f"{cls.__name__} must take at least one sequence."
