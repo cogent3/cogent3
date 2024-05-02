@@ -1170,3 +1170,28 @@ def test_featuremap_div():
     fm_1 = fm_3 / 3
     assert list(fm_1.spans) == [sp / 3 for sp in spans]
     assert fm_1.parent_length == 6 / 3
+
+
+def test_indelmap_make_seq_feature_map():
+    #           1
+    # 01234567890
+    # AC--GTA-TAA
+    # 01    234 567
+    im = IndelMap(
+        gap_pos=numpy.array([2, 5], dtype=int),
+        gap_lengths=numpy.array([2, 1], dtype=int),
+        parent_length=8,
+    )
+    orig_spans = [Span(1, 5)]
+    align_map = FeatureMap(spans=orig_spans, parent_length=11)
+    spans = [Span(1, 3)]
+    expect = FeatureMap(spans=spans, parent_length=8)
+    got = im.make_seq_feature_map(align_map)
+    assert got.get_coordinates() == expect.get_coordinates()
+    assert got.parent_length == expect.parent_length
+
+    # ignoring lost spans
+    align_map = FeatureMap(spans=orig_spans + [LostSpan(4)], parent_length=11)
+    got = im.make_seq_feature_map(align_map)
+    assert got.get_coordinates() == expect.get_coordinates()
+    assert got.parent_length == expect.parent_length

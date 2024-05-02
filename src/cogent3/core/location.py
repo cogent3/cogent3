@@ -1796,37 +1796,28 @@ class IndelMap(MapABC):
         """returns a Map type, suited to Features"""
         return FeatureMap(spans=list(self.spans), parent_length=self.parent_length)
 
-    def make_seq_feature_map(
-        self, align_feature_map: "FeatureMap", include_gaps: bool = True
-    ) -> "FeatureMap":
+    def make_seq_feature_map(self, align_feature_map: "FeatureMap") -> "FeatureMap":
         """converts align_feature_map to a FeatureMap with sequence coordinates
 
         Parameters
         ----------
         align_feature_map
             with alignment coordinates
-        include_gaps
-            whether to include gaps from self as LostSpan's
+
+        Notes
+        -----
+        LostSpans in align_feature_map are skipped
         """
-        gap_spans = {}
-        if include_gaps and self.num_gaps:
-            last = 0
-            for pos, cum_length in zip(self.gap_pos, self.cum_gap_lengths):
-                gap_spans[pos] = LostSpan(cum_length - last)
-                last = cum_length
         spans = []
         for span in align_feature_map.spans:
             if span.lost:
-                spans.append(span)
                 continue
 
             start = self.get_seq_index(span.start)
             end = self.get_seq_index(span.end)
-            if lost := gap_spans.pop(span.start, None):
-                spans.append(lost)
             spans.append(Span(start, end))
 
-        return FeatureMap(spans=spans, parent_length=align_feature_map.parent_length)
+        return FeatureMap(spans=spans, parent_length=self.parent_length)
 
 
 @dataclasses.dataclass
