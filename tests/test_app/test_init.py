@@ -133,10 +133,10 @@ def test_get_app_kwargs():
 
 
 def test_app_help(capsys):
-    app_help("compress")
+    app_help("concat")
     got = capsys.readouterr().out
     assert "Options" in got
-    assert got.count("bytes") >= 2  # both input and output types are bytes
+    assert got.count("SerialisableType") == 1  # output type
 
 
 @pytest.mark.parametrize(

@@ -449,13 +449,6 @@ class SequenceCollectionBaseTests(object):
         got = align_norm.to_nexus("protein")
         self.assertEqual(got, expect)
 
-    def test_to_json(self):
-        """roundtrip of to_json produces correct dict"""
-        aln = self.Class({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
-        got = json.loads(aln.to_json())
-        expect = aln.to_rich_dict()
-        self.assertEqual(got, expect)
-
     def test_num_seqs(self):
         """SequenceCollection.num_seqs should count seqs."""
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
@@ -471,54 +464,6 @@ class SequenceCollectionBaseTests(object):
         )
         align = align1 + align2
         self.assertEqual(align.info["key"], "foo")
-
-    def test_add_seqs(self):
-        """add_seqs should return an alignment with the new sequences appended or inserted"""
-        data = [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
-        data1 = [("name1", "AAA"), ("name2", "AAA")]
-        data2 = [("name3", "AAA"), ("name4", "AAA")]
-        data3 = [("name5", "BBB"), ("name6", "CCC")]
-        aln = self.Class(data)
-        aln3 = self.Class(data3)
-
-        out_aln = aln.add_seqs(aln3)
-        # test append at the end
-        self.assertEqual(str(out_aln), str(self.Class(data + data3)))
-
-        out_aln = aln.add_seqs(aln3, before_name="name3")
-        self.assertEqual(
-            str(out_aln), str(self.Class(data1 + data3 + data2))
-        )  # test insert before
-
-        out_aln = aln.add_seqs(aln3, after_name="name2")
-        self.assertEqual(
-            str(out_aln), str(self.Class(data1 + data3 + data2))
-        )  # test insert after
-
-        out_aln = aln.add_seqs(aln3, before_name="name1")
-        # test if insert before first seq works
-        self.assertEqual(str(out_aln), str(self.Class(data3 + data)))
-
-        out_aln = aln.add_seqs(aln3, after_name="name4")
-        # test if insert after last seq works
-        self.assertEqual(str(out_aln), str(self.Class(data + data3)))
-
-        self.assertRaises(
-            ValueError, aln.add_seqs, aln3, before_name="name5"
-        )  # wrong after/before name
-        self.assertRaises(
-            ValueError, aln.add_seqs, aln3, after_name="name5"
-        )  # wrong after/before name
-
-        if isinstance(aln, Alignment) or isinstance(aln, ArrayAlignment):
-            self.assertRaises((DataError, ValueError), aln.add_seqs, aln3 + aln3)
-        else:
-            exp = set([seq for name, seq in data])
-            exp.update([seq + seq for name, seq in data3])
-            got = set()
-            for seq in aln.add_seqs(aln3 + aln3).seqs:
-                got.update([str(seq).strip()])
-            self.assertEqual(got, exp)
 
     def test_add_seqs_info(self):
         """add_seqs should preserve info attribute"""
@@ -840,29 +785,8 @@ class SequenceCollectionBaseTests(object):
                 dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60),
             )
 
-    def test_set_repr_policy_valid_input(self):
-        """repr_policy should be set to new values"""
-        seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
-        seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
-        self.assertEqual(
-            seqs._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
-        )
-
-        if self.Class == SequenceCollection:
-            # this class cannot slice
-            return
-
-        # should persist in slicing
-        self.assertEqual(
-            seqs[:2]._repr_policy, dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
-        )
-
     def test_set_wrap_affects_repr_html(self):
         """the wrap argument affects the number of columns"""
-        if self.Class == SequenceCollection:
-            # this class does not have this method
-            return
-
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         orig = seqs._repr_html_()
@@ -876,8 +800,8 @@ class SequenceCollectionBaseTests(object):
         os.environ[env_name] = "wrap=2"
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         got = seqs._repr_html_()
-        self.assertEqual(got.count(token), 3 * orig.count(token))
         os.environ.pop(env_name, None)
+        self.assertEqual(got.count(token), 3 * orig.count(token))
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
@@ -1087,93 +1011,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
             {"a": "AA", "b": "A-", "c": "AA"},
         )
 
-    def test_no_degenerates(self):
-        """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
-        data = {
-            "s1": "AAA CCC GGG TTT".replace(" ", ""),
-            "s2": "CCC GGG T-T AAA".replace(" ", ""),
-            "s3": "GGR YTT AAA CCC".replace(" ", ""),
-        }
-        aln = self.Class(data=data, moltype=DNA)
-
-        # motif length of 1, defaults - no gaps allowed
-        result = aln.no_degenerates().to_dict()
-        expect = {
-            "s1": "AA CC GG TTT".replace(" ", ""),
-            "s2": "CC GG TT AAA".replace(" ", ""),
-            "s3": "GG TT AA CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # allow gaps
-        result = aln.no_degenerates(allow_gap=True).to_dict()
-        expect = {
-            "s1": "AA CC GGG TTT".replace(" ", ""),
-            "s2": "CC GG T-T AAA".replace(" ", ""),
-            "s3": "GG TT AAA CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # motif length of 3, defaults - no gaps allowed
-        result = aln.no_degenerates(motif_length=3).to_dict()
-        expect = {
-            "s1": "TTT".replace(" ", ""),
-            "s2": "AAA".replace(" ", ""),
-            "s3": "CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # allow gaps
-        result = aln.no_degenerates(motif_length=3, allow_gap=True).to_dict()
-        expect = {
-            "s1": "GGG TTT".replace(" ", ""),
-            "s2": "T-T AAA".replace(" ", ""),
-            "s3": "AAA CCC".replace(" ", ""),
-        }
-        self.assertEqual(result, expect)
-
-        # raises ValueError if a default moltype -- with no
-        # degen characters -- is used
-        aln = self.Class(data=data)
-        self.assertRaises(ValueError, aln.no_degenerates)
-
-    def test_omit_gap_pos(self):
-        """Alignment omit_gap_pos should return alignment w/o positions of gaps"""
-        aln = self.end_gaps
-        # first, check behavior when we're just acting on the cols (and not
-        # trying to delete the naughty seqs).
-
-        # default should strip out cols that are 100% gaps
-        result = aln.omit_gap_pos()
-        self.assertEqual(result.to_dict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"})
-        # if allowed_gap_frac is 1, shouldn't delete anything
-        self.assertEqual(
-            aln.omit_gap_pos(1).to_dict(),
-            {"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"},
-        )
-        # if allowed_gap_frac is 0, should strip out any cols containing gaps
-        self.assertEqual(
-            aln.omit_gap_pos(0).to_dict(), {"a": "AB", "b": "BA", "c": "DE"}
-        )
-        # intermediate numbers should work as expected
-        self.assertEqual(
-            aln.omit_gap_pos(0.4).to_dict(), {"a": "ABC", "b": "BA-", "c": "DEF"}
-        )
-        self.assertEqual(
-            aln.omit_gap_pos(0.7).to_dict(), {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
-        )
-
-        # when we increase the number of sequences to 6, more differences
-        # start to appear.
-        new_aln_data = aln.named_seqs.copy()
-        new_aln_data["d"] = "-------"
-        new_aln_data["e"] = "XYZXYZX"
-        new_aln_data["f"] = "AB-CDEF"
-        aln = self.Class(new_aln_data)
-
-        # if no gaps are allowed, we get None
-        self.assertEqual(aln.omit_gap_pos(0), None)
-
     def test_omit_gap_pos2(self):
         """consistency with different motif_length values"""
         data = {
@@ -1317,19 +1154,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         obs = aln.entropy_per_pos()
         assert_allclose(obs, [0, 0, 0])
 
-    def test_sample_info(self):
-        """Alignment.sample should preserver info attribute"""
-        alignment = self.Class(
-            {"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"},
-            info={"key": "value"},
-        )
-        # effectively permute columns, preserving length
-        shuffled = alignment.sample()
-        self.assertEqual(shuffled.info["key"], "value")
-        # ensure length correct
-        sample = alignment.sample(10)
-        self.assertEqual(sample.info["key"], "value")
-
     def test_sample_with_replacement(self):
         # test with replacement -- just verify that it rnus
         alignment = self.Class({"seq1": "gatc", "seq2": "gatc"})
@@ -1445,41 +1269,6 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         aln = self.Class(data=new_seqs, moltype=DNA)
         self.assertEqual(aln.variable_positions(include_gap_motif=True), [])
         self.assertEqual(aln.variable_positions(include_gap_motif=False), [])
-
-    def test_to_type(self):
-        """correctly interconvert between alignment types"""
-        new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
-        array_align = self.Class == ArrayAlignment
-        # when array_align arg matches instance class, no conversion
-        # and get back self
-        aln = self.Class(data=new_seqs)
-        new = aln.to_type(array_align=array_align)
-        self.assertEqual(id(aln), id(new))
-
-        # when array_align arg does not match, should get back the opposite type
-        new = aln.to_type(array_align=not array_align)
-        self.assertFalse(isinstance(new, self.Class))
-
-        # we should be able to specify moltype and alignment
-        new = aln.to_type(array_align=not array_align, moltype=DNA)
-        self.assertEqual(new.to_dict(), new_seqs)
-        # and translate
-        self.assertEqual(
-            new.get_translation().to_dict(),
-            {"seq1": "TYV", "seq3": "TYV", "seq2": "TE-"},
-        )
-
-        # should work on ArrayAlign when just moltype changes
-        new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---"}
-        aln = self.Class(data=new_seqs)
-        new = aln.to_type(array_align=array_align, moltype=DNA)
-        new = new.no_degenerates()  # this should not fail!
-        self.assertEqual(len(new), len(aln) - 3)
-
-        # should correctly apply to existing moltype
-        aln = self.Class(data=new_seqs, moltype=DNA)
-        new = aln.to_type(array_align=not array_align)
-        self.assertEqual(aln.moltype, new.moltype)
 
     def test_to_type_info(self):
         """interconverting between alignment types preserves info attribute"""
@@ -2197,6 +1986,60 @@ class IntegrationTests(TestCase):
 
 
 @pytest.mark.parametrize(
+    "raw_seq,coords",
+    (("ACGGTAAAG", ((2, 4), (5, 8))), ("CCC---CCC", ((0, 3), (6, 9)))),
+)
+def test_featuremap_slice_aligned(raw_seq, coords):
+    from cogent3.core.location import FeatureMap, Span
+
+    im, seq = DNA.make_seq(raw_seq).parse_out_gaps()
+    ia = Aligned(im, seq)
+    length = len(raw_seq)
+    fmap = FeatureMap(spans=[Span(s, e) for s, e in coords], parent_length=length)
+    expect = "".join(raw_seq[s:e] for s, e in fmap.get_coordinates())
+    got = ia[fmap]
+    assert str(got) == expect
+
+
+@pytest.mark.parametrize("cls", (ArrayAlignment, Alignment))
+def test_to_type(cls):
+    """correctly interconvert between alignment types"""
+    new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---", "seq3": "ACGTACGTT"}
+    array_align = cls == ArrayAlignment
+    # when array_align arg matches instance class, no conversion
+    # and get back self
+    aln = cls(data=new_seqs)
+    new = aln.to_type(array_align=array_align)
+    assert id(aln) == id(new)
+
+    # when array_align arg does not match, should get back the opposite type
+    new = aln.to_type(array_align=not array_align)
+    assert not isinstance(new, cls)
+
+    # we should be able to specify moltype and alignment
+    new = aln.to_type(array_align=not array_align, moltype=DNA)
+    assert new.to_dict() == new_seqs
+    # and translate
+    assert new.get_translation().to_dict() == {
+        "seq1": "TYV",
+        "seq3": "TYV",
+        "seq2": "TE-",
+    }
+
+    # should work on ArrayAlign when just moltype changes
+    new_seqs = {"seq1": "ACGTACGTA", "seq2": "ACCGAA---"}
+    aln = cls(data=new_seqs)
+    new = aln.to_type(array_align=array_align, moltype=DNA)
+    new = new.no_degenerates()  # this should not fail!
+    assert len(new) == len(aln) - 3
+
+    # should correctly apply to existing moltype
+    aln = cls(data=new_seqs, moltype=DNA)
+    new = aln.to_type(array_align=not array_align)
+    assert aln.moltype == new.moltype
+
+
+@pytest.mark.parametrize(
     "moltype,array_align",
     tuple(itertools.product(["rna", "dna", "protein"], [True, False])),
 )
@@ -2786,7 +2629,7 @@ def test_aligned_rich_dict(reverse):
 
     rd = seq.to_rich_dict()
     got = Aligned.from_rich_dict(rd)
-    assert str(seq) == str(got)
+    assert str(got) == str(seq)
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
@@ -2978,7 +2821,8 @@ def test_get_seq_with_sliced_rced_aln_multiple_spans(name):
     }
     aln = make_aligned_seqs(data=seqs, moltype="dna", array_align=False)
     start, stop = 1, 10
-    a1 = aln[start:stop].rc()
+    a1 = aln[start:stop]
+    a1 = a1.rc()
     got = str(a1.get_seq(name))
     dna = get_moltype("dna")
     expect = dna.complement(seqs[name][start:stop].replace("-", ""))[::-1]
@@ -3018,10 +2862,10 @@ def test_aln_rev_slice(name, array_align):
     assert not got
 
     seq = got.get_gapped_seq(name)
-    assert str(seq) == ""
+    assert not str(seq)
 
     seq = got.get_seq(name)
-    assert str(seq) == ""
+    assert not str(seq)
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
@@ -3457,9 +3301,6 @@ def test_sliced_deepcopy(data, name, rev):
     if rev:
         aln = aln.rc()
 
-    # the map just mirrors the slice effect, it no longer has "memory" of rev complement
-    assert aln.named_seqs[name].map.reverse == False
-
     notsliced = aln.deepcopy(sliced=False)
     # the annotation offsets should match original object
     assert {s.data.annotation_offset for s in notsliced.seqs} == {
@@ -3483,10 +3324,6 @@ def test_sliced_deepcopy(data, name, rev):
     assert (
         sliced.named_seqs[name].data._seq.seq is not orig.named_seqs[name].data._seq.seq
     )
-
-    # the map just mirrors the slice effect, it has no  "memory" of rev complement
-    assert notsliced.named_seqs[name].map.reverse == False
-    assert sliced.named_seqs[name].map.reverse == False
 
     assert sliced.named_seqs[name].map.parent_length == len(
         str(sliced_seq).replace("-", "")
@@ -3576,6 +3413,31 @@ def test_construct_unaligned_seq_propogates_seqid(cls):
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_sample_info(cls):
+    """Alignment.sample should preserver info attribute"""
+    alignment = cls(
+        {"seq1": "ABCDEFGHIJKLMNOP", "seq2": "ABCDEFGHIJKLMNOP"},
+        info={"key": "value"},
+    )
+    # effectively permute columns, preserving length
+    shuffled = alignment.sample()
+    assert shuffled.info["key"] == "value"
+    # ensure length correct
+    sample = alignment.sample(10)
+    assert sample.info["key"] == "value"
+
+
+@pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
+def test_to_json(cls):
+    """roundtrip of to_json produces correct dict"""
+    aln = cls({"seq1": "ACGG", "seq2": "CGCA", "seq3": "CCG-"})
+    txt = aln.to_json()
+    got = json.loads(txt)
+    expect = aln.to_rich_dict()
+    assert got == expect
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
 def test_get_position_indices(cls):
     """get_position_indices should return names of cols where f(col)"""
 
@@ -3612,10 +3474,176 @@ def test_positions(cls):
     assert list(r.positions) == expect
 
 
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
+def test_set_repr_policy_valid_input(cls):
+    """repr_policy should be set to new values"""
+    seqs = cls({"a": "AAAAA", "b": "AAA--"})
+    seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+    assert seqs._repr_policy == dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_set_repr_policy_valid_input_slices(cls):
+    """repr_policy should be set to new values"""
+    seqs = cls({"a": "AAAAA", "b": "AAA--"})
+    seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+    # should persist in slicing
+    sliced = seqs[:2]
+    assert sliced._repr_policy == dict(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
+
+
 def test_array_align_error_with_mixed_length():
     data = dict(s1="ACGG", s2="A-G")
     with pytest.raises(ValueError, match=".* not all the same length.*"):
         make_aligned_seqs(data=data)
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
+def test_add_seqs(cls):
+    """add_seqs should return an alignment with the new sequences appended or inserted"""
+    data = [("name1", "AAA"), ("name2", "AAA"), ("name3", "AAA"), ("name4", "AAA")]
+    data1 = [("name1", "AAA"), ("name2", "AAA")]
+    data2 = [("name3", "AAA"), ("name4", "AAA")]
+    data3 = [("name5", "BBB"), ("name6", "CCC")]
+    aln = cls(data)
+    aln3 = cls(data3)
+
+    out_aln = aln.add_seqs(aln3)
+    # test append at the end
+    assert str(out_aln) == str(cls(data + data3))
+
+    out_aln = aln.add_seqs(aln3, before_name="name3")
+    assert str(out_aln) == str(cls(data1 + data3 + data2))
+
+    # test insert before
+
+    out_aln = aln.add_seqs(aln3, after_name="name2")
+    assert str(out_aln) == str(cls(data1 + data3 + data2))  # test insert after
+
+    out_aln = aln.add_seqs(aln3, before_name="name1")
+    # test if insert before first seq works
+    assert str(out_aln) == str(cls(data3 + data))
+
+    out_aln = aln.add_seqs(aln3, after_name="name4")
+    # test if insert after last seq works
+    assert str(out_aln) == str(cls(data + data3))
+
+    with pytest.raises(ValueError):
+        # wrong after/before name
+        aln.add_seqs(aln3, before_name="name5")
+
+    with pytest.raises(ValueError):
+        # wrong after/before name
+        aln.add_seqs(aln3, after_name="name5")
+
+    if isinstance(aln, Alignment) or isinstance(aln, ArrayAlignment):
+        with pytest.raises((DataError, ValueError)):
+            aln.add_seqs(aln3 + aln3)
+    else:
+        exp = set([seq for name, seq in data])
+        exp.update([seq + seq for name, seq in data3])
+        got = set()
+        for seq in aln.add_seqs(aln3 + aln3).seqs:
+            got.update([str(seq).strip()])
+        assert got == exp
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_omit_gap_pos(cls):
+    """Alignment omit_gap_pos should return alignment w/o positions of gaps"""
+    aln = cls({"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"}, names=["a", "b", "c"])
+    # first, check behavior when we're just acting on the cols (and not
+    # trying to delete the naughty seqs).
+
+    # default should strip out cols that are 100% gaps
+    result = aln.omit_gap_pos()
+    assert result.to_dict() == {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
+    # if allowed_gap_frac is 1, shouldn't delete anything
+    assert aln.omit_gap_pos(1).to_dict() == {
+        "a": "--A-BC-",
+        "b": "-CB-A--",
+        "c": "--D-EF-",
+    }
+
+    # if allowed_gap_frac is 0, should strip out any cols containing gaps
+    assert aln.omit_gap_pos(0).to_dict() == {"a": "AB", "b": "BA", "c": "DE"}
+    # intermediate numbers should work as expected
+    assert aln.omit_gap_pos(0.4).to_dict() == {"a": "ABC", "b": "BA-", "c": "DEF"}
+    assert aln.omit_gap_pos(0.7).to_dict() == {"a": "-ABC", "b": "CBA-", "c": "-DEF"}
+
+    # when we increase the number of sequences to 6, more differences
+    # start to appear.
+    new_aln_data = aln.named_seqs.copy()
+    new_aln_data["d"] = "-------"
+    new_aln_data["e"] = "XYZXYZX"
+    new_aln_data["f"] = "AB-CDEF"
+    aln = cls(new_aln_data)
+
+    # if no gaps are allowed, we get None
+    assert aln.omit_gap_pos(0) is None
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+def test_no_degenerates(cls):
+    """no_degenerates correctly excludes columns containing IUPAC ambiguity codes"""
+    data = {
+        "s1": "AAA CCC GGG TTT".replace(" ", ""),
+        "s2": "CCC GGG T-T AAA".replace(" ", ""),
+        "s3": "GGR YTT AAA CCC".replace(" ", ""),
+    }
+    aln = cls(data=data, moltype=DNA)
+
+    # motif length of 1, defaults - no gaps allowed
+    result = aln.no_degenerates().to_dict()
+    expect = {
+        "s1": "AA CC GG TTT".replace(" ", ""),
+        "s2": "CC GG TT AAA".replace(" ", ""),
+        "s3": "GG TT AA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # allow gaps
+    result = aln.no_degenerates(allow_gap=True).to_dict()
+    expect = {
+        "s1": "AA CC GGG TTT".replace(" ", ""),
+        "s2": "CC GG T-T AAA".replace(" ", ""),
+        "s3": "GG TT AAA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # motif length of 3, defaults - no gaps allowed
+    result = aln.no_degenerates(motif_length=3, allow_gap=False).to_dict()
+    expect = {
+        "s1": "TTT".replace(" ", ""),
+        "s2": "AAA".replace(" ", ""),
+        "s3": "CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+    # allow gaps
+    result = aln.no_degenerates(motif_length=3, allow_gap=True).to_dict()
+    expect = {
+        "s1": "GGG TTT".replace(" ", ""),
+        "s2": "T-T AAA".replace(" ", ""),
+        "s3": "AAA CCC".replace(" ", ""),
+    }
+    assert result == expect
+
+
+@pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
+@pytest.mark.parametrize("moltype", ("bytes", "text"))
+def test_no_degenerates_invalid_moltype(cls, moltype):
+    # raises ValueError if a default moltype -- with no
+    # degen characters -- is used
+    data = {
+        "s1": "AAA CCC GGG TTT".replace(" ", ""),
+        "s2": "CCC GGG T-T AAA".replace(" ", ""),
+        "s3": "GGR YTT AAA CCC".replace(" ", ""),
+    }
+
+    aln = cls(data=data, moltype=moltype)
+    with pytest.raises(ValueError):
+        aln.no_degenerates()
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment))
@@ -3637,3 +3665,81 @@ def test_quick_tree(cls, calc, brca1_data):
         if not edge.is_root()
     }
     assert types == {float}
+
+
+@pytest.mark.parametrize("raw", ("-AAAGGGGGAACCCT", "AAAGGGGGAACCCT"))
+def test_slice_aligned(raw):
+    imap, seq = DNA.make_seq(raw, name="x").parse_out_gaps()
+    al = Aligned(imap, seq)
+    sliced = al[:-3]
+    assert str(sliced) == raw[:-3]
+
+
+def test_slice_aligned_featuremap_allgap():
+    from cogent3.core.location import FeatureMap, LostSpan
+
+    imap, seq = DNA.make_seq("AAAGGGGGAACCCT", name="x").parse_out_gaps()
+    al = Aligned(imap, seq)
+    fmap = FeatureMap(spans=[LostSpan(4)], parent_length=0)
+    sliced = al[fmap]
+    assert not sliced
+
+
+def test_slice_aligned_featuremap_multi_spans():
+    from cogent3.core.location import FeatureMap
+
+    #                    1111111
+    #          01234567890123456
+    #           ***   **    ***
+    raw_seq = "AAAGG--GGG-AACCCT"
+    #          01234  567 890123
+    #                       1111
+    imap, seq = DNA.make_seq(raw_seq, name="x").parse_out_gaps()
+    al = Aligned(imap, seq)
+    fmap = FeatureMap.from_locations(
+        locations=[(1, 4), (7, 9), (13, 16)], parent_length=len(raw_seq)
+    )
+    sliced = al[fmap]
+    assert str(sliced) == "AAGGGCCC"
+
+
+def test_sequence_collection_repr():
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "a": "TCGAT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
+
+    data = {
+        "a": "A" * 11,
+        "b": "B" * 3,
+        "c": "C" * 3,
+        "d": "D" * 11,
+        "e": "E" * 8,
+    }
+    seqs = SequenceCollection(data=data, moltype=ASCII)
+    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDDD...]) text seqcollection"
+
+    data = {}
+    seqs = SequenceCollection(data=data, moltype=BYTES)
+    assert repr(seqs) == "0x () bytes seqcollection"

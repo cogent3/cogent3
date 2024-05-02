@@ -171,7 +171,7 @@ def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
     function to 'max'. Use 'sum' when the gaps derive from different
     sequences.
     """
-
+    # todo convert to using IndelMap functions
     if not a_gaps:
         return b_gaps
 
@@ -251,7 +251,8 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
     # sequence coordinates
     # we probably need to include the refseq gap union because we need to
     # establish whether a refseq gap overlaps with a gap in other seq
-    # and
+    # todo convert these functions to using IndelMap and the numpy set
+    #  operation functions
     all_gaps = {}
     all_gaps.update(other_seq_gaps)
     for gap_pos, gap_length in sorted(refseq_gaps.items()):
@@ -304,8 +305,7 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
         other_seq = aln.named_seqs[other_name]
         other_gaps = dict(other_seq.map.get_gap_coordinates())
         diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
-        inject = _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data))
-        if inject:
+        if inject := _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data)):
             m = gap_coords_to_map(inject, len(other_seq.data))
             other_seq = Aligned(m, other_seq.data)
 
