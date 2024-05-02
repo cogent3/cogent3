@@ -235,6 +235,13 @@ class model:
         >>> result.message
         'to model more than 3, you must provide a tree'
 
+        If the model optimization is unsuccessful, a NotCompleted object will be returned.
+
+        >>> app_limit_act = get_app("model", "GN", opt_args=dict(limit_action="raise",
+        ... max_evaluations=10,))
+        >>> result = app_limit_act(aln)
+        >>> print(result.message) # doctest: +NORMALIZE_WHITESPACE
+        Traceback ... FORCED EXIT from optimiser after 10 evaluations
         """
         if tree_func:
             assert callable(tree_func), "tree_func must be callable or None"
