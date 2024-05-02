@@ -5,7 +5,7 @@ DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov
 import io
 import xml.dom.minidom
 
-from cogent3.core import annotation, moltype
+from cogent3.core import location, moltype
 
 
 """
@@ -64,10 +64,10 @@ def GbSeqXmlParser(doc):
 
         seq = alphabet.make_seq(raw_string, name=name)
 
-        all = annotation.Map([(0, len(seq))], parent_length=len(seq))
-        seq.add_feature(
-            biotype="source", name=name, spans=all.get_coordinates(), strand=all.reverse
+        feat = location.FeatureMap.from_locations(
+            locations=[(0, len(seq))], parent_length=len(seq)
         )
+        seq.add_feature(biotype="source", name=name, spans=feat.get_coordinates())
 
         organism = str(
             record.getElementsByTagName("GBSeq_organism")[0].childNodes[0].nodeValue
@@ -107,7 +107,7 @@ def GbSeqXmlParser(doc):
                         .nodeValue
                     )
                     spans.append((point - 1, point))
-            if spans == []:
+            if not spans:
                 spans = [(0, len(seq))]
             for qualifier in feature.getElementsByTagName("GBQualifier"):
                 qname = (
@@ -122,7 +122,7 @@ def GbSeqXmlParser(doc):
                         .nodeValue
                     )
             seq.add_feature(biotype=key, name=feature_name, spans=spans)
-        yield (name, seq)
+        yield name, seq
 
 
 def parse(*args):

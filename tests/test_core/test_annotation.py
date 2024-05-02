@@ -4,7 +4,7 @@ import pytest
 
 from cogent3 import DNA, load_seq, make_aligned_seqs, make_unaligned_seqs
 from cogent3.core.alignment import Alignment, SequenceCollection
-from cogent3.core.location import Map, Span
+from cogent3.core.location import FeatureMap, Span
 
 
 def makeSampleSequence(name, with_gaps=False):
@@ -90,17 +90,6 @@ class TestMapSpans(unittest.TestCase):
         reverse = Span(70, 80, reverse=True)
         assert forward.reversed_relative_to(100) == reverse
         assert reverse.reversed_relative_to(100) == forward
-
-    def test_map(self):
-        """reversing a map with multiple spans should preserve span relative
-        order"""
-        forward = [Span(20, 30), Span(40, 50)]
-        fmap = Map(spans=forward, parent_length=100)
-        fmap_reversed = fmap.nucleic_reversed()
-        reverse = [Span(70, 80, reverse=True), Span(50, 60, reverse=True)]
-        rmap = Map(spans=reverse, parent_length=100)
-        for i in range(2):
-            self.assertEqual(fmap_reversed.spans[i], rmap.spans[i])
 
 
 @pytest.mark.parametrize("alignment", (False, True))
@@ -308,16 +297,25 @@ def test_features_survives_seq_rename(rev):
 
     seq = DNA.make_seq("".join(segments), name="original")
     gene = seq.add_feature(biotype="gene", name="gene1", spans=[(10, 20), (25, 30)])
+    gene_expect = str(seq[10:20]) + str(seq[25:30])
+    assert str(gene.get_slice()) == gene_expect
     domain = seq.add_feature(
         biotype="domain", name="domain1", spans=[(20, 25)], strand="-"
     )
+    domain_expect = str(seq[20:25].rc())
+    domain_got = domain.get_slice()
+    assert str(domain_got) == domain_expect
     sliced = seq[5:-3]
     sliced.name = "sliced"
     sliced = sliced.rc() if rev else sliced
+
     got = list(sliced.get_features(name="gene1"))[0]
-    assert str(got.get_slice()) == str(gene.get_slice())
+    got = got.get_slice()
+    assert str(got) == gene_expect
+
     got = list(sliced.get_features(name="domain1"))[0]
-    assert str(got.get_slice()) == str(domain.get_slice())
+    got = got.get_slice()
+    assert str(got) == domain_expect
 
 
 @pytest.mark.parametrize("rev", (False, True))
@@ -353,3 +351,13 @@ def test_features_invalid_seqid(cls):
     with pytest.raises(ValueError):
         # seqid does not exist
         list(seqs.get_features(name="gene1", seqid="blah"))
+
+
+def test_map():
+    """reversing a map with multiple spans should match hand-crafted"""
+    forward = [Span(20, 30), Span(40, 50)]
+    fmap = FeatureMap(spans=forward, parent_length=100)
+    fmap_reversed = fmap.nucleic_reversed()
+    reverse = [Span(50, 60), Span(70, 80)]
+    rmap = FeatureMap(spans=reverse, parent_length=100)
+    assert fmap_reversed.get_coordinates() == rmap.get_coordinates()

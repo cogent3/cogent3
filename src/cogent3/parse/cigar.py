@@ -18,14 +18,14 @@ the aligned sequence will be:
 import re
 
 from cogent3 import DNA, make_aligned_seqs
-from cogent3.core.location import LostSpan, Map, Span
+from cogent3.core.location import IndelMap, LostSpan, Span
 
 
 _pattern = re.compile("([0-9]*)([DM])")
 
 
 def map_to_cigar(map):
-    """convert a Map into a cigar string"""
+    """convert a IndelMap into a cigar string"""
     cigar = ""
     for span in map.spans:
         if isinstance(span, Span):
@@ -39,7 +39,7 @@ def map_to_cigar(map):
 
 
 def cigar_to_map(cigar_text):
-    """convert cigar string into Map"""
+    """convert cigar string into IndelMap"""
     assert "I" not in cigar_text
     spans, posn = [], 0
     for n, c in _pattern.findall(cigar_text):
@@ -49,7 +49,7 @@ def cigar_to_map(cigar_text):
             posn += n
         else:
             spans.append(LostSpan(n))
-    return Map(spans=spans, parent_length=posn)
+    return IndelMap.from_spans(spans=spans, parent_length=posn)
 
 
 def aligned_from_cigar(cigar_text, seq, moltype=DNA):
@@ -62,16 +62,18 @@ def aligned_from_cigar(cigar_text, seq, moltype=DNA):
 
 def _slice_by_aln(map, left, right):
     slicemap = map[left:right]
-    location = [slicemap.start, slicemap.end] if hasattr(slicemap, "start") else []
+    location = [
+        map.get_seq_index(left),
+        map.get_seq_index(right),
+    ]
     return slicemap, location
 
 
 def _slice_by_seq(map, start, end):
-    re_map = map.inverse()
-    slicemap = re_map[start:end]
-    aln_start, aln_end = slicemap.start, slicemap.end
-    new_map = map[aln_start:aln_end]
-    return new_map, [aln_start, aln_end]
+    # start, end are in sequence coords
+    aln_start = map.get_align_index(start)
+    aln_end = map.get_align_index(end, slice_stop=True)
+    return map[aln_start:aln_end], [aln_start, aln_end]
 
 
 def _remap(map):
@@ -88,7 +90,7 @@ def _remap(map):
                 span.end = span.end - start
                 length = span.end
             spans.append(span)
-        new_map = Map(spans=spans, parent_length=length)
+        new_map = IndelMap(spans=spans, parent_length=length)
     return new_map
 
 
@@ -136,10 +138,11 @@ def CigarParser(
         ]:
             m, seq_loc = slice_cigar(cigars[seqname], aln_loc[0], aln_loc[1])
             if seq_loc:
-                seq = seqs[seqname]
+                start, stop = seq_loc
+                seq = seqs[seqname][start:stop]
                 if isinstance(seq, str):
                     seq = moltype.make_seq(seq)
-                data[seqname] = seq[seq_loc[0] : seq_loc[1]].gapped_by_map(m)
+                data[seqname] = seq.gapped_by_map(m)
             else:
                 data[seqname] = DNA.make_seq("-" * (aln_loc[1] - aln_loc[0]))
     return make_aligned_seqs(data)

@@ -57,7 +57,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import LostSpan, Map
+from cogent3.core.location import FeatureMap, IndelMap, LostSpan
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
@@ -143,7 +143,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self._seq.parent_start
+            offset = int(self._seq.parent_start)
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -1060,32 +1060,19 @@ class Sequence(SequenceI):
                 continue
             new_spans.append(new.tolist())
 
-        fmap = Map(locations=new_spans, parent_length=len(self))
+        fmap = FeatureMap.from_locations(locations=new_spans, parent_length=len(self))
         if pre or post:
             # create a lost span to represent the segment missing from
             # the instance
-            spans = fmap.spans
+            spans = list(fmap.spans)
             if pre:
                 spans.insert(0, LostSpan(pre))
             if post:
                 spans.append(LostSpan(post))
-            fmap = Map(spans=spans, parent_length=len(self))
+            fmap = FeatureMap(spans=spans, parent_length=len(self))
 
-        if revd and not seq_rced:
-            # the sequence is on the plus strand, and the
-            # feature coordinates are also for the plus strand
-            # but their order needs to be changed to indicate
-            # reverse complement is required
-            fmap = fmap.reversed()
-        elif seq_rced and not revd:
-            # plus strand feature, but the sequence reverse complemented
-            # so we need to nucleic-reverse the map
+        if seq_rced:
             fmap = fmap.nucleic_reversed()
-        elif seq_rced:
-            # sequence is rc'ed, the feature was minus strand of
-            # original, so needs to be both nucleic reversed and
-            # then reversed
-            fmap = fmap.nucleic_reversed().reversed()
 
         feature.pop("on_alignment", None)
         feature.pop("seqid", None)
@@ -1269,7 +1256,7 @@ class Sequence(SequenceI):
                 seqid=self.name,
                 name=None,
                 biotype=None,
-                map=Map(locations=[], parent_length=len(self)),
+                map=FeatureMap.from_locations(locations=[], parent_length=len(self)),
                 strand="+",
             )
         else:
@@ -1280,8 +1267,8 @@ class Sequence(SequenceI):
 
         i = 0
         segments = []
-        fmap = region.map.reversed() if region.map.reverse else region.map
-        for b, e in fmap.get_coordinates():
+        coords = region.map.get_coordinates()
+        for b, e in coords:
             segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
         segments.append(str(self[i:]))
@@ -1292,20 +1279,18 @@ class Sequence(SequenceI):
         new.annotation_db = self.annotation_db
         return new
 
-    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
-        if not allow_gaps and not map.complete:
-            raise ValueError(f"gap(s) in map {map}")
+    def gapped_by_map_segment_iter(
+        self, segment_map, allow_gaps=True, recode_gaps=False
+    ) -> str:
+        if not allow_gaps and not segment_map.complete:
+            raise ValueError(f"gap(s) in map {segment_map}")
 
-        complement = self.moltype.complement
-
-        for span in map.spans:
+        for span in segment_map.spans:
             if span.lost:
                 unknown = "?" if span.terminal or recode_gaps else "-"
                 seg = unknown * span.length
             else:
                 seg = str(self[span.start : span.end])
-                if span.reverse:
-                    seg = "".join(complement(seg[::-1]))
 
             yield seg
 
@@ -1314,12 +1299,10 @@ class Sequence(SequenceI):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
-        # todo gah do we propagate annotations here?
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
-        new = self.__class__(
+        return self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        return new
 
     def _mapped(self, map):
         # Called by generic __getitem__
@@ -1329,10 +1312,7 @@ class Sequence(SequenceI):
     def __repr__(self):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
-        if len(self) > 10:
-            seq = f"{str(self)[:7]}... {len(self):,}"
-        else:
-            seq = str(self)
+        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
@@ -1345,9 +1325,9 @@ class Sequence(SequenceI):
         if hasattr(index, "map"):
             index = index.map
 
-        if isinstance(index, Map):
+        if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
-            preserve_offset = not index.reverse
+            preserve_offset = True
 
         elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(
@@ -1479,18 +1459,27 @@ class Sequence(SequenceI):
 
     def parse_out_gaps(self):
         """returns Map corresponding to gap locations and ungapped Sequence"""
-        gapless = []
-        segments = []
-        nongap = re.compile(f"([^{re.escape('-')}]+)")
-        for match in nongap.finditer(str(self)):
-            segments.append(match.span())
-            gapless.append(match.group())
-        map = Map(segments, parent_length=len(self)).inverse()
+        gap = re.compile(f"[{re.escape(self.moltype.gap)}]+")
+        seq = str(self)
+        gap_pos = []
+        cum_lengths = []
+        for match in gap.finditer(seq):
+            pos = match.start()
+            gap_pos.append(pos)
+            cum_lengths.append(match.end() - pos)
+
+        gap_pos = array(gap_pos)
+        cum_lengths = array(cum_lengths).cumsum()
+        gap_pos[1:] = gap_pos[1:] - cum_lengths[:-1]
+
         seq = self.__class__(
-            "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
+            gap.sub("", seq), name=self.get_name(), info=self.info, preserve_case=True
+        )
+        indel_map = IndelMap(
+            gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=len(seq)
         )
         seq.annotation_db = self.annotation_db
-        return map, seq
+        return indel_map, seq
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
@@ -1748,7 +1737,7 @@ class NucleicAcidSequence(Sequence):
         if not gc.is_stop(end):
             return self
 
-        if not len(m.gaps()):
+        if not m.num_gaps:
             # has zero length if no gaps
             return self[:-3]
 
@@ -1953,7 +1942,8 @@ class SeqView:
 
     @offset.setter
     def offset(self, value: int):
-        self._offset = value or 0
+        value = value or 0
+        self._offset = int(value)
 
     @property
     def seqid(self) -> str:
@@ -2349,7 +2339,7 @@ class SeqView:
             start, stop = self.start, self.stop
 
         data["init_args"]["seq"] = self.seq[start:stop]
-        data["init_args"]["offset"] = self.parent_start
+        data["init_args"]["offset"] = int(self.parent_start)
         data["init_args"]["seqid"] = self.seqid
         return data
 

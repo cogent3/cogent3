@@ -13,6 +13,7 @@ import numpy
 
 from cogent3.align.traceback import alignment_traceback, map_traceback
 from cogent3.core.alignment import Aligned
+from cogent3.core.location import IndelMap
 from cogent3.evolve.likelihood_tree import LikelihoodTreeEdge
 from cogent3.util.misc import ascontiguousarray
 
@@ -477,8 +478,20 @@ class AlignablePOG(_Alignable):
         aligneds = []
         for dim, child in enumerate(children):
             for seq_name, aligned in child.aligneds:
-                aligned = aligned.remapped_to((maps[dim] * word_length).inverse())
-                aligneds.append((seq_name, aligned))
+                # if word_length != 1 then maps are forced to have
+                # sequences lengths that are modulo word_length
+                new_map = aligned.map.merge_maps(
+                    maps[dim] * word_length,
+                    parent_length=maps[dim].parent_length * word_length,
+                )
+                # Likewise, if the data is not modulo word_length,
+                # it is trimmed to match
+                data = (
+                    aligned.data
+                    if new_map.parent_length == len(aligned.data)
+                    else aligned.data[: new_map.parent_length]
+                )
+                aligneds.append((seq_name, Aligned(new_map, data)))
         return aligneds
 
     def backward(self):
@@ -526,7 +539,11 @@ class AlignableSeq(_Alignable):
         _Alignable.__init__(self, leaf)
         if hasattr(leaf, "sequence"):
             self.seq = leaf.sequence
-            aligned = Aligned([(0, len(self.seq))], self.seq, len(self.seq))
+            seqlen = len(self.seq)
+            imap = IndelMap.from_aligned_segments(
+                locations=[(0, seqlen)], aligned_length=seqlen
+            )
+            aligned = Aligned(imap, self.seq)
             self.aligneds = [(self.leaf.edge_name, aligned)]
         self.max_preds = 1
         self._pog = None
