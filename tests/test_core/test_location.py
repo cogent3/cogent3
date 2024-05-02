@@ -626,7 +626,7 @@ def test_indelmap_nucleic_reversed(raw):
 
     plus = DNA.make_seq(raw)
     minus = plus.rc()
-    plus_imap, plus_seq = DNA.make_seq(raw).parse_out_gaps()
+    plus_imap, _ = DNA.make_seq(raw).parse_out_gaps()
     minus_imap, minus_seq = minus.parse_out_gaps()
     got = plus_imap.nucleic_reversed()
     assert got.get_coordinates() == minus_imap.get_coordinates()
