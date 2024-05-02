@@ -1840,6 +1840,8 @@ class FeatureMap(MapABC):
     complete: bool = dataclasses.field(init=False, repr=False, default=True)
     _serialisable: dict = dataclasses.field(init=False, repr=False)
     _spans: SeqSpanTypes = dataclasses.field(default=(), init=False)
+    _start: Optional[int] = dataclasses.field(default=None, init=False)
+    _end: Optional[int] = dataclasses.field(default=None, init=False)
 
     def __post_init__(self, spans: SeqSpanTypes):
         assert self.parent_length is not None
@@ -1864,10 +1866,10 @@ class FeatureMap(MapABC):
                 self.complete = False
             elif not self.useful:
                 self.useful = True
-                self.start, self.end = span.start, span.end
+                self._start, self._end = span.start, span.end
             else:
-                self.start = min(self.start, span.start)
-                self.end = max(self.end, span.end)
+                self._start = min(self._start, span.start)
+                self._end = max(self._end, span.end)
 
         self._spans = tuple(spans)
         self.length = posn
@@ -2128,8 +2130,8 @@ class FeatureMap(MapABC):
             span.end -= shift
             new_end = max(new_end, span.end)
 
-        zeroed.start = 0
-        zeroed.end = new_end
+        zeroed._start = 0
+        zeroed._end = new_end
 
         return zeroed
 
@@ -2165,6 +2167,14 @@ class FeatureMap(MapABC):
         if check.min() < 0:
             raise ValueError(f"must positive, not {abs_pos=}")
         return abs_pos - self.start
+
+    @property
+    def start(self):
+        return self._start or 0
+
+    @property
+    def end(self):
+        return self._end or 0
 
 
 def gap_coords_to_map(
