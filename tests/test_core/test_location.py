@@ -620,19 +620,20 @@ def test_indelmap_to_feature_map():
     assert mm.get_coordinates() == im.get_coordinates()
 
 
-def test_indelmap_nucleic_reversed():
-    #   01  2345
-    # --AC--GGGG--
-    orig, _ = DNA.make_seq("--AC--GGGG--").parse_out_gaps()
-    plus_coords = [(0, 2), (2, 6)]
-    assert orig.get_coordinates() == plus_coords
-    rev = orig.nucleic_reversed()
-    assert rev.num_gaps == orig.num_gaps
-    minus_coords = [(0, 4), (4, 6)]
-    assert rev.get_coordinates() == minus_coords
-    # reversing again returns original
-    back = rev.nucleic_reversed()
-    assert orig.get_coordinates() == back.get_coordinates()
+@pytest.mark.parametrize("raw", ("--AC--GGGG--", "A-A-A", "-A-AA----A"))
+def test_indelmap_nucleic_reversed(raw):
+    from cogent3.core.alignment import Aligned
+
+    plus = DNA.make_seq(raw)
+    minus = plus.rc()
+    plus_imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    minus_imap, minus_seq = minus.parse_out_gaps()
+    got = plus_imap.nucleic_reversed()
+    assert got.get_coordinates() == minus_imap.get_coordinates()
+    assert (got.gap_pos == minus_imap.gap_pos).all()
+    assert (got.cum_gap_lengths == minus_imap.cum_gap_lengths).all()
+    assert got.parent_length == minus_imap.parent_length
+    assert str(Aligned(got, minus_seq)) == str(minus)
 
 
 def test_get_coords():
