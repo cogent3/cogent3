@@ -242,6 +242,8 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
 
     Create a sample sequence collection and apps for calculating the Jaccard
     distances, and an approximation of the p-distance.
+
+    >>> from cogent3 import make_unaligned_seqs, get_app
     >>> seqs = make_unaligned_seqs({"s1": "ACGTA", "s2": "ACGTC"}, moltype="dna")
     >>> jaccard_dist = get_app("jaccard_dist", k=2)
     >>> pdist = get_app("approx_pdist")
@@ -289,9 +291,10 @@ def approx_jc69(
     Create a sample sequence collection and apps for calculating the Jaccard
     distances, and an approximation of the pairwise JC69 distances.
 
+    >>> from cogent3 import make_unaligned_seqs, get_app
     >>> seqs = make_unaligned_seqs({"s1": "ACGTA", "s2": "ACGTC"}, moltype="dna")
     >>> jaccard_dist = get_app("jaccard_dist", k=2)
-    >>> jc69 = get_app("approx_pdist")
+    >>> jc69 = get_app("approx_jc69")
 
     Create a composable app to return the JC69 distances.
 

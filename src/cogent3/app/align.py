@@ -464,7 +464,7 @@ class progressive_align:
         --------
 
         Create an unaligned sequence collection of BRCA1 genes from 4 species,
-        and an app for alignment with nucleotide model ``model=HKY85``.
+        and an app for alignment with nucleotide model ``model="HKY85"``.
 
         >>> from cogent3 import make_unaligned_seqs, get_app
         >>> aln = make_unaligned_seqs({
@@ -684,12 +684,11 @@ class ic_score:
         --------
 
         Create a sample alignment and compute the Information Content alignment
-        quality score. By default, equally frequent motif probabilities are
-        specified with ``equifreq_mprobs=True``.
+        quality score. The default is equally frequent motif probabilities.
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs({"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"})
-        >>> app = get_app("ic_score", equifreq_mprobs=True)
+        >>> app = get_app("ic_score")
         >>> result = app(aln)
         >>> print(result)
         5.377443751081734
