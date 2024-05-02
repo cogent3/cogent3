@@ -32,7 +32,16 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import singledispatchmethod, total_ordering
 from itertools import combinations
-from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import numpy
 
@@ -710,7 +719,7 @@ class _SequenceCollectionBase:
 
     # access as attribute if using default order.
 
-    def take_seqs(self, seqs, negate=False, **kwargs):
+    def take_seqs(self, seqs: Union[str, typing.Sequence[str]], negate=False, **kwargs):
         """Returns new Alignment containing only specified seqs.
 
         Note that the seqs in the new alignment will be references to the
@@ -986,9 +995,20 @@ class _SequenceCollectionBase:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def to_fasta(self):
-        """Return alignment in Fasta format"""
-        return alignment_to_fasta(self.to_dict())
+    def to_fasta(self, block_size: int = 60) -> str:
+        """Return alignment in Fasta format.
+
+        Parameters
+        ----------
+        block_size
+            the sequence length to write to each line,
+            by default 60
+
+        Returns
+        -------
+        The Fasta formatted alignment.
+        """
+        return alignment_to_fasta(self.to_dict(), block_size=block_size)
 
     def to_nexus(self, seq_type, wrap=50):
         """
@@ -1194,10 +1214,15 @@ class _SequenceCollectionBase:
         """Return a sequence object for the specified seqname."""
         return self.named_seqs[seqname]
 
-    def to_dict(self):
-        """Returns the alignment as dict of names -> strings.
+    def to_dict(self) -> dict[str, str]:
+        """Returns the alignment as a dict of sequence names -> strings.
 
-        Note: returns strings, NOT Sequence objects.
+        Note the mapping goes to strings, not Sequence objects.
+
+        Returns
+        -------
+        a dict mapping sequence names to a string representation of
+        their sequences.
         """
         align_dict = {}
 
@@ -1594,41 +1619,42 @@ class _SequenceCollectionBase:
 
     def dotplot(
         self,
-        name1=None,
-        name2=None,
-        window=20,
-        threshold=None,
-        k=None,
-        min_gap=0,
-        width=500,
-        title=None,
-        rc=False,
-        show_progress=False,
+        name1: Optional[str] = None,
+        name2: Optional[str] = None,
+        window: int = 20,
+        threshold: Optional[int] = None,
+        k: Optional[int] = None,
+        min_gap: int = 0,
+        width: int = 500,
+        title: Optional[str] = None,
+        rc: bool = False,
+        show_progress: bool = False,
     ):
         """make a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
         Parameters
         ----------
-        name1, name2 : str or None
-            names of sequences. If one is not provided, a random choice is made
-        window : int
-            k-mer size for comparison between sequences
-        threshold : int
+        name1, name2
+            names of sequences. If not provided, a random choice is made
+        window
+            segment size for comparison between sequences
+        threshold
             windows where the sequences are identical >= threshold are a match
-        k : int
+        k
             size of k-mer to break sequences into. Larger values increase
-            speed but reduce resolution. If not specified, is computed as the
-            maximum of (window-threshold), (window % k) * k <= threshold.
-        min_gap : int
+            speed but reduce resolution. If not specified, and
+            window == threshold, then k is set to window. Otherwise, it is
+            computed as the maximum of {threshold // (window - threshold), 5}.
+        min_gap
             permitted gap for joining adjacent line segments, default is no gap
             joining
-        width : int
+        width
             figure width. Figure height is computed based on the ratio of
             len(seq1) / len(seq2)
         title
             title for the plot
-        rc : bool or None
+        rc
             include dotplot of reverse compliment also. Only applies to Nucleic
             acids moltypes
 
@@ -2130,6 +2156,213 @@ class SequenceCollection(_SequenceCollectionBase):
 
         return dist_calc_app(self)
 
+    def __repr__(self):
+        if len(self.names) == 0:
+            return f"0x () {self.moltype.get_type()} seqcollection"
+
+        seqs = []
+        limit = 10
+        delimiter = ""
+
+        repr_seq_names = [min(self.names, key=lambda name: len(self.named_seqs[name]))]
+        if len(self.names) > 1:
+            # In case of a tie, min and max return first.
+            # reversed ensures if all seqs are of same length, different seqs are returned
+            repr_seq_names.append(
+                max(reversed(self.names), key=lambda name: len(self.named_seqs[name]))
+            )
+
+        for name in repr_seq_names:
+            elts = list(str(self.named_seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts.append("...")
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+
+        if len(self.names) > 2:
+            seqs.insert(1, "...")
+
+        seqs = ", ".join(seqs)
+
+        return f"{len(self.names)}x ({seqs}) {self.moltype.get_type()} seqcollection"
+
+    def _repr_html_(self) -> str:
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_seqs=int, num_pos=int, wrap=int),
+        )
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            limit=settings["num_pos"],
+            wrap=settings["wrap"],
+        )
+
+    def to_html(
+        self,
+        name_order: Optional[typing.Sequence[str]] = None,
+        wrap: int = 60,
+        limit: Optional[int] = None,
+        colors: Optional[Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
+        """returns html with embedded styles for sequence colouring
+
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        wrap
+            number of alignment columns per row
+        limit
+            truncate alignment to this length
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
+
+        Examples
+        ---------
+
+        In a jupyter notebook, this code is used to provide the representation.
+
+        .. code-block:: python
+
+            seq_col # is rendered by jupyter
+
+        You can directly use the result for display in a notebook as
+
+        .. code-block:: python
+
+            from IPython.core.display import HTML
+            HTML(seq_col.to_html())
+        """
+        css, styles = self.moltype.get_css_style(
+            colors=colors, font_size=font_size, font_family=font_family
+        )
+
+        # Gather stats about the sequence lengths
+        seq_lens = sorted([len(seq) for seq in self.seqs])
+        if seq_lens:
+            min_seq_len = seq_lens[0]
+            max_seq_len = seq_lens[-1]
+
+            # Find median
+            if len(seq_lens) % 2 == 0:
+                total = (
+                    seq_lens[(len(seq_lens) - 2) // 2] + seq_lens[len(seq_lens) // 2]
+                )
+                med_seq_len = total // 2 if total % 2 == 0 else round(total / 2, 1)
+            else:
+                med_seq_len = seq_lens[(len(seq_lens) - 1) // 2]
+        else:
+            min_seq_len = med_seq_len = max_seq_len = 0
+
+        if name_order:
+            selected = self.take_seqs(name_order)
+        else:
+            name_order = list(self.names)
+            selected = self
+
+        # Stylise each character in each sequence
+        gaps = "".join(selected.moltype.gaps)
+        template = '<span class="%s">%%s</span>'
+        styled_seqs = defaultdict(list)
+        max_truncated_len = 0
+        for name in name_order:
+            sequence = str(self.named_seqs[name])[:limit]
+            seq_len = len(sequence)
+            max_truncated_len = max(seq_len, max_truncated_len)
+            start_gap = re.search(f"^[{gaps}]+", sequence)
+            end_gap = re.search(f"[{gaps}]+$", sequence)
+            start = 0 if start_gap is None else start_gap.end()
+            end = seq_len if end_gap is None else end_gap.start()
+
+            seq = []
+            for i, char in enumerate(sequence):
+                if i < start or i >= end:
+                    style = f"terminal_ambig_{self.moltype.label}"
+                else:
+                    style = styles[char]
+                s = template % style
+                s = s % char
+                seq.append(s)
+
+            styled_seqs[name] = seq
+
+        # Ensure all sublists are of same length
+        for name in styled_seqs:
+            if len(styled_seqs[name]) < max_truncated_len:
+                styled_seqs[name].extend(
+                    [""] * (max_truncated_len - len(styled_seqs[name]))
+                )
+
+        # Make html table
+        seqs = array([styled_seqs[n] for n in name_order], dtype="O")
+        table = ["<table>"]
+        seq_ = "<td>%s</td>"
+        label_ = '<td class="label">%s</td>'
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
+        for i in range(0, max_truncated_len, wrap):
+            table.append(num_row_.format(i))
+            seqblock = seqs[:, i : i + wrap].tolist()
+            for n, s in zip(name_order, seqblock):
+                s = "".join(s)
+                # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
+                if len(s) > 0:
+                    row = "".join([label_ % n, seq_ % s])
+                    table.append(f"<tr>{row}</tr>")
+        table.append("</table>")
+        if (
+            limit
+            and limit < len(selected)
+            or name_order
+            and len(name_order) < len(selected.names)
+        ):
+            summary = (
+                "%s x {min=%s, median=%s, max=%s} (truncated to %s x %s) %s sequence collection"
+            ) % (
+                self.num_seqs,
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
+                len(name_order) if name_order else len(selected.names),
+                limit if limit else len(selected),
+                selected.moltype.label,
+            )
+        else:
+            summary = ("%s x {min=%s, median=%s, max=%s} %s sequence collection") % (
+                self.num_seqs,
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
+                selected.moltype.label,
+            )
+
+        text = [
+            "<style>",
+            ".c3align table {margin: 10px 0;}",
+            ".c3align td { border: none !important; text-align: left !important; }",
+            ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3align tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3align .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3align .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; display: table-cell !important; "
+            "font-weight: normal !important; }" % font_size,
+            "\n".join([".c3align " + style for style in css]),
+            "</style>",
+            '<div class="c3align">',
+            "\n".join(table),
+            f"<p><i>{summary}</i></p>",
+            "</div>",
+        ]
+        return "\n".join(text)
+
 
 @total_ordering
 class Aligned:
@@ -2191,7 +2424,7 @@ class Aligned:
         new_map = self.map
         return self.__class__(new_map, new_seq)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.map!r} of {self.data!r}"
 
     def with_termini_unknown(self):
@@ -2390,6 +2623,24 @@ class AlignmentI(object):
 
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
+
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+        for count, name in enumerate(self.names):
+            if count == 3:
+                seqs.append("...")
+                break
+            elts = list(str(self.named_seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts.append("...")
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+        seqs = ", ".join(seqs)
+
+        return (
+            f"{len(self.names)} x {self.seq_len} {self.moltype.label} alignment: {seqs}"
+        )
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
@@ -2899,7 +3150,7 @@ class AlignmentI(object):
 
         return names, output
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -2915,14 +3166,14 @@ class AlignmentI(object):
 
     def to_html(
         self,
-        name_order=None,
-        wrap=60,
-        limit=None,
-        ref_name="longest",
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
-    ):
+        name_order: Optional[typing.Sequence[str]] = None,
+        wrap: int = 60,
+        limit: Optional[int] = None,
+        ref_name: str = "longest",
+        colors: Optional[Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -2946,16 +3197,28 @@ class AlignmentI(object):
         font_family
             string denoting font family
 
-        To display in jupyter notebook:
+        Examples
+        ---------
 
-            >>> from IPython.core.display import HTML
-            >>> HTML(aln.to_html())
+        In a jupyter notebook, this code is used to provide the representation.
+
+        .. code-block:: python
+
+            aln # is rendered by jupyter
+
+        You can directly use the result for display in a notebook as
+
+        .. code-block:: python
+
+            from IPython.core.display import HTML
+            HTML(aln.to_html())
         """
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
         )
         if name_order:
             selected = self.take_seqs(name_order)
+            name_order = list(name_order)
         else:
             name_order = list(self.names)
             ref_name = ref_name or "longest"
@@ -4062,22 +4325,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
-    def __repr__(self):
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.named_seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts.append("...")
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
-
-        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
-
     @c3warn.deprecated_args(
         "2024.6",
         reason="consistency with other methods",
@@ -4703,22 +4950,6 @@ class Alignment(AlignmentI, SequenceCollection):
             new._repr_policy.update(self._repr_policy)
 
         return new
-
-    def __repr__(self):
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.named_seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts.append("...")
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
-
-        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     @property
     def annotation_db(self):

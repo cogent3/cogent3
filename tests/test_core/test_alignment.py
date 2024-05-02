@@ -413,8 +413,18 @@ class SequenceCollectionBaseTests(object):
 
     def test_to_fasta(self):
         """SequenceCollection should return correct FASTA string"""
-        aln = self.Class(["AAA", "CCC"])
-        self.assertEqual(aln.to_fasta(), ">seq_0\nAAA\n>seq_1\nCCC\n")
+        aln1 = self.Class(["AAA", "CCC"])
+        self.assertEqual(aln1.to_fasta(), ">seq_0\nAAA\n>seq_1\nCCC\n")
+        self.assertEqual(aln1.to_fasta(block_size=2), ">seq_0\nAA\nA\n>seq_1\nCC\nC\n")
+
+        aln2 = self.Class(["GCATGCAT", "TCAGACGT"])
+        self.assertEqual(aln2.to_fasta(), ">seq_0\nGCATGCAT\n>seq_1\nTCAGACGT\n")
+        self.assertEqual(
+            aln2.to_fasta(block_size=4), ">seq_0\nGCAT\nGCAT\n>seq_1\nTCAG\nACGT\n"
+        )
+        self.assertEqual(
+            aln2.to_fasta(block_size=3), ">seq_0\nGCA\nTGC\nAT\n>seq_1\nTCA\nGAC\nGT\n"
+        )
 
     def test_to_nexus(self):
         """SequenceCollection should return correct Nexus string format"""
@@ -777,10 +787,6 @@ class SequenceCollectionBaseTests(object):
 
     def test_set_wrap_affects_repr_html(self):
         """the wrap argument affects the number of columns"""
-        if self.Class == SequenceCollection:
-            # this class does not have this method
-            return
-
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         orig = seqs._repr_html_()
@@ -794,8 +800,8 @@ class SequenceCollectionBaseTests(object):
         os.environ[env_name] = "wrap=2"
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
         got = seqs._repr_html_()
-        self.assertEqual(got.count(token), 3 * orig.count(token))
         os.environ.pop(env_name, None)
+        self.assertEqual(got.count(token), 3 * orig.count(token))
 
     def test_get_seq_entropy(self):
         """get_seq_entropy should get entropy of each seq"""
@@ -3695,3 +3701,46 @@ def test_slice_aligned_featuremap_multi_spans():
     )
     sliced = al[fmap]
     assert str(sliced) == "AAGGGCCC"
+
+
+def test_sequence_collection_repr():
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "a": "TCGAT",
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
+
+    data = {
+        "a": "A" * 11,
+        "b": "B" * 3,
+        "c": "C" * 3,
+        "d": "D" * 11,
+        "e": "E" * 8,
+    }
+    seqs = SequenceCollection(data=data, moltype=ASCII)
+    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDDD...]) text seqcollection"
+
+    data = {}
+    seqs = SequenceCollection(data=data, moltype=BYTES)
+    assert repr(seqs) == "0x () bytes seqcollection"
+

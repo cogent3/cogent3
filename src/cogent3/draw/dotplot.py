@@ -125,8 +125,9 @@ class Dotplot(Drawable):
             windows where the sequences are identical >= threshold are a match
         k : int
             size of k-mer to break sequences into. Larger values increase
-            speed but reduce resolution. If not specified, is computed as the
-            maximum of (window-threshold), (window % k) * k <= threshold.
+            speed but reduce resolution. If not specified, and
+            window == threshold, then k is set to window. Otherwise, it is
+            computed as the maximum of {threshold // (window - threshold), 5}.
         min_gap : int
             permitted gap for joining adjacent line segments, default is no gap
             joining
