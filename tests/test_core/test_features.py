@@ -433,7 +433,7 @@ def test_feature_from_alignment():
 
     # But these will be returned as **alignment**
     # features with locations in alignment coordinates.
-    assert aln_exons.get_slice().to_dict() == {"x": "AAAAA", "y": "--TTT"}
+    assert aln[aln_exons].to_dict() == {"x": "AAAAA", "y": "--TTT"}
 
     # Similarly alignment features can be projected onto the aligned sequences,
     # where they may end up falling across gaps:
@@ -451,7 +451,7 @@ def test_nested_get_slice():
     s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
     s.add_feature(biotype="repeat", name="bob", spans=[(12, 17)], parent_id="fred")
     f = list(ex.get_children())[0]
-    assert str(f.get_slice()) == str(s[12:17])
+    assert str(s[f]) == str(s[12:17])
 
 
 def test_roundtrip_annotated_seq():
