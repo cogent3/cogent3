@@ -3743,4 +3743,3 @@ def test_sequence_collection_repr():
     data = {}
     seqs = SequenceCollection(data=data, moltype=BYTES)
     assert repr(seqs) == "0x () bytes seqcollection"
-
