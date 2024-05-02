@@ -683,6 +683,17 @@ def test_indelmap_slice_terminating():
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
 
 
+def test_indelmap_slice_zero():
+    raw = "-CB-A--"
+    start, end = 0, 0
+    expect, s = DNA.make_seq(raw[start:end]).parse_out_gaps()
+    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    got = imap[start:end]
+    got.parent_length == len(s)
+    assert got.gap_pos.tolist() == expect.gap_pos.tolist()
+    assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
+
+
 def test_indelmap_invalid_slice_range():
     imap = IndelMap(
         gap_pos=numpy.array([10], dtype=int),

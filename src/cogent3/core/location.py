@@ -1357,7 +1357,7 @@ class IndelMap(MapABC):
             )
         zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         start = item.start or 0
-        stop = item.stop or len(self)
+        stop = item.stop if item.stop is not None else len(self)
 
         # convert negative indices
         start = start if start >= 0 else len(self) + start
