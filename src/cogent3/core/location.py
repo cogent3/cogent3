@@ -1363,7 +1363,7 @@ class IndelMap(MapABC):
         start = start if start >= 0 else len(self) + start
         stop = stop if stop >= 0 else len(self) + stop
         if min((start, stop)) < 0:
-            raise IndexError(f"item.start or item.stop is out of range")
+            raise IndexError("item.start or item.stop is out of range")
 
         if start >= stop:
             # standard slice behaviour without negative step

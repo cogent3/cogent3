@@ -689,7 +689,7 @@ def test_indelmap_slice_zero():
     expect, s = DNA.make_seq(raw[start:end]).parse_out_gaps()
     imap, _ = DNA.make_seq(raw).parse_out_gaps()
     got = imap[start:end]
-    got.parent_length == len(s)
+    assert got.parent_length == len(s)
     assert got.gap_pos.tolist() == expect.gap_pos.tolist()
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
 
