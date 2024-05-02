@@ -259,14 +259,14 @@ def test_app_with_app_as_default(mock_extension_manager):
     app_with_custom_addapp = get_app("AppWithDefault", app=AddApp(10))
     assert app_with_custom_addapp(5) == 15
 
+
 def test_app_help_from_function(mock_extension_manager):
     """_make_apphelp_docstring on a decorated function should return help"""
 
     @define_app
     def square(val: int) -> int:
         """app that returns the square of the input value"""
-        return val*val
-
+        return val * val
 
     mock_extension_manager([create_extension(square, module_name="module1")])
 
@@ -275,3 +275,6 @@ def test_app_help_from_function(mock_extension_manager):
 
     assert "Options" in got  # test help is rendered
     assert "square_app" in got  # test the help is for the correct app
+    assert (
+        "the square of the input" in got
+    )  # test the docstring is included in the help
