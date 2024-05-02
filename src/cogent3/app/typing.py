@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import inspect
 import re
+import sys
 
 from typing import ForwardRef, TypeVar, Union
 
 from typing_extensions import get_args, get_origin
 
+
+if sys.version_info.minor >= 10:
+    from types import UnionType
+
+    NESTED_HINTS = (Union, UnionType, list, tuple, set)
+else:
+    NESTED_HINTS = (Union, list, tuple, set)
 
 AlignedSeqsType = TypeVar("AlignedSeqsType", "Alignment", "ArrayAlignment")
 UnalignedSeqsType = TypeVar("UnalignedSeqsType", bound="SequenceCollection")
@@ -75,7 +83,7 @@ def get_constraint_names(*hints) -> set[str | type]:
             all_hints.update(hint.__constraints__)
             continue
 
-        if get_origin(hint) in (Union, list, tuple, set):
+        if get_origin(hint) in NESTED_HINTS:
             all_hints.update(get_constraint_names(*get_args(hint)))
 
         if type(hint) == type:
