@@ -3798,7 +3798,9 @@ def test_alignment_repr(cls):
         == "5 x 11 text alignment: a[AAAAAAAAAA...], b[BBBBBBBBBB...], c[CCCCCCCCCC...], ..."
     )
 
-    if cls == ArrayAlignment:  # Can't construct an empty alignment with the Alignment class.
+    if (
+        cls == ArrayAlignment
+    ):  # Can't construct an empty alignment with the Alignment class.
         data = {}
         seqs = cls(data=data, moltype=BYTES)
         assert repr(seqs) == "0 x 0 bytes alignment: "
