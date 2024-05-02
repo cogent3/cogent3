@@ -259,113 +259,6 @@ def coerce_to_string(s):
         return "".join(map(str, s))
 
 
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_array(a, alphabet=None):  # pragma: no cover
-    """SequenceCollection from array of pos x seq: names are integers.
-
-    This is an InputHandler for SequenceCollection. It converts an arbitrary
-    array of numbers into Sequence objects, and leaves the sequences unlabeled.
-    """
-    return list(transpose(a)), None
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_array_seqs(seqs, alphabet=None):  # pragma: no cover
-    """Alignment from ArraySequence objects: seqs -> array, names from seqs.
-
-    This is an InputHandler for SequenceCollection. It converts a list of
-    Sequence objects with _data and name properties into a SequenceCollection
-    that uses those sequences.
-    """
-    return seqs, [s.name for s in seqs]
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_generic(seqs, alphabet=None):  # pragma: no cover
-    """returns seqs, names"""
-    names = []
-    for s in seqs:
-        if hasattr(s, "name"):
-            names.append(s.name)
-        else:
-            names.append(None)
-    return seqs, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_fasta(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from FASTA-format string or lines.
-
-    This is an InputHandler for SequenceCollection. It converts a FASTA-format
-    string or collection of lines into a SequenceCollection object, preserving
-    order..
-    """
-    if isinstance(seqs, str):
-        seqs = seqs.splitlines()
-    names, seqs = list(zip(*list(cogent3.parse.fasta.MinimalFastaParser(seqs))))
-    return list(seqs), list(names)
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_dict(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from dict of {label:seq_as_str}.
-
-    This is an InputHandler for SequenceCollection. It converts a dict in
-    which the keys are the names and the values are the sequences
-    (sequence only, no whitespace or other formatting) into a
-    SequenceCollection. Because the dict doesn't preserve order, the result
-    will not necessarily be in alphabetical order."""
-    names, seqs = list(map(list, list(zip(*list(seqs.items())))))
-    seqs = [bytes_to_string(s) for s in seqs]
-    return seqs, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_kv_pairs(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from list of (key, val) pairs.
-
-    This is an InputHandler for SequenceCollection. It converts a dict in
-    which the keys are the names and the values are the sequences
-    (sequence only, no whitespace or other formatting) into a
-    SequenceCollection. Because the dict doesn't preserve order, the result
-    will be in arbitrary order."""
-    names, seqs = list(map(list, list(zip(*seqs))))
-    seqs = [bytes_to_string(s) for s in seqs]
-    return seqs, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_aln(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from existing SequenceCollection object: copies data.
-
-    This is relatively inefficient: you should really use the copy() method
-    instead, which duplicates the internal data structures.
-    """
-    return seqs.seqs, seqs.names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_empty(obj, *args, **kwargs):  # pragma: no cover
-    """SequenceCollection from empty data: raise exception."""
-    raise ValueError("Cannot create empty SequenceCollection.")
-
-
 @functools.singledispatch
 def merged_db_collection(seqs) -> SupportsFeatures:
     """return one AnnotationDb's
@@ -484,16 +377,6 @@ class _SequenceCollectionBase:
 
     is_array = set(["array", "array_seqs"])
 
-    @c3warn.deprecated_args(
-        "2024.3",
-        reason="simplifying API",
-        discontinued=(
-            "remove_duplicate_names",
-            "alphabet",
-            "suppress_named_seqs",
-            "force_same_data",
-        ),
-    )
     def __init__(
         self,
         data,
@@ -3958,183 +3841,6 @@ def _one_length(seqs):
         raise ValueError("not all sequences have same length")
 
 
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_array(a, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from array of pos x seq: no change, names are integers.
-
-    This is an InputHandler for Alignment. It converts an arbitrary array
-    of numbers without change, but adds successive integer names (0-based) to
-    each sequence (i.e. column) in the input a. Data type of input is
-    unchanged.
-    """
-    if array_type is None:
-        result = a.copy()
-    else:
-        result = a.astype(array_type)
-    return transpose(result), None
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_array_seqs(seqs, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from ArraySequence objects: seqs -> array, names from seqs.
-
-    This is an InputHandler for Alignment. It converts a list of Sequence
-    objects with _data and label properties into the character array Alignment
-    needs. All sequences must be the same length.
-
-    WARNING: Assumes that the ArraySeqs are already in the right alphabet. If
-    this is not the case, e.g. if you are putting sequences on a degenerate
-    alphabet into a non-degenerate alignment or you are putting protein
-    sequences into a DNA alignment, there will be problems with the alphabet
-    mapping (i.e. the resulting sequences may be meaningless).
-
-    WARNING: Data type of return array is not guaranteed -- check in caller!
-    """
-    data, names = [], []
-    for s in seqs:
-        data.append(s._data)
-        names.append(s.name)
-
-    _one_length(data)
-
-    result = array(data)
-    if array_type:
-        result = result.astype(array_type)
-    return result, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_generic(data, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from generic seq x pos data: sequence of sequences of chars.
-
-    This is an InputHandler for Alignment. It converts a generic list (each
-    item in the list will be mapped onto an Array object, with character
-    transformations, all items must be the same length) into a numpy array,
-    and assigns sequential integers (0-based) as names.
-
-    WARNING: Data type of return array is not guaranteed -- check in caller!
-    """
-    result = array([alphabet.to_indices(v) for v in data], dtype=object).astype(int)
-    names = []
-    for d in data:
-        if hasattr(d, "name"):
-            names.append(d.name)
-        else:
-            names.append(None)
-    if array_type:
-        result = result.astype(array_type)
-    return result, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_collection(seqs, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from SequenceCollection object, or its subclasses."""
-    names = seqs.names
-    data = [seqs.named_seqs[i] for i in names]
-    result = array(list(map(alphabet.to_indices, data)))
-    if array_type:
-        result = result.astype(array_type)
-    return result, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_fasta(seqs, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from FASTA-format string or lines.
-
-    This is an InputHandler for Alignment. It converts a FASTA-format string
-    or collection of lines into an Alignment object. All sequences must be the
-    same length.
-
-    WARNING: Data type of return array is not guaranteed -- check in caller!
-    """
-    if isinstance(seqs, bytes):
-        seqs = seqs.decode("utf-8")
-    if isinstance(seqs, str):
-        seqs = seqs.splitlines()
-    return aln_from_array_seqs(
-        [
-            ArraySequence(s, name=l, alphabet=alphabet)
-            for l, s in cogent3.parse.fasta.MinimalFastaParser(seqs)
-        ],
-        array_type,
-    )
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_dict(aln, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from dict of {label:seq_as_str}.
-
-    This is an InputHandler for Alignment. It converts a dict in which the
-    keys are the names and the values are the sequences (sequence only, no
-    whitespace or other formatting) into an alignment. Because the dict
-    doesn't preserve order, the result will be in alphabetical order."""
-    for n in aln:
-        try:
-            aln[n] = aln[n].upper()
-        except AttributeError:
-            pass
-
-    names, seqs = list(zip(*sorted(aln.items())))
-    seqs = [bytes_to_string(s) for s in seqs]
-    _one_length(seqs)
-    result = array(list(map(alphabet.to_indices, seqs)), array_type)
-    return result, list(names)
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_kv_pairs(aln, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from sequence of (key, value) pairs.
-
-    This is an InputHandler for Alignment. It converts a list in which the
-    first item of each pair is the label and the second item is the sequence
-    (sequence only, no whitespace or other formatting) into an alignment.
-    Because the dict doesn't preserve order, the result will be in arbitrary
-    order."""
-    names, seqs = list(zip(*aln))
-    seqs = [bytes_to_string(s) for s in seqs]
-    _one_length(seqs)
-    result = array(list(map(alphabet.to_indices, seqs)), array_type)
-    return result, list(names)
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_array_aln(aln, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from existing ArrayAlignment object: copies data.
-
-    Retrieves data from positions field. Uses copy(), so array data type
-    should be unchanged.
-    """
-    if array_type is None:
-        result = aln.array_positions.copy()
-    else:
-        result = aln.array_positions.astype(array_type)
-    return transpose(result), aln.names[:]
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_empty(obj, *args, **kwargs):  # pragma: no cover
-    """Alignment from empty data: raise exception."""
-    raise ValueError("Cannot create empty alignment.")
-
-
 # Implementation of Alignment base class
 
 
@@ -4265,11 +3971,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         return seqs
 
-    @c3warn.deprecated_args(
-        "2024.3",
-        reason="naming consistency",
-        old_new=(("invert_seqs", "negate_seqs"), ("invert_pos", "negate_pos")),
-    )
     def get_sub_alignment(
         self, seqs=None, pos=None, negate_seqs=False, negate_pos=False
     ):
@@ -4851,15 +4552,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
                 gapped = logical_or(gapped, data == gap)
 
         return gapped
-
-
-@c3warn.deprecated_callable(
-    "2024.3", reason="not being used", is_discontinued=True, stack_level=3
-)
-class CodonArrayAlignment(ArrayAlignment):  # pragma: no cover
-    """Stores alignment of gapped codons, no degenerate symbols."""
-
-    ...
 
 
 def make_gap_filter(template, gap_fraction, gap_run):
