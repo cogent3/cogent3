@@ -370,6 +370,30 @@ def test_nongap(cls):
     assert got == [(0, 2), (5, 6), (7, 10)]
 
 
+@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
+def test_nongap_startswith(cls):
+    # returns spans corresponding to position on "aligned" seq of nongaps
+    #                   012345678
+    seq = DNA.make_seq("--G-TAA--")
+    m, _ = seq.parse_out_gaps()
+    m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
+
+    got = [(s.start, s.end) for s in m.nongap()]
+    assert got == [(2, 3), (4, 7)]
+
+
+@pytest.mark.parametrize("cls", (IndelMap, FeatureMap))
+def test_nongap_not_endswith(cls):
+    # returns spans corresponding to position on "aligned" seq of nongaps
+    #                   0123456
+    seq = DNA.make_seq("--G-TAA")
+    m, _ = seq.parse_out_gaps()
+    m = cls.from_spans(spans=tuple(m.spans), parent_length=m.parent_length)
+
+    got = [(s.start, s.end) for s in m.nongap()]
+    assert got == [(2, 3), (4, 7)]
+
+
 def test_spans_gen():
     # returns spans corresponding to position on "aligned" seq of nongaps
     #                   000000000011
@@ -556,17 +580,6 @@ def test_indelmap_merge_parent_length():
     assert ov.parent_length == 20
 
 
-@pytest.mark.parametrize("cls", (FeatureMap, IndelMap))
-def test_map_offsets(cls):
-    # offsets are absolute starts of spans
-    #                              1
-    #                   01 3  678  1
-    seq = DNA.make_seq("-AC---G-TAA--")
-    m, _ = seq.parse_out_gaps()
-    got = m.offsets
-    assert got == [0, 1, 3, 6, 7, 8, 11]
-
-
 def test_map_indexed():
     m = FeatureMap.from_locations(locations=[(0, 2), (4, 6)], parent_length=6).inverse()
     indexed = m[2]
@@ -666,6 +679,17 @@ def test_indelmap_slice_terminating():
     expect, _ = DNA.make_seq(raw[start:end]).parse_out_gaps()
     imap, _ = DNA.make_seq(raw).parse_out_gaps()
     got = imap[start:end]
+    assert got.gap_pos.tolist() == expect.gap_pos.tolist()
+    assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
+
+
+def test_indelmap_slice_zero():
+    raw = "-CB-A--"
+    start, end = 0, 0
+    expect, s = DNA.make_seq(raw[start:end]).parse_out_gaps()
+    imap, _ = DNA.make_seq(raw).parse_out_gaps()
+    got = imap[start:end]
+    assert got.parent_length == len(s)
     assert got.gap_pos.tolist() == expect.gap_pos.tolist()
     assert got.cum_gap_lengths.tolist() == expect.cum_gap_lengths.tolist()
 
@@ -1146,3 +1170,28 @@ def test_featuremap_div():
     fm_1 = fm_3 / 3
     assert list(fm_1.spans) == [sp / 3 for sp in spans]
     assert fm_1.parent_length == 6 / 3
+
+
+def test_indelmap_make_seq_feature_map():
+    #           1
+    # 01234567890
+    # AC--GTA-TAA
+    # 01    234 567
+    im = IndelMap(
+        gap_pos=numpy.array([2, 5], dtype=int),
+        gap_lengths=numpy.array([2, 1], dtype=int),
+        parent_length=8,
+    )
+    orig_spans = [Span(1, 5)]
+    align_map = FeatureMap(spans=orig_spans, parent_length=11)
+    spans = [Span(1, 3)]
+    expect = FeatureMap(spans=spans, parent_length=8)
+    got = im.make_seq_feature_map(align_map)
+    assert got.get_coordinates() == expect.get_coordinates()
+    assert got.parent_length == expect.parent_length
+
+    # ignoring lost spans
+    align_map = FeatureMap(spans=orig_spans + [LostSpan(4)], parent_length=11)
+    got = im.make_seq_feature_map(align_map)
+    assert got.get_coordinates() == expect.get_coordinates()
+    assert got.parent_length == expect.parent_length

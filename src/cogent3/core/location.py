@@ -1109,7 +1109,7 @@ class MapABC(ABC):
         ...
 
     @abstractmethod
-    def __add__(self, other):
+    def __add__(self, other: "MapABC") -> "MapABC":
         ...
 
     @abstractmethod
@@ -1121,7 +1121,7 @@ class MapABC(ABC):
         ...
 
     @abstractmethod
-    def nucleic_reversed(self):
+    def nucleic_reversed(self) -> "MapABC":
         ...
 
     @abstractmethod
@@ -1129,7 +1129,9 @@ class MapABC(ABC):
         ...
 
     @classmethod
-    def from_locations(cls, locations: SeqCoordTypes, parent_length: int, **kwargs):
+    def from_locations(
+        cls, locations: SeqCoordTypes, parent_length: int, **kwargs
+    ) -> "MapABC":
         if len(locations):
             spans = _spans_from_locations(locations, parent_length=parent_length)
         else:
@@ -1139,7 +1141,7 @@ class MapABC(ABC):
 
     @classmethod
     @abstractmethod
-    def from_spans(cls, spans: SeqSpanTypes, parent_length: int, **kwargs):
+    def from_spans(cls, spans: SeqSpanTypes, parent_length: int, **kwargs) -> "MapABC":
         ...
 
 
@@ -1209,7 +1211,7 @@ def _gap_spans(
     """returns 1D arrays in alignment coordinates of
     gap start, gap stop"""
     if not len(gap_pos):
-        r = numpy.array([], dtype=gap_pos.dtype)
+        r = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         return r, r
 
     ends = gap_pos + cum_gap_lengths
@@ -1305,7 +1307,7 @@ class IndelMap(MapABC):
             and locations[0][0] == 0
             and locations[0][-1] == aligned_length
         ):
-            empty = numpy.array([], dtype=int)
+            empty = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
             return cls(
                 gap_pos=empty,
                 cum_gap_lengths=empty.copy(),
@@ -1319,7 +1321,7 @@ class IndelMap(MapABC):
             # ends with a gap
             locations += [(aligned_length, aligned_length)]
 
-        locations = numpy.array(locations, dtype=numpy.int32).flatten()[1:-1]
+        locations = numpy.array(locations, dtype=_DEFAULT_GAP_DTYPE).flatten()[1:-1]
         gap_coords = locations.reshape((locations.shape[0] // 2, 2))
         gap_ends, gap_starts = gap_coords[:, ::-1].T
         gap_lengths = gap_ends - gap_starts
@@ -1353,15 +1355,15 @@ class IndelMap(MapABC):
             raise NotImplementedError(
                 f"{type(self).__name__!r} does not yet support strides"
             )
-        zero_array = numpy.array([], dtype=self.gap_pos.dtype)
+        zero_array = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         start = item.start or 0
-        stop = item.stop or len(self)
+        stop = item.stop if item.stop is not None else len(self)
 
         # convert negative indices
         start = start if start >= 0 else len(self) + start
         stop = stop if stop >= 0 else len(self) + stop
         if min((start, stop)) < 0:
-            raise IndexError(f"one of adjusted {start, stop} is < 0")
+            raise IndexError("item.start or item.stop is out of range")
 
         if start >= stop:
             # standard slice behaviour without negative step
@@ -1394,7 +1396,7 @@ class IndelMap(MapABC):
         if gap_starts[l] <= start < gap_ends[l] and stop <= gap_ends[l]:
             # entire span is within a single gap
             # pos now 0
-            gap_pos = numpy.array([0], dtype=self.gap_pos.dtype)
+            gap_pos = numpy.array([0], dtype=_DEFAULT_GAP_DTYPE)
             cum_lengths = cum_lengths[l : l + 1]
             cum_lengths[0] = stop - start
             return self.__class__(
@@ -1411,7 +1413,7 @@ class IndelMap(MapABC):
             # so the absolute gap_pos value remains unchanged, but we shorten
             # the gap length
             begin = l
-            begin_diff = start - gap_starts[l]  # if l else self.gap_pos[l]
+            begin_diff = start - gap_starts[l]
             lengths[l] -= begin_diff
             shift = (start - cum_lengths[l - 1] - begin_diff) if l else gap_pos[0]
         elif start == gap_ends[l]:
@@ -1460,6 +1462,8 @@ class IndelMap(MapABC):
             In that case, and if seq_index is in gap_pos then it returns
             the first alignment index of the gap run.
         """
+        cum_lengths = self.cum_gap_lengths
+        gap_pos = self.gap_pos
         # NOTE I explicitly cast all returned values to python int's due to
         # need for json serialisation, which does not support numpy int classes
         if seq_index < 0:
@@ -1468,32 +1472,29 @@ class IndelMap(MapABC):
         if seq_index < 0:
             raise IndexError(f"{seq_index} negative seq_index beyond limit ")
 
-        if not self.num_gaps or seq_index < self.gap_pos[0]:
+        if not self.num_gaps or seq_index < gap_pos[0]:
             return int(seq_index)
 
         # if stop_index, check if the seq_index corresponds to a gap position
-        if slice_stop and (match := seq_index == self.gap_pos).any():
+        if slice_stop and (match := seq_index == gap_pos).any():
             # if so, we return the alignment coord for the first gap position
             (idx,) = numpy.where(match)[0]
             if idx:
-                gap_len = self.cum_gap_lengths[idx] - self.cum_gap_lengths[idx - 1]
+                gap_len = cum_lengths[idx] - cum_lengths[idx - 1]
             else:
-                gap_len = self.cum_gap_lengths[idx]
-            gap_end = self.gap_pos[idx] + self.cum_gap_lengths[idx]
+                gap_len = cum_lengths[idx]
+            gap_end = gap_pos[idx] + cum_lengths[idx]
             return int(gap_end - gap_len)
 
-        cum_gap_lengths = self.cum_gap_lengths
-        gap_pos = self.gap_pos
-
         if seq_index >= gap_pos[-1]:
-            return int(seq_index + cum_gap_lengths[-1])
+            return int(seq_index + cum_lengths[-1])
 
         # find gap position before seq_index
         index = numpy.searchsorted(gap_pos, seq_index, side="left")
         if seq_index < gap_pos[index]:
-            gap_lengths = cum_gap_lengths[index - 1] if index else 0
+            gap_lengths = cum_lengths[index - 1] if index else 0
         else:
-            gap_lengths = cum_gap_lengths[index]
+            gap_lengths = cum_lengths[index]
 
         return int(seq_index + gap_lengths)
 
@@ -1533,21 +1534,17 @@ class IndelMap(MapABC):
         length_gaps = self.cum_gap_lengths[-1] if self.num_gaps else 0
         return int(self.parent_length + length_gaps)
 
-    def __add__(self, other) -> "IndelMap":
-        # what was the purpose of this method? The code seems designed for
-        # combining Maps from the same parent sequence, which is a union rather
-        # than addition
-        # I'm revising this to be suitable for the concatenation of two aligned
-        # sequences
+    def __add__(self, other: "IndelMap") -> "IndelMap":
+        """designed to support concatenation of two aligned sequences"""
         gap_pos = self.gap_pos.tolist() + (self.parent_length + other.gap_pos).tolist()
-        gap_pos = numpy.array(gap_pos, dtype=self.gap_pos.dtype)
+        gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)
 
         cum_length = self.cum_gap_lengths[-1] if self.num_gaps else 0
         cum_gap_lengths = (
             self.cum_gap_lengths.tolist()
             + (cum_length + other.cum_gap_lengths).tolist()
         )
-        cum_gap_lengths = numpy.array(cum_gap_lengths, dtype=self.cum_gap_lengths.dtype)
+        cum_gap_lengths = numpy.array(cum_gap_lengths, dtype=_DEFAULT_GAP_DTYPE)
 
         return self.__class__(
             gap_pos=gap_pos,
@@ -1556,7 +1553,7 @@ class IndelMap(MapABC):
         )
 
     def __mul__(self, scale: int) -> "IndelMap":
-        # could be used for going from amino-acid alignment to codon alignment
+        """used for going from amino-acid alignment to codon alignment"""
         gap_pos = self.gap_pos * scale
         cum_gap_lengths = self.cum_gap_lengths * scale
         return self.__class__(
@@ -1573,14 +1570,6 @@ class IndelMap(MapABC):
         lengths = self.cum_gap_lengths.copy()
         lengths[1:] = numpy.diff(lengths)
         return lengths
-
-    @property
-    def offsets(self) -> IntArrayTypes:
-        # offsets are the aligned indices for every starting point of a segment
-        # when we encounter a gap, we include that position and the end of that gap
-
-        starts, ends = _gap_spans(self.gap_pos, self.cum_gap_lengths)
-        return numpy.array([starts, ends]).T.flatten()[:-1].tolist()
 
     def nongap(self) -> Iterator[SpanTypes]:
         """ungappeed segments in this map in aligned coordinates"""
@@ -1602,7 +1591,7 @@ class IndelMap(MapABC):
             prev_pos = pos
 
         if self.num_gaps and self.gap_pos[-1] + self.cum_gap_lengths[-1] < len(self):
-            yield Span(prev_pos, len(self))
+            yield Span(self.gap_pos[-1] + self.cum_gap_lengths[-1], len(self))
 
     @property
     def spans(self) -> Iterator[SpanTypes]:
@@ -1651,29 +1640,32 @@ class IndelMap(MapABC):
         -------
         [(start, end), ...]
         """
-        coords = []
-        last = 0
-        for pos, cum_length in zip(self.gap_pos, self.cum_gap_lengths):
-            pos, cum_length = int(pos), int(cum_length)
+        if not self.num_gaps or (self.num_gaps == 1 and not self.gap_pos[0]):
+            return [(0, int(self.parent_length))]
+        elif self.num_gaps == 1:
+            # does not start with a gap
+            starts = [0, int(self.gap_pos[0])]
+            ends = [int(self.gap_pos[0]), self.parent_length]
+            return list(zip(starts, ends))
 
-            if not pos:
-                continue
-            coords.append((last, pos))
-            last = pos
+        starts = self.gap_pos[:-1].tolist()
+        ends = self.gap_pos[1:].tolist()
+        if self.gap_pos[0]:
+            # does not start with a gap
+            ends = starts[:1] + ends
+            starts = [0] + starts
 
-        if (
-            self.num_gaps
-            and self.gap_pos[-1] + self.cum_gap_lengths[-1] < self.parent_length
-        ):
-            coords.append((last, self.parent_length))
-        return coords
+        if self.gap_pos[-1] + self.cum_gap_lengths[-1] < self.parent_length:
+            # does end with a gap
+            starts.append(ends[-1])
+            ends.append(self.parent_length)
+
+        return list(zip(starts, ends))
 
     def get_gap_coordinates(self) -> SeqCoordTypes:
         """returns [(gap pos, gap length), ...]"""
-        cum_lengths = self.cum_gap_lengths.copy()
-        diffs = numpy.diff(cum_lengths)
-        cum_lengths[1:] = diffs
-        return numpy.array([self.gap_pos, cum_lengths]).T.tolist()
+        lengths = self.get_gap_lengths()
+        return numpy.array([self.gap_pos, lengths]).T.tolist()
 
     def get_gap_align_coordinates(self) -> SeqCoordTypes:
         """returns [(gap start, gap end), ...] in alignment indices
@@ -1700,7 +1692,7 @@ class IndelMap(MapABC):
             overrides property
         """
         unique_pos = numpy.union1d(self.gap_pos, other.gap_pos)
-        gap_lengths = numpy.zeros(unique_pos.shape, dtype=self.cum_gap_lengths.dtype)
+        gap_lengths = numpy.zeros(unique_pos.shape, dtype=_DEFAULT_GAP_DTYPE)
         self_lengths = self.get_gap_lengths()
         other_lengths = other.get_gap_lengths()
         _update_lengths(unique_pos, gap_lengths, self.gap_pos, self_lengths)
@@ -1719,29 +1711,22 @@ class IndelMap(MapABC):
         ----------
         coords
             sequence insert gap coordinates [(gap start, gap end), ...]
-        Returns
-        -------
-
         """
-        coords = list(sorted(coords))
+        coords = sorted(coords)
         # using a dict here because joining can produce a gap merge
         gaps = {}
         cum_length = 0
         cum_parent_length = 0
-        dtype = self.gap_pos.dtype
         for start, end in coords:
             im = self[start:end]
             for i in range(im.num_gaps):
                 pos = im.gap_pos[i] + cum_parent_length
-                if pos in gaps:
-                    gaps[pos] += im.cum_gap_lengths[i]
-                else:
-                    gaps[pos] = im.cum_gap_lengths[i] + cum_length
+                gaps[pos] = gaps.get(pos, cum_length) + im.cum_gap_lengths[i]
             cum_parent_length += im.parent_length
             if im.num_gaps:
                 cum_length += im.cum_gap_lengths[-1]
-        gap_pos = numpy.empty(len(gaps), dtype=dtype)
-        cum_lengths = numpy.empty(len(gaps), dtype=dtype)
+        gap_pos = numpy.empty(len(gaps), dtype=_DEFAULT_GAP_DTYPE)
+        cum_lengths = numpy.empty(len(gaps), dtype=_DEFAULT_GAP_DTYPE)
         for i, (pos, length) in enumerate(sorted(gaps.items())):
             gap_pos[i] = pos
             cum_lengths[i] = length
@@ -1811,37 +1796,28 @@ class IndelMap(MapABC):
         """returns a Map type, suited to Features"""
         return FeatureMap(spans=list(self.spans), parent_length=self.parent_length)
 
-    def make_seq_feature_map(
-        self, align_feature_map: "FeatureMap", include_gaps: bool = True
-    ) -> "FeatureMap":
+    def make_seq_feature_map(self, align_feature_map: "FeatureMap") -> "FeatureMap":
         """converts align_feature_map to a FeatureMap with sequence coordinates
 
         Parameters
         ----------
         align_feature_map
             with alignment coordinates
-        include_gaps
-            whether to include gaps from self as LostSpan's
+
+        Notes
+        -----
+        LostSpans in align_feature_map are skipped
         """
-        gap_spans = {}
-        if include_gaps and self.num_gaps:
-            last = 0
-            for pos, cum_length in zip(self.gap_pos, self.cum_gap_lengths):
-                gap_spans[pos] = LostSpan(cum_length - last)
-                last = cum_length
         spans = []
         for span in align_feature_map.spans:
             if span.lost:
-                spans.append(span)
                 continue
 
             start = self.get_seq_index(span.start)
             end = self.get_seq_index(span.end)
-            if lost := gap_spans.pop(span.start, None):
-                spans.append(lost)
             spans.append(Span(start, end))
 
-        return FeatureMap(spans=spans, parent_length=align_feature_map.parent_length)
+        return FeatureMap(spans=spans, parent_length=self.parent_length)
 
 
 @dataclasses.dataclass
@@ -1855,6 +1831,8 @@ class FeatureMap(MapABC):
     complete: bool = dataclasses.field(init=False, repr=False, default=True)
     _serialisable: dict = dataclasses.field(init=False, repr=False)
     _spans: SeqSpanTypes = dataclasses.field(default=(), init=False)
+    _start: Optional[int] = dataclasses.field(default=None, init=False)
+    _end: Optional[int] = dataclasses.field(default=None, init=False)
 
     def __post_init__(self, spans: SeqSpanTypes):
         assert self.parent_length is not None
@@ -1879,10 +1857,10 @@ class FeatureMap(MapABC):
                 self.complete = False
             elif not self.useful:
                 self.useful = True
-                self.start, self.end = span.start, span.end
+                self._start, self._end = span.start, span.end
             else:
-                self.start = min(self.start, span.start)
-                self.end = max(self.end, span.end)
+                self._start = min(self._start, span.start)
+                self._end = max(self._end, span.end)
 
         self._spans = tuple(spans)
         self.length = posn
@@ -2143,8 +2121,8 @@ class FeatureMap(MapABC):
             span.end -= shift
             new_end = max(new_end, span.end)
 
-        zeroed.start = 0
-        zeroed.end = new_end
+        zeroed._start = 0
+        zeroed._end = new_end
 
         return zeroed
 
@@ -2156,16 +2134,14 @@ class FeatureMap(MapABC):
         raises ValueError if rel_pos < 0
         """
         check = (
-            numpy.array([rel_pos], dtype=int) if isinstance(rel_pos, int) else rel_pos
+            numpy.array([rel_pos], dtype=_DEFAULT_GAP_DTYPE)
+            if isinstance(rel_pos, int)
+            else rel_pos
         )
         if check.min() < 0:
             raise ValueError(f"must positive, not {rel_pos=}")
 
-        if len(self) == self.parent_length:
-            # handle case of reversed here?
-            return rel_pos
-
-        return self.start + rel_pos
+        return rel_pos if len(self) == self.parent_length else self.start + rel_pos
 
     def relative_position(self, abs_pos: IntTypes) -> IntTypes:
         """converts abs_pos into an relative position
@@ -2175,11 +2151,21 @@ class FeatureMap(MapABC):
         raises ValueError if abs_pos < 0
         """
         check = (
-            numpy.array([abs_pos], dtype=int) if isinstance(abs_pos, int) else abs_pos
+            numpy.array([abs_pos], dtype=_DEFAULT_GAP_DTYPE)
+            if isinstance(abs_pos, int)
+            else abs_pos
         )
         if check.min() < 0:
             raise ValueError(f"must positive, not {abs_pos=}")
         return abs_pos - self.start
+
+    @property
+    def start(self):
+        return self._start or 0
+
+    @property
+    def end(self):
+        return self._end or 0
 
 
 def gap_coords_to_map(
@@ -2199,12 +2185,12 @@ def gap_coords_to_map(
     """
 
     if not gaps_lengths:
-        gap_pos = numpy.array([], dtype=int)
+        gap_pos = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
         lengths = gap_pos.copy()
     else:
         gap_pos, lengths = list(zip(*sorted(gaps_lengths.items())))
-        gap_pos = numpy.array(gap_pos, dtype=int)
-        lengths = numpy.array(lengths, dtype=int)
+        gap_pos = numpy.array(gap_pos, dtype=_DEFAULT_GAP_DTYPE)
+        lengths = numpy.array(lengths, dtype=_DEFAULT_GAP_DTYPE)
 
     return IndelMap(gap_pos=gap_pos, gap_lengths=lengths, parent_length=seq_length)
 

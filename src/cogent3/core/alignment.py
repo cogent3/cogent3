@@ -2250,11 +2250,7 @@ class Aligned:
     def _(self, span: FeatureMap):
         # we assume the feature map is in align coordinates
         start, end = span.start, span.end
-        if span.useful and start > end:
-            empty = numpy.array([], dtype=self.map.gap_pos.dtype)
-            im = IndelMap(gap_pos=empty, cum_gap_lengths=empty, parent_length=0)
-            data = self.data[:0]
-        elif span.useful and len(list(span.spans)) == 1:
+        if span.useful and len(list(span.spans)) == 1:
             im = self.map[start:end]
             seq_start = self.map.get_seq_index(start)
             seq_end = self.map.get_seq_index(end)
@@ -2266,7 +2262,7 @@ class Aligned:
             # multiple spans
             align_coords = span.get_coordinates()
             im = self.map.joined_segments(align_coords)
-            seq_map = self.map.make_seq_feature_map(span, include_gaps=False)
+            seq_map = self.map.make_seq_feature_map(span)
             data = self.data.gapped_by_map(seq_map)
 
         return Aligned(im, data)
