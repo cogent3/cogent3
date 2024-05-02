@@ -564,6 +564,11 @@ class _SequenceCollectionBase:
         if isinstance(data, (typing.Generator, typing.Iterator)):
             data = tuple(data)
 
+        if len(data) == 0:
+            raise ValueError(
+                f"{self.__class__.__name__} must take at least one sequence."
+            )
+
         if moltype is None:
             moltype = _moltype_from_data(data)
         moltype = cogent3.get_moltype(moltype or self.moltype)
@@ -2157,9 +2162,6 @@ class SequenceCollection(_SequenceCollectionBase):
         return dist_calc_app(self)
 
     def __repr__(self):
-        if len(self.names) == 0:
-            return f"0x () {self.moltype.get_type()} seqcollection"
-
         seqs = []
         limit = 10
         delimiter = ""
