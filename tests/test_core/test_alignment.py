@@ -2612,7 +2612,7 @@ def test_get_gap_array_equivalence():
     assert_allclose(array_aln.get_gap_array(), aln.get_gap_array())
 
 
-@pytest.mark.parametrize("reverse", (False, True)[1:])
+@pytest.mark.parametrize("reverse", (False, True))
 def test_aligned_rich_dict(reverse):
     map_, s = make_seq(
         "TTGAAGAATATGT------GAAAGAG", name="s1", moltype="dna"
@@ -3667,3 +3667,31 @@ def test_slice_aligned(raw):
     al = Aligned(imap, seq)
     sliced = al[:-3]
     assert str(sliced) == raw[:-3]
+
+
+def test_slice_aligned_featuremap_allgap():
+    from cogent3.core.location import FeatureMap, LostSpan
+
+    imap, seq = DNA.make_seq("AAAGGGGGAACCCT", name="x").parse_out_gaps()
+    al = Aligned(imap, seq)
+    fmap = FeatureMap(spans=[LostSpan(4)], parent_length=0)
+    sliced = al[fmap]
+    assert not sliced
+
+
+def test_slice_aligned_featuremap_multi_spans():
+    from cogent3.core.location import FeatureMap
+
+    #                    1111111
+    #          01234567890123456
+    #           ***   **    ***
+    raw_seq = "AAAGG--GGG-AACCCT"
+    #          01234  567 890123
+    #                       1111
+    imap, seq = DNA.make_seq(raw_seq, name="x").parse_out_gaps()
+    al = Aligned(imap, seq)
+    fmap = FeatureMap.from_locations(
+        locations=[(1, 4), (7, 9), (13, 16)], parent_length=len(raw_seq)
+    )
+    sliced = al[fmap]
+    assert str(sliced) == "AAGGGCCC"
