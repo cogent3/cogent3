@@ -6,6 +6,7 @@ import cogent3.util.io
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import TreeNode
 from cogent3.evolve.models import get_model
+from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util import parallel
 
 from .composable import NotCompleted, define_app
@@ -52,17 +53,17 @@ class model:
 
     def __init__(
         self,
-        sm,
-        tree: Union[TreeNode, str] = None,
+        sm: Union[str, _SubstitutionModel],
+        tree: Optional[Union[TreeNode, str]] = None,
         unique_trees: bool = False,
-        tree_func: Callable[[AlignedSeqsType], TreeNode] = None,
-        name: str = None,
+        tree_func: Optional[Callable[[AlignedSeqsType], TreeNode]] = None,
+        name: Optional[str] = None,
         optimise_motif_probs: bool = False,
-        sm_args: dict = None,
-        lf_args: dict[str, Union[list, str]] = None,
-        time_het: Union[str, list[dict[str, Union[list, str]]]] = None,
-        param_rules: list[dict[str, Union[list, str]]] = None,
-        opt_args: dict = None,
+        sm_args: Optional[dict] = None,
+        lf_args: Optional[dict[str, Union[list, str]]] = None,
+        time_het: Optional[Union[str, list[dict[str, Union[list, str]]]]] = None,
+        param_rules: Optional[list[dict[str, Union[list, str]]]] = None,
+        opt_args: Optional[dict] = None,
         lower: float = 1e-6,
         upper: float = 50,
         split_codons: bool = False,
