@@ -2175,7 +2175,7 @@ class SequenceCollection(_SequenceCollectionBase):
         for name in repr_seq_names:
             elts = list(str(self.named_seqs[name])[: limit + 1])
             if len(elts) > limit:
-                elts.append("...")
+                elts[-1] = "..."
             seqs.append(f"{name}[{delimiter.join(elts)}]")
 
         if len(self.names) > 2:
@@ -2634,7 +2634,7 @@ class AlignmentI(object):
                 break
             elts = list(str(self.named_seqs[name])[: limit + 1])
             if len(elts) > limit:
-                elts.append("...")
+                elts[-1] = "..."
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
