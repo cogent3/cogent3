@@ -622,7 +622,9 @@ def get_subalignments(aln, position, selections):
     result = []
     for s in aln.alphabet.to_indices(selections):
         seqs_to_keep = nonzero(aln.array_seqs[:, position] == s)[0]
-        result.append(aln.get_sub_alignment(seqs=seqs_to_keep))
+        sub_align = aln.get_sub_alignment(seqs=seqs_to_keep)
+        if sub_align is not None:
+            result.append(sub_align)
     return result
 
 

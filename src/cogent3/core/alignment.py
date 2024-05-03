@@ -564,6 +564,11 @@ class _SequenceCollectionBase:
         if isinstance(data, (typing.Generator, typing.Iterator)):
             data = tuple(data)
 
+        if len(data) == 0:
+            raise ValueError(
+                f"{self.__class__.__name__} must take at least one sequence."
+            )
+
         if moltype is None:
             moltype = _moltype_from_data(data)
         moltype = cogent3.get_moltype(moltype or self.moltype)
@@ -2157,9 +2162,6 @@ class SequenceCollection(_SequenceCollectionBase):
         return dist_calc_app(self)
 
     def __repr__(self):
-        if len(self.names) == 0:
-            return f"0x () {self.moltype.get_type()} seqcollection"
-
         seqs = []
         limit = 10
         delimiter = ""
@@ -2175,7 +2177,7 @@ class SequenceCollection(_SequenceCollectionBase):
         for name in repr_seq_names:
             elts = list(str(self.named_seqs[name])[: limit + 1])
             if len(elts) > limit:
-                elts.append("...")
+                elts[-1] = "..."
             seqs.append(f"{name}[{delimiter.join(elts)}]")
 
         if len(self.names) > 2:
@@ -2634,7 +2636,7 @@ class AlignmentI(object):
                 break
             elts = list(str(self.named_seqs[name])[: limit + 1])
             if len(elts) > limit:
-                elts.append("...")
+                elts[-1] = "..."
             seqs.append(f"{name}[{delimiter.join(elts)}]")
         seqs = ", ".join(seqs)
 
@@ -4307,6 +4309,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names = [self.names[i] for i in seqs]
         else:
             names = self.names
+        if not len(names):
+            return None
+
         return self.__class__(
             data.T,
             list(map(str, names)),
