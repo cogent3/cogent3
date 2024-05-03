@@ -81,7 +81,7 @@ Let's set up a data store containing all the files with the ".fasta" suffix in t
 
     fasta_seq_dstore = open_data_store("data", suffix="fasta", mode="r", limit=2)
 
-Now let's set up a process composing the following apps: ``load_aligned`` (loads the sequences ),``take_codon_positions`` (extracts the third codon position) , and ``write_seqs`` ( writes the filtered sequences to a data store). 
+Now let's set up a process composing the following apps: ``load_aligned`` (loads the sequences ),``take_codon_positions`` (extracts the third codon position) , and ``write_seqs`` (writes the filtered sequences to a data store). 
 
 .. note:: Learn the basics of turning apps into composed processes :ref:`here! <apps>` 
 

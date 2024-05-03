@@ -32,12 +32,10 @@ Initilising ``take_n_seqs`` with the argument ``number=3`` creates an app which 
     first_3 = get_app("take_n_seqs", number=3)
     first_3(aln)
 
-
 Randomly selecting `n` seuquences from an alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Using ``random=True`` and ``number=3`` returns 3 random sequences. An optional argument for a ``seed`` can be provided to ensure the same sequences are returned each time the app is called.
-
 
 .. jupyter-execute::
     :raises:
