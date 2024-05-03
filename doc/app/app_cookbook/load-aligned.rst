@@ -17,7 +17,7 @@ Here we load the brca1 gene in bats, providing the molecular type (``moltype="dn
     :raises:
     
     from cogent3 import get_app
-    
+
     load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
     aln = load_aligned_app("data/brca1-bats.fasta")
     aln
@@ -31,11 +31,10 @@ Here we load a globin alignment, providing the molecular type (``moltype="protei
     :raises:
     
     from cogent3 import get_app
-    
+
     load_aligned_app = get_app("load_aligned", moltype="protein", format="phylip")
     aln = load_aligned_app("data/abglobin_aa.phylip")
     aln
-    
 Loading aligned DNA sequences from multiple fasta files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

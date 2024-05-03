@@ -23,14 +23,14 @@ In the :ref:`writing JSON section <write_json>`, we wrote a likelihood function 
     tmpdir = TemporaryDirectory(dir=".")
     path_to_dir = tmpdir.name
 
-    # create lf object to write 
+    # create lf object to write
     load_aligned_app = get_app("load_aligned", moltype="dna", format="fasta")
     aln = load_aligned_app("data/primate_brca1.fasta")
     gn_model_app = get_app("model", "GN", tree="data/primate_brca1.tree")
     lf = gn_model_app(aln).lf
-    
+
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="json")
-    
+
     # write with the same identifier as the write_json example
     write_json_app = get_app("write_json", data_store=out_dstore)
     data_member = write_json_app(lf, identifier="gn_params.json")

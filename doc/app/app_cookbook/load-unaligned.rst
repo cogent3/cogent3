@@ -59,10 +59,10 @@ In this example our process loads the unaligned sequences using ``load_unaligned
     :raises:
 
     out_dstore = open_data_store(path_to_dir, suffix="tsv", mode="w")
-    
+
     load_unaligned_app = get_app("load_unaligned", format="fasta", moltype="dna")
     jdist = get_app("jaccard_dist")
-    writer = get_app("write_tabular", out_dstore, format="tsv") 
+    writer = get_app("write_tabular", out_dstore, format="tsv")
 
     process = load_unaligned_app + jdist + writer
 

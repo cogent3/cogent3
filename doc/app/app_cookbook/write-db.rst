@@ -29,7 +29,7 @@ Writing a database to file
     reader = get_app("load_aligned", format="fasta", moltype="dna")
     min_length = get_app("min_length", 300)
     out_dstore = open_data_store(f"{path_to_dir}.sqlitedb", mode="w")
-    writer = get_app("write_db", out_dstore) 
+    writer = get_app("write_db", out_dstore)
 
     process = reader + min_length + writer
     result = process.apply_to(dstore)

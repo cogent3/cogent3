@@ -15,7 +15,7 @@ We can load a file containing tab seperated values with the ``load_tabular`` app
     :raises:
 
     from cogent3 import get_app
-    
+
     load_tsv_app = get_app("load_tabular", sep="\t")
     tsv_data = load_tsv_app("data/stats.tsv")
     tsv_data

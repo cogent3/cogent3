@@ -22,11 +22,11 @@ Let's generate a cogent3 ``Table`` to use in the examples below. One way to do t
     # Fit the GN model
     gn_model_app = get_app("model", "GN", tree="data/primate_brca1.tree")
     model_result = gn_model_app(aln)
-    
+
     # tabulate the model result
     tabulator = get_app("tabulate_stats")
     model_result_tab = tabulator(model_result)
-    motif_params = model_result_tab['motif params']
+    motif_params = model_result_tab["motif params"]
     print(type(motif_params))
     motif_params
 
@@ -104,10 +104,10 @@ Instead of applying the apps sequentially as above, we can add apps into a compo
     out_dstore = open_data_store(path_to_dir, mode="w", suffix="tsv")
     writer = get_app("write_tabular", data_store=out_dstore, format="tsv")
 
-    process = loader + jdist + writer 
+    process = loader + jdist + writer
 
     in_dstore = open_data_store("data", suffix="fasta", mode="r", limit=2)
-    
+
     result = process.apply_to(in_dstore)
     result.describe
 
