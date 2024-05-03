@@ -68,7 +68,7 @@ Here, we create a data store containing all the files with the ".fasta" suffix i
 
 In this example, our process loads the sequences, filters the sequences to keep only the third codon position, and then writes the filtered sequences to a data store. 
 
-.. note:: Apps that are "writers" typically require a data store to write to, learn more about writers :ref:`here! <writers>` 
+.. note:: Apps that are "writers" require a data store to write to, learn more about writers :ref:`here! <writers>` 
 
 .. jupyter-execute::
     :raises:

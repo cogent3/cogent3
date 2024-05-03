@@ -33,3 +33,10 @@ Writing a database to file
     process = reader + min_length + writer
     result = process.apply_to(dstore)
     result.describe
+
+Note that ``out_dstore`` and ``result`` are the same instance.
+
+.. jupyter-execute::
+    :raises:
+    
+    out_dstore is result

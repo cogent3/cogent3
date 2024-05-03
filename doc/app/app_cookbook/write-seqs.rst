@@ -64,7 +64,7 @@ We can create our input data store containing all the files with the ".fasta" su
 
     fasta_seq_dstore = open_data_store("data", suffix="fasta", mode="r")
 
-Let's define a process. In this example, our process loads the sequences, filters the sequences to keep only those which are translateable, translates the sequences, and then writes the filtered sequences to a data store. 
+Let's define a process. In this example, our process loads the sequences, filters the sequences to keep only those which are translatable, translates the sequences, and then writes the filtered sequences to a data store. 
 
 .. jupyter-execute::
     :raises:

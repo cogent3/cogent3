@@ -11,7 +11,7 @@ Overview of using apps
 What are apps?
 --------------
 
-Apps are ready-made "functions" that you can apply to your data without needing to know all the technical details. They are easy to use, even if you're not an expert programmer. Multiple apps can be naturally composed into "pipelines", which are fully equipped for robust and reproducible application to data. In face, apps and app pipelines can be applied to a single, or thousands, of data file(s) without writing loops or conditionals.
+Apps are ready-made "functions" that you can apply to your data without needing to know all the technical details. They are easy to use, even if you're not an expert programmer. Multiple apps can be naturally composed into "pipelines", which are fully equipped for robust and reproducible application to data. In fact, apps and app pipelines can be applied to a single, or thousands, of data file(s) without writing loops or conditionals.
 
 Apps have several key features, they:
 

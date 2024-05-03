@@ -49,7 +49,7 @@ To write in CSV format, we create the ``write_tabular`` app with ``format="csv"`
 
     from cogent3 import get_app, open_data_store
 
-    out_dstore = open_data_store(path_to_dir, mode="w", suffix="tsv")
+    out_dstore = open_data_store(path_to_dir, mode="w", suffix="csv")
 
     write_tabular_app = get_app("write_tabular", data_store=out_dstore, format="csv")
     write_tabular_app(motif_params, identifier="gn_model_results.csv")

@@ -9,7 +9,7 @@ Loading tabular data
 How to load data from a tsv file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We can load a file containing tab seperated values with the ``load_tabular`` app, providing it with the appropriate seperator, ``sep="\t"``. 
+We can load a file containing tab seperated values with the ``load_tabular`` app, providing it with the appropriate separator, ``sep="\t"``. 
 
 .. jupyter-execute::
     :raises:

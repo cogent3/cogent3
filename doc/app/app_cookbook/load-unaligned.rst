@@ -11,7 +11,7 @@ We can load unaligned sequence data using the ``load_unaligned`` app, this will 
 Loading unaligned DNA sequences from a single fasta file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In this example, we load unaligned DNA sequences from a single fasta file using the load_unaligned app. We specify the molecular type ``(moltype="protein")`` and the file format ``(format="fasta")``.
+In this example, we load unaligned DNA sequences from a single fasta file using the ``load_unaligned`` app. We specify the molecular type ``(moltype="protein")`` and the file format ``(format="fasta")``.
 
 .. jupyter-execute::
     :raises:
@@ -53,7 +53,7 @@ Here we open a read-only (``mode="r"``) data store that identifies all fasta fil
 
 In this example, our process loads the unaligned sequences using ``load_unaligned``, then applies ``jaccard_dist`` to estimate a kmer-based genetic distance, which we write out to a data store using ``write_tabular``. 
 
-.. note:: Apps that are "writers" typically require a data store to write to, learn more about writers :ref:`here! <writers>`. 
+.. note:: Apps that are "writers" require a data store to write to, learn more about writers :ref:`here! <writers>`. 
 
 .. jupyter-execute::
     :raises:
