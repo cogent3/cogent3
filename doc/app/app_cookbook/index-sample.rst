@@ -1,7 +1,7 @@
 Filtering data 
 ==============
 
-``Cogent3`` apps provide simple and sophisticated means to filter genomic data.
+``cogent3`` apps provide simple and sophisticated means to filter genomic data.
 
 .. toctree::
     :maxdepth: 1

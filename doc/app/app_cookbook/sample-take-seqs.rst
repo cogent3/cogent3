@@ -46,7 +46,7 @@ Using ``take_named_seqs`` in a composed app process
 Removing sequences from a collection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Creating the ``take_named_seqs`` app with the argument ``negate=True`` will excludes sequences that match the provided names. For instance, perhaps the Galago has got to go. 
+Creating the ``take_named_seqs`` app with the argument ``negate=True`` will exclude sequences that match the provided names. For instance, perhaps the Galago has got to go. 
 
 .. jupyter-execute::
     :raises:

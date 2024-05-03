@@ -1,7 +1,7 @@
 Removing degenerate characters
 ------------------------------
 
-Degenerate IUPAC base symbols represents a site position that can have multiple possible nucleotides. For example, "Y" represents pyrimidines where the site can be either "C" or "T".
+Degenerate IUPAC base symbols represent a site position that can have multiple possible nucleotides. For example, "Y" represents pyrimidines where the site can be either "C" or "T".
 
 .. note:: In molecular evolutionary and phylogenetic analyses, the gap character "-" is considered to be any base "N".
 
@@ -31,7 +31,7 @@ Omit aligned columns containing a degenerate character
 Omit all degenerate character except gaps from an alignment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If we create the app with the argument ``gap_is_degen=False``, we can omits degenerate characters, but retains gaps. 
+If we create the app with the argument ``gap_is_degen=False``, we can omit degenerate characters but retain gaps. 
 
 .. jupyter-execute::
     :raises:

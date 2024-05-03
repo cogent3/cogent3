@@ -6,7 +6,7 @@
 Filter sequence collections and alignments by length
 ----------------------------------------------------
 
-Let's load a collection of globin sequences. Note that we must have a moltype specified. 
+Let's load a collection of globin sequences. Note that we must have a the molecular type specified. 
 
 .. jupyter-execute::
     :raises:
@@ -22,7 +22,7 @@ Remove sequences shorter than a minimum length
 
 Creating the ``min_length`` app and providing a positional argument specifying the minimum length allows us to filter an alignment, removing sequences which do not satisfy our threshold. 
 
-For instance, we can remove sequences from the globin alignment which are shorter then 240 amino acids long. 
+For instance, we can remove sequences from the globin alignment which are shorter than 240 amino acids long. 
 
 .. jupyter-execute::
     :raises:
@@ -44,9 +44,9 @@ Using the ``min_length`` length app to filter multiple alignments
     tmpdir = TemporaryDirectory(dir=".")
     path_to_dir = tmpdir.name
 
-``min_length`` is a useful app to use in data processing pipelines where downstream analysis requires sequences exceed a given length.
+``min_length`` is a useful app to use in data processing pipelines where downstream analysis requires sequences that exceed a given length.
 
-In the following example, we compose a process that loads alignments, removes sequences less than 300 nucleotides in length, before writing them to a data store. We apply this process to a data store of the fasta files in the data directory. We restrict this data store to two members as a minumum example. 
+In the following example, we compose a process that loads alignments and removes sequences less than 300 nucleotides in length, before writing them to a data store. We apply this process to a data store of the fasta files in the data directory. We restrict this data store to two members as a minimum example. 
 
 .. jupyter-execute::
     :raises:

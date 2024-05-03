@@ -26,7 +26,6 @@ Let's create sample alignments with matching sequence names to use in the below 
 
     aln2
 
-
 How to concatenate alignments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -41,7 +40,7 @@ By default, sequences without matching names in the corresponding alignment are 
 How to concatenate alignments with missing sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By providing the argument ``intersect=False``, the ``concat`` app will includes missing sequences across alignments. Missing sequences are replaced by a sequence of ``"?"``.
+By providing the argument ``intersect=False``, the ``concat`` app will include missing sequences across alignments. Missing sequences are replaced by a sequence of ``"?"``.
 
 .. jupyter-execute::
     :raises:

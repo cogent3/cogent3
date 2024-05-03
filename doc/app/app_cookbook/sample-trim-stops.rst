@@ -1,7 +1,7 @@
 Remove trailing stop codons from sequences in an alignment
 ----------------------------------------------------------
 
-For evolutionary analyses that use codon models we need to exclude terminating stop codons. To account for the difference in stop codons in different genetic codes, we can provide an argument for the genetic code. For a list of all genetic codes, see :ref:`here <genetic-codes>`. 
+For evolutionary analyses that use codon models, we need to exclude terminating stop codons. To account for the difference in stop codons in different genetic codes, we can provide an argument for the genetic code. For a list of all genetic codes, see :ref:`here <genetic-codes>`. 
 
 .. jupyter-execute::
     :raises:
