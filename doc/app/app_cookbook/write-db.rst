@@ -13,7 +13,6 @@ Writing a database to file
 .. jupyter-execute::
     :hide-code:
 
-    
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")

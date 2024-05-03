@@ -8,18 +8,18 @@ Writing tabular data
 
 With the ``write_tabular`` app, ``cogent3`` "TabularTypes" (``Table``, ``DictArray``, ``DistanceMatrix``) are supported for writing to disk. 
 
-Let's generate a cogent3 ``Table`` to use in the examples below. One way to do that is by applying the ``tabulate_stats`` app to a model result. 
+Let's generate a ``cogent3`` ``Table`` to use in the examples below. One way to do that is by applying the ``tabulate_stats`` app to a model result. 
 
 .. jupyter-execute::
     :raises:
 
     from cogent3 import get_app
 
-    # Load the alignment
+    # load alignment
     load_aligned_app = get_app("load_aligned", moltype="dna")
     aln = load_aligned_app("data/primate_brca1.fasta")
 
-    # Fit the GN model
+    # fit GN model
     gn_model_app = get_app("model", "GN", tree="data/primate_brca1.tree")
     model_result = gn_model_app(aln)
 
@@ -37,7 +37,6 @@ To write in CSV format, we create the ``write_tabular`` app with ``format="csv"`
 
 .. jupyter-execute::
     :hide-code:
-
     
     from tempfile import TemporaryDirectory
 

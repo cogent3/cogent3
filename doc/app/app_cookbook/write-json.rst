@@ -13,12 +13,11 @@ Using JSON, we can serialise ``cogent3`` objects to a file for easy storage and 
 Create an example object to serialise
 """""""""""""""""""""""""""""""""""""
 
-Lets create a ``LikelihoodFunction`` object to use in this example. It is generated from fitting the General Nucleotide (GN) model to an alignment of BRCA1 in primates. 
+Let's create a ``LikelihoodFunction`` object to use in this example. It is generated from fitting the General Nucleotide (GN) model to an alignment of BRCA1 in primates. 
 
 .. jupyter-execute::
     :hide-code:
 
-    
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")
@@ -43,7 +42,7 @@ Lets create a ``LikelihoodFunction`` object to use in this example. It is genera
 
 Using the ``write_json`` app, we can write out the likelihood function as a JSON-serialised object, making it easy to retrieve the model parameters for future reference if required. 
 
-We need to provide the ``write_json`` app with a data store to which it will write to. Optionally when we apply the app we can specify a identifier for the data, which will name the file. 
+We need to provide the ``write_json`` app with a data store to which it will write. Optionally when we apply the app we can specify an identifier for the data, which will name the file. 
 
 .. jupyter-execute::
     :raises:

@@ -51,7 +51,7 @@ Here we open a read-only (``mode="r"``) data store that identifies all fasta fil
 2. A composed process that defines our workflow 
 """""""""""""""""""""""""""""""""""""""""""""""
 
-In this example our process loads the unaligned sequences using ``load_unaligned``, then applies ``jaccard_dist`` to estimate a kmer based genetic distance, which we write out to a data store using ``write_tabular``. 
+In this example, our process loads the unaligned sequences using ``load_unaligned``, then applies ``jaccard_dist`` to estimate a kmer-based genetic distance, which we write out to a data store using ``write_tabular``. 
 
 .. note:: Apps that are "writers" typically require a data store to write to, learn more about writers :ref:`here! <writers>`. 
 
@@ -68,7 +68,7 @@ In this example our process loads the unaligned sequences using ``load_unaligned
 
 .. tip:: When running this code on your machine, remember to replace ``path_to_dir`` with an actual directory path.
 
-Now we're good to go! We can apply ``process`` to our data store of fasta sequences. ``result`` is a data store, which you can index to see individual data members. We can inspect a given data member look using the ``.read()`` on data members. 
+Now we're good to go! We can apply ``process`` to our data store of fasta sequences. ``result`` is a data store, which you can index to see individual data members. We can inspect a given data member using the ``.read()`` on data members. 
 
 .. jupyter-execute::
     :raises:

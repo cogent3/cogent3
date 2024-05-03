@@ -30,7 +30,6 @@ In the above example, ``data`` is a ``cogent3.util.Table`` object, if we write i
 .. jupyter-execute::
     :hide-code:
 
-    
     from tempfile import NamedTemporaryFile
 
     tmpdir = NamedTemporaryFile(dir=".")

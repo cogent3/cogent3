@@ -8,7 +8,7 @@
 Loading JSON serialised objects
 -------------------------------
 
-The ``load_json`` app loads JSON serialised cogent3 objects from a file, returning whatever was stored.  
+The ``load_json`` app loads JSON serialised ``cogent3`` objects from a file, returning whatever was stored.  
 
 In the :ref:`writing JSON section <write_json>`, we wrote a likelihood function object to disk in JSON serialised format, now let's load it back! All we need is the path to which it was written. Since ``write_json`` writes to a data store, this will be ``<path_to_dstore>/<identifier>``. 
 

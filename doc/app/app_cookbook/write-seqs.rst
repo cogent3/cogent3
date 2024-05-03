@@ -9,7 +9,7 @@ Writing sequences and sequence alignments
 Writing a sequence alignment to disk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Writing an alignment to disk can be achieved easily with the ``write_seqs`` app. First let's load the alignment we want to write. 
+Writing out an alignment can be achieved easily with the ``write_seqs`` app. First, let's load the alignment we want to write. 
 
 .. jupyter-execute::
     :raises:
@@ -25,7 +25,6 @@ When creating the ``write_seqs`` app, we need to provide a data store to which w
 .. jupyter-execute::
     :hide-code:
 
-    
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")
@@ -51,7 +50,6 @@ Typically, the final step of a data processing pipeline is writing out the filte
 .. jupyter-execute::
     :hide-code:
 
-    
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")
@@ -91,8 +89,8 @@ We apply ``process`` to our input data store, and assign the resulting data stor
 
     result = process.apply_to(fasta_seq_dstore)
 
-Acessing an overview of our process
-"""""""""""""""""""""""""""""""""""
+Accessing an overview of our process
+""""""""""""""""""""""""""""""""""""
 
 We can interrogate ``result`` to see an overview of the process. 
 
@@ -101,7 +99,7 @@ We can interrogate ``result`` to see an overview of the process.
 
     result.describe
 
-There were 10 data files to which the process was successfully applied. However, there were three to which the process did not complete. We can see a summary of the failures by acessing the ``summary_not_completed`` property. 
+There were 10 data files to which the process was successfully applied. However, there were three files for which the process did not complete. We can see a summary of the failures by accessing the ``summary_not_completed`` property. 
 
 .. jupyter-execute::
     :raises:

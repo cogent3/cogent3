@@ -22,7 +22,7 @@ Here we load the brca1 gene in bats, providing the molecular type (``moltype="dn
     aln = load_aligned_app("data/brca1-bats.fasta")
     aln
 
-Loading aligned protien sequences from a single phylip file
+Loading aligned protein sequences from a single phylip file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Here we load a globin alignment, providing the molecular type (``moltype="protein"``) and file format (``format="phylip"``). 
@@ -35,10 +35,11 @@ Here we load a globin alignment, providing the molecular type (``moltype="protei
     load_aligned_app = get_app("load_aligned", moltype="protein", format="phylip")
     aln = load_aligned_app("data/abglobin_aa.phylip")
     aln
+
 Loading aligned DNA sequences from multiple fasta files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In the above examples, the result is a single alignment, which could have been achieved using standard cogent3 (``load_aligned_seqs()``). The real power of apps is for batch processing of a large number of files.
+In the above examples, the result is a single alignment, which could have been achieved using standard ``cogent3`` (``load_aligned_seqs()``). The real power of apps is for batch processing of a large number of files.
 
 To apply apps to multiple files we need to set two things up:
 
