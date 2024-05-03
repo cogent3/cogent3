@@ -548,60 +548,6 @@ class Alphabet(Enumeration):
             motif_subset = [m for m in self if m not in motif_subset]
         return self._with(motif_subset)
 
-    @c3warns.deprecated_callable(
-        "2024.3",
-        reason="does not belong on alphabet",
-        new="<moltype>.resolve_ambiguity()",
-    )
-    def resolve_ambiguity(self, ambig_motif):
-        """deprecated, use method on MolType"""
-        # shortcut easy case
-        if ambig_motif in self._quick_motifset:
-            return (ambig_motif,)
-
-        # resolve each letter, and build the possible sub motifs
-        ambiguities = self.moltype.ambiguities
-        motif_set = [""]
-        ALL = self.moltype.alphabet.with_gap_motif()
-        for character in ambig_motif:
-            new_motifs = []
-            if character == "?":
-                resolved = ALL
-            elif character == "-":
-                resolved = ["-"]
-            else:
-                try:
-                    resolved = ambiguities[character]
-                except KeyError:
-                    raise AlphabetError(ambig_motif)
-            for character2 in resolved:
-                for motif in motif_set:
-                    new_motifs.append("".join([motif, character2]))
-
-            motif_set = new_motifs
-
-        # delete sub motifs that are not to be included
-        motif_set = [motif for motif in motif_set if motif in self._quick_motifset]
-
-        if not motif_set:
-            raise AlphabetError(ambig_motif)
-
-        return tuple(motif_set)
-
-    @c3warns.deprecated_callable(
-        "2024.3",
-        reason="does not belong on alphabet",
-        new="cogent3.evolve.likelihood_tree.get_matched_array",
-    )
-    def get_matched_array(self, motifs, dtype=float):
-        """deprecated, use function in evolve.likelihood_tree"""
-        result = zeros([len(motifs), len(self)], dtype)
-        obj_to_index = self._obj_to_index
-        for u, ambig_motif in enumerate(motifs):
-            for motif in self.resolve_ambiguity(ambig_motif):
-                result[u, obj_to_index[motif]] = 1.0
-        return result
-
 
 class CharAlphabet(Alphabet):
     """Holds an alphabet whose items are single chars.

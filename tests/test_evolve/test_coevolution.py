@@ -1833,7 +1833,6 @@ class CoevolutionTests(TestCase):
             data={1: "AAAA", 2: "AAAC", 3: "AACG", 4: "ACCT", 5: "ACG-"},
             moltype=PROTEIN,
         )
-        sub_aln_0C = {}
         sub_aln_1A = ArrayAlignment(
             data={1: "AAAA", 2: "AAAC", 3: "AACG"}, moltype=PROTEIN
         )
@@ -1841,7 +1840,7 @@ class CoevolutionTests(TestCase):
         sub_aln_2G = ArrayAlignment(data={5: "ACG-"}, moltype=PROTEIN)
 
         self.assertEqual(get_subalignments(aln, 0, ["A"]), [sub_aln_0A])
-        self.assertEqual(get_subalignments(aln, 0, ["C"]), [sub_aln_0C])
+        self.assertEqual(get_subalignments(aln, 0, ["C"]), [])
         self.assertEqual(get_subalignments(aln, 1, ["A"]), [sub_aln_1A])
         self.assertEqual(get_subalignments(aln, 1, ["C"]), [sub_aln_1C])
         self.assertEqual(
