@@ -8,4 +8,5 @@ App Cookbook
 
     app_cookbook/index-loaders
     app_cookbook/index-align
+    app_cookbook/index-sample
     app_cookbook/index-writers

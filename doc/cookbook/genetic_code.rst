@@ -1,3 +1,5 @@
+.. _genetic-codes:
+
 Using genetic codes
 ^^^^^^^^^^^^^^^^^^^
 
