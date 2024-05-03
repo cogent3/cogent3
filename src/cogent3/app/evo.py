@@ -56,7 +56,7 @@ class model:
         sm: Union[str, _SubstitutionModel],
         tree: Optional[Union[TreeNode, str]] = None,
         unique_trees: bool = False,
-        tree_func: Optional[Callable[[AlignedSeqsType], TreeNode]] = None,
+        tree_func: Optional[Callable] = None,
         name: Optional[str] = None,
         optimise_motif_probs: bool = False,
         sm_args: Optional[dict] = None,
