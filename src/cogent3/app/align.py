@@ -459,6 +459,35 @@ class progressive_align:
             if no guide tree, and model is for DNA / Codons, estimates pairwise
             distances using an approximation and JC69. Otherwise, estimates
             genetic distances from pairwise alignments (which is slower).
+
+        Examples
+        --------
+
+        Create an unaligned sequence collection of BRCA1 genes from 4 species,
+        and an app for alignment with nucleotide model ``model="HKY85"``.
+
+        >>> from cogent3 import make_unaligned_seqs, get_app
+        >>> aln = make_unaligned_seqs({
+        ... "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+        ... "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+        ... "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
+        ... "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT"
+        ... }, moltype="dna")
+        >>> app = get_app("progressive_align", model="HKY85")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=['Human', 'Bandicoot', 'Rhesus', 'FlyingFox']))
+            Human    GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT...
+
+        Optionally, a pre-computed guide tree can be provided.
+
+        >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+        >>> app_guided = get_app("progressive_align", model="HKY85", guide_tree=newick)
+        >>> result = app_guided(aln)
+        >>> print(result.to_pretty(name_order=['Human', 'Bandicoot', 'Rhesus', 'FlyingFox']))
+            Human    GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT
+        Bandicoot    NA.TCA.T.A.G.TTG.AACC.G...---......GTC..AC
+           Rhesus    ..........................---...G.........
+        FlyingFox    ........T.................---.......TA....
         """
         self._param_vals = {
             "codon": dict(omega=0.4, kappa=3),
@@ -650,6 +679,19 @@ class ic_score:
         ----------
         equifreq_mprobs : bool
             If true, specifies equally frequent motif probabilities.
+
+        Examples
+        --------
+
+        Create a sample alignment and compute the Information Content alignment
+        quality score. The default is equally frequent motif probabilities.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"})
+        >>> app = get_app("ic_score")
+        >>> result = app(aln)
+        >>> print(result)
+        5.377443751081734
         """
         self._equi_frequent = equifreq_mprobs
 
@@ -708,6 +750,32 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     The instance must have been aligned using cogent3 tree_align. In addition,
     if the alignment has been saved, it has must have been serialised
     using a format that preserves the score.
+
+    Examples
+    --------
+
+    Prepare an alignment of BRCA1 genes from 4 species. Create an unaligned
+    sequence collection, guide tree, and an app for alignment using cogent3
+    ``progressive_align()``.
+
+    >>> from cogent3 import make_unaligned_seqs, get_app
+    >>> aln = make_unaligned_seqs({
+    ... "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+    ... "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+    ... "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
+    ... "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT"
+    ... }, moltype="dna")
+    >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+    >>> aligner = get_app("progressive_align", model="HKY85")
+
+    Create a composable app that aligns the sequences and returns the
+    cogent3 log-likelihood alignment score.
+
+    >>> scorer = get_app("cogent3_score")
+    >>> app = aligner + score
+    >>> result = app(aln)
+    >>> print(result)
+    -130.47375615734916
     """
     if aln.num_seqs == 1 or len(aln) == 0:
         msg = "zero length" if len(aln) == 0 else "single sequence"
@@ -766,6 +834,27 @@ class sp_score:
         Notes
         -----
         see available_distances() for the list of available methods.
+
+        Examples
+        --------
+
+        Create a sample alignment and an app to calculate the Sum of Pairs
+        alignment score with ``calc="pdist"`` and no gap penalties.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"})
+        >>> app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
+        >>> result = app(aln)
+        >>> print(result)
+        5.0
+
+        Penalise gap extensions with ``gap_extend=1`` and insertions with
+        ``gap_insert=2``.
+
+        >>> app_gap_penalty = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=2)
+        >>> result = app_gap_penalty(aln)
+        >>> print(result)
+        -13.0
         """
         self._insert = gap_insert
         self._extend = gap_extend
