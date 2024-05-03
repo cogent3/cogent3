@@ -6,9 +6,9 @@ The fundamentals of using apps.
 .. toctree::
     :maxdepth: 2
 
-    app-overview/app-overview
-    app-overview/app-help
-    app-overview/app-get
-    app-overview/available-apps
-    app-overview/dstore
-    app-overview/not-completed
+    app_overview/app-overview
+    app_overview/app-help
+    app_overview/app-get
+    app_overview/available-apps
+    app_overview/dstore
+    app_overview/not-completed
