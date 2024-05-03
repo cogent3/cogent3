@@ -5,7 +5,6 @@ Sequence Alignment
 
 .. toctree::
     :maxdepth: 1
-    :hidden:
 
     align-nucleotide
     align-codon
