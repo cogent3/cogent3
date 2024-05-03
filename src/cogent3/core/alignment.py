@@ -4309,6 +4309,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names = [self.names[i] for i in seqs]
         else:
             names = self.names
+        if not len(names):
+            return None
+
         return self.__class__(
             data.T,
             list(map(str, names)),
