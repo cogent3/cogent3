@@ -100,10 +100,10 @@ Now let's set up a process composing the following apps: ``load_aligned`` (loads
 
 .. tip:: When running this code on your machine, remember to replace ``path_to_dir`` with an actual directory path.
 
-Now let's apply ``process`` to our data store! ``result`` is a data store containing the filtered alignments, which we can index to see individual data members. We could take a closer look using the ``.read()`` method on data members. 
+Now let's apply ``process`` to our data store! This populates ``out_dstore`` (which is returned by the ``.apply_to()`` call) with the filtered alignments. We can index ``out_dstore`` to see individual data members. We could take a closer look using the ``.read()`` method on data members. 
 
 .. jupyter-execute::
     :raises:
 
-    result = process.apply_to(fasta_seq_dstore)
-    result.describe
+    out_dstore = process.apply_to(fasta_seq_dstore)
+    out_dstore.describe
