@@ -564,8 +564,8 @@ class take_n_seqs:
         s2    ...-
         s3    ...N
 
-        Using ``random=True`` and ``number=3`` returns 3 random sequences. 
-        An optional ``seed`` can be provided to ensure the same sequences 
+        Using ``random=True`` and ``number=3`` returns 3 random sequences.
+        An optional ``seed`` can be provided to ensure the same sequences
         are returned each time the app is called.
 
         >>> app_random_n = get_app("take_n_seqs", number=3, random=True, seed=1)
