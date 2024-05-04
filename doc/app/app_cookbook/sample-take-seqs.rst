@@ -19,7 +19,8 @@ Let's load alignment of primates to use in examples.
 
 Selecting sequences from a collection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using the ``take_named_seqs`` app we can select sequences from a collection that match provided names. For instance, we could be interested in an alignment of Humans and our two most recent ancestors. 
+
+Using the ``take_named_seqs`` app we can select sequences from a collection that match provided names. For instance, we could be interested in an alignment of sequences from Humans with those from our two closest relatives. 
 
 .. jupyter-execute::
     :raises:
