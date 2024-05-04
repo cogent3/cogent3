@@ -27,10 +27,10 @@ We can use the ``fixed_length`` app to sample an alignment to a fixed length. By
     first_20(aln)
 
 
-How to sample `n` positions from within an alignment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to sample ``n`` positions from within an alignment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Creating the ``fixed_length`` app with the argument ``start=x`` specifies that the sampled sequence should begin `x` positions into the alignment. 
+Creating the ``fixed_length`` app with the argument ``start=x`` specifies that the sampled sequence should begin ``x`` positions into the alignment. 
 
 .. jupyter-execute::
     :raises:
@@ -41,8 +41,8 @@ Creating the ``fixed_length`` app with the argument ``start=x`` specifies that t
     skip_10_take_20(aln)
 
 
-How to sample `n` positions randomly from within an alignment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to sample ``n`` positions randomly from within an alignment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The start position can be selected at random with ``random=True``. An optional ``seed`` can be provided to ensure the same start position is used when the app is called.
 
