@@ -52,8 +52,8 @@ By providing the argument ``intersect=False``, the ``concat`` app will include m
     result = concat_missing([aln1, aln3])
     result
 
-How to concatenated alignments with a deliminator ``"N"``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to concatenated alignments with a delimiter ``"N"``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can insert an ``"N"`` character in between the concatenated sequences. 
 
