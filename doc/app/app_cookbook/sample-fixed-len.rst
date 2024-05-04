@@ -12,8 +12,8 @@ Let's load in an alignment of rodents to use in the examples.
     aln = loader("data/abglobin_aa.phylip")
     aln
 
-How to sample the first `n` positions of an alignment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to sample the first ``n`` positions of an alignment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We can use the ``fixed_length`` app to sample an alignment to a fixed length. By default, it will sample from the beginning of an alignment, the argument ``length=20`` specifies how many positions to sample. 
 
