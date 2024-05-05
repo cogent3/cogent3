@@ -9,6 +9,7 @@ Using a codon model
 We load the unaligned sequences we will use in our examples.
 
 .. jupyter-execute::
+    :raises:
 
     from cogent3 import get_app
 
@@ -23,6 +24,7 @@ Codon alignment with default settings
 The default settings will result in estimation of a guide tree (using percent identity between the sequences). The default "codon" model is MG94HKY.
 
 .. jupyter-execute::
+    :raises:
 
     from cogent3 import get_app
 
@@ -40,6 +42,7 @@ The distance measures available are the same as for the nucleotide case (percent
 .. note:: An estimated guide tree has its branch lengths scaled so they are consistent with usage in a codon model.
 
 .. jupyter-execute::
+    :raises:
 
     nt_aligner = get_app("progressive_align", "codon", distance="paralinear")
     aligned = nt_aligner(seqs)
@@ -49,6 +52,7 @@ Providing a guide tree
 ----------------------
 
 .. jupyter-execute::
+    :raises:
 
     tree = "((Chimp:0.001,Human:0.001):0.0076,Macaque:0.01,((Rat:0.01,Mouse:0.01):0.02,Mouse_Lemur:0.02):0.01)"
     codon_aligner = get_app("progressive_align", "codon", guide_tree=tree)
@@ -61,6 +65,7 @@ Specifying the gap parameters
 -----------------------------
 
 .. jupyter-execute::
+    :raises:
 
     codon_aligner = get_app("progressive_align",
         "codon", guide_tree=tree, indel_rate=0.001, indel_length=0.01
@@ -74,6 +79,7 @@ Specifying the substitution model and parameters
 Any ``cogent3`` codon substitution model can be used. (See ``cogent3.available_models()``.)
 
 .. jupyter-execute::
+    :raises:
 
     codon_aligner = get_app("progressive_align",
         "CNFHKY", guide_tree=tree, param_vals=dict(omega=0.1, kappa=3)
@@ -89,5 +95,6 @@ Alignment settings and file provenance are recorded in the ``info`` attribute
 The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment ``info`` attribute.
 
 .. jupyter-execute::
+    :raises:
 
     aligned.info

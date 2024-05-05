@@ -3705,23 +3705,23 @@ def test_slice_aligned_featuremap_multi_spans():
 
 def test_sequence_collection_repr():
     data = {
-        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
         "ENSMUSG00000039616": "GCCCTTCAAATTT",
     }
     seqs = SequenceCollection(data=data, moltype=DNA)
     assert (
         repr(seqs)
-        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
     )
 
     data = {
         "ENSMUSG00000039616": "GCCCTTCAAATTT",
-        "ENSMUSG00000056468": "GCCAGGGGGGAAAGGGAGAA",
+        "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
     }
     seqs = SequenceCollection(data=data, moltype=DNA)
     assert (
         repr(seqs)
-        == "2x (ENSMUSG00000039616[GCCCTTCAAAT...], ENSMUSG00000056468[GCCAGGGGGGA...]) dna seqcollection"
+        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
     )
 
     data = {
@@ -3731,6 +3731,12 @@ def test_sequence_collection_repr():
     assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
 
     data = {
+        "a": "TCGAT" * 2,
+    }
+    seqs = SequenceCollection(data=data, moltype=DNA)
+    assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
+
+    data = {
         "a": "A" * 11,
         "b": "B" * 3,
         "c": "C" * 3,
@@ -3738,8 +3744,59 @@ def test_sequence_collection_repr():
         "e": "E" * 8,
     }
     seqs = SequenceCollection(data=data, moltype=ASCII)
-    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDDD...]) text seqcollection"
+    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDD...]) text seqcollection"
 
-    data = {}
-    seqs = SequenceCollection(data=data, moltype=BYTES)
-    assert repr(seqs) == "0x () bytes seqcollection"
+
+@pytest.mark.parametrize("cls", (ArrayAlignment, Alignment))
+def test_alignment_repr(cls):
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGAAAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+    }
+    seqs = cls(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2 x 13 dna alignment: ENSMUSG00000056468[GCCAGGGGGA...], ENSMUSG00000039616[GCCCTTCAAA...]"
+    )
+
+    data = {
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        "ENSMUSG00000056468": "GCCAGGGGGAAAA",
+    }
+    seqs = cls(data=data, moltype=DNA)
+    assert (
+        repr(seqs)
+        == "2 x 13 dna alignment: ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]"
+    )
+
+    data = {
+        "a": "TCGAT",
+    }
+    seqs = cls(data=data, moltype=DNA)
+    assert repr(seqs) == "1 x 5 dna alignment: a[TCGAT]"
+
+    data = {
+        "a": "TCGAT" * 2,
+    }
+    seqs = cls(data=data, moltype=DNA)
+    assert repr(seqs) == "1 x 10 dna alignment: a[TCGATTCGAT]"
+
+    data = {
+        "a": "A" * 11,
+        "b": "B" * 11,
+        "c": "C" * 11,
+        "d": "D" * 11,
+        "e": "E" * 11,
+    }
+    seqs = cls(data=data, moltype=ASCII)
+    assert (
+        repr(seqs)
+        == "5 x 11 text alignment: a[AAAAAAAAAA...], b[BBBBBBBBBB...], c[CCCCCCCCCC...], ..."
+    )
+
+
+@pytest.mark.parametrize("cls", (ArrayAlignment, Alignment, SequenceCollection))
+def test_empty_data(cls):
+    with pytest.raises(ValueError) as e:
+        _ = cls(())
+    assert str(e.value) == f"{cls.__name__} must take at least one sequence."
