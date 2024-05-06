@@ -1,5 +1,6 @@
 """Tests for Clustal sequence format writer.
 """
+
 from unittest import TestCase
 
 from cogent3.core.alignment import Alignment

@@ -1,7 +1,6 @@
 """Leaf and Edge classes that can calculate their likelihoods.
 Each leaf holds a sequence.  Used by a likelihood function."""
 
-
 import numpy
 
 from . import likelihood_tree_numba as likelihood_tree

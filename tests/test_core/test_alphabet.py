@@ -2,6 +2,7 @@
 
 Note: individual alphabets are typically in MolType and are tested there.
 """
+
 import pickle
 
 from unittest import TestCase

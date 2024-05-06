@@ -1,5 +1,6 @@
 """Conversion of dynamic program results ("arrays of arrows") into gap vectors,
 gapped sequences or Cogent Alignment objects"""
+
 import typing
 
 from cogent3.core.alignment import Aligned, Alignment

@@ -28,6 +28,7 @@ called Q) is determined.
 >>> model.setparameterrules({'alpha': model.istransition})
 >>> parameter_controller = model.make_likelihood_function(tree)
 """
+
 from __future__ import annotations
 
 import json

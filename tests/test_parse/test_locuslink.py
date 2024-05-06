@@ -1,5 +1,6 @@
 """Unit tests for locuslink-specific classes
 """
+
 from unittest import TestCase
 
 from cogent3.parse.locuslink import (

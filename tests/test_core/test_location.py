@@ -1,5 +1,6 @@
 """Unit tests for Span classes.
 """
+
 from itertools import combinations
 from unittest import TestCase
 

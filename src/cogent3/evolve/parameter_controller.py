@@ -3,7 +3,6 @@ This file defines a class for controlling the scope and heterogeneity of
 parameters involved in a maximum-likelihood based tree analysis.
 """
 
-
 import pickle
 
 import numpy

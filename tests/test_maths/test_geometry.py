@@ -1,4 +1,5 @@
 """Tests of the geometry package."""
+
 from math import sqrt
 from unittest import TestCase
 

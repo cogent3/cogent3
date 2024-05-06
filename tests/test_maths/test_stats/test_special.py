@@ -1,5 +1,6 @@
 """Unit tests for special functions used in statistics.
 """
+
 import math
 
 from unittest import TestCase

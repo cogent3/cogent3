@@ -1,5 +1,6 @@
 """Parsers for blast, psi-blast and blat.
 """
+
 from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,

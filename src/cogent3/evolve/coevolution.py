@@ -1947,9 +1947,9 @@ def filter_threshold_based_multiple_interdependency(
     else:
         # filter the rows and cols in a symmetric matrix
         for row_n in filtered_rows:
-            coevolution_matrix[row_n, :] = coevolution_matrix[
-                :, row_n
-            ] = DEFAULT_NULL_VALUE
+            coevolution_matrix[row_n, :] = coevolution_matrix[:, row_n] = (
+                DEFAULT_NULL_VALUE
+            )
 
     # return the result
     return coevolution_matrix

@@ -1,5 +1,6 @@
 """Local or Global-then-local optimisation with progress display
 """
+
 from __future__ import annotations
 
 import warnings

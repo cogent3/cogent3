@@ -875,28 +875,22 @@ class MapABC(ABC):
         return obj
 
     @abstractmethod
-    def __len__(self) -> int:
-        ...
+    def __len__(self) -> int: ...
 
     @abstractmethod
-    def __add__(self, other: "MapABC") -> "MapABC":
-        ...
+    def __add__(self, other: "MapABC") -> "MapABC": ...
 
     @abstractmethod
-    def nongap(self) -> Iterator[SpanTypes]:
-        ...
+    def nongap(self) -> Iterator[SpanTypes]: ...
 
     @abstractmethod
-    def get_coordinates(self) -> SeqCoordTypes:
-        ...
+    def get_coordinates(self) -> SeqCoordTypes: ...
 
     @abstractmethod
-    def nucleic_reversed(self) -> "MapABC":
-        ...
+    def nucleic_reversed(self) -> "MapABC": ...
 
     @abstractmethod
-    def to_rich_dict(self) -> dict[str, Any]:
-        ...
+    def to_rich_dict(self) -> dict[str, Any]: ...
 
     @classmethod
     def from_locations(
@@ -911,8 +905,9 @@ class MapABC(ABC):
 
     @classmethod
     @abstractmethod
-    def from_spans(cls, spans: SeqSpanTypes, parent_length: int, **kwargs) -> "MapABC":
-        ...
+    def from_spans(
+        cls, spans: SeqSpanTypes, parent_length: int, **kwargs
+    ) -> "MapABC": ...
 
 
 def _spans_from_locations(locations: SeqCoordTypes, parent_length: int) -> SeqSpanTypes:

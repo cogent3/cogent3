@@ -110,8 +110,7 @@ def test_hints_from_container_type_obj(container):
 def test_hint_inherited_class():
     from collections.abc import MutableSequence
 
-    class dummy(MutableSequence):
-        ...
+    class dummy(MutableSequence): ...
 
     got = get_constraint_names(dummy)
     assert got == frozenset(["dummy"])

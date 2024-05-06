@@ -153,7 +153,7 @@ class model:
 
         For the following, we will only show different model construction options
         but don't apply them to data.
-        
+
         To apply a model to an alignment with more than three sequences
         we need to provide a tree. We can provide the tree as a newick
         string.

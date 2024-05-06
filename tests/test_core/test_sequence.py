@@ -1,5 +1,6 @@
 """Unit tests for Sequence class and its subclasses.
 """
+
 import json
 import os
 import re

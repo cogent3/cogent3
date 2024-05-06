@@ -24,7 +24,6 @@ class _Exponentiator(object):
 
 
 class VanLoanIntegratingExponentiator(_Exponentiator):
-
     """An exponentiator that evaluates int_0^t exp(Q*s)ds * R
     using the method of Van Loan [1]. Complexity is that of the Exponentiator.
     [1] Van Loan, C. F. (1978). Computing integrals involving the matrix

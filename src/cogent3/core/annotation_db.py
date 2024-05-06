@@ -97,14 +97,11 @@ class FeatureDataType(typing.TypedDict):
 
 @typing.runtime_checkable
 class SerialisableType(typing.Protocol):  # pragma: no cover
-    def to_rich_dict(self) -> dict:
-        ...
+    def to_rich_dict(self) -> dict: ...
 
-    def to_json(self) -> str:
-        ...
+    def to_json(self) -> str: ...
 
-    def from_dict(self, data):
-        ...
+    def from_dict(self, data): ...
 
 
 @typing.runtime_checkable
@@ -126,8 +123,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
-    ) -> typing.Iterator[FeatureDataType]:
-        ...
+    ) -> typing.Iterator[FeatureDataType]: ...
 
     @c3warn.deprecated_args(
         "2024.9",
@@ -141,8 +137,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         start: OptionalInt = None,
         stop: OptionalInt = None,
         **kwargs,
-    ) -> typing.List[FeatureDataType]:
-        ...
+    ) -> typing.List[FeatureDataType]: ...
 
     @c3warn.deprecated_args(
         "2024.9",
@@ -156,8 +151,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         start: OptionalInt = None,
         stop: OptionalInt = None,
         **kwargs,
-    ) -> typing.List[FeatureDataType]:
-        ...
+    ) -> typing.List[FeatureDataType]: ...
 
     def num_matches(
         self,
@@ -168,8 +162,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
         on_alignment: OptionalBool = None,
-    ) -> int:
-        ...
+    ) -> int: ...
 
     @c3warn.deprecated_args(
         "2024.9",
@@ -186,8 +179,7 @@ class SupportsQueryFeatures(typing.Protocol):  # pragma: no cover
         stop: OptionalInt = None,
         strand: OptionalStr = None,
         attributes: OptionalStr = None,
-    ):
-        ...
+    ): ...
 
 
 @typing.runtime_checkable
@@ -204,8 +196,7 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         attributes: OptionalStr = None,
         strand: OptionalStr = None,
         on_alignment: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def add_records(
         self,
@@ -213,8 +204,7 @@ class SupportsWriteFeatures(typing.Protocol):  # pragma: no cover
         records: typing.Sequence[dict],
         # seqid required for genbank
         seqid: OptionalStr = None,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def update(self, annot_db, seqids: OptionalStrList = None) -> None:
         # update records with those from an instance of the same type
