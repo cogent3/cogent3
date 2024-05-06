@@ -133,7 +133,7 @@ class model:
         Examples
         --------
 
-        Call a susbstitution model and fit to a three-sequence alignment. For three
+        Create a model and fit to a three-sequence alignment. For three
         sequences, as there is only one possible unrooted tree, it's not necessary
         to specify one. (We're limiting the optimiser's workload by setting
         `max_evaluations=10`, solely to ensure quick execution of the examples, not
