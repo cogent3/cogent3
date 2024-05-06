@@ -193,7 +193,7 @@ class model:
         ... )
 
         Specify the settings in the optimiser. By default, the Powell local optimiser is used.
-        The Powell algorithm can use restarts, configured using ``max_restarts`` to overcome
+        The Powell algorithm can use restarts, configured using ``max_restarts``, to overcome
         local maxima. With 'limit_action="ignore"' defined, the optimiser will disregard
         optimisation failures caused by exceeding 'max_evaluations', rather than meeting the
         'tolerance' condition. (For more information see
