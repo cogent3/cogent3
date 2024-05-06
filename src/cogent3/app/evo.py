@@ -133,9 +133,11 @@ class model:
         Examples
         --------
 
-        Call a susbstitution model and fit to a three-sequence alignment.
-        (We're limiting the optimiser's workload by setting `max_evaluations=10`,
-        solely to ensure quick execution of the examples, not because we recommend it!)
+        Call a susbstitution model and fit to a three-sequence alignment. For three
+        sequences, as there is only one possible unrooted tree, it's not necessary
+        to specify one. (We're limiting the optimiser's workload by setting
+        `max_evaluations=10`, solely to ensure quick execution of the examples, not
+        because we recommend it!)
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> aln = make_aligned_seqs({
@@ -144,7 +146,7 @@ class model:
         ...    "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         ... })
         >>> app = get_app("model", "F81", opt_args=dict(limit_action="ignore",
-        ... max_evaluations=10,))
+        ... max_evaluations=10))
         >>> result = app(aln)
         >>> result
         F81...
@@ -190,11 +192,12 @@ class model:
         ...     ],
         ... )
 
-        Specify the settings in the optimiser. By default, the optimiser is set to Powell,
-        which attempts restarts to overcome local maxima by configuring 'max_restarts'.
-        With 'limit_action="ignore"' defined, the optimiser will disregard optimisation failures
-        caused by exceeding 'max_evaluations', rather than meeting the 'tolerance' condition.
-        (see more https://cogent3.org/doc/cookbook/evo_modelling.html#)
+        Specify the settings in the optimiser. By default, the Powell local optimiser is used.
+        The Powell algorithm can use restarts, configured using ``max_restarts`` to overcome
+        local maxima. With 'limit_action="ignore"' defined, the optimiser will disregard
+        optimisation failures caused by exceeding 'max_evaluations', rather than meeting the
+        'tolerance' condition. (For more information see
+        https://cogent3.org/doc/cookbook/evo_modelling.html.)
 
         >>> app_alt_opt = get_app(
         ...     "model",
@@ -217,20 +220,21 @@ class model:
         ...     "model", "HKY85", tree=tree, split_codons=True
         ... )
 
-        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
-        is returned if tree(or tree_func) is not provided when seqs number > 3.
+        A ``NotCompleted`` object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if ``tree`` (or ``tree_func``) is not provided and the number of seqs
+        exceeds 3.
 
         >>> app_notree = get_app("model", "HKY85")
         >>> result = app_notree(aln2)
         >>> result.message
         'to model more than 3, you must provide a tree'
 
-        If the model optimization is unsuccessful, a NotCompleted object will be returned.
+        A ``NotCompleted`` object is also returned if the model optimization is unsuccessful.
         (Note that we have deliberately configured the optimiser to raise an exception if
-        it exists because it reached the maximum allowed evaluations.)
+        it exits because it reached the maximum allowed evaluations.)
 
         >>> app_limit_act = get_app("model", "GN", opt_args=dict(limit_action="raise",
-        ... max_evaluations=10,))
+        ... max_evaluations=10))
         >>> result = app_limit_act(aln)
         >>> print(result.message) # doctest: +NORMALIZE_WHITESPACE
         Traceback ... FORCED EXIT from optimiser after 10 evaluations
@@ -643,9 +647,9 @@ class tabulate_stats:
         --------
 
         Get all parameter estimates from a model fit. The estimates will
-        be stored in a `dict`-like instance, with keys representing global
+        be stored in a ``dict``-like instance, with keys representing global
         parameters (if any), parameters specific to branches, and motif
-        nucleotide frequencies.
+        probabilities.
 
         >>> from cogent3 import make_aligned_seqs, get_app
         >>> data = {
