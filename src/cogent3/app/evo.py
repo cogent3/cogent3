@@ -134,8 +134,8 @@ class model:
         --------
 
         Create a model and fit to a three-sequence alignment. For three
-        sequences, as there is only one possible unrooted tree, it's not necessary
-        to specify one. (We're limiting the optimiser's workload by setting
+        sequences, there is only one possible unrooted tree so we do not need
+        to provide one. (We're limiting the optimiser's workload by setting
         ``max_evaluations=10``, solely to ensure quick execution of the examples, not
         because we recommend it!)
 
@@ -151,7 +151,9 @@ class model:
         >>> result
         F81...
 
-        Create a model and fit to an alignment with seqs > 3.
+        To apply a model to an alignment with more than three sequences
+        we need to provide a tree. We can provide the tree as a newick
+        string.
 
         >>> tree = "(Mouse,(Human,Gorilla),Opossum)"
         >>> aln2 = make_aligned_seqs({
@@ -162,15 +164,16 @@ class model:
         ... })
         >>> app_tr = get_app("model", "F81", tree=tree)
 
-        Assign a tree function to estimate the phylogenetic tree for the incoming alignment.
+        Or we could assign a function that estimates the tree for an alignment.
 
         >>> dist_cal = get_app("fast_slow_dist", fast_calc="paralinear", moltype="dna")
         >>> est_tree = get_app("quick_tree")
         >>> tree_func = dist_cal + est_tree
         >>> model = get_app("model", "F81", tree_func=tree_func)
 
-        Specify the time-heterogeneous settings for the model fitting.
-        For details, see https://cogent3.org/doc/app/evo-model-timehet#
+        We can specify a time-heterogeneous model (where substitution rate parameters
+        differ between branches). For details, see
+        https://cogent3.org/doc/app/evo-model-timehet
 
         >>> app_thet = get_app(
         ...    "model",
@@ -179,8 +182,8 @@ class model:
         ...    time_het=[dict(tip_names=["Human", "Opossum"], outgroup_name="Mouse")],
         ... )
 
-        Specify the upper and lower bounds for certain branch length and rate exchangeability
-        parameter.
+        Specify the upper and lower bounds for certain branch length and rate
+        exchangeability parameter.
 
         >>> app_alt_params = get_app(
         ...     "model",
@@ -214,7 +217,7 @@ class model:
         ...     "model", "HKY85", tree=tree, lf_args = dict(discrete_edges=["Opossum"])
         ... )
 
-        Split codon and fit models on the relative positions.
+        Splitting codons and fit models to each codon position class.
 
         >>> app_sp_codon = get_app(
         ...     "model", "HKY85", tree=tree, split_codons=True
