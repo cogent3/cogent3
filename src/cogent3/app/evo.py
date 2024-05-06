@@ -151,6 +151,9 @@ class model:
         >>> result
         F81...
 
+        For the following, we will only show different model construction options
+        but don't apply them to data.
+        
         To apply a model to an alignment with more than three sequences
         we need to provide a tree. We can provide the tree as a newick
         string.
@@ -197,9 +200,9 @@ class model:
 
         Specify the settings in the optimiser. By default, the Powell local optimiser is used.
         The Powell algorithm can use restarts, configured using ``max_restarts``, to overcome
-        local maxima. With 'limit_action="ignore"' defined, the optimiser will disregard
-        optimisation failures caused by exceeding 'max_evaluations', rather than meeting the
-        'tolerance' condition. (For more information see
+        local maxima. With ``limit_action="ignore"`` defined, the optimiser will disregard
+        optimisation failures caused by exceeding ``max_evaluations``, rather than meeting the
+        ``tolerance`` condition. (For more information see
         https://cogent3.org/doc/cookbook/evo_modelling.html.)
 
         >>> app_alt_opt = get_app(
