@@ -87,7 +87,7 @@ class model:
             a callable that takes an alignment and returns a Tree instance.
             Overrides tree and unique_tree settings.
         name
-            the model name, which users can customise
+            the model name
         optimise_motif_probs
             whether the motif probabilities are free parameters. If False,
             takes the average of frequencies from the alignment. Overrides
