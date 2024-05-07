@@ -1,15 +1,14 @@
 Overview of apps
 ================
 
-Select your topic from the left sidebar.
+The fundamentals of using apps.
 
 .. toctree::
     :maxdepth: 2
-    :hidden:
 
-    app-overview
-    app-help
-    app-get
-    available-apps
-    dstore
-    not-completed
+    app_overview/app-overview
+    app_overview/app-help
+    app_overview/app-get
+    app_overview/available-apps
+    app_overview/dstore
+    app_overview/not-completed

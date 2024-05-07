@@ -6,14 +6,14 @@ Just use the ``define_app`` decorator! This generates a wrapper class that has a
 You need two things:
 
 1. your function
-2. Type hints on the function first argument and the function return type.
+2. Type hints on the function's first argument and the function return type.
 
 .. note:: At present, your function can have only one required argument.
 
 Supported cogent3 types
 -----------------------
 
-If you function takes or returns cogent3 types, you can use the existing type hints. To see what these are, use the ``defined_types()`` function.
+If your function takes or returns ``cogent3`` types, you can use the existing type hints. To see what these are, use the ``defined_types()`` function.
 
 .. jupyter-execute::
 

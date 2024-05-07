@@ -1,11 +1,11 @@
-#!/usr/bin/env python
 """Parser for NCBI Tiny Seq XML format.
 DOCTYPE TSeqSet PUBLIC "-//NCBI//NCBI TSeq/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_TSeq.dtd"
 """
+
 import io
 import xml.dom.minidom
 
-from cogent3.core import annotation, moltype
+from cogent3.core import moltype
 
 
 """

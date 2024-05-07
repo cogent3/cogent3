@@ -18,6 +18,7 @@
     passed in a stream of two-item label, sequence pairs. However, this can
     cause confusion when testing.
 """
+
 from __future__ import annotations
 
 import functools
@@ -29,10 +30,18 @@ import warnings
 
 from collections import Counter, defaultdict
 from copy import deepcopy
-from functools import total_ordering
+from functools import singledispatchmethod, total_ordering
 from itertools import combinations
-from types import GeneratorType
-from typing import Any, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import numpy
 
@@ -57,7 +66,7 @@ from numpy.random import choice, permutation, randint
 import cogent3  # will use to get at cogent3.parse.fasta.MinimalFastaParser,
 
 from cogent3._version import __version__
-from cogent3.core.annotation import Feature, Map
+from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
     FeatureDataType,
@@ -67,6 +76,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
+from cogent3.core.location import FeatureMap, IndelMap
 from cogent3.core.profile import PSSM, MotifCountsArray
 from cogent3.core.sequence import ArraySequence, Sequence, frac_same
 # which is a circular import otherwise.
@@ -75,7 +85,6 @@ from cogent3.format.fasta import alignment_to_fasta
 from cogent3.format.nexus import nexus_from_alignment
 from cogent3.format.phylip import alignment_to_phylip
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.parse.gff import gff_parser
 from cogent3.util import progress_display as UI
 from cogent3.util import warning as c3warn
 from cogent3.util.dict_array import DictArrayTemplate
@@ -250,113 +259,6 @@ def coerce_to_string(s):
         return "".join(map(str, s))
 
 
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_array(a, alphabet=None):  # pragma: no cover
-    """SequenceCollection from array of pos x seq: names are integers.
-
-    This is an InputHandler for SequenceCollection. It converts an arbitrary
-    array of numbers into Sequence objects, and leaves the sequences unlabeled.
-    """
-    return list(transpose(a)), None
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_array_seqs(seqs, alphabet=None):  # pragma: no cover
-    """Alignment from ArraySequence objects: seqs -> array, names from seqs.
-
-    This is an InputHandler for SequenceCollection. It converts a list of
-    Sequence objects with _data and name properties into a SequenceCollection
-    that uses those sequences.
-    """
-    return seqs, [s.name for s in seqs]
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_generic(seqs, alphabet=None):  # pragma: no cover
-    """returns seqs, names"""
-    names = []
-    for s in seqs:
-        if hasattr(s, "name"):
-            names.append(s.name)
-        else:
-            names.append(None)
-    return seqs, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_fasta(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from FASTA-format string or lines.
-
-    This is an InputHandler for SequenceCollection. It converts a FASTA-format
-    string or collection of lines into a SequenceCollection object, preserving
-    order..
-    """
-    if isinstance(seqs, str):
-        seqs = seqs.splitlines()
-    names, seqs = list(zip(*list(cogent3.parse.fasta.MinimalFastaParser(seqs))))
-    return list(seqs), list(names)
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_dict(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from dict of {label:seq_as_str}.
-
-    This is an InputHandler for SequenceCollection. It converts a dict in
-    which the keys are the names and the values are the sequences
-    (sequence only, no whitespace or other formatting) into a
-    SequenceCollection. Because the dict doesn't preserve order, the result
-    will not necessarily be in alphabetical order."""
-    names, seqs = list(map(list, list(zip(*list(seqs.items())))))
-    seqs = [bytes_to_string(s) for s in seqs]
-    return seqs, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_kv_pairs(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from list of (key, val) pairs.
-
-    This is an InputHandler for SequenceCollection. It converts a dict in
-    which the keys are the names and the values are the sequences
-    (sequence only, no whitespace or other formatting) into a
-    SequenceCollection. Because the dict doesn't preserve order, the result
-    will be in arbitrary order."""
-    names, seqs = list(map(list, list(zip(*seqs))))
-    seqs = [bytes_to_string(s) for s in seqs]
-    return seqs, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_aln(seqs, alphabet=None):  # pragma: no cover
-    """SequenceCollection from existing SequenceCollection object: copies data.
-
-    This is relatively inefficient: you should really use the copy() method
-    instead, which duplicates the internal data structures.
-    """
-    return seqs.seqs, seqs.names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def seqs_from_empty(obj, *args, **kwargs):  # pragma: no cover
-    """SequenceCollection from empty data: raise exception."""
-    raise ValueError("Cannot create empty SequenceCollection.")
-
-
 @functools.singledispatch
 def merged_db_collection(seqs) -> SupportsFeatures:
     """return one AnnotationDb's
@@ -475,16 +377,6 @@ class _SequenceCollectionBase:
 
     is_array = set(["array", "array_seqs"])
 
-    @c3warn.deprecated_args(
-        "2024.3",
-        reason="simplifying API",
-        discontinued=(
-            "remove_duplicate_names",
-            "alphabet",
-            "suppress_named_seqs",
-            "force_same_data",
-        ),
-    )
     def __init__(
         self,
         data,
@@ -554,6 +446,11 @@ class _SequenceCollectionBase:
         """
         if isinstance(data, (typing.Generator, typing.Iterator)):
             data = tuple(data)
+
+        if len(data) == 0:
+            raise ValueError(
+                f"{self.__class__.__name__} must take at least one sequence."
+            )
 
         if moltype is None:
             moltype = _moltype_from_data(data)
@@ -638,9 +535,12 @@ class _SequenceCollectionBase:
             annotations.
         """
         if isinstance(self, Alignment):
-            reversed = self.seqs[0].map.reverse
+            *_, strand = self.seqs[0].data.parent_coordinates()
+
         else:
-            reversed = self.seqs[0]._seq.reverse
+            *_, strand = self.seqs[0].parent_coordinates()
+
+        reversed = strand == "-"
         new_seqs = dict()
         db = None if reversed and sliced else deepcopy(self.annotation_db)
         for seq in self.seqs:
@@ -707,7 +607,7 @@ class _SequenceCollectionBase:
 
     # access as attribute if using default order.
 
-    def take_seqs(self, seqs, negate=False, **kwargs):
+    def take_seqs(self, seqs: Union[str, typing.Sequence[str]], negate=False, **kwargs):
         """Returns new Alignment containing only specified seqs.
 
         Note that the seqs in the new alignment will be references to the
@@ -983,17 +883,20 @@ class _SequenceCollectionBase:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def to_fasta(self):
-        """Return alignment in Fasta format
+    def to_fasta(self, block_size: int = 60) -> str:
+        """Return alignment in Fasta format.
 
         Parameters
         ----------
-        make_seqlabel
-            callback function that takes the seq object and
-            returns a label str
+        block_size
+            the sequence length to write to each line,
+            by default 60
 
+        Returns
+        -------
+        The Fasta formatted alignment.
         """
-        return alignment_to_fasta(self.to_dict())
+        return alignment_to_fasta(self.to_dict(), block_size=block_size)
 
     def to_nexus(self, seq_type, wrap=50):
         """
@@ -1199,10 +1102,15 @@ class _SequenceCollectionBase:
         """Return a sequence object for the specified seqname."""
         return self.named_seqs[seqname]
 
-    def to_dict(self):
-        """Returns the alignment as dict of names -> strings.
+    def to_dict(self) -> dict[str, str]:
+        """Returns the alignment as a dict of sequence names -> strings.
 
-        Note: returns strings, NOT Sequence objects.
+        Note the mapping goes to strings, not Sequence objects.
+
+        Returns
+        -------
+        a dict mapping sequence names to a string representation of
+        their sequences.
         """
         align_dict = {}
 
@@ -1314,7 +1222,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
 
         """
@@ -1329,6 +1237,7 @@ class _SequenceCollectionBase:
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
+        warn=False,
     ):
         """counts of motifs per sequence
 
@@ -1341,6 +1250,9 @@ class _SequenceCollectionBase:
             from the seq moltype are included. No expansion of those is attempted.
         allow_gap
             if True, motifs containing a gap character are included.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
 
         Returns
         -------
@@ -1362,6 +1274,7 @@ class _SequenceCollectionBase:
                 include_ambiguity=include_ambiguity,
                 allow_gap=allow_gap,
                 exclude_unobserved=exclude_unobserved,
+                warn=warn,
             )
             motifs.update(c.keys())
             counts.append(c)
@@ -1386,7 +1299,7 @@ class _SequenceCollectionBase:
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
@@ -1594,41 +1507,42 @@ class _SequenceCollectionBase:
 
     def dotplot(
         self,
-        name1=None,
-        name2=None,
-        window=20,
-        threshold=None,
-        k=None,
-        min_gap=0,
-        width=500,
-        title=None,
-        rc=False,
-        show_progress=False,
+        name1: Optional[str] = None,
+        name2: Optional[str] = None,
+        window: int = 20,
+        threshold: Optional[int] = None,
+        k: Optional[int] = None,
+        min_gap: int = 0,
+        width: int = 500,
+        title: Optional[str] = None,
+        rc: bool = False,
+        show_progress: bool = False,
     ):
         """make a dotplot between specified sequences. Random sequences
         chosen if names not provided.
 
         Parameters
         ----------
-        name1, name2 : str or None
-            names of sequences. If one is not provided, a random choice is made
-        window : int
-            k-mer size for comparison between sequences
-        threshold : int
+        name1, name2
+            names of sequences. If not provided, a random choice is made
+        window
+            segment size for comparison between sequences
+        threshold
             windows where the sequences are identical >= threshold are a match
-        k : int
+        k
             size of k-mer to break sequences into. Larger values increase
-            speed but reduce resolution. If not specified, is computed as the
-            maximum of (window-threshold), (window % k) * k <= threshold.
-        min_gap : int
+            speed but reduce resolution. If not specified, and
+            window == threshold, then k is set to window. Otherwise, it is
+            computed as the maximum of {threshold // (window - threshold), 5}.
+        min_gap
             permitted gap for joining adjacent line segments, default is no gap
             joining
-        width : int
+        width
             figure width. Figure height is computed based on the ratio of
             len(seq1) / len(seq2)
         title
             title for the plot
-        rc : bool or None
+        rc
             include dotplot of reverse compliment also. Only applies to Nucleic
             acids moltypes
 
@@ -1727,6 +1641,7 @@ class _SequenceCollectionBase:
             new[new_name] = new_seq
         result = self.__class__(data=new, info=self.info, moltype=self.moltype)
         result.info.name_map = name_map
+        result.annotation_db = self.annotation_db
         return result
 
     @UI.display_wrap
@@ -1838,7 +1753,7 @@ class _SequenceCollectionBase:
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """return MotifFreqsArray per sequence"""
 
@@ -1847,11 +1762,9 @@ class _SequenceCollectionBase:
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
+            warn=warn,
         )
-        if counts is None:
-            return None
-
-        return counts.to_freq_array()
+        return None if counts is None else counts.to_freq_array()
 
     def entropy_per_seq(
         self,
@@ -1859,7 +1772,7 @@ class _SequenceCollectionBase:
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=True,
-        alert=False,
+        warn=False,
     ):
         """Returns the Shannon entropy per sequence.
 
@@ -1874,6 +1787,9 @@ class _SequenceCollectionBase:
             if True, motifs containing a gap character are included.
         exclude_unobserved: bool
             if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
 
         Notes
         -----
@@ -1885,7 +1801,7 @@ class _SequenceCollectionBase:
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
-            alert=alert,
+            warn=warn,
         )
         if probs is None:
             return None
@@ -1949,10 +1865,11 @@ class SequenceCollection(_SequenceCollectionBase):
 
         Parameters
         ----------
-        f : path to gff annotation file.
-        seq_name : names of seqs to be annotated.
-        does not support setting offset, set offset directly on sequences with seq.annotation_offset = offset
-
+        f
+            path to gff annotation file.
+        seq_name
+            names of seqs to be annotated. Does not support setting offset,
+            set offset directly on sequences with seq.annotation_offset = offset
         """
         if isinstance(self.annotation_db, GenbankAnnotationDb):
             raise ValueError("GenbankAnnotationDb already attached")
@@ -2064,11 +1981,10 @@ class SequenceCollection(_SequenceCollectionBase):
         if not self.annotation_db:
             return None
 
-        seqids = [seqid] if isinstance(seqid, str) else seqid
-        if seqids is None:
-            seqids = self.names
-
-        if seqid and not set(seqids) & set(self.names):
+        seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
+        if seqid and (
+            seqid not in seqid_to_seqname and seqid not in seqid_to_seqname.values()
+        ):
             raise ValueError(f"unknown {seqid=}")
 
         for feature in self.annotation_db.get_features_matching(
@@ -2078,7 +1994,8 @@ class SequenceCollection(_SequenceCollectionBase):
             on_alignment=False,
             allow_partial=allow_partial,
         ):
-            seq = self.named_seqs[feature["seqid"]]
+            seqname = seqid_to_seqname[feature["seqid"]]
+            seq = self.named_seqs[seqname]
             if offset := seq.annotation_offset:
                 feature["spans"] = (array(feature["spans"]) - offset).tolist()
             yield seq.make_feature(feature, self)
@@ -2127,17 +2044,220 @@ class SequenceCollection(_SequenceCollectionBase):
 
         return dist_calc_app(self)
 
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+
+        repr_seq_names = [min(self.names, key=lambda name: len(self.named_seqs[name]))]
+        if len(self.names) > 1:
+            # In case of a tie, min and max return first.
+            # reversed ensures if all seqs are of same length, different seqs are returned
+            repr_seq_names.append(
+                max(reversed(self.names), key=lambda name: len(self.named_seqs[name]))
+            )
+
+        for name in repr_seq_names:
+            elts = list(str(self.named_seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts[-1] = "..."
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+
+        if len(self.names) > 2:
+            seqs.insert(1, "...")
+
+        seqs = ", ".join(seqs)
+
+        return f"{len(self.names)}x ({seqs}) {self.moltype.get_type()} seqcollection"
+
+    def _repr_html_(self) -> str:
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_seqs=int, num_pos=int, wrap=int),
+        )
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            limit=settings["num_pos"],
+            wrap=settings["wrap"],
+        )
+
+    def to_html(
+        self,
+        name_order: Optional[typing.Sequence[str]] = None,
+        wrap: int = 60,
+        limit: Optional[int] = None,
+        colors: Optional[Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
+        """returns html with embedded styles for sequence colouring
+
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        wrap
+            number of alignment columns per row
+        limit
+            truncate alignment to this length
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
+
+        Examples
+        ---------
+
+        In a jupyter notebook, this code is used to provide the representation.
+
+        .. code-block:: python
+
+            seq_col # is rendered by jupyter
+
+        You can directly use the result for display in a notebook as
+
+        .. code-block:: python
+
+            from IPython.core.display import HTML
+            HTML(seq_col.to_html())
+        """
+        css, styles = self.moltype.get_css_style(
+            colors=colors, font_size=font_size, font_family=font_family
+        )
+
+        # Gather stats about the sequence lengths
+        seq_lens = sorted([len(seq) for seq in self.seqs])
+        if seq_lens:
+            min_seq_len = seq_lens[0]
+            max_seq_len = seq_lens[-1]
+
+            # Find median
+            if len(seq_lens) % 2 == 0:
+                total = (
+                    seq_lens[(len(seq_lens) - 2) // 2] + seq_lens[len(seq_lens) // 2]
+                )
+                med_seq_len = total // 2 if total % 2 == 0 else round(total / 2, 1)
+            else:
+                med_seq_len = seq_lens[(len(seq_lens) - 1) // 2]
+        else:
+            min_seq_len = med_seq_len = max_seq_len = 0
+
+        if name_order:
+            selected = self.take_seqs(name_order)
+        else:
+            name_order = list(self.names)
+            selected = self
+
+        # Stylise each character in each sequence
+        gaps = "".join(selected.moltype.gaps)
+        template = '<span class="%s">%%s</span>'
+        styled_seqs = defaultdict(list)
+        max_truncated_len = 0
+        for name in name_order:
+            sequence = str(self.named_seqs[name])[:limit]
+            seq_len = len(sequence)
+            max_truncated_len = max(seq_len, max_truncated_len)
+            start_gap = re.search(f"^[{gaps}]+", sequence)
+            end_gap = re.search(f"[{gaps}]+$", sequence)
+            start = 0 if start_gap is None else start_gap.end()
+            end = seq_len if end_gap is None else end_gap.start()
+
+            seq = []
+            for i, char in enumerate(sequence):
+                if i < start or i >= end:
+                    style = f"terminal_ambig_{self.moltype.label}"
+                else:
+                    style = styles[char]
+                s = template % style
+                s = s % char
+                seq.append(s)
+
+            styled_seqs[name] = seq
+
+        # Ensure all sublists are of same length
+        for name in styled_seqs:
+            if len(styled_seqs[name]) < max_truncated_len:
+                styled_seqs[name].extend(
+                    [""] * (max_truncated_len - len(styled_seqs[name]))
+                )
+
+        # Make html table
+        seqs = array([styled_seqs[n] for n in name_order], dtype="O")
+        table = ["<table>"]
+        seq_ = "<td>%s</td>"
+        label_ = '<td class="label">%s</td>'
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
+        for i in range(0, max_truncated_len, wrap):
+            table.append(num_row_.format(i))
+            seqblock = seqs[:, i : i + wrap].tolist()
+            for n, s in zip(name_order, seqblock):
+                s = "".join(s)
+                # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
+                if len(s) > 0:
+                    row = "".join([label_ % n, seq_ % s])
+                    table.append(f"<tr>{row}</tr>")
+        table.append("</table>")
+        if (
+            limit
+            and limit < len(selected)
+            or name_order
+            and len(name_order) < len(selected.names)
+        ):
+            summary = (
+                "%s x {min=%s, median=%s, max=%s} (truncated to %s x %s) %s sequence collection"
+            ) % (
+                self.num_seqs,
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
+                len(name_order) if name_order else len(selected.names),
+                limit if limit else len(selected),
+                selected.moltype.label,
+            )
+        else:
+            summary = ("%s x {min=%s, median=%s, max=%s} %s sequence collection") % (
+                self.num_seqs,
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
+                selected.moltype.label,
+            )
+
+        text = [
+            "<style>",
+            ".c3align table {margin: 10px 0;}",
+            ".c3align td { border: none !important; text-align: left !important; }",
+            ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3align tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3align .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3align .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; display: table-cell !important; "
+            "font-weight: normal !important; }" % font_size,
+            "\n".join([".c3align " + style for style in css]),
+            "</style>",
+            '<div class="c3align">',
+            "\n".join(table),
+            f"<p><i>{summary}</i></p>",
+            "</div>",
+        ]
+        return "\n".join(text)
+
 
 @total_ordering
 class Aligned:
     """One sequence in an alignment, a map between alignment coordinates and
     sequence coordinates"""
 
-    def __init__(self, map, data, length=None):
-        # Unlike the normal map constructor, here we take a list of pairs of
-        # alignment coordinates, NOT a list of pairs of sequence coordinates
-        if isinstance(map, list):
-            map = Map(map, parent_length=length).inverse()
+    @c3warn.deprecated_args(
+        "2024.9", reason="now requires an IndelMap", discontinued=["length"]
+    )
+    def __init__(self, map, data):
         self.map = map
         self.data = data
         if hasattr(data, "info"):
@@ -2178,26 +2298,18 @@ class Aligned:
         -------
         a copy of self
         """
-        new_seq = self.data.copy(exclude_annotations=exclude_annotations)
-        db = new_seq.annotation_db
+        new_seq = self.data.copy(exclude_annotations=exclude_annotations, sliced=sliced)
         if sliced:
-            span = self.map.get_covering_span()
-            new_seq = type(new_seq)(
-                str(new_seq[span.start : span.end]), info=new_seq.info, name=self.name
-            )
-            new_seq.annotation_offset = self.map.start
-            if self.map.reverse or exclude_annotations:
+            db = new_seq.annotation_db
+            *_, strand = self.data.parent_coordinates()
+            if strand == "-" or exclude_annotations:
                 new_seq.annotation_db = None
             else:
-                new_seq.annotation_offset = self.map.start
                 new_seq.annotation_db = db
-            new_map = self.map.zeroed()
-        else:
-            new_map = self.map
-
+        new_map = self.map
         return self.__class__(new_map, new_seq)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.map!r} of {self.data!r}"
 
     def with_termini_unknown(self):
@@ -2238,21 +2350,64 @@ class Aligned:
 
     def __add__(self, other):
         if self.data is other.data:
-            (map, seq) = (self.map + other.map, self.data)
+            map, seq = self.map + other.map, self.data
         else:
             seq = self.get_gapped_seq() + other.get_gapped_seq()
-            (map, seq) = seq.parse_out_gaps()
+            map, seq = seq.parse_out_gaps()
         return Aligned(map, seq)
 
-    def __getitem__(self, slice):
-        new_map = self.map[slice]
-        if new_map.reverse:
-            # A reverse slice means we should have an empty sequence
-            new_map = type(new_map)(locations=(), parent_length=len(self.data))
-        return Aligned(new_map, self.data)
+    @singledispatchmethod
+    def __getitem__(self, span: int):
+        raise NotImplementedError(f"unexpected {type(span)}")
+
+    @__getitem__.register
+    def _(self, span: int):
+        return self[span : span + 1]
+
+    @__getitem__.register
+    def _(self, span: FeatureMap):
+        # we assume the feature map is in align coordinates
+        start, end = span.start, span.end
+        if span.useful and len(list(span.spans)) == 1:
+            im = self.map[start:end]
+            seq_start = self.map.get_seq_index(start)
+            seq_end = self.map.get_seq_index(end)
+            data = self.data[seq_start:seq_end]
+        elif not span.useful:
+            im = self.map[start:end]
+            data = self.data[:0]
+        else:
+            # multiple spans
+            align_coords = span.get_coordinates()
+            im = self.map.joined_segments(align_coords)
+            seq_map = self.map.make_seq_feature_map(span)
+            data = self.data.gapped_by_map(seq_map)
+
+        return Aligned(im, data)
+
+    @__getitem__.register
+    def _(self, span: slice):
+        # todo we need to get the sequence coordinates that slice corresponds to
+        #  so we can update the self.data
+        new_map = self.map[span]
+        seq_start = self.map.get_seq_index(span.start or 0)
+        seq_end = self.map.get_seq_index(span.stop or len(self))
+        data = self.data[seq_start:seq_end] if new_map.useful else self.data[:0]
+        if new_map.useful and seq_start > seq_end:
+            # For now, a reverse slice means we should have an empty sequence
+            # todo modify this clause if a negative step is ever allowed
+            new_map = new_map.__class__(locations=(), parent_length=len(self.data))
+
+        return Aligned(new_map, data)
 
     def rc(self):
-        return Aligned(self.map.reversed(), self.data)
+        # the map now no longer stores history of reversing,
+        # as this done by Sequence & SeqView
+        new_map = self.map.nucleic_reversed()
+        # in this new approach, the map is always plus strand, so
+        # the following comprehension ensures the order of spans
+        # and the span start/end satisfy this
+        return Aligned(new_map, self.data.rc())
 
     def to_rna(self):
         return Aligned(self.map, self.data.to_rna())
@@ -2261,12 +2416,9 @@ class Aligned:
         return Aligned(self.map, self.data.to_dna())
 
     def to_rich_dict(self):
-        coords = self.map.get_covering_span().get_coordinates()
-        if len(coords) != 1:
-            raise NotImplementedError
         data = dict(version=__version__, type=get_object_provenance(self))
         # we are resetting the stored data to begin at 0
-        data["map_init"] = self.map.zeroed().to_rich_dict()
+        data["map_init"] = self.map.to_rich_dict()
         data["seq_init"] = self.data.to_rich_dict(exclude_annotations=True)
         return data
 
@@ -2277,7 +2429,7 @@ class Aligned:
             deserialise_seq,
         )
 
-        map_ = deserialise_map_spans(data["map_init"])
+        map_ = IndelMap.from_rich_dict(data["map_init"])
         seq = deserialise_seq(data["seq_init"])
         return cls(map_, seq)
 
@@ -2305,7 +2457,9 @@ class Aligned:
     def make_feature(self, feature: FeatureDataType, alignment: "Alignment") -> Feature:
         """returns a feature, not written into annotation_db"""
         annot = self.data.make_feature(feature)
-        return annot.remapped_to(alignment, self.map.inverse())
+        inverted = self.map.to_feature_map().inverse()
+        # todo should indicate whether tidy or not
+        return annot.remapped_to(alignment, inverted)
 
     def gap_vector(self):
         """Returns gap_vector of GappedSeq, for omit_gap_pos."""
@@ -2354,6 +2508,24 @@ class AlignmentI(object):
 
     default_gap = "-"  # default gap character for padding
     gap_chars = dict.fromkeys("-?")  # default gap chars for comparisons
+
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+        for count, name in enumerate(self.names):
+            if count == 3:
+                seqs.append("...")
+                break
+            elts = list(str(self.named_seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts[-1] = "..."
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+        seqs = ", ".join(seqs)
+
+        return (
+            f"{len(self.names)} x {self.seq_len} {self.moltype.label} alignment: {seqs}"
+        )
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs):
         """
@@ -2454,12 +2626,17 @@ class AlignmentI(object):
         """Returns new Alignment containing cols where f(col) is True."""
         return self.take_positions(self.get_position_indices(f, negate=negate))
 
-    def iupac_consensus(self, alphabet=None, allow_gaps=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="consistency with other methods",
+        old_new=[("allow_gaps", "allow_gap")],
+    )
+    def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
 
-        exclude = set() if allow_gaps else set(alphabet.gaps)
+        exclude = set() if allow_gap else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
@@ -2483,26 +2660,26 @@ class AlignmentI(object):
         return self.moltype.make_seq("".join(states))
 
     def probs_per_pos(
-        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
     ):
         """returns MotifFreqsArray per position"""
         counts = self.counts_per_pos(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
-            alert=alert,
+            warn=warn,
         )
         return counts.to_freq_array()
 
     def entropy_per_pos(
-        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
     ):
         """returns shannon entropy per position"""
         probs = self.probs_per_pos(
             motif_length=motif_length,
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
-            alert=alert,
+            warn=warn,
         )
         return probs.entropy()
 
@@ -2512,7 +2689,7 @@ class AlignmentI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """return MotifFreqsArray per sequence
 
@@ -2527,6 +2704,9 @@ class AlignmentI(object):
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
         """
 
         counts = self.counts_per_seq(
@@ -2534,11 +2714,9 @@ class AlignmentI(object):
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
+            warn=warn,
         )
-        if counts is None:
-            return None
-
-        return counts.to_freq_array()
+        return None if counts is None else counts.to_freq_array()
 
     def entropy_per_seq(
         self,
@@ -2546,7 +2724,7 @@ class AlignmentI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=True,
-        alert=False,
+        warn=False,
     ):
         """returns the Shannon entropy per sequence
 
@@ -2561,6 +2739,9 @@ class AlignmentI(object):
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
 
         Notes
         -----
@@ -2573,12 +2754,9 @@ class AlignmentI(object):
             include_ambiguity=include_ambiguity,
             allow_gap=allow_gap,
             exclude_unobserved=exclude_unobserved,
-            alert=alert,
+            warn=warn,
         )
-        if probs is None:
-            return None
-
-        return probs.entropy()
+        return None if probs is None else probs.entropy()
 
     def no_degenerates(self, motif_length=1, allow_gap=False):
         """returns new alignment without degenerate characters
@@ -2587,7 +2765,7 @@ class AlignmentI(object):
         ----------
         motif_length
             sequences are segmented into units of this size
-        allow_gaps
+        allow_gap
             whether gaps are to be treated as a degenerate
             character (default, most evolutionary modelling treats gaps as
             N) or not.
@@ -2630,10 +2808,7 @@ class AlignmentI(object):
         gaps_ok = GapsOk(
             gaps, allowed_gap_frac, is_array=False, motif_length=motif_length
         )
-        # if we're not deleting the 'naughty' seqs that contribute to the
-        # gaps, it's easy...
-        result = self.filtered(gaps_ok, motif_length=motif_length)
-        return result
+        return self.filtered(gaps_ok, motif_length=motif_length)
 
     def get_gap_array(self, include_ambiguity=True):
         """returns bool array with gap state True, False otherwise
@@ -2803,8 +2978,15 @@ class AlignmentI(object):
         positions = [
             (loc * motif_length, (loc + 1) * motif_length) for loc in locations
         ]
-        sample = Map(positions, parent_length=len(self))
-        return self.gapped_by_map(sample, info=self.info)
+        make_seq = self.moltype.make_seq
+        new_seqs = []
+        for seq in self.seqs:
+            seq = make_seq(
+                "".join(str(seq[x1:x2]) for x1, x2 in positions), name=seq.name
+            )
+            new_seqs.append(seq)
+
+        return self.__class__(new_seqs, info=self.info, moltype=self.moltype)
 
     def sliding_windows(self, window, step, start=None, end=None):
         """Generator yielding new alignments of given length and interval.
@@ -2853,7 +3035,7 @@ class AlignmentI(object):
 
         return names, output
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -2869,14 +3051,14 @@ class AlignmentI(object):
 
     def to_html(
         self,
-        name_order=None,
-        wrap=60,
-        limit=None,
-        ref_name="longest",
-        colors=None,
-        font_size=12,
-        font_family="Lucida Console",
-    ):
+        name_order: Optional[typing.Sequence[str]] = None,
+        wrap: int = 60,
+        limit: Optional[int] = None,
+        ref_name: str = "longest",
+        colors: Optional[Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
         """returns html with embedded styles for sequence colouring
 
         Parameters
@@ -2900,16 +3082,28 @@ class AlignmentI(object):
         font_family
             string denoting font family
 
-        To display in jupyter notebook:
+        Examples
+        ---------
 
-            >>> from IPython.core.display import HTML
-            >>> HTML(aln.to_html())
+        In a jupyter notebook, this code is used to provide the representation.
+
+        .. code-block:: python
+
+            aln # is rendered by jupyter
+
+        You can directly use the result for display in a notebook as
+
+        .. code-block:: python
+
+            from IPython.core.display import HTML
+            HTML(aln.to_html())
         """
         css, styles = self.moltype.get_css_style(
             colors=colors, font_size=font_size, font_family=font_family
         )
         if name_order:
             selected = self.take_seqs(name_order)
+            name_order = list(name_order)
         else:
             name_order = list(self.names)
             ref_name = ref_name or "longest"
@@ -3068,19 +3262,19 @@ class AlignmentI(object):
         return "\n".join(result)
 
     def counts_per_pos(
-        self, motif_length=1, include_ambiguity=False, allow_gap=False, alert=False
+        self, motif_length=1, include_ambiguity=False, allow_gap=False, warn=False
     ):
         """return DictArray of counts per position
 
         Parameters
         ----------
 
-        alert
+        warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
         length = (len(self) // motif_length) * motif_length
-        if alert and len(self) != length:
+        if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         data = list(self.to_dict().values())
@@ -3120,7 +3314,7 @@ class AlignmentI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """counts of non-overlapping motifs per sequence
 
@@ -3131,11 +3325,11 @@ class AlignmentI(object):
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if False, all canonical states included
-        alert
+        warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
 
@@ -3144,7 +3338,7 @@ class AlignmentI(object):
         MotifCountsArray
         """
         length = (len(self) // motif_length) * motif_length
-        if alert and len(self) != length:
+        if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         counts = []
@@ -3260,7 +3454,7 @@ class AlignmentI(object):
     @extend_docstring_from(distance_matrix, pre=False)
     def quick_tree(
         self,
-        calc="percent",
+        calc="pdist",
         bootstrap=None,
         drop_invalid=False,
         show_progress=False,
@@ -3649,183 +3843,6 @@ def _one_length(seqs):
         raise ValueError("not all sequences have same length")
 
 
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_array(a, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from array of pos x seq: no change, names are integers.
-
-    This is an InputHandler for Alignment. It converts an arbitrary array
-    of numbers without change, but adds successive integer names (0-based) to
-    each sequence (i.e. column) in the input a. Data type of input is
-    unchanged.
-    """
-    if array_type is None:
-        result = a.copy()
-    else:
-        result = a.astype(array_type)
-    return transpose(result), None
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_array_seqs(seqs, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from ArraySequence objects: seqs -> array, names from seqs.
-
-    This is an InputHandler for Alignment. It converts a list of Sequence
-    objects with _data and label properties into the character array Alignment
-    needs. All sequences must be the same length.
-
-    WARNING: Assumes that the ArraySeqs are already in the right alphabet. If
-    this is not the case, e.g. if you are putting sequences on a degenerate
-    alphabet into a non-degenerate alignment or you are putting protein
-    sequences into a DNA alignment, there will be problems with the alphabet
-    mapping (i.e. the resulting sequences may be meaningless).
-
-    WARNING: Data type of return array is not guaranteed -- check in caller!
-    """
-    data, names = [], []
-    for s in seqs:
-        data.append(s._data)
-        names.append(s.name)
-
-    _one_length(data)
-
-    result = array(data)
-    if array_type:
-        result = result.astype(array_type)
-    return result, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_generic(data, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from generic seq x pos data: sequence of sequences of chars.
-
-    This is an InputHandler for Alignment. It converts a generic list (each
-    item in the list will be mapped onto an Array object, with character
-    transformations, all items must be the same length) into a numpy array,
-    and assigns sequential integers (0-based) as names.
-
-    WARNING: Data type of return array is not guaranteed -- check in caller!
-    """
-    result = array([alphabet.to_indices(v) for v in data], dtype=object).astype(int)
-    names = []
-    for d in data:
-        if hasattr(d, "name"):
-            names.append(d.name)
-        else:
-            names.append(None)
-    if array_type:
-        result = result.astype(array_type)
-    return result, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_collection(seqs, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from SequenceCollection object, or its subclasses."""
-    names = seqs.names
-    data = [seqs.named_seqs[i] for i in names]
-    result = array(list(map(alphabet.to_indices, data)))
-    if array_type:
-        result = result.astype(array_type)
-    return result, names
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_fasta(seqs, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from FASTA-format string or lines.
-
-    This is an InputHandler for Alignment. It converts a FASTA-format string
-    or collection of lines into an Alignment object. All sequences must be the
-    same length.
-
-    WARNING: Data type of return array is not guaranteed -- check in caller!
-    """
-    if isinstance(seqs, bytes):
-        seqs = seqs.decode("utf-8")
-    if isinstance(seqs, str):
-        seqs = seqs.splitlines()
-    return aln_from_array_seqs(
-        [
-            ArraySequence(s, name=l, alphabet=alphabet)
-            for l, s in cogent3.parse.fasta.MinimalFastaParser(seqs)
-        ],
-        array_type,
-    )
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_dict(aln, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from dict of {label:seq_as_str}.
-
-    This is an InputHandler for Alignment. It converts a dict in which the
-    keys are the names and the values are the sequences (sequence only, no
-    whitespace or other formatting) into an alignment. Because the dict
-    doesn't preserve order, the result will be in alphabetical order."""
-    for n in aln:
-        try:
-            aln[n] = aln[n].upper()
-        except AttributeError:
-            pass
-
-    names, seqs = list(zip(*sorted(aln.items())))
-    seqs = [bytes_to_string(s) for s in seqs]
-    _one_length(seqs)
-    result = array(list(map(alphabet.to_indices, seqs)), array_type)
-    return result, list(names)
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_kv_pairs(aln, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from sequence of (key, value) pairs.
-
-    This is an InputHandler for Alignment. It converts a list in which the
-    first item of each pair is the label and the second item is the sequence
-    (sequence only, no whitespace or other formatting) into an alignment.
-    Because the dict doesn't preserve order, the result will be in arbitrary
-    order."""
-    names, seqs = list(zip(*aln))
-    seqs = [bytes_to_string(s) for s in seqs]
-    _one_length(seqs)
-    result = array(list(map(alphabet.to_indices, seqs)), array_type)
-    return result, list(names)
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_array_aln(aln, array_type=None, alphabet=None):  # pragma: no cover
-    """Alignment from existing ArrayAlignment object: copies data.
-
-    Retrieves data from positions field. Uses copy(), so array data type
-    should be unchanged.
-    """
-    if array_type is None:
-        result = aln.array_positions.copy()
-    else:
-        result = aln.array_positions.astype(array_type)
-    return transpose(result), aln.names[:]
-
-
-@c3warn.deprecated_args(
-    "2024.3", reason="replaced by different loading mechanism", discontinued=True
-)
-def aln_from_empty(obj, *args, **kwargs):  # pragma: no cover
-    """Alignment from empty data: raise exception."""
-    raise ValueError("Cannot create empty alignment.")
-
-
 # Implementation of Alignment base class
 
 
@@ -3904,18 +3921,21 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         self._seqs = curr_seqs
         self.seq_len = curr_seqs.shape[1] if len(curr_seqs) else 0
 
-    def _get_positions(self):
+    @property
+    def positions(self):
         """Override superclass positions to return positions as symbols."""
-        return list(map(self.alphabet.from_indices, self.array_positions))
-
-    positions = property(_get_positions)
+        from_indices = self.alphabet.from_indices
+        return [list(from_indices(pos)) for pos in self.array_positions]
 
     @property
     def named_seqs(self):
         if self._named_seqs is None:
-            seqs = list(map(self.alphabet.to_string, self.array_seqs))
+            seqs = [self.alphabet.to_string(seq) for seq in self.array_seqs]
             if self.moltype:
-                seqs = [self.moltype.make_seq(s, preserve_case=True) for s in seqs]
+                seqs = [
+                    self.moltype.make_seq(seq, name, preserve_case=True)
+                    for seq, name in zip(seqs, self.names)
+                ]
             self._named_seqs = _make_named_seqs(self.names, seqs)
         return self._named_seqs
 
@@ -3953,11 +3973,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         """
         return seqs
 
-    @c3warn.deprecated_args(
-        "2024.3",
-        reason="naming consistency",
-        old_new=(("invert_seqs", "negate_seqs"), ("invert_pos", "negate_pos")),
-    )
     def get_sub_alignment(
         self, seqs=None, pos=None, negate_seqs=False, negate_pos=False
     ):
@@ -3995,6 +4010,9 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             names = [self.names[i] for i in seqs]
         else:
             names = self.names
+        if not len(names):
+            return None
+
         return self.__class__(
             data.T,
             list(map(str, names)),
@@ -4013,28 +4031,17 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
             result.append(">" + str(l) + "\n" + "".join(seq2str(s)))
         return "\n".join(result) + "\n"
 
-    def __repr__(self):
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.named_seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts.append("...")
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
-
-        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
-
-    def iupac_consensus(self, alphabet=None, allow_gaps=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="consistency with other methods",
+        old_new=[("allow_gaps", "allow_gap")],
+    )
+    def iupac_consensus(self, alphabet=None, allow_gap=True):
         """Returns string containing IUPAC consensus sequence of the alignment."""
         if alphabet is None:
             alphabet = self.moltype
 
-        exclude = set() if allow_gaps else set(alphabet.gaps)
+        exclude = set() if allow_gap else set(alphabet.gaps)
         consensus = []
         degen = alphabet.degenerate_from_seq
         for col in self.positions:
@@ -4179,7 +4186,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         new = self.array_seqs[:, indices]
 
         return self.__class__(
-            new.T, names=self.names, moltype=self.moltype, info=self.info
+            new, names=self.names, moltype=self.moltype, info=self.info
         )
 
     def add_from_ref_aln(self, ref_aln, before_name=None, after_name=None):
@@ -4390,7 +4397,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         ----------
         motif_length
             sequences are segmented into units of this size
-        allow_gaps
+        allow_gap
             whether gaps are to be treated as a degenerate
             character (default, most evolutionary modelling treats gaps as
             N) or not.
@@ -4421,7 +4428,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-        alert=False,
+        warn=False,
     ):
         """counts of non-overlapping motifs per sequence
 
@@ -4432,11 +4439,11 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         include_ambiguity
             if True, motifs containing ambiguous characters
             from the seq moltype are included. No expansion of those is attempted.
-        allow_gaps
+        allow_gap
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if False, all canonical states included
-        alert
+        warn
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
 
@@ -4445,7 +4452,7 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         MotifCountsArray
         """
         length = (len(self) // motif_length) * motif_length
-        if alert and len(self) != length:
+        if warn and len(self) != length:
             warnings.warn(f"trimmed {len(self) - length}", UserWarning)
 
         counts = []
@@ -4552,15 +4559,6 @@ class ArrayAlignment(AlignmentI, _SequenceCollectionBase):
         return gapped
 
 
-@c3warn.deprecated_callable(
-    "2024.3", reason="not being used", is_discontinued=True, stack_level=3
-)
-class CodonArrayAlignment(ArrayAlignment):  # pragma: no cover
-    """Stores alignment of gapped codons, no degenerate symbols."""
-
-    ...
-
-
 def make_gap_filter(template, gap_fraction, gap_run):
     """Returns f(seq) -> True if no gap runs and acceptable gap fraction.
 
@@ -4628,7 +4626,7 @@ class Alignment(AlignmentI, SequenceCollection):
                 raise ValueError(f"feature.parent {index.seqid!r} is not self")
             return index.get_slice()
 
-        if isinstance(index, Map):
+        if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
 
         elif isinstance(index, (int, slice)):
@@ -4637,6 +4635,7 @@ class Alignment(AlignmentI, SequenceCollection):
             new = self.__class__(
                 seqs, name=self.name, info=self.info, moltype=self.moltype
             )
+            new.annotation_db = self.annotation_db
 
         if isinstance(index, (list, tuple)):
             raise TypeError(f"cannot slice using {type(index)}")
@@ -4648,22 +4647,6 @@ class Alignment(AlignmentI, SequenceCollection):
             new._repr_policy.update(self._repr_policy)
 
         return new
-
-    def __repr__(self):
-        seqs = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.named_seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts.append("...")
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs = ", ".join(seqs)
-
-        return f"{len(self.names)} x {self.seq_len} alignment: {seqs}"
 
     @property
     def annotation_db(self):
@@ -4687,18 +4670,18 @@ class Alignment(AlignmentI, SequenceCollection):
 
     def _mapped(self, slicemap):
         align = []
-        for name in self.names:
-            align.append((name, self.named_seqs[name][slicemap]))
+        for seq in self.seqs:
+            sliced = seq[slicemap]
+            align.append((sliced.name, sliced))
         return self.__class__(moltype=self.moltype, data=align, info=self.info)
 
     def gapped_by_map(self, keep, **kwargs):
         # keep is a Map
+        # seqs = [seq[keep] for seq in self.seqs]
         seqs = []
-        for seq_name in self.names:
-            aligned = self.named_seqs[seq_name]
-            seqmap = aligned.map[keep]
-            seq = aligned.data.gapped_by_map(seqmap)
-            seqs.append((seq_name, seq))
+        for seq in self.seqs:
+            selected = seq[keep]
+            seqs.append(selected)
         return self.__class__(moltype=self.moltype, data=seqs, **kwargs)
 
     def get_projected_feature(self, *, seqid: str, feature: Feature) -> Feature:
@@ -4800,8 +4783,9 @@ class Alignment(AlignmentI, SequenceCollection):
             return None
 
         locations = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
+        # these are alignment coordinate locations
+        keep = FeatureMap.from_locations(locations=locations, parent_length=len(self))
 
-        keep = Map(locations, parent_length=len(self))
         return self.gapped_by_map(keep, info=self.info)
 
     def get_seq(self, seqname):
@@ -4809,8 +4793,7 @@ class Alignment(AlignmentI, SequenceCollection):
 
         Note: always returns Sequence object, not ArraySequence.
         """
-        seq = self.named_seqs[seqname]
-        return seq.data[seq.map.without_gaps()]
+        return self.named_seqs[seqname].data
 
     def get_gapped_seq(self, seq_name, recode_gaps=False):
         """Return a gapped Sequence object for the specified seqname.
@@ -5196,12 +5179,13 @@ class Alignment(AlignmentI, SequenceCollection):
 
         feature["seqid"] = feature.get("seqid", None)
         # there's no sequence to bind to, the feature is directly on self
-        # todo gah check handling of strand etc..., maybe reuse code
-        # in Sequence?
-        fmap = Map(parent_length=len(self), locations=feature.pop("spans"))
-        if feature.pop("reversed", None):
+        revd = feature.pop("strand", None) == "-"
+        feature["strand"] = "-" if revd else "+"
+        fmap = FeatureMap.from_locations(
+            locations=feature.pop("spans"), parent_length=len(self)
+        )
+        if revd:
             fmap = fmap.nucleic_reversed()
-        feature.pop("strand", None)
         return Feature(parent=self, map=fmap, **feature)
 
     def _get_seq_features(
@@ -5234,27 +5218,39 @@ class Alignment(AlignmentI, SequenceCollection):
         if self.annotation_db is None:
             return None
 
+        seqid_to_seqname = {
+            seq.data.parent_coordinates()[0]: seq.name for seq in self.seqs
+        }
+
         seqids = [seqid] if isinstance(seqid, str) else seqid
         if seqids is None:
-            seqids = self.names
-
-        if seqid and not set(seqids) & set(self.names):
+            seqids = tuple(seqid_to_seqname)
+        elif set(seqids) & set(self.names):
+            # we've been given seq names, convert to parent names
+            seqids = [
+                self.named_seqs[seqid].data.parent_coordinates()[0] for seqid in seqids
+            ]
+        elif seqids and set(seqids) <= seqid_to_seqname.keys():
+            # already correct
+            pass
+        else:
             raise ValueError(f"unknown {seqid=}")
 
         for seqid in seqids:
-            seq = self.named_seqs[seqid]
-
-            start, end = seq.map.start, seq.map.end
+            seqname = seqid_to_seqname[seqid]
+            seq = self.named_seqs[seqname]
+            # we use parent seqid, stored on SeqView
+            parent_id, start, stop, _ = seq.data.parent_coordinates()
             offset = seq.data.annotation_offset
 
             for feature in self.annotation_db.get_features_matching(
-                seqid=seqid,
+                seqid=parent_id,
                 biotype=biotype,
                 name=name,
                 on_alignment=False,
                 allow_partial=allow_partial,
                 start=start,
-                end=end,
+                stop=stop,
             ):
                 if offset:
                     feature["spans"] = (array(feature["spans"]) - offset).tolist()
@@ -5323,13 +5319,14 @@ class Alignment(AlignmentI, SequenceCollection):
             if feature["seqid"]:
                 raise RuntimeError(f"{on_alignment=} {feature=}")
             if seq_map is None:
-                seq_map = self.seqs[0].map
+                seq_map = self.seqs[0].map.to_feature_map()
+                *_, strand = self.seqs[0].data.parent_coordinates()
 
             spans = numpy.array(feature["spans"])
             spans = seq_map.relative_position(spans)
             feature["spans"] = spans.tolist()
             # and if i've been reversed...?
-            feature["reversed"] = seq_map.reverse
+            feature["strand"] = "-" if strand == -1 else "+"
             yield self.make_feature(feature=feature, on_alignment=on_al)
 
 
@@ -5380,8 +5377,7 @@ def _coerce_to_unaligned_seqs(data, names, label_to_name=str, moltype=None) -> O
     names = names or list(data.keys())
     seqs = []
     for name in names:
-        seq = _construct_unaligned_seq(data[name], moltype=moltype)
-        seq.name = name
+        seq = _construct_unaligned_seq(data[name], name=name, moltype=moltype)
         seqs.append(seq)
     return seqs, names
 
@@ -5483,6 +5479,15 @@ def _coerce_to_array_aligned_seqs(data, names, label_to_name=str, moltype=None) 
         seq = _construct_array_aligned_seq(data[name], moltype=moltype)
         seqs.append(seq)
 
+    # Ensure all sequences are of equal length
+    seq_lengths = {len(seq) for seq in seqs}
+    if len(seq_lengths) > 1:
+        raise ValueError(
+            f"Input sequences are not all the same length: {seq_lengths}. "
+            "Please ensure all sequences are properly aligned or "
+            "correct the input file format."
+        )
+
     return numpy.array(seqs), names
 
 
@@ -5561,8 +5566,7 @@ def _coerce_to_aligned_seqs(data, names, label_to_name=str, moltype=None) -> O:
     names = names or list(data.keys())
     seqs = []
     for name in names:
-        seq = _construct_aligned_seq(data[name], moltype=moltype)
-        seq.name = seq.data.name = name
+        seq = _construct_aligned_seq(data[name], name=name, moltype=moltype)
         seqs.append(seq)
 
     _one_length(seqs)
@@ -5624,53 +5628,63 @@ T = typing.Sequence[typing.Union[Sequence, ndarray]]
 
 
 @functools.singledispatch
-def _construct_unaligned_seq(data, moltype) -> Sequence:
+def _construct_unaligned_seq(data, name, moltype) -> Sequence:
     try:
         result = data.to_moltype(moltype) if moltype else data
     except AttributeError:
-        result = moltype.make_seq(data, preserve_case=False)
+        result = moltype.make_seq(data, name=name, preserve_case=False)
+    result.name = name
     return result
 
 
 @_construct_unaligned_seq.register
-def _(data: str, moltype) -> Sequence:
-    return moltype.make_seq(data, preserve_case=False)
+def _(data: str, name, moltype) -> Sequence:
+    return moltype.make_seq(data, name=name, preserve_case=False)
 
 
 @_construct_unaligned_seq.register
-def _(data: bytes, moltype) -> Sequence:
-    return _construct_unaligned_seq(data.decode("utf8"), moltype)
+def _(data: bytes, name, moltype) -> Sequence:
+    return _construct_unaligned_seq(data.decode("utf8"), name=name, moltype=moltype)
 
 
 @_construct_unaligned_seq.register
-def _(data: Aligned, moltype) -> Sequence:
+def _(data: Aligned, name, moltype) -> Sequence:
+    data.name = name
     return data.get_gapped_seq().to_moltype(moltype)
 
 
 @_construct_unaligned_seq.register
-def _(data: ndarray, moltype) -> Sequence:
-    return moltype.make_array_seq(data)
+def _(data: ArraySequence, name, moltype) -> Sequence:
+    assert name == data.name
+    return moltype.make_seq(str(data), name=name, info=data.info)
+
+
+@_construct_unaligned_seq.register
+def _(data: ndarray, name, moltype) -> Sequence:
+    return moltype.make_array_seq(data, name=name)
 
 
 @functools.singledispatch
-def _construct_aligned_seq(data, moltype) -> Aligned:
-    seq = _construct_unaligned_seq(data, moltype)
+def _construct_aligned_seq(data: str, name, moltype) -> Aligned:
+    seq = _construct_unaligned_seq(data, name, moltype)
+    seq.name = name
     return Aligned(*seq.parse_out_gaps())
 
 
 @_construct_aligned_seq.register
-def _(data: Aligned, moltype) -> Aligned:
+def _(data: Aligned, name, moltype) -> Aligned:
+    data.name = name
     return data
 
 
 @_construct_aligned_seq.register
-def _(data: list, moltype) -> Aligned:
-    return _construct_aligned_seq("".join(data), moltype)
+def _(data: list, name, moltype) -> Aligned:
+    return _construct_aligned_seq("".join(data), name, moltype)
 
 
 @_construct_aligned_seq.register
-def _(data: tuple, moltype) -> Aligned:
-    return _construct_aligned_seq("".join(data), moltype)
+def _(data: tuple, name, moltype) -> Aligned:
+    return _construct_aligned_seq("".join(data), name, moltype)
 
 
 # convert seq data into a numpy array for an array alignment

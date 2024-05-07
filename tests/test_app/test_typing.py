@@ -42,9 +42,14 @@ def test_get_constraint_names():
 
 def test_get_constraint_names_builtins():
     """handles built-in types"""
+    expected = {"str", "bytes"}
 
     got = get_constraint_names(Union[str, bytes])
-    assert got == {"str", "bytes"}
+    assert got == expected
+
+    if sys.version_info.minor > 9:
+        got = get_constraint_names(str | bytes)
+        assert got == expected
 
 
 def test_get_constraint_names_serilisable():
@@ -63,16 +68,27 @@ def test_get_constraint_names_identifiertype():
 
 def test_get_constraint_names_mixed_serilisable_identifiertype():
     """SerialisableType does not define any compatible types"""
+    expected = {"SerialisableType", "IdentifierType", "Alignment", "ArrayAlignment"}
 
     got = get_constraint_names(Union[SerialisableType, IdentifierType, AlignedSeqsType])
-    assert got == {"SerialisableType", "IdentifierType", "Alignment", "ArrayAlignment"}
+    assert got == expected
+
+    if sys.version_info.minor > 9:
+        got = get_constraint_names(SerialisableType | IdentifierType | AlignedSeqsType)
+        assert got == expected
 
 
 def test_hints_resolved_from_str():
     got = get_constraint_names("DnaSequence")
     assert got == {"DnaSequence"}
+
+    expected = {"SerialisableType", "DnaSequence"}
     got = get_constraint_names(Union[SerialisableType, "DnaSequence"])
-    assert got == {"SerialisableType", "DnaSequence"}
+    assert got == expected
+
+    if sys.version_info.minor > 9:
+        got = get_constraint_names(SerialisableType | "DnaSequence")
+        assert got == expected
 
 
 @pytest.mark.parametrize("container", (List, Tuple, Set))
@@ -94,8 +110,7 @@ def test_hints_from_container_type_obj(container):
 def test_hint_inherited_class():
     from collections.abc import MutableSequence
 
-    class dummy(MutableSequence):
-        ...
+    class dummy(MutableSequence): ...
 
     got = get_constraint_names(dummy)
     assert got == frozenset(["dummy"])

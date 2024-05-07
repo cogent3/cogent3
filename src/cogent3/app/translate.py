@@ -1,15 +1,24 @@
 from collections import defaultdict
-from typing import Union
+from typing import Optional, Union
 
 from cogent3.core.alignment import SequenceCollection
-from cogent3.core.genetic_code import get_code
-from cogent3.core.moltype import get_moltype
+from cogent3.core.genetic_code import GeneticCode, get_code
+from cogent3.core.moltype import Alphabet, MolType, get_moltype
 
 from .composable import NotCompleted, define_app
 from .typing import SeqsCollectionType, SerialisableType
 
 
-def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
+GeneticCodeTypes = Union[str, int, GeneticCode]
+MolTypes = Union[str, MolType]
+
+
+def best_frame(
+    seq: SeqsCollectionType,
+    gc: GeneticCodeTypes = 1,
+    allow_rc: bool = False,
+    require_stop: bool = False,
+):
     """returns reading frame start that has either no stops or a single
     terminal stop codon
 
@@ -21,7 +30,7 @@ def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
         genetic code ID, name or instance
     allow_rc
         If False, forward strand considered only. If True, and
-          best frame on rc, it will be negative
+        best frame on rc, it will be negative
     require_stop
         a terminal stop must be present
 
@@ -73,16 +82,21 @@ def best_frame(seq, gc=1, allow_rc=False, require_stop=False):
     return frame
 
 
-def translate_frames(seq, moltype=None, gc=1, allow_rc=False):
+def translate_frames(
+    seq: SeqsCollectionType,
+    moltype: Optional[MolTypes] = None,
+    gc: GeneticCodeTypes = 1,
+    allow_rc: bool = False,
+):
     """translates a nucleic acid sequence
 
     Parameters
     ----------
     moltype
-        molecular type, must be either DNA or RNA
+        molecular type, must be either DNA or RNA. Can be string or instance
     gc
         identifer for a genetic code or a genetic code instance
-    allow_rc : bool
+    allow_rc
         includes frames sequence reverse complement
 
     Returns
@@ -102,7 +116,9 @@ def translate_frames(seq, moltype=None, gc=1, allow_rc=False):
     return translations
 
 
-def get_fourfold_degenerate_sets(gc, alphabet=None, as_indices=True):
+def get_fourfold_degenerate_sets(
+    gc: GeneticCodeTypes, alphabet: Optional[Alphabet] = None, as_indices: bool = True
+):
     """returns set() of codons that are 4-fold degenerate for genetic code gc
 
     Parameters
@@ -145,24 +161,55 @@ class select_translatable:
     frame. Sequences are truncated to modulo 3. seqs.info has a
     translation_errors entry."""
 
-    def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
+    def __init__(
+        self,
+        moltype: MolTypes = "dna",
+        gc: GeneticCodeTypes = 1,
+        allow_rc: bool = False,
+        trim_terminal_stop: bool = True,
+    ):
         """
         Parameters
         ----------
-        moltype : str
-            molecular type, must be either DNA or RNA
+        moltype
+            molecular type, must be either DNA or RNA. Can be string or
+            instance
         gc
-            identifier for a genetic code or a genetic code instance
-        allow_rc : bool
+            identifier for a genetic code or a genetic code instance.
+            see https://cogent3.org/doc/cookbook/what_codes.html
+        allow_rc
             If False, forward strand considered only. If True, and
-              best frame on rc, it will be negative
-        trim_terminal_stop : bool
+            best frame on rc, it will be negative
+        trim_terminal_stop
             exclude terminal stop codon from seqs
 
         Returns
         -------
         A sequence collection. Sequences that could not be translated
         are excluded.
+
+        Examples
+        --------
+
+        Create a sample sequence collection and an app that returns the sequences
+        which are translatable.
+
+        >>> from cogent3 import make_unaligned_seqs, get_app
+        >>> aln = make_unaligned_seqs({
+        ...     "s1": "AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA",
+        ...     "s1_rc": "TATGACTTTATGAAGTAATAAACTGCTGTTCTCATGCTGTAATGAGCTGGCATTTATATT"
+        ... })
+        >>> app = get_app("select_translatable")
+        >>> result = app(aln)
+        >>> print(result.to_dict())
+        {'s1': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA'}
+
+        Use ``allow_rc=True`` to consider the reading frame for reverse strands.
+
+        >>> app_rc = get_app("select_translatable", allow_rc=True)
+        >>> result = app_rc(aln)
+        >>> print(result.to_dict())
+        {'s1': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA', 's1_rc': 'AATATAAATGCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTTCATAAAGTCATA'}
         """
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
@@ -219,21 +266,44 @@ class translate_seqs:
     """Translates nucleic acid sequences into protein sequences, assumes in
     correct reading frame."""
 
-    def __init__(self, moltype="dna", gc=1, allow_rc=False, trim_terminal_stop=True):
+    def __init__(
+        self,
+        moltype: MolTypes = "dna",
+        gc: GeneticCodeTypes = 1,
+        allow_rc: bool = False,
+        trim_terminal_stop: bool = True,
+    ):
         """
         Parameters
         ----------
-        moltype : str
-            molecular type, must be either DNA or RNA
+        moltype
+            molecular type, must be either DNA or RNA. Can be string or
+            instance
         gc
-            identifier for a genetic code or a genetic code instance
-        trim_terminal_stop : bool
+            identifier for a genetic code or a genetic code instance.
+            see https://cogent3.org/doc/cookbook/what_codes.html
+        trim_terminal_stop
             exclude terminal stop codon from seqs
 
         Returns
         -------
         A sequence collection. Sequences that could not be translated
         are excluded.
+
+        Examples
+        --------
+
+        Create a sample sequence collection and an app that translates nucleic
+        acid sequences into protein sequences. By default, sequences that end
+        with a stop codon are excluded with ``trim_terminal_stop=True``.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ATGAGG", "s2": "ATGTAA"})
+        >>> app_translate = get_app("translate_seqs", trim_terminal_stop=True)
+        >>> result = app_translate(aln)
+        >>> print(result.to_pretty())
+        s1    MR
+        s2    .-
         """
         moltype = get_moltype(moltype)
         assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"

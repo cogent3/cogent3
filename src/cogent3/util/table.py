@@ -1089,9 +1089,11 @@ class Table:
         match = not negate
         return numpy.array(
             [
-                True
-                if _callback(callback, row=row, num_columns=num_columns) == match
-                else False
+                (
+                    True
+                    if _callback(callback, row=row, num_columns=num_columns) == match
+                    else False
+                )
                 for row in data
             ]
         )
@@ -1941,12 +1943,6 @@ class Table:
 
         return result
 
-    @c3warn.deprecated_callable(version="2024.1", reason="PEP8", new="to_list")
-    def tolist(self, **kwargs):  # pragma: no cover
-        """deprecated, use to_list"""
-
-        return self.to_list(**kwargs)
-
     @extend_docstring_from(DictArray.to_dict)
     def to_dict(self, flatten=False):
         index = self.columns[self.index_name] if self.index_name else self.shape[0]
@@ -1986,14 +1982,6 @@ class Table:
             df = df.astype({n: "category" for n in categories})
 
         return df
-
-    @c3warn.deprecated_callable(
-        version="2024.3", reason="to enable usage by plotly", new="to_pandas()"
-    )
-    def to_dataframe(self, **kwargs):  # pragma: no cover
-        """deprecated, use to_pandas()"""
-
-        return self.to_pandas(**kwargs)
 
     def to_plotly(self, width=500, font_size=12, layout=None, **kwargs):
         """returns a Plotly Table"""

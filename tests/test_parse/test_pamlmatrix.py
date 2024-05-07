@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from io import StringIO
 from unittest import TestCase
 
@@ -52,7 +51,3 @@ class TestParsePamlMatrix(TestCase):
         matrix, freqs = PamlMatrixParser(StringIO(data))
         assert_equal(DSO78_matrix, matrix)
         assert_equal(DSO78_freqs, freqs)
-
-
-if __name__ == "__main__":
-    main()

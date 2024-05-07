@@ -67,6 +67,7 @@ def deprecated_args(
     reason: str,
     old_new: List[Tuple[str, str]] = None,
     discontinued: List[str] = None,
+    stack_level=2,
 ) -> Callable[..., Any]:
     """
     A decorator that marks specific arguments of a function as deprecated.
@@ -130,11 +131,24 @@ def deprecated_args(
                 for old, new in old_new:
                     if old in kwargs:
                         kwargs[new] = kwargs.pop(old)
-                        deprecated("argument", old, new, version, reason)
+                        deprecated(
+                            "argument",
+                            old,
+                            new,
+                            version,
+                            reason,
+                            stack_level=stack_level,
+                        )
             if discontinued:
                 for dropped in discontinued:
                     if dropped in kwargs:
-                        _discontinued("argument", dropped, version, reason)
+                        _discontinued(
+                            "argument",
+                            dropped,
+                            version,
+                            reason,
+                            stack_level=stack_level,
+                        )
 
             return func(*args, **kwargs)
 
@@ -189,6 +203,11 @@ def deprecated_callable(
         sig = set(inspect.signature(func).parameters)
         _type = "method" if sig & {"self", "cls", "klass"} else "function"
         old = func.__name__
+        if is_discontinued and old == "__init__":
+            # we're really deprecating a class, so get that name
+            old = func.__qualname__.split(".")[-2]
+            _type = "class"
+
         params = dict(
             _type=_type,
             old=old,

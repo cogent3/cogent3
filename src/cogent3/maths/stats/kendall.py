@@ -5,7 +5,6 @@ function is provided in cogent3.maths.stats.kendall_correlation
 Translated from R 2.5 by Gavin Huttley
 """
 
-
 from numpy import array, floor, sqrt
 
 from cogent3.maths.stats.distribution import zprob

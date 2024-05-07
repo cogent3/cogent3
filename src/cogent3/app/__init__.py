@@ -1,41 +1,45 @@
 from __future__ import annotations
 
 import contextlib
-import importlib
 import inspect
 import re
 import textwrap
+import warnings
+
+import stevedore
 
 from cogent3.util.table import Table
 
+from .composable import is_app, is_app_composable
 from .io import open_data_store
 
 
-__all__ = [
-    "align",
-    "composable",
-    "dist",
-    "evo",
-    "io",
-    "sample",
-    "translate",
-    "tree",
-]
+# Entry_point for apps to register themselves as plugins
+APP_ENTRY_POINT = "cogent3.app"
 
 
-def _get_app_attr(name, is_composable):
-    """returns app details for display"""
+def _get_extension_attr(extension):
+    """
+    This function returns app details for display.
 
-    modname, name = name.rsplit(".", maxsplit=1)
-    mod = importlib.import_module(modname)
-    obj = getattr(mod, name)
+    Notes
+    -----
+    This function also loads the module the app is in.
+    """
+
+    obj = extension.plugin
+
+    if not is_app(obj):
+        warnings.warn(
+            f"{obj!r} from {obj.__module__!r} is not a valid cogent3 app, skipping"
+        )
 
     _types = _make_types(obj)
 
     return [
-        mod.__name__,
-        name,
-        is_composable,
+        extension.module_name,
+        extension.name,
+        is_app_composable(obj),
         _doc_summary(obj.__doc__ or ""),
         ", ".join(sorted(_types["_data_types"])),
         ", ".join(sorted(_types["_return_types"])),
@@ -52,36 +56,40 @@ def _make_types(app) -> dict:
     return _types
 
 
-def available_apps(name_filter: str | None = None) -> Table:
-    """returns Table listing the available apps
+# private global to hold an ExtensionManager instance
+__apps = None
 
-    Parameters
-    ----------
-    name_filter
-        include apps whose name includes name_filter
+
+def get_app_manager() -> stevedore.ExtensionManager:
+    """
+    Lazy load a stevedore ExtensionManager to collect apps.
+    """
+    global __apps
+    if not __apps:
+        __apps = stevedore.ExtensionManager(
+            namespace=APP_ENTRY_POINT, invoke_on_load=False
+        )
+
+    return __apps
+
+
+def available_apps(name_filter: str | None = None) -> Table:
+    """
+    returns Table listing the available apps
     """
     from cogent3.util.table import Table
 
-    from .composable import __app_registry
-
-    # registration of apps does not happen until their modules are imported
-    for name in __all__:
-        importlib.import_module(f"cogent3.app.{name}")
-
-    # exclude apps from deprecated modules
-    deprecated = []
-
     rows = []
-    for app, is_comp in __app_registry.items():
-        if any(app.startswith(d) for d in deprecated):
-            continue
 
-        if name_filter and name_filter not in app:
+    extensions = get_app_manager()
+
+    for extension in extensions:
+        if name_filter and name_filter not in extension.name:
             continue
 
         with contextlib.suppress(AttributeError):
             # probably a local scope issue in testing!
-            rows.append(_get_app_attr(app, is_comp))
+            rows.append(_get_extension_attr(extension))
 
     header = ["module", "name", "composable", "doc", "input type", "output type"]
     return Table(header=header, data=rows)
@@ -92,6 +100,13 @@ _get_param = re.compile('(?<=").+(?=")')
 
 def _make_signature(app: type) -> str:
     from cogent3.util.misc import get_object_provenance
+
+    if app is None:
+        raise ValueError("app cannot be None")
+
+    # if app is an instance, get the underlying class
+    if not inspect.isclass(app):
+        app = app.__class__
 
     init_sig = inspect.signature(app.__init__)
     app_name = app.__name__
@@ -141,46 +156,39 @@ def _doc_summary(doc):
 
 def _get_app_matching_name(name: str):
     """name can include module name"""
-    table = available_apps()
+
     if "." in name:
         modname, name = name.rsplit(".", maxsplit=1)
-        table = table.filtered(
-            lambda x: x[0].endswith(modname) and x[1] == name,
-            columns=["module", "name"],
-        )
     else:
-        table = table.filtered(lambda x: name == x, columns="name")
+        modname = None
 
-    if table.shape[0] == 0:
-        raise NameError(f"no app matching name {name!r}")
-    elif table.shape[0] > 1:
-        raise NameError(f"too many apps matching name {name!r},\n{table}")
-    modname, _ = table.to_list(columns=["module", "name"])[0]
-    mod = importlib.import_module(modname)
-    return getattr(mod, name)
+    extensions_matching = [
+        extension for extension in get_app_manager() if extension.name == name
+    ]
+    if not extensions_matching:
+        raise ValueError(f"App {name!r} not found. Please check for typos.")
+
+    if modname:
+        for extension in extensions_matching:
+            if extension.module_name.endswith(modname):
+                return extension.plugin
+        raise ValueError(f"App {name!r} not found. Please check for typos.")
+
+    elif len(extensions_matching) == 1:
+        return extensions_matching[0].plugin
+    else:
+        raise NameError(
+            f"Too many apps matching name {name!r},\n{available_apps().filtered(lambda x: name == x, columns='name')}"
+        )
 
 
 def get_app(_app_name: str, *args, **kwargs):
     """returns app instance, use app_help() to display arguments
 
-    Parameters
-    ----------
-    _app_name
-        app name, e.g. 'minlength', or can include module information,
-        e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
-        latter (qualified class name) style when there are multiple matches
-        to name.
-    *args, **kwargs
-        positional and keyword arguments passed through to the app
-
-    Returns
-    -------
-    cogent3 app instance
-
     Raises
     ------
     NameError when multiple apps have the same name. In that case use a
-    qualified class name, as shown above.
+    qualified class name.
     """
     return _get_app_matching_name(_app_name)(*args, **kwargs)
 
@@ -197,8 +205,13 @@ def _clean_params_docs(text: str) -> str:
     doc = []
     for line in text:
         line = prefix.sub("", line)
-        if line.strip():
-            doc.append(line)
+        doc.append(line)
+
+    # Remove empty lines at the beginning and end of docstrings
+    if not doc[0]:
+        doc.pop(0)
+    if not doc[-1]:
+        doc.pop()
 
     return "\n".join(doc)
 
@@ -208,24 +221,14 @@ def _clean_overview(text: str) -> str:
     return "\n".join(textwrap.wrap(" ".join(text), break_long_words=False))
 
 
-def app_help(name: str):
-    """displays help for the named app
-
-    Parameters
-    ----------
-    name
-        app name, e.g. 'minlength', or can include module information,
-        e.g. 'cogent3.app.sample.minlength' or 'sample.minlength'. Use the
-        latter (qualified class name) style when there are multiple matches
-        to name.
-    """
-    app = _get_app_matching_name(name)
+def _make_apphelp_docstring(app):
     docs = []
     app_doc = app.__doc__ or ""
     if app_doc.strip():
-        docs.extend(_make_head("Overview") + [_clean_overview(app_doc), ""])
+        docs.extend(_make_head("Overview") + [_clean_overview(app_doc)])
 
     docs.extend(_make_head("Options for making the app") + [_make_signature(app)])
+
     init_doc = app.__init__.__doc__ or ""
     if init_doc.strip():
         docs.extend(["", _clean_params_docs(init_doc)])
@@ -234,4 +237,19 @@ def app_help(name: str):
     docs.extend([""] + _make_head("Input type") + [", ".join(types["_data_types"])])
     docs.extend([""] + _make_head("Output type") + [", ".join(types["_return_types"])])
 
-    print("\n".join(docs))
+    return "\n".join(docs)
+
+
+def app_help(name: str):
+    """displays help for the named app
+
+    Parameters
+    ----------
+    name
+        app name, e.g. 'min_length', or can include module information,
+        e.g. 'cogent3.app.sample.min_length' or 'sample.min_length'. Use the
+        latter (qualified class name) style when there are multiple matches
+        to name.
+    """
+    app = _get_app_matching_name(name)
+    print(_make_apphelp_docstring(app))

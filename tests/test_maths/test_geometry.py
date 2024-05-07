@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 """Tests of the geometry package."""
+
 from math import sqrt
 from unittest import TestCase
 
@@ -151,7 +151,3 @@ class TestAitchison(TestCase):
         assert isclose(
             sum(u), 1
         ), "Multiplicative replacement does not yield a composition."
-
-
-if __name__ == "__main__":
-    main()

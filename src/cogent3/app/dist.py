@@ -165,6 +165,19 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     -------
     PairwiseDistanceType
         Pairwise Jaccard distance between sequences in the collection.
+
+    Examples
+    --------
+
+    Create an sample sequence collection and an app that calculates the
+    pairwise Jaccard distance with kmer size ``k=2``.
+
+    >>> from cogent3 import make_unaligned_seqs, get_app
+    >>> seqs = make_unaligned_seqs({"s1": "ACGTA", "s2": "ACGTC"}, moltype="dna")
+    >>> app = get_app("jaccard_dist", k=2)
+    >>> result = app(seqs)
+    >>> print(result.to_dict())
+    {('s1', 's2'): 0.4, ('s2', 's1'): 0.4}
     """
 
     kmers = {
@@ -223,6 +236,24 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
     polynomial fit between Jaccard distance and p-distance. The coefficients
     were fitted using data from 106 DNA sequences of mammalian protein coding
     genes, with kmers of size k=10.
+
+    Examples
+    --------
+
+    Create a sample sequence collection and apps for calculating the Jaccard
+    distances, and an approximation of the p-distance.
+
+    >>> from cogent3 import make_unaligned_seqs, get_app
+    >>> seqs = make_unaligned_seqs({"s1": "ACGTA", "s2": "ACGTC"}, moltype="dna")
+    >>> jaccard_dist = get_app("jaccard_dist", k=2)
+    >>> pdist = get_app("approx_pdist")
+
+    Create a composable app to return the p-distances.
+
+    >>> app = jaccard_dist + pdist
+    >>> result = app(seqs)
+    >>> print(result.to_dict())
+    {('s1', 's2'): 0.02597466474649073, ('s2', 's1'): 0.02597466474649073}
     """
     upper_indices = triu_indices(n=jaccard_dists.shape[0], k=1)
     result = deepcopy(jaccard_dists)  # so the original matrix not modified
@@ -253,6 +284,24 @@ def approx_jc69(
     Returns
     -------
     DistanceMatrix of pairwise JC69 distances
+
+    Examples
+    --------
+
+    Create a sample sequence collection and apps for calculating the Jaccard
+    distances, and an approximation of the pairwise JC69 distances.
+
+    >>> from cogent3 import make_unaligned_seqs, get_app
+    >>> seqs = make_unaligned_seqs({"s1": "ACGTA", "s2": "ACGTC"}, moltype="dna")
+    >>> jaccard_dist = get_app("jaccard_dist", k=2)
+    >>> jc69 = get_app("approx_jc69")
+
+    Create a composable app to return the JC69 distances.
+
+    >>> app = jaccard_dist + jc69
+    >>> result = app(seqs)
+    >>> print(result.to_dict())
+    {('s1', 's2'): 0.5716050390351726, ('s2', 's1'): 0.5716050390351726}
     """
     upper_indices = triu_indices(n=pdists.shape[0], k=1)
     result = deepcopy(pdists)  # so the original matrix not modified

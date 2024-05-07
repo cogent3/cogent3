@@ -1,12 +1,12 @@
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Optional, Union
 
 from numpy import array
 from numpy import random as np_random
 
 from cogent3.core.alignment import Alignment, ArrayAlignment
 from cogent3.core.genetic_code import get_code
-from cogent3.core.moltype import get_moltype
+from cogent3.core.moltype import MolType, get_moltype
 
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
@@ -15,6 +15,8 @@ from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
 # TODO need a function to filter sequences based on divergence, ala divergent
 # set.
+
+MolTypes = Union[str, MolType]
 
 
 def intersection(groups):
@@ -34,17 +36,63 @@ def union(groups):
 class concat:
     """Creates a concatenated alignment from a series."""
 
-    def __init__(self, join_seq="", intersect=True, moltype=None):
+    def __init__(
+        self, join_seq: str = "", intersect: bool = True, moltype: Optional[str] = None
+    ):
         """
         Parameters
         ----------
-        join_seq : str
+        join_seq
             splice sequences together using this string
-        intersect : bool
+        intersect
             result contains only sequences present in all alignments. If False,
             missings sequences will be replaced by a sequence of '?'.
-        moltype : str
+        moltype
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create an app to concatenate two alignments
+
+        >>> from cogent3 import app_help, get_app, make_aligned_seqs
+        >>> concat_alns = get_app("concat", moltype="dna")
+
+        Create sample alignments with matching sequence names
+
+        >>> aln1 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"}, moltype="dna")
+        >>> aln2 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"}, moltype="dna")
+
+        Concatenate alignments. By default, sequences without matching names in
+        the corresponding alignment are omitted (intersect=True).
+
+        >>> result = concat_alns([aln1, aln2])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        s1    AAAGCG
+        s2    C...G.
+        s3    ....GT
+
+        Create an app that includes missing sequences across alignments.
+        Missing sequences are replaced by a sequence of "?".
+
+        >>> concat_missing = get_app("concat", moltype="dna", intersect=False)
+        >>> aln3 = make_aligned_seqs({"s4": "GCG", "s5": "GGG"}, moltype="dna")
+        >>> result = concat_missing([aln1, aln3])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3","s4","s5"]))
+        s1    AAA???
+        s2    C.....
+        s3    ......
+        s4    ???GCG
+        s5    ???GGG
+
+        Create an app that delimits concatenated alignments with "N"
+
+        >>> concat_delim = get_app("concat", join_seq="N", moltype="dna")
+        >>> result = concat_delim([aln1, aln2])
+        >>> print(result.to_pretty(name_order=["s1","s2","s3"]))
+        s1    AAANGCG
+        s2    C....G.
+        s3    .....GT
         """
         self._name_callback = {True: intersection}.get(intersect, union)
         self._intersect = intersect
@@ -61,37 +109,40 @@ class concat:
         data
             series of alignment instances
         """
-        if len(data) == 0:
-            raise ValueError("no data")
+        if not data:
+            return NotCompleted("ERROR", self, message="no data")
 
         names = []
         for aln in data:
+            if self._moltype is None:
+                self._moltype = aln.moltype
+
             if not isinstance(aln, (ArrayAlignment, Alignment)):
                 raise TypeError(f"{type(aln)} invalid for concat")
             names.append(aln.names)
 
         names = self._name_callback(names)
         collated = defaultdict(list)
-        if self._moltype is None:
-            self._moltype = aln.moltype
 
         for aln in data:
             if self._moltype and aln.moltype != self._moltype:
                 # try converting
-                aln = aln.to_moltype(self.moltype)
+                aln = aln.to_moltype(self._moltype)
 
             if self._intersect:
                 seqs = aln.take_seqs(names).to_dict()
             else:
                 seqs = defaultdict(lambda: "?" * len(aln))
-                seqs.update(aln.to_dict())
+                seqs |= aln.to_dict()
 
             for name in names:
                 collated[name].append(seqs[name])
 
         combined = {n: self._join_seq.join(collated[n]) for n in names}
-        aln = ArrayAlignment(data=combined, moltype=self._moltype)
-        return aln
+        if aln := ArrayAlignment(data=combined, moltype=self._moltype):
+            return aln
+        else:
+            return NotCompleted("FAIL", self, message="result is empty")
 
 
 @define_app
@@ -99,33 +150,87 @@ class omit_degenerates:
     """Excludes alignment columns with degenerate characters. Can accomodate
     reading frame."""
 
-    def __init__(self, moltype=None, gap_is_degen=True, motif_length=1):
+    def __init__(
+        self,
+        moltype: Optional[str] = None,
+        gap_is_degen: bool = True,
+        motif_length: int = 1,
+    ):
         """
         Parameters
         ----------
-        moltype : str
+        moltype
             molecular type, must be either DNA or RNA
-        gap_is_degen : bool
+        gap_is_degen
             include gap character in degenerate character set
-        motif_length : int
+        motif_length
             sequences split into non-overlapping tuples of this size. If a
             tuple contains a degen character at any position the entire tuple
             is excluded
+
+        Examples
+        --------
+        Degenerate IUPAC base symbols represents a site position that can have
+        multiple possible nucleotides. For example, "Y" represents
+        pyrimidines where the site can be either "C" or "T".
+
+        Note: In molecular evolutionary and phylogenetic analyses, the gap
+        character "-" is considered to be any base "N".
+
+        Create sample data with degenerate characters
+
+        >>> from cogent3 import app_help, get_app, make_aligned_seqs
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"}, moltype="dna")
+
+        Create an app that omits aligned columns containing a degenerate
+        character from an alignment
+
+        >>> app = get_app("omit_degenerates", moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ACGAGAG
+        s2    GATGTGT
+
+        Create an app which omits degenerate characters, but retains gaps
+
+        >>> app = get_app("omit_degenerates", moltype="dna", gap_is_degen=False)
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ACGA-GAG
+        s2    GATGATGT
+
+        Split sequences into non-overlapping tuples of length 2 and exclude
+        any tuple that contains a degenerate character
+
+        >>> app = get_app("omit_degenerates", moltype="dna", motif_length=2)
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ACGA
+        s2    GATG
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if the moltype is not specified in the alignment or app
+
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GACG", "s2": "GATGATGYT"})
+        >>> app = get_app("omit_degenerates")
+        >>> result = app(aln)
+        >>> result.message
+        'Traceback...
         """
         if moltype:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
-        self.moltype = moltype
+        self._moltype = moltype
         self._allow_gap = not gap_is_degen
         self._motif_length = motif_length
 
     T = Union[SerialisableType, AlignedSeqsType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        if self.moltype and aln.moltype != self.moltype:
+        if self._moltype and aln.moltype != self._moltype:
             # try converting
-            aln = aln.to_moltype(self.moltype)
+            aln = aln.to_moltype(self._moltype)
 
         return aln.no_degenerates(
             motif_length=self._motif_length, allow_gap=self._allow_gap
@@ -137,32 +242,79 @@ class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame."""
 
-    def __init__(self, allowed_frac=0.99, motif_length=1, moltype=None):
+    def __init__(
+        self,
+        allowed_frac: float = 0.99,
+        motif_length: int = 1,
+        moltype: Optional[str] = None,
+    ):
         """
         Parameters
         ----------
-        allowed_frac : float
+        allowed_frac
             columns with a fraction of gap characters exceeding allowed_frac are
             excluded
-        motif_length : int
+        motif_length
             sequences split into non-overlapping tuples of this size.
-        moltype : str
+        moltype
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that excludes highly gapped sites.
+        Sites with over 99% gaps are excluded by default.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGA-GA-CG", "s2": "GATGATG-AT"})
+
+        >>> app = get_app("omit_gap_pos", moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACGA-GACG
+        s2    GATGATGAT
+
+        Create an app that excludes all aligned sites with over 49% gaps.
+
+        >>> app = get_app("omit_gap_pos", allowed_frac=0.49, moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACGAGACG
+        s2    GATGTGAT
+
+        To eliminate any codon columns (where a column is a triple of
+        nucleotides) that contain a gap character, we use the motif_length
+        argument.
+
+        >>> app = get_app("omit_gap_pos", allowed_frac=0, motif_length=3, moltype="dna")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=["s1", "s2"]))
+        s1    ACG
+        s2    GAT
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if all sites are excluded.
+
+        >>> aln = make_aligned_seqs({"s1": "ACGA------", "s2": "----ATG-AT"})
+        >>> app = get_app("omit_gap_pos", allowed_frac=0, motif_length=3, moltype="dna")
+        >>> result = app(aln)
+        >>> result.message
+        'all columns exceeded gap threshold'
         """
         if moltype:
             moltype = get_moltype(moltype)
             assert moltype.label.lower() in ("dna", "rna"), "Invalid moltype"
 
-        self.moltype = moltype
+        self._moltype = moltype
         self._allowed_frac = allowed_frac
         self._motif_length = motif_length
 
     T = Union[SerialisableType, AlignedSeqsType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        if self.moltype and aln.moltype != self.moltype:
+        if self._moltype and aln.moltype != self._moltype:
             # try converting
-            aln = aln.to_moltype(self.moltype)
+            aln = aln.to_moltype(self._moltype)
 
         return aln.omit_gap_pos(
             allowed_gap_frac=self._allowed_frac, motif_length=self._motif_length
@@ -177,24 +329,66 @@ class take_codon_positions:
 
     def __init__(
         self,
-        *positions,
-        fourfold_degenerate=False,
-        gc="Standard",
-        moltype="dna",
+        *positions: int,
+        fourfold_degenerate: bool = False,
+        gc: Union[str, int] = "Standard",
+        moltype: str = "dna",
     ):
         """
         Parameters
         ----------
         positions
-            either an integer (1, 2, 3), or a tuple of position numbers,
-            e.g. 3 is third position, (1,2) is first and second codon position
-        fourfold_degenerate : bool
+            either a single integer from (1, 2, 3), or additional keyword
+            arguments of position numbers, e.g. 3 is third position, (1,2)
+            is first and second codon position
+        fourfold_degenerate
             if True, returns third positions from four-fold degenerate codons.
             Overrides positions.
         gc
-            identifier for a genetic code or a genetic code instance
-        moltype : str
+            identifier for a genetic code or a genetic code instance.
+            see https://cogent3.org/doc/cookbook/what_codes.html
+        moltype
             molecular type, must be either DNA or RNA
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that extracts the 3rd codon
+        position from an alignment.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGACGACG", "s2": "GATGATGAT"})
+        >>> take_pos3 = get_app("take_codon_positions", 3, moltype="dna")
+        >>> result = take_pos3(aln)
+        >>> print(result.to_pretty())
+        s1    GGG
+        s2    TTT
+
+        Create an app that extracts the 1st and 2nd codon positions from an
+        alignment.
+
+        >>> take_pos12 = get_app("take_codon_positions", 1, 2, moltype="dna")
+        >>> result = take_pos12(aln)
+        >>> print(result.to_pretty())
+        s1    ACACAC
+        s2    GAGAGA
+
+        Create a sample alignment and an app that returns the 3rd codon
+        positions from four-fold degenerate codons.
+
+        >>> aln_ff = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> take_fourfold = get_app("take_codon_positions", fourfold_degenerate=True, moltype="dna")
+        >>> result = take_fourfold(aln_ff)
+        >>> print(result.to_pretty())
+        s1    AT
+        s2    TC
+
+        A NotCompleted object (see https://cogent3.org/doc/app/not-completed.html)
+        is returned if all sites are excluded.
+
+        >>> result = take_fourfold(aln)
+        >>> result.message
+        'Traceback ...
         """
         assert moltype is not None
         moltype = get_moltype(moltype)
@@ -268,14 +462,41 @@ class take_codon_positions:
 class take_named_seqs:
     """Selects named sequences from a collection."""
 
-    def __init__(self, *names, negate=False):
+    def __init__(self, *names: str, negate: bool = False):
         """
         Parameters
         ----------
         *names
-            series of sequence names
+            series of sequence names provided as positional arguments
         negate
             if True, excludes the provided names from the result
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that returns the sequences
+        matching the provided names.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({
+        ...     "s1": "GCAAGC",
+        ...     "s2": "GCTTTT",
+        ...     "s3": "GC--GC",
+        ...     "s4": "GCAAGC"
+        ... })
+        >>> app = get_app("take_named_seqs", "s1", "s2")
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    GCAAGC
+        s2    ..TTTT
+
+        Create an app that excludes sequences that match the provided names.
+
+        >>> app_negate = get_app("take_named_seqs", "s1", "s2", negate=True)
+        >>> result = app_negate(aln)
+        >>> print(result.to_pretty())
+        s3    GC--GC
+        s4    ..AA..
         """
         self._names = names
         self._negate = negate
@@ -297,23 +518,85 @@ class take_n_seqs:
     """Selects n sequences from a collection. Chooses first n sequences, or
     selects randomly if specified."""
 
-    def __init__(self, number, random=False, seed=None, fixed_choice=True):
+    def __init__(
+        self,
+        number: int,
+        random: bool = False,
+        seed: Optional[int] = None,
+        fixed_choice: bool = True,
+    ):
         """
         Parameters
         ----------
-        number: int
+        number
             number of sequences to sample. If number of sequences in a collectionis < n, returns NotCompleted
             indicating a FAIL.
-        random: bool
+        random
             Whether to choose the sequences randomly.
-        seed: int
+        seed
             Seed for the numpy random number generator.
-        fixed_choice: bool
+        fixed_choice
             sequence names selected from the first alignment are used for all others.
 
         Returns
         -------
         A new sequence collection, or NotCompleted if not insufficient sequences are in the collection.
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that returns ``number=3``
+        sequences. By default, the first 3 sequences from the alignment are
+        returned.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({
+        ...     "s1": "ACGT",
+        ...     "s2": "ACG-",
+        ...     "s3": "ACGN",
+        ...     "s4": "ACGG",
+        ...     "s5": "ACGG"
+        ... })
+        >>> app_first_n = get_app("take_n_seqs", number=3)
+        >>> result = app_first_n(aln)
+        >>> print(result.to_pretty())
+        s1    ACGT
+        s2    ...-
+        s3    ...N
+
+        Using ``random=True`` and ``number=3`` returns 3 random sequences.
+        An optional ``seed`` can be provided to ensure the same sequences
+        are returned each time the app is called.
+
+        >>> app_random_n = get_app("take_n_seqs", number=3, random=True, seed=1)
+        >>> result = app_random_n(aln)
+        >>> print(result.to_pretty())
+        s3    ACGN
+        s2    ...-
+        s5    ...G
+
+        ``fixed_choice=True`` ensures the same sequences are returned when
+        (randomly) sampling sequences across several alignments.
+
+        >>> aln2 = make_aligned_seqs({
+        ...     "s1": "GCGC",
+        ...     "s2": "GCG-",
+        ...     "s3": "GCG-",
+        ...     "s4": "GCGG",
+        ...     "s5": "GCGG",
+        ... })
+        >>> app_fixed = get_app("take_n_seqs", number=3, random=True, fixed_choice=True)
+        >>> result1 = app_fixed(aln).names
+        >>> result2 = app_fixed(aln2).names
+        >>> assert result1 == result2
+
+        When ``number`` exceeds the number of sequences in the alignment, returns a
+        NotCompleted (see https://cogent3.org/doc/app/not-completed.html).
+
+        >>> app_fail = get_app("take_n_seqs", number=6)
+        >>> result = app_fail(aln)
+        >>> result.message
+        'not enough sequences'
         """
         if seed:
             np_random.seed(seed)
@@ -354,21 +637,57 @@ class take_n_seqs:
 class min_length:
     """Filters sequence collections / alignments by length."""
 
-    def __init__(self, length, motif_length=1, subtract_degen=True, moltype=None):
+    def __init__(
+        self,
+        length: int,
+        motif_length: int = 1,
+        subtract_degen: bool = True,
+        moltype: Optional[MolTypes] = None,
+    ):
         """
         Parameters
         ----------
-        length : int
+        length
             only alignments with this length returned, False otherwise
-        motif_length : int
+        motif_length
             length is converted to modulo motif_length
-        subtract_degen : bool
+        subtract_degen
             degenerate characters subtracted from sequence length calculation
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+        Create a sample alignment. Alignments must have a moltype specified
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"}, moltype="dna")
+
+        Create the app to filter sequences with a minimum length of 3 sites
+
+        >>> app = get_app("min_length", 3)
+        >>> result = app(aln)
+        >>> len(result)
+        5
+
+        When all sequences are shorter than the min length, returns a
+        NotCompleted (see https://cogent3.org/doc/app/not-completed.html)
+
+        >>> app = get_app("min_length", 7)
+        >>> result = app(aln)
+        >>> result.message
+        '4 < min_length 7'
+
+        If the moltype of the alignment is not specified, returns a NotCompleted
+
+        >>> aln = make_aligned_seqs({"s1": "ACGGT", "s2": "AC-GT"})
+        >>> app = get_app("min_length", 3)
+        >>> result = app(aln)
+        >>> result.message
+        'Traceback...
         """
         if motif_length > 1:
-            length = length // motif_length
+            length //= motif_length
         self._min_length = length
         self._motif_length = motif_length
         self._subtract_degen = subtract_degen
@@ -423,26 +742,75 @@ class fixed_length:
     """Sample an alignment to a fixed length."""
 
     def __init__(
-        self, length, start=0, random=False, seed=None, motif_length=1, moltype=None
+        self,
+        length: int,
+        start: int = 0,
+        random: bool = False,
+        seed: Optional[int] = None,
+        motif_length: int = 1,
+        moltype: Optional[MolTypes] = None,
     ):
         """
         Parameters
         ----------
-        length : int
+        length
             only alignments with this length returned, False otherwise
         start
             integer starting position for truncation, or 'random' in which case
             a random start is chosen (within the possible range returning an
             alignment of the specified length). Overrides  `random`.
-        random : bool
+        random
             random positions for the corresponding tuple are chosen.
-        seed : int
+        seed
             random number seed
-        motif_length : int
+        motif_length
             length of sequence units to consider. If not 1, length and start are
             converted (reduced) if necessary to be modulo motif_length
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+
+        Create a sample alignment and an app that returns the first 4 positions
+        of the alignment.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> app_4 = get_app("fixed_length", length=4)
+        >>> result = app_4(aln)
+        >>> print(result.to_pretty())
+        s1    GCAA
+        s2    ..TT
+
+        Return an alignment with ``length=4`` starting from the 2nd position.
+
+        >>> app_4_start2 = get_app("fixed_length", length=4, start=2)
+        >>> result = app_4_start2(aln)
+        >>> print(result.to_pretty())
+        s1    AAGC
+        s2    TTTT
+
+        The start position can be selected at random with ``random=True``. An
+        optional ``seed`` can be provided to ensure the same start position is
+        used when the app is called.
+
+        >>> app_4_random = get_app("fixed_length", length=4, random=True, seed=1)
+        >>> result = app_4_start2(aln)
+        >>> print(result.to_pretty())
+        s1    AAGC
+        s2    TTTT
+
+        Use ``motif_length=3`` to sample two triplets of ``length=6``.
+        Sequences are split into non-overlapping sections of ``motif_length=3``
+        before sampling (i.e. codon positions are preserved).
+
+        >>> aln = make_aligned_seqs({"s1": "GCAAGCGTTTAT", "s2": "GCTTTTGTCAAT"})
+        >>> app_motif3 = get_app("fixed_length", length=6, motif_length=3, random=True, seed=9)
+        >>> result = app_motif3(aln)
+        >>> print(result.to_pretty())
+        s1    AGCTAT
+        s2    TTTA..
         """
         diff = length % motif_length
         if diff != 0:
@@ -516,20 +884,63 @@ class fixed_length:
 class omit_bad_seqs:
     """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
-    def __init__(self, quantile=None, gap_fraction=1, moltype="dna"):
+    def __init__(
+        self,
+        quantile: Optional[float] = None,
+        gap_fraction: int = 1,
+        moltype: MolTypes = "dna",
+    ):
         """
         Parameters
         ----------
-        quantile : float or None
-            The number of gaps uniquely introduced by a sequence are counted.
-            The value corresponding to quantile is determined and all sequences
-            whose unique gap count is larger than this cutoff are excluded.
-            If None, this condition is not applied.
+        quantile
+            The number of gaps uniquely introduced in an alignment by each
+            sequence are counted. The value corresponding to quantile is
+            determined and all sequences whose unique gap count is larger than
+            this cutoff are excluded. If None, this condition is not applied.
         gap_fraction
             sequences whose proportion of gaps is >= this value are excluded, the
             default excludes sequences that are just gaps.
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+
+        Create a sample alignment and an app to remove sequences based on gap
+        fraction. Use ``gap_fraction=0.5`` to omit sequences that contain 50%
+        or more gaps.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({
+        ...     "s1": "---ACC---TT-",
+        ...     "s2": "---ACC---TT-",
+        ...     "s3": "---ACC---TT-",
+        ...     "s4": "--AACCG-GTT-",
+        ...     "s5": "--AACCGGGTTT",
+        ...     "s6": "AGAACCGGGTT-",
+        ...     "s7": "------------"
+        ... }, moltype="dna")
+        >>> app_frac_05 = get_app("omit_bad_seqs", gap_fraction=0.5)
+        >>> result = app_frac_05(aln)
+        >>> print(result.to_pretty())
+        s4    --AACCG-GTT-
+        s5    .......G...T
+        s6    AG.....G....
+
+        The ``quantile=0.8`` argument omits sequences that introduce gaps in the
+        alignment. In the following example, sequence `s6` is omitted, as it
+        uniquely introduces gaps in the first two positions of the alignment
+        which exceeds the cutoff.
+
+        >>> app = get_app("omit_bad_seqs", quantile=0.8)
+        >>> result = app(aln)
+        >>> print(result.to_pretty())
+        s1    ---ACC---TT-
+        s2    ............
+        s3    ............
+        s4    ..A...G.G...
+        s5    ..A...GGG..T
         """
         if moltype:
             moltype = get_moltype(moltype)
@@ -560,7 +971,13 @@ class omit_duplicated:
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped."""
 
-    def __init__(self, mask_degen=False, choose="longest", seed=None, moltype=None):
+    def __init__(
+        self,
+        mask_degen: bool = False,
+        choose: str = "longest",
+        seed: Optional[int] = None,
+        moltype: Optional[MolTypes] = None,
+    ):
         """
         Parameters
         ----------
@@ -570,10 +987,65 @@ class omit_duplicated:
             choose a representative from sets of duplicated sequences.
             Valid values are None (all members of a duplicated set are excluded),
             'longest', 'random'.
-        seed : int
+        seed
             set random number seed. Only applied of choose=='random'
         moltype
             molecular type, can be string or instance
+
+        Examples
+        --------
+        Removes redundant sequences from a sequence collection (aligned or
+        unaligned).
+
+        Create sample data with duplicated sequences.
+
+        >>> from cogent3 import get_app, make_aligned_seqs
+        >>> data = {
+        ... "a": "ACGT",
+        ... "b": "ACG-",  # identical to 'a' except has a gap
+        ... "c": "ACGG",  # duplicate
+        ... "d": "ACGG",  # duplicate
+        ... "e": "AGTC"   # unique
+        ... }
+
+        Create an app that selects a representative of omits duplicate sequences.
+        Setting ``choose="longest"`` selects the duplicated sequence with the least
+        number of gaps and ambiguous characters. In this case, only one of 'c' and
+        'd' will be retained.
+
+        >>> seqs = make_aligned_seqs(data, moltype="DNA")
+        >>> app = get_app("omit_duplicated", moltype="dna", choose="longest")
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+        a    ACGT
+        b    ...-
+        d    ...G
+        e    .GTC
+
+        Setting ``choose=None`` means only unique sequences are retained.
+
+        >>> app = get_app("omit_duplicated", moltype="dna", choose=None)
+        >>> result = app(seqs)
+        >>> print(result.to_pretty())
+        a    ACGT
+        b    ...-
+        e    .GTC
+
+        Use the ``mask_degen`` argument to specify how to treat matches between
+        sequences with degenerate characters. We create sample data first that
+        has a DNA ambiguity code.
+
+        >>> data = make_aligned_seqs({
+        ... "s1": "ATCG",
+        ... "s2": "ATYG",  # matches s1 with ambiguity
+        ... "s3": "GGTA",
+        ... },
+        ... moltype="DNA")
+        >>> app_dna = get_app("omit_duplicated", mask_degen=True, choose="longest", moltype="DNA")
+        >>> result = app_dna(data)
+        >>> print(result.to_pretty())
+        s1    ATCG
+        s3    GGTA
         """
         assert not choose or choose in "longestrandom"
         if moltype:
@@ -640,18 +1112,46 @@ class omit_duplicated:
 class trim_stop_codons:
     """Removes terminal stop codons."""
 
-    def __init__(self, gc=1):
+    def __init__(self, gc: Union[str, int] = 1):
         """
         Parameters
         ----------
         gc
             identifier for a genetic code or a genetic code instance, defaults
-            to standard genetic code
+            to standard genetic code. See https://cogent3.org/doc/cookbook/what_codes.html
 
         Returns
         -------
         A new sequence collection, or False if not all the named sequences are
         in the collection.
+
+        Examples
+        --------
+
+        Removes trailing (terminal) stop codons from sequences in a sequence
+        collection or alignment.
+
+        Create a sample unaligned sequence data and an app to remove trailing
+        stop codons.
+
+        >>> from cogent3 import make_unaligned_seqs, make_aligned_seqs, get_app
+        >>> ualn = make_unaligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons")
+        >>> result = app(ualn)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT'}
+
+        Remove trailing stop codons from aligned sequences, using the genetic
+        code for "Vertebrate Mitochondrial".
+
+        For a list of all genetic codes, see
+        https://cogent3.org/doc/cookbook/what_codes.html.
+
+        >>> aln = make_aligned_seqs(data={"s1": "AAATTTCCC", "s2": "AAATTTTAA"}, moltype="dna")
+        >>> app = get_app("trim_stop_codons", gc=2)
+        >>> result = app(aln)
+        >>> print(result.to_dict())
+        {'s1': 'AAATTTCCC', 's2': 'AAATTT---'}
         """
         self._gc = gc
 

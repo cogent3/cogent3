@@ -1,9 +1,3 @@
-#! /usr/bin/env python
-#
-# test_blast_xml.py
-#
-
-
 import xml.dom.minidom
 
 from unittest import TestCase
@@ -333,7 +327,3 @@ COMPLETE_XML = (
 """
     + HEADER_COMPLETE
 )
-
-
-if __name__ == "__main__":
-    main()

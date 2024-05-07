@@ -1,5 +1,6 @@
 """Unit tests for Sequence class and its subclasses.
 """
+
 import json
 import os
 import re
@@ -16,6 +17,7 @@ from numpy.testing import assert_allclose, assert_equal
 import cogent3
 
 from cogent3._version import __version__
+from cogent3.core.alignment import Aligned
 from cogent3.core.moltype import (
     ASCII,
     BYTES,
@@ -39,6 +41,7 @@ from cogent3.core.sequence import (
     RnaSequence,
     Sequence,
     SeqView,
+    _coerce_to_seqview,
 )
 from cogent3.util.misc import get_object_provenance
 
@@ -1832,22 +1835,38 @@ def test_seqview_remove_gaps():
 
 
 def test_seqview_repr():
-    # case 1: Short sequence, defaults
+    # Short sequence, defaults
     seq = "ACGT"
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1)"
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid=None, seq_len=4)"
+    )
     assert repr(view) == expected
 
-    # case 2: Long sequence
+    # Long sequence
     seq = "ACGT" * 10
     view = SeqView(seq)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=0, stop=40, step=1, offset=0, seqid=None, seq_len=40)"
     assert repr(view) == expected
 
-    # case 3: Non-zero start, stop, and step values
+    # Non-zero start, stop, and step values
     seq = "ACGT" * 10
     view = SeqView(seq, start=5, stop=35, step=2)
-    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2)"
+    expected = "SeqView(seq='ACGTACGTAC...TACGT', start=5, stop=35, step=2, offset=0, seqid=None, seq_len=40)"
+    assert repr(view) == expected
+
+    # offset
+    seq = "ACGT"
+    view = SeqView(seq, offset=5)
+    expected = (
+        "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=5, seqid=None, seq_len=4)"
+    )
+    assert repr(view) == expected
+
+    # seqid
+    seq = "ACGT"
+    view = SeqView(seq, seqid="seq1")
+    expected = "SeqView(seq='ACGT', start=0, stop=4, step=1, offset=0, seqid='seq1', seq_len=4)"
     assert repr(view) == expected
 
 
@@ -2167,6 +2186,24 @@ def test_relative_position_step_GT_one(integer_seq):
     assert got == 4
 
 
+@pytest.mark.parametrize("sliced", (False, True))
+@pytest.mark.parametrize("rev", (False, True))
+def test_seqview_copy(sliced, rev, integer_seq):
+    raw_data = integer_seq.seq
+    if rev:
+        integer_seq = integer_seq[::-1]
+        raw_data = raw_data[::-1]
+
+    slice_start = 2
+    slice_end = 4
+    sv = integer_seq[slice_start:slice_end]
+    copied = sv.copy(sliced=sliced)
+
+    assert copied.value == raw_data[slice_start:slice_end]
+    assert copied.reverse == integer_seq.reverse
+    assert sliced and copied.seq is not sv.seq or copied.seq is integer_seq.seq
+
+
 def test_relative_position_with_remainder(integer_seq):
     """tests relative_position when the index given is excluded from the view as it falls on
     a position that is 'stepped over'"""
@@ -2280,7 +2317,7 @@ def test_to_rich_dict(cls, with_offset):
     seq = "AAGGCC"
 
     if cls == Sequence:
-        seq = SeqView(seq).to_rich_dict()
+        seq = SeqView(seq, seqid="seq1").to_rich_dict()
 
     expect = {
         "name": "seq1",
@@ -2304,7 +2341,7 @@ def test_to_json(cls, with_offset):
 
     seq = "AAGGCC"
     if cls == Sequence:
-        seq = SeqView(seq).to_rich_dict()
+        seq = SeqView(seq, seqid="seq1").to_rich_dict()
 
     expect = {
         "name": "seq1",
@@ -2342,9 +2379,6 @@ def test_seqview_to_rich_dict():
     sv = SeqView(seq=parent)
     plus = sv.to_rich_dict()
     minus = sv[::-1].to_rich_dict()
-    for attr in ("type", "offset", "version"):
-        assert plus.pop(attr) == minus.pop(attr)
-
     plus = plus.pop("init_args")
     minus = minus.pop("init_args")
     assert plus.pop("seq") == minus.pop("seq")
@@ -2378,7 +2412,78 @@ def test_sliced_seqview_rich_dict(reverse):
         sv = sv[::-1]
     rd = sv.to_rich_dict()
     assert rd["init_args"]["seq"] == parent[sl]
-    assert rd["offset"] == 2
+    assert rd["init_args"]["offset"] == 2
+
+
+@pytest.mark.parametrize(
+    "sl",
+    (
+        slice(2, 5, 1),  # positive indices, positive step
+        slice(-8, -5, 1),  # negative indices, positive step
+        slice(4, 1, -1),  # positive indices, negative step
+        slice(-6, -9, -1),  # negative indices, negative step
+    ),
+)
+@pytest.mark.parametrize("offset", (4, 0))
+def test_parent_start_stop(sl, offset):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = "234" if sl.step > 0 else "432"
+    sv = SeqView(data)
+    sv.offset = offset
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (2 + offset, 5 + offset)
+
+
+@pytest.mark.parametrize(
+    "sl",
+    (
+        slice(None, None, 1),  # slice whole sequence plus strand
+        slice(None, None, -1),  # slice whole sequence minus strand
+    ),
+)
+def test_parent_start_stop_limits(sl):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = data[sl]
+    sv = SeqView(data)
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (0, 10)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_parent_start_stop_empty(rev):
+    data = "0123456789"
+    # check our slice matches the expectation for rest of test
+    expect = ""
+    sv = SeqView(data)
+    sv = sv[0 : 0 : -1 if rev else 1]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (0, 0)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("index", range(9))
+def test_parent_start_stop_singletons(index, rev):
+    data = "0123456789"
+    start, stop = (-(10 - index), -(10 - index + 1)) if rev else (index, index + 1)
+    sl = slice(start, stop, -1 if rev else 1)
+    # check our slice matches the expectation for rest of test
+    expect = data[sl]
+    sv = SeqView(data)
+    sv = sv[sl]
+    assert sv.value == expect
+    # now check that start / stop are always the same
+    # irrespective of step sign
+    assert (sv.parent_start, sv.parent_stop) == (index, index + 1)
 
 
 def test_get_drawable(DATA_DIR):
@@ -2485,3 +2590,173 @@ def test_same_moltype(moltype):
     seq = moltype.make_seq("TCCAG")
     got = seq.to_moltype(moltype)
     assert got is seq
+
+
+def test_gapped_by_map_segment_iter():
+    moltype = get_moltype("dna")
+    m, seq = moltype.make_seq("-TCC--AG").parse_out_gaps()
+    g = list(seq.gapped_by_map_segment_iter(m, allow_gaps=True, recode_gaps=False))
+
+
+@pytest.mark.parametrize("rev", (False, True))
+@pytest.mark.parametrize("sliced", (False, True))
+@pytest.mark.parametrize("start_stop", ((None, None), (3, 7)))
+def test_copied_parent_coordinates(sliced, rev, start_stop):
+    orig_name = "orig"
+    seq = DNA.make_seq("ACGGTGGGAC", name=orig_name)
+    start, stop = start_stop
+    start = start or 0
+    stop = stop or len(seq)
+    sl = slice(start, stop)
+    seq = seq[sl]
+    sliced_name = "sliced"
+    seq.name = sliced_name
+    assert seq.name == sliced_name
+    if rev:
+        seq = seq.rc()
+    copied = seq.copy(sliced=sliced)
+    assert copied.name == sliced_name
+    # matches original
+    assert copied.parent_coordinates() == seq.parent_coordinates()
+    # and expected -- the coordinate name always reflects the underlying sequence
+    assert copied.parent_coordinates() == (orig_name, start, stop, -1 if rev else 1)
+
+
+@pytest.mark.parametrize("rev", (False, True))
+def test_parent_coordinates(rev):
+    seq = DNA.make_seq("ACGGTGGGAC")
+    seq = seq[1:1]
+    if rev:
+        seq = seq.rc()
+    seq.name = "sliced"  # this assignment does not affect the
+    # note that when a sequence has zero length, the parent seqid is None
+    assert seq.parent_coordinates() == (None, 0, 0, 1)
+
+
+def test_seqview_seqid():
+    sv = SeqView("ACGGTGGGAC")
+    assert sv.seqid is None
+
+    sv = SeqView("ACGGTGGGAC", seqid="seq1")
+    assert sv.seqid == "seq1"
+
+
+def test_seqview_rich_dict_round_trip_seqid():
+    sv = SeqView("ACGGTGGGAC", seqid="seq1")
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seqid"] == "seq1"
+
+    got = SeqView.from_rich_dict(rd)
+    assert got.seqid == "seq1"
+
+    sv = SeqView("ACGGTGGGAC")
+    rd = sv.to_rich_dict()
+    assert rd["init_args"]["seqid"] == None
+
+    got = SeqView.from_rich_dict(rd)
+    assert got.seqid == None
+
+
+def test_seqview_slice_propagates_seqid():
+    sv = SeqView("ACGGTGGGAC", seqid="seq1")
+    sliced_sv = sv[1:8:2]
+    assert sliced_sv.seqid == "seq1"
+
+    copied_sv = sliced_sv.copy(sliced=False)
+    assert copied_sv.seqid == "seq1"
+
+    copied_sliced_sv = sliced_sv.copy(sliced=True)
+    assert copied_sliced_sv.seqid == "seq1"
+
+
+@pytest.mark.parametrize("cls", (Aligned, Sequence, SeqView, ArraySequence, str, bytes))
+def test_coerce_to_seqview(cls):
+    seq = "AC--GGTGGGAC"
+    seqid = "seq1"
+    if cls in (str, bytes):
+        got = _coerce_to_seqview(seq, seqid, preserve_case=True, checker=(lambda x: x))
+    elif cls is Aligned:
+        got = _coerce_to_seqview(
+            cls(*Sequence(seq).parse_out_gaps()),
+            seqid,
+            preserve_case=True,
+            checker=(lambda x: x),
+        )
+    else:
+        got = _coerce_to_seqview(
+            cls(seq), seqid, preserve_case=True, checker=(lambda x: x)
+        )
+    assert got.value == seq
+    assert isinstance(got, SeqView)
+
+
+def test_sequences_propogates_seqid():
+    # creating a name Sequence propagates the seqid to the SeqView.
+    seq = Sequence("ACGGTGGGAC", name="seq1")
+    assert seq._seq.seqid == "seq1"
+
+    # renaming the Sequence deosnt change the seqid of the SeqView.
+    seq.name = "seq2"
+    assert seq.name == "seq2"
+    assert seq._seq.seqid == "seq1"
+
+    # creating a name Aligned propagates the seqid to the SeqView.
+    seq = Aligned(*Sequence("ACG--G--GAC", name="seq1").parse_out_gaps())
+    assert seq.data._seq.seqid == "seq1"
+
+    # creating a Sequence with a seqview does not change the seqid of the SeqView.
+    seq = Sequence(SeqView("ACGGTGGGAC", seqid="parent_name"), name="seq_name")
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid == "parent_name"
+
+    # creating a Sequence with an unnamed seqview does not name the SeqView.
+    seq = Sequence(SeqView("ACGGTGGGAC"), name="seq_name")
+    assert seq.name == "seq_name"
+    assert seq._seq.seqid == None
+
+
+def test_make_seq_assigns_to_seqview():
+    seq = cogent3.make_seq("ACGT", name="s1")
+    assert seq.name == seq._seq.seqid == "s1"
+
+
+def test_empty_seqview_translate_position():
+    sv = SeqView("")
+    assert sv.absolute_position(0) == 0
+    assert sv.relative_position(0) == 0
+
+
+@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
+@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
+@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
+@pytest.mark.parametrize("length", (1, 8, 999))
+def test_seqview_seq_len_init(start, stop, step, length):
+    # seq_len is length of seq when None
+    seq_data = "A" * length
+    sv = SeqView(seq_data, start=start, stop=stop, step=step)
+    expect = len(seq_data)
+    # Check property and slot
+    assert sv.seq_len == expect
+    assert sv._seq_len == expect
+
+
+@pytest.mark.parametrize("seq, seq_len", [("A", 0), ("", 1), ("A", 2)])
+def test_seqview_seq_len_mismatch(seq, seq_len):
+    # If provided, seq_len must match len(seq)
+    with pytest.raises(AssertionError):
+        SeqView(seq, seq_len=seq_len)
+
+
+def test_seqview_copy_propagates_seq_len():
+    seq = "ACGGTGGGAC"
+    sv = SeqView(seq)
+    copied = sv.copy()
+    assert copied.seq_len == len(seq)
+
+
+def test_seqview_seq_len_modified_seq():
+    seq = "ACGGTGGGAC"
+    sv = SeqView(seq)
+
+    sv.seq = "ATGC"  # this should not modify seq_len
+    assert sv.seq_len == len(seq)

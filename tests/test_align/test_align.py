@@ -1,5 +1,4 @@
 import itertools
-import pathlib
 import unittest
 
 import numpy

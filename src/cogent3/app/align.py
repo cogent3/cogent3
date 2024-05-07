@@ -45,7 +45,7 @@ class _GapOffset:
     From alignment coordinate to a sequence coordinate
 
     >>> aln2seq = _GapOffset({1:3, 7:1}, invert=True)
-    >>> seq_pos = aln_pos - aln2seq[seq_pos]
+    >>> seq_pos = aln_pos - aln2seq[aln_pos]
     >>> seq_pos
     2
     """
@@ -60,25 +60,24 @@ class _GapOffset:
         invert : bool
             if True, query keys are taken as being in alignment coordinates
         """
-        offset = 0
-        min_val = None
+        cum_gap_length = 0
         result = {}
-        k = -1
-        for k, l in sorted(gaps_lengths.items()):
+        gap_pos = -1
+        for gap_pos, gap_length in sorted(gaps_lengths.items()):
             if invert:
-                result[k + offset + l] = offset + l
-                result[k + offset] = offset
+                result[gap_pos + cum_gap_length] = cum_gap_length
+                result[gap_pos + cum_gap_length + gap_length] = (
+                    cum_gap_length + gap_length
+                )
             else:
-                result[k] = offset
+                result[gap_pos] = cum_gap_length
 
-            offset += l
-            if min_val is None:
-                min_val = k
+            cum_gap_length += gap_length
 
         self._store = result
-        self.min_pos = min_val
-        self.max_pos = k + offset if invert else k
-        self.total = offset
+        self.min_pos = min(gaps_lengths) if gaps_lengths else None
+        self.max_pos = gap_pos + cum_gap_length if invert else gap_pos
+        self.total = cum_gap_length
         self._ordered = None
         self._invert = invert
 
@@ -88,27 +87,27 @@ class _GapOffset:
     def __str__(self):
         return str(self._store)
 
-    def __getitem__(self, k):
+    def __getitem__(self, index):
         if not self._store:
             return 0
 
-        if k in self._store:
-            return self._store[k]
+        if index in self._store:
+            return self._store[index]
 
-        if k < self.min_pos:
+        if index < self.min_pos:
             return 0
 
-        if k > self.max_pos:
+        if index > self.max_pos:
             return self.total
 
         if self._ordered is None:
             self._ordered = sorted(self._store)
 
-        # k is definitely bounded by min and max positions here
-        i = bisect_left(self._ordered, k)
+        # index is definitely bounded by min and max positions here
+        i = bisect_left(self._ordered, index)
         pos = self._ordered[i]
         if self._invert:
-            pos = pos if pos in [k, 0] else self._ordered[i - 1]
+            pos = pos if pos in [index, 0] else self._ordered[i - 1]
         return self._store[pos]
 
 
@@ -172,7 +171,7 @@ def _merged_gaps(a_gaps: dict, b_gaps: dict) -> dict:
     function to 'max'. Use 'sum' when the gaps derive from different
     sequences.
     """
-
+    # todo convert to using IndelMap functions
     if not a_gaps:
         return b_gaps
 
@@ -252,7 +251,8 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
     # sequence coordinates
     # we probably need to include the refseq gap union because we need to
     # establish whether a refseq gap overlaps with a gap in other seq
-    # and
+    # todo convert these functions to using IndelMap and the numpy set
+    #  operation functions
     all_gaps = {}
     all_gaps.update(other_seq_gaps)
     for gap_pos, gap_length in sorted(refseq_gaps.items()):
@@ -305,8 +305,7 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
         other_seq = aln.named_seqs[other_name]
         other_gaps = dict(other_seq.map.get_gap_coordinates())
         diff_gaps = _combined_refseq_gaps(curr_ref_gaps, ref_gaps)
-        inject = _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data))
-        if inject:
+        if inject := _gaps_for_injection(other_gaps, diff_gaps, len(other_seq.data)):
             m = gap_coords_to_map(inject, len(other_seq.data))
             other_seq = Aligned(m, other_seq.data)
 
@@ -460,6 +459,35 @@ class progressive_align:
             if no guide tree, and model is for DNA / Codons, estimates pairwise
             distances using an approximation and JC69. Otherwise, estimates
             genetic distances from pairwise alignments (which is slower).
+
+        Examples
+        --------
+
+        Create an unaligned sequence collection of BRCA1 genes from 4 species,
+        and an app for alignment with nucleotide model ``model="HKY85"``.
+
+        >>> from cogent3 import make_unaligned_seqs, get_app
+        >>> aln = make_unaligned_seqs({
+        ... "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+        ... "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+        ... "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
+        ... "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT"
+        ... }, moltype="dna")
+        >>> app = get_app("progressive_align", model="HKY85")
+        >>> result = app(aln)
+        >>> print(result.to_pretty(name_order=['Human', 'Bandicoot', 'Rhesus', 'FlyingFox']))
+            Human    GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT...
+
+        Optionally, a pre-computed guide tree can be provided.
+
+        >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+        >>> app_guided = get_app("progressive_align", model="HKY85", guide_tree=newick)
+        >>> result = app_guided(aln)
+        >>> print(result.to_pretty(name_order=['Human', 'Bandicoot', 'Rhesus', 'FlyingFox']))
+            Human    GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT
+        Bandicoot    NA.TCA.T.A.G.TTG.AACC.G...---......GTC..AC
+           Rhesus    ..........................---...G.........
+        FlyingFox    ........T.................---.......TA....
         """
         self._param_vals = {
             "codon": dict(omega=0.4, kappa=3),
@@ -651,6 +679,19 @@ class ic_score:
         ----------
         equifreq_mprobs : bool
             If true, specifies equally frequent motif probabilities.
+
+        Examples
+        --------
+
+        Create a sample alignment and compute the Information Content alignment
+        quality score. The default is equally frequent motif probabilities.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "AATTGA", "s2": "AGGTCC", "s3": "AGGATG", "s4": "AGGCGT"})
+        >>> app = get_app("ic_score")
+        >>> result = app(aln)
+        >>> print(result)
+        5.377443751081734
         """
         self._equi_frequent = equifreq_mprobs
 
@@ -709,6 +750,32 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     The instance must have been aligned using cogent3 tree_align. In addition,
     if the alignment has been saved, it has must have been serialised
     using a format that preserves the score.
+
+    Examples
+    --------
+
+    Prepare an alignment of BRCA1 genes from 4 species. Create an unaligned
+    sequence collection, guide tree, and an app for alignment using cogent3
+    ``progressive_align()``.
+
+    >>> from cogent3 import make_unaligned_seqs, get_app
+    >>> aln = make_unaligned_seqs({
+    ... "Human": "GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT",
+    ... "Bandicoot": "NACTCATTAATGCTTGAAACCAGCAGTTTATTGTCCAAC",
+    ... "Rhesus": "GCCAGCTCATTACAGCATGAGAACAGTTTGTTACTCACT",
+    ... "FlyingFox": "GCCAGCTCTTTACAGCATGAGAACAGTTTATTATACACT"
+    ... }, moltype="dna")
+    >>> newick = "(Bandicoot:0.4,FlyingFox:0.05,(Rhesus:0.06," "Human:0.0):0.04);"
+    >>> aligner = get_app("progressive_align", model="HKY85")
+
+    Create a composable app that aligns the sequences and returns the
+    cogent3 log-likelihood alignment score.
+
+    >>> scorer = get_app("cogent3_score")
+    >>> app = aligner + score
+    >>> result = app(aln)
+    >>> print(result)
+    -130.47375615734916
     """
     if aln.num_seqs == 1 or len(aln) == 0:
         msg = "zero length" if len(aln) == 0 else "single sequence"
@@ -767,6 +834,27 @@ class sp_score:
         Notes
         -----
         see available_distances() for the list of available methods.
+
+        Examples
+        --------
+
+        Create a sample alignment and an app to calculate the Sum of Pairs
+        alignment score with ``calc="pdist"`` and no gap penalties.
+
+        >>> from cogent3 import make_aligned_seqs, get_app
+        >>> aln = make_aligned_seqs({"s1": "AAGAA-A", "s2": "-ATAATG", "s3": "C-TGG-G"})
+        >>> app = get_app("sp_score", calc="pdist", gap_extend=0, gap_insert=0)
+        >>> result = app(aln)
+        >>> print(result)
+        5.0
+
+        Penalise gap extensions with ``gap_extend=1`` and insertions with
+        ``gap_insert=2``.
+
+        >>> app_gap_penalty = get_app("sp_score", calc="pdist", gap_extend=1, gap_insert=2)
+        >>> result = app_gap_penalty(aln)
+        >>> print(result)
+        -13.0
         """
         self._insert = gap_insert
         self._extend = gap_extend

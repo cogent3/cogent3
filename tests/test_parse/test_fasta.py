@@ -1,5 +1,6 @@
 """Unit tests for FASTA and related parsers.
 """
+
 import os
 
 from unittest import TestCase

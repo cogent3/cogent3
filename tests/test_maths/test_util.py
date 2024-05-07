@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 """Provides tests for array.py
 """
+
 # SUPPORT2425
 # from __future__ import with_statement
 
@@ -167,7 +167,3 @@ class TestUtils(TestCase):
 
         with self.assertRaises(AssertionError):
             ratios_to_proportions(1.0, [2.3, 1.1, -0.3])
-
-
-if __name__ == "__main__":
-    main()

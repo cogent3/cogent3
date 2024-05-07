@@ -8,13 +8,31 @@
 Overview of using apps
 ======================
 
-There are 3 top-level functions that provide the major means for identifying what apps are installed, what an app can do and for getting an app to use it. These functions are:
+What are apps?
+--------------
 
-- ``available_apps()`` (see :ref:`available_apps`)
-- ``app_help()`` (see :ref:`app_help`)
-- ``get_app()`` (see :ref:`get_app`)
+Apps are ready-made "functions" that you can apply to your data without needing to know all the technical details. They are easy to use, even if you're not an expert programmer. Multiple apps can be naturally composed into "pipelines", which are fully equipped for robust and reproducible application to data. In fact, apps and app pipelines can be applied to a single, or thousands, of data file(s) without writing loops or conditionals.
 
-Two other crucial concepts concern :ref:`data stores <data_stores>` and :ref:`tracking failures <not_completed>`.
+Apps have several key features, they:
+
+#. trap errors
+#. check the validity of input data
+#. can be used by themselves or combined into a "composed" app (aka pipeline)
+#. automatically track the relationship between an input data record and its output record
+
+Where to start?
+---------------
+
+Three top-level functions are very useful:
+
+- ``available_apps()`` identifies what apps are installed (see :ref:`available_apps`)
+- ``app_help()`` shows what a given app can do (see :ref:`app_help`)
+- ``get_app()`` returns an app instance for you to use (see :ref:`get_app`)
+
+Two other crucial concepts concern: 
+
+- :ref:`data stores <data_stores>` and 
+- :ref:`tracking failures <not_completed>`
 
 .. _app_types:
 
@@ -77,7 +95,7 @@ An example
 .. jupyter-execute::
     :hide-code:
 
-    from pathlib import Path
+    
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")
@@ -95,8 +113,10 @@ I illustrate the general approach for a simple example -- extracting third codon
     cpos3 = get_app("take_codon_positions", 3)
     writer = get_app("write_seqs", out_dstore, format="fasta")
 
-Using apps sequentially like functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+There are two ways in which I can apply the three above apps to data:
+
+1. Using apps sequentially like functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. jupyter-execute::
 
@@ -110,8 +130,8 @@ The resulting alignment ``just3rd`` will be written into the ``out_dstore`` dire
 
     ``m`` is a :ref:`DataMember <data_member>` of ``out_dstore``.
 
-Composing a multi-step process from several apps
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2. Composing several apps into a multi-step "process"
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We can make this simpler by creating a single composed function.
 
@@ -123,7 +143,7 @@ We can make this simpler by creating a single composed function.
 Applying a process to multiple data records
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We use a data store to identify all data files in a directory that we want to analyse. ``process`` can be then applied to all records in the data store without having to loop.
+To apply a composed function to multiple files requires a :ref:`data store <data_stores>`. Using ``open_data_store()`` we identify all data files in a directory that we want to analyse, in the following case, all fasta file in the data directory. ``process`` can be then applied to all records in the data store without having to loop.
 
 .. jupyter-execute::
 

@@ -10,6 +10,7 @@ Sequences are intended to be immutable. This is not enforced by the code for
 performance reasons, but don't alter the MolType or the sequence data after
 creation.
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -42,6 +43,8 @@ from numpy import (
 )
 from numpy.random import permutation
 
+import cogent3.util.warning as c3warn
+
 from cogent3._version import __version__
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Feature
@@ -54,7 +57,7 @@ from cogent3.core.annotation_db import (
 )
 from cogent3.core.genetic_code import get_code
 from cogent3.core.info import Info as InfoClass
-from cogent3.core.location import LostSpan, Map
+from cogent3.core.location import FeatureMap, IndelMap, LostSpan
 from cogent3.format.fasta import alignment_to_fasta
 from cogent3.maths.stats.contingency import CategoryCounts
 from cogent3.maths.stats.number import CategoryCounter
@@ -66,7 +69,6 @@ from cogent3.util.misc import (
     get_setting_from_environ,
 )
 from cogent3.util.transform import for_seq, per_shortest
-from cogent3.util.warning import deprecated_args
 
 
 ARRAY_TYPE = type(array(1))
@@ -141,7 +143,7 @@ class SequenceI(object):
             version=__version__,
         )
         if hasattr(self, "annotation_offset"):
-            offset = self._seq.offset + self._seq.start
+            offset = int(self._seq.parent_start)
             data.update(dict(annotation_offset=offset))
 
         if (
@@ -167,6 +169,7 @@ class SequenceI(object):
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
+        warn=False,
     ):
         """returns dict of counts of motifs
 
@@ -183,7 +186,9 @@ class SequenceI(object):
             if True, motifs containing a gap character are included.
         exclude_unobserved
             if True, unobserved motif combinations are excluded.
-
+        warn
+            warns if motif_length > 1 and alignment trimmed to produce
+            motif columns
         """
         try:
             data = str(self)
@@ -195,7 +200,7 @@ class SequenceI(object):
         if motif_length == 1:
             counts = CategoryCounter(data)
         else:
-            if len(data) % motif_length != 0:
+            if warn and len(data) % motif_length != 0:
                 warnings.warn(
                     f"{self.name} length not divisible by {motif_length}, truncating"
                 )
@@ -818,7 +823,7 @@ class Sequence(SequenceI):
             else (lambda x: x)
         )
 
-        self._seq = _coerce_seq(seq, preserve_case, checker)
+        self._seq = _coerce_to_seqview(seq, self.name, preserve_case, checker)
 
         if not isinstance(info, InfoClass):
             try:
@@ -851,7 +856,7 @@ class Sequence(SequenceI):
             int: The offset between annotation coordinates and sequence coordinates.
         """
 
-        return self._seq.offset + self._seq.start
+        return self._seq.parent_start
 
     @annotation_offset.setter
     def annotation_offset(self, value):
@@ -916,7 +921,7 @@ class Sequence(SequenceI):
         name
             name of the feature
         start, stop
-            start, end positions to search between, relative to offset
+            start, stop positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
 
         Notes
@@ -936,20 +941,26 @@ class Sequence(SequenceI):
         start = start + len(self) if start < 0 else start
         stop = stop + len(self) if stop < 0 else stop
 
-        # sort start / stop
         start, stop = (start, stop) if start < stop else (stop, start)
 
         # note: offset is handled by absolute_position
         # we set include_boundary=False because start is inclusive indexing,
         # i,e., the start cannot be equal to the length of the view
+        (
+            # parent_id can differ from self.name if there was a
+            # rename operation
+            parent_id,
+            *_,
+            strand,
+        ) = self.parent_coordinates()
         query_start = self._seq.absolute_position(start, include_boundary=False)
         # we set include_boundary=True because stop is exclusive indexing,
         # i,e., the stop can be equal to the length of the view
-        query_end = self._seq.absolute_position(stop, include_boundary=True)
+        query_stop = self._seq.absolute_position(stop, include_boundary=True)
 
-        reversed = query_end < query_start
-        if reversed:
-            query_start, query_end = query_end, query_start
+        rev_strand = strand == -1
+        if rev_strand:
+            query_start, query_stop = query_stop, query_start
 
         query_start = max(query_start, 0)
         # in the underlying db, features are always plus strand oriented
@@ -969,22 +980,23 @@ class Sequence(SequenceI):
         # flag which comes back from the db
 
         for feature in self.annotation_db.get_features_matching(
-            seqid=self.name,
+            seqid=parent_id,
             name=name,
             biotype=biotype,
             start=query_start,
-            end=query_end,  # todo gah end should be stop
+            stop=query_stop,
             allow_partial=allow_partial,
         ):
             # spans need to be converted from absolute to relative positions
             # DO NOT do adjustment in make_feature since that's user facing,
-            # and we expect them to make a feature manually
+            # and we expect them to make a feature manually wrt to their
+            # current view
             spans = array(feature.pop("spans"), dtype=int)
             for i, v in enumerate(spans.ravel()):
                 rel_pos = self._seq.relative_position(v)
                 spans.ravel()[i] = rel_pos
 
-            if reversed:
+            if rev_strand:
                 # see above comment
                 spans = len(self) - spans
 
@@ -998,11 +1010,6 @@ class Sequence(SequenceI):
             # reverse feature determined by absolute position
             reverse = s > e
 
-            # todo: kath, think about logic of stop=true for reverse locations
-            # I think, we need to know the whether it is reverse so that the adjustment
-            # for step (given stop=True) is in the correct direction.
-            # However, we need to keep s > e for a reverse span because this information
-            # is used in the Map?
             if reverse:
                 start = self._seq.relative_position(s, stop=True)
                 end = self._seq.relative_position(e)
@@ -1031,11 +1038,9 @@ class Sequence(SequenceI):
         """
         feature = dict(feature)
         seq_rced = self._seq.reverse
-        # todo gah check consistency of relationship between reversed and strand
-        # i.e. which object has responsibility for transforming the strand value
-        # (a string) into a bool?
-        revd = feature.pop("reversed", None) or feature.pop("strand", None) == "-"
         spans = feature.pop("spans", None)
+        revd = feature.pop("strand", None) == "-"
+        feature["strand"] = "+" if revd == seq_rced else "-"
 
         vals = array(spans)
         pre = abs(vals.min()) if vals.min() < 0 else 0
@@ -1055,32 +1060,19 @@ class Sequence(SequenceI):
                 continue
             new_spans.append(new.tolist())
 
-        fmap = Map(locations=new_spans, parent_length=len(self))
+        fmap = FeatureMap.from_locations(locations=new_spans, parent_length=len(self))
         if pre or post:
             # create a lost span to represent the segment missing from
             # the instance
-            spans = fmap.spans
+            spans = list(fmap.spans)
             if pre:
                 spans.insert(0, LostSpan(pre))
             if post:
                 spans.append(LostSpan(post))
-            fmap = Map(spans=spans, parent_length=len(self))
+            fmap = FeatureMap(spans=spans, parent_length=len(self))
 
-        if revd and not seq_rced:
-            # the sequence is on the plus strand, and the
-            # feature coordinates are also for the plus strand
-            # but their order needs to be changed to indicate
-            # reverse complement is required
-            fmap = fmap.reversed()
-        elif seq_rced and not revd:
-            # plus strand feature, but the sequence reverse complemented
-            # so we need to nucleic-reverse the map
+        if seq_rced:
             fmap = fmap.nucleic_reversed()
-        elif seq_rced:
-            # sequence is rc'ed, the feature was minus strand of
-            # original, so needs to be both nucleic reversed and
-            # then reversed
-            fmap = fmap.nucleic_reversed().reversed()
 
         feature.pop("on_alignment", None)
         feature.pop("seqid", None)
@@ -1205,11 +1197,24 @@ class Sequence(SequenceI):
 
         self.annotation_db.update(seq_db, seqids=self.name)
 
-    def copy(self, exclude_annotations=False):
-        """returns a copy of self"""
-        offset = self._seq.offset + self._seq.start
+    def copy(self, exclude_annotations: bool = False, sliced: bool = True):
+        """returns a copy of self
+
+        Parameters
+        -----------
+        sliced
+            Slices underlying sequence with start/end of self coordinates. The offset
+            is retained.
+        exclude_annotations
+            drops annotation_db when True
+        """
+        annotation_offset = self.annotation_offset if sliced else self._seq.offset
+        data = self._seq.copy(sliced=sliced)
         new = self.__class__(
-            self._seq[:], name=self.name, info=self.info, annotation_offset=offset
+            data,
+            name=self.name,
+            info=self.info,
+            annotation_offset=annotation_offset,
         )
         db = None if exclude_annotations else copy.deepcopy(self.annotation_db)
         new._annotation_db = db
@@ -1251,7 +1256,8 @@ class Sequence(SequenceI):
                 seqid=self.name,
                 name=None,
                 biotype=None,
-                map=Map(locations=[], parent_length=len(self)),
+                map=FeatureMap.from_locations(locations=[], parent_length=len(self)),
+                strand="+",
             )
         else:
             region = annotations[0].union(annotations[1:])
@@ -1261,8 +1267,8 @@ class Sequence(SequenceI):
 
         i = 0
         segments = []
-        fmap = region.map.reversed() if region.map.reverse else region.map
-        for b, e in fmap.get_coordinates():
+        coords = region.map.get_coordinates()
+        for b, e in coords:
             segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
         segments.append(str(self[i:]))
@@ -1273,20 +1279,19 @@ class Sequence(SequenceI):
         new.annotation_db = self.annotation_db
         return new
 
-    def gapped_by_map_segment_iter(self, map, allow_gaps=True, recode_gaps=False):
-        for span in map.spans:
+    def gapped_by_map_segment_iter(
+        self, segment_map, allow_gaps=True, recode_gaps=False
+    ) -> str:
+        if not allow_gaps and not segment_map.complete:
+            raise ValueError(f"gap(s) in map {segment_map}")
+
+        for span in segment_map.spans:
             if span.lost:
-                if allow_gaps:
-                    unknown = span.terminal or recode_gaps
-                    seg = "-?"[unknown] * span.length
-                else:
-                    raise ValueError(f"gap(s) in map {map}")
+                unknown = "?" if span.terminal or recode_gaps else "-"
+                seg = unknown * span.length
             else:
                 seg = str(self[span.start : span.end])
-                if span.reverse:
-                    complement = self.moltype.complement
-                    seg = [complement(base) for base in seg[::-1]]
-                    seg = "".join(seg)
+
             yield seg
 
     def gapped_by_map_motif_iter(self, map):
@@ -1294,12 +1299,10 @@ class Sequence(SequenceI):
             yield from segment
 
     def gapped_by_map(self, map, recode_gaps=False):
-        # todo gah do we propagate annotations here?
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
-        new = self.__class__(
+        return self.__class__(
             "".join(segments), name=self.name, check=False, info=self.info
         )
-        return new
 
     def _mapped(self, map):
         # Called by generic __getitem__
@@ -1309,10 +1312,7 @@ class Sequence(SequenceI):
     def __repr__(self):
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.split(".")[-1]
-        if len(self) > 10:
-            seq = f"{str(self)[:7]}... {len(self):,}"
-        else:
-            seq = str(self)
+        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
         return f"{myclass}({seq})"
 
     def __getitem__(self, index):
@@ -1325,9 +1325,9 @@ class Sequence(SequenceI):
         if hasattr(index, "map"):
             index = index.map
 
-        if isinstance(index, Map):
+        if isinstance(index, (FeatureMap, IndelMap)):
             new = self._mapped(index)
-            preserve_offset = not index.reverse
+            preserve_offset = True
 
         elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(
@@ -1425,16 +1425,20 @@ class Sequence(SequenceI):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def get_in_motif_size(self, motif_length=1, log_warnings=True):
+    @c3warn.deprecated_args(
+        "2024.6",
+        reason="argument name consistency",
+        old_new=(("log_warnings", "warn"),),
+    )
+    def get_in_motif_size(self, motif_length=1, warn=False):
         """returns sequence as list of non-overlapping motifs
 
         Parameters
         ----------
         motif_length
             length of the motifs
-        log_warnings
+        warn
             whether to notify of an incomplete terminal motif
-
         """
         seq = self._seq
         if isinstance(seq, SeqView):
@@ -1444,7 +1448,7 @@ class Sequence(SequenceI):
 
         length = len(seq)
         remainder = length % motif_length
-        if remainder and log_warnings:
+        if remainder and warn:
             warnings.warn(
                 f'Dropped remainder "{seq[-remainder:]}" from end of sequence'
             )
@@ -1455,18 +1459,27 @@ class Sequence(SequenceI):
 
     def parse_out_gaps(self):
         """returns Map corresponding to gap locations and ungapped Sequence"""
-        gapless = []
-        segments = []
-        nongap = re.compile(f"([^{re.escape('-')}]+)")
-        for match in nongap.finditer(str(self)):
-            segments.append(match.span())
-            gapless.append(match.group())
-        map = Map(segments, parent_length=len(self)).inverse()
+        gap = re.compile(f"[{re.escape(self.moltype.gap)}]+")
+        seq = str(self)
+        gap_pos = []
+        cum_lengths = []
+        for match in gap.finditer(seq):
+            pos = match.start()
+            gap_pos.append(pos)
+            cum_lengths.append(match.end() - pos)
+
+        gap_pos = array(gap_pos)
+        cum_lengths = array(cum_lengths).cumsum()
+        gap_pos[1:] = gap_pos[1:] - cum_lengths[:-1]
+
         seq = self.__class__(
-            "".join(gapless), name=self.get_name(), info=self.info, preserve_case=True
+            gap.sub("", seq), name=self.get_name(), info=self.info, preserve_case=True
+        )
+        indel_map = IndelMap(
+            gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=len(seq)
         )
         seq.annotation_db = self.annotation_db
-        return map, seq
+        return indel_map, seq
 
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
@@ -1613,6 +1626,23 @@ class Sequence(SequenceI):
         drawer.layout.update(xaxis=xaxis, yaxis=yaxis)
         return drawer
 
+    def parent_coordinates(self) -> Tuple[str, int, int, int]:
+        """returns seqid, start, stop, strand of this sequence on its parent
+
+        Notes
+        -----
+        seqid is the identifier of the parent. Returned coordinates are with
+        respect to the plus strand, irrespective of whether the sequence has
+        been reversed complemented or not.
+
+        Returns
+        -------
+        seqid, start, end, strand of this sequence on the parent. strand is either
+        -1 or 1.
+        """
+        strand = -1 if self._seq.reverse else 1
+        return self._seq.seqid, self._seq.parent_start, self._seq.parent_stop, strand
+
 
 class ProteinSequence(Sequence):
     """Holds the standard Protein sequence."""
@@ -1707,7 +1737,7 @@ class NucleicAcidSequence(Sequence):
         if not gc.is_stop(end):
             return self
 
-        if not len(m.gaps()):
+        if not m.num_gaps:
             # has zero length if no gaps
             return self[:-3]
 
@@ -1877,9 +1907,19 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SeqView:
-    __slots__ = ("seq", "start", "stop", "step", "_offset")
+    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
 
-    def __init__(self, seq, *, start: int = None, stop: int = None, step: int = None):
+    def __init__(
+        self,
+        seq,
+        *,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        step: Optional[int] = None,
+        offset: int = 0,
+        seqid: Optional[str] = None,
+        seq_len: Optional[int] = None,
+    ):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
@@ -1889,8 +1929,12 @@ class SeqView:
         self.seq = seq
         self.start = start
         self.stop = stop
-        self._offset = 0
         self.step = step
+        self._offset = offset
+        self._seqid = seqid
+        if seq_len is not None and seq_len != len(seq):
+            raise AssertionError(f"{seq_len} != {len(self.seq)})")
+        self._seq_len = seq_len or len(self.seq)
 
     @property
     def offset(self) -> int:
@@ -1898,7 +1942,51 @@ class SeqView:
 
     @offset.setter
     def offset(self, value: int):
-        self._offset = value or 0
+        value = value or 0
+        self._offset = int(value)
+
+    @property
+    def seqid(self) -> str:
+        return self._seqid
+
+    @property
+    def seq_len(self) -> int:
+        return self._seq_len
+
+    @property
+    def parent_start(self) -> int:
+        """returns the start on the parent plus strand
+
+        Returns
+        -------
+        offset + start, taking into account whether reversed. Result
+        is positive.
+        """
+        if self.reverse:
+            # self.stop becomes the start, self.stop will be negative
+            assert self.stop < 0, "expected stop on reverse strand SeqView < 0"
+            start = self.stop + self.seq_len + 1
+        else:
+            start = self.start
+
+        return self.offset + start
+
+    @property
+    def parent_stop(self) -> int:
+        """returns the stop on the parent plus strand
+
+        Returns
+        -------
+        offset + stop, taking into account whether reversed. Result
+        is positive.
+        """
+        if self.reverse:
+            # self.start becomes the stop, self.start will be negative
+            assert self.start < 0, "expected start on reverse strand SeqView < 0"
+            stop = self.start + self.seq_len + 1
+        else:
+            stop = self.stop
+        return self.offset + stop
 
     @property
     def reverse(self):
@@ -1915,9 +2003,11 @@ class SeqView:
 
         Returns
         -------
-        the absolute index with respect to the coordinates of the sequence's annotations
-
+        the absolute index with respect to the coordinates of the self
+        including offset
         """
+        if not self:
+            return 0
 
         if rel_index < 0:
             raise IndexError("only positive indexing supported!")
@@ -1928,7 +2018,7 @@ class SeqView:
         # add offset and handle reversed views, now absolute relative to annotation coordinates
         offset = self.offset
         if self.reverse:
-            abs_index = offset + len(self.seq) + seq_index + 1
+            abs_index = offset + self.seq_len + seq_index + 1
         else:
             abs_index = offset + seq_index
 
@@ -1940,6 +2030,8 @@ class SeqView:
         NOTE: the returned value DOES NOT reflect python indexing. Importantly, negative values represent positions that
         precede the current view.
         """
+        if not self:
+            return 0
 
         if abs_index < 0:
             raise IndexError("Index must be +ve and relative to the + strand")
@@ -1948,7 +2040,7 @@ class SeqView:
             offset = self.offset
 
             if (
-                tmp := ((len(self.seq) - (abs_index - offset)) + self.start + 1)
+                tmp := (self.seq_len - abs_index + offset + self.start + 1)
             ) % self.step == 0 or stop:
                 rel_pos = tmp // abs(self.step)
             else:
@@ -2032,7 +2124,7 @@ class SeqView:
         # checking for zero-length slice
         if stop < start:
             return _zero_slice
-        if start > len(self.seq):
+        if start > self.seq_len:
             return _zero_slice
 
         return self.__class__(
@@ -2040,6 +2132,9 @@ class SeqView:
             start=start,
             stop=min(self.stop, stop),
             step=self.step * step,
+            offset=self.offset,
+            seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_forward_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
@@ -2064,6 +2159,9 @@ class SeqView:
             start=start,
             stop=max(self.stop, stop),
             step=self.step * step,
+            offset=self.offset,
+            seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_reverse_slice(self, segment, step):
@@ -2083,30 +2181,29 @@ class SeqView:
         # "true stop" adjust for if abs(stop-start) % step != 0
         # max possible start is "true stop" - step, because stop is not inclusive
         # "true stop" - step is converted to -ve index via subtracting len(self)
-        seq_len = len(self.seq)
         if slice_start >= len(self):
-            start = (self.start + len(self) * self.step - self.step) - seq_len
+            start = (self.start + len(self) * self.step - self.step) - self.seq_len
         elif slice_start >= 0:
-            start = (self.start + slice_start * self.step) - seq_len
+            start = (self.start + slice_start * self.step) - self.seq_len
         else:
             start = (
                 self.start
                 + len(self) * self.step
                 + slice_start * self.step
-                - len(self.seq)
+                - self.seq_len
             )
 
-        if slice_stop >= seq_len:
+        if slice_stop >= self.seq_len:
             return _zero_slice
 
         if slice_stop >= 0:
-            stop = self.start + (slice_stop * self.step) - seq_len
+            stop = self.start + (slice_stop * self.step) - self.seq_len
         else:
             stop = (
                 self.start
                 + (len(self) * self.step)
                 + (slice_stop * self.step)
-                - seq_len
+                - self.seq_len
             )
 
         if start >= 0 or stop >= 0:
@@ -2115,37 +2212,39 @@ class SeqView:
         return self.__class__(
             self.seq,
             start=start,
-            stop=max(stop, self.start - len(self.seq) - 1),
+            stop=max(stop, self.start - self.seq_len - 1),
             step=self.step * step,
+            offset=self.offset,
+            seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def _get_reverse_slice_from_reverse_seqview_(self, slice_start, slice_stop, step):
         # max start is "true stop" + abs(step), because stop is not inclusive
         # "true stop" adjust for if abs(stop-start) % step != 0
-        seq_len = len(self.seq)
         if slice_start >= len(self):
-            start = seq_len + self.start + len(self) * self.step + abs(self.step)
+            start = self.seq_len + self.start + len(self) * self.step + abs(self.step)
         elif slice_start >= 0:
-            start = seq_len + (self.start + slice_start * self.step)
+            start = self.seq_len + (self.start + slice_start * self.step)
         else:
-            start = seq_len + (
+            start = self.seq_len + (
                 self.start + len(self) * self.step + slice_start * self.step
             )
 
         if slice_stop >= 0:
-            stop = seq_len + (self.start + slice_stop * self.step)
-            if stop <= seq_len + self.stop:
+            stop = self.seq_len + (self.start + slice_stop * self.step)
+            if stop <= self.seq_len + self.stop:
                 return _zero_slice
         else:
-            stop = seq_len + (
+            stop = self.seq_len + (
                 self.start + len(self) * self.step + slice_stop * self.step
             )
-            if stop > seq_len + self.start:
-                stop = seq_len + self.start + 1
+            if stop > self.seq_len + self.start:
+                stop = self.seq_len + self.start + 1
 
         # if -ve, it's an invalid slice becomes zero
         # checking for zero-length slice
-        if stop < start or start > seq_len or min(start, stop) < 0:
+        if stop < start or start > self.seq_len or min(start, stop) < 0:
             return _zero_slice
 
         return self.__class__(
@@ -2153,15 +2252,32 @@ class SeqView:
             start=start,
             stop=stop,
             step=self.step * step,
+            offset=self.offset,
+            seqid=self.seqid,
+            seq_len=self.seq_len,
         )
 
     def __getitem__(self, segment):
         if _is_int(segment):
             start, stop, step = self._get_index(segment)
-            return self.__class__(self.seq, start=start, stop=stop, step=step)
+            return self.__class__(
+                self.seq,
+                start=start,
+                stop=stop,
+                step=step,
+                offset=self.offset,
+                seqid=self.seqid,
+                seq_len=self.seq_len,
+            )
+
+        if segment.start is segment.stop is segment.step is None:
+            return self.copy(sliced=False)
 
         if len(self) == 0:
             return self
+
+        if segment.start is not None and segment.start == segment.stop:
+            return _zero_slice
 
         slice_step = 1 if segment.step is None else segment.step
 
@@ -2182,7 +2298,13 @@ class SeqView:
         new_seq = self.seq.replace(old, new)
         if len(old) == len(new):
             return self.__class__(
-                new_seq, start=self.start, stop=self.stop, step=self.step
+                new_seq,
+                start=self.start,
+                stop=self.stop,
+                step=self.step,
+                offset=self.offset,
+                seqid=self.seqid,
+                seq_len=self.seq_len,
             )
 
         return self.__class__(new_seq)
@@ -2197,8 +2319,12 @@ class SeqView:
         return self.value
 
     def __repr__(self) -> str:
-        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if len(self.seq) > 15 else self.seq
-        return f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, stop={self.stop}, step={self.step})"
+        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
+        return (
+            f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
+            f"stop={self.stop}, step={self.step}, offset={self.offset}, "
+            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
+        )
 
     def to_rich_dict(self):
         # get the current state
@@ -2207,24 +2333,44 @@ class SeqView:
         # step is sufficient
         data["init_args"] = {"step": self.step}
         if self.reverse:
-            adj = len(self.seq) + 1
+            adj = self.seq_len + 1
             start, stop = self.stop + adj, self.start + adj
-            offset = self.offset + start
         else:
             start, stop = self.start, self.stop
-            offset = self.offset + self.start
 
-        data["offset"] = offset
         data["init_args"]["seq"] = self.seq[start:stop]
+        data["init_args"]["offset"] = int(self.parent_start)
+        data["init_args"]["seqid"] = self.seqid
         return data
 
     @classmethod
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
-        offset = data.pop("offset", 0)
+        if "offset" in data:
+            init_args["offset"] = data.pop("offset")
         sv = cls(**init_args)
-        sv.offset = offset
         return sv
+
+    def copy(self, sliced=False):
+        """returns copy
+
+        Parameters
+        ----------
+        sliced
+            if True, the underlying sequence is truncated and the start/stop
+            adjusted
+        """
+        if not sliced:
+            return self.__class__(
+                self.seq,
+                start=self.start,
+                stop=self.stop,
+                step=self.step,
+                offset=self.offset,
+                seqid=self.seqid,
+                seq_len=self.seq_len,
+            )
+        return self.from_rich_dict(self.to_rich_dict())
 
 
 _zero_slice = SeqView(seq="")
@@ -2815,51 +2961,51 @@ class ArrayProteinWithStopSequence(ArraySequence):
 
 
 @singledispatch
-def _coerce_seq(data, preserve_case, checker):
+def _coerce_to_seqview(data, seqid, preserve_case, checker):
     from cogent3.core.alignment import Aligned
 
     if isinstance(data, Aligned):
-        return _coerce_seq(str(data), preserve_case, checker)
+        return _coerce_to_seqview(str(data), seqid, preserve_case, checker)
     raise NotImplementedError(f"{type(data)}")
 
 
-@_coerce_seq.register
-def _(data: SeqView, preserve_case, checker):
+@_coerce_to_seqview.register
+def _(data: SeqView, seqid, preserve_case, checker):
     return data
 
 
-@_coerce_seq.register
-def _(data: Sequence, preserve_case, checker):
-    return _coerce_seq(str(data), preserve_case, checker)
+@_coerce_to_seqview.register
+def _(data: Sequence, seqid, preserve_case, checker):
+    return _coerce_to_seqview(data._seq, seqid, preserve_case, checker)
 
 
-@_coerce_seq.register
-def _(data: ArraySequence, preserve_case, checker):
-    return _coerce_seq(str(data), preserve_case, checker)
+@_coerce_to_seqview.register
+def _(data: ArraySequence, seqid, preserve_case, checker):
+    return _coerce_to_seqview(str(data), seqid, preserve_case, checker)
 
 
-@_coerce_seq.register
-def _(data: str, preserve_case, checker):
+@_coerce_to_seqview.register
+def _(data: str, seqid, preserve_case, checker):
     if not preserve_case:
         data = data.upper()
     checker(data)
-    return SeqView(data)
+    return SeqView(data, seqid=seqid)
 
 
-@_coerce_seq.register
-def _(data: bytes, preserve_case, checker):
+@_coerce_to_seqview.register
+def _(data: bytes, seqid, preserve_case, checker):
     if not preserve_case:
         data = data.upper()
     data = data.decode("utf8")
     checker(data)
-    return SeqView(data)
+    return SeqView(data, seqid=seqid)
 
 
-@_coerce_seq.register
-def _(data: tuple, preserve_case, checker):
-    return _coerce_seq("".join(data), preserve_case, checker)
+@_coerce_to_seqview.register
+def _(data: tuple, seqid, preserve_case, checker):
+    return _coerce_to_seqview("".join(data), seqid, preserve_case, checker)
 
 
-@_coerce_seq.register
-def _(data: list, preserve_case, checker):
-    return _coerce_seq("".join(data), preserve_case, checker)
+@_coerce_to_seqview.register
+def _(data: list, seqid, preserve_case, checker):
+    return _coerce_to_seqview("".join(data), seqid, preserve_case, checker)

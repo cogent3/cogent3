@@ -1,6 +1,7 @@
 """sets as working directory the parent of data/
 
 Assumes this file is distributed inside COGENT3_ROOT/doc directory"""
+
 import os
 import pathlib
 

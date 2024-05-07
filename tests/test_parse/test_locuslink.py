@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 """Unit tests for locuslink-specific classes
 """
+
 from unittest import TestCase
 
 from cogent3.parse.locuslink import (
@@ -507,7 +507,3 @@ PMID: 14499652"""
                 },
             ],
         )
-
-
-if __name__ == "__main__":
-    main()

@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import pytest
+
 from cogent3 import DNA, make_aligned_seqs, make_unaligned_seqs
 from cogent3.app import composable, sample
 from cogent3.app.composable import NotCompleted
@@ -60,6 +62,13 @@ class TranslateTests(TestCase):
         )
         got = degen(aln)
         self.assertIsInstance(got, alignment.Alignment)
+
+        # motif length exludes tuples with a degenerate site
+        aln = make_aligned_seqs({"a": "ACGA-GACG", "b": "GATGATGYT"})
+        degen = sample.omit_degenerates(moltype="dna", motif_length=2)
+        got = degen(aln)
+        expect = make_aligned_seqs({"a": "ACGA", "b": "GATG"}, moltype="dna")
+        assert got == expect
 
     def test_omit_gapped(self):
         """omit_gap_pos correctly drops aligned columns"""
@@ -442,10 +451,6 @@ class TranslateTests(TestCase):
         got = ccat(data[::-1])
         self.assertIsInstance(got, composable.NotCompleted)
 
-        # triggered by no data
-        got = ccat([])
-        self.assertIsInstance(got, composable.NotCompleted)
-
     def test_trim_stop_codons(self):
         """trims stop codons using the specified genetic code"""
         trimmer = sample.trim_stop_codons()  # defaults to standard code
@@ -543,3 +548,20 @@ class TranslateTests(TestCase):
         take = sample.take_n_seqs(2, random=True, seed=123)
         got = take(seqs1)
         self.assertNotIsInstance(got, NotCompleted)
+
+
+def test_concat_coerced_moltype():
+    # moltype of final result is the first one seen
+    concat = sample.concat()
+    aln1 = make_aligned_seqs({"s1": "AAA", "s2": "CAA", "s3": "AAA"}, moltype="dna")
+    aln2 = make_aligned_seqs({"s1": "GCG", "s2": "GGG", "s3": "GGT"})
+    result = concat([aln1, aln2])
+    assert result.moltype.label == "dna"
+
+
+@pytest.mark.parametrize("data", ([], [make_aligned_seqs({"s1": "", "s2": ""})]))
+def test_concat_empty(data):
+    # triggered by empty alignment
+    ccat = sample.concat()
+    got = ccat(data)
+    assert isinstance(got, NotCompleted)

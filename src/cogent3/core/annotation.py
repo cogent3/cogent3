@@ -2,9 +2,7 @@ from typing import Iterable, Optional
 
 from numpy import array
 
-from cogent3.util import warning as c3warn
-
-from .location import Map
+from .location import FeatureMap
 
 
 # todo gah write docstrings!
@@ -20,10 +18,20 @@ class Feature:
         "_name",
         "_serialisable",
         "_id",
+        "_strand",
     )
 
     # todo gah implement a __new__ to trap args for serialisation purposes?
-    def __init__(self, *, parent, seqid: str, map: Map, biotype: str, name: str):
+    def __init__(
+        self,
+        *,
+        parent,
+        seqid: str,
+        map: FeatureMap,
+        biotype: str,
+        name: str,
+        strand: str,
+    ):
         # _serialisable is used for creating derivative instances
         d = locals()
         exclude = ("self", "__class__", "kw")
@@ -37,6 +45,7 @@ class Feature:
         data = [id(self.parent), tuple(self.map.get_coordinates())]
         data.extend((self.seqid, self.biotype, self.name))
         self._id = hash(tuple(data))
+        self._strand = strand
 
     def __eq__(self, other):
         return self._id == other._id
@@ -72,7 +81,7 @@ class Feature:
         Parameters
         ----------
         complete
-            if feature not complete on parent,causes an exception to be
+            if feature not complete on parent, causes an exception to be
             raised. If False, gaps are removed.
         allow_gaps
             if on an alignment, includes the gap positions
@@ -86,13 +95,20 @@ class Feature:
         If 'complete' is true and the full length of this feature is not
         present in the sequence, then this method will fail.
         """
-        # todo gah set allow_gaps=True as the default
-        map = self.map
-        if not (complete or map.complete):
-            map = map.without_gaps()
+        fmap = self.map
+        if not (complete or fmap.complete):
+            fmap = fmap.without_gaps()
         if not allow_gaps:
-            return self.parent[map]
-        return self.parent[map.start : map.end]
+            result = self.parent[fmap]
+            if self.reversed:
+                result = result.rc()
+            return result
+
+        # all slicing now requires start < end
+        result = self.parent[fmap.start : fmap.end]
+        if self.reversed:
+            result = result.rc()
+        return result
 
     def without_lost_spans(self):
         """Keeps only the parts which are actually present in the underlying sequence"""
@@ -134,6 +150,11 @@ class Feature:
         return f"{name}({txt})"
 
     def remapped_to(self, grandparent, gmap):
+        # grandparent can be either a Sequence or an Alignment
+        if not isinstance(gmap, FeatureMap):
+            # due to separation of IndelMap and Map, change class
+            gmap = gmap.to_feature_map()
+
         seqid = grandparent.name or f"from {self.seqid!r}"
         kwargs = {
             **self._serialisable,
@@ -150,7 +171,7 @@ class Feature:
         """generator returns sub-features of self optionally matching biotype"""
         offset = getattr(self.parent, "annotation_offset", 0)
         start = self.map.start + offset
-        end = self.map.end + offset
+        stop = self.map.end + offset
 
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
@@ -158,7 +179,7 @@ class Feature:
             biotype=biotype,
             name=self.name,
             start=start,
-            end=end,
+            stop=stop,
             **kwargs,
         ):
             record["spans"] = array(record["spans"]) - offset
@@ -174,14 +195,14 @@ class Feature:
         """generator returns parent features of self optionally matching biotype"""
         offset = getattr(self.parent, "annotation_offset", 0)
         start = self.map.start + offset
-        end = self.map.end + offset
+        stop = self.map.end + offset
 
         make_feature = self.parent.make_feature
         db = self.parent.annotation_db
         for record in db.get_feature_parent(
             name=self.name,
             start=start,
-            end=end,
+            stop=stop,
             **kwargs,
         ):
             record["spans"] = array(record["spans"]) - offset
@@ -200,13 +221,20 @@ class Feature:
         -----
         Overlapping spans are merged
         """
-        combined = self.map.spans[:]
+        # spans always on the plus strand, irrespective of whether
+        # a feature is reversed
+        combined = list(self.map.spans)
         feat_names = [self.name] if self.name else set()
         biotypes = {self.biotype} if self.biotype else set()
         seqids = {self.seqid} if self.seqid else set()
+
+        same_orientation = True
         for feature in features:
             if feature.parent is not self.parent:
-                raise ValueError(f"cannot merge annotations from different objects")
+                raise ValueError("cannot merge annotations from different objects")
+
+            if same_orientation and feature.reversed != self.reversed:
+                same_orientation = False
 
             combined.extend(feature.map.spans)
             if feature.name:
@@ -215,19 +243,25 @@ class Feature:
                 seqids.add(feature.seqid)
             if feature.biotype:
                 biotypes.add(feature.biotype)
+
         name = ", ".join(feat_names)
-        map = Map(spans=combined, parent_length=len(self.parent))
-        map = map.covered()  # No overlaps
+        fmap = FeatureMap(spans=combined, parent_length=len(self.parent))
+        fmap = fmap.covered()  # No overlaps
         # the covered method drops reversed status so we need to
         # resurrect that, but noting we've not checked consistency
         # across the features
-        if self.map.reverse != map.reverse:
-            map = map.reversed()
+        strand = self._strand if same_orientation else "+"
         seqid = ", ".join(seqids) if seqids else None
         biotype = ", ".join(biotypes)
         kwargs = {
             **self._serialisable,
-            **{"map": map, "seqid": seqid, "biotype": biotype, "name": name},
+            **{
+                "map": fmap,
+                "seqid": seqid,
+                "biotype": biotype,
+                "name": name,
+                "strand": strand,
+            },
         }
 
         return self.__class__(**kwargs)
@@ -244,9 +278,13 @@ class Feature:
             **self._serialisable,
             **dict(
                 spans=self.map.get_coordinates(),
-                strand="-" if self.map.reverse else "+",
             ),
         }
         for key in ("map", "parent"):
             result.pop(key, None)
         return result
+
+    @property
+    def reversed(self):
+        """whether Feature is on the reverse strand relative to bound object"""
+        return self._strand == "-"

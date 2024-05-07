@@ -9,7 +9,6 @@ from cogent3.parse.record_finder import (
     DelimitedRecordFinder,
     LabeledRecordFinder,
 )
-from cogent3.util import warning as c3warn
 
 
 maketrans = str.maketrans

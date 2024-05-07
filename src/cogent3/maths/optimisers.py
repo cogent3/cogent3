@@ -1,5 +1,6 @@
 """Local or Global-then-local optimisation with progress display
 """
+
 from __future__ import annotations
 
 import warnings
@@ -10,6 +11,7 @@ from typing import Tuple
 import numpy
 
 from cogent3.util import progress_display as UI
+from cogent3.util import warning as c3warn
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
@@ -138,6 +140,9 @@ def minimise(f, *args, **kw):
     return maximise(nf, *args, **kw)
 
 
+@c3warn.deprecated_args(
+    "2024.6", reason="has no effect in this function", discontinued="limit_action"
+)
 @UI.display_wrap
 def maximise(
     f,
@@ -148,23 +153,58 @@ def maximise(
     interval=None,
     max_restarts=None,
     max_evaluations=None,
-    limit_action="warn",
     tolerance=1e-6,
     global_tolerance=1e-1,
     ui=None,
     return_eval_count=False,
+    warn=False,
     **kw,
 ):
-    """Find input values that optimise this function.
+    """
+    Find input values that optimise this function.
     'local' controls the choice of optimiser, the default being to run
     both the global and local optimisers. 'filename' and 'interval'
     control checkpointing.  Unknown keyword arguments get passed on to
     the global optimiser.
+    Parameters
+    ----------
+    f
+        callable
+    xinit
+        initial parameter values
+    bounds
+        (upper, lower) bounds with a value in each for each element of xinit
+    local
+        Controls which optimiser(s) to apply. If True, uses Powell local
+        optimiser only. If False, uses only the global (Simulated Annealing)
+        optimiser. If None, uses both global and local.
+    filename
+        file to checkpoint optimisatiuon results to.
+    interval
+        time expressed in seconds
+    max_restarts
+        maximum number of times to try optimisation
+    max_evaluations
+        maximum number of function evaluations to perform
+    tolerance
+        exit condition for local optimiser
+    global_tolerance
+        exit condition for global optimiser
+    return_eval_count
+        number of times function evaluated
+    warn
+        whether to report unused variables
+    kw
+        kwargs passed through to global optimiser only
+
+    Returns
+    -------
+    The vector of values maximising f. Optionally returns the number of
+    function evaluations.
     """
     do_global = (not local) or local is None
     do_local = local or local is None
 
-    assert limit_action in ["ignore", "warn", "raise", "error"]
     (get_best, f) = limited_use(f, max_evaluations)
 
     x = numpy.array(xinit, float)
@@ -173,7 +213,7 @@ def maximise(
         x = numpy.atleast_1d(x)
 
     if bounds is not None:
-        (upper, lower) = bounds
+        upper, lower = bounds
         if upper is not None or lower is not None:
             if upper is None:
                 upper = numpy.inf
@@ -183,7 +223,10 @@ def maximise(
     try:
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError) as detail:
-        raise ValueError(f"Initial parameter values must be valid {repr(detail.args)}")
+        raise ValueError(
+            f"Initial parameter values must be valid {detail.args!r}"
+        ) from detail
+
     if not numpy.isfinite(fval):
         raise ValueError(
             f"Initial parameter values must evaluate to a finite value, not {fval}. {x}"
@@ -201,8 +244,8 @@ def maximise(
             x = opt.maximise(f, x, tolerance=gtol, show_remaining=callback, **kw)
         else:
             gend = 0.0
-            for k in kw:
-                warnings.warn("Unused arg for local alignment: " + k)
+            if warn:
+                warnings.warn(f"Unused args for local optimisation: {kw}")
 
         # Local optimisation
         if do_local:
@@ -218,7 +261,7 @@ def maximise(
             )
     finally:
         # ensure state of calculator reflects optimised result, or
-        # partialy optimised result if exiting on an exception.
+        # partially optimised result if exiting on an exception.
         (f, x, evals) = get_best()
 
     # ... and returning this info the obvious way keeps this function

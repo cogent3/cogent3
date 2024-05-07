@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from unittest import TestCase
 
 from numpy.testing import assert_allclose
@@ -171,7 +170,3 @@ class KSTests(TestCase):
     def test_ks_boot(self):
         """excercising the bootstrapped version of KS"""
         D, Pval = ks_boot(self.x1[:10], self.x2[:10], num_reps=10)
-
-
-if __name__ == "__main__":
-    main()

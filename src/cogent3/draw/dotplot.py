@@ -1,3 +1,5 @@
+import numpy
+
 from cogent3.align.pycompare import (
     MatchedSeqPaths,
     SeqKmers,
@@ -27,14 +29,23 @@ def suitable_threshold(window, desired_probability):
     return matches
 
 
-def len_seq(span):
-    """length of a Annotatable map object"""
-    return len(span.nongap())
+def _ungapped_spans(
+    starts_ends: list[list[int, int]], align_length: int, aligned=False
+) -> numpy.ndarray:
+    """returns numpy array of [(non gap start, non gap stop), ...}"""
+    if len(starts_ends) == 0:
+        data = [(0, align_length)] if aligned else []
+        return numpy.array(data, dtype=int)
 
-
-def not_gap(span):
-    """whether a span corresponds to a non-gap"""
-    return len(span.gaps()) == 0
+    if starts_ends[0][0] != 0:
+        # does not start with a gap, so we adjust to get an ungapped span at
+        # the start
+        starts_ends = [(0, 0)] + starts_ends
+    if starts_ends[-1][1] != align_length:
+        # does not end with a gap, so we adjust to get an ungapped span at
+        # the end
+        starts_ends.append((align_length, align_length))
+    return numpy.array(starts_ends).flatten()[1:-1].reshape((len(starts_ends) - 1, 2))
 
 
 def _convert_input(seq, moltype):
@@ -59,40 +70,25 @@ def get_align_coords(map1, map2, aligned=False) -> MatchedSeqPaths:
     """sequence coordinates of aligned segments"""
     from cogent3.align.pycompare import segment
 
+    if aligned:
+        assert len(map1) == len(map2), "aligned sequences not equal length"
+
+    # we get the gap coordinates in alignment indices for both sequences
+    # sorting this allows us to trivially identify the alignment indices of
+    # ungapped segments,
+    # e.g. [(gap start 1, gap end 1), (gap start 2, gap end 2),...
+    # then [(gap end 1, gap start 2), ...
+    # is what we need to identify the segments for plotting
+    starts_ends = map1.get_gap_align_coordinates().tolist()
+    starts_ends.extend(map2.get_gap_align_coordinates().tolist())
+    starts_ends.sort()
+    starts_ends = _ungapped_spans(starts_ends, len(map1), aligned=aligned)
     paths = MatchedSeqPaths("Alignment")
-    if not_gap(map1) and not_gap(map2):
-        # no gaps
-        if aligned:
-            assert len(map1) == len(map2), "Aligned sequences inconsistent length"
-            paths[0].append((segment(0, len(map1)), segment(0, len(map2))))
-        return paths
-
-    assert len(map1) == len(map2), "aligned sequences not equal length"
-    # diagonals are places where both sequences are NOT gaps
-    # so we record start of a diagonal and when we hit a 'gap'
-    # in either sequence, we have the end of the diagonal
-
-    start_x = start_y = None
-    for i in range(len(map1)):
-        x_not_gap = not_gap(map1[i])
-        y_not_gap = not_gap(map2[i])
-        if x_not_gap and y_not_gap and start_x is None:
-            start_x = len_seq(map1[:i])
-            start_y = len_seq(map2[:i])
-        elif (not x_not_gap or not y_not_gap) and start_x is not None:
-            paths[start_y - start_x].append(
-                (
-                    segment(start_x, len_seq(map1[:i]) - 1),
-                    segment(start_y, len_seq(map2[:i]) - 1),
-                )
-            )
-            start_x = start_y = None
-
-    if start_x is not None:
-        paths[start_y - start_x].append(
-            (segment(start_x, len_seq(map1) - 1), segment(start_y, len_seq(map2) - 1))
-        )
-
+    for align_start, align_end in starts_ends:
+        # ends are inclusive for plotting
+        s1 = segment(map1.get_seq_index(align_start), map1.get_seq_index(align_end) - 1)
+        s2 = segment(map2.get_seq_index(align_start), map2.get_seq_index(align_end) - 1)
+        paths.append(s1, s2)
     return paths
 
 
@@ -129,8 +125,9 @@ class Dotplot(Drawable):
             windows where the sequences are identical >= threshold are a match
         k : int
             size of k-mer to break sequences into. Larger values increase
-            speed but reduce resolution. If not specified, is computed as the
-            maximum of (window-threshold), (window % k) * k <= threshold.
+            speed but reduce resolution. If not specified, and
+            window == threshold, then k is set to window. Otherwise, it is
+            computed as the maximum of {threshold // (window - threshold), 5}.
         min_gap : int
             permitted gap for joining adjacent line segments, default is no gap
             joining

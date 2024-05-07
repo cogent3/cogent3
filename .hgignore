@@ -20,6 +20,7 @@ draw_results
 *.wpu
 .cache*
 *taskpaper
+*.ipynb
 *.ipynb_checkpoints*
 *.sublime*
 *.patch
@@ -35,3 +36,6 @@ doc/draw*
 dist/*
 working/*
 lcov*.info
+.ruff_cache/*
+.devcontainer/*
+hg_old.zip

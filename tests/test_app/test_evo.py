@@ -870,6 +870,7 @@ def test_model_opt_args():
     assert model._opt_args == {**opt_args, **{"show_progress": False}}
 
 
+@pytest.mark.internet
 def test_get_app_tree_is_url():
     """A check that the model app can use a url for the tree"""
     tree_url = "https://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/brca1_5.tree"

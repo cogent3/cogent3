@@ -19,6 +19,9 @@ lib
 lib64
 doc/_build
 
+# docker stuff
+.devcontainer/*
+
 # Installer logs
 pip-log.txt
 
@@ -31,6 +34,7 @@ junit-*.xml
 nosetests.xml
 tests/draw_results
 lcov*.info
+.ruff_cache/*
 
 # Translations
 *.mo
@@ -48,5 +52,8 @@ __pycache__
 .vscode/*
 venv/
 working/
+*.ipynb
+*.ipynb_checkpoints/
+
 # vi
 .*.swp

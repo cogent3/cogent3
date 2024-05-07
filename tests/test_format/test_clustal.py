@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 """Tests for Clustal sequence format writer.
 """
+
 from unittest import TestCase
 
 from cogent3.core.alignment import Alignment
@@ -95,7 +95,3 @@ class ClustalTests(TestCase):
             clustal_from_alignment(self.alignment_object, wrap=2),
             self.clustal_with_label_lw2_reordered,
         )
-
-
-if __name__ == "__main__":
-    main()

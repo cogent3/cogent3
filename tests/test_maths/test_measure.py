@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from numpy import arange, array, diag_indices, dot, finfo, float64
+from numpy import diag_indices, dot, finfo, float64
 from numpy.random import random
 from numpy.testing import assert_allclose
 
@@ -284,7 +284,3 @@ class TestJensenShannon(TestCase):
             err_msg="Testing case4 for jsm failed",
             atol=self.atol,
         )
-
-
-if __name__ == "__main__":
-    main()

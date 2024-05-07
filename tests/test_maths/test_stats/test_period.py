@@ -270,7 +270,3 @@ class TestPeriodStat(TestCase):
         )
         self.assertEqual(stat, 0.0)
         self.assertEqual(p, 1.0)
-
-
-if __name__ == "__main__":
-    main()

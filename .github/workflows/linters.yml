@@ -12,11 +12,11 @@ on:
 jobs:
   linters:
     runs-on: ubuntu-latest
-    if: github.repository == 'cogent/cogent3'
+    if: github.repository == 'cogent3/cogent3'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install dependencies
@@ -33,7 +33,7 @@ jobs:
       - name: Format code using black
         run: black .
       - name: Sort import statements using isort
-        run: isort
+        run: isort .
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:

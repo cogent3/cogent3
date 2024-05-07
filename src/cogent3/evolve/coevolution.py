@@ -622,7 +622,9 @@ def get_subalignments(aln, position, selections):
     result = []
     for s in aln.alphabet.to_indices(selections):
         seqs_to_keep = nonzero(aln.array_seqs[:, position] == s)[0]
-        result.append(aln.get_sub_alignment(seqs=seqs_to_keep))
+        sub_align = aln.get_sub_alignment(seqs=seqs_to_keep)
+        if sub_align is not None:
+            result.append(sub_align)
     return result
 
 
@@ -1945,9 +1947,9 @@ def filter_threshold_based_multiple_interdependency(
     else:
         # filter the rows and cols in a symmetric matrix
         for row_n in filtered_rows:
-            coevolution_matrix[row_n, :] = coevolution_matrix[
-                :, row_n
-            ] = DEFAULT_NULL_VALUE
+            coevolution_matrix[row_n, :] = coevolution_matrix[:, row_n] = (
+                DEFAULT_NULL_VALUE
+            )
 
     # return the result
     return coevolution_matrix

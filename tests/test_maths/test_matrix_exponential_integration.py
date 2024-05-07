@@ -129,7 +129,3 @@ class TestIntegratingExponentiator(TestCase):
         length = 0.2
         got = expm.expected_number_subs(moprobs, Q, length)
         self.assertNotAlmostEqual(got, length)
-
-
-if __name__ == "__main__":
-    main()

@@ -16,14 +16,14 @@ and/or Enumerations on the fly, however.
 import json
 import typing
 
+from functools import singledispatchmethod
 from itertools import product
 
 from numpy import (
     arange,
     array,
-    asarray,
+    ndarray,
     newaxis,
-    ravel,
     sum,
     take,
     transpose,
@@ -33,7 +33,6 @@ from numpy import (
     uint64,
     zeros,
 )
-from numpy.testing import assert_allclose
 
 from cogent3._version import __version__
 from cogent3.util import warning as c3warns
@@ -549,60 +548,6 @@ class Alphabet(Enumeration):
             motif_subset = [m for m in self if m not in motif_subset]
         return self._with(motif_subset)
 
-    @c3warns.deprecated_callable(
-        "2024.3",
-        reason="does not belong on alphabet",
-        new="<moltype>.resolve_ambiguity()",
-    )
-    def resolve_ambiguity(self, ambig_motif):
-        """deprecated, use method on MolType"""
-        # shortcut easy case
-        if ambig_motif in self._quick_motifset:
-            return (ambig_motif,)
-
-        # resolve each letter, and build the possible sub motifs
-        ambiguities = self.moltype.ambiguities
-        motif_set = [""]
-        ALL = self.moltype.alphabet.with_gap_motif()
-        for character in ambig_motif:
-            new_motifs = []
-            if character == "?":
-                resolved = ALL
-            elif character == "-":
-                resolved = ["-"]
-            else:
-                try:
-                    resolved = ambiguities[character]
-                except KeyError:
-                    raise AlphabetError(ambig_motif)
-            for character2 in resolved:
-                for motif in motif_set:
-                    new_motifs.append("".join([motif, character2]))
-
-            motif_set = new_motifs
-
-        # delete sub motifs that are not to be included
-        motif_set = [motif for motif in motif_set if motif in self._quick_motifset]
-
-        if not motif_set:
-            raise AlphabetError(ambig_motif)
-
-        return tuple(motif_set)
-
-    @c3warns.deprecated_callable(
-        "2024.3",
-        reason="does not belong on alphabet",
-        new="cogent3.evolve.likelihood_tree.get_matched_array",
-    )
-    def get_matched_array(self, motifs, dtype=float):
-        """deprecated, use function in evolve.likelihood_tree"""
-        result = zeros([len(motifs), len(self)], dtype)
-        obj_to_index = self._obj_to_index
-        for u, ambig_motif in enumerate(motifs):
-            for motif in self.resolve_ambiguity(ambig_motif):
-                result[u, obj_to_index[motif]] = 1.0
-        return result
-
 
 class CharAlphabet(Alphabet):
     """Holds an alphabet whose items are single chars.
@@ -627,7 +572,7 @@ class CharAlphabet(Alphabet):
         data = data or []
         super(CharAlphabet, self).__init__(data, gap, moltype=moltype)
         self._indices_to_chars, self._chars_to_indices = _make_translation_tables(data)
-        self._char_nums_to_indices = array(range(256), uint8)
+        self._char_nums_to_indices = array(range(256), self.array_type)
         for c, i in self._chars_to_indices.items():
             self._char_nums_to_indices[c] = i
 
@@ -674,6 +619,76 @@ class CharAlphabet(Alphabet):
             return delimiter.join(
                 [i.tobytes().decode("utf-8") for i in self.to_chars(data)]
             )
+
+    @singledispatchmethod
+    def from_indices(self, data: ndarray) -> str:
+        """returns string from numpy array of integers"""
+        data = data.astype(dtype=self.array_type)
+        encoding = data.dtype.name.replace("uint", "utf")
+        return str.translate(data.tobytes().decode(encoding), self._indices_to_chars)
+
+    @from_indices.register
+    def _(self, data: list) -> str:
+        """returns string from numpy array of integers"""
+        return self.from_indices(array(data, dtype=self.array_type))
+
+    @from_indices.register
+    def _(self, data: tuple) -> str:
+        """returns string from numpy array of integers"""
+        return self.from_indices(array(data, dtype=self.array_type))
+
+    @singledispatchmethod
+    def to_indices(self, data) -> ndarray:
+        """Returns sequence of indices from sequence of elements.
+
+        Raises KeyError if some of the elements were not found.
+
+        Expects data to be a sequence (e.g. list of tuple) of items that
+        are in the Enumeration. Returns a list containing the index of each
+        element in the input, in order.
+
+        e.g. for the RNA alphabet ('U','C','A','G'), the sequence 'CCAU'
+        would produce the result [1,1,2,0], returning the index of each
+        element in the input.
+        """
+        return array([self._obj_to_index[e] for e in data], dtype=self.array_type)
+
+    @to_indices.register
+    def _(self, data: str) -> ndarray:
+        """Returns sequence of indices from sequence of elements.
+
+        Raises KeyError if some of the elements were not found.
+
+        Expects data to be a sequence (e.g. list of tuple) of items that
+        are in the Enumeration. Returns a list containing the index of each
+        element in the input, in order.
+
+        e.g. for the RNA alphabet ('U','C','A','G'), the sequence 'CCAU'
+        would produce the result [1,1,2,0], returning the index of each
+        element in the input.
+        """
+        return array(
+            memoryview(
+                bytearray(data.translate(self._chars_to_indices).encode("utf8"))
+            ),
+            dtype=self.array_type,
+        )
+
+    @to_indices.register
+    def _(self, data: bytes) -> ndarray:
+        """Returns sequence of indices from sequence of elements.
+
+        Raises KeyError if some of the elements were not found.
+
+        Expects data to be a sequence (e.g. list of tuple) of items that
+        are in the Enumeration. Returns a list containing the index of each
+        element in the input, in order.
+
+        e.g. for the RNA alphabet ('U','C','A','G'), the sequence 'CCAU'
+        would produce the result [1,1,2,0], returning the index of each
+        element in the input.
+        """
+        return self.to_indices(data.decode("utf8"))
 
 
 T = typing.Union[Alphabet, CharAlphabet]

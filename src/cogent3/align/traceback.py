@@ -1,9 +1,15 @@
-#!/usr/bin/env python
 """Conversion of dynamic program results ("arrays of arrows") into gap vectors,
 gapped sequences or Cogent Alignment objects"""
 
+import typing
+
 from cogent3.core.alignment import Aligned, Alignment
-from cogent3.core.annotation import Map
+from cogent3.core.location import IndelMap
+
+
+IntOrNone = typing.Union[int, None]
+IntListType = list[int]
+CoordsListType = list[list[typing.Sequence[int]]]
 
 
 def seq_traceback(s1, s2, aligned_positions, gap_value):
@@ -30,7 +36,9 @@ def seq_traceback(s1, s2, aligned_positions, gap_value):
     return alignments
 
 
-def gap_traceback(aligned_positions):
+def gap_traceback(
+    aligned_positions: list[list[IntOrNone, IntOrNone]]
+) -> tuple[IntListType, IntListType, CoordsListType, int]:
     """gap Vectors from state matrix and ending point"""
     consuming = [False, False]
     starts = [None, None]
@@ -52,15 +60,19 @@ def gap_traceback(aligned_positions):
         if consuming[dimension]:
             gv.append(a)
         gap_vectors[dimension] = [(gv[i], gv[i + 1]) for i in range(0, len(gv), 2)]
-    return (starts, ends, gap_vectors, a)
+    return starts, ends, gap_vectors, a
 
 
-def map_traceback(aligned_positions):
-    # using Map's to keep track of gaps for indel alignment
-    (starts, ends, gap_vectors, alignment_len) = gap_traceback(aligned_positions)
-    # print 'gv', gap_vectors
-    maps = [Map(gv, parent_length=alignment_len).inverse() for gv in gap_vectors]
-    return (starts, ends, maps)
+def map_traceback(
+    aligned_positions: list[list[IntOrNone, IntOrNone]]
+) -> tuple[IntListType, IntListType, list[IndelMap]]:
+    # using IndelMap's to keep track of gaps for indel alignment
+    starts, ends, gap_vectors, alignment_len = gap_traceback(aligned_positions)
+    maps = [
+        IndelMap.from_aligned_segments(locations=gv, aligned_length=alignment_len)
+        for gv in gap_vectors
+    ]
+    return starts, ends, maps
 
 
 def alignment_traceback(seqs, aligned_positions, word_length):

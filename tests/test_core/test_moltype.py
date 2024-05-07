@@ -1139,3 +1139,16 @@ def test_resolve_ambiguity_codons():
         DNA.resolve_ambiguity("at-")
     with pytest.raises(AlphabetError):
         DNA.resolve_ambiguity("---", alphabet=codon_alpha)
+
+
+def test_make_seq_on_seq():
+    seq = DNA.make_seq("ACGG")
+    got = DNA.make_seq(seq)
+    assert got is seq
+
+
+def test_make_seq_diff_moltype():
+    seq = RNA.make_seq("ACGG")
+    seq.add_feature(biotype="gene", name="test", spans=[(0, 2)])
+    got = DNA.make_seq(seq)
+    assert len(got.annotation_db) == 1
