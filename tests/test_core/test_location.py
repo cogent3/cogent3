@@ -1,5 +1,6 @@
 """Unit tests for Span classes.
 """
+
 from unittest import TestCase
 
 from cogent3 import DNA

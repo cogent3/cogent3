@@ -1,5 +1,6 @@
 """Unit tests for table.
 """
+
 import json
 import os
 import pathlib

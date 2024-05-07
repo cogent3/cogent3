@@ -1,5 +1,6 @@
 """Unit tests for the GenBank database parsers.
 """
+
 from unittest import TestCase
 
 import pytest

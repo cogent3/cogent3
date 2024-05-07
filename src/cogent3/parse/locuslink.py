@@ -39,6 +39,7 @@ in the lists for grouped fields (e.g. MAP and MAPLINK, PHENOTYPE and
 PHENOTYPE_ID,BUTTON and LINK) refer to the same item (i.e. MAP[0] and MAPLINK[0]
 are probably a map and its corresponding link).
 """
+
 from cogent3.parse.record import (
     DelimitedSplitter,
     FieldWrapper,

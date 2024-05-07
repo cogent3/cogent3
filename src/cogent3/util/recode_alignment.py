@@ -34,7 +34,6 @@ Rob Knight. BMC Evolutionary Biology, 2008.
 
 """
 
-
 from numpy import array, take, zeros
 
 from cogent3.core.alignment import ArrayAlignment

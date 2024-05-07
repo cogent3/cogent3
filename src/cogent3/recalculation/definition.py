@@ -63,7 +63,6 @@ Recycling:
   the one to be used next for recycling.
 """
 
-
 from collections import defaultdict
 
 import numpy

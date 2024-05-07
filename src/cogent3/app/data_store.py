@@ -62,13 +62,11 @@ class DataMemberABC(ABC):
 
     @property
     @abstractmethod
-    def data_store(self) -> DataStoreABC:
-        ...
+    def data_store(self) -> DataStoreABC: ...
 
     @property
     @abstractmethod
-    def unique_id(self):
-        ...
+    def unique_id(self): ...
 
     def __str__(self):
         return self.unique_id
@@ -123,8 +121,7 @@ class DataStoreABC(ABC):
 
     @property
     @abstractmethod
-    def limit(self):
-        ...
+    def limit(self): ...
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -150,8 +147,7 @@ class DataStoreABC(ABC):
         return any(m.unique_id == identifier for m in self)
 
     @abstractmethod
-    def read(self, unique_id: str) -> StrOrBytes:
-        ...
+    def read(self, unique_id: str) -> StrOrBytes: ...
 
     def _check_writable(self, unique_id: str):
         if self.mode is READONLY:
@@ -180,18 +176,15 @@ class DataStoreABC(ABC):
 
     @property
     @abstractmethod
-    def logs(self) -> list[DataMemberABC]:
-        ...
+    def logs(self) -> list[DataMemberABC]: ...
 
     @property
     @abstractmethod
-    def completed(self) -> list[DataMemberABC]:
-        ...
+    def completed(self) -> list[DataMemberABC]: ...
 
     @property
     @abstractmethod
-    def not_completed(self) -> list[DataMemberABC]:
-        ...
+    def not_completed(self) -> list[DataMemberABC]: ...
 
     @property
     def summary_logs(self) -> TabularType:
@@ -251,8 +244,7 @@ class DataStoreABC(ABC):
         )
 
     @abstractmethod
-    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None:
-        ...
+    def drop_not_completed(self, *, unique_id: Optional[str] = None) -> None: ...
 
     def validate(self) -> TabularType:
         correct_md5 = len(self.members)

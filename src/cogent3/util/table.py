@@ -1089,9 +1089,11 @@ class Table:
         match = not negate
         return numpy.array(
             [
-                True
-                if _callback(callback, row=row, num_columns=num_columns) == match
-                else False
+                (
+                    True
+                    if _callback(callback, row=row, num_columns=num_columns) == match
+                    else False
+                )
                 for row in data
             ]
         )

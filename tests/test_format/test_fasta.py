@@ -1,5 +1,6 @@
 """Tests for FASTA sequence format writer.
 """
+
 from unittest import TestCase
 
 from cogent3.core.alignment import Alignment

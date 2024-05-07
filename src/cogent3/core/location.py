@@ -19,6 +19,7 @@ a Span whose end is 2 more than its start contains 2 elements (e.g. 2:4 has c
 and d), etc. Similarly, Span(0,2) does _not_ overlap Span(2,3), since the
 former contains a and b while the latter contains c.
 """
+
 import copy
 
 from bisect import bisect_left, bisect_right
