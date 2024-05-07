@@ -1233,8 +1233,7 @@ def foo3():
     """
 
 
-def foo4():
-    ...
+def foo4(): ...
 
 
 _sum_expect = "some text"
@@ -1270,7 +1269,7 @@ def test_get_true_spans_absolute():
     got = get_true_spans(
         # abs  0  1  2  3  4  5  6  7  8  9
         array([1, 0, 0, 1, 1, 1, 1, 0, 1, 1]),
-        absolute_pos=False
+        absolute_pos=False,
         # u       0  1              2
     )
     assert_allclose(got, array([[0, 1], [2, 4], [3, 2]]))

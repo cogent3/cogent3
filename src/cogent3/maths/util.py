@@ -1,5 +1,6 @@
 """Provides small utility functions for numpy arrays.
 """
+
 import numpy
 
 from numpy import array, clip, cumsum, searchsorted, sort, sum

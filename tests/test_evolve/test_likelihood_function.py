@@ -9,6 +9,7 @@ tests to do:
     
     checking that the object resets on tree change, model change, etc
 """
+
 import json
 import os
 import warnings

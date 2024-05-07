@@ -1,4 +1,5 @@
 """Unit tests for matrix logarithm."""
+
 from unittest import TestCase
 
 from numpy import array

@@ -1,5 +1,6 @@
 """Provides tests for classes and functions in profile.py
 """
+
 from collections import Counter
 from unittest import TestCase
 

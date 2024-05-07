@@ -1,5 +1,6 @@
 """Supports JSON load/read/write operations on major Cogent3 objects.
 """
+
 import json
 
 from cogent3.app.data_store import load_record_from_json

@@ -24,6 +24,7 @@ Definition of relevant terms or abbreviations:
        from a node
     -  stem: the edge immediately preceeding a clade
 """
+
 from __future__ import annotations
 
 import json
