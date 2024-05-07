@@ -1,4 +1,87 @@
 
+<a id='changelog-2024.5.7a1'></a>
+# Changes in release "2024.5.7a1"
+
+## Contributors
+
+- @KatherineCaley for reviewing PRs and code contributions
+  related to SeqView taking on a more prominent role in recording
+  history of operations on sequences.
+- First-time contributions from @Yutong-Shao, @Zongjing-Han, @yantonglu,
+  @ShunyiYang, @KyleSu12, @Ruizhe-wang, @Firimp 🎉
+- Adopted suggested documentation example proposed by Lizhaozhe123,
+  with some amendments, for the trim_stop_codons app.
+- Multiple contributions from @GavinHuttley
+- @rmcar17 identified and fixed a bug 🚀!
+- @rmcar17 addressed deprecation of using `end` as a column name
+- Implementation of plug-in support :building_construction: by @khiron
+- We had many contributors to project maintenance, making
+  the contributor experience better 🎉!!
+  @rmcar17, @GavinHuttley @fredjaya reviewed PR's 🛠️🚀
+  @khiron, @KatherineCaley, @YapengLang, @fredjaya, @rmcar17
+  and @GavinHuttley all commented on Issues.
+  @khiron, @fredjaya and @rmcar17 contributed to general
+  maintenance tasks, including developer docs and troubleshooting
+  infrastructure issues.
+
+## ENH
+
+- Annotation databases are now preserved after renaming sequences.
+  This is made possible because SeqView has the seqid attribute which
+  is preserved and is independent of the name of the enclosing Sequence.
+- Sequence.parent_coordinates() now returns information related to its
+  parent. For example, we have a sequence with name "1" which we then
+  sliced and rename the slice to "gene". Calling gene.parent_coordinates()
+  would return "1", slice start, slice end, strand.
+- methods on likelihood function objects that work with continuous-time
+  Markov models no longer fail if the model also has discrete-time edges.
+  These include lf.get_lengths_as_ens(), lf.get_annotated_tree(),
+  lf.get_paralinear_metric().
+- Added new lf.get_ens_tree(). This returns trees with the expected number
+  of substitutions as the branch length. On discrete-time edges the branch
+  length is set to None. Think of this tree as the true "evolutionary tree".
+  Thanks to Von Bing Yap for suggesting this!
+- Plugin support that will allow 3rd-party developers to add their custom
+  functionality to the cogent3 pipeline as first class apps
+- The new IndelMap class uses numpy arrays to store information about gap
+  locations for aligned sequences. This will greatly reduce the memory
+  overhead for aligned sequences. The class also provides explicit methods
+  for inter-converting between sequence and alignment coordinates. An important
+  difference to the original Map implementation is that IndelMap is memoryless,
+  meaning the history of slice operations is now fully delegated to the SeqView
+  class.
+- The new FeatureMap class is a slightly modified version of the original Map
+  class. It is used solely for handling sequence feature mappings to sequences
+  and alignments. Like IndelMap, it is memoryless but it does record its
+  orientation with respect to the parent sequence.
+- Note that both IndelMap and FeatureMap replace the spans attribute with a
+  generator.
+
+## BUG
+
+- The saving of numpy arrays in annotation db's was not cross-platform
+  compatible due to differences in default types between OS's. Fixed by
+  using numpy.save and numpy.load. A warning is raised if an old style
+  format is detected and a function provided for updating the format.
+- Alignment.quick_tree() default settings referred to a distance calculator
+  that has been removed. Now updated to the pdist calculator.
+
+## DOC
+
+- added cookbook docs for io apps
+
+## Deprecations
+
+- `end` is a SQL keyword and so should be avoided. It is now replaced
+  by `stop`. Annotation db's with the old column name are dynamically
+  updated.
+
+## Discontinued
+
+- The cogent3.core.location.Map class is now marked for deprecation. It is
+  being replaced by two classes, IndelMap and FeatureMap. The latter has
+  largely the same functionality of Map.
+
 <a id='changelog-2024.2.5a1'></a>
 # Changes in release "2024.2.5a1"
 
