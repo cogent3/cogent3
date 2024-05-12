@@ -1007,7 +1007,21 @@ def _update_lengths(
 
 @dataclasses.dataclass
 class IndelMap(MapABC):
-    """store locations of deletions in a Aligned sequence"""
+    """store locations of deletions in a Aligned sequence
+
+    Parameters
+    ----------
+    gap_pos
+        start positions of gap segments in sequence (ungapped) coordinates
+    cum_gap_lengths
+        cumulative gap lengths per segment
+    gap_lengths
+        Length of each gap segment
+    termini_unknown
+        ...
+    parent_length
+        length of parent sequence (i.e. aligned sequence with gaps)
+    """
 
     # gap data is gap positions, gap lengths on input, stored
     gap_pos: IntArrayTypes
