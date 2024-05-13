@@ -347,6 +347,6 @@ def remove_files(list_of_filepaths, error_on_missing=True):
 
 def path_exists(path: PathType) -> bool:
     """whether path is a valid path and it exists"""
-    with contextlib.suppress(ValueError, TypeError):
-        return os_path.exists(str(path))
+    with contextlib.suppress(Exception):
+        return os_path.exists(path)
     return False
