@@ -125,6 +125,12 @@ def test_open_handles_bom(tmp_dir):
             assert got == text, f"failed reading {path}"
 
 
+@pytest.mark.parametrize("non", (None, ""))
+def test_open_empty_raises(non):
+    with pytest.raises(ValueError):
+        open_(non)
+
+
 def test_aw_zip_from_path(tmp_dir):
     """supports inferring zip archive name from path"""
     path = tmp_dir / "foo.txt"
