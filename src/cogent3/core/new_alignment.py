@@ -1,8 +1,8 @@
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
-from typing import Iterator, Optional, Self, Union
+from typing import Iterator, Optional, Union
 
-import numpy as numpy
+import numpy
 
 from cogent3 import get_moltype
 from cogent3.core.alphabet import CharAlphabet
@@ -22,7 +22,12 @@ def seq_index(seq: SeqTypes, alphabet: CharAlphabet) -> numpy.ndarray:
 
 
 @seq_index.register
-def _(seq: str | bytes, alphabet: CharAlphabet) -> numpy.ndarray:
+def _(seq: str, alphabet: CharAlphabet) -> numpy.ndarray:
+    return alphabet.to_indices(seq)
+
+
+@seq_index.register
+def _(seq: bytes, alphabet: CharAlphabet) -> numpy.ndarray:
     return alphabet.to_indices(seq)
 
 
@@ -51,13 +56,23 @@ def _(correct_names: dict, name_order: tuple) -> tuple:
     raise ValueError("name_order does not match dictionary keys")
 
 
-@process_name_order.register
-def _(correct_names: tuple | list, name_order: tuple) -> tuple:
+def _name_order_list_tuple(name_order, correct_names):
+    """List and tuples have the same implementation for dispatch"""
     if name_order is None:
         return correct_names
     if set(name_order) <= set(correct_names):
         return tuple(name_order)
     raise ValueError("some names do not match")
+
+
+@process_name_order.register
+def _(correct_names: tuple, name_order: tuple) -> tuple:
+    return _name_order_list_tuple(name_order, correct_names)
+
+
+@process_name_order.register
+def _(correct_names: list, name_order: tuple) -> tuple:
+    return _name_order_list_tuple(name_order, correct_names)
 
 
 class SeqDataView(SeqView):
@@ -117,8 +132,8 @@ class SeqData:
     _name_order: tuple[str] = field(init=False)
     _alpha: CharAlphabet = field(init=False)
     data: InitVar[dict[str, str]]
-    moltype: InitVar[str | None] = "dna"
-    name_order: InitVar[tuple[str] | None] = None
+    moltype: InitVar[Union[str, None]] = "dna"
+    name_order: InitVar[Union[tuple[str], None]] = None
 
     def __post_init__(self, data, moltype, name_order):
         self._moltype = get_moltype(moltype)
@@ -128,7 +143,7 @@ class SeqData:
         self._data = {k: seq_index(v, self._alpha) for k, v in data.items()}
 
     @singledispatchmethod
-    def __getitem__(self, value: str | int) -> SeqDataView:
+    def __getitem__(self, value: Union[str, int]) -> SeqDataView:
         raise NotImplementedError(f"__getitem__ not implemented for {type(value)}")
 
     @__getitem__.register(str)
@@ -171,7 +186,7 @@ class SeqData:
 
 @singledispatch
 def seq_to_gap_coords(
-    seq: str | numpy.ndarray, moltype: MolType
+    seq: Union[str, numpy.ndarray], moltype: MolType
 ) -> tuple[str, IndelMap]:
     """
     Takes a sequence with (or without) gaps and returns an ungapped sequence
@@ -251,8 +266,8 @@ class AlignedData:
     _name_order: tuple[str] = field(init=False)
     _alpha: CharAlphabet = field(init=False)
     align_len: int = 0
-    moltype: InitVar[str | None] = "dna"
-    name_order: InitVar[tuple[str] | None] = None
+    moltype: InitVar[Union[str, None]] = "dna"
+    name_order: InitVar[Union[tuple[str], None]] = None
 
     def __post_init__(self, moltype, name_order):
         self._moltype = get_moltype(moltype)
@@ -263,10 +278,10 @@ class AlignedData:
     @classmethod
     def from_gapped_seqs(
         cls,
-        data: dict[str, str | numpy.ndarray],
-        moltype: str | MolType = "dna",
+        data: dict[str, Union[str, numpy.ndarray]],
+        moltype: Union[str, MolType] = "dna",
         name_order: Optional[tuple[str]] = None,
-    ) -> Self:
+    ):
         """
         Convert dict of {"seq_name": "seq"} to two dicts for seqs and gaps
         """
