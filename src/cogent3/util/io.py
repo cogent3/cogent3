@@ -1,5 +1,4 @@
 import contextlib
-import os
 import shutil
 import uuid
 
@@ -12,7 +11,7 @@ from os import remove
 from pathlib import Path, PurePath
 from re import compile
 from tempfile import mkdtemp
-from typing import IO, Callable, Optional, Tuple, Union
+from typing import IO, Callable, Generator, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -350,3 +349,76 @@ def path_exists(path: PathType) -> bool:
     with contextlib.suppress(Exception):
         return os_path.exists(path)
     return False
+
+
+def iter_splitlines(
+    path: PathType, chunk_size: Optional[int] = 1_000_000
+) -> Generator[str, None, None]:
+    """yields line from file
+
+    Parameters
+    ----------
+    path
+        data file
+    chunk_size
+        number of bytes to load in one go from path
+
+    Notes
+    -----
+    Loads chunks of data from the file, yields one line at a time
+    """
+    path = Path(path)
+    if chunk_size and path.stat().st_size < chunk_size:
+        # file is smaller than provided chunk_size, just
+        # load it all
+        chunk_size = None
+
+    with open_(path) as infile:
+        last = ""
+        while True:
+            data = infile.read(chunk_size)
+            if not data:  # end of file
+                break
+
+            data = last + data
+            # we check for POSIX or Windows line endings
+            end_is_newline = data.endswith(("\n", "\r\n"))
+            lines = data.splitlines()
+            last = lines.pop(-1)
+            if not len(lines):
+                if end_is_newline:
+                    # even if text is from Windows and uses "\r\n", pythons
+                    # string splitlines() will respect \n
+                    last += "\n"
+                # we have not seen a newline
+                continue
+
+            yield from lines
+
+        if last:
+            yield from last.splitlines()
+
+
+def iter_line_blocks(
+    path: PathType, num_lines: int = 1000, chunk_size: Optional[int] = 1_000_000
+) -> Generator[list[str], None, None]:
+    """yields list with num_lines str from path
+
+    Parameters
+    ----------
+    path
+        data file
+    num_lines
+        number of lines per block
+    chunk_size
+        number of bytes to load in one go from path
+    """
+    lines = []
+    for line in iter_splitlines(path, chunk_size=chunk_size):
+        lines.append(line)
+        if len(lines) == num_lines:
+            yield lines
+            lines = []
+
+    if lines:
+        yield lines

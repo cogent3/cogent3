@@ -12,6 +12,8 @@ from cogent3.util.io import (
     _path_relative_to_zip_parent,
     atomic_write,
     get_format_suffixes,
+    iter_line_blocks,
+    iter_splitlines,
     open_,
     open_url,
     path_exists,
@@ -384,3 +386,86 @@ def test_open_url_exceptions():
         _ = open_url(
             "ftp://raw.githubusercontent.com/cogent3/cogent3/develop/tests/data/gff2_test.gff",
         )
+
+
+def test_iter_splitlines_one(tmp_path):
+    # file has a single line
+    path = tmp_path / "one-line.txt"
+    value = "We have text on one line."
+    path.write_text(value)
+    got = list(iter_splitlines(path))
+    assert got == [value]
+
+
+@pytest.mark.parametrize("newline", ("\n", "\r\n"))
+def test_iter_splitlines_line_diff_newline(tmp_path, newline):
+    path = tmp_path / "multi-line.txt"
+    value = ["We have some", "text on different lines", "which load"]
+    path.write_text("\n".join(value), newline=newline)
+    # we use a very small chunk size
+    got = list(iter_splitlines(path, chunk_size=5))
+    assert got == value
+
+
+@pytest.mark.parametrize("newline", ("\n", "\r\n"))
+def test_iter_splitlines_file_endswith_newline(tmp_path, newline):
+    path = tmp_path / "multi-line.txt"
+    value = ["We have some", "text on different lines", "which load"]
+    path.write_text("\n".join(value) + "\n", newline=newline)
+    # we use a very small chunk size
+    got = list(iter_splitlines(path, chunk_size=5))
+    assert got == value
+
+
+def test_iter_splitlines_chunk_size_exceeds_file_size(tmp_path):
+    path = tmp_path / "multi-line.txt"
+    value = ["We have some", "text on different lines", "which load"]
+    path.write_text("\n".join(value))
+    # we use a massive chunk size
+    got = list(iter_splitlines(path, chunk_size=5_000_000))
+    assert got == value
+
+
+def test_iter_splitlines_chunk_endswith_newline(tmp_path):
+    path = tmp_path / "multi-line.txt"
+    # character 22 is a newline
+    value = "With text\nending on a\nended in newline.".splitlines()
+    path.write_text("\n".join(value))
+    # we use a chunk size that ends with a newline
+    got = list(iter_splitlines(path, chunk_size=11))
+    assert got == value
+
+
+def test_iter_splitlines_chunk_empty_file(tmp_path):
+    path = tmp_path / "zero.txt"
+    path.write_text("")
+    got = list(iter_splitlines(path))
+    assert not got
+
+
+def test_iter_line_blocks_correct_size(tmp_path):
+    # correctly break up
+    path = tmp_path / "multi-line.txt"
+    value = ["We have some", "text on different lines", "which load"]
+    path.write_text("\n".join(value))
+    # we use a massive chunk size
+    got = list(iter_line_blocks(path, num_lines=2, chunk_size=5))
+    expect = [value[:2], value[-1:]]
+    assert got == expect
+
+
+def test_iter_line_blocks_empty(tmp_path):
+    path = tmp_path / "zero.txt"
+    path.write_text("")
+    # we use a massive chunk size
+    got = list(iter_line_blocks(path, num_lines=2))
+    assert not got
+
+
+def test_iter_line_blocks_one(tmp_path):
+    # file has a single line
+    path = tmp_path / "one-line.txt"
+    value = "We have text on one line."
+    path.write_text(value)
+    got = list(iter_line_blocks(path, num_lines=2))
+    assert got == [[value]]
