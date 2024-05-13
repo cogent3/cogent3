@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 import pytest
 
+from cogent3.app.composable import NotCompleted
 from cogent3.util.io import (
     _path_relative_to_zip_parent,
     atomic_write,
@@ -260,6 +261,7 @@ def test_get_format_suffixes_pathlib(name, expect):
         ("(a:0.1,b:0.1,(c:0.1,d:0.1):0.1)", False),
         (__file__, True),
         (pathlib.Path(__file__), True),
+        (NotCompleted("FAIL", "test", message="none", source="unknown"), False),
     ),
 )
 def test_path_exists(val, expect):
