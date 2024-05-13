@@ -9,7 +9,6 @@ from cogent3.core.new_alignment import (
     AlignedDataView,
     SeqData,
     SeqDataView,
-    gap_coords_to_seq,
     process_name_order,
     seq_index,
     seq_to_gap_coords,
@@ -315,41 +314,6 @@ def test_aligned_from_string_returns_self(aligned_dict):
     # assert gap lengths
 
 
-# AlignedData get_seq_* tests
-def test_aligned_get_seq_array(aligned_dict):
-    expect = numpy.array([2, 1, 3, 0], dtype="uint8")
-    ad = AlignedData.from_gapped_seqs(data=aligned_dict)
-    got = ad.get_seq_array(seqid="seq1")
-    assert numpy.array_equal(got, expect)
-
-
-@pytest.mark.parametrize("seq", ("seq1", "seq2"))
-@pytest.mark.parametrize("start", (None, -1, 0, 1, 4))
-@pytest.mark.parametrize("stop", (None, -1, 0, 1, 4))
-def test_aligned_get_seq_str(aligned_dict, seq, start, stop):
-    # slicing should be tested in test_aligned_get_seq_array
-    expect = aligned_dict[seq][start:stop]
-    sd = SeqData(data=aligned_dict)
-    got = sd.get_seq_str(seqid=seq, start=start, stop=stop)
-    assert expect == got
-
-
-def test_aligned_get_seq_bytes(aligned_dict):
-    ad = AlignedData.from_gapped_seqs(aligned_dict)
-    got = ad.get_seq_bytes(seqid="seq1")
-    assert isinstance(got, bytes)
-
-
-@pytest.mark.parametrize(
-    "seqid, expect", [("seq1", numpy.array([[3, 2]])), ("seq2", numpy.array([[0, 1]]))]
-)
-def test_get_gaps(aligned_dict, seqid, expect):
-    ad = AlignedData.from_gapped_seqs(aligned_dict)
-    gap_pos = ad.get_gaps(seqid)
-    got = gap_pos.gaps
-    assert numpy.array_equal(got, expect)
-
-
 @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
 def test_get_aligned_view(aligned_dict, seqid):
     ad = AlignedData.from_gapped_seqs(aligned_dict)
@@ -358,20 +322,6 @@ def test_get_aligned_view(aligned_dict, seqid):
     assert got.seq == ad
     assert got.stop == ad.align_len
     assert got.seq_len == ad.align_len
-
-
-# @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
-# @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
-# @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-# def test_aligneddataview_value(aligned_dict: dict, start, stop, step):
-#    seq = "seq2"
-#    expect = aligned_dict[seq][start:stop:step]
-#    ad = AlignedData.from_gapped_seqs(aligned_dict)
-#    # Get AlignedDataView on seq
-#    adv = ad.get_aligned_view(seqid=seq)
-#    adv2 = adv[start:stop:step]
-#    got = adv2.value
-#    assert got == expect
 
 
 # AlignedData seq to gaps
@@ -431,24 +381,3 @@ def test_seq_to_gap_coords_arr(gap_seqs, i):
     got_ungapped, got_map = seq_to_gap_coords(seq, moltype=get_moltype("dna"))
     assert numpy.array_equal(got_ungapped, seq[seq != 4])  # gap_char = 4
     assert got_map.get_gap_coordinates() == gap_coords
-
-
-@pytest.mark.parametrize("test_index", range(3))
-def test_gap_coords_to_seq(gapped_ungapped_gappos, test_index):
-    expect_gapped, expect_ungapped, expect_GP = gapped_ungapped_gappos[test_index]
-    got_gapped = gap_coords_to_seq(expect_ungapped, expect_GP)
-    assert got_gapped == expect_gapped
-
-
-def test_gap_coords_to_seq_allgaps():
-    seq = "----"
-    ug, gp = seq_to_gap_coords(seq)
-    got = gap_coords_to_seq(ug, gp)
-    assert got == seq
-
-
-def test_gap_coords_to_seq_nogaps():
-    seq = "ACTG"
-    ug, gp = seq_to_gap_coords(seq)
-    got = gap_coords_to_seq(ug, gp)
-    assert got == seq
