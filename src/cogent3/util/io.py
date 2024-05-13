@@ -6,9 +6,10 @@ import uuid
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
 from io import TextIOWrapper
+from os import PathLike
 from os import path as os_path
 from os import remove
-from pathlib import Path
+from pathlib import Path, PurePath
 from re import compile
 from tempfile import mkdtemp
 from typing import IO, Callable, Optional, Tuple, Union
@@ -21,12 +22,13 @@ from chardet import detect
 from cogent3.util.misc import _wout_period
 
 
+PathType = Union[str, PathLike, PurePath]
 # support prefixes for urls
 _urls = compile("^(http[s]*|file)")
 
 
 def _get_compression_open(
-    path: Optional[os.PathLike] = None, compression: Optional[str] = None
+    path: Optional[PathType] = None, compression: Optional[str] = None
 ) -> Optional[Callable]:
     """returns function for opening compression formats
 
@@ -47,7 +49,7 @@ def _get_compression_open(
     return {"gz": gzip_open, "bz2": bzip_open, "zip": open_zip}.get(compression, None)
 
 
-def open_zip(filename: os.PathLike, mode: str = "r", **kwargs) -> IO:
+def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
     """open a single member zip-compressed file
 
     Note
@@ -81,7 +83,7 @@ def open_zip(filename: os.PathLike, mode: str = "r", **kwargs) -> IO:
         return TextIOWrapper(opened, encoding=encoding)
 
 
-def open_(filename: os.PathLike, mode="rt", **kwargs) -> IO:
+def open_(filename: PathType, mode="rt", **kwargs) -> IO:
     """open that handles different compression
 
     Parameters
@@ -186,7 +188,7 @@ class atomic_write:
     """performs atomic write operations, cleans up if fails"""
 
     def __init__(
-        self, path: os.PathLike, tmpdir=None, in_zip=None, mode="w", encoding=None
+        self, path: PathType, tmpdir=None, in_zip=None, mode="w", encoding=None
     ):
         """
 
@@ -308,7 +310,7 @@ class atomic_write:
 T = Optional[str]
 
 
-def get_format_suffixes(filename: os.PathLike) -> Tuple[T, T]:
+def get_format_suffixes(filename: PathType) -> Tuple[T, T]:
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
@@ -343,7 +345,7 @@ def remove_files(list_of_filepaths, error_on_missing=True):
         raise OSError("Some filepaths were not accessible: %s" % "\t".join(missing))
 
 
-def path_exists(path: os.PathLike) -> bool:
+def path_exists(path: PathType) -> bool:
     """whether path is a valid path and it exists"""
     with contextlib.suppress(ValueError, TypeError):
         return os_path.exists(str(path))
