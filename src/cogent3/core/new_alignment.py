@@ -4,8 +4,6 @@ from typing import Iterator, Optional, Self, Union
 
 import numpy as numpy
 
-from ensembl_lite._aligndb import GapPositions
-
 from cogent3 import get_moltype
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.location import IndelMap
