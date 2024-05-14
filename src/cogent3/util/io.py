@@ -5,13 +5,11 @@ import uuid
 from bz2 import open as bzip_open
 from gzip import open as gzip_open
 from io import TextIOWrapper
-from os import PathLike
-from os import path as os_path
-from os import remove
+from os import PathLike, remove
 from pathlib import Path, PurePath
 from re import compile
 from tempfile import mkdtemp
-from typing import IO, Callable, Generator, Optional, Tuple, Union
+from typing import IO, Callable, Iterator, Optional, Tuple, Union
 from urllib.parse import ParseResult, urlparse
 from urllib.request import urlopen
 from zipfile import ZipFile
@@ -353,7 +351,7 @@ def path_exists(path: PathType) -> bool:
 
 def iter_splitlines(
     path: PathType, chunk_size: Optional[int] = 1_000_000
-) -> Generator[str, None, None]:
+) -> Iterator[str]:
     """yields line from file
 
     Parameters
@@ -401,7 +399,7 @@ def iter_splitlines(
 
 def iter_line_blocks(
     path: PathType, num_lines: int = 1000, chunk_size: Optional[int] = 1_000_000
-) -> Generator[list[str], None, None]:
+) -> Iterator[list[str]]:
     """yields list with num_lines str from path
 
     Parameters
