@@ -1275,18 +1275,19 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         # Can we really trust text case of "ID" and "Parent" to be consistent
         # across sources of gff?? I doubt it, so more robust regex likely
         # required
-        rows = []
-        for record in reduced.values():
+        keys = tuple(reduced)
+        for key in keys:
             # our Feature code assumes start always < stop,
             # we record direction using Strand
+            record = reduced[key]
             spans = numpy.array(sorted(record["spans"]), dtype=int)  # sorts the rows
             spans.sort(axis=1)
             record["start"] = int(spans.min())
             record["stop"] = int(spans.max())
             record["spans"] = spans
-            rows.append(tuple(record.get(c) for c in col_order))
+            self.db.execute(sql, tuple(record.get(c) for c in col_order))
+            del reduced[key]
 
-        self.db.executemany(sql, rows)
         self.db.commit()
         del reduced
 
