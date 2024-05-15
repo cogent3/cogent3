@@ -19,11 +19,103 @@ OptionalBool = typing.Optional[bool]
 
 
 @functools.singledispatch
+_gff_item_map = {
+    "type": "biotype",
+    "end": "stop",
+    "attributes": "attrs",
+}
+
+
+class GffRecord:
+    """Container for single GFF record. Elements can be indexed as a dict
+    or directly as attributes.
+
+    Notes
+    -----
+    Some fields defined in the GFF spec are aliased, or truncated.
+    """
+
+    # should be a dataclass, but in py 3.9 they don't support slots
+    # so until then ...
+    __slots__ = (
+        "seqid",
+        "source",
+        "biotype",
+        "name",
+        "parent_id",
+        "start",
+        "stop",
+        "spans",
+        "strand",
+        "score",
+        "phase",
+        "attrs",
+        "comments",
+    )
+
+    def __init__(
+        self,
+        seqid: OptionalStr = None,
+        source: OptionalStr = None,
+        biotype: OptionalStr = None,
+        name: OptionalStr = None,
+        parent_id: OptionalStr = None,
+        start: OptionalInt = None,
+        stop: OptionalInt = None,
+        spans: OptionalIntList = None,
+        score: OptionalStr = None,
+        strand: OptionalStr = None,
+        phase: OptionalInt = None,
+        comments: OptionalStr = None,
+        attrs: OptionalStrDict = None,
+    ):
+        self.seqid = seqid
+        self.source = source
+        self.biotype = biotype
+        self.name = name
+        self.parent_id = parent_id
+        self.start = start
+        self.stop = stop
+        self.spans = spans
+        self.score = score
+        self.strand = strand
+        self.phase = phase
+        self.comments = comments
+        self.attrs = attrs
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return (
+            f"{name}(seqid={self.seqid!r}, name={self.name!r}, "
+            f"start={self.start}, stop={self.stop}, strand={self.strand!r}, "
+            f"spans={self.spans})"
+        )
+
+    def __getitem__(self, item: str):
+        item = item.lower()
+        return getattr(self, _gff_item_map.get(item, item))
+
+    def __setitem__(self, key: str, value: typing.Any):
+        key = key.lower()
+        setattr(self, _gff_item_map.get(key, key), value)
+
+    def update(self, values: dict[str, typing.Any]):
+        for key, value in values.items():
+            self[key] = value
+
+    def get(self, item: str) -> typing.Any:
+        item = item.lower()
+        return getattr(self, _gff_item_map.get(item, item), None)
+
+    def to_dict(self) -> dict[str, typing.Any]:
+        return {k: getattr(self, k) for k in self.__slots__}
+
+
 def gff_parser(
     f: typing.Union[PathType, typing.IO, OptionalStrContainer],
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
-) -> typing.Iterable[dict]:
+) -> typing.Iterable[GffRecord]:
     """parses a gff file
 
     Parameters
@@ -58,7 +150,8 @@ def _(
     f: PathType,
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
-) -> typing.Iterable[dict]:
+) -> typing.Iterable[GffRecord]:
+
     with open_(f) as infile:
         yield from gff_parser(infile, attribute_parser=attribute_parser, seqids=seqids)
 
@@ -67,6 +160,7 @@ def _gff_parser(
     f: typing.Union[PathType, typing.IO, OptionalStrContainer],
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
+) -> typing.Iterable[GffRecord]:
     """parses a gff file"""
     seqids = seqids or set()
     seqids = {seqids} if isinstance(seqids, str) else set(seqids)
@@ -116,18 +210,18 @@ def _gff_parser(
         # all attributes have an "ID" but this may not be unique
         attributes = attribute_parser(attributes, (start, end))
 
-        yield {
-            "SeqID": seqid,
-            "Source": source,
-            "Type": type_,
-            "Start": start,
-            "End": end,
-            "Score": score,
-            "Strand": strand,
-            "Phase": phase,
-            "Attributes": attributes,
-            "Comments": comments,
-        }
+        yield GffRecord(
+            seqid=seqid,
+            source=source,
+            biotype=type_,
+            start=start,
+            stop=end,
+            score=score,
+            strand=strand,
+            phase=phase,
+            attrs=attributes,
+            comments=comments,
+        )
 
 
 def parse_attributes_gff2(attributes: str, span: typing.Tuple[int, int]) -> dict:
