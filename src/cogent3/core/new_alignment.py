@@ -123,21 +123,19 @@ class SeqDataView(SeqView):
         return self.bytes_value
 
 
-@dataclass(slots=True)
+@dataclass
 class SeqData:
-    # Separate AlignedSeqData for alignments (need to store gaps somehow)
-    # ABC and interface
-    _data: dict[str, numpy.ndarray] = field(init=False)
-    _name_order: tuple[str] = field(init=False)
-    _alphabet: CharAlphabet = field(init=False)
-    data: InitVar[dict[str, str]]
-    alphabet: InitVar[CharAlphabet]
-    name_order: InitVar[Optional[Union[tuple[str], None]]] = None
+    __slots__ = ("_data", "_name_order", "_alphabet")
 
-    def __post_init__(self, data, alphabet, name_order):
+    def __init__(
+        self,
+        data: dict[str, SeqTypes],
+        alphabet: CharAlphabet,
+        name_order: Optional[Union[tuple[str], None]] = None,
+    ):
         self._alphabet = alphabet
         self._name_order = process_name_order(data, name_order)
-        # When SeqData is initialised, sequence strings are converted to moltype alphabet indicies
+        # Convert to moltype alphabet indicies
         self._data = {k: seq_index(v, self._alphabet) for k, v in data.items()}
 
     @singledispatchmethod
