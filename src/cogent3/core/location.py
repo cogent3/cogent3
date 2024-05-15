@@ -1018,7 +1018,8 @@ class IndelMap(MapABC):
     gap_lengths
         length of each gap segment
     termini_unknown
-        if ``True``, returns new instance with terminal gaps indicated as unknown
+        if ``True``, returns new instance with terminal gaps indicated as
+        unknown character '?'.
     parent_length
         length of parent sequence (i.e. aligned sequence with gaps)
     """
