@@ -430,10 +430,19 @@ def test_iter_splitlines_chunk_size_exceeds_file_size(tmp_path):
     assert got == value
 
 
-def test_iter_splitlines_chunk_endswith_newline(tmp_path):
+@pytest.mark.parametrize(
+    "value",
+    (
+        # creates a one line block ending on newline
+        "With text\nending on a\nended in newline.",
+        # creates a two line block ending on newline
+        "With text\nending\non a\nended in newline.",
+    ),
+)
+def test_iter_splitlines_chunk_endswith_newline(tmp_path, value):
     path = tmp_path / "multi-line.txt"
     # character 22 is a newline
-    value = "With text\nending on a\nended in newline.".splitlines()
+    value = value.splitlines()
     path.write_text("\n".join(value))
     # we use a chunk size that ends with a newline
     got = list(iter_splitlines(path, chunk_size=11))
@@ -473,3 +482,14 @@ def test_iter_line_blocks_one(tmp_path):
     path.write_text(value)
     got = list(iter_line_blocks(path, num_lines=2))
     assert got == [[value]]
+
+
+def test_iter_line_blocks_none_num_lines(tmp_path):
+    # correctly break up
+    path = tmp_path / "multi-line.txt"
+    value = ["We have some", "text on different lines", "which load"]
+    path.write_text("\n".join(value))
+    # we use a massive chunk size
+    got = list(iter_line_blocks(path, num_lines=None))
+    expect = [value]
+    assert got == expect

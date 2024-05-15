@@ -382,11 +382,12 @@ def iter_splitlines(
             end_is_newline = data.endswith("\n")
             lines = data.splitlines()
             last = lines.pop(-1)
+            if end_is_newline:
+                # even if text is from Windows and uses "\r\n", pythons
+                # string splitlines() will respect \n
+                last += "\n"
+
             if not len(lines):
-                if end_is_newline:
-                    # even if text is from Windows and uses "\r\n", pythons
-                    # string splitlines() will respect \n
-                    last += "\n"
                 # we have not seen a newline
                 continue
 
