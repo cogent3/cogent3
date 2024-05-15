@@ -233,7 +233,7 @@ def _(
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
 ) -> typing.Iterable[GffRecord]:
-    yield from gff_parser(
+    yield from _gff_parser(
         f, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
     )
 
