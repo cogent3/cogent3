@@ -379,8 +379,7 @@ def iter_splitlines(
                 break
 
             data = last + data
-            # we check for POSIX or Windows line endings
-            end_is_newline = data.endswith(("\n", "\r\n"))
+            end_is_newline = data.endswith("\n")
             lines = data.splitlines()
             last = lines.pop(-1)
             if not len(lines):
