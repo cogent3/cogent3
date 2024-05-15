@@ -852,12 +852,12 @@ def test_writing_attributes_gff(gff_db):
     gff_db.add_feature(
         biotype="gene",
         seqid="blah",
-        name="cancer-gene",
+        name="agene",
         attributes="description=cancer",
         spans=[(0, 10)],
     )
     r = list(gff_db.get_records_matching(attributes="cancer"))[0]
-    assert r["name"] == "cancer-gene"
+    assert r["name"] == "agene"
 
 
 def test_equal():
