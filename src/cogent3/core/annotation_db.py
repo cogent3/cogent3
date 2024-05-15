@@ -1287,6 +1287,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
             rows.append(tuple(record.get(c) for c in col_order))
 
         self.db.executemany(sql, rows)
+
         self.db.commit()
         del reduced
 
