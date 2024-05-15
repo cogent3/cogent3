@@ -1209,6 +1209,35 @@ def test_subset_gff3_db_source(gff_db, tmp_dir):
     assert len(subset) == 6
 
 
+@pytest.mark.parametrize(
+    "new_span", ([[22, 24]], [[9, 20]], [[0, 1]], [[9, 20], [29, 45], [59, 70]])
+)
+def test_gffdb_update_record(gff_db, new_span):
+    name = "CDS:B0019.1"
+    init_value = [[9, 20], [29, 45], [59, 70]]
+    combined = set(tuple(c) for c in new_span + init_value)
+    expect = [list(p) for p in sorted(combined)]
+    gff_db.update_record_spans(name=name, spans=new_span)
+    got = list(gff_db.get_records_matching(name=name))[0]
+    assert got["spans"].tolist() == expect
+
+
+def test_gffdb_update_record_empty(gff_db):
+    name = "CDS:B0019.1"
+    init_value = [[9, 20], [29, 45], [59, 70]]
+    gff_db.update_record_spans(name=name, spans=[])
+    got = list(gff_db.get_records_matching(name=name))[0]
+    assert got["spans"].tolist() == init_value
+
+
+def test_gffdb_update_absent_record(gff_db):
+    name = "qwerty"  # does not exist
+    init_value = [[9, 20], [29, 45], [59, 70]]
+    gff_db.update_record_spans(name=name, spans=init_value)
+    got = list(gff_db.get_records_matching(name=name))
+    assert not got
+
+
 @pytest.mark.parametrize("db", ("gff_db", "gb_db"))
 def test_db_close(request, db):
     import sqlite3

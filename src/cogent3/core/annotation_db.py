@@ -1231,6 +1231,15 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
             self._execute_sql(cmnd=cmnd, values=vals)
 
 
+def _merge_spans(old: numpy.ndarray, new: list[list[int]]) -> numpy.ndarray:
+    """returns sorted, merged old and new spans"""
+    if len(new) == old.shape[0] and (old == new).all():
+        return old
+
+    new = numpy.array(sorted(new), dtype=old.dtype)
+    return numpy.unique(numpy.concatenate([old, new]), axis=0)
+
+
 class GffAnnotationDb(SqliteAnnotationDbMixin):
     """Support for annotations from gff files. Records that span multiple
     rows in the gff are merged into a single record."""
@@ -1294,6 +1303,28 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
         self.db.commit()
         del reduced
+
+    def update_record_spans(self, *, name: str, spans: list[list[int]]) -> None:
+        """updates spans attribute of a gff table record if present
+
+        Notes
+        -----
+        Has no effect if name is not present.
+        """
+        if not len(spans):
+            return
+
+        result = self._execute_sql(
+            cmnd="SELECT spans from gff WHERE name = ?", values=(name,)
+        ).fetchone()
+
+        if result is None:
+            return
+
+        old_spans = _merge_spans(result["spans"], spans)
+        self._execute_sql(
+            cmnd="UPDATE gff SET spans = ? WHERE name = ?", values=(old_spans, name)
+        )
 
 
 # The GenBank format is less clear on the relationship between identifiers,
