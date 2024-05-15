@@ -266,3 +266,57 @@ def parse_attributes_gff3(attributes: str, span: typing.Tuple[int, int]) -> dict
             attributes["Parent"] = [attributes["Parent"]]
     attributes["ID"] = attributes.get("ID", "")
     return attributes
+
+
+def merged_gff_records(records: list[GffRecord], num_fake_ids: int) -> tuple[dict, int]:
+    """merges GFF records that have the same ID
+
+    Parameters
+    ----------
+    records
+        list of GFF data rows as dict
+    num_fake_ids
+        starting number for new fakeids
+
+    Returns
+    -------
+    a dictionary with IDs as keys and values being all attributes
+
+    Notes
+    -----
+    Merging means the coordinates are combined into a single "spans"
+    entry. Only records which have an ID field in the attributes get merged.
+    """
+    field_template = r"(?<={}=)[^;\s]+"
+    name = re.compile(field_template.format("ID"))
+    parent_id = re.compile(field_template.format("Parent"))
+
+    reduced = collections.OrderedDict()
+    # collapse records with ID's occurring in multiple rows into one
+    # row, converting their coordinates
+    # extract the name from ID and add this into the table
+    # I am not convinced we can rely on gff files to be ordered,
+    # if we could, we could do this as one pass over the data
+    # all keys need to be lower case
+    for record in records:
+        attrs = record.attrs or ""
+        if match := name.search(attrs):
+            record_id = match.group()
+        else:
+            record_id = f"unknown-{num_fake_ids}"
+            num_fake_ids += 1
+
+        record.name = record_id
+        if pid := parent_id.search(attrs):
+            record.parent_id = pid.group()
+
+        if record_id not in reduced:
+            reduced[record_id] = record
+            reduced[record_id].spans = []
+
+        # should this just be an append?
+        reduced[record_id].spans.append((record["start"], record["stop"]))
+
+    del records
+
+    return reduced, num_fake_ids
