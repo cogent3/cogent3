@@ -123,24 +123,22 @@ class SeqDataView(SeqView):
         return self.bytes_value
 
 
-@dataclass
+@dataclass(slots=True)
 class SeqData:
     # Separate AlignedSeqData for alignments (need to store gaps somehow)
     # ABC and interface
     _data: dict[str, numpy.ndarray] = field(init=False)
-    _moltype: MolType = field(init=False)
     _name_order: tuple[str] = field(init=False)
-    _alpha: CharAlphabet = field(init=False)
+    _alphabet: CharAlphabet = field(init=False)
     data: InitVar[dict[str, str]]
-    moltype: InitVar[Union[str, None]] = "dna"
-    name_order: InitVar[Union[tuple[str], None]] = None
+    alphabet: InitVar[CharAlphabet]
+    name_order: InitVar[Optional[Union[tuple[str], None]]] = None
 
-    def __post_init__(self, data, moltype, name_order):
-        self._moltype = get_moltype(moltype)
-        self._alpha = self._moltype.alphabets.degen_gapped
+    def __post_init__(self, data, alphabet, name_order):
+        self._alphabet = alphabet
         self._name_order = process_name_order(data, name_order)
         # When SeqData is initialised, sequence strings are converted to moltype alphabet indicies
-        self._data = {k: seq_index(v, self._alpha) for k, v in data.items()}
+        self._data = {k: seq_index(v, self._alphabet) for k, v in data.items()}
 
     @singledispatchmethod
     def __getitem__(self, value: Union[str, int]) -> SeqDataView:
@@ -161,7 +159,7 @@ class SeqData:
         return self._data[seqid][start:stop]
 
     def get_seq_str(self, *, seqid: str, start: int = None, stop: int = None) -> str:
-        return self._alpha.from_indices(
+        return self._alphabet.from_indices(
             self.get_seq_array(seqid=seqid, start=start, stop=stop)
         )
 

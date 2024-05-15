@@ -2,6 +2,7 @@ import numpy as numpy
 import pytest
 
 from cogent3 import get_moltype, make_seq
+from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.new_alignment import (
     AlignedData,
     AlignedDataView,
@@ -29,8 +30,14 @@ def simple_dict_arr():
 
 
 @pytest.fixture
-def sd_demo(simple_dict: dict[str, str]):
-    return SeqData(data=simple_dict)
+def alpha():
+    moltype = get_moltype("dna")
+    return moltype.alphabets.degen_gapped
+
+
+@pytest.fixture
+def sd_demo(simple_dict: dict[str, str], alpha):
+    return SeqData(data=simple_dict, alphabet=alpha)
 
 
 @pytest.fixture
@@ -55,12 +62,12 @@ def ad_demo(aligned_dict: dict[str, str]):
 
 def test_seqdata_default_attributes(sd_demo: SeqData):
     assert sd_demo._name_order == ("seq1", "seq2")
-    assert sd_demo._moltype.label == "dna"
+    assert isinstance(sd_demo._alphabet, CharAlphabet)
 
 
-def test_seqdata_seq_if_str(seq1: str):
+def test_seqdata_seq_if_str(seq1: str, alpha):
     with pytest.raises(NotImplementedError):
-        SeqData(seq1)
+        SeqData(seq1, alphabet=alpha)
     # assert SeqData(data)._name_order != ("A", "C", "T", "G")
 
 
@@ -98,14 +105,14 @@ def test_name_order_tuple_list_bad(bad_names, sd_demo):
 @pytest.mark.parametrize(
     "bad_names", [("bad"), ("bad",), ("bad2", "bad1"), ("seq1",), "seq1"]
 )
-def test_name_order_init(simple_dict, bad_names):
-    sd = SeqData(simple_dict)
+def test_name_order_init(simple_dict, alpha, bad_names):
+    sd = SeqData(simple_dict, alphabet=alpha)
     assert sd._name_order == ("seq1", "seq2")
-    sd = SeqData(simple_dict, name_order=("seq2", "seq1"))
+    sd = SeqData(simple_dict, alphabet=alpha, name_order=("seq2", "seq1"))
     assert sd._name_order == ("seq2", "seq1")
 
     with pytest.raises(ValueError):
-        SeqData(simple_dict, name_order=bad_names)
+        SeqData(simple_dict, alphabet=alpha, name_order=bad_names)
 
 
 def test_seqdata_get_seq_view(sd_demo: SeqData):
@@ -121,10 +128,10 @@ def test_seqdata_get_seq_view(sd_demo: SeqData):
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
 @pytest.mark.parametrize("start", (None, -1, 0, 1, 4))
 @pytest.mark.parametrize("stop", (None, -1, 0, 1, 4))
-def test_get_seq_str(simple_dict, seq, start, stop):
+def test_get_seq_str(simple_dict, alpha, seq, start, stop):
     # slicing should be tested in test_get_seq_array
     expect = simple_dict[seq][start:stop]
-    sd = SeqData(data=simple_dict)
+    sd = SeqData(data=simple_dict, alphabet=alpha)
     got = sd.get_seq_str(seqid=seq, start=start, stop=stop)
     assert expect == got
 
@@ -185,17 +192,17 @@ def test_seq_index_arr(moltype_name, int_arr):
     assert got.dtype == int_arr.dtype
 
 
-def test_get_seq_array(simple_dict):
+def test_get_seq_array(simple_dict, alpha):
     # TODO: slicing should be tested here, not get_seq_str
     # seq1
     expect = numpy.array([2, 1, 3, 0], dtype="uint8")
-    sd = SeqData(data=simple_dict)
+    sd = SeqData(data=simple_dict, alphabet=alpha)
     got = sd.get_seq_array(seqid="seq1")
     assert numpy.array_equal(got, expect)
 
     # seq2
     expect = numpy.array([3, 0, 0, 0, 3, 1, 2], dtype="uint8")
-    sd = SeqData(data=simple_dict)
+    sd = SeqData(data=simple_dict, alphabet=alpha)
     got = sd.get_seq_array(seqid="seq2")
     assert numpy.array_equal(got, expect)
 
@@ -214,8 +221,8 @@ def test_getitem_str(sd_demo, seq):
 
 
 @pytest.mark.parametrize("idx", (0, 1))
-def test_getitem_int(simple_dict, idx):
-    sd = SeqData(simple_dict)
+def test_getitem_int(simple_dict, alpha, idx):
+    sd = SeqData(simple_dict, alphabet=alpha)
     got = sd[idx]
     assert got.seq == sd
     assert got.seqid == list(simple_dict)[idx]
@@ -248,10 +255,10 @@ def test_seqdataview_slice_returns_self(seq1: str, index: slice):
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_seqdataview_value(simple_dict: dict, start, stop, step):
+def test_seqdataview_value(simple_dict: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = simple_dict[seq][start:stop:step]
-    sd = SeqData(data=simple_dict)
+    sd = SeqData(data=simple_dict, alphabet=alpha)
     # Get SeqDataView on seq
     sdv = sd.get_seq_view(seqid=seq)
     sdv2 = sdv[start:stop:step]
@@ -262,10 +269,10 @@ def test_seqdataview_value(simple_dict: dict, start, stop, step):
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_array_value(simple_dict_arr: dict, start, stop, step):
+def test_array_value(simple_dict_arr: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = simple_dict_arr[seq][start:stop:step]
-    sd = SeqData(data=simple_dict_arr)
+    sd = SeqData(data=simple_dict_arr, alphabet=alpha)
     # Get SeqDataView on seq
     sdv = sd.get_seq_view(seqid=seq)
     got = sdv.array_value[start:stop:step]
@@ -275,11 +282,11 @@ def test_array_value(simple_dict_arr: dict, start, stop, step):
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_bytes_value(simple_dict: dict, start, stop, step):
+def test_bytes_value(simple_dict: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = simple_dict[seq][start:stop:step]
     expect = expect.encode("utf8")
-    sd = SeqData(data=simple_dict)
+    sd = SeqData(data=simple_dict, alphabet=alpha)
     # Get SeqDataView on seq
     sdv = sd.get_seq_view(seqid=seq)
     got = sdv.bytes_value[start:stop:step]
