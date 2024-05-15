@@ -1,18 +1,26 @@
-import collections.abc as abc
+from __future__ import annotations
+
+import collections
 import functools
-import os
+import io
+import re
 import typing
 
-from cogent3.util.io import open_
+from cogent3.util.io import PathType, open_
 
 
 OptionalCallable = typing.Optional[typing.Callable]
-OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
+OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence[str]]]
+OptionalIntList = typing.Optional[list[list[int]]]
+OptionalStr = typing.Optional[str]
+OptionalInt = typing.Optional[str]
+OptionalStrDict = typing.Optional[typing.Union[str, dict[str, str]]]
+OptionalBool = typing.Optional[bool]
 
 
 @functools.singledispatch
 def gff_parser(
-    f: typing.Union[str, os.PathLike, abc.Sequence, typing.IO],
+    f: typing.Union[PathType, typing.IO, OptionalStrContainer],
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
 ) -> typing.Iterable[dict]:
@@ -47,7 +55,7 @@ def _(
 
 @gff_parser.register
 def _(
-    f: os.PathLike,
+    f: PathType,
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
 ) -> typing.Iterable[dict]:
@@ -56,8 +64,9 @@ def _(
 
 
 def _gff_parser(
-    f, attribute_parser: OptionalCallable = None, seqids: OptionalStrContainer = None
-) -> typing.Iterable[dict]:
+    f: typing.Union[PathType, typing.IO, OptionalStrContainer],
+    attribute_parser: OptionalCallable = None,
+    seqids: OptionalStrContainer = None,
     """parses a gff file"""
     seqids = seqids or set()
     seqids = {seqids} if isinstance(seqids, str) else set(seqids)
