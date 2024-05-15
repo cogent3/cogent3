@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 import functools
 import io
+import pathlib
 import re
 import typing
 
@@ -25,12 +26,21 @@ def is_gff3(f) -> bool:
 
 
 @is_gff3.register
-def _(f: PathType) -> bool:
-    gff3_header = "gff-version 3"
+def _(f: pathlib.PurePath) -> bool:
     with open_(f) as f:
-        is_gff3 = gff3_header in f.readline()
-        f.seek(0)
-    return is_gff3
+        return is_gff3(f)
+
+
+@is_gff3.register
+def _(f: pathlib.Path) -> bool:
+    with open_(f) as f:
+        return is_gff3(f)
+
+
+@is_gff3.register
+def _(f: str) -> bool:
+    with open_(f) as f:
+        return is_gff3(f)
 
 
 @is_gff3.register
@@ -42,7 +52,12 @@ def _(f: io.IOBase) -> bool:
 
 
 @is_gff3.register
-def _(f: typing.Union[list, tuple]) -> bool:
+def _(f: list) -> bool:
+    return is_gff3(tuple(f))
+
+
+@is_gff3.register
+def _(f: tuple) -> bool:
     gff3_header = "gff-version 3"
     return f and gff3_header in f[0]
 
@@ -174,16 +189,53 @@ def gff_parser(
 
 @gff_parser.register
 def _(
-    f: PathType,
+    f: pathlib.PurePath,
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
 ) -> typing.Iterable[GffRecord]:
-
     with open_(f) as infile:
         yield from gff_parser(
             infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
         )
+
+
+@gff_parser.register
+def _(
+    f: pathlib.Path,
+    attribute_parser: OptionalCallable = None,
+    seqids: OptionalStrContainer = None,
+    gff3: OptionalBool = None,
+) -> typing.Iterable[GffRecord]:
+    with open_(f) as infile:
+        yield from gff_parser(
+            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+        )
+
+
+@gff_parser.register
+def _(
+    f: str,
+    attribute_parser: OptionalCallable = None,
+    seqids: OptionalStrContainer = None,
+    gff3: OptionalBool = None,
+) -> typing.Iterable[GffRecord]:
+    with open_(f) as infile:
+        yield from gff_parser(
+            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+        )
+
+
+@gff_parser.register
+def _(
+    f: io.IOBase,
+    attribute_parser: OptionalCallable = None,
+    seqids: OptionalStrContainer = None,
+    gff3: OptionalBool = None,
+) -> typing.Iterable[GffRecord]:
+    yield from gff_parser(
+        f, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+    )
 
 
 def _gff_parser(
