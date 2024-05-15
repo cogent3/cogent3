@@ -2200,7 +2200,7 @@ def test_seqview_copy(sliced, rev, integer_seq):
     copied = sv.copy(sliced=sliced)
 
     assert copied.value == raw_data[slice_start:slice_end]
-    assert copied.reverse == integer_seq.reverse
+    assert copied.is_reversed == integer_seq.is_reversed
     assert sliced and copied.seq is not sv.seq or copied.seq is integer_seq.seq
 
 
