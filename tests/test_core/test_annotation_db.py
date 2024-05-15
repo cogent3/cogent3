@@ -1207,3 +1207,13 @@ def test_subset_gff3_db_source(gff_db, tmp_dir):
     # manual inspection of the original GFF3 file indicates 7 records
     # BUT the CDS records get merged into a single row
     assert len(subset) == 6
+
+
+@pytest.mark.parametrize("db", ("gff_db", "gb_db"))
+def test_db_close(request, db):
+    import sqlite3
+
+    db = request.getfixturevalue(db)
+    db.close()
+    with pytest.raises(sqlite3.ProgrammingError):
+        _ = list(db.get_features_matching(biotype="gene"))
