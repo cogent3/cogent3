@@ -5,9 +5,7 @@ import copy
 import inspect
 import io
 import json
-import os
 import pathlib
-import re
 import sqlite3
 import sys
 import typing
@@ -19,6 +17,7 @@ import typing_extensions
 import cogent3.util.warning as c3warn
 
 from cogent3._version import __version__
+from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
@@ -1262,7 +1261,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         self._serialisable["source"] = self.source
         self._db = None
         self._setup_db(db)
-        data = self._merged_data(data)
+        data, self._num_fakeids = merged_gff_records(data, self._num_fakeids)
         self.add_records(data)
 
     def add_records(self, reduced: dict) -> None:
@@ -1291,51 +1290,9 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         self.db.commit()
         del reduced
 
-    def _merged_data(self, records) -> dict:
-        field_template = r"(?<={}=)[^;\s]+"
-        name = re.compile(field_template.format("ID"))
-        parent_id = re.compile(field_template.format("Parent"))
 
-        reduced = collections.OrderedDict()
-        # collapse records with ID's occurring in multiple rows into one
-        # row, converting their coordinates
-        # extract the name from ID and add this into the table
-        # I am not convinced we can rely on gff files to be ordered,
-        # if we could, we could do this as one pass over the data
-        # all keys need to be lower case
-        # NOTE only records which have an ID field get merged into a single
-        # record.
-        for record in records:
-            record["biotype"] = record.pop("Type")
-            record["stop"] = record.pop("End")
 
-            # we force all keys that map to table column names to be lower case
-            for key in tuple(record):
-                if key.lower() not in self._gff_schema:
-                    continue
-                record[key.lower()] = record.pop(key)
 
-            attrs = record["attributes"] or ""
-            if match := name.search(attrs):
-                record_id = match.group()
-            else:
-                record_id = f"unknown-{self._num_fakeids}"
-                self._num_fakeids += 1
-
-            record["name"] = record_id
-            if pid := parent_id.search(attrs):
-                record["parent_id"] = pid.group()
-
-            if record_id not in reduced:
-                reduced[record_id] = record
-                reduced[record_id]["spans"] = []
-
-            # should this just be an append?
-            reduced[record_id]["spans"].append((record["start"], record["stop"]))
-
-        del records
-
-        return reduced
 
 
 # The GenBank format is less clear on the relationship between identifiers,
