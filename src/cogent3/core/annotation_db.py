@@ -19,7 +19,7 @@ import cogent3.util.warning as c3warn
 from cogent3._version import __version__
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.io import PathType
+from cogent3.util.io import PathType, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table
@@ -1635,24 +1635,34 @@ def _db_from_gff(
     seqids: OptionalStrContainer,
     db: SupportsFeatures,
     write_path: PathType,
+    num_lines: OptionalInt,
     **kwargs,
-):
-    from cogent3.parse.gff import gff_parser
+) -> SupportsFeatures:
+    from cogent3.parse.gff import gff_parser, is_gff3
 
     paths = pathlib.Path(path)
     paths = list(paths.parent.glob(paths.name))
 
     ui = kwargs.pop("ui")
     one_valid_path = False
+    seen_ids = set()
     for path in ui.series(paths):
-        data = list(
-            gff_parser(
-                path,
-                seqids=seqids,
-                attribute_parser=_leave_attributes,
+        num_fake_ids = 0
+        gff3 = is_gff3(path)
+        db = GffAnnotationDb(source=write_path, db=db)
+        for block in iter_line_blocks(path, num_lines=num_lines):
+            data = list(
+                gff_parser(
+                    block, seqids=seqids, attribute_parser=_leave_attributes, gff3=gff3
+                )
             )
-        )
-        db = GffAnnotationDb(source=write_path, data=data, db=db)
+            data, num_fake_ids = merged_gff_records(data, num_fake_ids)
+            if already_seen := seen_ids & data.keys():
+                for name in already_seen:
+                    db.update_record_spans(name=name, spans=data[name].spans)
+
+            seen_ids |= data.keys()
+            db.add_records(data)
         one_valid_path = True
     if not one_valid_path:
         raise IOError(f"{str(path)!r} not found")
@@ -1664,7 +1674,8 @@ def load_annotations(
     path: PathType,
     seqids: OptionalStr = None,
     db: SupportsFeatures = None,
-    write_path: os.PathLike = ":memory:",
+    write_path: PathType = ":memory:",
+    lines_per_block: OptionalInt = 500_000,
     show_progress: bool = False,
 ) -> SupportsFeatures:
     """loads annotations from flatfile into a db
@@ -1682,6 +1693,9 @@ def load_annotations(
     write_path
         where the constructed database should be written, defaults to
         memory only
+    lines_per_block
+        number of lines to insert into the db per iteration. This can help with
+        memory usage. Only applies to gff files.
     show_progress
         applied only if loading features from multiple files
 
@@ -1703,6 +1717,7 @@ def load_annotations(
             db=db,
             write_path=write_path,
             show_progress=show_progress,
+            num_lines=lines_per_block,
         )
     )
 
