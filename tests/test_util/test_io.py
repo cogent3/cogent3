@@ -403,7 +403,8 @@ def test_iter_splitlines_one(tmp_path):
 def test_iter_splitlines_line_diff_newline(tmp_path, newline):
     path = tmp_path / "multi-line.txt"
     value = ["We have some", "text on different lines", "which load"]
-    path.write_text("\n".join(value), newline=newline)
+    with open_(path, mode="w", newline=newline) as out:
+        out.write("\n".join(value))
     # we use a very small chunk size
     got = list(iter_splitlines(path, chunk_size=5))
     assert got == value
@@ -413,7 +414,8 @@ def test_iter_splitlines_line_diff_newline(tmp_path, newline):
 def test_iter_splitlines_file_endswith_newline(tmp_path, newline):
     path = tmp_path / "multi-line.txt"
     value = ["We have some", "text on different lines", "which load"]
-    path.write_text("\n".join(value) + "\n", newline=newline)
+    with open_(path, mode="w", newline=newline) as out:
+        out.write("\n".join(value) + "\n")
     # we use a very small chunk size
     got = list(iter_splitlines(path, chunk_size=5))
     assert got == value
