@@ -19,6 +19,7 @@ import cogent3.util.warning as c3warn
 from cogent3._version import __version__
 from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.io import PathType
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table
@@ -1123,7 +1124,7 @@ class SqliteAnnotationDbMixin:
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
 
-    def write(self, path: os.PathLike) -> None:
+    def write(self, path: PathType) -> None:
         """writes db as bytes to path"""
         backup = sqlite3.connect(path)
         with self.db:
@@ -1138,7 +1139,7 @@ class SqliteAnnotationDbMixin:
     def subset(
         self,
         *,
-        source: os.PathLike | str = ":memory:",
+        source: PathType = ":memory:",
         biotype: str = None,
         seqid: str = None,
         name: str = None,
@@ -1289,10 +1290,6 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
 
         self.db.commit()
         del reduced
-
-
-
-
 
 
 # The GenBank format is less clear on the relationship between identifiers,
@@ -1565,7 +1562,7 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
 
 @display_wrap
-def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwargs):
+def _db_from_genbank(path: PathType, db: SupportsFeatures, write_path, **kwargs):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
 
@@ -1599,10 +1596,10 @@ OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
 
 @display_wrap
 def _db_from_gff(
-    path: os.PathLike,
+    path: PathType,
     seqids: OptionalStrContainer,
     db: SupportsFeatures,
-    write_path,
+    write_path: PathType,
     **kwargs,
 ):
     from cogent3.parse.gff import gff_parser
@@ -1629,7 +1626,7 @@ def _db_from_gff(
 
 def load_annotations(
     *,
-    path: os.PathLike,
+    path: PathType,
     seqids: OptionalStr = None,
     db: SupportsFeatures = None,
     write_path: os.PathLike = ":memory:",
@@ -1700,7 +1697,7 @@ def _update_array_format(data: bytes) -> bytes:
 
 
 def update_file_format(
-    source_path: os.PathLike,
+    source_path: PathType,
     db_class: typing.Union[
         type[BasicAnnotationDb],
         type[GenbankAnnotationDb],
@@ -1725,7 +1722,7 @@ def update_file_format(
 
     Parameters
     ----------
-    source_path : os.PathLike
+    source_path : PathType
         The database file to reformat.
     db_class : typing.Union[ type[BasicAnnotationDb], type[GenbankAnnotationDb], type[GffAnnotationDb], ]
         The type of database the file is.
