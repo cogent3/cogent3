@@ -1171,9 +1171,10 @@ def test_gbdb_get_parent_fails_no_coords(gb_db):
         _ = list(gb_db.get_feature_parent(name="CNA00110"))
 
 
-def test_load_annotations_invalid_path():
+@pytest.mark.parametrize("suffix", ("gff3", "gb"))
+def test_load_annotations_invalid_path(suffix):
     with pytest.raises(IOError):
-        load_annotations(path="invalidfile.gff3")
+        load_annotations(path=f"invalidfile.{suffix}")
 
 
 @pytest.mark.parametrize("integer", (int, numpy.int64))
@@ -1260,3 +1261,25 @@ def test_db_close(request, db):
     db.close()
     with pytest.raises(sqlite3.ProgrammingError):
         _ = list(db.get_features_matching(biotype="gene"))
+
+
+@pytest.mark.parametrize("db", ("gff_db", "gb_db"))
+@pytest.mark.parametrize(
+    "col", ("biotype", "seqid", "name", "start", "stop", "parent_id")
+)
+def test_db_make_index(request, db, col):
+    ann_db = request.getfixturevalue(db)
+    expect = {("index", col, tn) for tn in ann_db.table_names}
+    ann_db.make_indexes()
+    sql_template = f"SELECT * FROM sqlite_master WHERE type = 'index' AND tbl_name = '%s' and name = {col!r}"
+
+    result = ann_db._execute_sql(sql_template % ann_db.table_names[0]).fetchone()
+    got = tuple(result)[:3]
+    assert got in expect
+
+
+@pytest.mark.parametrize("db", ("gff_db", "gb_db"))
+def test_db_repr(request, db):
+    ann_db = request.getfixturevalue(db)
+    got = repr(ann_db)
+    assert isinstance(got, str)

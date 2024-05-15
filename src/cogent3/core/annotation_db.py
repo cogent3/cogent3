@@ -28,6 +28,7 @@ from cogent3.util.table import Table
 OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
 OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
+OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
 OptionalBool = typing.Optional[bool]
 OptionalDbCursor = typing.Optional[sqlite3.Cursor]
 ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
@@ -1181,6 +1182,20 @@ class SqliteAnnotationDbMixin:
         """closes the db"""
         self.db.close()
 
+    def _make_index(self, *, table_name: str, col_names: tuple[str, ...]):
+        """index columns for faster search"""
+        sql = f"CREATE INDEX IF NOT EXISTS %s on {table_name}(%s)"
+        for col in col_names:
+            self._execute_sql(sql % (col, col))
+
+    def make_indexes(self):
+        """adds db indexes for core attributes"""
+        for table_name in self.table_names:
+            self._make_index(
+                table_name=table_name,
+                col_names=("biotype", "seqid", "name", "start", "stop", "parent_id"),
+            )
+
 
 class BasicAnnotationDb(SqliteAnnotationDbMixin):
     """Provides a user table for annotations. This can be merged with
@@ -1597,7 +1612,9 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
 
 @display_wrap
-def _db_from_genbank(path: PathType, db: SupportsFeatures, write_path, **kwargs):
+def _db_from_genbank(
+    path: PathType, db: typing.Optional[SupportsFeatures], write_path, **kwargs
+):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
 
@@ -1619,6 +1636,8 @@ def _db_from_genbank(path: PathType, db: SupportsFeatures, write_path, **kwargs)
 
     if not one_valid_path:
         raise IOError(f"{str(path)!r} not found")
+
+    db.make_indexes()
     return db
 
 
@@ -1626,14 +1645,11 @@ def _leave_attributes(*attrs):
     return attrs[0]
 
 
-OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
-
-
 @display_wrap
 def _db_from_gff(
     path: PathType,
     seqids: OptionalStrContainer,
-    db: SupportsFeatures,
+    db: typing.Optional[SupportsFeatures],
     write_path: PathType,
     num_lines: OptionalInt,
     **kwargs,
@@ -1666,6 +1682,8 @@ def _db_from_gff(
         one_valid_path = True
     if not one_valid_path:
         raise IOError(f"{str(path)!r} not found")
+
+    db.make_indexes()
     return db
 
 
@@ -1673,7 +1691,7 @@ def load_annotations(
     *,
     path: PathType,
     seqids: OptionalStr = None,
-    db: SupportsFeatures = None,
+    db: typing.Optional[SupportsFeatures] = None,
     write_path: PathType = ":memory:",
     lines_per_block: OptionalInt = 500_000,
     show_progress: bool = False,
