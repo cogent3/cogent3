@@ -288,6 +288,20 @@ def test_load_annotations_multi(DATA_DIR):
     assert len(got) == expect
 
 
+def test_load_annotations_chunked(gff_db, DATA_DIR):
+    path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+
+    name = "CDS:B0019.1"
+    expect = list(gff_db.get_features_matching(name=name))[0]
+    assert len(expect["spans"]) == 3
+    # two lines splits a 3 line record into 2 and 1 line, so the
+    # update record code is invoked
+    db = load_annotations(path=path, write_path=":memory:", lines_per_block=2)
+    got = list(db.get_features_matching(name=name))[0]
+    assert got.pop("spans") == expect.pop("spans")
+    assert got == expect
+
+
 @pytest.mark.parametrize("parent_biotype, name", (("gene", "CNA00110"),))
 def test_gb_get_children(gb_db, parent_biotype, name):
     parent = list(gb_db.get_features_matching(biotype=parent_biotype, name=name))[0]
