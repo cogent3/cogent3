@@ -398,7 +398,9 @@ def iter_splitlines(
 
 
 def iter_line_blocks(
-    path: PathType, num_lines: int = 1000, chunk_size: Optional[int] = 1_000_000
+    path: PathType,
+    num_lines: Optional[int] = 1000,
+    chunk_size: Optional[int] = 5_000_000,
 ) -> Iterator[list[str]]:
     """yields list with num_lines str from path
 
@@ -407,7 +409,7 @@ def iter_line_blocks(
     path
         data file
     num_lines
-        number of lines per block
+        number of lines per block. If None just returns all lines.
     chunk_size
         number of bytes to load in one go from path
     """
