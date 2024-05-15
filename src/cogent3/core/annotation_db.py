@@ -1177,6 +1177,10 @@ class SqliteAnnotationDbMixin:
 
         return result
 
+    def close(self):
+        """closes the db"""
+        self.db.close()
+
 
 class BasicAnnotationDb(SqliteAnnotationDbMixin):
     """Provides a user table for annotations. This can be merged with
