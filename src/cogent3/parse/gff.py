@@ -225,11 +225,8 @@ def _gff_parser(
         # features that extend beyond sequence have negative indices
         if start < 0 or end < 0:
             start, end = abs(start), abs(end)
-            if start > end:
-                start, end = end, start
-        # reverse indices when the feature is on the opposite strand
-        if strand == "-":
-            (start, end) = (end, start)
+        if start > end:
+            start, end = end, start
 
         # all attributes have an "ID" but this may not be unique
         attributes = attribute_parser(attributes, (start, end))
