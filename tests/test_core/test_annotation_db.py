@@ -1272,9 +1272,9 @@ def test_db_make_index(request, db, col):
     expect = {("index", col, tn) for tn in ann_db.table_names}
     ann_db.make_indexes()
     sql_template = (
-        f"SELECT * FROM sqlite_master WHERE type = 'index' AND"
+        "SELECT * FROM sqlite_master WHERE type = 'index' AND"
         f" tbl_name = '%s' and name = {col!r}"
-    )  # codacy:ignore[sql-injection] - limited SQL injection exposure
+    )
 
     result = ann_db._execute_sql(sql_template % ann_db.table_names[0]).fetchone()
     got = tuple(result)[:3]
