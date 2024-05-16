@@ -1272,8 +1272,8 @@ def test_db_make_index(request, db, col):
     expect = {("index", col, tn) for tn in ann_db.table_names}
     ann_db.make_indexes()
     sql_template = (
-        "SELECT * FROM sqlite_master WHERE type = 'index' AND"
-        f" tbl_name = '%s' and name = {col!r}"
+        "SELECT * FROM sqlite_master WHERE type = 'index' AND"  # nosec B608
+        f" tbl_name = '%s' and name = {col!r}"  # nosec B608
     )
 
     result = ann_db._execute_sql(sql_template % ann_db.table_names[0]).fetchone()
