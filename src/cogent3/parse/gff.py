@@ -22,7 +22,7 @@ OptionalBool = typing.Optional[bool]
 @functools.singledispatch
 def is_gff3(f) -> bool:
     """True if gff-version is 3"""
-    raise TypeError(f"unsopported type type {type(f)}")
+    raise TypeError(f"unsupported type {type(f)}")
 
 
 @is_gff3.register
