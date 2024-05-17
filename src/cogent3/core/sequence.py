@@ -44,8 +44,6 @@ from numpy import (
 )
 from numpy.random import permutation
 
-import cogent3.util.warning as c3warn
-
 from cogent3._version import __version__
 from cogent3.core.alphabet import AlphabetError
 from cogent3.core.annotation import Feature
