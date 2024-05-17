@@ -2074,7 +2074,7 @@ class SliceRecordABC(ABC):
             )
 
         if segment.start is segment.stop is segment.step is None:
-            return self.copy(sliced=False)
+            return self.copy()
 
         if len(self) == 0:
             return self
@@ -2402,7 +2402,7 @@ class SeqView(SliceRecordABC):
         sv = cls(**init_args)
         return sv
 
-    def copy(self, sliced=False):
+    def copy(self, sliced: bool = False):
         """returns copy
 
         Parameters
