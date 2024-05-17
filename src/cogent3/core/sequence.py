@@ -1909,21 +1909,31 @@ def _input_vals_neg_step(seqlen, start, stop, step):
 
 
 class SliceRecordABC(ABC):
-    """Abstract base class for recording the history of operations to be applied 
+    """Abstract base class for recording the history of operations to be applied
     to some underlying data
 
     Notes
     -----
-    _seq_len refers to the python definiton of a sequence (i.e., array, str, etc),
-    and is NOT limited to biological sequences.
+    _seq_len refers to the Python definiton of a sequence (i.e., array, str, etc).
+
+    Expected constructor signature:
+    ``__init__(self, seq: Any, *, start: int = None, stop: int = None, step: int = None, **kwargs: Any)``
     """
 
+    seq: Any
     start: int
     stop: int
     step: int
     _seq_len: int
     _offset: int
-    
+
+    @abstractmethod
+    def copy(self): ...
+
+    @property
+    def _zero_slice(self):
+        return self.__class__(seq=type(self.seq)())
+
     @property
     def seq_len(self) -> int:
         return self._seq_len
@@ -2009,12 +2019,12 @@ class SliceRecordABC(ABC):
         return abs_index
 
     def relative_position(self, abs_index, stop=False):
-        """converts an index relative to annotation coordinates to be with 
+        """converts an index relative to annotation coordinates to be with
         respect to the current sequence view
 
         Notes
         -----
-        The returned value DOES NOT reflect python indexing. Importantly, 
+        The returned value DOES NOT reflect python indexing. Importantly,
         negative values represent positions that precede the current view.
         """
         if not self:
@@ -2044,6 +2054,15 @@ class SliceRecordABC(ABC):
         return rel_pos
 
     def __getitem__(self, segment, **kwargs):
+        """subclasses requiring unique arguments for construction should implement
+        ``__getitem__`` proving unique args as keyword args, e.g.,
+
+        .. code-block:: python
+
+            def __getitem__(self, index):
+                subclass_uniq = {..., ...}
+                return super().__getitem__(index, **subclass_uniq)
+        """
         if _is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(
@@ -2316,17 +2335,13 @@ class SeqView(SliceRecordABC):
             raise AssertionError(f"{seq_len} != {len(self.seq)})")
         self._seq_len = seq_len or len(self.seq)
 
-    
-    @property
-    def _zero_slice(self): 
-        return self.__class__(seq="") 
-    
     @property
     def seqid(self) -> str:
         return self._seqid
 
     def __getitem__(self, segment):
-        return super().__getitem__(segment, seqid=self.seqid)
+        seqview_unique = {"seqid": self.seqid}
+        return super().__getitem__(segment, **seqview_unique)
 
     @property
     def value(self):
@@ -2409,8 +2424,6 @@ class SeqView(SliceRecordABC):
                 seq_len=self.seq_len,
             )
         return self.from_rich_dict(self.to_rich_dict())
-
-
 
 
 class DnaSequence(NucleicAcidSequence):
