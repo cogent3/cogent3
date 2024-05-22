@@ -1152,3 +1152,27 @@ def test_make_seq_diff_moltype():
     seq.add_feature(biotype="gene", name="test", spans=[(0, 2)])
     got = DNA.make_seq(seq)
     assert len(got.annotation_db) == 1
+
+
+def test_is_compatible_alphabet():
+    from cogent3.core.alphabet import CharAlphabet
+
+    dna = get_moltype("dna")
+    alpha = CharAlphabet("TCAG")
+    assert dna.is_compatible_alphabet(alpha)
+    rna = get_moltype("rna")
+    assert not rna.is_compatible_alphabet(alpha)
+    alpha = CharAlphabet(list(dna.ambiguities))
+    prot = get_moltype("protein")
+    assert not prot.is_compatible_alphabet(alpha)
+
+
+def test_is_compatible_alphabet_strict():
+    from cogent3.core.alphabet import CharAlphabet
+
+    dna = get_moltype("dna")
+    alpha1 = CharAlphabet("TCAG")
+    assert dna.is_compatible_alphabet(alpha1, strict=True)
+    # returns False if the order is not exactly the same
+    alpha1 = CharAlphabet("CTAG")
+    assert not dna.is_compatible_alphabet(alpha1, strict=True)
