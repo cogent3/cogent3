@@ -2379,7 +2379,7 @@ def test_to_rich_dict_not_alignment(cls):
 
     got = aln.to_rich_dict()
 
-    data = {k: SeqView(s, seqid=k).to_rich_dict() for k, s in data.items()}
+    data = {k: SeqView(seq=s, seqid=k).to_rich_dict() for k, s in data.items()}
 
     expect = {
         "seqs": {
