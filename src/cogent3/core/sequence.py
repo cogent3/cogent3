@@ -1912,12 +1912,8 @@ class SliceRecordABC(ABC):
 
     Notes
     -----
-    seq_len refers to a Python typing.Sequence, e.g. ..
-
-    Expected constructor signature:
-    ``__init__(self, *, start: int = None, stop: int = None, step: int = None, **kwargs: Any)``
+    seq_len refers to a Python typing.Sequence object, e.g. array, str, list, etc
     """
-
     start: int
     stop: int
     step: int
