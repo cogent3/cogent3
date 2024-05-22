@@ -25,7 +25,7 @@ from collections import defaultdict
 from functools import singledispatch, total_ordering
 from operator import eq, ne
 from random import shuffle
-from typing import Any, Generator, Iterable, List, Optional, Tuple
+from typing import Any, Generator, Iterable, List, Optional, Tuple, Union
 
 from numpy import (
     arange,
@@ -1160,7 +1160,7 @@ class Sequence(SequenceI):
 
         s = moltype.coerce_str(self._seq.value)
         moltype.verify_sequence(s, gaps_allowed=True, wildcards_allowed=True)
-        sv = SeqView(s)
+        sv = SeqView(seq=s)
         new = moltype.make_seq(sv, name=self.name, info=self.info)
         new.annotation_db = self.annotation_db
         return new
@@ -1912,29 +1912,24 @@ class SliceRecordABC(ABC):
 
     Notes
     -----
-    _seq_len refers to the Python definiton of a sequence (i.e., array, str, etc).
+    seq_len refers to a Python typing.Sequence, e.g. ..
 
     Expected constructor signature:
-    ``__init__(self, seq: Any, *, start: int = None, stop: int = None, step: int = None, **kwargs: Any)``
+    ``__init__(self, *, start: int = None, stop: int = None, step: int = None, **kwargs: Any)``
     """
 
-    seq: Any
     start: int
     stop: int
     step: int
-    _seq_len: int
+    seq_len: int
     _offset: int
 
     @abstractmethod
     def copy(self): ...
 
     @property
-    def _zero_slice(self):
-        return self.__class__(seq=type(self.seq)())
-
-    @property
-    def seq_len(self) -> int:
-        return self._seq_len
+    @abstractmethod
+    def _zero_slice(self): ...
 
     @property
     def offset(self) -> int:
@@ -1984,9 +1979,9 @@ class SliceRecordABC(ABC):
             stop = self.stop
         return self.offset + stop
 
-    def absolute_position(self, rel_index: int, include_boundary=False):
+    def absolute_position(self, rel_index: int, include_boundary: bool = False):
         """Converts an index relative to the current view to be with respect
-        to the coordinates of the sequence's annotations
+        to the coordinates of the original "Python sequence".
 
         Parameters
         ----------
@@ -2016,9 +2011,9 @@ class SliceRecordABC(ABC):
 
         return abs_index
 
-    def relative_position(self, abs_index, stop=False):
-        """converts an index relative to annotation coordinates to be with
-        respect to the current sequence view
+    def relative_position(self, abs_index: int, stop: bool = False):
+        """converts an index on the original "Python sequence" into an index
+        on this "view"
 
         Notes
         -----
@@ -2051,20 +2046,19 @@ class SliceRecordABC(ABC):
 
         return rel_pos
 
-    def __getitem__(self, segment, **kwargs):
+    def __getitem__(self, segment: Union[int, slice], kwargs: dict):
         """subclasses requiring unique arguments for construction should implement
-        ``__getitem__`` proving unique args as keyword args, e.g.,
+        ``__getitem__`` proving unique args as dictionary of keyword args, e.g.,
 
         .. code-block:: python
 
             def __getitem__(self, index):
-                subclass_uniq = {..., ...}
-                return super().__getitem__(index, **subclass_uniq)
+                subclass_uniq = {"<attr name>": <attr_value>, ...}
+                return super().__getitem__(index, subclass_uniq)
         """
         if _is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(
-                self.seq,
                 start=start,
                 stop=stop,
                 step=step,
@@ -2093,7 +2087,7 @@ class SliceRecordABC(ABC):
                 f"{self.__class__.__name__} cannot be sliced with a step of 0"
             )
 
-    def _get_index(self, val, include_boundary=False):
+    def _get_index(self, val: int, include_boundary: bool = False):
         if len(self) == 0:
             raise IndexError(val)
 
@@ -2122,7 +2116,7 @@ class SliceRecordABC(ABC):
 
             return val, val - 1, -1
 
-    def _get_slice(self, segment, step, **kwargs):
+    def _get_slice(self, segment: slice, step: int, **kwargs):
         slice_start = segment.start if segment.start is not None else 0
         slice_stop = segment.stop if segment.stop is not None else len(self)
 
@@ -2137,7 +2131,7 @@ class SliceRecordABC(ABC):
             )
 
     def _get_forward_slice_from_forward_seqview_(
-        self, slice_start, slice_stop, step, **kwargs
+        self, slice_start: int, slice_stop: int, step: int, **kwargs
     ):
         start = (
             self.start + slice_start * self.step
@@ -2167,7 +2161,6 @@ class SliceRecordABC(ABC):
             return self._zero_slice
 
         return self.__class__(
-            self.seq,
             start=start,
             stop=min(self.stop, stop),
             step=self.step * step,
@@ -2177,7 +2170,7 @@ class SliceRecordABC(ABC):
         )
 
     def _get_forward_slice_from_reverse_seqview_(
-        self, slice_start, slice_stop, step, **kwargs
+        self, slice_start: int, slice_stop: int, step: int, **kwargs
     ):
         if slice_start >= 0:
             start = self.start + slice_start * self.step
@@ -2196,7 +2189,6 @@ class SliceRecordABC(ABC):
             return self._zero_slice
 
         return self.__class__(
-            self.seq,
             start=start,
             stop=max(self.stop, stop),
             step=self.step * step,
@@ -2205,7 +2197,7 @@ class SliceRecordABC(ABC):
             **kwargs,
         )
 
-    def _get_reverse_slice(self, segment, step, **kwargs):
+    def _get_reverse_slice(self, segment: slice, step: int, **kwargs):
         slice_start = segment.start if segment.start is not None else -1
         slice_stop = segment.stop if segment.stop is not None else -len(self) - 1
 
@@ -2219,7 +2211,7 @@ class SliceRecordABC(ABC):
             )
 
     def _get_reverse_slice_from_forward_seqview_(
-        self, slice_start, slice_stop, step, **kwargs
+        self, slice_start: int, slice_stop: int, step: int, **kwargs
     ):
         # "true stop" adjust for if abs(stop-start) % step != 0
         # max possible start is "true stop" - step, because stop is not inclusive
@@ -2253,7 +2245,6 @@ class SliceRecordABC(ABC):
             return self._zero_slice
 
         return self.__class__(
-            self.seq,
             start=start,
             stop=max(stop, self.start - self.seq_len - 1),
             step=self.step * step,
@@ -2263,7 +2254,7 @@ class SliceRecordABC(ABC):
         )
 
     def _get_reverse_slice_from_reverse_seqview_(
-        self, slice_start, slice_stop, step, **kwargs
+        self, slice_start: int, slice_stop: int, step: int, **kwargs
     ):
         # max start is "true stop" + abs(step), because stop is not inclusive
         # "true stop" adjust for if abs(stop-start) % step != 0
@@ -2293,7 +2284,6 @@ class SliceRecordABC(ABC):
             return self._zero_slice
 
         return self.__class__(
-            self.seq,
             start=start,
             stop=stop,
             step=self.step * step,
@@ -2308,7 +2298,6 @@ class SeqView(SliceRecordABC):
 
     def __init__(
         self,
-        seq,
         *,
         seq: str,
         start: Optional[int] = None,
@@ -2335,9 +2324,16 @@ class SeqView(SliceRecordABC):
         self._seq_len = seq_len or len(self.seq)
 
     @property
+    def _zero_slice(self):
+        return self.__class__(seq="")
+
+    @property
     def seqid(self) -> str:
         return self._seqid
 
+    @property
+    def seq_len(self) -> int:
+        return self._seq_len
 
     def __getitem__(self, segment: Union[int, slice]):
         seqview_unique = {"seq": self.seq, "seqid": self.seqid}
@@ -3039,7 +3035,7 @@ def _(data: str, seqid, preserve_case, checker):
     if not preserve_case:
         data = data.upper()
     checker(data)
-    return SeqView(data, seqid=seqid)
+    return SeqView(seq=data, seqid=seqid)
 
 
 @_coerce_to_seqview.register
@@ -3048,7 +3044,7 @@ def _(data: bytes, seqid, preserve_case, checker):
         data = data.upper()
     data = data.decode("utf8")
     checker(data)
-    return SeqView(data, seqid=seqid)
+    return SeqView(seq=data, seqid=seqid)
 
 
 @_coerce_to_seqview.register
