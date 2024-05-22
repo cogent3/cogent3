@@ -1923,7 +1923,7 @@ class SliceRecordABC(ABC):
 
     @abstractmethod
     def _get_init_kwargs(self) -> dict:
-        """return required arguments for construction that are unique to the 
+        """return required arguments for construction that are unique to the
         subclass"""
         ...
 
@@ -1999,7 +1999,7 @@ class SliceRecordABC(ABC):
 
         Returns
         -------
-        the absolute index with respect to the coordinates of the original 
+        the absolute index with respect to the coordinates of the original
         sequence (including offset if present).
         """
         if not self:
