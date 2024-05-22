@@ -2310,6 +2310,7 @@ class SeqView(SliceRecordABC):
         self,
         seq,
         *,
+        seq: str,
         start: Optional[int] = None,
         stop: Optional[int] = None,
         step: Optional[int] = None,
@@ -2337,19 +2338,20 @@ class SeqView(SliceRecordABC):
     def seqid(self) -> str:
         return self._seqid
 
-    def __getitem__(self, segment):
-        seqview_unique = {"seqid": self.seqid}
-        return super().__getitem__(segment, **seqview_unique)
+
+    def __getitem__(self, segment: Union[int, slice]):
+        seqview_unique = {"seq": self.seq, "seqid": self.seqid}
+        return super().__getitem__(segment, seqview_unique)
 
     @property
     def value(self):
         return self.seq[self.start : self.stop : self.step]
 
-    def replace(self, old, new):
+    def replace(self, old: str, new: str):
         new_seq = self.seq.replace(old, new)
         if len(old) == len(new):
             return self.__class__(
-                new_seq,
+                seq=new_seq,
                 start=self.start,
                 stop=self.stop,
                 step=self.step,
@@ -2358,7 +2360,7 @@ class SeqView(SliceRecordABC):
                 seq_len=self.seq_len,
             )
 
-        return self.__class__(new_seq)
+        return self.__class__(seq=new_seq)
 
     def __len__(self):
         return abs((self.start - self.stop) // self.step)
@@ -2413,7 +2415,7 @@ class SeqView(SliceRecordABC):
         """
         if not sliced:
             return self.__class__(
-                self.seq,
+                seq=self.seq,
                 start=self.start,
                 stop=self.stop,
                 step=self.step,
