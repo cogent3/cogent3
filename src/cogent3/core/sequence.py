@@ -1912,8 +1912,9 @@ class SliceRecordABC(ABC):
 
     Notes
     -----
-    seq_len refers to a Python typing.Sequence object, e.g. array, str, list, etc
+    seq_len refers to a Python typing.Sequence object, e.g. array, str, list.
     """
+
     start: int
     stop: int
     step: int
@@ -1921,11 +1922,23 @@ class SliceRecordABC(ABC):
     _offset: int
 
     @abstractmethod
+    def _get_init_kwargs(self) -> dict:
+        """return required arguments for construction that are unique to the 
+        subclass"""
+        ...
+
+    @abstractmethod
     def copy(self): ...
 
     @property
     @abstractmethod
     def _zero_slice(self): ...
+
+    @abstractmethod
+    def to_rich_dict(self): ...
+
+    @abstractmethod
+    def from_rich_dict(self): ...
 
     @property
     def offset(self) -> int:
@@ -1986,8 +1999,8 @@ class SliceRecordABC(ABC):
 
         Returns
         -------
-        the absolute index with respect to the coordinates of the self
-        including offset
+        the absolute index with respect to the coordinates of the original 
+        sequence (including offset if present).
         """
         if not self:
             return 0
@@ -1998,7 +2011,6 @@ class SliceRecordABC(ABC):
         # _get_index return the absolute position relative to the underlying sequence
         seq_index, _, _ = self._get_index(rel_index, include_boundary=include_boundary)
 
-        # add offset and handle reversed views, now absolute relative to annotation coordinates
         offset = self.offset
         if self.is_reversed:
             abs_index = offset + self.seq_len + seq_index + 1
@@ -2042,16 +2054,9 @@ class SliceRecordABC(ABC):
 
         return rel_pos
 
-    def __getitem__(self, segment: Union[int, slice], kwargs: dict):
-        """subclasses requiring unique arguments for construction should implement
-        ``__getitem__`` proving unique args as dictionary of keyword args, e.g.,
+    def __getitem__(self, segment: Union[int, slice]):
+        kwargs = self._get_init_kwargs()
 
-        .. code-block:: python
-
-            def __getitem__(self, index):
-                subclass_uniq = {"<attr name>": <attr_value>, ...}
-                return super().__getitem__(index, subclass_uniq)
-        """
         if _is_int(segment):
             start, stop, step = self._get_index(segment)
             return self.__class__(
@@ -2331,9 +2336,8 @@ class SeqView(SliceRecordABC):
     def seq_len(self) -> int:
         return self._seq_len
 
-    def __getitem__(self, segment: Union[int, slice]):
-        seqview_unique = {"seq": self.seq, "seqid": self.seqid}
-        return super().__getitem__(segment, seqview_unique)
+    def _get_init_kwargs(self):
+        return {"seq": self.seq, "seqid": self.seqid}
 
     @property
     def value(self):
@@ -2374,9 +2378,10 @@ class SeqView(SliceRecordABC):
     def to_rich_dict(self):
         # get the current state
         data = {"type": get_object_provenance(self), "version": __version__}
+        data["init_args"] = self._get_init_kwargs()
         # since we will truncate the seq, we don't need start, stop,
         # step is sufficient
-        data["init_args"] = {"step": self.step}
+        data["init_args"]["step"] = self.step
         if self.is_reversed:
             adj = self.seq_len + 1
             start, stop = self.stop + adj, self.start + adj
@@ -2385,7 +2390,6 @@ class SeqView(SliceRecordABC):
 
         data["init_args"]["seq"] = self.seq[start:stop]
         data["init_args"]["offset"] = int(self.parent_start)
-        data["init_args"]["seqid"] = self.seqid
         return data
 
     @classmethod
