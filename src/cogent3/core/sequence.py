@@ -2312,17 +2312,20 @@ class SeqView(SliceRecordABC):
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
 
+        self._seq_len = self._checked_seq_len(seq, seq_len)
         func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
-        start, stop, step = func(len(seq), start, stop, step)
+        start, stop, step = func(self._seq_len, start, stop, step)
         self.seq = seq
         self.start = start
         self.stop = stop
         self.step = step
         self._offset = offset
         self._seqid = seqid
+
+    def _checked_seq_len(self, seq, seq_len) -> int:
         if seq_len is not None and seq_len != len(seq):
             raise AssertionError(f"{seq_len} != {len(self.seq)})")
-        self._seq_len = seq_len or len(self.seq)
+        return seq_len or len(seq)
 
     @property
     def _zero_slice(self):

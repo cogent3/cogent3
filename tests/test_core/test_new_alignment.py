@@ -278,7 +278,7 @@ def test_seqdataview_returns_self(sd_demo: SeqData):
     ],
 )
 def test_seqdataview_slice_returns_self(seq1: str, index: slice):
-    sdv = SeqDataView(seq1, seqid="seq1", seq_len=len(seq1))
+    sdv = SeqDataView(seq=seq1, seqid="seq1", seq_len=len(seq1))
     got = sdv[index]
     assert isinstance(got, SeqDataView)
 

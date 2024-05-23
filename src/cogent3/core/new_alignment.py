@@ -193,7 +193,7 @@ class SeqData:
 
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
-        return SeqDataView(self, seqid=seqid, seq_len=seq_len)
+        return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len)
 
     def iter_seq_view(self, *, name_order: tuple[str] = None) -> Iterator:
         # Should this output SeqView or SeqDataView?
@@ -327,7 +327,7 @@ class AlignedData:
 
     def get_aligned_view(self, seqid: str) -> AlignedDataView:
         # Need to revisit what the variable is called i.e. parent_length
-        return AlignedDataView(self, seqid=seqid, seq_len=self.align_len)
+        return AlignedDataView(seq=self, seqid=seqid, seq_len=self.align_len)
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self.gaps[seqid]
