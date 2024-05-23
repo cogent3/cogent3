@@ -164,14 +164,14 @@ class SeqData:
     def __getitem__(self, value: Union[str, int]) -> SeqDataView:
         raise NotImplementedError(f"__getitem__ not implemented for {type(value)}")
 
-    @__getitem__.register(str)
+    @__getitem__.register
     def _(self, value: str) -> SeqDataView:
-        return self.get_seq_view(seqid=value)
+        return self._make_seq(seqid=value)
 
-    @__getitem__.register(int)
+    @__getitem__.register
     def _(self, value: int) -> SeqDataView:
         seqid = self._name_order[value]
-        return self.get_seq_view(seqid=seqid)
+        return self._make_seq(seqid=seqid)
 
     def get_seq_array(
         self, *, seqid: str, start: int = None, stop: int = None

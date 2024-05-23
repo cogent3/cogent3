@@ -251,6 +251,15 @@ def test_getitem_int(simple_dict, alpha, idx):
     assert got.seqid == list(simple_dict)[idx]
 
 
+# @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
+# def test_getitem_str_when_set_seq_maker(sd_demo, seqid):
+#     mt = get_moltype("dna")
+#     sd_demo.set_seq_maker = mt.make_seq, mt.alphabets.degen_gapped
+#     got = sd_demo[seqid] # get item
+#     assert got.seq == sd_demo
+#     assert got.name == seqid
+
+
 # SeqDataView tests for returning an instance of itself
 def test_seqdataview_returns_self(sd_demo: SeqData):
     sdv = sd_demo.get_seq_view("seq1")
