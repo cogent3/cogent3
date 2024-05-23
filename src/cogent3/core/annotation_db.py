@@ -5,9 +5,7 @@ import copy
 import inspect
 import io
 import json
-import os
 import pathlib
-import re
 import sqlite3
 import sys
 import typing
@@ -19,7 +17,9 @@ import typing_extensions
 import cogent3.util.warning as c3warn
 
 from cogent3._version import __version__
+from cogent3.parse.gff import merged_gff_records
 from cogent3.util.deserialise import register_deserialiser
+from cogent3.util.io import PathType, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
 from cogent3.util.progress_display import display_wrap
 from cogent3.util.table import Table
@@ -28,6 +28,7 @@ from cogent3.util.table import Table
 OptionalInt = typing.Optional[int]
 OptionalStr = typing.Optional[str]
 OptionalStrList = typing.Optional[typing.Union[str, typing.List[str]]]
+OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
 OptionalBool = typing.Optional[bool]
 OptionalDbCursor = typing.Optional[sqlite3.Cursor]
 ReturnType = typing.Tuple[str, tuple]  # the sql statement and corresponding values
@@ -1124,7 +1125,7 @@ class SqliteAnnotationDbMixin:
     def to_json(self) -> str:
         return json.dumps(self.to_rich_dict())
 
-    def write(self, path: os.PathLike) -> None:
+    def write(self, path: PathType) -> None:
         """writes db as bytes to path"""
         backup = sqlite3.connect(path)
         with self.db:
@@ -1139,7 +1140,7 @@ class SqliteAnnotationDbMixin:
     def subset(
         self,
         *,
-        source: os.PathLike | str = ":memory:",
+        source: PathType = ":memory:",
         biotype: str = None,
         seqid: str = None,
         name: str = None,
@@ -1176,6 +1177,24 @@ class SqliteAnnotationDbMixin:
                 cursor.commit()
 
         return result
+
+    def close(self):
+        """closes the db"""
+        self.db.close()
+
+    def _make_index(self, *, table_name: str, col_names: tuple[str, ...]):
+        """index columns for faster search"""
+        sql = f"CREATE INDEX IF NOT EXISTS %s on {table_name}(%s)"
+        for col in col_names:
+            self._execute_sql(sql % (col, col))
+
+    def make_indexes(self):
+        """adds db indexes for core attributes"""
+        for table_name in self.table_names:
+            self._make_index(
+                table_name=table_name,
+                col_names=("biotype", "seqid", "name", "start", "stop", "parent_id"),
+            )
 
 
 class BasicAnnotationDb(SqliteAnnotationDbMixin):
@@ -1227,6 +1246,15 @@ class BasicAnnotationDb(SqliteAnnotationDbMixin):
             self._execute_sql(cmnd=cmnd, values=vals)
 
 
+def _merge_spans(old: numpy.ndarray, new: list[list[int]]) -> numpy.ndarray:
+    """returns sorted, merged old and new spans"""
+    if len(new) == old.shape[0] and (old == new).all():
+        return old
+
+    new = numpy.array(sorted(new), dtype=old.dtype)
+    return numpy.unique(numpy.concatenate([old, new]), axis=0)
+
+
 class GffAnnotationDb(SqliteAnnotationDbMixin):
     """Support for annotations from gff files. Records that span multiple
     rows in the gff are merged into a single record."""
@@ -1262,7 +1290,7 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         self._serialisable["source"] = self.source
         self._db = None
         self._setup_db(db)
-        data = self._merged_data(data)
+        data, self._num_fakeids = merged_gff_records(data, self._num_fakeids)
         self.add_records(data)
 
     def add_records(self, reduced: dict) -> None:
@@ -1291,51 +1319,27 @@ class GffAnnotationDb(SqliteAnnotationDbMixin):
         self.db.commit()
         del reduced
 
-    def _merged_data(self, records) -> dict:
-        field_template = r"(?<={}=)[^;\s]+"
-        name = re.compile(field_template.format("ID"))
-        parent_id = re.compile(field_template.format("Parent"))
+    def update_record_spans(self, *, name: str, spans: list[list[int]]) -> None:
+        """updates spans attribute of a gff table record if present
 
-        reduced = collections.OrderedDict()
-        # collapse records with ID's occurring in multiple rows into one
-        # row, converting their coordinates
-        # extract the name from ID and add this into the table
-        # I am not convinced we can rely on gff files to be ordered,
-        # if we could, we could do this as one pass over the data
-        # all keys need to be lower case
-        # NOTE only records which have an ID field get merged into a single
-        # record.
-        for record in records:
-            record["biotype"] = record.pop("Type")
-            record["stop"] = record.pop("End")
+        Notes
+        -----
+        Has no effect if name is not present.
+        """
+        if not len(spans):
+            return
 
-            # we force all keys that map to table column names to be lower case
-            for key in tuple(record):
-                if key.lower() not in self._gff_schema:
-                    continue
-                record[key.lower()] = record.pop(key)
+        result = self._execute_sql(
+            cmnd="SELECT spans from gff WHERE name = ?", values=(name,)
+        ).fetchone()
 
-            attrs = record["attributes"] or ""
-            if match := name.search(attrs):
-                record_id = match.group()
-            else:
-                record_id = f"unknown-{self._num_fakeids}"
-                self._num_fakeids += 1
+        if result is None:
+            return
 
-            record["name"] = record_id
-            if pid := parent_id.search(attrs):
-                record["parent_id"] = pid.group()
-
-            if record_id not in reduced:
-                reduced[record_id] = record
-                reduced[record_id]["spans"] = []
-
-            # should this just be an append?
-            reduced[record_id]["spans"].append((record["start"], record["stop"]))
-
-        del records
-
-        return reduced
+        old_spans = _merge_spans(result["spans"], spans)
+        self._execute_sql(
+            cmnd="UPDATE gff SET spans = ? WHERE name = ?", values=(old_spans, name)
+        )
 
 
 # The GenBank format is less clear on the relationship between identifiers,
@@ -1608,7 +1612,9 @@ def convert_annotation_to_annotation_db(data: dict) -> SupportsFeatures:
 
 
 @display_wrap
-def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwargs):
+def _db_from_genbank(
+    path: PathType, db: typing.Optional[SupportsFeatures], write_path, **kwargs
+):
     from cogent3 import open_
     from cogent3.parse.genbank import MinimalGenbankParser
 
@@ -1630,6 +1636,8 @@ def _db_from_genbank(path: os.PathLike, db: SupportsFeatures, write_path, **kwar
 
     if not one_valid_path:
         raise IOError(f"{str(path)!r} not found")
+
+    db.make_indexes()
     return db
 
 
@@ -1637,45 +1645,55 @@ def _leave_attributes(*attrs):
     return attrs[0]
 
 
-OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence]]
-
-
 @display_wrap
 def _db_from_gff(
-    path: os.PathLike,
+    path: PathType,
     seqids: OptionalStrContainer,
-    db: SupportsFeatures,
-    write_path,
+    db: typing.Optional[SupportsFeatures],
+    write_path: PathType,
+    num_lines: OptionalInt,
     **kwargs,
-):
-    from cogent3.parse.gff import gff_parser
+) -> SupportsFeatures:
+    from cogent3.parse.gff import gff_parser, is_gff3
 
     paths = pathlib.Path(path)
     paths = list(paths.parent.glob(paths.name))
 
     ui = kwargs.pop("ui")
     one_valid_path = False
+    seen_ids = set()
     for path in ui.series(paths):
-        data = list(
-            gff_parser(
-                path,
-                seqids=seqids,
-                attribute_parser=_leave_attributes,
+        num_fake_ids = 0
+        gff3 = is_gff3(path)
+        db = GffAnnotationDb(source=write_path, db=db)
+        for block in iter_line_blocks(path, num_lines=num_lines):
+            data = list(
+                gff_parser(
+                    block, seqids=seqids, attribute_parser=_leave_attributes, gff3=gff3
+                )
             )
-        )
-        db = GffAnnotationDb(source=write_path, data=data, db=db)
+            data, num_fake_ids = merged_gff_records(data, num_fake_ids)
+            if already_seen := seen_ids & data.keys():
+                for name in already_seen:
+                    db.update_record_spans(name=name, spans=data[name].spans)
+
+            seen_ids |= data.keys()
+            db.add_records(data)
         one_valid_path = True
     if not one_valid_path:
         raise IOError(f"{str(path)!r} not found")
+
+    db.make_indexes()
     return db
 
 
 def load_annotations(
     *,
-    path: os.PathLike,
+    path: PathType,
     seqids: OptionalStr = None,
-    db: SupportsFeatures = None,
-    write_path: os.PathLike = ":memory:",
+    db: typing.Optional[SupportsFeatures] = None,
+    write_path: PathType = ":memory:",
+    lines_per_block: OptionalInt = 500_000,
     show_progress: bool = False,
 ) -> SupportsFeatures:
     """loads annotations from flatfile into a db
@@ -1693,6 +1711,9 @@ def load_annotations(
     write_path
         where the constructed database should be written, defaults to
         memory only
+    lines_per_block
+        number of lines to insert into the db per iteration. This can help with
+        memory usage. Only applies to gff files.
     show_progress
         applied only if loading features from multiple files
 
@@ -1714,6 +1735,7 @@ def load_annotations(
             db=db,
             write_path=write_path,
             show_progress=show_progress,
+            num_lines=lines_per_block,
         )
     )
 
@@ -1743,7 +1765,7 @@ def _update_array_format(data: bytes) -> bytes:
 
 
 def update_file_format(
-    source_path: os.PathLike,
+    source_path: PathType,
     db_class: typing.Union[
         type[BasicAnnotationDb],
         type[GenbankAnnotationDb],
@@ -1768,7 +1790,7 @@ def update_file_format(
 
     Parameters
     ----------
-    source_path : os.PathLike
+    source_path : PathType
         The database file to reformat.
     db_class : typing.Union[ type[BasicAnnotationDb], type[GenbankAnnotationDb], type[GffAnnotationDb], ]
         The type of database the file is.

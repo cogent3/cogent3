@@ -472,6 +472,9 @@ class AlphabetGroup(CoreObjectGroup):
             for i in self._items:
                 i._complement_array = _make_complement_array(i, comps)
 
+    def iter_alphabets(self):
+        yield from self._items
+
 
 # colours for HTML representation
 
@@ -516,7 +519,7 @@ def _do_nothing(x):
     return x
 
 
-class MolType(object):
+class MolType:
     """MolType: Handles operations that depend on the sequence type (e.g. DNA).
 
     The MolType knows how to connect alphabets, sequences, alignments, and so
@@ -1356,6 +1359,22 @@ class MolType(object):
             raise AlphabetError(ambig_motif)
 
         return result
+
+    def is_compatible_alphabet(self, alphabet: Alphabet, strict: bool = True) -> bool:
+        """checks that characters in alphabet are equal to a bound alphabet
+
+        Parameters
+        ----------
+        alphabet
+            an Alphabet instance
+        strict
+            the order of elements must match
+        """
+        if not strict:
+            query = set(alphabet)
+            return any(set(alpha) == query for alpha in self.alphabets.iter_alphabets())
+
+        return any(alpha == alphabet for alpha in self.alphabets.iter_alphabets())
 
 
 def _convert_to_rna(seq: str) -> str:
