@@ -103,7 +103,7 @@ class SeqDataView(SliceRecordABC):
     def __init__(
         self,
         *,
-        seq: str,
+        seq: SeqData,
         start: Optional[int] = None,
         stop: Optional[int] = None,
         step: Optional[int] = None,
