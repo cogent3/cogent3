@@ -1,0 +1,108 @@
+diff --git a/src/cogent3/core/new_alignment.py b/src/cogent3/core/new_alignment.py
+index c87502ed5..0b46849e7 100644
+--- a/src/cogent3/core/new_alignment.py
++++ b/src/cogent3/core/new_alignment.py
+@@ -125,31 +125,49 @@ class SeqDataView(SeqView):
+ 
+ @dataclass
+ class SeqData:
+-    __slots__ = ("_data", "_name_order", "_alphabet")
++    __slots__ = ("_data", "_alphabet", "_name_order", "_seq_maker")
+ 
+     def __init__(
+         self,
+         data: dict[str, SeqTypes],
+         alphabet: CharAlphabet,
+         name_order: Optional[Union[tuple[str], None]] = None,
++        seq_maker: Optional[type] = None,
+     ):
+         self._alphabet = alphabet
+         self._name_order = process_name_order(data, name_order)
++        self._seq_maker = seq_maker
+         # Convert to moltype alphabet indicies
+-        self._data = {k: seq_index(v, self._alphabet) for k, v in data.items()}
++        self._data: dict[str, numpy.ndarray] = {
++            k: seq_index(v, self._alphabet) for k, v in data.items()
++        }
++
++    @property
++    def seq_maker(self) -> Optional[type]:
++        return self._seq_maker
++
++    @seq_maker.setter
++    def seq_maker(self, value: type):
++        self._seq_maker = value
++
++    def _make_seq(self, seqid):
++        seqdataview = self.get_seq_view(seqid=seqid)
++        if self._seq_maker is None:
++            return seqdataview
++        return self.seq_maker(seqdataview, seqid=seqid)
+ 
+     @singledispatchmethod
+     def __getitem__(self, value: Union[str, int]) -> SeqDataView:
+         raise NotImplementedError(f"__getitem__ not implemented for {type(value)}")
+ 
+-    @__getitem__.register(str)
++    @__getitem__.register
+     def _(self, value: str) -> SeqDataView:
+-        return self.get_seq_view(seqid=value)
++        return self._make_seq(seqid=value)
+ 
+-    @__getitem__.register(int)
++    @__getitem__.register
+     def _(self, value: int) -> SeqDataView:
+         seqid = self._name_order[value]
+-        return self.get_seq_view(seqid=seqid)
++        return self._make_seq(seqid=seqid)
+ 
+     def get_seq_array(
+         self, *, seqid: str, start: int = None, stop: int = None
+diff --git a/tests/test_core/test_new_alignment.py b/tests/test_core/test_new_alignment.py
+index aaedf1318..77003e4e0 100644
+--- a/tests/test_core/test_new_alignment.py
++++ b/tests/test_core/test_new_alignment.py
+@@ -1,7 +1,7 @@
+ import numpy as numpy
+ import pytest
+ 
+-from cogent3 import get_moltype, make_seq
++from cogent3 import Sequence, get_moltype
+ from cogent3.core.alphabet import CharAlphabet
+ from cogent3.core.new_alignment import (
+     AlignedData,
+@@ -213,6 +213,19 @@ def test_get_seq_bytes(sd_demo: SeqData):
+     assert isinstance(got, bytes)
+ 
+ 
++# SeqData seq_maker tests
++def test_seq_maker_default(sd_demo):
++    assert sd_demo.seq_maker is None
++
++
++@pytest.mark.parametrize("t", (Sequence, str))
++def test_seq_maker_setget(sd_demo, t):
++    sd_demo.seq_maker = t
++    assert isinstance(sd_demo.seq_maker, type)
++    assert sd_demo.seq_maker == t
++
++
++# SeqData __getitem__ tests
+ @pytest.mark.parametrize("seq", ("seq1", "seq2"))
+ def test_getitem_str(sd_demo, seq):
+     got = sd_demo[seq]
+@@ -228,6 +241,14 @@ def test_getitem_int(simple_dict, alpha, idx):
+     assert got.seqid == list(simple_dict)[idx]
+ 
+ 
++@pytest.mark.parametrize("seq", ("seq1", "seq2"))
++def test_getitem_str_when_seq_maker(sd_demo, seqid):
++    mt = get_moltype("dna")
++    sd_demo.seq_maker = mt.make_seq
++    got = sd_demo[seqid] # get item
++    assert got.seq == sd_demo
++    assert got.name == seqid
++
+ # SeqDataView tests for returning an instance of itself
+ def test_seqdataview_returns_self(sd_demo: SeqData):
+     sdv = sd_demo.get_seq_view("seq1")

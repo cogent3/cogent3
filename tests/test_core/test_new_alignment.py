@@ -294,14 +294,14 @@ def test_seqdataview_value(simple_dict: dict, alpha, start, stop, step):
     # Get SeqDataView on seq
     sdv = sd.get_seq_view(seqid=seq)
     sdv2 = sdv[start:stop:step]
-    got = sdv2.value
+    got = sdv2.str_value
     assert got == expect
 
 
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_array_value(simple_dict_arr: dict, alpha, start, stop, step):
+def test_seqdata_array_value(simple_dict_arr: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = simple_dict_arr[seq][start:stop:step]
     sd = SeqData(data=simple_dict_arr, alphabet=alpha)
@@ -314,7 +314,7 @@ def test_array_value(simple_dict_arr: dict, alpha, start, stop, step):
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_bytes_value(simple_dict: dict, alpha, start, stop, step):
+def test_seqdata_bytes_value(simple_dict: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = simple_dict[seq][start:stop:step]
     expect = expect.encode("utf8")

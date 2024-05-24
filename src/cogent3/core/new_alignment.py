@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
 from typing import Iterator, Optional, Union
@@ -8,7 +10,12 @@ from cogent3 import get_moltype
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.location import IndelMap
 from cogent3.core.moltype import MolType
-from cogent3.core.sequence import SeqView
+from cogent3.core.sequence import (
+    SliceRecordABC,
+    _input_vals_neg_step,
+    _input_vals_pos_step,
+)
+from cogent3.util.misc import get_object_provenance
 
 
 SeqTypes = Union[str, bytes, numpy.ndarray]
@@ -75,7 +82,7 @@ def _(correct_names: list, name_order: tuple) -> tuple:
     return _name_order_list_tuple(name_order, correct_names)
 
 
-class SeqDataView(SeqView):
+class SeqDataView(SliceRecordABC):
     """
     A view class for SeqData, providing properties for different
     representations.
@@ -90,13 +97,54 @@ class SeqDataView(SeqView):
     sdv = sd.get_seq_view(seqid="seq1")
     """
 
-    def _checked_seq_len(self, seq, seq_len) -> int:
+    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
+
+    def __init__(
+        self,
+        *,
+        seq: str,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        step: Optional[int] = None,
+        offset: int = 0,
+        seqid: Optional[str] = None,
+        seq_len: Optional[int] = None,
+    ):
+        if step == 0:
+            raise ValueError("step cannot be 0")
+        step = 1 if step is None else step
+
+        self._seq_len = self._checked_seq_len(seq_len)
+        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
+        start, stop, step = func(self._seq_len, start, stop, step)
+        self.seq = seq
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self._offset = offset
+        self._seqid = seqid
+
+    def _checked_seq_len(self, seq_len) -> int:
         assert seq_len is not None
         return seq_len
 
-    # inherits __str__
     @property
-    def value(self) -> str:
+    def _zero_slice(self):
+        return self.__class__(seq=self.seq)
+
+    @property
+    def seqid(self) -> str:
+        return self._seqid
+
+    @property
+    def seq_len(self) -> int:
+        return self._seq_len
+
+    def _get_init_kwargs(self):
+        return {"seq": self.seq, "seqid": self.seqid}
+
+    @property
+    def str_value(self) -> str:
         raw = self.seq.get_seq_str(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
@@ -116,11 +164,76 @@ class SeqDataView(SeqView):
         )
         return raw if self.step == 1 else raw[:: self.step]
 
+    def __str__(self):
+        return self.str_value
+
     def __array__(self):
         return self.array_value
 
     def __bytes__(self):
         return self.bytes_value
+
+    def __len__(self):
+        return abs((self.start - self.stop) // self.step)
+
+    def __iter__(self):
+        return iter(self.value)
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __repr__(self) -> str:
+        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
+        return (
+            f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
+            f"stop={self.stop}, step={self.step}, offset={self.offset}, "
+            f"seqid={self.seqid!r}, seq_len={self.seq_len})"
+        )
+
+    def to_rich_dict(self):
+        # get the current state
+        data = {"type": get_object_provenance(self), "version": __version__}
+        data["init_args"] = self._get_init_kwargs()
+        # since we will truncate the seq, we don't need start, stop,
+        # step is sufficient
+        data["init_args"]["step"] = self.step
+        if self.is_reversed:
+            adj = self.seq_len + 1
+            start, stop = self.stop + adj, self.start + adj
+        else:
+            start, stop = self.start, self.stop
+
+        data["init_args"]["seq"] = self.seq[start:stop]
+        data["init_args"]["offset"] = int(self.parent_start)
+        return data
+
+    @classmethod
+    def from_rich_dict(cls, data: dict):
+        init_args = data.pop("init_args")
+        if "offset" in data:
+            init_args["offset"] = data.pop("offset")
+        return cls(**init_args)
+
+    def copy(self, sliced: bool = False):
+        """returns copy
+
+        Parameters
+        ----------
+        sliced
+            if True, the underlying sequence is truncated and the start/stop
+            adjusted
+        """
+        if not sliced:
+            return self.__class__(
+                seq=self.seq,
+                start=self.start,
+                stop=self.stop,
+                step=self.step,
+                offset=self.offset,
+                seqid=self.seqid,
+                seq_len=self.seq_len,
+            )
+        return self.from_rich_dict(self.to_rich_dict())
 
 
 @dataclass
