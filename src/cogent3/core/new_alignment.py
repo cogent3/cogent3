@@ -7,6 +7,7 @@ from typing import Iterator, Optional, Union
 import numpy
 
 from cogent3 import get_moltype
+from cogent3._version import __version__
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.location import IndelMap
 from cogent3.core.moltype import MolType
@@ -130,7 +131,9 @@ class SeqDataView(SliceRecordABC):
 
     @property
     def _zero_slice(self):
-        return self.__class__(seq=self.seq)
+        return self.__class__(
+            seq=self.seq, seqid=self.seqid, seq_len=self.seq_len, start=0, stop=0
+        )
 
     @property
     def seqid(self) -> str:

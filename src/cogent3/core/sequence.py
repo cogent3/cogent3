@@ -2400,8 +2400,7 @@ class SeqView(SliceRecordABC):
         init_args = data.pop("init_args")
         if "offset" in data:
             init_args["offset"] = data.pop("offset")
-        sv = cls(**init_args)
-        return sv
+        return cls(**init_args)
 
     def copy(self, sliced: bool = False):
         """returns copy
