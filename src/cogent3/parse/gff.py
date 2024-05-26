@@ -7,6 +7,7 @@ import pathlib
 import re
 import typing
 
+from cogent3.util import warning as c3warn
 from cogent3.util.io import PathType, open_
 
 
@@ -14,7 +15,7 @@ OptionalCallable = typing.Optional[typing.Callable]
 OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence[str]]]
 OptionalIntList = typing.Optional[list[list[int]]]
 OptionalStr = typing.Optional[str]
-OptionalInt = typing.Optional[str]
+OptionalInt = typing.Optional[int]
 OptionalStrDict = typing.Optional[typing.Union[str, dict[str, str]]]
 OptionalBool = typing.Optional[bool]
 
@@ -281,7 +282,7 @@ def _gff_parser(
             start, end = end, start
 
         # all attributes have an "ID" but this may not be unique
-        attributes = attribute_parser(attributes, (start, end))
+        attributes = attribute_parser(attributes)
 
         yield GffRecord(
             seqid=seqid,
@@ -297,7 +298,8 @@ def _gff_parser(
         )
 
 
-def parse_attributes_gff2(attributes: str, span: typing.Tuple[int, int]) -> dict:
+@c3warn.deprecated_args("2024.9", reason="not being used", discontinued="span")
+def parse_attributes_gff2(attributes: str) -> dict:
     """Returns a dict with name and info keys"""
     name = attributes[attributes.find('"') + 1 :]
     if '"' in name:
@@ -305,7 +307,8 @@ def parse_attributes_gff2(attributes: str, span: typing.Tuple[int, int]) -> dict
     return {"ID": name, "Info": attributes}
 
 
-def parse_attributes_gff3(attributes: str, span: typing.Tuple[int, int]) -> dict:
+@c3warn.deprecated_args("2024.9", reason="not being used", discontinued="span")
+def parse_attributes_gff3(attributes: str) -> dict:
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")
     attributes = attributes.split(";")

@@ -89,17 +89,14 @@ class GffTest(TestCase):
     def test_parse_attributes_gff2(self):
         """Test the parse_attributes_gff2 method"""
         self.assertEqual(
-            [
-                parse_attributes_gff2(x[1][8], (x[1][3], x[1][4]))["ID"]
-                for x in data_lines
-            ],
+            [parse_attributes_gff2(x[1][8])["ID"] for x in data_lines],
             ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
 
     def test_custom_attr_func(self):
         """user provided attr parser"""
         gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-        for result in gff_parser(gff3_path, attribute_parser=lambda x, y: x):
+        for result in gff_parser(gff3_path, attribute_parser=lambda x: x):
             self.assertIsInstance(result["Attributes"], str)
 
 
