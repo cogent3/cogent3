@@ -7,6 +7,9 @@ import pathlib
 import re
 import typing
 
+from abc import ABC
+
+from cogent3.util import warning as c3warn
 from cogent3.util.io import PathType, open_
 
 
@@ -14,7 +17,7 @@ OptionalCallable = typing.Optional[typing.Callable]
 OptionalStrContainer = typing.Optional[typing.Union[str, typing.Sequence[str]]]
 OptionalIntList = typing.Optional[list[list[int]]]
 OptionalStr = typing.Optional[str]
-OptionalInt = typing.Optional[str]
+OptionalInt = typing.Optional[int]
 OptionalStrDict = typing.Optional[typing.Union[str, dict[str, str]]]
 OptionalBool = typing.Optional[bool]
 
@@ -23,12 +26,6 @@ OptionalBool = typing.Optional[bool]
 def is_gff3(f) -> bool:
     """True if gff-version is 3"""
     raise TypeError(f"unsupported type {type(f)}")
-
-
-@is_gff3.register
-def _(f: pathlib.PurePath) -> bool:
-    with open_(f) as f:
-        return is_gff3(f)
 
 
 @is_gff3.register
@@ -69,7 +66,55 @@ _gff_item_map = {
 }
 
 
-class GffRecord:
+class GffRecordABC(ABC):
+    """abstract base class for gff records"""
+
+    # attributes that need to be on the instance
+    __slots__ = (
+        "seqid",
+        "source",
+        "biotype",
+        "name",
+        "parent_id",
+        "start",
+        "stop",
+        "spans",
+        "strand",
+        "score",
+        "phase",
+        "attrs",
+        "comments",
+    )
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return (
+            f"{name}(seqid={self.seqid!r}, name={self.name!r}, "
+            f"biotype={self.biotype!r}, start={self.start}, stop={self.stop}, "
+            f"strand={self.strand!r}, spans={self.spans})"
+        )
+
+    def __getitem__(self, item: str):
+        item = item.lower()
+        return getattr(self, _gff_item_map.get(item, item))
+
+    def __setitem__(self, key: str, value: typing.Any):
+        key = key.lower()
+        setattr(self, _gff_item_map.get(key, key), value)
+
+    def update(self, values: dict[str, typing.Any]):
+        for key, value in values.items():
+            self[key] = value
+
+    def get(self, item: str) -> typing.Any:
+        item = item.lower()
+        return getattr(self, _gff_item_map.get(item, item), None)
+
+    def to_dict(self) -> dict[str, typing.Any]:
+        return {k: getattr(self, k) for k in self.__slots__}
+
+
+class GffRecord(GffRecordABC):
     """Container for single GFF record. Elements can be indexed as a dict
     or directly as attributes.
 
@@ -126,33 +171,6 @@ class GffRecord:
         self.comments = comments
         self.attrs = attrs
 
-    def __repr__(self):
-        name = self.__class__.__name__
-        return (
-            f"{name}(seqid={self.seqid!r}, name={self.name!r}, "
-            f"start={self.start}, stop={self.stop}, strand={self.strand!r}, "
-            f"spans={self.spans})"
-        )
-
-    def __getitem__(self, item: str):
-        item = item.lower()
-        return getattr(self, _gff_item_map.get(item, item))
-
-    def __setitem__(self, key: str, value: typing.Any):
-        key = key.lower()
-        setattr(self, _gff_item_map.get(key, key), value)
-
-    def update(self, values: dict[str, typing.Any]):
-        for key, value in values.items():
-            self[key] = value
-
-    def get(self, item: str) -> typing.Any:
-        item = item.lower()
-        return getattr(self, _gff_item_map.get(item, item), None)
-
-    def to_dict(self) -> dict[str, typing.Any]:
-        return {k: getattr(self, k) for k in self.__slots__}
-
 
 @functools.singledispatch
 def gff_parser(
@@ -160,7 +178,8 @@ def gff_parser(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+    make_record: OptionalCallable = None,
+) -> typing.Iterable[GffRecordABC]:
     """parses a gff file
 
     Parameters
@@ -175,29 +194,22 @@ def gff_parser(
         only gff records matching these sequence IDs are returned
     gff3
         True if the format is gff3
+    make_record
+        callable that constructs a GffRecordABC compatible record. Defaults to
+        GffRecord. Over-rides attribute_parser if provided.
 
     Returns
     -------
-    dict
-        contains each of the 9 parameters specified by gff3, and comments.
+    iterable of GffRecordABCs
     """
     gff3 = gff3 or is_gff3(f)
     yield from _gff_parser(
-        f, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+        f,
+        attribute_parser=attribute_parser,
+        seqids=seqids,
+        gff3=gff3,
+        make_record=make_record,
     )
-
-
-@gff_parser.register
-def _(
-    f: pathlib.PurePath,
-    attribute_parser: OptionalCallable = None,
-    seqids: OptionalStrContainer = None,
-    gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
-    with open_(f) as infile:
-        yield from gff_parser(
-            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
-        )
 
 
 @gff_parser.register
@@ -206,10 +218,15 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+    make_record: OptionalCallable = None,
+) -> typing.Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
-            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+            infile,
+            attribute_parser=attribute_parser,
+            seqids=seqids,
+            gff3=gff3,
+            make_record=make_record,
         )
 
 
@@ -219,10 +236,15 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+    make_record: OptionalCallable = None,
+) -> typing.Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
-            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+            infile,
+            attribute_parser=attribute_parser,
+            seqids=seqids,
+            gff3=gff3,
+            make_record=make_record,
         )
 
 
@@ -232,9 +254,14 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+    make_record: OptionalCallable = None,
+) -> typing.Iterable[GffRecordABC]:
     yield from _gff_parser(
-        f, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+        f,
+        attribute_parser=attribute_parser,
+        seqids=seqids,
+        gff3=gff3,
+        make_record=make_record,
     )
 
 
@@ -243,13 +270,19 @@ def _gff_parser(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: bool = True,
-) -> typing.Iterable[GffRecord]:
+    make_record: OptionalCallable = None,
+) -> typing.Iterable[GffRecordABC]:
     """parses a gff file"""
     seqids = seqids or set()
     seqids = {seqids} if isinstance(seqids, str) else set(seqids)
 
-    if attribute_parser is None:
+    if attribute_parser is None and make_record is None:
         attribute_parser = parse_attributes_gff3 if gff3 else parse_attributes_gff2
+    elif callable(make_record):
+        attribute_parser = None
+
+    if make_record is None:
+        make_record = GffRecord
 
     for line in f:
         # comments and blank lines
@@ -280,10 +313,9 @@ def _gff_parser(
         if start > end:
             start, end = end, start
 
-        # all attributes have an "ID" but this may not be unique
-        attributes = attribute_parser(attributes, (start, end))
+        attributes = attribute_parser(attributes) if attribute_parser else attributes
 
-        yield GffRecord(
+        yield make_record(
             seqid=seqid,
             source=source,
             biotype=type_,
@@ -297,7 +329,8 @@ def _gff_parser(
         )
 
 
-def parse_attributes_gff2(attributes: str, span: typing.Tuple[int, int]) -> dict:
+@c3warn.deprecated_args("2024.9", reason="not being used", discontinued="span")
+def parse_attributes_gff2(attributes: str) -> dict:
     """Returns a dict with name and info keys"""
     name = attributes[attributes.find('"') + 1 :]
     if '"' in name:
@@ -305,7 +338,8 @@ def parse_attributes_gff2(attributes: str, span: typing.Tuple[int, int]) -> dict
     return {"ID": name, "Info": attributes}
 
 
-def parse_attributes_gff3(attributes: str, span: typing.Tuple[int, int]) -> dict:
+@c3warn.deprecated_args("2024.9", reason="not being used", discontinued="span")
+def parse_attributes_gff3(attributes: str) -> dict:
     """Returns a dictionary containing all the attributes"""
     attributes = attributes.strip(";")
     attributes = attributes.split(";")
@@ -320,7 +354,9 @@ def parse_attributes_gff3(attributes: str, span: typing.Tuple[int, int]) -> dict
     return attributes
 
 
-def merged_gff_records(records: list[GffRecord], num_fake_ids: int) -> tuple[dict, int]:
+def merged_gff_records(
+    records: list[GffRecordABC], num_fake_ids: int
+) -> tuple[dict[str, GffRecordABC], int]:
     """merges GFF records that have the same ID
 
     Parameters
@@ -366,7 +402,6 @@ def merged_gff_records(records: list[GffRecord], num_fake_ids: int) -> tuple[dic
             reduced[record_id] = record
             reduced[record_id].spans = []
 
-        # should this just be an append?
         reduced[record_id].spans.append((record["start"], record["stop"]))
 
     del records

@@ -1,7 +1,9 @@
 """Unit tests for GFF and related parsers.
 """
 
+import io
 import os
+import pathlib
 import re
 
 from io import StringIO
@@ -10,7 +12,12 @@ from unittest import TestCase
 
 import pytest
 
-from cogent3.parse.gff import gff_parser, parse_attributes_gff2
+from cogent3.parse.gff import (
+    GffRecord,
+    gff_parser,
+    is_gff3,
+    parse_attributes_gff2,
+)
 
 
 headers = [
@@ -89,17 +96,14 @@ class GffTest(TestCase):
     def test_parse_attributes_gff2(self):
         """Test the parse_attributes_gff2 method"""
         self.assertEqual(
-            [
-                parse_attributes_gff2(x[1][8], (x[1][3], x[1][4]))["ID"]
-                for x in data_lines
-            ],
+            [parse_attributes_gff2(x[1][8])["ID"] for x in data_lines],
             ["HBA_HUMAN", "dJ102G20.C1.1", "", "BROADO5"],
         )
 
     def test_custom_attr_func(self):
         """user provided attr parser"""
         gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-        for result in gff_parser(gff3_path, attribute_parser=lambda x, y: x):
+        for result in gff_parser(gff3_path, attribute_parser=lambda x: x):
             self.assertIsInstance(result["Attributes"], str)
 
 
@@ -210,3 +214,80 @@ def test_gff_parser_headers():
             l.pop("attrs")
             got.append(set(l.values()))
         assert got == expect
+
+
+def test_is_gff3_invalid():
+    with pytest.raises(TypeError):
+        _ = is_gff3(b"blah")
+
+
+def make_gff_text():
+    return headers[0] + "".join([l for l, _ in data_lines])
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        data_lines,
+        io.StringIO(make_gff_text()),
+        pathlib.Path("data/c_elegans_WS199_shortened_gff.gff3"),
+        "data/c_elegans_WS199_shortened_gff.gff3",
+    ),
+)
+def test_is_gfg3(source):
+    assert isinstance(is_gff3(source), bool)
+
+
+def test_repr_gff3_record():
+    rec = GffRecord(name="1")
+    assert "name='1'" in repr(rec)
+
+
+def test_gff3_record_get():
+    attrs = "some text"
+    rec = GffRecord(name="1", attrs=attrs)
+    assert rec.get("attributes") == attrs
+
+
+def test_gff3_record_set():
+    attrs = "some text"
+    rec = GffRecord(name="1")
+    rec.attrs = attrs
+    assert rec["attributes"] == attrs
+
+
+def test_gff3_record_update():
+    attrs = "some text"
+    rec = GffRecord(name="1")
+    rec.update({"attrs": attrs})
+    assert rec.get("attributes") == attrs
+
+
+@pytest.fixture
+def worm_path(DATA_DIR):
+    return DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+
+
+@pytest.mark.parametrize("path_type", (str, pathlib.Path))
+def test_gff_parser_path_types(worm_path, path_type):
+    got = list(gff_parser(path_type(worm_path), gff3=True))
+    assert len(got) == 13
+
+
+@pytest.mark.parametrize(
+    "obj", (make_gff_text().splitlines(), io.StringIO(make_gff_text()))
+)
+def test_gff_parser_obj_types(obj):
+    got = list(gff_parser(obj))
+    assert len(got) == 4
+
+
+def test_gff_parser_make_record_override_attr_parser(worm_path):
+    got = list(
+        gff_parser(
+            worm_path, attribute_parser=lambda x: x.split(";"), make_record=GffRecord
+        )
+    )
+    assert len(got) == 13
+    # no split operation
+    assert isinstance(got[0].attrs, str)
