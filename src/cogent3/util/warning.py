@@ -1,7 +1,7 @@
 import functools
 import inspect
 
-from typing import Any, Callable, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Optional, Sequence, Tuple
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
