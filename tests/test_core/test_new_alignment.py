@@ -115,14 +115,37 @@ def test_names_init(simple_dict, alpha, bad_names):
         SeqData(simple_dict, alphabet=alpha, names=bad_names)
 
 
-def test_seqdata_get_seq_view(sd_demo: SeqData):
-    got = sd_demo.get_seq_view("seq1")
-    expect = f"SeqDataView(seq={sd_demo}, start=0, stop=4, step=1, offset=0, seqid='seq1', seq_len=4)"
+@pytest.mark.parametrize("seqid", ["seq1", "seq2"])
+def test_seqdataview_repr_default(sd_demo: SeqData, seqid: str):
+    seq = sd_demo.get_seq_str(seqid=seqid)
+    seq_len = len(seq)
+    expect = f"SeqDataView(seq={seq}, start=0, stop={seq_len}, step=1, offset=0, seqid='{seqid}', seq_len={seq_len})"
+    got = sd_demo.get_seq_view(seqid)
     assert repr(got) == expect
 
-    got = sd_demo.get_seq_view("seq2")
-    expect = f"SeqDataView(seq={sd_demo}, start=0, stop=7, step=1, offset=0, seqid='seq2', seq_len=7)"
+
+def test_seqdataview_repr_default_long(alpha):
+    longseq = "CGATCGTAGTACGTGTCAAGTCTGAC"
+    seq_len = len(longseq)
+    trunc = f"{longseq[:10]}...{longseq[-5:]}"
+    expect = f"SeqDataView(seq={trunc}, start=0, stop={seq_len}, step=1, offset=0, seqid='long', seq_len={seq_len})"
+
+    d = {"long": longseq}
+    sd = SeqData(d, alphabet=alpha)
+    got = sd.get_seq_view(seqid="long")
     assert repr(got) == expect
+
+
+@pytest.mark.parametrize("seqid", ["seq1", "seq2"])
+def test_seqdata_get_seq_view(simple_dict, alpha, seqid):
+    sd = SeqData(simple_dict, alphabet=alpha)
+    seq = simple_dict[seqid]
+    seq_len = len(seq)
+    got = sd.get_seq_view(seqid)
+    assert got.seq == sd
+    assert got.stop == seq_len
+    assert got.seqid == seqid
+    assert got.seq_len == seq_len
 
 
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))

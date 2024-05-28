@@ -187,9 +187,9 @@ class SeqDataView(SliceRecordABC):
         return self.value
 
     def __repr__(self) -> str:
-        seq = f"{self.seq[:10]}...{self.seq[-5:]}" if self.seq_len > 15 else self.seq
+        seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
-            f"{self.__class__.__name__}(seq={seq!r}, start={self.start}, "
+            f"{self.__class__.__name__}(seq={seq}, start={self.start}, "
             f"stop={self.stop}, step={self.step}, offset={self.offset}, "
             f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
