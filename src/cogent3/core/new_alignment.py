@@ -45,42 +45,43 @@ def _(seq: numpy.ndarray, alphabet: CharAlphabet) -> numpy.ndarray:
 
 
 @singledispatch
-def process_name_order(
-    correct_names: Union[dict, tuple, list], name_order: tuple
-) -> tuple:
-    """dict (data) for constructor; tuple for SeqData instance"""
+def validate_names(correct_names: Union[dict, tuple, list], names: tuple) -> tuple:
+    """
+    Helper to check that names passed as args match sequence names.
+    dict (data) for constructor; tuple for SeqData instance
+    """
     raise NotImplementedError(
-        f"process_name_order not implemented for type {type(correct_names)}"
+        f"validate_names not implemented for type {type(correct_names)}"
     )
 
 
-@process_name_order.register
-def _(correct_names: dict, name_order: tuple) -> tuple:
+@validate_names.register
+def _(correct_names: dict, names: tuple) -> tuple:
     keys = correct_names.keys()
-    if name_order is None:
+    if names is None:
         return tuple(keys)
-    if set(name_order) == set(keys):
-        return name_order
-    raise ValueError("name_order does not match dictionary keys")
+    if set(names) == set(keys):
+        return names
+    raise ValueError("names do not match dictionary keys")
 
 
-def _name_order_list_tuple(name_order, correct_names):
+def _names_list_tuple(correct_names, names):
     """List and tuples have the same implementation for dispatch"""
-    if name_order is None:
+    if names is None:
         return correct_names
-    if set(name_order) <= set(correct_names):
-        return tuple(name_order)
+    if set(names) <= set(correct_names):
+        return tuple(names)
     raise ValueError("some names do not match")
 
 
-@process_name_order.register
-def _(correct_names: tuple, name_order: tuple) -> tuple:
-    return _name_order_list_tuple(name_order, correct_names)
+@validate_names.register
+def _(correct_names: tuple, names: tuple) -> tuple:
+    return _names_list_tuple(correct_names, names)
 
 
-@process_name_order.register
-def _(correct_names: list, name_order: tuple) -> tuple:
-    return _name_order_list_tuple(name_order, correct_names)
+@validate_names.register
+def _(correct_names: list, names: tuple) -> tuple:
+    return _names_list_tuple(correct_names, names)
 
 
 class SeqDataView(SliceRecordABC):
@@ -241,17 +242,17 @@ class SeqDataView(SliceRecordABC):
 
 @dataclass
 class SeqData:
-    __slots__ = ("_data", "_alphabet", "_name_order", "_seq_maker")
+    __slots__ = ("_data", "_alphabet", "_names", "_seq_maker")
 
     def __init__(
         self,
         data: dict[str, SeqTypes],
         alphabet: CharAlphabet,
-        name_order: Optional[Union[tuple[str], None]] = None,
+        names: Optional[Union[tuple[str], None]] = None,
         seq_maker: Optional[type] = None,
     ):
         self._alphabet = alphabet
-        self._name_order = process_name_order(data, name_order)
+        self._names = validate_names(data, names)
         self._seq_maker = seq_maker
         # Convert to moltype alphabet indicies
         self._data: dict[str, numpy.ndarray] = {
@@ -286,7 +287,7 @@ class SeqData:
 
     @__getitem__.register
     def _(self, value: int) -> SeqDataView:
-        seqid = self._name_order[value]
+        seqid = self._names[value]
         return self._make_seq(seqid=seqid)
 
     def get_seq_array(
@@ -304,8 +305,9 @@ class SeqData:
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
 
-    def iter_names(self, *, name_order: tuple[str] = None) -> Iterator:
-        yield from process_name_order(self._name_order, name_order)
+    @property
+    def names(self) -> Iterator[str]:
+        yield from self._names
 
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
@@ -397,16 +399,16 @@ class AlignedData:
     seqs: Optional[dict[str, numpy.ndarray]] = None
     gaps: Optional[dict[str, numpy.ndarray]] = None
     _moltype: MolType = field(init=False)
-    _name_order: tuple[str] = field(init=False)
+    _names: tuple[str] = field(init=False)
     _alpha: CharAlphabet = field(init=False)
     align_len: int = 0
     moltype: InitVar[Union[str, None]] = "dna"
-    name_order: InitVar[Union[tuple[str], None]] = None
+    names: InitVar[Union[tuple[str], None]] = None
 
-    def __post_init__(self, moltype, name_order):
+    def __post_init__(self, moltype, names):
         self._moltype = get_moltype(moltype)
         self._alpha = self._moltype.alphabets.degen_gapped
-        self._name_order = process_name_order(self.seqs, name_order)
+        self._names = validate_names(self.seqs, names)
         self.seqs = {k: seq_index(v, self._alpha) for k, v in self.seqs.items()}
 
     @classmethod
@@ -414,7 +416,7 @@ class AlignedData:
         cls,
         data: dict[str, Union[str, numpy.ndarray]],
         moltype: Union[str, MolType] = "dna",
-        name_order: Optional[tuple[str]] = None,
+        names: Optional[tuple[str]] = None,
     ):
         """
         Convert dict of {"seq_name": "seq"} to two dicts for seqs and gaps
@@ -431,13 +433,13 @@ class AlignedData:
         for name, seq in data.items():
             seqs[name], gaps[name] = seq_to_gap_coords(seq, moltype)
 
-        name_order = process_name_order(seqs, name_order)
+        names = validate_names(seqs, names)
 
         return cls(
             seqs=seqs,
             gaps=gaps,
             moltype=moltype,
-            name_order=name_order,
+            names=names,
             align_len=align_len,
         )
 

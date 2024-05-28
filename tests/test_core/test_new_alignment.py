@@ -8,9 +8,9 @@ from cogent3.core.new_alignment import (
     AlignedDataView,
     SeqData,
     SeqDataView,
-    process_name_order,
     seq_index,
     seq_to_gap_coords,
+    validate_names,
 )
 
 
@@ -61,58 +61,58 @@ def ad_demo(aligned_dict: dict[str, str]):
 
 
 def test_seqdata_default_attributes(sd_demo: SeqData):
-    assert sd_demo._name_order == ("seq1", "seq2")
+    assert sd_demo._names == ("seq1", "seq2")
     assert isinstance(sd_demo._alphabet, CharAlphabet)
 
 
 def test_seqdata_seq_if_str(seq1: str, alpha):
     with pytest.raises(NotImplementedError):
         SeqData(seq1, alphabet=alpha)
-    # assert SeqData(data)._name_order != ("A", "C", "T", "G")
+    # assert SeqData(data)._names != ("A", "C", "T", "G")
 
 
-def test_process_name_order_dict_happy(simple_dict):
-    got = process_name_order(simple_dict, None)
+def test_validate_names_dict_happy(simple_dict):
+    got = validate_names(simple_dict, None)
     assert got == ("seq1", "seq2")
-    got = process_name_order(simple_dict, name_order=("seq2", "seq1"))
+    got = validate_names(simple_dict, names=("seq2", "seq1"))
     assert got == ("seq2", "seq1")
 
 
 @pytest.mark.parametrize(
     "bad_names", [("bad"), ("bad",), ("bad2", "bad1"), ("seq1",), "seq1"]
 )
-def test_process_name_order_dict_bad(simple_dict, bad_names):
+def test_validate_names_dict_bad(simple_dict, bad_names):
     with pytest.raises(ValueError):
-        process_name_order(simple_dict, bad_names)
+        validate_names(simple_dict, bad_names)
 
 
 @pytest.mark.parametrize(
     "names", (["seq2"], ["seq2", "seq1"], ("seq2",), ("seq2", "seq1"))
 )
-def test_name_order_tuple_list_happy(names, sd_demo):
-    correct_names = sd_demo._name_order
-    got = process_name_order(correct_names, names)
+def test_names_tuple_list_happy(names, sd_demo):
+    correct_names = sd_demo._names
+    got = validate_names(correct_names, names)
     assert got == tuple(names)
 
 
 @pytest.mark.parametrize("bad_names", [("bad"), ("bad",), ("bad2", "bad1"), "seq1"])
-def test_name_order_tuple_list_bad(bad_names, sd_demo):
-    correct_names = sd_demo._name_order
+def test_names_tuple_list_bad(bad_names, sd_demo):
+    correct_names = sd_demo._names
     with pytest.raises(ValueError):
-        process_name_order(correct_names, bad_names)
+        validate_names(correct_names, bad_names)
 
 
 @pytest.mark.parametrize(
     "bad_names", [("bad"), ("bad",), ("bad2", "bad1"), ("seq1",), "seq1"]
 )
-def test_name_order_init(simple_dict, alpha, bad_names):
+def test_names_init(simple_dict, alpha, bad_names):
     sd = SeqData(simple_dict, alphabet=alpha)
-    assert sd._name_order == ("seq1", "seq2")
-    sd = SeqData(simple_dict, alphabet=alpha, name_order=("seq2", "seq1"))
-    assert sd._name_order == ("seq2", "seq1")
+    assert sd._names == ("seq1", "seq2")
+    sd = SeqData(simple_dict, alphabet=alpha, names=("seq2", "seq1"))
+    assert sd._names == ("seq2", "seq1")
 
     with pytest.raises(ValueError):
-        SeqData(simple_dict, alphabet=alpha, name_order=bad_names)
+        SeqData(simple_dict, alphabet=alpha, names=bad_names)
 
 
 def test_seqdata_get_seq_view(sd_demo: SeqData):
@@ -141,27 +141,12 @@ def test_get_seq_str_empty(sd_demo: SeqData):
         sd_demo.get_seq_str()
 
 
-def test_iter_names(sd_demo: SeqData):
-    got = sd_demo.iter_names()
-    assert tuple(got) == ("seq1", "seq2")
-
-    got = sd_demo.iter_names(name_order=["seq2", "seq1"])
-    assert tuple(got) == ("seq2", "seq1")
-
-    got = sd_demo.iter_names(name_order=["seq2"])
-    assert tuple(got) == ("seq2",)
-
-    got = sd_demo.iter_names(name_order=("bad", "bad2"))
-    with pytest.raises(ValueError):
-        tuple(got)
-
-
-@pytest.mark.parametrize("idx, seq", ([0, "seq1"], [1, "seq2"]))
-def test_iter_seq_view(sd_demo: SeqData, idx, seq):
-    got = tuple(sd_demo.iter_seq_view())
-    assert len(got) == 2
-    assert got[idx].seq == sd_demo
-    assert got[idx].seqid == seq
+def test_names_get(simple_dict, alpha):
+    expect = simple_dict.keys()
+    sd = SeqData(simple_dict, alphabet=alpha)
+    got = sd.names
+    # returns iterator
+    assert list(got) == list(expect)
 
 
 @pytest.mark.parametrize(
