@@ -354,7 +354,9 @@ def parse_attributes_gff3(attributes: str) -> dict:
     return attributes
 
 
-def merged_gff_records(records: list[GffRecord], num_fake_ids: int) -> tuple[dict, int]:
+def merged_gff_records(
+    records: list[GffRecordABC], num_fake_ids: int
+) -> tuple[dict[str, GffRecordABC], int]:
     """merges GFF records that have the same ID
 
     Parameters
