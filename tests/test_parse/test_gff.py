@@ -207,3 +207,19 @@ def test_gff_parser_headers():
             l.pop("attrs")
             got.append(set(l.values()))
         assert got == expect
+
+
+@pytest.fixture
+def worm_path(DATA_DIR):
+    return DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+
+
+def test_gff_parser_make_record_override_attr_parser(worm_path):
+    got = list(
+        gff_parser(
+            worm_path, attribute_parser=lambda x: x.split(";"), make_record=GffRecord
+        )
+    )
+    assert len(got) == 13
+    # no split operation
+    assert isinstance(got[0].attrs, str)

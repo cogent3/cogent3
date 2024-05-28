@@ -200,15 +200,21 @@ def gff_parser(
         only gff records matching these sequence IDs are returned
     gff3
         True if the format is gff3
+    make_record
+        callable that constructs a GffRecordABC compatible record. Defaults to
+        GffRecord. Over-rides attribute_parser if provided.
 
     Returns
     -------
-    dict
-        contains each of the 9 parameters specified by gff3, and comments.
+    iterable of GffRecordABCs
     """
     gff3 = gff3 or is_gff3(f)
     yield from _gff_parser(
-        f, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+        f,
+        attribute_parser=attribute_parser,
+        seqids=seqids,
+        gff3=gff3,
+        make_record=make_record,
     )
 
 
@@ -231,10 +237,15 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
+    make_record: OptionalCallable = None,
 ) -> typing.Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
-            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+            infile,
+            attribute_parser=attribute_parser,
+            seqids=seqids,
+            gff3=gff3,
+            make_record=make_record,
         )
 
 
@@ -244,10 +255,15 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
+    make_record: OptionalCallable = None,
 ) -> typing.Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
-            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+            infile,
+            attribute_parser=attribute_parser,
+            seqids=seqids,
+            gff3=gff3,
+            make_record=make_record,
         )
 
 
@@ -257,9 +273,14 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
+    make_record: OptionalCallable = None,
 ) -> typing.Iterable[GffRecordABC]:
     yield from _gff_parser(
-        f, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
+        f,
+        attribute_parser=attribute_parser,
+        seqids=seqids,
+        gff3=gff3,
+        make_record=make_record,
     )
 
 
@@ -268,13 +289,19 @@ def _gff_parser(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: bool = True,
+    make_record: OptionalCallable = None,
 ) -> typing.Iterable[GffRecordABC]:
     """parses a gff file"""
     seqids = seqids or set()
     seqids = {seqids} if isinstance(seqids, str) else set(seqids)
 
-    if attribute_parser is None:
+    if attribute_parser is None and make_record is None:
         attribute_parser = parse_attributes_gff3 if gff3 else parse_attributes_gff2
+    elif callable(make_record):
+        attribute_parser = None
+
+    if make_record is None:
+        make_record = GffRecord
 
     for line in f:
         # comments and blank lines
@@ -305,10 +332,9 @@ def _gff_parser(
         if start > end:
             start, end = end, start
 
-        # all attributes have an "ID" but this may not be unique
-        attributes = attribute_parser(attributes)
+        attributes = attribute_parser(attributes) if attribute_parser else attributes
 
-        yield GffRecord(
+        yield make_record(
             seqid=seqid,
             source=source,
             biotype=type_,
