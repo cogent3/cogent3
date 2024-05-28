@@ -207,7 +207,7 @@ class SeqDataView(SliceRecordABC):
         else:
             start, stop = self.start, self.stop
 
-        data["init_args"]["seq"] = self.seq[start:stop]
+        data["init_args"]["seq"] = str(self[start:stop])
         data["init_args"]["offset"] = int(self.parent_start)
         return data
 

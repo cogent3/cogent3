@@ -2,6 +2,7 @@ import numpy as numpy
 import pytest
 
 from cogent3 import Sequence, get_moltype
+from cogent3._version import __version__
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.new_alignment import (
     AlignedData,
@@ -134,6 +135,20 @@ def test_seqdataview_repr_default_long(alpha):
     sd = SeqData(d, alphabet=alpha)
     got = sd.get_seq_view(seqid="long")
     assert repr(got) == expect
+
+
+@pytest.mark.parametrize("seqid", ["seq1", "seq2"])
+def test_seqdataview_to_rich_dict(sd_demo: SeqData, seqid):
+    seq = sd_demo.get_seq_str(seqid=seqid)
+    expect = {
+        "type": "cogent3.core.new_alignment.SeqDataView",
+        "version": __version__,
+        "init_args": {"seq": seq, "seqid": seqid, "step": 1, "offset": 0},
+    }
+
+    sdv = sd_demo.get_seq_view(seqid)
+    got = sdv.to_rich_dict()
+    assert expect == got
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
