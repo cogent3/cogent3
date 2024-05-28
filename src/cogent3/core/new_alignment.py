@@ -180,12 +180,6 @@ class SeqDataView(SliceRecordABC):
     def __len__(self):
         return abs((self.start - self.stop) // self.step)
 
-    def __iter__(self):
-        return iter(self.value)
-
-    def __str__(self) -> str:
-        return self.value
-
     def __repr__(self) -> str:
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
@@ -240,7 +234,6 @@ class SeqDataView(SliceRecordABC):
         return self.from_rich_dict(self.to_rich_dict())
 
 
-@dataclass
 class SeqData:
     __slots__ = ("_data", "_alphabet", "_names", "_seq_maker")
 
@@ -254,7 +247,7 @@ class SeqData:
         self._alphabet = alphabet
         self._names = validate_names(data, names)
         self._seq_maker = seq_maker
-        # Convert to moltype alphabet indicies
+        # convert from string to array of uint8
         self._data: dict[str, numpy.ndarray] = {
             k: seq_index(v, self._alphabet) for k, v in data.items()
         }
@@ -312,12 +305,6 @@ class SeqData:
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
         return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len)
-
-    def iter_seq_view(self, *, name_order: tuple[str] = None) -> Iterator:
-        # Should this output SeqView or SeqDataView?
-        seqids = process_name_order(self._name_order, name_order)
-        for seqid in seqids:
-            yield self.get_seq_view(seqid=seqid)
 
 
 @singledispatch
