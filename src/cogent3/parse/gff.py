@@ -29,12 +29,6 @@ def is_gff3(f) -> bool:
 
 
 @is_gff3.register
-def _(f: pathlib.PurePath) -> bool:
-    with open_(f) as f:
-        return is_gff3(f)
-
-
-@is_gff3.register
 def _(f: pathlib.Path) -> bool:
     with open_(f) as f:
         return is_gff3(f)
@@ -216,19 +210,6 @@ def gff_parser(
         gff3=gff3,
         make_record=make_record,
     )
-
-
-@gff_parser.register
-def _(
-    f: pathlib.PurePath,
-    attribute_parser: OptionalCallable = None,
-    seqids: OptionalStrContainer = None,
-    gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
-    with open_(f) as infile:
-        yield from gff_parser(
-            infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
-        )
 
 
 @gff_parser.register
@@ -419,7 +400,6 @@ def merged_gff_records(records: list[GffRecord], num_fake_ids: int) -> tuple[dic
             reduced[record_id] = record
             reduced[record_id].spans = []
 
-        # should this just be an append?
         reduced[record_id].spans.append((record["start"], record["stop"]))
 
     del records
