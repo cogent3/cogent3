@@ -1,7 +1,9 @@
 """Unit tests for GFF and related parsers.
 """
 
+import io
 import os
+import pathlib
 import re
 
 from io import StringIO
@@ -10,7 +12,12 @@ from unittest import TestCase
 
 import pytest
 
-from cogent3.parse.gff import gff_parser, parse_attributes_gff2
+from cogent3.parse.gff import (
+    GffRecord,
+    gff_parser,
+    is_gff3,
+    parse_attributes_gff2,
+)
 
 
 headers = [
@@ -209,9 +216,70 @@ def test_gff_parser_headers():
         assert got == expect
 
 
+def test_is_gff3_invalid():
+    with pytest.raises(TypeError):
+        _ = is_gff3(b"blah")
+
+
+def make_gff_text():
+    return headers[0] + "".join([l for l, _ in data_lines])
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        data_lines,
+        io.StringIO(make_gff_text()),
+        pathlib.Path("data/c_elegans_WS199_shortened_gff.gff3"),
+        "data/c_elegans_WS199_shortened_gff.gff3",
+    ),
+)
+def test_is_gfg3(source):
+    assert isinstance(is_gff3(source), bool)
+
+
+def test_repr_gff3_record():
+    rec = GffRecord(name="1")
+    assert "name='1'" in repr(rec)
+
+
+def test_gff3_record_get():
+    attrs = "some text"
+    rec = GffRecord(name="1", attrs=attrs)
+    assert rec.get("attributes") == attrs
+
+
+def test_gff3_record_set():
+    attrs = "some text"
+    rec = GffRecord(name="1")
+    rec.attrs = attrs
+    assert rec["attributes"] == attrs
+
+
+def test_gff3_record_update():
+    attrs = "some text"
+    rec = GffRecord(name="1")
+    rec.update({"attrs": attrs})
+    assert rec.get("attributes") == attrs
+
+
 @pytest.fixture
 def worm_path(DATA_DIR):
     return DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+
+
+@pytest.mark.parametrize("path_type", (str, pathlib.Path))
+def test_gff_parser_path_types(worm_path, path_type):
+    got = list(gff_parser(path_type(worm_path), gff3=True))
+    assert len(got) == 13
+
+
+@pytest.mark.parametrize(
+    "obj", (make_gff_text().splitlines(), io.StringIO(make_gff_text()))
+)
+def test_gff_parser_obj_types(obj):
+    got = list(gff_parser(obj))
+    assert len(got) == 4
 
 
 def test_gff_parser_make_record_override_attr_parser(worm_path):
