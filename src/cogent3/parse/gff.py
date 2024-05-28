@@ -7,6 +7,8 @@ import pathlib
 import re
 import typing
 
+from abc import ABC
+
 from cogent3.util import warning as c3warn
 from cogent3.util.io import PathType, open_
 
@@ -70,7 +72,55 @@ _gff_item_map = {
 }
 
 
-class GffRecord:
+class GffRecordABC(ABC):
+    """abstract base class for gff records"""
+
+    # attributes that need to be on the instance
+    __slots__ = (
+        "seqid",
+        "source",
+        "biotype",
+        "name",
+        "parent_id",
+        "start",
+        "stop",
+        "spans",
+        "strand",
+        "score",
+        "phase",
+        "attrs",
+        "comments",
+    )
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return (
+            f"{name}(seqid={self.seqid!r}, name={self.name!r}, "
+            f"biotype={self.biotype!r}, start={self.start}, stop={self.stop}, "
+            f"strand={self.strand!r}, spans={self.spans})"
+        )
+
+    def __getitem__(self, item: str):
+        item = item.lower()
+        return getattr(self, _gff_item_map.get(item, item))
+
+    def __setitem__(self, key: str, value: typing.Any):
+        key = key.lower()
+        setattr(self, _gff_item_map.get(key, key), value)
+
+    def update(self, values: dict[str, typing.Any]):
+        for key, value in values.items():
+            self[key] = value
+
+    def get(self, item: str) -> typing.Any:
+        item = item.lower()
+        return getattr(self, _gff_item_map.get(item, item), None)
+
+    def to_dict(self) -> dict[str, typing.Any]:
+        return {k: getattr(self, k) for k in self.__slots__}
+
+
+class GffRecord(GffRecordABC):
     """Container for single GFF record. Elements can be indexed as a dict
     or directly as attributes.
 
@@ -127,33 +177,6 @@ class GffRecord:
         self.comments = comments
         self.attrs = attrs
 
-    def __repr__(self):
-        name = self.__class__.__name__
-        return (
-            f"{name}(seqid={self.seqid!r}, name={self.name!r}, "
-            f"start={self.start}, stop={self.stop}, strand={self.strand!r}, "
-            f"spans={self.spans})"
-        )
-
-    def __getitem__(self, item: str):
-        item = item.lower()
-        return getattr(self, _gff_item_map.get(item, item))
-
-    def __setitem__(self, key: str, value: typing.Any):
-        key = key.lower()
-        setattr(self, _gff_item_map.get(key, key), value)
-
-    def update(self, values: dict[str, typing.Any]):
-        for key, value in values.items():
-            self[key] = value
-
-    def get(self, item: str) -> typing.Any:
-        item = item.lower()
-        return getattr(self, _gff_item_map.get(item, item), None)
-
-    def to_dict(self) -> dict[str, typing.Any]:
-        return {k: getattr(self, k) for k in self.__slots__}
-
 
 @functools.singledispatch
 def gff_parser(
@@ -161,7 +184,8 @@ def gff_parser(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+    make_record: OptionalCallable = None,
+) -> typing.Iterable[GffRecordABC]:
     """parses a gff file
 
     Parameters
@@ -207,7 +231,7 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+) -> typing.Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
             infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
@@ -220,7 +244,7 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+) -> typing.Iterable[GffRecordABC]:
     with open_(f) as infile:
         yield from gff_parser(
             infile, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
@@ -233,7 +257,7 @@ def _(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: OptionalBool = None,
-) -> typing.Iterable[GffRecord]:
+) -> typing.Iterable[GffRecordABC]:
     yield from _gff_parser(
         f, attribute_parser=attribute_parser, seqids=seqids, gff3=gff3
     )
@@ -244,7 +268,7 @@ def _gff_parser(
     attribute_parser: OptionalCallable = None,
     seqids: OptionalStrContainer = None,
     gff3: bool = True,
-) -> typing.Iterable[GffRecord]:
+) -> typing.Iterable[GffRecordABC]:
     """parses a gff file"""
     seqids = seqids or set()
     seqids = {seqids} if isinstance(seqids, str) else set(seqids)
