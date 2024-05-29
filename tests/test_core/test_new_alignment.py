@@ -237,25 +237,17 @@ def test_get_seq_bytes(sd_demo: SeqData):
 
 
 # SeqData set_seq_maker tests
-def test_set_set_seq_maker_default(sd_demo):
-    assert sd_demo.set_seq_maker is None
+def test_seqdataview_make_seq_default(sd_demo):
+    assert sd_demo.make_seq is None
 
 
 @pytest.mark.parametrize(
     "maker", (get_moltype("dna").make_seq, get_moltype("dna").make_array_seq)
 )
-def test_set_seq_maker_setget(sd_demo, maker):
+def test_seqdataview_make_seq_setget(sd_demo, maker):
     alpha = sd_demo._alphabet
-    sd_demo.set_seq_maker = (maker, alpha)
-    assert sd_demo.set_seq_maker == maker
-
-
-def test_set_seq_maker_wrong_alpha(sd_demo):
-    mt = get_moltype("dna")
-    maker = mt.make_seq
-    alpha = mt.alphabet
-    with pytest.raises(ValueError):
-        sd_demo.set_seq_maker = maker, alpha
+    sd_demo.make_seq = maker
+    assert sd_demo.make_seq == maker
 
 
 # SeqData __getitem__ tests

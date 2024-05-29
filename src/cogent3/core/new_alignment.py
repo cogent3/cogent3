@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
-from typing import Iterator, Optional, Union
+from typing import Callable, Iterator, Optional, Union
 
 import numpy
 
@@ -12,6 +12,7 @@ from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.location import IndelMap
 from cogent3.core.moltype import MolType
 from cogent3.core.sequence import (
+    Sequence,
     SliceRecordABC,
     _input_vals_neg_step,
     _input_vals_pos_step,
@@ -235,53 +236,45 @@ class SeqDataView(SliceRecordABC):
 
 
 class SeqData:
-    __slots__ = ("_data", "_alphabet", "_names", "_seq_maker")
+    __slots__ = ("_data", "_alphabet", "_names", "_make_seq")
 
     def __init__(
         self,
         data: dict[str, SeqTypes],
         alphabet: CharAlphabet,
         names: Optional[Union[tuple[str], None]] = None,
-        seq_maker: Optional[type] = None,
+        make_seq: Optional[type] = None,
     ):
         self._alphabet = alphabet
         self._names = validate_names(data, names)
-        self._seq_maker = seq_maker
+        self._make_seq = make_seq
         # convert from string to array of uint8
         self._data: dict[str, numpy.ndarray] = {
             k: seq_index(v, self._alphabet) for k, v in data.items()
         }
 
     @property
-    def set_seq_maker(self) -> type:
-        return self._seq_maker
+    def make_seq(self) -> Union[SeqDataView, Sequence]:
+        return self._make_seq
 
-    @set_seq_maker.setter
-    def set_seq_maker(self, value: tuple[type, CharAlphabet]) -> type:
-        seq_maker, alphabet = value
-        if alphabet != self._alphabet:
-            raise ValueError("Alphabets must be the same")
-        assert alphabet == self._alphabet
-        self._seq_maker = seq_maker
-
-    def _make_seq(self, seqid) -> Union[SeqDataView, type]:
-        seqdataview = self.get_seq_view(seqid=seqid)
-        if self._seq_maker is None:
-            return seqdataview
-        return self.set_seq_maker(seqdataview, seqid=seqid)
+    @make_seq.setter
+    def make_seq(self, make_seq: Callable) -> None:
+        self._make_seq = make_seq
 
     @singledispatchmethod
-    def __getitem__(self, value: Union[str, int]) -> SeqDataView:
-        raise NotImplementedError(f"__getitem__ not implemented for {type(value)}")
+    def __getitem__(self, index: Union[str, int]) -> SeqDataView:
+        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
-    def _(self, value: str) -> SeqDataView:
-        return self._make_seq(seqid=value)
+    def _(self, index: str) -> SeqDataView:
+        sdv = self.get_seq_view(seqid=index)
+        if self._make_seq is None:
+            return sdv
+        return self.make_seq(sdv, seqid=seqid)
 
     @__getitem__.register
-    def _(self, value: int) -> SeqDataView:
-        seqid = self._names[value]
-        return self._make_seq(seqid=seqid)
+    def _(self, index: int) -> SeqDataView:
+        return self[self._names[index]]
 
     def get_seq_array(
         self, *, seqid: str, start: int = None, stop: int = None
