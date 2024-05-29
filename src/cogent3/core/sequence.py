@@ -2054,6 +2054,9 @@ class SliceRecordABC(ABC):
 
         return rel_pos
 
+    def __len__(self):
+        return abs((self.start - self.stop) // self.step)
+
     def __getitem__(self, segment: Union[int, slice]):
         kwargs = self._get_init_kwargs()
 
@@ -2358,9 +2361,6 @@ class SeqView(SliceRecordABC):
             )
 
         return self.__class__(seq=new_seq)
-
-    def __len__(self):
-        return abs((self.start - self.stop) // self.step)
 
     def __iter__(self):
         return iter(self.value)

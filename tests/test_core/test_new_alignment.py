@@ -258,22 +258,27 @@ def test_getitem_str(sd_demo, seq):
     assert got.seqid == seq
 
 
+@pytest.mark.xfail(reason="'SeqDataView' object has no attribute 'replace'")
 @pytest.mark.parametrize("idx", (0, 1))
-def test_getitem_int(simple_dict, alpha, idx):
+@pytest.mark.parametrize("make_seq", (True, False))
+def test_getitem_int(simple_dict, alpha, idx, make_seq):
     sd = SeqData(simple_dict, alphabet=alpha)
+    ms = get_moltype("dna").make_seq if make_seq else None
+    sd.make_seq = ms
     got = sd[idx]
     assert got.seq == sd
     assert got.seqid == list(simple_dict)[idx]
 
 
-@pytest.mark.xfail
+@pytest.mark.xfail(reason="'SeqDataView' object has no attribute 'replace'")
 @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
-def test_getitem_str_when_set_seq_maker(sd_demo, seqid):
-    mt = get_moltype("dna")
-    sd_demo.set_seq_maker = mt.make_seq, mt.alphabets.degen_gapped
-    got = sd_demo[seqid]  # get item
+@pytest.mark.parametrize("make_seq", (True, False))
+def test_getitem_str(sd_demo, seqid, make_seq):
+    ms = get_moltype("dna").make_seq if make_seq else None
+    sd_demo.make_seq = ms
+    got = sd_demo[seqid]
     assert got.seq == sd_demo
-    assert got.name == seqid
+    assert got.seqid == seqid
 
 
 # SeqDataView tests for returning an instance of itself

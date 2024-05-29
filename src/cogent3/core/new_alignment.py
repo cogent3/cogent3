@@ -178,9 +178,6 @@ class SeqDataView(SliceRecordABC):
     def __bytes__(self):
         return self.bytes_value
 
-    def __len__(self):
-        return abs((self.start - self.stop) // self.step)
-
     def __repr__(self) -> str:
         seq = f"{self[:10]!s}...{self[-5:]}" if len(self) > 15 else str(self)
         return (
@@ -270,7 +267,7 @@ class SeqData:
         sdv = self.get_seq_view(seqid=index)
         if self._make_seq is None:
             return sdv
-        return self.make_seq(sdv, seqid=seqid)
+        return self.make_seq(sdv, seqid=index)
 
     @__getitem__.register
     def _(self, index: int) -> SeqDataView:
@@ -314,7 +311,6 @@ def seq_to_gap_coords(
 @seq_to_gap_coords.register
 def _(seq: str, moltype: MolType) -> tuple[str, IndelMap]:
     seq = moltype.make_seq(seq)
-    gap_char = moltype.gap
     indel_map, ungapped_seq = seq.parse_out_gaps()
 
     if indel_map.num_gaps == 0:
