@@ -66,7 +66,7 @@ def _(correct_names: dict, names: tuple) -> tuple:
     raise ValueError("names do not match dictionary keys")
 
 
-def _names_list_tuple(correct_names, names):
+def _names_list_tuple(correct_names: Union[tuple, list], names: tuple):
     """List and tuples have the same implementation for dispatch"""
     if names is None:
         return correct_names
@@ -90,8 +90,8 @@ class SeqDataView(SliceRecordABC):
     A view class for SeqData, providing properties for different
     representations.
 
-    self.seq is a SeqData() instance, but other properties are a reference to a single
-    seqid only.
+    self.seq is a SeqData() instance, but other properties are a reference to a
+    single seqid only.
 
     Example
     -------
@@ -127,7 +127,7 @@ class SeqDataView(SliceRecordABC):
         self._offset = offset
         self._seqid = seqid
 
-    def _checked_seq_len(self, seq_len) -> int:
+    def _checked_seq_len(self, seq_len: int) -> int:
         assert seq_len is not None
         return seq_len
 
@@ -251,6 +251,10 @@ class SeqData:
         }
 
     @property
+    def names(self) -> Iterator[str]:
+        yield from self._names
+
+    @property
     def make_seq(self) -> Union[SeqDataView, Sequence]:
         return self._make_seq
 
@@ -265,9 +269,7 @@ class SeqData:
     @__getitem__.register
     def _(self, index: str) -> SeqDataView:
         sdv = self.get_seq_view(seqid=index)
-        if self._make_seq is None:
-            return sdv
-        return self.make_seq(sdv, seqid=index)
+        return sdv if self._make_seq is None else self.make_seq(sdv, seqid=index)
 
     @__getitem__.register
     def _(self, index: int) -> SeqDataView:
@@ -287,10 +289,6 @@ class SeqData:
         self, *, seqid: str, start: int = None, stop: int = None
     ) -> bytes:
         return self.get_seq_str(seqid=seqid, start=start, stop=stop).encode("utf8")
-
-    @property
-    def names(self) -> Iterator[str]:
-        yield from self._names
 
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
