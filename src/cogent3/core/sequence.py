@@ -2054,6 +2054,9 @@ class SliceRecordABC(ABC):
 
         return rel_pos
 
+    def __len__(self):
+        return abs((self.start - self.stop) // self.step)
+
     def __getitem__(self, segment: Union[int, slice]):
         kwargs = self._get_init_kwargs()
 
@@ -2320,6 +2323,7 @@ class SeqView(SliceRecordABC):
         self.step = step
         self._offset = offset
         self._seqid = seqid
+
         if seq_len is not None and seq_len != len(seq):
             raise AssertionError(f"{seq_len} != {len(self.seq)})")
         self._seq_len = seq_len or len(self.seq)
@@ -2358,9 +2362,6 @@ class SeqView(SliceRecordABC):
 
         return self.__class__(seq=new_seq)
 
-    def __len__(self):
-        return abs((self.start - self.stop) // self.step)
-
     def __iter__(self):
         return iter(self.value)
 
@@ -2397,8 +2398,7 @@ class SeqView(SliceRecordABC):
         init_args = data.pop("init_args")
         if "offset" in data:
             init_args["offset"] = data.pop("offset")
-        sv = cls(**init_args)
-        return sv
+        return cls(**init_args)
 
     def copy(self, sliced: bool = False):
         """returns copy
