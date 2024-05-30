@@ -70,12 +70,46 @@ def _is_float(val) -> bool:
 
 
 @total_ordering
-class SequenceMixin:
-    """Abstract class containing Sequence interface.
+class Sequence:
+    """Holds the standard Sequence object. Immutable.
 
-    Specifies methods that Sequence delegates to its MolType, and methods for
-    detecting gaps.
+    Notes
+    -----
+    Sequences should be constructed by a MolType instance.
     """
+
+    def __init__(
+        self,
+        moltype: "MolType",
+        seq: str,
+        *,
+        name: OptStr = None,
+        info: typing.Optional[typing.Union[dict, InfoClass]] = None,
+        annotation_offset: int = 0,
+    ):
+        """Initialize a sequence.
+
+        Parameters
+        ----------
+        moltype
+            MolType instance
+        seq
+            the raw sequence string, default is ''
+        name
+            the sequence name
+        info
+            Info object or dict
+        annotation_offset
+            integer indicating start position relative to annotations
+        """
+        self.moltype = moltype
+        self.name = name
+        self._seq = _coerce_to_seqview(seq, name)
+        info = info or {}
+        self.info = InfoClass(**info)
+        self._repr_policy = dict(num_pos=60)
+        self._annotation_db = BasicAnnotationDb()
+        self.annotation_offset = annotation_offset
 
     def __str__(self):
         return str(self._seq)
@@ -1486,49 +1520,6 @@ class SequenceMixin:
         """
         strand = -1 if self._seq.is_reversed else 1
         return self._seq.seqid, self._seq.parent_start, self._seq.parent_stop, strand
-
-
-@total_ordering
-class Sequence(SequenceMixin):
-    """Holds the standard Sequence object. Immutable.
-
-    Notes
-    -----
-    Sequences should be constructed by a MolType instance.
-    """
-
-    def __init__(
-        self,
-        moltype: "MolType",
-        seq: str,
-        *,
-        name: OptStr = None,
-        info: typing.Optional[typing.Union[dict, InfoClass]] = None,
-        annotation_offset: int = 0,
-    ):
-        """Initialize a sequence.
-
-        Parameters
-        ----------
-        moltype
-            MolType instance
-        seq
-            the raw sequence string, default is ''
-        name
-            the sequence name
-        info
-            Info object or dict
-        annotation_offset
-            integer indicating start position relative to annotations
-        """
-        self.moltype = moltype
-        self.name = name
-        self._seq = _coerce_to_seqview(seq, name)
-        info = info or {}
-        self.info = InfoClass(**info)
-        self._repr_policy = dict(num_pos=60)
-        self._annotation_db = BasicAnnotationDb()
-        self.annotation_offset = annotation_offset
 
 
 class ProteinSequence(Sequence):

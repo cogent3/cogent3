@@ -8,14 +8,7 @@ from string import ascii_letters
 
 import numpy
 
-from cogent3.core import new_sequence
-
-from .new_alphabet import (
-    CharAlphabet,
-    _coerce_to_type,
-    convert_alphabet,
-    make_alphabet,
-)
+from cogent3.core import new_alphabet, new_sequence
 
 
 OptStr = typing.Optional[str]
@@ -337,10 +330,10 @@ class MolType:
     pairing_rules: typing.Optional[dict[str, dict[frozenset[str], bool]]] = None
 
     # private attributes to be delivered via properties
-    _monomers: "CharAlphabet" = dataclasses.field(init=False)
-    _gapped: "CharAlphabet" = dataclasses.field(init=False)
-    _degen: "CharAlphabet" = dataclasses.field(init=False)
-    _degen_gapped: "CharAlphabet" = dataclasses.field(init=False)
+    _monomers: new_alphabet.CharAlphabet = dataclasses.field(init=False)
+    _gapped: new_alphabet.CharAlphabet = dataclasses.field(init=False)
+    _degen: new_alphabet.CharAlphabet = dataclasses.field(init=False)
+    _degen_gapped: new_alphabet.CharAlphabet = dataclasses.field(init=False)
     _colors: dict[str, str] = dataclasses.field(init=False)
 
     # how to connect this to the sequence constructor and avoid
@@ -357,23 +350,25 @@ class MolType:
     ):
         self._colors = colors or defaultdict(_DefaultValue("black"))
         self._make_seq = make_seq
-        gap = _coerce_to_type(monomers, self.gap or "")
-        missing = _coerce_to_type(monomers, self.missing or "")
-        ambigs = _coerce_to_type(monomers, "".join(self.ambiguities or ""))
+        gap = new_alphabet._coerce_to_type(monomers, self.gap or "")
+        missing = new_alphabet._coerce_to_type(monomers, self.missing or "")
+        ambigs = new_alphabet._coerce_to_type(monomers, "".join(self.ambiguities or ""))
 
-        self._monomers = make_alphabet(chars=monomers, gap=None, moltype=self)
+        self._monomers = new_alphabet.make_alphabet(
+            chars=monomers, gap=None, moltype=self
+        )
         self._degen = (
-            make_alphabet(chars=monomers + ambigs, gap=None, moltype=self)
+            new_alphabet.make_alphabet(chars=monomers + ambigs, gap=None, moltype=self)
             if ambigs
             else None
         )
         self._gapped = (
-            make_alphabet(chars=monomers + gap, gap=self.gap, moltype=self)
+            new_alphabet.make_alphabet(chars=monomers + gap, gap=self.gap, moltype=self)
             if gap
             else None
         )
         self._degen_gapped = (
-            make_alphabet(
+            new_alphabet.make_alphabet(
                 chars=monomers + gap + ambigs + missing, gap=self.gap, moltype=self
             )
             if ambigs and gap
@@ -383,7 +378,7 @@ class MolType:
             # assume we have a nucleic acid moltype
             src = "".join(self._degen_gapped)
             dest = "".join(complements[c] for c in self._degen_gapped)
-            self._complement = convert_alphabet(
+            self._complement = new_alphabet.convert_alphabet(
                 src.encode("utf8"),
                 dest.encode("utf8"),
             )
@@ -444,7 +439,7 @@ class MolType:
         yield from (a for a in alphas if a)
 
     def is_compatible_alphabet(
-        self, alphabet: CharAlphabet, strict: bool = True
+        self, alphabet: new_alphabet.CharAlphabet, strict: bool = True
     ) -> bool:
         """checks that characters in alphabet are equal to a bound alphabet
 
