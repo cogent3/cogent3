@@ -246,7 +246,7 @@ def test_seqdataview_make_seq_default(sd_demo):
 )
 def test_seqdataview_make_seq_setget(sd_demo, maker):
     sd_demo.make_seq = maker
-    assert sd_demo.make_seq == maker
+    assert sd_demo.make_seq is maker
 
 
 # SeqData __getitem__ tests
