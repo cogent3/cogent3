@@ -198,7 +198,7 @@ class SeqsData:
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
-        # todo: kath, convert seq_index to using alphabet to do this directly
+        # todo: kath, remove seq_index and use alphabet to do this directly
         self._data: dict[str, numpy.ndarray] = {
             k: seq_index(v, self._alphabet) for k, v in data.items()
         }
