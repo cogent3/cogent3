@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
+from pathlib import Path
 from typing import Callable, Iterator, Optional, Union
 
 import numpy
@@ -17,10 +18,16 @@ from cogent3.core.sequence import (
     _input_vals_neg_step,
     _input_vals_pos_step,
 )
+from cogent3.util import warning as c3warn
 from cogent3.util.misc import get_object_provenance
 
 
 SeqTypes = Union[str, bytes, numpy.ndarray]
+
+
+def assign_sequential_names(num_seqs, base_name="seq", start_at=0):
+    """Returns list of num_seqs sequential, unique names."""
+    return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
 @singledispatch
@@ -46,7 +53,9 @@ def _(seq: numpy.ndarray, alphabet: CharAlphabet) -> numpy.ndarray:
 
 
 @singledispatch
-def validate_names(correct_names: Union[dict, tuple, list], names: tuple) -> tuple:
+def validate_names(
+    correct_names: Union[dict, tuple, list], names: Optional[tuple]
+) -> tuple:
     """
     Helper to check that names passed as args match sequence names.
     dict (data) for constructor; tuple for SeqData instance
@@ -57,7 +66,7 @@ def validate_names(correct_names: Union[dict, tuple, list], names: tuple) -> tup
 
 
 @validate_names.register
-def _(correct_names: dict, names: tuple) -> tuple:
+def _(correct_names: dict, names: Optional[tuple]) -> tuple:
     keys = correct_names.keys()
     if names is None:
         return tuple(keys)
@@ -66,7 +75,7 @@ def _(correct_names: dict, names: tuple) -> tuple:
     raise ValueError("names do not match dictionary keys")
 
 
-def _names_list_tuple(correct_names: Union[tuple, list], names: tuple):
+def _names_list_tuple(correct_names: Union[tuple, list], names: Optional[tuple]):
     """List and tuples have the same implementation for dispatch"""
     if names is None:
         return correct_names
@@ -76,12 +85,12 @@ def _names_list_tuple(correct_names: Union[tuple, list], names: tuple):
 
 
 @validate_names.register
-def _(correct_names: tuple, names: tuple) -> tuple:
+def _(correct_names: tuple, names: Optional[tuple]) -> tuple:
     return _names_list_tuple(correct_names, names)
 
 
 @validate_names.register
-def _(correct_names: list, names: tuple) -> tuple:
+def _(correct_names: list, names: Optional[tuple]) -> tuple:
     return _names_list_tuple(correct_names, names)
 
 
@@ -199,7 +208,10 @@ class SeqDataView(SliceRecordABC):
         else:
             start, stop = self.start, self.stop
 
+        # todo: kath, what do we want seq to be? I think a new
+        # SeqData where the seq corresponding to seqid is sliced?
         data["init_args"]["seq"] = str(self[start:stop])
+        data["init_args"]["seq_len"] = len(data["init_args"]["seq"])
         data["init_args"]["offset"] = int(self.parent_start)
         return data
 
@@ -355,6 +367,100 @@ def _(seq: numpy.ndarray, moltype: MolType) -> tuple[str, IndelMap]:
     )
 
     return ungapped, indel_map
+
+
+@singledispatch
+def prep_for_seq_data(
+    data: Union[dict, list, numpy.ndarray], alphabet: CharAlphabet
+) -> dict[str, numpy.ndarray]:
+    """Assuming data is a series of seqs, a series of[name, seq] pairs, or a
+    dict {name: seq}"""
+    raise NotImplementedError(
+        f"{prep_for_seq_data.__name__} not implemented for type {type(data)}"
+    )
+
+
+@prep_for_seq_data.register
+def _(data: dict, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
+    return {str(k): seq_index(v, alphabet=alphabet) for k, v in data.items()}
+
+
+@prep_for_seq_data.register
+def _(data: list, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
+    # if data = [seq, ...]
+    if isinstance(data[0], (str, bytes, numpy.ndarray)):
+        names = assign_sequential_names(len(data))
+        named_seqs = dict(zip(names, data))
+        return prep_for_seq_data(named_seqs, alphabet=alphabet)
+
+    # if data = [[name, seq], ...] or [(name, seq), ...]
+    elif isinstance(data[0], (list, tuple)):
+        named_seqs = dict(data)
+        return prep_for_seq_data(named_seqs, alphabet=alphabet)
+
+
+@prep_for_seq_data.register
+def _(data: numpy.ndarray, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
+    names = assign_sequential_names(data.shape[0])
+    named_seqs = dict(zip(names, data))
+    return prep_for_seq_data(named_seqs, alphabet=alphabet)
+
+
+def make_unaligned_seqs(
+    data: Union[dict, list, numpy.ndarray],
+    moltype: Union[str, MolType],
+    label_to_name: Callable = None,
+    info: dict = None,
+    source: Union[str, Path] = None,
+    **kwargs,
+):
+    """Initialize an unaligned collection of sequences.
+
+    Parameters
+    ----------
+    data
+        sequences, assumes a series of seqs, a series of[name, seq] pairs, or a
+        dict {name: seq, ...}
+    moltype
+        string representation of the moltype, e.g., 'dna', 'protein'.
+    label_to_name
+        function for converting original name into another name.
+    info
+        a dict from which to make an info object
+    source
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
+    **kwargs
+        other keyword arguments to be passed to SequenceCollection
+    """
+    moltype = get_moltype(moltype)
+    alphabet = moltype.alphabet
+    
+    if len(data) == 0:
+        raise ValueError("data must be at least one sequence.")
+    prepped_data = prep_for_seq_data(data, alphabet)
+    
+    seq_data = SeqData(data=prepped_data, alphabet=alphabet)
+
+    return SequenceCollection(seq_data=seq_data, moltype=moltype)
+
+
+class SequenceCollection:
+    def __init__(self, seq_data: SeqData, moltype: MolType):
+        self.moltype = moltype
+        self._seq_data = seq_data
+        self._seq_data.make_seq = self.moltype.make_seq
+
+    @property
+    def seqs(self) -> SeqData:
+        return self._seq_data
+
+    @property
+    @c3warn.deprecated_callable(
+        version="2025.5", reason=".seqs can now be indexed by name", new=".seqs"
+    )
+    def named_seqs(self) -> SeqData:  # pragma: no cover
+        return self.seqs
 
 
 class AlignedDataView(SeqDataView):
