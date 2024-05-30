@@ -251,7 +251,7 @@ def test_seqdataview_make_seq_setget(sd_demo, maker):
 
 # SeqData __getitem__ tests
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
-def test_getitem_str(sd_demo, seq):
+def test_getitem_str_1(sd_demo, seq):
     got = sd_demo[seq]
     assert got.seq == sd_demo
     assert got.seqid == seq
