@@ -412,6 +412,227 @@ class SequenceCollection:
     def named_seqs(self) -> SeqsData:  # pragma: no cover
         return self.seqs
 
+    def take_seqs(
+        self, seqs: Union[str, typing.Sequence[str]], negate: bool = False, **kwargs
+    ):
+        """Returns new collectiomn containing only specified seqs.
+
+        Parameters
+        ----------
+        seqs
+            selected sequences
+
+
+        Notes
+        -----
+        the seqs in the new collection will be references to the same objects as
+        the seqs in the old collection.
+        """
+        ...
+
+    def __repr__(self):
+        seqs = []
+        limit = 10
+        delimiter = ""
+
+        repr_seq_names = [min(self.names, key=lambda name: len(self.seqs[name]))]
+        if len(self.names) > 1:
+            # In case of a tie, min and max return first.
+            # reversed ensures if all seqs are of same length, different seqs are returned
+            repr_seq_names.append(
+                max(reversed(self.names), key=lambda name: len(self.seqs[name]))
+            )
+
+        for name in repr_seq_names:
+            elts = list(str(self.seqs[name])[: limit + 1])
+            if len(elts) > limit:
+                elts[-1] = "..."
+            seqs.append(f"{name}[{delimiter.join(elts)}]")
+
+        if len(self.names) > 2:
+            seqs.insert(1, "...")
+
+        seqs = ", ".join(seqs)
+
+        return f"{len(self.names)}x ({seqs}) {self.moltype.get_type()} seqcollection"
+
+    def _repr_html_(self) -> str:
+        settings = self._repr_policy.copy()
+        env_vals = get_setting_from_environ(
+            "COGENT3_ALIGNMENT_REPR_POLICY",
+            dict(num_seqs=int, num_pos=int, wrap=int),
+        )
+        settings.update(env_vals)
+        return self.to_html(
+            name_order=self.names[: settings["num_seqs"]],
+            limit=settings["num_pos"],
+            wrap=settings["wrap"],
+        )
+
+    def to_html(
+        self,
+        name_order: Optional[typing.Sequence[str]] = None,
+        wrap: int = 60,
+        limit: Optional[int] = None,
+        colors: Optional[Mapping[str, str]] = None,
+        font_size: int = 12,
+        font_family: str = "Lucida Console",
+    ) -> str:
+        """returns html with embedded styles for sequence colouring
+
+        Parameters
+        ----------
+        name_order
+            order of names for display.
+        wrap
+            number of alignment columns per row
+        limit
+            truncate alignment to this length
+        colors
+            {character
+            moltype.
+        font_size
+            in points. Affects labels and sequence and line spacing
+            (proportional to value)
+        font_family
+            string denoting font family
+
+        Examples
+        ---------
+
+        In a jupyter notebook, this code is used to provide the representation.
+
+        .. code-block:: python
+
+            seq_col # is rendered by jupyter
+
+        You can directly use the result for display in a notebook as
+
+        .. code-block:: python
+
+            from IPython.core.display import HTML
+            HTML(seq_col.to_html())
+        """
+        css, styles = self.moltype.get_css_style(
+            colors=colors, font_size=font_size, font_family=font_family
+        )
+
+        # Gather stats about the sequence lengths
+        seq_lens = sorted([len(seq) for seq in self.seqs])
+        if seq_lens:
+            min_seq_len = seq_lens[0]
+            max_seq_len = seq_lens[-1]
+
+            # Find median
+            if len(seq_lens) % 2 == 0:
+                total = (
+                    seq_lens[(len(seq_lens) - 2) // 2] + seq_lens[len(seq_lens) // 2]
+                )
+                med_seq_len = total // 2 if total % 2 == 0 else round(total / 2, 1)
+            else:
+                med_seq_len = seq_lens[(len(seq_lens) - 1) // 2]
+        else:
+            min_seq_len = med_seq_len = max_seq_len = 0
+
+        if name_order:
+            selected = self.take_seqs(name_order)
+        else:
+            name_order = list(self.names)
+            selected = self
+
+        # Stylise each character in each sequence
+        gaps = "".join(selected.moltype.gaps)
+        template = '<span class="%s">%%s</span>'
+        styled_seqs = defaultdict(list)
+        max_truncated_len = 0
+        for name in name_order:
+            sequence = str(self.seqs[name])[:limit]
+            seq_len = len(sequence)
+            max_truncated_len = max(seq_len, max_truncated_len)
+            start_gap = re.search(f"^[{gaps}]+", sequence)
+            end_gap = re.search(f"[{gaps}]+$", sequence)
+            start = 0 if start_gap is None else start_gap.end()
+            end = seq_len if end_gap is None else end_gap.start()
+
+            seq = []
+            for i, char in enumerate(sequence):
+                if i < start or i >= end:
+                    style = f"terminal_ambig_{self.moltype.label}"
+                else:
+                    style = styles[char]
+                s = template % style
+                s = s % char
+                seq.append(s)
+
+            styled_seqs[name] = seq
+
+        # Ensure all sublists are of same length
+        for name in styled_seqs:
+            if len(styled_seqs[name]) < max_truncated_len:
+                styled_seqs[name].extend(
+                    [""] * (max_truncated_len - len(styled_seqs[name]))
+                )
+
+        # Make html table
+        seqs = numpy.array([styled_seqs[n] for n in name_order], dtype="O")
+        table = ["<table>"]
+        seq_ = "<td>%s</td>"
+        label_ = '<td class="label">%s</td>'
+        num_row_ = '<tr class="num_row"><td></td><td><b>{:,d}</b></td></tr>'
+        for i in range(0, max_truncated_len, wrap):
+            table.append(num_row_.format(i))
+            seqblock = seqs[:, i : i + wrap].tolist()
+            for n, s in zip(name_order, seqblock):
+                s = "".join(s)
+                # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
+                if len(s) > 0:
+                    row = "".join([label_ % n, seq_ % s])
+                    table.append(f"<tr>{row}</tr>")
+        table.append("</table>")
+        if (
+            limit
+            and limit < len(selected)
+            or name_order
+            and len(name_order) < len(selected.names)
+        ):
+            summary = (
+                "%s x {min=%s, median=%s, max=%s} (truncated to %s x %s) %s sequence collection"
+            ) % (
+                self.num_seqs,
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
+                len(name_order) if name_order else len(selected.names),
+                limit or len(selected),
+                selected.moltype.label,
+            )
+        else:
+            summary = ("%s x {min=%s, median=%s, max=%s} %s sequence collection") % (
+                self.num_seqs,
+                min_seq_len,
+                med_seq_len,
+                max_seq_len,
+                selected.moltype.label,
+            )
+
+        text = [
+            "<style>",
+            ".c3align table {margin: 10px 0;}",
+            ".c3align td { border: none !important; text-align: left !important; }",
+            ".c3align tr:not(.num_row) td span {margin: 0 2px;}",
+            ".c3align tr:nth-child(even) {background: #f7f7f7;}",
+            ".c3align .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
+            ".c3align .label { font-size: %dpt ; text-align: right !important; "
+            "color: black !important; padding: 0 4px; display: table-cell !important; "
+            "font-weight: normal !important; }" % font_size,
+            "\n".join([".c3align " + style for style in css]),
+            "</style>",
+            '<div class="c3align">',
+            "\n".join(table),
+            f"<p><i>{summary}</i></p>",
+            "</div>",
+        ]
+        return "\n".join(text)
 
 
 class AlignedDataView(SeqDataView):

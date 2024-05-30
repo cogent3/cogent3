@@ -3703,7 +3703,7 @@ def test_slice_aligned_featuremap_multi_spans():
     assert str(sliced) == "AAGGGCCC"
 
 
-def test_sequence_collection_repr():
+def test_sequence_collection_repr():  # ported
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
         "ENSMUSG00000039616": "GCCCTTCAAATTT",

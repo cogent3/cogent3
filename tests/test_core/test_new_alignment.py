@@ -462,4 +462,81 @@ def test_make_unaligned_seqs_dict(moltype):
 def test_make_unaligned_seqs_raises():
     data = "AGTCCTGA"
     with pytest.raises(NotImplementedError):
-        make_unaligned_seqs(data=data, moltype="dna")
+        new_aln.make_unaligned_seqs(data=data, moltype="dna")
+
+
+@pytest.mark.xfail(
+    reason="todo: kath, AttributeError: 'SeqDataView' object has no attribute 'replace'"
+)
+def test_iter_seqs_ragged_padded():
+    """SequenceCollection.iter_seqs() method should support reordering of seqs"""
+    ragged_padded = new_aln.make_unaligned_seqs(
+        data={"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"}, moltype="dna"
+    )
+    seqs = list(ragged_padded.iter_seqs())
+    assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
+    seqs = list(ragged_padded.iter_seqs(seq_order=["b", "a", "a"]))
+    assert seqs == ["AAA---", "AAAAAA", "AAAAAA"]
+    assert seqs[1] is seqs[2]
+    assert seqs[0], ragged_padded.seqs["b"]
+
+
+@pytest.mark.xfail(
+    reason="todo: kath, AttributeError: 'SeqDataView' object has no attribute 'replace'"
+)
+def test_iter_seqs_ragged(self):
+    """SequenceCollection iter_seqs() method should support reordering of seqs"""
+    ragged = new_aln.make_unaligned_seqs(
+        data={"a": "AAAAAA", "b": "AAA", "c": "AAAA"}, moltype="dna"
+    )
+    seqs = list(ragged.iter_seqs())
+    assert seqs == ["AAAAAA", "AAA", "AAAA"]
+    seqs = list(self.ragged.iter_seqs(seq_order=["b", "a", "a"]))
+    assert seqs == ["AAA", "AAAAAA", "AAAAAA"]
+    assert seqs[1] is seqs[2]
+    assert seqs[0], ragged.seqs["b"]
+
+
+@pytest.mark.xfail(reason="New sc repr not functional yet")
+def test_sequence_collection_repr():
+    data = {
+        "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+    }
+    seqs = new_aln.make_unaligned_seqs(data=data, moltype="dna")
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "ENSMUSG00000039616": "GCCCTTCAAATTT",
+        "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
+    }
+    seqs = new_aln.make_unaligned_seqs(data=data, moltype="dna")
+    assert (
+        repr(seqs)
+        == "2x (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]) dna seqcollection"
+    )
+
+    data = {
+        "a": "TCGAT",
+    }
+    seqs = new_aln.make_unaligned_seqs(data=data, moltype="dna")
+    assert repr(seqs) == "1x (a[TCGAT]) dna seqcollection"
+
+    data = {
+        "a": "TCGAT" * 2,
+    }
+    seqs = new_aln.make_unaligned_seqs(data=data, moltype="dna")
+    assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
+
+    data = {
+        "a": "A" * 11,
+        "b": "B" * 3,
+        "c": "C" * 3,
+        "d": "D" * 11,
+        "e": "E" * 8,
+    }
+    seqs = new_aln.make_unaligned_seqs(data=data, moltype="ASCII")
+    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDD...]) text seqcollection"
