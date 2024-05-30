@@ -382,6 +382,7 @@ def prep_for_seq_data(
 
 @prep_for_seq_data.register
 def _(data: dict, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
+    # todo: kath, apply label to name here
     return {str(k): seq_index(v, alphabet=alphabet) for k, v in data.items()}
 
 
@@ -435,11 +436,11 @@ def make_unaligned_seqs(
     """
     moltype = get_moltype(moltype)
     alphabet = moltype.alphabet
-    
+
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
     prepped_data = prep_for_seq_data(data, alphabet)
-    
+
     seq_data = SeqData(data=prepped_data, alphabet=alphabet)
 
     return SequenceCollection(seq_data=seq_data, moltype=moltype)
