@@ -195,26 +195,6 @@ class SeqDataView(SliceRecordABC):
             f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
 
-    def to_rich_dict(self):
-        # get the current state
-        data = {"type": get_object_provenance(self), "version": __version__}
-        data["init_args"] = self._get_init_kwargs()
-        # since we will truncate the seq, we don't need start, stop,
-        # step is sufficient
-        data["init_args"]["step"] = self.step
-        if self.is_reversed:
-            adj = self.seq_len + 1
-            start, stop = self.stop + adj, self.start + adj
-        else:
-            start, stop = self.start, self.stop
-
-        # todo: kath, what do we want seq to be? I think a new
-        # SeqData where the seq corresponding to seqid is sliced?
-        data["init_args"]["seq"] = str(self[start:stop])
-        data["init_args"]["seq_len"] = len(data["init_args"]["seq"])
-        data["init_args"]["offset"] = int(self.parent_start)
-        return data
-
     @classmethod
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
