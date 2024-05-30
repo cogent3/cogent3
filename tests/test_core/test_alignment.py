@@ -218,7 +218,7 @@ class SequenceCollectionBaseTests(object):
         self.assertTrue((un_list == first_list) or (un_list == sec_list))
         self.assertNotEqual(first_list, sec_list)
 
-    def test_iter_seqs(self):
+    def test_iter_seqs(self):  # ported
         """SequenceCollection iter_seqs() method should support reordering of seqs"""
         self.ragged_padded = self.Class(
             self.ragged_padded.named_seqs, names=["a", "b", "c"]
@@ -845,7 +845,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         self.ragged.names = "bac"
         self.assertEqual(list(self.ragged.seqs), ["AAA", "AAAAAA", "AAAA"])
 
-    def test_iter_seqs_ragged(self):
+    def test_iter_seqs_ragged(self):  # ported
         """SequenceCollection iter_seqs() method should support reordering of seqs"""
         self.ragged.names = ["a", "b", "c"]
         seqs = list(self.ragged.iter_seqs())

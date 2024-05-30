@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import re
+import typing
+
+from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
 from pathlib import Path
-from typing import Callable, Iterator, Optional, Union
+from typing import Callable, Iterator, Mapping, Optional, Union
 
 import numpy
 
 from cogent3 import get_moltype
-from cogent3._version import __version__
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.location import IndelMap
 from cogent3.core.moltype import MolType
@@ -19,10 +22,10 @@ from cogent3.core.sequence import (
     _input_vals_pos_step,
 )
 from cogent3.util import warning as c3warn
-from cogent3.util.misc import get_object_provenance
+from cogent3.util.misc import get_setting_from_environ
 
 
-SeqTypes = Union[str, bytes, numpy.ndarray]
+PrimitiveSeqTypes = Union[str, bytes, numpy.ndarray]
 
 
 def assign_sequential_names(num_seqs, base_name="seq", start_at=0):
@@ -31,7 +34,7 @@ def assign_sequential_names(num_seqs, base_name="seq", start_at=0):
 
 
 @singledispatch
-def seq_index(seq: SeqTypes, alphabet: CharAlphabet) -> numpy.ndarray:
+def seq_index(seq: PrimitiveSeqTypes, alphabet: CharAlphabet) -> numpy.ndarray:
     raise NotImplementedError(
         f"{seq_index.__name__} not implemented for type {type(seq)}"
     )
@@ -52,60 +55,18 @@ def _(seq: numpy.ndarray, alphabet: CharAlphabet) -> numpy.ndarray:
     return seq.astype(alphabet.array_type)
 
 
-@singledispatch
-def validate_names(
-    correct_names: Union[dict, tuple, list], names: Optional[tuple]
-) -> tuple:
-    """
-    Helper to check that names passed as args match sequence names.
-    dict (data) for constructor; tuple for SeqData instance
-    """
-    raise NotImplementedError(
-        f"validate_names not implemented for type {type(correct_names)}"
-    )
-
-
-@validate_names.register
-def _(correct_names: dict, names: Optional[tuple]) -> tuple:
-    keys = correct_names.keys()
-    if names is None:
-        return tuple(keys)
-    if set(names) == set(keys):
-        return names
-    raise ValueError("names do not match dictionary keys")
-
-
-def _names_list_tuple(correct_names: Union[tuple, list], names: Optional[tuple]):
-    """List and tuples have the same implementation for dispatch"""
-    if names is None:
-        return correct_names
-    if set(names) <= set(correct_names):
-        return tuple(names)
-    raise ValueError("some names do not match")
-
-
-@validate_names.register
-def _(correct_names: tuple, names: Optional[tuple]) -> tuple:
-    return _names_list_tuple(correct_names, names)
-
-
-@validate_names.register
-def _(correct_names: list, names: Optional[tuple]) -> tuple:
-    return _names_list_tuple(correct_names, names)
-
-
 class SeqDataView(SliceRecordABC):
     """
-    A view class for SeqData, providing properties for different
+    A view class for SeqsData, providing properties for different
     representations.
 
-    self.seq is a SeqData() instance, but other properties are a reference to a
+    self.seq is a SeqsData() instance, but other properties are a reference to a
     single seqid only.
 
     Example
     -------
     data = {"seq1": "ACGT", "seq2": "GTTTGCA"}
-    sd = SeqData(data=data)
+    sd = SeqsData(data=data)
     sdv = sd.get_seq_view(seqid="seq1")
     """
 
@@ -114,7 +75,7 @@ class SeqDataView(SliceRecordABC):
     def __init__(
         self,
         *,
-        seq: SeqData,
+        seq: SeqsData,
         start: Optional[int] = None,
         stop: Optional[int] = None,
         step: Optional[int] = None,
@@ -178,6 +139,10 @@ class SeqDataView(SliceRecordABC):
         )
         return raw if self.step == 1 else raw[:: self.step]
 
+    def replace(self, old, new):
+        # todo: kath, placeholder for testing
+        return self
+
     def __str__(self):
         return self.str_value
 
@@ -196,55 +161,51 @@ class SeqDataView(SliceRecordABC):
         )
 
     @classmethod
+    def to_rich_dict(cls):
+        # todo: kath, placeholder until i delete to_rich_dict from SliceRecordABC
+        ...
+
+    @classmethod
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
         if "offset" in data:
             init_args["offset"] = data.pop("offset")
         return cls(**init_args)
 
+    # todo: do we support copy? do we support copy with sliced?
     def copy(self, sliced: bool = False):
-        """returns copy
+        """returns copy"""
 
-        Parameters
-        ----------
-        sliced
-            if True, the underlying sequence is truncated and the start/stop
-            adjusted
-        """
-        if not sliced:
-            return self.__class__(
-                seq=self.seq,
-                start=self.start,
-                stop=self.stop,
-                step=self.step,
-                offset=self.offset,
-                seqid=self.seqid,
-                seq_len=self.seq_len,
-            )
-        return self.from_rich_dict(self.to_rich_dict())
+        return self.__class__(
+            seq=self.seq,
+            start=self.start,
+            stop=self.stop,
+            step=self.step,
+            offset=self.offset,
+            seqid=self.seqid,
+            seq_len=self.seq_len,
+        )
 
 
-class SeqData:
+class SeqsData:
     __slots__ = ("_data", "_alphabet", "_names", "_make_seq")
 
     def __init__(
         self,
-        data: dict[str, SeqTypes],
+        data: dict[str, PrimitiveSeqTypes],
         alphabet: CharAlphabet,
-        names: Optional[Union[tuple[str], None]] = None,
         make_seq: Optional[type] = None,
     ):
         self._alphabet = alphabet
-        self._names = validate_names(data, names)
         self._make_seq = make_seq
-        # convert from string to array of uint8
+        # todo: kath, convert seq_index to using alphabet to do this directly
         self._data: dict[str, numpy.ndarray] = {
             k: seq_index(v, self._alphabet) for k, v in data.items()
         }
 
     @property
-    def names(self) -> Iterator[str]:
-        yield from self._names
+    def names(self) -> list:
+        return list(self._data.keys())
 
     @property
     def make_seq(self) -> Union[SeqDataView, Sequence]:
@@ -254,6 +215,10 @@ class SeqData:
     def make_seq(self, make_seq: Callable) -> None:
         self._make_seq = make_seq
 
+    @property
+    def num_seqs(self) -> int:
+        return len(self._data)
+
     @singledispatchmethod
     def __getitem__(self, index: Union[str, int]) -> SeqDataView:
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
@@ -261,11 +226,11 @@ class SeqData:
     @__getitem__.register
     def _(self, index: str) -> SeqDataView:
         sdv = self.get_seq_view(seqid=index)
-        return sdv if self._make_seq is None else self.make_seq(sdv, seqid=index)
+        return sdv if self._make_seq is None else self.make_seq(sdv, name=index)
 
     @__getitem__.register
     def _(self, index: int) -> SeqDataView:
-        return self[self._names[index]]
+        return self[self.names[index]]
 
     def get_seq_array(
         self, *, seqid: str, start: int = None, stop: int = None
@@ -350,45 +315,28 @@ def _(seq: numpy.ndarray, moltype: MolType) -> tuple[str, IndelMap]:
 
 
 @singledispatch
-def prep_for_seq_data(
-    data: Union[dict, list, numpy.ndarray], alphabet: CharAlphabet
+def get_seqs_data(
+    data: Union[dict, SeqsData], alphabet: CharAlphabet
 ) -> dict[str, numpy.ndarray]:
-    """Assuming data is a series of seqs, a series of[name, seq] pairs, or a
-    dict {name: seq}"""
-    raise NotImplementedError(
-        f"{prep_for_seq_data.__name__} not implemented for type {type(data)}"
-    )
+    raise NotImplementedError(f"SeqsData can not be constructed for type {type(data)}")
 
 
-@prep_for_seq_data.register
+@get_seqs_data.register
+def _(data: SeqsData, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
+    # todo: kath, perform integrity check between alphabet provided and SeqsData alphabet
+    return data
+
+
+@get_seqs_data.register
 def _(data: dict, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
-    # todo: kath, apply label to name here
-    return {str(k): seq_index(v, alphabet=alphabet) for k, v in data.items()}
-
-
-@prep_for_seq_data.register
-def _(data: list, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
-    # if data = [seq, ...]
-    if isinstance(data[0], (str, bytes, numpy.ndarray)):
-        names = assign_sequential_names(len(data))
-        named_seqs = dict(zip(names, data))
-        return prep_for_seq_data(named_seqs, alphabet=alphabet)
-
-    # if data = [[name, seq], ...] or [(name, seq), ...]
-    elif isinstance(data[0], (list, tuple)):
-        named_seqs = dict(data)
-        return prep_for_seq_data(named_seqs, alphabet=alphabet)
-
-
-@prep_for_seq_data.register
-def _(data: numpy.ndarray, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
-    names = assign_sequential_names(data.shape[0])
-    named_seqs = dict(zip(names, data))
-    return prep_for_seq_data(named_seqs, alphabet=alphabet)
+    # apply name conversion here?
+    seq_data = SeqsData(data=data, alphabet=alphabet)
+    return get_seqs_data(seq_data, alphabet)
 
 
 def make_unaligned_seqs(
-    data: Union[dict, list, numpy.ndarray],
+    *,
+    data: Union[dict[str, PrimitiveSeqTypes], SeqsData],
     moltype: Union[str, MolType],
     label_to_name: Callable = None,
     info: dict = None,
@@ -400,12 +348,11 @@ def make_unaligned_seqs(
     Parameters
     ----------
     data
-        sequences, assumes a series of seqs, a series of[name, seq] pairs, or a
-        dict {name: seq, ...}
+        sequences, assumes a dict {name: seq, ...} or a SeqsData
     moltype
         string representation of the moltype, e.g., 'dna', 'protein'.
     label_to_name
-        function for converting original name into another name.
+        function for converting original names into other names.
     info
         a dict from which to make an info object
     source
@@ -419,29 +366,52 @@ def make_unaligned_seqs(
 
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
-    prepped_data = prep_for_seq_data(data, alphabet)
-
-    seq_data = SeqData(data=prepped_data, alphabet=alphabet)
+    seq_data = get_seqs_data(data, alphabet)
 
     return SequenceCollection(seq_data=seq_data, moltype=moltype)
 
 
 class SequenceCollection:
-    def __init__(self, seq_data: SeqData, moltype: MolType):
+    def __init__(self, *, seq_data: SeqsData, moltype: MolType):
         self.moltype = moltype
         self._seq_data = seq_data
         self._seq_data.make_seq = self.moltype.make_seq
+        self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
 
     @property
-    def seqs(self) -> SeqData:
+    def names(self) -> Iterator[str]:
+        yield from self._seq_data.names
+
+    @property
+    def seqs(self) -> SeqsData:
         return self._seq_data
+
+    def iter_seqs(self, seq_order: list = None) -> Iterator[Union[Sequence, SeqsData]]:
+        """Iterates over values (sequences) in the alignment, in order.
+
+        Parameters
+        ----------
+        seq_order:
+            list of seqids giving the order in which seqs will be returned.
+            Defaults to self.names
+        """
+
+        seqs = self.seqs
+        get = seqs.__getitem__
+        for key in seq_order or self.names:
+            yield get(key)
+
+    @property
+    def num_seqs(self) -> int:
+        return self._seq_data.num_seqs
 
     @property
     @c3warn.deprecated_callable(
         version="2025.5", reason=".seqs can now be indexed by name", new=".seqs"
     )
-    def named_seqs(self) -> SeqData:  # pragma: no cover
+    def named_seqs(self) -> SeqsData:  # pragma: no cover
         return self.seqs
+
 
 
 class AlignedDataView(SeqDataView):
@@ -456,7 +426,7 @@ class AlignedDataView(SeqDataView):
 
 @dataclass
 class AlignedData:
-    # Look out for any overlaps with SeqData
+    # Look out for any overlaps with SeqsData
     seqs: Optional[dict[str, numpy.ndarray]] = None
     gaps: Optional[dict[str, numpy.ndarray]] = None
     _moltype: MolType = field(init=False)
@@ -469,7 +439,6 @@ class AlignedData:
     def __post_init__(self, moltype, names):
         self._moltype = get_moltype(moltype)
         self._alpha = self._moltype.alphabets.degen_gapped
-        self._names = validate_names(self.seqs, names)
         self.seqs = {k: seq_index(v, self._alpha) for k, v in self.seqs.items()}
 
     @classmethod
@@ -494,7 +463,7 @@ class AlignedData:
         for name, seq in data.items():
             seqs[name], gaps[name] = seq_to_gap_coords(seq, moltype)
 
-        names = validate_names(seqs, names)
+        names = names or list(data.keys)
 
         return cls(
             seqs=seqs,

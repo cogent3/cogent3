@@ -146,7 +146,12 @@ def make_unaligned_seqs(
         from cogent3.core import new_alignment
 
         return new_alignment.make_unaligned_seqs(
-            data, moltype, label_to_name, info, source
+            data=data,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            info=info,
+            source=source,
+            **kw,
         )
     return _make_seq_container(
         SequenceCollection,
