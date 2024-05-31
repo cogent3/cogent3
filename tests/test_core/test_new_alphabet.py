@@ -36,7 +36,7 @@ def test_make_char_alphabet():
 
 def test_convert_alphabet_mixed_length():
     with pytest.raises(ValueError):
-        convert_alphabet(orig="ACG", new="TGCA")
+        convert_alphabet(src="ACG", dest="TGCA")
 
 
 @pytest.mark.parametrize("words", ("AACG", ["A", "CG"], ["CC", "AA"], "", (), []))
@@ -57,7 +57,9 @@ def test_arr2bytes():
     assert got == b"AAGTA"
 
 
-@pytest.mark.parametrize("seq", (b"AAGTA", "AAGTA"))
+@pytest.mark.parametrize(
+    "seq", (b"AAGTA", "AAGTA", numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))
+)
 def test_charalphabet_to_indices(seq):
     alpha = CharAlphabet(list("TCAG"))
     got = alpha.to_indices(seq)
@@ -85,6 +87,12 @@ def test_charalphabet_from_indices_invalid():
 def test_convert_alphabet():
     complement = convert_alphabet(b"ACGT", b"TGCA")
     seq = b"AAGG"
+    assert complement(seq) == b"TTCC"
+
+
+def test_convert_alphabet_with_delete():
+    complement = convert_alphabet(b"ACGT", b"TGCA", delete=b"-")
+    seq = b"AAG--G"
     assert complement(seq) == b"TTCC"
 
 

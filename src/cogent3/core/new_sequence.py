@@ -389,7 +389,7 @@ class Sequence:
         """
         return self.moltype.possibilities(self)
 
-    def mw(self, method="random", delta=None):
+    def mw(self, method="random", delta=None):  # refactor: type hint
         """Returns the molecular weight of (one strand of) the sequence.
 
         If the sequence is ambiguous, uses method (random or strip) to
@@ -546,6 +546,7 @@ class Sequence:
 
         Returns 0 if one sequence is empty.
         """
+        # refactor: simplify
         if not self or not other:
             return 0.0
 

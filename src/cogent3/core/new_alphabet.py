@@ -9,6 +9,7 @@ import numpy
 StrORBytes = typing.Union[str, bytes]
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]
+OptBytes = typing.Optional[bytes]
 
 
 def _element_type(val: typing.Sequence) -> typing.Any:
@@ -21,27 +22,27 @@ def _coerce_to_type(orig: StrORBytes, text: str) -> StrORBytes:
 
 
 @_coerce_to_type.register
-def _(orig: str, text: str) -> tuple[StrORBytes, StrORBytes, StrORBytes]:
+def _(orig: str, text: str) -> StrORBytes:
     return text
 
 
 @_coerce_to_type.register
-def _(orig: bytes, text: str) -> tuple[StrORBytes, StrORBytes, StrORBytes]:
+def _(orig: bytes, text: str) -> StrORBytes:
     return text.encode("utf8")
 
 
 @_coerce_to_type.register
-def _(orig: bytearray, text: str) -> tuple[StrORBytes, StrORBytes, StrORBytes]:
+def _(orig: bytearray, text: str) -> StrORBytes:
     return text.encode("utf8")
 
 
 @_coerce_to_type.register
-def _(orig: tuple, text: str) -> tuple[StrORBytes, StrORBytes, StrORBytes]:
+def _(orig: tuple, text: str) -> StrORBytes:
     return (text.encode("utf8"),)
 
 
 @_coerce_to_type.register
-def _(orig: list, text: str) -> tuple[StrORBytes, StrORBytes, StrORBytes]:
+def _(orig: list, text: str) -> StrORBytes:
     return (text.encode("utf8"),)
 
 
@@ -51,28 +52,40 @@ class AlphabetError(TypeError): ...
 class convert_alphabet:
     """convert one character set into another"""
 
-    def __init__(self, orig: bytes, new: bytes):
+    def __init__(self, src: bytes, dest: bytes, delete: OptBytes = None):
         """
         Parameters
         ----------
-        orig
+        src
             unique series of characters
         new
-            element wise mapping of orig into new
+            characters in src will be mapped to these in order
+        delete
+            characters to be deleted from the result
 
         Notes
         -----
-        Must be the same lengths.
+        orig and new must be the same lengths.
+
+        Examples
+        --------
+        >>> dna_to_ry = convert_alphabet(src=b"TCAG", dest=b"YYRR")
+        >>> dna_to_ry(b"GCTA")
+        b"RYYR"
+        >>> dna_to_ry = convert_alphabet(src=b"TCAG", dest=b"YYRR", delete=b"-")
+        >>> dna_to_ry(b"GC-TA")
+        b"RYYR"
         """
-        if len(orig) != len(new):
-            raise ValueError(f"length of orig={len(orig)} != length of new {len(new)}")
+        if len(src) != len(dest):
+            raise ValueError(f"length of src={len(src)} != length of new {len(dest)}")
 
-        consistent_words(orig, length=1)
+        consistent_words(src, length=1)
 
-        self._table = b"".maketrans(orig, new)
+        self._table = b"".maketrans(src, dest)
+        self._delete = delete or b""
 
     def __call__(self, seq: bytes) -> bytes:
-        return seq.translate(self._table)
+        return seq.translate(self._table, delete=self._delete)
 
 
 class AlphabetABC(ABC):
@@ -88,7 +101,7 @@ class AlphabetABC(ABC):
     def from_indices(self, seq: numpy.ndarray) -> str: ...
 
     @abstractmethod
-    def is_valid(self, seq): ...
+    def is_valid(self, seq) -> bool: ...
 
     @abstractmethod
     def with_gap_motif(self): ...
@@ -205,6 +218,10 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     @to_indices.register
     def _(self, seq: str) -> numpy.ndarray:
         return self._bytes2arr(seq.encode("utf8"))
+
+    @to_indices.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        return seq
 
     @functools.singledispatchmethod
     def from_indices(self, seq: numpy.ndarray) -> str:
