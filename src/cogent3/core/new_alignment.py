@@ -24,7 +24,7 @@ from cogent3.util.misc import get_setting_from_environ
 PrimitiveSeqTypes = Union[str, bytes, numpy.ndarray]
 
 
-def assign_sequential_names(num_seqs, base_name="seq", start_at=0):
+def assign_sequential_names(num_seqs: int, base_name: str = "seq", start_at: int = 0):
     """Returns list of num_seqs sequential, unique names."""
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
@@ -133,11 +133,6 @@ class SeqDataView(new_seq.SliceRecordABC):
         )
 
     @classmethod
-    def to_rich_dict(cls):
-        # todo: kath, placeholder until i delete to_rich_dict from SliceRecordABC
-        ...
-
-    @classmethod
     def from_rich_dict(cls, data: dict):
         init_args = data.pop("init_args")
         if "offset" in data:
@@ -147,16 +142,7 @@ class SeqDataView(new_seq.SliceRecordABC):
     # todo: do we support copy? do we support copy with sliced?
     def copy(self, sliced: bool = False):
         """returns copy"""
-
-        return self.__class__(
-            seq=self.seq,
-            start=self.start,
-            stop=self.stop,
-            step=self.step,
-            offset=self.offset,
-            seqid=self.seqid,
-            seq_len=self.seq_len,
-        )
+        return self
 
 
 class SeqsData:

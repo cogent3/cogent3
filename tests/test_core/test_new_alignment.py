@@ -86,20 +86,6 @@ def test_seqsdata_seq_if_str(seq1: str, dna_alpha):
         new_aln.SeqsData(seq1, alphabet=dna_alpha)
 
 
-@pytest.mark.xfail(reason="not currently supporting setting names")
-@pytest.mark.parametrize(
-    "bad_names", [("bad"), ("bad",), ("bad2", "bad1"), ("seq1",), "seq1"]
-)
-def test_names_init(simple_dict, dna_alpha, bad_names):
-    sd = new_aln.SeqsData(simple_dict, alphabet=dna_alpha)
-    assert sd.names == ["seq1", "seq2"]
-    sd = new_aln.SeqsData(simple_dict, alphabet=dna_alpha, names=("seq2", "seq1"))
-    assert sd.names == ["seq2", "seq1"]
-
-    with pytest.raises(ValueError):
-        new_aln.SeqsData(simple_dict, alphabet=dna_alpha, names=bad_names)
-
-
 def test_seqdataview_zero_step_raises(sd_demo):
     with pytest.raises(ValueError):
         new_aln.SeqDataView(seq=sd_demo, step=0, seq_len=4)
@@ -248,7 +234,7 @@ def test_getitem_raises(sd_demo, make_seq):
     sd_demo.make_seq = ms
     invalid_index = ["this", "shouldn't", "work"]
     with pytest.raises(NotImplementedError):
-        sd_demo[invalid_index]
+        _ = sd_demo[invalid_index]
 
 
 # SeqDataView tests for returning an instance of itself
