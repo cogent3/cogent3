@@ -1,7 +1,7 @@
 import numpy as numpy
 import pytest
 
-from cogent3 import Sequence, get_moltype
+from cogent3 import get_moltype
 from cogent3._version import __version__
 from cogent3.core.alphabet import CharAlphabet
 from cogent3.core.new_alignment import (
@@ -245,14 +245,13 @@ def test_seqdataview_make_seq_default(sd_demo):
     "maker", (get_moltype("dna").make_seq, get_moltype("dna").make_array_seq)
 )
 def test_seqdataview_make_seq_setget(sd_demo, maker):
-    alpha = sd_demo._alphabet
     sd_demo.make_seq = maker
-    assert sd_demo.make_seq == maker
+    assert sd_demo.make_seq is maker
 
 
 # SeqData __getitem__ tests
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
-def test_getitem_str(sd_demo, seq):
+def test_getitem_str_1(sd_demo, seq):
     got = sd_demo[seq]
     assert got.seq == sd_demo
     assert got.seqid == seq
