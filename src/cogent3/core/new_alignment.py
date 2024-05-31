@@ -204,7 +204,11 @@ class SeqsData:
     @__getitem__.register
     def _(self, index: str) -> SeqDataView:
         sdv = self.get_seq_view(seqid=index)
-        return sdv if self.make_seq is None else self.make_seq(seq=sdv.str_value, name=index, check_seq=False)
+        return (
+            sdv
+            if self.make_seq is None
+            else self.make_seq(seq=sdv.str_value, name=index, check_seq=False)
+        )
 
     @__getitem__.register
     def _(self, index: int) -> SeqDataView:
@@ -228,68 +232,6 @@ class SeqsData:
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
         return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len)
-
-
-@singledispatch
-def seq_to_gap_coords(
-    seq: Union[str, numpy.ndarray], moltype: new_moltype.MolType
-) -> tuple[str, IndelMap]:
-    """
-    Takes a sequence with (or without) gaps and returns an ungapped sequence
-    and records the position and length of gaps in the original parent sequence
-    """
-    raise NotImplementedError(f"{seq} not implemented for type {type(seq)}")
-
-
-@seq_to_gap_coords.register
-def _(seq: str, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
-    seq = moltype.make_seq(seq=seq)
-    indel_map, ungapped_seq = seq.parse_out_gaps()
-
-    if indel_map.num_gaps == 0:
-        return str(ungapped_seq), numpy.array([], dtype=int)
-
-    return str(ungapped_seq), indel_map
-
-
-@seq_to_gap_coords.register
-def _(seq: numpy.ndarray, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
-    gap_char = moltype.degen_gapped_alphabet.index(moltype.gap)
-    # Create boolean array of gaps to get ungapped
-    gaps_bool = seq == gap_char
-    ungapped = seq[~gaps_bool]
-
-    # no gaps in seq
-    if numpy.array_equal(ungapped, seq):
-        return ungapped, numpy.array([], dtype=int)
-
-    parent_len = len(seq)
-    in_gap = False
-    parent_coords = []
-    start = 0
-    for i, gapped in enumerate(gaps_bool):
-        if gapped and not in_gap:
-            start = i
-            in_gap = True
-        if not gapped and in_gap:
-            parent_coords.append([start, i])
-            in_gap = False
-        if gapped and i == parent_len - 1:
-            # End of the sequence
-            parent_coords.append([start, i + 1])
-
-    # Format for IndelMap
-    parent_coords = numpy.array(parent_coords)
-    gap_lengths = numpy.array([end - start for start, end in parent_coords])
-    cum_lengths = gap_lengths.cumsum()
-    # Get gap start positions in sequence coords
-    gap_pos = parent_coords.T[0] - numpy.append(0, cum_lengths[:-1, numpy.newaxis])
-
-    indel_map = IndelMap(
-        gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=parent_len
-    )
-
-    return ungapped, indel_map
 
 
 @singledispatch
@@ -614,6 +556,68 @@ class SequenceCollection:
             "</div>",
         ]
         return "\n".join(text)
+
+
+@singledispatch
+def seq_to_gap_coords(
+    seq: Union[str, numpy.ndarray], moltype: new_moltype.MolType
+) -> tuple[str, IndelMap]:
+    """
+    Takes a sequence with (or without) gaps and returns an ungapped sequence
+    and records the position and length of gaps in the original parent sequence
+    """
+    raise NotImplementedError(f"{seq} not implemented for type {type(seq)}")
+
+
+@seq_to_gap_coords.register
+def _(seq: str, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
+    seq = moltype.make_seq(seq=seq)
+    indel_map, ungapped_seq = seq.parse_out_gaps()
+
+    if indel_map.num_gaps == 0:
+        return str(ungapped_seq), numpy.array([], dtype=int)
+
+    return str(ungapped_seq), indel_map
+
+
+@seq_to_gap_coords.register
+def _(seq: numpy.ndarray, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
+    gap_char = moltype.degen_gapped_alphabet.index(moltype.gap)
+    # Create boolean array of gaps to get ungapped
+    gaps_bool = seq == gap_char
+    ungapped = seq[~gaps_bool]
+
+    # no gaps in seq
+    if numpy.array_equal(ungapped, seq):
+        return ungapped, numpy.array([], dtype=int)
+
+    parent_len = len(seq)
+    in_gap = False
+    parent_coords = []
+    start = 0
+    for i, gapped in enumerate(gaps_bool):
+        if gapped and not in_gap:
+            start = i
+            in_gap = True
+        if not gapped and in_gap:
+            parent_coords.append([start, i])
+            in_gap = False
+        if gapped and i == parent_len - 1:
+            # End of the sequence
+            parent_coords.append([start, i + 1])
+
+    # Format for IndelMap
+    parent_coords = numpy.array(parent_coords)
+    gap_lengths = numpy.array([end - start for start, end in parent_coords])
+    cum_lengths = gap_lengths.cumsum()
+    # Get gap start positions in sequence coords
+    gap_pos = parent_coords.T[0] - numpy.append(0, cum_lengths[:-1, numpy.newaxis])
+
+    indel_map = IndelMap(
+        gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=parent_len
+    )
+
+    return ungapped, indel_map
 
 
 class AlignedDataView(SeqDataView):
