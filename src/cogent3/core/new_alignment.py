@@ -384,7 +384,9 @@ class SequenceCollection:
         moltype = kwargs.pop("moltype", self.moltype)
 
         seqs_data = SeqsData(data=selected_seqs, alphabet=moltype.alphabet)
-        result = self.__class__(seqs_data=seqs_data, moltype=moltype, info=self.info, **kwargs)
+        result = self.__class__(
+            seqs_data=seqs_data, moltype=moltype, info=self.info, **kwargs
+        )
         # todo: kath, update annotation_db and assign to result when we have annotations working
         return result
 

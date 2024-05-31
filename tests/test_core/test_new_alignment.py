@@ -48,7 +48,7 @@ def sdv_s2(sd_demo: new_aln.SeqsData) -> new_aln.SeqDataView:
 @pytest.fixture
 def simple_dna_seq_coll(sd_demo: new_aln.SeqsData) -> new_aln.SequenceCollection:
     moltype = new_moltype.get_moltype("dna")
-    return new_aln.SequenceCollection(seq_data=sd_demo, moltype=moltype)
+    return new_aln.SequenceCollection(seqs_data=sd_demo, moltype=moltype)
 
 
 @pytest.fixture
@@ -534,12 +534,13 @@ def test_take_seqs_str(ragged_padded):
     assert a == {"b": "AAA---", "c": "AAAA--"}
 
 
-
 def test_take_seqs_info():
     """take_seqs should preserve info attribute"""
     moltype = new_moltype.get_moltype("dna")
     orig = new_aln.make_unaligned_seqs(
-        data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype, info={"key": "value"}
+        data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"},
+        moltype=moltype,
+        info={"key": "value"},
     )
     subset = orig.take_seqs(list("ab"))
     assert set(subset.info) == set(orig.info)
