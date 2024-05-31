@@ -442,21 +442,11 @@ class SequenceCollection:
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        if seq_lens := sorted([len(seq) for seq in self.seqs]):
-            min_seq_len = seq_lens[0]
-            max_seq_len = seq_lens[-1]
-
-            # Find median
-            if len(seq_lens) % 2 == 0:
-                total = (
-                    seq_lens[(len(seq_lens) - 2) // 2] + seq_lens[len(seq_lens) // 2]
-                )
-                med_seq_len = total // 2 if total % 2 == 0 else round(total / 2, 1)
-            else:
-                med_seq_len = seq_lens[(len(seq_lens) - 1) // 2]
-        else:
-            min_seq_len = med_seq_len = max_seq_len = 0
-
+        seq_lengths = numpy.array([len(seq) for seq in self.seqs])
+        min_val = seq_lengths.min()
+        max_val = seq_lengths.max()
+        med_val = numpy.median(seq_lengths)
+        
         if name_order:
             selected = self.take_seqs(name_order)
         else:
@@ -522,9 +512,9 @@ class SequenceCollection:
                 "%s x {min=%s, median=%s, max=%s} (truncated to %s x %s) %s sequence collection"
             ) % (
                 self.num_seqs,
-                min_seq_len,
-                med_seq_len,
-                max_seq_len,
+                min_val,
+                med_val,
+                max_val,
                 len(name_order) if name_order else len(selected.names),
                 limit or len(selected),
                 selected.moltype.label,
@@ -532,9 +522,9 @@ class SequenceCollection:
         else:
             summary = ("%s x {min=%s, median=%s, max=%s} %s sequence collection") % (
                 self.num_seqs,
-                min_seq_len,
-                med_seq_len,
-                max_seq_len,
+                min_val,
+                med_val,
+                max_val,
                 selected.moltype.label,
             )
 
