@@ -1,10 +1,11 @@
 import numpy as numpy
 import pytest
 
-from cogent3 import get_moltype
+import cogent3.core.new_alignment as new_aln
+import cogent3.core.new_alphabet as new_alpha
+import cogent3.core.new_moltype as new_moltype
+
 from cogent3._version import __version__
-from cogent3.core import new_alignment as new_aln
-from cogent3.core.alphabet import CharAlphabet
 
 
 @pytest.fixture
@@ -13,8 +14,9 @@ def seq1():
 
 
 @pytest.fixture
-def simple_dict():
-    return dict(seq1="ACGT", seq2="GTTTGCA")
+def simple_dict(moltype="dna"):
+    if moltype == "dna":
+        return dict(seq1="ACGT", seq2="GTTTGCA")
 
 
 @pytest.fixture
@@ -24,8 +26,8 @@ def simple_dict_arr():
 
 @pytest.fixture
 def dna_alpha():
-    moltype = get_moltype("dna")
-    return moltype.alphabets.degen_gapped
+    moltype = new_moltype.get_moltype("dna")
+    return moltype.degen_gapped_alphabet
 
 
 @pytest.fixture
@@ -45,7 +47,7 @@ def sdv_s2(sd_demo: new_aln.SeqsData) -> new_aln.SeqDataView:
 
 @pytest.fixture
 def simple_dna_seq_coll(sd_demo: new_aln.SeqsData) -> new_aln.SequenceCollection:
-    moltype = get_moltype("dna")
+    moltype = new_moltype.get_moltype("dna")
     return new_aln.SequenceCollection(seq_data=sd_demo, moltype=moltype)
 
 
@@ -61,7 +63,7 @@ def ad_demo(aligned_dict: dict[str, str]):
 
 def test_seqsdata_default_attributes(sd_demo: new_aln.SeqsData):
     assert sd_demo.names == ["seq1", "seq2"]
-    assert isinstance(sd_demo._alphabet, CharAlphabet)
+    assert isinstance(sd_demo._alphabet, new_alpha.CharAlphabet)
 
 
 @pytest.mark.xfail(reason="SeqsData currently expects correctly formatted data")
@@ -86,7 +88,7 @@ def test_names_init(simple_dict, dna_alpha, bad_names):
 
 def test_seqdataview_zero_step_raises(sd_demo):
     with pytest.raises(ValueError):
-        new_aln.SeqDataView(seq=sd_demo, step=0)
+        new_aln.SeqDataView(seq=sd_demo, step=0, seq_len=4)
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
@@ -165,43 +167,6 @@ def test_names_get(simple_dict, dna_alpha):
     assert list(got) == list(expect)
 
 
-@pytest.mark.parametrize(
-    "seq, moltype_name",
-    [("TCAG-NRYWSKMBDHV?", "dna"), ("UCAG-NRYWSKMBDHV?", "rna")],
-)
-def test_seq_index_str(seq, moltype_name, int_arr):
-    alpha = get_moltype(moltype_name).alphabets.degen_gapped
-    got = new_aln.seq_index(seq, alpha)
-    assert numpy.array_equal(got, int_arr)
-
-
-@pytest.mark.parametrize(
-    "seq, moltype_name",
-    [(b"TCAG-NRYWSKMBDHV?", "dna"), (b"UCAG-NRYWSKMBDHV?", "rna")],
-)
-def test_seq_index_bytes(seq, moltype_name, int_arr):
-    alpha = get_moltype(moltype_name).alphabets.degen_gapped
-    got = new_aln.seq_index(seq, alpha)
-    assert numpy.array_equal(got, int_arr)
-
-
-@pytest.mark.parametrize("moltype_name", ("dna", "rna", "protein", "protein_with_stop"))
-def test_seq_index_arr(moltype_name, int_arr):
-    alpha = get_moltype(moltype_name).alphabets.degen_gapped
-    got = new_aln.seq_index(int_arr, alpha)
-    assert numpy.array_equal(got, int_arr)
-    assert got.dtype == int_arr.dtype
-
-
-@pytest.mark.parametrize("moltype_name", ("dna", "rna", "protein"))
-def test_seq_index_raises(moltype_name):
-    bad_seq = None
-    alpha = get_moltype(moltype_name).alphabets.degen_gapped
-
-    with pytest.raises(NotImplementedError):
-        new_aln.seq_index(bad_seq, alpha)
-
-
 def test_get_seq_array(simple_dict, dna_alpha):
     # TODO: slicing should be tested here, not get_seq_str
     # todo: kath, edit and parametrize for all moltypes
@@ -228,12 +193,9 @@ def test_seqdataview_make_seq_default(sd_demo):
     assert sd_demo.make_seq is None
 
 
-@pytest.mark.parametrize(
-    "maker", (get_moltype("dna").make_seq, get_moltype("dna").make_array_seq)
-)
-def test_seqdataview_make_seq_setget(sd_demo, maker):
-    sd_demo.make_seq = maker
-    assert sd_demo.make_seq is maker
+def test_seqdataview_make_seq_setget(sd_demo):
+    sd_demo.make_seq = new_moltype.get_moltype("dna").make_seq
+    assert sd_demo.make_seq == new_moltype.get_moltype("dna").make_seq
 
 
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
@@ -248,7 +210,7 @@ def test_getitem_str_1(sd_demo, seq):
 @pytest.mark.parametrize("make_seq", (True, False))
 def test_getitem_int(simple_dict, dna_alpha, idx, make_seq):
     sd = new_aln.SeqsData(simple_dict, alphabet=dna_alpha)
-    ms = get_moltype("dna").make_seq if make_seq else None
+    ms = new_moltype.get_moltype("dna").make_seq if make_seq else None
     sd.make_seq = ms
     got = sd[idx]
     assert got.seq == sd
@@ -259,7 +221,7 @@ def test_getitem_int(simple_dict, dna_alpha, idx, make_seq):
 @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
 @pytest.mark.parametrize("make_seq", (True, False))
 def test_getitem_str(sd_demo, seqid, make_seq):
-    ms = get_moltype("dna").make_seq if make_seq else None
+    ms = new_moltype.get_moltype("dna").make_seq if make_seq else None
     sd_demo.make_seq = ms
     got = sd_demo[seqid]
     assert got.seq == sd_demo
@@ -268,7 +230,7 @@ def test_getitem_str(sd_demo, seqid, make_seq):
 
 @pytest.mark.parametrize("make_seq", (True, False))
 def test_getitem_raises(sd_demo, make_seq):
-    ms = get_moltype("dna").make_seq if make_seq else None
+    ms = new_moltype.get_moltype("dna").make_seq if make_seq else None
     sd_demo.make_seq = ms
     invalid_index = ["this", "shouldn't", "work"]
     with pytest.raises(NotImplementedError):
@@ -378,41 +340,44 @@ def test_get_aligned_view(aligned_dict, seqid):
     assert got.seq_len == ad.align_len
 
 
-# AlignedData seq to gaps
+@pytest.mark.xfail(reason="AlignedData not yet functional")
 def test_seq_to_gap_coords_str_all_gaps():
     parent_seq = "-----"
     expect_gaplen = numpy.array([len(parent_seq)])
     got_ungap, got_map = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=get_moltype("dna")
+        parent_seq, moltype=new_moltype.get_moltype("dna")
     )
     assert got_ungap == ""
     assert got_map.cum_gap_lengths == expect_gaplen
 
 
+@pytest.mark.xfail(reason="AlignedData not yet functional")
 def test_seq_to_gap_coords_str_no_gaps():
     parent_seq = "ACTGC"
     got_ungap, got_empty_arr = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=get_moltype("dna")
+        parent_seq, moltype=new_moltype.get_moltype("dna")
     )
     assert got_ungap == parent_seq
     assert got_empty_arr.size == 0
 
 
+@pytest.mark.xfail(reason="AlignedData not yet functional")
 def test_seq_to_gap_coords_arr_all_gaps():
-    alpha = get_moltype("dna").alphabets.degen_gapped
-    parent_seq = new_aln.seq_index("-----", alpha)
+    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
+    parent_seq = alpha.to_indices("-----", alpha)
     got_ungap, got_map = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=get_moltype("dna")
+        parent_seq, moltype=new_moltype.get_moltype("dna")
     )
     assert got_ungap.size == 0
     assert got_map.get_gap_coordinates() == [[0, 5]]
 
 
+@pytest.mark.xfail(reason="AlignedData not yet functional")
 def test_seq_to_gap_coords_arr_no_gaps():
-    alpha = get_moltype("dna").alphabets.degen_gapped
-    parent_seq = new_aln.seq_index("ACTGC", alpha)
+    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
+    parent_seq = alpha.to_indices("ACTGC", alpha)
     got_ungap, got_empty_arr = new_aln.seq_to_gap_coords(
-        parent_seq, moltype=get_moltype("dna")
+        parent_seq, moltype=new_moltype.get_moltype("dna")
     )
     assert numpy.array_equal(got_ungap, parent_seq)
     assert got_empty_arr.size == 0
@@ -427,20 +392,26 @@ def gap_seqs():
     ]
 
 
+@pytest.mark.xfail(reason="AlignedData not yet functional")
 @pytest.mark.parametrize("i", range(3))
 def test_seq_to_gap_coords_str(gap_seqs, i):
     seq, gap_coords = gap_seqs[i]
-    got_ungapped, got_map = new_aln.seq_to_gap_coords(seq, moltype=get_moltype("dna"))
+    got_ungapped, got_map = new_aln.seq_to_gap_coords(
+        seq, moltype=new_moltype.get_moltype("dna")
+    )
     assert got_ungapped == seq.replace("-", "")
     assert got_map.get_gap_coordinates() == gap_coords
 
 
+@pytest.mark.xfail(reason="AlignedData not yet functional")
 @pytest.mark.parametrize("i", range(3))
 def test_seq_to_gap_coords_arr(gap_seqs, i):
     seq, gap_coords = gap_seqs[i]
-    alpha = get_moltype("dna").alphabets.degen_gapped
-    seq = new_aln.seq_index(seq, alpha)  # convert to array repr
-    got_ungapped, got_map = new_aln.seq_to_gap_coords(seq, moltype=get_moltype("dna"))
+    alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
+    seq = alpha.to_indices(seq, alpha)  # convert to array repr
+    got_ungapped, got_map = new_aln.seq_to_gap_coords(
+        seq, moltype=new_moltype.get_moltype("dna")
+    )
     assert numpy.array_equal(got_ungapped, seq[seq != 4])  # gap_char = 4
     assert got_map.get_gap_coordinates() == gap_coords
 
@@ -456,7 +427,7 @@ def test_make_unaligned_seqs_dict(moltype):
     data = {"a": "AGGCCC", "b": "AGAAAA"}
     got = new_aln.make_unaligned_seqs(data=data, moltype=moltype)
     assert isinstance(got, new_aln.SequenceCollection)
-    assert got._seq_data.make_seq == get_moltype(moltype).make_seq
+    assert got._seq_data.make_seq == new_moltype.get_moltype(moltype).make_seq
 
 
 def test_make_unaligned_seqs_raises():

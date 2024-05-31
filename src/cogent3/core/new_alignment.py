@@ -11,16 +11,11 @@ from typing import Callable, Iterator, Mapping, Optional, Union
 
 import numpy
 
-from cogent3 import get_moltype
-from cogent3.core.alphabet import CharAlphabet
+import cogent3.core.new_alphabet as new_alpha
+import cogent3.core.new_moltype as new_moltype
+import cogent3.core.new_sequence as new_seq
+
 from cogent3.core.location import IndelMap
-from cogent3.core.moltype import MolType
-from cogent3.core.sequence import (
-    Sequence,
-    SliceRecordABC,
-    _input_vals_neg_step,
-    _input_vals_pos_step,
-)
 from cogent3.util import warning as c3warn
 from cogent3.util.misc import get_setting_from_environ
 
@@ -33,29 +28,7 @@ def assign_sequential_names(num_seqs, base_name="seq", start_at=0):
     return [f"{base_name}_{i}" for i in range(start_at, start_at + num_seqs)]
 
 
-@singledispatch
-def seq_index(seq: PrimitiveSeqTypes, alphabet: CharAlphabet) -> numpy.ndarray:
-    raise NotImplementedError(
-        f"{seq_index.__name__} not implemented for type {type(seq)}"
-    )
-
-
-@seq_index.register
-def _(seq: str, alphabet: CharAlphabet) -> numpy.ndarray:
-    return alphabet.to_indices(seq)
-
-
-@seq_index.register
-def _(seq: bytes, alphabet: CharAlphabet) -> numpy.ndarray:
-    return alphabet.to_indices(seq)
-
-
-@seq_index.register
-def _(seq: numpy.ndarray, alphabet: CharAlphabet) -> numpy.ndarray:
-    return seq.astype(alphabet.array_type)
-
-
-class SeqDataView(SliceRecordABC):
+class SeqDataView(new_seq.SliceRecordABC):
     """
     A view class for SeqsData, providing properties for different
     representations.
@@ -76,19 +49,21 @@ class SeqDataView(SliceRecordABC):
         self,
         *,
         seq: SeqsData,
+        seq_len: int,
         start: Optional[int] = None,
         stop: Optional[int] = None,
         step: Optional[int] = None,
         offset: int = 0,
         seqid: Optional[str] = None,
-        seq_len: Optional[int] = None,
     ):
         if step == 0:
             raise ValueError("step cannot be 0")
         step = 1 if step is None else step
 
         self._seq_len = self._checked_seq_len(seq_len)
-        func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
+        func = (
+            new_seq._input_vals_pos_step if step > 0 else new_seq._input_vals_neg_step
+        )
         start, stop, step = func(self._seq_len, start, stop, step)
         self.seq = seq
         self.start = start
@@ -193,14 +168,13 @@ class SeqsData:
     def __init__(
         self,
         data: dict[str, PrimitiveSeqTypes],
-        alphabet: CharAlphabet,
-        make_seq: Optional[type] = None,
+        alphabet: new_alpha.CharAlphabet,
+        make_seq: Optional[Callable] = None,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
-        # todo: kath, remove seq_index and use alphabet to do this directly
         self._data: dict[str, numpy.ndarray] = {
-            k: seq_index(v, self._alphabet) for k, v in data.items()
+            str(name): self._alphabet.to_indices(seq) for name, seq in data.items()
         }
 
     @property
@@ -208,7 +182,7 @@ class SeqsData:
         return list(self._data.keys())
 
     @property
-    def make_seq(self) -> Union[SeqDataView, Sequence]:
+    def make_seq(self) -> Union[SeqDataView, new_seq.Sequence]:
         return self._make_seq
 
     @make_seq.setter
@@ -218,6 +192,10 @@ class SeqsData:
     @property
     def num_seqs(self) -> int:
         return len(self._data)
+
+    @property
+    def alphabet(self) -> new_alpha.CharAlphabet:
+        return self._alphabet
 
     @singledispatchmethod
     def __getitem__(self, index: Union[str, int]) -> SeqDataView:
@@ -254,7 +232,7 @@ class SeqsData:
 
 @singledispatch
 def seq_to_gap_coords(
-    seq: Union[str, numpy.ndarray], moltype: MolType
+    seq: Union[str, numpy.ndarray], moltype: new_moltype.MolType
 ) -> tuple[str, IndelMap]:
     """
     Takes a sequence with (or without) gaps and returns an ungapped sequence
@@ -264,8 +242,8 @@ def seq_to_gap_coords(
 
 
 @seq_to_gap_coords.register
-def _(seq: str, moltype: MolType) -> tuple[str, IndelMap]:
-    seq = moltype.make_seq(seq)
+def _(seq: str, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
+    seq = moltype.make_seq(seq=seq)
     indel_map, ungapped_seq = seq.parse_out_gaps()
 
     if indel_map.num_gaps == 0:
@@ -275,8 +253,8 @@ def _(seq: str, moltype: MolType) -> tuple[str, IndelMap]:
 
 
 @seq_to_gap_coords.register
-def _(seq: numpy.ndarray, moltype: MolType) -> tuple[str, IndelMap]:
-    gap_char = moltype.alphabets.degen_gapped.index(moltype.gap)
+def _(seq: numpy.ndarray, moltype: new_moltype.MolType) -> tuple[str, IndelMap]:
+    gap_char = moltype.degen_gapped_alphabet.index(moltype.gap)
     # Create boolean array of gaps to get ungapped
     gaps_bool = seq == gap_char
     ungapped = seq[~gaps_bool]
@@ -316,28 +294,32 @@ def _(seq: numpy.ndarray, moltype: MolType) -> tuple[str, IndelMap]:
 
 @singledispatch
 def get_seqs_data(
-    data: Union[dict, SeqsData], alphabet: CharAlphabet
+    data: Union[dict, SeqsData], moltype: new_moltype.MolType
 ) -> dict[str, numpy.ndarray]:
     raise NotImplementedError(f"SeqsData can not be constructed for type {type(data)}")
 
 
 @get_seqs_data.register
-def _(data: SeqsData, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
-    # todo: kath, perform integrity check between alphabet provided and SeqsData alphabet
-    return data
+def _(data: SeqsData, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
+    if moltype.is_compatible_alphabet(data.alphabet):
+        return data
+    else:
+        raise ValueError(
+            f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
+        )
 
 
 @get_seqs_data.register
-def _(data: dict, alphabet: CharAlphabet) -> dict[str, numpy.ndarray]:
-    # apply name conversion here?
-    seq_data = SeqsData(data=data, alphabet=alphabet)
-    return get_seqs_data(seq_data, alphabet)
+def _(data: dict, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
+    alpha = moltype.alphabet
+    seqs_data = SeqsData(data=data, alphabet=alpha)
+    return get_seqs_data(seqs_data, moltype)
 
 
 def make_unaligned_seqs(
     *,
     data: Union[dict[str, PrimitiveSeqTypes], SeqsData],
-    moltype: Union[str, MolType],
+    moltype: Union[str, new_moltype.MolType],
     label_to_name: Callable = None,
     info: dict = None,
     source: Union[str, Path] = None,
@@ -361,18 +343,17 @@ def make_unaligned_seqs(
     **kwargs
         other keyword arguments to be passed to SequenceCollection
     """
-    moltype = get_moltype(moltype)
-    alphabet = moltype.alphabet
+    moltype = new_moltype.get_moltype(moltype)
 
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
-    seq_data = get_seqs_data(data, alphabet)
+    seq_data = get_seqs_data(data, moltype)
 
     return SequenceCollection(seq_data=seq_data, moltype=moltype)
 
 
 class SequenceCollection:
-    def __init__(self, *, seq_data: SeqsData, moltype: MolType):
+    def __init__(self, *, seq_data: SeqsData, moltype: new_moltype.MolType):
         self.moltype = moltype
         self._seq_data = seq_data
         self._seq_data.make_seq = self.moltype.make_seq
@@ -386,7 +367,9 @@ class SequenceCollection:
     def seqs(self) -> SeqsData:
         return self._seq_data
 
-    def iter_seqs(self, seq_order: list = None) -> Iterator[Union[Sequence, SeqsData]]:
+    def iter_seqs(
+        self, seq_order: list = None
+    ) -> Iterator[Union[new_seq.Sequence, SeqsData]]:
         """Iterates over values (sequences) in the alignment, in order.
 
         Parameters
@@ -650,23 +633,23 @@ class AlignedData:
     # Look out for any overlaps with SeqsData
     seqs: Optional[dict[str, numpy.ndarray]] = None
     gaps: Optional[dict[str, numpy.ndarray]] = None
-    _moltype: MolType = field(init=False)
+    _moltype: new_moltype.MolType = field(init=False)
     _names: tuple[str] = field(init=False)
-    _alpha: CharAlphabet = field(init=False)
+    _alpha: new_alpha.CharAlphabet = field(init=False)
     align_len: int = 0
     moltype: InitVar[Union[str, None]] = "dna"
     names: InitVar[Union[tuple[str], None]] = None
 
     def __post_init__(self, moltype, names):
-        self._moltype = get_moltype(moltype)
-        self._alpha = self._moltype.alphabets.degen_gapped
-        self.seqs = {k: seq_index(v, self._alpha) for k, v in self.seqs.items()}
+        self._moltype = new_moltype.get_moltype(moltype)
+        self._alpha = self._moltype.degen_gapped_alphabet
+        self.seqs = {k: self._alpha.to_indices(v) for k, v in self.seqs.items()}
 
     @classmethod
     def from_gapped_seqs(
         cls,
         data: dict[str, Union[str, numpy.ndarray]],
-        moltype: Union[str, MolType] = "dna",
+        moltype: Union[str, new_moltype.MolType] = "dna",
         names: Optional[tuple[str]] = None,
     ):
         """
@@ -677,7 +660,7 @@ class AlignedData:
             raise ValueError("All sequence lengths must be the same.")
 
         align_len = seq_lengths.pop()
-        moltype = get_moltype(moltype)
+        moltype = new_moltype.get_moltype(moltype)
 
         seqs = {}
         gaps = {}
