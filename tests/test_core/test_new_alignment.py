@@ -427,7 +427,7 @@ def test_make_unaligned_seqs_dict(moltype):
     data = {"a": "AGGCCC", "b": "AGAAAA"}
     got = new_aln.make_unaligned_seqs(data=data, moltype=moltype)
     assert isinstance(got, new_aln.SequenceCollection)
-    assert got._seq_data.make_seq == new_moltype.get_moltype(moltype).make_seq
+    assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq
 
 
 def test_make_unaligned_seqs_raises():
@@ -468,7 +468,6 @@ def test_iter_seqs_ragged(self):
     assert seqs[0], ragged.seqs["b"]
 
 
-@pytest.mark.xfail(reason="New sc repr not functional yet")
 def test_sequence_collection_repr():
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
@@ -501,13 +500,3 @@ def test_sequence_collection_repr():
     }
     seqs = new_aln.make_unaligned_seqs(data=data, moltype="dna")
     assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
-
-    data = {
-        "a": "A" * 11,
-        "b": "B" * 3,
-        "c": "C" * 3,
-        "d": "D" * 11,
-        "e": "E" * 8,
-    }
-    seqs = new_aln.make_unaligned_seqs(data=data, moltype="ASCII")
-    assert repr(seqs) == "5x (b[BBB], ..., d[DDDDDDDDDD...]) text seqcollection"

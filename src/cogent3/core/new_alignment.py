@@ -204,7 +204,7 @@ class SeqsData:
     @__getitem__.register
     def _(self, index: str) -> SeqDataView:
         sdv = self.get_seq_view(seqid=index)
-        return sdv if self._make_seq is None else self.make_seq(sdv, name=index)
+        return sdv if self.make_seq is None else self.make_seq(seq=sdv.str_value, name=index, check_seq=False)
 
     @__getitem__.register
     def _(self, index: int) -> SeqDataView:
@@ -355,17 +355,17 @@ def make_unaligned_seqs(
 class SequenceCollection:
     def __init__(self, *, seq_data: SeqsData, moltype: new_moltype.MolType):
         self.moltype = moltype
-        self._seq_data = seq_data
-        self._seq_data.make_seq = self.moltype.make_seq
+        self._seqs_data = seq_data
+        self._seqs_data.make_seq = self.moltype.make_seq
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
 
     @property
     def names(self) -> Iterator[str]:
-        yield from self._seq_data.names
+        return self._seqs_data.names
 
     @property
     def seqs(self) -> SeqsData:
-        return self._seq_data
+        return self._seqs_data
 
     def iter_seqs(
         self, seq_order: list = None
@@ -386,7 +386,7 @@ class SequenceCollection:
 
     @property
     def num_seqs(self) -> int:
-        return self._seq_data.num_seqs
+        return self._seqs_data.num_seqs
 
     @property
     @c3warn.deprecated_callable(
@@ -437,7 +437,7 @@ class SequenceCollection:
 
         seqs = ", ".join(seqs)
 
-        return f"{len(self.names)}x ({seqs}) {self.moltype.get_type()} seqcollection"
+        return f"{len(self.names)}x ({seqs}) {self.moltype.label} seqcollection"
 
     def _repr_html_(self) -> str:
         settings = self._repr_policy.copy()
@@ -500,9 +500,7 @@ class SequenceCollection:
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        # Gather stats about the sequence lengths
-        seq_lens = sorted([len(seq) for seq in self.seqs])
-        if seq_lens:
+        if seq_lens := sorted([len(seq) for seq in self.seqs]):
             min_seq_len = seq_lens[0]
             max_seq_len = seq_lens[-1]
 
@@ -520,7 +518,7 @@ class SequenceCollection:
         if name_order:
             selected = self.take_seqs(name_order)
         else:
-            name_order = list(self.names)
+            name_order = self.names
             selected = self
 
         # Stylise each character in each sequence
@@ -568,7 +566,7 @@ class SequenceCollection:
             for n, s in zip(name_order, seqblock):
                 s = "".join(s)
                 # Filter out rows that are empty (due to combination of shorter sequences + wrapping)
-                if len(s) > 0:
+                if s != "":
                     row = "".join([label_ % n, seq_ % s])
                     table.append(f"<tr>{row}</tr>")
         table.append("</table>")
