@@ -269,19 +269,31 @@ class Sequence:
         """returns a randomized copy of the Sequence object"""
         randomized_copy_list = list(self)
         shuffle(randomized_copy_list)
-        return self.__class__("".join(randomized_copy_list), info=self.info)
+        return self.__class__(
+            moltype=self.moltype, seq="".join(randomized_copy_list), info=self.info
+        )
 
     def strip_degenerate(self):
         """Removes degenerate bases by stripping them out of the sequence."""
-        return self.__class__(self.moltype.strip_degenerate(self), info=self.info)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.strip_degenerate(self),
+            info=self.info,
+        )
 
     def strip_bad(self):
         """Removes any symbols not in the alphabet."""
-        return self.__class__(self.moltype.strip_bad(self), info=self.info)
+        return self.__class__(
+            moltype=self.moltype, seq=self.moltype.strip_bad(self), info=self.info
+        )
 
     def strip_bad_and_gaps(self):
         """Removes any symbols not in the alphabet, and any gaps."""
-        return self.__class__(self.moltype.strip_bad_and_gaps(self), info=self.info)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.strip_bad_and_gaps(self),
+            info=self.info,
+        )
 
     def is_gapped(self):
         """Returns True if sequence contains gaps."""
@@ -332,12 +344,19 @@ class Sequence:
         or 'random'(assigns the possibilities at random, using equal
         frequencies).
         """
-        return self.__class__(self.moltype.disambiguate(self, method), info=self.info)
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self.moltype.disambiguate(self, method),
+            info=self.info,
+        )
 
     def degap(self):
         """Deletes all gap characters from sequence."""
         result = self.__class__(
-            self.moltype.degap(self), name=self.name, info=self.info
+            moltype=self.moltype,
+            seq=self.moltype.degap(self),
+            name=self.name,
+            info=self.info,
         )
         result.annotation_db = self.annotation_db
         return result
@@ -606,12 +625,16 @@ class Sequence:
                 last_nongap = i
         missing = self.moltype.missing
         if first_nongap is None:  # sequence was all gaps
-            result = self.__class__([missing for _ in len(self)], info=self.info)
+            result = self.__class__(
+                moltype=self.moltype, seq=[missing for _ in len(self)], info=self.info
+            )
         else:
             prefix = missing * first_nongap
             mid = str(self)[first_nongap : last_nongap + 1]
             suffix = missing * (len(self) - last_nongap - 1)
-            result = self.__class__(prefix + mid + suffix, info=self.info)
+            result = self.__class__(
+                moltype=self.moltype, seq=prefix + mid + suffix, info=self.info
+            )
         return result
 
     def _repr_html_(self):
@@ -732,7 +755,9 @@ class Sequence:
         else:
             name = None
 
-        return self.__class__(seq=str(self) + other_seq, name=name)
+        return self.__class__(
+            moltype=self.moltype, seq=str(self) + other_seq, name=name
+        )
 
     @property
     def annotation_offset(self):
@@ -1044,12 +1069,12 @@ class Sequence:
         moltype : str
             molecular type
         """
-        from cogent3 import get_moltype
+        from cogent3.core import new_moltype
 
         if not moltype:
             raise ValueError(f"unknown moltype '{moltype}'")
 
-        moltype = get_moltype(moltype)
+        moltype = new_moltype.get_moltype(moltype)
         if moltype is self.moltype:
             return self
 
@@ -1106,7 +1131,8 @@ class Sequence:
         annotation_offset = self.annotation_offset if sliced else self._seq.offset
         data = self._seq.copy(sliced=sliced)
         new = self.__class__(
-            data,
+            moltype=self.moltype,
+            seq=data,
             name=self.name,
             info=self.info,
             annotation_offset=annotation_offset,
@@ -1169,7 +1195,7 @@ class Sequence:
         segments.append(str(self[i:]))
 
         new = self.__class__(
-            "".join(segments), name=self.name, check=False, info=self.info
+            moltype=self.moltype, seq="".join(segments), name=self.name, info=self.info
         )
         new.annotation_db = self.annotation_db
         return new
@@ -1196,13 +1222,19 @@ class Sequence:
     def gapped_by_map(self, map, recode_gaps=False):
         segments = self.gapped_by_map_segment_iter(map, True, recode_gaps)
         return self.__class__(
-            "".join(segments), name=self.name, check=False, info=self.info
+            moltype=self.moltype,
+            seq="".join(segments),
+            name=self.name,
+            check=False,
+            info=self.info,
         )
 
     def _mapped(self, map):
         # Called by generic __getitem__
         segments = self.gapped_by_map_segment_iter(map, allow_gaps=False)
-        return self.__class__("".join(segments), self.name, info=self.info)
+        return self.__class__(
+            moltype=self.moltype, seq="".join(segments), name=self.name, info=self.info
+        )
 
     def __repr__(self):
         myclass = f"{self.__class__.__name__}"
@@ -1226,7 +1258,11 @@ class Sequence:
 
         elif isinstance(index, slice) or _is_int(index):
             new = self.__class__(
-                self._seq[index], name=self.name, check=False, info=self.info
+                moltype=self.moltype,
+                seq=self._seq[index],
+                name=self.name,
+                check=False,
+                info=self.info,
             )
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
@@ -1356,7 +1392,10 @@ class Sequence:
         gap_pos[1:] = gap_pos[1:] - cum_lengths[:-1]
 
         seq = self.__class__(
-            gap.sub("", seq), name=self.get_name(), info=self.info, preserve_case=True
+            moltype=self.moltype,
+            seq=gap.sub("", seq),
+            name=self.get_name(),
+            info=self.info,
         )
         indel_map = IndelMap(
             gap_pos=gap_pos, cum_gap_lengths=cum_lengths, parent_length=len(seq)
@@ -1367,7 +1406,9 @@ class Sequence:
     def replace(self, oldchar, newchar):
         """return new instance with oldchar replaced by newchar"""
         new = self._seq.replace(oldchar, newchar)
-        result = self.__class__(new, name=self.name, info=self.info)
+        result = self.__class__(
+            moltype=self.moltype, seq=new, name=self.name, info=self.info
+        )
         result.annotation_db = self.annotation_db
         return result
 
@@ -1592,7 +1633,9 @@ class NucleicAcidSequenceMixin:
         Always tries to return same type as item: if item looks like a dict,
         will return list of keys.
         """
-        return self.__class__(self.moltype.complement(self), info=self.info)
+        return self.__class__(
+            moltype=self.moltype, seq=self.moltype.complement(self), info=self.info
+        )
 
     def reverse_complement(self):
         """Converts a nucleic acid sequence to its reverse complement.
@@ -1602,7 +1645,11 @@ class NucleicAcidSequenceMixin:
     def rc(self):
         """Converts a nucleic acid sequence to its reverse complement."""
         rc = self.__class__(
-            self._seq[::-1], name=self.name, check=False, info=self.info
+            moltype=self.moltype,
+            seq=self._seq[::-1],
+            name=self.name,
+            check=False,
+            info=self.info,
         )
         rc.annotation_db = self.annotation_db
         return rc
@@ -1683,7 +1730,9 @@ class NucleicAcidSequenceMixin:
             diff = len(s) - match.start()
             s = terminal_stop.sub("-" * diff, s)
 
-        result = self.__class__(s, name=self.name, info=self.info)
+        result = self.__class__(
+            moltype=self.moltype, seq=s, name=self.name, info=self.info
+        )
         result.annotation_db = self.annotation_db
         return result
 
@@ -1717,9 +1766,15 @@ class NucleicAcidSequenceMixin:
         ------
         AlphabetError if include_stop is False and a stop codon occurs
         """
-        from cogent3.core.moltype import get_moltype
+        # todo gavin the genetic code should have the moltype for protein
+        #  with stop. The genetic code should also do the translation off
+        #  raw data, either an array of ints or a string. So this method
+        #  should only deal with trimming terminal stops, modulo 3 etc...
+        from cogent3.core import new_moltype
 
-        protein = get_moltype("protein_with_stop" if include_stop else "protein")
+        protein = new_moltype.get_moltype(
+            "protein_with_stop" if include_stop else "protein"
+        )
         gc = get_code(gc)
         codon_alphabet = gc.get_alphabet(include_stop=include_stop).with_gap_motif()
         moltype = self.moltype
