@@ -443,7 +443,7 @@ class SequenceCollection:
         min_val = seq_lengths.min()
         max_val = seq_lengths.max()
         med_val = numpy.median(seq_lengths)
-        
+
         if name_order:
             selected = self.take_seqs(name_order)
         else:
