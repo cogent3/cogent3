@@ -481,7 +481,7 @@ def _make_moltype_dict() -> dict[str, MolType]:
     """make a dictionary of local name space molecular types"""
     env = globals()
     moltypes = {}
-    for key, obj in env.items():
+    for obj in env.values():
         if not isinstance(obj, MolType):
             continue
         moltypes[obj.name] = obj

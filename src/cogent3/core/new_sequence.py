@@ -1226,7 +1226,6 @@ class Sequence:
             moltype=self.moltype,
             seq="".join(segments),
             name=self.name,
-            check=False,
             info=self.info,
         )
 
@@ -1262,7 +1261,6 @@ class Sequence:
                 moltype=self.moltype,
                 seq=self._seq[index],
                 name=self.name,
-                check=False,
                 info=self.info,
             )
             stride = getattr(index, "step", 1) or 1
@@ -1649,7 +1647,6 @@ class NucleicAcidSequenceMixin:
             moltype=self.moltype,
             seq=self._seq[::-1],
             name=self.name,
-            check=False,
             info=self.info,
         )
         rc.annotation_db = self.annotation_db
