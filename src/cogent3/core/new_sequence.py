@@ -1923,12 +1923,6 @@ class SliceRecordABC(ABC):
     @abstractmethod
     def _zero_slice(self): ...
 
-    @abstractmethod
-    def to_rich_dict(self): ...
-
-    @abstractmethod
-    def from_rich_dict(self): ...
-
     @property
     def offset(self) -> int:
         return self._offset
