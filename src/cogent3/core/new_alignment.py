@@ -15,6 +15,7 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
+from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
 from cogent3.util import warning as c3warn
 from cogent3.util.misc import get_setting_from_environ
@@ -285,17 +286,26 @@ def make_unaligned_seqs(
 
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
-    seq_data = get_seqs_data(data, moltype)
+    seqs_data = get_seqs_data(data, moltype)
 
-    return SequenceCollection(seq_data=seq_data, moltype=moltype)
+    return SequenceCollection(seqs_data=seqs_data, moltype=moltype, info=info)
 
 
 class SequenceCollection:
-    def __init__(self, *, seq_data: SeqsData, moltype: new_moltype.MolType):
+    def __init__(
+        self,
+        *,
+        seqs_data: SeqsData,
+        moltype: new_moltype.MolType,
+        info: Union[dict, InfoClass] = None,
+    ):
+        self._seqs_data = seqs_data
         self.moltype = moltype
-        self._seqs_data = seq_data
         self._names = self._seqs_data.names
         self._seqs_data.make_seq = self.moltype.make_seq
+        if not isinstance(info, InfoClass):
+            info = InfoClass(info) if info else InfoClass()
+        self.info = info
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
 
     @property
@@ -341,16 +351,42 @@ class SequenceCollection:
 
         Parameters
         ----------
-        seqs
-            selected sequences
-
+        names
+            sequences to select (or exclude if negate=True)
+        negate
+            select all sequences EXCEPT names
+        kwargs
+            keyword arguments to be passed to the constructor of the new seqcollection
 
         Notes
         -----
         the seqs in the new collection will be references to the same objects as
         the seqs in the old collection.
         """
-        ...
+
+        # todo: kath, better to use get_seq_array here?
+        if negate:
+            selected_seqs = {
+                name: self.seqs.get_seq_str(seqid=name)
+                for name in self.names
+                if name not in names
+            }
+        else:
+            selected_seqs = {
+                name: self.seqs.get_seq_str(seqid=name)
+                for name in names
+                if name in self.names
+            }
+
+        if not selected_seqs:
+            return {}
+
+        moltype = kwargs.pop("moltype", self.moltype)
+
+        seqs_data = SeqsData(data=selected_seqs, alphabet=moltype.alphabet)
+        result = self.__class__(seqs_data=seqs_data, moltype=moltype, info=self.info, **kwargs)
+        # todo: kath, update annotation_db and assign to result when we have annotations working
+        return result
 
     def __repr__(self):
         seqs = []

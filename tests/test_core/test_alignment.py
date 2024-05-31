@@ -238,7 +238,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(self.ordered1.iter_selected()), ["A"] * 5 + ["B"] * 5)
         self.assertEqual(list(self.ordered2.iter_selected()), ["B"] * 5 + ["A"] * 5)
 
-    def test_take_seqs(self):
+    def test_take_seqs(self):  # ported
         """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
         a = self.ragged_padded.take_seqs(list("bc"))
         self.assertTrue(isinstance(a, _SequenceCollectionBase))
@@ -247,7 +247,7 @@ class SequenceCollectionBaseTests(object):
         a = self.ragged_padded.take_seqs(list("bc"), negate=True)
         self.assertEqual(a, {"a": "AAAAAA"})
 
-    def test_take_seqs_str(self):
+    def test_take_seqs_str(self):  # ported
         """string arg to SequenceCollection take_seqs should work."""
         a = self.ragged_padded.take_seqs("a", negate=True)
         self.assertTrue(isinstance(a, _SequenceCollectionBase))
@@ -256,7 +256,7 @@ class SequenceCollectionBaseTests(object):
         a = self.ragged_padded.take_seqs("a")
         self.assertEqual(a, {"a": "AAAAAA"})
 
-    def test_take_seqs_info(self):
+    def test_take_seqs_info(self):  # ported
         """take_seqs should preserve info attribute"""
         orig = self.Class(
             data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, info={"key": "value"}
@@ -264,7 +264,7 @@ class SequenceCollectionBaseTests(object):
         subset = orig.take_seqs(list("ab"))
         self.assertEqual(set(subset.info), set(orig.info))
 
-    def test_take_seqs_moltype(self):
+    def test_take_seqs_moltype(self):  # ported
         """take_seqs should preserve the MolType"""
         orig = self.Class(
             data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=DNA
@@ -449,7 +449,7 @@ class SequenceCollectionBaseTests(object):
         got = align_norm.to_nexus("protein")
         self.assertEqual(got, expect)
 
-    def test_num_seqs(self):
+    def test_num_seqs(self):  # ported
         """SequenceCollection.num_seqs should count seqs."""
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
         self.assertEqual(aln.num_seqs, 3)

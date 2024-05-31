@@ -61,6 +61,20 @@ def ad_demo(aligned_dict: dict[str, str]):
     return new_aln.AlignedData.from_gapped_seqs(aligned_dict)
 
 
+@pytest.fixture
+def ragged_padded():
+    return new_aln.make_unaligned_seqs(
+        data={"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"}, moltype="dna"
+    )
+
+
+@pytest.fixture
+def ragged():
+    return new_aln.make_unaligned_seqs(
+        data={"a": "AAAAAA", "b": "AAA", "c": "AAAA"}, moltype="dna"
+    )
+
+
 def test_seqsdata_default_attributes(sd_demo: new_aln.SeqsData):
     assert sd_demo.names == ["seq1", "seq2"]
     assert isinstance(sd_demo._alphabet, new_alpha.CharAlphabet)
@@ -440,11 +454,8 @@ def test_make_unaligned_seqs_raises():
 @pytest.mark.xfail(
     reason="todo: kath, AttributeError: 'SeqDataView' object has no attribute 'replace'"
 )
-def test_iter_seqs_ragged_padded():
+def test_iter_seqs_ragged_padded(ragged_padded):
     """SequenceCollection.iter_seqs() method should support reordering of seqs"""
-    ragged_padded = new_aln.make_unaligned_seqs(
-        data={"a": "AAAAAA", "b": "AAA---", "c": "AAAA--"}, moltype="dna"
-    )
     seqs = list(ragged_padded.iter_seqs())
     assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
     seqs = list(ragged_padded.iter_seqs(seq_order=["b", "a", "a"]))
@@ -456,14 +467,11 @@ def test_iter_seqs_ragged_padded():
 @pytest.mark.xfail(
     reason="todo: kath, AttributeError: 'SeqDataView' object has no attribute 'replace'"
 )
-def test_iter_seqs_ragged(self):
+def test_iter_seqs_ragged(ragged):
     """SequenceCollection iter_seqs() method should support reordering of seqs"""
-    ragged = new_aln.make_unaligned_seqs(
-        data={"a": "AAAAAA", "b": "AAA", "c": "AAAA"}, moltype="dna"
-    )
     seqs = list(ragged.iter_seqs())
     assert seqs == ["AAAAAA", "AAA", "AAAA"]
-    seqs = list(self.ragged.iter_seqs(seq_order=["b", "a", "a"]))
+    seqs = list(ragged.iter_seqs(seq_order=["b", "a", "a"]))
     assert seqs == ["AAA", "AAAAAA", "AAAAAA"]
     assert seqs[1] is seqs[2]
     assert seqs[0], ragged.seqs["b"]
@@ -501,3 +509,56 @@ def test_sequence_collection_repr():
     }
     seqs = new_aln.make_unaligned_seqs(data=data, moltype="dna")
     assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
+
+
+@pytest.mark.xfail(reason="todo: kath, need support for __eq__ betwen collections")
+def test_take_seqs(ragged_padded):
+    """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
+    a = ragged_padded.take_seqs(list("bc"))
+    assert isinstance(a, new_aln.SequenceCollection)
+    assert a == {"b": "AAA---", "c": "AAAA--"}
+    # should be able to negate
+    a = ragged_padded.take_seqs(list("bc"), negate=True)
+    assert a == {"a": "AAAAAA"}
+
+
+@pytest.mark.xfail(reason="todo: kath, need support for __eq__ betwen collections")
+def test_take_seqs_str(ragged_padded):
+    """string arg to SequenceCollection take_seqs should work."""
+    a = ragged_padded.take_seqs("a")
+    assert a == {"a": "AAAAAA"}
+
+    # should be able to negate
+    a = ragged_padded.take_seqs("a", negate=True)
+    assert isinstance(a, new_aln.SequenceCollection)
+    assert a == {"b": "AAA---", "c": "AAAA--"}
+
+
+
+def test_take_seqs_info():
+    """take_seqs should preserve info attribute"""
+    moltype = new_moltype.get_moltype("dna")
+    orig = new_aln.make_unaligned_seqs(
+        data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype, info={"key": "value"}
+    )
+    subset = orig.take_seqs(list("ab"))
+    assert set(subset.info) == set(orig.info)
+
+
+def test_take_seqs_moltype():
+    """take_seqs should preserve the MolType"""
+    moltype = new_moltype.get_moltype("dna")
+    orig = new_aln.make_unaligned_seqs(
+        data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype
+    )
+    subset = orig.take_seqs(list("ab"))
+    assert set(subset.moltype) == set(orig.moltype)
+
+
+def test_num_seqs():
+    """SequenceCollection.num_seqs should count seqs."""
+
+    aln = new_aln.make_unaligned_seqs(
+        data={"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"}, moltype="rna"
+    )
+    assert aln.num_seqs == 3
