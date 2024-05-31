@@ -114,10 +114,6 @@ class SeqDataView(new_seq.SliceRecordABC):
         )
         return raw if self.step == 1 else raw[:: self.step]
 
-    def replace(self, old, new):
-        # todo: kath, placeholder for testing
-        return self
-
     def __str__(self):
         return self.str_value
 
@@ -298,12 +294,13 @@ class SequenceCollection:
     def __init__(self, *, seq_data: SeqsData, moltype: new_moltype.MolType):
         self.moltype = moltype
         self._seqs_data = seq_data
+        self._names = self._seqs_data.names
         self._seqs_data.make_seq = self.moltype.make_seq
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
 
     @property
     def names(self) -> Iterator[str]:
-        return self._seqs_data.names
+        return self._names
 
     @property
     def seqs(self) -> SeqsData:
@@ -312,7 +309,7 @@ class SequenceCollection:
     def iter_seqs(
         self, seq_order: list = None
     ) -> Iterator[Union[new_seq.Sequence, SeqsData]]:
-        """Iterates over values (sequences) in the alignment, in order.
+        """Iterates over values (sequences) in the alicollectionnment, in order.
 
         Parameters
         ----------
@@ -338,9 +335,9 @@ class SequenceCollection:
         return self.seqs
 
     def take_seqs(
-        self, seqs: Union[str, typing.Sequence[str]], negate: bool = False, **kwargs
+        self, names: Union[str, typing.Sequence[str]], negate: bool = False, **kwargs
     ):
-        """Returns new collectiomn containing only specified seqs.
+        """Returns new collection containing only specified seqs.
 
         Parameters
         ----------

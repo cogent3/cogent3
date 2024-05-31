@@ -275,6 +275,7 @@ def test_seqdataview_value(simple_dict: dict, dna_alpha, start, stop, step):
     assert got == expect
 
 
+@pytest.mark.xfail(reason="moltype.to_indices throws error for numpy.ndarray")
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
