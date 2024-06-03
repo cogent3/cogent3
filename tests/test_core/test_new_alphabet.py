@@ -1,3 +1,5 @@
+import itertools
+
 import numpy
 import pytest
 
@@ -127,6 +129,29 @@ def test_is_valid_typerror():
         _ = alpha.is_valid(list("ACGT"))
 
 
+@pytest.mark.parametrize("num_states,ndim", ((2, 1), (4, 2), (4, 4)))
+def test_interconversion_of_coords_indices(num_states, ndim):
+    # make sure match numpy functions
+    coeffs = numpy.array(new_alphabet.coord_conversion_coeffs(num_states, ndim))
+    for coord in itertools.product(*(list(range(num_states)),) * ndim):
+        coord = numpy.array(coord, dtype=numpy.uint64)
+        nidx = numpy.ravel_multi_index(coord, dims=(num_states,) * ndim)
+        idx = new_alphabet.coord_to_index(coord, coeffs)
+        assert idx == nidx
+        ncoord = numpy.unravel_index(nidx, shape=(num_states,) * ndim)
+        got = new_alphabet.index_to_coord(idx, coeffs)
+        assert (got == ncoord).all()
+        assert (got == coord).all()
+
+
+def test_coord2index_fail():
+    coord = numpy.array((0, 1), dtype=numpy.uint64)
+    coeffs = numpy.array(new_alphabet.coord_conversion_coeffs(2, 4))
+    # dimension of coords inconsistent with coeffs
+    with pytest.raises(ValueError):
+        new_alphabet.coord_to_index(coord, coeffs)
+
+
 @pytest.mark.parametrize("k", (2, 3))
 def test_kmer_alphabet_construction(k):
     dna = new_moltype.get_moltype("dna")
@@ -141,3 +166,19 @@ def test_kmer_gapped_alphabet_construction(k):
     monomers = dna.gapped_alphabet
     kmers = monomers.get_word_alphabet(k, include_gap=True)
     assert len(kmers) == 1 + 4**k
+
+
+def test_seq_to_kmer_indices():
+    numpy_func = numpy.ravel_multi_index
+    dims = 4, 4, 4
+    dna = new_moltype.get_moltype("dna")
+    seq = "ATGGGCAGA"
+    arr = dna.alphabet.to_indices(seq)
+    coeffs = new_alphabet.coord_conversion_coeffs(4, 3)
+    num = len(seq) // 3
+    result = numpy.zeros(num, dtype=numpy.uint8)
+    got = new_alphabet.seq_to_kmer_indices(arr, result, coeffs, 4, 3)
+    expect = numpy.array(
+        [numpy_func(arr[i : i + 3], dims=dims) for i in range(0, 9, 3)]
+    )
+    assert_allclose(got, expect)

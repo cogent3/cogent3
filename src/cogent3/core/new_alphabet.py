@@ -4,6 +4,7 @@ import typing
 
 from abc import ABC, abstractmethod
 
+import numba
 import numpy
 
 
@@ -282,6 +283,101 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return seq.min() >= 0 and seq.max() < len(self)
 
 
+@numba.jit(nopython=True)
+def coord_conversion_coeffs(num_states, k):  # pragma: no cover
+    """coefficients for multi-dimensional coordinate conversion into 1D index"""
+    return numpy.array([num_states ** (i - 1) for i in range(k, 0, -1)])
+
+
+@numba.jit(nopython=True)
+def coord_to_index(coord, coeffs):  # pragma: no cover
+    """converts a multi-dimensional coordinate into a 1D index"""
+    return (coord * coeffs).sum()
+
+
+@numba.jit(nopython=True)
+def index_to_coord(index, coeffs):  # pragma: no cover
+    """converts a 1D index into a multi-dimensional coordinate"""
+    ndim = len(coeffs)
+    coord = numpy.zeros(ndim, dtype=numpy.uint64)
+    remainder = index
+    for i in range(ndim):
+        n, remainder = numpy.divmod(remainder, coeffs[i])
+        coord[i] = n
+    return coord
+
+
+# todo: profile this against pure python,
+#  appears slower as a numba function!
+@numba.jit()
+def seq_to_kmer_indices(
+    seq: numpy.ndarray,
+    result: numpy.ndarray,
+    coeffs: numpy.ndarray,
+    num_states: int,
+    k: int,
+    independent_k: bool = True,
+) -> numpy.ndarray:  # pragma: no cover
+    """return 1D indices for valid k-mers
+
+    Parameters
+    ----------
+    seq
+        numpy array of uint, assumed that canonical characters have
+        sequential indexes which are all < num_states
+    result
+        array to be written into
+    coeffs
+        result of calling coord_conversion_coeffs() with num_states and k
+    num_states
+        defines range of possible ints at a position
+    k
+        k-mer size
+    independent_k
+        if True, sets returns indices for non-overlapping k-mers, otherwise
+        returns indices for all k-mers
+
+    Notes
+    -----
+    If a k-mer has an element > num_states, that k-mer index is assigned
+    to 1+num_states**k
+    """
+    # check the result length is consistent with the settings
+    step: int = k if independent_k else 1
+    size: int = int(numpy.ceil((len(seq) - k + 1) / step))
+    if len(result) < size:
+        raise ValueError(f"size of result {len(result)} <= {size}")
+
+    for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
+        for j in range(i, i + k):
+            if seq[j] < num_states:
+                result[result_idx] = coord_to_index(seq[i : i + k], coeffs)
+            else:
+                continue
+    return result
+
+
+# todo: profile this against pure python
+@numba.jit()
+def kmer_indices_to_seq(
+    kmer_indices: numpy.ndarray,
+    result: numpy.ndarray,
+    coeffs: numpy.ndarray,
+    k: int,
+    independent_k: bool = True,
+) -> numpy.ndarray:  # pragma: no cover
+    for index, kmer_index in enumerate(kmer_indices):
+        coord = index_to_coord(kmer_index, coeffs)
+        if index == 0:
+            result[0:3] = coord
+        elif independent_k:
+            seq_index = index * k
+            result[seq_index : seq_index + k] = coord
+        else:
+            # we are just adding the last monomer
+            result[index + k - 1] = coord[-1]
+
+    return result
 
 
 class KmerAlphabet(tuple, AlphabetABC):
@@ -316,6 +412,7 @@ class KmerAlphabet(tuple, AlphabetABC):
 
         size = len(self.monomers) - 1 if self.monomers.gap_char else len(self.monomers)
         self._coeffs = coord_conversion_coeffs(size, k)
+
     def with_gap_motif(self): ...
 
 
