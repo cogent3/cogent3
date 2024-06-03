@@ -71,10 +71,10 @@ class convert_alphabet:
         --------
         >>> dna_to_ry = convert_alphabet(src=b"TCAG", dest=b"YYRR")
         >>> dna_to_ry(b"GCTA")
-        b"RYYR"
+        b'RYYR'
         >>> dna_to_ry = convert_alphabet(src=b"TCAG", dest=b"YYRR", delete=b"-")
         >>> dna_to_ry(b"GC-TA")
-        b"RYYR"
+        b'RYYR'
         """
         if len(src) != len(dest):
             raise ValueError(f"length of src={len(src)} != length of new {len(dest)}")
