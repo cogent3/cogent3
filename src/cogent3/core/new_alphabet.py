@@ -105,7 +105,7 @@ class AlphabetABC(ABC):
 
 class MonomerAlphabetABC(ABC):
     @abstractmethod
-    def get_word_alphabet(self, size: int): ...
+    def get_kmer_alphabet(self, size: int): ...
 
     @abstractmethod
     def to_indices(self, seq: str) -> numpy.ndarray: ...
@@ -244,7 +244,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def with_gap_motif(self): ...
 
-    def get_word_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
+    def get_kmer_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
         """returns kmer alphabet with words of size k
 
         Parameters
