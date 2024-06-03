@@ -158,7 +158,14 @@ class SeqsData:
         return list(self._data.keys())
 
     @property
-    def make_seq(self) -> Union[SeqDataView, new_seq.Sequence]:
+    def make_seq(self) -> Callable:
+        """function to return a given Sequence from the collection
+
+        Notes
+        -----
+        Can be set with any callable function that takes 'seq' and 'name' as
+        keyword arguments. Typically set with '<moltype-instance>.make_seq'.
+        """
         return self._make_seq
 
     @make_seq.setter
@@ -205,7 +212,7 @@ class SeqsData:
         return (
             sdv
             if self.make_seq is None
-            else self.make_seq(seq=sdv.str_value, name=index, check_seq=False)
+            else self.make_seq(seq=sdv.str_value, name=index)
         )
 
     @__getitem__.register
