@@ -158,8 +158,9 @@ class SeqsData:
         return list(self._data.keys())
 
     @property
-    def make_seq(self) -> Callable:
-        """function to return a given Sequence from the collection
+    def make_seq(self) -> Union[SeqDataView, new_seq.Sequence]:
+        """if set, returns a function that takes 'seq' and 'name' as keyword
+        arguments and returns a given Sequence from the collection.
 
         Notes
         -----
@@ -203,11 +204,13 @@ class SeqsData:
         return self.num_seqs
 
     @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> SeqDataView:
+    def __getitem__(
+        self, index: Union[str, int]
+    ) -> Union[SeqDataView, new_seq.Sequence]:
         raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
 
     @__getitem__.register
-    def _(self, index: str) -> SeqDataView:
+    def _(self, index: str) -> Union[SeqDataView, new_seq.Sequence]:
         sdv = self.get_seq_view(seqid=index)
         return (
             sdv
@@ -216,7 +219,7 @@ class SeqsData:
         )
 
     @__getitem__.register
-    def _(self, index: int) -> SeqDataView:
+    def _(self, index: int) -> Union[SeqDataView, new_seq.Sequence]:
         return self[self.names[index]]
 
 
