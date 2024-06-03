@@ -167,7 +167,7 @@ class bytes_to_array:
 
 
 class array_to_bytes:
-    """converts utf8 to numpy array"""
+    """converts numpy array to utf8"""
 
     def __init__(self, chars, dtype):
         # we want a bytes translation map
@@ -463,7 +463,7 @@ class KmerAlphabet(tuple, AlphabetABC):
     def with_gap_motif(self): ...
 
     @functools.singledispatchmethod
-    def pack(self, seq) -> numpy.ndarray:
+    def to_index(self, seq) -> numpy.ndarray:
         """encodes a k-mer as a single integer
 
         Parameters
@@ -475,7 +475,7 @@ class KmerAlphabet(tuple, AlphabetABC):
         """
         raise TypeError(f"{type(seq)} not supported")
 
-    @pack.register
+    @to_index.register
     def _(self, seq: str) -> numpy.ndarray:
         """encodes a k-mer as a single integer
 
@@ -487,9 +487,9 @@ class KmerAlphabet(tuple, AlphabetABC):
             if False, performs operation on sequential k-mers, e.g. codons
         """
         seq = self.monomers.to_indices(seq)
-        return self.pack(seq)
+        return self.to_index(seq)
 
-    @pack.register
+    @to_index.register
     def _(self, seq: bytes) -> numpy.ndarray:
         """encodes a k-mer as a single integer
 
@@ -501,9 +501,9 @@ class KmerAlphabet(tuple, AlphabetABC):
             if False, performs operation on sequential k-mers, e.g. codons
         """
         seq = self.monomers.to_indices(seq)
-        return self.pack(seq)
+        return self.to_index(seq)
 
-    @pack.register
+    @to_index.register
     def _(self, seq: numpy.ndarray) -> numpy.ndarray:
         """encodes a k-mer as a single integer
 
@@ -514,7 +514,7 @@ class KmerAlphabet(tuple, AlphabetABC):
         """
         return coord_to_index(seq, self._coeffs)
 
-    def unpack(self, kmer_index: int) -> numpy.ndarray:
+    def from_index(self, kmer_index: int) -> numpy.ndarray:
         """decodes an integer into a k-mer"""
         return index_to_coord(kmer_index, self._coeffs)
 
