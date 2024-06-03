@@ -316,7 +316,7 @@ def seq_to_kmer_indices(
     coeffs: numpy.ndarray,
     num_states: int,
     k: int,
-    independent_k: bool = True,
+    independent_kmer: bool = True,
 ) -> numpy.ndarray:  # pragma: no cover
     """return 1D indices for valid k-mers
 
@@ -333,7 +333,7 @@ def seq_to_kmer_indices(
         defines range of possible ints at a position
     k
         k-mer size
-    independent_k
+    independent_kmer
         if True, sets returns indices for non-overlapping k-mers, otherwise
         returns indices for all k-mers
 
@@ -343,7 +343,7 @@ def seq_to_kmer_indices(
     to 1+num_states**k
     """
     # check the result length is consistent with the settings
-    step: int = k if independent_k else 1
+    step: int = k if independent_kmer else 1
     size: int = int(numpy.ceil((len(seq) - k + 1) / step))
     if len(result) < size:
         raise ValueError(f"size of result {len(result)} <= {size}")
@@ -364,13 +364,13 @@ def kmer_indices_to_seq(
     result: numpy.ndarray,
     coeffs: numpy.ndarray,
     k: int,
-    independent_k: bool = True,
+    independent_kmer: bool = True,
 ) -> numpy.ndarray:  # pragma: no cover
     for index, kmer_index in enumerate(kmer_indices):
         coord = index_to_coord(kmer_index, coeffs)
         if index == 0:
             result[0:3] = coord
-        elif independent_k:
+        elif independent_kmer:
             seq_index = index * k
             result[seq_index : seq_index + k] = coord
         else:
@@ -457,7 +457,7 @@ class KmerAlphabet(tuple, AlphabetABC):
             result,
             self._coeffs,
             self.k,
-            independent_k=independent_kmer,
+            independent_kmer=independent_kmer,
         )
 
     def with_gap_motif(self): ...
