@@ -413,7 +413,110 @@ class KmerAlphabet(tuple, AlphabetABC):
         size = len(self.monomers) - 1 if self.monomers.gap_char else len(self.monomers)
         self._coeffs = coord_conversion_coeffs(size, k)
 
+    @functools.singledispatchmethod
+    def to_indices(self, seq, independent_kmer: bool = True) -> numpy.ndarray:
+        """returns a sequence of k-mer indices
+
+        Parameters
+        ----------
+        seq
+            a sequence of monomers
+        independent_kmer
+            if True, returns non-overlapping k-mers
+        """
+        # todo: handle case of non-modulo sequences
+        raise TypeError(f"{type(seq)} is invalid")
+
+    @to_indices.register
+    def _(self, seq: str, independent_kmer: bool = True) -> numpy.ndarray:
+        seq = self.monomers.to_indices(seq)
+        return self.to_indices(seq, independent_kmer=independent_kmer)
+
+    @to_indices.register
+    def _(self, seq: numpy.ndarray, independent_kmer: bool = True) -> numpy.ndarray:
+        size = len(seq) - self.k + 1
+        if independent_kmer:
+            size = int(numpy.ceil(size / self.k))
+        result = numpy.zeros(size, dtype=get_array_type(size))
+        return seq_to_kmer_indices(
+            seq, result, self._coeffs, len(self.monomers), self.k, independent_kmer
+        )
+
+    def from_indices(
+        self, kmer_indices: numpy.ndarray, independent_kmer: bool = True
+    ) -> numpy.ndarray:
+
+        if independent_kmer:
+            size = len(kmer_indices) * self.k
+        else:
+            size = len(kmer_indices) + self.k - 1
+
+        result = numpy.zeros(size, dtype=self.dtype)
+        return kmer_indices_to_seq(
+            kmer_indices,
+            result,
+            self._coeffs,
+            self.k,
+            independent_k=independent_kmer,
+        )
+
     def with_gap_motif(self): ...
+
+    @functools.singledispatchmethod
+    def pack(self, seq) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded, can be either a string or numpy array
+        overlapping
+            if False, performs operation on sequential k-mers, e.g. codons
+        """
+        raise TypeError(f"{type(seq)} not supported")
+
+    @pack.register
+    def _(self, seq: str) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded
+        overlapping
+            if False, performs operation on sequential k-mers, e.g. codons
+        """
+        seq = self.monomers.to_indices(seq)
+        return self.pack(seq)
+
+    @pack.register
+    def _(self, seq: bytes) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded
+        overlapping
+            if False, performs operation on sequential k-mers, e.g. codons
+        """
+        seq = self.monomers.to_indices(seq)
+        return self.pack(seq)
+
+    @pack.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded
+        """
+        return coord_to_index(seq, self._coeffs)
+
+    def unpack(self, kmer_index: int) -> numpy.ndarray:
+        """decodes an integer into a k-mer"""
+        return index_to_coord(kmer_index, self._coeffs)
 
 
 _alphabet_moltype_map = {}
