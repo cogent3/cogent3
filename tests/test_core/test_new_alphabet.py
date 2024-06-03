@@ -1,7 +1,9 @@
 import numpy
 import pytest
 
-from cogent3.core import new_alphabet
+from numpy.testing import assert_allclose
+
+from cogent3.core import new_alphabet, new_moltype
 
 
 @pytest.mark.parametrize(
@@ -123,3 +125,19 @@ def test_is_valid_typerror():
     alpha = new_alphabet.CharAlphabet(list("TCAG"))
     with pytest.raises(TypeError):
         _ = alpha.is_valid(list("ACGT"))
+
+
+@pytest.mark.parametrize("k", (2, 3))
+def test_kmer_alphabet_construction(k):
+    dna = new_moltype.get_moltype("dna")
+    monomers = dna.alphabet
+    kmers = monomers.get_word_alphabet(k)
+    assert len(kmers) == 4**k
+
+
+@pytest.mark.parametrize("k", (2, 3))
+def test_kmer_gapped_alphabet_construction(k):
+    dna = new_moltype.get_moltype("dna")
+    monomers = dna.gapped_alphabet
+    kmers = monomers.get_word_alphabet(k, include_gap=True)
+    assert len(kmers) == 1 + 4**k

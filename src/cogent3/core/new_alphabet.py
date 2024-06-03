@@ -1,4 +1,5 @@
 import functools
+import itertools
 import typing
 
 from abc import ABC, abstractmethod
@@ -242,7 +243,31 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def with_gap_motif(self): ...
 
-    def get_word_alphabet(self, size: int): ...
+    def get_word_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
+        """returns kmer alphabet with words of size k
+
+        Parameters
+        ----------
+        k
+            word size
+        include_gap
+            if True, and self.gap_char, we set
+            KmerAlphabet.gap_char = self.gap_char * k
+        """
+        # refactor: revisit whether the include_gap argument makes sense
+        if k == 1:
+            return self
+
+        if self.gap_char:
+            chars = tuple(c for c in self if c != self.gap_char)
+        else:
+            chars = tuple(self)
+
+        gap = self._gap_char * k if include_gap and self._gap_char is not None else None
+        words = tuple("".join(e) for e in itertools.product(chars, repeat=k))
+        if include_gap and gap:
+            words += (gap,)
+        return KmerAlphabet(words=words, monomers=self, gap=gap, k=k)
 
     @functools.singledispatchmethod
     def is_valid(self, seq) -> bool:
@@ -257,11 +282,40 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return seq.min() >= 0 and seq.max() < len(self)
 
 
-class KmerAlphabet(AlphabetABC):
-    def to_indices(self, seq: tuple[str, ...]) -> numpy.ndarray: ...
 
-    def from_indices(self: numpy.ndarray) -> tuple[str, ...]: ...
 
+class KmerAlphabet(tuple, AlphabetABC):
+    def __new__(
+        cls,
+        words: tuple[StrORBytes, ...],
+        monomers: CharAlphabet,
+        k: int,
+        gap: OptStr = None,
+    ):
+        if not words:
+            raise ValueError(f"cannot create empty {cls.__name__!r}")
+
+        if gap is not None:
+            assert _coerce_to_type(words[0], gap) in words
+
+        consistent_words(words, length=k)
+        return tuple.__new__(cls, words, monomers=monomers, gap=gap)
+
+    def __init__(
+        self,
+        words: tuple[StrORBytes, ...],
+        monomers: CharAlphabet,
+        k: int,
+        gap: OptStr = None,
+    ):
+        self._gap_char = gap
+        self.monomers = monomers
+        self.dtype = get_array_type(len(self))
+        self._words = set(self)  # for quick lookup
+        self.k = k
+
+        size = len(self.monomers) - 1 if self.monomers.gap_char else len(self.monomers)
+        self._coeffs = coord_conversion_coeffs(size, k)
     def with_gap_motif(self): ...
 
 
