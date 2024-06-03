@@ -1,6 +1,7 @@
+import os
+
 import numpy as numpy
 import pytest
-import os 
 
 import cogent3.core.new_alignment as new_aln
 import cogent3.core.new_alphabet as new_alpha
@@ -529,11 +530,13 @@ def test_sequence_collection_repr():
     assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
 
 
-@pytest.mark.xfail(reason="todo: kath, new 'MolType' object has no attribute 'get_css_style'")
+@pytest.mark.xfail(
+    reason="todo: kath, new 'MolType' object has no attribute 'get_css_style'"
+)
 def test_set_wrap_affects_repr_html():
     """the wrap argument affects the number of columns"""
     # indirectly tested via counting number of occurrences of 'class="label"'
-    seqs = new_aln.make_unaligned_seqs(data = {"a": "AAAAA", "b": "AAA--"}, moltype="dna")
+    seqs = new_aln.make_unaligned_seqs(data={"a": "AAAAA", "b": "AAA--"}, moltype="dna")
     orig = seqs._repr_html_()
     seqs.set_repr_policy(wrap=3)  # break alignment into 2
     got = seqs._repr_html_()
@@ -543,7 +546,7 @@ def test_set_wrap_affects_repr_html():
     # using environment variable
     env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
     os.environ[env_name] = "wrap=2"
-    seqs = new_aln.make_unaligned_seqs(data = {"a": "AAAAA", "b": "AAA--"}, moltype="dna")
+    seqs = new_aln.make_unaligned_seqs(data={"a": "AAAAA", "b": "AAA--"}, moltype="dna")
     got = seqs._repr_html_()
     os.environ.pop(env_name, None)
     assert got.count(token) == 3 * orig.count(token)
@@ -592,6 +595,7 @@ def test_take_seqs_moltype():
     )
     subset = orig.take_seqs(list("ab"))
     assert set(subset.moltype) == set(orig.moltype)
+
 
 def test_take_seqs_empty_names():
     moltype = new_moltype.get_moltype("dna")

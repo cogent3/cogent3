@@ -132,13 +132,6 @@ class SeqDataView(new_seq.SliceRecordABC):
             f"seqid={self.seqid!r}, seq_len={self.seq_len})"
         )
 
-    @classmethod
-    def from_rich_dict(cls, data: dict):
-        init_args = data.pop("init_args")
-        if "offset" in data:
-            init_args["offset"] = data.pop("offset")
-        return cls(**init_args)
-
     # todo: do we support copy? do we support copy with sliced?
     def copy(self, sliced: bool = False):
         """returns copy"""
@@ -152,7 +145,7 @@ class SeqsData:
         self,
         data: dict[str, PrimitiveSeqTypes],
         alphabet: new_alpha.CharAlphabet,
-        make_seq: Optional[Callable] = None,
+        make_seq: Callable = None,
     ):
         self._alphabet = alphabet
         self._make_seq = make_seq
@@ -180,23 +173,6 @@ class SeqsData:
     def alphabet(self) -> new_alpha.CharAlphabet:
         return self._alphabet
 
-    @singledispatchmethod
-    def __getitem__(self, index: Union[str, int]) -> SeqDataView:
-        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
-
-    @__getitem__.register
-    def _(self, index: str) -> SeqDataView:
-        sdv = self.get_seq_view(seqid=index)
-        return (
-            sdv
-            if self.make_seq is None
-            else self.make_seq(seq=sdv.str_value, name=index, check_seq=False)
-        )
-
-    @__getitem__.register
-    def _(self, index: int) -> SeqDataView:
-        return self[self.names[index]]
-
     def get_seq_array(
         self, *, seqid: str, start: int = None, stop: int = None
     ) -> numpy.ndarray:
@@ -216,15 +192,35 @@ class SeqsData:
         seq_len = len(self._data[seqid])
         return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len)
 
+    def __len__(self):
+        return self.num_seqs
+
+    @singledispatchmethod
+    def __getitem__(self, index: Union[str, int]) -> SeqDataView:
+        raise NotImplementedError(f"__getitem__ not implemented for {type(index)}")
+
+    @__getitem__.register
+    def _(self, index: str) -> SeqDataView:
+        sdv = self.get_seq_view(seqid=index)
+        return (
+            sdv
+            if self.make_seq is None
+            else self.make_seq(seq=sdv.str_value, name=index, check_seq=False)
+        )
+
+    @__getitem__.register
+    def _(self, index: int) -> SeqDataView:
+        return self[self.names[index]]
+
 
 @singledispatch
-def get_seqs_data(
+def prep_for_seqs_data(
     data: Union[dict, SeqsData], moltype: new_moltype.MolType
 ) -> dict[str, numpy.ndarray]:
     raise NotImplementedError(f"SeqsData can not be constructed for type {type(data)}")
 
 
-@get_seqs_data.register
+@prep_for_seqs_data.register
 def _(data: SeqsData, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
     if moltype.is_compatible_alphabet(data.alphabet):
         return data
@@ -234,16 +230,24 @@ def _(data: SeqsData, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
         )
 
 
-@get_seqs_data.register
+@prep_for_seqs_data.register
 def _(data: dict, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
+    # todo: kath, when to use .alphabet and when to use .degen_gapped_alphabet?
     alpha = moltype.alphabet
     seqs_data = SeqsData(data=data, alphabet=alpha)
-    return get_seqs_data(seqs_data, moltype)
+    return prep_for_seqs_data(seqs_data, moltype)
+
+
+@prep_for_seqs_data.register
+def _(data: list, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
+    names = assign_sequential_names(len(data))
+    named_data = dict(zip(names, data))
+    return prep_for_seqs_data(named_data, moltype)
 
 
 def make_unaligned_seqs(
     *,
-    data: Union[dict[str, PrimitiveSeqTypes], SeqsData],
+    data: Union[dict[str, PrimitiveSeqTypes], SeqsData, list],
     moltype: Union[str, new_moltype.MolType],
     label_to_name: Callable = None,
     info: dict = None,
@@ -272,7 +276,7 @@ def make_unaligned_seqs(
 
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
-    seqs_data = get_seqs_data(data, moltype)
+    seqs_data = prep_for_seqs_data(data, moltype)
 
     return SequenceCollection(seqs_data=seqs_data, moltype=moltype, info=info)
 
@@ -305,7 +309,7 @@ class SequenceCollection:
     def iter_seqs(
         self, seq_order: list = None
     ) -> Iterator[Union[new_seq.Sequence, SeqsData]]:
-        """Iterates over values (sequences) in the alicollectionnment, in order.
+        """Iterates over sequences in the collection, in order.
 
         Parameters
         ----------
@@ -343,14 +347,9 @@ class SequenceCollection:
             select all sequences EXCEPT names
         kwargs
             keyword arguments to be passed to the constructor of the new seqcollection
-
-        Notes
-        -----
-        the seqs in the new collection will be references to the same objects as
-        the seqs in the old collection.
         """
 
-        # todo: kath, better to use get_seq_array here?
+        # todo: kath, add subset method onto SeqsData
         if negate:
             selected_seqs = {
                 name: self.seqs.get_seq_str(seqid=name)
