@@ -785,7 +785,7 @@ class SequenceCollectionBaseTests(object):
                 dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60),
             )
 
-    def test_set_wrap_affects_repr_html(self):
+    def test_set_wrap_affects_repr_html(self): # ported for seqcollection
         """the wrap argument affects the number of columns"""
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
