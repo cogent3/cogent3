@@ -1,8 +1,10 @@
 import functools
+import itertools
 import typing
 
 from abc import ABC, abstractmethod
 
+import numba
 import numpy
 
 
@@ -71,10 +73,10 @@ class convert_alphabet:
         --------
         >>> dna_to_ry = convert_alphabet(src=b"TCAG", dest=b"YYRR")
         >>> dna_to_ry(b"GCTA")
-        b"RYYR"
+        b'RYYR'
         >>> dna_to_ry = convert_alphabet(src=b"TCAG", dest=b"YYRR", delete=b"-")
         >>> dna_to_ry(b"GC-TA")
-        b"RYYR"
+        b'RYYR'
         """
         if len(src) != len(dest):
             raise ValueError(f"length of src={len(src)} != length of new {len(dest)}")
@@ -191,8 +193,9 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         consistent_words(chars, length=1)
         return tuple.__new__(cls, chars, gap=gap)
 
-    def __init__(self, chars: typing.Sequence[StrORBytes], gap: str = "-"):
-        self._gap = gap
+    def __init__(self, chars: typing.Sequence[StrORBytes], gap: str = None):
+        self._gap_char = gap
+        self._gap_index = self.index(gap) if gap else None
         self.dtype = get_array_type(len(self))
         self._chars = set(self)  # for quick lookup
         try:
@@ -201,6 +204,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             byte_chars = bytes(bytearray(chars))
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
         self._arr2bytes = array_to_bytes(byte_chars, dtype=self.dtype)
+
+    @property
+    def gap_char(self) -> OptStr:
+        return self._gap_char
+
+    @property
+    def gap_index(self) -> OptInt:
+        return self._gap_index
 
     @property
     def motif_len(self) -> int:
@@ -233,7 +244,31 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
     def with_gap_motif(self): ...
 
-    def get_word_alphabet(self, size: int): ...
+    def get_word_alphabet(self, k: int, include_gap: bool = True) -> "KmerAlphabet":
+        """returns kmer alphabet with words of size k
+
+        Parameters
+        ----------
+        k
+            word size
+        include_gap
+            if True, and self.gap_char, we set
+            KmerAlphabet.gap_char = self.gap_char * k
+        """
+        # refactor: revisit whether the include_gap argument makes sense
+        if k == 1:
+            return self
+
+        if self.gap_char:
+            chars = tuple(c for c in self if c != self.gap_char)
+        else:
+            chars = tuple(self)
+
+        gap = self._gap_char * k if include_gap and self._gap_char is not None else None
+        words = tuple("".join(e) for e in itertools.product(chars, repeat=k))
+        if include_gap and gap:
+            words += (gap,)
+        return KmerAlphabet(words=words, monomers=self, gap=gap, k=k)
 
     @functools.singledispatchmethod
     def is_valid(self, seq) -> bool:
@@ -248,12 +283,240 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return seq.min() >= 0 and seq.max() < len(self)
 
 
-class KmerAlphabet(AlphabetABC):
-    def to_indices(self, seq: tuple[str, ...]) -> numpy.ndarray: ...
+@numba.jit(nopython=True)
+def coord_conversion_coeffs(num_states, k):  # pragma: no cover
+    """coefficients for multi-dimensional coordinate conversion into 1D index"""
+    return numpy.array([num_states ** (i - 1) for i in range(k, 0, -1)])
 
-    def from_indices(self: numpy.ndarray) -> tuple[str, ...]: ...
+
+@numba.jit(nopython=True)
+def coord_to_index(coord, coeffs):  # pragma: no cover
+    """converts a multi-dimensional coordinate into a 1D index"""
+    return (coord * coeffs).sum()
+
+
+@numba.jit(nopython=True)
+def index_to_coord(index, coeffs):  # pragma: no cover
+    """converts a 1D index into a multi-dimensional coordinate"""
+    ndim = len(coeffs)
+    coord = numpy.zeros(ndim, dtype=numpy.uint64)
+    remainder = index
+    for i in range(ndim):
+        n, remainder = numpy.divmod(remainder, coeffs[i])
+        coord[i] = n
+    return coord
+
+
+# todo: profile this against pure python,
+#  appears slower as a numba function!
+@numba.jit()
+def seq_to_kmer_indices(
+    seq: numpy.ndarray,
+    result: numpy.ndarray,
+    coeffs: numpy.ndarray,
+    num_states: int,
+    k: int,
+    independent_kmer: bool = True,
+) -> numpy.ndarray:  # pragma: no cover
+    """return 1D indices for valid k-mers
+
+    Parameters
+    ----------
+    seq
+        numpy array of uint, assumed that canonical characters have
+        sequential indexes which are all < num_states
+    result
+        array to be written into
+    coeffs
+        result of calling coord_conversion_coeffs() with num_states and k
+    num_states
+        defines range of possible ints at a position
+    k
+        k-mer size
+    independent_kmer
+        if True, sets returns indices for non-overlapping k-mers, otherwise
+        returns indices for all k-mers
+
+    Notes
+    -----
+    If a k-mer has an element > num_states, that k-mer index is assigned
+    to 1+num_states**k
+    """
+    # check the result length is consistent with the settings
+    step: int = k if independent_kmer else 1
+    size: int = int(numpy.ceil((len(seq) - k + 1) / step))
+    if len(result) < size:
+        raise ValueError(f"size of result {len(result)} <= {size}")
+
+    for result_idx, i in enumerate(range(0, len(seq) - k + 1, step)):
+        for j in range(i, i + k):
+            if seq[j] < num_states:
+                result[result_idx] = coord_to_index(seq[i : i + k], coeffs)
+            else:
+                continue
+    return result
+
+
+# todo: profile this against pure python
+@numba.jit()
+def kmer_indices_to_seq(
+    kmer_indices: numpy.ndarray,
+    result: numpy.ndarray,
+    coeffs: numpy.ndarray,
+    k: int,
+    independent_kmer: bool = True,
+) -> numpy.ndarray:  # pragma: no cover
+    for index, kmer_index in enumerate(kmer_indices):
+        coord = index_to_coord(kmer_index, coeffs)
+        if index == 0:
+            result[0:3] = coord
+        elif independent_kmer:
+            seq_index = index * k
+            result[seq_index : seq_index + k] = coord
+        else:
+            # we are just adding the last monomer
+            result[index + k - 1] = coord[-1]
+
+    return result
+
+
+class KmerAlphabet(tuple, AlphabetABC):
+    def __new__(
+        cls,
+        words: tuple[StrORBytes, ...],
+        monomers: CharAlphabet,
+        k: int,
+        gap: OptStr = None,
+    ):
+        if not words:
+            raise ValueError(f"cannot create empty {cls.__name__!r}")
+
+        if gap is not None:
+            assert _coerce_to_type(words[0], gap) in words
+
+        consistent_words(words, length=k)
+        return tuple.__new__(cls, words, monomers=monomers, gap=gap)
+
+    def __init__(
+        self,
+        words: tuple[StrORBytes, ...],
+        monomers: CharAlphabet,
+        k: int,
+        gap: OptStr = None,
+    ):
+        self._gap_char = gap
+        self.monomers = monomers
+        self.dtype = get_array_type(len(self))
+        self._words = set(self)  # for quick lookup
+        self.k = k
+
+        size = len(self.monomers) - 1 if self.monomers.gap_char else len(self.monomers)
+        self._coeffs = coord_conversion_coeffs(size, k)
+
+    @functools.singledispatchmethod
+    def to_indices(self, seq, independent_kmer: bool = True) -> numpy.ndarray:
+        """returns a sequence of k-mer indices
+
+        Parameters
+        ----------
+        seq
+            a sequence of monomers
+        independent_kmer
+            if True, returns non-overlapping k-mers
+        """
+        # todo: handle case of non-modulo sequences
+        raise TypeError(f"{type(seq)} is invalid")
+
+    @to_indices.register
+    def _(self, seq: str, independent_kmer: bool = True) -> numpy.ndarray:
+        seq = self.monomers.to_indices(seq)
+        return self.to_indices(seq, independent_kmer=independent_kmer)
+
+    @to_indices.register
+    def _(self, seq: numpy.ndarray, independent_kmer: bool = True) -> numpy.ndarray:
+        size = len(seq) - self.k + 1
+        if independent_kmer:
+            size = int(numpy.ceil(size / self.k))
+        result = numpy.zeros(size, dtype=get_array_type(size))
+        return seq_to_kmer_indices(
+            seq, result, self._coeffs, len(self.monomers), self.k, independent_kmer
+        )
+
+    def from_indices(
+        self, kmer_indices: numpy.ndarray, independent_kmer: bool = True
+    ) -> numpy.ndarray:
+
+        if independent_kmer:
+            size = len(kmer_indices) * self.k
+        else:
+            size = len(kmer_indices) + self.k - 1
+
+        result = numpy.zeros(size, dtype=self.dtype)
+        return kmer_indices_to_seq(
+            kmer_indices,
+            result,
+            self._coeffs,
+            self.k,
+            independent_kmer=independent_kmer,
+        )
 
     def with_gap_motif(self): ...
+
+    @functools.singledispatchmethod
+    def pack(self, seq) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded, can be either a string or numpy array
+        overlapping
+            if False, performs operation on sequential k-mers, e.g. codons
+        """
+        raise TypeError(f"{type(seq)} not supported")
+
+    @pack.register
+    def _(self, seq: str) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded
+        overlapping
+            if False, performs operation on sequential k-mers, e.g. codons
+        """
+        seq = self.monomers.to_indices(seq)
+        return self.pack(seq)
+
+    @pack.register
+    def _(self, seq: bytes) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded
+        overlapping
+            if False, performs operation on sequential k-mers, e.g. codons
+        """
+        seq = self.monomers.to_indices(seq)
+        return self.pack(seq)
+
+    @pack.register
+    def _(self, seq: numpy.ndarray) -> numpy.ndarray:
+        """encodes a k-mer as a single integer
+
+        Parameters
+        ----------
+        seq
+            sequence to be encoded
+        """
+        return coord_to_index(seq, self._coeffs)
+
+    def unpack(self, kmer_index: int) -> numpy.ndarray:
+        """decodes an integer into a k-mer"""
+        return index_to_coord(kmer_index, self._coeffs)
 
 
 _alphabet_moltype_map = {}
