@@ -120,7 +120,7 @@ def _make_seq_container(
 
 
 def make_unaligned_seqs(
-    data, moltype=None, label_to_name=None, info=None, source=None, **kw
+    data, moltype=None, label_to_name=None, info=None, source=None, new_type=False, **kw
 ):
     """Initialize an unaligned collection of sequences.
 
@@ -140,7 +140,19 @@ def make_unaligned_seqs(
     **kw
         other keyword arguments passed to SequenceCollection
     """
+    if new_type and moltype is None:
+        raise ValueError("Argument 'moltype' is required when 'new_type=True'")
+    elif new_type:
+        from cogent3.core import new_alignment
 
+        return new_alignment.make_unaligned_seqs(
+            data=data,
+            moltype=moltype,
+            label_to_name=label_to_name,
+            info=info,
+            source=source,
+            **kw,
+        )
     return _make_seq_container(
         SequenceCollection,
         data,

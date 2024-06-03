@@ -218,7 +218,7 @@ class SequenceCollectionBaseTests(object):
         self.assertTrue((un_list == first_list) or (un_list == sec_list))
         self.assertNotEqual(first_list, sec_list)
 
-    def test_iter_seqs(self):
+    def test_iter_seqs(self):  # ported
         """SequenceCollection iter_seqs() method should support reordering of seqs"""
         self.ragged_padded = self.Class(
             self.ragged_padded.named_seqs, names=["a", "b", "c"]
@@ -238,7 +238,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(list(self.ordered1.iter_selected()), ["A"] * 5 + ["B"] * 5)
         self.assertEqual(list(self.ordered2.iter_selected()), ["B"] * 5 + ["A"] * 5)
 
-    def test_take_seqs(self):
+    def test_take_seqs(self):  # ported
         """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
         a = self.ragged_padded.take_seqs(list("bc"))
         self.assertTrue(isinstance(a, _SequenceCollectionBase))
@@ -247,7 +247,7 @@ class SequenceCollectionBaseTests(object):
         a = self.ragged_padded.take_seqs(list("bc"), negate=True)
         self.assertEqual(a, {"a": "AAAAAA"})
 
-    def test_take_seqs_str(self):
+    def test_take_seqs_str(self):  # ported
         """string arg to SequenceCollection take_seqs should work."""
         a = self.ragged_padded.take_seqs("a", negate=True)
         self.assertTrue(isinstance(a, _SequenceCollectionBase))
@@ -256,7 +256,7 @@ class SequenceCollectionBaseTests(object):
         a = self.ragged_padded.take_seqs("a")
         self.assertEqual(a, {"a": "AAAAAA"})
 
-    def test_take_seqs_info(self):
+    def test_take_seqs_info(self):  # ported
         """take_seqs should preserve info attribute"""
         orig = self.Class(
             data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, info={"key": "value"}
@@ -264,7 +264,7 @@ class SequenceCollectionBaseTests(object):
         subset = orig.take_seqs(list("ab"))
         self.assertEqual(set(subset.info), set(orig.info))
 
-    def test_take_seqs_moltype(self):
+    def test_take_seqs_moltype(self):  # ported
         """take_seqs should preserve the MolType"""
         orig = self.Class(
             data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=DNA
@@ -449,7 +449,7 @@ class SequenceCollectionBaseTests(object):
         got = align_norm.to_nexus("protein")
         self.assertEqual(got, expect)
 
-    def test_num_seqs(self):
+    def test_num_seqs(self):  # ported
         """SequenceCollection.num_seqs should count seqs."""
         aln = self.Class({"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"})
         self.assertEqual(aln.num_seqs, 3)
@@ -785,7 +785,7 @@ class SequenceCollectionBaseTests(object):
                 dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60),
             )
 
-    def test_set_wrap_affects_repr_html(self):
+    def test_set_wrap_affects_repr_html(self):  # ported for seqcollection
         """the wrap argument affects the number of columns"""
         # indirectly tested via counting number of occurrences of 'class="label"'
         seqs = self.Class({"a": "AAAAA", "b": "AAA--"})
@@ -845,7 +845,7 @@ class SequenceCollectionTests(SequenceCollectionBaseTests, TestCase):
         self.ragged.names = "bac"
         self.assertEqual(list(self.ragged.seqs), ["AAA", "AAAAAA", "AAAA"])
 
-    def test_iter_seqs_ragged(self):
+    def test_iter_seqs_ragged(self):  # ported
         """SequenceCollection iter_seqs() method should support reordering of seqs"""
         self.ragged.names = ["a", "b", "c"]
         seqs = list(self.ragged.iter_seqs())
@@ -3703,7 +3703,7 @@ def test_slice_aligned_featuremap_multi_spans():
     assert str(sliced) == "AAGGGCCC"
 
 
-def test_sequence_collection_repr():
+def test_sequence_collection_repr():  # ported
     data = {
         "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
         "ENSMUSG00000039616": "GCCCTTCAAATTT",
