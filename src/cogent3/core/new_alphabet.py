@@ -191,8 +191,9 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         consistent_words(chars, length=1)
         return tuple.__new__(cls, chars, gap=gap)
 
-    def __init__(self, chars: typing.Sequence[StrORBytes], gap: str = "-"):
-        self._gap = gap
+    def __init__(self, chars: typing.Sequence[StrORBytes], gap: str = None):
+        self._gap_char = gap
+        self._gap_index = self.index(gap) if gap else None
         self.dtype = get_array_type(len(self))
         self._chars = set(self)  # for quick lookup
         try:
@@ -201,6 +202,14 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
             byte_chars = bytes(bytearray(chars))
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
         self._arr2bytes = array_to_bytes(byte_chars, dtype=self.dtype)
+
+    @property
+    def gap_char(self) -> OptStr:
+        return self._gap_char
+
+    @property
+    def gap_index(self) -> OptInt:
+        return self._gap_index
 
     @property
     def motif_len(self) -> int:
