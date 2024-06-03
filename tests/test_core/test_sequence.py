@@ -895,14 +895,14 @@ class SequenceTests(TestCase):
         token = 'class="label"'
         seq = self.SEQ("AAAAA")
 
-        orig = [l for l in seq._repr_html_().splitlines() if token in l][0]
+        orig = [line for line in seq._repr_html_().splitlines() if token in line][0]
         orig_num = len(re.findall(r"\bA\b", orig))
         self.assertEqual(orig_num, 5)
 
         # using environment variable
         env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
         os.environ[env_name] = "num_pos=2"
-        got = [l for l in seq._repr_html_().splitlines() if token in l][0]
+        got = [line for line in seq._repr_html_().splitlines() if token in line][0]
         got_num = len(re.findall(r"\bA\b", got))
         self.assertEqual(got_num, 2)
         os.environ.pop(env_name, None)
@@ -2596,6 +2596,7 @@ def test_gapped_by_map_segment_iter():
     moltype = get_moltype("dna")
     m, seq = moltype.make_seq("-TCC--AG").parse_out_gaps()
     g = list(seq.gapped_by_map_segment_iter(m, allow_gaps=True, recode_gaps=False))
+    assert g == ["-", "TCC", "--", "AG"]
 
 
 @pytest.mark.parametrize("rev", (False, True))
@@ -2651,10 +2652,10 @@ def test_seqview_rich_dict_round_trip_seqid():
 
     sv = SeqView(seq="ACGGTGGGAC")
     rd = sv.to_rich_dict()
-    assert rd["init_args"]["seqid"] == None
+    assert rd["init_args"]["seqid"] is None
 
     got = SeqView.from_rich_dict(rd)
-    assert got.seqid == None
+    assert got.seqid is None
 
 
 def test_seqview_slice_propagates_seqid():
@@ -2716,7 +2717,7 @@ def test_sequences_propogates_seqid():
     # creating a Sequence with an unnamed seqview does not name the SeqView.
     seq = Sequence(SeqView(seq="ACGGTGGGAC"), name="seq_name")
     assert seq.name == "seq_name"
-    assert seq._seq.seqid == None
+    assert seq._seq.seqid is None
 
 
 def test_make_seq_assigns_to_seqview():

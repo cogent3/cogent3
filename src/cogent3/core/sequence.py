@@ -129,7 +129,7 @@ class SequenceI(object):
     def to_rich_dict(self, exclude_annotations=False):
         """returns {'name': name, 'seq': sequence, 'moltype': moltype.label}"""
         info = {} if self.info is None else self.info
-        if not info.get("Refs", None) is None and "Refs" in info:
+        if info.get("Refs", None) is not None and "Refs" in info:
             info.pop("Refs")
 
         info = info or None
@@ -488,7 +488,9 @@ class SequenceI(object):
         """
         if function is None:
             # use identity scoring function
-            function = lambda a, b: a != b
+            def function(a, b):
+                return a != b
+
         distance = 0
         for first, second in zip(self, other):
             distance += function(first, second)
