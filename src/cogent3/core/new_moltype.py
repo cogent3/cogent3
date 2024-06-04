@@ -345,7 +345,7 @@ class MolType:
         self,
         monomers: StrORBytes,
         make_seq: typing.Type,
-        complements: dataclasses.InitVar[typing.Optional[dict[str, str]]],
+        complements: typing.Optional[dict[str, str]],
         colors: typing.Optional[dict[str, str]],
     ):
         self._colors = colors or defaultdict(_DefaultValue("black"))
@@ -475,6 +475,10 @@ class MolType:
     @complement.register
     def _(self, seq: bytes) -> str:
         return self._complement(seq).decode("utf8")
+
+    def rc(self, seq: str) -> str:
+        """reverse reverse complement of a sequence"""
+        return self.complement(seq)[::-1]
 
 
 def _make_moltype_dict() -> dict[str, MolType]:

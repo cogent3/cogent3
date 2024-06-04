@@ -182,33 +182,33 @@ def get_rand_coord_seq(k, cast):
 
 @pytest.mark.parametrize("cast", (None, bytes, str))
 @pytest.mark.parametrize("k", (2, 3))
-def test_kmer_alphabet_pack(k, cast):
+def test_kmer_alphabet_to_index(k, cast):
     # should match numpy ravel
     dna = new_moltype.get_moltype("dna")
     monomers = dna.gapped_alphabet
     kmers = monomers.get_kmer_alphabet(k, include_gap=True)
     coord, seq = get_rand_coord_seq(k, cast)
     expect = numpy.ravel_multi_index(coord, dims=(4,) * k)
-    assert kmers.pack(seq) == expect
+    assert kmers.to_index(seq) == expect
 
 
-def test_kmer_alphabet_pack_invalid():
+def test_kmer_alphabet_to_index_invalid():
     # should match numpy ravel
     dna = new_moltype.get_moltype("dna")
     kmers = dna.gapped_alphabet.get_kmer_alphabet(3, include_gap=True)
     with pytest.raises(TypeError):
-        kmers.pack([0, 1, 2])
+        kmers.to_index([0, 1, 2])
 
 
 @pytest.mark.parametrize("k", (2, 3))
-def test_kmer_alphabet_unpack(k):
+def test_kmer_alphabet_from_index(k):
     # should match numpy ravel
     dna = new_moltype.get_moltype("dna")
     monomers = dna.gapped_alphabet
     kmers = monomers.get_kmer_alphabet(k, include_gap=True)
     coord = numpy.random.randint(0, 4, size=k, dtype=numpy.uint8)
     index = numpy.ravel_multi_index(coord, dims=(4,) * k)
-    assert (kmers.unpack(index) == coord).all()
+    assert (kmers.from_index(index) == coord).all()
 
 
 def test_seq_to_kmer_indices():
