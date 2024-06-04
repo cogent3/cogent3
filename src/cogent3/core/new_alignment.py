@@ -34,7 +34,7 @@ class SeqDataView(new_seq.SliceRecordABC):
     A view class for SeqsData, providing properties for different
     representations.
 
-    self.seq is a SeqsData() instance, but other properties are a reference to a
+    self.seqs is a SeqsData() instance, but other properties are a reference to a
     single seqid only.
 
     Example
@@ -44,12 +44,12 @@ class SeqDataView(new_seq.SliceRecordABC):
     sdv = sd.get_seq_view(seqid="seq1")
     """
 
-    __slots__ = ("seq", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
+    __slots__ = ("seqs", "start", "stop", "step", "_offset", "_seqid", "_seq_len")
 
     def __init__(
         self,
         *,
-        seq: SeqsData,
+        seqs: SeqsData,
         seq_len: int,
         start: Optional[int] = None,
         stop: Optional[int] = None,
@@ -66,7 +66,7 @@ class SeqDataView(new_seq.SliceRecordABC):
             new_seq._input_vals_pos_step if step > 0 else new_seq._input_vals_neg_step
         )
         start, stop, step = func(self._seq_len, start, stop, step)
-        self.seq = seq
+        self.seqs = seqs
         self.start = start
         self.stop = stop
         self.step = step
@@ -80,7 +80,7 @@ class SeqDataView(new_seq.SliceRecordABC):
     @property
     def _zero_slice(self):
         return self.__class__(
-            seq=self.seq, seqid=self.seqid, seq_len=self.seq_len, start=0, stop=0
+            seqs=self.seqs, seqid=self.seqid, seq_len=self.seq_len, start=0, stop=0
         )
 
     @property
@@ -92,25 +92,25 @@ class SeqDataView(new_seq.SliceRecordABC):
         return self._seq_len
 
     def _get_init_kwargs(self):
-        return {"seq": self.seq, "seqid": self.seqid}
+        return {"seqs": self.seqs, "seqid": self.seqid}
 
     @property
     def str_value(self) -> str:
-        raw = self.seq.get_seq_str(
+        raw = self.seqs.get_seq_str(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
 
     @property
     def array_value(self) -> numpy.ndarray:
-        raw = self.seq.get_seq_array(
+        raw = self.seqs.get_seq_array(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
 
     @property
     def bytes_value(self) -> bytes:
-        raw = self.seq.get_seq_bytes(
+        raw = self.seqs.get_seq_bytes(
             seqid=self.seqid, start=self.parent_start, stop=self.parent_stop
         )
         return raw if self.step == 1 else raw[:: self.step]
@@ -173,9 +173,7 @@ class SeqsData:
     def make_seq(self, make_seq: Callable) -> None:
         self._make_seq = make_seq
 
-    @property
-    def num_seqs(self) -> int:
-        return len(self._data)
+    # todo: kath, do we want a num_seqs property for SeqsData?
 
     @property
     def alphabet(self) -> new_alpha.CharAlphabet:
@@ -198,10 +196,16 @@ class SeqsData:
 
     def get_seq_view(self, seqid: str) -> SeqDataView:
         seq_len = len(self._data[seqid])
-        return SeqDataView(seq=self, seqid=seqid, seq_len=seq_len)
+        return SeqDataView(seqs=self, seqid=seqid, seq_len=seq_len)
+
+    def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
+        """Returns a new SeqsData object with only the specified names."""
+        names = [names] if isinstance(names, str) else names
+        data = {name: self._data.get(name) for name in names}
+        return self.__class__(data=data, alphabet=self.alphabet, make_seq=self.make_seq)
 
     def __len__(self):
-        return self.num_seqs
+        return len(self.names)
 
     @singledispatchmethod
     def __getitem__(
@@ -242,8 +246,7 @@ def _(data: SeqsData, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
 
 @prep_for_seqs_data.register
 def _(data: dict, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
-    # todo: kath, when to use .alphabet and when to use .degen_gapped_alphabet?
-    alpha = moltype.alphabet
+    alpha = moltype.degen_gapped_alphabet
     seqs_data = SeqsData(data=data, alphabet=alpha)
     return prep_for_seqs_data(seqs_data, moltype)
 
@@ -297,24 +300,62 @@ class SequenceCollection:
         *,
         seqs_data: SeqsData,
         moltype: new_moltype.MolType,
+        names: list[str] = None,
         info: Union[dict, InfoClass] = None,
+        label_to_name=None,
     ):
         self._seqs_data = seqs_data
         self.moltype = moltype
-        self._names = self._seqs_data.names
+        self.names = names
         self._seqs_data.make_seq = self.moltype.make_seq
         if not isinstance(info, InfoClass):
             info = InfoClass(info) if info else InfoClass()
         self.info = info
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
+        self._annotation_db = None
 
     @property
     def names(self) -> Iterator[str]:
         return self._names
 
+    @names.setter
+    def names(self, names: list[str]):
+        if names is None:
+            self._names = self._seqs_data.names
+        elif set(names) <= set(self._seqs_data.names):
+            self._names = names
+        else:
+            left_diff = set(names) - set(self._seqs_data.names)
+            raise ValueError(f"Provided names not found in collection: {left_diff}")
+
     @property
     def seqs(self) -> SeqsData:
         return self._seqs_data
+
+    @property
+    def num_seqs(self) -> int:
+        return len(self.names)
+
+    @property
+    def annotation_db(self):
+        return self._annotation_db
+
+    @annotation_db.setter
+    def annotation_db(self, value):
+        if value == self._annotation_db:
+            return
+
+        self._annotation_db = value
+
+        for seq in self.seqs:
+            seq.replace_annotation_db(value, check=False)
+
+    @property
+    @c3warn.deprecated_callable(
+        version="2025.5", reason=".seqs can now be indexed by name", new=".seqs"
+    )
+    def named_seqs(self) -> SeqsData:  # pragma: no cover
+        return self.seqs
 
     def iter_seqs(
         self, seq_order: list = None
@@ -333,17 +374,6 @@ class SequenceCollection:
         for key in seq_order or self.names:
             yield get(key)
 
-    @property
-    def num_seqs(self) -> int:
-        return self._seqs_data.num_seqs
-
-    @property
-    @c3warn.deprecated_callable(
-        version="2025.5", reason=".seqs can now be indexed by name", new=".seqs"
-    )
-    def named_seqs(self) -> SeqsData:  # pragma: no cover
-        return self.seqs
-
     def take_seqs(
         self, names: Union[str, typing.Sequence[str]], negate: bool = False, **kwargs
     ):
@@ -356,34 +386,71 @@ class SequenceCollection:
         negate
             select all sequences EXCEPT names
         kwargs
-            keyword arguments to be passed to the constructor of the new seqcollection
+            keyword arguments to be passed to the constructor of the new collection
+
+        Notes
+        -----
+        The seqs in the new collection will be references to the same objects as
+        the seqs in the old collection.
         """
+        # todo: kath, note gavins comment that this method could operate on only the names
+        # list and not the seqs_data object
 
-        # todo: kath, add subset method onto SeqsData
         if negate:
-            selected_seqs = {
-                name: self.seqs.get_seq_str(seqid=name)
-                for name in self.names
-                if name not in names
-            }
+            names = [name for name in self.names if name not in names]
         else:
-            selected_seqs = {
-                name: self.seqs.get_seq_str(seqid=name)
-                for name in names
-                if name in self.names
-            }
+            names = [name for name in names if name in self.names]
 
-        if not selected_seqs:
+        if not names:
             return {}
 
-        moltype = kwargs.pop("moltype", self.moltype)
+        seqs_data = self.seqs.subset(names)
 
-        seqs_data = SeqsData(data=selected_seqs, alphabet=moltype.alphabet)
+        moltype = kwargs.pop("moltype", self.moltype)
         result = self.__class__(
             seqs_data=seqs_data, moltype=moltype, info=self.info, **kwargs
         )
-        # todo: kath, update annotation_db and assign to result when we have annotations working
+        if self.annotation_db:
+            result.annotation_db = type(self.annotation_db)()
+            result.annotation_db.update(
+                annot_db=self.annotation_db, seqids=result.names
+            )
         return result
+
+    def get_seq_indices(
+        self, f: Callable[[new_seq.Sequence], bool], negate: bool = False
+    ):
+        """Returns list of names of seqs where f(seq) is True."""
+        get = self.seqs.__getitem__
+
+        if negate:
+
+            def new_f(x):
+                return not f(x)
+
+        else:
+            new_f = f
+
+        return [name for name in self.names if new_f(get(name))]
+
+    def take_seqs_if(
+        self, f: Callable[[new_seq.Sequence], bool], negate: bool = False, **kwargs
+    ):
+        """Returns new collection containing seqs where f(seq) is True.
+
+        Notes
+        -----
+        The seqs in the new collection are the same objects as the
+        seqs in the old collection, not copies.
+        """
+        # pass take_seqs the result of get_seq_indices
+        return self.take_seqs(self.get_seq_indices(f, negate), **kwargs)
+
+    def __eq__(self, other: Union[new_seq.SequenceCollection, dict]) -> bool:
+        return id(self) == id(other)
+
+    def __ne__(self, other: new_seq.SequenceCollection) -> bool:
+        return not self.__eq__(other)
 
     def __repr__(self):
         seqs = []
@@ -484,7 +551,7 @@ class SequenceCollection:
             selected = self
 
         # Stylise each character in each sequence
-        gaps = "".join(selected.moltype.gaps)
+        gaps = "".join(frozenset([selected.moltype.gap, selected.moltype.missing]))
         template = '<span class="%s">%%s</span>'
         styled_seqs = defaultdict(list)
         max_truncated_len = 0
@@ -534,7 +601,7 @@ class SequenceCollection:
         table.append("</table>")
         if (
             limit
-            and limit < len(selected)
+            and limit < len(selected.names)
             or name_order
             and len(name_order) < len(selected.names)
         ):
@@ -576,6 +643,51 @@ class SequenceCollection:
             "</div>",
         ]
         return "\n".join(text)
+
+    def set_repr_policy(
+        self,
+        num_seqs: Optional[int] = None,
+        num_pos: Optional[int] = None,
+        ref_name: Optional[str] = None,
+        wrap: Optional[int] = None,
+    ):
+        """specify policy for repr(self)
+
+        Parameters
+        ----------
+        num_seqs
+            number of sequences to include in represented display.
+        num_pos
+            length of sequences to include in represented display.
+        ref_name
+            name of sequence to be placed first, or "longest" (default).
+            If latter, indicates longest sequence will be chosen.
+        wrap
+            number of printed bases per row
+        """
+        if num_seqs:
+            if not isinstance(num_seqs, int):
+                raise TypeError("num_seqs is not an integer")
+            self._repr_policy["num_seqs"] = num_seqs
+
+        if num_pos:
+            if not isinstance(num_pos, int):
+                raise TypeError("num_pos is not an integer")
+            self._repr_policy["num_pos"] = num_pos
+
+        if ref_name:
+            if not isinstance(ref_name, str):
+                raise TypeError("ref_name is not a string")
+
+            if ref_name != "longest" and ref_name not in self.names:
+                raise ValueError(f"no sequence name matching {ref_name}")
+
+            self._repr_policy["ref_name"] = ref_name
+
+        if wrap:
+            if not isinstance(wrap, int):
+                raise TypeError("wrap is not an integer")
+            self._repr_policy["wrap"] = wrap
 
 
 @singledispatch
@@ -701,7 +813,7 @@ class AlignedData:
 
     def get_aligned_view(self, seqid: str) -> AlignedDataView:
         # Need to revisit what the variable is called i.e. parent_length
-        return AlignedDataView(seq=self, seqid=seqid, seq_len=self.align_len)
+        return AlignedDataView(seqs=self, seqid=seqid, seq_len=self.align_len)
 
     def get_gaps(self, seqid: str) -> numpy.ndarray:
         return self.gaps[seqid]

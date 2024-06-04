@@ -131,7 +131,7 @@ class SequenceCollectionBaseTests(object):
         seqs = self.Class({"a": b"AAAAA", "b": b"BBBBB"}, names=("a", "b"))
         self.assertIsInstance(seqs.names, list)
 
-    def test_init_name_mapped(self):
+    def test_init_name_mapped(self):  # ported
         """SequenceCollection init should allow name mapping function"""
         d = {"a": "AAAAA", "b": "BBBBB"}
 
@@ -272,7 +272,7 @@ class SequenceCollectionBaseTests(object):
         subset = orig.take_seqs(list("ab"))
         self.assertEqual(set(subset.moltype), set(orig.moltype))
 
-    def test_get_seq_indices(self):
+    def test_get_seq_indices(self):  # ported
         """SequenceCollection get_seq_indices should return names of seqs where f(row) is True"""
         srp = self.ragged_padded
 
@@ -295,7 +295,7 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(srp.get_seq_indices(is_med, negate=True), ["b"])
         self.assertEqual(srp.get_seq_indices(is_any, negate=True), [])
 
-    def test_take_seqs_if(self):
+    def test_take_seqs_if(self):  # ported
         """SequenceCollection take_seqs_if should return seqs where f(row) is True"""
 
         def is_long(x):
@@ -758,7 +758,7 @@ class SequenceCollectionBaseTests(object):
         )
         assert_allclose(got, expect[::-1])
 
-    def test_set_repr_policy_no_input(self):
+    def test_set_repr_policy_no_input(self):  # ported
         """repr_policy should remain unchanged"""
         seqs = self.Class({"a": "AAAAA"})
         seqs.set_repr_policy(num_seqs=None, num_pos=None)
@@ -767,7 +767,7 @@ class SequenceCollectionBaseTests(object):
             dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60),
         )
 
-    def test_set_repr_policy_invalid_input(self):
+    def test_set_repr_policy_invalid_input(self):  # ported
         """repr_policy should remain unchanged"""
         seqs = self.Class({"a": "AAAAA"})
         invalid_args = (
@@ -1551,7 +1551,7 @@ class AlignmentBaseTests(SequenceCollectionBaseTests):
         entropy = a.entropy_per_seq()
         self.assertIs(entropy, None)
 
-    def test_repr_html(self):
+    def test_repr_html(self):  # ported
         """exercises method normally invoked in notebooks"""
         aln = self.Class({"a": "AAAAA", "b": "AAA--"})
         aln.set_repr_policy(num_seqs=5, num_pos=40)
@@ -3349,7 +3349,7 @@ def test_aligned_deepcopy_sliced_map_matches_data():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment, ArrayAlignment))
-def test_iter_selected(cls):
+def test_iter_selected(cls):  # ported for SequenceCollection
     """SequenceCollection iter_selected() should iterate over items in correct order"""
     # should work if one row
     one_seq = cls({"a": "AAAAA"})
@@ -3475,7 +3475,7 @@ def test_positions(cls):
 
 
 @pytest.mark.parametrize("cls", (Alignment, ArrayAlignment, SequenceCollection))
-def test_set_repr_policy_valid_input(cls):
+def test_set_repr_policy_valid_input(cls):  # ported for SequenceCollection
     """repr_policy should be set to new values"""
     seqs = cls({"a": "AAAAA", "b": "AAA--"})
     seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="a", wrap=10)
