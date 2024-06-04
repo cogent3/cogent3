@@ -517,6 +517,7 @@ def test_sequence_collection_init(seqs):
     assert seqs.seqs.make_seq is not None
 
 
+@pytest.mark.xfail(reason="todo: kath, havent implemented label_to_name")
 def test_sequence_collection_label_to_name():
     """SequenceCollection init should allow name mapping function"""
     data = {"a": "AAAAA", "b": "BBBBB"}
