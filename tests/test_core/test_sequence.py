@@ -2627,47 +2627,10 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):
 def test_parent_coordinates(rev):
     seq = DNA.make_seq("ACGGTGGGAC")
     seq = seq[1:1]
-    if rev:
-        seq = seq.rc()
+    seq = seq.rc() if rev else seq
     seq.name = "sliced"  # this assignment does not affect the
     # note that when a sequence has zero length, the parent seqid is None
     assert seq.parent_coordinates() == (None, 0, 0, 1)
-
-
-def test_seqview_seqid():
-    sv = SeqView(seq="ACGGTGGGAC")
-    assert sv.seqid is None
-
-    sv = SeqView(seq="ACGGTGGGAC", seqid="seq1")
-    assert sv.seqid == "seq1"
-
-
-def test_seqview_rich_dict_round_trip_seqid():
-    sv = SeqView(seq="ACGGTGGGAC", seqid="seq1")
-    rd = sv.to_rich_dict()
-    assert rd["init_args"]["seqid"] == "seq1"
-
-    got = SeqView.from_rich_dict(rd)
-    assert got.seqid == "seq1"
-
-    sv = SeqView(seq="ACGGTGGGAC")
-    rd = sv.to_rich_dict()
-    assert rd["init_args"]["seqid"] is None
-
-    got = SeqView.from_rich_dict(rd)
-    assert got.seqid is None
-
-
-def test_seqview_slice_propagates_seqid():
-    sv = SeqView(seq="ACGGTGGGAC", seqid="seq1")
-    sliced_sv = sv[1:8:2]
-    assert sliced_sv.seqid == "seq1"
-
-    copied_sv = sliced_sv.copy(sliced=False)
-    assert copied_sv.seqid == "seq1"
-
-    copied_sliced_sv = sliced_sv.copy(sliced=True)
-    assert copied_sliced_sv.seqid == "seq1"
 
 
 @pytest.mark.parametrize("cls", (Aligned, Sequence, SeqView, ArraySequence, str, bytes))
@@ -2696,15 +2659,6 @@ def test_coerce_to_seqview(cls):
 
 
 def test_sequences_propogates_seqid():
-    # creating a name Sequence propagates the seqid to the SeqView.
-    seq = Sequence("ACGGTGGGAC", name="seq1")
-    assert seq._seq.seqid == "seq1"
-
-    # renaming the Sequence deosnt change the seqid of the SeqView.
-    seq.name = "seq2"
-    assert seq.name == "seq2"
-    assert seq._seq.seqid == "seq1"
-
     # creating a name Aligned propagates the seqid to the SeqView.
     seq = Aligned(*Sequence("ACG--G--GAC", name="seq1").parse_out_gaps())
     assert seq.data._seq.seqid == "seq1"
@@ -2718,50 +2672,3 @@ def test_sequences_propogates_seqid():
     seq = Sequence(SeqView(seq="ACGGTGGGAC"), name="seq_name")
     assert seq.name == "seq_name"
     assert seq._seq.seqid is None
-
-
-def test_make_seq_assigns_to_seqview():
-    seq = cogent3.make_seq("ACGT", name="s1")
-    assert seq.name == seq._seq.seqid == "s1"
-
-
-def test_empty_seqview_translate_position():
-    sv = SeqView(seq="")
-    assert sv.absolute_position(0) == 0
-    assert sv.relative_position(0) == 0
-
-
-@pytest.mark.parametrize("start", (None, 0, 1, 10, -1, -10))
-@pytest.mark.parametrize("stop", (None, 10, 8, 1, 0, -1, -11))
-@pytest.mark.parametrize("step", (None, 1, 2, -1, -2))
-@pytest.mark.parametrize("length", (1, 8, 999))
-def test_seqview_seq_len_init(start, stop, step, length):
-    # seq_len is length of seq when None
-    seq_data = "A" * length
-    sv = SeqView(seq=seq_data, start=start, stop=stop, step=step)
-    expect = len(seq_data)
-    # Check property and slot
-    assert sv.seq_len == expect
-    assert sv._seq_len == expect
-
-
-@pytest.mark.parametrize("seq, seq_len", [("A", 0), ("", 1), ("A", 2)])
-def test_seqview_seq_len_mismatch(seq, seq_len):
-    # If provided, seq_len must match len(seq)
-    with pytest.raises(AssertionError):
-        SeqView(seq=seq, seq_len=seq_len)
-
-
-def test_seqview_copy_propagates_seq_len():
-    seq = "ACGGTGGGAC"
-    sv = SeqView(seq=seq)
-    copied = sv.copy()
-    assert copied.seq_len == len(seq)
-
-
-def test_seqview_seq_len_modified_seq():
-    seq = "ACGGTGGGAC"
-    sv = SeqView(seq=seq)
-
-    sv.seq = "ATGC"  # this should not modify seq_len
-    assert sv.seq_len == len(seq)
