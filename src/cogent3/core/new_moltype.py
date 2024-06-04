@@ -524,6 +524,43 @@ class MolType:
     def _(self, seq: numpy.ndarray) -> bool:
         return (seq == self.degen_gapped_alphabet.gap_index).any()
 
+    def get_css_style(
+        self,
+        colors: typing.Optional[dict[str, str]] = None,
+        font_size: int = 12,
+        font_family="Lucida Console",
+    ):
+        """returns string of CSS classes and {character: <CSS class name>, ...}
+
+        Parameters
+        ----------
+        colors
+             A dictionary mapping characters to CSS color values.
+        font_size
+            Font size in points.
+        font_family
+            Name of a monospace font.
+
+        """
+        colors = colors or self._colors
+        # !important required to stop some browsers over-riding the style sheet ...!!
+        template = (
+            '.%s_%s{font-family: "%s",monospace !important; '
+            "font-size: %dpt !important; color: %s; }"
+        )
+        label = self.label or ""
+        styles = _STYLE_DEFAULTS[label].copy()
+        styles.update(
+            {c: "_".join([c, label]) for c in list(self.alphabet) + ["terminal_ambig"]}
+        )
+
+        css = [
+            template % (char, label, font_family, font_size, colors[char])
+            for char in list(styles) + ["ambig"]
+        ]
+
+        return css, styles
+
 
 def _make_moltype_dict() -> dict[str, MolType]:
     """make a dictionary of local name space molecular types"""
@@ -620,6 +657,14 @@ BYTES = MolType(
     missing=None,
     make_seq=new_sequence.ByteSequence,
 )
+
+# the None value catches cases where a moltype has no label attribute
+_STYLE_DEFAULTS = {
+    getattr(mt, "label", ""): defaultdict(
+        _DefaultValue(f"ambig_{getattr(mt, 'label', '')}")
+    )
+    for mt in (ASCII, BYTES, DNA, RNA, PROTEIN, PROTEIN_WITH_STOP, None)
+}
 
 # build this at end of file
 _moltypes = _make_moltype_dict()
