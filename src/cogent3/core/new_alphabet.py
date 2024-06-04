@@ -169,7 +169,7 @@ class bytes_to_array:
 class array_to_bytes:
     """converts numpy array to utf8"""
 
-    def __init__(self, chars, dtype):
+    def __init__(self, chars: bytes, dtype):
         # we want a bytes translation map
         self._table = b"".maketrans(
             bytes(bytearray(range(len(chars)))),
@@ -284,9 +284,9 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
 
 
 @numba.jit(nopython=True)
-def coord_conversion_coeffs(num_states, k):  # pragma: no cover
+def coord_conversion_coeffs(num_states, k, dtype=None):  # pragma: no cover
     """coefficients for multi-dimensional coordinate conversion into 1D index"""
-    return numpy.array([num_states ** (i - 1) for i in range(k, 0, -1)])
+    return numpy.array([num_states ** (i - 1) for i in range(k, 0, -1)], dtype=dtype)
 
 
 @numba.jit(nopython=True)
@@ -296,10 +296,10 @@ def coord_to_index(coord, coeffs):  # pragma: no cover
 
 
 @numba.jit(nopython=True)
-def index_to_coord(index, coeffs):  # pragma: no cover
+def index_to_coord(index: int, coeffs: numpy.ndarray):  # pragma: no cover
     """converts a 1D index into a multi-dimensional coordinate"""
     ndim = len(coeffs)
-    coord = numpy.zeros(ndim, dtype=numpy.uint64)
+    coord = numpy.zeros(ndim, dtype=coeffs.dtype)
     remainder = index
     for i in range(ndim):
         n, remainder = numpy.divmod(remainder, coeffs[i])
@@ -411,7 +411,7 @@ class KmerAlphabet(tuple, AlphabetABC):
         self.k = k
 
         size = len(self.monomers) - 1 if self.monomers.gap_char else len(self.monomers)
-        self._coeffs = coord_conversion_coeffs(size, k)
+        self._coeffs = coord_conversion_coeffs(size, k, dtype=self.dtype)
 
     @functools.singledispatchmethod
     def to_indices(self, seq, independent_kmer: bool = True) -> numpy.ndarray:
