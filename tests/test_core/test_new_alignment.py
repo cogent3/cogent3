@@ -491,6 +491,18 @@ def test_make_unaligned_seqs_list(moltype):
     assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq
 
 
+def test_make_unaligned_seqs_label_to_name():
+    """test SequenceCollection constructor utility function"""
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+
+    def f(x):
+        return x.upper()
+
+    got = new_aln.make_unaligned_seqs(data=data, moltype="dna", label_to_name=f)
+    assert list(got.names) == ["A", "B"]
+    assert got._seqs_data.make_seq == new_moltype.get_moltype("dna").make_seq
+
+
 def test_make_unaligned_seqs_raises():
     data = "AGTCCTGA"
     with pytest.raises(NotImplementedError):
@@ -511,19 +523,6 @@ def test_make_unaligned_seqs_no_seqs():
 def test_sequence_collection_init(seqs):
     assert isinstance(seqs.seqs, new_aln.SeqsData)
     assert seqs.seqs.make_seq is not None
-
-
-@pytest.mark.xfail(reason="todo: kath, havent implemented label_to_name")
-def test_sequence_collection_label_to_name():
-    """SequenceCollection init should allow name mapping function"""
-    data = {"a": "AAAAA", "b": "BBBBB"}
-
-    def f(x):
-        return x.upper()
-
-    seqs = new_aln.make_unaligned_seqs(data=data, moltype="dna", label_to_name=f)
-    assert list(seqs.names) == ["A", "B"]
-    assert seqs.seqs.names == ["A", "B"]
 
 
 def test_iter_seqs_ragged_padded(ragged_padded):

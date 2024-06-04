@@ -229,13 +229,15 @@ class SeqsData:
 
 @singledispatch
 def prep_for_seqs_data(
-    data: Union[dict, SeqsData], moltype: new_moltype.MolType
+    data: Union[dict, SeqsData], moltype: new_moltype.MolType, label_to_name=None
 ) -> dict[str, numpy.ndarray]:
     raise NotImplementedError(f"SeqsData can not be constructed for type {type(data)}")
 
 
 @prep_for_seqs_data.register
-def _(data: SeqsData, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
+def _(
+    data: SeqsData, moltype: new_moltype.MolType, label_to_name=None
+) -> dict[str, numpy.ndarray]:
     if moltype.is_compatible_alphabet(data.alphabet):
         return data
     else:
@@ -245,17 +247,24 @@ def _(data: SeqsData, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
 
 
 @prep_for_seqs_data.register
-def _(data: dict, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
+def _(
+    data: dict, moltype: new_moltype.MolType, label_to_name=None
+) -> dict[str, numpy.ndarray]:
     alpha = moltype.degen_gapped_alphabet
-    seqs_data = SeqsData(data=data, alphabet=alpha)
-    return prep_for_seqs_data(seqs_data, moltype)
+    named_data = (
+        {label_to_name(k): v for k, v in data.items()} if label_to_name else data
+    )
+    seqs_data = SeqsData(data=named_data, alphabet=alpha)
+    return prep_for_seqs_data(seqs_data, moltype, label_to_name=label_to_name)
 
 
 @prep_for_seqs_data.register
-def _(data: list, moltype: new_moltype.MolType) -> dict[str, numpy.ndarray]:
+def _(
+    data: list, moltype: new_moltype.MolType, label_to_name=None
+) -> dict[str, numpy.ndarray]:
     names = assign_sequential_names(len(data))
     named_data = dict(zip(names, data))
-    return prep_for_seqs_data(named_data, moltype)
+    return prep_for_seqs_data(named_data, moltype, label_to_name=label_to_name)
 
 
 def make_unaligned_seqs(
@@ -289,7 +298,8 @@ def make_unaligned_seqs(
 
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
-    seqs_data = prep_for_seqs_data(data, moltype)
+    seqs_data = prep_for_seqs_data(data, moltype=moltype, label_to_name=label_to_name)
+    # todo: kath, label_to_name will have no impact when the data is already a SeqsData object!
 
     return SequenceCollection(seqs_data=seqs_data, moltype=moltype, info=info)
 
@@ -302,7 +312,6 @@ class SequenceCollection:
         moltype: new_moltype.MolType,
         names: list[str] = None,
         info: Union[dict, InfoClass] = None,
-        label_to_name=None,
     ):
         self._seqs_data = seqs_data
         self.moltype = moltype
