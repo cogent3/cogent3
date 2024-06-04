@@ -1,6 +1,6 @@
 import os
 
-import numpy as numpy
+import numpy
 import pytest
 
 import cogent3.core.new_alignment as new_aln
@@ -152,6 +152,7 @@ def test_seqs_data_get_seq_view(str_seqs_dict, alpha, seqid):
     seq = str_seqs_dict[seqid]
     seq_len = len(seq)
     got = sd.get_seq_view(seqid)
+    assert isinstance(got, new_aln.SeqDataView)
     assert got.seqs == sd
     assert got.stop == seq_len
     assert got.seqid == seqid
@@ -244,11 +245,6 @@ def test_seqs_data_getitem_raises(dna_sd, make_seq):
     invalid_index = ["this", "shouldn't", "work"]
     with pytest.raises(NotImplementedError):
         _ = dna_sd[invalid_index]
-
-
-def test_seqs_data_get_seq_view(dna_sd: new_aln.SeqsData):
-    sdv = dna_sd.get_seq_view("seq1")
-    assert isinstance(sdv, new_aln.SeqDataView)
 
 
 def tests_seqs_data_subset(dna_sd):
@@ -638,11 +634,6 @@ def test_sequence_collection_repr_html_correct_num_seqs(seqs):
     seq_lens = numpy.array(
         [len(seqs.seqs.get_seq_str(seqid=name)) for name in seqs.names]
     )
-    seq_stats = {
-        "min": seq_lens.min(),
-        "median": numpy.median(seq_lens),
-        "max": seq_lens.max(),
-    }
     assert (
         f"{seqs.num_seqs} x {{min={seq_lens.min()}, median={numpy.median(seq_lens)}, max={seq_lens.max()}}}"
         in got.splitlines()[-2]
