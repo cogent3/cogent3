@@ -425,8 +425,6 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
 
 def available_codes():
     """returns Table listing the available genetic codes"""
-    from cogent3.util.table import Table
-
     rows = [(k, code.name) for k, code in _CODES.items() if isinstance(k, int)]
     header = ["Code ID", "Name"]
     return Table(
