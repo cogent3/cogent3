@@ -25,9 +25,7 @@ OptStr = typing.Optional[str]
 SetStr = typing.Set[str]
 ConverterType = typing.Callable[[bytes, bytes], bytes]
 StrORInt = typing.Union[str, int]
-
-DNA = new_moltype.get_moltype("dna")
-RNA = new_moltype.get_moltype("rna")
+StrORBytesORArray = typing.Union[str, numpy.ndarray]
 
 
 class GeneticCodeError(Exception):
@@ -140,11 +138,9 @@ class GeneticCode:
 
     def to_table(self):
         """returns aa to codon mapping as a cogent3 Table"""
-        from cogent3.core.moltype import IUPAC_PROTEIN_code_aa
-
         rows = []
         headers = ["aa", "IUPAC code", "codons"]
-        for code, aa in IUPAC_PROTEIN_code_aa.items():
+        for code, aa in new_moltype.IUPAC_PROTEIN_code_aa.items():
             codons = ",".join(self[code])
             row = [aa, code, codons]
             rows.append(row)
@@ -182,7 +178,9 @@ class GeneticCode:
         key = key.replace("U", "T")
         return self._codon_to_aa.get(key, "X")
 
-    def translate(self, dna, start: int = 0, rc: bool = False) -> str:
+    def translate(
+        self, dna: StrORBytesORArray, start: int = 0, rc: bool = False
+    ) -> str:
         """Translates DNA to protein with current GeneticCode.
 
         Parameters
