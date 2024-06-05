@@ -11,7 +11,7 @@ import typing
 import warnings
 
 from random import randint
-from typing import Tuple
+from typing import Any, Callable, Tuple
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -1109,3 +1109,13 @@ def get_first_value(data: typing.Iterable[typing.Any]):
 
         with contextlib.suppress(TypeError):
             return next(iter(data))
+
+
+class negate_condition:
+    """negates the result of calling func."""
+
+    def __init__(self, func: typing.Callable[[typing.Any], bool]) -> None:
+        self.func = func
+
+    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> bool:
+        return not bool(self.func(*args, **kwargs))

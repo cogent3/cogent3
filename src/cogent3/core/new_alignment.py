@@ -16,11 +16,20 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
+from cogent3.core.annotation import Feature
+from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
+    GenbankAnnotationDb,
+    SupportsFeatures,
+    load_annotations,
+)
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
 from cogent3.util import warning as c3warn
-from cogent3.util.misc import get_setting_from_environ
+from cogent3.util.misc import get_setting_from_environ, negate_condition
 
+
+DEFAULT_ANNOTATION_DB = BasicAnnotationDb
 
 PrimitiveSeqTypes = Union[str, bytes, numpy.ndarray]
 
@@ -302,43 +311,29 @@ class SeqsData(SeqsDataABC):
 
 
 @singledispatch
-def prep_for_seqs_data(
-    data: Union[dict, SeqsData], moltype: new_moltype.MolType, label_to_name=None
-) -> dict[str, numpy.ndarray]:
-    raise NotImplementedError(f"SeqsData can not be constructed for type {type(data)}")
 
-
-@prep_for_seqs_data.register
-def _(
-    data: SeqsData, moltype: new_moltype.MolType, label_to_name=None
-) -> dict[str, numpy.ndarray]:
-    if moltype.is_compatible_alphabet(data.alphabet):
+@singledispatch
+def make_seqsdata_dict(
+    data, label_to_name: Callable = None
+) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
+    if isinstance(data, SeqsData):
         return data
-    else:
-        raise ValueError(
-            f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
-        )
+    raise NotImplementedError(f"make_data_dict not implemented for {type(data)}")
 
 
-@prep_for_seqs_data.register
+@make_seqsdata_dict.register
 def _(
-    data: dict, moltype: new_moltype.MolType, label_to_name=None
-) -> dict[str, numpy.ndarray]:
-    alpha = moltype.degen_gapped_alphabet
-    named_data = (
-        {label_to_name(k): v for k, v in data.items()} if label_to_name else data
-    )
-    seqs_data = SeqsData(data=named_data, alphabet=alpha)
-    return prep_for_seqs_data(seqs_data, moltype, label_to_name=label_to_name)
+    data: dict, label_to_name: Callable = None
+) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
+    return {label_to_name(k): v for k, v in data.items()} if label_to_name else data
 
 
-@prep_for_seqs_data.register
+@make_seqsdata_dict.register
 def _(
-    data: list, moltype: new_moltype.MolType, label_to_name=None
-) -> dict[str, numpy.ndarray]:
+    data: list, label_to_name: Callable = None
+) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
     names = assign_sequential_names(len(data))
-    named_data = dict(zip(names, data))
-    return prep_for_seqs_data(named_data, moltype, label_to_name=label_to_name)
+    return make_seqsdata_dict(dict(zip(names, data)), label_to_name=label_to_name)
 
 
 def make_unaligned_seqs(
@@ -348,6 +343,7 @@ def make_unaligned_seqs(
     label_to_name: Callable = None,
     info: dict = None,
     source: Union[str, Path] = None,
+    annotation_db: SupportsFeatures = None,
     **kwargs,
 ):
     """Initialize an unaligned collection of sequences.
@@ -372,10 +368,19 @@ def make_unaligned_seqs(
 
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
-    seqs_data = prep_for_seqs_data(data, moltype=moltype, label_to_name=label_to_name)
-    # todo: kath, label_to_name will have no impact when the data is already a SeqsData object!
 
-    return SequenceCollection(seqs_data=seqs_data, moltype=moltype, info=info)
+    seqs_data = make_seqsdata_dict(data, label_to_name=label_to_name)
+
+    if isinstance(seqs_data, dict):
+        seqs_data = SeqsData(data=seqs_data, alphabet=moltype.degen_gapped_alphabet)
+    elif not moltype.is_compatible_alphabet(data.alphabet):
+        raise ValueError(
+            f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
+        )
+
+    return SequenceCollection(
+        seqs_data=seqs_data, moltype=moltype, info=info, annotation_db=annotation_db
+    )
 
 
 class SequenceCollection:
@@ -386,6 +391,7 @@ class SequenceCollection:
         moltype: new_moltype.MolType,
         names: list[str] = None,
         info: Union[dict, InfoClass] = None,
+        annotation_db: SupportsFeatures = None,
     ):
         self._seqs_data = seqs_data
         self.moltype = moltype
@@ -395,14 +401,14 @@ class SequenceCollection:
             info = InfoClass(info) if info else InfoClass()
         self.info = info
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
-        self._annotation_db = None
+        self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
 
     @property
     def names(self) -> Iterator[str]:
         return self._names
 
     @names.setter
-    def names(self, names: list[str]):
+    def names(self, names: list[str]):  # refactor: design
         if names is None:
             self._names = self._seqs_data.names
         elif set(names) <= set(self._seqs_data.names):
@@ -430,6 +436,7 @@ class SequenceCollection:
 
         self._annotation_db = value
 
+        # todo: kath
         for seq in self.seqs:
             seq.replace_annotation_db(value, check=False)
 
@@ -458,7 +465,11 @@ class SequenceCollection:
             yield get(key)
 
     def take_seqs(
-        self, names: Union[str, typing.Sequence[str]], negate: bool = False, **kwargs
+        self,
+        names: Union[str, typing.Sequence[str]],
+        negate: bool = False,
+        copy_annotations: bool = False,
+        **kwargs,
     ):
         """Returns new collection containing only specified seqs.
 
@@ -470,6 +481,9 @@ class SequenceCollection:
             select all sequences EXCEPT names
         kwargs
             keyword arguments to be passed to the constructor of the new collection
+        copy_annotations
+            if True, only annotations from selected seqs are copied to the annotation_db
+            of the new collection
 
         Notes
         -----
@@ -485,34 +499,33 @@ class SequenceCollection:
             names = [name for name in names if name in self.names]
 
         if not names:
-            return {}
+            raise ValueError(f"{names=} and {negate=} resulted in no names")
 
         seqs_data = self.seqs.subset(names)
 
-        moltype = kwargs.pop("moltype", self.moltype)
         result = self.__class__(
-            seqs_data=seqs_data, moltype=moltype, info=self.info, **kwargs
+            seqs_data=seqs_data,
+            moltype=self.moltype,
+            info=self.info,
+            **kwargs,
         )
         if self.annotation_db:
-            result.annotation_db = type(self.annotation_db)()
-            result.annotation_db.update(
-                annot_db=self.annotation_db, seqids=result.names
-            )
+            if copy_annotations:
+                result.annotation_db = type(self.annotation_db)()
+                result.annotation_db.update(
+                    annot_db=self.annotation_db, seqids=result.names
+                )
+            else:
+                result.annotation_db = self.annotation_db
         return result
 
-    def get_seq_indices(
+    def get_seq_names_if(
         self, f: Callable[[new_seq.Sequence], bool], negate: bool = False
     ):
         """Returns list of names of seqs where f(seq) is True."""
         get = self.seqs.__getitem__
 
-        if negate:
-
-            def new_f(x):
-                return not f(x)
-
-        else:
-            new_f = f
+        new_f = negate_condition(f) if negate else f
 
         return [name for name in self.names if new_f(get(name))]
 
@@ -527,7 +540,7 @@ class SequenceCollection:
         seqs in the old collection, not copies.
         """
         # pass take_seqs the result of get_seq_indices
-        return self.take_seqs(self.get_seq_indices(f, negate), **kwargs)
+        return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
     def __eq__(self, other: Union[new_seq.SequenceCollection, dict]) -> bool:
         return id(self) == id(other)

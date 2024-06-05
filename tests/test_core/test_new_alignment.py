@@ -8,7 +8,10 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
+# todo: kath, update this to using new Sequence load_seq when it is ready
+from cogent3 import load_seq
 from cogent3._version import __version__
+from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 
 
 @pytest.fixture
@@ -91,15 +94,35 @@ def gap_seqs():
     ]
 
 
+@pytest.fixture(scope="function")
+def gb_db(DATA_DIR):
+    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
+
+
+@pytest.fixture(scope="function")
+def gff_db(DATA_DIR):
+    return load_annotations(path=DATA_DIR / "simple.gff")
+
+
+@pytest.fixture(scope="session")
+def seqcoll_db():
+    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+    seq = load_seq(fasta_path, moltype="dna")
+    seq_coll = new_aln.make_unaligned_seqs(data={seq.name: seq}, moltype="dna")
+    seq_coll.annotate_from_gff(gff3_path)
+    return seq_coll
+
+
 def test_seqs_data_default_attributes(dna_sd: new_aln.SeqsData):
     assert dna_sd.names == ["seq1", "seq2", "seq3"]
-    assert isinstance(dna_sd._alphabet, new_alpha.CharAlphabet)
+    assert isinstance(dna_sd.alphabet, new_alpha.CharAlphabet)
 
 
 @pytest.mark.xfail(reason="SeqsData currently expects correctly formatted data")
 def test_seqs_data_seq_if_str(seq1: str, alpha):
     with pytest.raises(NotImplementedError):
-        new_aln.SeqsData(seq1, alphabet=alpha)
+        new_aln.SeqsData(data=seq1, alphabet=alpha)
 
 
 def test_seqs_data_view_zero_step_raises(dna_sd):
@@ -123,7 +146,7 @@ def test_seqs_data_view_repr_default_long(alpha):
     expect = f"SeqDataView(seq={trunc}, start=0, stop={seq_len}, step=1, offset=0, seqid='long', seq_len={seq_len})"
 
     d = {"long": longseq}
-    sd = new_aln.SeqsData(d, alphabet=alpha)
+    sd = new_aln.SeqsData(data=d, alphabet=alpha)
     got = sd.get_seq_view(seqid="long")
     assert repr(got) == expect
 
@@ -148,7 +171,7 @@ def test_seqs_data_view_copy(alpha, seqid, sliced, step):
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
 def test_seqs_data_get_seq_view(str_seqs_dict, alpha, seqid):
-    sd = new_aln.SeqsData(str_seqs_dict, alphabet=alpha)
+    sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
     seq = str_seqs_dict[seqid]
     seq_len = len(seq)
     got = sd.get_seq_view(seqid)
@@ -177,7 +200,7 @@ def test_seqs_data_get_seq_str_empty(dna_sd: new_aln.SeqsData):
 
 def test_seqs_data_names(str_seqs_dict, alpha):
     expect = str_seqs_dict.keys()
-    sd = new_aln.SeqsData(str_seqs_dict, alphabet=alpha)
+    sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
     got = sd.names
     # returns iterator
     assert list(got) == list(expect)
@@ -222,7 +245,7 @@ def test_seqs_data_getitem_str_1(dna_sd, seq):
 
 @pytest.mark.parametrize("idx", (0, 1))
 def test_seqs_data_getitem_int(str_seqs_dict, alpha, idx):
-    sd = new_aln.SeqsData(str_seqs_dict, alphabet=alpha)
+    sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
     got = sd[idx]
     assert got.seqs == sd
     assert got.seqid == list(str_seqs_dict)[idx]
@@ -525,6 +548,16 @@ def test_sequence_collection_init(seqs):
     assert seqs.seqs.make_seq is not None
 
 
+def test_sequence_collection_names(seqs):
+    assert seqs.names == ["seq1", "seq2", "seq3"]
+    seqs.names = ["seq2", "seq3", "seq1"]
+    assert seqs.names == ["seq2", "seq3", "seq1"]
+    seqs.names = ["seq1", "seq2"]
+    assert seqs.names == ["seq1", "seq2"]
+    with pytest.raises(ValueError):
+        seqs.names = ["seq1", "seq2", "seq3", "seq4"]
+
+
 def test_iter_seqs_ragged_padded(ragged_padded):
     """SequenceCollection.iter_seqs() method should support reordering of seqs"""
     seqs = list(ragged_padded.iter_seqs())
@@ -596,22 +629,6 @@ def test_sequence_collection_set_wrap_affects_repr_html():
     got = seqs._repr_html_()
     os.environ.pop(env_name, None)
     assert got.count(token) == 3 * orig.count(token)
-
-
-@pytest.mark.xfail(reason="todo: kath, new SequenceCollection does not support slicing")
-def test_sequence_collection_repr_html(seqs):
-    """exercises method normally invoked in notebooks"""
-    seqs.set_repr_policy(num_seqs=5, num_pos=40)
-    assert seqs[:2]._repr_policy == seqs._repr_policy
-    row_a = '<tr><td class="label">a</td>'
-    row_b = '<tr><td class="label">b</td>'
-    # default order is longest sequence at top
-    got = seqs._repr_html_()
-    assert got.find(row_a) < got.find(row_b)
-    # change order, a should now be last
-    seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="seq2")
-    got = seqs._repr_html_()
-    assert got.find(row_a) > got.find(row_b)
 
 
 def test_sequence_collection_repr_html_applies_policy(seqs):
@@ -721,8 +738,8 @@ def test_sequence_collection_take_seqs_empty_names():
     orig = new_aln.make_unaligned_seqs(
         data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype
     )
-    subset = orig.take_seqs([])
-    assert subset == {}
+    with pytest.raises(ValueError):
+        subset = orig.take_seqs([])
 
 
 def test_sequence_collection_num_seqs():
@@ -757,24 +774,27 @@ def is_any(x):
     return len(x) > 0
 
 
-def test_get_seq_indices(ragged_padded):
-    """SequenceCollection.get_seq_indices should return names of seqs where f(row) is True"""
+def test_get_seq_names_if(ragged_padded):
+    """SequenceCollection.get_seq_names_if should return names of seqs where f(row) is True"""
 
-    assert ragged_padded.get_seq_indices(is_long) == []
-    assert ragged_padded.get_seq_indices(is_med) == ["a", "c"]
+    assert ragged_padded.get_seq_names_if(is_long) == []
+    assert ragged_padded.get_seq_names_if(is_med) == ["a", "c"]
     # return order should reflect names when updated
     ragged_padded.names = ["b", "c", "a"]
-    assert ragged_padded.get_seq_indices(is_med) == ["c", "a"]
-    assert ragged_padded.get_seq_indices(is_med, negate=True) == ["b"]
-    assert ragged_padded.get_seq_indices(is_any) == ["b", "c", "a"]
-    assert ragged_padded.get_seq_indices(is_any, negate=True) == []
+    assert ragged_padded.get_seq_names_if(is_med) == ["c", "a"]
+    assert ragged_padded.get_seq_names_if(is_med, negate=True) == ["b"]
+    assert ragged_padded.get_seq_names_if(is_any) == ["b", "c", "a"]
+    assert ragged_padded.get_seq_names_if(is_any, negate=True) == []
 
 
 @pytest.mark.xfail(reason="todo: kath, need support for __eq__ betwen collections")
 def test_take_seqs_if(ragged_padded):
     """SequenceCollection take_seqs_if should return seqs where f(seq) is True"""
 
-    assert ragged_padded.take_seqs_if(is_long) == {}
+    with pytest.raises(ValueError):
+        ragged_padded.take_seqs_if(is_long)
     assert ragged_padded.take_seqs_if(is_any) == ragged_padded
     assert isinstance(ragged_padded.take_seqs_if(is_med), new_aln.SequenceCollection)
-    assert ragged_padded.take_seqs_if(is_any, negate=True) == {}
+    with pytest.raises(ValueError):
+        ragged_padded.take_seqs_if(is_med, negate=True)
+
