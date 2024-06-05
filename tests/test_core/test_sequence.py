@@ -2627,7 +2627,8 @@ def test_copied_parent_coordinates(sliced, rev, start_stop):
 def test_parent_coordinates(rev):
     seq = DNA.make_seq("ACGGTGGGAC")
     seq = seq[1:1]
-    seq = seq.rc() if rev else seq
+    if rev:
+        seq = seq.rc()
     seq.name = "sliced"  # this assignment does not affect the
     # note that when a sequence has zero length, the parent seqid is None
     assert seq.parent_coordinates() == (None, 0, 0, 1)
@@ -2658,7 +2659,7 @@ def test_coerce_to_seqview(cls):
     assert isinstance(got, SeqView)
 
 
-def test_sequences_propogates_seqid(): # ported for Sequence
+def test_sequences_propogates_seqid():  # ported for Sequence
     # creating a name Aligned propagates the seqid to the SeqView.
     seq = Aligned(*Sequence("ACG--G--GAC", name="seq1").parse_out_gaps())
     assert seq.data._seq.seqid == "seq1"
