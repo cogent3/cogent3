@@ -11,7 +11,7 @@ import cogent3.core.new_sequence as new_seq
 # todo: kath, update this to using new Sequence load_seq when it is ready
 from cogent3 import load_seq
 from cogent3._version import __version__
-from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
+from cogent3.core.annotation_db import load_annotations
 
 
 @pytest.fixture
@@ -739,7 +739,7 @@ def test_sequence_collection_take_seqs_empty_names():
         data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype
     )
     with pytest.raises(ValueError):
-        subset = orig.take_seqs([])
+        _ = orig.take_seqs([])
 
 
 def test_sequence_collection_num_seqs():

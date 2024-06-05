@@ -1114,8 +1114,8 @@ def get_first_value(data: typing.Iterable[typing.Any]):
 class negate_condition:
     """negates the result of calling func."""
 
-    def __init__(self, func: typing.Callable[[typing.Any], bool]) -> None:
+    def __init__(self, func: Callable[[typing.Any], bool]) -> None:
         self.func = func
 
-    def __call__(self, *args: typing.Any, **kwargs: typing.Any) -> bool:
+    def __call__(self, *args: Any, **kwargs: Any) -> bool:
         return not bool(self.func(*args, **kwargs))
