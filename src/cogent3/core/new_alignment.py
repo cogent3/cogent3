@@ -16,13 +16,7 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
-from cogent3.core.annotation import Feature
-from cogent3.core.annotation_db import (
-    BasicAnnotationDb,
-    GenbankAnnotationDb,
-    SupportsFeatures,
-    load_annotations,
-)
+from cogent3.core.annotation_db import BasicAnnotationDb, SupportsFeatures
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
 from cogent3.util import warning as c3warn
@@ -311,7 +305,6 @@ class SeqsData(SeqsDataABC):
 
 
 @singledispatch
-
 @singledispatch
 def make_seqsdata_dict(
     data, label_to_name: Callable = None

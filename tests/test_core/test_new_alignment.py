@@ -797,4 +797,3 @@ def test_take_seqs_if(ragged_padded):
     assert isinstance(ragged_padded.take_seqs_if(is_med), new_aln.SequenceCollection)
     with pytest.raises(ValueError):
         ragged_padded.take_seqs_if(is_med, negate=True)
-
