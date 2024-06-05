@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import typing
 
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from functools import singledispatch, singledispatchmethod
@@ -138,11 +139,73 @@ class SeqDataView(new_seq.SliceRecordABC):
         return self
 
 
-class SeqsData:
+class SeqsDataABC(ABC):
+    """Abstract base class for respresenting the collection of sequences underlying
+    a SequenceCollection
+    """
+
+    alphabet: new_alpha.CharAlphabet
+    make_seq: Callable = None
+
+    @abstractmethod
+    def seq_lengths(self) -> dict[str, int]: ...
+
+    @property
+    @abstractmethod
+    def names(self) -> list:  # refactor: design
+        ...
+
+    @property
+    @abstractmethod
+    def make_seq(self): ...
+
+    @make_seq.setter
+    @abstractmethod
+    def make_seq(self, make_seq: Callable) -> None: ...
+
+    @property
+    @abstractmethod
+    def alphabet(self) -> new_alpha.CharAlphabet: ...
+
+    @abstractmethod
+    def get_seq_array(
+        self, *, seqid: str, start: int = None, stop: int = None
+    ) -> numpy.ndarray: ...
+
+    @abstractmethod
+    def get_seq_str(
+        self, *, seqid: str, start: int = None, stop: int = None
+    ) -> str: ...
+
+    @abstractmethod
+    def get_seq_bytes(
+        self, *, seqid: str, start: int = None, stop: int = None
+    ) -> bytes: ...
+
+    @abstractmethod
+    def get_seq_view(self, seqid: str) -> new_seq.SliceRecordABC: ...
+
+    @abstractmethod
+    def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsDataABC: ...
+
+    @abstractmethod
+    def to_alphabet(self, alphabet: new_alpha.CharAlphabet) -> SeqsDataABC: ...
+
+    @abstractmethod
+    def __len__(self): ...
+
+    @abstractmethod
+    def __getitem__(
+        self, index: Union[str, int]
+    ) -> Union[new_seq.Sequence, new_seq.SliceRecordABC]: ...
+
+
+class SeqsData(SeqsDataABC):
     __slots__ = ("_data", "_alphabet", "_names", "_make_seq")
 
     def __init__(
         self,
+        *,
         data: dict[str, PrimitiveSeqTypes],
         alphabet: new_alpha.CharAlphabet,
         make_seq: Callable = None,
@@ -154,7 +217,7 @@ class SeqsData:
         }
 
     @property
-    def names(self) -> list:
+    def names(self) -> list:  # refactor: design
         return list(self._data.keys())
 
     @property
@@ -179,6 +242,9 @@ class SeqsData:
     def alphabet(self) -> new_alpha.CharAlphabet:
         return self._alphabet
 
+    def seq_lengths(self) -> dict[str, int]:
+        return {name: seq.shape[0] for name, seq in self._data.items()}
+
     def get_seq_array(
         self, *, seqid: str, start: int = None, stop: int = None
     ) -> numpy.ndarray:
@@ -201,8 +267,16 @@ class SeqsData:
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
         names = [names] if isinstance(names, str) else names
-        data = {name: self._data.get(name) for name in names}
-        return self.__class__(data=data, alphabet=self.alphabet, make_seq=self.make_seq)
+        if data := {name: self._data.get(name) for name in names}:
+            return self.__class__(
+                data=data, alphabet=self.alphabet, make_seq=self.make_seq
+            )
+        else:
+            raise ValueError(f"provided {names=} not found in collection")
+
+    def to_alphabet(self, alphabet: new_alpha.CharAlphabet) -> SeqsData:
+        # todo: kath
+        ...
 
     def __len__(self):
         return len(self.names)
