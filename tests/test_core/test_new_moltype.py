@@ -1,3 +1,4 @@
+import numpy
 import pytest
 
 from cogent3.core import moltype, new_moltype
@@ -77,3 +78,82 @@ def test_complement(name, seq):
     expect = "TGGGC" if name == "dna" else "UGGGC"
     got = dna.complement(seq)
     assert got == expect
+
+
+def make_typed(seq, data_type, moltype):
+    if data_type is numpy.ndarray:
+        seq = moltype.degen_gapped_alphabet.to_indices(seq)
+    elif data_type is bytes:
+        seq = seq.encode("utf-8")
+    return seq
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq",
+    (
+        "N",
+        "R",
+        "Y",
+        "GCAUGUAGCUCGUCAGUCAGUACGUGCASCUAG",
+        "ACGYAUGCUGYEWEWNFMNFUWBYBCWUYBCJWBEIWFUB",
+    ),
+)
+def test_is_degenerate(seq, data_type):
+    seq = make_typed(seq, data_type, new_moltype.RNA)
+    assert new_moltype.RNA.is_degenerate(seq)
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq",
+    (
+        "",
+        "A",
+        "UACGCUACAUGUACGUCAGUGCUAGCUA",
+    ),
+)
+def test_is_not_degenerate(seq, data_type):
+    seq = make_typed(seq, data_type, new_moltype.RNA)
+    assert not new_moltype.RNA.is_degenerate(seq)
+
+
+def test_is_degenerate_invalid():
+    with pytest.raises(TypeError):
+        new_moltype.RNA.is_degenerate(list("GAG"))
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq",
+    (
+        "-",
+        "Y-",
+        "GC--A",
+        "-ACGYA",
+    ),
+)
+def test_is_gapped(seq, data_type):
+    seq = make_typed(seq, data_type, new_moltype.RNA)
+    assert new_moltype.RNA.is_gapped(seq)
+
+
+@pytest.mark.parametrize("data_type", (str, bytes, numpy.ndarray))
+@pytest.mark.parametrize(
+    "seq",
+    (
+        "",
+        "Y",
+        "GCA",
+        "ACGYA",
+    ),
+)
+def test_not_is_gapped(seq, data_type):
+    seq = make_typed(seq, data_type, new_moltype.RNA)
+    assert not new_moltype.RNA.is_gapped(seq)
+
+
+@pytest.mark.parametrize("moltype", (new_moltype.DNA, new_moltype.RNA))
+def test_gap_index_constant(moltype):
+    # make sure gap index is always the same
+    assert moltype.gapped_alphabet.gap_index == moltype.degen_gapped_alphabet.gap_index
