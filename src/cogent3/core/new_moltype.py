@@ -480,6 +480,50 @@ class MolType:
         """reverse reverse complement of a sequence"""
         return self.complement(seq)[::-1]
 
+    @functools.singledispatchmethod
+    def is_degenerate(self, seq) -> bool:
+        """checks if a sequence contains degenerate characters"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @is_degenerate.register
+    def _(self, seq: bytes) -> bool:
+        return self.is_degenerate(seq.decode("utf8"))
+
+    @is_degenerate.register
+    def _(self, seq: str) -> bool:
+        return any(c in self.ambiguities for c in seq)
+
+    @is_degenerate.register
+    def _(self, seq: numpy.ndarray) -> bool:
+        # what index is the first degenerate character
+        for index, val in enumerate(self.degen_gapped_alphabet):
+            if val in self.ambiguities:
+                break
+        else:
+            return False
+        return (seq >= index).any()
+
+    @functools.singledispatchmethod
+    def is_gapped(self, seq) -> bool:
+        """checks if a sequence contains gaps"""
+        raise TypeError(f"{type(seq)} not supported")
+
+    @is_gapped.register
+    def _(self, seq: str) -> bool:
+        return self.gapped_alphabet.gap_char in seq
+
+    @is_gapped.register
+    def _(self, seq: bytes) -> bool:
+        return self.is_gapped(seq.decode("utf8"))
+
+    @is_gapped.register
+    def _(self, seq: bytes) -> bool:
+        return self.is_gapped(seq.decode("utf8"))
+
+    @is_gapped.register
+    def _(self, seq: numpy.ndarray) -> bool:
+        return (seq == self.degen_gapped_alphabet.gap_index).any()
+
 
 def _make_moltype_dict() -> dict[str, MolType]:
     """make a dictionary of local name space molecular types"""
