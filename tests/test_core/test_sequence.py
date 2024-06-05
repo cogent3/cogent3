@@ -895,14 +895,14 @@ class SequenceTests(TestCase):
         token = 'class="label"'
         seq = self.SEQ("AAAAA")
 
-        orig = [line for line in seq._repr_html_().splitlines() if token in line][0]
+        orig = [l for l in seq._repr_html_().splitlines() if token in l][0]
         orig_num = len(re.findall(r"\bA\b", orig))
         self.assertEqual(orig_num, 5)
 
         # using environment variable
         env_name = "COGENT3_ALIGNMENT_REPR_POLICY"
         os.environ[env_name] = "num_pos=2"
-        got = [line for line in seq._repr_html_().splitlines() if token in line][0]
+        got = [l for l in seq._repr_html_().splitlines() if token in l][0]
         got_num = len(re.findall(r"\bA\b", got))
         self.assertEqual(got_num, 2)
         os.environ.pop(env_name, None)
@@ -2658,7 +2658,7 @@ def test_coerce_to_seqview(cls):
     assert isinstance(got, SeqView)
 
 
-def test_sequences_propogates_seqid():
+def test_sequences_propogates_seqid(): # ported for Sequence
     # creating a name Aligned propagates the seqid to the SeqView.
     seq = Aligned(*Sequence("ACG--G--GAC", name="seq1").parse_out_gaps())
     assert seq.data._seq.seqid == "seq1"

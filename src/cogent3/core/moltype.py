@@ -964,14 +964,14 @@ class MolType:
         """Returns True if sequence contains no items that are not in self."""
         try:
             return self.first_invalid(sequence) is None
-        except Exception:
+        except:
             return False
 
     def is_strict(self, sequence):
         """Returns True if sequence contains only items in self.alphabet."""
         try:
             return (len(sequence) == 0) or (self.first_non_strict(sequence) is None)
-        except Exception:
+        except:
             return False
 
     def valid_on_alphabet(self, sequence, alphabet=None):
@@ -1035,7 +1035,7 @@ class MolType:
         if method == "strip":
             try:
                 return sequence.__class__(self.strip_degenerate(sequence))
-            except Exception:
+            except:
                 ambi = self.degenerates
 
                 def not_ambiguous(x):
