@@ -489,6 +489,7 @@ class SequenceI(object):
         if function is None:
             # use identity scoring function
             function = lambda a, b: a != b
+
         distance = 0
         for first, second in zip(self, other):
             distance += function(first, second)
