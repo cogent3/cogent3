@@ -376,10 +376,9 @@ class MolType:
         )
         if complements:
             # assume we have a nucleic acid moltype
-            src = "".join(self._degen_gapped)
-            dest = "".join(complements[c] for c in self._degen_gapped)
+            dest = "".join(complements[c] for c in self.degen_gapped_alphabet)
             self._complement = new_alphabet.convert_alphabet(
-                src.encode("utf8"),
+                self.degen_gapped_alphabet.to_bytes(),
                 dest.encode("utf8"),
             )
 
