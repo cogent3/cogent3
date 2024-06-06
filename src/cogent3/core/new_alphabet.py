@@ -151,34 +151,45 @@ def consistent_words(
 
 
 class bytes_to_array:
-    """converts utf8 to numpy array"""
+    """wrapper around convert_alphabet. It defines a linear mapping from provided
+    characters to uint8. The resulting object is callable, taking a bytes object
+    and returning a numpy array."""
 
-    def __init__(self, chars: bytes, dtype):
+    def __init__(self, chars: bytes, dtype, delete: OptBytes = None):
+        """
+        Parameters
+        ----------
+        chars
+            unique series of characters
+        delete
+            characters to be deleted from the result
+        """
         # we want a bytes translation map
-        self._table = b"".maketrans(
-            chars,
-            bytes(bytearray(range(len(chars)))),
+        self._converter = convert_alphabet(
+            chars, bytes(bytearray(range(len(chars)))), delete=delete
         )
         self.dtype = dtype
 
     def __call__(self, seq: bytes) -> numpy.ndarray:
-        b = seq.translate(self._table)
+        b = self._converter(seq)
         return numpy.array(memoryview(b), dtype=self.dtype)
 
 
 class array_to_bytes:
-    """converts numpy array to utf8"""
+    """wrapper around convert_alphabet. It defines a linear mapping from uint8
+    integers to the provided characters. The resulting object is callable,
+    taking a numpy array and returning a bytes object.
+    """
 
-    def __init__(self, chars: bytes, dtype):
+    def __init__(self, chars: bytes):
         # we want a bytes translation map
-        self._table = b"".maketrans(
+        self._converter = convert_alphabet(
             bytes(bytearray(range(len(chars)))),
             chars,
         )
-        self.dtype = dtype
 
     def __call__(self, seq: numpy.ndarray) -> bytes:
-        b = seq.tobytes().translate(self._table)
+        b = self._converter(seq.tobytes())
         return bytearray(b)
 
 
@@ -203,7 +214,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         except AttributeError:
             byte_chars = bytes(bytearray(chars))
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
-        self._arr2bytes = array_to_bytes(byte_chars, dtype=self.dtype)
+        self._arr2bytes = array_to_bytes(byte_chars)
 
     @property
     def gap_char(self) -> OptStr:

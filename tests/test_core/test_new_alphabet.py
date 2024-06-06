@@ -49,7 +49,7 @@ def test_bytes2arr():
 
 
 def test_arr2bytes():
-    a2b = new_alphabet.array_to_bytes(b"TCAG", dtype=numpy.uint8)
+    a2b = new_alphabet.array_to_bytes(b"TCAG")
     got = a2b(numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))
     assert got == b"AAGTA"
 
