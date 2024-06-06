@@ -1202,7 +1202,7 @@ def _(data: set, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]
 def assign_names(
     first, data: Union[list, set]
 ) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
-    if isinstance(first, PrimitiveSeqTypes):
+    if isinstance(first, (str, bytes, numpy.ndarray)):
         names = assign_sequential_names(len(data))
         return dict(zip(names, data))
     raise NotImplementedError(f"assign_names not implemented for {type(data)}")
@@ -1250,6 +1250,7 @@ def make_unaligned_seqs(
     # create a db from sequences if they're annotated
     seqs_anno_db = merged_db_collection(data)
     # if db from seqs and provided db, merge
+    # todo: kath, should we default to not merging unless specified?
     if annotation_db and seqs_anno_db:
         annotation_db.update(seqs_anno_db)
     else:
