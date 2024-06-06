@@ -1,13 +1,17 @@
 import os
 
-import numpy as numpy
+import numpy
 import pytest
 
 import cogent3.core.new_alignment as new_aln
 import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
+import cogent3.core.new_sequence as new_seq
 
+# todo: kath, update this to using new Sequence load_seq when it is ready
+from cogent3 import load_seq
 from cogent3._version import __version__
+from cogent3.core.annotation_db import load_annotations
 
 
 @pytest.fixture
@@ -18,12 +22,16 @@ def seq1():
 @pytest.fixture
 def str_seqs_dict(moltype="dna"):
     if moltype == "dna":
-        return dict(seq1="ACGT", seq2="GTTTGCA")
+        return dict(seq1="ACGT", seq2="GTTTGCA", seq3="ACGTACGT")
 
 
 @pytest.fixture
 def arr_seqs_dict():
-    return dict(seq1=numpy.array([2, 1, 3, 0]), seq2=numpy.array([3, 0, 0, 0, 3, 1, 2]))
+    return dict(
+        seq1=numpy.array([2, 1, 3, 0]),
+        seq2=numpy.array([3, 0, 0, 0, 3, 1, 2]),
+        seq3=numpy.array([2, 1, 3, 0, 2, 1, 3, 0]),
+    )
 
 
 @pytest.fixture
@@ -48,19 +56,9 @@ def sdv_s2(dna_sd: new_aln.SeqsData) -> new_aln.SeqDataView:
 
 
 @pytest.fixture
-def simple_dna_seq_coll(dna_sd: new_aln.SeqsData) -> new_aln.SequenceCollection:
-    moltype = new_moltype.get_moltype("dna")
-    return new_aln.SequenceCollection(seqs_data=dna_sd, moltype=moltype)
-
-
-@pytest.fixture
-def aligned_dict():
-    return dict(seq1="ACG--T", seq2="-CGAAT")
-
-
-@pytest.fixture
-def ad_demo(aligned_dict: dict[str, str]):
-    return new_aln.AlignedData.from_gapped_seqs(aligned_dict)
+def seqs() -> new_aln.SequenceCollection:
+    data = {"seq1": "AAAAAA", "seq2": "TTTT", "seq3": "ATTCCCC"}
+    return new_aln.make_unaligned_seqs(data=data, moltype="dna")
 
 
 @pytest.fixture
@@ -77,24 +75,63 @@ def ragged():
     )
 
 
-def test_seqsdata_default_attributes(dna_sd: new_aln.SeqsData):
-    assert dna_sd.names == ["seq1", "seq2"]
-    assert isinstance(dna_sd._alphabet, new_alpha.CharAlphabet)
+@pytest.fixture
+def aligned_dict():
+    return dict(seq1="ACG--T", seq2="-CGAAT")
+
+
+@pytest.fixture
+def ad_demo(aligned_dict: dict[str, str]):
+    return new_aln.AlignedData.from_gapped_seqs(aligned_dict)
+
+
+@pytest.fixture
+def gap_seqs():
+    return [
+        ("A---CTG-C", [[1, 3], [4, 1]]),
+        ("-GTAC--", [[0, 1], [4, 2]]),
+        ("---AGC--TGC--", [[0, 3], [3, 2], [6, 2]]),
+    ]
+
+
+@pytest.fixture(scope="function")
+def gb_db(DATA_DIR):
+    return load_annotations(path=DATA_DIR / "annotated_seq.gb")
+
+
+@pytest.fixture(scope="function")
+def gff_db(DATA_DIR):
+    return load_annotations(path=DATA_DIR / "simple.gff")
+
+
+@pytest.fixture(scope="session")
+def seqcoll_db():
+    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
+    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
+    seq = load_seq(fasta_path, moltype="dna")
+    seq_coll = new_aln.make_unaligned_seqs(data={seq.name: seq}, moltype="dna")
+    seq_coll.annotate_from_gff(gff3_path)
+    return seq_coll
+
+
+def test_seqs_data_default_attributes(dna_sd: new_aln.SeqsData):
+    assert dna_sd.names == ["seq1", "seq2", "seq3"]
+    assert isinstance(dna_sd.alphabet, new_alpha.CharAlphabet)
 
 
 @pytest.mark.xfail(reason="SeqsData currently expects correctly formatted data")
-def test_seqsdata_seq_if_str(seq1: str, alpha):
+def test_seqs_data_seq_if_str(seq1: str, alpha):
     with pytest.raises(NotImplementedError):
-        new_aln.SeqsData(seq1, alphabet=alpha)
+        new_aln.SeqsData(data=seq1, alphabet=alpha)
 
 
-def test_seqdataview_zero_step_raises(dna_sd):
+def test_seqs_data_view_zero_step_raises(dna_sd):
     with pytest.raises(ValueError):
-        new_aln.SeqDataView(seq=dna_sd, step=0, seq_len=4)
+        new_aln.SeqDataView(seqs=dna_sd, step=0, seq_len=4)
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
-def test_seqdataview_repr_default(dna_sd: new_aln.SeqsData, seqid: str):
+def test_seqs_data_view_repr_default(dna_sd: new_aln.SeqsData, seqid: str):
     seq = dna_sd.get_seq_str(seqid=seqid)
     seq_len = len(seq)
     expect = f"SeqDataView(seq={seq}, start=0, stop={seq_len}, step=1, offset=0, seqid='{seqid}', seq_len={seq_len})"
@@ -102,23 +139,22 @@ def test_seqdataview_repr_default(dna_sd: new_aln.SeqsData, seqid: str):
     assert repr(got) == expect
 
 
-def test_seqdataview_repr_default_long(alpha):
+def test_seqs_data_view_repr_default_long(alpha):
     longseq = "CGATCGTAGTACGTGTCAAGTCTGAC"
     seq_len = len(longseq)
     trunc = f"{longseq[:10]}...{longseq[-5:]}"
     expect = f"SeqDataView(seq={trunc}, start=0, stop={seq_len}, step=1, offset=0, seqid='long', seq_len={seq_len})"
 
     d = {"long": longseq}
-    sd = new_aln.SeqsData(d, alphabet=alpha)
+    sd = new_aln.SeqsData(data=d, alphabet=alpha)
     got = sd.get_seq_view(seqid="long")
     assert repr(got) == expect
 
 
-@pytest.mark.xfail(reason="do we want to support copying and/or copying with slicing?")
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
 @pytest.mark.parametrize("sliced", (False, True))
 @pytest.mark.parametrize("step", (1, -1))
-def test_seqdataview_copy(alpha, seqid, sliced, step):
+def test_seqs_data_view_copy(alpha, seqid, sliced, step):
     seq1 = "ATGTTCTC"
     seq2 = "ATGAACTCATT"
     start, stop = 2, 6
@@ -134,12 +170,13 @@ def test_seqdataview_copy(alpha, seqid, sliced, step):
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
-def test_seqsdata_get_seq_view(str_seqs_dict, alpha, seqid):
-    sd = new_aln.SeqsData(str_seqs_dict, alphabet=alpha)
+def test_seqs_data_get_seq_view(str_seqs_dict, alpha, seqid):
+    sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
     seq = str_seqs_dict[seqid]
     seq_len = len(seq)
     got = sd.get_seq_view(seqid)
-    assert got.seq == sd
+    assert isinstance(got, new_aln.SeqDataView)
+    assert got.seqs == sd
     assert got.stop == seq_len
     assert got.seqid == seqid
     assert got.seq_len == seq_len
@@ -148,7 +185,7 @@ def test_seqsdata_get_seq_view(str_seqs_dict, alpha, seqid):
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
 @pytest.mark.parametrize("start", (None, -1, 0, 1, 4))
 @pytest.mark.parametrize("stop", (None, -1, 0, 1, 4))
-def test_get_seq_str(str_seqs_dict, alpha, seq, start, stop):
+def test_seqs_data_get_seq_str(str_seqs_dict, alpha, seq, start, stop):
     # slicing should be tested in test_get_seq_array
     expect = str_seqs_dict[seq][start:stop]
     sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
@@ -156,21 +193,20 @@ def test_get_seq_str(str_seqs_dict, alpha, seq, start, stop):
     assert expect == got
 
 
-def test_get_seq_str_empty(dna_sd: new_aln.SeqsData):
+def test_seqs_data_get_seq_str_empty(dna_sd: new_aln.SeqsData):
     with pytest.raises(TypeError):
         dna_sd.get_seq_str()
 
 
-def test_names_get(str_seqs_dict, alpha):
+def test_seqs_data_names(str_seqs_dict, alpha):
     expect = str_seqs_dict.keys()
-    sd = new_aln.SeqsData(str_seqs_dict, alphabet=alpha)
+    sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
     got = sd.names
     # returns iterator
     assert list(got) == list(expect)
 
 
-def test_get_seq_array(str_seqs_dict, alpha):
-    # TODO: slicing should be tested here, not get_seq_str
+def test_seqs_data_get_seq_array(str_seqs_dict, alpha):
     # todo: kath, edit and parametrize for all moltypes
     # seq1
     expect = numpy.array([2, 1, 3, 0], dtype="uint8")
@@ -185,53 +221,48 @@ def test_get_seq_array(str_seqs_dict, alpha):
     assert numpy.array_equal(got, expect)
 
 
-def test_get_seq_bytes(dna_sd: new_aln.SeqsData):
+def test_seqs_data_get_seq_bytes(dna_sd: new_aln.SeqsData):
     # getting seqid and slicing tested in test_get_seq_str
     got = dna_sd.get_seq_bytes(seqid="seq1")
     assert isinstance(got, bytes)
 
 
-def test_seqdataview_make_seq_default(dna_sd):
+def test_seqs_data_make_seq_default(dna_sd):
     assert dna_sd.make_seq is None
 
 
-def test_seqdataview_make_seq_setget(dna_sd):
+def test_seqs_data_make_seq_setget(dna_sd):
     dna_sd.make_seq = new_moltype.get_moltype("dna").make_seq
     assert dna_sd.make_seq == new_moltype.get_moltype("dna").make_seq
 
 
 @pytest.mark.parametrize("seq", ("seq1", "seq2"))
-def test_getitem_str_1(dna_sd, seq):
+def test_seqs_data_getitem_str_1(dna_sd, seq):
     got = dna_sd[seq]
-    assert got.seq == dna_sd
+    assert got.seqs == dna_sd
     assert got.seqid == seq
 
 
-@pytest.mark.xfail(reason="'SeqDataView' object has no attribute 'replace'")
 @pytest.mark.parametrize("idx", (0, 1))
-@pytest.mark.parametrize("make_seq", (True, False))
-def test_getitem_int(str_seqs_dict, alpha, idx, make_seq):
-    sd = new_aln.SeqsData(str_seqs_dict, alphabet=alpha)
-    ms = new_moltype.get_moltype("dna").make_seq if make_seq else None
-    sd.make_seq = ms
+def test_seqs_data_getitem_int(str_seqs_dict, alpha, idx):
+    sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
     got = sd[idx]
-    assert got.seq == sd
+    assert got.seqs == sd
     assert got.seqid == list(str_seqs_dict)[idx]
 
 
-@pytest.mark.xfail(reason="'SeqDataView' object has no attribute 'replace'")
 @pytest.mark.parametrize("seqid", ("seq1", "seq2"))
-@pytest.mark.parametrize("make_seq", (True, False))
-def test_getitem_str(dna_sd, seqid, make_seq):
-    ms = new_moltype.get_moltype("dna").make_seq if make_seq else None
-    dna_sd.make_seq = ms
+def test_seqs_data_getitem_str(
+    dna_sd,
+    seqid,
+):
     got = dna_sd[seqid]
-    assert got.seq == dna_sd
+    assert got.seqs == dna_sd
     assert got.seqid == seqid
 
 
 @pytest.mark.parametrize("make_seq", (True, False))
-def test_getitem_raises(dna_sd, make_seq):
+def test_seqs_data_getitem_raises(dna_sd, make_seq):
     ms = new_moltype.get_moltype("dna").make_seq if make_seq else None
     dna_sd.make_seq = ms
     invalid_index = ["this", "shouldn't", "work"]
@@ -239,10 +270,54 @@ def test_getitem_raises(dna_sd, make_seq):
         _ = dna_sd[invalid_index]
 
 
-# SeqDataView tests for returning an instance of itself
-def test_seqdataview_returns_self(dna_sd: new_aln.SeqsData):
-    sdv = dna_sd.get_seq_view("seq1")
-    assert isinstance(sdv, new_aln.SeqDataView)
+def tests_seqs_data_subset(dna_sd):
+    got = dna_sd.subset("seq1")
+    assert isinstance(got, new_aln.SeqsData)
+    assert got.names == ["seq1"]
+    assert got.get_seq_str(seqid="seq1") == dna_sd.get_seq_str(seqid="seq1")
+
+    got = dna_sd.subset(["seq1", "seq2"])
+    assert isinstance(got, new_aln.SeqsData)
+    assert got.names == ["seq1", "seq2"]
+    assert got.get_seq_str(seqid="seq1") == dna_sd.get_seq_str(seqid="seq1")
+    assert got.get_seq_str(seqid="seq2") == dna_sd.get_seq_str(seqid="seq2")
+
+    got = dna_sd.subset(["seq2", "seq1"])
+    assert isinstance(got, new_aln.SeqsData)
+    assert got.names == ["seq2", "seq1"]
+    assert got.get_seq_str(seqid="seq1") == dna_sd.get_seq_str(seqid="seq1")
+    assert got.get_seq_str(seqid="seq2") == dna_sd.get_seq_str(seqid="seq2")
+
+    got = dna_sd.subset(["seq3"])
+    assert isinstance(got, new_aln.SeqsData)
+    assert got.names == ["seq3"]
+    assert got.get_seq_str(seqid="seq3") == dna_sd.get_seq_str(seqid="seq3")
+
+
+@pytest.mark.xfail(
+    reason="todo: kath, decide how to support equality testing between SeqsData"
+)
+def test_seqs_data_eq(alpha):
+    data = dict(seq1="ACGT", seq2="GTTTGCA", seq3="ACGTACGT")
+    sd_1 = new_aln.SeqsData(data=data, alphabet=alpha)
+    sd_2 = new_aln.SeqsData(data=data, alphabet=alpha)
+
+    assert sd_1 == sd_2
+    assert sd_1 == data
+
+
+@pytest.mark.xfail(
+    reason="todo: kath, decide how to support equality testing between SeqsData"
+)
+def test_seqs_data_eq_diff_alphabets():
+    rna_data = dict(seq1="ACGU", seq2="GUUUGCA", seq3="ACGUACGU")
+    dna_data = dict(seq1="ACGT", seq2="GTTTGCA", seq3="ACGTACGT")
+
+    dna_alpha = new_moltype.get_moltype("dna").degen_gapped_alphabet
+    dna_sd = new_aln.SeqsData(data=dna_data, alphabet=dna_alpha)
+
+    assert dna_data == dna_sd
+    assert dna_sd == rna_data
 
 
 @pytest.mark.parametrize(
@@ -256,8 +331,8 @@ def test_seqdataview_returns_self(dna_sd: new_aln.SeqsData):
         slice(None),
     ],
 )
-def test_seqdataview_slice_returns_self(seq1: str, index: slice):
-    sdv = new_aln.SeqDataView(seq=seq1, seqid="seq1", seq_len=len(seq1))
+def test_seq_data_view_slice_returns_self(seq1: str, index: slice):
+    sdv = new_aln.SeqDataView(seqs=seq1, seqid="seq1", seq_len=len(seq1))
     got = sdv[index]
     assert isinstance(got, new_aln.SeqDataView)
 
@@ -266,7 +341,7 @@ def test_seqdataview_slice_returns_self(seq1: str, index: slice):
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_seqdataview_value(str_seqs_dict: dict, alpha, start, stop, step):
+def test_seq_data_view_value(str_seqs_dict: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = str_seqs_dict[seq][start:stop:step]
     sd = new_aln.SeqsData(data=str_seqs_dict, alphabet=alpha)
@@ -280,7 +355,7 @@ def test_seqdataview_value(str_seqs_dict: dict, alpha, start, stop, step):
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_seqsdata_array_value(arr_seqs_dict: dict, alpha, start, stop, step):
+def test_seqs_data_array_value(arr_seqs_dict: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = arr_seqs_dict[seq][start:stop:step]
     sd = new_aln.SeqsData(data=arr_seqs_dict, alphabet=alpha)
@@ -293,7 +368,7 @@ def test_seqsdata_array_value(arr_seqs_dict: dict, alpha, start, stop, step):
 @pytest.mark.parametrize("start", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("stop", (None, 0, 1, 4, -1, -4))
 @pytest.mark.parametrize("step", (None, 1, 2, 3, -1, -2, -3))
-def test_seqsdata_bytes_value(str_seqs_dict: dict, alpha, start, stop, step):
+def test_seqs_data_bytes_value(str_seqs_dict: dict, alpha, start, stop, step):
     seq = "seq2"
     expect = str_seqs_dict[seq][start:stop:step]
     expect = expect.encode("utf8")
@@ -337,7 +412,7 @@ def test_get_aligned_view(aligned_dict, seqid):
     ad = new_aln.AlignedData.from_gapped_seqs(aligned_dict)
     got = ad.get_aligned_view(seqid)
     assert isinstance(got, new_aln.AlignedDataView)
-    assert got.seq == ad
+    assert got.seqs == ad
     assert got.stop == ad.align_len
     assert got.seq_len == ad.align_len
 
@@ -385,15 +460,6 @@ def test_seq_to_gap_coords_arr_no_gaps():
     assert got_empty_arr.size == 0
 
 
-@pytest.fixture
-def gap_seqs():
-    return [
-        ("A---CTG-C", [[1, 3], [4, 1]]),
-        ("-GTAC--", [[0, 1], [4, 2]]),
-        ("---AGC--TGC--", [[0, 3], [3, 2], [6, 2]]),
-    ]
-
-
 @pytest.mark.xfail(reason="AlignedData not yet functional")
 @pytest.mark.parametrize("i", range(3))
 def test_seq_to_gap_coords_str(gap_seqs, i):
@@ -416,11 +482,6 @@ def test_seq_to_gap_coords_arr(gap_seqs, i):
     )
     assert numpy.array_equal(got_ungapped, seq[seq != 4])  # gap_char = 4
     assert got_map.get_gap_coordinates() == gap_coords
-
-
-def test_seq_coll_init(simple_dna_seq_coll):
-    assert isinstance(simple_dna_seq_coll.seqs, new_aln.SeqsData)
-    assert simple_dna_seq_coll.seqs.make_seq is not None
 
 
 @pytest.mark.parametrize("moltype", ("dna", "rna", "protein", "protein_with_stop"))
@@ -453,6 +514,18 @@ def test_make_unaligned_seqs_list(moltype):
     assert got._seqs_data.make_seq == new_moltype.get_moltype(moltype).make_seq
 
 
+def test_make_unaligned_seqs_label_to_name():
+    """test SequenceCollection constructor utility function"""
+    data = {"a": "AGGCCC", "b": "AGAAAA"}
+
+    def f(x):
+        return x.upper()
+
+    got = new_aln.make_unaligned_seqs(data=data, moltype="dna", label_to_name=f)
+    assert list(got.names) == ["A", "B"]
+    assert got._seqs_data.make_seq == new_moltype.get_moltype("dna").make_seq
+
+
 def test_make_unaligned_seqs_raises():
     data = "AGTCCTGA"
     with pytest.raises(NotImplementedError):
@@ -470,30 +543,39 @@ def test_make_unaligned_seqs_no_seqs():
         new_aln.make_unaligned_seqs(data=data, moltype="dna")
 
 
-@pytest.mark.xfail(
-    reason="todo: kath, AttributeError: 'SeqDataView' object has no attribute 'replace'"
-)
+def test_sequence_collection_init(seqs):
+    assert isinstance(seqs.seqs, new_aln.SeqsData)
+    assert seqs.seqs.make_seq is not None
+
+
+def test_sequence_collection_names(seqs):
+    assert seqs.names == ["seq1", "seq2", "seq3"]
+    seqs.names = ["seq2", "seq3", "seq1"]
+    assert seqs.names == ["seq2", "seq3", "seq1"]
+    seqs.names = ["seq1", "seq2"]
+    assert seqs.names == ["seq1", "seq2"]
+    with pytest.raises(ValueError):
+        seqs.names = ["seq1", "seq2", "seq3", "seq4"]
+
+
 def test_iter_seqs_ragged_padded(ragged_padded):
     """SequenceCollection.iter_seqs() method should support reordering of seqs"""
     seqs = list(ragged_padded.iter_seqs())
     assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
     seqs = list(ragged_padded.iter_seqs(seq_order=["b", "a", "a"]))
     assert seqs == ["AAA---", "AAAAAA", "AAAAAA"]
-    assert seqs[1] is seqs[2]
-    assert seqs[0], ragged_padded.seqs["b"]
+    assert seqs[1] == seqs[2]
+    assert seqs[0] == ragged_padded.seqs["b"]
 
 
-@pytest.mark.xfail(
-    reason="todo: kath, AttributeError: 'SeqDataView' object has no attribute 'replace'"
-)
-def test_iter_seqs_ragged(ragged):
+def test_sequence_collection_iter_seqs_ragged(ragged):
     """SequenceCollection iter_seqs() method should support reordering of seqs"""
     seqs = list(ragged.iter_seqs())
     assert seqs == ["AAAAAA", "AAA", "AAAA"]
     seqs = list(ragged.iter_seqs(seq_order=["b", "a", "a"]))
     assert seqs == ["AAA", "AAAAAA", "AAAAAA"]
-    assert seqs[1] is seqs[2]
-    assert seqs[0], ragged.seqs["b"]
+    assert seqs[1] == seqs[2]
+    assert seqs[0] == ragged.seqs["b"]
 
 
 def test_sequence_collection_repr():
@@ -530,10 +612,7 @@ def test_sequence_collection_repr():
     assert repr(seqs) == "1x (a[TCGATTCGAT]) dna seqcollection"
 
 
-@pytest.mark.xfail(
-    reason="todo: kath, new 'MolType' object has no attribute 'get_css_style'"
-)
-def test_set_wrap_affects_repr_html():
+def test_sequence_collection_set_wrap_affects_repr_html():
     """the wrap argument affects the number of columns"""
     # indirectly tested via counting number of occurrences of 'class="label"'
     seqs = new_aln.make_unaligned_seqs(data={"a": "AAAAA", "b": "AAA--"}, moltype="dna")
@@ -552,8 +631,65 @@ def test_set_wrap_affects_repr_html():
     assert got.count(token) == 3 * orig.count(token)
 
 
+def test_sequence_collection_repr_html_applies_policy(seqs):
+    # tests repr policy has been successfully applied
+    seqs.set_repr_policy(num_seqs=2)
+    got = seqs._repr_html_()
+    assert got.count("</tr>") == 3
+    seqs.set_repr_policy(num_seqs=3)
+    got = seqs._repr_html_()
+    assert got.count("</tr>") == 4
+    seqs.set_repr_policy(num_seqs=len(seqs.seqs))
+    got = seqs._repr_html_()
+    assert got.count("</tr>") == len(seqs.seqs) + 1
+
+
+def test_sequence_collection_repr_html_correct_num_seqs(seqs):
+    # tests _repr_html_ displays correct number of sequences
+    got = seqs._repr_html_()
+    seq_lens = numpy.array(
+        [len(seqs.seqs.get_seq_str(seqid=name)) for name in seqs.names]
+    )
+    assert (
+        f"{seqs.num_seqs} x {{min={seq_lens.min()}, median={numpy.median(seq_lens)}, max={seq_lens.max()}}}"
+        in got.splitlines()[-2]
+    )
+
+
+def test_sequence_collection_set_repr_policy_no_input(seqs):
+    """repr_policy should remain unchanged"""
+    seqs.set_repr_policy(num_seqs=None, num_pos=None)
+    assert seqs._repr_policy == dict(
+        num_seqs=10, num_pos=60, ref_name="longest", wrap=60
+    )
+
+
+def test_sequence_collection_set_repr_policy_invalid_input(seqs):
+    """repr_policy should remain unchanged"""
+    invalid_args = (
+        dict(num_seqs="foo", err=TypeError),
+        dict(num_pos=4.2, err=TypeError),
+        dict(ref_name="blah", err=ValueError),
+        dict(wrap=3.1, err=TypeError),
+    )
+
+    for arg in invalid_args:
+        err = arg.pop("err")
+        with pytest.raises(err):
+            seqs.set_repr_policy(**arg)
+        assert seqs._repr_policy == dict(
+            num_seqs=10, num_pos=60, ref_name="longest", wrap=60
+        )
+
+
+def test_sequence_collection_set_repr_policy_valid_input(seqs):
+    """repr_policy should be set to new values"""
+    seqs.set_repr_policy(num_seqs=5, num_pos=40, ref_name="seq1", wrap=10)
+    assert seqs._repr_policy == dict(num_seqs=5, num_pos=40, ref_name="seq1", wrap=10)
+
+
 @pytest.mark.xfail(reason="todo: kath, need support for __eq__ betwen collections")
-def test_take_seqs(ragged_padded):
+def test_sequence_collection_take_seqs(ragged_padded):
     """SequenceCollection take_seqs should return new SequenceCollection with selected seqs."""
     a = ragged_padded.take_seqs(list("bc"))
     assert isinstance(a, new_aln.SequenceCollection)
@@ -564,7 +700,7 @@ def test_take_seqs(ragged_padded):
 
 
 @pytest.mark.xfail(reason="todo: kath, need support for __eq__ betwen collections")
-def test_take_seqs_str(ragged_padded):
+def test_sequence_collection_take_seqs_str(ragged_padded):
     """string arg to SequenceCollection take_seqs should work."""
     a = ragged_padded.take_seqs("a")
     assert a == {"a": "AAAAAA"}
@@ -575,7 +711,7 @@ def test_take_seqs_str(ragged_padded):
     assert a == {"b": "AAA---", "c": "AAAA--"}
 
 
-def test_take_seqs_info():
+def test_sequence_collection_take_seqs_info():
     """take_seqs should preserve info attribute"""
     moltype = new_moltype.get_moltype("dna")
     orig = new_aln.make_unaligned_seqs(
@@ -587,7 +723,7 @@ def test_take_seqs_info():
     assert set(subset.info) == set(orig.info)
 
 
-def test_take_seqs_moltype():
+def test_sequence_collection_take_seqs_moltype():
     """take_seqs should preserve the MolType"""
     moltype = new_moltype.get_moltype("dna")
     orig = new_aln.make_unaligned_seqs(
@@ -597,19 +733,67 @@ def test_take_seqs_moltype():
     assert set(subset.moltype) == set(orig.moltype)
 
 
-def test_take_seqs_empty_names():
+def test_sequence_collection_take_seqs_empty_names():
     moltype = new_moltype.get_moltype("dna")
     orig = new_aln.make_unaligned_seqs(
         data={"a": "CCCCCC", "b": "AAA---", "c": "AAAA--"}, moltype=moltype
     )
-    subset = orig.take_seqs([])
-    assert subset == {}
+    with pytest.raises(ValueError):
+        _ = orig.take_seqs([])
 
 
-def test_num_seqs():
+def test_sequence_collection_num_seqs():
     """SequenceCollection.num_seqs should count seqs."""
 
-    aln = new_aln.make_unaligned_seqs(
+    seqs = new_aln.make_unaligned_seqs(
         data={"seq1": "ACGU", "seq2": "CGUA", "seq3": "CCGU"}, moltype="rna"
     )
-    assert aln.num_seqs == 3
+    assert seqs.num_seqs == 3
+
+
+@pytest.mark.parametrize("index", [(0, "seq1"), (1, "seq2"), (2, "seq3")])
+def test_sequence_collection_getitem(seqs, index):
+    got1 = seqs.seqs[index[0]]
+    got2 = seqs.seqs[index[1]]
+
+    assert isinstance(got1, new_seq.Sequence)
+    assert isinstance(got2, new_seq.Sequence)
+    assert got1 == got2
+
+
+# Functions for testing SequenceCollection methods that accept a function as an argument
+def is_long(x):
+    return len(x) > 10
+
+
+def is_med(x):
+    return len(str(x).replace("-", "")) > 3
+
+
+def is_any(x):
+    return len(x) > 0
+
+
+def test_get_seq_names_if(ragged_padded):
+    """SequenceCollection.get_seq_names_if should return names of seqs where f(row) is True"""
+
+    assert ragged_padded.get_seq_names_if(is_long) == []
+    assert ragged_padded.get_seq_names_if(is_med) == ["a", "c"]
+    # return order should reflect names when updated
+    ragged_padded.names = ["b", "c", "a"]
+    assert ragged_padded.get_seq_names_if(is_med) == ["c", "a"]
+    assert ragged_padded.get_seq_names_if(is_med, negate=True) == ["b"]
+    assert ragged_padded.get_seq_names_if(is_any) == ["b", "c", "a"]
+    assert ragged_padded.get_seq_names_if(is_any, negate=True) == []
+
+
+@pytest.mark.xfail(reason="todo: kath, need support for __eq__ betwen collections")
+def test_take_seqs_if(ragged_padded):
+    """SequenceCollection take_seqs_if should return seqs where f(seq) is True"""
+
+    with pytest.raises(ValueError):
+        ragged_padded.take_seqs_if(is_long)
+    assert ragged_padded.take_seqs_if(is_any) == ragged_padded
+    assert isinstance(ragged_padded.take_seqs_if(is_med), new_aln.SequenceCollection)
+    with pytest.raises(ValueError):
+        ragged_padded.take_seqs_if(is_med, negate=True)
