@@ -176,18 +176,20 @@ class bytes_to_array:
 
 
 class array_to_bytes:
-    """converts numpy array to utf8"""
+    """wrapper around convert_alphabet. It defines a linear mapping from uint8
+    integers to the provided characters. The resulting object is callable,
+    taking a numpy array and returning a bytes object.
+    """
 
-    def __init__(self, chars: bytes, dtype):
+    def __init__(self, chars: bytes):
         # we want a bytes translation map
-        self._table = b"".maketrans(
+        self._converter = convert_alphabet(
             bytes(bytearray(range(len(chars)))),
             chars,
         )
-        self.dtype = dtype
 
     def __call__(self, seq: numpy.ndarray) -> bytes:
-        b = seq.tobytes().translate(self._table)
+        b = self._converter(seq.tobytes())
         return bytearray(b)
 
 
