@@ -484,17 +484,17 @@ class _SequenceCollectionBase:
         self._annotation_db = None
 
     @property
-    def named_seqs(self):
+    def named_seqs(self):  # ported
         if self._named_seqs is None:
             self._named_seqs = _make_named_seqs(self.names, self._seqs)
         return self._named_seqs
 
     @property
-    def annotation_db(self):
+    def annotation_db(self):  # ported
         return self._annotation_db
 
     @annotation_db.setter
-    def annotation_db(self, value):
+    def annotation_db(self, value):  # ported
         if value == self._annotation_db:
             return
 
@@ -503,13 +503,13 @@ class _SequenceCollectionBase:
         for seq in self.seqs:
             seq.replace_annotation_db(value, check=False)
 
-    def __str__(self):
+    def __str__(self):  # ported
         """Returns self in FASTA-format, respecting name order."""
         from cogent3.format.alignment import FORMATTERS
 
         return FORMATTERS["fasta"](self.to_dict())
 
-    def _set_additional_attributes(self, curr_seqs):
+    def _set_additional_attributes(self, curr_seqs):  # will not port
         """Sets additional attributes based on current seqs: class-specific."""
         self.seq_data = curr_seqs
         self._seqs = curr_seqs
@@ -518,7 +518,7 @@ class _SequenceCollectionBase:
         except ValueError:  # got empty sequence, for some reason?
             self.seq_len = 0
 
-    def copy(self):
+    def copy(self):  # ported
         """Returns deep copy of self."""
         result = self.__class__(self, moltype=self.moltype, info=self.info)
         result.annotation_db = deepcopy(self.annotation_db)
@@ -556,7 +556,7 @@ class _SequenceCollectionBase:
         result._repr_policy.update(self._repr_policy)
         return result
 
-    def __eq__(self, other):
+    def __eq__(self, other):  # ported
         """first tests as dict, then as str"""
         c = self.named_seqs == other
         if not c:
@@ -564,7 +564,7 @@ class _SequenceCollectionBase:
 
         return c
 
-    def __ne__(self, other):
+    def __ne__(self, other):  # ported
         """first tests as dict, then as str"""
         c = self.named_seqs != other
         if not c:
@@ -572,7 +572,7 @@ class _SequenceCollectionBase:
 
         return c
 
-    def __lt__(self, other):
+    def __lt__(self, other):  # will not port
         """cmp first tests as dict, then as str."""
         c = self.named_seqs < other
         if not c:
@@ -580,7 +580,7 @@ class _SequenceCollectionBase:
         else:
             return str(self) < str(other)
 
-    def iter_seqs(self, seq_order=None):
+    def iter_seqs(self, seq_order=None):  # ported
         """Iterates over values (sequences) in the alignment, in order.
 
         seq_order: list of keys giving the order in which seqs will be returned.
@@ -602,12 +602,14 @@ class _SequenceCollectionBase:
             yield get(key)
 
     @property
-    def seqs(self):
+    def seqs(self):  # ported
         return list(self.iter_seqs())
 
     # access as attribute if using default order.
 
-    def take_seqs(self, seqs: Union[str, typing.Sequence[str]], negate=False, **kwargs):
+    def take_seqs(
+        self, seqs: Union[str, typing.Sequence[str]], negate=False, **kwargs
+    ):  # ported
         """Returns new Alignment containing only specified seqs.
 
         Note that the seqs in the new alignment will be references to the
@@ -645,7 +647,7 @@ class _SequenceCollectionBase:
             )
         return result
 
-    def get_seq_indices(self, f, negate=False):
+    def get_seq_indices(self, f, negate=False):  # ported
         """Returns list of keys of seqs where f(row) is True.
 
         List will be in the same order as self.names, if present.
@@ -662,7 +664,7 @@ class _SequenceCollectionBase:
         # get all the seqs where the function is True
         return [key for key in self.names if new_f(get(key))]
 
-    def take_seqs_if(self, f, negate=False, **kwargs):
+    def take_seqs_if(self, f, negate=False, **kwargs):  # ported
         """Returns new Alignment containing seqs where f(row) is True.
 
         Note that the seqs in the new Alignment are the same objects as the
@@ -671,7 +673,7 @@ class _SequenceCollectionBase:
         # pass negate to get SeqIndices
         return self.take_seqs(self.get_seq_indices(f, negate), **kwargs)
 
-    def iter_selected(self, seq_order=None, pos_order=None):
+    def iter_selected(self, seq_order=None, pos_order=None):  # ported
         """Iterates over elements in the alignment.
 
         seq_order (names) can be used to select a subset of seqs.
@@ -693,7 +695,7 @@ class _SequenceCollectionBase:
                 for i in row:
                     yield i
 
-    def get_identical_sets(self, mask_degen=False):
+    def get_identical_sets(self, mask_degen=False):  # ported
         """returns sets of names for sequences that are identical
 
         Parameters
@@ -781,7 +783,7 @@ class _SequenceCollectionBase:
         max_similarity=1.0,
         metric=frac_same,
         transform=None,
-    ):
+    ):  # ported
         """Returns new Alignment containing sequences similar to target.
 
         Parameters
@@ -830,7 +832,7 @@ class _SequenceCollectionBase:
 
         return self.take_seqs_if(f)
 
-    def is_ragged(self):
+    def is_ragged(self):  # ported
         """Returns True if alignment has sequences of different lengths."""
         seqs = self.seqs  # Get all sequences in alignment
         length = len(seqs[0])  # Get length of first sequence
@@ -841,7 +843,7 @@ class _SequenceCollectionBase:
         # lengths were all equal
         return False
 
-    def to_phylip(self):
+    def to_phylip(self):  # ported
         """
         Return alignment in PHYLIP format and mapping to sequence ids
 
@@ -883,7 +885,7 @@ class _SequenceCollectionBase:
         """returns json formatted string"""
         return json.dumps(self.to_rich_dict())
 
-    def to_fasta(self, block_size: int = 60) -> str:
+    def to_fasta(self, block_size: int = 60) -> str:  # ported
         """Return alignment in Fasta format.
 
         Parameters
@@ -898,7 +900,7 @@ class _SequenceCollectionBase:
         """
         return alignment_to_fasta(self.to_dict(), block_size=block_size)
 
-    def to_nexus(self, seq_type, wrap=50):
+    def to_nexus(self, seq_type, wrap=50):  # will not port
         """
         Return alignment in NEXUS format and mapping to sequence ids
 
@@ -913,11 +915,11 @@ class _SequenceCollectionBase:
         return nexus_from_alignment(self, seq_type, wrap=wrap)
 
     @property
-    def num_seqs(self):
+    def num_seqs(self):  # ported
         """Returns the number of sequences in the alignment."""
         return len(self.named_seqs)
 
-    def __add__(self, other):
+    def __add__(self, other):  # will not port
         """Concatenates sequence data for same names"""
         aligned = isinstance(self, Alignment)
 
@@ -940,7 +942,7 @@ class _SequenceCollectionBase:
         new.annotation_db = None
         return new
 
-    def add_seqs(self, other, before_name=None, after_name=None):
+    def add_seqs(self, other, before_name=None, after_name=None):  # will not port
         """Returns new object of class self with sequences from other added.
 
         Parameters
@@ -1049,13 +1051,13 @@ class _SequenceCollectionBase:
 
         save_to_filename(align_dict, filename, format, **kwargs)
 
-    def __len__(self):
+    def __len__(self):  # ported
         """len of SequenceCollection returns length of longest sequence."""
         return self.seq_len
 
     def get_translation(
         self, gc=None, incomplete_ok=False, include_stop=False, trim_stop=True, **kwargs
-    ):
+    ):  # will not port
         """translate from nucleic acid to protein
 
         Parameters
@@ -1098,11 +1100,11 @@ class _SequenceCollectionBase:
         kwargs["moltype"] = pep.moltype
         return self.__class__(translated, info=self.info, **kwargs)
 
-    def get_seq(self, seqname):
+    def get_seq(self, seqname):  # ported
         """Return a sequence object for the specified seqname."""
         return self.named_seqs[seqname]
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> dict[str, str]:  # ported
         """Returns the alignment as a dict of sequence names -> strings.
 
         Note the mapping goes to strings, not Sequence objects.
@@ -1132,7 +1134,7 @@ class _SequenceCollectionBase:
                     ambig[i] = motif
         return result
 
-    def degap(self, **kwargs):
+    def degap(self, **kwargs):  # will not port
         """Returns copy in which sequences have no gaps.
 
         Parameters
@@ -1153,7 +1155,7 @@ class _SequenceCollectionBase:
         )
         return result
 
-    def with_modified_termini(self):
+    def with_modified_termini(self):  # will not port
         """Changes the termini to include termini char instead of gapmotif.
 
         Useful to correct the standard gap char output by most
@@ -1169,7 +1171,7 @@ class _SequenceCollectionBase:
             result.annotation_db = self.annotation_db
         return result
 
-    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:
+    def has_terminal_stop(self, gc: Any = None, strict: bool = False) -> bool:  # ported
         """Returns True if any sequence has a terminal stop codon.
 
         Parameters
@@ -1190,7 +1192,9 @@ class _SequenceCollectionBase:
                 return True
         return False
 
-    def trim_stop_codons(self, gc: Any = None, strict: bool = False, **kwargs):
+    def trim_stop_codons(
+        self, gc: Any = None, strict: bool = False, **kwargs
+    ):  # will not port
         """Removes any terminal stop codons from the sequences
 
         Parameters
@@ -1214,7 +1218,7 @@ class _SequenceCollectionBase:
             result.annotation_db = self.annotation_db
         return result
 
-    def get_lengths(self, include_ambiguity=False, allow_gap=False):
+    def get_lengths(self, include_ambiguity=False, allow_gap=False):  # ported
         """returns {name: seq length, ...}
 
         Parameters
@@ -1238,7 +1242,7 @@ class _SequenceCollectionBase:
         allow_gap=False,
         exclude_unobserved=False,
         warn=False,
-    ):
+    ):  # ported
         """counts of motifs per sequence
 
         Parameters
@@ -1289,7 +1293,7 @@ class _SequenceCollectionBase:
         include_ambiguity=False,
         allow_gap=False,
         exclude_unobserved=False,
-    ):
+    ):  # ported
         """counts of motifs
 
         Parameters
@@ -1324,7 +1328,7 @@ class _SequenceCollectionBase:
         exclude_unobserved=False,
         allow_gap=False,
         pseudocount=0,
-    ):
+    ):  # ported
         """Return a dictionary of motif probs, calculated as the averaged
         frequency across sequences.
 
@@ -1389,7 +1393,7 @@ class _SequenceCollectionBase:
 
         return probs
 
-    def omit_gap_seqs(self, allowed_gap_frac=0):
+    def omit_gap_seqs(self, allowed_gap_frac=0):  # will not port
         """Returns new alignment with seqs that have <= allowed_gap_frac.
 
         allowed_gap_frac should be a fraction between 0 and 1 inclusive.
@@ -1414,7 +1418,7 @@ class _SequenceCollectionBase:
 
         return self.take_seqs_if(ok_gap_run)
 
-    def to_moltype(self, moltype):
+    def to_moltype(self, moltype):  # ported
         """returns copy of self with moltype seqs"""
         import cogent3
 
@@ -1708,7 +1712,9 @@ class _SequenceCollectionBase:
 
         return array(result)
 
-    def set_repr_policy(self, num_seqs=None, num_pos=None, ref_name=None, wrap=None):
+    def set_repr_policy(
+        self, num_seqs=None, num_pos=None, ref_name=None, wrap=None
+    ):  # ported
         """specify policy for repr(self)
 
         Parameters
@@ -1820,7 +1826,7 @@ class SequenceCollection(_SequenceCollectionBase):
         anno_db = merged_db_collection(self.seqs)
         self.annotation_db = anno_db or DEFAULT_ANNOTATION_DB()
 
-    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+    def copy_annotations(self, seq_db: SupportsFeatures) -> None:  # ported
         """copy annotations into attached annotation db
 
         Parameters
@@ -1860,7 +1866,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
     def annotate_from_gff(
         self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
-    ):
+    ):  # ported
         """copies annotations from a gff file to a sequence in self
 
         Parameters
@@ -1887,7 +1893,7 @@ class SequenceCollection(_SequenceCollectionBase):
         self,
         *,
         feature: FeatureDataType,
-    ) -> Feature:
+    ) -> Feature:  # ported
         """
         create a feature on named sequence, or on the alignment itself
 
@@ -1915,7 +1921,7 @@ class SequenceCollection(_SequenceCollectionBase):
         spans: List[Tuple[int, int]],
         parent_id: Optional[str] = None,
         strand: str = "+",
-    ) -> Feature:
+    ) -> Feature:  # ported
         """
         add feature on named sequence
 
@@ -1958,7 +1964,7 @@ class SequenceCollection(_SequenceCollectionBase):
         biotype: Optional[str] = None,
         name: Optional[str] = None,
         allow_partial: bool = False,
-    ) -> Iterator[Feature]:
+    ) -> Iterator[Feature]:  # ported
         """yields Feature instances
 
         Parameters
@@ -2044,7 +2050,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
         return dist_calc_app(self)
 
-    def __repr__(self):
+    def __repr__(self):  # ported
         seqs = []
         limit = 10
         delimiter = ""
@@ -2070,7 +2076,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
         return f"{len(self.names)}x ({seqs}) {self.moltype.get_type()} seqcollection"
 
-    def _repr_html_(self) -> str:
+    def _repr_html_(self) -> str:  # ported
         settings = self._repr_policy.copy()
         env_vals = get_setting_from_environ(
             "COGENT3_ALIGNMENT_REPR_POLICY",
@@ -2091,7 +2097,7 @@ class SequenceCollection(_SequenceCollectionBase):
         colors: Optional[Mapping[str, str]] = None,
         font_size: int = 12,
         font_family: str = "Lucida Console",
-    ) -> str:
+    ) -> str:  # ported
         """returns html with embedded styles for sequence colouring
 
         Parameters
