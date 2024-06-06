@@ -36,6 +36,26 @@ def test_convert_alphabet_mixed_length():
         new_alphabet.convert_alphabet(src="ACG", dest="TGCA")
 
 
+@pytest.mark.parametrize(
+    "moltype", (new_moltype.DNA, new_moltype.DNA, new_moltype.ASCII)
+)
+def test_to_bytes(moltype):
+    alpha = moltype.alphabet
+    got = alpha.to_bytes()
+    expect = "".join(alpha).encode("utf8")
+    assert len(got) == len(alpha)
+    assert got == expect
+
+
+def test_to_bytes_bytes():
+    alpha = new_moltype.BYTES.alphabet
+    got = alpha.to_bytes()
+    assert len(got) == len(alpha)
+    expect = bytes(bytearray(range(256)))
+    assert got == expect
+    assert chr(got[65]) == chr(65)
+
+
 @pytest.mark.parametrize("words", ("AACG", ["A", "CG"], ["CC", "AA"], "", (), []))
 def test_invalid_words(words):
     with pytest.raises(ValueError):

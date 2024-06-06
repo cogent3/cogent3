@@ -113,6 +113,9 @@ class MonomerAlphabetABC(ABC):
     @abstractmethod
     def from_indices(self, seq: numpy.ndarray) -> str: ...
 
+    @abstractmethod
+    def to_bytes(self) -> bytes: ...
+
 
 def get_array_type(num_elements: int):
     """Returns the smallest numpy integer dtype that can contain elements
@@ -292,6 +295,12 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
     @is_valid.register
     def _(self, seq: numpy.ndarray) -> bool:
         return seq.min() >= 0 and seq.max() < len(self)
+
+    def to_bytes(self) -> bytes:
+        if not isinstance(self[0], str):
+            return bytes(bytearray(self))
+
+        return "".join(self).encode("utf8")
 
 
 @numba.jit(nopython=True)
