@@ -214,7 +214,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         except AttributeError:
             byte_chars = bytes(bytearray(chars))
         self._bytes2arr = bytes_to_array(byte_chars, dtype=self.dtype)
-        self._arr2bytes = array_to_bytes(byte_chars, dtype=self.dtype)
+        self._arr2bytes = array_to_bytes(byte_chars)
 
     @property
     def gap_char(self) -> OptStr:
