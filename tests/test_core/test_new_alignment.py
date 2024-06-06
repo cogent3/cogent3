@@ -583,7 +583,7 @@ def test_init_seq():
     """SequenceCollection init from list of sequences should use indices as keys"""
     seqs = ["TTTTT", "CCCCC", "GGGGG"]
     a = new_aln.make_unaligned_seqs(seqs, moltype="dna")
-    assert len(a.named_seqs) == 3
+    assert len(a.seqs) == 3
     assert a.seqs["seq_0"] == "TTTTT"
     assert a.seqs["seq_1"] == "CCCCC"
     assert a.seqs["seq_2"] == "GGGGG"
@@ -597,10 +597,10 @@ def test_init_pairs():
     """SequenceCollection init from list of (key,val) pairs should work correctly"""
     seqs = [["a", "AAA"], ["t", "TTT"], ["c", "CCC"]]
     a = new_aln.make_unaligned_seqs(seqs, moltype="dna")
-    assert len(a.named_seqs) == 3
-    assert a.named_seqs["a"] == "AAA"
-    assert a.named_seqs["t"] == "TTT"
-    assert a.named_seqs["c"] == "CCC"
+    assert len(a.seqs) == 3
+    assert a.seqs["a"] == "AAA"
+    assert a.seqs["t"] == "TTT"
+    assert a.seqs["c"] == "CCC"
     assert a.names == ["a", "t", "c"]
 
 
