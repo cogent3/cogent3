@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import typing
 
@@ -16,9 +17,18 @@ import cogent3.core.new_alphabet as new_alpha
 import cogent3.core.new_moltype as new_moltype
 import cogent3.core.new_sequence as new_seq
 
-from cogent3.core.annotation_db import BasicAnnotationDb, SupportsFeatures
+from cogent3.core.annotation import Feature
+from cogent3.core.annotation_db import (
+    BasicAnnotationDb,
+    FeatureDataType,
+    GenbankAnnotationDb,
+    SupportsFeatures,
+    load_annotations,
+)
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
+from cogent3.format.fasta import alignment_to_fasta
+from cogent3.format.phylip import alignment_to_phylip
 from cogent3.util import warning as c3warn
 from cogent3.util.misc import get_setting_from_environ, negate_condition
 
@@ -148,15 +158,16 @@ class SeqsDataABC(ABC):
     """
 
     alphabet: new_alpha.CharAlphabet
-    make_seq: Callable = None
+    make_seq: Callable = (
+        None  # refactor: type hint for callable should specificy input/return type
+    )
 
     @abstractmethod
     def seq_lengths(self) -> dict[str, int]: ...
 
     @property
     @abstractmethod
-    def names(self) -> list:  # refactor: design
-        ...
+    def names(self) -> list: ...
 
     @property
     @abstractmethod
@@ -220,7 +231,7 @@ class SeqsData(SeqsDataABC):
         }
 
     @property
-    def names(self) -> list:  # refactor: design
+    def names(self) -> list:
         return list(self._data.keys())
 
     @property
@@ -238,8 +249,6 @@ class SeqsData(SeqsDataABC):
     @make_seq.setter
     def make_seq(self, make_seq: Callable) -> None:
         self._make_seq = make_seq
-
-    # todo: kath, do we want a num_seqs property for SeqsData?
 
     @property
     def alphabet(self) -> new_alpha.CharAlphabet:
@@ -270,7 +279,7 @@ class SeqsData(SeqsDataABC):
     def subset(self, names: Union[str, typing.Sequence[str]]) -> SeqsData:
         """Returns a new SeqsData object with only the specified names."""
         names = [names] if isinstance(names, str) else names
-        if data := {name: self._data.get(name) for name in names}:
+        if data := {name: self._data.get(name) for name in names if name in self.names}:
             return self.__class__(
                 data=data, alphabet=self.alphabet, make_seq=self.make_seq
             )
@@ -304,78 +313,6 @@ class SeqsData(SeqsDataABC):
         return self[self.names[index]]
 
 
-@singledispatch
-@singledispatch
-def make_seqsdata_dict(
-    data, label_to_name: Callable = None
-) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
-    if isinstance(data, SeqsData):
-        return data
-    raise NotImplementedError(f"make_data_dict not implemented for {type(data)}")
-
-
-@make_seqsdata_dict.register
-def _(
-    data: dict, label_to_name: Callable = None
-) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
-    return {label_to_name(k): v for k, v in data.items()} if label_to_name else data
-
-
-@make_seqsdata_dict.register
-def _(
-    data: list, label_to_name: Callable = None
-) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
-    names = assign_sequential_names(len(data))
-    return make_seqsdata_dict(dict(zip(names, data)), label_to_name=label_to_name)
-
-
-def make_unaligned_seqs(
-    *,
-    data: Union[dict[str, PrimitiveSeqTypes], SeqsData, list],
-    moltype: Union[str, new_moltype.MolType],
-    label_to_name: Callable = None,
-    info: dict = None,
-    source: Union[str, Path] = None,
-    annotation_db: SupportsFeatures = None,
-    **kwargs,
-):
-    """Initialize an unaligned collection of sequences.
-
-    Parameters
-    ----------
-    data
-        sequences, assumes a dict {name: seq, ...} or a SeqsData
-    moltype
-        string representation of the moltype, e.g., 'dna', 'protein'.
-    label_to_name
-        function for converting original names into other names.
-    info
-        a dict from which to make an info object
-    source
-        origins of this data, defaults to 'unknown'. Converted to a string
-        and added to info["source"].
-    **kwargs
-        other keyword arguments to be passed to SequenceCollection
-    """
-    moltype = new_moltype.get_moltype(moltype)
-
-    if len(data) == 0:
-        raise ValueError("data must be at least one sequence.")
-
-    seqs_data = make_seqsdata_dict(data, label_to_name=label_to_name)
-
-    if isinstance(seqs_data, dict):
-        seqs_data = SeqsData(data=seqs_data, alphabet=moltype.degen_gapped_alphabet)
-    elif not moltype.is_compatible_alphabet(data.alphabet):
-        raise ValueError(
-            f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
-        )
-
-    return SequenceCollection(
-        seqs_data=seqs_data, moltype=moltype, info=info, annotation_db=annotation_db
-    )
-
-
 class SequenceCollection:
     def __init__(
         self,
@@ -395,6 +332,7 @@ class SequenceCollection:
         self.info = info
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
+        self.seq_len = max(self.seqs.seq_lengths().values())
 
     @property
     def names(self) -> Iterator[str]:
@@ -429,7 +367,6 @@ class SequenceCollection:
 
         self._annotation_db = value
 
-        # todo: kath
         for seq in self.seqs:
             seq.replace_annotation_db(value, check=False)
 
@@ -535,7 +472,412 @@ class SequenceCollection:
         # pass take_seqs the result of get_seq_indices
         return self.take_seqs(self.get_seq_names_if(f, negate), **kwargs)
 
-    def __eq__(self, other: Union[new_seq.SequenceCollection, dict]) -> bool:
+    def get_seq(self, seqname: str, copy_annotations: bool = False):
+        """Return a sequence object for the specified seqname."""
+        seq = self.seqs[seqname]
+
+        if copy_annotations:
+            seq.annotation_db = type(self.annotation_db)()
+            seq.annotation_db.update(annot_db=self.annotation_db, seqids=seqname)
+
+        return seq
+
+    def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
+        """Return a dictionary of sequences.
+
+        Parameters
+        ----------
+        as_array
+            if True, sequences are returned as numpy arrays, otherwise as strings
+        """
+
+        get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
+        return {name: get(seqid=name) for name in self.names}
+
+    def get_lengths(
+        self, include_ambiguity: bool = False, allow_gap: bool = False
+    ) -> dict[str, int]:
+        """returns sequence lengths as a dict of {seqid: length}
+
+        Parameters
+        ----------
+        include_ambiguity
+            if True, motifs containing ambiguous characters
+            from the seq moltype are included. No expansion of those is attempted.
+        allow_gap
+            if True, motifs containing a gap character are included.
+
+        """
+        counts = self.counts_per_seq(
+            motif_length=1, include_ambiguity=include_ambiguity, allow_gap=allow_gap
+        )
+        return counts.row_sum()
+
+    def copy_annotations(self, seq_db: SupportsFeatures) -> None:
+        """copy annotations into attached annotation db
+
+        Parameters
+        ----------
+        seq_db
+            compatible annotation db
+
+        Notes
+        -----
+        Only copies annotations for records with seqid in self.names
+        """
+        if not isinstance(seq_db, SupportsFeatures):
+            raise TypeError(
+                f"type {type(seq_db)} does not match SupportsFeatures interface"
+            )
+
+        num = 0
+        for seqid in self.names:
+            num += seq_db.num_matches(seqid=seqid)
+            if num > 0:
+                break
+        else:
+            # no matching ID's, nothing to do
+            return
+
+        if self.annotation_db is None:
+            self.annotation_db = type(seq_db)()
+
+        if self.annotation_db.compatible(seq_db, symmetric=False):
+            # our db contains the tables in other, so we update in place
+            self.annotation_db.update(annot_db=seq_db, seqids=self.names)
+        else:
+            # we use the union method to define a new one
+            # the setter handles propagation of the new instance to bound
+            # sequences
+            self.annotation_db = self.annotation_db.union(seq_db)
+
+    def annotate_from_gff(
+        self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
+    ) -> None:
+        """copies annotations from a gff file to sequence(s) in the collection
+
+        Parameters
+        ----------
+        f
+            path to gff annotation file.
+        seq_name
+            names of seqs to be annotated. Does not support setting offset,
+            set offset directly on sequences with seq.annotation_offset = offset
+        """
+        if isinstance(self.annotation_db, GenbankAnnotationDb):
+            raise ValueError("GenbankAnnotationDb already attached")
+
+        seq_ids = [seq_ids] if isinstance(seq_ids, str) else self.names
+        self.annotation_db = load_annotations(
+            path=f, seqids=seq_ids, db=self.annotation_db
+        )
+
+    def make_feature(
+        self,
+        *,
+        feature: FeatureDataType,
+    ) -> Feature:
+        """
+        create a feature on named sequence, or on the collection itself
+
+        Parameters
+        ----------
+        feature
+            a dict with all the necessary data to construct a feature
+
+        Returns
+        -------
+        Feature
+
+        Notes
+        -----
+        To get a feature AND add it to annotation_db, use add_feature().
+        """
+        return self.seqs[feature["seqid"]].make_feature(feature)
+
+    def add_feature(
+        self,
+        *,
+        seqid: str,
+        biotype: str,
+        name: str,
+        spans: list[tuple[int, int]],
+        parent_id: Optional[str] = None,
+        strand: str = "+",
+    ) -> Feature:
+        """
+        add feature on named sequence
+
+        Parameters
+        ----------
+        seqid
+            seq name to associate with
+        parent_id
+            name of the parent feature
+        biotype
+            biological type
+        name
+            feature name
+        spans
+            plus strand coordinates
+        strand
+            either '+' or '-'
+
+        Returns
+        -------
+        Feature
+        """
+        if not self.annotation_db:
+            self.annotation_db = DEFAULT_ANNOTATION_DB()
+
+        if seqid and seqid not in self.names:
+            raise ValueError(f"unknown {seqid=}")
+
+        feature = {k: v for k, v in locals().items() if k != "self"}
+
+        self.annotation_db.add_feature(**feature)
+        feature.pop("parent_id", None)
+        return self.make_feature(feature=feature)
+
+    def get_features(
+        self,
+        *,
+        seqid: Union[str, Iterator[str]] = None,
+        biotype: Optional[str] = None,
+        name: Optional[str] = None,
+        allow_partial: bool = False,
+    ) -> Iterator[Feature]:
+        """yields Feature instances
+
+        Parameters
+        ----------
+        seqid
+            limit search to features on this named sequence, defaults to search all
+        biotype
+            biotype of the feature, e.g. CDS, gene
+        name
+            name of the feature
+        allow_partial
+            allow features partially overlaping self
+
+        Notes
+        -----
+        When dealing with a nucleic acid moltype, the returned features will
+        yield a sequence segment that is consistently oriented irrespective
+        of strand of the current instance.
+        """
+        if not self.annotation_db:
+            return None
+
+        seqid_to_seqname = {seq.parent_coordinates()[0]: seq.name for seq in self.seqs}
+        if seqid and (
+            seqid not in seqid_to_seqname and seqid not in seqid_to_seqname.values()
+        ):
+            raise ValueError(f"unknown {seqid=}")
+
+        for feature in self.annotation_db.get_features_matching(
+            seqid=seqid,
+            biotype=biotype,
+            name=name,
+            on_alignment=False,
+            allow_partial=allow_partial,
+        ):
+            seqname = seqid_to_seqname[feature["seqid"]]
+            seq = self.seqs[seqname]
+            if offset := seq.annotation_offset:
+                feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
+            yield seq.make_feature(feature, self)
+
+    def is_ragged(self):
+        """Returns True if collection has sequences of different lengths."""
+        return len(set(self.seqs.seq_lengths().values())) > 1
+
+    def to_fasta(self, block_size: int = 60) -> str:
+        """Return collection in Fasta format.
+
+        Parameters
+        ----------
+        block_size
+            the sequence length to write to each line,
+            by default 60
+
+        Returns
+        -------
+        The collection in Fasta format.
+        """
+        return alignment_to_fasta(self.to_dict(), block_size=block_size)
+
+    def to_phylip(self):
+        """
+        Return collection in PHYLIP format and mapping to sequence ids
+
+        Notes
+        -----
+        raises exception if invalid sequences do not all have the same length
+        """
+        if self.is_ragged():
+            raise ValueError("not all seqs same length, cannot convert to phylip")
+
+        return alignment_to_phylip(self.to_dict())
+
+    def has_terminal_stop(self, gc: typing.Any = None, strict: bool = False) -> bool:
+        """Returns True if any sequence has a terminal stop codon.
+
+        Parameters
+        ----------
+        gc
+            valid input to cogent3.get_code(), a genetic code object, number
+            or name
+        strict
+            If True, raises an exception if a seq length not divisible by 3
+        """
+
+        for seq_name in self.names:
+            seq = self.seqs[seq_name]
+            if seq.has_terminal_stop(gc=gc, strict=strict):
+                return True
+        return False
+
+    def get_identical_sets(self, mask_degen: bool = False):  # refactor: array
+        """returns sets of names for sequences that are identical
+
+        Parameters
+        ----------
+        mask_degen
+            if True, degenerate characters are ignored
+
+        """
+
+        def reduced(seq, indices):
+            return "".join(seq[i] for i in range(len(seq)) if i not in indices)
+
+        identical_sets = []
+        mask_posns = {}
+        seen = []
+        # if strict, we do a sort and one pass through the list
+        seqs = self.to_dict()
+        if not mask_degen:
+            seqs_names = [(s, n) for n, s in seqs.items()]
+            seqs_names.sort()
+            matched = None
+            dupes = defaultdict(set)
+            for i in range(len(seqs_names) - 1):
+                if seqs_names[i][0] == seqs_names[i + 1][0]:
+                    matched = seqs_names[i][1] if matched is None else matched
+                    dupes[matched].update([seqs_names[i + 1][1], matched])
+                else:
+                    matched = None
+            identical_sets = list(dupes.values())
+            return identical_sets
+
+        for i in range(len(self.names) - 1):
+            n1 = self.names[i]
+            if n1 in seen:
+                continue
+
+            seq1 = seqs[n1]
+            if n1 not in mask_posns:
+                pos = self.moltype.get_degenerate_positions(seq1, include_gap=True)
+                mask_posns[n1] = pos
+
+            group = set()
+            for j in range(i + 1, len(self.names)):
+                n2 = self.names[j]
+                if n2 in seen:
+                    continue
+
+                seq2 = seqs[n2]
+                if n2 not in mask_posns:
+                    pos = self.moltype.get_degenerate_positions(seq2, include_gap=True)
+                    mask_posns[n2] = pos
+
+                seq2 = seqs[n2]
+
+                s1, s2 = seq1, seq2
+
+                pos = mask_posns[n1] + mask_posns[n2]
+                if pos:
+                    s1 = reduced(seq1, pos)
+                    s2 = reduced(seq2, pos)
+
+                if s1 == s2:
+                    seen.append(n2)
+                    group.update([n1, n2])
+
+            if group:
+                identical_sets.append(group)
+
+        return identical_sets
+
+    def get_similar(
+        self,
+        target: new_seq.Sequence,
+        min_similarity: float = 0.0,
+        max_similarity: float = 1.0,
+        metric: float = new_seq.frac_same,
+        transform: bool = None,
+    ) -> new_seq.SequenceCollection:
+        """Returns new SequenceCollection containing sequences similar to target.
+
+        Parameters
+        ----------
+        target
+            sequence object to compare to. Can be in the collection.
+        min_similarity
+            minimum similarity that will be kept. Default 0.0.
+        max_similarity
+            maximum similarity that will be kept. Default 1.0.
+            (Note that both min_similarity and max_similarity are inclusive.)
+        metric
+            similarity function to use. Must be f(first_seq, second_seq).
+            The default metric is fraction similarity, ranging from 0.0 (0%
+            identical) to 1.0 (100% identical). The Sequence classes have lots
+            of methods that can be passed in as unbound methods to act as the
+            metric, e.g. frac_same_gaps.
+        transform
+            transformation function to use on the sequences before
+            the metric is calculated. If None, uses the whole sequences in each
+            case. A frequent transformation is a function that returns a specified
+            range of a sequence, e.g. eliminating the ends. Note that the
+            transform applies to both the real sequence and the target sequence.
+
+        WARNING: if the transformation changes the type of the sequence (e.g.
+        extracting a string from an RnaSequence object), distance metrics that
+        depend on instance data of the original class may fail.
+        """
+        if transform:
+            target = transform(target)
+
+        def m(x):
+            return metric(target, x)
+
+        if transform:
+
+            def f(x):
+                result = m(transform(x))
+                return min_similarity <= result <= max_similarity
+
+        else:
+
+            def f(x):
+                result = m(x)
+                return min_similarity <= result <= max_similarity
+
+        return self.take_seqs_if(f)
+
+    def __len__(self):
+        """len of SequenceCollection returns length of longest sequence."""
+        return self.seq_len
+
+    def __str__(self):
+        """Returns self in FASTA-format, respecting name order."""
+        from cogent3.format.alignment import FORMATTERS
+
+        return FORMATTERS["fasta"](self.to_dict())
+
+    def __eq__(
+        self, other: Union[new_seq.SequenceCollection, dict]
+    ) -> bool:  # refactor: design
         return id(self) == id(other)
 
     def __ne__(self, other: new_seq.SequenceCollection) -> bool:
@@ -596,9 +938,9 @@ class SequenceCollection:
         name_order
             order of names for display.
         wrap
-            number of alignment columns per row
+            number of columns per row
         limit
-            truncate alignment to this length
+            truncate view of collection to this length
         colors
             {character
             moltype.
@@ -628,7 +970,7 @@ class SequenceCollection:
             colors=colors, font_size=font_size, font_family=font_family
         )
 
-        seq_lengths = numpy.array([len(seq) for seq in self.seqs])
+        seq_lengths = numpy.array(list(self.seqs.seq_lengths().values()))
         min_val = seq_lengths.min()
         max_val = seq_lengths.max()
         med_val = numpy.median(seq_lengths)
@@ -777,6 +1119,174 @@ class SequenceCollection:
             if not isinstance(wrap, int):
                 raise TypeError("wrap is not an integer")
             self._repr_policy["wrap"] = wrap
+
+
+@singledispatch
+def merged_db_collection(seqs) -> SupportsFeatures:
+    """return one AnnotationDb from a collection of sequences
+
+    Parameters
+    ----------
+    seqs
+        iterable list of data
+
+    Returns
+    -------
+    list of all annotation db's
+
+    Raises
+    ------
+    TypeError if different classes of AnnotationDb
+    """
+    first = None
+    merged = None
+    for seq in seqs:
+        if not isinstance(seq, new_seq.Sequence):
+            continue
+
+        db = seq.annotation_db
+
+        if first is None and db:
+            # todo gah should this be a copy so immutable?
+            first = db
+            merged = first
+            continue
+
+        if first is None or db is None or first is db:
+            continue
+        first.update(db)
+
+    return merged
+
+
+@merged_db_collection.register
+def _(seqs: dict) -> SupportsFeatures:
+    return merged_db_collection(seqs.values())
+
+
+@singledispatch
+def coerce_to_seqs_data_dict(
+    data, label_to_name: Callable = None
+) -> dict[
+    str, Union[PrimitiveSeqTypes, new_seq.Sequence]
+]:  # refactor: type hint for callable should specificy input/return type
+    raise NotImplementedError(
+        f"coerce_to_seqs_data_dict not implemented for {type(data)}"
+    )
+
+
+@coerce_to_seqs_data_dict.register
+def _(data: dict, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
+    is_sequence = isinstance(next(iter(data.values()), None), new_seq.Sequence)
+    return {
+        (label_to_name(k) if label_to_name else k): (str(v) if is_sequence else v)
+        for k, v in data.items()
+    }
+
+
+@coerce_to_seqs_data_dict.register
+def _(data: list, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
+    first = data[0]
+    labelled_seqs = assign_names(first, data)
+    return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
+
+
+@coerce_to_seqs_data_dict.register
+def _(data: set, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
+    first = next(iter(data))
+    labelled_seqs = assign_names(first, data)
+    return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
+
+
+@singledispatch
+def assign_names(first, data) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
+    raise NotImplementedError(f"assign_names not implemented for {type(data)}")
+
+
+@assign_names.register
+def _(first: new_seq.Sequence, data: list) -> dict[str, new_seq.Sequence]:
+    return {seq.name: seq for seq in data}
+
+
+@assign_names.register
+def _(first: PrimitiveSeqTypes, data: list) -> dict[str, PrimitiveSeqTypes]:
+    names = assign_sequential_names(len(data))
+    return dict(zip(names, data))
+
+
+@singledispatch
+def make_unaligned_seqs(
+    data: Union[dict[str, PrimitiveSeqTypes], SeqsData, list],
+    *,
+    moltype: Union[str, new_moltype.MolType],
+    label_to_name: Callable = None,
+    info: dict = None,
+    source: Union[str, Path] = None,
+    annotation_db: SupportsFeatures = None,
+    **kwargs,
+) -> SequenceCollection:  # refactor: design
+    """Initialize an unaligned collection of sequences.
+
+    Parameters
+    ----------
+    data
+        sequence data, a SeqsData, a dict {name: seq, ...}, an iterable of sequences
+    moltype
+        string representation of the moltype, e.g., 'dna', 'protein'.
+    label_to_name
+        function for converting original names into other names.
+    info
+        a dict from which to make an info object
+    source
+        origins of this data, defaults to 'unknown'. Converted to a string
+        and added to info["source"].
+    """
+    if len(data) == 0:
+        raise ValueError("data must be at least one sequence.")
+
+    seqs_anno_db = merged_db_collection(data)
+    if annotation_db and seqs_anno_db:
+        annotation_db.update(seqs_anno_db)
+    else:
+        annotation_db = annotation_db or seqs_anno_db
+
+    seqs_data = coerce_to_seqs_data_dict(data, label_to_name=label_to_name)
+
+    moltype = new_moltype.get_moltype(moltype)
+    seqs_data = SeqsData(data=seqs_data, alphabet=moltype.degen_gapped_alphabet)
+    return make_unaligned_seqs(
+        seqs_data,
+        moltype=moltype,
+        label_to_name=label_to_name,
+        info=info,
+        source=source,
+        annotation_db=annotation_db,
+    )
+
+
+@make_unaligned_seqs.register
+def _(
+    data: SeqsData,
+    *,
+    moltype: Union[str, new_moltype.MolType],
+    label_to_name: Callable = None,
+    info: dict = None,
+    source: Union[str, Path] = None,
+    annotation_db: SupportsFeatures = None,
+) -> SequenceCollection:
+
+    moltype = new_moltype.get_moltype(moltype)
+    if not moltype.is_compatible_alphabet(data.alphabet):
+        raise ValueError(
+            f"Provided moltype: {moltype} is not compatible with SeqsData alphabet {data.alphabet}"
+        )
+
+    info = info if isinstance(info, dict) else {}
+    info["source"] = str(info.get("source", "unknown"))
+
+    return SequenceCollection(
+        seqs_data=data, moltype=moltype, info=info, annotation_db=annotation_db
+    )
 
 
 @singledispatch
