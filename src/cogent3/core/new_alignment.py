@@ -1187,31 +1187,35 @@ def _(data: dict, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes
 @coerce_to_seqs_data_dict.register
 def _(data: list, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
     first = data[0]
-    labelled_seqs = assign_names(first, data)
+    labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
 
 
 @coerce_to_seqs_data_dict.register
 def _(data: set, label_to_name: Callable = None) -> dict[str, PrimitiveSeqTypes]:
     first = next(iter(data))
-    labelled_seqs = assign_names(first, data)
+    labelled_seqs = assign_names(first, data=data)
     return coerce_to_seqs_data_dict(labelled_seqs, label_to_name=label_to_name)
 
 
 @singledispatch
-def assign_names(first, data) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
+def assign_names(
+    first, data: Union[list, set]
+) -> dict[str, Union[PrimitiveSeqTypes, new_seq.Sequence]]:
+    if isinstance(first, PrimitiveSeqTypes):
+        names = assign_sequential_names(len(data))
+        return dict(zip(names, data))
     raise NotImplementedError(f"assign_names not implemented for {type(data)}")
 
 
 @assign_names.register
-def _(first: new_seq.Sequence, data: list) -> dict[str, new_seq.Sequence]:
+def _(first: new_seq.Sequence, data: Union[list, set]) -> dict[str, new_seq.Sequence]:
     return {seq.name: seq for seq in data}
 
 
 @assign_names.register
-def _(first: PrimitiveSeqTypes, data: list) -> dict[str, PrimitiveSeqTypes]:
-    names = assign_sequential_names(len(data))
-    return dict(zip(names, data))
+def _(first: list, data: Union[list, set]) -> dict[str, PrimitiveSeqTypes]:
+    return {name_seq[0]: name_seq[1] for name_seq in data}
 
 
 @singledispatch
@@ -1223,9 +1227,8 @@ def make_unaligned_seqs(
     info: dict = None,
     source: Union[str, Path] = None,
     annotation_db: SupportsFeatures = None,
-    **kwargs,
 ) -> SequenceCollection:  # refactor: design
-    """Initialize an unaligned collection of sequences.
+    """Initialise an unaligned collection of sequences.
 
     Parameters
     ----------
@@ -1244,7 +1247,9 @@ def make_unaligned_seqs(
     if len(data) == 0:
         raise ValueError("data must be at least one sequence.")
 
+    # create a db from sequences if they're annotated
     seqs_anno_db = merged_db_collection(data)
+    # if db from seqs and provided db, merge
     if annotation_db and seqs_anno_db:
         annotation_db.update(seqs_anno_db)
     else:

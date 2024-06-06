@@ -2135,7 +2135,7 @@ def test_align_get_features():
 
 
 @pytest.mark.parametrize("cls", (SequenceCollection, Alignment))
-def test_init_annotated_seqs(cls):
+def test_init_annotated_seqs(cls):  # ported for SequenceCollection
     """correctly construct from list with annotated seq"""
     seq = make_seq("GCCAGGGGGGAAAG-GGAGAA", name="seq1")
     _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])

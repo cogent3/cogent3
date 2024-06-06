@@ -903,7 +903,7 @@ def test_sequence_collection_to_dict():
         assert isinstance(i, str)
 
 
-def test_get_seq():
+def test_sequence_collection_get_seq():
     """SequenceCollection.get_seq should return specified seq"""
     seqs = new_aln.make_unaligned_seqs(
         {"seq1": "GATTTT", "seq2": "GATC??"}, moltype="dna"
@@ -996,6 +996,15 @@ def test_get_similar():
     assert got.names == ["d"]
 
 
+def test_sequence_collection_init_annotated_seqs():
+    """correctly construct from list with annotated seq"""
+    seq = new_moltype.DNA.make_seq(seq="GCCAGGGGGGAAAG-GGAGAA", name="seq1")
+    _ = seq.add_feature(biotype="exon", name="name", spans=[(4, 10)])
+    coll = new_aln.make_unaligned_seqs([seq], moltype="dna")
+    features = list(coll.get_features(biotype="exon"))
+    assert len(features) == 1
+
+
 def test_sequence_collection_make_unaligned_seqs_annotated():
     """annotate_from_gff should work on data from gff3 files"""
     fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
@@ -1078,6 +1087,20 @@ def test_sequence_collection_copy_annotations(gff_db):
     assert seq_coll.annotation_db.num_matches() == expect
 
 
+def test_sequence_collection_get_seq_annotated():
+    """SequenceCollection.get_seq should return specified seq"""
+    seqs = new_aln.make_unaligned_seqs(
+        {"seq1": "GATTTT", "seq2": "GATC??"}, moltype="dna"
+    )
+    seqs.add_feature(seqid="seq1", biotype="xyz", name="abc", spans=[(1, 2)])
+
+    with_annos = seqs.get_seq("seq1", copy_annotations=True)
+    assert len(with_annos.annotation_db) == 1
+
+    without_annos = seqs.get_seq("seq1", copy_annotations=False)
+    assert len(without_annos.annotation_db) == 0
+
+
 def _make_seq(name):
     raw_seq = "AACCCAAAATTTTTTGGGGGGGGGGCCCC"
     cds = (15, 25)
@@ -1089,7 +1112,8 @@ def _make_seq(name):
 
 
 @pytest.mark.xfail(
-    reason="construction of Sequences from SequenceCollection does not propagate annotations"
+    reason="construction of Sequences from SequenceCollection does not propagate \
+    annotations to get a sequence with annotations, use get_seq with copy_annotations=True"
 )
 def test_sequence_collection_init_seqs_have_annotations():
     """annotations on input seqs correctly merged and propagated"""
