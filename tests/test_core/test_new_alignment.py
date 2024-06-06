@@ -1,7 +1,5 @@
 import os
 
-from warnings import catch_warnings, filterwarnings
-
 import numpy
 import pytest
 
@@ -12,7 +10,6 @@ import cogent3.core.new_sequence as new_seq
 
 # todo: kath, update this to using new Sequence load_seq when it is ready
 from cogent3 import load_seq
-from cogent3._version import __version__
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 
 
