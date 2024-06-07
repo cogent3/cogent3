@@ -1,8 +1,11 @@
+import pytest
+
 from cogent3.core import new_genetic_code
 
 
-def test_get_code():
-    code = new_genetic_code.get_code(1)
+@pytest.mark.parametrize("gc", (1, "Standard", new_genetic_code.DEFAULT))
+def test_get_code(gc):
+    code = new_genetic_code.get_code(gc)
     assert code.name == "Standard"
 
 

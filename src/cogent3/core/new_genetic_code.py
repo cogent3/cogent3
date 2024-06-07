@@ -124,6 +124,12 @@ class GeneticCode:
             trinuc_alpha, self.anticodons, ncbi_code_sequence
         )
 
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
     @property
     def stop_codons(self) -> SetStr:
         return self._stop_codons
@@ -399,6 +405,7 @@ for mapping in code_mapping:
     code = GeneticCode(**dict(zip(_mapping_cols, mapping)))
     _CODES[code.ID] = code
     _CODES[code.name] = code
+    _CODES[code] = code
 
 
 DEFAULT = _CODES[1]
@@ -413,7 +420,7 @@ def get_code(code_id: StrORInt = 1) -> GeneticCode:
         genetic code identifier, name, number or string(number), defaults to
         standard genetic code
     """
-    with contextlib.suppress(ValueError):
+    with contextlib.suppress((ValueError, TypeError)):
         code_id = int(code_id)
 
     if code_id not in _CODES:
