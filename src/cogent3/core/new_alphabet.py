@@ -9,6 +9,7 @@ import numpy
 
 
 StrORBytes = typing.Union[str, bytes]
+StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 OptInt = typing.Optional[int]
 OptStr = typing.Optional[str]
 OptBytes = typing.Optional[bytes]
@@ -230,7 +231,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return 1
 
     @functools.singledispatchmethod
-    def to_indices(self, seq: str) -> numpy.ndarray:
+    def to_indices(self, seq: StrORBytesORArray) -> numpy.ndarray:
         raise TypeError(f"{type(seq)} is invalid")
 
     @to_indices.register
@@ -282,7 +283,7 @@ class CharAlphabet(tuple, AlphabetABC, MonomerAlphabetABC):
         return KmerAlphabet(words=words, monomers=self, gap=gap, k=k)
 
     @functools.singledispatchmethod
-    def is_valid(self, seq) -> bool:
+    def is_valid(self, seq: StrORBytesORArray) -> bool:
         raise TypeError(f"{type(seq)} is invalid")
 
     @is_valid.register

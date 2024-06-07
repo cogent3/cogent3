@@ -15,6 +15,7 @@ OptStr = typing.Optional[str]
 OptCallable = typing.Optional[typing.Callable]
 SeqStrType = typing.Union[list[str], tuple[str, ...]]
 StrORBytes = typing.Union[str, bytes]
+StrORBytesORArray = typing.Union[str, bytes, numpy.ndarray]
 SeqStrBytesType = typing.Union[list[StrORBytes], tuple[StrORBytes, ...]]
 StrORArray = typing.Union[str, numpy.ndarray]
 
@@ -463,7 +464,7 @@ class MolType:
         return self._make_seq(moltype=self, seq=seq or "", name=name, **kwargs)
 
     @functools.singledispatchmethod
-    def complement(self, seq) -> str:
+    def complement(self, seq: StrORBytesORArray) -> str:
         """converts a string or bytes into it's nucleic acid complement"""
         raise TypeError(f"{type(seq)} not supported")
 
@@ -480,7 +481,7 @@ class MolType:
         return self.complement(seq)[::-1]
 
     @functools.singledispatchmethod
-    def is_degenerate(self, seq) -> bool:
+    def is_degenerate(self, seq: StrORBytesORArray) -> bool:
         """checks if a sequence contains degenerate characters"""
         raise TypeError(f"{type(seq)} not supported")
 
