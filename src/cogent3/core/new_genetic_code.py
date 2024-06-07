@@ -127,9 +127,6 @@ class GeneticCode:
     def __hash__(self):
         return hash(self.name)
 
-    def __eq__(self, other):
-        return self.name == other.name
-
     @property
     def stop_codons(self) -> SetStr:
         return self._stop_codons

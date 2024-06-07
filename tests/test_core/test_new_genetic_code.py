@@ -81,3 +81,16 @@ def test_sizeframes():
     }
     got = set(code.sixframes(seq))
     assert got == expect
+
+
+@pytest.mark.parametrize("id", range(1, 5))
+def test_compare_codes_true(id):
+    gc = new_genetic_code.get_code(id)
+    assert gc == gc
+
+
+@pytest.mark.parametrize("id", range(1, 5))
+def test_compare_codes_false(id):
+    gc0 = new_genetic_code.get_code(id)
+    gc1 = new_genetic_code.get_code(id + 1)
+    assert gc0 != gc1
