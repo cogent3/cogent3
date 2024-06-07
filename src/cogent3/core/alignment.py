@@ -942,7 +942,7 @@ class _SequenceCollectionBase:
         new.annotation_db = None
         return new
 
-    def add_seqs(self, other, before_name=None, after_name=None):  # will not port
+    def add_seqs(self, other, before_name=None, after_name=None):  # ported
         """Returns new object of class self with sequences from other added.
 
         Parameters
@@ -1134,7 +1134,7 @@ class _SequenceCollectionBase:
                     ambig[i] = motif
         return result
 
-    def degap(self, **kwargs):  # will not port
+    def degap(self, **kwargs):  # ported
         """Returns copy in which sequences have no gaps.
 
         Parameters
@@ -1866,7 +1866,7 @@ class SequenceCollection(_SequenceCollectionBase):
 
     def annotate_from_gff(
         self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
-    ):  # ported
+    ):  # will not port
         """copies annotations from a gff file to a sequence in self
 
         Parameters

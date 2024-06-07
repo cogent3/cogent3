@@ -868,29 +868,6 @@ def test_take_seqs_if(ragged_padded):
     assert got.num_seqs == 1
 
 
-def test_seq_len_get():
-    """SequenceCollection seq_len should return length of longest seq"""
-    seqs = new_aln.make_unaligned_seqs(
-        {"seq1": "ACGGUCGU", "seq2": "CGUA", "seq3": "CGU"}, moltype="rna"
-    )
-    assert seqs.seq_len == 8
-    less_seqs = seqs.take_seqs(["seq2", "seq3"])
-    assert less_seqs.seq_len == 4
-    least_seqs = seqs.take_seqs(["seq3"])
-    assert least_seqs.seq_len == 3
-
-
-def test_is_ragged(ragged, ragged_padded):
-    """SequenceCollection is_ragged should return true if ragged alignment"""
-    assert ragged.is_ragged()
-    assert not ragged_padded.is_ragged()
-
-
-def test_seq_len_get_ragged(ragged):
-    """SequenceCollection seq_len get should work for ragged seqs"""
-    assert ragged.seq_len == 6
-
-
 def test_sequence_collection_to_dict():
     """SequenceCollection.to_dict should return dict of strings (not obj)"""
     data = {"seq1": "GATTTT", "seq2": "GATC??"}
@@ -910,12 +887,11 @@ def test_sequence_collection_get_seq():
         seqs.get_seq("seqx")
 
 
-def test_len():
-    """len(SequenceCollection) returns length of longest sequence"""
-    seqs = new_aln.make_unaligned_seqs(
-        {"a": "AA", "b": "TTT", "c": "CCCC"}, moltype="dna"
-    )
-    assert len(seqs) == 4
+@pytest.mark.xfail(reason="AttributeError: 'MolType' object has no attribute 'degap'")
+def test_sequence_collection_degap():
+    """SequenceCollection.degap should strip gaps from each seq"""
+    seqs = new_aln.make_unaligned_seqs({"s1": "ATGRY?", "s2": "T-AG??"}, moltype="dna")
+    assert seqs.degap().to_dict() == {"s1": "ATGRY", "s2": "TAG"}
 
 
 def test_sequence_collection_to_fasta():
@@ -1009,28 +985,6 @@ def test_sequence_collection_make_unaligned_seqs_annotated():
     seq = load_seq(fasta_path, moltype="dna")
     seq = new_moltype.DNA.make_seq(seq=str(seq), name="seq1")
     seq.annotate_from_gff(gff3_path)
-
-
-def test_sequence_collection_annotate_from_gff3():
-    """annotate_from_gff should work on data from gff3 files"""
-    fasta_path = os.path.join("data/c_elegans_WS199_dna_shortened.fasta")
-    gff3_path = os.path.join("data/c_elegans_WS199_shortened_gff.gff3")
-    seq = load_seq(fasta_path, moltype="dna")
-
-    # using annotate_from_gff will nest annotations
-    seq_coll = new_aln.make_unaligned_seqs({seq.name: str(seq)}, moltype="dna")
-    seq_coll.annotate_from_gff(gff3_path)
-    member_seq = seq_coll.get_seq(seq.name, copy_annotations=True)
-
-    matches = list(member_seq.get_features())
-    # 11 features
-    assert len(matches) == 11
-    matches = list(member_seq.get_features(biotype="gene"))
-    assert len(matches) == 1
-    matches = list(matches[0].get_children(biotype="mRNA"))
-    assert len(matches) == 1
-    matches = list(matches[0].get_children(biotype="exon"))
-    assert len(matches) == 3
 
 
 def test_sequence_collection_annotation_db_assign_none():

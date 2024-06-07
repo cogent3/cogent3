@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 import typing
 
@@ -21,9 +20,7 @@ from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import (
     BasicAnnotationDb,
     FeatureDataType,
-    GenbankAnnotationDb,
     SupportsFeatures,
-    load_annotations,
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import IndelMap
@@ -94,7 +91,7 @@ class SeqDataView(new_seq.SliceRecordABC):
     @property
     def _zero_slice(self):
         return self.__class__(
-            seqs=self.seqs, seqid=self.seqid, seq_len=self.seq_len, start=0, stop=0
+            seqs=self.seqs, seqid=self.seqid, seq_len=self._seq_len, start=0, stop=0
         )
 
     @property
@@ -206,6 +203,9 @@ class SeqsDataABC(ABC):
     def to_alphabet(self, alphabet: new_alpha.CharAlphabet) -> SeqsDataABC: ...
 
     @abstractmethod
+    def add_seqs(self, seqs) -> SeqsDataABC: ...
+
+    @abstractmethod
     def __len__(self): ...
 
     @abstractmethod
@@ -286,7 +286,15 @@ class SeqsData(SeqsDataABC):
         else:
             raise ValueError(f"provided {names=} not found in collection")
 
-    def to_alphabet(self, alphabet: new_alpha.CharAlphabet) -> SeqsData:
+    def add_seqs(
+        self, seqs: dict[str, PrimitiveSeqTypes], force_unique_keys=True
+    ) -> SeqsData:
+        # todo: kath
+        ...
+
+    def to_alphabet(
+        self, alphabet: new_alpha.CharAlphabet, check_valid=True
+    ) -> SeqsData:
         # todo: kath
         ...
 
@@ -332,7 +340,6 @@ class SequenceCollection:
         self.info = info
         self._repr_policy = dict(num_seqs=10, num_pos=60, ref_name="longest", wrap=60)
         self._annotation_db = annotation_db or DEFAULT_ANNOTATION_DB()
-        self.seq_len = max(self.seqs.seq_lengths().values())
 
     @property
     def names(self) -> Iterator[str]:
@@ -482,6 +489,10 @@ class SequenceCollection:
 
         return seq
 
+    def add_seqs(self, seqs: dict[str, PrimitiveSeqTypes], **kwargs):
+        # todo: kath, add this method once its functional on SeqsData
+        ...
+
     def to_dict(self, as_array: bool = False) -> dict[str, Union[str, numpy.ndarray]]:
         """Return a dictionary of sequences.
 
@@ -493,6 +504,18 @@ class SequenceCollection:
 
         get = self.seqs.get_seq_array if as_array else self.seqs.get_seq_str
         return {name: get(seqid=name) for name in self.names}
+
+    def degap(self, **kwargs):
+        """Returns copy in which sequences have no gaps.
+
+        Parameters
+        ----------
+        kwargs
+            passed to class constructor
+        """
+        # refactor: array - chars > gap char
+        seqs = {name: self.seqs[name].degap() for name in self.names}
+        return make_unaligned_seqs(seqs, moltype=self.moltype, info=self.info, **kwargs)
 
     def get_lengths(
         self, include_ambiguity: bool = False, allow_gap: bool = False
@@ -550,27 +573,6 @@ class SequenceCollection:
             # the setter handles propagation of the new instance to bound
             # sequences
             self.annotation_db = self.annotation_db.union(seq_db)
-
-    def annotate_from_gff(
-        self, f: os.PathLike, seq_ids: Optional[Union[list[str], str]] = None
-    ) -> None:
-        """copies annotations from a gff file to sequence(s) in the collection
-
-        Parameters
-        ----------
-        f
-            path to gff annotation file.
-        seq_name
-            names of seqs to be annotated. Does not support setting offset,
-            set offset directly on sequences with seq.annotation_offset = offset
-        """
-        if isinstance(self.annotation_db, GenbankAnnotationDb):
-            raise ValueError("GenbankAnnotationDb already attached")
-
-        seq_ids = [seq_ids] if isinstance(seq_ids, str) else self.names
-        self.annotation_db = load_annotations(
-            path=f, seqids=seq_ids, db=self.annotation_db
-        )
 
     def make_feature(
         self,
@@ -688,10 +690,6 @@ class SequenceCollection:
                 feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
             yield seq.make_feature(feature, self)
 
-    def is_ragged(self):
-        """Returns True if collection has sequences of different lengths."""
-        return len(set(self.seqs.seq_lengths().values())) > 1
-
     def to_fasta(self, block_size: int = 60) -> str:
         """Return collection in Fasta format.
 
@@ -715,7 +713,7 @@ class SequenceCollection:
         -----
         raises exception if invalid sequences do not all have the same length
         """
-        if self.is_ragged():
+        if len(set(self.seqs.seq_lengths().values())) > 1:
             raise ValueError("not all seqs same length, cannot convert to phylip")
 
         return alignment_to_phylip(self.to_dict())
@@ -864,10 +862,6 @@ class SequenceCollection:
                 return min_similarity <= result <= max_similarity
 
         return self.take_seqs_if(f)
-
-    def __len__(self):
-        """len of SequenceCollection returns length of longest sequence."""
-        return self.seq_len
 
     def __str__(self):
         """Returns self in FASTA-format, respecting name order."""

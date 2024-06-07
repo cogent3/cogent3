@@ -510,7 +510,7 @@ class SequenceCollectionBaseTests(object):
             {"s2": {4: "?", 5: "?"}, "s1": {3: "R", 4: "Y", 5: "?"}},
         )
 
-    def test_degap(self):
+    def test_degap(self):  # ported
         """SequenceCollection.degap should strip gaps from each seq"""
         aln = self.Class({"s1": "ATGRY?", "s2": "T-AG??"}, moltype=DNA)
         self.assertEqual(aln.degap(), {"s1": "ATGRY", "s2": "TAG"})
